@@ -79,6 +79,8 @@ function coerceInt(value) {
  * @param {boolean} params.hasGoFunctions  Whether any function declares a go*.x or provided.al{,2,2023} runtime.
  * @param {boolean} params.hasJavaFunctions  Whether any function declares a java* or java8.al2 runtime.
  * @param {Set<string>} [params.javaImages]  Set of Docker image URIs discovered for Java functions.
+ * @param {number} params.scheduledCount  Total schedule entries discovered (including disabled).
+ * @param {number} params.disabledScheduleCount  Subset where enabled === false.
  */
 function logBootSummary({
   logger,
@@ -96,6 +98,8 @@ function logBootSummary({
   hasGoFunctions,
   hasJavaFunctions,
   javaImages,
+  scheduledCount,
+  disabledScheduleCount,
 }) {
   logger.notice('')
   logger.notice(`sls offline ready (stage: ${stage})`)
@@ -121,6 +125,12 @@ function logBootSummary({
     logger.notice(
       `  Java runner:     docker (public.ecr.aws/lambda/java:{${tagsList}})`,
     )
+  }
+
+  if (scheduledCount > 0) {
+    const suffix =
+      disabledScheduleCount > 0 ? ` (${disabledScheduleCount} disabled)` : ''
+    logger.notice(`  Scheduled functions: ${scheduledCount}${suffix}`)
   }
 
   // WebSocket routes — emit first because the WS upgrade handler fires
@@ -679,6 +689,8 @@ export default class OfflinePlugin {
           hasGoFunctions,
           hasJavaFunctions,
           javaImages,
+          scheduledCount: scheduler.scheduledCount,
+          disabledScheduleCount: scheduler.disabledCount,
         })
       },
     })
