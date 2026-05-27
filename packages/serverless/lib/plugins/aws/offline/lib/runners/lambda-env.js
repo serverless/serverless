@@ -44,7 +44,11 @@ export function buildLambdaRuntimeEnv(context) {
   const env = {
     // Dynamic values (per-invocation):
     AWS_LAMBDA_FUNCTION_NAME: functionName,
-    AWS_LAMBDA_FUNCTION_MEMORY_SIZE: memoryLimitInMB,
+    // Defensive String() — JSDoc says memoryLimitInMB is pre-stringified,
+    // but a future caller forgetting that would silently inject a number
+    // into Object.entries(...).map(([k, v]) => `${k}=${v}`) chains and
+    // break downstream consumers that string-compare the env value.
+    AWS_LAMBDA_FUNCTION_MEMORY_SIZE: String(memoryLimitInMB),
     AWS_LAMBDA_FUNCTION_VERSION: '$LATEST',
     AWS_LAMBDA_INVOKED_FUNCTION_ARN: invokedFunctionArn,
     AWS_LAMBDA_LOG_GROUP_NAME: logGroupName,
@@ -63,7 +67,9 @@ export function buildLambdaRuntimeEnv(context) {
   // _HANDLER — the raw handler string (e.g. 'src/foo.handler').
   // Handlers that read process.env._HANDLER to detect the entry point
   // (e.g. for dynamic dispatch) see the same value offline as in prod.
-  if (handler != null) {
+  // Reject empty strings — they'd set the env var to '' (which surfaces
+  // as "no handler" inside the runtime) rather than omit it.
+  if (typeof handler === 'string' && handler.length > 0) {
     env._HANDLER = handler
   }
 

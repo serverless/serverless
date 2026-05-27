@@ -1,4 +1,3 @@
-import { jest } from '@jest/globals'
 import { buildLambdaRuntimeEnv } from '../../../../../../../../lib/plugins/aws/offline/lib/runners/lambda-env.js'
 
 describe('buildLambdaRuntimeEnv', () => {
@@ -47,6 +46,17 @@ describe('buildLambdaRuntimeEnv', () => {
     const { handler, ...withoutHandler } = baseContext
     const env = buildLambdaRuntimeEnv(withoutHandler)
     expect('_HANDLER' in env).toBe(false)
+  })
+
+  it('omits _HANDLER when context.handler is the empty string', () => {
+    const env = buildLambdaRuntimeEnv({ ...baseContext, handler: '' })
+    expect('_HANDLER' in env).toBe(false)
+  })
+
+  it('stringifies a numeric memoryLimitInMB defensively', () => {
+    const env = buildLambdaRuntimeEnv({ ...baseContext, memoryLimitInMB: 512 })
+    expect(env.AWS_LAMBDA_FUNCTION_MEMORY_SIZE).toBe('512')
+    expect(typeof env.AWS_LAMBDA_FUNCTION_MEMORY_SIZE).toBe('string')
   })
 
   it('does NOT mutate process.env', () => {
