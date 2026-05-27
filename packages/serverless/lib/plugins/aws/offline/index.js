@@ -23,6 +23,7 @@ import { createSqsHandlers } from './lib/aws-api-server/sqs/handlers.js'
 import { createAwsApiServer } from './lib/aws-api-server/index.js'
 import { createRunner } from './lib/runners/create-runner.js'
 import { createInvocationQueue } from './lib/runners/invocation-queue.js'
+import { createScheduler } from './lib/event-sources/schedule.js'
 import { startSqsPollers } from './lib/event-sources/sqs-poller.js'
 import { createAppServer } from './lib/app-server/index.js'
 import { registerAlbRoutes } from './lib/app-server/alb/route-loader.js'
@@ -477,6 +478,17 @@ export default class OfflinePlugin {
       logger: log.get('sls:offline:sqs-poller'),
     })
 
+    // 8b. Construct the scheduler. Construction validates every schedule
+    //     expression and pre-creates croner instances (paused), so a typo'd
+    //     cron throws at boot rather than failing at first tick. start() is
+    //     deferred until after teardowns are registered (below).
+    const scheduler = createScheduler({
+      serverless,
+      getLambdaFunction,
+      logger: log.get('sls:offline:scheduler'),
+      region: provider.region ?? FAKE_REGION,
+    })
+
     // 9. Boot the app server (Hapi v21) for user traffic.
     /** @type {{ method: string, path: string, functionKey: string }[]} */
     let albRoutes = []
@@ -598,6 +610,9 @@ export default class OfflinePlugin {
     // clients get a clean close frame, not a TCP RST.
     orchestrator.onShutdown(() => (wsServer ? wsServer.stop() : undefined))
     orchestrator.onShutdown(() => pollerController.stop())
+    // Scheduler teardown registered BEFORE runner.terminate so LIFO drains
+    // in-flight schedule invocations before runners shut down.
+    orchestrator.onShutdown(() => scheduler.stop())
 
     // 12. Fire before:offline:start so that bundler plugins (e.g. built-in
     //     esbuild) can bundle TS handlers and swap serverless.config.servicePath
@@ -635,6 +650,10 @@ export default class OfflinePlugin {
         })
       }
     }
+
+    // Arm schedules AFTER teardowns are registered and AFTER the bundler
+    // bridge has run, so the function shape is final.
+    scheduler.start()
 
     await orchestrator.start({
       onReady: async () => {
