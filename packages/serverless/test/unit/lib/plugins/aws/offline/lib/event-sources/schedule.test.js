@@ -580,4 +580,136 @@ describe('createScheduler', () => {
     expect(runner.calls.length).toBe(3)
     await scheduler.stop()
   })
+
+  it('no overlap, no warn — fast-resolving invokes never trip the counter', async () => {
+    const runner = makeStubRunner()
+    const logger = makeLogger()
+    const scheduler = createScheduler({
+      serverless: makeServerless({
+        fn: { events: [{ schedule: 'rate(1 minute)' }] },
+      }),
+      getLambdaFunction: runner.getLambdaFunction,
+      logger,
+      region: 'us-east-1',
+    })
+
+    scheduler.start()
+    await jest.advanceTimersByTimeAsync(60_000)
+    await jest.advanceTimersByTimeAsync(60_000)
+    await jest.advanceTimersByTimeAsync(60_000)
+    await flushMicrotasks()
+
+    expect(runner.calls.length).toBe(3)
+    const overlapWarnings = logger.events.filter(
+      ([level, msg]) => level === 'warning' && msg.includes('overlap'),
+    )
+    expect(overlapWarnings.length).toBe(0)
+    await scheduler.stop()
+  })
+
+  it('overlap detected — second tick fires and emits a single warn', async () => {
+    const runner = makeStubRunner()
+    // Never-resolving invoke; in-flight count climbs.
+    runner.setInvokeImpl(() => new Promise(() => {}))
+    const logger = makeLogger()
+    const scheduler = createScheduler({
+      serverless: makeServerless({
+        fn: { events: [{ schedule: 'rate(1 minute)' }] },
+      }),
+      getLambdaFunction: runner.getLambdaFunction,
+      logger,
+      region: 'us-east-1',
+    })
+
+    scheduler.start()
+    await jest.advanceTimersByTimeAsync(60_000)
+    await jest.advanceTimersByTimeAsync(60_000)
+    await flushMicrotasks()
+
+    // Fire-and-forget — second tick STILL invoked, observation only.
+    expect(runner.calls.length).toBe(2)
+    const overlapWarnings = logger.events.filter(
+      ([level, msg]) => level === 'warning' && msg.includes('overlap'),
+    )
+    expect(overlapWarnings.length).toBe(1)
+    expect(overlapWarnings[0][1]).toMatch(
+      /Schedule overlap.*fn.*tick fired while 1 invocation/,
+    )
+    await scheduler.stop()
+  })
+
+  it('counter decrements on success — tick after a settled invoke does not warn', async () => {
+    const runner = makeStubRunner()
+    // Tick 1 resolves; tick 2 and beyond hang.
+    let callCount = 0
+    runner.setInvokeImpl(() => {
+      callCount++
+      if (callCount === 1) return Promise.resolve()
+      return new Promise(() => {})
+    })
+    const logger = makeLogger()
+    const scheduler = createScheduler({
+      serverless: makeServerless({
+        fn: { events: [{ schedule: 'rate(1 minute)' }] },
+      }),
+      getLambdaFunction: runner.getLambdaFunction,
+      logger,
+      region: 'us-east-1',
+    })
+
+    scheduler.start()
+    // Tick 1 — resolves, .finally decrements counter back to 0.
+    await jest.advanceTimersByTimeAsync(60_000)
+    await flushMicrotasks()
+
+    // Tick 2 — counter is 0, no warn; this invoke hangs.
+    await jest.advanceTimersByTimeAsync(60_000)
+    await flushMicrotasks()
+    let overlapWarnings = logger.events.filter(
+      ([level, msg]) => level === 'warning' && msg.includes('overlap'),
+    )
+    expect(overlapWarnings.length).toBe(0)
+
+    // Tick 3 — counter is 1 (from tick 2), warn fires.
+    await jest.advanceTimersByTimeAsync(60_000)
+    await flushMicrotasks()
+    overlapWarnings = logger.events.filter(
+      ([level, msg]) => level === 'warning' && msg.includes('overlap'),
+    )
+    expect(overlapWarnings.length).toBe(1)
+    await scheduler.stop()
+  })
+
+  it('counter decrements on failure — rejected invoke clears the slot', async () => {
+    const runner = makeStubRunner()
+    let callCount = 0
+    runner.setInvokeImpl(() => {
+      callCount++
+      if (callCount === 1) return Promise.reject(new Error('boom'))
+      return new Promise(() => {})
+    })
+    const logger = makeLogger()
+    const scheduler = createScheduler({
+      serverless: makeServerless({
+        fn: { events: [{ schedule: 'rate(1 minute)' }] },
+      }),
+      getLambdaFunction: runner.getLambdaFunction,
+      logger,
+      region: 'us-east-1',
+    })
+
+    scheduler.start()
+    // Tick 1 — rejects; .catch logs error and .finally decrements counter.
+    await jest.advanceTimersByTimeAsync(60_000)
+    await flushMicrotasks()
+
+    // Tick 2 — counter is 0, no overlap warn.
+    await jest.advanceTimersByTimeAsync(60_000)
+    await flushMicrotasks()
+    const overlapWarnings = logger.events.filter(
+      ([level, msg]) => level === 'warning' && msg.includes('overlap'),
+    )
+    expect(overlapWarnings.length).toBe(0)
+    await scheduler.stop()
+  })
 })

@@ -170,6 +170,14 @@ export function createScheduler({
   let scheduledCount = 0
   let disabledCount = 0
 
+  // Per-entry in-flight invocation counter, keyed by `${functionKey}#${index}`.
+  // Persists across the lifetime of the scheduler instance — a fresh
+  // createScheduler() call gives a fresh map. Observational only; ticks are
+  // never serialized (real AWS doesn't either), but we warn when a tick fires
+  // before the previous invocation has settled.
+  /** @type {Map<string, number>} */
+  const inFlight = new Map()
+
   const functions = serverless.service.functions ?? {}
 
   for (const [functionKey, fn] of Object.entries(functions)) {
@@ -250,6 +258,16 @@ export function createScheduler({
           time: new Date(),
         })
 
+    const key = `${entry.functionKey}#${entry.index}`
+    const inFlightCount = inFlight.get(key) ?? 0
+    if (inFlightCount > 0) {
+      logger.warning(
+        `[sls:offline:scheduler] Schedule overlap: ${entry.functionKey} ` +
+          `tick fired while ${inFlightCount} invocation(s) still in-flight`,
+      )
+    }
+    inFlight.set(key, inFlightCount + 1)
+
     // Fire-and-forget — real AWS does not serialize ticks.
     getLambdaFunction(entry.functionKey)
       .invoke(event)
@@ -257,6 +275,11 @@ export function createScheduler({
         logger.error(
           `[sls:offline:scheduler] Invocation of "${entry.functionKey}" failed: ${err.message}`,
         )
+      })
+      .finally(() => {
+        // Decrement on BOTH success and failure so a single hung invocation
+        // doesn't latch the counter past its lifetime.
+        inFlight.set(key, (inFlight.get(key) ?? 1) - 1)
       })
   }
 
