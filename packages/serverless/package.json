@@ -39,7 +39,7 @@
     "@iarna/toml": "^2.2.5",
     "@serverlessinc/sf-core": "*",
     "@smithy/node-http-handler": "^4.4.14",
-    "@smithy/util-retry": "^4.4.3",
+    "@smithy/util-retry": "^4.4.4",
     "adm-zip": "^0.5.17",
     "ajv": "8.18.0",
     "ajv-errors": "^3.0.0",

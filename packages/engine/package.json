@@ -42,7 +42,7 @@
     "@serverless/util": "*",
     "@serverlessinc/sf-core": "*",
     "@slack/web-api": "^7.15.2",
-    "@smithy/util-retry": "^4.4.3",
+    "@smithy/util-retry": "^4.4.4",
     "chokidar": "^4.0.3",
     "date-fns": "^4.1.0",
     "eventsource": "^3.0.7",
