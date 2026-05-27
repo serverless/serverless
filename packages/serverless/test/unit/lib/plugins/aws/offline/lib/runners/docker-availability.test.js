@@ -41,6 +41,21 @@ describe('assertDockerAvailable', () => {
     )
   })
 
+  it('throws OFFLINE_DOCKER_PERMISSION_DENIED on EACCES', async () => {
+    const err = Object.assign(new Error('permission denied'), {
+      code: 'EACCES',
+    })
+    const dockerClient = makeDockerClient(async () => {
+      throw err
+    })
+    await expect(assertDockerAvailable({ dockerClient })).rejects.toMatchObject(
+      { code: 'OFFLINE_DOCKER_PERMISSION_DENIED' },
+    )
+    await expect(assertDockerAvailable({ dockerClient })).rejects.toThrow(
+      /usermod -aG docker/,
+    )
+  })
+
   it('error message names a concrete next step', async () => {
     const err = Object.assign(new Error('boom'), { code: 'ECONNREFUSED' })
     const dockerClient = makeDockerClient(async () => {
