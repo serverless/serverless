@@ -229,11 +229,14 @@ export function createInProcessRunner() {
     },
     /**
      * No-op for in-process: module cache is owned by Node's ESM loader.
-     * Hot-reload is a known M5a limitation.
+     * Hot-reload is a known limitation of this runner. Argument name kept
+     * for sibling-runner parity (worker-thread, python, ruby, go, java
+     * all expose the same shape).
      *
-     * @param {string} _functionKey
+     * @param {string} functionKey
      */
-    invalidate(_functionKey) {},
+    // eslint-disable-next-line no-unused-vars
+    invalidate(functionKey) {},
     /**
      * No-op: nothing to terminate (no worker, no socket).
      *
