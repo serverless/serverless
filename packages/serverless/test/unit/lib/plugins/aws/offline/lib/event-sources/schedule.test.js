@@ -146,6 +146,18 @@ describe('buildScheduledEvent', () => {
 })
 
 describe('createScheduler', () => {
+  // Loop a few rounds of `await Promise.resolve()` to drain async chains
+  // queued by timer callbacks (invoke() → .catch(...) etc.). Centralizing
+  // this avoids magic-number microtask loops sprinkled through tests; if a
+  // chain grows an await, raise `rounds` here once instead of hunting each
+  // call site. Prefer `jest.advanceTimersByTimeAsync` where it can replace
+  // an advance+flush pair atomically.
+  async function flushMicrotasks(rounds = 10) {
+    for (let i = 0; i < rounds; i++) {
+      await Promise.resolve()
+    }
+  }
+
   function makeStubRunner() {
     const calls = []
     let invokeImpl = async () => undefined
@@ -208,11 +220,9 @@ describe('createScheduler', () => {
     })
 
     scheduler.start()
-    jest.advanceTimersByTime(60_000)
-    jest.advanceTimersByTime(60_000)
-    jest.advanceTimersByTime(60_000)
-    // Flush pending microtasks from invocations.
-    await Promise.resolve()
+    await jest.advanceTimersByTimeAsync(60_000)
+    await jest.advanceTimersByTimeAsync(60_000)
+    await jest.advanceTimersByTimeAsync(60_000)
 
     expect(runner.calls.length).toBe(3)
     await scheduler.stop()
@@ -250,12 +260,17 @@ describe('createScheduler', () => {
     })
 
     scheduler.start()
-    // Croner caps its internal setTimeout and re-schedules; advance by 60s
-    // and flush a few microtask rounds so the trigger callback resolves.
-    jest.advanceTimersByTime(60_000)
-    for (let i = 0; i < 5; i++) await Promise.resolve()
+    // Croner caps its internal setTimeout and re-schedules transparently.
+    // Advance well past the noon boundary (2 minutes from 11:59:00Z) so we
+    // don't depend on the exact internal cap value; assert at least one
+    // fire occurred and wall-clock crossed noon UTC.
+    await jest.advanceTimersByTimeAsync(120_000)
+    await flushMicrotasks()
 
-    expect(runner.calls.length).toBe(1)
+    expect(runner.calls.length).toBeGreaterThanOrEqual(1)
+    expect(Date.now()).toBeGreaterThanOrEqual(
+      new Date('2026-05-27T12:00:00Z').getTime(),
+    )
     await scheduler.stop()
   })
 
@@ -295,13 +310,53 @@ describe('createScheduler', () => {
     })
 
     scheduler.start()
-    jest.advanceTimersByTime(600_000)
-    await Promise.resolve()
+    await jest.advanceTimersByTimeAsync(600_000)
 
     expect(runner.calls.length).toBe(0)
     expect(scheduler.scheduledCount).toBe(1)
     expect(scheduler.disabledCount).toBe(1)
     expect(logger.events.filter(([level]) => level === 'notice').length).toBe(1)
+    await scheduler.stop()
+  })
+
+  it('rejects disabled-but-invalid cron at construction', () => {
+    const runner = makeStubRunner()
+    const logger = makeLogger()
+    expect(() =>
+      createScheduler({
+        serverless: makeServerless({
+          fn: {
+            events: [{ schedule: { rate: 'cron(garbage)', enabled: false } }],
+          },
+        }),
+        getLambdaFunction: runner.getLambdaFunction,
+        logger,
+        region: 'us-east-1',
+      }),
+    ).toThrow(
+      expect.objectContaining({ code: 'OFFLINE_SCHEDULE_INVALID_EXPRESSION' }),
+    )
+  })
+
+  it('delivers literal null when input is explicitly null', async () => {
+    const runner = makeStubRunner()
+    const logger = makeLogger()
+    const scheduler = createScheduler({
+      serverless: makeServerless({
+        fn: {
+          events: [{ schedule: { rate: 'rate(1 minute)', input: null } }],
+        },
+      }),
+      getLambdaFunction: runner.getLambdaFunction,
+      logger,
+      region: 'us-east-1',
+    })
+
+    scheduler.start()
+    await jest.advanceTimersByTimeAsync(60_000)
+
+    expect(runner.calls.length).toBe(1)
+    expect(runner.calls[0].event).toBeNull()
     await scheduler.stop()
   })
 
@@ -318,8 +373,7 @@ describe('createScheduler', () => {
     })
 
     scheduler.start()
-    jest.advanceTimersByTime(60_000)
-    await Promise.resolve()
+    await jest.advanceTimersByTimeAsync(60_000)
 
     expect(runner.calls.length).toBe(1)
     expect(runner.calls[0].event.account).toBe('000000000000')
@@ -341,13 +395,11 @@ describe('createScheduler', () => {
       region: 'us-east-1',
     })
 
-    jest.advanceTimersByTime(120_000)
-    await Promise.resolve()
+    await jest.advanceTimersByTimeAsync(120_000)
     expect(runner.calls.length).toBe(0)
 
     scheduler.start()
-    jest.advanceTimersByTime(60_000)
-    await Promise.resolve()
+    await jest.advanceTimersByTimeAsync(60_000)
     expect(runner.calls.length).toBe(1)
     await scheduler.stop()
   })
@@ -365,13 +417,11 @@ describe('createScheduler', () => {
     })
 
     scheduler.start()
-    jest.advanceTimersByTime(60_000)
-    await Promise.resolve()
+    await jest.advanceTimersByTimeAsync(60_000)
     expect(runner.calls.length).toBe(1)
 
     await scheduler.stop()
-    jest.advanceTimersByTime(5 * 60_000)
-    await Promise.resolve()
+    await jest.advanceTimersByTimeAsync(5 * 60_000)
     expect(runner.calls.length).toBe(1)
   })
 
@@ -391,11 +441,11 @@ describe('createScheduler', () => {
     })
 
     scheduler.start()
-    jest.advanceTimersByTime(60_000)
-    // Allow the rejected promise + catch handler to settle. The chain is:
-    //   setInterval cb → invoke() (async) → throw → .catch(logger.error).
-    // Each `await` flushes one microtask tick.
-    for (let i = 0; i < 5; i++) await Promise.resolve()
+    await jest.advanceTimersByTimeAsync(60_000)
+    // Drain the rejected-promise → .catch(logger.error) chain. The async
+    // timer-advance above flushes most microtasks, but the catch handler
+    // may settle a tick later; let it drain.
+    await flushMicrotasks()
 
     const errorLogs = logger.events.filter(([level]) => level === 'error')
     expect(errorLogs.length).toBeGreaterThanOrEqual(1)

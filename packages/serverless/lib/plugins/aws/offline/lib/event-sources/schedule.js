@@ -156,6 +156,7 @@ export function createScheduler({
    * @typedef {{
    *   functionKey: string,
    *   index: number,
+   *   hasInput: boolean,
    *   input?: unknown,
    *   parsed: ReturnType<typeof parseExpression>,
    *   cron?: import('croner').Cron,
@@ -186,28 +187,25 @@ export function createScheduler({
       for (const rateExpr of rates) {
         scheduledCount++
 
-        if (!enabled) {
-          disabledCount++
-          logger.notice(
-            `Schedule for ${functionKey} #${index} disabled by enabled:false`,
-          )
-          continue
-        }
-
-        // Boot-time validation — throws on invalid rate/cron syntax.
+        // Validate-always: parse (and for cron, attempt croner construction)
+        // even when enabled:false so a typo throws at boot regardless of the
+        // flag. We just don't push the entry or arm a timer in that branch —
+        // flipping enabled later shouldn't surface a latent syntax error.
         const parsed = parseExpression(rateExpr)
 
         /** @type {Entry} */
         const entry = {
           functionKey,
           index,
+          // Capture presence of `input` so literal-null user input
+          // (`input: null`) is delivered verbatim rather than swallowed by
+          // a truthiness check.
+          hasInput: 'input' in def,
           input: def.input,
           parsed,
           armed: false,
         }
 
-        // Pre-construct the croner instance (paused) so an invalid pattern
-        // fails at boot, not at first tick.
         if (parsed.kind === 'cron') {
           try {
             entry.cron = new Cron(
@@ -217,10 +215,21 @@ export function createScheduler({
             )
           } catch (err) {
             throw new ServerlessError(
-              `Invalid schedule expression: ${rateExpr}. Croner: ${err.message}`,
+              `Invalid cron pattern in "${rateExpr}": ${err.message}`,
               'OFFLINE_SCHEDULE_INVALID_EXPRESSION',
             )
           }
+        }
+
+        if (!enabled) {
+          disabledCount++
+          // Discard the validated entry; release the croner timer so it
+          // doesn't sit paused-but-allocated.
+          if (entry.cron !== undefined) entry.cron.stop()
+          logger.notice(
+            `Schedule for ${functionKey} #${index} disabled by enabled:false`,
+          )
+          continue
         }
 
         entries.push(entry)
@@ -229,15 +238,17 @@ export function createScheduler({
   }
 
   function _onTick(entry) {
-    const event =
-      entry.input != null
-        ? entry.input
-        : buildScheduledEvent({
-            functionKey: entry.functionKey,
-            index: entry.index,
-            region,
-            time: new Date(),
-          })
+    // Branch on presence (not truthiness): if the user wrote
+    // `input: null` they want literal JSON null delivered verbatim, not
+    // the synthesized envelope.
+    const event = entry.hasInput
+      ? entry.input
+      : buildScheduledEvent({
+          functionKey: entry.functionKey,
+          index: entry.index,
+          region,
+          time: new Date(),
+        })
 
     // Fire-and-forget — real AWS does not serialize ticks.
     getLambdaFunction(entry.functionKey)
