@@ -116,6 +116,23 @@ export async function ensureBuilt({
     return { binaryPath, fromCache: true }
   }
 
+  // Validate sourceDir BEFORE invoking `go build`. Both "go not on PATH"
+  // and "sourceDir doesn't exist" surface as `err.code === 'ENOENT'` from
+  // execFile, so without this check a typo in `handler` would be reported
+  // as "Go toolchain not found" — confusing and misleading.
+  try {
+    await fs.access(sourceDir)
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      throw new ServerlessError(
+        `Go source directory not found for ${functionKey}: ${sourceDir}. ` +
+          "Check the function's `handler` path resolves to a real directory.",
+        'OFFLINE_GO_SOURCE_MISSING',
+      )
+    }
+    throw err
+  }
+
   await fs.mkdir(outDir, { recursive: true })
 
   try {

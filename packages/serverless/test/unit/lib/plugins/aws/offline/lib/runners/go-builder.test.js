@@ -125,6 +125,25 @@ describe('go-builder ensureBuilt', () => {
     ).rejects.toMatchObject({ code: 'OFFLINE_GO_BINARY_MISSING' })
   })
 
+  it('throws OFFLINE_GO_SOURCE_MISSING when sourceDir does not exist', async () => {
+    // Both "go binary missing on PATH" and "sourceDir missing" surface as
+    // err.code === 'ENOENT' from execFile. The disambiguating fs.access
+    // check must fire before the build to keep the error message honest
+    // when the user mistypes `handler`.
+    const sourceDir = '/nonexistent/source/directory/typo'
+    const buildCacheRoot = await makeTempDir('eb-cache-no-src')
+    await expect(
+      ensureBuilt({
+        functionKey: 'fn',
+        sourceDir,
+        sourceFile: path.join(sourceDir, 'main.go'),
+        servicePath: sourceDir,
+        buildCacheRoot,
+        goCommand: '/usr/bin/false',
+      }),
+    ).rejects.toMatchObject({ code: 'OFFLINE_GO_SOURCE_MISSING' })
+  })
+
   itPosix(
     'skips the build when shouldRebuild returns false (fromCache: true)',
     async () => {
