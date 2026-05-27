@@ -11,6 +11,8 @@
 
 import { randomUUID } from 'node:crypto'
 
+import { Cron } from 'croner'
+
 import ServerlessError from '../../../../../serverless-error.js'
 import { FAKE_ACCOUNT_ID } from '../constants.js'
 
@@ -102,5 +104,174 @@ export function buildScheduledEvent({ functionKey, index, region, time }) {
     source: 'aws.events',
     time: time.toISOString().replace(/\.\d{3}Z$/, 'Z'),
     version: '0',
+  }
+}
+
+/**
+ * In-process scheduler factory.
+ *
+ * Walks the service's functions at construction, validates each `schedule:`
+ * declaration (rate or cron), and prepares a paused timer per entry. Timers
+ * are armed in `start()` and torn down in `stop()`. Each tick synthesizes
+ * an AWS-shaped Scheduled Event envelope (or uses the explicit `input`
+ * verbatim) and dispatches it through the shared Lambda facade.
+ *
+ * Boot-time validation is strict — both invalid rate strings and invalid
+ * cron patterns surface as `OFFLINE_SCHEDULE_INVALID_EXPRESSION` BEFORE
+ * `start()` is called, so a typo can't lurk until the first tick.
+ *
+ * @param {object} params
+ * @param {object} params.serverless                Framework's serverless instance.
+ * @param {(functionKey: string) => { invoke(event: unknown): Promise<unknown> }} params.getLambdaFunction
+ *        Lookup that returns a Lambda function facade for the given key.
+ * @param {object} params.logger                    Logger (log.get('sls:offline:scheduler')).
+ * @param {string} params.region                    provider.region ?? FAKE_REGION.
+ * @returns {{
+ *   start(): void,
+ *   stop(): Promise<void>,
+ *   scheduledCount: number,
+ *   disabledCount: number,
+ * }}
+ * @throws {ServerlessError} OFFLINE_SCHEDULE_INVALID_EXPRESSION for any
+ *   invalid rate or cron expression.
+ */
+export function createScheduler({
+  serverless,
+  getLambdaFunction,
+  logger,
+  region,
+}) {
+  /**
+   * @typedef {{
+   *   functionKey: string,
+   *   index: number,
+   *   input?: unknown,
+   *   parsed: ReturnType<typeof parseExpression>,
+   *   cron?: import('croner').Cron,
+   *   intervalId?: NodeJS.Timeout,
+   *   armed: boolean,
+   * }} Entry
+   */
+
+  /** @type {Entry[]} */
+  const entries = []
+  let scheduledCount = 0
+  let disabledCount = 0
+
+  const functions = serverless.service.functions ?? {}
+
+  for (const [functionKey, fn] of Object.entries(functions)) {
+    const events = fn.events ?? []
+    for (let index = 0; index < events.length; index++) {
+      const event = events[index]
+      if (!event || !('schedule' in event)) continue
+
+      const raw = event.schedule
+      /** @type {{ rate: string | string[], enabled?: boolean, input?: unknown }} */
+      const def = typeof raw === 'string' ? { rate: raw } : { ...raw }
+      const enabled = def.enabled !== false
+      const rates = Array.isArray(def.rate) ? def.rate : [def.rate]
+
+      for (const rateExpr of rates) {
+        scheduledCount++
+
+        if (!enabled) {
+          disabledCount++
+          logger.notice(
+            `Schedule for ${functionKey} #${index} disabled by enabled:false`,
+          )
+          continue
+        }
+
+        // Boot-time validation — throws on invalid rate/cron syntax.
+        const parsed = parseExpression(rateExpr)
+
+        /** @type {Entry} */
+        const entry = {
+          functionKey,
+          index,
+          input: def.input,
+          parsed,
+          armed: false,
+        }
+
+        // Pre-construct the croner instance (paused) so an invalid pattern
+        // fails at boot, not at first tick.
+        if (parsed.kind === 'cron') {
+          try {
+            entry.cron = new Cron(
+              parsed.expression,
+              { timezone: 'UTC', paused: true },
+              () => _onTick(entry),
+            )
+          } catch (err) {
+            throw new ServerlessError(
+              `Invalid schedule expression: ${rateExpr}. Croner: ${err.message}`,
+              'OFFLINE_SCHEDULE_INVALID_EXPRESSION',
+            )
+          }
+        }
+
+        entries.push(entry)
+      }
+    }
+  }
+
+  function _onTick(entry) {
+    const event =
+      entry.input != null
+        ? entry.input
+        : buildScheduledEvent({
+            functionKey: entry.functionKey,
+            index: entry.index,
+            region,
+            time: new Date(),
+          })
+
+    // Fire-and-forget — real AWS does not serialize ticks.
+    getLambdaFunction(entry.functionKey)
+      .invoke(event)
+      .catch((err) => {
+        logger.error(
+          `[sls:offline:scheduler] Invocation of "${entry.functionKey}" failed: ${err.message}`,
+        )
+      })
+  }
+
+  return {
+    get scheduledCount() {
+      return scheduledCount
+    },
+    get disabledCount() {
+      return disabledCount
+    },
+
+    start() {
+      for (const entry of entries) {
+        if (entry.armed) continue
+        if (entry.parsed.kind === 'cron') {
+          entry.cron.resume()
+        } else {
+          entry.intervalId = setInterval(
+            () => _onTick(entry),
+            entry.parsed.intervalMs,
+          )
+        }
+        entry.armed = true
+      }
+    },
+
+    async stop() {
+      for (const entry of entries) {
+        if (!entry.armed) continue
+        if (entry.parsed.kind === 'cron') {
+          entry.cron.stop()
+        } else if (entry.intervalId !== undefined) {
+          clearInterval(entry.intervalId)
+          entry.intervalId = undefined
+        }
+        entry.armed = false
+      }
+    },
   }
 }
