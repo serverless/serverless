@@ -456,4 +456,18 @@ describe('routeKey', () => {
     })
     expect(event.routeKey).toBe('PATCH /items')
   })
+
+  it('preserves ANY route keys instead of replacing them with the concrete request method', () => {
+    const event = build({
+      request: makeRequest({ method: 'post' }),
+      route: {
+        method: 'ANY',
+        path: '/items/{proxy+}',
+        functionName: 'anyItem',
+      },
+    })
+    expect(event.routeKey).toBe('ANY /items/{proxy+}')
+    expect(event.requestContext.routeKey).toBe('ANY /items/{proxy+}')
+    expect(event.requestContext.http.method).toBe('POST')
+  })
 })

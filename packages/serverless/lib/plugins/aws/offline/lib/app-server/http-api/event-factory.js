@@ -213,7 +213,7 @@ export function buildHttpApiV2Event({
   domainName,
 }) {
   const method = request.method.toUpperCase()
-  const routeKey = `${method} ${route.path}`
+  const routeKey = `${route.method.toUpperCase()} ${route.path}`
   const rawPath = request.path
 
   // Query string — re-encode via URLSearchParams for consistent normalization
