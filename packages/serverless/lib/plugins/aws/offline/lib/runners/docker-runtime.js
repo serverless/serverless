@@ -182,6 +182,10 @@ export function createDockerRuntimeRunner({
         HostConfig: hostConfig,
         platform,
       }
+      if (/^provided\.(al2|al2023)$/.test(args.runtime ?? '')) {
+        createOpts.Entrypoint = ['/var/task/bootstrap']
+        createOpts.Cmd = []
+      }
 
       const docker = dockerClient.getDockerodeClient()
       const createContainerFn =

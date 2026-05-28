@@ -476,6 +476,53 @@ describe('createJavaRunner (Docker)', () => {
     )
   })
 
+  it('runs provided.al2 bootstrap artifacts from /var/task/bootstrap', async () => {
+    let capturedOpts
+    const runner = createJavaRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      dockerClient: makeFakeDockerClient(),
+      ensureImageReady: async () => {},
+      log: noopLog,
+      createContainerOverride: async (opts) => {
+        capturedOpts = opts
+        const apiBase = opts.Env.find((e) =>
+          e.startsWith('AWS_LAMBDA_RUNTIME_API='),
+        ).split('=')[1]
+        const httpBase = `http://${apiBase.replace('host.docker.internal', '127.0.0.1')}`
+        runSyntheticPoller(async () => {
+          const next = await fetch(
+            `${httpBase}/2018-06-01/runtime/invocation/next`,
+          )
+          const requestId = next.headers.get('lambda-runtime-aws-request-id')
+          await fetch(
+            `${httpBase}/2018-06-01/runtime/invocation/${requestId}/response`,
+            { method: 'POST', body: JSON.stringify({ ok: true }) },
+          )
+        })
+        return makeFakeContainer()
+      },
+      servicePath: '/tmp',
+    })
+
+    try {
+      await runner.invoke(
+        makeInvokeArgs({
+          artifactPath: '/tmp/build/bootstrap',
+          runtime: 'provided.al2',
+        }),
+      )
+    } finally {
+      await runner.terminate()
+    }
+
+    expect(capturedOpts.Image).toBe('public.ecr.aws/lambda/provided:al2')
+    expect(capturedOpts.Entrypoint).toEqual(['/var/task/bootstrap'])
+    expect(capturedOpts.Cmd).toEqual([])
+    expect(capturedOpts.HostConfig.Binds).toEqual(['/tmp/build:/var/task:ro'])
+  })
+
   describe('JAVA_OPTS env var', () => {
     let originalJavaOpts
 
