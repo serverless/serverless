@@ -165,7 +165,8 @@ export function registerAuthSchemes({
       // If neither inline nor provider-level supplied a discriminator, the
       // reference is unresolvable; warn and skip (route stays public).
       const hasJwtMarker = Boolean(merged.issuerUrl) || explicitType === 'JWT'
-      const hasLambdaMarker = lambdas.get(inline.name) !== undefined
+      const lambdaFunctionName = merged.functionName ?? inline.name
+      const hasLambdaMarker = lambdas.get(lambdaFunctionName) !== undefined
 
       if (!hasJwtMarker && !hasLambdaMarker) {
         // eslint-disable-next-line no-console
@@ -198,7 +199,8 @@ export function registerAuthSchemes({
       continue
     }
     // Lambda REQUEST
-    const lambdaFunction = lambdas.get(name)
+    const lambdaFunctionName = def.functionName ?? name
+    const lambdaFunction = lambdas.get(lambdaFunctionName)
     if (!lambdaFunction) {
       // eslint-disable-next-line no-console
       console.warn(

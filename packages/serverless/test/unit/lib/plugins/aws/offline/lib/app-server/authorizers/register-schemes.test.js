@@ -236,6 +236,49 @@ describe('registerAuthSchemes — HTTP API v2', () => {
     )
   })
 
+  it('resolves provider-level HTTP API Lambda authorizer functionName', () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const result = registerAuthSchemes({
+      server,
+      serverless: {
+        service: {
+          provider: {
+            httpApi: {
+              authorizers: {
+                requestAuth: {
+                  type: 'request',
+                  functionName: 'actualAuthFn',
+                  identitySource: '$request.header.Authorization',
+                },
+              },
+            },
+          },
+          functions: {
+            actualAuthFn: { events: [] },
+            protected: {
+              events: [
+                {
+                  httpApi: {
+                    method: 'GET',
+                    path: '/p',
+                    authorizer: { name: 'requestAuth' },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      },
+      lambdas: makeLambdas({ actualAuthFn: { invoke: jest.fn() } }),
+      stage: 'dev',
+      accountId: '000000000000',
+      domainName: 'localhost',
+    })
+    expect(result.v2AuthorizerStrategies.get('requestAuth')).toBe(
+      'lambda-authorizer:v2:requestAuth',
+    )
+  })
+
   it('throws OFFLINE_HTTPAPI_AUTHORIZER_TOKEN_UNSUPPORTED when type is token on httpApi', () => {
     const server = Hapi.server({ host: 'localhost', port: 0 })
     let caught
