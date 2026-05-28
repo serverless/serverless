@@ -425,6 +425,7 @@ describe('createJavaRunner (Docker)', () => {
     expect(envMap._HANDLER).toBe('com.example.Hello::handleRequest')
     expect(envMap.AWS_LAMBDA_FUNCTION_NAME).toBe('fn1')
     expect(envMap.AWS_LAMBDA_FUNCTION_MEMORY_SIZE).toBe('512')
+    expect(envMap.IS_OFFLINE).toBe('true')
     expect(envMap.MY_USER_VAR).toBe('value-1')
   })
 

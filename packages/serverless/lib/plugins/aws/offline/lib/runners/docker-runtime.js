@@ -151,6 +151,7 @@ export function createDockerRuntimeRunner({
           : {}
       const containerEnv = {
         ...lambdaEnv,
+        IS_OFFLINE: 'true',
         ...(args.environment ?? {}),
         AWS_LAMBDA_RUNTIME_API: _apiBaseFor(functionKey),
         _HANDLER: handlerString,
