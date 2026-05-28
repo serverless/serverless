@@ -86,6 +86,19 @@ describe('lambda invoke response shapers', () => {
       const parsed = JSON.parse(resp.body)
       expect(parsed.errorType).toBe('MyError')
     })
+
+    it('handles a thrown non-Error value with safe fallbacks', () => {
+      const { h, resp } = makeH()
+      toInvokeError('boom', h)
+
+      expect(resp.statusCode).toBe(200)
+      expect(resp.headers['X-Amz-Function-Error']).toBe('Unhandled')
+
+      const parsed = JSON.parse(resp.body)
+      expect(parsed.errorType).toBe('Error')
+      expect(parsed.errorMessage).toBe('boom')
+      expect(parsed.trace).toEqual([])
+    })
   })
 
   describe('toNotFound', () => {
