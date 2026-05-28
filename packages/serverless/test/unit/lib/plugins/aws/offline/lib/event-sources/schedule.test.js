@@ -228,6 +228,40 @@ describe('createScheduler', () => {
     await scheduler.stop()
   })
 
+  it('accepts Framework-normalized object rate arrays', async () => {
+    const runner = makeStubRunner()
+    const logger = makeLogger()
+    const scheduler = createScheduler({
+      serverless: makeServerless({
+        fn: {
+          events: [
+            {
+              schedule: {
+                rate: ['rate(1 minute)', 'rate(2 minutes)'],
+                input: { source: 'array-rate' },
+              },
+            },
+          ],
+        },
+      }),
+      getLambdaFunction: runner.getLambdaFunction,
+      logger,
+      region: 'us-east-1',
+    })
+
+    scheduler.start()
+    await jest.advanceTimersByTimeAsync(120_000)
+
+    expect(runner.calls.length).toBe(3)
+    expect(runner.calls.map((c) => c.event)).toEqual([
+      { source: 'array-rate' },
+      { source: 'array-rate' },
+      { source: 'array-rate' },
+    ])
+    expect(scheduler.scheduledCount).toBe(2)
+    await scheduler.stop()
+  })
+
   it('rate(5 seconds) is rejected at construction', () => {
     const runner = makeStubRunner()
     const logger = makeLogger()

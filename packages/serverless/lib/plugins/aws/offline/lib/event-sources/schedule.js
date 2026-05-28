@@ -155,7 +155,7 @@ export function createScheduler({
   /**
    * @typedef {{
    *   functionKey: string,
-   *   index: number,
+   *   index: number | string,
    *   hasInput: boolean,
    *   input?: unknown,
    *   parsed: ReturnType<typeof parseExpression>,
@@ -195,56 +195,62 @@ export function createScheduler({
       /** @type {{ rate: string, enabled?: boolean, input?: unknown }} */
       const def = typeof raw === 'string' ? { rate: raw } : { ...raw }
       const enabled = def.enabled !== false
-      const rateExpr = def.rate
+      const rateExprs = Array.isArray(def.rate) ? def.rate : [def.rate]
 
-      scheduledCount++
+      for (let rateIndex = 0; rateIndex < rateExprs.length; rateIndex++) {
+        const rateExpr = rateExprs[rateIndex]
+        const entryIndex =
+          rateExprs.length === 1 ? index : `${index}-${rateIndex}`
 
-      // Validate-always: parse (and for cron, attempt croner construction)
-      // even when enabled:false so a typo throws at boot regardless of the
-      // flag. We just don't push the entry or arm a timer in that branch —
-      // flipping enabled later shouldn't surface a latent syntax error.
-      const parsed = parseExpression(rateExpr)
+        scheduledCount++
 
-      /** @type {Entry} */
-      const entry = {
-        functionKey,
-        index,
-        // Capture presence of `input` so literal-null user input
-        // (`input: null`) is delivered verbatim rather than swallowed by
-        // a truthiness check.
-        hasInput: 'input' in def,
-        input: def.input,
-        parsed,
-        armed: false,
-      }
+        // Validate-always: parse (and for cron, attempt croner construction)
+        // even when enabled:false so a typo throws at boot regardless of the
+        // flag. We just don't push the entry or arm a timer in that branch —
+        // flipping enabled later shouldn't surface a latent syntax error.
+        const parsed = parseExpression(rateExpr)
 
-      if (parsed.kind === 'cron') {
-        try {
-          entry.cron = new Cron(
-            parsed.expression,
-            { timezone: 'UTC', paused: true },
-            () => _onTick(entry),
-          )
-        } catch (err) {
-          throw new ServerlessError(
-            `Invalid cron pattern in "${rateExpr}": ${err.message}`,
-            'OFFLINE_SCHEDULE_INVALID_EXPRESSION',
-          )
+        /** @type {Entry} */
+        const entry = {
+          functionKey,
+          index: entryIndex,
+          // Capture presence of `input` so literal-null user input
+          // (`input: null`) is delivered verbatim rather than swallowed by
+          // a truthiness check.
+          hasInput: 'input' in def,
+          input: def.input,
+          parsed,
+          armed: false,
         }
-      }
 
-      if (!enabled) {
-        disabledCount++
-        // Discard the validated entry; release the croner timer so it
-        // doesn't sit paused-but-allocated.
-        if (entry.cron !== undefined) entry.cron.stop()
-        logger.notice(
-          `Schedule for ${functionKey} #${index} disabled by enabled:false`,
-        )
-        continue
-      }
+        if (parsed.kind === 'cron') {
+          try {
+            entry.cron = new Cron(
+              parsed.expression,
+              { timezone: 'UTC', paused: true },
+              () => _onTick(entry),
+            )
+          } catch (err) {
+            throw new ServerlessError(
+              `Invalid cron pattern in "${rateExpr}": ${err.message}`,
+              'OFFLINE_SCHEDULE_INVALID_EXPRESSION',
+            )
+          }
+        }
 
-      entries.push(entry)
+        if (!enabled) {
+          disabledCount++
+          // Discard the validated entry; release the croner timer so it
+          // doesn't sit paused-but-allocated.
+          if (entry.cron !== undefined) entry.cron.stop()
+          logger.notice(
+            `Schedule for ${functionKey} #${entryIndex} disabled by enabled:false`,
+          )
+          continue
+        }
+
+        entries.push(entry)
+      }
     }
   }
 
