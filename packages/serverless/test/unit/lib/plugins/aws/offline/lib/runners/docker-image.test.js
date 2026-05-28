@@ -16,20 +16,36 @@ describe('ensureImageReady (via createImageReadinessChecker)', () => {
     debug() {},
   }
 
-  function stubDockerClient({ imagePresent, pullEvents = [], pullError }) {
+  function stubDockerClient({
+    imagePresent,
+    pullEvents = [],
+    pullError,
+    inspectArchitecture = 'amd64',
+  }) {
+    const pullCalls = []
     const inspectError = imagePresent
       ? null
       : Object.assign(new Error('not found'), { statusCode: 404 })
 
     return {
+      pullCalls,
       getDockerodeClient: () => ({
         getImage: (image) => ({
           inspect: async () => {
             if (inspectError) throw inspectError
-            return { Id: 'sha256:abc', RepoTags: [image] }
+            return {
+              Id: 'sha256:abc',
+              RepoTags: [image],
+              Architecture: inspectArchitecture,
+            }
           },
         }),
-        pull: (image, cb) => {
+        pull: (image, opts, cb) => {
+          if (typeof opts === 'function') {
+            cb = opts
+            opts = undefined
+          }
+          pullCalls.push({ image, opts })
           if (pullError) {
             return cb(pullError)
           }
@@ -88,6 +104,62 @@ describe('ensureImageReady (via createImageReadinessChecker)', () => {
           m.includes('Pulling') || m.includes('public.ecr.aws/lambda/java:21'),
       ),
     ).toBe(true)
+  })
+
+  it('passes platform to Docker pull and caches per image plus platform', async () => {
+    const { ensureImageReady } = createImageReadinessChecker()
+    const dockerClient = stubDockerClient({
+      imagePresent: false,
+      pullEvents: [{ status: 'pulled' }],
+    })
+    const image = 'public.ecr.aws/lambda/nodejs:20'
+
+    await ensureImageReady({
+      dockerClient,
+      image,
+      platform: 'linux/amd64',
+      log: noticeLog,
+    })
+    await ensureImageReady({
+      dockerClient,
+      image,
+      platform: 'linux/amd64',
+      log: noticeLog,
+    })
+    await ensureImageReady({
+      dockerClient,
+      image,
+      platform: 'linux/arm64',
+      log: noticeLog,
+    })
+
+    expect(dockerClient.pullCalls).toEqual([
+      { image, opts: { platform: 'linux/amd64' } },
+      { image, opts: { platform: 'linux/arm64' } },
+    ])
+  })
+
+  it('pulls when the local tag exists for a different platform', async () => {
+    const { ensureImageReady } = createImageReadinessChecker()
+    const dockerClient = stubDockerClient({
+      imagePresent: true,
+      inspectArchitecture: 'amd64',
+      pullEvents: [{ status: 'pulled' }],
+    })
+
+    await ensureImageReady({
+      dockerClient,
+      image: 'public.ecr.aws/lambda/nodejs:20',
+      platform: 'linux/arm64',
+      log: noticeLog,
+    })
+
+    expect(dockerClient.pullCalls).toEqual([
+      {
+        image: 'public.ecr.aws/lambda/nodejs:20',
+        opts: { platform: 'linux/arm64' },
+      },
+    ])
   })
 
   it('forwards per-layer pull events to log.debug', async () => {

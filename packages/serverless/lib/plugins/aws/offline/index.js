@@ -3,7 +3,11 @@ import ServerlessError from '../../../serverless-error.js'
 import { assertDockerAvailable } from './lib/runners/docker-availability.js'
 import { cleanupOrphanContainers } from './lib/runners/docker-cleanup.js'
 import { createImageReadinessChecker } from './lib/runners/docker-image.js'
-import { runtimeToImage } from './lib/runners/java-image.js'
+import {
+  architectureToDockerPlatform,
+  isDockerSupportedRuntime,
+  runtimeToDockerImage,
+} from './lib/runners/docker-runtime-image.js'
 import offlineSchema from './lib/schema.js'
 import {
   LOG_NAMESPACE,
@@ -84,6 +88,12 @@ export function resolveOfflineOptions({ cliOptions = {}, offline = {} } = {}) {
       cliOptions.disableCookieValidation ??
       offline.disableCookieValidation ??
       false,
+    dockerHost:
+      cliOptions.dockerHost ?? offline.dockerHost ?? 'host.docker.internal',
+    dockerHostServicePath:
+      cliOptions.dockerHostServicePath ?? offline.dockerHostServicePath ?? null,
+    dockerNetwork: cliOptions.dockerNetwork ?? offline.dockerNetwork ?? null,
+    dockerReadOnly: cliOptions.dockerReadOnly ?? offline.dockerReadOnly ?? true,
     enforceSecureCookies:
       cliOptions.enforceSecureCookies ?? offline.enforceSecureCookies ?? false,
     host: cliOptions.host ?? offline.host ?? DEFAULT_HOST,
@@ -98,6 +108,7 @@ export function resolveOfflineOptions({ cliOptions = {}, offline = {} } = {}) {
     prefix: cliOptions.prefix ?? offline.prefix,
     terminateIdleLambdaTime:
       offline.terminateIdleLambdaTime ?? DEFAULT_TERMINATE_IDLE_LAMBDA_TIME,
+    useDocker: cliOptions.useDocker ?? offline.useDocker ?? false,
     useInProcess: cliOptions.useInProcess ?? offline.useInProcess ?? false,
     watchEnabled:
       cliOptions.noWatch === true || offline.noWatch === true
@@ -130,11 +141,14 @@ export function resolveOfflineOptions({ cliOptions = {}, offline = {} } = {}) {
  * @param {number} params.sqsPollerCount
  * @param {string} params.stage
  * @param {boolean} params.useInProcess  Whether the in-process Node runner is active.
+ * @param {boolean} params.useDocker  Whether Docker mode is enabled for supported runtimes.
  * @param {boolean} params.hasPythonFunctions  Whether any function declares a python3.x runtime.
  * @param {boolean} params.hasRubyFunctions  Whether any function declares a ruby3.x runtime.
  * @param {boolean} params.hasGoFunctions  Whether any function declares a go*.x or provided.al{,2,2023} runtime.
  * @param {boolean} params.hasJavaFunctions  Whether any function declares a java* or java8.al2 runtime.
  * @param {Set<string>} [params.javaImages]  Set of Docker image URIs discovered for Java functions.
+ * @param {boolean} [params.hasDockerFunctions]  Whether any function uses Docker-backed Runtime API mode.
+ * @param {Set<string>} [params.dockerImages]  Set of Docker image URIs discovered for Docker mode.
  * @param {number} params.scheduledCount  Total schedule entries discovered (including disabled).
  * @param {number} params.disabledScheduleCount  Subset where enabled === false.
  */
@@ -149,11 +163,14 @@ function logBootSummary({
   sqsPollerCount,
   stage,
   useInProcess,
+  useDocker,
   hasPythonFunctions,
   hasRubyFunctions,
   hasGoFunctions,
   hasJavaFunctions,
   javaImages,
+  hasDockerFunctions,
+  dockerImages,
   scheduledCount,
   disabledScheduleCount,
 }) {
@@ -161,13 +178,19 @@ function logBootSummary({
   logger.notice(`sls offline ready (stage: ${stage})`)
   logger.notice(`  App endpoint:    ${appUrl}`)
   logger.notice(`  AWS endpoint:    ${awsApiUrl}`)
-  logger.notice(
-    `  Node runner:     ${useInProcess ? 'in-process' : 'worker-thread'}`,
-  )
-  if (hasPythonFunctions) {
+  if (useDocker && hasDockerFunctions) {
+    logger.notice(
+      '  Node runner:     docker when supported, worker-thread fallback',
+    )
+  } else {
+    logger.notice(
+      `  Node runner:     ${useInProcess ? 'in-process' : 'worker-thread'}`,
+    )
+  }
+  if (hasPythonFunctions && !(useDocker && hasDockerFunctions)) {
     logger.notice(`  Python runner:   child-process (python3)`)
   }
-  if (hasRubyFunctions) {
+  if (hasRubyFunctions && !(useDocker && hasDockerFunctions)) {
     logger.notice(`  Ruby runner:     child-process (ruby)`)
   }
   if (hasGoFunctions) {
@@ -180,6 +203,11 @@ function logBootSummary({
       .join(',')
     logger.notice(
       `  Java runner:     docker (public.ecr.aws/lambda/java:{${tagsList}})`,
+    )
+  }
+  if (hasDockerFunctions && dockerImages?.size > javaImages?.size) {
+    logger.notice(
+      `  Docker runner:   ${Array.from(dockerImages).sort().join(', ')}`,
     )
   }
 
@@ -342,6 +370,10 @@ export default class OfflinePlugin {
       corsDisallowCredentials,
       corsExposedHeaders,
       disableCookieValidation,
+      dockerHost,
+      dockerHostServicePath,
+      dockerNetwork,
+      dockerReadOnly,
       enforceSecureCookies,
       host,
       httpsProtocol,
@@ -351,6 +383,7 @@ export default class OfflinePlugin {
       noPrependStageInUrl,
       prefix,
       terminateIdleLambdaTime,
+      useDocker,
       useInProcess,
       watchEnabled,
       webSocketHardTimeout,
@@ -366,15 +399,17 @@ export default class OfflinePlugin {
     // child-process runner alongside the Node runner. Uses the same regex
     // as runtime-guard.js to keep the "what counts as Python" definition
     // in one place per family.
-    const hasPythonFunctions = Object.values(
-      serverless.service.functions ?? {},
-    ).some((fn) => {
+    const functions = Object.values(serverless.service.functions ?? {})
+    const artifactFor = (fn) =>
+      fn.package?.artifact ?? provider.package?.artifact ?? null
+    const architectureFor = (fn) =>
+      fn.architecture ?? provider.architecture ?? 'x86_64'
+
+    const hasPythonFunctions = functions.some((fn) => {
       const rt = fn.runtime ?? serverless.service.provider.runtime
       return /^python\d+\.\d+$/.test(rt ?? '')
     })
-    const hasRubyFunctions = Object.values(
-      serverless.service.functions ?? {},
-    ).some((fn) => {
+    const hasRubyFunctions = functions.some((fn) => {
       const rt = fn.runtime ?? serverless.service.provider.runtime
       return /^ruby\d+\.\d+$/.test(rt ?? '')
     })
@@ -382,31 +417,52 @@ export default class OfflinePlugin {
     // current `provided.al{,2}` custom-runtime family used by current
     // `aws-lambda-go` builds. Regex set matches runtime-guard.js so the
     // "what counts as Go" decision lives in one place per family.
-    const hasGoFunctions = Object.values(
-      serverless.service.functions ?? {},
-    ).some((fn) => {
-      const rt = fn.runtime ?? serverless.service.provider.runtime
-      return /^go\d+\.x?$/.test(rt ?? '') || /^provided\.al2?$/.test(rt ?? '')
-    })
-    // Walk the service once to discover Java functions and the distinct
-    // Lambda container images we need. `provided.al*` is ambiguous between
-    // Go and Java — disambiguated downstream by the multiplexer via the
-    // `.jar` artifact-extension check — so we don't treat those as Java
-    // here. The runner's own dispatch handles them.
-    const javaImages = new Set()
-    for (const fn of Object.values(serverless.service.functions ?? {})) {
+    const hasGoFunctions = functions.some((fn) => {
       const rt = fn.runtime ?? serverless.service.provider.runtime ?? ''
-      if (/^java\d+(\.al2)?$/.test(rt)) {
-        javaImages.add(runtimeToImage(rt))
+      const artifactPath = artifactFor(fn) ?? ''
+      if (/^go\d+\.x?$/.test(rt)) return true
+      if (rt === 'provided.al') return true
+      if (/^provided\.(al2|al2023)$/.test(rt)) {
+        if (artifactPath.endsWith('.jar')) return false
+        return !useDocker
+      }
+      return false
+    })
+    // Walk the service once to discover Docker-backed functions and every
+    // distinct Lambda container image/platform pair we need to pull.
+    const javaImages = new Set()
+    const dockerImages = new Set()
+    const dockerImagePulls = new Map()
+    const addDockerImage = (image, architecture) => {
+      dockerImages.add(image)
+      const platform = architectureToDockerPlatform(architecture)
+      dockerImagePulls.set(`${image}@@${platform}`, { image, platform })
+    }
+    for (const fn of functions) {
+      const rt = fn.runtime ?? serverless.service.provider.runtime ?? ''
+      const artifactPath = artifactFor(fn)
+      if (
+        /^java\d+(\.al2)?$/.test(rt) ||
+        (artifactPath?.endsWith('.jar') && /^provided\.(al2|al2023)$/.test(rt))
+      ) {
+        const image = runtimeToDockerImage(rt, artifactPath)
+        javaImages.add(image)
+        addDockerImage(image, architectureFor(fn))
+      } else if (useDocker && isDockerSupportedRuntime(rt, artifactPath)) {
+        addDockerImage(
+          runtimeToDockerImage(rt, artifactPath),
+          architectureFor(fn),
+        )
       }
     }
     const hasJavaFunctions = javaImages.size > 0
+    const hasDockerFunctions = dockerImages.size > 0
     // Docker is a hard requirement when Java functions exist. The official
     // Lambda Java images include the runtime interface client; this runner
     // spawns one container per function.
     let dockerClient = null
     let ensureImageReady = null
-    if (hasJavaFunctions) {
+    if (hasDockerFunctions) {
       dockerClient = new DockerClient()
       // DockerClient holds no disposable resources — the underlying
       // dockerode client owns its agent sockets internally.
@@ -471,27 +527,44 @@ export default class OfflinePlugin {
     // The Lambda Runtime API queue + Hapi routes are shared by every
     // runner that uses the AWS RIC convention (Go via aws-lambda-go,
     // Java via the official RIC).
-    const hasRuntimeApiFunctions = hasGoFunctions || hasJavaFunctions
+    const hasRuntimeApiFunctions = hasGoFunctions || hasDockerFunctions
     const runtimeApiQueue = hasRuntimeApiFunctions
       ? createInvocationQueue()
       : null
     // Containers reach the host via host.docker.internal, which resolves
     // to a non-loopback IP from the container's POV. A localhost-only
     // bind would refuse the container's connection — bind to 0.0.0.0
-    // when Java functions are present.
-    const awsApiBindHost = hasJavaFunctions ? '0.0.0.0' : host
-    if (hasJavaFunctions && host !== '0.0.0.0') {
+    // when Docker-backed functions are present.
+    const awsApiBindHost = hasDockerFunctions ? '0.0.0.0' : host
+    if (hasDockerFunctions && host !== '0.0.0.0') {
       logger.notice(
-        'awsApiPort bound to 0.0.0.0 (required for Docker-based Java functions to reach the Runtime API via host.docker.internal).',
+        `awsApiPort bound to 0.0.0.0 (required for Docker-based functions to reach the Runtime API via ${dockerHost}).`,
       )
     }
-    const runtimeApiBase = `http://${awsApiBindHost}:${awsApiPort}/runtime`
+    const hostRuntimeApiBase = `http://${host}:${awsApiPort}/runtime`
+    const dockerRuntimeApiBase = `http://${awsApiBindHost}:${awsApiPort}/runtime`
     const runner = createRunner({
       useInProcess,
+      useDocker,
       terminateIdleLambdaTime,
+      docker:
+        useDocker && hasDockerFunctions
+          ? {
+              runtimeApiBase: dockerRuntimeApiBase,
+              runtimeApiQueue,
+              dockerClient,
+              ensureImageReady,
+              servicePath: getHandlerBaseDir(serverless),
+              log: log.get('sls:offline:docker'),
+              dockerHost,
+              dockerHostServicePath,
+              dockerNetwork,
+              dockerReadOnly,
+            }
+          : undefined,
       go: hasGoFunctions
         ? {
-            runtimeApiBase,
+            runtimeApiBase: hostRuntimeApiBase,
             runtimeApiQueue,
             servicePath: getHandlerBaseDir(serverless),
             log: log.get('sls:offline:go'),
@@ -499,12 +572,16 @@ export default class OfflinePlugin {
         : undefined,
       java: hasJavaFunctions
         ? {
-            runtimeApiBase,
+            runtimeApiBase: dockerRuntimeApiBase,
             runtimeApiQueue,
             dockerClient,
             ensureImageReady,
             servicePath: getHandlerBaseDir(serverless),
             log: log.get('sls:offline:java'),
+            dockerHost,
+            dockerHostServicePath,
+            dockerNetwork,
+            dockerReadOnly,
           }
         : undefined,
     })
@@ -718,13 +795,15 @@ export default class OfflinePlugin {
     orchestrator.onShutdown(() => runner.terminate())
     orchestrator.onShutdown(() => watcher.stop())
 
-    // Pre-pull every distinct Java image so users see download progress
-    // up-front rather than discovering it on their first curl.
-    if (hasJavaFunctions) {
-      for (const image of javaImages) {
+    // Pre-pull every distinct Docker image/platform pair so users see
+    // download progress up-front rather than discovering it on their first
+    // curl.
+    if (hasDockerFunctions) {
+      for (const { image, platform } of dockerImagePulls.values()) {
         await ensureImageReady({
           dockerClient,
           image,
+          platform,
           log: log.get('sls:offline:docker'),
         })
       }
@@ -753,11 +832,14 @@ export default class OfflinePlugin {
           sqsPollerCount: pollerController.pollerCount,
           stage,
           useInProcess,
+          useDocker,
           hasPythonFunctions,
           hasRubyFunctions,
           hasGoFunctions,
           hasJavaFunctions,
           javaImages,
+          hasDockerFunctions,
+          dockerImages,
           scheduledCount: scheduler.scheduledCount,
           disabledScheduleCount: scheduler.disabledCount,
         })

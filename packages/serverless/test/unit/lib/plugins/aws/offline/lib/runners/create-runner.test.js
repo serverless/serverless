@@ -107,6 +107,45 @@ describe('createRunner — runtime-aware dispatch', () => {
     }
   })
 
+  it('routes Node to Docker when useDocker is enabled even if useInProcess is true', async () => {
+    const queue = createInvocationQueue()
+    const dispatchProof = new Error('docker-dispatch-proof')
+    const r = createRunner({
+      useInProcess: true,
+      useDocker: true,
+      terminateIdleLambdaTime: 60,
+      docker: {
+        runtimeApiBase: 'http://127.0.0.1:1/runtime',
+        runtimeApiQueue: queue,
+        servicePath: os.tmpdir(),
+        dockerClient: {
+          getDockerodeClient: () => ({
+            modem: { demuxStream() {} },
+          }),
+        },
+        ensureImageReady: async () => {
+          throw dispatchProof
+        },
+      },
+    })
+
+    try {
+      await expect(
+        r.invoke({
+          functionKey: 'node-docker-fn',
+          handlerPath: '/unused/handler.js',
+          handlerName: 'handler',
+          event: {},
+          context: { handler: 'handler.handler' },
+          runtime: 'nodejs20.x',
+          timeoutMs: 1000,
+        }),
+      ).rejects.toBe(dispatchProof)
+    } finally {
+      await r.terminate()
+    }
+  })
+
   it('python runtime takes precedence over useInProcess flag', async () => {
     // useInProcess: true would route Node to in-process, but a Python
     // function must still go to the Python runner.
@@ -335,6 +374,130 @@ describe('createRunner — runtime-aware dispatch', () => {
           context: { handler: 'src/main.handler' },
           artifactPath: null, // no jar → Go
           runtime: 'provided.al2',
+          timeoutMs: 50,
+        }),
+      ).rejects.toMatchObject({ code: expect.stringMatching(/^OFFLINE_GO/) })
+    } finally {
+      await r.terminate()
+    }
+  })
+
+  it('routes provided.al2 without a .jar artifact to Docker when useDocker is enabled', async () => {
+    const queue = createInvocationQueue()
+    const dispatchProof = new Error('docker-provided-dispatch-proof')
+    const r = createRunner({
+      useInProcess: false,
+      useDocker: true,
+      terminateIdleLambdaTime: 60,
+      docker: {
+        runtimeApiBase: 'http://127.0.0.1:1/runtime',
+        runtimeApiQueue: queue,
+        servicePath: os.tmpdir(),
+        dockerClient: {
+          getDockerodeClient: () => ({
+            modem: { demuxStream() {} },
+          }),
+        },
+        ensureImageReady: async () => {
+          throw dispatchProof
+        },
+      },
+    })
+    try {
+      await expect(
+        r.invoke({
+          functionKey: 'provided-docker-fn',
+          handlerPath: '/tmp/src/main.go',
+          handlerName: 'handler',
+          event: {},
+          context: { handler: 'src/main.handler' },
+          artifactPath: '/tmp/dist/bootstrap',
+          runtime: 'provided.al2',
+          timeoutMs: 1000,
+        }),
+      ).rejects.toBe(dispatchProof)
+    } finally {
+      await r.terminate()
+    }
+  })
+
+  it('keeps legacy go1.x on the Go runner even when useDocker is enabled', async () => {
+    const queue = createInvocationQueue()
+    const r = createRunner({
+      useInProcess: false,
+      useDocker: true,
+      terminateIdleLambdaTime: 60,
+      go: {
+        runtimeApiBase: 'http://127.0.0.1:1/runtime',
+        runtimeApiQueue: queue,
+        servicePath: os.tmpdir(),
+      },
+      docker: {
+        runtimeApiBase: 'http://127.0.0.1:1/runtime',
+        runtimeApiQueue: queue,
+        servicePath: os.tmpdir(),
+        dockerClient: {
+          getDockerodeClient: () => ({
+            modem: { demuxStream() {} },
+          }),
+        },
+        ensureImageReady: async () => {
+          throw new Error('should-not-route-to-docker')
+        },
+      },
+    })
+    try {
+      await expect(
+        r.invoke({
+          functionKey: 'go-legacy-fn',
+          handlerPath: '/tmp/src/main.go',
+          handlerName: 'handler',
+          event: {},
+          context: { handler: 'src/main.handler' },
+          runtime: 'go1.x',
+          timeoutMs: 50,
+        }),
+      ).rejects.toMatchObject({ code: expect.stringMatching(/^OFFLINE_GO/) })
+    } finally {
+      await r.terminate()
+    }
+  })
+
+  it('keeps legacy provided.al on the Go runner even with a .jar artifact and useDocker enabled', async () => {
+    const queue = createInvocationQueue()
+    const r = createRunner({
+      useInProcess: false,
+      useDocker: true,
+      terminateIdleLambdaTime: 60,
+      go: {
+        runtimeApiBase: 'http://127.0.0.1:1/runtime',
+        runtimeApiQueue: queue,
+        servicePath: os.tmpdir(),
+      },
+      docker: {
+        runtimeApiBase: 'http://127.0.0.1:1/runtime',
+        runtimeApiQueue: queue,
+        servicePath: os.tmpdir(),
+        dockerClient: {
+          getDockerodeClient: () => ({
+            modem: { demuxStream() {} },
+          }),
+        },
+        ensureImageReady: async () => {
+          throw new Error('should-not-route-to-docker')
+        },
+      },
+    })
+    try {
+      await expect(
+        r.invoke({
+          functionKey: 'provided-al-legacy-fn',
+          handlerPath: '/tmp/src/main.go',
+          handlerName: 'handler',
+          event: {},
+          context: { handler: 'src/main.handler' },
+          artifactPath: '/tmp/target/app.jar',
+          runtime: 'provided.al',
           timeoutMs: 50,
         }),
       ).rejects.toMatchObject({ code: expect.stringMatching(/^OFFLINE_GO/) })

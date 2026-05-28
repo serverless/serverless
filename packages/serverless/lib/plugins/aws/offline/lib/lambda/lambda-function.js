@@ -255,6 +255,8 @@ export function createLambdaFunction({
           // route to the matching sub-runner (Node / Python / future).
           // Same resolution used above for handlerPath extension selection.
           runtime,
+          codeDir: baseDir,
+          architecture: fn.architecture ?? provider.architecture ?? 'x86_64',
           // Absolute path to the user's compiled artifact (Java JAR).
           // Null for non-Java runtimes; the multiplexer ignores it
           // unless it routes the invoke to the Java sub-runner.

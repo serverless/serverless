@@ -83,11 +83,16 @@ describe('resolveOfflineOptions', () => {
       corsDisallowCredentials: true,
       corsExposedHeaders: 'WWW-Authenticate,Server-Authorization',
       disableCookieValidation: false,
+      dockerHost: 'host.docker.internal',
+      dockerHostServicePath: null,
+      dockerNetwork: null,
+      dockerReadOnly: true,
       enforceSecureCookies: false,
       httpsProtocol: undefined,
       ignoreJWTSignature: false,
       localEnvironment: false,
       noAuth: false,
+      useDocker: false,
       webSocketHardTimeout: 7200,
       webSocketIdleTimeout: 600,
     })
@@ -98,19 +103,55 @@ describe('resolveOfflineOptions', () => {
       resolveOfflineOptions({
         cliOptions: {
           corsAllowOrigin: 'https://cli.example.com',
+          dockerHost: 'cli.docker.internal',
+          dockerHostServicePath: '/cli-service',
+          dockerNetwork: 'cli-network',
+          dockerReadOnly: false,
           ignoreJWTSignature: true,
+          useDocker: true,
           webSocketHardTimeout: '30',
         },
         offline: {
           corsAllowOrigin: 'https://yaml.example.com',
+          dockerHost: 'yaml.docker.internal',
+          dockerHostServicePath: '/yaml-service',
+          dockerNetwork: 'yaml-network',
+          dockerReadOnly: true,
           ignoreJWTSignature: false,
+          useDocker: false,
           webSocketHardTimeout: 60,
         },
       }),
     ).toMatchObject({
       corsAllowOrigin: 'https://cli.example.com',
+      dockerHost: 'cli.docker.internal',
+      dockerHostServicePath: '/cli-service',
+      dockerNetwork: 'cli-network',
+      dockerReadOnly: false,
       ignoreJWTSignature: true,
+      useDocker: true,
       webSocketHardTimeout: 30,
+    })
+  })
+
+  it('uses YAML docker option values when CLI values are omitted', () => {
+    expect(
+      resolveOfflineOptions({
+        cliOptions: {},
+        offline: {
+          dockerHost: 'yaml.docker.internal',
+          dockerHostServicePath: '/yaml-service',
+          dockerNetwork: 'yaml-network',
+          dockerReadOnly: false,
+          useDocker: true,
+        },
+      }),
+    ).toMatchObject({
+      dockerHost: 'yaml.docker.internal',
+      dockerHostServicePath: '/yaml-service',
+      dockerNetwork: 'yaml-network',
+      dockerReadOnly: false,
+      useDocker: true,
     })
   })
 })

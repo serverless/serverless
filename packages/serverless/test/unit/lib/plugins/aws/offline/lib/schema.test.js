@@ -19,6 +19,10 @@ describe('offline schema', () => {
       corsExposedHeaders: { type: 'string' },
       customAuthenticationProvider: { type: 'string' },
       disableCookieValidation: { type: 'boolean' },
+      dockerHost: { type: 'string' },
+      dockerHostServicePath: { type: 'string' },
+      dockerNetwork: { type: 'string' },
+      dockerReadOnly: { type: 'boolean' },
       enforceSecureCookies: { type: 'boolean' },
       host: { type: 'string' },
       httpsProtocol: { type: 'string' },
@@ -29,6 +33,7 @@ describe('offline schema', () => {
       noWatch: { type: 'boolean' },
       prefix: { type: 'string' },
       terminateIdleLambdaTime: { type: 'integer', minimum: 0 },
+      useDocker: { type: 'boolean' },
       useInProcess: { type: 'boolean' },
       watch: { type: 'boolean' },
       webSocketHardTimeout: { type: 'integer', minimum: 1 },
@@ -36,7 +41,7 @@ describe('offline schema', () => {
     })
   })
 
-  it('declares the 22 expected keys at the top level', () => {
+  it('declares the 27 expected keys at the top level', () => {
     expect(Object.keys(offlineSchema.properties).sort()).toEqual([
       'appPort',
       'awsApiPort',
@@ -46,6 +51,10 @@ describe('offline schema', () => {
       'corsExposedHeaders',
       'customAuthenticationProvider',
       'disableCookieValidation',
+      'dockerHost',
+      'dockerHostServicePath',
+      'dockerNetwork',
+      'dockerReadOnly',
       'enforceSecureCookies',
       'host',
       'httpsProtocol',
@@ -56,6 +65,7 @@ describe('offline schema', () => {
       'noWatch',
       'prefix',
       'terminateIdleLambdaTime',
+      'useDocker',
       'useInProcess',
       'watch',
       'webSocketHardTimeout',
@@ -67,10 +77,12 @@ describe('offline schema', () => {
     for (const key of [
       'corsDisallowCredentials',
       'disableCookieValidation',
+      'dockerReadOnly',
       'enforceSecureCookies',
       'ignoreJWTSignature',
       'localEnvironment',
       'noAuth',
+      'useDocker',
     ]) {
       expect(offlineSchema.properties[key]).toEqual({ type: 'boolean' })
     }
@@ -81,6 +93,9 @@ describe('offline schema', () => {
       'corsAllowHeaders',
       'corsAllowOrigin',
       'corsExposedHeaders',
+      'dockerHost',
+      'dockerHostServicePath',
+      'dockerNetwork',
       'httpsProtocol',
     ]) {
       expect(offlineSchema.properties[key]).toEqual({ type: 'string' })

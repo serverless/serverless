@@ -25,7 +25,10 @@ describe('cleanupOrphanContainers', () => {
       getDockerodeClient: () => ({
         listContainers: async ({ all, filters }) => {
           expect(all).toBe(true)
-          expect(filters.name[0]).toBe('serverless-offline-java-')
+          expect(filters.name).toEqual([
+            'serverless-offline-docker-',
+            'serverless-offline-java-',
+          ])
           return orphans
         },
         getContainer: (id) => ({
@@ -48,7 +51,7 @@ describe('cleanupOrphanContainers', () => {
   it('removes each orphan container (force) and logs a notice', async () => {
     const client = stubDockerClient({
       orphans: [
-        { Id: 'abc', Names: ['/serverless-offline-java-hello-uuid1'] },
+        { Id: 'abc', Names: ['/serverless-offline-docker-hello-uuid1'] },
         { Id: 'def', Names: ['/serverless-offline-java-world-uuid2'] },
       ],
     })
@@ -59,7 +62,9 @@ describe('cleanupOrphanContainers', () => {
 
   it('per-container removal failure logs a warning, continues with the rest', async () => {
     const client = stubDockerClient({
-      orphans: [{ Id: 'abc', Names: ['/serverless-offline-java-hello-uuid1'] }],
+      orphans: [
+        { Id: 'abc', Names: ['/serverless-offline-docker-hello-uuid1'] },
+      ],
       removeError: new Error('container in use'),
     })
     await expect(

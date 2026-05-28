@@ -58,6 +58,16 @@ function makeFakeDockerClient() {
   }
 }
 
+function runSyntheticPoller(fn) {
+  setImmediate(() => {
+    fn().catch(() => {
+      // Tests frequently terminate the runner while the synthetic poller is
+      // long-polling /next. The production path handles the teardown; the
+      // test harness only needs to avoid late unhandled rejections.
+    })
+  })
+}
+
 describe('createJavaRunner (Docker)', () => {
   let server
   let queue
@@ -90,7 +100,7 @@ describe('createJavaRunner (Docker)', () => {
         functionName: functionKey,
       },
       environment: overrides.environment ?? {},
-      runtime: 'java21',
+      runtime: overrides.runtime ?? 'java21',
       timeoutMs: overrides.timeoutMs ?? 5000,
     }
   }
@@ -137,7 +147,7 @@ describe('createJavaRunner (Docker)', () => {
         capturedCreateOpts = opts
         // After "container start", simulate the in-container RIC by
         // polling /next and posting /response from the test side.
-        setImmediate(async () => {
+        runSyntheticPoller(async () => {
           const apiBase = opts.Env.find((e) =>
             e.startsWith('AWS_LAMBDA_RUNTIME_API='),
           ).split('=')[1]
@@ -172,7 +182,7 @@ describe('createJavaRunner (Docker)', () => {
 
     // Spawn config sanity checks
     expect(capturedCreateOpts.Image).toBe('public.ecr.aws/lambda/java:21')
-    expect(capturedCreateOpts.name).toMatch(/^serverless-offline-java-fn1-/)
+    expect(capturedCreateOpts.name).toMatch(/^serverless-offline-docker-fn1-/)
     expect(capturedCreateOpts.Cmd).toEqual(['com.example.Hello::handleRequest'])
     expect(capturedCreateOpts.HostConfig.AutoRemove).toBe(true)
     expect(capturedCreateOpts.HostConfig.ExtraHosts).toEqual([
@@ -235,7 +245,7 @@ describe('createJavaRunner (Docker)', () => {
               running = false
             }
           }
-        })()
+        })().catch(() => undefined)
         return fakeContainer
       },
       servicePath: '/tmp',
@@ -246,6 +256,115 @@ describe('createJavaRunner (Docker)', () => {
       const r2 = await runner.invoke(makeInvokeArgs({ event: { n: 2 } }))
       expect(r1).toMatchObject({ echoed: { n: 1 } })
       expect(r2).toMatchObject({ echoed: { n: 2 } })
+      expect(createCount).toBe(1)
+    } finally {
+      await runner.terminate()
+    }
+  })
+
+  it('does not idle-evict a reused container while another invocation is active', async () => {
+    let releaseSecond
+    const secondCanRespond = new Promise((resolve) => {
+      releaseSecond = resolve
+    })
+    const fakeContainer = makeFakeContainer()
+    const runner = createJavaRunner({
+      idleEvictionMs: 20,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      dockerClient: makeFakeDockerClient(),
+      ensureImageReady: async () => {},
+      log: noopLog,
+      createContainerOverride: async (opts) => {
+        const apiBase = opts.Env.find((e) =>
+          e.startsWith('AWS_LAMBDA_RUNTIME_API='),
+        ).split('=')[1]
+        const httpBase = `http://${apiBase.replace('host.docker.internal', '127.0.0.1')}`
+        ;(async () => {
+          for (let i = 0; i < 2; i++) {
+            const next = await fetch(
+              `${httpBase}/2018-06-01/runtime/invocation/next`,
+            )
+            const requestId = next.headers.get('lambda-runtime-aws-request-id')
+            const payload = await next.json()
+            if (payload.n === 2) await secondCanRespond
+            await fetch(
+              `${httpBase}/2018-06-01/runtime/invocation/${requestId}/response`,
+              {
+                method: 'POST',
+                body: JSON.stringify({ echoed: payload }),
+                headers: { 'content-type': 'application/json' },
+              },
+            )
+          }
+        })().catch(() => undefined)
+        return fakeContainer
+      },
+      servicePath: '/tmp',
+    })
+
+    try {
+      const first = runner.invoke(makeInvokeArgs({ event: { n: 1 } }))
+      const second = runner.invoke(makeInvokeArgs({ event: { n: 2 } }))
+
+      await expect(first).resolves.toEqual({ echoed: { n: 1 } })
+      await new Promise((resolve) => setTimeout(resolve, 60))
+      expect(fakeContainer.stopped).toBe(false)
+
+      releaseSecond()
+      await expect(second).resolves.toEqual({ echoed: { n: 2 } })
+    } finally {
+      await runner.terminate()
+    }
+  })
+
+  it('deduplicates concurrent cold starts for the same function', async () => {
+    let createCount = 0
+    const fakeContainer = makeFakeContainer()
+    const runner = createJavaRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      dockerClient: makeFakeDockerClient(),
+      ensureImageReady: async () => {
+        await new Promise((resolve) => setTimeout(resolve, 30))
+      },
+      log: noopLog,
+      createContainerOverride: async (opts) => {
+        createCount++
+        const apiBase = opts.Env.find((e) =>
+          e.startsWith('AWS_LAMBDA_RUNTIME_API='),
+        ).split('=')[1]
+        const httpBase = `http://${apiBase.replace('host.docker.internal', '127.0.0.1')}`
+        ;(async () => {
+          for (let i = 0; i < 2; i++) {
+            const next = await fetch(
+              `${httpBase}/2018-06-01/runtime/invocation/next`,
+            )
+            const requestId = next.headers.get('lambda-runtime-aws-request-id')
+            const payload = await next.json()
+            await fetch(
+              `${httpBase}/2018-06-01/runtime/invocation/${requestId}/response`,
+              {
+                method: 'POST',
+                body: JSON.stringify({ echoed: payload }),
+                headers: { 'content-type': 'application/json' },
+              },
+            )
+          }
+        })().catch(() => undefined)
+        return fakeContainer
+      },
+      servicePath: '/tmp',
+    })
+
+    try {
+      const first = runner.invoke(makeInvokeArgs({ event: { n: 1 } }))
+      const second = runner.invoke(makeInvokeArgs({ event: { n: 2 } }))
+      await expect(Promise.all([first, second])).resolves.toEqual([
+        { echoed: { n: 1 } },
+        { echoed: { n: 2 } },
+      ])
       expect(createCount).toBe(1)
     } finally {
       await runner.terminate()
@@ -267,7 +386,7 @@ describe('createJavaRunner (Docker)', () => {
           e.startsWith('AWS_LAMBDA_RUNTIME_API='),
         ).split('=')[1]
         const httpBase = `http://${apiBase.replace('host.docker.internal', '127.0.0.1')}`
-        setImmediate(async () => {
+        runSyntheticPoller(async () => {
           const next = await fetch(
             `${httpBase}/2018-06-01/runtime/invocation/next`,
           )
@@ -309,6 +428,54 @@ describe('createJavaRunner (Docker)', () => {
     expect(envMap.MY_USER_VAR).toBe('value-1')
   })
 
+  it('applies Docker host, network, and read-only knobs to container create options', async () => {
+    let capturedOpts
+    const runner = createJavaRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      dockerClient: makeFakeDockerClient(),
+      ensureImageReady: async () => {},
+      log: noopLog,
+      dockerHost: 'offline-host.test',
+      dockerNetwork: 'offline-net',
+      dockerReadOnly: false,
+      createContainerOverride: async (opts) => {
+        capturedOpts = opts
+        const apiBase = opts.Env.find((e) =>
+          e.startsWith('AWS_LAMBDA_RUNTIME_API='),
+        ).split('=')[1]
+        const httpBase = `http://${apiBase.replace('offline-host.test', '127.0.0.1')}`
+        runSyntheticPoller(async () => {
+          const next = await fetch(
+            `${httpBase}/2018-06-01/runtime/invocation/next`,
+          )
+          const requestId = next.headers.get('lambda-runtime-aws-request-id')
+          await fetch(
+            `${httpBase}/2018-06-01/runtime/invocation/${requestId}/response`,
+            { method: 'POST', body: JSON.stringify({ ok: true }) },
+          )
+        })
+        return makeFakeContainer()
+      },
+      servicePath: '/tmp',
+    })
+
+    try {
+      await runner.invoke(makeInvokeArgs())
+    } finally {
+      await runner.terminate()
+    }
+
+    expect(capturedOpts.HostConfig.NetworkMode).toBe('offline-net')
+    expect(capturedOpts.HostConfig.Binds).toEqual([
+      '/tmp/target:/var/task/lib:rw',
+    ])
+    expect(capturedOpts.Env).toContain(
+      `AWS_LAMBDA_RUNTIME_API=offline-host.test:${server.info.port}/runtime/fn1`,
+    )
+  })
+
   describe('JAVA_OPTS env var', () => {
     let originalJavaOpts
 
@@ -340,7 +507,7 @@ describe('createJavaRunner (Docker)', () => {
             e.startsWith('AWS_LAMBDA_RUNTIME_API='),
           ).split('=')[1]
           const httpBase = `http://${apiBase.replace('host.docker.internal', '127.0.0.1')}`
-          setImmediate(async () => {
+          runSyntheticPoller(async () => {
             const next = await fetch(
               `${httpBase}/2018-06-01/runtime/invocation/next`,
             )
@@ -367,6 +534,52 @@ describe('createJavaRunner (Docker)', () => {
       expect(javaToolOptions).toBe('JAVA_TOOL_OPTIONS=-Xmx256m -Dfoo=bar')
     })
 
+    it('forwards JAVA_OPTS for provided.al2 .jar functions routed to the Java image', async () => {
+      process.env.JAVA_OPTS = '-Dprovided=true'
+      let capturedOpts
+      const runner = createJavaRunner({
+        idleEvictionMs: 60_000,
+        runtimeApiBase,
+        runtimeApiQueue: queue,
+        dockerClient: makeFakeDockerClient(),
+        ensureImageReady: async () => {},
+        log: noopLog,
+        createContainerOverride: async (opts) => {
+          capturedOpts = opts
+          const apiBase = opts.Env.find((e) =>
+            e.startsWith('AWS_LAMBDA_RUNTIME_API='),
+          ).split('=')[1]
+          const httpBase = `http://${apiBase.replace('host.docker.internal', '127.0.0.1')}`
+          runSyntheticPoller(async () => {
+            const next = await fetch(
+              `${httpBase}/2018-06-01/runtime/invocation/next`,
+            )
+            const id = next.headers.get('lambda-runtime-aws-request-id')
+            await fetch(
+              `${httpBase}/2018-06-01/runtime/invocation/${id}/response`,
+              { method: 'POST', body: '{}' },
+            )
+          })
+          return makeFakeContainer()
+        },
+        servicePath: '/tmp',
+      })
+
+      try {
+        await runner.invoke(
+          makeInvokeArgs({
+            runtime: 'provided.al2',
+            artifactPath: '/tmp/target/service.jar',
+          }),
+        )
+      } finally {
+        await runner.terminate()
+      }
+
+      expect(capturedOpts.Image).toBe('public.ecr.aws/lambda/java:21')
+      expect(capturedOpts.Env).toContain('JAVA_TOOL_OPTIONS=-Dprovided=true')
+    })
+
     it('omits JAVA_TOOL_OPTIONS when JAVA_OPTS is unset', async () => {
       delete process.env.JAVA_OPTS
       let capturedOpts
@@ -383,7 +596,7 @@ describe('createJavaRunner (Docker)', () => {
             e.startsWith('AWS_LAMBDA_RUNTIME_API='),
           ).split('=')[1]
           const httpBase = `http://${apiBase.replace('host.docker.internal', '127.0.0.1')}`
-          setImmediate(async () => {
+          runSyntheticPoller(async () => {
             const next = await fetch(
               `${httpBase}/2018-06-01/runtime/invocation/next`,
             )
@@ -424,10 +637,12 @@ describe('createJavaRunner (Docker)', () => {
           e.startsWith('AWS_LAMBDA_RUNTIME_API='),
         ).split('=')[1]
         const httpBase = `http://${apiBase.replace('host.docker.internal', '127.0.0.1')}`
-        setImmediate(async () => {
+        runSyntheticPoller(async () => {
           try {
             await fetch(`${httpBase}/2018-06-01/runtime/invocation/next`)
-          } catch {}
+          } catch {
+            // The runner may terminate while the synthetic poller is waiting.
+          }
         })
         return makeFakeContainer()
       },
@@ -458,10 +673,12 @@ describe('createJavaRunner (Docker)', () => {
           e.startsWith('AWS_LAMBDA_RUNTIME_API='),
         ).split('=')[1]
         const httpBase = `http://${apiBase.replace('host.docker.internal', '127.0.0.1')}`
-        setImmediate(async () => {
+        runSyntheticPoller(async () => {
           try {
             await fetch(`${httpBase}/2018-06-01/runtime/invocation/next`)
-          } catch {}
+          } catch {
+            // The runner may terminate while the synthetic poller is waiting.
+          }
         })
         return fakeContainer
       },
@@ -501,7 +718,7 @@ describe('createJavaRunner (Docker)', () => {
           e.startsWith('AWS_LAMBDA_RUNTIME_API='),
         ).split('=')[1]
         const httpBase = `http://${apiBase.replace('host.docker.internal', '127.0.0.1')}`
-        setImmediate(async () => {
+        runSyntheticPoller(async () => {
           const next = await fetch(
             `${httpBase}/2018-06-01/runtime/invocation/next`,
           )
@@ -598,10 +815,12 @@ describe('createJavaRunner (Docker)', () => {
           e.startsWith('AWS_LAMBDA_RUNTIME_API='),
         ).split('=')[1]
         const httpBase = `http://${apiBase.replace('host.docker.internal', '127.0.0.1')}`
-        setImmediate(async () => {
+        runSyntheticPoller(async () => {
           try {
             await fetch(`${httpBase}/2018-06-01/runtime/invocation/next`)
-          } catch {}
+          } catch {
+            // The runner may terminate while the synthetic poller is waiting.
+          }
         })
         return fakeContainer
       },

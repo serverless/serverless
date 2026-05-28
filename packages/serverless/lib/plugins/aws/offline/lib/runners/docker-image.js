@@ -7,26 +7,30 @@ import ServerlessError from '../../../../../serverless-error.js'
  * create a fresh checker (`createImageReadinessChecker()` invoked again
  * at the boot wiring's call site).
  *
- * The cache is keyed by image URI. A successful pull resolves the Promise
- * permanently (subsequent calls hit the cache and return immediately). A
- * failed pull rejects and removes the entry, so a corrected toolchain
- * (user fixed network / pulled manually) can retry on the next call.
+ * The cache is keyed by image URI and platform. A successful pull resolves
+ * the Promise permanently (subsequent calls hit the cache and return
+ * immediately). A failed pull rejects and removes the entry, so a corrected
+ * toolchain (user fixed network / pulled manually) can retry on the next call.
  *
  * @returns {{
- *   ensureImageReady(opts: { dockerClient: object, image: string, log: object }): Promise<void>,
+ *   ensureImageReady(opts: { dockerClient: object, image: string, platform?: string, log: object }): Promise<void>,
  * }}
  */
 export function createImageReadinessChecker() {
   /** @type {Map<string, Promise<void>>} */
   const inFlight = new Map()
 
-  async function _check(dockerClient, image, log) {
+  async function _check(dockerClient, image, platform, log) {
     const docker = dockerClient.getDockerodeClient()
 
     // 1. Already pulled?
     try {
-      await docker.getImage(image).inspect()
-      return // present; nothing to do
+      const inspected = await docker.getImage(image).inspect()
+      if (!platform) return // present; nothing to do
+      const inspectedPlatform = inspected?.Architecture
+        ? `linux/${inspected.Architecture}`
+        : null
+      if (inspectedPlatform === platform) return
     } catch (err) {
       if (err.statusCode !== 404) {
         // Some other error from `inspect` — surface as a pull failure,
@@ -40,12 +44,16 @@ export function createImageReadinessChecker() {
     }
 
     if (typeof log?.notice === 'function') {
-      log.notice(`Pulling ${image} — this can take 30s–3min on first run.`)
+      const suffix = platform ? ` (${platform})` : ''
+      log.notice(
+        `Pulling ${image}${suffix} — this can take 30s–3min on first run.`,
+      )
     }
 
     // 2. Pull, streaming progress events.
     await new Promise((resolve, reject) => {
-      docker.pull(image, (err, stream) => {
+      const pullArgs = platform ? [image, { platform }] : [image]
+      docker.pull(...pullArgs, (err, stream) => {
         if (err) {
           reject(
             new ServerlessError(
@@ -68,7 +76,8 @@ export function createImageReadinessChecker() {
               return
             }
             if (typeof log?.notice === 'function') {
-              log.notice(`Pulled ${image}.`)
+              const suffix = platform ? ` (${platform})` : ''
+              log.notice(`Pulled ${image}${suffix}.`)
             }
             resolve()
           },
@@ -95,16 +104,17 @@ export function createImageReadinessChecker() {
     })
   }
 
-  async function ensureImageReady({ dockerClient, image, log }) {
-    let promise = inFlight.get(image)
+  async function ensureImageReady({ dockerClient, image, platform, log }) {
+    const key = platform ? `${image}@@${platform}` : image
+    let promise = inFlight.get(key)
     if (promise) return promise
 
-    promise = _check(dockerClient, image, log).catch((err) => {
+    promise = _check(dockerClient, image, platform, log).catch((err) => {
       // Remove failed promise so a retry will re-attempt the pull.
-      inFlight.delete(image)
+      inFlight.delete(key)
       throw err
     })
-    inFlight.set(image, promise)
+    inFlight.set(key, promise)
     return promise
   }
 

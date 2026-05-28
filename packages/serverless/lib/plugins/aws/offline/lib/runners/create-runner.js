@@ -1,9 +1,11 @@
 import { createGoRunner } from './go.js'
+import { createDockerRuntimeRunner } from './docker-runtime.js'
 import { createInProcessRunner } from './in-process.js'
 import { createJavaRunner } from './java.js'
 import { createPythonRunner } from './python.js'
 import { createRubyRunner } from './ruby.js'
 import { createWorkerThreadRunner } from './worker-thread.js'
+import { isDockerSupportedRuntime } from './docker-runtime-image.js'
 
 /**
  * Resolve the runner kind for an invoke args object.
@@ -18,15 +20,20 @@ import { createWorkerThreadRunner } from './worker-thread.js'
  *
  * @param {object} args  Full invoke args; reads `runtime` and `artifactPath`.
  * @param {boolean} useInProcess
- * @returns {'python' | 'ruby' | 'go' | 'java' | 'in-process' | 'worker-thread'}
+ * @param {boolean} useDocker
+ * @returns {'docker' | 'python' | 'ruby' | 'go' | 'java' | 'in-process' | 'worker-thread'}
  */
-function _resolveRunnerKind(args, useInProcess) {
+function _resolveRunnerKind(args, useInProcess, useDocker) {
   const runtime = args?.runtime ?? ''
+  if (useDocker && isDockerSupportedRuntime(runtime, args?.artifactPath)) {
+    return 'docker'
+  }
   if (/^python\d+\.\d+$/.test(runtime)) return 'python'
   if (/^ruby\d+\.\d+$/.test(runtime)) return 'ruby'
   if (/^go\d+\.x?$/.test(runtime)) return 'go'
   if (/^java\d+(\.al2)?$/.test(runtime)) return 'java'
-  if (/^provided\.(al|al2|al2023)$/.test(runtime)) {
+  if (runtime === 'provided.al') return 'go'
+  if (/^provided\.(al2|al2023)$/.test(runtime)) {
     const artifactPath = args?.artifactPath ?? ''
     return artifactPath.endsWith('.jar') ? 'java' : 'go'
   }
@@ -102,13 +109,15 @@ function _resolveRunnerKind(args, useInProcess) {
  */
 export function createRunner({
   useInProcess,
+  useDocker = false,
   terminateIdleLambdaTime,
+  docker,
   go,
   java,
 }) {
   const idleEvictionMs = terminateIdleLambdaTime * 1000
 
-  /** @type {Map<'in-process' | 'worker-thread' | 'python' | 'ruby' | 'go' | 'java', { invoke: Function, invalidate: Function, terminate: Function }>} */
+  /** @type {Map<'in-process' | 'worker-thread' | 'python' | 'ruby' | 'go' | 'java' | 'docker', { invoke: Function, invalidate: Function, terminate: Function }>} */
   const subs = new Map()
 
   function _get(kind) {
@@ -133,6 +142,30 @@ export function createRunner({
         servicePath: go.servicePath,
         log: go.log,
       })
+    } else if (kind === 'docker') {
+      if (
+        !docker?.runtimeApiBase ||
+        !docker?.runtimeApiQueue ||
+        !docker?.dockerClient ||
+        !docker?.ensureImageReady
+      ) {
+        throw new Error(
+          'createRunner: Docker functions require `docker.runtimeApiBase`, `docker.runtimeApiQueue`, `docker.dockerClient`, and `docker.ensureImageReady` options',
+        )
+      }
+      r = createDockerRuntimeRunner({
+        idleEvictionMs,
+        runtimeApiBase: docker.runtimeApiBase,
+        runtimeApiQueue: docker.runtimeApiQueue,
+        dockerClient: docker.dockerClient,
+        ensureImageReady: docker.ensureImageReady,
+        servicePath: docker.servicePath,
+        log: docker.log,
+        dockerHost: docker.dockerHost,
+        dockerHostServicePath: docker.dockerHostServicePath,
+        dockerNetwork: docker.dockerNetwork,
+        dockerReadOnly: docker.dockerReadOnly,
+      })
     } else if (kind === 'java') {
       if (
         !java?.runtimeApiBase ||
@@ -152,6 +185,10 @@ export function createRunner({
         ensureImageReady: java.ensureImageReady,
         servicePath: java.servicePath,
         log: java.log,
+        dockerHost: java.dockerHost,
+        dockerHostServicePath: java.dockerHostServicePath,
+        dockerNetwork: java.dockerNetwork,
+        dockerReadOnly: java.dockerReadOnly,
       })
     } else {
       r = createWorkerThreadRunner({ servicePath: '', idleEvictionMs })
@@ -162,7 +199,7 @@ export function createRunner({
 
   return {
     async invoke(args) {
-      const kind = _resolveRunnerKind(args, useInProcess)
+      const kind = _resolveRunnerKind(args, useInProcess, useDocker)
       return _get(kind).invoke(args)
     },
     invalidate(functionKey) {

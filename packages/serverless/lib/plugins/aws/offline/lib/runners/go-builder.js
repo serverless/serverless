@@ -6,7 +6,8 @@ import ServerlessError from '../../../../../serverless-error.js'
 
 const execFileAsync = promisify(execFile)
 
-const BINARY_NAME = process.platform === 'win32' ? 'bootstrap.exe' : 'bootstrap'
+const DEFAULT_BINARY_NAME =
+  process.platform === 'win32' ? 'bootstrap.exe' : 'bootstrap'
 
 /**
  * Walk `sourceDir` recursively and return the max `mtimeMs` across files
@@ -99,6 +100,8 @@ export async function shouldRebuild({ binaryPath, sourceDir }) {
  * @param {string} args.buildCacheRoot
  * @param {string} [args.goCommand]  Override the `go` binary path —
  *   useful for tests and for users with multiple toolchains.
+ * @param {object} [args.env] Environment to pass to `go build`.
+ * @param {string} [args.binaryName] Output binary filename.
  * @returns {Promise<{ binaryPath: string, fromCache: boolean }>}
  */
 export async function ensureBuilt({
@@ -108,9 +111,11 @@ export async function ensureBuilt({
   servicePath,
   buildCacheRoot,
   goCommand = 'go',
+  env = process.env,
+  binaryName = DEFAULT_BINARY_NAME,
 }) {
   const outDir = path.join(buildCacheRoot, functionKey)
-  const binaryPath = path.join(outDir, BINARY_NAME)
+  const binaryPath = path.join(outDir, binaryName)
 
   if (!(await shouldRebuild({ binaryPath, sourceDir }))) {
     return { binaryPath, fromCache: true }
@@ -143,7 +148,7 @@ export async function ensureBuilt({
     // "directory outside main module" errors on tmpdir-rooted builds.
     await execFileAsync(goCommand, ['build', '-o', binaryPath, '.'], {
       cwd: sourceDir,
-      env: { ...process.env },
+      env: { ...env },
     })
   } catch (err) {
     if (err.code === 'ENOENT') {

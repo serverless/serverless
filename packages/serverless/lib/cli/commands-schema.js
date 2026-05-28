@@ -274,6 +274,24 @@ commands.set('offline', {
       usage: 'Disable cookie validation on the local Hapi server',
       type: 'boolean',
     },
+    dockerHost: {
+      usage:
+        'Host name that Docker containers use to reach the offline host (default host.docker.internal)',
+      type: 'string',
+    },
+    dockerHostServicePath: {
+      usage:
+        'Service path as seen by Serverless when it runs inside a Docker container',
+      type: 'string',
+    },
+    dockerNetwork: {
+      usage: 'Docker network that Lambda containers connect to',
+      type: 'string',
+    },
+    dockerReadOnly: {
+      usage: 'Mount Docker code layers read-only (default true)',
+      type: 'boolean',
+    },
     enforceSecureCookies: {
       usage: 'Enforce secure cookies in local REST responses',
       type: 'boolean',
@@ -316,6 +334,10 @@ commands.set('offline', {
       usage:
         'Extra path segment to prepend after the stage in REST API URLs (e.g. --prefix api → /<stage>/api/<route>)',
       type: 'string',
+    },
+    useDocker: {
+      usage: 'Run supported Lambda handlers in Docker containers',
+      type: 'boolean',
     },
     useInProcess: {
       usage:

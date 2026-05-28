@@ -1,7 +1,7 @@
 /**
- * Best-effort removal of orphan offline Java containers left over from a
+ * Best-effort removal of orphan offline Docker containers left over from a
  * prior process that crashed or was killed with SIGKILL. Identified by
- * the `serverless-offline-java-` name prefix.
+ * the configured name prefix.
  *
  * Per-container failures are logged as warnings; the function never
  * throws — boot continues even if cleanup fails.
@@ -10,21 +10,26 @@
  * @param {object} options.dockerClient  DockerClient wrapper from
  *   `@serverless/util`; reached for raw dockerode via `getDockerodeClient()`.
  * @param {object} [options.log]
+ * @param {string[]} [options.namePrefixes]
  * @returns {Promise<void>}
  */
-export async function cleanupOrphanContainers({ dockerClient, log }) {
+export async function cleanupOrphanContainers({
+  dockerClient,
+  log,
+  namePrefixes = ['serverless-offline-docker-', 'serverless-offline-java-'],
+}) {
   const docker = dockerClient.getDockerodeClient()
 
   let orphans
   try {
     orphans = await docker.listContainers({
       all: true,
-      filters: { name: ['serverless-offline-java-'] },
+      filters: { name: namePrefixes },
     })
   } catch (err) {
     if (typeof log?.warning === 'function') {
       log.warning(
-        `Could not list orphan offline Java containers: ${err.message}. ` +
+        `Could not list orphan offline Docker containers: ${err.message}. ` +
           'Continuing; orphans may need manual cleanup via `docker rm -f`.',
       )
     }
@@ -35,7 +40,7 @@ export async function cleanupOrphanContainers({ dockerClient, log }) {
 
   if (typeof log?.notice === 'function') {
     log.notice(
-      `Removing ${orphans.length} orphan offline Java container(s) from a prior run.`,
+      `Removing ${orphans.length} orphan offline Docker container(s) from a prior run.`,
     )
   }
 
