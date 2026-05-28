@@ -46,7 +46,7 @@ describe('downloadLayerSet', () => {
   })
 
   async function makeLayersDir() {
-    const dir = await mkdtemp(path.join(tmpdir(), 'm5f-'))
+    const dir = await mkdtemp(path.join(tmpdir(), 'layer-downloader-'))
     tempDirs.push(dir)
     return dir
   }
