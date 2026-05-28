@@ -25,6 +25,7 @@ import { provision } from './lib/provisioner/index.js'
 import { createQueueStore } from './lib/aws-api-server/sqs/queue-store.js'
 import { createSqsHandlers } from './lib/aws-api-server/sqs/handlers.js'
 import { createAwsApiServer } from './lib/aws-api-server/index.js'
+import { buildFunctionNameMap } from './lib/aws-api-server/lambda-invoke/name-map.js'
 import { createRunner } from './lib/runners/create-runner.js'
 import { createInvocationQueue } from './lib/runners/invocation-queue.js'
 import { createScheduler } from './lib/event-sources/schedule.js'
@@ -754,6 +755,12 @@ export default class OfflinePlugin {
       // the service. The Go runner enqueues into this queue; the routes
       // drain it via long-polling from the child bootstrap binary.
       runtimeApi: runtimeApiQueue ? { queue: runtimeApiQueue } : undefined,
+      // Mount the Lambda Invoke API so a handler can call another function
+      // by its deployed name via the AWS SDK against this endpoint.
+      lambdaInvoke: {
+        getLambdaFunction,
+        functionNameMap: buildFunctionNameMap(serverless),
+      },
     })
 
     // 11. Register teardowns for the servers and pollers (LIFO — runner and

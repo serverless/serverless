@@ -10,6 +10,7 @@ import Hapi from '@hapi/hapi'
 import { DEFAULT_AWS_API_PORT } from '../constants.js'
 import { detectService } from './dispatcher.js'
 import { registerRuntimeApiRoutes } from './runtime-api-routes.js'
+import { registerLambdaInvokeRoutes } from './lambda-invoke/routes.js'
 
 /**
  * Create and start a Hapi server that acts as a local AWS endpoint.
@@ -53,6 +54,17 @@ import { registerRuntimeApiRoutes } from './runtime-api-routes.js'
  *   otherwise. `queue` is the shared invocation queue created by
  *   `createInvocationQueue()`.
  *
+ * @param {{
+ *   getLambdaFunction: (functionKey: string) => { invoke: (event: unknown, options?: object) => Promise<unknown> },
+ *   functionNameMap: Map<string, string>,
+ * }} [options.lambdaInvoke]
+ *   When present, registers the Lambda Invoke API routes
+ *   (`/2015-03-31/functions/{name}/invocations` and
+ *   `/2014-11-13/functions/{name}/invoke-async`) BEFORE the catch-all so
+ *   the specific paths take precedence over `* /{any*}`. `functionNameMap`
+ *   maps each function's deployed name to its key; `getLambdaFunction`
+ *   returns the invoke facade for a key.
+ *
  * @returns {Promise<import('@hapi/hapi').Server>}
  *   The started Hapi server.  Register teardown via
  *   `server.stop({ timeout: 5000 })`.
@@ -63,6 +75,7 @@ export async function createAwsApiServer({
   handlers = {},
   logger,
   runtimeApi,
+  lambdaInvoke,
 } = {}) {
   const server = Hapi.server({ host, port: awsApiPort })
 
@@ -70,6 +83,16 @@ export async function createAwsApiServer({
   // so Hapi's match table prefers the specific Lambda paths over `* /{any*}`.
   if (runtimeApi?.queue) {
     registerRuntimeApiRoutes(server, { queue: runtimeApi.queue })
+  }
+
+  // Lambda Invoke routes (when supplied) likewise register BEFORE the
+  // catch-all so the specific invocation paths win the match table.
+  if (lambdaInvoke?.getLambdaFunction && lambdaInvoke?.functionNameMap) {
+    registerLambdaInvokeRoutes(server, {
+      getLambdaFunction: lambdaInvoke.getLambdaFunction,
+      functionNameMap: lambdaInvoke.functionNameMap,
+      logger,
+    })
   }
 
   server.route({
