@@ -106,6 +106,23 @@ export function createV2LambdaAuthorizerScheme({
           return forbidden(h)
         }
 
+        if (authorizerDef.enableSimpleResponses) {
+          const validated = validateAuthorizerContext(result.context)
+          if (!validated.ok) {
+            return authorizerConfigurationError(h)
+          }
+          if (!result.isAuthorized) {
+            return forbidden(h)
+          }
+          return h.authenticated({
+            credentials: {
+              authorizer: {
+                lambda: validated.context,
+              },
+            },
+          })
+        }
+
         const { principalId, policyDocument, context = {} } = result
 
         if (!principalId) {

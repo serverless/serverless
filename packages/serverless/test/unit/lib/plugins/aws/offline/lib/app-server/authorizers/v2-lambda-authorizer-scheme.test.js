@@ -201,6 +201,68 @@ describe('v2 lambda-authorizer scheme', () => {
     }
   })
 
+  it('200s on a simple-response authorizer returning isAuthorized: true', async () => {
+    const { server } = await setupServer({
+      authorizerDef: { name: 'auth', enableSimpleResponses: true },
+      invokeImpl: async () => ({
+        isAuthorized: true,
+        context: { tier: 'gold' },
+      }),
+    })
+    try {
+      const res = await server.inject({
+        method: 'GET',
+        url: '/items/42',
+        headers: { authorization: 'Bearer good' },
+      })
+      expect(res.statusCode).toBe(200)
+      const body = JSON.parse(res.payload)
+      expect(body.authorizer).toEqual({ lambda: { tier: 'gold' } })
+    } finally {
+      await server.stop()
+    }
+  })
+
+  it('403s on a simple-response authorizer returning isAuthorized: false', async () => {
+    const { server } = await setupServer({
+      authorizerDef: { name: 'auth', enableSimpleResponses: true },
+      invokeImpl: async () => ({ isAuthorized: false }),
+    })
+    try {
+      const res = await server.inject({
+        method: 'GET',
+        url: '/items/42',
+        headers: { authorization: 'Bearer x' },
+      })
+      expect(res.statusCode).toBe(403)
+    } finally {
+      await server.stop()
+    }
+  })
+
+  it('500s when a simple-response authorizer context has a non-primitive value', async () => {
+    const { server } = await setupServer({
+      authorizerDef: { name: 'auth', enableSimpleResponses: true },
+      invokeImpl: async () => ({
+        isAuthorized: true,
+        context: { bad: { nested: 1 } },
+      }),
+    })
+    try {
+      const res = await server.inject({
+        method: 'GET',
+        url: '/items/42',
+        headers: { authorization: 'Bearer good' },
+      })
+      expect(res.statusCode).toBe(500)
+      expect(res.headers['x-amzn-errortype']).toBe(
+        'AuthorizerConfigurationException',
+      )
+    } finally {
+      await server.stop()
+    }
+  })
+
   it('builds a v2 REQUEST event with version 2.0, routeKey, and routeArn', async () => {
     let captured
     const { server } = await setupServer({

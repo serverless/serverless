@@ -241,6 +241,7 @@ function normalizeAuthorizerRef(authorizer) {
       name: authorizer.name,
       type: String(authorizer.type ?? 'TOKEN').toUpperCase(),
       identitySource: authorizer.identitySource,
+      enableSimpleResponses: authorizer.enableSimpleResponses ?? false,
     }
   }
   // ARN form, JWT, etc. — out of scope for this milestone.
