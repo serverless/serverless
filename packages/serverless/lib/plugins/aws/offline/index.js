@@ -107,7 +107,9 @@ export function resolveOfflineOptions({ cliOptions = {}, offline = {} } = {}) {
       cliOptions.noPrependStageInUrl ?? offline.noPrependStageInUrl ?? false,
     prefix: cliOptions.prefix ?? offline.prefix,
     terminateIdleLambdaTime:
-      offline.terminateIdleLambdaTime ?? DEFAULT_TERMINATE_IDLE_LAMBDA_TIME,
+      coerceInt(cliOptions.terminateIdleLambdaTime) ??
+      offline.terminateIdleLambdaTime ??
+      DEFAULT_TERMINATE_IDLE_LAMBDA_TIME,
     useDocker: cliOptions.useDocker ?? offline.useDocker ?? false,
     useInProcess: cliOptions.useInProcess ?? offline.useInProcess ?? false,
     watchEnabled:

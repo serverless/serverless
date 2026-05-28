@@ -335,6 +335,11 @@ commands.set('offline', {
         'Extra path segment to prepend after the stage in REST API URLs (e.g. --prefix api → /<stage>/api/<route>)',
       type: 'string',
     },
+    terminateIdleLambdaTime: {
+      usage:
+        'Number of seconds an idle Lambda runner stays warm before it is terminated. Default: 60.',
+      type: 'string',
+    },
     useDocker: {
       usage: 'Run supported Lambda handlers in Docker containers',
       type: 'boolean',
