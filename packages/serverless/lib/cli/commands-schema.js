@@ -310,6 +310,11 @@ commands.set('offline', {
         'When using HTTP API JWT authorizers, skip JWT signature verification',
       type: 'boolean',
     },
+    layersDir: {
+      usage:
+        'Directory where downloaded Lambda layers are cached (default <service>/.serverless-offline/layers)',
+      type: 'string',
+    },
     localEnvironment: {
       usage: 'Copy local process environment variables into Lambda handlers',
       type: 'boolean',

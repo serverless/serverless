@@ -27,6 +27,7 @@ const offlineSchema = {
     host: { type: 'string' },
     httpsProtocol: { type: 'string' },
     ignoreJWTSignature: { type: 'boolean' },
+    layersDir: { type: 'string' },
     localEnvironment: { type: 'boolean' },
     noAuth: { type: 'boolean' },
     noPrependStageInUrl: { type: 'boolean' },

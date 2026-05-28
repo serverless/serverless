@@ -1,4 +1,6 @@
+import path from 'node:path'
 import { DockerClient, log } from '@serverless/util'
+import { LambdaClient } from '@aws-sdk/client-lambda'
 import ServerlessError from '../../../serverless-error.js'
 import { assertDockerAvailable } from './lib/runners/docker-availability.js'
 import { cleanupOrphanContainers } from './lib/runners/docker-cleanup.js'
@@ -26,6 +28,12 @@ import { createQueueStore } from './lib/aws-api-server/sqs/queue-store.js'
 import { createSqsHandlers } from './lib/aws-api-server/sqs/handlers.js'
 import { createAwsApiServer } from './lib/aws-api-server/index.js'
 import { buildFunctionNameMap } from './lib/aws-api-server/lambda-invoke/name-map.js'
+import {
+  resolveFunctionLayers,
+  uniqueLayerSets,
+  layerSetKey,
+} from './lib/runners/layers/layer-resolver.js'
+import { downloadLayerSet } from './lib/runners/layers/layer-downloader.js'
 import { createRunner } from './lib/runners/create-runner.js'
 import { createInvocationQueue } from './lib/runners/invocation-queue.js'
 import { createScheduler } from './lib/event-sources/schedule.js'
@@ -174,6 +182,7 @@ function logBootSummary({
   javaImages,
   hasDockerFunctions,
   dockerImages,
+  layerCount,
   scheduledCount,
   disabledScheduleCount,
 }) {
@@ -211,6 +220,12 @@ function logBootSummary({
   if (hasDockerFunctions && dockerImages?.size > javaImages?.size) {
     logger.notice(
       `  Docker runner:   ${Array.from(dockerImages).sort().join(', ')}`,
+    )
+  }
+
+  if (layerCount > 0) {
+    logger.notice(
+      `  Layers:          ${layerCount} function(s), mounted at /opt`,
     )
   }
 
@@ -495,6 +510,59 @@ export default class OfflinePlugin {
       )
     }
 
+    // 2c. Resolve + download Lambda layers BEFORE placeholder credentials are
+    //     set below, so the layer lookups use the developer's real AWS
+    //     credentials (env or shared-config profile) rather than the 'test'
+    //     placeholders. Docker-only; a per-layer failure soft-warns and never
+    //     blocks boot.
+    const layersDir =
+      cliOptions.layersDir ??
+      offline.layersDir ??
+      path.join(
+        serverless.serviceDir ?? process.cwd(),
+        '.serverless-offline',
+        'layers',
+      )
+    const layerLogger = log.get('sls:offline:layers')
+    const { byFunction: functionLayers, skipped: skippedLayers } =
+      resolveFunctionLayers(serverless)
+    /** @type {Map<string, string>} functionKey -> extracted /opt dir */
+    const layerOptDirs = new Map()
+
+    for (const { functionKey, ref } of skippedLayers) {
+      layerLogger.notice(
+        `Function "${functionKey}" references a locally-defined layer (${JSON.stringify(
+          ref,
+        )}); offline supports published-ARN layers only — skipping.`,
+      )
+    }
+
+    if (functionLayers.size > 0) {
+      if (!useDocker) {
+        layerLogger.notice(
+          `${functionLayers.size} function(s) declare Lambda layers; layers require --useDocker offline and are ignored on host runners.`,
+        )
+      } else {
+        const layerClient = new LambdaClient({
+          region: provider.region ?? FAKE_REGION,
+        })
+        const optDirBySet = new Map()
+        for (const [setKey, arns] of uniqueLayerSets(functionLayers)) {
+          const { optDir } = await downloadLayerSet({
+            arns,
+            setKey,
+            layersDir,
+            lambdaClient: layerClient,
+            logger: layerLogger,
+          })
+          optDirBySet.set(setKey, optDir)
+        }
+        for (const [functionKey, arns] of functionLayers) {
+          layerOptDirs.set(functionKey, optDirBySet.get(layerSetKey(arns)))
+        }
+      }
+    }
+
     // 3. Set process env vars for runtime env parity before booting the runner.
     process.env.IS_OFFLINE = 'true'
     process.env.AWS_REGION = provider.region ?? FAKE_REGION
@@ -609,6 +677,7 @@ export default class OfflinePlugin {
           logger: lambdaLogger,
           noTimeout,
           localEnvironment,
+          layerOptDir: layerOptDirs.get(functionKey) ?? null,
         })
         lambdaFunctions.set(functionKey, fn)
       }
@@ -849,6 +918,7 @@ export default class OfflinePlugin {
           javaImages,
           hasDockerFunctions,
           dockerImages,
+          layerCount: layerOptDirs.size,
           scheduledCount: scheduler.scheduledCount,
           disabledScheduleCount: scheduler.disabledCount,
         })

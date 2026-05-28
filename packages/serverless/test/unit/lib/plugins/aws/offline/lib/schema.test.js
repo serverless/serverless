@@ -27,6 +27,7 @@ describe('offline schema', () => {
       host: { type: 'string' },
       httpsProtocol: { type: 'string' },
       ignoreJWTSignature: { type: 'boolean' },
+      layersDir: { type: 'string' },
       localEnvironment: { type: 'boolean' },
       noAuth: { type: 'boolean' },
       noPrependStageInUrl: { type: 'boolean' },
@@ -41,7 +42,7 @@ describe('offline schema', () => {
     })
   })
 
-  it('declares the 27 expected keys at the top level', () => {
+  it('declares the 28 expected keys at the top level', () => {
     expect(Object.keys(offlineSchema.properties).sort()).toEqual([
       'appPort',
       'awsApiPort',
@@ -59,6 +60,7 @@ describe('offline schema', () => {
       'host',
       'httpsProtocol',
       'ignoreJWTSignature',
+      'layersDir',
       'localEnvironment',
       'noAuth',
       'noPrependStageInUrl',
