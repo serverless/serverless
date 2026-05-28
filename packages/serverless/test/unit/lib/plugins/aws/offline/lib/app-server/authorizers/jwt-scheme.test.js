@@ -1,4 +1,5 @@
 import Hapi from '@hapi/hapi'
+import { SignJWT, exportJWK, generateKeyPair } from 'jose'
 import { jest } from '@jest/globals'
 import { createJwtScheme } from '../../../../../../../../../lib/plugins/aws/offline/lib/app-server/authorizers/jwt-scheme.js'
 
@@ -14,8 +15,12 @@ function makeJwt(payload, header = { alg: 'none', typ: 'JWT' }) {
   return `${b64url(header)}.${b64url(payload)}.sig`
 }
 
-async function makeServer(authorizerDef) {
-  const scheme = createJwtScheme({ authorizerDef })
+async function makeServer(authorizerDef, opts = {}) {
+  const schemeArgs = { authorizerDef }
+  if (opts.useDefaultSignatureMode !== true) {
+    schemeArgs.ignoreJWTSignature = opts.ignoreJWTSignature ?? true
+  }
+  const scheme = createJwtScheme(schemeArgs)
   const server = Hapi.server({ host: 'localhost', port: 0 })
   server.auth.scheme('jwt', scheme)
   server.auth.strategy('jwt', 'jwt')
@@ -30,6 +35,29 @@ async function makeServer(authorizerDef) {
   })
   await server.initialize()
   return server
+}
+
+async function makeJwksIssuer() {
+  const { publicKey, privateKey } = await generateKeyPair('RS256')
+  const jwk = await exportJWK(publicKey)
+  const key = { ...jwk, kid: 'test-key', alg: 'RS256', use: 'sig' }
+  const server = Hapi.server({ host: 'localhost', port: 0 })
+  server.route({
+    method: 'GET',
+    path: '/.well-known/jwks.json',
+    handler: () => ({ keys: [key] }),
+  })
+  await server.start()
+  return { issuerUrl: server.info.uri, privateKey, server }
+}
+
+async function makeSignedJwt({ issuerUrl, privateKey, audience = 'client-1' }) {
+  return new SignJWT({ sub: 'user-7', scope: 'read profile' })
+    .setProtectedHeader({ alg: 'RS256', kid: 'test-key' })
+    .setIssuer(issuerUrl)
+    .setAudience(audience)
+    .setExpirationTime('1h')
+    .sign(privateKey)
 }
 
 const FUTURE = Math.floor(Date.now() / 1000) + 3600
@@ -159,6 +187,88 @@ describe('jwt-scheme — happy path', () => {
       expect(body.authorizer.jwt.scopes).toEqual(['read', 'profile'])
     } finally {
       await server.stop()
+    }
+  })
+})
+
+describe('jwt-scheme — signature verification', () => {
+  it('verifies JWT signatures by default against the issuer JWKS', async () => {
+    const issuer = await makeJwksIssuer()
+    const server = await makeServer(
+      {
+        issuerUrl: issuer.issuerUrl,
+        audience: ['client-1'],
+      },
+      { useDefaultSignatureMode: true },
+    )
+    try {
+      const token = await makeSignedJwt(issuer)
+      const res = await server.inject({
+        method: 'GET',
+        url: '/p',
+        headers: { authorization: `Bearer ${token}` },
+      })
+      expect(res.statusCode).toBe(200)
+      expect(JSON.parse(res.payload).authorizer.jwt.claims.sub).toBe('user-7')
+    } finally {
+      await server.stop()
+      await issuer.server.stop()
+    }
+  })
+
+  it('401s forged tokens when ignoreJWTSignature is false', async () => {
+    const issuer = await makeJwksIssuer()
+    const server = await makeServer(
+      {
+        issuerUrl: issuer.issuerUrl,
+        audience: ['client-1'],
+      },
+      { ignoreJWTSignature: false },
+    )
+    try {
+      const token = makeJwt({
+        iss: issuer.issuerUrl,
+        aud: 'client-1',
+        exp: FUTURE,
+        sub: 'user-7',
+      })
+      const res = await server.inject({
+        method: 'GET',
+        url: '/p',
+        headers: { authorization: `Bearer ${token}` },
+      })
+      expect(res.statusCode).toBe(401)
+    } finally {
+      await server.stop()
+      await issuer.server.stop()
+    }
+  })
+
+  it('accepts forged tokens when ignoreJWTSignature is true', async () => {
+    const issuer = await makeJwksIssuer()
+    const server = await makeServer(
+      {
+        issuerUrl: issuer.issuerUrl,
+        audience: ['client-1'],
+      },
+      { ignoreJWTSignature: true },
+    )
+    try {
+      const token = makeJwt({
+        iss: issuer.issuerUrl,
+        aud: 'client-1',
+        exp: FUTURE,
+        sub: 'user-7',
+      })
+      const res = await server.inject({
+        method: 'GET',
+        url: '/p',
+        headers: { authorization: `Bearer ${token}` },
+      })
+      expect(res.statusCode).toBe(200)
+    } finally {
+      await server.stop()
+      await issuer.server.stop()
     }
   })
 })

@@ -1,7 +1,8 @@
 /**
  * Hapi auth scheme for HTTP API v2 JWT authorizers.
  *
- * Decode-only — the token's signature is NOT verified. Claims are validated:
+ * By default, verifies the token's signature against the issuer JWKS and then
+ * validates claims:
  *   - `exp` must be present and in the future (epoch seconds).
  *   - `iss` must exactly equal the configured issuerUrl.
  *   - `aud` (string or array) must overlap with configured audience array,
@@ -14,7 +15,7 @@
  * `event.requestContext.authorizer.jwt`.
  */
 
-import { decodeJwt } from 'jose'
+import { createRemoteJWKSet, decodeJwt, jwtVerify } from 'jose'
 import { unauthorized } from '../shared/auth-envelopes.js'
 import {
   parseV2IdentitySource,
@@ -22,6 +23,7 @@ import {
 } from './v2-identity-source.js'
 
 const DEFAULT_IDENTITY_SOURCE = '$request.header.Authorization'
+const jwksByIssuer = new Map()
 
 /**
  * @param {object} opts
@@ -29,9 +31,11 @@ const DEFAULT_IDENTITY_SOURCE = '$request.header.Authorization'
  *   `{ issuerUrl, audience, identitySource?, scopes?, name }`.
  *   `audience` is normalized to an array internally; YAML may provide
  *   either a string or array.
+ * @param {boolean} [opts.ignoreJWTSignature=false]
+ *   When true, decodes claims without cryptographic signature verification.
  * @returns {() => object}  Hapi scheme factory.
  */
-export function createJwtScheme({ authorizerDef }) {
+export function createJwtScheme({ authorizerDef, ignoreJWTSignature = false }) {
   const issuerUrl = authorizerDef.issuerUrl
   const configuredAudience = normalizeToArray(authorizerDef.audience)
   const configuredScopes = normalizeToArray(authorizerDef.scopes)
@@ -41,7 +45,7 @@ export function createJwtScheme({ authorizerDef }) {
 
   return function jwtSchemeFactory() {
     return {
-      authenticate(request, h) {
+      async authenticate(request, h) {
         // 1. Resolve identity-source value.
         const raw = extractV2IdentitySource(request, sources)
         if (!raw) return unauthorized(h)
@@ -50,10 +54,12 @@ export function createJwtScheme({ authorizerDef }) {
         const token = stripBearer(raw)
         if (!token) return unauthorized(h)
 
-        // 3. Decode (no signature verification).
+        // 3. Verify signature by default; decode-only when explicitly asked.
         let claims
         try {
-          claims = decodeJwt(token)
+          claims = ignoreJWTSignature
+            ? decodeJwt(token)
+            : await verifyJwt(token, issuerUrl)
         } catch {
           return unauthorized(h)
         }
@@ -94,6 +100,28 @@ export function createJwtScheme({ authorizerDef }) {
       },
     }
   }
+}
+
+async function verifyJwt(token, issuerUrl) {
+  const jwks = getRemoteJwks(issuerUrl)
+  const { payload } = await jwtVerify(token, jwks, {
+    issuer: issuerUrl,
+  })
+  return payload
+}
+
+function getRemoteJwks(issuerUrl) {
+  let jwks = jwksByIssuer.get(issuerUrl)
+  if (!jwks) {
+    jwks = createRemoteJWKSet(buildJwksUrl(issuerUrl))
+    jwksByIssuer.set(issuerUrl, jwks)
+  }
+  return jwks
+}
+
+function buildJwksUrl(issuerUrl) {
+  const base = issuerUrl.endsWith('/') ? issuerUrl : `${issuerUrl}/`
+  return new URL('.well-known/jwks.json', base)
 }
 
 function normalizeToArray(value) {
