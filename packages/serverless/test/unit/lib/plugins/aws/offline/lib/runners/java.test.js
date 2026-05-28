@@ -404,7 +404,7 @@ describe('createJavaRunner (Docker)', () => {
     try {
       await runner.invoke(
         makeInvokeArgs({
-          environment: { MY_USER_VAR: 'value-1' },
+          environment: { IS_OFFLINE: 'false', MY_USER_VAR: 'value-1' },
         }),
       )
     } finally {
