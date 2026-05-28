@@ -776,10 +776,10 @@ it('28b. body is null when payload is the empty string', () => {
 })
 
 // ---------------------------------------------------------------------------
-// 29. content-length / content-type header injection
+// 32. content-length / content-type header injection
 // ---------------------------------------------------------------------------
 
-it('29. injects content-type and content-length when a body is present and the client sent neither', () => {
+it('32. injects content-type and content-length when a body is present and the client sent neither', () => {
   const payload = '{"hello":"world"}'
   const event = buildHttpApiV2Event({
     request: makeRequest({
@@ -798,7 +798,7 @@ it('29. injects content-type and content-length when a body is present and the c
   )
 })
 
-it('29b. does not overwrite a client-sent content-type or content-length (any casing)', () => {
+it('32b. does not overwrite a client-sent content-type or content-length (any casing)', () => {
   const event = buildHttpApiV2Event({
     request: makeRequest({
       method: 'POST',
@@ -820,7 +820,7 @@ it('29b. does not overwrite a client-sent content-type or content-length (any ca
   expect(event.headers).not.toHaveProperty('Content-Length')
 })
 
-it('29c. content-length for a base64-encoded binary body is the decoded byte length', () => {
+it('32c. content-length for a base64-encoded binary body is the decoded byte length', () => {
   const buf = Buffer.from([0x00, 0x01, 0x02, 0x03, 0x04])
   const event = buildHttpApiV2Event({
     request: makeRequest({
@@ -839,7 +839,7 @@ it('29c. content-length for a base64-encoded binary body is the decoded byte len
   )
 })
 
-it('29d. defaults content-type but injects no content-length when there is no body', () => {
+it('32d. defaults content-type but injects no content-length when there is no body', () => {
   const event = buildHttpApiV2Event({
     request: makeRequest({
       method: 'GET',
