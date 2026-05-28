@@ -1,7 +1,7 @@
 /**
- * Evaluate an IAM policy document against a methodArn. Permissive matcher —
- * scopes to what AWS API Gateway exercises in practice (exact, full-`*`,
- * and trailing-`*` suffix wildcards). Effect=Deny short-circuits.
+ * Evaluate an IAM policy document against a methodArn. Permissive matcher
+ * supporting exact match, `*`, `?` (single char), mid-path `*` wildcards, and
+ * the `arn:aws:execute-api:**` catch-all. Effect=Deny short-circuits.
  *
  * @param {object} args
  * @param {string} args.principalId    Required — non-empty string.
@@ -46,13 +46,33 @@ export function evaluatePolicy({
   return { allow, principalId, context }
 }
 
+function parseExecuteApiArn(arn) {
+  const [, region = '*', accountId = '*', restApiId = '*', path = '*'] =
+    arn.match(
+      /arn:aws:execute-api:([^\s:]+)(?::([^\s:]+))?(?::([^\s/:]+))?(?:\/(.*))?/,
+    ) ?? []
+  return { region, accountId, restApiId, path }
+}
+
 function matchesResource(pattern, methodArn) {
   if (typeof pattern !== 'string') return false
-  if (pattern === '*') return true
   if (pattern === methodArn) return true
-  // Trailing-* wildcard suffix match (e.g. `arn:.../dev/*`).
-  if (pattern.endsWith('*')) {
-    return methodArn.startsWith(pattern.slice(0, -1))
-  }
-  return false
+  if (pattern === '*') return true
+  if (pattern === 'arn:aws:execute-api:**') return true
+
+  if (!pattern.includes('*') && !pattern.includes('?')) return false
+
+  const p = parseExecuteApiArn(pattern)
+  const m = parseExecuteApiArn(methodArn)
+
+  if (p.region !== '*' && p.region !== m.region) return false
+  if (p.accountId !== '*' && p.accountId !== m.accountId) return false
+  if (p.restApiId !== '*' && p.restApiId !== m.restApiId) return false
+
+  // Path segment carries stage/method/resource-path; ? matches one char,
+  // * matches any run. Anchor the end so a prefix is not a false match.
+  const pathRegExp = new RegExp(
+    `${p.path.replaceAll('*', '.*').replaceAll('?', '.')}$`,
+  )
+  return pathRegExp.test(m.path)
 }

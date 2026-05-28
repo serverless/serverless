@@ -120,3 +120,56 @@ describe('evaluatePolicy — errors', () => {
     ).toThrow(/policy/i)
   })
 })
+
+describe('evaluatePolicy — resource wildcards', () => {
+  const REQ =
+    'arn:aws:execute-api:us-east-1:000000000000:abcdef123/dev/GET/users/42/profile'
+  const allowOn = (resource) =>
+    evaluatePolicy({
+      principalId: 'u',
+      methodArn: REQ,
+      policyDocument: { Statement: [{ Effect: 'Allow', Resource: resource }] },
+    }).allow
+
+  it('matches a mid-path * wildcard', () => {
+    expect(
+      allowOn(
+        'arn:aws:execute-api:us-east-1:000000000000:abcdef123/dev/GET/users/*/profile',
+      ),
+    ).toBe(true)
+  })
+
+  it('matches a ? single-character wildcard', () => {
+    expect(
+      allowOn(
+        'arn:aws:execute-api:us-east-1:000000000000:abcdef123/dev/GET/users/4?/profile',
+      ),
+    ).toBe(true)
+  })
+
+  it('denies when a non-* segment (region) differs', () => {
+    expect(
+      allowOn('arn:aws:execute-api:eu-west-1:000000000000:abcdef123/dev/*'),
+    ).toBe(false)
+  })
+
+  it('matches the arn:aws:execute-api:** catch-all', () => {
+    expect(allowOn('arn:aws:execute-api:**')).toBe(true)
+  })
+
+  it('still matches trailing-*, exact, and *', () => {
+    expect(
+      allowOn('arn:aws:execute-api:us-east-1:000000000000:abcdef123/dev/*'),
+    ).toBe(true)
+    expect(allowOn(REQ)).toBe(true)
+    expect(allowOn('*')).toBe(true)
+  })
+
+  it('anchors the path match (no partial-prefix false positive)', () => {
+    expect(
+      allowOn(
+        'arn:aws:execute-api:us-east-1:000000000000:abcdef123/dev/GET/users/42',
+      ),
+    ).toBe(false)
+  })
+})
