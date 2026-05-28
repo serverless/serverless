@@ -226,10 +226,17 @@ export function createLambdaFunction({
 
       const awsRequestId = crypto.randomUUID()
 
+      // The deployed function name (Framework-resolved, e.g.
+      // `my-service-dev-worker`, or an explicit `functions.x.name`), not the
+      // serverless.yml key. Mirrors real Lambda's context.functionName and
+      // cascades to AWS_LAMBDA_FUNCTION_NAME + the log group/stream names the
+      // runners derive from it. Falls back to the key when unresolved.
+      const deployedName = fn.name ?? functionKey
+
       const context = {
-        functionName: functionKey,
+        functionName: deployedName,
         awsRequestId,
-        invokedFunctionArn: arnFor('lambda', functionKey),
+        invokedFunctionArn: arnFor('lambda', deployedName),
         memoryLimitInMB,
         callbackWaitsForEmptyEventLoop: true,
         // Configured per-invocation budget in ms. The worker reads this and

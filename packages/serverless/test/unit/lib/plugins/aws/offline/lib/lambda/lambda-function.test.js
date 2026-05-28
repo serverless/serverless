@@ -105,6 +105,52 @@ describe('createLambdaFunction', () => {
     expect(result).toEqual({ ok: true, args })
   })
 
+  test('invoke() uses the deployed function name for context + invoked ARN', async () => {
+    const runner = makeRunner()
+    const serverless = makeServerless({
+      servicePath: tmpDir,
+      functions: {
+        hello: { handler: 'src/handler.main', name: 'svc-dev-hello' },
+      },
+      provider: { region: 'us-east-1' },
+    })
+
+    const fn = createLambdaFunction({
+      serverless,
+      functionKey: 'hello',
+      runner,
+    })
+    await fn.invoke({})
+
+    const { context } = runner.calls[0]
+    expect(context.functionName).toBe('svc-dev-hello')
+    expect(context.invokedFunctionArn).toBe(
+      'arn:aws:lambda:us-east-1:000000000000:function:svc-dev-hello',
+    )
+  })
+
+  test('invoke() falls back to the function key when no deployed name is set', async () => {
+    const runner = makeRunner()
+    const serverless = makeServerless({
+      servicePath: tmpDir,
+      functions: { hello: { handler: 'src/handler.main' } },
+      provider: { region: 'us-east-1' },
+    })
+
+    const fn = createLambdaFunction({
+      serverless,
+      functionKey: 'hello',
+      runner,
+    })
+    await fn.invoke({})
+
+    const { context } = runner.calls[0]
+    expect(context.functionName).toBe('hello')
+    expect(context.invokedFunctionArn).toBe(
+      'arn:aws:lambda:us-east-1:000000000000:function:hello',
+    )
+  })
+
   test('invoke() threads options.clientContext into the runner context', async () => {
     const runner = makeRunner()
     const fn = createLambdaFunction({
