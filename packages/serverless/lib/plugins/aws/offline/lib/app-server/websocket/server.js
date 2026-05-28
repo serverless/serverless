@@ -25,6 +25,8 @@ import { evaluatePolicy } from '../authorizers/policy-evaluator.js'
 
 const DEFAULT_API_ID = 'private'
 const ROUTE_SELECTION_KEY = 'action'
+const DEFAULT_HARD_TIMEOUT_SECONDS = 7200
+const DEFAULT_IDLE_TIMEOUT_SECONDS = 600
 
 export function createWebSocketServer({
   hapiServer,
@@ -35,6 +37,8 @@ export function createWebSocketServer({
   accountId,
   region,
   apiId = DEFAULT_API_ID,
+  webSocketHardTimeout = DEFAULT_HARD_TIMEOUT_SECONDS,
+  webSocketIdleTimeout = DEFAULT_IDLE_TIMEOUT_SECONDS,
 }) {
   const routes = normalizeWebsocketEvents(serverless)
   const wss = new WebSocketServer({ noServer: true })
@@ -119,6 +123,23 @@ export function createWebSocketServer({
     }
 
     wss.handleUpgrade(request, socket, head, (ws) => {
+      const hardTimer = setTimeout(
+        () => ws.close(1001, 'WebSocket hard timeout exceeded'),
+        webSocketHardTimeout * 1000,
+      )
+      hardTimer.unref?.()
+
+      let idleTimer
+      const resetIdleTimer = () => {
+        clearTimeout(idleTimer)
+        idleTimer = setTimeout(
+          () => ws.close(1001, 'WebSocket idle timeout exceeded'),
+          webSocketIdleTimeout * 1000,
+        )
+        idleTimer.unref?.()
+      }
+      resetIdleTimer()
+
       registry.add({
         connectionId,
         ws,
@@ -126,7 +147,11 @@ export function createWebSocketServer({
         userAgent: request.headers?.['user-agent'] ?? '',
       })
 
+      ws.on('ping', resetIdleTimer)
+      ws.on('pong', resetIdleTimer)
+
       ws.on('message', async (data) => {
+        resetIdleTimer()
         const payload = data.toString()
         registry.touch(connectionId)
         let action
@@ -160,6 +185,8 @@ export function createWebSocketServer({
       })
 
       ws.on('close', async () => {
+        clearTimeout(hardTimer)
+        clearTimeout(idleTimer)
         registry.remove(connectionId)
         const disconnectRoute = routes.get('$disconnect')
         if (!disconnectRoute) return

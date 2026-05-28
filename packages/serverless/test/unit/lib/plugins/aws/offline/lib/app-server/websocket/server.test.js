@@ -12,6 +12,8 @@ async function setup({
   functions = {},
   authStrategies,
   onRequest = jest.fn(async () => ({ statusCode: 200 })),
+  webSocketHardTimeout,
+  webSocketIdleTimeout,
 }) {
   const hapiServer = Hapi.server({ host: 'localhost', port: 0 })
   const registry = createConnectionRegistry()
@@ -24,6 +26,8 @@ async function setup({
     stage: 'dev',
     accountId: '000000000000',
     region: 'us-east-1',
+    webSocketHardTimeout,
+    webSocketIdleTimeout,
   })
   await hapiServer.start()
   const url = `ws://localhost:${hapiServer.info.port}/dev`
@@ -49,6 +53,14 @@ function connectWs(url, headers = {}) {
 function waitMessage(ws) {
   return new Promise((resolve) =>
     ws.once('message', (data) => resolve(data.toString())),
+  )
+}
+
+function waitClose(ws) {
+  return new Promise((resolve) =>
+    ws.once('close', (code, reason) =>
+      resolve({ code, reason: reason.toString() }),
+    ),
   )
 }
 
@@ -232,6 +244,43 @@ describe('WebSocket server — disconnect', () => {
         (c) => c.event?.requestContext?.eventType === 'DISCONNECT',
       )
       expect(disconnectCall).toBeDefined()
+    } finally {
+      await teardown(ctx)
+    }
+  })
+})
+
+describe('WebSocket server — timeouts', () => {
+  it('closes idle connections after webSocketIdleTimeout seconds', async () => {
+    const ctx = await setup({
+      webSocketHardTimeout: 5,
+      webSocketIdleTimeout: 0.05,
+    })
+    try {
+      const ws = await connectWs(ctx.url)
+      const close = await waitClose(ws)
+      expect(close).toEqual({
+        code: 1001,
+        reason: 'WebSocket idle timeout exceeded',
+      })
+    } finally {
+      await teardown(ctx)
+    }
+  })
+
+  it('closes connections after webSocketHardTimeout even if they are active', async () => {
+    const ctx = await setup({
+      webSocketHardTimeout: 0.05,
+      webSocketIdleTimeout: 5,
+    })
+    try {
+      const ws = await connectWs(ctx.url)
+      ws.send('still active')
+      const close = await waitClose(ws)
+      expect(close).toEqual({
+        code: 1001,
+        reason: 'WebSocket hard timeout exceeded',
+      })
     } finally {
       await teardown(ctx)
     }
