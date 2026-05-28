@@ -1,6 +1,7 @@
 import {
   unauthorized,
   forbidden,
+  authorizerConfigurationError,
 } from '../../../../../../../../../lib/plugins/aws/offline/lib/app-server/shared/auth-envelopes.js'
 
 /**
@@ -60,6 +61,23 @@ describe('forbidden', () => {
     expect(h.calls.headers).toContainEqual({
       name: 'x-amzn-ErrorType',
       value: 'ForbiddenException',
+    })
+    expect(h.calls.takeover).toBe(true)
+  })
+})
+
+describe('authorizerConfigurationError', () => {
+  it('emits 500 with the AuthorizerConfigurationException envelope and takes over the request', () => {
+    const h = makeH()
+    authorizerConfigurationError(h)
+    expect(h.calls.statusCode).toBe(500)
+    expect(h.calls.payload).toEqual({
+      message: 'Authorizer configuration error',
+    })
+    expect(h.calls.contentType).toBe('application/json')
+    expect(h.calls.headers).toContainEqual({
+      name: 'x-amzn-ErrorType',
+      value: 'AuthorizerConfigurationException',
     })
     expect(h.calls.takeover).toBe(true)
   })

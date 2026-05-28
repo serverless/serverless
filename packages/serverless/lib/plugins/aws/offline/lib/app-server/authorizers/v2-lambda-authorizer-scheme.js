@@ -26,7 +26,12 @@
 import crypto from 'node:crypto'
 import { buildV2RequestEvent } from './v2-lambda-authorizer-event.js'
 import { evaluatePolicy } from './policy-evaluator.js'
-import { unauthorized, forbidden } from '../shared/auth-envelopes.js'
+import {
+  unauthorized,
+  forbidden,
+  authorizerConfigurationError,
+} from '../shared/auth-envelopes.js'
+import { validateAuthorizerContext } from './validate-authorizer-context.js'
 import {
   parseV2IdentitySource,
   extractV2IdentitySource,
@@ -123,11 +128,16 @@ export function createV2LambdaAuthorizerScheme({
           return forbidden(h)
         }
 
+        const validated = validateAuthorizerContext(evaluation.context)
+        if (!validated.ok) {
+          return authorizerConfigurationError(h)
+        }
+
         return h.authenticated({
           credentials: {
             principalId: evaluation.principalId,
             authorizer: {
-              lambda: evaluation.context,
+              lambda: validated.context,
             },
           },
         })

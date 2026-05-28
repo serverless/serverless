@@ -25,7 +25,12 @@ import {
   parseIdentitySource,
   extractIdentitySource,
 } from './identity-source.js'
-import { unauthorized, forbidden } from '../shared/auth-envelopes.js'
+import {
+  unauthorized,
+  forbidden,
+  authorizerConfigurationError,
+} from '../shared/auth-envelopes.js'
+import { validateAuthorizerContext } from './validate-authorizer-context.js'
 
 const UNAUTHORIZED_LITERAL = 'Unauthorized'
 
@@ -114,12 +119,17 @@ export function createLambdaAuthorizerScheme({
           return forbidden(h)
         }
 
+        const validated = validateAuthorizerContext(evaluation.context)
+        if (!validated.ok) {
+          return authorizerConfigurationError(h)
+        }
+
         return h.authenticated({
           credentials: {
             principalId: evaluation.principalId,
             authorizer: {
               principalId: evaluation.principalId,
-              ...evaluation.context,
+              ...validated.context,
             },
           },
         })

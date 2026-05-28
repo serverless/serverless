@@ -65,6 +65,51 @@ describe('v2 lambda-authorizer scheme', () => {
     }
   })
 
+  it('500s when the authorizer context contains a non-primitive value', async () => {
+    const { server } = await setupServer({
+      invokeImpl: async () => ({
+        principalId: 'user-7',
+        policyDocument: { Statement: [{ Effect: 'Allow', Resource: '*' }] },
+        context: { nested: {} },
+      }),
+    })
+    try {
+      const res = await server.inject({
+        method: 'GET',
+        url: '/items/42',
+        headers: { authorization: 'Bearer good' },
+      })
+      expect(res.statusCode).toBe(500)
+      expect(res.headers['x-amzn-errortype']).toBe(
+        'AuthorizerConfigurationException',
+      )
+    } finally {
+      await server.stop()
+    }
+  })
+
+  it('stringifies primitive context values surfaced to the handler', async () => {
+    const { server } = await setupServer({
+      invokeImpl: async () => ({
+        principalId: 'user-7',
+        policyDocument: { Statement: [{ Effect: 'Allow', Resource: '*' }] },
+        context: { n: 5, b: true },
+      }),
+    })
+    try {
+      const res = await server.inject({
+        method: 'GET',
+        url: '/items/42',
+        headers: { authorization: 'Bearer good' },
+      })
+      expect(res.statusCode).toBe(200)
+      const body = JSON.parse(res.payload)
+      expect(body.authorizer).toEqual({ lambda: { n: '5', b: 'true' } })
+    } finally {
+      await server.stop()
+    }
+  })
+
   it('401s when identitySource is missing (Lambda NOT invoked)', async () => {
     const invoke = jest.fn()
     const { server } = await setupServer({ invokeImpl: invoke })
