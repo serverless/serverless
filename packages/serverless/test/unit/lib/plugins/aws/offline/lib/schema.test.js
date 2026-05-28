@@ -11,16 +11,90 @@ describe('offline schema', () => {
 
   it('defines all top-level properties', () => {
     expect(offlineSchema.properties).toEqual({
-      awsApiPort: { type: 'integer', minimum: 1, maximum: 65535 },
       appPort: { type: 'integer', minimum: 1, maximum: 65535 },
+      awsApiPort: { type: 'integer', minimum: 1, maximum: 65535 },
+      corsAllowHeaders: { type: 'string' },
+      corsAllowOrigin: { type: 'string' },
+      corsDisallowCredentials: { type: 'boolean' },
+      corsExposedHeaders: { type: 'string' },
       customAuthenticationProvider: { type: 'string' },
+      disableCookieValidation: { type: 'boolean' },
+      enforceSecureCookies: { type: 'boolean' },
       host: { type: 'string' },
-      watch: { type: 'boolean' },
-      noWatch: { type: 'boolean' },
-      terminateIdleLambdaTime: { type: 'integer', minimum: 0 },
-      prefix: { type: 'string' },
+      httpsProtocol: { type: 'string' },
+      ignoreJWTSignature: { type: 'boolean' },
+      localEnvironment: { type: 'boolean' },
+      noAuth: { type: 'boolean' },
       noPrependStageInUrl: { type: 'boolean' },
+      noWatch: { type: 'boolean' },
+      prefix: { type: 'string' },
+      terminateIdleLambdaTime: { type: 'integer', minimum: 0 },
       useInProcess: { type: 'boolean' },
+      watch: { type: 'boolean' },
+      webSocketHardTimeout: { type: 'integer', minimum: 1 },
+      webSocketIdleTimeout: { type: 'integer', minimum: 1 },
+    })
+  })
+
+  it('declares the 22 expected keys at the top level', () => {
+    expect(Object.keys(offlineSchema.properties).sort()).toEqual([
+      'appPort',
+      'awsApiPort',
+      'corsAllowHeaders',
+      'corsAllowOrigin',
+      'corsDisallowCredentials',
+      'corsExposedHeaders',
+      'customAuthenticationProvider',
+      'disableCookieValidation',
+      'enforceSecureCookies',
+      'host',
+      'httpsProtocol',
+      'ignoreJWTSignature',
+      'localEnvironment',
+      'noAuth',
+      'noPrependStageInUrl',
+      'noWatch',
+      'prefix',
+      'terminateIdleLambdaTime',
+      'useInProcess',
+      'watch',
+      'webSocketHardTimeout',
+      'webSocketIdleTimeout',
+    ])
+  })
+
+  it('declares option-parity boolean keys with type: boolean', () => {
+    for (const key of [
+      'corsDisallowCredentials',
+      'disableCookieValidation',
+      'enforceSecureCookies',
+      'ignoreJWTSignature',
+      'localEnvironment',
+      'noAuth',
+    ]) {
+      expect(offlineSchema.properties[key]).toEqual({ type: 'boolean' })
+    }
+  })
+
+  it('declares option-parity string keys with type: string', () => {
+    for (const key of [
+      'corsAllowHeaders',
+      'corsAllowOrigin',
+      'corsExposedHeaders',
+      'httpsProtocol',
+    ]) {
+      expect(offlineSchema.properties[key]).toEqual({ type: 'string' })
+    }
+  })
+
+  it('declares websocket timeout keys with type: integer and minimum 1', () => {
+    expect(offlineSchema.properties.webSocketHardTimeout).toEqual({
+      type: 'integer',
+      minimum: 1,
+    })
+    expect(offlineSchema.properties.webSocketIdleTimeout).toEqual({
+      type: 'integer',
+      minimum: 1,
     })
   })
 
