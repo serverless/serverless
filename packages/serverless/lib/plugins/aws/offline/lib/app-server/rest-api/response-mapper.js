@@ -14,5 +14,7 @@ import { formatLambdaProxyResponse } from '../shared/lambda-proxy-response.js'
  * @returns {import('@hapi/hapi').ResponseObject}
  */
 export function formatRestApiResponse(result, h) {
-  return formatLambdaProxyResponse(result, h)
+  return formatLambdaProxyResponse(result, h, {
+    defaultContentType: 'application/json',
+  })
 }

@@ -150,3 +150,56 @@ describe('formatLambdaProxyResponse', () => {
     expect(h.calls.headers.find((c) => c.name === 'set-cookie')).toBeUndefined()
   })
 })
+
+describe('formatLambdaProxyResponse — content-type defaults', () => {
+  it('v2 bare-string → application/json', () => {
+    const h = makeH()
+    formatLambdaProxyResponse('hello', h, { payloadV2: true })
+    expect(h.calls.statusCode).toBe(200)
+    expect(h.calls.payload).toBe('hello')
+    expect(h.calls.contentType).toBe('application/json')
+  })
+
+  it('bare-string without payloadV2 stays text/plain', () => {
+    const h = makeH()
+    formatLambdaProxyResponse('hello', h)
+    expect(h.calls.contentType).toBe('text/plain')
+  })
+
+  it('shaped response with no content-type defaults to defaultContentType', () => {
+    const h = makeH()
+    formatLambdaProxyResponse({ statusCode: 200, body: 'x' }, h, {
+      defaultContentType: 'application/json',
+    })
+    expect(h.calls.contentType).toBe('application/json')
+  })
+
+  it('does not override a handler-set content-type (case-insensitive)', () => {
+    const h = makeH()
+    formatLambdaProxyResponse(
+      { statusCode: 200, body: 'x', headers: { 'Content-Type': 'text/csv' } },
+      h,
+      { defaultContentType: 'application/json' },
+    )
+    expect(h.calls.contentType).toBeUndefined()
+    expect(
+      h.calls.headers.some(
+        (entry) => entry.name === 'Content-Type' && entry.value === 'text/csv',
+      ),
+    ).toBe(true)
+  })
+
+  it('does not default content-type when defaultContentType is absent (ALB)', () => {
+    const h = makeH()
+    formatLambdaProxyResponse({ statusCode: 200, body: 'x' }, h)
+    expect(h.calls.contentType).toBeUndefined()
+  })
+
+  it('does not default content-type for an empty shaped body', () => {
+    const h = makeH()
+    formatLambdaProxyResponse({ statusCode: 204 }, h, {
+      defaultContentType: 'application/json',
+    })
+    expect(h.calls.contentType).toBeUndefined()
+  })
+})

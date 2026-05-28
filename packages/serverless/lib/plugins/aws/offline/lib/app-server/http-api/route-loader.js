@@ -171,6 +171,8 @@ export function registerHttpApiRoutes({
             const result = await onRequest(functionKey, event)
             const response = formatLambdaProxyResponse(result, h, {
               cookies: true,
+              payloadV2: true,
+              defaultContentType: 'application/json',
             })
             // Real APIGW adds Access-Control-Allow-Origin (and friends) to
             // every successful response from a CORS-enabled HTTP API, not

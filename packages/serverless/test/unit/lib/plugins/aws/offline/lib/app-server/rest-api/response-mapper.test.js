@@ -57,12 +57,12 @@ describe('formatRestApiResponse — AWS_PROXY', () => {
     expect(JSON.parse(h.calls.payload)).toEqual({ ok: true })
   })
 
-  it('shaped {statusCode, body} → those values, no content-type set', () => {
+  it('shaped {statusCode, body} → those values, defaulting content-type to application/json', () => {
     const h = makeH()
     formatRestApiResponse({ statusCode: 201, body: 'created' }, h)
     expect(h.calls.statusCode).toBe(201)
     expect(h.calls.payload).toBe('created')
-    expect(h.calls.contentType).toBeUndefined()
+    expect(h.calls.contentType).toBe('application/json')
   })
 
   it('headers from shaped response are applied', () => {

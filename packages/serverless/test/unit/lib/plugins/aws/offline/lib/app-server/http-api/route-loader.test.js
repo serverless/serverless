@@ -459,7 +459,7 @@ it('15. plain JSON return (no statusCode) → 200 with application/json body', a
 // 16. String return → 200 text/plain
 // ---------------------------------------------------------------------------
 
-it('16. string return → 200 with text/plain body', async () => {
+it('16. string return → 200 with application/json body', async () => {
   const server = await makeServer()
   const onRequest = jest.fn().mockResolvedValue('hello')
 
@@ -478,7 +478,7 @@ it('16. string return → 200 with text/plain body', async () => {
     const res = await server.inject({ method: 'GET', url: '/str' })
     expect(res.statusCode).toBe(200)
     expect(res.payload).toBe('hello')
-    expect(res.headers['content-type']).toMatch(/text\/plain/)
+    expect(res.headers['content-type']).toMatch(/application\/json/)
   } finally {
     await server.stop({ timeout: 5000 })
   }

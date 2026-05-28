@@ -31,15 +31,23 @@
  *   responses carry Set-Cookie via headers / multiValueHeaders only.
  * @returns {import('@hapi/hapi').ResponseObject}
  */
-export function formatLambdaProxyResponse(result, h, { cookies = false } = {}) {
+export function formatLambdaProxyResponse(
+  result,
+  h,
+  { cookies = false, payloadV2 = false, defaultContentType } = {},
+) {
   // null / undefined → empty 200
   if (result === null || result === undefined) {
     return h.response('').code(200)
   }
 
-  // Plain string → 200 text/plain
+  // Plain string → 200. HTTP API v2 emits application/json; REST v1 and ALB
+  // keep text/plain.
   if (typeof result === 'string') {
-    return h.response(result).code(200).type('text/plain')
+    return h
+      .response(result)
+      .code(200)
+      .type(payloadV2 ? 'application/json' : 'text/plain')
   }
 
   // Object without statusCode → 200 application/json
@@ -108,6 +116,20 @@ export function formatLambdaProxyResponse(result, h, { cookies = false } = {}) {
   if (cookies && Array.isArray(responseCookies)) {
     for (const cookie of responseCookies) {
       response.header('set-cookie', cookie, { append: true })
+    }
+  }
+
+  // Default the Content-Type (when a caller opts in via defaultContentType)
+  // only if the handler set none and the body is non-empty. Real APIGW
+  // applies this default without overriding a handler-set value.
+  if (defaultContentType) {
+    const hasContentType = [
+      ...Object.keys(headers ?? {}),
+      ...Object.keys(multiValueHeaders ?? {}),
+    ].some((name) => name.toLowerCase() === 'content-type')
+    const hasBody = responseBody !== '' && responseBody !== undefined
+    if (!hasContentType && hasBody) {
+      response.type(defaultContentType)
     }
   }
 

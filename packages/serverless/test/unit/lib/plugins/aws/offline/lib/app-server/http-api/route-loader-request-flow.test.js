@@ -246,7 +246,7 @@ describe('Lambda response → HTTP wire shape', () => {
     expect(res.payload).toBe('')
   })
 
-  it('returns 200 with text/plain when the handler returns a plain string', async () => {
+  it('returns 200 with application/json when the handler returns a plain string', async () => {
     const server = Hapi.server({ host: 'localhost', port: 0 })
     activeServer = server
     registerHttpApiRoutes({
@@ -263,7 +263,7 @@ describe('Lambda response → HTTP wire shape', () => {
     const res = await server.inject({ method: 'GET', url: '/hi' })
     expect(res.statusCode).toBe(200)
     expect(res.payload).toBe('hello')
-    expect(res.headers['content-type']).toMatch(/text\/plain/)
+    expect(res.headers['content-type']).toMatch(/application\/json/)
   })
 
   it('returns 200 with JSON when the handler returns a plain object without statusCode', async () => {
