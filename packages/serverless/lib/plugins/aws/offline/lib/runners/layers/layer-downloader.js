@@ -15,7 +15,7 @@ import { extractZipBuffer } from '../docker-code-mount.js'
  * @param {string} args.setKey          sha256 of the ordered ARN list.
  * @param {string} args.layersDir       Cache root.
  * @param {{ send: Function }} args.lambdaClient
- * @param {{ warning?: Function, debug?: Function }} [args.logger]
+ * @param {{ warning?: Function }} [args.logger]
  * @returns {Promise<{ optDir: string, ok: boolean }>}
  */
 export async function downloadLayerSet({
@@ -35,8 +35,18 @@ export async function downloadLayerSet({
     // cache miss
   }
 
-  await fs.rm(optDir, { recursive: true, force: true })
-  await fs.mkdir(optDir, { recursive: true })
+  // Prepare a clean cache dir. A failure here (e.g. an unwritable layersDir)
+  // degrades to ok:false rather than crashing boot — the handler simply runs
+  // without its layers, matching the per-layer soft-warn posture.
+  try {
+    await fs.rm(optDir, { recursive: true, force: true })
+    await fs.mkdir(optDir, { recursive: true })
+  } catch (err) {
+    logger?.warning?.(
+      `Failed to prepare layer cache "${optDir}": ${err.message ?? err}`,
+    )
+    return { optDir, ok: false }
+  }
 
   let ok = true
   for (const arn of arns) {
@@ -59,8 +69,17 @@ export async function downloadLayerSet({
     }
   }
 
+  // Write the cache marker only when every layer succeeded, so a partial or
+  // failed set is re-downloaded on the next boot rather than served stale.
   if (ok) {
-    await fs.writeFile(markerPath, JSON.stringify({ arns, setKey }))
+    try {
+      await fs.writeFile(markerPath, JSON.stringify({ arns, setKey }))
+    } catch (err) {
+      logger?.warning?.(
+        `Failed to write layer cache marker "${markerPath}": ${err.message ?? err}`,
+      )
+      ok = false
+    }
   }
 
   return { optDir, ok }

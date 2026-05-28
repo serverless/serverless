@@ -199,4 +199,47 @@ describe('downloadLayerSet', () => {
     expect(result.ok).toBe(false)
     expect(logger.warning).toHaveBeenCalledTimes(1)
   })
+
+  it('re-downloads on the next call after a failed set wrote no marker', async () => {
+    const layersDir = await makeLayersDir()
+    // First attempt fails (no marker should be written).
+    lambdaClient.send.mockRejectedValueOnce(new Error('boom'))
+
+    const first = await downloadLayerSet({
+      arns: ['arn:aws:lambda:us-east-1:1:layer:a:1'],
+      setKey: 'set-retry',
+      layersDir,
+      lambdaClient,
+      logger,
+    })
+    expect(first.ok).toBe(false)
+    await expect(
+      readFile(path.join(first.optDir, '.layers.json'), 'utf8'),
+    ).rejects.toThrow()
+
+    // Second attempt succeeds: because no marker exists, it hits the network
+    // again, extracts, and writes the marker.
+    lambdaClient.send.mockResolvedValueOnce({
+      Content: { Location: 'https://x/l.zip' },
+    })
+    fetchSpy.mockResolvedValueOnce(
+      arrayBufferResponse(
+        await zipBuffer({ 'nodejs/node_modules/x/v.txt': 'A' }),
+      ),
+    )
+
+    const second = await downloadLayerSet({
+      arns: ['arn:aws:lambda:us-east-1:1:layer:a:1'],
+      setKey: 'set-retry',
+      layersDir,
+      lambdaClient,
+      logger,
+    })
+
+    expect(second.ok).toBe(true)
+    expect(lambdaClient.send).toHaveBeenCalledTimes(2)
+    await expect(
+      readFile(path.join(second.optDir, '.layers.json'), 'utf8'),
+    ).resolves.toContain('set-retry')
+  })
 })
