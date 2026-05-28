@@ -250,16 +250,62 @@ commands.set('offline', {
       usage: 'Port for the AWS SDK endpoint (default 3002)',
       type: 'string',
     },
+    corsAllowHeaders: {
+      usage:
+        'Used to build the Access-Control-Allow-Headers header for CORS support',
+      type: 'string',
+    },
+    corsAllowOrigin: {
+      usage:
+        'Used to build the Access-Control-Allow-Origin header for CORS support',
+      type: 'string',
+    },
+    corsDisallowCredentials: {
+      usage:
+        'Used to override the Access-Control-Allow-Credentials default to false',
+      type: 'boolean',
+    },
+    corsExposedHeaders: {
+      usage:
+        'Used to build the Access-Control-Expose-Headers response header for CORS support',
+      type: 'string',
+    },
+    disableCookieValidation: {
+      usage: 'Disable cookie validation on the local Hapi server',
+      type: 'boolean',
+    },
+    enforceSecureCookies: {
+      usage: 'Enforce secure cookies in local REST responses',
+      type: 'boolean',
+    },
     host: {
       usage: 'Host the local servers bind to (default localhost)',
       type: 'string',
     },
-    noTimeout: {
-      usage: 'Disable handler timeout enforcement',
+    httpsProtocol: {
+      usage:
+        'Enable HTTPS by specifying a directory containing cert.pem and key.pem',
+      type: 'string',
+    },
+    ignoreJWTSignature: {
+      usage:
+        'When using HTTP API JWT authorizers, skip JWT signature verification',
       type: 'boolean',
     },
-    watch: {
-      usage: 'Enable hot-reload of handler files (default true)',
+    localEnvironment: {
+      usage: 'Copy local process environment variables into Lambda handlers',
+      type: 'boolean',
+    },
+    noAuth: {
+      usage: 'Turn off all authorizers',
+      type: 'boolean',
+    },
+    noPrependStageInUrl: {
+      usage: 'Do NOT prepend the deployment stage to REST API URLs',
+      type: 'boolean',
+    },
+    noTimeout: {
+      usage: 'Disable handler timeout enforcement',
       type: 'boolean',
     },
     noWatch: {
@@ -271,14 +317,24 @@ commands.set('offline', {
         'Extra path segment to prepend after the stage in REST API URLs (e.g. --prefix api → /<stage>/api/<route>)',
       type: 'string',
     },
-    noPrependStageInUrl: {
-      usage: 'Do NOT prepend the deployment stage to REST API URLs',
-      type: 'boolean',
-    },
     useInProcess: {
       usage:
         'Run Lambda handlers in the offline server process (Node.js only) instead of spawning a worker thread per concurrent invocation. Faster invocation, but handler module state and process.env mutations persist between calls. Default: false.',
       type: 'boolean',
+    },
+    watch: {
+      usage: 'Enable hot-reload of handler files (default true)',
+      type: 'boolean',
+    },
+    webSocketHardTimeout: {
+      usage:
+        'Set WebSocket hard timeout in seconds to reproduce AWS limits (default 7200)',
+      type: 'string',
+    },
+    webSocketIdleTimeout: {
+      usage:
+        'Set WebSocket idle timeout in seconds to reproduce AWS limits (default 600)',
+      type: 'string',
     },
   },
   lifecycleEvents: ['offline'],

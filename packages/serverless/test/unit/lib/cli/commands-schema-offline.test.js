@@ -46,6 +46,49 @@ describe('commands-schema offline entry', () => {
     })
   })
 
+  it('exposes community-plugin option-parity flags with CLI-compatible types', () => {
+    expect(entry.options).toMatchObject({
+      corsAllowHeaders: { type: 'string' },
+      corsAllowOrigin: { type: 'string' },
+      corsDisallowCredentials: { type: 'boolean' },
+      corsExposedHeaders: { type: 'string' },
+      disableCookieValidation: { type: 'boolean' },
+      enforceSecureCookies: { type: 'boolean' },
+      httpsProtocol: { type: 'string' },
+      ignoreJWTSignature: { type: 'boolean' },
+      localEnvironment: { type: 'boolean' },
+      noAuth: { type: 'boolean' },
+      webSocketHardTimeout: { type: 'string' },
+      webSocketIdleTimeout: { type: 'string' },
+    })
+  })
+
+  it('declares the complete offline CLI option set', () => {
+    expect(Object.keys(entry.options).sort()).toEqual([
+      'appPort',
+      'awsApiPort',
+      'corsAllowHeaders',
+      'corsAllowOrigin',
+      'corsDisallowCredentials',
+      'corsExposedHeaders',
+      'disableCookieValidation',
+      'enforceSecureCookies',
+      'host',
+      'httpsProtocol',
+      'ignoreJWTSignature',
+      'localEnvironment',
+      'noAuth',
+      'noPrependStageInUrl',
+      'noTimeout',
+      'noWatch',
+      'prefix',
+      'useInProcess',
+      'watch',
+      'webSocketHardTimeout',
+      'webSocketIdleTimeout',
+    ])
+  })
+
   it('every option has a non-empty usage string for sls --help', () => {
     for (const [name, def] of Object.entries(entry.options)) {
       expect(typeof def.usage).toBe('string')
