@@ -177,9 +177,14 @@ export function createLambdaFunction({
      *     by other plugins.
      *
      * @param {unknown} event
+     * @param {{ clientContext?: unknown }} [options]  Optional invoke
+     *   options. `clientContext` carries the decoded value of a
+     *   `LambdaClient.invoke` `ClientContext` argument (the base64
+     *   `X-Amz-Client-Context` header) and is surfaced on the synthesized
+     *   Lambda context.
      * @returns {Promise<unknown>}
      */
-    async invoke(event) {
+    async invoke(event, options = {}) {
       const fn = serverless.service.functions?.[functionKey]
       if (!fn) {
         throw new Error(
@@ -231,6 +236,10 @@ export function createLambdaFunction({
         // Raw handler string — worker-entry sets process.env._HANDLER from it
         // for parity with the real Lambda execution environment.
         handler: fn.handler,
+        // Client context from a LambdaClient.invoke ClientContext arg (the
+        // base64 X-Amz-Client-Context header), null otherwise. Mirrors the
+        // real Lambda context.clientContext field.
+        clientContext: options.clientContext ?? null,
       }
 
       const environment = {

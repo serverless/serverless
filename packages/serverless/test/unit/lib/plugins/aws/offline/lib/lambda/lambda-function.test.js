@@ -105,6 +105,38 @@ describe('createLambdaFunction', () => {
     expect(result).toEqual({ ok: true, args })
   })
 
+  test('invoke() threads options.clientContext into the runner context', async () => {
+    const runner = makeRunner()
+    const fn = createLambdaFunction({
+      serverless: makeServerless({
+        servicePath: tmpDir,
+        functions: { hello: { handler: 'src/handler.main' } },
+      }),
+      functionKey: 'hello',
+      runner,
+    })
+
+    await fn.invoke({ msg: 'hi' }, { clientContext: { foo: 'bar' } })
+
+    expect(runner.calls[0].context.clientContext).toEqual({ foo: 'bar' })
+  })
+
+  test('invoke() with no options sets context.clientContext to null', async () => {
+    const runner = makeRunner()
+    const fn = createLambdaFunction({
+      serverless: makeServerless({
+        servicePath: tmpDir,
+        functions: { hello: { handler: 'src/handler.main' } },
+      }),
+      functionKey: 'hello',
+      runner,
+    })
+
+    await fn.invoke({ msg: 'hi' })
+
+    expect(runner.calls[0].context.clientContext).toBeNull()
+  })
+
   test('functionKey getter exposes the configured key', () => {
     const fn = createLambdaFunction({
       serverless: makeServerless({
