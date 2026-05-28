@@ -4,6 +4,7 @@ import path from 'node:path'
 import ServerlessError from '../../../../../serverless-error.js'
 import { buildLambdaRuntimeEnv } from './lambda-env.js'
 import { resolveDockerCodeMount } from './docker-code-mount.js'
+import { buildLayerMount, layerEnvFor } from './layers/layer-mounts.js'
 import {
   architectureToDockerPlatform,
   architectureToGoArch,
@@ -149,6 +150,15 @@ export function createDockerRuntimeRunner({
         javaOptsRaw && image.startsWith('public.ecr.aws/lambda/java:')
           ? { JAVA_TOOL_OPTIONS: javaOptsRaw }
           : {}
+      const layerOptDir = args.layers?.optDir ?? null
+      const layerMount = layerOptDir
+        ? buildLayerMount({
+            optDir: layerOptDir,
+            servicePath,
+            dockerHostServicePath,
+          })
+        : null
+      const layerEnv = layerOptDir ? layerEnvFor(args.runtime) : {}
       const containerEnv = {
         ...lambdaEnv,
         ...(args.environment ?? {}),
@@ -156,6 +166,11 @@ export function createDockerRuntimeRunner({
         AWS_LAMBDA_RUNTIME_API: _apiBaseFor(functionKey),
         _HANDLER: handlerString,
         ...javaToolOptionsEnv,
+      }
+      if (layerEnv.NODE_PATH_PREFIX) {
+        containerEnv.NODE_PATH = containerEnv.NODE_PATH
+          ? `${layerEnv.NODE_PATH_PREFIX}:${containerEnv.NODE_PATH}`
+          : layerEnv.NODE_PATH_PREFIX
       }
       const { mounts } = await resolveDockerCodeMount({
         functionKey,
@@ -166,6 +181,7 @@ export function createDockerRuntimeRunner({
         servicePath,
         dockerHostServicePath,
         dockerReadOnly,
+        layerMounts: layerMount ? [layerMount] : [],
       })
       const containerName = `${CONTAINER_NAME_PREFIX}${functionKey}-${randomUUID()}`
       const hostConfig = {

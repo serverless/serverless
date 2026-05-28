@@ -457,6 +457,39 @@ describe('createLambdaFunction', () => {
     expect(runner.calls[0].timeoutMs).toBe(30_000)
   })
 
+  test('passes the layer optDir to the runner when configured', async () => {
+    const runner = makeRunner()
+    const fn = createLambdaFunction({
+      serverless: makeServerless({
+        servicePath: tmpDir,
+        functions: { hello: { handler: 'src/handler.main' } },
+      }),
+      functionKey: 'hello',
+      runner,
+      layerOptDir: '/cache/layers/abc',
+    })
+
+    await fn.invoke({})
+
+    expect(runner.calls[0].layers).toEqual({ optDir: '/cache/layers/abc' })
+  })
+
+  test('omits layers from runner args when no optDir is configured', async () => {
+    const runner = makeRunner()
+    const fn = createLambdaFunction({
+      serverless: makeServerless({
+        servicePath: tmpDir,
+        functions: { hello: { handler: 'src/handler.main' } },
+      }),
+      functionKey: 'hello',
+      runner,
+    })
+
+    await fn.invoke({})
+
+    expect(runner.calls[0].layers).toBeUndefined()
+  })
+
   test('each invocation gets a fresh awsRequestId and the same configured timeoutMs', async () => {
     const runner = makeRunner()
     const fn = createLambdaFunction({

@@ -129,6 +129,9 @@ function resolveHandlerSync(handlerString, baseDir, runtime) {
  * @param {boolean} [params.localEnvironment=false]
  *   When true, copy the host process environment into the Lambda environment
  *   before applying provider/function environment overrides.
+ * @param {string | null} [params.layerOptDir=null]
+ *   Host dir of this function's extracted layer set, mounted at /opt by the
+ *   Docker runner; null when none.
  * @returns {{
  *   invoke(event: unknown): Promise<unknown>,
  *   readonly functionKey: string,
@@ -141,6 +144,7 @@ export function createLambdaFunction({
   logger,
   noTimeout = false,
   localEnvironment = false,
+  layerOptDir = null,
 }) {
   /**
    * Emit the per-invocation execution trace. Best-effort: silently no-ops if
@@ -270,6 +274,9 @@ export function createLambdaFunction({
           // Null for non-Java runtimes; the multiplexer ignores it
           // unless it routes the invoke to the Java sub-runner.
           artifactPath,
+          // Extracted layer set for this function (Docker runner mounts it at
+          // /opt). Undefined for functions without layers; host runners ignore it.
+          layers: layerOptDir ? { optDir: layerOptDir } : undefined,
           // When timeout enforcement is disabled, omit timeoutMs entirely so
           // the runner does not arm its termination timer.
           timeoutMs: noTimeout ? undefined : timeoutMs,

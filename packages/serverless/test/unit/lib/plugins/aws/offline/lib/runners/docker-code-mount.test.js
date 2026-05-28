@@ -197,6 +197,27 @@ describe('docker-code-mount', () => {
     ).resolves.toBe('module.exports = 1\n')
   })
 
+  it('includes supplied layer mounts in mounts, after the code mount', async () => {
+    const layerMount = {
+      source: '/cache/abc',
+      target: '/opt',
+      mode: 'ro',
+      readOnly: true,
+      bind: '/cache/abc:/opt:ro',
+    }
+    const result = await resolveDockerCodeMount({
+      functionKey: 'api',
+      runtime: 'nodejs20.x',
+      handlerPath: '/svc/src/api.js',
+      servicePath: '/svc',
+      layerMounts: [layerMount],
+    })
+    expect(result.extraLayerMounts).toEqual([layerMount])
+    expect(result.mounts).toContainEqual(layerMount)
+    expect(result.mounts[0]).toEqual(result.codeMount)
+    expect(result.mounts.at(-1)).toEqual(layerMount)
+  })
+
   it('applies dockerHostServicePath rewrites to resolved mounts', async () => {
     const servicePath = await makeTempService()
     tempDirs.push(servicePath)

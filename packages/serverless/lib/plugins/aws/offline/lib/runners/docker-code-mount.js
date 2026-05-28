@@ -123,6 +123,7 @@ async function extractZipArtifact({ artifactPath, cacheRoot }) {
  * @param {string} [args.cacheRoot]
  * @param {string | null} [args.dockerHostServicePath]
  * @param {boolean} [args.dockerReadOnly]
+ * @param {object[]} [args.layerMounts]
  * @returns {Promise<{ kind: string, codeDir: string, artifactHash?: string, codeMount: object, extraLayerMounts: object[], layerMounts: object[], mounts: object[] }>}
  */
 export async function resolveDockerCodeMount({
@@ -135,6 +136,7 @@ export async function resolveDockerCodeMount({
   cacheRoot = path.join(servicePath, '.serverless-offline', 'docker-artifacts'),
   dockerHostServicePath = null,
   dockerReadOnly = true,
+  layerMounts = [],
 }) {
   const mode = dockerReadOnly ? 'ro' : 'rw'
   let sourcePath
@@ -169,7 +171,7 @@ export async function resolveDockerCodeMount({
   })
 
   const codeMount = createMount(rewrittenSourcePath, target, mode)
-  const extraLayerMounts = []
+  const extraLayerMounts = layerMounts
   return {
     kind,
     codeDir: resolvedCodeDir,
