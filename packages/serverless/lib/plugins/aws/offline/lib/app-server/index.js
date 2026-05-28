@@ -13,6 +13,7 @@
 
 import Hapi from '@hapi/hapi'
 import { DEFAULT_APP_PORT, DEFAULT_HOST } from '../constants.js'
+import { loadTlsCerts } from './load-tls-certs.js'
 
 /**
  * Create and start a Hapi server that handles application traffic.
@@ -31,6 +32,10 @@ import { DEFAULT_APP_PORT, DEFAULT_HOST } from '../constants.js'
  * @param {string} [opts.host=DEFAULT_HOST]
  *   Interface to bind.  Defaults to loopback so the server is not reachable
  *   from outside the machine.
+ *
+ * @param {string} [opts.httpsProtocol]
+ *   Directory containing `cert.pem` and `key.pem`. When present, Hapi serves
+ *   HTTPS on the app port.
  *
  * @param {{ notice?: (msg: string) => void }} [opts.logger]
  *   Optional logger instance (e.g. from `@serverless/util` via `log.get(...)`).
@@ -52,6 +57,7 @@ import { DEFAULT_APP_PORT, DEFAULT_HOST } from '../constants.js'
 export async function createAppServer({
   appPort = DEFAULT_APP_PORT,
   host = DEFAULT_HOST,
+  httpsProtocol,
   logger,
   registerRoutes,
 } = {}) {
@@ -62,7 +68,8 @@ export async function createAppServer({
     )
   }
 
-  const server = Hapi.server({ host, port: appPort })
+  const tls = httpsProtocol ? await loadTlsCerts(httpsProtocol) : undefined
+  const server = Hapi.server({ host, port: appPort, ...(tls ? { tls } : {}) })
 
   await registerRoutes(server)
 
