@@ -1,5 +1,7 @@
 import { jest } from '@jest/globals'
-import OfflinePlugin from '../../../../../../lib/plugins/aws/offline/index.js'
+import OfflinePlugin, {
+  resolveOfflineOptions,
+} from '../../../../../../lib/plugins/aws/offline/index.js'
 import offlineSchema from '../../../../../../lib/plugins/aws/offline/lib/schema.js'
 
 const makeServerless = () => ({
@@ -67,6 +69,48 @@ describe('OfflinePlugin', () => {
 
     await expect(plugin.hooks['offline:offline']()).rejects.toMatchObject({
       code: 'OFFLINE_PORT_COLLISION',
+    })
+  })
+})
+
+describe('resolveOfflineOptions', () => {
+  it('resolves option-parity defaults when CLI and YAML omit them', () => {
+    expect(
+      resolveOfflineOptions({ cliOptions: {}, offline: {} }),
+    ).toMatchObject({
+      corsAllowHeaders: 'accept,content-type,x-api-key,authorization',
+      corsAllowOrigin: '*',
+      corsDisallowCredentials: true,
+      corsExposedHeaders: 'WWW-Authenticate,Server-Authorization',
+      disableCookieValidation: false,
+      enforceSecureCookies: false,
+      httpsProtocol: undefined,
+      ignoreJWTSignature: false,
+      localEnvironment: false,
+      noAuth: false,
+      webSocketHardTimeout: 7200,
+      webSocketIdleTimeout: 600,
+    })
+  })
+
+  it('lets CLI values override YAML values for option-parity flags', () => {
+    expect(
+      resolveOfflineOptions({
+        cliOptions: {
+          corsAllowOrigin: 'https://cli.example.com',
+          ignoreJWTSignature: true,
+          webSocketHardTimeout: '30',
+        },
+        offline: {
+          corsAllowOrigin: 'https://yaml.example.com',
+          ignoreJWTSignature: false,
+          webSocketHardTimeout: 60,
+        },
+      }),
+    ).toMatchObject({
+      corsAllowOrigin: 'https://cli.example.com',
+      ignoreJWTSignature: true,
+      webSocketHardTimeout: 30,
     })
   })
 })

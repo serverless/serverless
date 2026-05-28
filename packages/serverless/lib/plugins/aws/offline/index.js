@@ -58,6 +58,62 @@ function coerceInt(value) {
   return Number.isNaN(n) ? undefined : n
 }
 
+export function resolveOfflineOptions({ cliOptions = {}, offline = {} } = {}) {
+  return {
+    appPort:
+      coerceInt(cliOptions.appPort) ?? offline.appPort ?? DEFAULT_APP_PORT,
+    awsApiPort:
+      coerceInt(cliOptions.awsApiPort) ??
+      offline.awsApiPort ??
+      DEFAULT_AWS_API_PORT,
+    corsAllowHeaders:
+      cliOptions.corsAllowHeaders ??
+      offline.corsAllowHeaders ??
+      'accept,content-type,x-api-key,authorization',
+    corsAllowOrigin:
+      cliOptions.corsAllowOrigin ?? offline.corsAllowOrigin ?? '*',
+    corsDisallowCredentials:
+      cliOptions.corsDisallowCredentials ??
+      offline.corsDisallowCredentials ??
+      true,
+    corsExposedHeaders:
+      cliOptions.corsExposedHeaders ??
+      offline.corsExposedHeaders ??
+      'WWW-Authenticate,Server-Authorization',
+    disableCookieValidation:
+      cliOptions.disableCookieValidation ??
+      offline.disableCookieValidation ??
+      false,
+    enforceSecureCookies:
+      cliOptions.enforceSecureCookies ?? offline.enforceSecureCookies ?? false,
+    host: cliOptions.host ?? offline.host ?? DEFAULT_HOST,
+    httpsProtocol: cliOptions.httpsProtocol ?? offline.httpsProtocol,
+    ignoreJWTSignature:
+      cliOptions.ignoreJWTSignature ?? offline.ignoreJWTSignature ?? false,
+    localEnvironment:
+      cliOptions.localEnvironment ?? offline.localEnvironment ?? false,
+    noAuth: cliOptions.noAuth ?? offline.noAuth ?? false,
+    noPrependStageInUrl:
+      cliOptions.noPrependStageInUrl ?? offline.noPrependStageInUrl ?? false,
+    prefix: cliOptions.prefix ?? offline.prefix,
+    terminateIdleLambdaTime:
+      offline.terminateIdleLambdaTime ?? DEFAULT_TERMINATE_IDLE_LAMBDA_TIME,
+    useInProcess: cliOptions.useInProcess ?? offline.useInProcess ?? false,
+    watchEnabled:
+      cliOptions.noWatch === true || offline.noWatch === true
+        ? false
+        : (cliOptions.watch ?? offline.watch ?? true),
+    webSocketHardTimeout:
+      coerceInt(cliOptions.webSocketHardTimeout) ??
+      coerceInt(offline.webSocketHardTimeout) ??
+      7200,
+    webSocketIdleTimeout:
+      coerceInt(cliOptions.webSocketIdleTimeout) ??
+      coerceInt(offline.webSocketIdleTimeout) ??
+      600,
+  }
+}
+
 /**
  * Print a structured boot summary once every subsystem is up. Groups the
  * "now ready" output so users see a single block with the bound endpoints
@@ -278,27 +334,34 @@ export default class OfflinePlugin {
     //    Precedence (highest wins): CLI flag → offline.<key> in YAML → built-in default.
     //    Framework's CLI parser returns option values as strings (e.g. --appPort 4000
     //    arrives as "4000"); coerce port strings to integers locally.
-    const awsApiPort =
-      coerceInt(cliOptions.awsApiPort) ??
-      offline.awsApiPort ??
-      DEFAULT_AWS_API_PORT
-    const appPort =
-      coerceInt(cliOptions.appPort) ?? offline.appPort ?? DEFAULT_APP_PORT
-    const host = cliOptions.host ?? offline.host ?? DEFAULT_HOST
+    const {
+      appPort,
+      awsApiPort,
+      corsAllowHeaders,
+      corsAllowOrigin,
+      corsDisallowCredentials,
+      corsExposedHeaders,
+      disableCookieValidation,
+      enforceSecureCookies,
+      host,
+      httpsProtocol,
+      ignoreJWTSignature,
+      localEnvironment,
+      noAuth,
+      noPrependStageInUrl,
+      prefix,
+      terminateIdleLambdaTime,
+      useInProcess,
+      watchEnabled,
+      webSocketHardTimeout,
+      webSocketIdleTimeout,
+    } = resolveOfflineOptions({ cliOptions, offline })
     const stage = getStage(serverless)
     const domainName = `${host}:${appPort}`
     // NOTE: servicePath is intentionally NOT captured here — it must be read
     // lazily each time it's needed so that bundler plugins (e.g. built-in
     // esbuild) that swap serverless.config.servicePath in their
     // before:offline:start hook are reflected correctly.
-    const terminateIdleLambdaTime =
-      offline.terminateIdleLambdaTime ?? DEFAULT_TERMINATE_IDLE_LAMBDA_TIME
-    // Runner selection: --useInProcess CLI flag → offline.useInProcess YAML
-    // key → default false (worker-thread runner). The in-process runner
-    // trades worker isolation for lower invocation overhead and direct
-    // stack traces — opt-in only for parity with serverless-offline.
-    const useInProcess =
-      cliOptions.useInProcess ?? offline.useInProcess ?? false
     // Detect Python functions so the boot summary advertises the python3
     // child-process runner alongside the Node runner. Uses the same regex
     // as runtime-guard.js to keep the "what counts as Python" definition
@@ -360,16 +423,6 @@ export default class OfflinePlugin {
       ensureImageReady = checker.ensureImageReady
     }
     const noTimeout = cliOptions.noTimeout === true
-    const prefix = cliOptions.prefix ?? offline.prefix
-    const noPrependStageInUrl =
-      cliOptions.noPrependStageInUrl === true ||
-      offline.noPrependStageInUrl === true
-    // watch defaults to true; --noWatch (CLI flag) or offline.noWatch (YAML)
-    // disable it explicitly, --watch=false / offline.watch:false also disable.
-    const watchEnabled =
-      cliOptions.noWatch === true || offline.noWatch === true
-        ? false
-        : (cliOptions.watch ?? offline.watch ?? true)
 
     // Refuse to start when both Hapi servers would bind to the same port —
     // doing so produces an opaque EADDRINUSE deep inside Hapi instead of a
@@ -391,6 +444,9 @@ export default class OfflinePlugin {
     process.env.AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID ?? 'test'
     process.env.AWS_SECRET_ACCESS_KEY =
       process.env.AWS_SECRET_ACCESS_KEY ?? 'test'
+    if (noAuth) {
+      process.env.AUTHORIZER = '{}'
+    }
 
     // 4. Run the provisioner to populate the registry from CFN.
     const { registry } = await provision(serverless, { awsApiPort })
@@ -472,6 +528,7 @@ export default class OfflinePlugin {
           runner,
           logger: lambdaLogger,
           noTimeout,
+          localEnvironment,
         })
         lambdaFunctions.set(functionKey, fn)
       }
@@ -513,6 +570,7 @@ export default class OfflinePlugin {
     const appServer = await createAppServer({
       appPort,
       host,
+      httpsProtocol,
       logger: log.get('sls:offline:app-server'),
       async registerRoutes(server) {
         // Register Hapi auth schemes + strategies BEFORE any routes — Hapi
@@ -531,6 +589,7 @@ export default class OfflinePlugin {
           accountId: FAKE_ACCOUNT_ID,
           domainName,
           customAuthStrategy,
+          ignoreJWTSignature,
         })
 
         // WebSocket: shared appPort. The Hapi server's `upgrade` event
@@ -548,6 +607,8 @@ export default class OfflinePlugin {
           stage,
           accountId: FAKE_ACCOUNT_ID,
           region: FAKE_REGION,
+          webSocketHardTimeout,
+          webSocketIdleTimeout,
         })
 
         // ApiGatewayManagementApi: HTTP routes at /<stage>/@connections/{id}.
@@ -576,6 +637,7 @@ export default class OfflinePlugin {
           serverless,
           stage,
           domainName,
+          noAuth,
           authStrategies,
           async onRequest(functionKey, event) {
             return getLambdaFunction(functionKey).invoke(event)
@@ -587,6 +649,13 @@ export default class OfflinePlugin {
           stage,
           prefix,
           noPrependStageInUrl,
+          noAuth,
+          corsAllowHeaders,
+          corsAllowOrigin,
+          corsDisallowCredentials,
+          corsExposedHeaders,
+          disableCookieValidation,
+          enforceSecureCookies,
           authStrategies,
           async onRequest(functionKey, event) {
             return getLambdaFunction(functionKey).invoke(event)

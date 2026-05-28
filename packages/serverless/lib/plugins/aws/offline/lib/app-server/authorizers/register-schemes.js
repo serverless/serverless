@@ -32,6 +32,7 @@
  * @param {string} args.stage
  * @param {string} args.accountId
  * @param {string} [args.domainName]
+ * @param {boolean} [args.ignoreJWTSignature=false]
  * @returns {{
  *   privateStrategy: string | null,
  *   authorizerStrategies: Map<string, string>,
@@ -53,6 +54,7 @@ export function registerAuthSchemes({
   accountId,
   domainName,
   customAuthStrategy,
+  ignoreJWTSignature = false,
 }) {
   const functions = serverless?.service?.functions ?? {}
 
@@ -187,7 +189,10 @@ export function registerAuthSchemes({
     if (v2AuthorizerStrategies.has(name)) continue
     if (def.kind === 'jwt') {
       const schemeName = `jwt:${name}`
-      server.auth.scheme(schemeName, createJwtScheme({ authorizerDef: def }))
+      server.auth.scheme(
+        schemeName,
+        createJwtScheme({ authorizerDef: def, ignoreJWTSignature }),
+      )
       server.auth.strategy(schemeName, schemeName)
       v2AuthorizerStrategies.set(name, schemeName)
       continue
