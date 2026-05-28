@@ -46,6 +46,37 @@ function createMount(source, target, mode) {
 }
 
 /**
+ * Extract a ZIP buffer into a destination directory, rejecting any entry whose
+ * resolved path escapes that directory (path-traversal guard). Directory
+ * entries are skipped; file modes are preserved from the archive.
+ *
+ * @param {Buffer} buffer
+ * @param {string} destDir
+ * @returns {Promise<void>}
+ */
+export async function extractZipBuffer(buffer, destDir) {
+  const zip = await JSZip.loadAsync(buffer)
+  const writes = []
+  for (const [entryName, entry] of Object.entries(zip.files)) {
+    if (entry.dir) continue
+    const destination = path.resolve(destDir, entryName)
+    const relative = path.relative(destDir, destination)
+    if (relative.startsWith('..') || path.isAbsolute(relative)) {
+      throw new Error(`Unsafe ZIP entry path: ${entryName}`)
+    }
+    writes.push(
+      (async () => {
+        await fs.mkdir(path.dirname(destination), { recursive: true })
+        await fs.writeFile(destination, await entry.async('nodebuffer'), {
+          mode: entry.unixPermissions,
+        })
+      })(),
+    )
+  }
+  await Promise.all(writes)
+}
+
+/**
  * @param {object} args
  * @param {string} args.artifactPath
  * @param {string} args.cacheRoot
@@ -71,25 +102,7 @@ async function extractZipArtifact({ artifactPath, cacheRoot }) {
   await fs.rm(codeDir, { recursive: true, force: true })
   await fs.mkdir(codeDir, { recursive: true })
 
-  const zip = await JSZip.loadAsync(artifactBuffer)
-  const writes = []
-  for (const [entryName, entry] of Object.entries(zip.files)) {
-    if (entry.dir) continue
-    const destination = path.resolve(codeDir, entryName)
-    const relative = path.relative(codeDir, destination)
-    if (relative.startsWith('..') || path.isAbsolute(relative)) {
-      throw new Error(`Unsafe ZIP entry path in Lambda artifact: ${entryName}`)
-    }
-    writes.push(
-      (async () => {
-        await fs.mkdir(path.dirname(destination), { recursive: true })
-        await fs.writeFile(destination, await entry.async('nodebuffer'), {
-          mode: entry.unixPermissions,
-        })
-      })(),
-    )
-  }
-  await Promise.all(writes)
+  await extractZipBuffer(artifactBuffer, codeDir)
   await fs.writeFile(markerPath, markerPayload)
   return { artifactHash, codeDir }
 }

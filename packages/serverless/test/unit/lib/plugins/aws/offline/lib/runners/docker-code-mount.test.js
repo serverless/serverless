@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import JsZip from 'jszip'
 import {
+  extractZipBuffer,
   resolveDockerCodeMount,
   rewriteDockerHostServicePath,
 } from '../../../../../../../../lib/plugins/aws/offline/lib/runners/docker-code-mount.js'
@@ -165,6 +166,35 @@ describe('docker-code-mount', () => {
       extraLayerMounts: [],
       mounts: [{ source: artifactDir, target: '/var/task', readOnly: true }],
     })
+  })
+
+  it('rejects ZIP buffers with path-traversal entries', async () => {
+    const destDir = await makeTempService()
+    tempDirs.push(destDir)
+    const zip = new JsZip()
+    zip.file('/etc/evil.txt', 'pwned')
+    const buffer = await zip.generateAsync({ type: 'nodebuffer' })
+
+    await expect(extractZipBuffer(buffer, destDir)).rejects.toThrow(
+      /Unsafe ZIP entry path/,
+    )
+  })
+
+  it('extracts ZIP buffer entries preserving their paths under destDir', async () => {
+    const destDir = await makeTempService()
+    tempDirs.push(destDir)
+    const zip = new JsZip()
+    zip.file('nodejs/node_modules/x/index.js', 'module.exports = 1\n')
+    const buffer = await zip.generateAsync({ type: 'nodebuffer' })
+
+    await extractZipBuffer(buffer, destDir)
+
+    await expect(
+      readFile(
+        path.join(destDir, 'nodejs', 'node_modules', 'x', 'index.js'),
+        'utf8',
+      ),
+    ).resolves.toBe('module.exports = 1\n')
   })
 
   it('applies dockerHostServicePath rewrites to resolved mounts', async () => {
