@@ -16,6 +16,33 @@ function makeRouteStub() {
   }
 }
 
+function fakeH() {
+  const calls = { headers: [] }
+  const builder = {
+    code: (c) => {
+      calls.statusCode = c
+      return builder
+    },
+    header: (n, v) => {
+      calls.headers.push({ name: n, value: v })
+      return builder
+    },
+  }
+  return {
+    calls,
+    response: (p) => {
+      calls.payload = p
+      return builder
+    },
+  }
+}
+
+function namedHeaders(calls) {
+  return Object.fromEntries(
+    calls.headers.map((x) => [x.name.toLowerCase(), x.value]),
+  )
+}
+
 describe('registerRestApiRoutes — registration', () => {
   it('no http events → no routes registered', () => {
     const stub = makeRouteStub()
@@ -478,6 +505,46 @@ describe('registerRestApiRoutes — CORS', () => {
     expect(allowOrigin?.value).toBe('https://example.com')
   })
 
+  it('global corsAllow flags override per-route CORS values on preflight', () => {
+    const stub = makeRouteStub()
+    registerRestApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        f: {
+          events: [
+            {
+              http: {
+                method: 'GET',
+                path: '/x',
+                cors: {
+                  origin: 'https://route.example.com',
+                  headers: ['x-route'],
+                  exposedHeaders: ['x-route-exposed'],
+                  allowCredentials: false,
+                },
+              },
+            },
+          ],
+        },
+      }),
+      stage: 'dev',
+      corsAllowOrigin: 'https://global.example.com',
+      corsAllowHeaders: 'x-global,x-other',
+      corsExposedHeaders: 'x-global-exposed',
+      corsDisallowCredentials: false,
+      onRequest: jest.fn(),
+    })
+    const opts = stub.routes.find((r) => r.method === 'OPTIONS')
+    const h = fakeH()
+    opts.handler({ headers: { origin: 'https://global.example.com' } }, h)
+    expect(namedHeaders(h.calls)).toMatchObject({
+      'access-control-allow-origin': 'https://global.example.com',
+      'access-control-allow-headers': 'x-global,x-other',
+      'access-control-expose-headers': 'x-global-exposed',
+      'access-control-allow-credentials': 'true',
+    })
+  })
+
   it('short string form cannot declare CORS — no OPTIONS route synthesized', () => {
     const stub = makeRouteStub()
     registerRestApiRoutes({
@@ -489,6 +556,62 @@ describe('registerRestApiRoutes — CORS', () => {
       onRequest: jest.fn(),
     })
     expect(stub.routes.find((r) => r.method === 'OPTIONS')).toBeUndefined()
+  })
+})
+
+describe('registerRestApiRoutes — cookie flags', () => {
+  it('disableCookieValidation:false keeps request cookie parsing enabled', () => {
+    const stub = makeRouteStub()
+    registerRestApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        u: { events: [{ http: 'GET /u' }] },
+      }),
+      stage: 'dev',
+      onRequest: jest.fn(),
+    })
+    expect(stub.routes[0].options.state.parse).toBe(true)
+  })
+
+  it('disableCookieValidation:true disables request cookie parsing', () => {
+    const stub = makeRouteStub()
+    registerRestApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        u: { events: [{ http: 'GET /u' }] },
+      }),
+      stage: 'dev',
+      disableCookieValidation: true,
+      onRequest: jest.fn(),
+    })
+    expect(stub.routes[0].options.state.parse).toBe(false)
+  })
+
+  it('enforceSecureCookies:true appends Secure to Set-Cookie responses', async () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    try {
+      registerRestApiRoutes({
+        server,
+        serverless: makeServerless({
+          c: { events: [{ http: 'GET /cookie' }] },
+        }),
+        stage: 'dev',
+        enforceSecureCookies: true,
+        onRequest: async () => ({
+          statusCode: 200,
+          headers: { 'Set-Cookie': 'sid=123; HttpOnly' },
+          body: 'ok',
+        }),
+      })
+      await server.start()
+      const res = await server.inject({
+        method: 'GET',
+        url: '/dev/cookie',
+      })
+      expect(res.headers['set-cookie']).toContain('Secure')
+    } finally {
+      await server.stop({ timeout: 5000 })
+    }
   })
 })
 

@@ -117,6 +117,51 @@ function normalizeResponses(responseConfig) {
   return out
 }
 
+function splitHeaderList(value) {
+  return String(value)
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean)
+}
+
+function applyCorsOverrides(
+  corsConfig,
+  {
+    corsAllowHeaders,
+    corsAllowOrigin,
+    corsDisallowCredentials,
+    corsExposedHeaders,
+  },
+) {
+  if (!corsConfig) return null
+  return {
+    ...corsConfig,
+    ...(corsAllowHeaders !== undefined
+      ? { headers: splitHeaderList(corsAllowHeaders) }
+      : {}),
+    ...(corsAllowOrigin !== undefined ? { origins: [corsAllowOrigin] } : {}),
+    ...(corsDisallowCredentials !== undefined
+      ? { allowCredentials: corsDisallowCredentials !== true }
+      : {}),
+    ...(corsExposedHeaders !== undefined
+      ? { exposedHeaders: splitHeaderList(corsExposedHeaders) }
+      : {}),
+  }
+}
+
+function secureCookieValue(value) {
+  return /(?:^|;)\s*secure\s*(?:;|$)/i.test(value) ? value : `${value}; Secure`
+}
+
+function applySecureCookieHeaders(response) {
+  const setCookie = response.headers?.['set-cookie']
+  if (!setCookie) return response
+  response.headers['set-cookie'] = Array.isArray(setCookie)
+    ? setCookie.map(secureCookieValue)
+    : secureCookieValue(setCookie)
+  return response
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -164,6 +209,12 @@ export function registerRestApiRoutes({
   prefix,
   noPrependStageInUrl = false,
   noAuth = false,
+  corsAllowHeaders,
+  corsAllowOrigin,
+  corsDisallowCredentials,
+  corsExposedHeaders,
+  disableCookieValidation = false,
+  enforceSecureCookies = false,
   onRequest,
   authStrategies,
 }) {
@@ -239,10 +290,17 @@ export function registerRestApiRoutes({
       // short-form strings ("GET /users") have no place for the cors field.
       // Resolved up here so the request handler closure can also use it to
       // decorate non-OPTIONS responses with the right CORS response headers.
-      const corsConfig =
+      const corsConfig = applyCorsOverrides(
         typeof eventEntry.http === 'object'
           ? normalizeCorsConfig(eventEntry.http.cors)
-          : null
+          : null,
+        {
+          corsAllowHeaders,
+          corsAllowOrigin,
+          corsDisallowCredentials,
+          corsExposedHeaders,
+        },
+      )
 
       // Resolve the Hapi auth strategy for this route, if any. Returns
       // undefined for public routes — Hapi leaves `options.auth` unset.
@@ -265,7 +323,7 @@ export function registerRestApiRoutes({
           // real-world clients send all sorts of cookie strings and dev mode
           // should observe what production observes, not surface a 400.
           state: {
-            parse: true,
+            parse: !disableCookieValidation,
             failAction: 'ignore',
           },
           ...(authStrategy ? { auth: authStrategy } : {}),
@@ -305,6 +363,9 @@ export function registerRestApiRoutes({
               resourcePath: apigwPath,
               h,
             })
+            if (enforceSecureCookies) {
+              applySecureCookieHeaders(response)
+            }
             if (corsConfig) {
               applyCorsResponseHeaders(
                 response,
@@ -325,6 +386,9 @@ export function registerRestApiRoutes({
             })
             const result = await onRequest(functionKey, event)
             const response = formatRestApiResponse(result, h)
+            if (enforceSecureCookies) {
+              applySecureCookieHeaders(response)
+            }
             // Real APIGW adds Access-Control-Allow-Origin (and friends) to
             // every successful response from a CORS-enabled endpoint, not
             // just to the OPTIONS preflight. Without it the browser blocks
