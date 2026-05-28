@@ -126,6 +126,9 @@ function resolveHandlerSync(handlerString, baseDir, runtime) {
  *                                        `timeoutMs` so the handler can exceed
  *                                        `functions[].timeout` without being terminated.
  *                                        Useful when stepping through a handler in a debugger.
+ * @param {boolean} [params.localEnvironment=false]
+ *   When true, copy the host process environment into the Lambda environment
+ *   before applying provider/function environment overrides.
  * @returns {{
  *   invoke(event: unknown): Promise<unknown>,
  *   readonly functionKey: string,
@@ -137,6 +140,7 @@ export function createLambdaFunction({
   runner,
   logger,
   noTimeout = false,
+  localEnvironment = false,
 }) {
   /**
    * Emit the per-invocation execution trace. Best-effort: silently no-ops if
@@ -230,6 +234,7 @@ export function createLambdaFunction({
       }
 
       const environment = {
+        ...(localEnvironment ? process.env : {}),
         ...(provider.environment ?? {}),
         ...(fn.environment ?? {}),
       }

@@ -201,6 +201,61 @@ describe('createLambdaFunction', () => {
     })
   })
 
+  test('localEnvironment:false does not copy unrelated host env vars', async () => {
+    const runner = makeRunner()
+    process.env.OFFLINE_LOCAL_ONLY = 'host-value'
+    try {
+      const fn = createLambdaFunction({
+        serverless: makeServerless({
+          servicePath: tmpDir,
+          functions: { hello: { handler: 'src/handler.main' } },
+        }),
+        functionKey: 'hello',
+        runner,
+      })
+
+      await fn.invoke({})
+
+      expect(runner.calls[0].environment.OFFLINE_LOCAL_ONLY).toBeUndefined()
+    } finally {
+      delete process.env.OFFLINE_LOCAL_ONLY
+    }
+  })
+
+  test('localEnvironment:true copies host env vars before provider/function overrides', async () => {
+    const runner = makeRunner()
+    process.env.OFFLINE_LOCAL_ONLY = 'host-value'
+    process.env.SHARED = 'host-shared'
+    try {
+      const fn = createLambdaFunction({
+        serverless: makeServerless({
+          servicePath: tmpDir,
+          functions: {
+            hello: {
+              handler: 'src/handler.main',
+              environment: { SHARED: 'function-shared' },
+            },
+          },
+          provider: { region: 'us-east-1', environment: { PROVIDER: 'yes' } },
+        }),
+        functionKey: 'hello',
+        runner,
+        localEnvironment: true,
+      })
+
+      await fn.invoke({})
+
+      expect(runner.calls[0].environment).toMatchObject({
+        OFFLINE_LOCAL_ONLY: 'host-value',
+        PROVIDER: 'yes',
+        SHARED: 'function-shared',
+      })
+    } finally {
+      delete process.env.OFFLINE_LOCAL_ONLY
+      delete process.env.SHARED
+    }
+  })
+
   test('rejects with descriptive error when function key is unknown', async () => {
     const fn = createLambdaFunction({
       serverless: makeServerless({
