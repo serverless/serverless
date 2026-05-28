@@ -37,6 +37,10 @@ export function buildLayerMount({
  * NODE_PATH is overridden to a value missing the /opt node paths, so Node is
  * the sole runtime needing a fix.
  *
+ * NODE_PATH_PREFIX is a fragment to PREPEND onto the existing NODE_PATH, not a
+ * literal env var — callers must merge it, never spread this object into the
+ * container env.
+ *
  * @param {string} [runtime]
  * @returns {{ NODE_PATH_PREFIX?: string }}
  */
