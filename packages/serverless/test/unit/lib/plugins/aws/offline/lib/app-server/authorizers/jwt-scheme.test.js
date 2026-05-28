@@ -360,7 +360,7 @@ describe('jwt-scheme — 401 paths', () => {
     }
   })
 
-  it('401s when scopes configured but token has none in common', async () => {
+  it('403s when scopes configured but token has none in common', async () => {
     const server = await makeServer({
       issuerUrl: 'https://i',
       audience: ['c'],
@@ -378,7 +378,54 @@ describe('jwt-scheme — 401 paths', () => {
         url: '/p',
         headers: { authorization: `Bearer ${token}` },
       })
-      expect(res.statusCode).toBe(401)
+      expect(res.statusCode).toBe(403)
+    } finally {
+      await server.stop()
+    }
+  })
+
+  it('403s when scopes configured but the token has no scope claim', async () => {
+    const server = await makeServer({
+      issuerUrl: 'https://i',
+      audience: ['c'],
+      scopes: ['read'],
+    })
+    try {
+      const token = makeJwt({ iss: 'https://i', aud: 'c', exp: FUTURE })
+      const res = await server.inject({
+        method: 'GET',
+        url: '/p',
+        headers: { authorization: `Bearer ${token}` },
+      })
+      expect(res.statusCode).toBe(403)
+    } finally {
+      await server.stop()
+    }
+  })
+
+  it('accepts the scp array claim when it satisfies configured scopes', async () => {
+    const server = await makeServer({
+      issuerUrl: 'https://i',
+      audience: ['c'],
+      scopes: ['read'],
+    })
+    try {
+      const token = makeJwt({
+        iss: 'https://i',
+        aud: 'c',
+        exp: FUTURE,
+        scp: ['read', 'write'],
+      })
+      const res = await server.inject({
+        method: 'GET',
+        url: '/p',
+        headers: { authorization: `Bearer ${token}` },
+      })
+      expect(res.statusCode).toBe(200)
+      expect(JSON.parse(res.payload).authorizer.jwt.scopes).toEqual([
+        'read',
+        'write',
+      ])
     } finally {
       await server.stop()
     }

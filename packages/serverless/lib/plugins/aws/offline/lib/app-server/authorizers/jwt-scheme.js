@@ -16,7 +16,7 @@
  */
 
 import { createRemoteJWKSet, decodeJwt, jwtVerify } from 'jose'
-import { unauthorized } from '../shared/auth-envelopes.js'
+import { unauthorized, forbidden } from '../shared/auth-envelopes.js'
 import {
   parseV2IdentitySource,
   extractV2IdentitySource,
@@ -80,11 +80,15 @@ export function createJwtScheme({ authorizerDef, ignoreJWTSignature = false }) {
           return unauthorized(h)
         }
 
-        // 7. Scopes (optional).
-        const tokenScopes = parseScopeClaim(claims.scope)
+        // 7. Scopes (optional). Accept the `scp` array claim (preferred) or a
+        //    space-delimited `scope` string. A configured-but-unsatisfied
+        //    scope is a 403 — distinct from the 401 auth failures above.
+        const tokenScopes = Array.isArray(claims.scp)
+          ? claims.scp
+          : parseScopeClaim(claims.scope)
         if (configuredScopes.length > 0) {
           const overlap = tokenScopes.some((s) => configuredScopes.includes(s))
-          if (!overlap) return unauthorized(h)
+          if (!overlap) return forbidden(h)
         }
 
         return h.authenticated({
