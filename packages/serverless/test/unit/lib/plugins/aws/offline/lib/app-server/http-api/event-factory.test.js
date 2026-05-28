@@ -776,6 +776,86 @@ it('28b. body is null when payload is the empty string', () => {
 })
 
 // ---------------------------------------------------------------------------
+// 29. content-length / content-type header injection
+// ---------------------------------------------------------------------------
+
+it('29. injects content-type and content-length when a body is present and the client sent neither', () => {
+  const payload = '{"hello":"world"}'
+  const event = buildHttpApiV2Event({
+    request: makeRequest({
+      method: 'POST',
+      payload,
+      headers: { 'user-agent': 'curl/8.x', host: 'localhost:3000' },
+    }),
+    route: defaultRoute,
+    stage: 'dev',
+    accountId: '000000000000',
+    domainName: 'localhost:3000',
+  })
+  expect(event.headers['content-type']).toBe('application/json')
+  expect(event.headers['content-length']).toBe(
+    String(Buffer.byteLength(payload)),
+  )
+})
+
+it('29b. does not overwrite a client-sent content-type or content-length (any casing)', () => {
+  const event = buildHttpApiV2Event({
+    request: makeRequest({
+      method: 'POST',
+      payload: 'a,b,c',
+      headers: {
+        'Content-Type': 'text/csv',
+        'Content-Length': '999',
+        'user-agent': 'curl/8.x',
+      },
+    }),
+    route: defaultRoute,
+    stage: 'dev',
+    accountId: '000000000000',
+    domainName: 'localhost:3000',
+  })
+  expect(event.headers['content-type']).toBe('text/csv')
+  expect(event.headers['content-length']).toBe('999')
+  expect(event.headers).not.toHaveProperty('Content-Type')
+  expect(event.headers).not.toHaveProperty('Content-Length')
+})
+
+it('29c. content-length for a base64-encoded binary body is the decoded byte length', () => {
+  const buf = Buffer.from([0x00, 0x01, 0x02, 0x03, 0x04])
+  const event = buildHttpApiV2Event({
+    request: makeRequest({
+      method: 'POST',
+      payload: buf,
+      headers: { 'content-type': 'application/octet-stream' },
+    }),
+    route: defaultRoute,
+    stage: 'dev',
+    accountId: '000000000000',
+    domainName: 'localhost:3000',
+  })
+  expect(event.isBase64Encoded).toBe(true)
+  expect(event.headers['content-length']).toBe(
+    String(Buffer.byteLength(event.body, 'base64')),
+  )
+})
+
+it('29d. defaults content-type but injects no content-length when there is no body', () => {
+  const event = buildHttpApiV2Event({
+    request: makeRequest({
+      method: 'GET',
+      payload: undefined,
+      headers: { 'user-agent': 'curl/8.x', host: 'localhost:3000' },
+    }),
+    route: defaultRoute,
+    stage: 'dev',
+    accountId: '000000000000',
+    domainName: 'localhost:3000',
+  })
+  expect(event.headers['content-type']).toBe('application/json')
+  expect(event.headers).not.toHaveProperty('content-length')
+})
+
+// ---------------------------------------------------------------------------
 // 29. stageVariables is always present as null
 // ---------------------------------------------------------------------------
 

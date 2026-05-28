@@ -9,6 +9,7 @@
  */
 
 import crypto from 'node:crypto'
+import { Buffer } from 'node:buffer'
 import { FAKE_ACCOUNT_ID } from '../../constants.js'
 import { parseJsonSafe } from '../shared/json-utils.js'
 import { formatClfTime } from '../shared/clf-time.js'
@@ -123,6 +124,38 @@ function normaliseRawHeaders(rawHeaders) {
     result[key] = values.join(',')
   }
   return result
+}
+
+/**
+ * Inject the `content-length` and default `content-type` entries AWS API
+ * Gateway adds to the event `headers` map.
+ *
+ * - `content-length` is set to the request body's byte length whenever a body
+ *   is present and the client did not already send a content-length (any
+ *   casing). Base64-encoded bodies are measured in their decoded form.
+ * - `content-type` defaults to `application/json` whenever the client did not
+ *   send one (any casing), regardless of whether a body is present.
+ *
+ * Injected keys are lower-cased and existing entries are never overwritten.
+ *
+ * @param {Record<string, string>} headers  Mutated in place.
+ * @param {string | null} body
+ * @param {boolean} isBase64Encoded
+ * @returns {void}
+ */
+function injectHeaderDefaults(headers, body, isBase64Encoded) {
+  const has = (name) =>
+    Object.keys(headers).some((k) => k.toLowerCase() === name)
+  if (body !== null && body !== undefined && !has('content-length')) {
+    headers['content-length'] = String(
+      isBase64Encoded
+        ? Buffer.byteLength(body, 'base64')
+        : Buffer.byteLength(body),
+    )
+  }
+  if (!has('content-type')) {
+    headers['content-type'] = 'application/json'
+  }
 }
 
 /**
@@ -299,6 +332,8 @@ export function buildHttpApiV2Event({
       isBase64Encoded = false
     }
   }
+
+  injectHeaderDefaults(headers, body, isBase64Encoded)
 
   const authorizer = resolveAuthorizer(request)
 

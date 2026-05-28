@@ -187,6 +187,109 @@ describe('REST API event skeleton', () => {
   })
 })
 
+describe('REST API content-length / content-type injection', () => {
+  it('injects content-type and content-length when a body is present and the client sent neither', () => {
+    const payload = '{"hello":"world"}'
+    const event = build({
+      request: {
+        method: 'POST',
+        payload,
+        headers: { 'user-agent': 'TestAgent/1.0', host: 'localhost:3000' },
+        raw: {
+          req: {
+            rawHeaders: [
+              'User-Agent',
+              'TestAgent/1.0',
+              'Host',
+              'localhost:3000',
+            ],
+          },
+        },
+      },
+    })
+    expect(event.headers['content-type']).toBe('application/json')
+    expect(event.headers['content-length']).toBe(
+      String(Buffer.byteLength(payload)),
+    )
+    expect(event.multiValueHeaders['content-type']).toEqual([
+      'application/json',
+    ])
+    expect(event.multiValueHeaders['content-length']).toEqual([
+      String(Buffer.byteLength(payload)),
+    ])
+  })
+
+  it('does not overwrite a client-sent content-type or content-length (any casing)', () => {
+    const event = build({
+      request: {
+        method: 'POST',
+        payload: 'a,b,c',
+        headers: { 'content-type': 'text/csv', 'content-length': '999' },
+        raw: {
+          req: {
+            rawHeaders: ['Content-Type', 'text/csv', 'Content-Length', '999'],
+          },
+        },
+      },
+    })
+    expect(event.headers['content-type']).toBe('text/csv')
+    expect(event.headers['content-length']).toBe('999')
+    expect(event.headers).not.toHaveProperty('Content-Type')
+    expect(event.headers).not.toHaveProperty('Content-Length')
+    expect(event.multiValueHeaders['content-type']).toEqual(['text/csv'])
+    expect(event.multiValueHeaders['content-length']).toEqual(['999'])
+  })
+
+  it('content-length for a base64-encoded binary body is the decoded byte length', () => {
+    const buf = Buffer.from([0x00, 0x01, 0x02, 0x03, 0x04])
+    const event = build({
+      request: {
+        method: 'POST',
+        payload: buf,
+        headers: { 'content-type': 'application/octet-stream' },
+        raw: {
+          req: {
+            rawHeaders: ['Content-Type', 'application/octet-stream'],
+          },
+        },
+      },
+    })
+    expect(event.isBase64Encoded).toBe(true)
+    expect(event.headers['content-length']).toBe(
+      String(Buffer.byteLength(event.body, 'base64')),
+    )
+    expect(event.multiValueHeaders['content-length']).toEqual([
+      String(Buffer.byteLength(event.body, 'base64')),
+    ])
+  })
+
+  it('defaults content-type but injects no content-length when there is no body', () => {
+    const event = build({
+      request: {
+        method: 'GET',
+        payload: undefined,
+        headers: { 'user-agent': 'TestAgent/1.0', host: 'localhost:3000' },
+        raw: {
+          req: {
+            rawHeaders: [
+              'User-Agent',
+              'TestAgent/1.0',
+              'Host',
+              'localhost:3000',
+            ],
+          },
+        },
+      },
+    })
+    expect(event.headers['content-type']).toBe('application/json')
+    expect(event.headers).not.toHaveProperty('content-length')
+    expect(event.multiValueHeaders['content-type']).toEqual([
+      'application/json',
+    ])
+    expect(event.multiValueHeaders).not.toHaveProperty('content-length')
+  })
+})
+
 describe('REST API requestContext', () => {
   it('has every documented v1 field', () => {
     const event = build()

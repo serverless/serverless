@@ -13,6 +13,7 @@
  */
 
 import crypto from 'node:crypto'
+import { Buffer } from 'node:buffer'
 import { FAKE_ACCOUNT_ID } from '../../constants.js'
 import { parseJsonSafe } from '../shared/json-utils.js'
 import { formatClfTime } from '../shared/clf-time.js'
@@ -208,6 +209,38 @@ function buildBody(request) {
   return { body, isBase64Encoded: false }
 }
 
+/**
+ * Compute the `content-length` / default `content-type` entries AWS API
+ * Gateway injects into the event header maps when the client did not supply
+ * them. Keys are lower-cased; an entry is only produced when absent
+ * (case-insensitive) from the existing header names.
+ *
+ * - `content-length` is the request body's byte length, produced only when a
+ *   body is present. Base64-encoded bodies are measured in decoded form.
+ * - `content-type` defaults to `application/json`, produced regardless of
+ *   whether a body is present.
+ *
+ * @param {string[]} existingNames  Existing (already lower-cased) header names.
+ * @param {string | null} body
+ * @param {boolean} isBase64Encoded
+ * @returns {Record<string, string>}
+ */
+function headerDefaults(existingNames, body, isBase64Encoded) {
+  const has = (name) => existingNames.includes(name)
+  const defaults = {}
+  if (body !== null && body !== undefined && !has('content-length')) {
+    defaults['content-length'] = String(
+      isBase64Encoded
+        ? Buffer.byteLength(body, 'base64')
+        : Buffer.byteLength(body),
+    )
+  }
+  if (!has('content-type')) {
+    defaults['content-type'] = 'application/json'
+  }
+  return defaults
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -280,6 +313,16 @@ export function buildRestApiEvent({
   const requestTimeEpoch = receivedMs
 
   const { body, isBase64Encoded } = buildBody(request)
+
+  // AWS API Gateway injects a content-length (when a body is present) and a
+  // default content-type when the client sent none. Apply the same lowercase
+  // defaults to both the single-value and multi-value header maps so they stay
+  // mirrored, never overwriting an entry the client already supplied.
+  const defaults = headerDefaults(Object.keys(headers), body, isBase64Encoded)
+  for (const [name, value] of Object.entries(defaults)) {
+    headers[name] = value
+    multiValueHeaders[name] = [value]
+  }
 
   const userAgent = request.headers?.['user-agent'] ?? ''
   const sourceIp = request.info?.remoteAddress ?? '127.0.0.1'
