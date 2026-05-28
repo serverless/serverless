@@ -17,10 +17,14 @@
  *   3. Synthesize routeKey + routeArn from the matched route.
  *   4. Build the v2 REQUEST event and invoke the configured Lambda via the
  *      LambdaFunction facade — same worker pool as user handlers.
- *   5. On thrown / literal `'Unauthorized'` → 401.
- *   6. Non-object result or missing principalId → 403.
- *   7. Evaluate the returned policy against routeArn. Throw or no-Allow → 403.
- *   8. On allow → 200 with credentials.authorizer.lambda = context.
+ *   5. On thrown / literal `'Unauthorized'` → 401; non-object result → 403.
+ *   6. Simple-response authorizers (`enableSimpleResponses`): `isAuthorized`
+ *      falsy → 403, else 200 with credentials.authorizer.lambda = context
+ *      (validated; bad context → 500). No policy evaluation.
+ *   7. Otherwise (IAM policy): missing principalId → 403; evaluate the policy
+ *      against routeArn (throw / no-Allow → 403).
+ *   8. On allow → 200 with credentials.authorizer.lambda = context
+ *      (validated; bad context → 500).
  */
 
 import crypto from 'node:crypto'
@@ -43,8 +47,10 @@ const DEFAULT_IDENTITY_SOURCE = '$request.header.Authorization'
 /**
  * @param {object} opts
  * @param {object} opts.authorizerDef
- *   `{ name, identitySource?: string | string[] }`. identitySource defaults
- *   to `$request.header.Authorization` when omitted.
+ *   `{ name, identitySource?: string | string[], enableSimpleResponses?: boolean }`.
+ *   identitySource defaults to `$request.header.Authorization` when omitted.
+ *   `enableSimpleResponses` switches the expected authorizer result to the
+ *   `{ isAuthorized, context }` simple-response shape.
  * @param {{ invoke: (event: object) => Promise<unknown> }} opts.lambdaFunction
  *   Resolved LambdaFunction facade for the configured authorizer.
  * @param {string} opts.stage
@@ -107,12 +113,12 @@ export function createV2LambdaAuthorizerScheme({
         }
 
         if (authorizerDef.enableSimpleResponses) {
+          if (!result.isAuthorized) {
+            return forbidden(h)
+          }
           const validated = validateAuthorizerContext(result.context)
           if (!validated.ok) {
             return authorizerConfigurationError(h)
-          }
-          if (!result.isAuthorized) {
-            return forbidden(h)
           }
           return h.authenticated({
             credentials: {
