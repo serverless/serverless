@@ -1129,6 +1129,36 @@ describe('registerHttpApiRoutes — auth strategy wiring', () => {
     expect(stub.routes[0].options.auth).toBe('lambda-authorizer:v2:authFn')
   })
 
+  it('leaves HTTP API authorizer routes public when noAuth is true', () => {
+    const stub = makeRouteStub()
+    registerHttpApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        a: {
+          events: [
+            {
+              httpApi: {
+                method: 'GET',
+                path: '/p',
+                authorizer: { name: 'jwt-1' },
+              },
+            },
+          ],
+        },
+      }),
+      stage: 'dev',
+      domainName: 'localhost',
+      noAuth: true,
+      onRequest: jest.fn(),
+      authStrategies: {
+        privateStrategy: null,
+        authorizerStrategies: new Map(),
+        v2AuthorizerStrategies: new Map([['jwt-1', 'jwt:jwt-1']]),
+      },
+    })
+    expect(stub.routes[0].options.auth).toBeUndefined()
+  })
+
   it('leaves options.auth undefined for v2 routes without authorizer', () => {
     const stub = makeRouteStub()
     registerHttpApiRoutes({

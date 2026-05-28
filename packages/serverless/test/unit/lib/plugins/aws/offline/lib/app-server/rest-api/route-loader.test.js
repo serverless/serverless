@@ -727,6 +727,24 @@ describe('registerRestApiRoutes — auth strategy wiring', () => {
     expect(stub.routes[0].options.auth).toBe('lambda-authorizer:authFn')
   })
 
+  it('leaves private REST routes public when noAuth is true', () => {
+    const stub = makeRouteStub()
+    registerRestApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        a: { events: [{ http: { method: 'GET', path: '/p', private: true } }] },
+      }),
+      stage: 'dev',
+      noAuth: true,
+      onRequest: jest.fn(),
+      authStrategies: {
+        privateStrategy: 'api-key',
+        authorizerStrategies: new Map(),
+      },
+    })
+    expect(stub.routes[0].options.auth).toBeUndefined()
+  })
+
   it('leaves options.auth undefined for routes without private/authorizer', () => {
     const stub = makeRouteStub()
     registerRestApiRoutes({

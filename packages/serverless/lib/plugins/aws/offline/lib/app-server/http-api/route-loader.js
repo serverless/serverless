@@ -77,6 +77,7 @@ export function registerHttpApiRoutes({
   serverless,
   stage,
   domainName,
+  noAuth = false,
   onRequest,
   authStrategies,
 }) {
@@ -135,12 +136,14 @@ export function registerHttpApiRoutes({
       // Resolve the v2 auth strategy for this route (JWT or v2 Lambda).
       // Returns undefined for routes without an authorizer — the route stays
       // public.
-      const authStrategy = resolveAuthStrategy({
-        event: eventEntry.httpApi,
-        privateStrategy: null, // HTTP API v2 has no private:true equivalent
-        authorizerStrategies:
-          authStrategies?.v2AuthorizerStrategies ?? new Map(),
-      })
+      const authStrategy = noAuth
+        ? undefined
+        : resolveAuthStrategy({
+            event: eventEntry.httpApi,
+            privateStrategy: null, // HTTP API v2 has no private:true equivalent
+            authorizerStrategies:
+              authStrategies?.v2AuthorizerStrategies ?? new Map(),
+          })
 
       server.route({
         method: hapiMethod,

@@ -163,6 +163,7 @@ export function registerRestApiRoutes({
   stage,
   prefix,
   noPrependStageInUrl = false,
+  noAuth = false,
   onRequest,
   authStrategies,
 }) {
@@ -245,11 +246,14 @@ export function registerRestApiRoutes({
 
       // Resolve the Hapi auth strategy for this route, if any. Returns
       // undefined for public routes — Hapi leaves `options.auth` unset.
-      const authStrategy = resolveAuthStrategy({
-        event: eventEntry.http,
-        privateStrategy: authStrategies?.privateStrategy ?? null,
-        authorizerStrategies: authStrategies?.authorizerStrategies ?? new Map(),
-      })
+      const authStrategy = noAuth
+        ? undefined
+        : resolveAuthStrategy({
+            event: eventEntry.http,
+            privateStrategy: authStrategies?.privateStrategy ?? null,
+            authorizerStrategies:
+              authStrategies?.authorizerStrategies ?? new Map(),
+          })
 
       server.route({
         method: hapiMethod,
