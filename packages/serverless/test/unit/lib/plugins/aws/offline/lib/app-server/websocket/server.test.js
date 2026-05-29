@@ -12,6 +12,7 @@ async function setup({
   functions = {},
   provider = {},
   authStrategies,
+  noAuth,
   onRequest = jest.fn(async () => ({ statusCode: 200 })),
   webSocketHardTimeout,
   webSocketIdleTimeout,
@@ -23,6 +24,7 @@ async function setup({
     serverless: makeServerless(functions, provider),
     onRequest,
     authStrategies,
+    noAuth,
     registry,
     stage: 'dev',
     accountId: '000000000000',
@@ -343,6 +345,39 @@ describe('WebSocket server — authorizer on $connect', () => {
       const ws = await connectWs(ctx.url)
       expect(calls.find((c) => c.fnKey === 'authFn')).toBeDefined()
       expect(calls.find((c) => c.fnKey === 'onConnect')).toBeDefined()
+      ws.close()
+    } finally {
+      await teardown(ctx)
+    }
+  })
+
+  it('skips the $connect authorizer entirely under noAuth', async () => {
+    const calls = []
+    const ctx = await setup({
+      functions: {
+        authFn: { events: [] },
+        onConnect: {
+          events: [{ websocket: { route: '$connect', authorizer: 'authFn' } }],
+        },
+      },
+      noAuth: true,
+      onRequest: jest.fn(async (fnKey) => {
+        calls.push(fnKey)
+        if (fnKey === 'authFn') {
+          return {
+            principalId: 'u',
+            policyDocument: { Statement: [{ Effect: 'Deny', Resource: '*' }] },
+          }
+        }
+        return { statusCode: 200 }
+      }),
+    })
+    try {
+      // The authorizer would DENY, but under noAuth it must not run, so the
+      // upgrade succeeds and only the $connect handler is invoked.
+      const ws = await connectWs(ctx.url)
+      expect(calls).not.toContain('authFn')
+      expect(calls).toContain('onConnect')
       ws.close()
     } finally {
       await teardown(ctx)

@@ -38,6 +38,7 @@ export function createWebSocketServer({
   accountId,
   region,
   apiId = DEFAULT_API_ID,
+  noAuth = false,
   webSocketHardTimeout = DEFAULT_HARD_TIMEOUT_SECONDS,
   webSocketIdleTimeout = DEFAULT_IDLE_TIMEOUT_SECONDS,
 }) {
@@ -110,7 +111,7 @@ export function createWebSocketServer({
     // requestContext.authorizer of the $connect / message / $disconnect
     // events, matching real API Gateway.
     let connectionAuthorizer
-    if (connectRoute?.authorizer) {
+    if (!noAuth && connectRoute?.authorizer) {
       const { allow, authorizer } = await runAuthorizer(
         connectRoute.authorizer,
         request,

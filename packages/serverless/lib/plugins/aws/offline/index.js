@@ -756,6 +756,7 @@ export default class OfflinePlugin {
           stage,
           accountId: FAKE_ACCOUNT_ID,
           region: FAKE_REGION,
+          noAuth,
           webSocketHardTimeout,
           webSocketIdleTimeout,
         })

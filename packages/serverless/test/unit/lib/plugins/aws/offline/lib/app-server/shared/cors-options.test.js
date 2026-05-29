@@ -17,6 +17,7 @@ describe('normalizeCorsConfig', () => {
         'X-Api-Key',
         'X-Amz-Security-Token',
         'X-Amz-User-Agent',
+        'X-Amzn-Trace-Id',
       ],
       methods: ['OPTIONS'],
       allowCredentials: false,
@@ -139,7 +140,7 @@ describe('buildCorsOptionsRoute', () => {
     const h = fakeH()
     route.handler({ headers: {} }, h)
     expect(namedHeaders(h.calls)['access-control-allow-headers']).toBe(
-      'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent',
+      'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id',
     )
   })
 

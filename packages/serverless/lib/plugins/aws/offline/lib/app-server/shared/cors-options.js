@@ -32,6 +32,7 @@ const AWS_DEFAULT_HEADERS = [
   'X-Api-Key',
   'X-Amz-Security-Token',
   'X-Amz-User-Agent',
+  'X-Amzn-Trace-Id',
 ]
 
 // ---------------------------------------------------------------------------
