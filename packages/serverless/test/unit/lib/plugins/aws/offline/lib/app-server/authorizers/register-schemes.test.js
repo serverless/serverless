@@ -65,6 +65,40 @@ describe('registerAuthSchemes', () => {
     ).toThrow()
   })
 
+  it('returns the api-key store when any route is private', () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const result = registerAuthSchemes({
+      server,
+      serverless: makeServerless(
+        {
+          list: {
+            events: [{ http: { method: 'GET', path: '/p', private: true } }],
+          },
+        },
+        ['key-123'],
+      ),
+      lambdas: makeLambdas(),
+      stage: 'dev',
+      accountId: '000000000000',
+    })
+    expect(result.apiKeyStore).toMatchObject({ keys: expect.any(Set) })
+    expect(result.apiKeyStore.keys.has('key-123')).toBe(true)
+  })
+
+  it('returns a null api-key store when no route is private', () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const result = registerAuthSchemes({
+      server,
+      serverless: makeServerless({
+        list: { events: [{ http: { method: 'GET', path: '/p' } }] },
+      }),
+      lambdas: makeLambdas(),
+      stage: 'dev',
+      accountId: '000000000000',
+    })
+    expect(result.apiKeyStore).toBeNull()
+  })
+
   it('registers one strategy per unique authorizer reference', () => {
     const server = Hapi.server({ host: 'localhost', port: 0 })
     const auth = { invoke: jest.fn(async () => 'Unauthorized') }

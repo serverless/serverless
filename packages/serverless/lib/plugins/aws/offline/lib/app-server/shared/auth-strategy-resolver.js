@@ -9,8 +9,12 @@
  * version they're processing.
  *
  * Precedence:
- *   1. `event.private === true` → `privateStrategy` (if set)
- *   2. `event.authorizer` (string or `{ name }`) → matching map entry
+ *   1. `event.authorizer` (string or `{ name }`) → matching map entry. When a
+ *      route declares both an authorizer and `private`, the authorizer wins so
+ *      its Lambda actually runs through Hapi auth; the api-key requirement is
+ *      enforced separately by the route handler.
+ *   2. `event.private === true` → `privateStrategy` (if set) — the fallback
+ *      used for private-only routes (or when the authorizer is unregistered).
  *
  * @param {object} args
  * @param {object | string | undefined} args.event  Raw event object or
@@ -28,11 +32,16 @@ export function resolveAuthStrategy({
   authorizerStrategies,
 }) {
   if (!event || typeof event !== 'object') return undefined
-  if (event.private === true && privateStrategy) return privateStrategy
+  // Resolve the authorizer first so a both-present route runs its authorizer
+  // through Hapi auth. Fall back to the private strategy when there is no
+  // authorizer (or the named authorizer is not registered).
   const auth = event.authorizer
   if (auth) {
     const name = typeof auth === 'string' ? auth : auth?.name
-    if (typeof name === 'string') return authorizerStrategies.get(name)
+    if (typeof name === 'string') {
+      const strategy = authorizerStrategies.get(name)
+      if (strategy) return strategy
+    }
   }
-  return undefined
+  return event.private === true && privateStrategy ? privateStrategy : undefined
 }

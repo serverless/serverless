@@ -71,12 +71,26 @@ describe('resolveAuthStrategy', () => {
     ).toBeUndefined()
   })
 
-  it('private takes precedence over authorizer if both are declared', () => {
+  it('authorizer takes precedence over private when both are declared', () => {
+    // When a route declares both `private: true` and an `authorizer`, the
+    // authorizer strategy must run through Hapi auth so the authorizer Lambda
+    // is actually invoked. The api-key requirement is enforced separately by
+    // the route handler.
     expect(
       resolveAuthStrategy({
         event: { private: true, authorizer: { name: 'authFn' } },
         privateStrategy: 'api-key',
         authorizerStrategies: new Map([['authFn', 'lambda-authorizer:authFn']]),
+      }),
+    ).toBe('lambda-authorizer:authFn')
+  })
+
+  it('falls back to private when both are declared but the authorizer is unregistered', () => {
+    expect(
+      resolveAuthStrategy({
+        event: { private: true, authorizer: { name: 'missing' } },
+        privateStrategy: 'api-key',
+        authorizerStrategies: new Map(),
       }),
     ).toBe('api-key')
   })

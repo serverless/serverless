@@ -36,6 +36,7 @@ import {
 } from '../shared/hapi-helpers.js'
 import { logHandlerError } from '../shared/handler-logging.js'
 import { resolveAuthStrategy } from '../shared/auth-strategy-resolver.js'
+import { forbidden } from '../shared/auth-envelopes.js'
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -267,6 +268,11 @@ export function registerRestApiRoutes({
   authStrategies,
 }) {
   const functions = serverless.service.functions ?? {}
+  // API-key store for `private: true` routes. Read once; used by the handler
+  // gate that enforces the api-key for routes combining `private` with a
+  // Lambda authorizer (the authorizer runs as the route's Hapi auth strategy,
+  // so the key must be checked separately).
+  const apiKeyStore = authStrategies?.apiKeyStore ?? null
   /** @type {{ method: string, path: string, mountedPath: string, apigwMountedPath: string, functionKey: string }[]} */
   const registered = []
   // Two routes sharing a path (e.g. GET /users + POST /users) need only one
@@ -405,6 +411,12 @@ export function registerRestApiRoutes({
               authStrategies?.authorizerStrategies ?? new Map(),
           })
 
+      // Whether this route is `private: true`. A private route requires a
+      // valid api-key regardless of which strategy resolves to run (e.g. an
+      // authorizer takes the Hapi-auth slot when both are declared).
+      const isPrivate =
+        typeof httpEvent === 'object' && httpEvent.private === true
+
       server.route({
         method: hapiMethod,
         path: mountedPath,
@@ -421,6 +433,21 @@ export function registerRestApiRoutes({
           ...(authStrategy ? { auth: authStrategy } : {}),
         },
         async handler(request, h) {
+          // Enforce the api-key for `private: true` routes independently of the
+          // resolved Hapi auth strategy. The key may arrive on the request
+          // (`x-api-key`) or be supplied by a Lambda authorizer that returned a
+          // matching `usageIdentifierKey`. Either satisfies the requirement.
+          if (!noAuth && isPrivate && apiKeyStore) {
+            const headerKey = request.headers['x-api-key']
+            const authorizerKey = request.auth?.credentials?.usageIdentifierKey
+            const ok =
+              (typeof headerKey === 'string' &&
+                apiKeyStore.keys.has(headerKey)) ||
+              (typeof authorizerKey === 'string' &&
+                apiKeyStore.keys.has(authorizerKey))
+            if (!ok) return forbidden(h)
+          }
+
           if (integration === 'AWS') {
             // Non-proxy: render request template → invoke → map response.
             let event

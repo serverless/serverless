@@ -4,6 +4,7 @@ import os from 'node:os'
 import path from 'node:path'
 import Hapi from '@hapi/hapi'
 import { registerRestApiRoutes } from '../../../../../../../../../lib/plugins/aws/offline/lib/app-server/rest-api/route-loader.js'
+import { registerAuthSchemes } from '../../../../../../../../../lib/plugins/aws/offline/lib/app-server/authorizers/register-schemes.js'
 
 function makeServerless(functions = {}) {
   return { service: { functions } }
@@ -1132,5 +1133,204 @@ describe('registerRestApiRoutes — auth strategy wiring', () => {
       }),
     ).not.toThrow()
     expect(stub.routes[0].options.auth).toBeUndefined()
+  })
+})
+
+describe('registerRestApiRoutes — private + authorizer enforcement', () => {
+  let server
+
+  afterEach(async () => {
+    if (server) {
+      await server.stop({ timeout: 5000 })
+      server = null
+    }
+  })
+
+  // A function declaring an http event that is BOTH private AND guarded by a
+  // Lambda authorizer. AWS enforces both: the authorizer runs, AND a valid
+  // api-key is required.
+  function makeBothServerless({ allow }) {
+    return {
+      service: {
+        provider: { apiGateway: { apiKeys: ['key-123'] } },
+        functions: {
+          authFn: { events: [] },
+          secret: {
+            events: [
+              {
+                http: {
+                  method: 'GET',
+                  path: '/secret',
+                  private: true,
+                  // REQUEST authorizer with no identitySource → always invoked
+                  // (identity type NONE), so the policy decision drives the
+                  // outcome rather than a missing TOKEN header.
+                  authorizer: { name: 'authFn', type: 'request' },
+                },
+              },
+            ],
+          },
+        },
+      },
+    }
+  }
+
+  async function bootBoth({ allow, usageIdentifierKey }) {
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    const authorizerLambda = {
+      invoke: jest.fn(async () => ({
+        principalId: 'u-1',
+        policyDocument: {
+          Statement: [{ Effect: allow ? 'Allow' : 'Deny', Resource: '*' }],
+        },
+        ...(usageIdentifierKey ? { usageIdentifierKey } : {}),
+      })),
+    }
+    const lambdas = {
+      get: (name) => (name === 'authFn' ? authorizerLambda : undefined),
+    }
+    const authStrategies = registerAuthSchemes({
+      server,
+      serverless: makeBothServerless({ allow }),
+      lambdas,
+      stage: 'dev',
+      accountId: '000000000000',
+    })
+    registerRestApiRoutes({
+      server,
+      serverless: makeBothServerless({ allow }),
+      stage: 'dev',
+      onRequest: async () => ({
+        statusCode: 200,
+        body: JSON.stringify({ ok: true }),
+      }),
+      authStrategies,
+    })
+    await server.start()
+    return { authorizerLambda }
+  }
+
+  it('valid api-key + a DENYING authorizer → 403 (authorizer fails Hapi auth)', async () => {
+    await bootBoth({ allow: false })
+    const res = await server.inject({
+      method: 'GET',
+      url: '/dev/secret',
+      headers: { 'x-api-key': 'key-123' },
+    })
+    expect(res.statusCode).toBe(403)
+  })
+
+  it('missing api-key + an ALLOWING authorizer → 403 (handler api-key gate)', async () => {
+    await bootBoth({ allow: true })
+    const res = await server.inject({ method: 'GET', url: '/dev/secret' })
+    expect(res.statusCode).toBe(403)
+  })
+
+  it('valid api-key + an ALLOWING authorizer → 200', async () => {
+    await bootBoth({ allow: true })
+    const res = await server.inject({
+      method: 'GET',
+      url: '/dev/secret',
+      headers: { 'x-api-key': 'key-123' },
+    })
+    expect(res.statusCode).toBe(200)
+    expect(JSON.parse(res.payload)).toEqual({ ok: true })
+  })
+
+  it('authorizer-returned usageIdentifierKey matching a configured key + no client key → 200', async () => {
+    await bootBoth({ allow: true, usageIdentifierKey: 'key-123' })
+    const res = await server.inject({ method: 'GET', url: '/dev/secret' })
+    expect(res.statusCode).toBe(200)
+    expect(JSON.parse(res.payload)).toEqual({ ok: true })
+  })
+
+  it('private-only route still enforces the api-key (single-concern guard)', async () => {
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    const serverless = {
+      service: {
+        provider: { apiGateway: { apiKeys: ['key-123'] } },
+        functions: {
+          priv: {
+            events: [{ http: { method: 'GET', path: '/priv', private: true } }],
+          },
+        },
+      },
+    }
+    const authStrategies = registerAuthSchemes({
+      server,
+      serverless,
+      lambdas: { get: () => undefined },
+      stage: 'dev',
+      accountId: '000000000000',
+    })
+    registerRestApiRoutes({
+      server,
+      serverless,
+      stage: 'dev',
+      onRequest: async () => ({ statusCode: 200, body: 'ok' }),
+      authStrategies,
+    })
+    await server.start()
+
+    const denied = await server.inject({ method: 'GET', url: '/dev/priv' })
+    expect(denied.statusCode).toBe(403)
+    const allowed = await server.inject({
+      method: 'GET',
+      url: '/dev/priv',
+      headers: { 'x-api-key': 'key-123' },
+    })
+    expect(allowed.statusCode).toBe(200)
+  })
+
+  it('authorizer-only route is unaffected by the api-key gate (single-concern guard)', async () => {
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    const authorizerLambda = {
+      invoke: jest.fn(async () => ({
+        principalId: 'u-1',
+        policyDocument: { Statement: [{ Effect: 'Allow', Resource: '*' }] },
+      })),
+    }
+    const serverless = {
+      service: {
+        provider: {},
+        functions: {
+          authFn: { events: [] },
+          guarded: {
+            events: [
+              {
+                http: {
+                  method: 'GET',
+                  path: '/guarded',
+                  authorizer: { name: 'authFn' },
+                },
+              },
+            ],
+          },
+        },
+      },
+    }
+    const authStrategies = registerAuthSchemes({
+      server,
+      serverless,
+      lambdas: { get: (n) => (n === 'authFn' ? authorizerLambda : undefined) },
+      stage: 'dev',
+      accountId: '000000000000',
+    })
+    registerRestApiRoutes({
+      server,
+      serverless,
+      stage: 'dev',
+      onRequest: async () => ({ statusCode: 200, body: 'ok' }),
+      authStrategies,
+    })
+    await server.start()
+
+    // No api-key sent; an authorizer-only route does not require one.
+    const res = await server.inject({
+      method: 'GET',
+      url: '/dev/guarded',
+      headers: { authorization: 'Bearer good' },
+    })
+    expect(res.statusCode).toBe(200)
   })
 })

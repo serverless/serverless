@@ -4,8 +4,10 @@
  * Algorithm per AWS API Gateway:
  *   1. Build the methodArn from the request (apiId=offline, accountId,
  *      stage, method, path).
- *   2. For REQUEST: extract the identitySource. If null → 401 (do NOT
- *      invoke the authorizer Lambda — same behavior as real APIGW).
+ *   2. For REQUEST: extract the identitySource. If a source is configured but
+ *      its value is absent → 401 (do NOT invoke the authorizer Lambda — same
+ *      behavior as real APIGW). When no identitySource is configured, invoke
+ *      with an empty identity (identity type NONE) rather than rejecting.
  *   3. Build the TOKEN or REQUEST event.
  *   4. Invoke the configured authorizer Lambda via the LambdaFunction
  *      facade — same worker pool as user handlers.
@@ -66,9 +68,16 @@ export function createLambdaAuthorizerScheme({
 
         let authorizationToken
         if (type === 'REQUEST') {
-          authorizationToken = extractIdentitySource(request, identitySources)
-          if (authorizationToken === null) {
-            return unauthorized(h)
+          // A REQUEST authorizer with no identitySource is invoked with an
+          // empty identity (identity type NONE) — real API Gateway does NOT
+          // short-circuit to 401 in this case.
+          if (identitySources.length === 0) {
+            authorizationToken = ''
+          } else {
+            authorizationToken = extractIdentitySource(request, identitySources)
+            if (authorizationToken === null) {
+              return unauthorized(h)
+            }
           }
         } else {
           authorizationToken = readAuthorizationHeader(request)
@@ -97,7 +106,12 @@ export function createLambdaAuthorizerScheme({
           return forbidden(h)
         }
 
-        const { principalId, policyDocument, context = {} } = result
+        const {
+          principalId,
+          policyDocument,
+          context = {},
+          usageIdentifierKey,
+        } = result
 
         if (!principalId) {
           return forbidden(h)
@@ -127,6 +141,13 @@ export function createLambdaAuthorizerScheme({
         return h.authenticated({
           credentials: {
             principalId: evaluation.principalId,
+            // Surface a usageIdentifierKey returned by the authorizer so a
+            // private route's api-key requirement can be satisfied by the
+            // authorizer's key (matching real API Gateway behavior). Only a
+            // string key is meaningful; ignore other shapes.
+            ...(typeof usageIdentifierKey === 'string' && usageIdentifierKey
+              ? { usageIdentifierKey }
+              : {}),
             authorizer: {
               principalId: evaluation.principalId,
               ...validated.context,

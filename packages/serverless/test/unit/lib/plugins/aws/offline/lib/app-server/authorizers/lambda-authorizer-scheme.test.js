@@ -267,4 +267,104 @@ describe('lambda-authorizer scheme — REQUEST', () => {
       await server.stop()
     }
   })
+
+  it('invokes the authorizer with an empty identity when no identitySource is configured', async () => {
+    const { server, lambdaFunction } = await setupServer({
+      authorizerDef: { name: 'auth', type: 'REQUEST' },
+      invokeImpl: async () => ({
+        principalId: 'u-9',
+        policyDocument: { Statement: [{ Effect: 'Allow', Resource: '*' }] },
+      }),
+    })
+    try {
+      const res = await server.inject({ method: 'GET', url: '/p' })
+      expect(res.statusCode).toBe(200)
+      // No identity source declared → invoke with an empty identity (NONE),
+      // never short-circuit to 401.
+      expect(lambdaFunction.invoke).toHaveBeenCalledTimes(1)
+      expect(lambdaFunction.invoke).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'REQUEST',
+          identitySource: [],
+        }),
+      )
+    } finally {
+      await server.stop()
+    }
+  })
+})
+
+describe('lambda-authorizer scheme — usageIdentifierKey', () => {
+  it('surfaces a usageIdentifierKey returned by the authorizer in credentials', async () => {
+    const lambdaFunction = makeLambdaFunction(async () => ({
+      principalId: 'user-7',
+      policyDocument: { Statement: [{ Effect: 'Allow', Resource: '*' }] },
+      usageIdentifierKey: 'abc',
+    }))
+    const scheme = createLambdaAuthorizerScheme({
+      authorizerDef: { name: 'auth', type: 'TOKEN' },
+      lambdaFunction,
+      stage: 'dev',
+      accountId: '000000000000',
+    })
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    server.auth.scheme('lambda-authorizer', scheme)
+    server.auth.strategy('auth', 'lambda-authorizer')
+    server.route({
+      method: 'GET',
+      path: '/p',
+      options: { auth: 'auth' },
+      handler: (request) => ({
+        usageIdentifierKey: request.auth.credentials.usageIdentifierKey ?? null,
+      }),
+    })
+    await server.initialize()
+    try {
+      const res = await server.inject({
+        method: 'GET',
+        url: '/p',
+        headers: { authorization: 'Bearer good' },
+      })
+      expect(res.statusCode).toBe(200)
+      expect(JSON.parse(res.payload).usageIdentifierKey).toBe('abc')
+    } finally {
+      await server.stop()
+    }
+  })
+
+  it('omits usageIdentifierKey from credentials when the authorizer returns none', async () => {
+    const lambdaFunction = makeLambdaFunction(async () => ({
+      principalId: 'user-7',
+      policyDocument: { Statement: [{ Effect: 'Allow', Resource: '*' }] },
+    }))
+    const scheme = createLambdaAuthorizerScheme({
+      authorizerDef: { name: 'auth', type: 'TOKEN' },
+      lambdaFunction,
+      stage: 'dev',
+      accountId: '000000000000',
+    })
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    server.auth.scheme('lambda-authorizer', scheme)
+    server.auth.strategy('auth', 'lambda-authorizer')
+    server.route({
+      method: 'GET',
+      path: '/p',
+      options: { auth: 'auth' },
+      handler: (request) => ({
+        hasKey: 'usageIdentifierKey' in request.auth.credentials,
+      }),
+    })
+    await server.initialize()
+    try {
+      const res = await server.inject({
+        method: 'GET',
+        url: '/p',
+        headers: { authorization: 'Bearer good' },
+      })
+      expect(res.statusCode).toBe(200)
+      expect(JSON.parse(res.payload).hasKey).toBe(false)
+    } finally {
+      await server.stop()
+    }
+  })
 })

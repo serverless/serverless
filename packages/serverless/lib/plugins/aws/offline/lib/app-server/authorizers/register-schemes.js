@@ -35,6 +35,7 @@
  * @param {boolean} [args.ignoreJWTSignature=false]
  * @returns {{
  *   privateStrategy: string | null,
+ *   apiKeyStore: { keys: Set<string>, generated: boolean } | null,
  *   authorizerStrategies: Map<string, string>,
  *   v2AuthorizerStrategies: Map<string, string>,
  * }}
@@ -90,6 +91,7 @@ export function registerAuthSchemes({
   }
 
   let privateStrategy = null
+  let apiKeyStore = null
   if (anyPrivate) {
     const store = buildApiKeyStore(serverless)
     if (store.generated) {
@@ -99,6 +101,9 @@ export function registerAuthSchemes({
     server.auth.scheme('api-key', createApiKeyScheme({ store }))
     server.auth.strategy('api-key', 'api-key')
     privateStrategy = 'api-key'
+    // Surfaced so the REST route loader can enforce the api-key independently
+    // for routes that combine `private` with a Lambda authorizer.
+    apiKeyStore = store
   }
 
   for (const [name, def] of uniqueAuthorizers) {
@@ -226,6 +231,7 @@ export function registerAuthSchemes({
 
   return {
     privateStrategy,
+    apiKeyStore,
     authorizerStrategies,
     v2AuthorizerStrategies,
   }
