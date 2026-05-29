@@ -246,7 +246,11 @@ export function buildHttpApiV2Event({
   domainName,
 }) {
   const method = request.method.toUpperCase()
-  const routeKey = `${route.method.toUpperCase()} ${route.path}`
+  // The catch-all route reports the `$default` route key; every other route
+  // reports `METHOD /original/apigw/path`.
+  const routeKey = route.isDefault
+    ? '$default'
+    : `${route.method.toUpperCase()} ${route.path}`
   const rawPath = request.path
 
   // Query string — re-encode via URLSearchParams for consistent normalization
@@ -296,8 +300,10 @@ export function buildHttpApiV2Event({
   }
 
   // Path parameters — APIGW emits `null` when the route has no placeholders.
+  // The catch-all route reports no path parameters even though Hapi captures
+  // the matched remainder.
   const pathParameters =
-    request.params && Object.keys(request.params).length > 0
+    !route.isDefault && request.params && Object.keys(request.params).length > 0
       ? request.params
       : null
 

@@ -90,6 +90,18 @@ describe('request → event delivered to the Lambda handler', () => {
     expect(lastEvent().routeKey).toBe('GET /users/{id}')
   })
 
+  it('uses $default route key and null pathParameters for the catch-all route', async () => {
+    const { server, lastEvent } = await bootWithFunctions({
+      catchAll: { events: [{ httpApi: '*' }] },
+    })
+
+    await server.inject({ method: 'GET', url: '/anything/here' })
+
+    expect(lastEvent().routeKey).toBe('$default')
+    expect(lastEvent().requestContext.routeKey).toBe('$default')
+    expect(lastEvent().pathParameters).toBeNull()
+  })
+
   it('keeps multi-value query string parameters', async () => {
     const { server, lastEvent } = await bootWithFunctions({
       listTags: { events: [{ httpApi: 'GET /tags' }] },

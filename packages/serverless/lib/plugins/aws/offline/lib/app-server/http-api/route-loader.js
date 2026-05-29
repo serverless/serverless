@@ -113,11 +113,13 @@ export function registerHttpApiRoutes({
       const hapiPath = toHapiPath(apigwPath)
 
       // Capture for the closure — `apigwPath` is used in the event factory so
-      // `routeKey` reflects the original APIGW template.
+      // `routeKey` reflects the original APIGW template. The bare `*` path is
+      // the catch-all, which reports the `$default` route key.
       const routeMeta = {
         method: rawMethod,
         path: apigwPath,
         functionName: functionKey,
+        isDefault: apigwPath === '*',
         ...(operationName !== undefined ? { operationName } : {}),
       }
 
