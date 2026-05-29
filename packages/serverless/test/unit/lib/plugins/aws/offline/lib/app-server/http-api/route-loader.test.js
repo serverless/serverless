@@ -914,7 +914,7 @@ it('25. headers and multiValueHeaders combine — single value plus appended one
   }
 })
 
-describe('registerHttpApiRoutes — provider.httpApi.cors (closes audit #16)', () => {
+describe('registerHttpApiRoutes — provider.httpApi.cors', () => {
   it('cors:true registers an OPTIONS route for every httpApi path', () => {
     const stub = makeRouteStub()
     registerHttpApiRoutes({
@@ -1064,6 +1064,39 @@ describe('registerHttpApiRoutes — provider.httpApi.cors (closes audit #16)', (
       })
       expect(res.statusCode).toBe(200)
       expect(res.headers['access-control-allow-origin']).toBe('*')
+    } finally {
+      await server.stop({ timeout: 5000 })
+    }
+  })
+
+  it('preflight Allow-Methods unions every route method sharing the path', async () => {
+    const server = await makeServer()
+    registerHttpApiRoutes({
+      server,
+      serverless: {
+        service: {
+          provider: { httpApi: { cors: true } },
+          functions: {
+            list: { events: [{ httpApi: { method: 'GET', path: '/users' } }] },
+            create: {
+              events: [{ httpApi: { method: 'POST', path: '/users' } }],
+            },
+          },
+        },
+        serverlessLog: jest.fn(),
+      },
+      stage: 'dev',
+      domainName: 'localhost:3000',
+      onRequest: async () => ({ statusCode: 200, body: 'ok' }),
+    })
+    await server.start()
+    try {
+      const res = await server.inject({ method: 'OPTIONS', url: '/users' })
+      expect(res.statusCode).toBe(204)
+      const methods = res.headers['access-control-allow-methods'].split(',')
+      expect(methods).toEqual(
+        expect.arrayContaining(['GET', 'POST', 'OPTIONS']),
+      )
     } finally {
       await server.stop({ timeout: 5000 })
     }

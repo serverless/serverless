@@ -115,6 +115,27 @@ export function normalizeCorsConfig(cors) {
 }
 
 /**
+ * Union a CORS config's configured methods with the route's own HTTP
+ * method(s), upper-cased and de-duped, always including OPTIONS — matching the
+ * Access-Control-Allow-Methods API Gateway returns for a preflight. A
+ * catch-all route method (`ANY`) is emitted as the `*` wildcard, never the
+ * literal `ANY` token (which is not a valid HTTP method for the client).
+ *
+ * @param {string[]} configuredMethods
+ * @param {string[]} routeMethods
+ * @returns {string[]}
+ */
+export function mergeAllowMethods(configuredMethods, routeMethods) {
+  const set = new Set()
+  for (const m of [...routeMethods, ...configuredMethods, 'OPTIONS']) {
+    if (typeof m !== 'string' || m.length === 0) continue
+    const upper = m.toUpperCase()
+    set.add(upper === 'ANY' ? '*' : upper)
+  }
+  return [...set]
+}
+
+/**
  * Compute the value to use for the `Access-Control-Allow-Origin` response
  * header given the request origin and the normalized CORS config.
  *

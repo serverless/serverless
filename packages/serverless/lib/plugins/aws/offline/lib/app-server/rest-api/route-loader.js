@@ -27,6 +27,7 @@ import {
   normalizeCorsConfig,
   buildCorsOptionsRoute,
   applyCorsResponseHeaders,
+  mergeAllowMethods,
 } from '../shared/cors-options.js'
 import {
   NO_BODY_METHODS,
@@ -245,8 +246,12 @@ export function registerRestApiRoutes({
   /** @type {{ method: string, path: string, mountedPath: string, apigwMountedPath: string, functionKey: string }[]} */
   const registered = []
   // Two routes sharing a path (e.g. GET /users + POST /users) need only one
-  // OPTIONS preflight handler — track which mounted paths already have one.
-  const corsMounted = new Set()
+  // OPTIONS preflight handler, but its Access-Control-Allow-Methods must list
+  // every method declared on that path. Accumulate each cors-enabled route's
+  // method per mounted path; the first route's config wins for the rest of the
+  // preflight shape. One OPTIONS route is mounted per path after the loop.
+  /** @type {Map<string, { corsConfig: object, methods: Set<string> }>} */
+  const corsByPath = new Map()
 
   for (const [functionKey, fn] of Object.entries(functions)) {
     const events = fn.events ?? []
@@ -493,11 +498,33 @@ export function registerRestApiRoutes({
         functionKey,
       })
 
-      if (corsConfig && !corsMounted.has(mountedPath)) {
-        server.route(buildCorsOptionsRoute({ path: mountedPath, corsConfig }))
-        corsMounted.add(mountedPath)
+      if (corsConfig) {
+        const entry = corsByPath.get(mountedPath)
+        if (entry) {
+          entry.methods.add(rawMethod)
+        } else {
+          corsByPath.set(mountedPath, {
+            corsConfig,
+            methods: new Set([rawMethod]),
+          })
+        }
       }
     }
+  }
+
+  // Mount one OPTIONS preflight route per cors-enabled path, with
+  // Access-Control-Allow-Methods covering every method declared on the path
+  // (plus OPTIONS) — matching what real API Gateway answers for a preflight.
+  for (const [mountedPath, { corsConfig, methods }] of corsByPath) {
+    server.route(
+      buildCorsOptionsRoute({
+        path: mountedPath,
+        corsConfig: {
+          ...corsConfig,
+          methods: mergeAllowMethods(corsConfig.methods, [...methods]),
+        },
+      }),
+    )
   }
 
   return registered

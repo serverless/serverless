@@ -394,6 +394,29 @@ describe('registerRestApiRoutes — live request via server.inject()', () => {
     expect(res.statusCode).toBe(200)
     expect(res.headers['access-control-allow-origin']).toBe('*')
   })
+
+  it('preflight Allow-Methods unions every route method sharing the path', async () => {
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    registerRestApiRoutes({
+      server,
+      serverless: makeServerless({
+        listUsers: {
+          events: [{ http: { method: 'GET', path: '/users', cors: true } }],
+        },
+        createUser: {
+          events: [{ http: { method: 'POST', path: '/users', cors: true } }],
+        },
+      }),
+      stage: 'dev',
+      onRequest: async () => ({ statusCode: 200, body: 'ok' }),
+    })
+    await server.start()
+
+    const res = await server.inject({ method: 'OPTIONS', url: '/dev/users' })
+    expect(res.statusCode).toBe(204)
+    const methods = res.headers['access-control-allow-methods'].split(',')
+    expect(methods).toEqual(expect.arrayContaining(['GET', 'POST', 'OPTIONS']))
+  })
 })
 
 describe('registerRestApiRoutes — CORS', () => {

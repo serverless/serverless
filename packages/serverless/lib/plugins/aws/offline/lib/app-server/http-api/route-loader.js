@@ -11,6 +11,7 @@ import {
   normalizeCorsConfig,
   buildCorsOptionsRoute,
   applyCorsResponseHeaders,
+  mergeAllowMethods,
 } from '../shared/cors-options.js'
 import {
   NO_BODY_METHODS,
@@ -86,13 +87,16 @@ export function registerHttpApiRoutes({
   /** @type {{ method: string, path: string, functionKey: string }[]} */
   const registered = []
 
-  // Provider-wide CORS configuration (closes audit #16). When set, one
-  // OPTIONS preflight handler is synthesized per registered HTTP API path
-  // — real APIGW does the same for any HTTP API with CORS enabled.
+  // Provider-wide CORS configuration. When set, one OPTIONS preflight handler
+  // is synthesized per registered HTTP API path — real APIGW does the same for
+  // any HTTP API with CORS enabled. Its Access-Control-Allow-Methods must list
+  // every method declared on that path, so accumulate the methods per path and
+  // mount the preflight routes after the loop.
   const httpApiCorsConfig = normalizeCorsConfig(
     serverless.service.provider?.httpApi?.cors,
   )
-  const corsMounted = new Set()
+  /** @type {Map<string, Set<string>>} */
+  const corsMethodsByPath = new Map()
 
   for (const [functionKey, fn] of Object.entries(functions)) {
     const events = fn.events ?? []
@@ -202,15 +206,31 @@ export function registerHttpApiRoutes({
 
       registered.push({ method: rawMethod, path: apigwPath, functionKey })
 
-      if (httpApiCorsConfig && !corsMounted.has(hapiPath)) {
-        server.route(
-          buildCorsOptionsRoute({
-            path: hapiPath,
-            corsConfig: httpApiCorsConfig,
-          }),
-        )
-        corsMounted.add(hapiPath)
+      if (httpApiCorsConfig) {
+        const methods = corsMethodsByPath.get(hapiPath)
+        if (methods) {
+          methods.add(rawMethod)
+        } else {
+          corsMethodsByPath.set(hapiPath, new Set([rawMethod]))
+        }
       }
+    }
+  }
+
+  // Mount one OPTIONS preflight route per HTTP API path, with
+  // Access-Control-Allow-Methods covering every method declared on the path
+  // (plus OPTIONS) — matching what real API Gateway answers for a preflight.
+  if (httpApiCorsConfig) {
+    for (const [hapiPath, methods] of corsMethodsByPath) {
+      server.route(
+        buildCorsOptionsRoute({
+          path: hapiPath,
+          corsConfig: {
+            ...httpApiCorsConfig,
+            methods: mergeAllowMethods(httpApiCorsConfig.methods, [...methods]),
+          },
+        }),
+      )
     }
   }
 

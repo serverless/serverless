@@ -3,6 +3,7 @@ import {
   buildCorsOptionsRoute,
   resolveAllowOrigin,
   applyCorsResponseHeaders,
+  mergeAllowMethods,
 } from '../../../../../../../../../lib/plugins/aws/offline/lib/app-server/shared/cors-options.js'
 
 describe('normalizeCorsConfig', () => {
@@ -250,6 +251,52 @@ describe('buildCorsOptionsRoute', () => {
     expect(namedHeaders(h.calls)['access-control-allow-origin']).toBe(
       'https://a.com',
     )
+  })
+})
+
+describe('mergeAllowMethods', () => {
+  it('unions the route method, configured methods, and OPTIONS', () => {
+    expect(mergeAllowMethods(['OPTIONS'], ['GET'])).toEqual(['GET', 'OPTIONS'])
+  })
+
+  it('includes multiple route methods', () => {
+    expect(mergeAllowMethods(['OPTIONS'], ['GET', 'POST']).sort()).toEqual([
+      'GET',
+      'OPTIONS',
+      'POST',
+    ])
+  })
+
+  it('keeps user-configured methods alongside the route method', () => {
+    expect(mergeAllowMethods(['PUT', 'OPTIONS'], ['GET']).sort()).toEqual([
+      'GET',
+      'OPTIONS',
+      'PUT',
+    ])
+  })
+
+  it('always includes OPTIONS even when neither side has it', () => {
+    expect(mergeAllowMethods([], ['GET'])).toEqual(['GET', 'OPTIONS'])
+  })
+
+  it('upper-cases and de-dupes across both inputs', () => {
+    expect(
+      mergeAllowMethods(['get', 'options'], ['Get', 'post']).sort(),
+    ).toEqual(['GET', 'OPTIONS', 'POST'])
+  })
+
+  it('ignores empty / non-string entries', () => {
+    expect(mergeAllowMethods(['', null, undefined], ['GET'])).toEqual([
+      'GET',
+      'OPTIONS',
+    ])
+  })
+
+  it('emits a catch-all (ANY) route method as the * wildcard', () => {
+    expect(mergeAllowMethods(['OPTIONS'], ['ANY']).sort()).toEqual([
+      '*',
+      'OPTIONS',
+    ])
   })
 })
 
