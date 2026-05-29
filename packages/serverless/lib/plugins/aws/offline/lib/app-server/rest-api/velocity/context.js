@@ -35,13 +35,63 @@ function readHeaders(request) {
   return result
 }
 
+// Unicode line/paragraph separators. Built via fromCharCode so the literal
+// code points never appear in source (they are invalid in some parsers).
+const LINE_SEPARATOR = String.fromCharCode(0x2028)
+const PARAGRAPH_SEPARATOR = String.fromCharCode(0x2029)
+const JS_ESCAPE_PATTERN = new RegExp(
+  `["'\\\\\\n\\r]|${LINE_SEPARATOR}|${PARAGRAPH_SEPARATOR}`,
+  'g',
+)
+
+/**
+ * Escape a string for safe embedding in JavaScript/JSON. Port of the
+ * MIT-licensed `js-string-escape` algorithm (Copyright Joshua Holbrook),
+ * inlined to avoid a runtime dependency.
+ */
+function jsEscapeString(string) {
+  return String(string).replace(JS_ESCAPE_PATTERN, (character) => {
+    switch (character) {
+      case '"':
+      case "'":
+      case '\\':
+        return `\\${character}`
+      case '\n':
+        return '\\n'
+      case '\r':
+        return '\\r'
+      case LINE_SEPARATOR:
+        return '\\u2028'
+      case PARAGRAPH_SEPARATOR:
+        return '\\u2029'
+      default:
+        return character
+    }
+  })
+}
+
+function isPlainObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+}
+
+/**
+ * Mirrors API Gateway's `$util.escapeJavaScript`: strings are escaped (with
+ * newlines kept literal, as API Gateway renders them); plain objects are
+ * stringified with each value escaped; everything else coerces via toString.
+ */
 function escapeJavaScript(x) {
   if (typeof x === 'string') {
-    return x
-      .replaceAll('\\', '\\\\')
-      .replaceAll('"', '\\"')
-      .replaceAll('\r', '\\r')
-      .replaceAll('\t', '\\t')
+    return jsEscapeString(x).replaceAll('\\n', '\n')
+  }
+  if (isPlainObject(x)) {
+    const escaped = {}
+    for (const [key, value] of Object.entries(x)) {
+      escaped[key] = jsEscapeString(value)
+    }
+    return JSON.stringify(escaped)
+  }
+  if (x != null && typeof x.toString === 'function') {
+    return escapeJavaScript(x.toString())
   }
   return x
 }
@@ -115,12 +165,12 @@ export function buildVelocityContext({
   }
 
   const util = {
-    base64Decode: (x) => Buffer.from(String(x), 'base64').toString('utf8'),
-    base64Encode: (x) => Buffer.from(String(x), 'utf8').toString('base64'),
+    base64Decode: (x) => Buffer.from(String(x), 'base64').toString('binary'),
+    base64Encode: (x) => Buffer.from(String(x), 'binary').toString('base64'),
     escapeJavaScript,
     parseJson: JSON.parse,
     urlDecode: (x) => decodeURIComponent(String(x).replaceAll('+', ' ')),
-    urlEncode: encodeURIComponent,
+    urlEncode: encodeURI,
   }
 
   return { context, input, util }

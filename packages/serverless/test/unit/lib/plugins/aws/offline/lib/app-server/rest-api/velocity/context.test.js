@@ -157,4 +157,29 @@ describe('$util', () => {
     const { util } = build()
     expect(util.base64Decode('aGVsbG8=')).toBe('hello')
   })
+
+  it('base64Encode encodes via binary (Latin-1), not utf8', () => {
+    const { util } = build()
+    expect(util.base64Encode('ÿ')).toBe('/w==')
+  })
+
+  it('base64Decode decodes via binary (Latin-1)', () => {
+    const { util } = build()
+    expect(util.base64Decode('/w==')).toBe('ÿ')
+  })
+
+  it('urlEncode uses encodeURI semantics (does not encode "/")', () => {
+    const { util } = build()
+    expect(util.urlEncode('a/b c')).toBe('a/b%20c')
+  })
+
+  it('escapeJavaScript coerces non-strings via toString', () => {
+    const { util } = build()
+    expect(util.escapeJavaScript(42)).toBe('42')
+  })
+
+  it('escapeJavaScript stringifies plain objects with escaped values', () => {
+    const { util } = build()
+    expect(util.escapeJavaScript({ a: 'b' })).toBe('{"a":"b"}')
+  })
 })
