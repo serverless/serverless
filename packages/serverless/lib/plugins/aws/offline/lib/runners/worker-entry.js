@@ -219,7 +219,7 @@ parentPort.on('message', async (msg) => {
     logGroupName,
     logStreamName,
     identity: null,
-    clientContext: null,
+    clientContext: context?.clientContext ?? null,
     getRemainingTimeInMillis:
       typeof context?.timeoutMs === 'number'
         ? () =>

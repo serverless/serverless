@@ -368,6 +368,27 @@ describe('createWorkerThreadRunner', () => {
     expect(result.clientContext).toBeNull()
   })
 
+  // 15b. a forwarded clientContext reaches the handler
+  it('forwards a provided clientContext to the handler', async () => {
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async (event, ctx) => ctx.clientContext',
+    )
+    const result = await runner.invoke({
+      functionKey: 'fn-15b',
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'myFn',
+        awsRequestId: 'req-1',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:myFn',
+        clientContext: { Custom: { k: 'v' } },
+      },
+    })
+    expect(result).toEqual({ Custom: { k: 'v' } })
+  })
+
   // 16. context.done(null, value) posts a success message
   it('context.done(null, value) resolves the invocation with that value', async () => {
     const handlerPath = await writeTmpHandler(
