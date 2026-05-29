@@ -113,7 +113,7 @@ describe('REST API event skeleton', () => {
     expect(build().multiValueQueryStringParameters).toBeNull()
   })
 
-  it('headers are lower-cased and cookie is included (unlike v2)', () => {
+  it('headers keep their wire casing and cookie is included (unlike v2)', () => {
     const event = build({
       request: {
         headers: { 'Content-Type': 'application/json', Cookie: 'k=v' },
@@ -124,8 +124,8 @@ describe('REST API event skeleton', () => {
         },
       },
     })
-    expect(event.headers['content-type']).toBe('application/json')
-    expect(event.headers['cookie']).toBe('k=v')
+    expect(event.headers['Content-Type']).toBe('application/json')
+    expect(event.headers['Cookie']).toBe('k=v')
   })
 
   it('multiValueHeaders contains each header as an array', () => {
@@ -137,7 +137,31 @@ describe('REST API event skeleton', () => {
         },
       },
     })
-    expect(event.multiValueHeaders['x-trace']).toEqual(['abc', 'def'])
+    expect(event.multiValueHeaders['X-Trace']).toEqual(['abc', 'def'])
+  })
+
+  it('preserves the original wire casing of request header names (matches APIGW REST)', () => {
+    const event = build({
+      request: {
+        headers: { 'content-type': 'application/json', 'x-custom-header': 'v' },
+        raw: {
+          req: {
+            rawHeaders: [
+              'Content-Type',
+              'application/json',
+              'X-Custom-Header',
+              'v',
+            ],
+          },
+        },
+      },
+    })
+    expect(event.headers['Content-Type']).toBe('application/json')
+    expect(event.headers['X-Custom-Header']).toBe('v')
+    expect(event.multiValueHeaders['Content-Type']).toEqual([
+      'application/json',
+    ])
+    expect(event.multiValueHeaders['X-Custom-Header']).toEqual(['v'])
   })
 
   it('body is null when no payload', () => {
@@ -207,14 +231,14 @@ describe('REST API content-length / content-type injection', () => {
         },
       },
     })
-    expect(event.headers['content-type']).toBe('application/json')
-    expect(event.headers['content-length']).toBe(
+    expect(event.headers['Content-Type']).toBe('application/json')
+    expect(event.headers['Content-Length']).toBe(
       String(Buffer.byteLength(payload)),
     )
-    expect(event.multiValueHeaders['content-type']).toEqual([
+    expect(event.multiValueHeaders['Content-Type']).toEqual([
       'application/json',
     ])
-    expect(event.multiValueHeaders['content-length']).toEqual([
+    expect(event.multiValueHeaders['Content-Length']).toEqual([
       String(Buffer.byteLength(payload)),
     ])
   })
@@ -232,12 +256,20 @@ describe('REST API content-length / content-type injection', () => {
         },
       },
     })
-    expect(event.headers['content-type']).toBe('text/csv')
-    expect(event.headers['content-length']).toBe('999')
-    expect(event.headers).not.toHaveProperty('Content-Type')
-    expect(event.headers).not.toHaveProperty('Content-Length')
-    expect(event.multiValueHeaders['content-type']).toEqual(['text/csv'])
-    expect(event.multiValueHeaders['content-length']).toEqual(['999'])
+    expect(event.headers['Content-Type']).toBe('text/csv')
+    expect(event.headers['Content-Length']).toBe('999')
+    // No duplicate canonical default is injected alongside the client header —
+    // the client's wire casing is the only content-type/length key present.
+    const contentTypeKeys = Object.keys(event.headers).filter(
+      (name) => name.toLowerCase() === 'content-type',
+    )
+    const contentLengthKeys = Object.keys(event.headers).filter(
+      (name) => name.toLowerCase() === 'content-length',
+    )
+    expect(contentTypeKeys).toEqual(['Content-Type'])
+    expect(contentLengthKeys).toEqual(['Content-Length'])
+    expect(event.multiValueHeaders['Content-Type']).toEqual(['text/csv'])
+    expect(event.multiValueHeaders['Content-Length']).toEqual(['999'])
   })
 
   it('content-length for a base64-encoded binary body is the decoded byte length', () => {
@@ -255,10 +287,10 @@ describe('REST API content-length / content-type injection', () => {
       },
     })
     expect(event.isBase64Encoded).toBe(true)
-    expect(event.headers['content-length']).toBe(
+    expect(event.headers['Content-Length']).toBe(
       String(Buffer.byteLength(event.body, 'base64')),
     )
-    expect(event.multiValueHeaders['content-length']).toEqual([
+    expect(event.multiValueHeaders['Content-Length']).toEqual([
       String(Buffer.byteLength(event.body, 'base64')),
     ])
   })
@@ -281,12 +313,20 @@ describe('REST API content-length / content-type injection', () => {
         },
       },
     })
-    expect(event.headers['content-type']).toBe('application/json')
-    expect(event.headers).not.toHaveProperty('content-length')
-    expect(event.multiValueHeaders['content-type']).toEqual([
+    expect(event.headers['Content-Type']).toBe('application/json')
+    expect(
+      Object.keys(event.headers).some(
+        (name) => name.toLowerCase() === 'content-length',
+      ),
+    ).toBe(false)
+    expect(event.multiValueHeaders['Content-Type']).toEqual([
       'application/json',
     ])
-    expect(event.multiValueHeaders).not.toHaveProperty('content-length')
+    expect(
+      Object.keys(event.multiValueHeaders).some(
+        (name) => name.toLowerCase() === 'content-length',
+      ),
+    ).toBe(false)
   })
 })
 

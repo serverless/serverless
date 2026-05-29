@@ -83,10 +83,14 @@ function resolveAuthorizer(request) {
 }
 
 /**
- * Bucket request headers into a `Map<string, string[]>` keyed by lowercase
- * header name. Prefers Node's flat `rawHeaders` array (preserves duplicates
- * pre-fold); falls back to Hapi's collapsed `request.headers` map for
- * in-process callers that don't carry the raw socket data.
+ * Bucket request headers into a `Map<string, string[]>` keyed by the header
+ * name as it arrived on the wire. AWS API Gateway REST APIs surface request
+ * header names with their original casing preserved (e.g. `Content-Type`,
+ * `User-Agent`), so the map key is the verbatim received name rather than a
+ * lower-cased form. Prefers Node's flat `rawHeaders` array (preserves both the
+ * casing and duplicates pre-fold); falls back to Hapi's collapsed
+ * `request.headers` map for in-process callers that don't carry the raw socket
+ * data (that map is already lower-cased and is used as-is).
  *
  * The cookie header is included in REST v1 (unlike v2, where it's surfaced
  * separately on event.cookies).
@@ -99,23 +103,24 @@ function bucketHeaders(request) {
   const acc = new Map()
   if (Array.isArray(rawHeaders) && rawHeaders.length > 0) {
     for (let i = 0; i + 1 < rawHeaders.length; i += 2) {
-      const lk = rawHeaders[i].toLowerCase()
-      const list = acc.get(lk)
+      const name = rawHeaders[i]
+      const list = acc.get(name)
       if (list) list.push(rawHeaders[i + 1])
-      else acc.set(lk, [rawHeaders[i + 1]])
+      else acc.set(name, [rawHeaders[i + 1]])
     }
     return acc
   }
   for (const [k, v] of Object.entries(request.headers ?? {})) {
-    acc.set(k.toLowerCase(), Array.isArray(v) ? [...v] : [v])
+    acc.set(k, Array.isArray(v) ? [...v] : [v])
   }
   return acc
 }
 
 /**
- * Build the event `headers` map. Names are lower-cased; multiple values for
- * the same name are joined with `,`. Unlike the HTTP API v2 factory, `cookie`
- * is included — REST v1 carries cookies via headers, not a separate field.
+ * Build the event `headers` map. Names keep their original wire casing;
+ * multiple values for the same name are joined with `,`. Unlike the HTTP API
+ * v2 factory, `cookie` is included — REST v1 carries cookies via headers, not
+ * a separate field.
  *
  * @param {object} request
  * @returns {Record<string, string>}
@@ -128,8 +133,8 @@ function buildHeaders(request) {
 }
 
 /**
- * Multi-value variant — one array per (lower-cased) header name. Cookies are
- * preserved (no special-casing).
+ * Multi-value variant — one array per header name, keyed by the original wire
+ * casing. Cookies are preserved (no special-casing).
  *
  * @param {object} request
  * @returns {Record<string, string[]>}
@@ -210,33 +215,36 @@ function buildBody(request) {
 }
 
 /**
- * Compute the `content-length` / default `content-type` entries AWS API
+ * Compute the `Content-Length` / default `Content-Type` entries AWS API
  * Gateway injects into the event header maps when the client did not supply
- * them. Keys are lower-cased; an entry is only produced when absent
- * (case-insensitive) from the existing header names.
+ * them. Injected keys use the canonical capitalized form; an entry is only
+ * produced when the header is absent (case-insensitive) from the names the
+ * client already sent, so a client-supplied header in any casing suppresses
+ * the default.
  *
- * - `content-length` is the request body's byte length, produced only when a
+ * - `Content-Length` is the request body's byte length, produced only when a
  *   body is present. Base64-encoded bodies are measured in decoded form.
- * - `content-type` defaults to `application/json`, produced regardless of
+ * - `Content-Type` defaults to `application/json`, produced regardless of
  *   whether a body is present.
  *
- * @param {string[]} existingNames  Existing (already lower-cased) header names.
+ * @param {string[]} existingNames  Header names the client already sent (any casing).
  * @param {string | null} body
  * @param {boolean} isBase64Encoded
  * @returns {Record<string, string>}
  */
 function headerDefaults(existingNames, body, isBase64Encoded) {
-  const has = (name) => existingNames.includes(name)
+  const present = new Set(existingNames.map((name) => name.toLowerCase()))
+  const has = (name) => present.has(name.toLowerCase())
   const defaults = {}
   if (body !== null && body !== undefined && !has('content-length')) {
-    defaults['content-length'] = String(
+    defaults['Content-Length'] = String(
       isBase64Encoded
         ? Buffer.byteLength(body, 'base64')
         : Buffer.byteLength(body),
     )
   }
   if (!has('content-type')) {
-    defaults['content-type'] = 'application/json'
+    defaults['Content-Type'] = 'application/json'
   }
   return defaults
 }
@@ -314,10 +322,11 @@ export function buildRestApiEvent({
 
   const { body, isBase64Encoded } = buildBody(request)
 
-  // AWS API Gateway injects a content-length (when a body is present) and a
-  // default content-type when the client sent none. Apply the same lowercase
-  // defaults to both the single-value and multi-value header maps so they stay
-  // mirrored, never overwriting an entry the client already supplied.
+  // AWS API Gateway injects a Content-Length (when a body is present) and a
+  // default Content-Type when the client sent none. The injected keys use the
+  // canonical capitalized form and are written to both the single-value and
+  // multi-value header maps so they stay mirrored; a header the client already
+  // supplied (in any casing) suppresses the corresponding default.
   const defaults = headerDefaults(Object.keys(headers), body, isBase64Encoded)
   for (const [name, value] of Object.entries(defaults)) {
     headers[name] = value
