@@ -302,6 +302,42 @@ describe('createGoRunner', () => {
     }
   })
 
+  it('idle-eviction timer fires and kills the idle child after the window', async () => {
+    let spawnedChild
+    const runner = createGoRunner({
+      // Short idle window so the eviction timer fires during the test.
+      idleEvictionMs: 150,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      log: noopLog,
+      ensureBuilt: async () => ({
+        binaryPath: process.execPath,
+        fromCache: true,
+      }),
+      spawnOverride: (binaryPath, args, opts) => {
+        spawnedChild = realSpawn(process.execPath, [fakeBootstrap], {
+          cwd: opts.cwd,
+          env: opts.env,
+          stdio: opts.stdio,
+        })
+        return spawnedChild
+      },
+      servicePath: '/tmp',
+    })
+
+    try {
+      await runner.invoke(makeInvokeArgs())
+      expect(spawnedChild).toBeDefined()
+      expect(spawnedChild.killed).toBe(false)
+      // Once the invocation settles the runner arms the idle-eviction timer;
+      // after idleEvictionMs it SIGTERMs the idle child.
+      await new Promise((resolve) => spawnedChild.once('exit', resolve))
+      expect(spawnedChild.killed).toBe(true)
+    } finally {
+      await runner.terminate()
+    }
+  })
+
   it('rejects with OFFLINE_HANDLER_TIMEOUT when the bootstrap never posts a response', async () => {
     const runner = createGoRunner({
       idleEvictionMs: 60_000,

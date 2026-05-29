@@ -206,6 +206,64 @@ describe('createJavaRunner (Docker)', () => {
     )
   })
 
+  it('attaches before starting the container so early JVM output is captured', async () => {
+    const callOrder = []
+    const fakeContainer = makeFakeContainer()
+    const baseAttach = fakeContainer.attach.bind(fakeContainer)
+    const baseStart = fakeContainer.start.bind(fakeContainer)
+    fakeContainer.attach = async (...a) => {
+      callOrder.push('attach')
+      return baseAttach(...a)
+    }
+    fakeContainer.start = async (...a) => {
+      callOrder.push('start')
+      return baseStart(...a)
+    }
+
+    const runner = createJavaRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      dockerClient: makeFakeDockerClient(),
+      ensureImageReady: async () => {},
+      log: noopLog,
+      createContainerOverride: async (opts) => {
+        runSyntheticPoller(async () => {
+          const apiBase = opts.Env.find((e) =>
+            e.startsWith('AWS_LAMBDA_RUNTIME_API='),
+          ).split('=')[1]
+          const httpBase = `http://${apiBase.replace('host.docker.internal', '127.0.0.1')}`
+          const next = await fetch(
+            `${httpBase}/2018-06-01/runtime/invocation/next`,
+          )
+          const requestId = next.headers.get('lambda-runtime-aws-request-id')
+          const payload = await next.json()
+          await fetch(
+            `${httpBase}/2018-06-01/runtime/invocation/${requestId}/response`,
+            {
+              method: 'POST',
+              body: JSON.stringify({ ok: true, received: payload }),
+              headers: { 'content-type': 'application/json' },
+            },
+          )
+        })
+        return fakeContainer
+      },
+      servicePath: '/tmp',
+    })
+
+    try {
+      await runner.invoke(makeInvokeArgs())
+      const attachIdx = callOrder.indexOf('attach')
+      const startIdx = callOrder.indexOf('start')
+      expect(attachIdx).toBeGreaterThanOrEqual(0)
+      expect(startIdx).toBeGreaterThanOrEqual(0)
+      expect(attachIdx).toBeLessThan(startIdx)
+    } finally {
+      await runner.terminate()
+    }
+  })
+
   it('reuses the same container across consecutive invokes', async () => {
     let createCount = 0
     const fakeContainer = makeFakeContainer()
