@@ -51,6 +51,28 @@ function isBinaryContentType(contentType) {
 }
 
 /**
+ * Strip the mount decoration the local server prepends (an optional prefix,
+ * then the stage) from the wire path, recovering the API-relative path AWS
+ * exposes as `event.path`. The prefix is outermost (`/<prefix>/<stage>/...`).
+ *
+ * @param {string} rawPath
+ * @param {{ stage: string, prefix?: string, noPrependStageInUrl?: boolean }} opts
+ * @returns {string}
+ */
+function stripMountDecoration(rawPath, { stage, prefix, noPrependStageInUrl }) {
+  let p = rawPath
+  const strip = (segment) => {
+    if (!segment) return
+    const lead = `/${segment}`
+    if (p === lead) p = '/'
+    else if (p.startsWith(`${lead}/`)) p = p.slice(lead.length)
+  }
+  strip(prefix)
+  if (!noPrependStageInUrl) strip(stage)
+  return p
+}
+
+/**
  * Resolve the `requestContext.authorizer` value for the downstream Lambda
  * event, applying the documented precedence:
  *
@@ -291,10 +313,20 @@ export function buildRestApiEvent({
   request,
   route,
   stage,
+  prefix,
+  noPrependStageInUrl = false,
   accountId = FAKE_ACCOUNT_ID,
 }) {
   const httpMethod = request.method.toUpperCase()
+  // `requestContext.path` carries the full wire path (stage + optional
+  // prefix); `event.path` is the API-relative path with that mount decoration
+  // stripped, matching real API Gateway.
   const path = request.path
+  const eventPath = stripMountDecoration(request.path, {
+    stage,
+    prefix,
+    noPrependStageInUrl,
+  })
 
   // Headers — read from Node's flat `rawHeaders` array when available so that
   // duplicate header lines are preserved verbatim. Fall back to Hapi's
@@ -346,7 +378,7 @@ export function buildRestApiEvent({
     isBase64Encoded,
     multiValueHeaders,
     multiValueQueryStringParameters,
-    path,
+    path: eventPath,
     pathParameters,
     queryStringParameters,
     requestContext: {

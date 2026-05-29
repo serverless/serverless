@@ -458,6 +458,8 @@ export function registerRestApiRoutes({
               request,
               route: routeMeta,
               stage,
+              prefix,
+              noPrependStageInUrl,
             })
             const result = await onRequest(functionKey, event)
             const response = formatRestApiResponse(result, h)

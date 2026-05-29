@@ -35,6 +35,39 @@ function build(overrides = {}) {
   })
 }
 
+describe('REST API event.path (stage stripping)', () => {
+  it('excludes the stage from event.path but keeps it in requestContext.path', () => {
+    const event = build()
+    expect(event.path).toBe('/users/42')
+    expect(event.requestContext.path).toBe('/dev/users/42')
+  })
+
+  it('keeps the stage in event.path when noPrependStageInUrl is set', () => {
+    const event = buildRestApiEvent({
+      request: makeRequest({
+        url: new URL('http://localhost:3000/users/42'),
+      }),
+      route: { method: 'GET', apigwPath: '/users/{id}', functionName: 'f' },
+      stage: 'dev',
+      noPrependStageInUrl: true,
+    })
+    expect(event.path).toBe('/users/42')
+  })
+
+  it('strips a configured prefix ahead of the stage', () => {
+    const event = buildRestApiEvent({
+      request: makeRequest({
+        url: new URL('http://localhost:3000/api/dev/users/42'),
+      }),
+      route: { method: 'GET', apigwPath: '/users/{id}', functionName: 'f' },
+      stage: 'dev',
+      prefix: 'api',
+    })
+    expect(event.path).toBe('/users/42')
+    expect(event.requestContext.path).toBe('/api/dev/users/42')
+  })
+})
+
 describe('REST API event skeleton', () => {
   it('contains every top-level field defined by the APIGW v1 proxy spec', () => {
     const event = build()
@@ -61,11 +94,11 @@ describe('REST API event skeleton', () => {
     expect(build({ request: { method: 'post' } }).httpMethod).toBe('POST')
   })
 
-  it('path is the wire path including the stage prefix', () => {
+  it('path is the resource path without the stage prefix', () => {
     const event = build({
       request: { url: new URL('http://localhost:3000/dev/users/42') },
     })
-    expect(event.path).toBe('/dev/users/42')
+    expect(event.path).toBe('/users/42')
   })
 
   it('resource is the APIGW route template (placeholders intact)', () => {
