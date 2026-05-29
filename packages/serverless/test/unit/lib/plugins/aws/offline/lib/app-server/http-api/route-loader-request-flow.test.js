@@ -123,6 +123,48 @@ describe('request → event delivered to the Lambda handler', () => {
     expect(JSON.parse(lastEvent().body)).toEqual({ name: 'Widget', count: 3 })
   })
 
+  it('delivers the request body byte-for-byte without re-serializing JSON', async () => {
+    // AWS passes the request body through unmodified; insignificant JSON
+    // whitespace must survive so webhook HMAC signatures computed over the
+    // raw bytes still verify.
+    const { server, lastEvent } = await bootWithFunctions({
+      create: { events: [{ httpApi: 'POST /items' }] },
+    })
+
+    const payload = '{ "a":  1 ,  "b": 2 }'
+
+    await server.inject({
+      method: 'POST',
+      url: '/items',
+      headers: { 'content-type': 'application/json' },
+      payload,
+    })
+
+    expect(lastEvent().isBase64Encoded).toBe(false)
+    expect(lastEvent().body).toBe(payload)
+  })
+
+  it('preserves multibyte body bytes and reports the correct content-length', async () => {
+    const { server, lastEvent } = await bootWithFunctions({
+      create: { events: [{ httpApi: 'POST /items' }] },
+    })
+
+    const payload = '{"name":"é"}'
+
+    await server.inject({
+      method: 'POST',
+      url: '/items',
+      headers: { 'content-type': 'application/json' },
+      payload,
+    })
+
+    expect(lastEvent().body).toBe(payload)
+    const contentLength =
+      lastEvent().headers['content-length'] ??
+      lastEvent().headers['Content-Length']
+    expect(contentLength).toBe(String(Buffer.byteLength(payload)))
+  })
+
   it('base64-encodes octet-stream request bodies', async () => {
     const { server, lastEvent } = await bootWithFunctions({
       upload: { events: [{ httpApi: 'POST /upload' }] },
@@ -150,6 +192,25 @@ describe('request → event delivered to the Lambda handler', () => {
 
     expect(lastEvent().body).toBeNull()
     expect(lastEvent().isBase64Encoded).toBe(false)
+  })
+
+  it('delivers body:null with no content-length/content-type for a POST with no body', async () => {
+    // A body-allowed method sent with no payload arrives as a zero-length
+    // Buffer. Real API Gateway emits body:null and injects no content-length
+    // or content-type for a bodyless request, regardless of method.
+    const { server, lastEvent } = await bootWithFunctions({
+      create: { events: [{ httpApi: 'POST /items' }] },
+    })
+
+    await server.inject({ method: 'POST', url: '/items' })
+
+    expect(lastEvent().body).toBeNull()
+    expect(lastEvent().isBase64Encoded).toBe(false)
+    const headerNames = Object.keys(lastEvent().headers).map((k) =>
+      k.toLowerCase(),
+    )
+    expect(headerNames).not.toContain('content-length')
+    expect(headerNames).not.toContain('content-type')
   })
 
   it('exposes cookies parsed from the Cookie request header', async () => {

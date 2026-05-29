@@ -127,11 +127,17 @@ export function registerHttpApiRoutes({
       // Hapi rejects payload options on GET / HEAD routes.  For wildcard ('*')
       // we include payload options because some methods on that route can carry
       // a body; GET will simply not parse anything.
+      //
+      // parse:false hands the handler the raw request body as a Buffer (or null
+      // when no body was sent). API Gateway delivers the body to Lambda
+      // byte-for-byte, so the event factory must see the original bytes rather
+      // than a JSON object Hapi re-serializes — that is what preserves webhook
+      // signatures computed over the raw payload.
       const payloadOptions =
         hapiMethod === '*' || !NO_BODY_METHODS.has(hapiMethod)
           ? {
               payload: {
-                parse: true,
+                parse: false,
                 output: 'data',
                 maxBytes: 10 * 1024 * 1024,
               },

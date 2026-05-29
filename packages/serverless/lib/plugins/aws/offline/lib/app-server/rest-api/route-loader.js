@@ -373,11 +373,17 @@ export function registerRestApiRoutes({
       // For wildcard ('*') we still attach payload options because some
       // methods that match the wildcard route can carry a body; for body-less
       // methods routed through a wildcard, Hapi simply skips payload parsing.
+      //
+      // Non-proxy (AWS) integrations render a velocity request template against
+      // the parsed body, so they keep parse:true and receive the parsed object.
+      // Proxy (AWS_PROXY) integrations use parse:false so the handler sees the
+      // raw request body as a Buffer — API Gateway delivers the body to Lambda
+      // byte-for-byte, preserving webhook signatures computed over the raw bytes.
       const payloadOptions =
         hapiMethod === '*' || !NO_BODY_METHODS.has(hapiMethod)
           ? {
               payload: {
-                parse: true,
+                parse: integration === 'AWS',
                 output: 'data',
                 maxBytes: 10 * 1024 * 1024,
               },

@@ -221,7 +221,15 @@ function buildMultiValueQueryStringParameters(searchParams) {
  * @returns {{ body: string | null, isBase64Encoded: boolean }}
  */
 function buildBody(request) {
-  if (request.payload === undefined || request.payload === '') {
+  // "No body" covers an absent payload, an empty string, and the zero-length
+  // Buffer Hapi hands us for a body-allowed method (POST/PUT/PATCH) sent with
+  // no body (payload parsing disabled for proxy routes). APIGW emits `null` for
+  // all of these and injects no Content-Length/Content-Type.
+  const noBody =
+    request.payload === undefined ||
+    request.payload === '' ||
+    (Buffer.isBuffer(request.payload) && request.payload.length === 0)
+  if (noBody) {
     return { body: null, isBase64Encoded: false }
   }
   const contentType = request.headers?.['content-type'] ?? ''
@@ -231,10 +239,21 @@ function buildBody(request) {
       : Buffer.from(request.payload)
     return { body: buf.toString('base64'), isBase64Encoded: true }
   }
-  const body =
-    typeof request.payload === 'string'
-      ? request.payload
-      : JSON.stringify(request.payload)
+  // A non-binary body is delivered byte-for-byte. The raw Buffer Hapi hands us
+  // (payload parsing disabled for proxy routes) is decoded as UTF-8 so
+  // insignificant JSON whitespace survives; a string passes through unchanged;
+  // an object (from direct callers) is JSON-stringified. A body whose
+  // Content-Encoding is gzip but whose content-type is non-binary is passed
+  // through as UTF-8, matching real API Gateway, which only base64-encodes
+  // configured binary media types.
+  let body
+  if (Buffer.isBuffer(request.payload)) {
+    body = request.payload.toString('utf8')
+  } else if (typeof request.payload === 'string') {
+    body = request.payload
+  } else {
+    body = JSON.stringify(request.payload)
+  }
   return { body, isBase64Encoded: false }
 }
 

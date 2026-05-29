@@ -231,12 +231,37 @@ describe('registerRestApiRoutes — registration', () => {
     })
   })
 
-  it('POST routes get payload parse option (maxBytes 10 MB)', () => {
+  it('POST proxy routes get payload option with parsing disabled (maxBytes 10 MB)', () => {
+    // Proxy integrations receive the body byte-for-byte, so payload parsing is
+    // disabled and the handler sees the raw Buffer.
     const stub = makeRouteStub()
     registerRestApiRoutes({
       server: stub,
       serverless: makeServerless({
         c: { events: [{ http: { method: 'POST', path: '/c' } }] },
+      }),
+      stage: 'dev',
+      onRequest: jest.fn(),
+    })
+    expect(stub.routes[0].options.payload).toEqual({
+      parse: false,
+      output: 'data',
+      maxBytes: 10 * 1024 * 1024,
+    })
+  })
+
+  it('POST non-proxy (AWS) routes keep payload parsing enabled', () => {
+    // Non-proxy integrations render a velocity request template against the
+    // parsed body, so parsing stays on.
+    const stub = makeRouteStub()
+    registerRestApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        c: {
+          events: [
+            { http: { method: 'POST', path: '/c', integration: 'AWS' } },
+          ],
+        },
       }),
       stage: 'dev',
       onRequest: jest.fn(),
@@ -379,6 +404,158 @@ describe('registerRestApiRoutes — live request via server.inject()', () => {
     expect(captured.event.path).toBe('/users/42')
     expect(captured.event.requestContext.path).toBe('/dev/api/users/42')
     expect(captured.event.pathParameters).toEqual({ id: '42' })
+  })
+
+  it('delivers a proxy request body byte-for-byte without re-serializing JSON', async () => {
+    // AWS_PROXY passes the request body through unmodified; insignificant JSON
+    // whitespace must survive so webhook HMAC signatures computed over the raw
+    // bytes still verify.
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    let captured
+    const onRequest = jest.fn(async (functionKey, event) => {
+      captured = { functionKey, event }
+      return { statusCode: 200, body: '{}' }
+    })
+    registerRestApiRoutes({
+      server,
+      serverless: makeServerless({
+        create: { events: [{ http: { method: 'POST', path: '/items' } }] },
+      }),
+      stage: 'dev',
+      onRequest,
+    })
+    await server.start()
+
+    const payload = '{ "a":  1 ,  "b": 2 }'
+    const res = await server.inject({
+      method: 'POST',
+      url: '/dev/items',
+      headers: { 'content-type': 'application/json' },
+      payload,
+    })
+
+    expect(res.statusCode).toBe(200)
+    expect(captured.event.isBase64Encoded).toBe(false)
+    expect(captured.event.body).toBe(payload)
+  })
+
+  it('base64-encodes a binary proxy request body and sets isBase64Encoded', async () => {
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    let captured
+    const onRequest = jest.fn(async (functionKey, event) => {
+      captured = { functionKey, event }
+      return { statusCode: 200, body: '{}' }
+    })
+    registerRestApiRoutes({
+      server,
+      serverless: makeServerless({
+        upload: { events: [{ http: { method: 'POST', path: '/upload' } }] },
+      }),
+      stage: 'dev',
+      onRequest,
+    })
+    await server.start()
+
+    const bytes = Buffer.from([0x01, 0x02, 0x03, 0xff, 0x00])
+    const res = await server.inject({
+      method: 'POST',
+      url: '/dev/upload',
+      headers: { 'content-type': 'application/octet-stream' },
+      payload: bytes,
+    })
+
+    expect(res.statusCode).toBe(200)
+    expect(captured.event.isBase64Encoded).toBe(true)
+    expect(Buffer.from(captured.event.body, 'base64')).toEqual(bytes)
+  })
+
+  it('delivers body:null for a proxy GET with no body', async () => {
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    let captured
+    const onRequest = jest.fn(async (functionKey, event) => {
+      captured = { functionKey, event }
+      return { statusCode: 200, body: '{}' }
+    })
+    registerRestApiRoutes({
+      server,
+      serverless: makeServerless({
+        list: { events: [{ http: { method: 'GET', path: '/items' } }] },
+      }),
+      stage: 'dev',
+      onRequest,
+    })
+    await server.start()
+
+    const res = await server.inject({ method: 'GET', url: '/dev/items' })
+
+    expect(res.statusCode).toBe(200)
+    expect(captured.event.body).toBeNull()
+    expect(captured.event.isBase64Encoded).toBe(false)
+  })
+
+  it('delivers body:null with no content-length/content-type for a proxy POST with no body', async () => {
+    // A body-allowed method sent with no payload arrives as a zero-length
+    // Buffer. Real API Gateway emits body:null and injects no Content-Length
+    // or Content-Type for a bodyless request, regardless of method.
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    let captured
+    const onRequest = jest.fn(async (functionKey, event) => {
+      captured = { functionKey, event }
+      return { statusCode: 200, body: '{}' }
+    })
+    registerRestApiRoutes({
+      server,
+      serverless: makeServerless({
+        create: { events: [{ http: { method: 'POST', path: '/items' } }] },
+      }),
+      stage: 'dev',
+      onRequest,
+    })
+    await server.start()
+
+    const res = await server.inject({ method: 'POST', url: '/dev/items' })
+
+    expect(res.statusCode).toBe(200)
+    expect(captured.event.body).toBeNull()
+    expect(captured.event.isBase64Encoded).toBe(false)
+    const headerNames = Object.keys(captured.event.headers).map((k) =>
+      k.toLowerCase(),
+    )
+    expect(headerNames).not.toContain('content-length')
+    expect(headerNames).not.toContain('content-type')
+  })
+
+  it('injects content-length matching the raw body byte length for a multibyte proxy body', async () => {
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    let captured
+    const onRequest = jest.fn(async (functionKey, event) => {
+      captured = { functionKey, event }
+      return { statusCode: 200, body: '{}' }
+    })
+    registerRestApiRoutes({
+      server,
+      serverless: makeServerless({
+        create: { events: [{ http: { method: 'POST', path: '/items' } }] },
+      }),
+      stage: 'dev',
+      onRequest,
+    })
+    await server.start()
+
+    const payload = '{"name":"é"}'
+    const res = await server.inject({
+      method: 'POST',
+      url: '/dev/items',
+      headers: { 'content-type': 'application/json' },
+      payload,
+    })
+
+    expect(res.statusCode).toBe(200)
+    expect(captured.event.body).toBe(payload)
+    const contentLength =
+      captured.event.headers['Content-Length'] ??
+      captured.event.headers['content-length']
+    expect(contentLength).toBe(String(Buffer.byteLength(payload)))
   })
 
   it('returns 502 when the handler throws', async () => {

@@ -317,10 +317,16 @@ export function buildHttpApiV2Event({
   // Always emit both fields: AWS always includes body (null when absent) and
   // isBase64Encoded (false when body is null or non-binary). An empty-string
   // request body is also surfaced as `null` — matching real APIGW, which
-  // treats "no body" and "empty body" as equivalent for the v2 payload.
+  // treats "no body" and "empty body" as equivalent for the v2 payload. A
+  // body-allowed method (POST/PUT/PATCH) sent with no body arrives as a
+  // zero-length Buffer (payload parsing disabled), which is also "no body".
   let body = null
   let isBase64Encoded = false
-  if (request.payload !== undefined && request.payload !== '') {
+  const noBody =
+    request.payload === undefined ||
+    request.payload === '' ||
+    (Buffer.isBuffer(request.payload) && request.payload.length === 0)
+  if (!noBody) {
     const contentType = request.headers['content-type'] ?? ''
     if (isBinaryContentType(contentType)) {
       const buf = Buffer.isBuffer(request.payload)
@@ -329,10 +335,20 @@ export function buildHttpApiV2Event({
       body = buf.toString('base64')
       isBase64Encoded = true
     } else {
-      body =
-        typeof request.payload === 'string'
-          ? request.payload
-          : JSON.stringify(request.payload)
+      // A non-binary body is delivered byte-for-byte. The raw Buffer Hapi
+      // hands us (payload parsing disabled) is decoded as UTF-8 so insignificant
+      // JSON whitespace survives; a string passes through unchanged; an object
+      // (from direct callers) is JSON-stringified. A body whose Content-Encoding
+      // is gzip but whose content-type is non-binary is passed through as UTF-8,
+      // matching real API Gateway, which only base64-encodes configured binary
+      // media types.
+      if (Buffer.isBuffer(request.payload)) {
+        body = request.payload.toString('utf8')
+      } else if (typeof request.payload === 'string') {
+        body = request.payload
+      } else {
+        body = JSON.stringify(request.payload)
+      }
       isBase64Encoded = false
     }
   }

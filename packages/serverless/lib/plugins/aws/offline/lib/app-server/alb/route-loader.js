@@ -123,10 +123,15 @@ export function registerAlbRoutes({ server, serverless, onRequest }) {
         server.route({
           method: hapiMethod,
           path: toHapiAlbPath(path),
+          // parse:false hands the handler the raw request body as a Buffer (or
+          // null when no body was sent). ALB delivers the body to Lambda
+          // byte-for-byte, so the event factory must see the original bytes
+          // rather than a JSON object Hapi re-serializes — that is what
+          // preserves webhook signatures computed over the raw payload.
           options: allowsBody
             ? {
                 payload: {
-                  parse: true,
+                  parse: false,
                   output: 'data',
                   maxBytes: 10 * 1024 * 1024,
                 },

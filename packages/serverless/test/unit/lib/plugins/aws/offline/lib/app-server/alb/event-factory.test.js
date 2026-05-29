@@ -133,16 +133,31 @@ describe('buildAlbEvent', () => {
     expect(event.isBase64Encoded).toBe(false)
   })
 
-  it('body is base64-encoded when payload is a Buffer', () => {
+  it('body is base64-encoded when payload is a Buffer with a binary content-type', () => {
     const event = buildAlbEvent({
       request: makeRequest({
         method: 'POST',
+        headers: { 'content-type': 'application/octet-stream' },
         payload: Buffer.from([0xff, 0xfe, 0xfd]),
       }),
       targetGroupArn: TARGET_GROUP_ARN,
     })
     expect(event.isBase64Encoded).toBe(true)
     expect(event.body).toBe('//79')
+  })
+
+  it('body is UTF-8 verbatim when payload is a Buffer with a non-binary content-type', () => {
+    const payload = '{ "a":  1 ,  "b": 2 }'
+    const event = buildAlbEvent({
+      request: makeRequest({
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        payload: Buffer.from(payload, 'utf8'),
+      }),
+      targetGroupArn: TARGET_GROUP_ARN,
+    })
+    expect(event.isBase64Encoded).toBe(false)
+    expect(event.body).toBe(payload)
   })
 
   it('event has NO pathParameters field (ALB literal-path only)', () => {

@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals'
+import { jest, afterEach } from '@jest/globals'
 import Hapi from '@hapi/hapi'
 import { registerAlbRoutes } from '../../../../../../../../../lib/plugins/aws/offline/lib/app-server/alb/route-loader.js'
 
@@ -242,6 +242,104 @@ describe('registerAlbRoutes — registration', () => {
     } finally {
       await server.stop({ timeout: 5000 })
     }
+  })
+})
+
+describe('registerAlbRoutes — request body delivery', () => {
+  let server
+  afterEach(async () => {
+    if (server) {
+      await server.stop({ timeout: 5000 })
+      server = null
+    }
+  })
+
+  function bootEcho() {
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    let captured
+    const onRequest = jest.fn(async (functionKey, event) => {
+      captured = { functionKey, event }
+      return { statusCode: 200, body: 'ok' }
+    })
+    registerAlbRoutes({
+      server,
+      serverless: makeServerless({
+        echo: {
+          events: [
+            { alb: { conditions: { path: '/echo', method: ['POST'] } } },
+          ],
+        },
+      }),
+      onRequest,
+    })
+    return { get: () => captured }
+  }
+
+  it('delivers the request body byte-for-byte without re-serializing JSON', async () => {
+    // ALB passes the request body through unmodified; insignificant JSON
+    // whitespace must survive so webhook HMAC signatures computed over the raw
+    // bytes still verify.
+    const ctx = bootEcho()
+    await server.start()
+    const payload = '{ "a":  1 ,  "b": 2 }'
+    const res = await server.inject({
+      method: 'POST',
+      url: '/echo',
+      headers: { 'content-type': 'application/json' },
+      payload,
+    })
+    expect(res.statusCode).toBe(200)
+    expect(ctx.get().event.isBase64Encoded).toBe(false)
+    expect(ctx.get().event.body).toBe(payload)
+  })
+
+  it('base64-encodes a binary request body and sets isBase64Encoded', async () => {
+    const ctx = bootEcho()
+    await server.start()
+    const bytes = Buffer.from([0x01, 0x02, 0x03, 0xff, 0x00])
+    const res = await server.inject({
+      method: 'POST',
+      url: '/echo',
+      headers: { 'content-type': 'application/octet-stream' },
+      payload: bytes,
+    })
+    expect(res.statusCode).toBe(200)
+    expect(ctx.get().event.isBase64Encoded).toBe(true)
+    expect(Buffer.from(ctx.get().event.body, 'base64')).toEqual(bytes)
+  })
+
+  it('delivers body:"" for a GET with no body (ALB-specific)', async () => {
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    let captured
+    const onRequest = jest.fn(async (functionKey, event) => {
+      captured = { functionKey, event }
+      return { statusCode: 200, body: 'ok' }
+    })
+    registerAlbRoutes({
+      server,
+      serverless: makeServerless({
+        list: {
+          events: [{ alb: { conditions: { path: '/list', method: ['GET'] } } }],
+        },
+      }),
+      onRequest,
+    })
+    await server.start()
+    const res = await server.inject({ method: 'GET', url: '/list' })
+    expect(res.statusCode).toBe(200)
+    expect(captured.event.body).toBe('')
+    expect(captured.event.isBase64Encoded).toBe(false)
+  })
+
+  it('delivers body:"" for a POST with no body (ALB-specific)', async () => {
+    // A body-allowed method sent with no payload arrives as a zero-length
+    // Buffer. ALB still surfaces body:"" (not null), regardless of method.
+    const ctx = bootEcho()
+    await server.start()
+    const res = await server.inject({ method: 'POST', url: '/echo' })
+    expect(res.statusCode).toBe(200)
+    expect(ctx.get().event.body).toBe('')
+    expect(ctx.get().event.isBase64Encoded).toBe(false)
   })
 })
 
