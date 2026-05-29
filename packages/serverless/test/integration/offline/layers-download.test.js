@@ -5,8 +5,8 @@ import { LambdaClient } from '@aws-sdk/client-lambda'
 import {
   downloadLayerSet,
   // eslint-disable-next-line import/extensions
-} from '../../../../../../../../../lib/plugins/aws/offline/lib/runners/layers/layer-downloader.js'
-import { layerSetKey } from '../../../../../../../../../lib/plugins/aws/offline/lib/runners/layers/layer-resolver.js'
+} from '../../../lib/plugins/aws/offline/lib/runners/layers/layer-downloader.js'
+import { layerSetKey } from '../../../lib/plugins/aws/offline/lib/runners/layers/layer-resolver.js'
 
 // Opt-in integration test: hits real AWS (GetLayerVersionByArn) and downloads a
 // real published layer archive. Skipped unless both env vars are set:
