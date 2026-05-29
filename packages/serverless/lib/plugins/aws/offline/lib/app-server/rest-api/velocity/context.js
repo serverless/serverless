@@ -4,36 +4,41 @@ import { decodeJwt } from 'jose'
 import { jsonPath } from './json-path.js'
 
 /**
- * Parse a Node raw-headers array (flat [name, value, name, value, ...]) into
- * a plain object keyed by lowercased header name. Returns an empty object if
- * the input is falsy or not an array.
+ * Build two views of the request headers from a Node raw-headers array (flat
+ * [name, value, name, value, ...]) or, failing that, the framework-parsed
+ * `request.headers`:
+ *
+ *  - `lower` — keyed by lowercased name, for internal case-insensitive reads
+ *    (user-agent, authorization, identity).
+ *  - `wire`  — keyed by the original first-seen header casing, surfaced to
+ *    mapping templates via `$input.params().header` to match API Gateway,
+ *    which preserves the casing the client sent.
+ *
+ * For a repeated header (case-insensitive), the first-seen key casing is kept
+ * and the latest value wins, mirroring the lowercased map.
  */
-function parseRawHeaders(rawHeaders) {
-  const result = {}
-  if (!Array.isArray(rawHeaders)) return result
-  for (let i = 0; i < rawHeaders.length; i += 2) {
-    const name = rawHeaders[i]
-    const value = rawHeaders[i + 1]
-    if (typeof name !== 'string') continue
-    result[name.toLowerCase()] = value
-  }
-  return result
-}
-
-/**
- * Return a headers object keyed by lowercased name. Prefer the raw socket
- * header array when present (preserves real wire data); otherwise fall back
- * to the framework-parsed `request.headers`, lowercasing keys defensively.
- */
-function readHeaders(request) {
+function readHeaderMaps(request) {
+  const lower = {}
+  const wire = {}
   const raw = request?.raw?.req?.rawHeaders
-  if (Array.isArray(raw) && raw.length > 0) return parseRawHeaders(raw)
-  const headers = request?.headers ?? {}
-  const result = {}
-  for (const key of Object.keys(headers)) {
-    result[key.toLowerCase()] = headers[key]
+  if (Array.isArray(raw) && raw.length > 0) {
+    for (let i = 0; i < raw.length; i += 2) {
+      const name = raw[i]
+      const value = raw[i + 1]
+      if (typeof name !== 'string') continue
+      const lc = name.toLowerCase()
+      lower[lc] = value
+      const existingKey = Object.keys(wire).find((k) => k.toLowerCase() === lc)
+      wire[existingKey ?? name] = value
+    }
+    return { lower, wire }
   }
-  return result
+  const headers = request?.headers ?? {}
+  for (const key of Object.keys(headers)) {
+    lower[key.toLowerCase()] = headers[key]
+    wire[key] = headers[key]
+  }
+  return { lower, wire }
 }
 
 // Unicode line/paragraph separators. Built via fromCharCode so the literal
@@ -116,7 +121,7 @@ export function buildVelocityContext({
   payload,
   resourcePath,
 }) {
-  const headers = readHeaders(request)
+  const { lower: headers, wire: wireHeaders } = readHeaderMaps(request)
   const path = (expr) => jsonPath(payload, expr)
 
   const authCredentials = request?.auth?.credentials
@@ -172,12 +177,16 @@ export function buildVelocityContext({
     params: (name) => {
       if (name === undefined) {
         return {
-          header: { ...headers },
+          header: { ...wireHeaders },
           path: { ...(request.params ?? {}) },
           querystring: { ...(request.query ?? {}) },
         }
       }
-      return request.params?.[name] ?? request.query?.[name] ?? headers[name]
+      return (
+        request.params?.[name] ??
+        request.query?.[name] ??
+        headers[String(name).toLowerCase()]
+      )
     },
     path,
   }

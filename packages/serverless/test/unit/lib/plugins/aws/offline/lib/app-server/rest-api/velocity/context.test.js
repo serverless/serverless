@@ -173,7 +173,19 @@ describe('$input', () => {
     const all = input.params()
     expect(all.path).toEqual({ id: '42' })
     expect(all.querystring).toEqual({ search: 'hello' })
-    expect(all.header['x-custom']).toBe('abc')
+    expect(all.header['X-Custom']).toBe('abc')
+  })
+
+  it('params().header preserves the request wire casing', () => {
+    const { input } = build()
+    expect(input.params().header['X-Custom']).toBe('abc')
+    expect(input.params().header['User-Agent']).toBe('curl/8')
+  })
+
+  it('params(name) header lookup is case-insensitive', () => {
+    const { input } = build()
+    expect(input.params('x-custom')).toBe('abc')
+    expect(input.params('X-Custom')).toBe('abc')
   })
 })
 
