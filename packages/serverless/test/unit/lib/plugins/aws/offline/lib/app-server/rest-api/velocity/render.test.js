@@ -35,6 +35,18 @@ describe('renderVelocityString', () => {
     expect(renderVelocityString(template, { value: 1 })).toEqual({ a: 1 })
   })
 
+  it('keeps a "0" result as the string "0" (not the number 0)', () => {
+    expect(renderVelocityString('$value', { value: '0' })).toBe('0')
+  })
+
+  it('keeps an empty result as the empty string', () => {
+    expect(renderVelocityString('$value', { value: '' })).toBe('')
+  })
+
+  it('still returns a truthy numeric result as a number', () => {
+    expect(renderVelocityString('$value', { value: '42' })).toBe(42)
+  })
+
   it('returns the raw string when the result is not JSON', () => {
     expect(renderVelocityString('hello $name', { name: 'world' })).toBe(
       'hello world',

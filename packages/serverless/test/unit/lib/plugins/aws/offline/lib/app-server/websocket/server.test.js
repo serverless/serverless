@@ -4,12 +4,13 @@ import { WebSocket } from 'ws'
 import { createWebSocketServer } from '../../../../../../../../../lib/plugins/aws/offline/lib/app-server/websocket/server.js'
 import { createConnectionRegistry } from '../../../../../../../../../lib/plugins/aws/offline/lib/app-server/websocket/connection-registry.js'
 
-function makeServerless(functions = {}) {
-  return { service: { functions } }
+function makeServerless(functions = {}, provider = {}) {
+  return { service: { functions, provider } }
 }
 
 async function setup({
   functions = {},
+  provider = {},
   authStrategies,
   onRequest = jest.fn(async () => ({ statusCode: 200 })),
   webSocketHardTimeout,
@@ -19,7 +20,7 @@ async function setup({
   const registry = createConnectionRegistry()
   const wsServer = createWebSocketServer({
     hapiServer,
-    serverless: makeServerless(functions),
+    serverless: makeServerless(functions, provider),
     onRequest,
     authStrategies,
     registry,
@@ -524,6 +525,93 @@ describe('WebSocket server — two-way send', () => {
         },
       },
       onRequest: jest.fn(async () => 'bare-string'),
+    })
+    try {
+      const ws = await connectWs(ctx.url)
+      let got
+      ws.on('message', (d) => {
+        got = d.toString()
+      })
+      ws.send('{"action":"sendMessage"}')
+      await new Promise((r) => setTimeout(r, 80))
+      expect(got).toBeUndefined()
+      ws.close()
+    } finally {
+      await teardown(ctx)
+    }
+  })
+})
+
+describe('WebSocket server — custom route selection expression', () => {
+  it('routes by the provider websocketsApiRouteSelectionExpression key', async () => {
+    const ctx = await setup({
+      functions: {
+        broadcaster: { events: [{ websocket: { route: 'broadcast' } }] },
+      },
+      provider: {
+        websocketsApiRouteSelectionExpression: '$request.body.myAction',
+      },
+      onRequest: jest.fn(async (fnKey) => {
+        return { fnKey, statusCode: 200 }
+      }),
+    })
+    try {
+      const ws = await connectWs(ctx.url)
+      ws.send('{"myAction":"broadcast","msg":"hi"}')
+      await new Promise((r) => setTimeout(r, 80))
+      const call = ctx.onRequest.mock.calls.find(
+        ([fnKey]) => fnKey === 'broadcaster',
+      )
+      expect(call).toBeDefined()
+      expect(call[1].body).toBe('{"myAction":"broadcast","msg":"hi"}')
+      ws.close()
+    } finally {
+      await teardown(ctx)
+    }
+  })
+})
+
+describe('WebSocket server — error frame', () => {
+  it('sends an error frame on a $default-response route when the handler throws', async () => {
+    const ctx = await setup({
+      functions: {
+        sender: {
+          events: [
+            {
+              websocket: {
+                route: 'sendMessage',
+                routeResponseSelectionExpression: '$default',
+              },
+            },
+          ],
+        },
+      },
+      onRequest: jest.fn(async () => {
+        throw new Error('boom')
+      }),
+    })
+    try {
+      const ws = await connectWs(ctx.url)
+      const received = waitMessage(ws)
+      ws.send('{"action":"sendMessage"}')
+      const frame = JSON.parse(await received)
+      expect(frame.message).toBe('Internal server error')
+      expect(typeof frame.connectionId).toBe('string')
+      expect(typeof frame.requestId).toBe('string')
+      ws.close()
+    } finally {
+      await teardown(ctx)
+    }
+  })
+
+  it('stays silent on a handler throw when the route has no $default response', async () => {
+    const ctx = await setup({
+      functions: {
+        sender: { events: [{ websocket: { route: 'sendMessage' } }] },
+      },
+      onRequest: jest.fn(async () => {
+        throw new Error('boom')
+      }),
     })
     try {
       const ws = await connectWs(ctx.url)

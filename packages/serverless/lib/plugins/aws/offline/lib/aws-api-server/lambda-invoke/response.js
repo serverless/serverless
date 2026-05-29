@@ -56,6 +56,29 @@ export function toInvokeError(err, h) {
 }
 
 /**
+ * Shape an InvalidParameterValueException response for an unsupported
+ * invocation type.
+ *
+ * Responds with HTTP 400 and the
+ * `x-amzn-ErrorType: InvalidParameterValueException` header so the SDK throws
+ * `InvalidParameterValueException`, matching real Lambda when the
+ * `X-Amz-Invocation-Type` is not one it accepts.
+ *
+ * @param {string} message - Human-readable parameter error.
+ * @param {import('@hapi/hapi').ResponseToolkit} h - The Hapi response toolkit.
+ * @returns {import('@hapi/hapi').ResponseObject}
+ */
+export function toInvalidParameterValue(message, h) {
+  const body = JSON.stringify({ Type: 'User', message })
+
+  return h
+    .response(body)
+    .code(400)
+    .type('application/json')
+    .header('x-amzn-ErrorType', 'InvalidParameterValueException')
+}
+
+/**
  * Shape a ResourceNotFoundException response for an unknown function name.
  *
  * Responds with HTTP 404 and the `x-amzn-ErrorType: ResourceNotFoundException`

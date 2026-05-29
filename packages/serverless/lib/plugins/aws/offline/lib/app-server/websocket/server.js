@@ -44,6 +44,14 @@ export function createWebSocketServer({
   const routes = normalizeWebsocketEvents(serverless)
   const wss = new WebSocketServer({ noServer: true })
 
+  // Route selection key. API Gateway picks the message route by evaluating
+  // the provider's websocketsApiRouteSelectionExpression (default
+  // `$request.body.action`); the `$request.body.<key>` form names the body
+  // property whose value is the action.
+  const selectionKey = parseRouteSelectionKey(
+    serverless?.service?.provider?.websocketsApiRouteSelectionExpression,
+  )
+
   function rejectUpgrade(socket, statusCode) {
     const status = `${statusCode}`
     socket.write(`HTTP/1.1 ${status} \r\nConnection: close\r\n\r\n`)
@@ -176,7 +184,7 @@ export function createWebSocketServer({
         try {
           const parsed = JSON.parse(payload)
           if (parsed && typeof parsed === 'object') {
-            const candidate = parsed[ROUTE_SELECTION_KEY]
+            const candidate = parsed[selectionKey]
             if (typeof candidate === 'string') action = candidate
           }
         } catch {
@@ -200,7 +208,21 @@ export function createWebSocketServer({
         try {
           result = await onRequest(entry.functionKey, event)
         } catch {
-          // Handler error — drop; WS clients can't see HTTP-style 502.
+          // Handler error. When the route declares a $default route response,
+          // API Gateway returns an error frame to the client on the same
+          // connection; otherwise the failure is invisible to WS clients.
+          if (
+            entry.routeResponseSelectionExpression === '$default' &&
+            ws.readyState === ws.OPEN
+          ) {
+            ws.send(
+              JSON.stringify({
+                message: 'Internal server error',
+                connectionId,
+                requestId: crypto.randomUUID(),
+              }),
+            )
+          }
           return
         }
         // Two-way send: when the route declares a $default route response, API
@@ -239,6 +261,14 @@ export function createWebSocketServer({
         }
       })
     })
+  }
+
+  function parseRouteSelectionKey(expression) {
+    if (typeof expression === 'string') {
+      const match = expression.match(/^\$request\.body\.(.+)$/)
+      if (match) return match[1]
+    }
+    return ROUTE_SELECTION_KEY
   }
 
   hapiServer.listener.on('upgrade', (request, socket, head) => {

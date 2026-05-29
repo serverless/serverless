@@ -125,7 +125,12 @@ export function mapNonProxyResponse({
       body = serializePayload(payload)
     }
   } else {
-    body = serializePayload(payload)
+    // No response template: API Gateway JSON-serializes the integration
+    // result, so a bare string is emitted quoted (e.g. `foo` → `"foo"`).
+    body =
+      typeof payload === 'string'
+        ? JSON.stringify(payload)
+        : serializePayload(payload)
   }
 
   // 4. Honor CONVERT_TO_BINARY content handling. API Gateway treats the

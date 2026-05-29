@@ -1,5 +1,10 @@
 import { Buffer } from 'node:buffer'
-import { toInvokeResponse, toInvokeError, toNotFound } from './response.js'
+import {
+  toInvokeResponse,
+  toInvokeError,
+  toNotFound,
+  toInvalidParameterValue,
+} from './response.js'
 
 /**
  * AWS Lambda Invoke API route registration.
@@ -112,6 +117,13 @@ export function registerLambdaInvokeRoutes(
 
       const invocationType =
         request.headers['x-amz-invocation-type'] ?? 'RequestResponse'
+
+      if (invocationType !== 'Event' && invocationType !== 'RequestResponse') {
+        return toInvalidParameterValue(
+          `Unsupported invocation type: ${invocationType}`,
+          h,
+        )
+      }
 
       if (invocationType === 'Event') {
         return invokeAsync(functionKey, event, options, h)

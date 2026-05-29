@@ -93,7 +93,11 @@ export function renderVelocityTemplateObject(template, context) {
 
 function tryParseJson(maybeJson) {
   try {
-    return JSON.parse(maybeJson)
+    // Fall back to the original string when JSON.parse yields a falsy
+    // primitive, so API Gateway-style values like `"0"`, `""`, and `"false"`
+    // stay strings rather than collapsing to 0 / '' / false.
+    const parsed = JSON.parse(maybeJson)
+    return parsed || maybeJson
   } catch {
     return maybeJson
   }

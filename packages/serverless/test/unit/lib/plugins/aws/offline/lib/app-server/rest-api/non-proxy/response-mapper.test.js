@@ -306,7 +306,7 @@ describe('mapNonProxyResponse — responseTemplates', () => {
     expect(JSON.parse(h.calls.payload)).toEqual({ a: 1, b: 'two' })
   })
 
-  it('passes string result through verbatim when no responseTemplates', () => {
+  it('JSON-serializes a bare string result when there is no responseTemplate', () => {
     const h = makeH()
     mapNonProxyResponse({
       result: 'raw-text',
@@ -317,7 +317,9 @@ describe('mapNonProxyResponse — responseTemplates', () => {
       resourcePath: '/things',
       h,
     })
-    expect(h.calls.payload).toBe('raw-text')
+    // API Gateway JSON-serializes the integration result, so a bare string
+    // is emitted quoted.
+    expect(h.calls.payload).toBe('"raw-text"')
   })
 
   it('on error renders responseTemplates with $input bound to the AWS-shaped error envelope', () => {
@@ -446,7 +448,7 @@ describe('mapNonProxyResponse — contentHandling CONVERT_TO_BINARY', () => {
     expect(h.calls.payload.equals(original)).toBe(true)
   })
 
-  it('leaves the body as the original string when contentHandling is absent', () => {
+  it('leaves the body as a (JSON-serialized) string when contentHandling is absent', () => {
     const h = makeH()
     const original = Buffer.from([1, 2, 3, 4])
     const base64 = original.toString('base64')
@@ -459,8 +461,10 @@ describe('mapNonProxyResponse — contentHandling CONVERT_TO_BINARY', () => {
       resourcePath: '/things',
       h,
     })
+    // Without CONVERT_TO_BINARY the body is not decoded to a Buffer; the bare
+    // string result is JSON-serialized like any other no-template result.
     expect(typeof h.calls.payload).toBe('string')
-    expect(h.calls.payload).toBe(base64)
+    expect(h.calls.payload).toBe(JSON.stringify(base64))
   })
 
   it('does not decode an error (non-2xx) response body even when CONVERT_TO_BINARY is set', () => {

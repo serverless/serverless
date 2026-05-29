@@ -116,6 +116,26 @@ describe('registerLambdaInvokeRoutes', () => {
     expect(facade.calls[0].event).toEqual({ a: 1 })
   })
 
+  test('X-Amz-Invocation-Type: DryRun returns 400 InvalidParameterValueException and does not invoke', async () => {
+    const facade = makeFacade()
+    register({ facade })
+    await server.initialize()
+
+    const res = await server.inject({
+      method: 'POST',
+      url: SYNC_PATH,
+      headers: { 'x-amz-invocation-type': 'DryRun' },
+      payload: Buffer.from(JSON.stringify({ a: 1 }), 'utf8'),
+    })
+
+    expect(res.statusCode).toBe(400)
+    expect(res.headers['x-amzn-errortype']).toBe(
+      'InvalidParameterValueException',
+    )
+    await nextTick()
+    expect(facade.calls).toHaveLength(0)
+  })
+
   test('legacy /invoke-async path returns 202 and invokes', async () => {
     const facade = makeFacade()
     register({ facade })
