@@ -382,9 +382,9 @@ describe('requestContext', () => {
     )
   })
 
-  it('stage matches the value passed to the factory', () => {
+  it('stage is always $default for HTTP API', () => {
     const event = build({ stage: 'prod' })
-    expect(event.requestContext.stage).toBe('prod')
+    expect(event.requestContext.stage).toBe('$default')
   })
 
   it('domainName matches the value passed to the factory', () => {

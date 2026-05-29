@@ -229,9 +229,6 @@ function parseQueryStringParameters(searchParams) {
  *   `httpApi: { operationName: 'GetUsers' }` form).  When set, surfaced in
  *   `requestContext.operationName` exactly as AWS API Gateway does.
  *
- * @param {string} opts.stage
- *   API Gateway stage name (e.g. `'dev'`).  Used in `requestContext.stage`.
- *
  * @param {string} [opts.accountId]
  *   12-digit AWS account ID.  Defaults to `FAKE_ACCOUNT_ID` (`'000000000000'`).
  *
@@ -245,7 +242,6 @@ function parseQueryStringParameters(searchParams) {
 export function buildHttpApiV2Event({
   request,
   route,
-  stage,
   accountId = FAKE_ACCOUNT_ID,
   domainName,
 }) {
@@ -385,7 +381,9 @@ export function buildHttpApiV2Event({
         : {}),
       requestId: crypto.randomUUID(),
       routeKey,
-      stage,
+      // HTTP APIs deploy to the auto-created `$default` stage; the event always
+      // reports that, independent of the local `--stage`.
+      stage: '$default',
       time,
       timeEpoch,
     },

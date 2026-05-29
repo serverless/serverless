@@ -436,7 +436,7 @@ it('13. pathParameters: { id: "42" } for route.path /users/{id} with params { id
 // 14. requestContext.stage
 // ---------------------------------------------------------------------------
 
-it('14. requestContext.stage matches the stage argument', () => {
+it('14. requestContext.stage is always $default for HTTP API', () => {
   const event = buildHttpApiV2Event({
     request: makeRequest(),
     route: defaultRoute,
@@ -444,7 +444,7 @@ it('14. requestContext.stage matches the stage argument', () => {
     accountId: '000000000000',
     domainName: 'localhost:3000',
   })
-  expect(event.requestContext.stage).toBe('production')
+  expect(event.requestContext.stage).toBe('$default')
 })
 
 // ---------------------------------------------------------------------------

@@ -782,7 +782,6 @@ export default class OfflinePlugin {
         httpApiRoutes = registerHttpApiRoutes({
           server,
           serverless,
-          stage,
           domainName,
           noAuth,
           authStrategies,

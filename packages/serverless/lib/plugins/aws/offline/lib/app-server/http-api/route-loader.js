@@ -62,8 +62,6 @@ function toHapiPath(apigwPath) {
  *   A Hapi server instance (started or unstarted).
  * @param {object} opts.serverless
  *   Framework's serverless instance. `service.functions` is walked.
- * @param {string} opts.stage
- *   API Gateway stage name (e.g. `'dev'`).
  * @param {string} opts.domainName
  *   Host and port string (e.g. `'localhost:3000'`).
  * @param {(functionKey: string, event: object) => Promise<unknown>} opts.onRequest
@@ -77,7 +75,6 @@ function toHapiPath(apigwPath) {
 export function registerHttpApiRoutes({
   server,
   serverless,
-  stage,
   domainName,
   noAuth = false,
   onRequest,
@@ -176,7 +173,6 @@ export function registerHttpApiRoutes({
             const event = buildHttpApiV2Event({
               request,
               route: routeMeta,
-              stage,
               domainName,
             })
             const result = await onRequest(functionKey, event)
