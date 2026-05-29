@@ -1,5 +1,6 @@
 import { Buffer } from 'node:buffer'
 import crypto from 'node:crypto'
+import { decodeJwt } from 'jose'
 import { jsonPath } from './json-path.js'
 
 /**
@@ -122,7 +123,24 @@ export function buildVelocityContext({
   const authorizer = {
     ...(authCredentials?.authorizer ?? {}),
     principalId:
-      authCredentials?.principalId ?? 'offlineContext_authorizer_principalId',
+      authCredentials?.principalId ??
+      process.env.PRINCIPAL_ID ??
+      'offlineContext_authorizer_principalId',
+  }
+
+  // Surface JWT claims on $context.authorizer.claims, matching API Gateway
+  // (e.g. for Cognito user-pool authorizers). Strip a leading "Bearer " and
+  // decode without verifying the signature; a non-JWT token leaves claims unset.
+  let token = headers.authorization ?? headers.Authorization
+  if (typeof token === 'string' && token.split(' ')[0] === 'Bearer') {
+    token = token.split(' ')[1]
+  }
+  if (token) {
+    try {
+      authorizer.claims = decodeJwt(token)
+    } catch {
+      // Non-JWT bearer token: leave claims unset.
+    }
   }
 
   const context = {

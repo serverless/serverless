@@ -83,6 +83,56 @@ describe('$context', () => {
     })
     expect(context.authorizer.principalId).toBe('user-7')
   })
+
+  it('authorizer.principalId falls back to PRINCIPAL_ID env then the default', () => {
+    const prev = process.env.PRINCIPAL_ID
+    process.env.PRINCIPAL_ID = 'env-pid'
+    try {
+      expect(build().context.authorizer.principalId).toBe('env-pid')
+    } finally {
+      if (prev === undefined) delete process.env.PRINCIPAL_ID
+      else process.env.PRINCIPAL_ID = prev
+    }
+  })
+
+  it('decodes a Bearer JWT into authorizer.claims', () => {
+    const headerSeg = Buffer.from(
+      JSON.stringify({ alg: 'none', typ: 'JWT' }),
+    ).toString('base64url')
+    const payloadSeg = Buffer.from(JSON.stringify({ sub: 'abc' })).toString(
+      'base64url',
+    )
+    const jwt = `${headerSeg}.${payloadSeg}.`
+    const { context } = build({
+      request: {
+        headers: { authorization: `Bearer ${jwt}` },
+        raw: { req: { rawHeaders: ['Authorization', `Bearer ${jwt}`] } },
+      },
+    })
+    expect(context.authorizer.claims.sub).toBe('abc')
+  })
+
+  it('leaves authorizer.claims unset for a non-JWT bearer token (no throw)', () => {
+    const { context } = build({
+      request: {
+        headers: { authorization: 'Bearer not-a-jwt' },
+        raw: { req: { rawHeaders: ['Authorization', 'Bearer not-a-jwt'] } },
+      },
+    })
+    expect(context.authorizer.claims).toBeUndefined()
+  })
+
+  it('preserves existing credentials.authorizer fields alongside principalId', () => {
+    const { context } = build({
+      request: {
+        auth: { credentials: { authorizer: { tenant: 't-1' } } },
+      },
+    })
+    expect(context.authorizer.tenant).toBe('t-1')
+    expect(context.authorizer.principalId).toBe(
+      'offlineContext_authorizer_principalId',
+    )
+  })
 })
 
 describe('$input', () => {
