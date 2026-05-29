@@ -196,10 +196,24 @@ export function createWebSocketServer({
           apiId,
           authorizer: connectionAuthorizer,
         })
+        let result
         try {
-          await onRequest(entry.functionKey, event)
+          result = await onRequest(entry.functionKey, event)
         } catch {
           // Handler error — drop; WS clients can't see HTTP-style 502.
+          return
+        }
+        // Two-way send: when the route declares a $default route response, API
+        // Gateway returns the proxy response body to the client on the same
+        // connection. A bare (non-{body}) return sends nothing.
+        if (
+          entry.routeResponseSelectionExpression === '$default' &&
+          result &&
+          typeof result === 'object' &&
+          result.body &&
+          ws.readyState === ws.OPEN
+        ) {
+          ws.send(String(result.body))
         }
       })
 

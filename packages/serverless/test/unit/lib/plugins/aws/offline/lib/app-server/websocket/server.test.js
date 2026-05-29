@@ -458,3 +458,85 @@ describe('WebSocket server — authorizer context propagation', () => {
     }
   })
 })
+
+describe('WebSocket server — two-way send', () => {
+  it('sends result.body back on a $default-response route', async () => {
+    const ctx = await setup({
+      functions: {
+        sender: {
+          events: [
+            {
+              websocket: {
+                route: 'sendMessage',
+                routeResponseSelectionExpression: '$default',
+              },
+            },
+          ],
+        },
+      },
+      onRequest: jest.fn(async () => ({ statusCode: 200, body: 'pong' })),
+    })
+    try {
+      const ws = await connectWs(ctx.url)
+      const received = waitMessage(ws)
+      ws.send('{"action":"sendMessage"}')
+      expect(await received).toBe('pong')
+      ws.close()
+    } finally {
+      await teardown(ctx)
+    }
+  })
+
+  it('sends nothing when the route has no routeResponseSelectionExpression', async () => {
+    const ctx = await setup({
+      functions: {
+        sender: { events: [{ websocket: { route: 'sendMessage' } }] },
+      },
+      onRequest: jest.fn(async () => ({ statusCode: 200, body: 'pong' })),
+    })
+    try {
+      const ws = await connectWs(ctx.url)
+      let got
+      ws.on('message', (d) => {
+        got = d.toString()
+      })
+      ws.send('{"action":"sendMessage"}')
+      await new Promise((r) => setTimeout(r, 80))
+      expect(got).toBeUndefined()
+      ws.close()
+    } finally {
+      await teardown(ctx)
+    }
+  })
+
+  it('sends nothing for a bare (non-{body}) return even with $default response', async () => {
+    const ctx = await setup({
+      functions: {
+        sender: {
+          events: [
+            {
+              websocket: {
+                route: 'sendMessage',
+                routeResponseSelectionExpression: '$default',
+              },
+            },
+          ],
+        },
+      },
+      onRequest: jest.fn(async () => 'bare-string'),
+    })
+    try {
+      const ws = await connectWs(ctx.url)
+      let got
+      ws.on('message', (d) => {
+        got = d.toString()
+      })
+      ws.send('{"action":"sendMessage"}')
+      await new Promise((r) => setTimeout(r, 80))
+      expect(got).toBeUndefined()
+      ws.close()
+    } finally {
+      await teardown(ctx)
+    }
+  })
+})
