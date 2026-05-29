@@ -6,9 +6,10 @@ import ServerlessError from '../../../../../serverless-error.js'
  * Calls `ping()` on the underlying dockerode client and translates failures
  * into actionable `ServerlessError`s. Three error codes are surfaced:
  *
- *   - `OFFLINE_DOCKER_BINARY_MISSING` when the socket cannot be located
- *     (dockerode raises `ENOENT`). Almost always means Docker isn't
- *     installed on the host.
+ *   - `OFFLINE_DOCKER_SOCKET_NOT_FOUND` when the daemon socket cannot be
+ *     located (dockerode raises `ENOENT`). Means Docker isn't installed, the
+ *     daemon isn't running, or the socket lives at a non-default path
+ *     (`DOCKER_HOST`).
  *   - `OFFLINE_DOCKER_PERMISSION_DENIED` when the socket exists but
  *     this user can't open it (`EACCES`). On Linux, usually means the
  *     user isn't in the `docker` group.
@@ -30,8 +31,8 @@ export async function assertDockerAvailable({ dockerClient }) {
   } catch (err) {
     if (err && err.code === 'ENOENT') {
       throw new ServerlessError(
-        'Docker not found. Install Docker Desktop (macOS/Windows) or the Docker engine (Linux) and retry — Java functions require a running Docker daemon.',
-        'OFFLINE_DOCKER_BINARY_MISSING',
+        'Docker daemon socket not found. Make sure Docker is installed and running — start Docker Desktop (macOS/Windows) or the Docker engine (`systemctl start docker` on Linux). If the socket lives at a non-default path, set `DOCKER_HOST`.',
+        'OFFLINE_DOCKER_SOCKET_NOT_FOUND',
       )
     }
     if (err && err.code === 'EACCES') {

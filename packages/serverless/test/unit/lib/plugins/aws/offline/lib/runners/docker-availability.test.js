@@ -31,13 +31,13 @@ describe('assertDockerAvailable', () => {
     )
   })
 
-  it('throws OFFLINE_DOCKER_BINARY_MISSING on ENOENT', async () => {
+  it('throws OFFLINE_DOCKER_SOCKET_NOT_FOUND on ENOENT', async () => {
     const err = Object.assign(new Error('socket not found'), { code: 'ENOENT' })
     const dockerClient = makeDockerClient(async () => {
       throw err
     })
     await expect(assertDockerAvailable({ dockerClient })).rejects.toMatchObject(
-      { code: 'OFFLINE_DOCKER_BINARY_MISSING' },
+      { code: 'OFFLINE_DOCKER_SOCKET_NOT_FOUND' },
     )
   })
 
