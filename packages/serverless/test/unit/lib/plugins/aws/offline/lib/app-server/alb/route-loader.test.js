@@ -244,3 +244,176 @@ describe('registerAlbRoutes — registration', () => {
     }
   })
 })
+
+describe('registerAlbRoutes — wildcard path conditions', () => {
+  it('translates a trailing "*" segment to a Hapi catch-all that matches nested paths', async () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    let captured
+    const onRequest = jest.fn(async (functionKey, event) => {
+      captured = { functionKey, event }
+      return { statusCode: 200, body: 'ok' }
+    })
+    registerAlbRoutes({
+      server,
+      serverless: makeServerless({
+        proxy: {
+          events: [
+            { alb: { conditions: { path: ['/proxy/*'], method: ['GET'] } } },
+          ],
+        },
+      }),
+      onRequest,
+    })
+    await server.start()
+    try {
+      const res = await server.inject({ method: 'GET', url: '/proxy/a/b/c' })
+      expect(res.statusCode).toBe(200)
+      expect(captured.functionKey).toBe('proxy')
+      expect(captured.event.path).toBe('/proxy/a/b/c')
+    } finally {
+      await server.stop({ timeout: 5000 })
+    }
+  })
+
+  it('keeps the original declared path (not the translated one) in the registered list', () => {
+    const stub = makeRouteStub()
+    const out = registerAlbRoutes({
+      server: stub,
+      serverless: makeServerless({
+        proxy: {
+          events: [
+            { alb: { conditions: { path: ['/proxy/*'], method: ['GET'] } } },
+          ],
+        },
+      }),
+      onRequest: jest.fn(),
+    })
+    expect(out).toEqual([
+      { method: 'GET', path: '/proxy/*', functionKey: 'proxy' },
+    ])
+    expect(stub.routes[0].path).toBe('/proxy/{albProxy*}')
+  })
+
+  it('leaves a non-wildcard path matching literally — exact match hits, others 404', async () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const onRequest = jest.fn(async () => ({ statusCode: 200, body: 'ok' }))
+    registerAlbRoutes({
+      server,
+      serverless: makeServerless({
+        health: {
+          events: [
+            { alb: { conditions: { path: ['/health'], method: ['GET'] } } },
+          ],
+        },
+      }),
+      onRequest,
+    })
+    await server.start()
+    try {
+      const hit = await server.inject({ method: 'GET', url: '/health' })
+      expect(hit.statusCode).toBe(200)
+      const miss = await server.inject({ method: 'GET', url: '/health/sub' })
+      expect(miss.statusCode).toBe(404)
+    } finally {
+      await server.stop({ timeout: 5000 })
+    }
+  })
+
+  it('translates an interior "*" segment to a single-segment param', async () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const onRequest = jest.fn(async () => ({ statusCode: 200, body: 'ok' }))
+    registerAlbRoutes({
+      server,
+      serverless: makeServerless({
+        mid: {
+          events: [
+            { alb: { conditions: { path: ['/a/*/b'], method: ['GET'] } } },
+          ],
+        },
+      }),
+      onRequest,
+    })
+    await server.start()
+    try {
+      const hit = await server.inject({ method: 'GET', url: '/a/x/b' })
+      expect(hit.statusCode).toBe(200)
+      const miss = await server.inject({ method: 'GET', url: '/a/x/y/b' })
+      expect(miss.statusCode).toBe(404)
+    } finally {
+      await server.stop({ timeout: 5000 })
+    }
+  })
+
+  it('a trailing "*" catch-all also matches the bare parent segment', async () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const onRequest = jest.fn(async () => ({ statusCode: 200, body: 'ok' }))
+    registerAlbRoutes({
+      server,
+      serverless: makeServerless({
+        proxy: {
+          events: [
+            { alb: { conditions: { path: ['/proxy/*'], method: ['GET'] } } },
+          ],
+        },
+      }),
+      onRequest,
+    })
+    await server.start()
+    try {
+      const parent = await server.inject({ method: 'GET', url: '/proxy' })
+      expect(parent.statusCode).toBe(200)
+      const single = await server.inject({ method: 'GET', url: '/proxy/a' })
+      expect(single.statusCode).toBe(200)
+    } finally {
+      await server.stop({ timeout: 5000 })
+    }
+  })
+
+  it('a bare "/*" catch-all matches the root and nested paths', async () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const onRequest = jest.fn(async () => ({ statusCode: 200, body: 'ok' }))
+    registerAlbRoutes({
+      server,
+      serverless: makeServerless({
+        all: {
+          events: [{ alb: { conditions: { path: ['/*'], method: ['GET'] } } }],
+        },
+      }),
+      onRequest,
+    })
+    await server.start()
+    try {
+      const root = await server.inject({ method: 'GET', url: '/' })
+      expect(root.statusCode).toBe(200)
+      const deep = await server.inject({ method: 'GET', url: '/x/y/z' })
+      expect(deep.statusCode).toBe(200)
+    } finally {
+      await server.stop({ timeout: 5000 })
+    }
+  })
+
+  it('translates interior wildcards before a trailing catch-all', async () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const onRequest = jest.fn(async () => ({ statusCode: 200, body: 'ok' }))
+    registerAlbRoutes({
+      server,
+      serverless: makeServerless({
+        mix: {
+          events: [
+            { alb: { conditions: { path: ['/a/*/b/*'], method: ['GET'] } } },
+          ],
+        },
+      }),
+      onRequest,
+    })
+    await server.start()
+    try {
+      const hit = await server.inject({ method: 'GET', url: '/a/x/b/c/d' })
+      expect(hit.statusCode).toBe(200)
+      const miss = await server.inject({ method: 'GET', url: '/a/x/y/b/c' })
+      expect(miss.statusCode).toBe(404)
+    } finally {
+      await server.stop({ timeout: 5000 })
+    }
+  })
+})

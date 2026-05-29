@@ -7,8 +7,11 @@
  * collisions against later REST + HTTP API registrations (Hapi resolves
  * by registration order).
  *
- * ALB matches literal paths only — no `{id}` templating. `listenerArn` and
- * `priority` from the YAML are silently ignored at runtime (no real ALB).
+ * Real ALB path-pattern conditions treat a `*` segment as a wildcard, so a
+ * `conditions.path` whose segments include `*` is translated to the
+ * equivalent Hapi capture (see `toHapiAlbPath`); non-wildcard paths still
+ * match literally. `listenerArn` and `priority` from the YAML are silently
+ * ignored at runtime (no real ALB).
  */
 
 import { NO_BODY_METHODS, toHapiMethod } from '../shared/hapi-helpers.js'
@@ -54,6 +57,43 @@ function normalizeAlbEvent(albEvent) {
 }
 
 /**
+ * Translate an ALB `conditions.path` into the equivalent Hapi route path.
+ *
+ * ALB path patterns treat a wildcard star that occupies a complete path
+ * SEGMENT (i.e. the whole segment between two slashes) as a wildcard:
+ *  - A TRAILING wildcard segment becomes a Hapi catch-all that matches the
+ *    segment itself plus any deeper path: "/proxy/<star>" maps to
+ *    "/proxy/{albProxy*}" (matches "/proxy", "/proxy/a", "/proxy/a/b/c"); a
+ *    bare "/<star>" maps to "/{albProxy*}".
+ *  - An INTERIOR wildcard segment becomes a single-segment param with an
+ *    incrementing index: "/a/<star>/b" maps to "/a/{alb0}/b", and
+ *    "/a/<star>/<star>/b" maps to "/a/{alb0}/{alb1}/b". Interior wildcards
+ *    preceding a trailing catch-all keep incrementing: "/a/<star>/b/<star>"
+ *    maps to "/a/{alb0}/b/{albProxy*}".
+ *  - A path with no wildcard segment is returned unchanged.
+ *
+ * Only a segment that is exactly the wildcard star is treated as a wildcard.
+ * A segment that merely contains a glob (e.g. "proxy<star>") is out of scope
+ * and is left unchanged — no char-level translation is attempted.
+ *
+ * @param {string} path  The declared ALB path (e.g. `/proxy/*`).
+ * @returns {string}  The Hapi route path.
+ */
+function toHapiAlbPath(path) {
+  const segments = path.split('/')
+  const lastIndex = segments.length - 1
+  let interiorCount = 0
+
+  return segments
+    .map((segment, index) => {
+      if (segment !== '*') return segment
+      if (index === lastIndex) return '{albProxy*}'
+      return `{alb${interiorCount++}}`
+    })
+    .join('/')
+}
+
+/**
  * @param {object} args
  * @param {import('@hapi/hapi').Server} args.server
  * @param {object} args.serverless
@@ -82,7 +122,7 @@ export function registerAlbRoutes({ server, serverless, onRequest }) {
 
         server.route({
           method: hapiMethod,
-          path,
+          path: toHapiAlbPath(path),
           options: allowsBody
             ? {
                 payload: {
