@@ -9,13 +9,10 @@ import {
 import { layerSetKey } from '../../../lib/plugins/aws/offline/lib/runners/layers/layer-resolver.js'
 
 // Opt-in integration test: hits real AWS (GetLayerVersionByArn) and downloads a
-// real published layer archive. Skipped unless both env vars are set:
-//   OFFLINE_LAYERS_IT=1
+// real published layer archive. Skipped unless the target layer is provided:
 //   OFFLINE_LAYER_ARN=arn:aws:lambda:<region>:<acct>:layer:<name>:<version>
 // Requires real AWS credentials with lambda:GetLayerVersion on that ARN.
-const enabled =
-  process.env.OFFLINE_LAYERS_IT === '1' && !!process.env.OFFLINE_LAYER_ARN
-const describeMaybe = enabled ? describe : describe.skip
+const describeMaybe = process.env.OFFLINE_LAYER_ARN ? describe : describe.skip
 
 describeMaybe('downloadLayerSet (real AWS)', () => {
   const arn = process.env.OFFLINE_LAYER_ARN
