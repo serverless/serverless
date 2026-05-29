@@ -75,13 +75,15 @@ describe('OfflinePlugin', () => {
 
 describe('resolveOfflineOptions', () => {
   it('resolves option-parity defaults when CLI and YAML omit them', () => {
-    expect(
-      resolveOfflineOptions({ cliOptions: {}, offline: {} }),
-    ).toMatchObject({
-      corsAllowHeaders: 'accept,content-type,x-api-key,authorization',
-      corsAllowOrigin: '*',
-      corsDisallowCredentials: true,
-      corsExposedHeaders: 'WWW-Authenticate,Server-Authorization',
+    const resolved = resolveOfflineOptions({ cliOptions: {}, offline: {} })
+    // The cors* overrides are left undefined by default so each route's own
+    // `cors` config (and its AWS-correct defaults) is used as-is; they only
+    // take effect when the user explicitly sets them.
+    expect(resolved.corsAllowHeaders).toBeUndefined()
+    expect(resolved.corsAllowOrigin).toBeUndefined()
+    expect(resolved.corsDisallowCredentials).toBeUndefined()
+    expect(resolved.corsExposedHeaders).toBeUndefined()
+    expect(resolved).toMatchObject({
       disableCookieValidation: false,
       dockerHost: 'host.docker.internal',
       dockerHostServicePath: null,

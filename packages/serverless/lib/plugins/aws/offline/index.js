@@ -79,20 +79,17 @@ export function resolveOfflineOptions({ cliOptions = {}, offline = {} } = {}) {
       coerceInt(cliOptions.awsApiPort) ??
       offline.awsApiPort ??
       DEFAULT_AWS_API_PORT,
-    corsAllowHeaders:
-      cliOptions.corsAllowHeaders ??
-      offline.corsAllowHeaders ??
-      'accept,content-type,x-api-key,authorization',
-    corsAllowOrigin:
-      cliOptions.corsAllowOrigin ?? offline.corsAllowOrigin ?? '*',
+    // The cors* knobs are global overrides applied only when the user sets
+    // them (CLI or YAML). Left undefined by default so each route's own `cors`
+    // config — and the AWS-correct defaults it expands to — flows through
+    // unchanged, keeping the offline preflight in step with deployed API
+    // Gateway rather than imposing a fixed header set on every route.
+    corsAllowHeaders: cliOptions.corsAllowHeaders ?? offline.corsAllowHeaders,
+    corsAllowOrigin: cliOptions.corsAllowOrigin ?? offline.corsAllowOrigin,
     corsDisallowCredentials:
-      cliOptions.corsDisallowCredentials ??
-      offline.corsDisallowCredentials ??
-      true,
+      cliOptions.corsDisallowCredentials ?? offline.corsDisallowCredentials,
     corsExposedHeaders:
-      cliOptions.corsExposedHeaders ??
-      offline.corsExposedHeaders ??
-      'WWW-Authenticate,Server-Authorization',
+      cliOptions.corsExposedHeaders ?? offline.corsExposedHeaders,
     disableCookieValidation:
       cliOptions.disableCookieValidation ??
       offline.disableCookieValidation ??
