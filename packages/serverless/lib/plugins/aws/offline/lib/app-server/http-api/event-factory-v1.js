@@ -1,15 +1,26 @@
 /**
- * APIGW REST API (v1) Lambda-proxy event factory for the offline REST server.
+ * APIGW HTTP API payload format version 1.0 event factory for the offline
+ * HTTP API server.
  *
- * Transforms an incoming Hapi request into the JSON payload that AWS Lambda
- * receives when a function is invoked via an API Gateway REST API with
- * Lambda-proxy integration. The shape differs in several ways from the HTTP
- * API v2 payload (different field names, multi-value header / query maps as
- * top-level fields, `path` includes the stage prefix, `pathParameters` is
- * `null` rather than absent when empty), so a fresh module mirrors the AWS
- * contract without trying to reuse the v2 sibling.
+ * HTTP APIs can be configured (per function or provider, via `httpApi.payload`)
+ * to invoke their Lambda integration with the 1.0 payload format instead of the
+ * default 2.0. The 1.0 shape mirrors the REST API (v1) Lambda-proxy event —
+ * single- and multi-value header / query maps, `resource` / `httpMethod`, a
+ * `null` (not absent) `pathParameters` when empty, and a REST-style flat
+ * `requestContext` (`httpMethod` / `path` / `protocol` / `identity` /
+ * `requestTime` / …) — plus a top-level `version: '1.0'`, and always deploys to
+ * the auto-created `$default` stage.
  *
- * @see https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
+ * Unlike REST APIs, HTTP APIs (both 1.0 and 2.0 payload formats) lower-case all
+ * request header names, so the `headers` / `multiValueHeaders` maps here are
+ * keyed by the lower-cased name. The `cookie` header stays in those maps (1.0
+ * has no separate `cookies` field), lower-cased like every other name.
+ *
+ * The body and binary-content handling is byte-for-byte identical to the v2
+ * factory so a body delivered to a 1.0 function matches what a 2.0 function
+ * would have received.
+ *
+ * @see https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-lambda.html
  */
 
 import crypto from 'node:crypto'
@@ -24,24 +35,17 @@ import { buildRestIdentity } from '../shared/rest-identity.js'
 // ---------------------------------------------------------------------------
 
 /**
- * Content-type prefixes / exact values treated as binary. A request carrying
- * one of these has its body base64-encoded with `isBase64Encoded: true`.
+ * Content-type prefixes / exact values that are treated as binary. When a
+ * request carries one of these types the body is base64-encoded and
+ * `isBase64Encoded` is set to `true`. Mirrors the v2 factory.
  *
  * @type {string[]}
  */
 const BINARY_CONTENT_TYPES = ['application/octet-stream', 'multipart/form-data']
 
-// Placeholder values that fill APIGW REST-API `requestContext` fields whose
-// real values would come from the deployed API (apiId / domainPrefix /
-// resourceId) or the gateway's HTTP protocol negotiation (protocol). Lifted
-// to named constants so the requestContext block at the bottom of the
-// factory reads as data, not as magic strings.
-const PLACEHOLDER_API_ID = 'offline'
-const PLACEHOLDER_DOMAIN_PREFIX = 'offline'
-const PLACEHOLDER_RESOURCE_ID = 'offline'
-const PLACEHOLDER_PROTOCOL = 'HTTP/1.1'
-
 /**
+ * Return `true` when the given content-type string is considered binary.
+ *
  * @param {string} contentType
  * @returns {boolean}
  */
@@ -49,30 +53,6 @@ function isBinaryContentType(contentType) {
   if (!contentType) return false
   const ct = contentType.toLowerCase()
   return BINARY_CONTENT_TYPES.some((prefix) => ct.startsWith(prefix))
-}
-
-/**
- * Strip the mount decoration the local server prepends (an optional prefix,
- * then the stage) from the wire path, recovering the API-relative path AWS
- * exposes as `event.path`. The route is mounted `/<stage>/<prefix>/...` (stage
- * outermost), so the decoration is stripped in that same outer-to-inner order:
- * the stage first (unless `--noPrependStageInUrl`), then the prefix.
- *
- * @param {string} rawPath
- * @param {{ stage: string, prefix?: string, noPrependStageInUrl?: boolean }} opts
- * @returns {string}
- */
-function stripMountDecoration(rawPath, { stage, prefix, noPrependStageInUrl }) {
-  let p = rawPath
-  const strip = (segment) => {
-    if (!segment) return
-    const lead = `/${segment}`
-    if (p === lead) p = '/'
-    else if (p.startsWith(`${lead}/`)) p = p.slice(lead.length)
-  }
-  if (!noPrependStageInUrl) strip(stage)
-  strip(prefix)
-  return p
 }
 
 /**
@@ -108,17 +88,15 @@ function resolveAuthorizer(request) {
 }
 
 /**
- * Bucket request headers into a `Map<string, string[]>` keyed by the header
- * name as it arrived on the wire. AWS API Gateway REST APIs surface request
- * header names with their original casing preserved (e.g. `Content-Type`,
- * `User-Agent`), so the map key is the verbatim received name rather than a
- * lower-cased form. Prefers Node's flat `rawHeaders` array (preserves both the
- * casing and duplicates pre-fold); falls back to Hapi's collapsed
- * `request.headers` map for in-process callers that don't carry the raw socket
- * data (that map is already lower-cased and is used as-is).
+ * Bucket request headers into a `Map<string, string[]>` keyed by the
+ * lower-cased header name. HTTP APIs (unlike REST APIs) report all request
+ * header names lower-cased, regardless of how the client sent them. Prefers
+ * Node's flat `rawHeaders` array (preserves duplicate header lines pre-fold);
+ * falls back to Hapi's collapsed `request.headers` map for in-process callers
+ * that don't carry the raw socket data (that map is already lower-cased).
  *
- * The cookie header is included in REST v1 (unlike v2, where it's surfaced
- * separately on event.cookies).
+ * The `cookie` header is included — 1.0 has no separate `cookies` field, so
+ * cookies flow through the header maps like any other (lower-cased) name.
  *
  * @param {object} request
  * @returns {Map<string, string[]>}
@@ -128,7 +106,7 @@ function bucketHeaders(request) {
   const acc = new Map()
   if (Array.isArray(rawHeaders) && rawHeaders.length > 0) {
     for (let i = 0; i + 1 < rawHeaders.length; i += 2) {
-      const name = rawHeaders[i]
+      const name = rawHeaders[i].toLowerCase()
       const list = acc.get(name)
       if (list) list.push(rawHeaders[i + 1])
       else acc.set(name, [rawHeaders[i + 1]])
@@ -136,16 +114,14 @@ function bucketHeaders(request) {
     return acc
   }
   for (const [k, v] of Object.entries(request.headers ?? {})) {
-    acc.set(k, Array.isArray(v) ? [...v] : [v])
+    acc.set(k.toLowerCase(), Array.isArray(v) ? [...v] : [v])
   }
   return acc
 }
 
 /**
- * Build the event `headers` map. Names keep their original wire casing;
- * multiple values for the same name are joined with `,`. Unlike the HTTP API
- * v2 factory, `cookie` is included — REST v1 carries cookies via headers, not
- * a separate field.
+ * Build the event `headers` map. Names are lower-cased; multiple values for the
+ * same name are joined with `,`.
  *
  * @param {object} request
  * @returns {Record<string, string>}
@@ -158,8 +134,8 @@ function buildHeaders(request) {
 }
 
 /**
- * Multi-value variant — one array per header name, keyed by the original wire
- * casing. Cookies are preserved (no special-casing).
+ * Multi-value variant — one array per header name, keyed by the lower-cased
+ * name.
  *
  * @param {object} request
  * @returns {Record<string, string[]>}
@@ -173,8 +149,8 @@ function buildMultiValueHeaders(request) {
 
 /**
  * Single-value query map. When a key appears more than once APIGW v1 keeps
- * the LAST occurrence (the multi-value field captures all of them).
- * Returns `null` when the request had no query string at all.
+ * the LAST occurrence (the multi-value field captures all of them). Returns
+ * `null` when the request had no query string at all.
  *
  * @param {URLSearchParams} searchParams
  * @returns {Record<string, string> | null}
@@ -216,16 +192,12 @@ function buildMultiValueQueryStringParameters(searchParams) {
 /**
  * Compute `{ body, isBase64Encoded }`. APIGW emits `null` for both
  * "no body sent" and "empty-string body" cases, and base64-encodes binary
- * content types.
+ * content types. Byte-for-byte identical to the v2 factory.
  *
  * @param {object} request  Hapi request.
  * @returns {{ body: string | null, isBase64Encoded: boolean }}
  */
 function buildBody(request) {
-  // "No body" covers an absent payload, an empty string, and the zero-length
-  // Buffer Hapi hands us for a body-allowed method (POST/PUT/PATCH) sent with
-  // no body (payload parsing disabled for proxy routes). APIGW emits `null` for
-  // all of these and injects no Content-Length/Content-Type.
   const noBody =
     request.payload === undefined ||
     request.payload === '' ||
@@ -241,12 +213,9 @@ function buildBody(request) {
     return { body: buf.toString('base64'), isBase64Encoded: true }
   }
   // A non-binary body is delivered byte-for-byte. The raw Buffer Hapi hands us
-  // (payload parsing disabled for proxy routes) is decoded as UTF-8 so
-  // insignificant JSON whitespace survives; a string passes through unchanged;
-  // an object (from direct callers) is JSON-stringified. A body whose
-  // Content-Encoding is gzip but whose content-type is non-binary is passed
-  // through as UTF-8, matching real API Gateway, which only base64-encodes
-  // configured binary media types.
+  // (payload parsing disabled) is decoded as UTF-8 so insignificant JSON
+  // whitespace survives; a string passes through unchanged; an object (from
+  // direct callers) is JSON-stringified.
   let body
   if (Buffer.isBuffer(request.payload)) {
     body = request.payload.toString('utf8')
@@ -259,18 +228,11 @@ function buildBody(request) {
 }
 
 /**
- * Compute the `Content-Length` / default `Content-Type` entries AWS API
+ * Compute the `content-length` / default `content-type` entries AWS API
  * Gateway injects into the event header maps when the client did not supply
- * them. Injected keys use the canonical capitalized form; an entry is only
- * produced when the header is absent (case-insensitive) from the names the
- * client already sent, so a client-supplied header in any casing suppresses
- * the default.
- *
- * - `Content-Length` is the request body's byte length, produced only when a
- *   body is present. Base64-encoded bodies are measured in decoded form.
- * - `Content-Type` defaults to `application/json`, produced only when a body is
- *   present. A bodyless request (e.g. a plain GET) carries no content-type in
- *   the event headers, matching real API Gateway.
+ * them. HTTP APIs report header names lower-cased, so the injected keys are
+ * lower-cased too; an entry is only produced when the header is absent
+ * (case-insensitive) from the names the client already sent.
  *
  * @param {string[]} existingNames  Header names the client already sent (any casing).
  * @param {string | null} body
@@ -285,14 +247,14 @@ function headerDefaults(existingNames, body, isBase64Encoded) {
     return defaults
   }
   if (!has('content-length')) {
-    defaults['Content-Length'] = String(
+    defaults['content-length'] = String(
       isBase64Encoded
         ? Buffer.byteLength(body, 'base64')
         : Buffer.byteLength(body),
     )
   }
   if (!has('content-type')) {
-    defaults['Content-Type'] = 'application/json'
+    defaults['content-type'] = 'application/json'
   }
   return defaults
 }
@@ -302,13 +264,13 @@ function headerDefaults(existingNames, body, isBase64Encoded) {
 // ---------------------------------------------------------------------------
 
 /**
- * Build an APIGW REST API (v1) Lambda-proxy event from a Hapi request.
+ * Build an APIGW HTTP API payload format version 1.0 event from a Hapi request.
  *
  * @param {object} opts
  * @param {object} opts.request
  *   The Hapi request object. The following fields are used:
  *   - `request.method` {string} — HTTP method (any case; uppercased internally).
- *   - `request.path` {string} — Full wire path including any stage prefix.
+ *   - `request.path` {string} — Decoded request path, query string stripped.
  *   - `request.url` {URL} — Full request URL (used for `searchParams`).
  *   - `request.headers` {Record<string, string | string[]>} — Hapi-collapsed
  *     headers; used as fallback when Node's flat `rawHeaders` is unavailable.
@@ -322,42 +284,38 @@ function headerDefaults(existingNames, body, isBase64Encoded) {
  * @param {object} opts.route
  * @param {string} opts.route.method
  *   HTTP method in uppercase (e.g. `'GET'`).
- * @param {string} opts.route.apigwPath
- *   The APIGW route template with placeholders intact (e.g. `'/users/{id}'`).
+ * @param {string} opts.route.path
+ *   The original APIGW-shaped path template (e.g. `'/users/{id}'`). Surfaced as
+ *   `resource` and used to build `requestContext.routeKey`.
  * @param {string} opts.route.functionName
  *   Lambda function name backing the route.
- *
- * @param {string} opts.stage
- *   API Gateway stage name (e.g. `'dev'`).
+ * @param {boolean} [opts.route.isDefault]
+ *   `true` for the catch-all route. Reports `routeKey: '$default'` and
+ *   `pathParameters: null`, mirroring the v2 factory.
  *
  * @param {string} [opts.accountId]
- *   12-digit AWS account ID. Defaults to `FAKE_ACCOUNT_ID`.
+ *   12-digit AWS account ID. Defaults to `FAKE_ACCOUNT_ID` (`'000000000000'`).
  *
- * @returns {object} APIGW REST API v1 Lambda-proxy event.
+ * @param {string} opts.domainName
+ *   The host and port string to populate `requestContext.domainName` and
+ *   `requestContext.domainPrefix` (e.g. `'localhost:3000'`).
+ *
+ * @returns {object} APIGW HTTP API payload format 1.0 event object.
  */
-export function buildRestApiEvent({
+export function buildHttpApiV1Event({
   request,
   route,
-  stage,
-  prefix,
-  noPrependStageInUrl = false,
   accountId = FAKE_ACCOUNT_ID,
+  domainName,
 }) {
   const httpMethod = request.method.toUpperCase()
-  // `requestContext.path` carries the full wire path (stage + optional
-  // prefix); `event.path` is the API-relative path with that mount decoration
-  // stripped, matching real API Gateway.
   const path = request.path
-  const eventPath = stripMountDecoration(request.path, {
-    stage,
-    prefix,
-    noPrependStageInUrl,
-  })
+  // The catch-all route reports the `$default` route key; every other route
+  // reports `METHOD /original/apigw/path`.
+  const routeKey = route.isDefault
+    ? '$default'
+    : `${route.method.toUpperCase()} ${route.path}`
 
-  // Headers — read from Node's flat `rawHeaders` array when available so that
-  // duplicate header lines are preserved verbatim. Fall back to Hapi's
-  // pre-collapsed map for in-process callers (unit tests, simulated
-  // requests) that don't carry the raw socket data.
   const headers = buildHeaders(request)
   const multiValueHeaders = buildMultiValueHeaders(request)
 
@@ -367,13 +325,16 @@ export function buildRestApiEvent({
     buildMultiValueQueryStringParameters(searchParams)
 
   // Path parameters — APIGW emits `null` when the route has no placeholders.
+  // The catch-all route reports no path parameters even though Hapi captures
+  // the matched remainder.
   const pathParameters =
-    request.params && Object.keys(request.params).length > 0
+    !route.isDefault && request.params && Object.keys(request.params).length > 0
       ? { ...request.params }
       : null
 
   // Timestamps. Prefer Hapi's `request.info.received` (ms epoch the socket
-  // received the first byte); fall back to "now" if absent.
+  // received the first byte); fall back to "now" if absent. REST-style 1.0
+  // reports these as `requestTime` (CLF string) / `requestTimeEpoch` (ms).
   const receivedMs = request.info?.received ?? Date.now()
   const requestTime = formatClfTime(new Date(receivedMs))
   const requestTimeEpoch = receivedMs
@@ -381,10 +342,9 @@ export function buildRestApiEvent({
   const { body, isBase64Encoded } = buildBody(request)
 
   // AWS API Gateway injects a Content-Length (when a body is present) and a
-  // default Content-Type when the client sent none. The injected keys use the
-  // canonical capitalized form and are written to both the single-value and
-  // multi-value header maps so they stay mirrored; a header the client already
-  // supplied (in any casing) suppresses the corresponding default.
+  // default Content-Type when the client sent none. Written to both the
+  // single-value and multi-value header maps so they stay mirrored; a header
+  // the client already supplied (in any casing) suppresses the default.
   const defaults = headerDefaults(Object.keys(headers), body, isBase64Encoded)
   for (const [name, value] of Object.entries(defaults)) {
     headers[name] = value
@@ -393,39 +353,48 @@ export function buildRestApiEvent({
 
   const userAgent = request.headers?.['user-agent'] ?? ''
   const sourceIp = request.info?.remoteAddress ?? '127.0.0.1'
-  const domainName = request.headers?.host ?? 'localhost'
 
   const authorizer = resolveAuthorizer(request)
 
   return {
-    body,
-    headers,
+    version: '1.0',
+    resource: route.path,
+    path,
     httpMethod,
-    isBase64Encoded,
+    headers,
     multiValueHeaders,
-    multiValueQueryStringParameters,
-    path: eventPath,
-    pathParameters,
     queryStringParameters,
+    multiValueQueryStringParameters,
+    pathParameters,
+    stageVariables: null,
     requestContext: {
       accountId,
-      apiId: PLACEHOLDER_API_ID,
+      apiId: 'offline',
       ...(authorizer ? { authorizer } : {}),
       domainName,
-      domainPrefix: PLACEHOLDER_DOMAIN_PREFIX,
+      domainPrefix: 'offline',
       extendedRequestId: crypto.randomUUID(),
       httpMethod,
       identity: buildRestIdentity({ sourceIp, userAgent }),
+      ...(route.operationName !== undefined
+        ? { operationName: route.operationName }
+        : {}),
+      // HTTP APIs have no stage prefix in the path, so `path` equals the request
+      // path (`request.path`).
       path,
-      protocol: PLACEHOLDER_PROTOCOL,
+      protocol: 'HTTP/1.1',
       requestId: crypto.randomUUID(),
       requestTime,
       requestTimeEpoch,
-      resourceId: PLACEHOLDER_RESOURCE_ID,
-      resourcePath: route.apigwPath,
-      stage,
+      resourceId: 'offline',
+      // The original APIGW path template (e.g. `/users/{id}`).
+      resourcePath: route.path,
+      routeKey,
+      // HTTP APIs deploy to the auto-created `$default` stage; the event always
+      // reports that, independent of the local `--stage`.
+      stage: '$default',
     },
-    resource: route.apigwPath,
-    stageVariables: null,
+    body,
+    isBase64Encoded,
   }
 }

@@ -34,7 +34,7 @@ afterEach(async () => {
  * @param {Record<string, object>} functions  Stub `service.functions` map.
  * @returns {Promise<{ server: import('@hapi/hapi').Server, lastEvent: () => object | null, onRequest: jest.Mock }>}
  */
-async function bootWithFunctions(functions) {
+async function bootWithFunctions(functions, { provider } = {}) {
   const server = Hapi.server({ host: 'localhost', port: 0 })
   activeServer = server
 
@@ -46,7 +46,9 @@ async function bootWithFunctions(functions) {
 
   registerHttpApiRoutes({
     server,
-    serverless: { service: { functions } },
+    serverless: {
+      service: { functions, ...(provider ? { provider } : {}) },
+    },
     stage: 'dev',
     domainName: 'localhost:3000',
     onRequest,
@@ -290,6 +292,76 @@ describe('request → event delivered to the Lambda handler', () => {
     await server.inject({ method: 'GET', url: '/items' })
 
     expect(lastEvent().requestContext.operationName).toBe('ListItems')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Payload format version selection
+// ---------------------------------------------------------------------------
+
+describe('payload format version selection', () => {
+  it('delivers a 1.0 event when the function declares payload: "1.0"', async () => {
+    const { server, lastEvent } = await bootWithFunctions({
+      create: {
+        events: [{ httpApi: { method: 'POST', path: '/v1', payload: '1.0' } }],
+      },
+    })
+
+    await server.inject({ method: 'POST', url: '/v1', payload: '{}' })
+
+    expect(lastEvent().version).toBe('1.0')
+    expect(lastEvent().httpMethod).toBe('POST')
+    expect(lastEvent().requestContext.stage).toBe('$default')
+  })
+
+  it('defaults to a 2.0 event when the function omits payload', async () => {
+    const { server, lastEvent } = await bootWithFunctions({
+      create: {
+        events: [{ httpApi: { method: 'POST', path: '/v2', payload: '2.0' } }],
+      },
+    })
+
+    await server.inject({ method: 'POST', url: '/v2', payload: '{}' })
+
+    expect(lastEvent().version).toBe('2.0')
+  })
+
+  it('uses 2.0 when neither function nor provider declares payload', async () => {
+    const { server, lastEvent } = await bootWithFunctions({
+      list: { events: [{ httpApi: 'GET /items' }] },
+    })
+
+    await server.inject({ method: 'GET', url: '/items' })
+
+    expect(lastEvent().version).toBe('2.0')
+  })
+
+  it('applies provider.httpApi.payload "1.0" when the function omits payload', async () => {
+    const { server, lastEvent } = await bootWithFunctions(
+      {
+        create: { events: [{ httpApi: { method: 'POST', path: '/p' } }] },
+      },
+      { provider: { httpApi: { payload: '1.0' } } },
+    )
+
+    await server.inject({ method: 'POST', url: '/p', payload: '{}' })
+
+    expect(lastEvent().version).toBe('1.0')
+  })
+
+  it('lets the function payload override the provider default', async () => {
+    const { server, lastEvent } = await bootWithFunctions(
+      {
+        create: {
+          events: [{ httpApi: { method: 'POST', path: '/o', payload: '2.0' } }],
+        },
+      },
+      { provider: { httpApi: { payload: '1.0' } } },
+    )
+
+    await server.inject({ method: 'POST', url: '/o', payload: '{}' })
+
+    expect(lastEvent().version).toBe('2.0')
   })
 })
 

@@ -7,6 +7,7 @@
  */
 
 import { buildHttpApiV2Event } from './event-factory.js'
+import { buildHttpApiV1Event } from './event-factory-v1.js'
 import {
   normalizeCorsConfig,
   buildCorsOptionsRoute,
@@ -109,6 +110,17 @@ export function registerHttpApiRoutes({
           ? eventEntry.httpApi.operationName
           : undefined
 
+      // Lambda payload format version honors the same precedence AWS and the
+      // Framework compiler use: function `httpApi.payload`, then
+      // `provider.httpApi.payload`, defaulting to '2.0'. A '1.0' route is
+      // delivered the v1 (REST-style) proxy event and its response is
+      // interpreted with v1 semantics.
+      const payloadVersion =
+        (typeof eventEntry.httpApi === 'object' &&
+          eventEntry.httpApi.payload) ||
+        serverless.service.provider?.httpApi?.payload ||
+        '2.0'
+
       const hapiMethod = toHapiMethod(rawMethod)
       const hapiPath = toHapiPath(apigwPath)
 
@@ -172,15 +184,26 @@ export function registerHttpApiRoutes({
         },
         async handler(request, h) {
           try {
-            const event = buildHttpApiV2Event({
-              request,
-              route: routeMeta,
-              domainName,
-            })
+            // A 1.0 route is delivered the v1 (REST-style) proxy event and its
+            // response is interpreted with v1 semantics: no top-level `cookies`
+            // channel and no `payloadV2` string/content-type handling. Every
+            // other route uses the default 2.0 path.
+            const isV1 = payloadVersion === '1.0'
+            const event = isV1
+              ? buildHttpApiV1Event({
+                  request,
+                  route: routeMeta,
+                  domainName,
+                })
+              : buildHttpApiV2Event({
+                  request,
+                  route: routeMeta,
+                  domainName,
+                })
             const result = await onRequest(functionKey, event)
             const response = formatLambdaProxyResponse(result, h, {
-              cookies: true,
-              payloadV2: true,
+              cookies: !isV1,
+              payloadV2: !isV1,
               defaultContentType: 'application/json',
             })
             applyRequestIdHeaders(response, 'http', {
