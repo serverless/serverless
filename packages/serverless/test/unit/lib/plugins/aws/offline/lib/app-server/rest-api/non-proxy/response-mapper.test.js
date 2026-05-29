@@ -371,7 +371,35 @@ describe('mapNonProxyResponse — response Content-Type', () => {
     expect(h.calls.contentType).toBe('application/json')
   })
 
-  it('reflects the request Content-Type when responseTemplates targets that type', () => {
+  it('uses the response record responseContentType to select the template and pin the reply type', () => {
+    const h = makeH()
+    mapNonProxyResponse({
+      result: { hello: 'world' },
+      err: null,
+      responses: {
+        default: {
+          statusCode: 200,
+          responseContentType: 'text/xml',
+          responseTemplates: {
+            'text/xml': "<msg>$input.path('$.hello')</msg>",
+          },
+        },
+      },
+      // The request is JSON, but the integration response's configured content
+      // type (text/xml) is what selects the template and the reply Content-Type.
+      request: makeRequest({
+        mime: 'application/json',
+        headers: { 'content-type': 'application/json' },
+      }),
+      stage: 'dev',
+      resourcePath: '/x',
+      h,
+    })
+    expect(h.calls.contentType).toBe('text/xml')
+    expect(h.calls.payload).toBe('<msg>world</msg>')
+  })
+
+  it('ignores the request mime — a JSON request does not select an XML template absent a configured content type', () => {
     const h = makeH()
     mapNonProxyResponse({
       result: { hello: 'world' },
@@ -384,7 +412,8 @@ describe('mapNonProxyResponse — response Content-Type', () => {
           },
         },
       },
-      // Simulate an XML-typed request so the mapper looks up the XML template.
+      // An XML-typed request must NOT cause the mapper to pick the XML
+      // template; with no configured response content type it defaults to JSON.
       request: makeRequest({
         mime: 'application/xml',
         headers: { 'content-type': 'application/xml' },
@@ -393,8 +422,9 @@ describe('mapNonProxyResponse — response Content-Type', () => {
       resourcePath: '/x',
       h,
     })
-    expect(h.calls.contentType).toBe('application/xml')
-    expect(h.calls.payload).toBe('<msg>world</msg>')
+    expect(h.calls.contentType).toBe('application/json')
+    // The XML template was never rendered: the body is the JSON-serialized result.
+    expect(h.calls.payload).toBe('{"hello":"world"}')
   })
 })
 

@@ -99,8 +99,10 @@ export function mapNonProxyResponse({
 
   const chosen = responseMap[chosenKey] ?? {}
 
-  // 3. Render responseTemplates[contentType] if defined.
-  const responseContentType = request?.mime ?? 'application/json'
+  // 3. Render responseTemplates[contentType] if defined. The content type
+  //    comes from the chosen integration response's configured Content-Type
+  //    (the normalizer resolved it onto the record), NOT the request mime.
+  const responseContentType = chosen.responseContentType ?? 'application/json'
   const responseTemplate = chosen.responseTemplates?.[responseContentType]
   let body = ''
 

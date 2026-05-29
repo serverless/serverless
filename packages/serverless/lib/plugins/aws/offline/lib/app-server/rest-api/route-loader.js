@@ -83,6 +83,28 @@ function normalizeResponses(responseConfig) {
       ]),
     )
 
+  // An integration response's content type comes from its configured
+  // `headers['Content-Type']` value — a velocity literal usually authored
+  // quoted in YAML (e.g. `"'text/xml'"`). Strip a single layer of wrapping
+  // single quotes and surrounding whitespace; default to application/json
+  // when absent or blank. This content type selects `responseTemplates[type]`
+  // and becomes the reply's Content-Type.
+  const resolveResponseContentType = (headers) => {
+    if (headers && typeof headers === 'object') {
+      for (const [name, value] of Object.entries(headers)) {
+        if (name.toLowerCase() !== 'content-type') continue
+        if (typeof value !== 'string') break
+        const trimmed = value.trim()
+        const unquoted = /^'.*'$/.test(trimmed)
+          ? trimmed.slice(1, -1).trim()
+          : trimmed
+        if (unquoted !== '') return unquoted
+        break
+      }
+    }
+    return 'application/json'
+  }
+
   // Framework's schema accepts two shapes for `template`:
   //   - string                                → default content-type template
   //   - { 'application/json': '...', ... }    → content-type-keyed map
@@ -95,6 +117,7 @@ function normalizeResponses(responseConfig) {
   const out = {
     default: {
       statusCode: 200,
+      responseContentType: resolveResponseContentType(responseConfig.headers),
       ...(responseConfig.template
         ? { responseTemplates: coerceTemplate(responseConfig.template) }
         : {}),
@@ -110,6 +133,7 @@ function normalizeResponses(responseConfig) {
     const numericCode = Number.parseInt(code, 10)
     out[code] = {
       statusCode: numericCode,
+      responseContentType: resolveResponseContentType(entry.headers),
       ...(entry.pattern ? { selectionPattern: entry.pattern } : {}),
       ...(entry.template
         ? { responseTemplates: coerceTemplate(entry.template) }

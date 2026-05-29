@@ -807,6 +807,48 @@ describe('registerRestApiRoutes — AWS (non-proxy) integration dispatch', () =>
     expect(JSON.parse(res.payload)).toEqual({ defaulted: 'world' })
   })
 
+  it('AWS integration: response.headers Content-Type selects the response template and reply Content-Type', async () => {
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    const onRequest = jest.fn(async () => ({ hello: 'world' }))
+    registerRestApiRoutes({
+      server,
+      serverless: makeServerless({
+        xml: {
+          events: [
+            {
+              http: {
+                method: 'GET',
+                path: '/xml',
+                integration: 'AWS',
+                response: {
+                  // The configured Content-Type (a velocity literal authored
+                  // with wrapping single quotes) drives both template
+                  // selection and the reply Content-Type — not the request.
+                  headers: { 'Content-Type': "'text/xml'" },
+                  template: {
+                    'text/xml': "<msg>$input.path('$.hello')</msg>",
+                  },
+                },
+              },
+            },
+          ],
+        },
+      }),
+      stage: 'dev',
+      onRequest,
+    })
+    await server.start()
+
+    const res = await server.inject({
+      method: 'GET',
+      url: '/dev/xml',
+      headers: { 'content-type': 'application/json' },
+    })
+    expect(res.statusCode).toBe(200)
+    expect(res.headers['content-type']).toContain('text/xml')
+    expect(res.payload).toBe('<msg>world</msg>')
+  })
+
   it('AWS integration: response.headers literal maps to a response header', async () => {
     server = Hapi.server({ host: 'localhost', port: 0 })
     const onRequest = jest.fn(async () => ({ ok: true }))
