@@ -5,6 +5,7 @@ import path from 'node:path'
 import { log } from '@serverless/util'
 
 import { buildLambdaRuntimeEnv } from './lambda-env.js'
+import { createUtf8Decoder } from './utf8-decoder.js'
 import ServerlessError from '../../../../../serverless-error.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -209,11 +210,13 @@ export function createRubyRunner({
       if (line.length > 0) logger.notice(line)
     })
 
+    const decodeStderr = createUtf8Decoder()
     child.stderr.on('data', (d) => {
-      const chunk = d.toString()
       entry.stderrChunks.push(d)
-      // Forward each line; trim the final newline so logger output
-      // doesn't double-space.
+      // Decode through a persistent decoder so a multi-byte character split
+      // across two `data` events is reassembled rather than corrupted. Forward
+      // each line; trim the final newline so logger output doesn't double-space.
+      const chunk = decodeStderr(d)
       for (const line of chunk.split('\n')) {
         if (line.length > 0) logger.error(line)
       }

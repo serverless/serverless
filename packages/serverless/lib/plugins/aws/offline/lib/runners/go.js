@@ -3,6 +3,7 @@ import path from 'node:path'
 
 import { buildLambdaRuntimeEnv } from './lambda-env.js'
 import { ensureBuilt as defaultEnsureBuilt } from './go-builder.js'
+import { createUtf8Decoder } from './utf8-decoder.js'
 import ServerlessError from '../../../../../serverless-error.js'
 
 // A year — used as a sentinel "effectively unlimited" deadline when the caller
@@ -146,8 +147,11 @@ export function createGoRunner({
    */
   function _forward(stream, functionKey, level) {
     if (!stream) return
+    // Persistent decoder so a multi-byte character split across two `data`
+    // events is reassembled rather than corrupted.
+    const decode = createUtf8Decoder()
     stream.on('data', (chunk) => {
-      const text = chunk.toString().trimEnd()
+      const text = decode(chunk).trimEnd()
       if (!text) return
       // Call as a method on `log` so the logger's `this.prefix` /
       // `this.prefixColor` are intact — destructuring would drop the
