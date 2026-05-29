@@ -21,6 +21,8 @@
 // Any failure rendering a template falls through to plain JSON serialization
 // of the payload, so a bad template never crashes the request.
 
+import { Buffer } from 'node:buffer'
+
 import { buildVelocityContext } from '../velocity/context.js'
 import { renderVelocityTemplateObject } from '../velocity/render.js'
 import { jsonPath } from '../velocity/json-path.js'
@@ -37,6 +39,10 @@ import { jsonPath } from '../velocity/json-path.js'
  * @param {object} args.request        Hapi-shaped request.
  * @param {string} args.stage          Deployment stage (e.g. `"dev"`).
  * @param {string} args.resourcePath   API Gateway resource path.
+ * @param {string} [args.contentHandling]  Integration response content
+ *                                         handling. When `"CONVERT_TO_BINARY"`,
+ *                                         the rendered body string is treated as
+ *                                         base64 and decoded to a binary buffer.
  * @param {import('@hapi/hapi').ResponseToolkit} args.h  Hapi response toolkit.
  * @returns {import('@hapi/hapi').ResponseObject}
  */
@@ -47,6 +53,7 @@ export function mapNonProxyResponse({
   request,
   stage,
   resourcePath,
+  contentHandling,
   h,
 }) {
   const responseMap = responses ?? {}
@@ -117,6 +124,19 @@ export function mapNonProxyResponse({
     }
   } else {
     body = serializePayload(payload)
+  }
+
+  // 4. Honor CONVERT_TO_BINARY content handling. API Gateway treats the
+  //    rendered text body as base64 and decodes it into the raw binary the
+  //    client receives, so decode the string into a Buffer before it reaches
+  //    Hapi. Content handling applies only to 2xx integration responses, so
+  //    error envelopes (4xx/5xx) pass through as text untouched.
+  if (
+    contentHandling === 'CONVERT_TO_BINARY' &&
+    typeof body === 'string' &&
+    String(statusCode).startsWith('2')
+  ) {
+    body = Buffer.from(body, 'base64')
   }
 
   // 5. Build Hapi response. Pin the response Content-Type to the same

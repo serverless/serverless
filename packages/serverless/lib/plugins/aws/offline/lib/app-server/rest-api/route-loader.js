@@ -267,9 +267,14 @@ export function registerRestApiRoutes({
       // the default response template is left unset (identity, no change).
       let requestTemplates = null
       let responses = null
+      // Integration response content handling. When set to
+      // `CONVERT_TO_BINARY`, the response mapper base64-decodes the rendered
+      // body into raw binary, matching API Gateway.
+      let contentHandling
       if (integration === 'AWS' && typeof httpEvent === 'object') {
         requestTemplates = httpEvent.request?.template ?? null
         responses = normalizeResponses(httpEvent.response)
+        contentHandling = httpEvent.response?.contentHandling
 
         const handlerStem = resolveHandlerStem(
           fn.handler,
@@ -417,6 +422,7 @@ export function registerRestApiRoutes({
               request,
               stage,
               resourcePath: apigwPath,
+              contentHandling,
               h,
             })
             if (enforceSecureCookies) {

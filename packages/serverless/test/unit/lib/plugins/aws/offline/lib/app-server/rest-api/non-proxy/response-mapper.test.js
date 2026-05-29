@@ -397,3 +397,58 @@ describe('mapNonProxyResponse — response Content-Type', () => {
     expect(h.calls.payload).toBe('<msg>world</msg>')
   })
 })
+
+describe('mapNonProxyResponse — contentHandling CONVERT_TO_BINARY', () => {
+  it('base64-decodes the body into a binary Buffer when contentHandling is CONVERT_TO_BINARY', () => {
+    const h = makeH()
+    const original = Buffer.from([1, 2, 3, 4])
+    mapNonProxyResponse({
+      result: original.toString('base64'),
+      err: null,
+      responses: { default: { statusCode: 200 } },
+      contentHandling: 'CONVERT_TO_BINARY',
+      request: makeRequest(),
+      stage: 'dev',
+      resourcePath: '/things',
+      h,
+    })
+    expect(Buffer.isBuffer(h.calls.payload)).toBe(true)
+    expect(h.calls.payload.equals(original)).toBe(true)
+  })
+
+  it('leaves the body as the original string when contentHandling is absent', () => {
+    const h = makeH()
+    const original = Buffer.from([1, 2, 3, 4])
+    const base64 = original.toString('base64')
+    mapNonProxyResponse({
+      result: base64,
+      err: null,
+      responses: { default: { statusCode: 200 } },
+      request: makeRequest(),
+      stage: 'dev',
+      resourcePath: '/things',
+      h,
+    })
+    expect(typeof h.calls.payload).toBe('string')
+    expect(h.calls.payload).toBe(base64)
+  })
+
+  it('does not decode an error (non-2xx) response body even when CONVERT_TO_BINARY is set', () => {
+    const h = makeH()
+    mapNonProxyResponse({
+      result: undefined,
+      err: new Error('[500] boom'),
+      responses: { default: { statusCode: 200 } },
+      contentHandling: 'CONVERT_TO_BINARY',
+      request: makeRequest(),
+      stage: 'dev',
+      resourcePath: '/things',
+      h,
+    })
+    // Content handling applies only to 2xx integration responses; the error
+    // envelope must pass through as a text body, not be base64-decoded.
+    expect(h.calls.statusCode).toBe(500)
+    expect(typeof h.calls.payload).toBe('string')
+    expect(JSON.parse(h.calls.payload).errorMessage).toBe('[500] boom')
+  })
+})
