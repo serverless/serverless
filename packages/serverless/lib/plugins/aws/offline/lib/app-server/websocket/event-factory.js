@@ -9,7 +9,10 @@
  *
  * The shared `requestContext` carries `apiId='private'` (parity literal),
  * `connectionId`, `connectedAt`, `domainName`, `stage`, an identity object
- * with placeholder null-fields, and UUID requestIds.
+ * with placeholder null-fields, and UUID requestIds. When the $connect
+ * authorizer validated a context, the $connect / message / $disconnect
+ * builders also receive it via the optional `authorizer` param and expose
+ * it on `requestContext.authorizer`; it is omitted when absent.
  *
  * Query / multi-value-query fields are OMITTED entirely when no query is
  * present on the upgrade URL (spread-when-truthy). Headers and
@@ -55,6 +58,7 @@ function buildRequestContext({
   request,
   stage,
   apiId,
+  authorizer,
 }) {
   const now = Date.now()
   // Compose `domainName` from the Host header but fall back to the
@@ -79,6 +83,7 @@ function buildRequestContext({
   const sourceIp = request?.socket?.remoteAddress ?? '127.0.0.1'
   return {
     apiId,
+    ...(authorizer ? { authorizer } : {}),
     connectedAt: now,
     connectionId,
     domainName: host,
@@ -115,6 +120,7 @@ export function buildConnectEvent({
   accountId,
   region,
   apiId,
+  authorizer,
 }) {
   const { single: headers, multi: multiValueHeaders } = parseHeaders(
     request.rawHeaders,
@@ -137,6 +143,7 @@ export function buildConnectEvent({
       request,
       stage,
       apiId,
+      authorizer,
     }),
   }
 }
@@ -148,6 +155,7 @@ export function buildDisconnectEvent({
   accountId,
   region,
   apiId,
+  authorizer,
 }) {
   const { single: headers, multi: multiValueHeaders } = parseHeaders(
     request.rawHeaders,
@@ -163,6 +171,7 @@ export function buildDisconnectEvent({
       request,
       stage,
       apiId,
+      authorizer,
     }),
   }
 }
@@ -176,6 +185,7 @@ export function buildMessageEvent({
   accountId,
   region,
   apiId,
+  authorizer,
 }) {
   return {
     body: payload,
@@ -187,6 +197,7 @@ export function buildMessageEvent({
       request: request ?? {},
       stage,
       apiId,
+      authorizer,
     }),
   }
 }

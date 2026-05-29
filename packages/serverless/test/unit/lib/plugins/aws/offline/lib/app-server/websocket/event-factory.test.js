@@ -278,6 +278,64 @@ describe('domainName host fallback', () => {
   })
 })
 
+describe('authorizer injection', () => {
+  const authorizer = {
+    integrationLatency: '42',
+    principalId: 'u',
+    tenant: 'acme',
+  }
+  it('buildConnectEvent sets requestContext.authorizer when provided', () => {
+    const event = buildConnectEvent({
+      connectionId: 'c-1',
+      request: makeRequest(),
+      stage: 'dev',
+      accountId: '000000000000',
+      region: 'us-east-1',
+      apiId: 'private',
+      authorizer,
+    })
+    expect(event.requestContext.authorizer).toEqual(authorizer)
+    expect(event.requestContext.identity).toHaveProperty('cognitoIdentityId')
+  })
+  it('buildMessageEvent sets requestContext.authorizer when provided', () => {
+    const event = buildMessageEvent({
+      connectionId: 'c-1',
+      route: '$default',
+      payload: 'hi',
+      request: makeRequest(),
+      stage: 'dev',
+      accountId: '000000000000',
+      region: 'us-east-1',
+      apiId: 'private',
+      authorizer,
+    })
+    expect(event.requestContext.authorizer).toEqual(authorizer)
+  })
+  it('buildDisconnectEvent sets requestContext.authorizer when provided', () => {
+    const event = buildDisconnectEvent({
+      connectionId: 'c-1',
+      request: makeRequest(),
+      stage: 'dev',
+      accountId: '000000000000',
+      region: 'us-east-1',
+      apiId: 'private',
+      authorizer,
+    })
+    expect(event.requestContext.authorizer).toEqual(authorizer)
+  })
+  it('omits requestContext.authorizer when not provided', () => {
+    const event = buildConnectEvent({
+      connectionId: 'c-1',
+      request: makeRequest(),
+      stage: 'dev',
+      accountId: '000000000000',
+      region: 'us-east-1',
+      apiId: 'private',
+    })
+    expect(event.requestContext).not.toHaveProperty('authorizer')
+  })
+})
+
 describe('common: requestContext fields', () => {
   it('apiId, domainName, stage, region pass through', () => {
     const event = buildConnectEvent({

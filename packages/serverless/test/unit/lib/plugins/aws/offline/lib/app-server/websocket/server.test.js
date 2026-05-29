@@ -348,3 +348,113 @@ describe('WebSocket server — authorizer on $connect', () => {
     }
   })
 })
+
+describe('WebSocket server — authorizer context propagation', () => {
+  it('injects requestContext.authorizer into $connect + message + $disconnect', async () => {
+    const calls = []
+    const ctx = await setup({
+      functions: {
+        authFn: { events: [] },
+        onConnect: {
+          events: [{ websocket: { route: '$connect', authorizer: 'authFn' } }],
+        },
+        onDefault: { events: [{ websocket: '$default' }] },
+        onDisconnect: { events: [{ websocket: '$disconnect' }] },
+      },
+      onRequest: jest.fn(async (fnKey, event) => {
+        calls.push({ fnKey, event })
+        if (fnKey === 'authFn') {
+          return {
+            principalId: 'u',
+            policyDocument: {
+              Statement: [{ Effect: 'Allow', Resource: event.methodArn }],
+            },
+            context: { tenant: 'acme', count: 3 },
+          }
+        }
+        return { statusCode: 200 }
+      }),
+    })
+    try {
+      const ws = await connectWs(ctx.url)
+      ws.send('{"hello":"world"}')
+      await new Promise((r) => setTimeout(r, 50))
+      ws.close()
+      await new Promise((r) => setTimeout(r, 100))
+      const expectAuthorizer = (event) => {
+        expect(event.requestContext.authorizer).toMatchObject({
+          principalId: 'u',
+          integrationLatency: '42',
+          tenant: 'acme',
+          count: '3',
+        })
+      }
+      expectAuthorizer(calls.find((c) => c.fnKey === 'onConnect').event)
+      expectAuthorizer(calls.find((c) => c.fnKey === 'onDefault').event)
+      expectAuthorizer(calls.find((c) => c.fnKey === 'onDisconnect').event)
+    } finally {
+      await teardown(ctx)
+    }
+  })
+  it('does not let authorizer context override reserved principalId', async () => {
+    const calls = []
+    const ctx = await setup({
+      functions: {
+        authFn: { events: [] },
+        onConnect: {
+          events: [{ websocket: { route: '$connect', authorizer: 'authFn' } }],
+        },
+      },
+      onRequest: jest.fn(async (fnKey, event) => {
+        calls.push({ fnKey, event })
+        if (fnKey === 'authFn') {
+          return {
+            principalId: 'real-user',
+            policyDocument: {
+              Statement: [{ Effect: 'Allow', Resource: event.methodArn }],
+            },
+            context: { principalId: 'spoofed', integrationLatency: '999' },
+          }
+        }
+        return { statusCode: 200 }
+      }),
+    })
+    try {
+      const ws = await connectWs(ctx.url)
+      await new Promise((r) => setTimeout(r, 50))
+      const connect = calls.find((c) => c.fnKey === 'onConnect').event
+      expect(connect.requestContext.authorizer.principalId).toBe('real-user')
+      expect(connect.requestContext.authorizer.integrationLatency).toBe('42')
+      ws.close()
+    } finally {
+      await teardown(ctx)
+    }
+  })
+  it('denies the upgrade when the authorizer context is invalid', async () => {
+    const ctx = await setup({
+      functions: {
+        authFn: { events: [] },
+        onConnect: {
+          events: [{ websocket: { route: '$connect', authorizer: 'authFn' } }],
+        },
+      },
+      onRequest: jest.fn(async (fnKey, event) => {
+        if (fnKey === 'authFn') {
+          return {
+            principalId: 'u',
+            policyDocument: {
+              Statement: [{ Effect: 'Allow', Resource: event.methodArn }],
+            },
+            context: { nested: { notPrimitive: true } },
+          }
+        }
+        return { statusCode: 200 }
+      }),
+    })
+    try {
+      await expect(connectWs(ctx.url)).rejects.toThrow(/40[13]/)
+    } finally {
+      await teardown(ctx)
+    }
+  })
+})

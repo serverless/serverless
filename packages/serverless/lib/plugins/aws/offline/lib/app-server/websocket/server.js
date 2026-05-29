@@ -22,6 +22,7 @@ import {
 } from './event-factory.js'
 import { normalizeWebsocketEvents } from './lifecycle-routes.js'
 import { evaluatePolicy } from '../authorizers/policy-evaluator.js'
+import { validateAuthorizerContext } from '../authorizers/validate-authorizer-context.js'
 
 const DEFAULT_API_ID = 'private'
 const ROUTE_SELECTION_KEY = 'action'
@@ -75,19 +76,34 @@ export function createWebSocketServer({
         policyDocument,
         context,
       })
-      return { allow: evaluation.allow }
+      if (!evaluation.allow) return { allow: false }
     } catch {
       return { allow: false }
     }
+    const validated = validateAuthorizerContext(context)
+    if (!validated.ok) return { allow: false }
+    // Spread the context first so the reserved principalId / integrationLatency
+    // fields always win — API Gateway does not let authorizer context override
+    // them.
+    const authorizer = {
+      ...validated.context,
+      integrationLatency: '42',
+      principalId,
+    }
+    return { allow: true, authorizer }
   }
 
   async function handleUpgrade(request, socket, head) {
     const connectionId = crypto.randomUUID()
     const connectRoute = routes.get('$connect')
 
-    // Authorizer (if declared on $connect).
+    // Authorizer (if declared on $connect). The validated context is held
+    // for the connection's lifetime so it can be surfaced on
+    // requestContext.authorizer of the $connect / message / $disconnect
+    // events, matching real API Gateway.
+    let connectionAuthorizer
     if (connectRoute?.authorizer) {
-      const { allow } = await runAuthorizer(
+      const { allow, authorizer } = await runAuthorizer(
         connectRoute.authorizer,
         request,
         connectionId,
@@ -96,6 +112,7 @@ export function createWebSocketServer({
         rejectUpgrade(socket, 401)
         return
       }
+      connectionAuthorizer = authorizer
     }
 
     // $connect handler (if declared).
@@ -109,6 +126,7 @@ export function createWebSocketServer({
           accountId,
           region,
           apiId,
+          authorizer: connectionAuthorizer,
         })
         result = await onRequest(connectRoute.functionKey, event)
       } catch {
@@ -176,6 +194,7 @@ export function createWebSocketServer({
           accountId,
           region,
           apiId,
+          authorizer: connectionAuthorizer,
         })
         try {
           await onRequest(entry.functionKey, event)
@@ -197,6 +216,7 @@ export function createWebSocketServer({
           accountId,
           region,
           apiId,
+          authorizer: connectionAuthorizer,
         })
         try {
           await onRequest(disconnectRoute.functionKey, event)
