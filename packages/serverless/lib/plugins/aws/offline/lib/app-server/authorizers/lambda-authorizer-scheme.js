@@ -8,6 +8,9 @@
  *      its value is absent → 401 (do NOT invoke the authorizer Lambda — same
  *      behavior as real APIGW). When no identitySource is configured, invoke
  *      with an empty identity (identity type NONE) rather than rejecting.
+ *      For TOKEN: when an identityValidationExpression is configured, the
+ *      incoming token is matched against it; a non-match → 401 without
+ *      invoking the authorizer Lambda (matching real APIGW).
  *   3. Build the TOKEN or REQUEST event.
  *   4. Invoke the configured authorizer Lambda via the LambdaFunction
  *      facade — same worker pool as user handlers.
@@ -56,6 +59,13 @@ export function createLambdaAuthorizerScheme({
   const type = String(authorizerDef.type ?? 'TOKEN').toUpperCase()
   const identitySources =
     type === 'REQUEST' ? parseIdentitySource(authorizerDef.identitySource) : []
+  // TOKEN authorizers may declare a regex the incoming token must match before
+  // the authorizer Lambda is invoked; a non-match is a 401 with no invocation.
+  // An unparseable expression is ignored (treated as no validation).
+  const identityValidationRegExp =
+    type === 'TOKEN'
+      ? safeRegExp(authorizerDef.identityValidationExpression)
+      : null
 
   return function lambdaAuthorizerSchemeFactory() {
     return {
@@ -82,6 +92,12 @@ export function createLambdaAuthorizerScheme({
         } else {
           authorizationToken = readAuthorizationHeader(request)
           if (!authorizationToken) {
+            return unauthorized(h)
+          }
+          if (
+            identityValidationRegExp &&
+            !identityValidationRegExp.test(authorizationToken)
+          ) {
             return unauthorized(h)
           }
         }
@@ -179,4 +195,21 @@ function readAuthorizationHeader(request) {
   const raw = request?.headers?.authorization
   if (typeof raw === 'string' && raw.length > 0) return raw
   return null
+}
+
+/**
+ * Compile a validation expression into a RegExp, or null when the input is
+ * absent or not a valid pattern (lenient — a bad expression disables
+ * validation rather than crashing the request).
+ *
+ * @param {unknown} source
+ * @returns {RegExp | null}
+ */
+function safeRegExp(source) {
+  if (typeof source !== 'string' || source.length === 0) return null
+  try {
+    return new RegExp(source)
+  } catch {
+    return null
+  }
 }

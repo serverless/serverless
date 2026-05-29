@@ -247,6 +247,7 @@ function normalizeAuthorizerRef(authorizer) {
       name: authorizer.name,
       type: String(authorizer.type ?? 'TOKEN').toUpperCase(),
       identitySource: authorizer.identitySource,
+      identityValidationExpression: authorizer.identityValidationExpression,
       enableSimpleResponses: authorizer.enableSimpleResponses ?? false,
     }
   }

@@ -213,6 +213,81 @@ describe('lambda-authorizer scheme — TOKEN', () => {
       await server.stop()
     }
   })
+
+  it('invokes the authorizer when the token matches identityValidationExpression', async () => {
+    const { server, lambdaFunction } = await setupServer({
+      authorizerDef: {
+        name: 'auth',
+        type: 'TOKEN',
+        identityValidationExpression: '^Bearer .+',
+      },
+      invokeImpl: async () => ({
+        principalId: 'u',
+        policyDocument: { Statement: [{ Effect: 'Allow', Resource: '*' }] },
+      }),
+    })
+    try {
+      const res = await server.inject({
+        method: 'GET',
+        url: '/p',
+        headers: { authorization: 'Bearer good' },
+      })
+      expect(res.statusCode).toBe(200)
+      expect(lambdaFunction.invoke).toHaveBeenCalledTimes(1)
+    } finally {
+      await server.stop()
+    }
+  })
+
+  it('401s without invoking when the token fails identityValidationExpression', async () => {
+    const { server, lambdaFunction } = await setupServer({
+      authorizerDef: {
+        name: 'auth',
+        type: 'TOKEN',
+        identityValidationExpression: '^Bearer .+',
+      },
+      invokeImpl: async () => ({
+        principalId: 'u',
+        policyDocument: { Statement: [{ Effect: 'Allow', Resource: '*' }] },
+      }),
+    })
+    try {
+      const res = await server.inject({
+        method: 'GET',
+        url: '/p',
+        headers: { authorization: 'garbage' },
+      })
+      expect(res.statusCode).toBe(401)
+      expect(lambdaFunction.invoke).not.toHaveBeenCalled()
+    } finally {
+      await server.stop()
+    }
+  })
+
+  it('ignores an unparseable identityValidationExpression (invokes anyway)', async () => {
+    const { server, lambdaFunction } = await setupServer({
+      authorizerDef: {
+        name: 'auth',
+        type: 'TOKEN',
+        identityValidationExpression: '[unclosed',
+      },
+      invokeImpl: async () => ({
+        principalId: 'u',
+        policyDocument: { Statement: [{ Effect: 'Allow', Resource: '*' }] },
+      }),
+    })
+    try {
+      const res = await server.inject({
+        method: 'GET',
+        url: '/p',
+        headers: { authorization: 'anything' },
+      })
+      expect(res.statusCode).toBe(200)
+      expect(lambdaFunction.invoke).toHaveBeenCalledTimes(1)
+    } finally {
+      await server.stop()
+    }
+  })
 })
 
 describe('lambda-authorizer scheme — REQUEST', () => {
