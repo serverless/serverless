@@ -118,6 +118,12 @@ export function registerLambdaInvokeRoutes(
       const invocationType =
         request.headers['x-amz-invocation-type'] ?? 'RequestResponse'
 
+      // DryRun validates the request (function existence, here) without
+      // invoking the handler and returns an empty 204, matching real Lambda.
+      if (invocationType === 'DryRun') {
+        return h.response().code(204)
+      }
+
       if (invocationType !== 'Event' && invocationType !== 'RequestResponse') {
         return toInvalidParameterValue(
           `Unsupported invocation type: ${invocationType}`,
