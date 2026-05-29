@@ -72,6 +72,7 @@
     "jose": "^5.10.0",
     "js-yaml": "^4.1.1",
     "json-cycle": "^1.5.0",
+    "jsonpath-plus": "^10.4.0",
     "jszip": "^3.10.1",
     "lodash": "^4.18.1",
     "lodash.uniqby": "^4.7.0",

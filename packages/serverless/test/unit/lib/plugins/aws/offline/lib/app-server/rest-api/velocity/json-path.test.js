@@ -40,4 +40,35 @@ describe('jsonPath', () => {
     const value = { a: 1 }
     expect(jsonPath(value, '')).toBe(value)
   })
+
+  it('supports [*] wildcard returning all matches', () => {
+    expect(jsonPath({ list: [{ a: 1 }, { a: 2 }] }, '$.list[*].a')).toEqual([
+      1, 2,
+    ])
+  })
+
+  it('supports recursive descent ..', () => {
+    expect(jsonPath({ a: { b: { x: 9 } }, x: 1 }, '$..x').sort()).toEqual([
+      1, 9,
+    ])
+  })
+
+  it('supports bracket-quoted keys', () => {
+    expect(jsonPath({ 'a-b': 7 }, "$['a-b']")).toBe(7)
+  })
+
+  it('returns undefined when no match', () => {
+    expect(jsonPath({ a: 1 }, '$.missing')).toBeUndefined()
+  })
+
+  it('supports array slices', () => {
+    expect(jsonPath({ list: ['a', 'b', 'c', 'd'] }, '$.list[1:3]')).toEqual([
+      'b',
+      'c',
+    ])
+  })
+
+  it('returns an array even for a single recursive-descent match', () => {
+    expect(jsonPath({ a: { b: { x: 9 } } }, '$..x')).toEqual([9])
+  })
 })

@@ -1,43 +1,33 @@
+import { JSONPath } from 'jsonpath-plus'
+
 /**
- * Minimal JSONPath subset used by `$input.json($.x.y)` and `$input.path($.x)`
+ * Full JSONPath evaluation used by `$input.json($.x.y)` and `$input.path($.x)`
  * in REST API velocity templates.
  *
- * Supports: root (`$`), dot-notation keys (`$.a`, `$.a.b`), and bracket
- * array indexing (`$.list[0]`, `$.a.b[1].c`). Bracket-notation strings,
- * predicate filters, and recursive descent are NOT supported — the AWS
- * mapping-template surface in practice uses only this subset.
+ * Supports the complete JSONPath grammar, including dot-notation keys
+ * (`$.a.b`), array indexing (`$.list[0]`), wildcards (`$.list[*].a`),
+ * recursive descent (`$..x`), bracket-quoted keys (`$['a-b']`), and array
+ * slices (`$.list[1:3]`).
  *
- * @param {unknown} value - The value to walk.
+ * Single-value contract: a deterministic path that resolves to one node
+ * returns that node's value unwrapped (not an array). A wildcard, recursive,
+ * or slice expression that matches multiple nodes returns an array of the
+ * matched values. A path that matches nothing returns `undefined`. An empty,
+ * `undefined`, or `null` path returns the input value unchanged. Leading `$`
+ * is optional and a leading `.` is tolerated.
+ *
+ * @param {unknown} value - The value to evaluate against.
  * @param {string} path   - JSONPath expression.
- * @returns {unknown} The resolved value, or undefined if the chain breaks.
+ * @returns {unknown} The resolved value(s), or undefined if nothing matches.
  */
 export function jsonPath(value, path) {
   if (path === undefined || path === null || path === '') return value
-  // Strip optional leading "$" or "$." — both are accepted.
-  let expr = path
-  if (expr.startsWith('$')) expr = expr.slice(1)
-  if (expr.startsWith('.')) expr = expr.slice(1)
-  if (expr === '') return value
-
-  // Split on dots, then split each segment on `[N]` array indexing.
-  // e.g. "a.b[1].c" → ["a", "b", 1, "c"]
-  const tokens = []
-  for (const seg of expr.split('.')) {
-    if (seg === '') continue
-    const bracketMatch = seg.match(/^([^[]+)((?:\[\d+\])*)$/)
-    if (bracketMatch) {
-      tokens.push(bracketMatch[1])
-      const brackets = bracketMatch[2].matchAll(/\[(\d+)\]/g)
-      for (const m of brackets) tokens.push(Number.parseInt(m[1], 10))
-    } else {
-      tokens.push(seg)
-    }
+  const expr = path.startsWith('$')
+    ? path
+    : `$${path.startsWith('.') ? '' : '.'}${path}`
+  try {
+    return JSONPath({ path: expr, json: value, wrap: false })
+  } catch {
+    return undefined
   }
-
-  let current = value
-  for (const tok of tokens) {
-    if (current === undefined || current === null) return undefined
-    current = current[tok]
-  }
-  return current
 }
