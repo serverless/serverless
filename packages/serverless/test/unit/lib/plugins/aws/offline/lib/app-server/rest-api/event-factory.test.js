@@ -54,17 +54,33 @@ describe('REST API event.path (stage stripping)', () => {
     expect(event.path).toBe('/users/42')
   })
 
-  it('strips a configured prefix ahead of the stage', () => {
+  it('strips both the stage and a configured prefix (mounted /<stage>/<prefix>/...)', () => {
+    // The route is mounted /<stage>/<prefix>/<path> (stage outermost), so the
+    // real wire path carries the stage first, then the prefix.
     const event = buildRestApiEvent({
       request: makeRequest({
-        url: new URL('http://localhost:3000/api/dev/users/42'),
+        url: new URL('http://localhost:3000/dev/api/users/42'),
       }),
       route: { method: 'GET', apigwPath: '/users/{id}', functionName: 'f' },
       stage: 'dev',
       prefix: 'api',
     })
     expect(event.path).toBe('/users/42')
-    expect(event.requestContext.path).toBe('/api/dev/users/42')
+    expect(event.requestContext.path).toBe('/dev/api/users/42')
+  })
+
+  it('strips a configured prefix without a stage when noPrependStageInUrl is set', () => {
+    const event = buildRestApiEvent({
+      request: makeRequest({
+        url: new URL('http://localhost:3000/api/users/42'),
+      }),
+      route: { method: 'GET', apigwPath: '/users/{id}', functionName: 'f' },
+      stage: 'dev',
+      prefix: 'api',
+      noPrependStageInUrl: true,
+    })
+    expect(event.path).toBe('/users/42')
+    expect(event.requestContext.path).toBe('/api/users/42')
   })
 })
 

@@ -53,7 +53,9 @@ function isBinaryContentType(contentType) {
 /**
  * Strip the mount decoration the local server prepends (an optional prefix,
  * then the stage) from the wire path, recovering the API-relative path AWS
- * exposes as `event.path`. The prefix is outermost (`/<prefix>/<stage>/...`).
+ * exposes as `event.path`. The route is mounted `/<stage>/<prefix>/...` (stage
+ * outermost), so the decoration is stripped in that same outer-to-inner order:
+ * the stage first (unless `--noPrependStageInUrl`), then the prefix.
  *
  * @param {string} rawPath
  * @param {{ stage: string, prefix?: string, noPrependStageInUrl?: boolean }} opts
@@ -67,8 +69,8 @@ function stripMountDecoration(rawPath, { stage, prefix, noPrependStageInUrl }) {
     if (p === lead) p = '/'
     else if (p.startsWith(`${lead}/`)) p = p.slice(lead.length)
   }
-  strip(prefix)
   if (!noPrependStageInUrl) strip(stage)
+  strip(prefix)
   return p
 }
 

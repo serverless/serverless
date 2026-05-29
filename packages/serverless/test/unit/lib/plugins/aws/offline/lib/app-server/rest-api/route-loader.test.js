@@ -351,6 +351,36 @@ describe('registerRestApiRoutes — live request via server.inject()', () => {
     )
   })
 
+  it('strips both stage and --prefix from event.path on a real request', async () => {
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    let captured
+    const onRequest = jest.fn(async (functionKey, event) => {
+      captured = { functionKey, event }
+      return { statusCode: 200, body: '{}' }
+    })
+    registerRestApiRoutes({
+      server,
+      serverless: makeServerless({
+        getUser: {
+          events: [{ http: { method: 'GET', path: '/users/{id}' } }],
+        },
+      }),
+      stage: 'dev',
+      prefix: 'api',
+      onRequest,
+    })
+    await server.start()
+
+    // The route is mounted /dev/api/users/{id}; the handler must still see the
+    // bare resource path with both the stage AND the prefix stripped.
+    const res = await server.inject({ method: 'GET', url: '/dev/api/users/42' })
+
+    expect(res.statusCode).toBe(200)
+    expect(captured.event.path).toBe('/users/42')
+    expect(captured.event.requestContext.path).toBe('/dev/api/users/42')
+    expect(captured.event.pathParameters).toEqual({ id: '42' })
+  })
+
   it('returns 502 when the handler throws', async () => {
     server = Hapi.server({ host: 'localhost', port: 0 })
     registerRestApiRoutes({
