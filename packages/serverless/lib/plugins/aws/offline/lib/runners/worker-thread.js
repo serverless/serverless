@@ -212,7 +212,16 @@ export function createWorkerThreadRunner({
     // Worker-level error before 'ready' is handled here.
     worker.once('error', (err) => {
       if (entry._rejectReady) {
-        entry._rejectReady(err)
+        // A worker that errors before it ever became ready failed to
+        // initialize (worker bootstrap threw). This is deterministic, so tag
+        // it for the invoke loop to propagate rather than respawn-and-retry
+        // forever against the same broken setup.
+        entry._rejectReady(
+          new ServerlessError(
+            err && err.message != null ? err.message : String(err),
+            'OFFLINE_WORKER_ERROR',
+          ),
+        )
         entry._resolveReady = null
         entry._rejectReady = null
       }
@@ -251,6 +260,30 @@ export function createWorkerThreadRunner({
           entry._resolveReady = null
           entry._rejectReady = null
         }
+        return
+      }
+
+      // Load-phase failure: the worker reports an error MESSAGE (the handler
+      // module threw on import, or the named export is missing) before it ever
+      // became ready. No invocation is in flight yet, so reject the readiness
+      // promise with a clear, non-retryable error and drop the entry — without
+      // this the awaiting invoke() would hang forever, since the worker exits
+      // immediately afterwards and the per-invocation timeout is only armed
+      // once the worker is ready.
+      if (msg.type === 'error' && entry._rejectReady) {
+        const cause = rebuildError(msg.error)
+        entry._rejectReady(
+          new ServerlessError(
+            cause.message || 'Failed to load Lambda handler',
+            'OFFLINE_HANDLER_LOAD_FAILED',
+          ),
+        )
+        entry._resolveReady = null
+        entry._rejectReady = null
+        entry.state = 'terminating'
+        set.delete(entry)
+        if (set.size === 0) pool.delete(functionKey)
+        _wakeCapWaiter(functionKey)
         return
       }
 
@@ -347,6 +380,13 @@ export function createWorkerThreadRunner({
         if (set.size === 0) pool.delete(functionKey)
         entry.state = 'terminating'
         _wakeCapWaiter(functionKey)
+        // Worker died before it ever signalled readiness — fail the invoke()
+        // awaiting workerReady instead of letting it hang.
+        if (entry._rejectReady) {
+          entry._rejectReady(exitErr)
+          entry._resolveReady = null
+          entry._rejectReady = null
+        }
         if (entry.pendingResult !== null) {
           if (entry.pendingTimeout !== null) {
             clearTimeout(entry.pendingTimeout)
@@ -544,17 +584,60 @@ export function createWorkerThreadRunner({
         //    loop after teardown would surprise the caller.
         //  - Anything else (invalidate, worker spawn error): retry the loop
         //    so the invocation lands on a healthy worker.
+        // Bound the readiness wait with the invocation timeout so a handler
+        // whose module never finishes importing (e.g. an unresolved top-level
+        // await) fails with a timeout instead of hanging the request forever.
+        // Only wrap when a timeout is configured — awaiting workerReady directly
+        // otherwise keeps the original microtask timing the pool relies on
+        // (a reused idle worker must reach 'busy' in the same tick as before).
+        let readyTimer = null
         try {
-          await entry.workerReady
+          if (timeoutMs == null) {
+            await entry.workerReady
+          } else {
+            await new Promise((resolve, reject) => {
+              entry.workerReady.then(resolve, reject)
+              readyTimer = setTimeout(() => {
+                reject(
+                  new ServerlessError(
+                    `Lambda invocation timed out after ${timeoutMs} ms`,
+                    'OFFLINE_HANDLER_TIMEOUT',
+                  ),
+                )
+              }, timeoutMs)
+            })
+          }
         } catch (readyErr) {
-          if (readyErr?.code === 'OFFLINE_WORKER_TERMINATED') {
+          if (readyTimer !== null) clearTimeout(readyTimer)
+          if (readyErr?.code === 'OFFLINE_HANDLER_TIMEOUT') {
+            // The worker never finished importing the handler in time — tear it
+            // down so it does not linger, then surface the timeout.
+            const timedOutSet = pool.get(functionKey)
+            if (timedOutSet) {
+              timedOutSet.delete(entry)
+              if (timedOutSet.size === 0) pool.delete(functionKey)
+            }
+            _terminateEntry(entry).catch(() => {})
+            _wakeCapWaiter(functionKey)
             throw readyErr
           }
-          // The worker was cancelled before it became ready.
+          // Deterministic failures (handler load error, unexpected worker exit,
+          // runner shutdown) propagate to the caller instead of retrying — a
+          // broken handler would otherwise respawn-and-fail forever.
+          if (
+            readyErr?.code === 'OFFLINE_HANDLER_LOAD_FAILED' ||
+            readyErr?.code === 'OFFLINE_WORKER_EXITED' ||
+            readyErr?.code === 'OFFLINE_WORKER_ERROR' ||
+            readyErr?.code === 'OFFLINE_WORKER_TERMINATED'
+          ) {
+            throw readyErr
+          }
+          // The worker was cancelled before it became ready (e.g. invalidate()).
           // The 'error'/'exit' handlers already removed it from the set.
           // Retry — the outer loop will use an idle entry or spawn a fresh one.
           continue
         }
+        if (readyTimer !== null) clearTimeout(readyTimer)
 
         // After workerReady resolves, verify the entry is still in the set.
         // invalidate() may have evicted it while we were awaiting.

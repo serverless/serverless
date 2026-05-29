@@ -26,6 +26,21 @@ async function writeTmpHandler(source) {
   return filePath
 }
 
+/**
+ * Write a temporary .cjs handler file and return its absolute path. The .cjs
+ * extension forces CommonJS regardless of the parent package.json "type",
+ * mirroring a handler authored with `exports.handler = ...`.
+ */
+async function writeTmpCjsHandler(source) {
+  const filePath = path.join(
+    os.tmpdir(),
+    `worker-thread-test-${crypto.randomUUID()}.cjs`,
+  )
+  await fs.promises.writeFile(filePath, source, 'utf8')
+  tmpFiles.push(filePath)
+  return filePath
+}
+
 afterAll(async () => {
   await Promise.all(tmpFiles.map((f) => fs.promises.rm(f, { force: true })))
 })
@@ -1349,5 +1364,80 @@ describe('createWorkerThreadRunner', () => {
         delete process.env.AWS_REGION
       }
     }
+  })
+
+  // ---------------------------------------------------------------------------
+  // Handler module load failures must never hang the invocation
+  // ---------------------------------------------------------------------------
+
+  it('resolves and invokes a CommonJS handler exported via exports.<name>', async () => {
+    const handlerPath = await writeTmpCjsHandler(
+      'exports.handler = async (event) => ({ ok: true, echo: event.x })',
+    )
+    const result = await runner.invoke({
+      functionKey: 'cjs-ok',
+      handlerPath,
+      handlerName: 'handler',
+      event: { x: 7 },
+      context: {},
+    })
+    expect(result).toEqual({ ok: true, echo: 7 })
+  })
+
+  it('rejects (without hanging) when the named handler export is missing', async () => {
+    const handlerPath = await writeTmpCjsHandler(
+      'exports.handler = async () => ({ ok: true })',
+    )
+    await expect(
+      runner.invoke({
+        functionKey: 'cjs-missing',
+        handlerPath,
+        handlerName: 'doesNotExist',
+        event: {},
+        context: {},
+        timeoutMs: 5000,
+      }),
+    ).rejects.toMatchObject({
+      code: 'OFFLINE_HANDLER_LOAD_FAILED',
+      message: expect.stringContaining('doesNotExist'),
+    })
+  })
+
+  it('rejects (without hanging) when the handler module throws while importing', async () => {
+    const handlerPath = await writeTmpCjsHandler(
+      "throw new Error('boom at import')",
+    )
+    await expect(
+      runner.invoke({
+        functionKey: 'cjs-throws',
+        handlerPath,
+        handlerName: 'handler',
+        event: {},
+        context: {},
+        timeoutMs: 5000,
+      }),
+    ).rejects.toMatchObject({
+      code: 'OFFLINE_HANDLER_LOAD_FAILED',
+      message: expect.stringContaining('boom at import'),
+    })
+  })
+
+  it('times out instead of hanging when the handler module never finishes loading', async () => {
+    // A long top-level await keeps the worker alive (a pending timer) while
+    // import() stays unresolved, so the worker never reports ready. The
+    // invocation timeout must still fire rather than hanging the request.
+    const handlerPath = await writeTmpHandler(
+      'await new Promise((res) => setTimeout(res, 60000))\nexport const handler = async () => ({})',
+    )
+    await expect(
+      runner.invoke({
+        functionKey: 'stuck-load',
+        handlerPath,
+        handlerName: 'handler',
+        event: {},
+        context: {},
+        timeoutMs: 300,
+      }),
+    ).rejects.toMatchObject({ code: 'OFFLINE_HANDLER_TIMEOUT' })
   })
 })
