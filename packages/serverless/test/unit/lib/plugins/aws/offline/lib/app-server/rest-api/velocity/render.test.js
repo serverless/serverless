@@ -44,6 +44,24 @@ describe('renderVelocityString', () => {
   it('silent mode: undefined variables render as empty (not the literal "${var}")', () => {
     expect(renderVelocityString('a=$missing b', {})).toBe('a= b')
   })
+
+  it('exposes Java String helpers (equalsIgnoreCase) during the render', () => {
+    expect(
+      renderVelocityString(
+        "#if($value.equalsIgnoreCase('yes'))ok#{else}no#end",
+        {
+          value: 'YES',
+        },
+      ),
+    ).toBe('ok')
+  })
+
+  it('restores the String prototype after rendering a Java String helper', () => {
+    renderVelocityString("#if($value.equalsIgnoreCase('yes'))ok#{else}no#end", {
+      value: 'YES',
+    })
+    expect('x'.equalsIgnoreCase).toBeUndefined()
+  })
 })
 
 describe('renderVelocityTemplateObject', () => {

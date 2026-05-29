@@ -13,6 +13,7 @@
  */
 
 import velocityjs from 'velocityjs'
+import { runInPollutedScope } from './java-helpers.js'
 
 /**
  * Render a single velocity-template string and convert the result to
@@ -24,9 +25,11 @@ import velocityjs from 'velocityjs'
  * @returns {unknown}
  */
 export function renderVelocityString(template, context) {
-  const rendered = new velocityjs.Compile(velocityjs.parse(template), {
-    escape: false,
-  }).render(context, null, true)
+  const rendered = runInPollutedScope(() =>
+    new velocityjs.Compile(velocityjs.parse(template), {
+      escape: false,
+    }).render(context, null, true),
+  )
 
   switch (rendered) {
     case 'undefined':
@@ -75,9 +78,11 @@ export function renderVelocityTemplateObject(template, context) {
   if (typeof toProcess === 'string') {
     const alternative = tryParseJson(
       String(
-        new velocityjs.Compile(velocityjs.parse(toProcess), {
-          escape: false,
-        }).render(context, null, true),
+        runInPollutedScope(() =>
+          new velocityjs.Compile(velocityjs.parse(toProcess), {
+            escape: false,
+          }).render(context, null, true),
+        ),
       ),
     )
     return isPlainObject(alternative) ? alternative : {}
