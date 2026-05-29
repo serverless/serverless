@@ -1,4 +1,7 @@
 import { jest } from '@jest/globals'
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import Hapi from '@hapi/hapi'
 import { registerRestApiRoutes } from '../../../../../../../../../lib/plugins/aws/offline/lib/app-server/rest-api/route-loader.js'
 
@@ -802,6 +805,164 @@ describe('registerRestApiRoutes — AWS (non-proxy) integration dispatch', () =>
     const res = await server.inject({ method: 'GET', url: '/dev/h' })
     expect(res.statusCode).toBe(200)
     expect(res.headers['x-custom']).toBe('literal-value')
+  })
+})
+
+describe('registerRestApiRoutes — AWS (non-proxy) sidecar templates', () => {
+  let server
+  let tmpDir
+
+  beforeAll(() => {
+    tmpDir = mkdtempSync(path.join(os.tmpdir(), 'offline-rest-'))
+    mkdirSync(path.join(tmpDir, 'src'), { recursive: true })
+    writeFileSync(
+      path.join(tmpDir, 'src', 'echo.req.vm'),
+      '{"viaSidecar": true, "method": "$context.httpMethod"}',
+      'utf8',
+    )
+    writeFileSync(
+      path.join(tmpDir, 'src', 'resp.res.vm'),
+      '{"wrapped": $input.json("$")}',
+      'utf8',
+    )
+  })
+
+  afterEach(async () => {
+    if (server) {
+      await server.stop({ timeout: 5000 })
+      server = null
+    }
+  })
+
+  afterAll(() => {
+    rmSync(tmpDir, { recursive: true, force: true })
+  })
+
+  it('a <handler>.req.vm sidecar overrides the default request template', async () => {
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    let captured
+    const onRequest = jest.fn(async (functionKey, event) => {
+      captured = { functionKey, event }
+      return { ok: true }
+    })
+    registerRestApiRoutes({
+      server,
+      serverless: {
+        serviceDir: tmpDir,
+        service: {
+          functions: {
+            echo: {
+              handler: 'src/echo.handler',
+              events: [
+                {
+                  http: {
+                    method: 'post',
+                    path: '/echo',
+                    integration: 'lambda',
+                  },
+                },
+              ],
+            },
+          },
+        },
+      },
+      stage: 'dev',
+      onRequest,
+    })
+    await server.start()
+
+    const res = await server.inject({
+      method: 'POST',
+      url: '/dev/echo',
+      headers: { 'content-type': 'application/json' },
+      payload: JSON.stringify({ hello: 'world' }),
+    })
+
+    expect(res.statusCode).toBe(200)
+    expect(captured.functionKey).toBe('echo')
+    expect(captured.event).toEqual({ viaSidecar: true, method: 'POST' })
+  })
+
+  it('an explicit request.template wins over a present <handler>.req.vm sidecar', async () => {
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    let captured
+    const onRequest = jest.fn(async (functionKey, event) => {
+      captured = { functionKey, event }
+      return { ok: true }
+    })
+    registerRestApiRoutes({
+      server,
+      serverless: {
+        serviceDir: tmpDir,
+        service: {
+          functions: {
+            echo: {
+              handler: 'src/echo.handler',
+              events: [
+                {
+                  http: {
+                    method: 'post',
+                    path: '/echo',
+                    integration: 'lambda',
+                    request: {
+                      template: { 'application/json': '{"explicit": true}' },
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      },
+      stage: 'dev',
+      onRequest,
+    })
+    await server.start()
+
+    const res = await server.inject({
+      method: 'POST',
+      url: '/dev/echo',
+      headers: { 'content-type': 'application/json' },
+      payload: JSON.stringify({ hello: 'world' }),
+    })
+
+    expect(res.statusCode).toBe(200)
+    expect(captured.event).toEqual({ explicit: true })
+  })
+
+  it('a <handler>.res.vm sidecar maps the response when no response.template is configured', async () => {
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    const onRequest = jest.fn(async () => ({ value: 7 }))
+    registerRestApiRoutes({
+      server,
+      serverless: {
+        serviceDir: tmpDir,
+        service: {
+          functions: {
+            resp: {
+              handler: 'src/resp.handler',
+              events: [
+                {
+                  http: {
+                    method: 'get',
+                    path: '/resp',
+                    integration: 'lambda',
+                  },
+                },
+              ],
+            },
+          },
+        },
+      },
+      stage: 'dev',
+      onRequest,
+    })
+    await server.start()
+
+    const res = await server.inject({ method: 'GET', url: '/dev/resp' })
+
+    expect(res.statusCode).toBe(200)
+    expect(JSON.parse(res.payload)).toEqual({ wrapped: { value: 7 } })
   })
 })
 

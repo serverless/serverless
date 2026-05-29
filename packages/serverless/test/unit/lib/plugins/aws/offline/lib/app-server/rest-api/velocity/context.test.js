@@ -233,3 +233,9 @@ describe('$util', () => {
     expect(util.escapeJavaScript({ a: 'b' })).toBe('{"a":"b"}')
   })
 })
+
+describe('$stageVariables', () => {
+  it('is an empty map (offline has no stage variables)', () => {
+    expect(build().stageVariables).toEqual({})
+  })
+})

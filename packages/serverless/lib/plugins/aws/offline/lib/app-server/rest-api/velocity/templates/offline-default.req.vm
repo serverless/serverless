@@ -1,0 +1,44 @@
+#define( $loop )
+{
+#foreach($key in $map.keySet())
+  "$util.escapeJavaScript($key)":
+    "$util.escapeJavaScript($map.get($key))"
+    #if( $foreach.hasNext ) , #end
+#end
+}
+#end
+{
+  "body": $input.json("$"),
+  "method": "$context.httpMethod",
+  "principalId": "$context.authorizer.principalId",
+  "stage": "$context.stage",
+  "cognitoPoolClaims" : {
+      "sub": "$context.authorizer.claims.sub"
+  },
+  #set( $map = $context.authorizer )
+  ## see https://github.com/serverless/serverless/issues/4374
+  "enhancedAuthContext": {
+    #foreach($key in $map.keySet())
+      ## The claims are not part of the enhancedAuthContext in serverless and should be excluded.
+      ## However it is more practical to set this property to null as defined in
+      ## https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html#context-variable-reference
+      #if($key == "claims")
+      "$key": null
+      #else
+      "$key": "$util.escapeJavaScript($map.get($key))"
+      #end
+      #if($foreach.hasNext),#end
+    #end
+  },
+  #set( $map = $input.params().header )
+  "headers": $loop,
+  #set( $map = $input.params().querystring )
+  "query": $loop,
+  #set( $map = $input.params().path )
+  "path": $loop,
+  #set( $map = $context.identity )
+  "identity": $loop,
+  #set( $map = $stageVariables )
+  "stageVariables": $loop,
+  "requestPath": "$context.resourcePath"
+}

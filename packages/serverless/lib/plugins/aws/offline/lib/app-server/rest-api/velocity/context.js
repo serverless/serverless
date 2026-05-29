@@ -108,7 +108,7 @@ function escapeJavaScript(x) {
  * @param {string} args.stage        - The deployment stage (e.g. "dev").
  * @param {unknown} args.payload     - The parsed request body.
  * @param {string} args.resourcePath - The API Gateway resource path.
- * @returns {{ context: object, input: object, util: object }}
+ * @returns {{ context: object, input: object, util: object, stageVariables: object }}
  */
 export function buildVelocityContext({
   request,
@@ -191,5 +191,5 @@ export function buildVelocityContext({
     urlEncode: encodeURI,
   }
 
-  return { context, input, util }
+  return { context, input, util, stageVariables: {} }
 }

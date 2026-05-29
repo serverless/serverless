@@ -12,12 +12,15 @@
  * time so users hit a documented boundary instead of a silent 500 mid-request.
  */
 
+import { existsSync, readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { buildRestApiEvent } from './event-factory.js'
 import { formatRestApiResponse } from './response-mapper.js'
 import { detectIntegration } from './integration-detector.js'
 import { translateRestPath, buildMountedPath } from './path-translator.js'
 import { buildNonProxyEvent } from './non-proxy/event-factory.js'
 import { mapNonProxyResponse } from './non-proxy/response-mapper.js'
+import { getHandlerBaseDir } from '../../handler-base-dir.js'
 import {
   normalizeCorsConfig,
   buildCorsOptionsRoute,
@@ -115,6 +118,24 @@ function normalizeResponses(responseConfig) {
   }
 
   return out
+}
+
+/**
+ * Resolve a function's handler module path (without the exported-method suffix)
+ * to an absolute path against the handler base dir. Used to locate the
+ * `<handler>.req.vm` / `<handler>.res.vm` sidecar mapping templates.
+ *
+ * e.g. handler `'src/foo.handler'` with base dir `<dir>` → `<dir>/src/foo`.
+ *
+ * @param {unknown} handler
+ * @param {string} baseDir
+ * @returns {string | null}
+ */
+function resolveHandlerStem(handler, baseDir) {
+  if (typeof handler !== 'string' || handler.length === 0) return null
+  const lastDot = handler.lastIndexOf('.')
+  const modulePath = lastDot > 0 ? handler.slice(0, lastDot) : handler
+  return resolve(baseDir, modulePath)
 }
 
 function splitHeaderList(value) {
@@ -237,14 +258,49 @@ export function registerRestApiRoutes({
       // Non-proxy (AWS / lambda) routes carry per-route request templates and
       // response definitions; pre-extract them so the handler closure captures
       // a stable shape. AWS_PROXY routes ignore both.
-      const requestTemplates =
-        integration === 'AWS' && typeof httpEvent === 'object'
-          ? (httpEvent.request?.template ?? null)
-          : null
-      const responses =
-        integration === 'AWS' && typeof httpEvent === 'object'
-          ? normalizeResponses(httpEvent.response)
-          : null
+      //
+      // An explicitly configured template always wins. Otherwise, a
+      // `<handler>.req.vm` / `<handler>.res.vm` sidecar file (resolved against
+      // the handler base dir) supplies the request / default-response template.
+      // When neither is present the request template is left null so the event
+      // factory falls back to API Gateway's built-in passthrough template, and
+      // the default response template is left unset (identity, no change).
+      let requestTemplates = null
+      let responses = null
+      if (integration === 'AWS' && typeof httpEvent === 'object') {
+        requestTemplates = httpEvent.request?.template ?? null
+        responses = normalizeResponses(httpEvent.response)
+
+        const handlerStem = resolveHandlerStem(
+          fn.handler,
+          getHandlerBaseDir(serverless),
+        )
+        if (handlerStem) {
+          if (!httpEvent.request?.template) {
+            const reqSidecar = `${handlerStem}.req.vm`
+            if (existsSync(reqSidecar)) {
+              requestTemplates = {
+                'application/json': readFileSync(reqSidecar, 'utf8'),
+              }
+            }
+          }
+          if (!httpEvent.response?.template) {
+            const resSidecar = `${handlerStem}.res.vm`
+            if (existsSync(resSidecar)) {
+              responses = {
+                ...responses,
+                default: {
+                  ...responses.default,
+                  responseTemplates: {
+                    ...(responses.default.responseTemplates ?? {}),
+                    'application/json': readFileSync(resSidecar, 'utf8'),
+                  },
+                },
+              }
+            }
+          }
+        }
+      }
 
       const { method: rawMethod, path: apigwPath } =
         normalizeHttpEvent(httpEvent)

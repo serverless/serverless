@@ -42,14 +42,51 @@ describe('buildNonProxyEvent', () => {
     expect(event).toBe('just text')
   })
 
-  it('falls back to the request payload when requestTemplates is undefined', () => {
+  it('applies the default AWS request template for application/json when none is configured', () => {
     const event = buildNonProxyEvent({
       request: makeRequest(),
+      stage: 'dev',
+      resourcePath: '/items/{id}',
+      requestTemplates: undefined,
+    })
+    expect(Object.keys(event)).toEqual(
+      expect.arrayContaining([
+        'body',
+        'method',
+        'headers',
+        'query',
+        'path',
+        'identity',
+        'stageVariables',
+        'enhancedAuthContext',
+        'principalId',
+        'requestPath',
+      ]),
+    )
+    expect(event.body).toEqual({ hello: 'world' })
+    expect(event.method).toBe('POST')
+  })
+
+  it('an explicit application/json template wins over the default', () => {
+    const event = buildNonProxyEvent({
+      request: makeRequest(),
+      stage: 'dev',
+      resourcePath: '/items/{id}',
+      requestTemplates: {
+        'application/json': '{"custom":"$context.httpMethod"}',
+      },
+    })
+    expect(event).toEqual({ custom: 'POST' })
+  })
+
+  it('forwards the raw payload for a non-JSON content type with no template', () => {
+    const event = buildNonProxyEvent({
+      request: makeRequest({ mime: 'text/plain', payload: 'just text' }),
       stage: 'dev',
       resourcePath: '/x',
       requestTemplates: undefined,
     })
-    expect(event).toEqual({ hello: 'world' })
+    expect(event).toBe('just text')
   })
 
   it('default content-type is application/json when request.mime is absent', () => {
