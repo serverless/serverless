@@ -133,8 +133,9 @@ function normaliseRawHeaders(rawHeaders) {
  * - `content-length` is set to the request body's byte length whenever a body
  *   is present and the client did not already send a content-length (any
  *   casing). Base64-encoded bodies are measured in their decoded form.
- * - `content-type` defaults to `application/json` whenever the client did not
- *   send one (any casing), regardless of whether a body is present.
+ * - `content-type` defaults to `application/json` only when a body is present
+ *   and the client did not send one (any casing). A bodyless request carries no
+ *   content-type in the event headers, matching real API Gateway.
  *
  * Injected keys are lower-cased and existing entries are never overwritten.
  *
@@ -144,9 +145,12 @@ function normaliseRawHeaders(rawHeaders) {
  * @returns {void}
  */
 function injectHeaderDefaults(headers, body, isBase64Encoded) {
+  if (body === null || body === undefined) {
+    return
+  }
   const has = (name) =>
     Object.keys(headers).some((k) => k.toLowerCase() === name)
-  if (body !== null && body !== undefined && !has('content-length')) {
+  if (!has('content-length')) {
     headers['content-length'] = String(
       isBase64Encoded
         ? Buffer.byteLength(body, 'base64')

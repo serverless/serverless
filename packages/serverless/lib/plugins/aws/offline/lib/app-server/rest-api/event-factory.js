@@ -246,8 +246,9 @@ function buildBody(request) {
  *
  * - `Content-Length` is the request body's byte length, produced only when a
  *   body is present. Base64-encoded bodies are measured in decoded form.
- * - `Content-Type` defaults to `application/json`, produced regardless of
- *   whether a body is present.
+ * - `Content-Type` defaults to `application/json`, produced only when a body is
+ *   present. A bodyless request (e.g. a plain GET) carries no content-type in
+ *   the event headers, matching real API Gateway.
  *
  * @param {string[]} existingNames  Header names the client already sent (any casing).
  * @param {string | null} body
@@ -258,7 +259,10 @@ function headerDefaults(existingNames, body, isBase64Encoded) {
   const present = new Set(existingNames.map((name) => name.toLowerCase()))
   const has = (name) => present.has(name.toLowerCase())
   const defaults = {}
-  if (body !== null && body !== undefined && !has('content-length')) {
+  if (body === null || body === undefined) {
+    return defaults
+  }
+  if (!has('content-length')) {
     defaults['Content-Length'] = String(
       isBase64Encoded
         ? Buffer.byteLength(body, 'base64')

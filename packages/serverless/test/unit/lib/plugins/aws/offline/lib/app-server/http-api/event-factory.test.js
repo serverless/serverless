@@ -839,7 +839,7 @@ it('32c. content-length for a base64-encoded binary body is the decoded byte len
   )
 })
 
-it('32d. defaults content-type but injects no content-length when there is no body', () => {
+it('32d. injects neither content-type nor content-length when there is no body', () => {
   const event = buildHttpApiV2Event({
     request: makeRequest({
       method: 'GET',
@@ -851,7 +851,7 @@ it('32d. defaults content-type but injects no content-length when there is no bo
     accountId: '000000000000',
     domainName: 'localhost:3000',
   })
-  expect(event.headers['content-type']).toBe('application/json')
+  expect(event.headers).not.toHaveProperty('content-type')
   expect(event.headers).not.toHaveProperty('content-length')
 })
 

@@ -328,7 +328,7 @@ describe('REST API content-length / content-type injection', () => {
     ])
   })
 
-  it('defaults content-type but injects no content-length when there is no body', () => {
+  it('injects neither content-type nor content-length when there is no body', () => {
     const event = build({
       request: {
         method: 'GET',
@@ -346,15 +346,21 @@ describe('REST API content-length / content-type injection', () => {
         },
       },
     })
-    expect(event.headers['Content-Type']).toBe('application/json')
+    expect(
+      Object.keys(event.headers).some(
+        (name) => name.toLowerCase() === 'content-type',
+      ),
+    ).toBe(false)
     expect(
       Object.keys(event.headers).some(
         (name) => name.toLowerCase() === 'content-length',
       ),
     ).toBe(false)
-    expect(event.multiValueHeaders['Content-Type']).toEqual([
-      'application/json',
-    ])
+    expect(
+      Object.keys(event.multiValueHeaders).some(
+        (name) => name.toLowerCase() === 'content-type',
+      ),
+    ).toBe(false)
     expect(
       Object.keys(event.multiValueHeaders).some(
         (name) => name.toLowerCase() === 'content-length',
