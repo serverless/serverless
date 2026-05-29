@@ -23,6 +23,7 @@ export function normalizeWebsocketEvents(serverless) {
 
       let route
       let authorizer
+      let routeResponseSelectionExpression
       if (typeof ws === 'string') {
         route = ws
       } else if (ws && typeof ws === 'object') {
@@ -33,6 +34,9 @@ export function normalizeWebsocketEvents(serverless) {
             typeof ws.authorizer === 'string'
               ? { name: ws.authorizer }
               : ws.authorizer
+        }
+        if (typeof ws.routeResponseSelectionExpression === 'string') {
+          routeResponseSelectionExpression = ws.routeResponseSelectionExpression
         }
       } else {
         continue
@@ -49,6 +53,10 @@ export function normalizeWebsocketEvents(serverless) {
 
       const entry = { functionKey }
       if (authorizer) entry.authorizer = authorizer
+      if (routeResponseSelectionExpression) {
+        entry.routeResponseSelectionExpression =
+          routeResponseSelectionExpression
+      }
       routes.set(route, entry)
     }
   }

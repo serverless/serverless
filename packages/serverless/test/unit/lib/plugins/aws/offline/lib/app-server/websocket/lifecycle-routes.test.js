@@ -83,6 +83,36 @@ describe('normalizeWebsocketEvents', () => {
     })
   })
 
+  it('captures routeResponseSelectionExpression on a long-form route', () => {
+    const result = normalizeWebsocketEvents(
+      makeServerless({
+        sender: {
+          events: [
+            {
+              websocket: {
+                route: 'sendMessage',
+                routeResponseSelectionExpression: '$default',
+              },
+            },
+          ],
+        },
+      }),
+    )
+    expect(result.get('sendMessage')).toEqual({
+      functionKey: 'sender',
+      routeResponseSelectionExpression: '$default',
+    })
+  })
+
+  it('omits routeResponseSelectionExpression when not declared', () => {
+    const result = normalizeWebsocketEvents(
+      makeServerless({
+        sender: { events: [{ websocket: { route: 'sendMessage' } }] },
+      }),
+    )
+    expect(result.get('sendMessage')).toEqual({ functionKey: 'sender' })
+  })
+
   it('warns and skips duplicate route declarations (first-wins)', () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
     try {
