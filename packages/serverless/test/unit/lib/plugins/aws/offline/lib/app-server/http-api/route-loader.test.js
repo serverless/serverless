@@ -349,6 +349,8 @@ it('12. lambda response {statusCode:201, body:"created", headers:{"x-custom":"ye
     expect(res.statusCode).toBe(201)
     expect(res.result).toBe('created')
     expect(res.headers['x-custom']).toBe('yes')
+    // HTTP API responses carry the gateway request id.
+    expect(res.headers['apigw-requestid']).toMatch(/^[0-9a-f-]{36}$/)
   } finally {
     await server.stop({ timeout: 5000 })
   }

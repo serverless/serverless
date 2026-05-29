@@ -340,6 +340,13 @@ describe('registerRestApiRoutes — live request via server.inject()', () => {
     expect(captured.event.pathParameters).toEqual({ id: '42' })
     expect(captured.event.requestContext.stage).toBe('dev')
     expect(captured.event.requestContext.resourcePath).toBe('/users/{id}')
+    // REST responses carry the gateway request-id headers, mirroring the event.
+    expect(res.headers['x-amzn-requestid']).toBe(
+      captured.event.requestContext.requestId,
+    )
+    expect(res.headers['x-amz-apigw-id']).toBe(
+      captured.event.requestContext.extendedRequestId,
+    )
   })
 
   it('returns 502 when the handler throws', async () => {

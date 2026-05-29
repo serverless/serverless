@@ -12,10 +12,12 @@
  * time so users hit a documented boundary instead of a silent 500 mid-request.
  */
 
+import crypto from 'node:crypto'
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { buildRestApiEvent } from './event-factory.js'
 import { formatRestApiResponse } from './response-mapper.js'
+import { applyRequestIdHeaders } from '../shared/request-id-headers.js'
 import { detectIntegration } from './integration-detector.js'
 import { translateRestPath, buildMountedPath } from './path-translator.js'
 import { buildNonProxyEvent } from './non-proxy/event-factory.js'
@@ -425,6 +427,12 @@ export function registerRestApiRoutes({
               contentHandling,
               h,
             })
+            // Non-proxy events carry no requestContext.requestId we can mirror,
+            // so synthesize the gateway request ids for the response headers.
+            applyRequestIdHeaders(response, 'rest', {
+              requestId: crypto.randomUUID(),
+              extendedRequestId: crypto.randomUUID(),
+            })
             if (enforceSecureCookies) {
               applySecureCookieHeaders(response)
             }
@@ -448,6 +456,10 @@ export function registerRestApiRoutes({
             })
             const result = await onRequest(functionKey, event)
             const response = formatRestApiResponse(result, h)
+            applyRequestIdHeaders(response, 'rest', {
+              requestId: event.requestContext?.requestId,
+              extendedRequestId: event.requestContext?.extendedRequestId,
+            })
             if (enforceSecureCookies) {
               applySecureCookieHeaders(response)
             }

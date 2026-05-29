@@ -18,6 +18,7 @@ import {
   normalizeHttpEvent,
 } from '../shared/hapi-helpers.js'
 import { formatLambdaProxyResponse } from '../shared/lambda-proxy-response.js'
+import { applyRequestIdHeaders } from '../shared/request-id-headers.js'
 import { logHandlerError } from '../shared/handler-logging.js'
 import { resolveAuthStrategy } from '../shared/auth-strategy-resolver.js'
 
@@ -173,6 +174,9 @@ export function registerHttpApiRoutes({
               cookies: true,
               payloadV2: true,
               defaultContentType: 'application/json',
+            })
+            applyRequestIdHeaders(response, 'http', {
+              requestId: event.requestContext?.requestId,
             })
             // Real APIGW adds Access-Control-Allow-Origin (and friends) to
             // every successful response from a CORS-enabled HTTP API, not
