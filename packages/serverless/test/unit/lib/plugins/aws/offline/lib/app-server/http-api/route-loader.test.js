@@ -1112,6 +1112,71 @@ describe('registerHttpApiRoutes — provider.httpApi.cors', () => {
     }
   })
 
+  it('cors-enabled API: a cross-origin 404 still carries Access-Control-Allow-Origin', async () => {
+    const server = await makeServer()
+    registerHttpApiRoutes({
+      server,
+      serverless: {
+        service: {
+          provider: { httpApi: { cors: { origin: 'https://example.com' } } },
+          functions: {
+            a: { events: [{ httpApi: 'GET /a' }] },
+          },
+        },
+      },
+      stage: 'dev',
+      domainName: 'localhost:3000',
+      onRequest: async () => ({ statusCode: 200, body: 'ok' }),
+    })
+    await server.start()
+    try {
+      const res = await server.inject({
+        method: 'GET',
+        url: '/does-not-exist',
+        headers: { origin: 'https://example.com' },
+      })
+      expect(res.statusCode).toBe(404)
+      expect(res.headers['access-control-allow-origin']).toBe(
+        'https://example.com',
+      )
+    } finally {
+      await server.stop({ timeout: 5000 })
+    }
+  })
+
+  it('cors-enabled API: a cross-origin handler error (502) carries Access-Control-Allow-Origin', async () => {
+    const server = await makeServer()
+    registerHttpApiRoutes({
+      server,
+      serverless: {
+        service: {
+          provider: { httpApi: { cors: true } },
+          functions: {
+            a: { events: [{ httpApi: 'GET /boom' }] },
+          },
+        },
+        serverlessLog: jest.fn(),
+      },
+      stage: 'dev',
+      domainName: 'localhost:3000',
+      onRequest: async () => {
+        throw new Error('handler exploded')
+      },
+    })
+    await server.start()
+    try {
+      const res = await server.inject({
+        method: 'GET',
+        url: '/boom',
+        headers: { origin: 'https://example.com' },
+      })
+      expect(res.statusCode).toBe(502)
+      expect(res.headers['access-control-allow-origin']).toBe('*')
+    } finally {
+      await server.stop({ timeout: 5000 })
+    }
+  })
+
   it('preflight Allow-Methods unions every route method sharing the path', async () => {
     const server = await makeServer()
     registerHttpApiRoutes({

@@ -12,6 +12,7 @@ import {
   normalizeCorsConfig,
   buildCorsOptionsRoute,
   applyCorsResponseHeaders,
+  resolveAllowOrigin,
   mergeAllowMethods,
 } from '../shared/cors-options.js'
 import {
@@ -238,10 +239,19 @@ export function registerHttpApiRoutes({
             return response
           } catch (err) {
             logHandlerError(serverless, functionKey, err)
-            return h
+            const errResponse = h
               .response(JSON.stringify({ message: 'Internal server error' }))
               .code(502)
               .type('application/json')
+            // Gateway-level CORS applies to every response, errors included.
+            if (httpApiCorsConfig) {
+              applyCorsResponseHeaders(
+                errResponse,
+                httpApiCorsConfig,
+                request.headers?.origin,
+              )
+            }
+            return errResponse
           }
         },
       })
@@ -274,6 +284,32 @@ export function registerHttpApiRoutes({
         }),
       )
     }
+
+    // The CORS configuration on an HTTP API is set at the gateway, so it
+    // decorates gateway-generated error responses too — most visibly the 404
+    // returned for a path that matches no route. Hapi surfaces those as Boom
+    // errors whose headers live on `output.headers`; mirror the gateway by
+    // adding the allow-origin (and credentials / exposed-headers) there so a
+    // cross-origin client still receives them on a failure.
+    if (typeof server.ext === 'function')
+      server.ext('onPreResponse', (request, h) => {
+        const response = request.response
+        if (response?.isBoom) {
+          const headers = response.output.headers
+          headers['access-control-allow-origin'] = resolveAllowOrigin(
+            httpApiCorsConfig,
+            request.headers?.origin,
+          )
+          if (httpApiCorsConfig.allowCredentials) {
+            headers['access-control-allow-credentials'] = 'true'
+          }
+          if (httpApiCorsConfig.exposedHeaders.length > 0) {
+            headers['access-control-expose-headers'] =
+              httpApiCorsConfig.exposedHeaders.join(',')
+          }
+        }
+        return h.continue
+      })
   }
 
   return registered
