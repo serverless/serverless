@@ -138,10 +138,11 @@ function bucketHeaders(request) {
 }
 
 /**
- * Build the event `headers` map. Names keep their original wire casing;
- * multiple values for the same name are joined with `,`. Unlike the HTTP API
- * v2 factory, `cookie` is included — REST v1 carries cookies via headers, not
- * a separate field.
+ * Build the event `headers` map. Names keep their original wire casing; for a
+ * header sent more than once the single-value map keeps the last value (the
+ * full list lives in `multiValueHeaders`), matching API Gateway. Unlike the
+ * HTTP API v2 factory, `cookie` is included — REST v1 carries cookies via
+ * headers, not a separate field.
  *
  * @param {object} request
  * @returns {Record<string, string>}
@@ -149,7 +150,7 @@ function bucketHeaders(request) {
 function buildHeaders(request) {
   const buckets = bucketHeaders(request)
   const out = {}
-  for (const [k, vs] of buckets.entries()) out[k] = vs.join(',')
+  for (const [k, vs] of buckets.entries()) out[k] = vs[vs.length - 1]
   return out
 }
 

@@ -189,6 +189,18 @@ describe('REST API event skeleton', () => {
     expect(event.multiValueHeaders['X-Trace']).toEqual(['abc', 'def'])
   })
 
+  it('single-value headers keep the last value for a duplicated header', () => {
+    const event = build({
+      request: {
+        headers: { 'x-trace': 'abc' },
+        raw: {
+          req: { rawHeaders: ['X-Trace', 'abc', 'X-Trace', 'def'] },
+        },
+      },
+    })
+    expect(event.headers['X-Trace']).toBe('def')
+  })
+
   it('preserves the original wire casing of request header names (matches APIGW REST)', () => {
     const event = build({
       request: {
