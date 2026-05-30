@@ -457,6 +457,104 @@ it('17g. Fn::Sub map form becomes UNRESOLVED when a var value is unresolvable', 
 })
 
 // ---------------------------------------------------------------------------
+// 17h-17u. Fn::Join, Fn::Select, Fn::Split, Fn::FindInMap, Fn::If
+// ---------------------------------------------------------------------------
+
+it('17h. Fn::Join joins a resolved list with the delimiter', () => {
+  const ctx = makeContext()
+  expect(
+    resolveIntrinsics(
+      { 'Fn::Join': ['-', ['a', { Ref: 'AWS::Region' }, 'c']] },
+      ctx,
+    ),
+  ).toBe('a-us-east-1-c')
+})
+
+it('17i. Fn::Join becomes UNRESOLVED + warning when a member is unresolvable', () => {
+  const warnings = []
+  const ctx = makeContext({ warnings })
+  expect(
+    resolveIntrinsics({ 'Fn::Join': ['-', ['a', { Ref: 'Unknown' }]] }, ctx),
+  ).toBe(UNRESOLVED)
+  expect(warnings).toHaveLength(1)
+})
+
+it('17j. Fn::Select returns the element at the index', () => {
+  const ctx = makeContext()
+  expect(resolveIntrinsics({ 'Fn::Select': [1, ['a', 'b', 'c']] }, ctx)).toBe(
+    'b',
+  )
+})
+
+it('17k. Fn::Select with an out-of-range index → throws OFFLINE_MALFORMED_INTRINSIC', () => {
+  expect(() =>
+    resolveIntrinsics({ 'Fn::Select': [5, ['a', 'b']] }, makeContext()),
+  ).toThrow(expect.objectContaining({ code: 'OFFLINE_MALFORMED_INTRINSIC' }))
+})
+
+it('17l. Fn::Select on a non-array list → throws OFFLINE_MALFORMED_INTRINSIC', () => {
+  expect(() =>
+    resolveIntrinsics({ 'Fn::Select': [0, 'not-a-list'] }, makeContext()),
+  ).toThrow(expect.objectContaining({ code: 'OFFLINE_MALFORMED_INTRINSIC' }))
+})
+
+it('17m. Fn::Split splits the string on the delimiter', () => {
+  const ctx = makeContext()
+  expect(resolveIntrinsics({ 'Fn::Split': [',', 'a,b,c'] }, ctx)).toEqual([
+    'a',
+    'b',
+    'c',
+  ])
+})
+
+it('17n. Fn::FindInMap returns the nested value', () => {
+  const ctx = makeContext({
+    mappings: { RegionMap: { 'us-east-1': { ami: 'ami-123' } } },
+  })
+  expect(
+    resolveIntrinsics(
+      { 'Fn::FindInMap': ['RegionMap', { Ref: 'AWS::Region' }, 'ami'] },
+      ctx,
+    ),
+  ).toBe('ami-123')
+})
+
+it('17o. Fn::FindInMap with a missing path → UNRESOLVED + warning', () => {
+  const warnings = []
+  const ctx = makeContext({ warnings, mappings: { RegionMap: {} } })
+  expect(
+    resolveIntrinsics(
+      { 'Fn::FindInMap': ['RegionMap', 'eu-west-1', 'ami'] },
+      ctx,
+    ),
+  ).toBe(UNRESOLVED)
+  expect(warnings).toHaveLength(1)
+})
+
+it('17p. Fn::If returns the chosen branch (true)', () => {
+  const ctx = makeContext({ conditions: new Map([['IsProd', true]]) })
+  expect(resolveIntrinsics({ 'Fn::If': ['IsProd', 'prod', 'dev'] }, ctx)).toBe(
+    'prod',
+  )
+})
+
+it('17q. Fn::If returns the chosen branch (false) and resolves it', () => {
+  const ctx = makeContext({ conditions: new Map([['IsProd', false]]) })
+  expect(
+    resolveIntrinsics(
+      { 'Fn::If': ['IsProd', 'prod', { Ref: 'AWS::Region' }] },
+      ctx,
+    ),
+  ).toBe('us-east-1')
+})
+
+it('17r. Fn::If with an unknown condition name → throws OFFLINE_MALFORMED_INTRINSIC', () => {
+  expect(() =>
+    resolveIntrinsics({ 'Fn::If': ['Nope', 'a', 'b'] }, makeContext()),
+  ).toThrow(expect.objectContaining({ code: 'OFFLINE_MALFORMED_INTRINSIC' }))
+})
+
+// ---------------------------------------------------------------------------
 // 18. Fn::ImportValue → throws OFFLINE_CROSS_STACK_IMPORT
 // ---------------------------------------------------------------------------
 

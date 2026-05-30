@@ -81,6 +81,26 @@ export function resolveIntrinsics(value, context) {
       return resolveSub(value['Fn::Sub'], context)
     }
 
+    if (key === 'Fn::Join') {
+      return resolveJoin(value['Fn::Join'], context)
+    }
+
+    if (key === 'Fn::Select') {
+      return resolveSelect(value['Fn::Select'], context)
+    }
+
+    if (key === 'Fn::Split') {
+      return resolveSplit(value['Fn::Split'], context)
+    }
+
+    if (key === 'Fn::FindInMap') {
+      return resolveFindInMap(value['Fn::FindInMap'], context)
+    }
+
+    if (key === 'Fn::If') {
+      return resolveIf(value['Fn::If'], context)
+    }
+
     if (key === 'Fn::ImportValue') {
       throw new ServerlessError(
         `Fn::ImportValue is not supported in offline mode — cross-stack references must be resolved externally.`,
@@ -351,4 +371,142 @@ function resolveSub(spec, context) {
   })
 
   return unresolved ? UNRESOLVED : result
+}
+
+/**
+ * Resolves `Fn::Join` `[delimiter, list]` by resolving the list and joining its
+ * members. An `UNRESOLVED` member makes the whole result `UNRESOLVED`.
+ *
+ * @param {unknown} spec - The `Fn::Join` value.
+ * @param {object} context - The resolution context.
+ * @returns {unknown} The joined string, or `UNRESOLVED`.
+ */
+function resolveJoin(spec, context) {
+  if (!Array.isArray(spec) || spec.length !== 2) {
+    throw new ServerlessError(
+      `Fn::Join value must be a [delimiter, list] array.`,
+      'OFFLINE_MALFORMED_INTRINSIC',
+    )
+  }
+  const [delimiter, rawList] = spec
+  const list = resolveIntrinsics(rawList, context)
+  if (list === UNRESOLVED || !Array.isArray(list)) return UNRESOLVED
+  if (list.some((item) => item === UNRESOLVED)) return UNRESOLVED
+  return list.join(delimiter)
+}
+
+/**
+ * Resolves `Fn::Select` `[index, list]`. An out-of-range index or a non-array
+ * list throws `OFFLINE_MALFORMED_INTRINSIC`.
+ *
+ * @param {unknown} spec - The `Fn::Select` value.
+ * @param {object} context - The resolution context.
+ * @returns {unknown} The selected element, or `UNRESOLVED` if the list is.
+ */
+function resolveSelect(spec, context) {
+  if (!Array.isArray(spec) || spec.length !== 2) {
+    throw new ServerlessError(
+      `Fn::Select value must be an [index, list] array.`,
+      'OFFLINE_MALFORMED_INTRINSIC',
+    )
+  }
+  const index = Number(resolveIntrinsics(spec[0], context))
+  const list = resolveIntrinsics(spec[1], context)
+  if (list === UNRESOLVED) return UNRESOLVED
+  if (!Array.isArray(list) || index < 0 || index >= list.length) {
+    throw new ServerlessError(
+      `Fn::Select index ${index} is out of range for the resolved list.`,
+      'OFFLINE_MALFORMED_INTRINSIC',
+    )
+  }
+  return list[index]
+}
+
+/**
+ * Resolves `Fn::Split` `[delimiter, string]` by splitting the resolved string.
+ *
+ * @param {unknown} spec - The `Fn::Split` value.
+ * @param {object} context - The resolution context.
+ * @returns {unknown} The array of segments, or `UNRESOLVED` if the source is.
+ */
+function resolveSplit(spec, context) {
+  if (!Array.isArray(spec) || spec.length !== 2) {
+    throw new ServerlessError(
+      `Fn::Split value must be a [delimiter, string] array.`,
+      'OFFLINE_MALFORMED_INTRINSIC',
+    )
+  }
+  const delimiter = spec[0]
+  const source = resolveIntrinsics(spec[1], context)
+  if (source === UNRESOLVED) return UNRESOLVED
+  return String(source).split(delimiter)
+}
+
+/**
+ * Resolves `Fn::FindInMap` `[MapName, TopKey, SecondKey]` against the template
+ * mappings. A missing path becomes `UNRESOLVED` plus a warning.
+ *
+ * @param {unknown} spec - The `Fn::FindInMap` value.
+ * @param {object} context - The resolution context.
+ * @returns {unknown} The mapped value, or `UNRESOLVED`.
+ */
+function resolveFindInMap(spec, context) {
+  if (!Array.isArray(spec) || spec.length !== 3) {
+    throw new ServerlessError(
+      `Fn::FindInMap value must be a [MapName, TopLevelKey, SecondLevelKey] array.`,
+      'OFFLINE_MALFORMED_INTRINSIC',
+    )
+  }
+  const mapName = resolveIntrinsics(spec[0], context)
+  const topKey = resolveIntrinsics(spec[1], context)
+  const secondKey = resolveIntrinsics(spec[2], context)
+  const reference = `${mapName}.${topKey}.${secondKey}`
+
+  if (
+    mapName === UNRESOLVED ||
+    topKey === UNRESOLVED ||
+    secondKey === UNRESOLVED
+  ) {
+    return UNRESOLVED
+  }
+
+  const mappings = context.mappings ?? {}
+  const found = mappings?.[mapName]?.[topKey]?.[secondKey]
+  if (found === undefined) {
+    return warn(
+      context,
+      'OFFLINE_UNRESOLVED_REFERENCE',
+      reference,
+      `Cannot resolve Fn::FindInMap [${reference}] — that path does not exist in the template mappings.`,
+    )
+  }
+  return found
+}
+
+/**
+ * Resolves `Fn::If` `[conditionName, valueIfTrue, valueIfFalse]` by looking up
+ * the pre-evaluated condition and resolving the chosen branch. An unknown
+ * condition name throws `OFFLINE_MALFORMED_INTRINSIC`.
+ *
+ * @param {unknown} spec - The `Fn::If` value.
+ * @param {object} context - The resolution context.
+ * @returns {unknown} The resolved chosen branch.
+ */
+function resolveIf(spec, context) {
+  if (!Array.isArray(spec) || spec.length !== 3) {
+    throw new ServerlessError(
+      `Fn::If value must be a [ConditionName, ValueIfTrue, ValueIfFalse] array.`,
+      'OFFLINE_MALFORMED_INTRINSIC',
+    )
+  }
+  const [conditionName, valueIfTrue, valueIfFalse] = spec
+  const conditions = context.conditions
+  if (!conditions || !conditions.has(conditionName)) {
+    throw new ServerlessError(
+      `Fn::If references unknown condition "${conditionName}".`,
+      'OFFLINE_MALFORMED_INTRINSIC',
+    )
+  }
+  const chosen = conditions.get(conditionName) ? valueIfTrue : valueIfFalse
+  return resolveIntrinsics(chosen, context)
 }
