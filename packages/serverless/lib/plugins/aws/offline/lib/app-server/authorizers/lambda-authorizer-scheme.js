@@ -28,7 +28,7 @@ import {
 import { evaluatePolicy } from './policy-evaluator.js'
 import {
   parseIdentitySource,
-  extractIdentitySource,
+  allIdentitySourcesPresent,
 } from './identity-source.js'
 import {
   unauthorized,
@@ -91,15 +91,16 @@ export function createLambdaAuthorizerScheme({
 
         let event
         if (type === 'REQUEST') {
-          // A REQUEST authorizer with a declared identitySource whose value is
-          // absent is a 401 with no invocation (matching real API Gateway). A
-          // REQUEST authorizer with no identitySource is invoked with an empty
-          // identity (identity type NONE) — never short-circuited to 401. The
-          // resolved value is no longer surfaced on the event (REST v1 REQUEST
-          // events carry no identitySource); it only gates the 401 decision.
+          // A REQUEST authorizer requires EVERY configured identitySource to be
+          // present and non-empty; if any is missing it is a 401 with no
+          // invocation (matching real API Gateway). A REQUEST authorizer with
+          // no identitySource is invoked with an empty identity (identity type
+          // NONE) — never short-circuited to 401. The resolved values are not
+          // surfaced on the event (REST v1 REQUEST events carry no
+          // identitySource); they only gate the 401 decision.
           if (
             identitySources.length > 0 &&
-            extractIdentitySource(request, identitySources) === null
+            !allIdentitySourcesPresent(request, identitySources)
           ) {
             return unauthorized(h)
           }

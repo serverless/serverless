@@ -390,6 +390,58 @@ describe('lambda-authorizer scheme — REQUEST', () => {
     }
   })
 
+  it('401s without invoking when one of several identity sources is missing', async () => {
+    const { server, lambdaFunction } = await setupServer({
+      authorizerDef: {
+        name: 'auth',
+        type: 'REQUEST',
+        identitySource:
+          'method.request.header.X-Token, method.request.header.X-Extra',
+      },
+      invokeImpl: async () => ({
+        principalId: 'u',
+        policyDocument: { Statement: [{ Effect: 'Allow', Resource: '*' }] },
+      }),
+    })
+    try {
+      const res = await server.inject({
+        method: 'GET',
+        url: '/p',
+        headers: { 'x-token': 'tok-1' },
+      })
+      expect(res.statusCode).toBe(401)
+      expect(lambdaFunction.invoke).not.toHaveBeenCalled()
+    } finally {
+      await server.stop()
+    }
+  })
+
+  it('invokes the authorizer only when every identity source is present', async () => {
+    const { server, lambdaFunction } = await setupServer({
+      authorizerDef: {
+        name: 'auth',
+        type: 'REQUEST',
+        identitySource:
+          'method.request.header.X-Token, method.request.header.X-Extra',
+      },
+      invokeImpl: async () => ({
+        principalId: 'u',
+        policyDocument: { Statement: [{ Effect: 'Allow', Resource: '*' }] },
+      }),
+    })
+    try {
+      const res = await server.inject({
+        method: 'GET',
+        url: '/p',
+        headers: { 'x-token': 'tok-1', 'x-extra': 'extra-1' },
+      })
+      expect(res.statusCode).toBe(200)
+      expect(lambdaFunction.invoke).toHaveBeenCalledTimes(1)
+    } finally {
+      await server.stop()
+    }
+  })
+
   it('invokes the authorizer with an empty identity when no identitySource is configured', async () => {
     const { server, lambdaFunction } = await setupServer({
       authorizerDef: { name: 'auth', type: 'REQUEST' },
