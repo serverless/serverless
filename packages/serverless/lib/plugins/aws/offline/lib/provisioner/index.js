@@ -130,21 +130,33 @@ export async function provision(
   // 11. Surface warnings and the provisioned-resource summary if a logger is
   //     supplied. Each call is guarded so a partial logger shape never throws.
   if (logger) {
-    if (typeof logger.warn === 'function') {
+    // Resolve logger methods tolerantly: the framework logger exposes
+    // `.warning` / `.notice`, while simpler stubs may expose `.warn` / `.info`
+    // / `.log`. Each call is guarded so a partial logger shape never throws.
+    const warn =
+      typeof logger.warning === 'function'
+        ? logger.warning.bind(logger)
+        : typeof logger.warn === 'function'
+          ? logger.warn.bind(logger)
+          : undefined
+    if (warn) {
       for (const { code, reference, detail } of warnings) {
-        logger.warn(`[${code}] ${reference}: ${detail}`)
+        warn(`[${code}] ${reference}: ${detail}`)
       }
     }
-    const summaryLines = formatProvisionedResources(registry)
     const emit =
-      typeof logger.info === 'function'
-        ? logger.info.bind(logger)
-        : typeof logger.log === 'function'
-          ? logger.log.bind(logger)
-          : undefined
-    if (emit) {
+      typeof logger.notice === 'function'
+        ? logger.notice.bind(logger)
+        : typeof logger.info === 'function'
+          ? logger.info.bind(logger)
+          : typeof logger.log === 'function'
+            ? logger.log.bind(logger)
+            : undefined
+    const summaryLines = formatProvisionedResources(registry)
+    if (emit && summaryLines.length > 0) {
+      emit('Provisioned resources:')
       for (const line of summaryLines) {
-        emit(line)
+        emit(`  ${line}`)
       }
     }
   }

@@ -573,8 +573,10 @@ export default class OfflinePlugin {
       noAuth,
     }
 
-    // 4. Run the provisioner to populate the registry from CFN.
-    const { registry } = await provision(serverless, { awsApiPort })
+    // 4. Run the provisioner to populate the registry from CFN. The logger
+    //    surfaces a provisioned-resource summary and one line per unresolved
+    //    reference (e.g. a cross-stack import that cannot be resolved offline).
+    const { registry } = await provision(serverless, { awsApiPort, logger })
 
     // 5. Create a queue store.
     const store = createQueueStore()
