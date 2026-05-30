@@ -124,6 +124,58 @@ describe('rerenderFunctionEnvironments', () => {
     expect(serverless.service.functions.fn.events).toBeUndefined()
   })
 
+  it('resolves provider-level environment in place, dropping an unresolved reference', () => {
+    const { resolveIntrinsics: resolve } = makeResolver()
+    const serverless = {
+      service: {
+        provider: {
+          environment: {
+            REGION: { Ref: 'AWS::Region' },
+            IMPORTED: { 'Fn::ImportValue': 'X' },
+          },
+        },
+        functions: {
+          fn: { environment: { LOCAL: 'x' } },
+        },
+      },
+    }
+
+    rerenderFunctionEnvironments(serverless, { resolveIntrinsics: resolve })
+
+    // The provider env object itself is resolved: the resolvable var stays and
+    // the unresolved cross-stack import is dropped (it must not survive as a
+    // raw CFN object that the invoke path would re-merge into the handler env).
+    const providerEnv = serverless.service.provider.environment
+    expect(providerEnv.REGION).toBe(FAKE_REGION)
+    expect('IMPORTED' in providerEnv).toBe(false)
+
+    // The resolved provider var still flows into the function env.
+    const fnEnv = serverless.service.functions.fn.environment
+    expect(fnEnv.REGION).toBe(FAKE_REGION)
+    expect(fnEnv.LOCAL).toBe('x')
+    expect('IMPORTED' in fnEnv).toBe(false)
+  })
+
+  it('keeps function-level value winning on collision after resolving provider env', () => {
+    const { resolveIntrinsics: resolve } = makeResolver()
+    const serverless = {
+      service: {
+        provider: {
+          environment: { SHARED: { Ref: 'AWS::Region' } },
+        },
+        functions: {
+          fn: { environment: { SHARED: 'function-value' } },
+        },
+      },
+    }
+
+    rerenderFunctionEnvironments(serverless, { resolveIntrinsics: resolve })
+
+    expect(serverless.service.functions.fn.environment.SHARED).toBe(
+      'function-value',
+    )
+  })
+
   it('does not mutate process.env', () => {
     const { resolveIntrinsics: resolve } = makeResolver()
     const before = process.env.OFFLINE_RERENDER_PROBE
