@@ -964,6 +964,7 @@ describe('buildHttpApiV2Event — requestContext.authorizer', () => {
       stage: 'dev',
       accountId: '000000000000',
       domainName: 'localhost:3000',
+      noAuth: overrides.noAuth ?? false,
     })
   }
 
@@ -974,6 +975,17 @@ describe('buildHttpApiV2Event — requestContext.authorizer', () => {
   it('omits authorizer when no credentials, no env, no header', () => {
     const event = buildEvent()
     expect(event.requestContext.authorizer).toBeUndefined()
+  })
+
+  it('defaults authorizer to an empty object under noAuth', () => {
+    const event = buildEvent({ noAuth: true })
+    expect(event.requestContext.authorizer).toEqual({})
+  })
+
+  it('env / header override still win over the noAuth default', () => {
+    process.env.AUTHORIZER = JSON.stringify({ from: 'env' })
+    const event = buildEvent({ noAuth: true })
+    expect(event.requestContext.authorizer).toEqual({ from: 'env' })
   })
 
   it('surfaces credentials.authorizer with jwt namespacing verbatim (built upstream)', () => {

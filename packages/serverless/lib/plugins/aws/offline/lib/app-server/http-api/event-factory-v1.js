@@ -61,17 +61,21 @@ function isBinaryContentType(contentType) {
  * event, applying the documented precedence:
  *
  *   1. `sls-offline-authorizer-override` request header (per-request).
- *   2. `process.env.AUTHORIZER` (process-wide).
- *   3. `request.auth.credentials.authorizer` (from the executed authorizer
+ *   2. `process.env.AUTHORIZER` (process-wide override a user may set).
+ *   3. `noAuth` mode default — an empty authorizer object `{}` so handlers
+ *      that read `requestContext.authorizer` still see a value when
+ *      authorizers are disabled.
+ *   4. `request.auth.credentials.authorizer` (from the executed authorizer
  *      Hapi scheme).
  *
  * Returns `undefined` when none apply — the event omits the field, matching
  * AWS API Gateway when no authorizer is attached to the route.
  *
  * @param {object} request
+ * @param {boolean} [noAuth=false]
  * @returns {object | undefined}
  */
-function resolveAuthorizer(request) {
+function resolveAuthorizer(request, noAuth = false) {
   const fromHeader = parseJsonSafe(
     request?.headers?.['sls-offline-authorizer-override'],
   )
@@ -79,6 +83,8 @@ function resolveAuthorizer(request) {
 
   const fromEnv = parseJsonSafe(process.env.AUTHORIZER)
   if (fromEnv) return fromEnv
+
+  if (noAuth) return {}
 
   const fromCredentials = request?.auth?.credentials?.authorizer
   if (fromCredentials && typeof fromCredentials === 'object') {
@@ -301,6 +307,11 @@ function headerDefaults(existingNames, body, isBase64Encoded) {
  *   The host and port string to populate `requestContext.domainName` and
  *   `requestContext.domainPrefix` (e.g. `'localhost:3000'`).
  *
+ * @param {boolean} [opts.noAuth]
+ *   When `true` (the `--noAuth` flag), authorizers are skipped and
+ *   `requestContext.authorizer` defaults to an empty object so handlers that
+ *   read it still observe a value.
+ *
  * @returns {object} APIGW HTTP API payload format 1.0 event object.
  */
 export function buildHttpApiV1Event({
@@ -308,6 +319,7 @@ export function buildHttpApiV1Event({
   route,
   accountId = FAKE_ACCOUNT_ID,
   domainName,
+  noAuth = false,
 }) {
   const httpMethod = request.method.toUpperCase()
   // path is reported verbatim: a trailing slash is preserved and
@@ -358,7 +370,7 @@ export function buildHttpApiV1Event({
   const userAgent = request.headers?.['user-agent'] ?? ''
   const sourceIp = request.info?.remoteAddress ?? '127.0.0.1'
 
-  const authorizer = resolveAuthorizer(request)
+  const authorizer = resolveAuthorizer(request, noAuth)
 
   return {
     version: '1.0',

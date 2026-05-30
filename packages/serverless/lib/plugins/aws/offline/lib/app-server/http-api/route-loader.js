@@ -210,11 +210,13 @@ export function registerHttpApiRoutes({
                   request,
                   route: routeMeta,
                   domainName,
+                  noAuth,
                 })
               : buildHttpApiV2Event({
                   request,
                   route: routeMeta,
                   domainName,
+                  noAuth,
                 })
             const result = await onRequest(functionKey, event)
             const response = formatLambdaProxyResponse(result, h, {

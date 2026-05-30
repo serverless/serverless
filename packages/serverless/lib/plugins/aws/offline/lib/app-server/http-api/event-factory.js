@@ -24,8 +24,11 @@ import { resolveRawPath } from '../shared/raw-path.js'
  * event, applying the documented precedence:
  *
  *   1. `sls-offline-authorizer-override` request header (per-request).
- *   2. `process.env.AUTHORIZER` (process-wide).
- *   3. `request.auth.credentials.authorizer` (from the executed authorizer
+ *   2. `process.env.AUTHORIZER` (process-wide override a user may set).
+ *   3. `noAuth` mode default — an empty authorizer object `{}` so handlers
+ *      that read `requestContext.authorizer` still see a value when
+ *      authorizers are disabled.
+ *   4. `request.auth.credentials.authorizer` (from the executed authorizer
  *      Hapi scheme).
  *
  * Header / env JSON values are emitted VERBATIM — no `.jwt` / `.lambda`
@@ -37,9 +40,10 @@ import { resolveRawPath } from '../shared/raw-path.js'
  * AWS API Gateway when no authorizer is attached to the route.
  *
  * @param {object} request
+ * @param {boolean} [noAuth=false]
  * @returns {object | undefined}
  */
-function resolveAuthorizer(request) {
+function resolveAuthorizer(request, noAuth = false) {
   const fromHeader = parseJsonSafe(
     request?.headers?.['sls-offline-authorizer-override'],
   )
@@ -47,6 +51,8 @@ function resolveAuthorizer(request) {
 
   const fromEnv = parseJsonSafe(process.env.AUTHORIZER)
   if (fromEnv) return fromEnv
+
+  if (noAuth) return {}
 
   const fromCredentials = request?.auth?.credentials?.authorizer
   if (fromCredentials && typeof fromCredentials === 'object') {
@@ -238,6 +244,11 @@ function parseQueryStringParameters(searchParams) {
  *   `requestContext.domainPrefix` (e.g. `'localhost:3000'`).  The route loader
  *   / app-server computes this from `host` + `appPort` and passes it in.
  *
+ * @param {boolean} [opts.noAuth]
+ *   When `true` (the `--noAuth` flag), authorizers are skipped and
+ *   `requestContext.authorizer` defaults to an empty object so handlers that
+ *   read it still observe a value.
+ *
  * @returns {object} APIGW HTTP API payload format 2.0 event object.
  */
 export function buildHttpApiV2Event({
@@ -245,6 +256,7 @@ export function buildHttpApiV2Event({
   route,
   accountId = FAKE_ACCOUNT_ID,
   domainName,
+  noAuth = false,
 }) {
   const method = request.method.toUpperCase()
   // The catch-all route reports the `$default` route key; every other route
@@ -361,7 +373,7 @@ export function buildHttpApiV2Event({
 
   injectHeaderDefaults(headers, body, isBase64Encoded)
 
-  const authorizer = resolveAuthorizer(request)
+  const authorizer = resolveAuthorizer(request, noAuth)
 
   /** @type {object} */
   const event = {
