@@ -298,6 +298,56 @@ describe('createRubyRunner — pool + idle eviction', () => {
   })
 })
 
+describe('createRubyRunner — concurrency', () => {
+  it('runs two concurrent invocations of the same function in parallel, each resolving its own result', async () => {
+    const fs = await import('node:fs/promises')
+    const os = await import('node:os')
+    const tmp = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'sls-offline-rb-concurrent-'),
+    )
+    // First invocation sleeps; the second returns immediately. With a single
+    // in-flight slot per function the first invocation's resolver is clobbered
+    // by the second and only ever settles via timeout — so it must run in its
+    // own sandbox for both to resolve with their own distinct echoed payload.
+    const fixture = path.join(tmp, 'delayed_echo.rb')
+    await fs.writeFile(
+      fixture,
+      [
+        'def handler(event:, context:)',
+        '  sleep event["delay"] if event["delay"]',
+        '  { id: event["id"] }',
+        'end',
+      ].join('\n') + '\n',
+    )
+
+    const r = createRubyRunner({ idleEvictionMs: 60_000 })
+    try {
+      const first = r.invoke({
+        functionKey: 'concurrent',
+        handlerPath: fixture,
+        handlerName: 'handler',
+        event: { id: 'first', delay: 0.5 },
+        context: {},
+      })
+      // Yield so the first invocation is in flight before the second starts.
+      await new Promise((res) => setTimeout(res, 50))
+      const second = r.invoke({
+        functionKey: 'concurrent',
+        handlerPath: fixture,
+        handlerName: 'handler',
+        event: { id: 'second' },
+        context: {},
+      })
+
+      const [firstResult, secondResult] = await Promise.all([first, second])
+      expect(firstResult).toEqual({ id: 'first' })
+      expect(secondResult).toEqual({ id: 'second' })
+    } finally {
+      await r.terminate()
+    }
+  })
+})
+
 describe('createRubyRunner — timeout', () => {
   it('rejects with OFFLINE_HANDLER_TIMEOUT when handler exceeds timeoutMs', async () => {
     const fs = await import('node:fs/promises')

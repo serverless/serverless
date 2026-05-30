@@ -6,13 +6,16 @@ import { log } from '@serverless/util'
 
 import { buildLambdaRuntimeEnv } from './lambda-env.js'
 import { createUtf8Decoder } from './utf8-decoder.js'
+import {
+  DEFAULT_TERMINATE_IDLE_LAMBDA_TIME,
+  DEFAULT_MAX_CONCURRENT_INVOCATIONS,
+} from '../constants.js'
 import ServerlessError from '../../../../../serverless-error.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const WRAPPER = path.resolve(__dirname, 'wrappers/ruby/invoke.rb')
 const ENVELOPE_KEY = '__offline_payload__'
-const DEFAULT_IDLE_EVICTION_MS = 60_000
 
 const logger = log.get('sls:offline:ruby')
 
@@ -35,17 +38,24 @@ const logger = log.get('sls:offline:ruby')
  */
 
 /**
- * Ruby child-process Lambda runner. Maintains a pool of long-lived `ruby`
- * processes keyed by functionKey — one child per key, reused across
- * invocations so module-level Ruby state (global $vars, cached requires,
- * connection pools) survives between requests. Mirrors the Python runner's
- * pool semantics one-for-one; the only protocol differences are language
- * (no `-u` flag — the wrapper `$stdout.flush`es explicitly) and file
- * extension (`.rb` vs `.py`).
+ * Ruby child-process Lambda runner. Keeps a pool of long-lived `ruby`
+ * processes keyed by functionKey, reused across invocations so module-level
+ * Ruby state (global $vars, cached requires, connection pools) survives
+ * between requests. Mirrors the Python runner's pool semantics one-for-one;
+ * the only protocol differences are language (no `-u` flag — the wrapper
+ * `$stdout.flush`es explicitly) and file extension (`.rb` vs `.py`).
  *
- * Idle eviction: `idleEvictionMs` milliseconds after the last invoke
- * settles, the child is killed and removed from the pool; the next
- * invoke on that key spawns fresh. Set to 0 or a negative number to
+ * Concurrent invocations on the same functionKey run in parallel — each gets
+ * its own child process (or reuses an idle one). A single child handles one
+ * invocation at a time (its stdin/stdout protocol is sequential), so the pool
+ * holds a Set of children per key and grows on demand up to
+ * `maxConcurrentInvocations`; beyond that, new invocations wait for a slot to
+ * free up. This matches real Lambda's per-execution-environment model, where
+ * concurrent requests are served by separate sandboxes.
+ *
+ * Idle eviction: `idleEvictionMs` milliseconds after an invoke settles on a
+ * given child, that child is killed and removed from the pool; the next
+ * invoke that needs it spawns fresh. Set to 0 or a negative number to
  * disable eviction (children live until terminate()/invalidate()).
  *
  * The wrapper (lib/runners/wrappers/ruby/invoke.rb) reads one JSON event
@@ -63,6 +73,8 @@ const logger = log.get('sls:offline:ruby')
  *   Pass <= 0 to disable eviction. Milliseconds — unit is explicit in the
  *   name to disambiguate from the user-facing `terminateIdleLambdaTime`
  *   which is in seconds.
+ * @param {number} [options.maxConcurrentInvocations]  Max concurrent children
+ *   per functionKey (default: 100).
  * @returns {{
  *   invoke(args: object): Promise<unknown>,
  *   invalidate(functionKey: string): void,
@@ -70,28 +82,70 @@ const logger = log.get('sls:offline:ruby')
  * }}
  */
 export function createRubyRunner({
-  idleEvictionMs = DEFAULT_IDLE_EVICTION_MS,
+  idleEvictionMs = DEFAULT_TERMINATE_IDLE_LAMBDA_TIME * 1000,
+  maxConcurrentInvocations = DEFAULT_MAX_CONCURRENT_INVOCATIONS,
 } = {}) {
-  /** @type {Map<string, PoolEntry>} */
+  /**
+   * Pool of warm children, keyed by functionKey. Each value is a Set of
+   * PoolEntry objects — a function can have several concurrent children, one
+   * per in-flight invocation, up to maxConcurrentInvocations.
+   *
+   * @type {Map<string, Set<PoolEntry>>}
+   */
   const pool = new Map()
 
   /**
-   * Spawn a fresh Ruby child and wire all event handlers.
+   * Invocations blocked at the concurrency cap for a given functionKey.
+   * Each entry: { resolve: () => void }
+   *
+   * @type {Map<string, Array<{ resolve: () => void }>>}
+   */
+  const capWaiters = new Map()
+
+  /**
+   * Wake one cap-level waiter for a functionKey (a slot just freed up).
+   *
+   * @param {string} functionKey
+   */
+  function _wakeCapWaiter(functionKey) {
+    const waiters = capWaiters.get(functionKey)
+    if (waiters && waiters.length > 0) {
+      waiters.shift().resolve()
+    }
+  }
+
+  /**
+   * Remove an entry from its functionKey's set, dropping the set from the
+   * pool when it becomes empty.
+   *
+   * @param {string} functionKey
+   * @param {PoolEntry} entry
+   */
+  function _removeFromPool(functionKey, entry) {
+    const set = pool.get(functionKey)
+    if (!set) return
+    set.delete(entry)
+    if (set.size === 0) pool.delete(functionKey)
+  }
+
+  /**
+   * Spawn a fresh Ruby child and wire all event handlers. The new entry is
+   * added to the functionKey's set immediately so the concurrency cap is
+   * enforced correctly while the child boots.
    *
    * The wrapper does `require("./#{handler_path}")` — Ruby's `require`
    * is relative to the current working directory, so spawn the child
    * with cwd = the handler's directory and pass just the basename
-   * (no .rb extension). Mirrors the M5b Python cwd+basename pattern.
+   * (no .rb extension).
    *
    * @param {string} functionKey
    * @param {string} handlerPath
    * @param {string} handlerName
    * @param {Record<string, string>} env  Merged with process.env for the child.
-   *   T7 will populate this with the AWS_LAMBDA_* runtime block + user env;
-   *   T6 passes `{}` so the wiring is in place for that follow-up patch.
+   * @param {Set<PoolEntry>} set  The set to add this entry to.
    * @returns {PoolEntry}
    */
-  function _spawn(functionKey, handlerPath, handlerName, env) {
+  function _spawn(functionKey, handlerPath, handlerName, env, set) {
     const handlerDir = path.dirname(handlerPath)
     const handlerModule = path.basename(handlerPath).replace(/\.rb$/, '')
 
@@ -116,14 +170,12 @@ export function createRubyRunner({
       exited: null,
     }
 
+    set.add(entry)
+
     entry.exited = new Promise((resolveExit) => {
       child.once('exit', (code) => {
-        // Drop this entry from the pool (only if it's still the one
-        // registered — invalidate()/terminate() may have replaced or
-        // removed it already).
-        if (pool.get(functionKey) === entry) {
-          pool.delete(functionKey)
-        }
+        // Drop this entry from the pool and free up its concurrency slot.
+        _removeFromPool(functionKey, entry)
         _clearEviction(entry)
         // Disarm the timeout timer if it's still pending — without this,
         // a slow handler that crashes BEFORE its timeoutMs would leave a
@@ -142,9 +194,8 @@ export function createRubyRunner({
 
         // If an invocation was in flight, reject it. The 'terminate'
         // branch produces ServerlessError(OFFLINE_WORKER_TERMINATED) to
-        // match the worker-thread runner's M5a fix. Other paths fall
-        // through to the generic diagnostic (pre-pool T4 message) with
-        // any buffered stderr.
+        // match the worker-thread runner. Other paths fall through to the
+        // generic diagnostic with any buffered stderr.
         if (entry.pending !== null) {
           const { reject } = entry.pending
           entry.pending = null
@@ -168,6 +219,8 @@ export function createRubyRunner({
         }
 
         entry.state = 'terminating'
+        // The set shrank — a blocked invocation can now claim a slot.
+        _wakeCapWaiter(functionKey)
         resolveExit()
       })
     })
@@ -204,6 +257,8 @@ export function createRubyRunner({
         entry.state = 'idle'
         resolve(parsed[ENVELOPE_KEY])
         _scheduleEviction(functionKey, entry)
+        // The child is idle again — let a blocked invocation reuse it.
+        _wakeCapWaiter(functionKey)
         return
       }
       // JSON-but-not-our-envelope: treat as handler log output.
@@ -233,10 +288,9 @@ export function createRubyRunner({
         reject(err)
       }
       entry.state = 'terminating'
-      if (pool.get(functionKey) === entry) {
-        pool.delete(functionKey)
-      }
+      _removeFromPool(functionKey, entry)
       _clearEviction(entry)
+      _wakeCapWaiter(functionKey)
       try {
         child.kill()
       } catch {
@@ -269,9 +323,7 @@ export function createRubyRunner({
       entry.idleTimer = null
       if (entry.state !== 'idle') return
       entry.state = 'terminating'
-      if (pool.get(functionKey) === entry) {
-        pool.delete(functionKey)
-      }
+      _removeFromPool(functionKey, entry)
       try {
         entry.child.kill()
       } catch {
@@ -294,6 +346,13 @@ export function createRubyRunner({
 
   return {
     /**
+     * Invoke a Ruby handler in a pooled child process.
+     *
+     * Concurrent invocations on the same `functionKey` run in parallel — each
+     * gets its own child (or reuses an idle one), up to
+     * `maxConcurrentInvocations`. Beyond that, the invocation waits for a slot
+     * to free up. This matches real Lambda's per-execution-environment model.
+     *
      * @param {object} args
      * @param {string} args.functionKey
      * @param {string} args.handlerPath  Absolute path to the .rb file.
@@ -301,10 +360,13 @@ export function createRubyRunner({
      *   `Module::Class.method` form — the wrapper resolves both.
      * @param {unknown} args.event
      * @param {object} args.context
-     * @param {number} [args.timeoutMs]  Translated to seconds (`timeout`)
-     *   for the wrapper's `get_remaining_time_in_millis`. T8 will add
-     *   actual timeout enforcement on the JS side; today the value is only
-     *   passed through so handlers reading it see something sensible.
+     * @param {Record<string, string>} [args.environment]  User-level env vars
+     *   merged ON TOP of the AWS_LAMBDA_* runtime block at spawn time.
+     * @param {number} [args.timeoutMs]  When set, the invoke is raced against
+     *   a setTimeout — on expiry the child is killed, the pool entry dropped,
+     *   and the promise rejects with ServerlessError(OFFLINE_HANDLER_TIMEOUT).
+     *   Also translated to seconds (`timeout`) for the wrapper's
+     *   get_remaining_time_in_millis.
      * @returns {Promise<unknown>}
      */
     async invoke({
@@ -316,116 +378,158 @@ export function createRubyRunner({
       environment,
       timeoutMs,
     }) {
-      let entry = pool.get(functionKey)
-      if (!entry || entry.state === 'terminating') {
-        // Env captured at spawn time and stable for the child's lifetime —
-        // matches real Lambda's per-execution-env model. Per-key isolation
-        // means each function gets its own snapshot of the runtime block +
-        // user env.
-        const region = context?.region ?? process.env.AWS_REGION ?? 'us-east-1'
-        const functionName = context?.functionName
-        const memoryLimitInMB = String(context?.memoryLimitInMB ?? 1024)
-        const logGroupName =
-          context?.logGroupName ?? `/aws/lambda/${functionName}`
-        const logStreamName = context?.logStreamName ?? ''
-        const lambdaEnv = buildLambdaRuntimeEnv({
-          functionName,
-          memoryLimitInMB,
-          invokedFunctionArn: context?.invokedFunctionArn,
-          logGroupName,
-          logStreamName,
-          handler: context?.handler,
-          region,
-          isOffline: context?.isOffline,
-          endpointUrl: context?.endpointUrl,
-          accessKeyId: context?.accessKeyId,
-          secretAccessKey: context?.secretAccessKey,
-          authorizer: context?.authorizer,
-        })
-        entry = _spawn(functionKey, handlerPath, handlerName, {
-          ...lambdaEnv,
-          ...(environment ?? {}),
-        })
-        pool.set(functionKey, entry)
-      }
-      _clearEviction(entry)
-      entry.state = 'busy'
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        let set = pool.get(functionKey)
+        if (!set) {
+          set = new Set()
+          pool.set(functionKey, set)
+        }
 
-      // Translate the JS-side context to the camelCase keys the wrapper's
-      // FakeLambdaContext reads. The wrapper already accepts camelCase
-      // verbatim, so the only field that needs adapting is the
-      // user-facing `timeoutMs` (milliseconds) → wrapper-side `timeout`
-      // (seconds, used by get_remaining_time_in_millis).
-      const wrapperContext = {
-        ...context,
-        ...(timeoutMs != null ? { timeout: timeoutMs / 1000 } : {}),
-      }
+        // Find an existing idle child to reuse.
+        let entry = null
+        for (const e of set) {
+          if (e.state === 'idle') {
+            entry = e
+            break
+          }
+        }
 
-      return new Promise((resolve, reject) => {
-        entry.pending = { resolve, reject }
-        if (timeoutMs != null) {
-          entry.pendingTimeout = setTimeout(() => {
-            entry.pendingTimeout = null
-            entry.pending = null
-            entry.state = 'terminating'
-            if (pool.get(functionKey) === entry) pool.delete(functionKey)
-            try {
-              entry.child.kill()
-            } catch {
-              // ignore
+        // No idle child — honour the concurrency cap before spawning a new one.
+        if (!entry && set.size >= maxConcurrentInvocations) {
+          await new Promise((resolve) => {
+            let waiters = capWaiters.get(functionKey)
+            if (!waiters) {
+              waiters = []
+              capWaiters.set(functionKey, waiters)
             }
-            reject(
-              new ServerlessError(
-                `Task timed out after ${(timeoutMs / 1000).toFixed(2)} seconds`,
-                'OFFLINE_HANDLER_TIMEOUT',
-              ),
-            )
-          }, timeoutMs)
+            waiters.push({ resolve })
+          })
+          // Re-evaluate from the top: an idle child may now be available, or a
+          // slot may have freed up so we can spawn.
+          continue
         }
-        try {
-          entry.child.stdin.write(
-            JSON.stringify({ event, context: wrapperContext }),
+
+        if (!entry) {
+          // Env captured at spawn time and stable for the child's lifetime —
+          // matches real Lambda's per-execution-env model. Per-key isolation
+          // means each function gets its own snapshot of the runtime block +
+          // user env.
+          const region =
+            context?.region ?? process.env.AWS_REGION ?? 'us-east-1'
+          const functionName = context?.functionName
+          const memoryLimitInMB = String(context?.memoryLimitInMB ?? 1024)
+          const logGroupName =
+            context?.logGroupName ?? `/aws/lambda/${functionName}`
+          const logStreamName = context?.logStreamName ?? ''
+          const lambdaEnv = buildLambdaRuntimeEnv({
+            functionName,
+            memoryLimitInMB,
+            invokedFunctionArn: context?.invokedFunctionArn,
+            logGroupName,
+            logStreamName,
+            handler: context?.handler,
+            region,
+            isOffline: context?.isOffline,
+            endpointUrl: context?.endpointUrl,
+            accessKeyId: context?.accessKeyId,
+            secretAccessKey: context?.secretAccessKey,
+            authorizer: context?.authorizer,
+          })
+          entry = _spawn(
+            functionKey,
+            handlerPath,
+            handlerName,
+            { ...lambdaEnv, ...(environment ?? {}) },
+            set,
           )
-          entry.child.stdin.write('\n')
-        } catch (err) {
-          // Synchronous write failure (e.g. child already dead) — reject
-          // and let the stdin/error handlers do their cleanup.
-          if (entry.pendingTimeout !== null) {
-            clearTimeout(entry.pendingTimeout)
-            entry.pendingTimeout = null
-          }
-          if (entry.pending !== null) {
-            entry.pending = null
-            reject(err)
-          }
         }
-      })
+
+        _clearEviction(entry)
+        entry.state = 'busy'
+
+        // Translate the JS-side context to the camelCase keys the wrapper's
+        // FakeLambdaContext reads. The wrapper already accepts camelCase
+        // verbatim, so the only field that needs adapting is the
+        // user-facing `timeoutMs` (milliseconds) → wrapper-side `timeout`
+        // (seconds, used by get_remaining_time_in_millis).
+        const wrapperContext = {
+          ...context,
+          ...(timeoutMs != null ? { timeout: timeoutMs / 1000 } : {}),
+        }
+
+        return new Promise((resolve, reject) => {
+          entry.pending = { resolve, reject }
+          if (timeoutMs != null) {
+            entry.pendingTimeout = setTimeout(() => {
+              entry.pendingTimeout = null
+              entry.pending = null
+              entry.state = 'terminating'
+              _removeFromPool(functionKey, entry)
+              _wakeCapWaiter(functionKey)
+              try {
+                entry.child.kill()
+              } catch {
+                // ignore
+              }
+              reject(
+                new ServerlessError(
+                  `Task timed out after ${(timeoutMs / 1000).toFixed(2)} seconds`,
+                  'OFFLINE_HANDLER_TIMEOUT',
+                ),
+              )
+            }, timeoutMs)
+          }
+          try {
+            entry.child.stdin.write(
+              JSON.stringify({ event, context: wrapperContext }),
+            )
+            entry.child.stdin.write('\n')
+          } catch (err) {
+            // Synchronous write failure (e.g. child already dead) — reject
+            // and let the stdin/error handlers do their cleanup.
+            if (entry.pendingTimeout !== null) {
+              clearTimeout(entry.pendingTimeout)
+              entry.pendingTimeout = null
+            }
+            if (entry.pending !== null) {
+              entry.pending = null
+              reject(err)
+            }
+          }
+        })
+      }
     },
 
     /**
-     * Kill the child for a single functionKey and drop it from the pool.
+     * Kill every child for a single functionKey and drop them from the pool.
      * A subsequent invoke on the same key spawns fresh.
      *
      * @param {string} functionKey
      */
     invalidate(functionKey) {
-      const entry = pool.get(functionKey)
-      if (!entry) return
-      entry.cancelReason = 'invalidate'
+      const set = pool.get(functionKey)
+      if (!set) return
       pool.delete(functionKey)
-      _clearEviction(entry)
-      // Symmetric with terminate(): clear any armed timeout so it can't fire
-      // after we've killed the child and rejected the pending invoke.
-      if (entry.pendingTimeout !== null) {
-        clearTimeout(entry.pendingTimeout)
-        entry.pendingTimeout = null
+      for (const entry of set) {
+        entry.cancelReason = 'invalidate'
+        _clearEviction(entry)
+        // Symmetric with terminate(): clear any armed timeout so it can't fire
+        // after we've killed the child and rejected the pending invoke.
+        if (entry.pendingTimeout !== null) {
+          clearTimeout(entry.pendingTimeout)
+          entry.pendingTimeout = null
+        }
+        entry.state = 'terminating'
+        try {
+          entry.child.kill()
+        } catch {
+          // ignore
+        }
       }
-      entry.state = 'terminating'
-      try {
-        entry.child.kill()
-      } catch {
-        // ignore
-      }
+      // Wake any waiters so their invoke() can spawn fresh against the now-
+      // empty key.
+      _wakeCapWaiter(functionKey)
     },
 
     /**
@@ -435,25 +539,33 @@ export function createRubyRunner({
      */
     async terminate() {
       const exits = []
-      for (const entry of pool.values()) {
-        entry.cancelReason = 'terminate'
-        entry.state = 'terminating'
-        _clearEviction(entry)
-        // Clear any in-flight timeout timer so it can't fire after the
-        // kill and produce a stray OFFLINE_HANDLER_TIMEOUT alongside the
-        // terminate rejection.
-        if (entry.pendingTimeout !== null) {
-          clearTimeout(entry.pendingTimeout)
-          entry.pendingTimeout = null
-        }
-        exits.push(entry.exited)
-        try {
-          entry.child.kill()
-        } catch {
-          // ignore
+      for (const set of pool.values()) {
+        for (const entry of set) {
+          entry.cancelReason = 'terminate'
+          entry.state = 'terminating'
+          _clearEviction(entry)
+          // Clear any in-flight timeout timer so it can't fire after the
+          // kill and produce a stray OFFLINE_HANDLER_TIMEOUT alongside the
+          // terminate rejection.
+          if (entry.pendingTimeout !== null) {
+            clearTimeout(entry.pendingTimeout)
+            entry.pendingTimeout = null
+          }
+          exits.push(entry.exited)
+          try {
+            entry.child.kill()
+          } catch {
+            // ignore
+          }
         }
       }
       pool.clear()
+      // Wake all cap-waiters so their blocked invoke() calls can retry against
+      // the now-empty pool.
+      for (const [, waiters] of capWaiters) {
+        while (waiters.length) waiters.shift().resolve()
+      }
+      capWaiters.clear()
       await Promise.all(exits)
     },
   }
