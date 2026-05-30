@@ -60,7 +60,7 @@ function buildRequestContext({
   apiId,
   authorizer,
   connectedAt,
-  messageId = null,
+  messageId,
 }) {
   const now = Date.now()
   // Compose `domainName` from the Host header but fall back to the
@@ -108,7 +108,9 @@ function buildRequestContext({
       userArn: null,
     },
     messageDirection: 'IN',
-    messageId,
+    // Real API Gateway sets messageId only on MESSAGE events; the key is
+    // absent on $connect / $disconnect.
+    ...(messageId != null ? { messageId } : {}),
     requestId: crypto.randomUUID(),
     requestTime: formatClfTime(new Date(now)),
     requestTimeEpoch: now,

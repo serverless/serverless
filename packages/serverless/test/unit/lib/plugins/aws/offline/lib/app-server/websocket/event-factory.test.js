@@ -416,17 +416,17 @@ describe('connectedAt + messageId across event types', () => {
     expect(event.requestContext.messageId).toMatch(/^[0-9a-f-]{36}$/)
   })
 
-  it('buildConnectEvent emits messageId=null', () => {
+  it('buildConnectEvent omits the messageId key', () => {
     const event = buildConnectEvent({
       connectionId: 'c-1',
       request: makeRequest(),
       stage: 'dev',
       apiId: 'private',
     })
-    expect(event.requestContext.messageId).toBeNull()
+    expect('messageId' in event.requestContext).toBe(false)
   })
 
-  it('buildDisconnectEvent uses the supplied connectedAt and emits messageId=null', () => {
+  it('buildDisconnectEvent uses the supplied connectedAt and omits the messageId key', () => {
     const event = buildDisconnectEvent({
       connectionId: 'c-1',
       request: makeRequest(),
@@ -435,6 +435,6 @@ describe('connectedAt + messageId across event types', () => {
       connectedAt: 1700000000000,
     })
     expect(event.requestContext.connectedAt).toBe(1700000000000)
-    expect(event.requestContext.messageId).toBeNull()
+    expect('messageId' in event.requestContext).toBe(false)
   })
 })
