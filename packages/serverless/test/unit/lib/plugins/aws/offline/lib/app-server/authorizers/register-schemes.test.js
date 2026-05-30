@@ -163,6 +163,35 @@ describe('registerAuthSchemes', () => {
       warnSpy.mockRestore()
     }
   })
+
+  it('warns that a rest route using iam authorization is unauthenticated locally', () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      const result = registerAuthSchemes({
+        server,
+        serverless: makeServerless({
+          a: {
+            events: [
+              { http: { method: 'GET', path: '/a', authorizer: 'aws_iam' } },
+            ],
+          },
+        }),
+        lambdas: makeLambdas({}),
+        stage: 'dev',
+        accountId: '000000000000',
+      })
+      expect(result.authorizerStrategies.size).toBe(0)
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/unauthenticated locally/),
+      )
+      expect(warnSpy).not.toHaveBeenCalledWith(
+        expect.stringMatching(/unknown function/),
+      )
+    } finally {
+      warnSpy.mockRestore()
+    }
+  })
 })
 
 describe('registerAuthSchemes — HTTP API v2', () => {

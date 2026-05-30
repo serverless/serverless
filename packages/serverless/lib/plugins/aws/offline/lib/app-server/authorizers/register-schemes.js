@@ -77,12 +77,27 @@ export function registerAuthSchemes({
 
   let anyPrivate = false
   const uniqueAuthorizers = new Map()
+  const iamWarned = new Set() // dedupe the aws_iam unauthenticated warning
 
-  for (const [, fn] of Object.entries(functions)) {
+  for (const [functionKey, fn] of Object.entries(functions)) {
     for (const eventEntry of fn?.events ?? []) {
       const http = eventEntry?.http
       if (!http || typeof http !== 'object') continue
       if (http.private === true) anyPrivate = true
+      // `authorizer: aws_iam` requests SigV4 (IAM) authorization, which is not
+      // emulated locally — the route runs unauthenticated. Warn once per
+      // function so it is not mistaken for a Lambda authorizer named aws_iam.
+      if (isIamAuthorizer(http.authorizer)) {
+        if (!iamWarned.has(functionKey)) {
+          // eslint-disable-next-line no-console
+          console.warn(
+            `[offline] Function "${functionKey}" uses aws_iam authorization, ` +
+              `which is not emulated; the route is unauthenticated locally.`,
+          )
+          iamWarned.add(functionKey)
+        }
+        continue
+      }
       const authorizer = normalizeAuthorizerRef(http.authorizer)
       if (authorizer && !uniqueAuthorizers.has(authorizer.name)) {
         uniqueAuthorizers.set(authorizer.name, authorizer)
@@ -256,6 +271,16 @@ export function registerAuthSchemes({
     authorizerStrategies,
     v2AuthorizerStrategies,
   }
+}
+
+function isIamAuthorizer(authorizer) {
+  if (typeof authorizer === 'string') {
+    return authorizer.toLowerCase() === 'aws_iam'
+  }
+  if (authorizer && typeof authorizer === 'object') {
+    return String(authorizer.type ?? '').toLowerCase() === 'aws_iam'
+  }
+  return false
 }
 
 function normalizeAuthorizerRef(authorizer) {
