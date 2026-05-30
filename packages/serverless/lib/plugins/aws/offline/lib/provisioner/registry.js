@@ -71,3 +71,148 @@ export function getSqsQueue(registry, logicalId) {
 export function allSqsQueues(registry) {
   return registry.sqs.values()
 }
+
+/**
+ * Stores a record in the given service Map keyed by its `logicalId`. An existing
+ * entry with the same id is overwritten so the registry always reflects the most
+ * recent provisioning state.
+ *
+ * @param {Map<string, object>} map - The per-service Map to mutate.
+ * @param {{ logicalId: string }} record - The record to store.
+ * @returns {void}
+ */
+function registerRecord(map, record) {
+  map.set(record.logicalId, record)
+}
+
+/**
+ * Registers (or overwrites) an SNS topic record. Record shape:
+ * `{ logicalId, name, arn }`.
+ *
+ * @param {ReturnType<typeof createRegistry>} registry
+ * @param {{ logicalId: string, name: string, arn: string }} record
+ * @returns {void}
+ */
+export function registerSnsTopic(registry, record) {
+  registerRecord(registry.sns, record)
+}
+
+/**
+ * Retrieves an SNS topic record by logical ID.
+ *
+ * @param {ReturnType<typeof createRegistry>} registry
+ * @param {string} logicalId
+ * @returns {object | undefined}
+ */
+export function getSnsTopic(registry, logicalId) {
+  return registry.sns.get(logicalId)
+}
+
+/**
+ * Returns an iterable of all SNS topic records.
+ *
+ * @param {ReturnType<typeof createRegistry>} registry
+ * @returns {Iterable<object>}
+ */
+export function allSnsTopics(registry) {
+  return registry.sns.values()
+}
+
+/**
+ * Registers (or overwrites) an S3 bucket record. Record shape:
+ * `{ logicalId, name, arn, properties }`.
+ *
+ * @param {ReturnType<typeof createRegistry>} registry
+ * @param {{ logicalId: string, name: string, arn: string, properties: object }} record
+ * @returns {void}
+ */
+export function registerS3Bucket(registry, record) {
+  registerRecord(registry.s3, record)
+}
+
+/**
+ * Retrieves an S3 bucket record by logical ID.
+ *
+ * @param {ReturnType<typeof createRegistry>} registry
+ * @param {string} logicalId
+ * @returns {object | undefined}
+ */
+export function getS3Bucket(registry, logicalId) {
+  return registry.s3.get(logicalId)
+}
+
+/**
+ * Returns an iterable of all S3 bucket records.
+ *
+ * @param {ReturnType<typeof createRegistry>} registry
+ * @returns {Iterable<object>}
+ */
+export function allS3Buckets(registry) {
+  return registry.s3.values()
+}
+
+/**
+ * Registers (or overwrites) an EventBridge resource record (bus or rule).
+ * Record shape: `{ logicalId, name, arn, kind: 'bus' | 'rule', properties }`.
+ *
+ * @param {ReturnType<typeof createRegistry>} registry
+ * @param {{ logicalId: string, name: string, arn: string, kind: string, properties: object }} record
+ * @returns {void}
+ */
+export function registerEventResource(registry, record) {
+  registerRecord(registry.events, record)
+}
+
+/**
+ * Retrieves an EventBridge resource record by logical ID.
+ *
+ * @param {ReturnType<typeof createRegistry>} registry
+ * @param {string} logicalId
+ * @returns {object | undefined}
+ */
+export function getEventResource(registry, logicalId) {
+  return registry.events.get(logicalId)
+}
+
+/**
+ * Returns an iterable of all EventBridge resource records.
+ *
+ * @param {ReturnType<typeof createRegistry>} registry
+ * @returns {Iterable<object>}
+ */
+export function allEventResources(registry) {
+  return registry.events.values()
+}
+
+/**
+ * Registers (or overwrites) a Lambda function identity record. Record shape:
+ * `{ logicalId, functionKey, name, arn }`.
+ *
+ * @param {ReturnType<typeof createRegistry>} registry
+ * @param {{ logicalId: string, functionKey: string, name: string, arn: string }} record
+ * @returns {void}
+ */
+export function registerLambda(registry, record) {
+  registerRecord(registry.lambda, record)
+}
+
+/**
+ * Retrieves a Lambda function identity record by logical ID.
+ *
+ * @param {ReturnType<typeof createRegistry>} registry
+ * @param {string} logicalId
+ * @returns {object | undefined}
+ */
+export function getLambda(registry, logicalId) {
+  return registry.lambda.get(logicalId)
+}
+
+/**
+ * Returns an iterable of all Lambda function identity records.
+ *
+ * @param {ReturnType<typeof createRegistry>} registry
+ * @returns {Iterable<object>}
+ */
+export function allLambdas(registry) {
+  return registry.lambda.values()
+}

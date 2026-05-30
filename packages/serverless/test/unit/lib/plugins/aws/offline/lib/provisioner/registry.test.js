@@ -3,6 +3,18 @@ import {
   registerSqsQueue,
   getSqsQueue,
   allSqsQueues,
+  registerSnsTopic,
+  getSnsTopic,
+  allSnsTopics,
+  registerS3Bucket,
+  getS3Bucket,
+  allS3Buckets,
+  registerEventResource,
+  getEventResource,
+  allEventResources,
+  registerLambda,
+  getLambda,
+  allLambdas,
 } from '../../../../../../../../lib/plugins/aws/offline/lib/provisioner/registry.js'
 
 const QUEUE_RECORD = {
@@ -93,5 +105,102 @@ describe('allSqsQueues', () => {
     expect(records).toHaveLength(2)
     expect(records).toContain(a)
     expect(records).toContain(b)
+  })
+})
+
+describe('SNS topic helpers', () => {
+  const record = {
+    logicalId: 'T',
+    name: 'orders',
+    arn: 'arn:aws:sns:us-east-1:000000000000:orders',
+  }
+
+  it('registers, retrieves, and iterates topic records', () => {
+    const reg = createRegistry()
+    registerSnsTopic(reg, record)
+    expect(getSnsTopic(reg, 'T')).toBe(record)
+    expect([...allSnsTopics(reg)]).toEqual([record])
+  })
+
+  it('overwrites an existing topic with the same logical id', () => {
+    const reg = createRegistry()
+    registerSnsTopic(reg, { ...record, arn: 'first' })
+    registerSnsTopic(reg, { ...record, arn: 'second' })
+    expect(reg.sns.size).toBe(1)
+    expect(getSnsTopic(reg, 'T').arn).toBe('second')
+  })
+
+  it('returns undefined for an unknown topic', () => {
+    expect(getSnsTopic(createRegistry(), 'Nope')).toBeUndefined()
+  })
+})
+
+describe('S3 bucket helpers', () => {
+  const record = {
+    logicalId: 'B',
+    name: 'b',
+    arn: 'arn:aws:s3:::b',
+    properties: {},
+  }
+
+  it('registers, retrieves, and iterates bucket records', () => {
+    const reg = createRegistry()
+    registerS3Bucket(reg, record)
+    expect(getS3Bucket(reg, 'B')).toBe(record)
+    expect([...allS3Buckets(reg)]).toEqual([record])
+  })
+
+  it('returns undefined for an unknown bucket', () => {
+    expect(getS3Bucket(createRegistry(), 'Nope')).toBeUndefined()
+  })
+})
+
+describe('EventBridge resource helpers', () => {
+  const bus = {
+    logicalId: 'Bus',
+    name: 'Bus',
+    arn: 'arn:aws:events:us-east-1:000000000000:event-bus/Bus',
+    kind: 'bus',
+    properties: {},
+  }
+  const rule = {
+    logicalId: 'Rule',
+    name: 'Rule',
+    arn: 'arn:aws:events:us-east-1:000000000000:rule/Rule',
+    kind: 'rule',
+    properties: {},
+  }
+
+  it('registers, retrieves, and iterates bus and rule records', () => {
+    const reg = createRegistry()
+    registerEventResource(reg, bus)
+    registerEventResource(reg, rule)
+    expect(getEventResource(reg, 'Bus')).toBe(bus)
+    expect(getEventResource(reg, 'Rule')).toBe(rule)
+    expect([...allEventResources(reg)]).toHaveLength(2)
+  })
+
+  it('returns undefined for an unknown event resource', () => {
+    expect(getEventResource(createRegistry(), 'Nope')).toBeUndefined()
+  })
+})
+
+describe('Lambda identity helpers', () => {
+  const record = {
+    logicalId: 'FnLambdaFunction',
+    functionKey: 'fn',
+    name: 'svc-dev-fn',
+    arn: 'arn:aws:lambda:us-east-1:000000000000:function:svc-dev-fn',
+  }
+
+  it('registers, retrieves, and iterates lambda identity records', () => {
+    const reg = createRegistry()
+    registerLambda(reg, record)
+    expect(getLambda(reg, 'FnLambdaFunction')).toBe(record)
+    expect([...allLambdas(reg)]).toEqual([record])
+  })
+
+  it('returns undefined for an unknown lambda', () => {
+    expect(getLambda(createRegistry(), 'Nope')).toBeUndefined()
   })
 })
