@@ -240,8 +240,8 @@ export function registerHttpApiRoutes({
           } catch (err) {
             logHandlerError(serverless, functionKey, err)
             const errResponse = h
-              .response(JSON.stringify({ message: 'Internal server error' }))
-              .code(502)
+              .response(JSON.stringify({ message: 'Internal Server Error' }))
+              .code(500)
               .type('application/json')
             // Gateway-level CORS applies to every response, errors included.
             if (httpApiCorsConfig) {

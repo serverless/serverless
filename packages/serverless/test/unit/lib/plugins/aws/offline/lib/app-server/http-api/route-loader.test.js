@@ -558,10 +558,10 @@ it('17. null return → 200 with empty body', async () => {
 })
 
 // ---------------------------------------------------------------------------
-// 18. onRequest throws → 502 Internal server error (matches real APIGW)
+// 18. onRequest throws → 500 Internal Server Error (matches real APIGW HTTP API)
 // ---------------------------------------------------------------------------
 
-it('18. onRequest throws → response 502 with {"message":"Internal server error"}', async () => {
+it('18. onRequest throws → response 500 with {"message":"Internal Server Error"}', async () => {
   const server = await makeServer()
   const onRequest = jest.fn().mockRejectedValue(new Error('boom'))
 
@@ -578,9 +578,9 @@ it('18. onRequest throws → response 502 with {"message":"Internal server error
   await server.start()
   try {
     const res = await server.inject({ method: 'GET', url: '/boom' })
-    expect(res.statusCode).toBe(502)
+    expect(res.statusCode).toBe(500)
     const body = JSON.parse(res.payload)
-    expect(body.message).toBe('Internal server error')
+    expect(body.message).toBe('Internal Server Error')
   } finally {
     await server.stop({ timeout: 5000 })
   }
@@ -1144,7 +1144,7 @@ describe('registerHttpApiRoutes — provider.httpApi.cors', () => {
     }
   })
 
-  it('cors-enabled API: a cross-origin handler error (502) carries Access-Control-Allow-Origin', async () => {
+  it('cors-enabled API: a cross-origin handler error (500) carries Access-Control-Allow-Origin', async () => {
     const server = await makeServer()
     registerHttpApiRoutes({
       server,
@@ -1170,7 +1170,7 @@ describe('registerHttpApiRoutes — provider.httpApi.cors', () => {
         url: '/boom',
         headers: { origin: 'https://example.com' },
       })
-      expect(res.statusCode).toBe(502)
+      expect(res.statusCode).toBe(500)
       expect(res.headers['access-control-allow-origin']).toBe('*')
     } finally {
       await server.stop({ timeout: 5000 })

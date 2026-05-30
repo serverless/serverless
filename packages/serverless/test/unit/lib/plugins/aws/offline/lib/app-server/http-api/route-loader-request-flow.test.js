@@ -522,7 +522,7 @@ describe('Lambda response → HTTP wire shape', () => {
     expect(cookies).toContain('csrf=xyz')
   })
 
-  it('returns 502 when the handler throws', async () => {
+  it('returns 500 when the handler throws', async () => {
     const server = Hapi.server({ host: 'localhost', port: 0 })
     activeServer = server
     registerHttpApiRoutes({
@@ -542,9 +542,9 @@ describe('Lambda response → HTTP wire shape', () => {
     await server.start()
 
     const res = await server.inject({ method: 'GET', url: '/boom' })
-    expect(res.statusCode).toBe(502)
+    expect(res.statusCode).toBe(500)
     expect(JSON.parse(res.payload)).toEqual({
-      message: 'Internal server error',
+      message: 'Internal Server Error',
     })
   })
 
