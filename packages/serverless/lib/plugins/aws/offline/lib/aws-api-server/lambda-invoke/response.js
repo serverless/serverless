@@ -69,7 +69,7 @@ export function toInvokeError(err, h) {
  * @returns {import('@hapi/hapi').ResponseObject}
  */
 export function toInvalidParameterValue(message, h) {
-  const body = JSON.stringify({ Type: 'User', message })
+  const body = JSON.stringify({ Type: 'User', Message: message })
 
   return h
     .response(body)

@@ -31,6 +31,7 @@ const offlineSchema = {
     localEnvironment: { type: 'boolean' },
     noAuth: { type: 'boolean' },
     noPrependStageInUrl: { type: 'boolean' },
+    noTimeout: { type: 'boolean' },
     noWatch: { type: 'boolean' },
     prefix: { type: 'string' },
     terminateIdleLambdaTime: { type: 'integer', minimum: 0 },

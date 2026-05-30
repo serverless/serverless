@@ -65,15 +65,11 @@ export function formatLambdaProxyResponse(
     isBase64Encoded,
   } = result
 
-  // Guard: if body is present and not a string and not base64 binary, the
-  // handler returned a non-stringified object. Real APIGW returns 502 in this
-  // case rather than silently coercing the body.
-  if (
-    body !== undefined &&
-    body !== null &&
-    typeof body !== 'string' &&
-    isBase64Encoded !== true
-  ) {
+  // Guard: a present, non-string body means the handler returned a
+  // non-stringified value. Real APIGW returns 502 in this case rather than
+  // silently coercing the body — including when isBase64Encoded is true, since
+  // a base64 body must still be delivered as a string.
+  if (body !== undefined && body !== null && typeof body !== 'string') {
     return h
       .response(
         JSON.stringify({

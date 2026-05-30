@@ -94,10 +94,27 @@ describe('resolveOfflineOptions', () => {
       ignoreJWTSignature: false,
       localEnvironment: false,
       noAuth: false,
+      noTimeout: false,
       useDocker: false,
       webSocketHardTimeout: 7200,
       webSocketIdleTimeout: 600,
     })
+  })
+
+  it('honors noTimeout from YAML and lets CLI override it', () => {
+    expect(
+      resolveOfflineOptions({ cliOptions: {}, offline: { noTimeout: true } })
+        .noTimeout,
+    ).toBe(true)
+    expect(
+      resolveOfflineOptions({
+        cliOptions: { noTimeout: true },
+        offline: {},
+      }).noTimeout,
+    ).toBe(true)
+    expect(
+      resolveOfflineOptions({ cliOptions: {}, offline: {} }).noTimeout,
+    ).toBe(false)
   })
 
   it('lets CLI values override YAML values for option-parity flags', () => {

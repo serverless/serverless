@@ -73,6 +73,18 @@ describe('formatLambdaProxyResponse', () => {
     expect(h.calls.contentType).toBe('application/json')
   })
 
+  it('non-string body WITH isBase64Encoded:true still → 502 (no escape)', () => {
+    const h = makeH()
+    formatLambdaProxyResponse(
+      { statusCode: 200, body: { wrong: 'shape' }, isBase64Encoded: true },
+      h,
+    )
+    expect(h.calls.statusCode).toBe(502)
+    expect(JSON.parse(h.calls.payload)).toEqual({
+      message: 'Internal server error',
+    })
+  })
+
   it('isBase64Encoded:true decodes body before sending', () => {
     const h = makeH()
     const original = Buffer.from([1, 2, 3, 4])

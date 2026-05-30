@@ -111,6 +111,7 @@ export function resolveOfflineOptions({ cliOptions = {}, offline = {} } = {}) {
     noAuth: cliOptions.noAuth ?? offline.noAuth ?? false,
     noPrependStageInUrl:
       cliOptions.noPrependStageInUrl ?? offline.noPrependStageInUrl ?? false,
+    noTimeout: cliOptions.noTimeout ?? offline.noTimeout ?? false,
     prefix: cliOptions.prefix ?? offline.prefix,
     terminateIdleLambdaTime:
       coerceInt(cliOptions.terminateIdleLambdaTime) ??
@@ -396,6 +397,7 @@ export default class OfflinePlugin {
       localEnvironment,
       noAuth,
       noPrependStageInUrl,
+      noTimeout,
       prefix,
       terminateIdleLambdaTime,
       useDocker,
@@ -493,7 +495,6 @@ export default class OfflinePlugin {
       const checker = createImageReadinessChecker()
       ensureImageReady = checker.ensureImageReady
     }
-    const noTimeout = cliOptions.noTimeout === true
 
     // Refuse to start when both Hapi servers would bind to the same port —
     // doing so produces an opaque EADDRINUSE deep inside Hapi instead of a

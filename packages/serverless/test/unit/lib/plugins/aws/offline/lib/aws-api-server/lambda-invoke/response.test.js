@@ -2,6 +2,7 @@ import {
   toInvokeResponse,
   toInvokeError,
   toNotFound,
+  toInvalidParameterValue,
 } from '../../../../../../../../../lib/plugins/aws/offline/lib/aws-api-server/lambda-invoke/response.js'
 
 function makeH() {
@@ -114,6 +115,22 @@ describe('lambda invoke response shapers', () => {
       expect(parsed).toEqual({
         Type: 'User',
         Message: 'Function not found: svc-dev-x',
+      })
+    })
+  })
+
+  describe('toInvalidParameterValue', () => {
+    it('returns 400 with a capitalized Message key (AWS envelope)', () => {
+      const { h, resp } = makeH()
+      toInvalidParameterValue('Unsupported invocation type: Bogus', h)
+
+      expect(resp.statusCode).toBe(400)
+      expect(resp.headers['x-amzn-ErrorType']).toBe(
+        'InvalidParameterValueException',
+      )
+      expect(JSON.parse(resp.body)).toEqual({
+        Type: 'User',
+        Message: 'Unsupported invocation type: Bogus',
       })
     })
   })

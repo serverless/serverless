@@ -31,6 +31,7 @@ describe('offline schema', () => {
       localEnvironment: { type: 'boolean' },
       noAuth: { type: 'boolean' },
       noPrependStageInUrl: { type: 'boolean' },
+      noTimeout: { type: 'boolean' },
       noWatch: { type: 'boolean' },
       prefix: { type: 'string' },
       terminateIdleLambdaTime: { type: 'integer', minimum: 0 },
@@ -42,7 +43,7 @@ describe('offline schema', () => {
     })
   })
 
-  it('declares the 28 expected keys at the top level', () => {
+  it('declares the 29 expected keys at the top level', () => {
     expect(Object.keys(offlineSchema.properties).sort()).toEqual([
       'appPort',
       'awsApiPort',
@@ -64,6 +65,7 @@ describe('offline schema', () => {
       'localEnvironment',
       'noAuth',
       'noPrependStageInUrl',
+      'noTimeout',
       'noWatch',
       'prefix',
       'terminateIdleLambdaTime',
