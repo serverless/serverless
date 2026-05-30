@@ -275,6 +275,35 @@ it('7. routes Lambda invoke paths to the invoke handler when lambdaInvoke is sup
   }
 })
 
+it('7b. routes a Lambda invoke path with a trailing slash (the SDK appends one)', async () => {
+  const invoke = jest.fn(async () => ({ ok: true }))
+  const getLambdaFunction = jest.fn(() => ({ invoke }))
+
+  const server = await createAwsApiServer({
+    awsApiPort: 0,
+    host: 'localhost',
+    handlers: {},
+    logger: makeLogger(),
+    lambdaInvoke: {
+      getLambdaFunction,
+      functionNameMap: new Map([['svc-dev-worker', 'worker']]),
+    },
+  })
+
+  try {
+    const res = await server.inject({
+      method: 'POST',
+      url: '/2015-03-31/functions/svc-dev-worker/invocations/',
+      payload: JSON.stringify({ hello: 'world' }),
+    })
+
+    expect(res.statusCode).toBe(200)
+    expect(invoke).toHaveBeenCalledTimes(1)
+  } finally {
+    await server.stop({ timeout: 5000 })
+  }
+})
+
 it('exposes the bound URL via server.info.uri (the boot summary owns the log line)', async () => {
   const notice = jest.fn()
   const server = await createAwsApiServer({

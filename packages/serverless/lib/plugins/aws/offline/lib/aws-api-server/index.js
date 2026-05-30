@@ -77,7 +77,14 @@ export async function createAwsApiServer({
   runtimeApi,
   lambdaInvoke,
 } = {}) {
-  const server = Hapi.server({ host, port: awsApiPort })
+  // AWS SDK clients append a trailing slash to some endpoints (notably the
+  // legacy InvokeAsync path), so trailing slashes must be insignificant when
+  // matching routes.
+  const server = Hapi.server({
+    host,
+    port: awsApiPort,
+    router: { stripTrailingSlash: true },
+  })
 
   // Runtime API routes (when supplied) must register BEFORE the catch-all
   // so Hapi's match table prefers the specific Lambda paths over `* /{any*}`.
