@@ -387,13 +387,73 @@ it('16b. structurally malformed Fn::GetAtt → throws OFFLINE_MALFORMED_INTRINSI
 // 17. Fn::Sub → throws OFFLINE_UNSUPPORTED_INTRINSIC with key in message
 // ---------------------------------------------------------------------------
 
-it('17. { "Fn::Sub": "foo" } → throws OFFLINE_UNSUPPORTED_INTRINSIC with Fn::Sub in message', () => {
-  expect(() => resolveIntrinsics({ 'Fn::Sub': 'foo' }, makeContext())).toThrow(
-    expect.objectContaining({
-      code: 'OFFLINE_UNSUPPORTED_INTRINSIC',
-      message: expect.stringContaining('Fn::Sub'),
-    }),
+it('17. Fn::Sub string form with no variables → literal string', () => {
+  expect(resolveIntrinsics({ 'Fn::Sub': 'foo' }, makeContext())).toBe('foo')
+})
+
+it('17a. Fn::Sub string form substitutes pseudo-parameters', () => {
+  expect(
+    resolveIntrinsics({ 'Fn::Sub': 'region-${AWS::Region}' }, makeContext()),
+  ).toBe('region-us-east-1')
+})
+
+it('17b. Fn::Sub string form substitutes ${LogicalId} via Ref semantics', () => {
+  const ctx = makeContext({
+    registry: makeRegistry({ sqs: [['MyQueue', QUEUE_RECORD]] }),
+  })
+  expect(resolveIntrinsics({ 'Fn::Sub': 'url=${MyQueue}' }, ctx)).toBe(
+    `url=${QUEUE_RECORD.url}`,
   )
+})
+
+it('17c. Fn::Sub string form substitutes ${LogicalId.Attr} via GetAtt semantics', () => {
+  const ctx = makeContext({
+    registry: makeRegistry({ sqs: [['MyQueue', QUEUE_RECORD]] }),
+  })
+  expect(resolveIntrinsics({ 'Fn::Sub': 'arn=${MyQueue.Arn}' }, ctx)).toBe(
+    `arn=${QUEUE_RECORD.arn}`,
+  )
+})
+
+it('17d. Fn::Sub escapes ${!Literal} to a literal ${Literal}', () => {
+  expect(
+    resolveIntrinsics(
+      { 'Fn::Sub': '${!NotResolved}-${AWS::Region}' },
+      makeContext(),
+    ),
+  ).toBe('${NotResolved}-us-east-1')
+})
+
+it('17e. Fn::Sub map form resolves variables which take precedence', () => {
+  const ctx = makeContext()
+  expect(
+    resolveIntrinsics(
+      {
+        'Fn::Sub': [
+          '${greeting}-${AWS::Region}',
+          { greeting: { Ref: 'AWS::Partition' } },
+        ],
+      },
+      ctx,
+    ),
+  ).toBe('aws-us-east-1')
+})
+
+it('17f. Fn::Sub becomes UNRESOLVED + warning when a component is unresolvable', () => {
+  const warnings = []
+  const ctx = makeContext({ warnings })
+  expect(resolveIntrinsics({ 'Fn::Sub': 'x-${Unknown}' }, ctx)).toBe(UNRESOLVED)
+  expect(warnings).toHaveLength(1)
+  expect(warnings[0]).toMatchObject({ code: 'OFFLINE_UNRESOLVED_REFERENCE' })
+})
+
+it('17g. Fn::Sub map form becomes UNRESOLVED when a var value is unresolvable', () => {
+  const warnings = []
+  const ctx = makeContext({ warnings })
+  expect(
+    resolveIntrinsics({ 'Fn::Sub': ['${x}', { x: { Ref: 'Unknown' } }] }, ctx),
+  ).toBe(UNRESOLVED)
+  expect(warnings).toHaveLength(1)
 })
 
 // ---------------------------------------------------------------------------

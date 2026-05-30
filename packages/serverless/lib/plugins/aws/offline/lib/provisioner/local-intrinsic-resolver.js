@@ -77,6 +77,10 @@ export function resolveIntrinsics(value, context) {
       return resolveGetAtt(value['Fn::GetAtt'], context)
     }
 
+    if (key === 'Fn::Sub') {
+      return resolveSub(value['Fn::Sub'], context)
+    }
+
     if (key === 'Fn::ImportValue') {
       throw new ServerlessError(
         `Fn::ImportValue is not supported in offline mode — cross-stack references must be resolved externally.`,
@@ -275,4 +279,76 @@ function resolveGetAtt(spec, context) {
   }
 
   return table[attribute]
+}
+
+/**
+ * Resolves a single `${...}` token from an `Fn::Sub` template. Supplied
+ * variables take precedence; otherwise a token containing a dot is resolved
+ * with `Fn::GetAtt` semantics and a bare token with `Ref` semantics (which
+ * covers both pseudo-parameters and logical ids).
+ *
+ * @param {string} token - The inner text of a `${...}` placeholder.
+ * @param {Record<string, unknown>} vars - Resolved supplied variables.
+ * @param {object} context - The resolution context.
+ * @returns {unknown} The substitution value, or `UNRESOLVED`.
+ */
+function resolveSubToken(token, vars, context) {
+  if (Object.prototype.hasOwnProperty.call(vars, token)) {
+    return vars[token]
+  }
+  if (token.includes('.')) {
+    return resolveGetAtt(token, context)
+  }
+  return resolveRef(token, context)
+}
+
+/**
+ * Resolves `Fn::Sub` in both its string and map forms.
+ *
+ * String form: `${AWS::X}`, `${LogicalId}`, and `${LogicalId.Attr}` are
+ * substituted; `${!Literal}` escapes to a literal `${Literal}`. Map form
+ * `[template, vars]` resolves each supplied variable first (variables take
+ * precedence in substitution). If any required component is `UNRESOLVED`, the
+ * whole `Fn::Sub` becomes `UNRESOLVED` plus a warning.
+ *
+ * @param {unknown} spec - The `Fn::Sub` value.
+ * @param {object} context - The resolution context.
+ * @returns {unknown} The substituted string, or `UNRESOLVED`.
+ */
+function resolveSub(spec, context) {
+  let template
+  let vars = {}
+
+  if (typeof spec === 'string') {
+    template = spec
+  } else if (Array.isArray(spec) && spec.length === 2) {
+    template = spec[0]
+    const rawVars = spec[1] ?? {}
+    for (const [name, rawValue] of Object.entries(rawVars)) {
+      const resolved = resolveIntrinsics(rawValue, context)
+      if (resolved === UNRESOLVED) return UNRESOLVED
+      vars[name] = resolved
+    }
+  } else {
+    throw new ServerlessError(
+      `Fn::Sub value must be a template string or a [template, variables] array.`,
+      'OFFLINE_MALFORMED_INTRINSIC',
+    )
+  }
+
+  let unresolved = false
+  // `${!X}` escapes to a literal `${X}`; `${X}` substitutes.
+  const result = template.replace(/\$\{(!?[^}]+)\}/g, (match, inner) => {
+    if (inner.startsWith('!')) {
+      return `\${${inner.slice(1)}}`
+    }
+    const value = resolveSubToken(inner.trim(), vars, context)
+    if (value === UNRESOLVED) {
+      unresolved = true
+      return match
+    }
+    return String(value)
+  })
+
+  return unresolved ? UNRESOLVED : result
 }
