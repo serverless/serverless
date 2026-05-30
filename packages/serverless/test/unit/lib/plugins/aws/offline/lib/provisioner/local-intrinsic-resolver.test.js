@@ -194,11 +194,11 @@ it('9c. { Ref: "MyBus" } → event resource name', () => {
   expect(resolveIntrinsics({ Ref: 'MyBus' }, ctx)).toBe(EVENT_BUS_RECORD.name)
 })
 
-it('9d. { Ref: "MyLambda" } → lambda ARN', () => {
+it('9d. { Ref: "MyLambda" } → lambda function name', () => {
   const ctx = makeContext({
     registry: makeRegistry({ lambda: [['MyLambda', LAMBDA_RECORD]] }),
   })
-  expect(resolveIntrinsics({ Ref: 'MyLambda' }, ctx)).toBe(LAMBDA_RECORD.arn)
+  expect(resolveIntrinsics({ Ref: 'MyLambda' }, ctx)).toBe(LAMBDA_RECORD.name)
 })
 
 it('9e. { Ref: "MyParam" } → CloudFormation parameter value', () => {

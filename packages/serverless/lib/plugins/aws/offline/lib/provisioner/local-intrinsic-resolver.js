@@ -54,7 +54,7 @@ export const UNRESOLVED = Symbol.for('OFFLINE::Unresolved')
  *     sns: Map<string, { logicalId: string, arn: string, name: string }>,
  *     s3: Map<string, { logicalId: string, name: string, arn: string }>,
  *     events: Map<string, { logicalId: string, name: string, arn: string }>,
- *     lambda: Map<string, { logicalId: string, arn: string }>,
+ *     lambda: Map<string, { logicalId: string, name: string, arn: string }>,
  *   },
  *   parameters: Record<string, unknown>,
  *   pseudoParams: Record<string, unknown>,
@@ -227,9 +227,10 @@ function resolveRef(id, context) {
     return registry.events.get(id).name
   }
 
-  // Lambda functions — Ref resolves to the function ARN.
+  // Lambda functions — Ref resolves to the function name; only
+  // Fn::GetAtt …Arn returns the ARN.
   if (registry.lambda.has(id)) {
-    return registry.lambda.get(id).arn
+    return registry.lambda.get(id).name
   }
 
   // Template parameters — Ref resolves to the (already defaulted) value.
