@@ -24,7 +24,9 @@ import { getStage } from './lib/stage.js'
 import { createHookBridge } from './lib/hook-bridge.js'
 import { createOrchestrator } from './lib/orchestrator.js'
 import { provision } from './lib/provisioner/index.js'
+import { allSqsQueues } from './lib/provisioner/registry.js'
 import { createQueueStore } from './lib/aws-api-server/sqs/queue-store.js'
+import { parseQueueConfig } from './lib/aws-api-server/sqs/attributes.js'
 import { createSqsHandlers } from './lib/aws-api-server/sqs/handlers.js'
 import { createAwsApiServer } from './lib/aws-api-server/index.js'
 import { buildFunctionNameMap } from './lib/aws-api-server/lambda-invoke/name-map.js'
@@ -148,6 +150,7 @@ export function resolveOfflineOptions({ cliOptions = {}, offline = {} } = {}) {
  * @param {{ method: string, path: string, functionKey: string }[]} params.httpApiRoutes
  * @param {{ method: string, path: string, mountedPath: string, apigwMountedPath: string, functionKey: string }[]} [params.restApiRoutes]
  * @param {number} params.sqsPollerCount
+ * @param {number} params.sqsQueueCount  Total provisioned SQS queues (including DLQs).
  * @param {string} params.stage
  * @param {boolean} params.useInProcess  Whether the in-process Node runner is active.
  * @param {boolean} params.useDocker  Whether Docker mode is enabled for supported runtimes.
@@ -170,6 +173,7 @@ function logBootSummary({
   httpApiRoutes,
   restApiRoutes,
   sqsPollerCount,
+  sqsQueueCount,
   stage,
   useInProcess,
   useDocker,
@@ -308,6 +312,10 @@ function logBootSummary({
         `    ${r.method.padEnd(methodWidth)}  ${appUrl}${r.apigwMountedPath}  →  ${r.functionKey}`,
       )
     }
+  }
+
+  if (sqsQueueCount > 0) {
+    logger.notice(`  SQS queues:      ${sqsQueueCount}`)
   }
 
   if (sqsPollerCount > 0) {
@@ -578,8 +586,41 @@ export default class OfflinePlugin {
     //    reference (e.g. a cross-stack import that cannot be resolved offline).
     const { registry } = await provision(serverless, { awsApiPort, logger })
 
-    // 5. Create a queue store.
+    // 5. Create a queue store and initialise it from the provisioned
+    //    `AWS::SQS::Queue` resources. Each queue's config comes from its lifted
+    //    Properties; the RedrivePolicy's dead-letter target ARN is resolved to
+    //    a local queue URL against the registry. A redrive target that is not
+    //    itself a provisioned queue is dropped (with a warning) so a missing
+    //    DLQ never silently swallows messages.
     const store = createQueueStore()
+
+    const sqsRecords = [...allSqsQueues(registry)]
+    for (const record of sqsRecords) {
+      const cfg = parseQueueConfig(record.properties)
+
+      let redrive = null
+      if (cfg.redrive) {
+        const dlqRecord = sqsRecords.find(
+          (candidate) => candidate.arn === cfg.redrive.dlqArn,
+        )
+        if (dlqRecord) {
+          // Carry both the resolved URL (used by the sweeper to route) and the
+          // original ARN (echoed back by GetQueueAttributes' RedrivePolicy).
+          redrive = {
+            dlqUrl: dlqRecord.url,
+            dlqArn: cfg.redrive.dlqArn,
+            maxReceiveCount: cfg.redrive.maxReceiveCount,
+          }
+        } else {
+          logger.warning(
+            `SQS queue "${record.name}" declares a RedrivePolicy whose dead-letter ` +
+              `target "${cfg.redrive.dlqArn}" is not a provisioned queue; dead-lettering is disabled for it.`,
+          )
+        }
+      }
+
+      store.ensureQueue(record.url, { ...cfg, redrive })
+    }
 
     // 6. Create the SQS handlers bound to that store + registry.
     const sqsHandlers = createSqsHandlers({ store, registry })
@@ -694,6 +735,14 @@ export default class OfflinePlugin {
       getLambdaFunction,
       logger: log.get('sls:offline:sqs-poller'),
     })
+
+    // 8a. Run the SQS visibility sweeper. Once per second it returns expired
+    //     in-flight messages to the available state, dead-letters those past
+    //     maxReceiveCount, and drops messages past their retention period —
+    //     waking the relevant pollers via the store's subscriptions. `unref()`
+    //     keeps the timer from holding the process open on shutdown.
+    const sweeper = setInterval(() => store.sweep(), 1000)
+    sweeper.unref?.()
 
     // 8b. Construct the scheduler. Construction validates every schedule
     //     expression and pre-creates croner instances (paused), so a typo'd
@@ -844,7 +893,12 @@ export default class OfflinePlugin {
     // app server tears down its listener. Order matters: shut WS first so
     // clients get a clean close frame, not a TCP RST.
     orchestrator.onShutdown(() => (wsServer ? wsServer.stop() : undefined))
-    orchestrator.onShutdown(() => pollerController.stop())
+    // Stop the SQS subsystem: clear the visibility sweeper, then unsubscribe
+    // every poller (which also stops draining queues).
+    orchestrator.onShutdown(async () => {
+      clearInterval(sweeper)
+      await pollerController.stop()
+    })
     // Scheduler teardown registered BEFORE runner.terminate so LIFO drains
     // in-flight schedule invocations before runners shut down.
     orchestrator.onShutdown(() => scheduler.stop())
@@ -909,6 +963,7 @@ export default class OfflinePlugin {
           httpApiRoutes,
           restApiRoutes,
           sqsPollerCount: pollerController.pollerCount,
+          sqsQueueCount: sqsRecords.length,
           stage,
           useInProcess,
           useDocker,
