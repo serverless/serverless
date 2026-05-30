@@ -38,6 +38,7 @@ import {
 import { validateAuthorizerContext } from './validate-authorizer-context.js'
 
 const UNAUTHORIZED_LITERAL = 'Unauthorized'
+const DEFAULT_TOKEN_HEADER = 'Authorization'
 
 /**
  * @param {object} opts
@@ -59,6 +60,13 @@ export function createLambdaAuthorizerScheme({
   const type = String(authorizerDef.type ?? 'TOKEN').toUpperCase()
   const identitySources =
     type === 'REQUEST' ? parseIdentitySource(authorizerDef.identitySource) : []
+  // A TOKEN authorizer reads the single header named by its identitySource
+  // (default `method.request.header.Authorization`). A non-header or absent
+  // identitySource falls back to the Authorization header.
+  const tokenHeaderName =
+    type === 'TOKEN'
+      ? resolveTokenHeaderName(authorizerDef.identitySource)
+      : DEFAULT_TOKEN_HEADER
   // TOKEN authorizers may declare a regex the incoming token must match before
   // the authorizer Lambda is invoked; a non-match is a 401 with no invocation.
   // An unparseable expression is ignored (treated as no validation).
@@ -115,7 +123,7 @@ export function createLambdaAuthorizerScheme({
             accountId,
           })
         } else {
-          const authorizationToken = readAuthorizationHeader(request)
+          const authorizationToken = readHeaderValue(request, tokenHeaderName)
           if (!authorizationToken) {
             return unauthorized(h)
           }
@@ -208,8 +216,32 @@ function stripStage(path, stage) {
   return path
 }
 
-function readAuthorizationHeader(request) {
-  const raw = request?.headers?.authorization
+/**
+ * Resolve the header name a TOKEN authorizer reads its token from. The
+ * identitySource is `method.request.header.<Name>`; anything else (querystring,
+ * malformed, or absent) falls back to the Authorization header.
+ *
+ * @param {unknown} identitySource
+ * @returns {string}
+ */
+function resolveTokenHeaderName(identitySource) {
+  if (typeof identitySource !== 'string') return DEFAULT_TOKEN_HEADER
+  const match = identitySource
+    .trim()
+    .match(/^method\.request\.header\.([\w-]+)$/)
+  return match ? match[1] : DEFAULT_TOKEN_HEADER
+}
+
+/**
+ * Read a single header value by name (case-insensitive). Hapi lowercases
+ * header keys, so the lookup is performed against the lowercased name.
+ *
+ * @param {object} request
+ * @param {string} name
+ * @returns {string | null}
+ */
+function readHeaderValue(request, name) {
+  const raw = request?.headers?.[name.toLowerCase()]
   if (typeof raw === 'string' && raw.length > 0) return raw
   return null
 }

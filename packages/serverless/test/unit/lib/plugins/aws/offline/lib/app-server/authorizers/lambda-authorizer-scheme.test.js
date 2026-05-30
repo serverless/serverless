@@ -288,6 +288,63 @@ describe('lambda-authorizer scheme — TOKEN', () => {
       await server.stop()
     }
   })
+
+  it('reads the configured identitySource header for the authorizationToken', async () => {
+    const { server, lambdaFunction } = await setupServer({
+      authorizerDef: {
+        name: 'auth',
+        type: 'TOKEN',
+        identitySource: 'method.request.header.X-Custom',
+      },
+      invokeImpl: async () => ({
+        principalId: 'u',
+        policyDocument: { Statement: [{ Effect: 'Allow', Resource: '*' }] },
+      }),
+    })
+    try {
+      const res = await server.inject({
+        method: 'GET',
+        url: '/p',
+        headers: { 'x-custom': 'custom-tok' },
+      })
+      expect(res.statusCode).toBe(200)
+      expect(lambdaFunction.invoke).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'TOKEN',
+          authorizationToken: 'custom-tok',
+        }),
+      )
+    } finally {
+      await server.stop()
+    }
+  })
+
+  it('401s without invoking when the configured identitySource header is missing', async () => {
+    const { server, lambdaFunction } = await setupServer({
+      authorizerDef: {
+        name: 'auth',
+        type: 'TOKEN',
+        identitySource: 'method.request.header.X-Custom',
+      },
+      invokeImpl: async () => ({
+        principalId: 'u',
+        policyDocument: { Statement: [{ Effect: 'Allow', Resource: '*' }] },
+      }),
+    })
+    try {
+      // The default Authorization header is present but must be ignored — the
+      // authorizer reads only its configured X-Custom header.
+      const res = await server.inject({
+        method: 'GET',
+        url: '/p',
+        headers: { authorization: 'Bearer ignored' },
+      })
+      expect(res.statusCode).toBe(401)
+      expect(lambdaFunction.invoke).not.toHaveBeenCalled()
+    } finally {
+      await server.stop()
+    }
+  })
 })
 
 describe('lambda-authorizer scheme — REQUEST', () => {
