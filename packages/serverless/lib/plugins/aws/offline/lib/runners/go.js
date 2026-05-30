@@ -315,6 +315,42 @@ export function createGoRunner({
   }
 
   /**
+   * SIGTERM a specific pool entry's child and drop it from the pool. Shared
+   * by `invalidate()` and the per-invocation timeout path. Idempotent: the
+   * 'exit' handler also cleans up, and a re-call on an already-terminating
+   * entry is a no-op.
+   *
+   * @param {string} functionKey
+   * @param {PoolEntry} entry  The exact entry to kill (not a key lookup) so a
+   *   timeout for a since-swapped entry can't take down its replacement.
+   * @param {'invalidate' | 'terminate' | 'evict'} reason
+   */
+  function _terminateEntry(functionKey, entry, reason) {
+    if (entry.state === 'terminating') return
+    if (entry.pendingTimeout !== null) {
+      clearTimeout(entry.pendingTimeout)
+      entry.pendingTimeout = null
+    }
+    entry.state = 'terminating'
+    entry.cancelReason = reason
+    if (pool.get(functionKey) === entry) {
+      pool.delete(functionKey)
+    }
+    runtimeApiQueue.rejectAll(
+      functionKey,
+      new ServerlessError(
+        'Lambda runner terminated during invocation',
+        'OFFLINE_WORKER_TERMINATED',
+      ),
+    )
+    try {
+      entry.child.kill('SIGTERM')
+    } catch {
+      // ignore — child may already be gone
+    }
+  }
+
+  /**
    * Arm the idle-eviction timer. The timer's job is to kill the child if
    * the entry sits in `idle` for `idleEvictionMs`; if anyone has flipped
    * the state back to `busy` (or to `terminating`) by the time we fire,
@@ -396,13 +432,18 @@ export function createGoRunner({
         payload: args.event,
         timeoutMs: args.timeoutMs ?? NO_TIMEOUT_FALLBACK_MS,
         invokedFunctionArn: args.context?.invokedFunctionArn ?? '',
+        // Real Lambda kills the sandbox on timeout. Terminate THIS child so
+        // the next invoke spawns a fresh one rather than reusing a process
+        // still running the timed-out handler.
+        onTimeout: () => _terminateEntry(functionKey, entry, 'invalidate'),
       })
 
       try {
         return await invocation
       } finally {
         // The entry may have been swapped out from under us (invalidate /
-        // exit) — only flip back to idle if it's still the registered one.
+        // exit / timeout) — only flip back to idle if it's still the
+        // registered one.
         if (pool.get(functionKey) === entry && entry.state !== 'terminating') {
           entry.state = 'idle'
           _scheduleIdleEviction(functionKey, entry)
@@ -420,25 +461,7 @@ export function createGoRunner({
     invalidate(functionKey) {
       const entry = pool.get(functionKey)
       if (!entry) return
-      if (entry.pendingTimeout !== null) {
-        clearTimeout(entry.pendingTimeout)
-        entry.pendingTimeout = null
-      }
-      entry.state = 'terminating'
-      entry.cancelReason = 'invalidate'
-      pool.delete(functionKey)
-      runtimeApiQueue.rejectAll(
-        functionKey,
-        new ServerlessError(
-          'Lambda runner terminated during invocation',
-          'OFFLINE_WORKER_TERMINATED',
-        ),
-      )
-      try {
-        entry.child.kill('SIGTERM')
-      } catch {
-        // ignore — child may already be gone
-      }
+      _terminateEntry(functionKey, entry, 'invalidate')
     },
 
     /**

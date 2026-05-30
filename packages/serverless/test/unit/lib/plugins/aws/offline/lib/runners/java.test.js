@@ -764,6 +764,69 @@ describe('createJavaRunner (Docker)', () => {
     }
   })
 
+  it('stops the container on timeout and creates a fresh one for the next invoke', async () => {
+    const containers = []
+    let stall = true
+    const runner = createJavaRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      dockerClient: makeFakeDockerClient(),
+      ensureImageReady: async () => {},
+      log: noopLog,
+      createContainerOverride: async (opts) => {
+        const apiBase = opts.Env.find((e) =>
+          e.startsWith('AWS_LAMBDA_RUNTIME_API='),
+        ).split('=')[1]
+        const httpBase = `http://${apiBase.replace('host.docker.internal', '127.0.0.1')}`
+        const container = makeFakeContainer()
+        containers.push(container)
+        if (stall) {
+          // Stalling: poll /next but never POST /response so the timeout fires.
+          runSyntheticPoller(async () => {
+            try {
+              await fetch(`${httpBase}/2018-06-01/runtime/invocation/next`)
+            } catch {
+              // Runner may terminate while the synthetic poller is waiting.
+            }
+          })
+        } else {
+          // Echo poller so the fresh container settles its invocation.
+          runSyntheticPoller(async () => {
+            const next = await fetch(
+              `${httpBase}/2018-06-01/runtime/invocation/next`,
+            )
+            const id = next.headers.get('lambda-runtime-aws-request-id')
+            await fetch(
+              `${httpBase}/2018-06-01/runtime/invocation/${id}/response`,
+              { method: 'POST', body: '{}' },
+            )
+          })
+        }
+        return container
+      },
+      servicePath: '/tmp',
+    })
+
+    try {
+      await expect(
+        runner.invoke(makeInvokeArgs({ timeoutMs: 200 })),
+      ).rejects.toMatchObject({ code: 'OFFLINE_HANDLER_TIMEOUT' })
+
+      // Real Lambda kills the sandbox on timeout — the stalled container must
+      // be stopped, not left running the timed-out handler.
+      expect(containers).toHaveLength(1)
+      expect(containers[0].stopped).toBe(true)
+
+      // The next invoke must NOT reuse the timed-out container — fresh create.
+      stall = false
+      await runner.invoke(makeInvokeArgs({ timeoutMs: 5000 }))
+      expect(containers).toHaveLength(2)
+    } finally {
+      await runner.terminate()
+    }
+  })
+
   it('rejects in-flight invocations with OFFLINE_WORKER_TERMINATED on terminate()', async () => {
     const fakeContainer = makeFakeContainer()
     const runner = createJavaRunner({

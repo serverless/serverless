@@ -366,6 +366,59 @@ describe('createGoRunner', () => {
     }
   })
 
+  it('kills the bootstrap child on timeout and spawns a fresh one for the next invoke', async () => {
+    const spawnedChildren = []
+    let stall = true
+    const runner = createGoRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      log: noopLog,
+      ensureBuilt: async () => ({
+        binaryPath: process.execPath,
+        fromCache: true,
+      }),
+      spawnOverride: (binaryPath, args, opts) => {
+        // First invoke stalls (forces the timeout); later invokes echo so the
+        // fresh child can settle normally.
+        const script = stall ? stallingBootstrap : fakeBootstrap
+        const child = realSpawn(process.execPath, [script], {
+          cwd: opts.cwd,
+          env: opts.env,
+          stdio: opts.stdio,
+        })
+        spawnedChildren.push(child)
+        return child
+      },
+      servicePath: '/tmp',
+    })
+
+    try {
+      await expect(
+        runner.invoke(makeInvokeArgs({ timeoutMs: 200 })),
+      ).rejects.toMatchObject({ code: 'OFFLINE_HANDLER_TIMEOUT' })
+
+      // Real Lambda kills the sandbox on timeout — the stalled child must be
+      // terminated, not left running the timed-out handler.
+      expect(spawnedChildren).toHaveLength(1)
+      const firstChild = spawnedChildren[0]
+      if (firstChild.exitCode === null && firstChild.signalCode === null) {
+        await new Promise((resolve) => firstChild.once('exit', resolve))
+      }
+      expect(firstChild.killed).toBe(true)
+
+      // The next invoke must NOT reuse the timed-out child — it spawns fresh.
+      stall = false
+      const result = await runner.invoke(
+        makeInvokeArgs({ event: { n: 2 }, timeoutMs: 5000 }),
+      )
+      expect(result).toEqual({ ok: true, received: { n: 2 } })
+      expect(spawnedChildren).toHaveLength(2)
+    } finally {
+      await runner.terminate()
+    }
+  })
+
   it('reuses the same bootstrap child across consecutive invokes', async () => {
     const spawnCalls = []
     const runner = createGoRunner({

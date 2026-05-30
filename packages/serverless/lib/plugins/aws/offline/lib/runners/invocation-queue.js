@@ -60,7 +60,7 @@ function createAbortError() {
  * route returning 404 for unknown ids) use `has(functionKey, requestId)`.
  *
  * @returns {{
- *   enqueue(functionKey: string, args: { payload: unknown, timeoutMs: number, invokedFunctionArn?: string }): Promise<unknown>,
+ *   enqueue(functionKey: string, args: { payload: unknown, timeoutMs: number, invokedFunctionArn?: string, onTimeout?: () => void }): Promise<unknown>,
  *   awaitNext(functionKey: string, options: { signal?: AbortSignal }): Promise<{ requestId: string, payload: unknown, deadlineMs: number, invokedFunctionArn: string }>,
  *   resolveInvocation(functionKey: string, requestId: string, result: unknown): void,
  *   rejectInvocation(functionKey: string, requestId: string, errorBody: unknown): void,
@@ -117,7 +117,10 @@ export function createInvocationQueue() {
   }
 
   return {
-    enqueue(functionKey, { payload, timeoutMs, invokedFunctionArn = '' }) {
+    enqueue(
+      functionKey,
+      { payload, timeoutMs, invokedFunctionArn = '', onTimeout },
+    ) {
       const s = _state(functionKey)
       const requestId = randomUUID()
       const deadlineMs = Date.now() + timeoutMs
@@ -141,6 +144,12 @@ export function createInvocationQueue() {
               'OFFLINE_HANDLER_TIMEOUT',
             ),
           )
+          // Real Lambda kills the execution sandbox on timeout so the next
+          // invocation gets a fresh one. The owning runner (Go child process
+          // / Docker container) registers `onTimeout` to terminate and
+          // replace the sandbox it backs this id with — otherwise the next
+          // invoke could reuse a sandbox still running the timed-out handler.
+          if (typeof onTimeout === 'function') onTimeout()
         }, timeoutMs)
 
         const waiter = s.waiters.shift()

@@ -318,6 +318,30 @@ export function createDockerRuntimeRunner({
     entry.state = 'terminating'
   }
 
+  /**
+   * Stop a specific pool entry's container and drop it from the pool. Shared
+   * by `invalidate()` and the per-invocation timeout path. Idempotent: the
+   * container `wait()` handler also cleans up, and a re-call on an
+   * already-terminating entry is a no-op.
+   *
+   * @param {string} functionKey
+   * @param {object} entry  The exact entry to stop (not a key lookup) so a
+   *   timeout for a since-swapped entry can't take down its replacement.
+   * @param {'invalidate' | 'terminate' | 'evict'} reason
+   */
+  function _terminateEntry(functionKey, entry, reason) {
+    if (entry.state === 'terminating') return
+    if (entry.pendingTimeout !== null) {
+      clearTimeout(entry.pendingTimeout)
+      entry.pendingTimeout = null
+    }
+    entry.state = 'terminating'
+    entry.cancelReason = reason
+    if (pool.get(functionKey) === entry) pool.delete(functionKey)
+    _rejectTerminated(functionKey)
+    entry.container.stop({ t: 5 }).catch(() => {})
+  }
+
   function _scheduleIdleEviction(functionKey, entry) {
     if (idleEvictionMs == null || idleEvictionMs <= 0) return
     if (entry.pendingTimeout !== null) clearTimeout(entry.pendingTimeout)
@@ -371,6 +395,10 @@ export function createDockerRuntimeRunner({
         payload: args.event,
         timeoutMs: args.timeoutMs ?? NO_TIMEOUT_FALLBACK_MS,
         invokedFunctionArn: args.context?.invokedFunctionArn ?? '',
+        // Real Lambda kills the sandbox on timeout. Stop THIS container so
+        // the next invoke creates a fresh one rather than reusing a container
+        // still running the timed-out handler.
+        onTimeout: () => _terminateEntry(functionKey, entry, 'invalidate'),
       })
 
       try {
@@ -389,15 +417,7 @@ export function createDockerRuntimeRunner({
     invalidate(functionKey) {
       const entry = pool.get(functionKey)
       if (!entry) return
-      if (entry.pendingTimeout !== null) {
-        clearTimeout(entry.pendingTimeout)
-        entry.pendingTimeout = null
-      }
-      entry.state = 'terminating'
-      entry.cancelReason = 'invalidate'
-      pool.delete(functionKey)
-      _rejectTerminated(functionKey)
-      entry.container.stop({ t: 5 }).catch(() => {})
+      _terminateEntry(functionKey, entry, 'invalidate')
     },
 
     async terminate() {
