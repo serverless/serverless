@@ -393,6 +393,17 @@ describe('connectedAt + messageId across event types', () => {
     expect(event.requestContext.connectedAt).toBe(1700000000000)
   })
 
+  it('buildConnectEvent uses the supplied stable connectedAt', () => {
+    const event = buildConnectEvent({
+      connectionId: 'c-1',
+      request: makeRequest(),
+      stage: 'dev',
+      apiId: 'private',
+      connectedAt: 1700000000000,
+    })
+    expect(event.requestContext.connectedAt).toBe(1700000000000)
+  })
+
   it('buildMessageEvent emits a non-null messageId on MESSAGE events', () => {
     const event = buildMessageEvent({
       connectionId: 'c-1',

@@ -21,8 +21,8 @@ export function createConnectionRegistry() {
   const byWs = new Map()
 
   return {
-    add({ connectionId, ws, sourceIp, userAgent }) {
-      const now = Date.now()
+    add({ connectionId, ws, sourceIp, userAgent, connectedAt }) {
+      const now = connectedAt ?? Date.now()
       const record = {
         connectionId,
         ws,

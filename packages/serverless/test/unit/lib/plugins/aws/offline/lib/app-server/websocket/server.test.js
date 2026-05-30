@@ -148,6 +148,39 @@ describe('WebSocket server — message dispatch', () => {
     }
   })
 
+  it('reports the same connectedAt on the connect and message events', async () => {
+    const handlerCalls = []
+    const ctx = await setup({
+      functions: {
+        onConnect: { events: [{ websocket: '$connect' }] },
+        broadcast: { events: [{ websocket: { route: 'broadcast' } }] },
+      },
+      onRequest: jest.fn(async (fnKey, event) => {
+        handlerCalls.push({ fnKey, event })
+        return { statusCode: 200 }
+      }),
+    })
+    try {
+      const ws = await connectWs(ctx.url)
+      ws.send('{"action":"broadcast"}')
+      await new Promise((r) => setTimeout(r, 50))
+      const connect = handlerCalls.find(
+        (c) => c.event?.requestContext?.routeKey === '$connect',
+      )
+      const message = handlerCalls.find(
+        (c) => c.event?.requestContext?.routeKey === 'broadcast',
+      )
+      expect(connect).toBeDefined()
+      expect(message).toBeDefined()
+      expect(connect.event.requestContext.connectedAt).toBe(
+        message.event.requestContext.connectedAt,
+      )
+      ws.close()
+    } finally {
+      await teardown(ctx)
+    }
+  })
+
   it('routes via a nested route-selection expression', async () => {
     const handlerCalls = []
     const ctx = await setup({

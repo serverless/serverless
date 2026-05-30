@@ -124,6 +124,11 @@ export function createWebSocketServer({
       connectionAuthorizer = authorizer
     }
 
+    // Stamp the connection's establishment time once and reuse it for the
+    // $connect event, the registry record, and every later message/disconnect
+    // event — real API Gateway reports an identical connectedAt across them.
+    const connectedAt = Date.now()
+
     // $connect handler (if declared).
     if (connectRoute) {
       let result
@@ -136,6 +141,7 @@ export function createWebSocketServer({
           region,
           apiId,
           authorizer: connectionAuthorizer,
+          connectedAt,
         })
         result = await onRequest(connectRoute.functionKey, event)
       } catch {
@@ -172,6 +178,7 @@ export function createWebSocketServer({
         ws,
         sourceIp: request.socket?.remoteAddress ?? '127.0.0.1',
         userAgent: request.headers?.['user-agent'] ?? '',
+        connectedAt,
       })
 
       ws.on('ping', resetIdleTimer)

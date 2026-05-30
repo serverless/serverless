@@ -125,6 +125,7 @@ export function buildConnectEvent({
   region,
   apiId,
   authorizer,
+  connectedAt,
 }) {
   const { single: headers, multi: multiValueHeaders } = parseHeaders(
     request.rawHeaders,
@@ -148,6 +149,7 @@ export function buildConnectEvent({
       stage,
       apiId,
       authorizer,
+      connectedAt,
     }),
   }
 }
