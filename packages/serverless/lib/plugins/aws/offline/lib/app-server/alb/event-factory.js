@@ -7,10 +7,12 @@
  *  - `requestContext.elb.targetGroupArn` instead of `requestContext.apiId`.
  *  - No `pathParameters` (ALB matches literal paths; no template support).
  *  - `body` is always present (empty string for no body).
- *  - Both single-value AND multi-value header / query variants are emitted
- *    (real AWS emits only one set based on the target group's
- *    `multi_value_headers.enabled` flag; we accept this documented
- *    simplification).
+ *  - Exactly ONE of the single-value or multi-value header / query variants is
+ *    emitted, governed by the target group's `multi_value_headers.enabled`
+ *    flag. When disabled (the default), the event carries `headers` and
+ *    `queryStringParameters` and omits the multi-value keys entirely; when
+ *    enabled, it carries `multiValueHeaders` and
+ *    `multiValueQueryStringParameters` and omits the single-value keys.
  *
  * @see https://docs.aws.amazon.com/elasticloadbalancing/latest/application/lambda-functions.html
  */
@@ -21,29 +23,43 @@ import { randomBytes } from 'node:crypto'
  * @param {object} args
  * @param {object} args.request           Hapi request.
  * @param {string} args.targetGroupArn    Synthesized ALB target-group ARN.
+ * @param {boolean} [args.multiValueHeaders=false]  Target group's
+ *   `lambda.multi_value_headers.enabled` flag. Selects which header / query
+ *   variant the event carries.
  * @returns {object}                       ALB Lambda-target event JSON.
  */
-export function buildAlbEvent({ request, targetGroupArn }) {
+export function buildAlbEvent({
+  request,
+  targetGroupArn,
+  multiValueHeaders = false,
+}) {
   const httpMethod = request.method.toUpperCase()
-  const { headers, multiValueHeaders } = readHeaders(request)
-  addForwardingHeaders(request, headers, multiValueHeaders)
-  const { queryStringParameters, multiValueQueryStringParameters } =
-    readQuery(request)
   const { body, isBase64Encoded } = readBody(request)
 
-  return {
+  const event = {
     body,
-    headers,
     httpMethod,
     isBase64Encoded,
-    multiValueHeaders,
-    multiValueQueryStringParameters,
     path: request.path,
-    queryStringParameters,
     requestContext: {
       elb: { targetGroupArn },
     },
   }
+
+  if (multiValueHeaders) {
+    const { multiValueHeaders: multi } = readHeaders(request)
+    addForwardingHeaders(request, multi, true)
+    event.multiValueHeaders = multi
+    event.multiValueQueryStringParameters =
+      readQuery(request).multiValueQueryStringParameters
+  } else {
+    const { headers: single } = readHeaders(request)
+    addForwardingHeaders(request, single, false)
+    event.headers = single
+    event.queryStringParameters = readQuery(request).queryStringParameters
+  }
+
+  return event
 }
 
 /**
@@ -51,10 +67,13 @@ export function buildAlbEvent({ request, targetGroupArn }) {
  * request before it reaches the target: `x-forwarded-for` (the client
  * address), `x-forwarded-port` (the listener port), `x-forwarded-proto` (the
  * listener scheme), and `x-amzn-trace-id` (an X-Ray trace identifier). A
- * client-supplied value — at any casing, since both maps are keyed lowercase —
- * suppresses the synthesized default. Mutates the passed single/multi maps.
+ * client-supplied value — at any casing, since the map is keyed lowercase —
+ * suppresses the synthesized default. Mutates the passed map, which is the
+ * single active variant: when `multi` is true each synthesized value is wrapped
+ * in a one-element array to match the multi-value shape, otherwise it is stored
+ * as a scalar.
  */
-function addForwardingHeaders(request, single, multi) {
+function addForwardingHeaders(request, map, multi) {
   const defaults = {
     'x-forwarded-for': forwardedFor(request),
     'x-forwarded-port': forwardedPort(request),
@@ -62,9 +81,8 @@ function addForwardingHeaders(request, single, multi) {
     'x-amzn-trace-id': synthesizeTraceId(),
   }
   for (const [name, value] of Object.entries(defaults)) {
-    if (value == null || name in single) continue
-    single[name] = value
-    multi[name] = [value]
+    if (value == null || name in map) continue
+    map[name] = multi ? [value] : value
   }
 }
 
@@ -98,9 +116,10 @@ function synthesizeTraceId() {
 }
 
 /**
- * Read headers from Node's raw socket array (preserves duplicates) and
- * collapse to both single-value (last-write-wins per key, lowercased) and
- * multi-value (array of all values, lowercased keys) shapes.
+ * Read headers from Node's raw socket array (preserves duplicates) and produce
+ * both the single-value (last-write-wins per key, lowercased) and multi-value
+ * (array of all values, lowercased keys) shapes; the caller emits whichever one
+ * the target group's `multi_value_headers.enabled` flag selects.
  */
 function readHeaders(request) {
   const rawHeaders = request?.raw?.req?.rawHeaders
@@ -135,8 +154,9 @@ function readHeaders(request) {
 /**
  * Read query parameters from `request.url.searchParams` (a WHATWG URL). Both
  * the single-value (last-write-wins per key) and multi-value (array of all
- * values) maps are produced. Returns `null` for both fields when no query
- * is present (matches real ALB).
+ * values) maps are produced; the caller emits whichever one the target group's
+ * `multi_value_headers.enabled` flag selects. Returns `null` for both fields
+ * when no query is present (matches real ALB).
  */
 function readQuery(request) {
   const url = request?.url

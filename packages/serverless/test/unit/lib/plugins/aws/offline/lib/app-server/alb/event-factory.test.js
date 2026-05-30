@@ -42,7 +42,7 @@ describe('buildAlbEvent', () => {
 
   const TRACE_ID_PATTERN = /^Root=1-[0-9a-f]{8}-[0-9a-f]{24}$/
 
-  it('emits headers lowercased single-value', () => {
+  it('emits only single-value headers (no multi-value maps) by default', () => {
     const event = buildAlbEvent({
       request: makeRequest(),
       targetGroupArn: TARGET_GROUP_ARN,
@@ -55,12 +55,15 @@ describe('buildAlbEvent', () => {
       'x-forwarded-proto': 'http',
       'x-amzn-trace-id': expect.stringMatching(TRACE_ID_PATTERN),
     })
+    expect('multiValueHeaders' in event).toBe(false)
+    expect('multiValueQueryStringParameters' in event).toBe(false)
   })
 
-  it('emits multiValueHeaders with each header as array', () => {
+  it('emits only multi-value headers (no single-value maps) when multiValueHeaders is true', () => {
     const event = buildAlbEvent({
       request: makeRequest(),
       targetGroupArn: TARGET_GROUP_ARN,
+      multiValueHeaders: true,
     })
     expect(event.multiValueHeaders).toEqual({
       'user-agent': ['curl/8'],
@@ -70,9 +73,11 @@ describe('buildAlbEvent', () => {
       'x-forwarded-proto': ['http'],
       'x-amzn-trace-id': [expect.stringMatching(TRACE_ID_PATTERN)],
     })
+    expect('headers' in event).toBe(false)
+    expect('queryStringParameters' in event).toBe(false)
   })
 
-  it('injects forwarding + trace headers into both maps when the client omits them', () => {
+  it('injects forwarding + trace headers into the single-value map by default', () => {
     const event = buildAlbEvent({
       request: makeRequest(),
       targetGroupArn: TARGET_GROUP_ARN,
@@ -81,8 +86,21 @@ describe('buildAlbEvent', () => {
     expect(event.headers['x-forwarded-port']).toBe('3000')
     expect(event.headers['x-forwarded-proto']).toBe('http')
     expect(event.headers['x-amzn-trace-id']).toMatch(TRACE_ID_PATTERN)
+  })
+
+  it('injects forwarding + trace headers into the multi-value map when multiValueHeaders is true', () => {
+    const event = buildAlbEvent({
+      request: makeRequest(),
+      targetGroupArn: TARGET_GROUP_ARN,
+      multiValueHeaders: true,
+    })
     expect(event.multiValueHeaders['x-forwarded-for']).toEqual(['127.0.0.1'])
+    expect(event.multiValueHeaders['x-forwarded-port']).toEqual(['3000'])
+    expect(event.multiValueHeaders['x-forwarded-proto']).toEqual(['http'])
     expect(event.multiValueHeaders['x-amzn-trace-id']).toHaveLength(1)
+    expect(event.multiValueHeaders['x-amzn-trace-id'][0]).toMatch(
+      TRACE_ID_PATTERN,
+    )
   })
 
   it('a client-supplied forwarding header (any casing) suppresses the default', () => {
@@ -103,13 +121,12 @@ describe('buildAlbEvent', () => {
     })
     expect(event.headers['x-forwarded-for']).toBe('9.9.9.9')
     expect(event.headers['x-forwarded-proto']).toBe('https')
-    expect(event.multiValueHeaders['x-forwarded-for']).toEqual(['9.9.9.9'])
     // The unsent forwarding headers are still synthesized.
     expect(event.headers['x-forwarded-port']).toBe('3000')
     expect(event.headers['x-amzn-trace-id']).toMatch(TRACE_ID_PATTERN)
   })
 
-  it('multiValueHeaders preserves duplicates from rawHeaders', () => {
+  it('multiValueHeaders preserves duplicates from rawHeaders when enabled', () => {
     const event = buildAlbEvent({
       request: makeRequest({
         raw: {
@@ -120,20 +137,31 @@ describe('buildAlbEvent', () => {
         headers: { 'x-multi': 'a,b' },
       }),
       targetGroupArn: TARGET_GROUP_ARN,
+      multiValueHeaders: true,
     })
     expect(event.multiValueHeaders['x-multi']).toEqual(['a', 'b'])
   })
 
-  it('emits queryStringParameters null when no query', () => {
+  it('emits queryStringParameters null when no query (single-value mode)', () => {
     const event = buildAlbEvent({
       request: makeRequest(),
       targetGroupArn: TARGET_GROUP_ARN,
     })
     expect(event.queryStringParameters).toBeNull()
-    expect(event.multiValueQueryStringParameters).toBeNull()
+    expect('multiValueQueryStringParameters' in event).toBe(false)
   })
 
-  it('emits queryStringParameters + multiValueQueryStringParameters when query present', () => {
+  it('emits multiValueQueryStringParameters null when no query (multi-value mode)', () => {
+    const event = buildAlbEvent({
+      request: makeRequest(),
+      targetGroupArn: TARGET_GROUP_ARN,
+      multiValueHeaders: true,
+    })
+    expect(event.multiValueQueryStringParameters).toBeNull()
+    expect('queryStringParameters' in event).toBe(false)
+  })
+
+  it('emits only single-value queryStringParameters by default', () => {
     const event = buildAlbEvent({
       request: makeRequest({
         url: new URL('http://localhost:3000/orders?status=open&tag=a&tag=b'),
@@ -141,10 +169,22 @@ describe('buildAlbEvent', () => {
       targetGroupArn: TARGET_GROUP_ARN,
     })
     expect(event.queryStringParameters).toEqual({ status: 'open', tag: 'b' })
+    expect('multiValueQueryStringParameters' in event).toBe(false)
+  })
+
+  it('emits only multiValueQueryStringParameters when multiValueHeaders is true', () => {
+    const event = buildAlbEvent({
+      request: makeRequest({
+        url: new URL('http://localhost:3000/orders?status=open&tag=a&tag=b'),
+      }),
+      targetGroupArn: TARGET_GROUP_ARN,
+      multiValueHeaders: true,
+    })
     expect(event.multiValueQueryStringParameters).toEqual({
       status: ['open'],
       tag: ['a', 'b'],
     })
+    expect('queryStringParameters' in event).toBe(false)
   })
 
   it('body is empty string when payload absent (real ALB behavior)', () => {

@@ -30,13 +30,16 @@ const TARGET_GROUP_ARN =
   'arn:aws:elasticloadbalancing:us-east-1:550213415212:targetgroup/5811b5d6aff964cd50efa8596604c4e0/b49d49c443aa999f'
 
 /**
- * Normalize an `events[].alb` entry to a list of `{ method, path }` pairs
- * (one per declared method). Defaults to a single `*` (Hapi catch-all)
- * when `conditions.method` is empty/absent. `conditions.path` accepts
- * string or single-element array.
+ * Normalize an `events[].alb` entry to a list of `{ method, path,
+ * multiValueHeaders }` tuples (one per declared method). Defaults to a single
+ * `*` (Hapi catch-all) when `conditions.method` is empty/absent.
+ * `conditions.path` accepts string or single-element array. The
+ * `multiValueHeaders` flag (default false) mirrors the target group's
+ * `lambda.multi_value_headers.enabled` attribute and selects which header /
+ * query variant the Lambda event carries.
  *
  * @param {object} albEvent
- * @returns {Array<{ method: string, path: string }>}
+ * @returns {Array<{ method: string, path: string, multiValueHeaders: boolean }>}
  */
 function normalizeAlbEvent(albEvent) {
   if (!albEvent || typeof albEvent !== 'object') return []
@@ -53,7 +56,9 @@ function normalizeAlbEvent(albEvent) {
       ? rawMethods.map((m) => String(m).toUpperCase())
       : ['*']
 
-  return methods.map((method) => ({ method, path }))
+  const multiValueHeaders = albEvent.multiValueHeaders === true
+
+  return methods.map((method) => ({ method, path, multiValueHeaders }))
 }
 
 /**
@@ -111,7 +116,7 @@ export function registerAlbRoutes({ server, serverless, onRequest }) {
       if (!Object.prototype.hasOwnProperty.call(eventEntry, 'alb')) continue
 
       const pairs = normalizeAlbEvent(eventEntry.alb)
-      for (const { method, path } of pairs) {
+      for (const { method, path, multiValueHeaders } of pairs) {
         const hapiMethod = toHapiMethod(method)
 
         // Hapi rejects payload settings on GET/HEAD/DELETE/OPTIONS/TRACE,
@@ -139,7 +144,11 @@ export function registerAlbRoutes({ server, serverless, onRequest }) {
             : {},
           async handler(request, h) {
             try {
-              const event = buildAlbEvent({ request, targetGroupArn })
+              const event = buildAlbEvent({
+                request,
+                targetGroupArn,
+                multiValueHeaders,
+              })
               const result = await onRequest(functionKey, event)
               return formatAlbResponse(result, h)
             } catch (err) {
