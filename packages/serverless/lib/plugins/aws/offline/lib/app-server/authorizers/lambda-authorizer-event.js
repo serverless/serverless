@@ -7,8 +7,10 @@
 
 import crypto from 'node:crypto'
 import { buildRestIdentity } from '../shared/rest-identity.js'
+import { formatClfTime } from '../shared/clf-time.js'
 import {
   PLACEHOLDER_API_ID,
+  PLACEHOLDER_DOMAIN_PREFIX,
   PLACEHOLDER_RESOURCE_ID,
   PLACEHOLDER_PROTOCOL,
 } from '../shared/rest-request-context.js'
@@ -65,6 +67,13 @@ export function buildRequestEvent({
 
   const sourceIp = request.info?.remoteAddress ?? '127.0.0.1'
   const userAgent = request.headers?.['user-agent'] ?? ''
+  const domainName = request.headers?.host ?? 'localhost'
+
+  // Timestamps. Prefer Hapi's `request.info.received` (ms epoch the socket
+  // received the first byte); fall back to "now" if absent.
+  const receivedMs = request.info?.received ?? Date.now()
+  const requestTime = formatClfTime(new Date(receivedMs))
+  const requestTimeEpoch = receivedMs
 
   return {
     type: 'REQUEST',
@@ -88,11 +97,16 @@ export function buildRequestEvent({
     requestContext: {
       accountId,
       apiId: PLACEHOLDER_API_ID,
+      domainName,
+      domainPrefix: PLACEHOLDER_DOMAIN_PREFIX,
+      extendedRequestId: crypto.randomUUID(),
       httpMethod,
       identity: buildRestIdentity({ sourceIp, userAgent }),
       path: requestContextPath,
       protocol: PLACEHOLDER_PROTOCOL,
       requestId: crypto.randomUUID(),
+      requestTime,
+      requestTimeEpoch,
       resourceId: PLACEHOLDER_RESOURCE_ID,
       resourcePath,
       stage,

@@ -121,4 +121,46 @@ describe('buildV2RequestEvent', () => {
     expect(event.requestContext.http.sourceIp).toBe('127.0.0.1')
     expect(event.requestContext.requestId).toBe('req-77')
   })
+
+  it('includes rawPath, rawQueryString, and cookies for a request with a query string and a Cookie header', () => {
+    const event = buildV2RequestEvent({
+      request: makeRequest({
+        path: '/items/42',
+        query: { search: 'hi' },
+        url: new URL('http://localhost:3000/items/42?search=hi'),
+        state: { session: 'abc', lang: 'en-US' },
+        headers: {
+          authorization: 'Bearer t',
+          cookie: 'session=abc; lang=en-US',
+        },
+        raw: {
+          req: {
+            url: '/items/42?search=hi',
+            rawHeaders: [
+              'Authorization',
+              'Bearer t',
+              'Cookie',
+              'session=abc; lang=en-US',
+            ],
+          },
+        },
+      }),
+      routeArn: ROUTE_ARN,
+      routeKey: ROUTE_KEY,
+      authorizationToken: 'Bearer t',
+      stage: 'dev',
+      accountId: '000000000000',
+      domainName: 'localhost',
+      requestId: 'req-1',
+    })
+    // rawPath is the raw (undecoded, slash-preserving) wire path.
+    expect(event.rawPath).toBe('/items/42')
+    // rawQueryString is the raw query string with no leading '?'.
+    expect(event.rawQueryString).toBe('search=hi')
+    // cookies is the array of `name=value` strings.
+    expect(Array.isArray(event.cookies)).toBe(true)
+    expect(event.cookies).toEqual(['session=abc', 'lang=en-US'])
+    // Existing fields stay intact.
+    expect(event.headers.authorization).toBe('Bearer t')
+  })
 })

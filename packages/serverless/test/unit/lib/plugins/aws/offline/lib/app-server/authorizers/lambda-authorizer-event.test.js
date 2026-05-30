@@ -167,4 +167,26 @@ describe('buildRequestEvent', () => {
     })
     expect(event.stageVariables).toBeNull()
   })
+
+  it('includes requestTime, requestTimeEpoch, extendedRequestId, domainName, and domainPrefix in requestContext', () => {
+    // 13 Mar 2024 14:15:16 UTC → CLF "13/Mar/2024:14:15:16 +0000".
+    const receivedMs = Date.UTC(2024, 2, 13, 14, 15, 16)
+    const event = buildRequestEvent({
+      request: makeRequest({
+        info: { remoteAddress: '127.0.0.1', received: receivedMs },
+        headers: {
+          authorization: 'Bearer tok-1',
+          'user-agent': 'jest',
+          host: 'api.example.com',
+        },
+      }),
+      ...REQUEST_ARGS,
+    })
+    expect(event.requestContext.requestTime).toBe('13/Mar/2024:14:15:16 +0000')
+    expect(event.requestContext.requestTimeEpoch).toBe(receivedMs)
+    expect(typeof event.requestContext.extendedRequestId).toBe('string')
+    expect(event.requestContext.extendedRequestId.length).toBeGreaterThan(0)
+    expect(event.requestContext.domainName).toBe('api.example.com')
+    expect(event.requestContext.domainPrefix).toBe('offline')
+  })
 })

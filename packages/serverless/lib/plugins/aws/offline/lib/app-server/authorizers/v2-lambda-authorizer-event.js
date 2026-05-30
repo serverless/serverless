@@ -5,6 +5,8 @@
  * shape per https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-lambda-authorizer.html
  */
 
+import { resolveRawPath } from '../shared/raw-path.js'
+
 /**
  * @param {object} args
  * @param {object} args.request                Hapi request.
@@ -33,6 +35,13 @@ export function buildV2RequestEvent({
   const hasQuery = Object.keys(query).length > 0
   const hasParams = Object.keys(params).length > 0
 
+  // rawPath is reported verbatim: a trailing slash is preserved and
+  // percent-encoding is not decoded. Sourced from the original wire path rather
+  // than Hapi's trailing-slash-stripped, percent-decoded request.path.
+  const rawPath = resolveRawPath(request)
+  const rawQueryString = readRawQueryString(request, query)
+  const cookies = readCookies(request, headers)
+
   return {
     version: '2.0',
     type: 'REQUEST',
@@ -42,6 +51,9 @@ export function buildV2RequestEvent({
       typeof authorizationToken === 'string' && authorizationToken.length > 0
         ? [authorizationToken]
         : [],
+    rawPath,
+    rawQueryString,
+    cookies,
     headers,
     queryStringParameters: hasQuery ? { ...query } : null,
     pathParameters: hasParams ? { ...params } : null,
@@ -91,4 +103,48 @@ function readHeadersLowercase(request) {
     out[k.toLowerCase()] = Array.isArray(v) ? v.join(',') : v
   }
   return out
+}
+
+/**
+ * Build the raw query string (no leading `?`) the way AWS HTTP API reports it.
+ * Prefers the WHATWG `request.url.searchParams` so encoding is normalized
+ * identically to the v2 proxy event; falls back to re-encoding Hapi's parsed
+ * `request.query` for in-process callers that don't carry a URL object.
+ */
+function readRawQueryString(request, query) {
+  const searchParams = request?.url?.searchParams
+  if (searchParams) return searchParams.toString()
+
+  const params = new URLSearchParams()
+  for (const [key, value] of Object.entries(query)) {
+    if (Array.isArray(value)) {
+      for (const v of value) params.append(key, v)
+    } else {
+      params.append(key, value)
+    }
+  }
+  return params.toString()
+}
+
+/**
+ * Build the `cookies` array of raw `name=value` strings the way AWS HTTP API
+ * reports it. Prefers Hapi's parsed `request.state` map (handles quoting,
+ * percent-decoding, and duplicate cookie names surfaced as arrays); falls back
+ * to splitting the raw `Cookie` header for in-process callers that don't carry
+ * parsed state. Returns an empty array when no cookies are present.
+ */
+function readCookies(request, headers) {
+  if (request?.state && Object.keys(request.state).length > 0) {
+    return Object.entries(request.state).flatMap(([key, value]) =>
+      Array.isArray(value)
+        ? value.map((v) => `${key}=${v}`)
+        : `${key}=${value}`,
+    )
+  }
+  const cookieHeader = headers?.cookie
+  if (!cookieHeader) return []
+  return cookieHeader
+    .split(';')
+    .map((c) => c.trim())
+    .filter(Boolean)
 }
