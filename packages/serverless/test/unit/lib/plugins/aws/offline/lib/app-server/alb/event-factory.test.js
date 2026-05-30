@@ -40,6 +40,8 @@ describe('buildAlbEvent', () => {
     })
   })
 
+  const TRACE_ID_PATTERN = /^Root=1-[0-9a-f]{8}-[0-9a-f]{24}$/
+
   it('emits headers lowercased single-value', () => {
     const event = buildAlbEvent({
       request: makeRequest(),
@@ -48,6 +50,10 @@ describe('buildAlbEvent', () => {
     expect(event.headers).toEqual({
       'user-agent': 'curl/8',
       'x-foo': 'bar',
+      'x-forwarded-for': '127.0.0.1',
+      'x-forwarded-port': '3000',
+      'x-forwarded-proto': 'http',
+      'x-amzn-trace-id': expect.stringMatching(TRACE_ID_PATTERN),
     })
   })
 
@@ -59,7 +65,48 @@ describe('buildAlbEvent', () => {
     expect(event.multiValueHeaders).toEqual({
       'user-agent': ['curl/8'],
       'x-foo': ['bar'],
+      'x-forwarded-for': ['127.0.0.1'],
+      'x-forwarded-port': ['3000'],
+      'x-forwarded-proto': ['http'],
+      'x-amzn-trace-id': [expect.stringMatching(TRACE_ID_PATTERN)],
     })
+  })
+
+  it('injects forwarding + trace headers into both maps when the client omits them', () => {
+    const event = buildAlbEvent({
+      request: makeRequest(),
+      targetGroupArn: TARGET_GROUP_ARN,
+    })
+    expect(event.headers['x-forwarded-for']).toBe('127.0.0.1')
+    expect(event.headers['x-forwarded-port']).toBe('3000')
+    expect(event.headers['x-forwarded-proto']).toBe('http')
+    expect(event.headers['x-amzn-trace-id']).toMatch(TRACE_ID_PATTERN)
+    expect(event.multiValueHeaders['x-forwarded-for']).toEqual(['127.0.0.1'])
+    expect(event.multiValueHeaders['x-amzn-trace-id']).toHaveLength(1)
+  })
+
+  it('a client-supplied forwarding header (any casing) suppresses the default', () => {
+    const event = buildAlbEvent({
+      request: makeRequest({
+        raw: {
+          req: {
+            rawHeaders: [
+              'X-Forwarded-For',
+              '9.9.9.9',
+              'X-Forwarded-Proto',
+              'https',
+            ],
+          },
+        },
+      }),
+      targetGroupArn: TARGET_GROUP_ARN,
+    })
+    expect(event.headers['x-forwarded-for']).toBe('9.9.9.9')
+    expect(event.headers['x-forwarded-proto']).toBe('https')
+    expect(event.multiValueHeaders['x-forwarded-for']).toEqual(['9.9.9.9'])
+    // The unsent forwarding headers are still synthesized.
+    expect(event.headers['x-forwarded-port']).toBe('3000')
+    expect(event.headers['x-amzn-trace-id']).toMatch(TRACE_ID_PATTERN)
   })
 
   it('multiValueHeaders preserves duplicates from rawHeaders', () => {

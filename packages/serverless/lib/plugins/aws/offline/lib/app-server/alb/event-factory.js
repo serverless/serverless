@@ -15,6 +15,8 @@
  * @see https://docs.aws.amazon.com/elasticloadbalancing/latest/application/lambda-functions.html
  */
 
+import { randomBytes } from 'node:crypto'
+
 /**
  * @param {object} args
  * @param {object} args.request           Hapi request.
@@ -24,6 +26,7 @@
 export function buildAlbEvent({ request, targetGroupArn }) {
   const httpMethod = request.method.toUpperCase()
   const { headers, multiValueHeaders } = readHeaders(request)
+  addForwardingHeaders(request, headers, multiValueHeaders)
   const { queryStringParameters, multiValueQueryStringParameters } =
     readQuery(request)
   const { body, isBase64Encoded } = readBody(request)
@@ -41,6 +44,57 @@ export function buildAlbEvent({ request, targetGroupArn }) {
       elb: { targetGroupArn },
     },
   }
+}
+
+/**
+ * Inject the forwarding and trace headers that a load balancer adds to every
+ * request before it reaches the target: `x-forwarded-for` (the client
+ * address), `x-forwarded-port` (the listener port), `x-forwarded-proto` (the
+ * listener scheme), and `x-amzn-trace-id` (an X-Ray trace identifier). A
+ * client-supplied value — at any casing, since both maps are keyed lowercase —
+ * suppresses the synthesized default. Mutates the passed single/multi maps.
+ */
+function addForwardingHeaders(request, single, multi) {
+  const defaults = {
+    'x-forwarded-for': forwardedFor(request),
+    'x-forwarded-port': forwardedPort(request),
+    'x-forwarded-proto': forwardedProto(request),
+    'x-amzn-trace-id': synthesizeTraceId(),
+  }
+  for (const [name, value] of Object.entries(defaults)) {
+    if (value == null || name in single) continue
+    single[name] = value
+    multi[name] = [value]
+  }
+}
+
+function forwardedFor(request) {
+  return (
+    request?.info?.remoteAddress ??
+    request?.raw?.req?.socket?.remoteAddress ??
+    null
+  )
+}
+
+function forwardedPort(request) {
+  const port =
+    request?.raw?.req?.socket?.localPort ??
+    request?.server?.info?.port ??
+    request?.url?.port
+  return port != null && port !== '' ? String(port) : null
+}
+
+function forwardedProto(request) {
+  if (request?.raw?.req?.socket?.encrypted) return 'https'
+  return request?.server?.info?.protocol === 'https' ? 'https' : 'http'
+}
+
+/**
+ * Synthesize an X-Ray trace header value of the form `Root=1-<8 hex>-<24 hex>`
+ * (8 hex = a 4-byte timestamp slot, 24 hex = a 12-byte random identifier).
+ */
+function synthesizeTraceId() {
+  return `Root=1-${randomBytes(4).toString('hex')}-${randomBytes(12).toString('hex')}`
 }
 
 /**
