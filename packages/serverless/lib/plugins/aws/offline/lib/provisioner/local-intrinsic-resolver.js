@@ -1,48 +1,51 @@
 import ServerlessError from '../../../../../serverless-error.js'
 
+/**
+ * Sentinel for `AWS::NoValue`. A value resolving to this is dropped from its
+ * containing object's key (and from arrays it appears in).
+ */
 const NO_VALUE = Symbol.for('AWS::NoValue')
 
 /**
- * Resolves a constrained set of CloudFormation intrinsic functions
- * (`Ref`, `Fn::GetAtt`, `Fn::ImportValue`) against a local registry of
- * provisioned resources and pseudo-parameter values. Unsupported `Fn::*`
- * keys throw `OFFLINE_UNSUPPORTED_INTRINSIC` so callers get an actionable
- * error rather than a silent miss.
+ * Sentinel for a reference that cannot be resolved locally. It propagates up
+ * through container intrinsics and, when it lands as a plain-object value,
+ * causes that key to be dropped. Exported so sibling modules and tests can
+ * recognise it.
+ */
+export const UNRESOLVED = Symbol.for('OFFLINE::Unresolved')
+
+/**
+ * Resolves CloudFormation intrinsic functions against a local registry of
+ * provisioned resources and pseudo-parameter values.
+ *
+ * `Ref` is resolved for every provisioned resource type and for template
+ * parameters. A reference that cannot be resolved becomes the `UNRESOLVED`
+ * sentinel and a warning is pushed onto `context.warnings` rather than
+ * throwing, so booting offline never crashes on a missing reference.
  *
  * @param {unknown} value
- *   The CFN value tree to resolve.  May be a primitive, array, or plain
- *   object potentially containing intrinsic nodes.
+ *   The CFN value tree to resolve. May be a primitive, array, or plain object
+ *   potentially containing intrinsic nodes.
  *
  * @param {{
  *   registry: {
  *     sqs: Map<string, { logicalId: string, url: string, arn: string, name: string }>,
- *     sns: Map<string, { logicalId: string, arn: string }>,
- *     s3: Map<string, unknown>,
- *     events: Map<string, unknown>,
- *     lambda: Map<string, unknown>,
+ *     sns: Map<string, { logicalId: string, arn: string, name: string }>,
+ *     s3: Map<string, { logicalId: string, name: string, arn: string }>,
+ *     events: Map<string, { logicalId: string, name: string, arn: string }>,
+ *     lambda: Map<string, { logicalId: string, arn: string }>,
  *   },
  *   parameters: Record<string, unknown>,
- *   pseudoParams: {
- *     'AWS::AccountId': string,
- *     'AWS::Region': string,
- *     'AWS::Partition': string,
- *     'AWS::URLSuffix': string,
- *     'AWS::StackName': string,
- *     'AWS::NoValue': symbol,
- *   },
+ *   pseudoParams: Record<string, unknown>,
+ *   conditions?: Map<string, boolean>,
+ *   mappings?: object,
+ *   warnings?: Array<{ code: string, reference: string, detail: string }>,
  * }} context
- *   Resolution context supplying the resource registry and pseudo-parameters.
+ *   Resolution context supplying the resource registry, pseudo-parameters,
+ *   pre-evaluated conditions, template mappings, and a warnings sink.
  *
  * @returns {unknown} The resolved value, deep-equal to the input when no
  *   intrinsics are present.
- *
- * @throws {ServerlessError} OFFLINE_UNRESOLVED_REF — `{ Ref: '<id>' }` where
- *   `<id>` is neither a pseudo-param nor a known registry entry.
- * @throws {ServerlessError} OFFLINE_UNRESOLVED_GETATT — `{ 'Fn::GetAtt': [...] }`
- *   where the logical ID is unknown or the attribute is unsupported.
- * @throws {ServerlessError} OFFLINE_UNSUPPORTED_INTRINSIC — any other `Fn::*`
- *   key encountered in the tree.
- * @throws {ServerlessError} OFFLINE_CROSS_STACK_IMPORT — `{ 'Fn::ImportValue': '...' }`.
  */
 export function resolveIntrinsics(value, context) {
   // Primitives — return as-is (bare strings that look like pseudo-param keys
@@ -84,12 +87,12 @@ export function resolveIntrinsics(value, context) {
     }
   }
 
-  // Plain object — recurse over each value, dropping keys that resolve to
-  // the AWS::NoValue sentinel.
+  // Plain object — recurse over each value, dropping keys that resolve to the
+  // AWS::NoValue or UNRESOLVED sentinels.
   const result = {}
   for (const [k, v] of Object.entries(value)) {
     const resolved = resolveIntrinsics(v, context)
-    if (resolved !== NO_VALUE) {
+    if (resolved !== NO_VALUE && resolved !== UNRESOLVED) {
       result[k] = resolved
     }
   }
@@ -97,11 +100,47 @@ export function resolveIntrinsics(value, context) {
 }
 
 // ---------------------------------------------------------------------------
+// Warnings
+// ---------------------------------------------------------------------------
+
+/**
+ * Pushes a warning onto the context sink, de-duplicated by `(code, reference)`
+ * so the same missing reference is not reported twice. Always returns the
+ * `UNRESOLVED` sentinel for ergonomic `return warn(...)` call sites.
+ *
+ * @param {object} context - The resolution context (provides `warnings`).
+ * @param {string} code - Stable warning code.
+ * @param {string} reference - Short identifier of the offending node.
+ * @param {string} detail - Human-readable explanation.
+ * @returns {symbol} The `UNRESOLVED` sentinel.
+ */
+function warn(context, code, reference, detail) {
+  const warnings = context.warnings
+  if (Array.isArray(warnings)) {
+    const seen = warnings.some(
+      (w) => w.code === code && w.reference === reference,
+    )
+    if (!seen) {
+      warnings.push({ code, reference, detail })
+    }
+  }
+  return UNRESOLVED
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
+/**
+ * Resolves a `Ref` against pseudo-parameters, the resource registry, and
+ * template parameters. Unknown ids become `UNRESOLVED` plus a warning.
+ *
+ * @param {string} id - The referenced logical id or pseudo-parameter name.
+ * @param {object} context - The resolution context.
+ * @returns {unknown} The resolved value, or `UNRESOLVED`.
+ */
 function resolveRef(id, context) {
-  const { pseudoParams, registry } = context
+  const { pseudoParams, registry, parameters } = context
 
   // Pseudo-parameters take priority.
   if (Object.prototype.hasOwnProperty.call(pseudoParams, id)) {
@@ -118,9 +157,31 @@ function resolveRef(id, context) {
     return registry.sns.get(id).arn
   }
 
-  throw new ServerlessError(
-    `Cannot resolve { Ref: '${id}' } — no pseudo-parameter, SQS queue, or SNS topic with logical ID "${id}" found in the offline registry.`,
-    'OFFLINE_UNRESOLVED_REF',
+  // S3 buckets — Ref resolves to the bucket name.
+  if (registry.s3.has(id)) {
+    return registry.s3.get(id).name
+  }
+
+  // EventBridge buses and rules — Ref resolves to the resource name.
+  if (registry.events.has(id)) {
+    return registry.events.get(id).name
+  }
+
+  // Lambda functions — Ref resolves to the function ARN.
+  if (registry.lambda.has(id)) {
+    return registry.lambda.get(id).arn
+  }
+
+  // Template parameters — Ref resolves to the (already defaulted) value.
+  if (parameters && Object.prototype.hasOwnProperty.call(parameters, id)) {
+    return parameters[id]
+  }
+
+  return warn(
+    context,
+    'OFFLINE_UNRESOLVED_REFERENCE',
+    id,
+    `Cannot resolve { Ref: '${id}' } — no pseudo-parameter, provisioned resource, or template parameter with that name is available offline.`,
   )
 }
 

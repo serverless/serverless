@@ -1,4 +1,7 @@
-import { resolveIntrinsics } from '../../../../../../../../lib/plugins/aws/offline/lib/provisioner/local-intrinsic-resolver.js'
+import {
+  resolveIntrinsics,
+  UNRESOLVED,
+} from '../../../../../../../../lib/plugins/aws/offline/lib/provisioner/local-intrinsic-resolver.js'
 
 // ---------------------------------------------------------------------------
 // Shared fixtures
@@ -15,16 +18,45 @@ const QUEUE_RECORD = {
 const TOPIC_RECORD = {
   logicalId: 'MyTopic',
   arn: 'arn:aws:sns:us-east-1:000000000000:MyTopic',
+  name: 'MyTopic',
   properties: {},
 }
 
-function makeRegistry({ sqs = [], sns = [] } = {}) {
+const BUCKET_RECORD = {
+  logicalId: 'MyBucket',
+  name: 'my-bucket',
+  arn: 'arn:aws:s3:::my-bucket',
+  properties: {},
+}
+
+const EVENT_BUS_RECORD = {
+  logicalId: 'MyBus',
+  name: 'my-bus',
+  arn: 'arn:aws:events:us-east-1:000000000000:event-bus/my-bus',
+  kind: 'bus',
+  properties: {},
+}
+
+const LAMBDA_RECORD = {
+  logicalId: 'MyLambda',
+  functionKey: 'myFunc',
+  name: 'my-service-dev-myFunc',
+  arn: 'arn:aws:lambda:us-east-1:000000000000:function:my-service-dev-myFunc',
+}
+
+function makeRegistry({
+  sqs = [],
+  sns = [],
+  s3 = [],
+  events = [],
+  lambda = [],
+} = {}) {
   return {
     sqs: new Map(sqs),
     sns: new Map(sns),
-    s3: new Map(),
-    events: new Map(),
-    lambda: new Map(),
+    s3: new Map(s3),
+    events: new Map(events),
+    lambda: new Map(lambda),
   }
 }
 
@@ -34,14 +66,27 @@ const BASE_PSEUDO = {
   'AWS::Partition': 'aws',
   'AWS::URLSuffix': 'amazonaws.com',
   'AWS::StackName': 'my-service-dev',
+  'AWS::StackId':
+    'arn:aws:cloudformation:us-east-1:000000000000:stack/my-service-dev/0',
+  'AWS::NotificationARNs': [],
   'AWS::NoValue': Symbol.for('AWS::NoValue'),
 }
 
-function makeContext({ registry, pseudoParams } = {}) {
+function makeContext({
+  registry,
+  pseudoParams,
+  parameters,
+  conditions,
+  mappings,
+  warnings,
+} = {}) {
   return {
     registry: registry ?? makeRegistry(),
-    parameters: {},
+    parameters: parameters ?? {},
     pseudoParams: pseudoParams ?? BASE_PSEUDO,
+    conditions: conditions ?? new Map(),
+    mappings: mappings ?? {},
+    warnings: warnings ?? [],
   }
 }
 
@@ -132,13 +177,64 @@ it('9. { Ref: "MyTopic" } against a registry with the topic → topic ARN', () =
 })
 
 // ---------------------------------------------------------------------------
-// 10. { Ref: 'Unknown' } → throws OFFLINE_UNRESOLVED_REF
+// 9b-9f. Ref for the remaining provisioned resource types and parameters
 // ---------------------------------------------------------------------------
 
-it('10. { Ref: "Unknown" } against an empty registry → throws OFFLINE_UNRESOLVED_REF', () => {
-  expect(() => resolveIntrinsics({ Ref: 'Unknown' }, makeContext())).toThrow(
-    expect.objectContaining({ code: 'OFFLINE_UNRESOLVED_REF' }),
-  )
+it('9b. { Ref: "MyBucket" } → bucket name', () => {
+  const ctx = makeContext({
+    registry: makeRegistry({ s3: [['MyBucket', BUCKET_RECORD]] }),
+  })
+  expect(resolveIntrinsics({ Ref: 'MyBucket' }, ctx)).toBe(BUCKET_RECORD.name)
+})
+
+it('9c. { Ref: "MyBus" } → event resource name', () => {
+  const ctx = makeContext({
+    registry: makeRegistry({ events: [['MyBus', EVENT_BUS_RECORD]] }),
+  })
+  expect(resolveIntrinsics({ Ref: 'MyBus' }, ctx)).toBe(EVENT_BUS_RECORD.name)
+})
+
+it('9d. { Ref: "MyLambda" } → lambda ARN', () => {
+  const ctx = makeContext({
+    registry: makeRegistry({ lambda: [['MyLambda', LAMBDA_RECORD]] }),
+  })
+  expect(resolveIntrinsics({ Ref: 'MyLambda' }, ctx)).toBe(LAMBDA_RECORD.arn)
+})
+
+it('9e. { Ref: "MyParam" } → CloudFormation parameter value', () => {
+  const ctx = makeContext({ parameters: { MyParam: 'param-value' } })
+  expect(resolveIntrinsics({ Ref: 'MyParam' }, ctx)).toBe('param-value')
+})
+
+// ---------------------------------------------------------------------------
+// 10. { Ref: 'Unknown' } → UNRESOLVED + warning (boot must not crash)
+// ---------------------------------------------------------------------------
+
+it('10. { Ref: "Unknown" } against an empty registry → UNRESOLVED + warning', () => {
+  const warnings = []
+  const ctx = makeContext({ warnings })
+  expect(resolveIntrinsics({ Ref: 'Unknown' }, ctx)).toBe(UNRESOLVED)
+  expect(warnings).toEqual([
+    {
+      code: 'OFFLINE_UNRESOLVED_REFERENCE',
+      reference: 'Unknown',
+      detail: expect.any(String),
+    },
+  ])
+})
+
+it('10b. an UNRESOLVED Ref as an object value drops the key', () => {
+  const ctx = makeContext()
+  expect(
+    resolveIntrinsics({ keep: 'yes', drop: { Ref: 'Unknown' } }, ctx),
+  ).toEqual({ keep: 'yes' })
+})
+
+it('10c. duplicate unresolvable Refs warn only once', () => {
+  const warnings = []
+  const ctx = makeContext({ warnings })
+  resolveIntrinsics({ a: { Ref: 'Unknown' }, b: { Ref: 'Unknown' } }, ctx)
+  expect(warnings).toHaveLength(1)
 })
 
 // ---------------------------------------------------------------------------
