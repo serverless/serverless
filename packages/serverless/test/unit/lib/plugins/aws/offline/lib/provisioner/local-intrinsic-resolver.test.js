@@ -277,19 +277,110 @@ it('14. Fn::GetAtt "MyQueue.Arn" (string short-form) → queue ARN', () => {
   )
 })
 
-it('15. Fn::GetAtt ["Unknown", "X"] → throws OFFLINE_UNRESOLVED_GETATT', () => {
-  expect(() =>
-    resolveIntrinsics({ 'Fn::GetAtt': ['Unknown', 'X'] }, makeContext()),
-  ).toThrow(expect.objectContaining({ code: 'OFFLINE_UNRESOLVED_GETATT' }))
+it('14b. Fn::GetAtt ["MyTopic", "TopicArn" | "TopicName"] → SNS attributes', () => {
+  const ctx = makeContext({
+    registry: makeRegistry({ sns: [['MyTopic', TOPIC_RECORD]] }),
+  })
+  expect(
+    resolveIntrinsics({ 'Fn::GetAtt': ['MyTopic', 'TopicArn'] }, ctx),
+  ).toBe(TOPIC_RECORD.arn)
+  expect(
+    resolveIntrinsics({ 'Fn::GetAtt': ['MyTopic', 'TopicName'] }, ctx),
+  ).toBe(TOPIC_RECORD.name)
 })
 
-it('16. Fn::GetAtt ["MyQueue", "NotAnAttribute"] → throws OFFLINE_UNRESOLVED_GETATT', () => {
+it('14c. Fn::GetAtt for S3 bucket attributes', () => {
+  const ctx = makeContext({
+    registry: makeRegistry({ s3: [['MyBucket', BUCKET_RECORD]] }),
+  })
+  expect(resolveIntrinsics({ 'Fn::GetAtt': ['MyBucket', 'Arn'] }, ctx)).toBe(
+    'arn:aws:s3:::my-bucket',
+  )
+  expect(
+    resolveIntrinsics({ 'Fn::GetAtt': ['MyBucket', 'DomainName'] }, ctx),
+  ).toBe('my-bucket.s3.amazonaws.com')
+  expect(
+    resolveIntrinsics(
+      { 'Fn::GetAtt': ['MyBucket', 'RegionalDomainName'] },
+      ctx,
+    ),
+  ).toBe('my-bucket.s3.us-east-1.amazonaws.com')
+  expect(
+    resolveIntrinsics({ 'Fn::GetAtt': ['MyBucket', 'WebsiteURL'] }, ctx),
+  ).toBe('http://my-bucket.s3-website-us-east-1.amazonaws.com')
+})
+
+it('14d. Fn::GetAtt for EventBridge Arn and Name', () => {
+  const ctx = makeContext({
+    registry: makeRegistry({ events: [['MyBus', EVENT_BUS_RECORD]] }),
+  })
+  expect(resolveIntrinsics({ 'Fn::GetAtt': ['MyBus', 'Arn'] }, ctx)).toBe(
+    EVENT_BUS_RECORD.arn,
+  )
+  expect(resolveIntrinsics({ 'Fn::GetAtt': ['MyBus', 'Name'] }, ctx)).toBe(
+    EVENT_BUS_RECORD.name,
+  )
+})
+
+it('14e. Fn::GetAtt for Lambda Arn', () => {
+  const ctx = makeContext({
+    registry: makeRegistry({ lambda: [['MyLambda', LAMBDA_RECORD]] }),
+  })
+  expect(resolveIntrinsics({ 'Fn::GetAtt': ['MyLambda', 'Arn'] }, ctx)).toBe(
+    LAMBDA_RECORD.arn,
+  )
+})
+
+it('14f. Fn::GetAtt resolves an intrinsic attribute first', () => {
   const ctx = makeContext({
     registry: makeRegistry({ sqs: [['MyQueue', QUEUE_RECORD]] }),
+    parameters: { AttrParam: 'Arn' },
   })
-  expect(() =>
+  expect(
+    resolveIntrinsics({ 'Fn::GetAtt': ['MyQueue', { Ref: 'AttrParam' }] }, ctx),
+  ).toBe(QUEUE_RECORD.arn)
+})
+
+it('15. Fn::GetAtt ["Unknown", "X"] → UNRESOLVED + warning', () => {
+  const warnings = []
+  const ctx = makeContext({ warnings })
+  expect(resolveIntrinsics({ 'Fn::GetAtt': ['Unknown', 'X'] }, ctx)).toBe(
+    UNRESOLVED,
+  )
+  expect(warnings).toEqual([
+    {
+      code: 'OFFLINE_UNRESOLVED_REFERENCE',
+      reference: 'Unknown.X',
+      detail: expect.any(String),
+    },
+  ])
+})
+
+it('16. Fn::GetAtt ["MyQueue", "NotAnAttribute"] → UNRESOLVED + warning', () => {
+  const warnings = []
+  const ctx = makeContext({
+    registry: makeRegistry({ sqs: [['MyQueue', QUEUE_RECORD]] }),
+    warnings,
+  })
+  expect(
     resolveIntrinsics({ 'Fn::GetAtt': ['MyQueue', 'NotAnAttribute'] }, ctx),
-  ).toThrow(expect.objectContaining({ code: 'OFFLINE_UNRESOLVED_GETATT' }))
+  ).toBe(UNRESOLVED)
+  expect(warnings).toEqual([
+    {
+      code: 'OFFLINE_UNRESOLVED_REFERENCE',
+      reference: 'MyQueue.NotAnAttribute',
+      detail: expect.any(String),
+    },
+  ])
+})
+
+it('16b. structurally malformed Fn::GetAtt → throws OFFLINE_MALFORMED_INTRINSIC', () => {
+  expect(() =>
+    resolveIntrinsics({ 'Fn::GetAtt': ['OnlyOne'] }, makeContext()),
+  ).toThrow(expect.objectContaining({ code: 'OFFLINE_MALFORMED_INTRINSIC' }))
+  expect(() =>
+    resolveIntrinsics({ 'Fn::GetAtt': 'NoDotHere' }, makeContext()),
+  ).toThrow(expect.objectContaining({ code: 'OFFLINE_MALFORMED_INTRINSIC' }))
 })
 
 // ---------------------------------------------------------------------------

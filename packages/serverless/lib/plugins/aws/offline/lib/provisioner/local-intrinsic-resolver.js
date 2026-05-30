@@ -1,4 +1,9 @@
 import ServerlessError from '../../../../../serverless-error.js'
+import {
+  s3DomainName,
+  s3RegionalDomainName,
+  s3WebsiteUrl,
+} from './arn-synth.js'
 
 /**
  * Sentinel for `AWS::NoValue`. A value resolving to this is dropped from its
@@ -185,6 +190,18 @@ function resolveRef(id, context) {
   )
 }
 
+/**
+ * Resolves a `Fn::GetAtt` against the resource registry. Accepts the
+ * `[LogicalId, Attribute]` array form or the `"LogicalId.Attribute"` string
+ * form (split on the first dot). The attribute may itself be an intrinsic and
+ * is resolved first. Unknown logical ids, and known ids with an attribute that
+ * is not in the resource type's table, become `UNRESOLVED` plus a warning.
+ * Structurally malformed specs throw `OFFLINE_MALFORMED_INTRINSIC`.
+ *
+ * @param {unknown} spec - The `Fn::GetAtt` value.
+ * @param {object} context - The resolution context.
+ * @returns {unknown} The resolved attribute value, or `UNRESOLVED`.
+ */
 function resolveGetAtt(spec, context) {
   // Normalise string short-form "LogicalId.Attribute" to array form.
   let logicalId, attribute
@@ -193,7 +210,7 @@ function resolveGetAtt(spec, context) {
     if (dot === -1) {
       throw new ServerlessError(
         `Fn::GetAtt string form "${spec}" must contain a "." separator.`,
-        'OFFLINE_UNRESOLVED_GETATT',
+        'OFFLINE_MALFORMED_INTRINSIC',
       )
     }
     logicalId = spec.slice(0, dot)
@@ -203,31 +220,59 @@ function resolveGetAtt(spec, context) {
   } else {
     throw new ServerlessError(
       `Fn::GetAtt value must be a [LogicalId, Attribute] array or a "LogicalId.Attribute" string.`,
-      'OFFLINE_UNRESOLVED_GETATT',
+      'OFFLINE_MALFORMED_INTRINSIC',
     )
   }
 
+  // The attribute may itself be an intrinsic — resolve it first.
+  attribute = resolveIntrinsics(attribute, context)
+  if (attribute === UNRESOLVED) return UNRESOLVED
+
   const { registry } = context
+  const reference = `${logicalId}.${attribute}`
+
+  let record
+  let table
 
   if (registry.sqs.has(logicalId)) {
-    const q = registry.sqs.get(logicalId)
-    switch (attribute) {
-      case 'Arn':
-        return q.arn
-      case 'QueueName':
-        return q.name
-      case 'QueueUrl':
-        return q.url
-      default:
-        throw new ServerlessError(
-          `Fn::GetAtt ["${logicalId}", "${attribute}"] — attribute "${attribute}" is not supported for AWS::SQS::Queue in offline mode.`,
-          'OFFLINE_UNRESOLVED_GETATT',
-        )
+    record = registry.sqs.get(logicalId)
+    table = { Arn: record.arn, QueueName: record.name, QueueUrl: record.url }
+  } else if (registry.sns.has(logicalId)) {
+    record = registry.sns.get(logicalId)
+    table = { TopicArn: record.arn, TopicName: record.name }
+  } else if (registry.s3.has(logicalId)) {
+    record = registry.s3.get(logicalId)
+    table = {
+      Arn: `arn:aws:s3:::${record.name}`,
+      DomainName: s3DomainName(record.name),
+      RegionalDomainName: s3RegionalDomainName(record.name),
+      WebsiteURL: s3WebsiteUrl(record.name),
     }
+  } else if (registry.events.has(logicalId)) {
+    record = registry.events.get(logicalId)
+    table = { Arn: record.arn, Name: record.name }
+  } else if (registry.lambda.has(logicalId)) {
+    record = registry.lambda.get(logicalId)
+    table = { Arn: record.arn }
   }
 
-  throw new ServerlessError(
-    `Fn::GetAtt ["${logicalId}", "${attribute}"] — no resource with logical ID "${logicalId}" found in the offline registry.`,
-    'OFFLINE_UNRESOLVED_GETATT',
-  )
+  if (!record) {
+    return warn(
+      context,
+      'OFFLINE_UNRESOLVED_REFERENCE',
+      reference,
+      `Cannot resolve Fn::GetAtt ["${logicalId}", "${attribute}"] — no provisioned resource with logical ID "${logicalId}" is available offline.`,
+    )
+  }
+
+  if (!Object.prototype.hasOwnProperty.call(table, attribute)) {
+    return warn(
+      context,
+      'OFFLINE_UNRESOLVED_REFERENCE',
+      reference,
+      `Cannot resolve Fn::GetAtt ["${logicalId}", "${attribute}"] — attribute "${attribute}" is not available for that resource offline.`,
+    )
+  }
+
+  return table[attribute]
 }

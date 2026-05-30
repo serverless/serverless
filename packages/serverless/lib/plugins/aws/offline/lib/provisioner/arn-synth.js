@@ -53,3 +53,36 @@ export function arnFor(service, logicalId) {
 export function queueUrlFor(logicalId, awsApiPort = DEFAULT_AWS_API_PORT) {
   return `http://localhost:${awsApiPort}/${FAKE_ACCOUNT_ID}/${logicalId}`
 }
+
+/**
+ * Returns the global S3 bucket domain name, matching the `DomainName` return
+ * value of `AWS::S3::Bucket`.
+ *
+ * @param {string} bucketName - The S3 bucket name.
+ * @returns {string} e.g. `my-bucket.s3.amazonaws.com`
+ */
+export function s3DomainName(bucketName) {
+  return `${bucketName}.s3.amazonaws.com`
+}
+
+/**
+ * Returns the regional S3 bucket domain name, matching the
+ * `RegionalDomainName` return value of `AWS::S3::Bucket`.
+ *
+ * @param {string} bucketName - The S3 bucket name.
+ * @returns {string} e.g. `my-bucket.s3.us-east-1.amazonaws.com`
+ */
+export function s3RegionalDomainName(bucketName) {
+  return `${bucketName}.s3.${FAKE_REGION}.amazonaws.com`
+}
+
+/**
+ * Returns the S3 static-website endpoint URL, matching the `WebsiteURL`
+ * return value of `AWS::S3::Bucket`.
+ *
+ * @param {string} bucketName - The S3 bucket name.
+ * @returns {string} e.g. `http://my-bucket.s3-website-us-east-1.amazonaws.com`
+ */
+export function s3WebsiteUrl(bucketName) {
+  return `http://${bucketName}.s3-website-${FAKE_REGION}.amazonaws.com`
+}

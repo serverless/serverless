@@ -1,6 +1,9 @@
 import {
   arnFor,
   queueUrlFor,
+  s3DomainName,
+  s3RegionalDomainName,
+  s3WebsiteUrl,
 } from '../../../../../../../../lib/plugins/aws/offline/lib/provisioner/arn-synth.js'
 
 describe('arnFor', () => {
@@ -49,6 +52,24 @@ describe('queueUrlFor', () => {
   it('defaults to port 3002 when no port is provided', () => {
     expect(queueUrlFor('MyQueue')).toBe(
       'http://localhost:3002/000000000000/MyQueue',
+    )
+  })
+})
+
+describe('S3 GetAtt helpers', () => {
+  it('s3DomainName produces the global bucket domain', () => {
+    expect(s3DomainName('my-bucket')).toBe('my-bucket.s3.amazonaws.com')
+  })
+
+  it('s3RegionalDomainName produces the regional bucket domain', () => {
+    expect(s3RegionalDomainName('my-bucket')).toBe(
+      'my-bucket.s3.us-east-1.amazonaws.com',
+    )
+  })
+
+  it('s3WebsiteUrl produces the website endpoint URL', () => {
+    expect(s3WebsiteUrl('my-bucket')).toBe(
+      'http://my-bucket.s3-website-us-east-1.amazonaws.com',
     )
   })
 })
