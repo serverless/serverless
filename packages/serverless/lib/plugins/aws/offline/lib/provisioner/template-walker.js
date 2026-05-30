@@ -25,18 +25,26 @@ import {
  *   conditions: Map<string, boolean>,
  *   registry: ReturnType<import('./registry.js').createRegistry>,
  *   awsApiPort: number,
+ *   exclude?: Set<string>,
  * }} context
- *   The resolver helper, evaluated conditions, target registry, and the port
- *   embedded in synthesized queue URLs.
+ *   The resolver helper, evaluated conditions, target registry, the port
+ *   embedded in synthesized queue URLs, and an optional set of logical ids to
+ *   skip (e.g. the framework's internal deployment bucket, which is a deploy
+ *   artifact rather than a user-declared resource).
  * @returns {void}
  */
 export function walkResources(
   template,
-  { resolveIntrinsics, conditions, registry, awsApiPort },
+  { resolveIntrinsics, conditions, registry, awsApiPort, exclude },
 ) {
   const resources = template?.Resources ?? {}
 
   for (const [logicalId, resource] of Object.entries(resources)) {
+    // Skip explicitly excluded logical ids (deploy-only infrastructure).
+    if (exclude && exclude.has(logicalId)) {
+      continue
+    }
+
     // Skip resources gated off by a false condition — they would not exist
     // after a real deployment.
     if (

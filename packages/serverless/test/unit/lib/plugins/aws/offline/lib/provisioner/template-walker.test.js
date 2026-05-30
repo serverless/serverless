@@ -91,4 +91,19 @@ describe('walkResources', () => {
   it('handles a template with no Resources block without error', () => {
     expect(() => walk({})).not.toThrow()
   })
+
+  it('skips resources whose logical id is in the exclude set', () => {
+    const registry = walk(
+      {
+        Resources: {
+          ServerlessDeploymentBucket: { Type: 'AWS::S3::Bucket' },
+          UploadsBucket: { Type: 'AWS::S3::Bucket' },
+        },
+      },
+      { exclude: new Set(['ServerlessDeploymentBucket']) },
+    )
+
+    expect(registry.s3.has('ServerlessDeploymentBucket')).toBe(false)
+    expect(registry.s3.has('UploadsBucket')).toBe(true)
+  })
 })

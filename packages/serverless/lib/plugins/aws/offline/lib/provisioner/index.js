@@ -114,12 +114,18 @@ export async function provision(
       warnings,
     })
 
-  // 9. Walk Resources and lift every supported type into the registry.
+  // 9. Walk Resources and lift every supported type into the registry. The
+  //    framework's internal deployment bucket is a deploy artifact, not a
+  //    user-declared resource, so it is excluded from local provisioning.
+  const deploymentBucketLogicalId =
+    serverless.getProvider?.('aws')?.naming?.getDeploymentBucketLogicalId?.() ??
+    'ServerlessDeploymentBucket'
   walkResources(template, {
     resolveIntrinsics: resolveIntrinsicsBound,
     conditions,
     registry,
     awsApiPort,
+    exclude: new Set([deploymentBucketLogicalId, 'ServerlessDeploymentBucket']),
   })
 
   // 10. Re-render function environments and event declarations.
