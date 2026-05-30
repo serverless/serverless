@@ -139,6 +139,31 @@ describe('createInProcessRunner', () => {
     expect(result.remaining).toBeLessThanOrEqual(1000)
   })
 
+  it('exposes functionVersion, logGroupName and logStreamName on the context', async () => {
+    const runner = createInProcessRunner()
+    const result = await runner.invoke({
+      functionKey: 'ctx',
+      handlerPath: path.join(FIXTURES, 'context-fields.mjs'),
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'ctx',
+        awsRequestId: 'r-ctx',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:ctx',
+        memoryLimitInMB: '128',
+        timeoutMs: 6000,
+      },
+      environment: {},
+    })
+
+    expect(result.functionVersion).toBe('$LATEST')
+    expect(result.logGroupName).toBe('/aws/lambda/ctx')
+    expect(result.logStreamName).toMatch(
+      /^\d{4}\/\d{2}\/\d{2}\/\[\$LATEST\][0-9a-f]{32}$/,
+    )
+  })
+
   it('inflates legacy context.succeed / .fail / .done', async () => {
     const runner = createInProcessRunner()
     const result = await runner.invoke({

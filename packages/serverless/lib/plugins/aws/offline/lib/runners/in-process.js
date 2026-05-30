@@ -161,6 +161,10 @@ export function createInProcessRunner() {
 
       const inflatedContext = {
         ...context,
+        // Fields the worker runner also exposes; AWS always populates them.
+        functionVersion: context?.functionVersion ?? '$LATEST',
+        logGroupName,
+        logStreamName,
         getRemainingTimeInMillis() {
           const left = timeoutMsForContext - (performance.now() - startedAt)
           return left > 0 ? Math.floor(left) : 0
