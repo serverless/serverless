@@ -313,6 +313,37 @@ describe('WebSocket server — disconnect', () => {
       await teardown(ctx)
     }
   })
+
+  it('threads the client close code + reason onto the $disconnect event', async () => {
+    const handlerCalls = []
+    const ctx = await setup({
+      functions: {
+        onDisconnect: { events: [{ websocket: '$disconnect' }] },
+      },
+      onRequest: jest.fn(async (fnKey, event) => {
+        handlerCalls.push({ fnKey, event })
+        return { statusCode: 200 }
+      }),
+    })
+    try {
+      const ws = await connectWs(ctx.url)
+      await new Promise((r) => setTimeout(r, 50)) // let registry settle
+      ws.close(1001, 'Going away')
+      await new Promise((r) => setTimeout(r, 100))
+      const disconnectCall = handlerCalls.find(
+        (c) => c.event?.requestContext?.eventType === 'DISCONNECT',
+      )
+      expect(disconnectCall).toBeDefined()
+      expect(disconnectCall.event.requestContext.disconnectStatusCode).toBe(
+        1001,
+      )
+      expect(disconnectCall.event.requestContext.disconnectReason).toBe(
+        'Going away',
+      )
+    } finally {
+      await teardown(ctx)
+    }
+  })
 })
 
 describe('WebSocket server — timeouts', () => {

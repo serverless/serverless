@@ -252,7 +252,7 @@ export function createWebSocketServer({
         }
       })
 
-      ws.on('close', async () => {
+      ws.on('close', async (code, reason) => {
         clearTimeout(hardTimer)
         clearTimeout(idleTimer)
         // Capture the stable connect-time before removing the record.
@@ -260,6 +260,10 @@ export function createWebSocketServer({
         registry.remove(connectionId)
         const disconnectRoute = routes.get('$disconnect')
         if (!disconnectRoute) return
+        // The `ws` close event reports `code` 1005 (no status received) when
+        // the client closes without a status code, and `reason` as a Buffer.
+        const disconnectStatusCode = code ?? 1005
+        const disconnectReason = reason?.toString() ?? ''
         const event = buildDisconnectEvent({
           connectionId,
           request,
@@ -269,6 +273,8 @@ export function createWebSocketServer({
           apiId,
           authorizer: connectionAuthorizer,
           connectedAt,
+          disconnectStatusCode,
+          disconnectReason,
         })
         try {
           await onRequest(disconnectRoute.functionKey, event)

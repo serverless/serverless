@@ -115,7 +115,7 @@ describe('buildDisconnectEvent', () => {
     expect(event.requestContext.connectionId).toBe('c-1')
   })
 
-  it('does not emit a disconnectStatusCode field (AWS shape parity)', () => {
+  it('carries disconnectStatusCode + disconnectReason in requestContext', () => {
     const event = buildDisconnectEvent({
       connectionId: 'c-1',
       request: makeRequest(),
@@ -123,8 +123,11 @@ describe('buildDisconnectEvent', () => {
       accountId: '000000000000',
       region: 'us-east-1',
       apiId: 'private',
+      disconnectStatusCode: 1001,
+      disconnectReason: 'Going away',
     })
-    expect('disconnectStatusCode' in event.requestContext).toBe(false)
+    expect(event.requestContext.disconnectStatusCode).toBe(1001)
+    expect(event.requestContext.disconnectReason).toBe('Going away')
   })
 })
 

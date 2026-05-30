@@ -165,6 +165,8 @@ export function buildDisconnectEvent({
   apiId,
   authorizer,
   connectedAt,
+  disconnectStatusCode,
+  disconnectReason,
 }) {
   const { single: headers, multi: multiValueHeaders } = parseHeaders(
     request.rawHeaders,
@@ -173,16 +175,22 @@ export function buildDisconnectEvent({
     headers,
     multiValueHeaders,
     isBase64Encoded: false,
-    requestContext: buildRequestContext({
-      connectionId,
-      eventType: 'DISCONNECT',
-      routeKey: '$disconnect',
-      request,
-      stage,
-      apiId,
-      authorizer,
-      connectedAt,
-    }),
+    requestContext: {
+      ...buildRequestContext({
+        connectionId,
+        eventType: 'DISCONNECT',
+        routeKey: '$disconnect',
+        request,
+        stage,
+        apiId,
+        authorizer,
+        connectedAt,
+      }),
+      // The $disconnect requestContext carries the WebSocket close code and
+      // reason that ended the connection (e.g. 1001 / 'Going away').
+      disconnectStatusCode,
+      disconnectReason,
+    },
   }
 }
 
