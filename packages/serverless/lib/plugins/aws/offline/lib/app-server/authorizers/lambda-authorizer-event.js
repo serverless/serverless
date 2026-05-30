@@ -5,6 +5,14 @@
  * @see https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-lambda-authorizer-input.html
  */
 
+import crypto from 'node:crypto'
+import { buildRestIdentity } from '../shared/rest-identity.js'
+import {
+  PLACEHOLDER_API_ID,
+  PLACEHOLDER_RESOURCE_ID,
+  PLACEHOLDER_PROTOCOL,
+} from '../shared/rest-request-context.js'
+
 /**
  * @param {object} args
  * @param {object} [args.request]
@@ -21,16 +29,33 @@ export function buildTokenEvent({ methodArn, authorizationToken }) {
 }
 
 /**
- * Build a REQUEST authorizer event. Shape is similar to the Lambda-proxy
- * event but with `type: 'REQUEST'` and `identitySource: [<resolved>]`.
+ * Build a REQUEST authorizer event. Mirrors the REST API (v1) Lambda-proxy
+ * event shape — minus the body fields — with `type: 'REQUEST'` and the
+ * authorizer-specific `methodArn`. Real API Gateway REQUEST events carry no
+ * `identitySource` (that is an HTTP API v2 field) and their `requestContext`
+ * has no `authorizer` block, since the authorizer is the code running here.
  *
  * @param {object} args
- * @param {object} args.request
- * @param {string} args.methodArn
- * @param {string | null} args.authorizationToken  Pre-resolved identity value.
+ * @param {object} args.request            Hapi request.
+ * @param {string} args.methodArn          Synthesized method ARN.
+ * @param {string} args.resourcePath       APIGW resource template (e.g. `/users/{id}`).
+ * @param {string} args.path               Top-level `event.path`, stage-stripped (e.g. `/users/42`).
+ * @param {string} args.requestContextPath Full wire path including the stage prefix (e.g. `/dev/users/42`); becomes `requestContext.path`.
+ * @param {string} args.httpMethod         Uppercased HTTP method.
+ * @param {string} args.stage              API Gateway stage name.
+ * @param {string} args.accountId          12-digit AWS account ID.
  * @returns {object}
  */
-export function buildRequestEvent({ request, methodArn, authorizationToken }) {
+export function buildRequestEvent({
+  request,
+  methodArn,
+  resourcePath,
+  path,
+  requestContextPath,
+  httpMethod,
+  stage,
+  accountId,
+}) {
   const { headers, multiValueHeaders } = readHeaders(request)
   const query = request.query ?? {}
   const params = request.params ?? {}
@@ -38,13 +63,15 @@ export function buildRequestEvent({ request, methodArn, authorizationToken }) {
   const hasQuery = Object.keys(query).length > 0
   const hasParams = Object.keys(params).length > 0
 
+  const sourceIp = request.info?.remoteAddress ?? '127.0.0.1'
+  const userAgent = request.headers?.['user-agent'] ?? ''
+
   return {
     type: 'REQUEST',
     methodArn,
-    identitySource:
-      typeof authorizationToken === 'string' && authorizationToken.length > 0
-        ? [authorizationToken]
-        : [],
+    resource: resourcePath,
+    path,
+    httpMethod,
     headers,
     multiValueHeaders,
     queryStringParameters: hasQuery ? { ...query } : null,
@@ -58,6 +85,18 @@ export function buildRequestEvent({ request, methodArn, authorizationToken }) {
       : null,
     pathParameters: hasParams ? { ...params } : null,
     stageVariables: null,
+    requestContext: {
+      accountId,
+      apiId: PLACEHOLDER_API_ID,
+      httpMethod,
+      identity: buildRestIdentity({ sourceIp, userAgent }),
+      path: requestContextPath,
+      protocol: PLACEHOLDER_PROTOCOL,
+      requestId: crypto.randomUUID(),
+      resourceId: PLACEHOLDER_RESOURCE_ID,
+      resourcePath,
+      stage,
+    },
   }
 }
 

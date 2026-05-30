@@ -332,12 +332,59 @@ describe('lambda-authorizer scheme — REQUEST', () => {
         headers: { 'x-token': 'tok-1' },
       })
       expect(res.statusCode).toBe(200)
-      expect(lambdaFunction.invoke).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: 'REQUEST',
-          identitySource: ['tok-1'],
-        }),
-      )
+      const event = lambdaFunction.invoke.mock.calls[0][0]
+      expect(event.type).toBe('REQUEST')
+      expect(event).not.toHaveProperty('identitySource')
+      expect(event.httpMethod).toBe('GET')
+      expect(event.resource).toBe('/p')
+      expect(event.path).toBe('/p')
+      expect(event.requestContext.resourcePath).toBe('/p')
+      expect(event.requestContext.httpMethod).toBe('GET')
+      expect(event.requestContext.stage).toBe('dev')
+      expect(event.requestContext).not.toHaveProperty('authorizer')
+    } finally {
+      await server.stop()
+    }
+  })
+
+  it('sets top-level path stage-stripped and requestContext.path to the full wire path', async () => {
+    const lambdaFunction = makeLambdaFunction(async () => ({
+      principalId: 'u-1',
+      policyDocument: { Statement: [{ Effect: 'Allow', Resource: '*' }] },
+    }))
+    const scheme = createLambdaAuthorizerScheme({
+      authorizerDef: {
+        name: 'auth',
+        type: 'REQUEST',
+        identitySource: 'method.request.header.X-Token',
+      },
+      lambdaFunction,
+      stage: 'dev',
+      accountId: '000000000000',
+    })
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    server.auth.scheme('lambda-authorizer', scheme)
+    server.auth.strategy('auth', 'lambda-authorizer')
+    server.route({
+      method: 'GET',
+      path: '/dev/items/{id}',
+      options: {
+        auth: 'auth',
+        plugins: { offline: { apigwPath: '/items/{id}' } },
+      },
+      handler: () => ({ ok: true }),
+    })
+    await server.initialize()
+    try {
+      const res = await server.inject({
+        method: 'GET',
+        url: '/dev/items/42',
+        headers: { 'x-token': 'tok-1' },
+      })
+      expect(res.statusCode).toBe(200)
+      const event = lambdaFunction.invoke.mock.calls[0][0]
+      expect(event.path).toBe('/items/42')
+      expect(event.requestContext.path).toBe('/dev/items/42')
     } finally {
       await server.stop()
     }
@@ -357,12 +404,9 @@ describe('lambda-authorizer scheme — REQUEST', () => {
       // No identity source declared → invoke with an empty identity (NONE),
       // never short-circuit to 401.
       expect(lambdaFunction.invoke).toHaveBeenCalledTimes(1)
-      expect(lambdaFunction.invoke).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: 'REQUEST',
-          identitySource: [],
-        }),
-      )
+      const event = lambdaFunction.invoke.mock.calls[0][0]
+      expect(event.type).toBe('REQUEST')
+      expect(event).not.toHaveProperty('identitySource')
     } finally {
       await server.stop()
     }

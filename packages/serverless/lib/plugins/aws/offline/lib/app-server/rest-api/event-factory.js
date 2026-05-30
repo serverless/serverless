@@ -18,6 +18,12 @@ import { FAKE_ACCOUNT_ID } from '../../constants.js'
 import { parseJsonSafe } from '../shared/json-utils.js'
 import { formatClfTime } from '../shared/clf-time.js'
 import { buildRestIdentity } from '../shared/rest-identity.js'
+import {
+  PLACEHOLDER_API_ID,
+  PLACEHOLDER_DOMAIN_PREFIX,
+  PLACEHOLDER_RESOURCE_ID,
+  PLACEHOLDER_PROTOCOL,
+} from '../shared/rest-request-context.js'
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -30,16 +36,6 @@ import { buildRestIdentity } from '../shared/rest-identity.js'
  * @type {string[]}
  */
 const BINARY_CONTENT_TYPES = ['application/octet-stream', 'multipart/form-data']
-
-// Placeholder values that fill APIGW REST-API `requestContext` fields whose
-// real values would come from the deployed API (apiId / domainPrefix /
-// resourceId) or the gateway's HTTP protocol negotiation (protocol). Lifted
-// to named constants so the requestContext block at the bottom of the
-// factory reads as data, not as magic strings.
-const PLACEHOLDER_API_ID = 'offline'
-const PLACEHOLDER_DOMAIN_PREFIX = 'offline'
-const PLACEHOLDER_RESOURCE_ID = 'offline'
-const PLACEHOLDER_PROTOCOL = 'HTTP/1.1'
 
 /**
  * @param {string} contentType

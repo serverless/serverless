@@ -70,27 +70,51 @@ export function createLambdaAuthorizerScheme({
   return function lambdaAuthorizerSchemeFactory() {
     return {
       async authenticate(request, h) {
+        // The APIGW resource template (e.g. `/users/{id}`), the request path
+        // with the stage prefix stripped, and the uppercased method are shared
+        // by the method ARN and the REQUEST event below. The full wire path
+        // (stage prefix intact) is threaded separately as `requestContext.path`,
+        // mirroring the REST proxy factory's `path` / `eventPath` split — real
+        // API Gateway reports `$context.path` with the stage, while the
+        // top-level `event.path` has it stripped.
+        const resourcePath =
+          request.route?.settings?.plugins?.offline?.apigwPath ??
+          stripStage(request.path, stage)
+        const eventPath = stripStage(request.path, stage)
+        const method = request.method.toUpperCase()
         const methodArn = buildMethodArn({
-          request,
+          resourcePath,
+          method,
           stage,
           accountId,
         })
 
-        let authorizationToken
+        let event
         if (type === 'REQUEST') {
-          // A REQUEST authorizer with no identitySource is invoked with an
-          // empty identity (identity type NONE) — real API Gateway does NOT
-          // short-circuit to 401 in this case.
-          if (identitySources.length === 0) {
-            authorizationToken = ''
-          } else {
-            authorizationToken = extractIdentitySource(request, identitySources)
-            if (authorizationToken === null) {
-              return unauthorized(h)
-            }
+          // A REQUEST authorizer with a declared identitySource whose value is
+          // absent is a 401 with no invocation (matching real API Gateway). A
+          // REQUEST authorizer with no identitySource is invoked with an empty
+          // identity (identity type NONE) — never short-circuited to 401. The
+          // resolved value is no longer surfaced on the event (REST v1 REQUEST
+          // events carry no identitySource); it only gates the 401 decision.
+          if (
+            identitySources.length > 0 &&
+            extractIdentitySource(request, identitySources) === null
+          ) {
+            return unauthorized(h)
           }
+          event = buildRequestEvent({
+            request,
+            methodArn,
+            resourcePath,
+            path: eventPath,
+            requestContextPath: request.path,
+            httpMethod: method,
+            stage,
+            accountId,
+          })
         } else {
-          authorizationToken = readAuthorizationHeader(request)
+          const authorizationToken = readAuthorizationHeader(request)
           if (!authorizationToken) {
             return unauthorized(h)
           }
@@ -100,12 +124,8 @@ export function createLambdaAuthorizerScheme({
           ) {
             return unauthorized(h)
           }
+          event = buildTokenEvent({ methodArn, authorizationToken })
         }
-
-        const event =
-          type === 'REQUEST'
-            ? buildRequestEvent({ request, methodArn, authorizationToken })
-            : buildTokenEvent({ methodArn, authorizationToken })
 
         let result
         try {
@@ -175,12 +195,8 @@ export function createLambdaAuthorizerScheme({
   }
 }
 
-function buildMethodArn({ request, stage, accountId }) {
-  const apigwPath =
-    request.route?.settings?.plugins?.offline?.apigwPath ??
-    stripStage(request.path, stage)
-  const method = request.method.toUpperCase()
-  return `arn:aws:execute-api:us-east-1:${accountId}:offline/${stage}/${method}${apigwPath}`
+function buildMethodArn({ resourcePath, method, stage, accountId }) {
+  return `arn:aws:execute-api:us-east-1:${accountId}:offline/${stage}/${method}${resourcePath}`
 }
 
 function stripStage(path, stage) {
