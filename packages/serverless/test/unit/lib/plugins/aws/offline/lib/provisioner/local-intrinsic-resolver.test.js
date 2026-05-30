@@ -555,13 +555,69 @@ it('17r. Fn::If with an unknown condition name → throws OFFLINE_MALFORMED_INTR
 })
 
 // ---------------------------------------------------------------------------
-// 18. Fn::ImportValue → throws OFFLINE_CROSS_STACK_IMPORT
+// 18. Fn::ImportValue → UNRESOLVED + cross-stack warning (boot must not crash)
 // ---------------------------------------------------------------------------
 
-it('18. { "Fn::ImportValue": "X" } → throws OFFLINE_CROSS_STACK_IMPORT', () => {
-  expect(() =>
-    resolveIntrinsics({ 'Fn::ImportValue': 'X' }, makeContext()),
-  ).toThrow(expect.objectContaining({ code: 'OFFLINE_CROSS_STACK_IMPORT' }))
+it('18. { "Fn::ImportValue": "X" } → UNRESOLVED + cross-stack warning', () => {
+  const warnings = []
+  const ctx = makeContext({ warnings })
+  expect(resolveIntrinsics({ 'Fn::ImportValue': 'X' }, ctx)).toBe(UNRESOLVED)
+  expect(warnings).toEqual([
+    {
+      code: 'OFFLINE_CROSS_STACK_REFERENCE',
+      reference: 'X',
+      detail: expect.any(String),
+    },
+  ])
+})
+
+it('18b. Fn::ImportValue with an intrinsic name still warns cross-stack', () => {
+  const warnings = []
+  const ctx = makeContext({ warnings })
+  expect(
+    resolveIntrinsics(
+      { 'Fn::ImportValue': { 'Fn::Sub': '${AWS::Region}-export' } },
+      ctx,
+    ),
+  ).toBe(UNRESOLVED)
+  expect(warnings).toEqual([
+    {
+      code: 'OFFLINE_CROSS_STACK_REFERENCE',
+      reference: 'us-east-1-export',
+      detail: expect.any(String),
+    },
+  ])
+})
+
+// ---------------------------------------------------------------------------
+// 18c-18e. Unknown Fn::* and propagation
+// ---------------------------------------------------------------------------
+
+it('18c. an unknown Fn::* key → UNRESOLVED + warning (never throws)', () => {
+  const warnings = []
+  const ctx = makeContext({ warnings })
+  expect(resolveIntrinsics({ 'Fn::GetAZs': 'us-east-1' }, ctx)).toBe(UNRESOLVED)
+  expect(warnings).toEqual([
+    {
+      code: 'OFFLINE_UNRESOLVED_REFERENCE',
+      reference: 'Fn::GetAZs',
+      detail: expect.any(String),
+    },
+  ])
+})
+
+it('18d. an array with an UNRESOLVED element becomes UNRESOLVED', () => {
+  const ctx = makeContext()
+  expect(resolveIntrinsics({ list: ['a', { Ref: 'Unknown' }] }, ctx)).toEqual(
+    {},
+  )
+})
+
+it('18e. NO_VALUE in an array drops that element but keeps the array', () => {
+  const ctx = makeContext()
+  expect(
+    resolveIntrinsics({ list: ['a', { Ref: 'AWS::NoValue' }, 'b'] }, ctx),
+  ).toEqual({ list: ['a', 'b'] })
 })
 
 // ---------------------------------------------------------------------------

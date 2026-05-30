@@ -23,10 +23,26 @@ export const UNRESOLVED = Symbol.for('OFFLINE::Unresolved')
  * Resolves CloudFormation intrinsic functions against a local registry of
  * provisioned resources and pseudo-parameter values.
  *
- * `Ref` is resolved for every provisioned resource type and for template
- * parameters. A reference that cannot be resolved becomes the `UNRESOLVED`
- * sentinel and a warning is pushed onto `context.warnings` rather than
- * throwing, so booting offline never crashes on a missing reference.
+ * Supports `Ref`, `Fn::GetAtt`, `Fn::Sub` (string and map forms), `Fn::Join`,
+ * `Fn::Select`, `Fn::Split`, `Fn::FindInMap`, `Fn::If`, and `Fn::ImportValue`,
+ * matching the AWS-documented return-value semantics for each provisioned
+ * resource type.
+ *
+ * Failure modes:
+ * - A reference that cannot be resolved (unknown `Ref`/`Fn::GetAtt` target,
+ *   missing `Fn::FindInMap` path, any unimplemented `Fn::*`) becomes the
+ *   `UNRESOLVED` sentinel and a warning is pushed onto `context.warnings`
+ *   rather than throwing, so booting offline never crashes on a missing
+ *   reference. `Fn::ImportValue` is always `UNRESOLVED` with a cross-stack
+ *   warning because exports do not exist offline.
+ * - `UNRESOLVED` propagates: a container intrinsic whose required input is
+ *   `UNRESOLVED` becomes `UNRESOLVED`; an `UNRESOLVED` array element makes the
+ *   whole array `UNRESOLVED`; an `UNRESOLVED` plain-object value drops that
+ *   key. `AWS::NoValue` likewise drops object keys and array elements.
+ * - Only structural faults throw `OFFLINE_MALFORMED_INTRINSIC`: a `Fn::GetAtt`
+ *   that is neither a 2-element array nor a dotted string, a `Fn::Select`
+ *   index out of range or against a non-array list, a `Fn::If` referencing an
+ *   unknown condition, and similar wrong-arity specs.
  *
  * @param {unknown} value
  *   The CFN value tree to resolve. May be a primitive, array, or plain object
@@ -51,6 +67,10 @@ export const UNRESOLVED = Symbol.for('OFFLINE::Unresolved')
  *
  * @returns {unknown} The resolved value, deep-equal to the input when no
  *   intrinsics are present.
+ *
+ * @throws {ServerlessError} OFFLINE_MALFORMED_INTRINSIC — a structurally
+ *   malformed intrinsic node (wrong arity/shape, out-of-range index, or an
+ *   unknown `Fn::If` condition).
  */
 export function resolveIntrinsics(value, context) {
   // Primitives — return as-is (bare strings that look like pseudo-param keys
@@ -58,9 +78,19 @@ export function resolveIntrinsics(value, context) {
   if (value === null || value === undefined) return value
   if (typeof value !== 'object') return value
 
-  // Arrays — recurse over each element.
+  // Arrays — recurse over each element. An UNRESOLVED element makes the whole
+  // array UNRESOLVED (it bubbles up to the nearest object key / consumer); an
+  // AWS::NoValue element is dropped, matching how CloudFormation treats
+  // AWS::NoValue in lists.
   if (Array.isArray(value)) {
-    return value.map((item) => resolveIntrinsics(item, context))
+    const out = []
+    for (const item of value) {
+      const resolved = resolveIntrinsics(item, context)
+      if (resolved === UNRESOLVED) return UNRESOLVED
+      if (resolved === NO_VALUE) continue
+      out.push(resolved)
+    }
+    return out
   }
 
   // Objects — check for intrinsic node first.
@@ -102,16 +132,17 @@ export function resolveIntrinsics(value, context) {
     }
 
     if (key === 'Fn::ImportValue') {
-      throw new ServerlessError(
-        `Fn::ImportValue is not supported in offline mode — cross-stack references must be resolved externally.`,
-        'OFFLINE_CROSS_STACK_IMPORT',
-      )
+      return resolveImportValue(value['Fn::ImportValue'], context)
     }
 
     if (key.startsWith('Fn::')) {
-      throw new ServerlessError(
-        `Intrinsic "${key}" is not supported in offline mode.`,
-        'OFFLINE_UNSUPPORTED_INTRINSIC',
+      // Forward-compatible: any intrinsic we do not implement locally is
+      // dropped with a warning rather than crashing boot.
+      return warn(
+        context,
+        'OFFLINE_UNRESOLVED_REFERENCE',
+        key,
+        `Intrinsic "${key}" is not resolved offline; the value referencing it is dropped.`,
       )
     }
   }
@@ -391,7 +422,6 @@ function resolveJoin(spec, context) {
   const [delimiter, rawList] = spec
   const list = resolveIntrinsics(rawList, context)
   if (list === UNRESOLVED || !Array.isArray(list)) return UNRESOLVED
-  if (list.some((item) => item === UNRESOLVED)) return UNRESOLVED
   return list.join(delimiter)
 }
 
@@ -509,4 +539,25 @@ function resolveIf(spec, context) {
   }
   const chosen = conditions.get(conditionName) ? valueIfTrue : valueIfFalse
   return resolveIntrinsics(chosen, context)
+}
+
+/**
+ * Handles `Fn::ImportValue`. Cross-stack exports cannot exist offline, so the
+ * value is always `UNRESOLVED` with a cross-stack warning. The import name is
+ * resolved first (it may itself be an intrinsic) so the warning carries a
+ * meaningful reference.
+ *
+ * @param {unknown} spec - The `Fn::ImportValue` value.
+ * @param {object} context - The resolution context.
+ * @returns {symbol} The `UNRESOLVED` sentinel.
+ */
+function resolveImportValue(spec, context) {
+  const name = resolveIntrinsics(spec, context)
+  const reference = name === UNRESOLVED ? '<unresolved>' : String(name)
+  return warn(
+    context,
+    'OFFLINE_CROSS_STACK_REFERENCE',
+    reference,
+    `Cannot resolve Fn::ImportValue "${reference}" offline — cross-stack exports are not available; the value referencing it is dropped.`,
+  )
 }
