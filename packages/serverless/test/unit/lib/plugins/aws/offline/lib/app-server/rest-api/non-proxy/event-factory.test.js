@@ -79,6 +79,24 @@ describe('buildNonProxyEvent', () => {
     expect(event).toEqual({ custom: 'POST' })
   })
 
+  it('applies the default request template for application/x-www-form-urlencoded when none is configured', () => {
+    // The gateway parses a form body into an object before applying its
+    // built-in template, so the rendered event body is that parsed object.
+    const event = buildNonProxyEvent({
+      request: makeRequest({
+        headers: {
+          'content-type': 'application/x-www-form-urlencoded',
+        },
+        mime: 'application/x-www-form-urlencoded',
+        payload: { a: '1', b: '2' },
+      }),
+      stage: 'dev',
+      resourcePath: '/items/{id}',
+      requestTemplates: undefined,
+    })
+    expect(event.body).toEqual({ a: '1', b: '2' })
+  })
+
   it('forwards the raw payload for a non-JSON content type with no template', () => {
     const event = buildNonProxyEvent({
       request: makeRequest({ mime: 'text/plain', payload: 'just text' }),

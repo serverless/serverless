@@ -186,6 +186,31 @@ it('5. serves HTTPS when httpsProtocol points at TLS certs', async () => {
 })
 
 // ---------------------------------------------------------------------------
+// 7. A trailing slash is insignificant during route matching: a request to
+//    GET /items/ matches a route declared at GET /items (and returns 200,
+//    not 404), mirroring API Gateway.
+// ---------------------------------------------------------------------------
+
+it('7. matches a route declared at /items when the request has a trailing slash', async () => {
+  server = await createAppServer({
+    appPort: 0,
+    host: 'localhost',
+    logger: makeLogger(),
+    registerRoutes: async (hapiServer) => {
+      hapiServer.route({
+        method: 'GET',
+        path: '/items',
+        handler: (_request, h) => h.response({ ok: true }).code(200),
+      })
+    },
+  })
+
+  const res = await server.inject({ method: 'GET', url: '/items/' })
+  expect(res.statusCode).toBe(200)
+  expect(JSON.parse(res.payload)).toEqual({ ok: true })
+})
+
+// ---------------------------------------------------------------------------
 // 6. Throws when registerRoutes is not a function
 // ---------------------------------------------------------------------------
 

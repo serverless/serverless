@@ -69,7 +69,15 @@ export async function createAppServer({
   }
 
   const tls = httpsProtocol ? await loadTlsCerts(httpsProtocol) : undefined
-  const server = Hapi.server({ host, port: appPort, ...(tls ? { tls } : {}) })
+  // API Gateway treats a trailing slash as insignificant during route
+  // matching, so `GET /items/` reaches a route declared at `GET /items`.
+  // Mirror that by stripping the trailing slash before Hapi matches the route.
+  const server = Hapi.server({
+    host,
+    port: appPort,
+    router: { stripTrailingSlash: true },
+    ...(tls ? { tls } : {}),
+  })
 
   await registerRoutes(server)
 

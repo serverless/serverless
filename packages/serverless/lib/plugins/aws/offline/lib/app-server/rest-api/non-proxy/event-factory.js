@@ -34,11 +34,20 @@ export function buildNonProxyEvent({
   const contentType = request.mime ?? 'application/json'
   const explicit = requestTemplates?.[contentType]
   // API Gateway applies a built-in passthrough template for application/json
-  // when an integration declares no template of its own. Other content types
-  // with no template forward the raw payload unchanged.
+  // and application/x-www-form-urlencoded when an integration declares no
+  // template of its own. The gateway's form template parses the raw `a=1&b=2`
+  // string into an object before emitting it as the event body; Hapi has
+  // already parsed the form body into exactly that object (route payload
+  // parsing is on for non-proxy integrations), so the JSON default template —
+  // which emits `"body": $input.json("$")` — reproduces the correct event body
+  // for both content types. Other content types with no template forward the
+  // raw payload unchanged.
   const template =
     explicit ??
-    (contentType === 'application/json' ? defaultRequestTemplate : undefined)
+    (contentType === 'application/json' ||
+    contentType === 'application/x-www-form-urlencoded'
+      ? defaultRequestTemplate
+      : undefined)
 
   if (template === undefined || template === null) {
     return request.payload
