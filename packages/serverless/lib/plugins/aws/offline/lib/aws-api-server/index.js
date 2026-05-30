@@ -107,13 +107,16 @@ export async function createAwsApiServer({
     path: '/{any*}',
     options: {
       payload: {
-        parse: true,
-        // Override the incoming Content-Type so Hapi always runs the JSON
-        // parser, regardless of what the AWS SDK sent (e.g.
-        // "application/x-amz-json-1.0").  No `allow` list is set so that
-        // any Content-Type is accepted at the gate; `override` already
-        // normalises it to application/json before parsing.
-        override: 'application/json',
+        // Deliver the request body verbatim as a raw Buffer. SQS speaks two
+        // wire protocols on this endpoint — JSON-RPC (the SDK v3) and the
+        // form-urlencoded query protocol (the CLI / older SDKs) — and each
+        // service adapter parses its own body. Hapi's JSON parser would 400 a
+        // form-urlencoded query body before the handler ever ran, so the
+        // catch-all never parses: it hands the Buffer straight to the adapter.
+        // Lambda-invoke and runtime-API paths register on their own routes
+        // before this one with their own payload options, so they are
+        // unaffected.
+        parse: false,
         maxBytes: 10 * 1024 * 1024, // 10 MB cap (AWS SQS limit is 256 KB; 10 MB is safely above)
       },
     },

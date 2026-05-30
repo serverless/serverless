@@ -166,13 +166,14 @@ it('4. returns 501 OFFLINE_UNSUPPORTED_SERVICE when service is recognised but ha
 })
 
 // ---------------------------------------------------------------------------
-// 5. Content-Type: application/x-amz-json-1.0 is accepted and body is parsed
-//    (regression guard for the AWS SDK v3 / SQS 415 bug)
+// 5. Content-Type: application/x-amz-json-1.0 reaches the handler as a raw
+//    Buffer (the catch-all no longer parses — each service adapter does).
+//    Regression guard for the AWS SDK v3 / SQS 415 bug.
 // ---------------------------------------------------------------------------
 
-it('5. parses body as JSON when Content-Type is application/x-amz-json-1.0', async () => {
+it('5. delivers the raw body Buffer when Content-Type is application/x-amz-json-1.0', async () => {
   const sqsHandler = jest.fn((request, h) =>
-    h.response({ received: request.payload }).code(200),
+    h.response({ received: request.payload.toString() }).code(200),
   )
 
   const server = await createAwsApiServer({
@@ -196,19 +197,21 @@ it('5. parses body as JSON when Content-Type is application/x-amz-json-1.0', asy
     expect(res.statusCode).toBe(200)
     expect(sqsHandler).toHaveBeenCalledTimes(1)
     const [[calledRequest]] = sqsHandler.mock.calls
-    expect(calledRequest.payload).toEqual({ Foo: 'bar' })
+    expect(Buffer.isBuffer(calledRequest.payload)).toBe(true)
+    expect(JSON.parse(calledRequest.payload.toString())).toEqual({ Foo: 'bar' })
   } finally {
     await server.stop({ timeout: 5000 })
   }
 })
 
 // ---------------------------------------------------------------------------
-// 6. Content-Type: text/plain is accepted and body is still parsed as JSON
+// 6. A form-urlencoded query-protocol body reaches the handler as a raw Buffer
+//    rather than being 400'd by a JSON parser at the catch-all.
 // ---------------------------------------------------------------------------
 
-it('6. parses body as JSON when Content-Type is text/plain', async () => {
+it('6. delivers a form-urlencoded query body as a raw Buffer', async () => {
   const sqsHandler = jest.fn((request, h) =>
-    h.response({ received: request.payload }).code(200),
+    h.response({ received: request.payload.toString() }).code(200),
   )
 
   const server = await createAwsApiServer({
@@ -224,15 +227,18 @@ it('6. parses body as JSON when Content-Type is text/plain', async () => {
       url: '/anything',
       headers: {
         authorization: sigV4Header('sqs'),
-        'content-type': 'text/plain',
+        'content-type': 'application/x-www-form-urlencoded',
       },
-      payload: JSON.stringify({ Hello: 'world' }),
+      payload: 'Action=SendMessage&MessageBody=hello',
     })
 
     expect(res.statusCode).toBe(200)
     expect(sqsHandler).toHaveBeenCalledTimes(1)
     const [[calledRequest]] = sqsHandler.mock.calls
-    expect(calledRequest.payload).toEqual({ Hello: 'world' })
+    expect(Buffer.isBuffer(calledRequest.payload)).toBe(true)
+    expect(calledRequest.payload.toString()).toBe(
+      'Action=SendMessage&MessageBody=hello',
+    )
   } finally {
     await server.stop({ timeout: 5000 })
   }
