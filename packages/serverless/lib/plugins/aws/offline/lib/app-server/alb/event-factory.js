@@ -152,15 +152,21 @@ function readHeaders(request) {
 }
 
 /**
- * Read query parameters from `request.url.searchParams` (a WHATWG URL). Both
- * the single-value (last-write-wins per key) and multi-value (array of all
- * values) maps are produced; the caller emits whichever one the target group's
- * `multi_value_headers.enabled` flag selects. Returns `null` for both fields
- * when no query is present (matches real ALB).
+ * Read query parameters from the raw query string, keeping every key and value
+ * percent-encoded verbatim. Unlike API Gateway, a load balancer does NOT decode
+ * query parameters: `?q=a%20b` reaches the target as `q: 'a%20b'`, not
+ * `q: 'a b'`. Decoding via `request.url.searchParams` (WHATWG) would turn
+ * `%20`/`+` into spaces, so the raw string (`request.url.search`, falling back
+ * to the path of `request.raw.req.url`) is split manually instead: on `&`
+ * between pairs, then on the first `=` within each pair. A pair with no `=`
+ * yields an empty-string value. Both the single-value (last-write-wins per key)
+ * and multi-value (array of all values) maps are produced; the caller emits
+ * whichever one the target group's `multi_value_headers.enabled` flag selects.
+ * Returns `null` for both fields when no query is present (matches real ALB).
  */
 function readQuery(request) {
-  const url = request?.url
-  if (!url || !url.search) {
+  const search = readRawSearch(request)
+  if (!search) {
     return {
       queryStringParameters: null,
       multiValueQueryStringParameters: null,
@@ -168,15 +174,36 @@ function readQuery(request) {
   }
   const single = {}
   const multi = {}
-  for (const [k, v] of url.searchParams.entries()) {
-    single[k] = v
-    if (multi[k]) multi[k].push(v)
-    else multi[k] = [v]
+  for (const pair of search.split('&')) {
+    if (pair === '') continue
+    const eq = pair.indexOf('=')
+    const key = eq === -1 ? pair : pair.slice(0, eq)
+    const value = eq === -1 ? '' : pair.slice(eq + 1)
+    single[key] = value
+    if (multi[key]) multi[key].push(value)
+    else multi[key] = [value]
   }
   return {
     queryStringParameters: single,
     multiValueQueryStringParameters: multi,
   }
+}
+
+/**
+ * Return the raw query string (without the leading `?`) preserving percent
+ * encoding, or `''` when the request carries no query. Prefers the WHATWG URL's
+ * `search` (already raw), falling back to the query portion of the Node raw
+ * request URL when no parsed URL is available.
+ */
+function readRawSearch(request) {
+  const search = request?.url?.search
+  if (search) return search.startsWith('?') ? search.slice(1) : search
+  const rawUrl = request?.raw?.req?.url
+  if (typeof rawUrl === 'string') {
+    const eq = rawUrl.indexOf('?')
+    if (eq !== -1) return rawUrl.slice(eq + 1)
+  }
+  return ''
 }
 
 /**

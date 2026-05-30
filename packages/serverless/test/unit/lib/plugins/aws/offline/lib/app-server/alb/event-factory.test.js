@@ -187,6 +187,32 @@ describe('buildAlbEvent', () => {
     expect('queryStringParameters' in event).toBe(false)
   })
 
+  it('keeps query keys and values url-encoded in single-value mode (ALB does not decode)', () => {
+    const event = buildAlbEvent({
+      request: makeRequest({
+        url: new URL('http://localhost:3000/orders?q=a%20b&x=1%2B2'),
+      }),
+      targetGroupArn: TARGET_GROUP_ARN,
+    })
+    expect(event.queryStringParameters).toEqual({ q: 'a%20b', x: '1%2B2' })
+    expect('multiValueQueryStringParameters' in event).toBe(false)
+  })
+
+  it('keeps query keys and values url-encoded in multi-value mode (ALB does not decode)', () => {
+    const event = buildAlbEvent({
+      request: makeRequest({
+        url: new URL('http://localhost:3000/orders?q=a%20b&x=1%2B2'),
+      }),
+      targetGroupArn: TARGET_GROUP_ARN,
+      multiValueHeaders: true,
+    })
+    expect(event.multiValueQueryStringParameters).toEqual({
+      q: ['a%20b'],
+      x: ['1%2B2'],
+    })
+    expect('queryStringParameters' in event).toBe(false)
+  })
+
   it('body is empty string when payload absent (real ALB behavior)', () => {
     const event = buildAlbEvent({
       request: makeRequest(),
