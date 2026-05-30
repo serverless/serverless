@@ -138,7 +138,25 @@ describe('v2 lambda-authorizer scheme', () => {
     }
   })
 
-  it('401s when authorizer throws', async () => {
+  it('401s when the authorizer throws the literal "Unauthorized" error', async () => {
+    const { server } = await setupServer({
+      invokeImpl: async () => {
+        throw new Error('Unauthorized')
+      },
+    })
+    try {
+      const res = await server.inject({
+        method: 'GET',
+        url: '/items/42',
+        headers: { authorization: 'Bearer x' },
+      })
+      expect(res.statusCode).toBe(401)
+    } finally {
+      await server.stop()
+    }
+  })
+
+  it('500s when the authorizer throws a generic error', async () => {
     const { server } = await setupServer({
       invokeImpl: async () => {
         throw new Error('boom')
@@ -150,7 +168,53 @@ describe('v2 lambda-authorizer scheme', () => {
         url: '/items/42',
         headers: { authorization: 'Bearer x' },
       })
-      expect(res.statusCode).toBe(401)
+      expect(res.statusCode).toBe(500)
+      expect(res.headers['x-amzn-errortype']).toBe(
+        'AuthorizerConfigurationException',
+      )
+    } finally {
+      await server.stop()
+    }
+  })
+
+  it('500s when the authorizer response is missing a principalId', async () => {
+    const { server } = await setupServer({
+      invokeImpl: async () => ({
+        policyDocument: { Statement: [{ Effect: 'Allow', Resource: '*' }] },
+      }),
+    })
+    try {
+      const res = await server.inject({
+        method: 'GET',
+        url: '/items/42',
+        headers: { authorization: 'Bearer x' },
+      })
+      expect(res.statusCode).toBe(500)
+      expect(res.headers['x-amzn-errortype']).toBe(
+        'AuthorizerConfigurationException',
+      )
+    } finally {
+      await server.stop()
+    }
+  })
+
+  it('500s when the authorizer policy document is malformed', async () => {
+    const { server } = await setupServer({
+      invokeImpl: async () => ({
+        principalId: 'u',
+        policyDocument: { Statement: 'not-an-array' },
+      }),
+    })
+    try {
+      const res = await server.inject({
+        method: 'GET',
+        url: '/items/42',
+        headers: { authorization: 'Bearer x' },
+      })
+      expect(res.statusCode).toBe(500)
+      expect(res.headers['x-amzn-errortype']).toBe(
+        'AuthorizerConfigurationException',
+      )
     } finally {
       await server.stop()
     }

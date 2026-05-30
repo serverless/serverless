@@ -17,12 +17,15 @@
  *   3. Synthesize routeKey + routeArn from the matched route.
  *   4. Build the v2 REQUEST event and invoke the configured Lambda via the
  *      LambdaFunction facade — same worker pool as user handlers.
- *   5. On thrown / literal `'Unauthorized'` → 401; non-object result → 403.
+ *   5. A literal `'Unauthorized'` result, or an error whose message is exactly
+ *      `Unauthorized`, → 401. Any other thrown error or a non-object result is
+ *      an authorizer configuration error → 500.
  *   6. Simple-response authorizers (`enableSimpleResponses`): `isAuthorized`
  *      falsy → 403, else 200 with credentials.authorizer.lambda = context
  *      (validated; bad context → 500). No policy evaluation.
- *   7. Otherwise (IAM policy): missing principalId → 403; evaluate the policy
- *      against routeArn (throw / no-Allow → 403).
+ *   7. Otherwise (IAM policy): a missing principalId or a malformed policy
+ *      document is a configuration error → 500; a well-formed policy with no
+ *      Allow match (or any Deny) → 403.
  *   8. On allow → 200 with credentials.authorizer.lambda = context
  *      (validated; bad context → 500).
  */
@@ -100,16 +103,24 @@ export function createV2LambdaAuthorizerScheme({
         let result
         try {
           result = await lambdaFunction.invoke(event)
-        } catch {
-          return unauthorized(h)
+        } catch (err) {
+          // Only an error whose message is exactly `Unauthorized` denies access
+          // with a 401 (matching real API Gateway). Any other thrown error is
+          // an authorizer configuration failure → 500.
+          if (err?.message === UNAUTHORIZED_LITERAL) {
+            return unauthorized(h)
+          }
+          return authorizerConfigurationError(h)
         }
 
         if (result === UNAUTHORIZED_LITERAL) {
           return unauthorized(h)
         }
 
+        // A non-object authorizer response (other than the literal
+        // `Unauthorized`) is a configuration error → 500.
         if (!result || typeof result !== 'object') {
-          return forbidden(h)
+          return authorizerConfigurationError(h)
         }
 
         if (authorizerDef.enableSimpleResponses) {
@@ -131,8 +142,9 @@ export function createV2LambdaAuthorizerScheme({
 
         const { principalId, policyDocument, context = {} } = result
 
+        // A missing principalId is a malformed authorizer response → 500.
         if (!principalId) {
-          return forbidden(h)
+          return authorizerConfigurationError(h)
         }
 
         let evaluation
@@ -144,9 +156,12 @@ export function createV2LambdaAuthorizerScheme({
             context,
           })
         } catch {
-          return forbidden(h)
+          // A malformed policy document is a configuration error → 500.
+          return authorizerConfigurationError(h)
         }
 
+        // A well-formed policy that does not Allow the resource (or Denies it)
+        // is an authorization denial → 403.
         if (!evaluation.allow) {
           return forbidden(h)
         }

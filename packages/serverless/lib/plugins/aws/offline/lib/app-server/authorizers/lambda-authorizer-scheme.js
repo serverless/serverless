@@ -14,11 +14,14 @@
  *   3. Build the TOKEN or REQUEST event.
  *   4. Invoke the configured authorizer Lambda via the LambdaFunction
  *      facade — same worker pool as user handlers.
- *   5. On thrown / literal `'Unauthorized'` → 401.
- *   6. Evaluate the returned policy. Missing principalId → 403.
- *      No Allow match (or any Deny) → 403. Otherwise 200 with credentials
- *      attached so the downstream event factory can surface the authorizer
- *      context to the handler.
+ *   5. A literal `'Unauthorized'` result, or an error whose message is exactly
+ *      `Unauthorized`, → 401. Any other thrown error, a non-object result, a
+ *      missing principalId, or a malformed policy document is an authorizer
+ *      configuration error → 500.
+ *   6. Evaluate the returned policy. A well-formed policy with no Allow match
+ *      (or any Deny) → 403. Otherwise 200 with credentials attached so the
+ *      downstream event factory can surface the authorizer context to the
+ *      handler.
  */
 
 import {
@@ -139,16 +142,24 @@ export function createLambdaAuthorizerScheme({
         let result
         try {
           result = await lambdaFunction.invoke(event)
-        } catch {
-          return unauthorized(h)
+        } catch (err) {
+          // Only an error whose message is exactly `Unauthorized` denies access
+          // with a 401 (matching real API Gateway). Any other thrown error is
+          // an authorizer configuration failure → 500.
+          if (err?.message === UNAUTHORIZED_LITERAL) {
+            return unauthorized(h)
+          }
+          return authorizerConfigurationError(h)
         }
 
         if (result === UNAUTHORIZED_LITERAL) {
           return unauthorized(h)
         }
 
+        // A non-object authorizer response (other than the literal
+        // `Unauthorized`) is a configuration error → 500.
         if (!result || typeof result !== 'object') {
-          return forbidden(h)
+          return authorizerConfigurationError(h)
         }
 
         const {
@@ -158,8 +169,9 @@ export function createLambdaAuthorizerScheme({
           usageIdentifierKey,
         } = result
 
+        // A missing principalId is a malformed authorizer response → 500.
         if (!principalId) {
-          return forbidden(h)
+          return authorizerConfigurationError(h)
         }
 
         let evaluation
@@ -171,9 +183,12 @@ export function createLambdaAuthorizerScheme({
             context,
           })
         } catch {
-          return forbidden(h)
+          // A malformed policy document is a configuration error → 500.
+          return authorizerConfigurationError(h)
         }
 
+        // A well-formed policy that does not Allow the resource (or Denies it)
+        // is an authorization denial → 403.
         if (!evaluation.allow) {
           return forbidden(h)
         }
