@@ -1,133 +1,58 @@
 /**
- * Hapi route handler factory for SQS.
+ * Hapi route handler factory for SQS, dispatching across both AWS wire
+ * protocols.
  *
- * Implements SendMessage and ReceiveMessage operations. SDK v3 sends SQS
- * requests using the JSON-RPC protocol with:
- *   - Content-Type: application/x-amz-json-1.0
- *   - X-Amz-Target: AmazonSQS.<Action>
- *   - Body: JSON with fields such as QueueUrl, MessageBody, etc.
+ * SQS speaks two protocols on the same endpoint:
+ *   - JSON-RPC (AWS JSON 1.0): used by the AWS SDK v3. The action arrives in the
+ *     `X-Amz-Target` header; the body is JSON; responses are JSON.
+ *   - Query protocol: used by the AWS CLI and older SDKs. The action and all
+ *     parameters arrive as a form-urlencoded body; responses are XML.
+ *
+ * The handler picks the adapter (presence of `X-Amz-Target` ⇒ JSON, else
+ * query), parses the request into a protocol-agnostic `{ action, params }`,
+ * runs the operation against the queue store via `runOp`, and serializes the
+ * result (or any `SqsOpError`) back through the same adapter. Unexpected errors
+ * become a 500 in the active protocol's error shape.
  */
 
-import { allSqsQueues } from '../../provisioner/registry.js'
-import { md5, md5OfMessageAttributes } from './md5.js'
+import { runOp, SqsOpError } from './ops.js'
+import * as jsonProtocol from './protocol-json.js'
+import * as queryProtocol from './protocol-query.js'
 
-// ---------------------------------------------------------------------------
-// Internal helpers
-// ---------------------------------------------------------------------------
+const CODE_INTERNAL_ERROR = 'InternalFailure'
 
 /**
- * Produce an AWS-shaped JSON error response in the Hapi response toolkit.
+ * Choose the wire adapter for a request. SDK v3 sends `X-Amz-Target`; the CLI /
+ * older SDKs send a form-urlencoded body without it.
  *
- * @param {object} h           - Hapi response toolkit.
- * @param {number} statusCode  - HTTP status code.
- * @param {string} errorCode   - AWS error code (e.g. `'AWS.SimpleQueueService.NonExistentQueue'`).
- * @param {string} message     - Human-readable error message.
- * @returns {object} A Hapi response object.
+ * @param {object} request - Hapi request.
+ * @returns {typeof import('./protocol-json.js')} The adapter module.
  */
-function errorResponse(h, statusCode, errorCode, message) {
-  return h
-    .response({
-      __type: errorCode,
-      Message: message,
-    })
-    .code(statusCode)
-    .type('application/x-amz-json-1.0')
+function selectAdapter(request) {
+  const target =
+    request.headers?.['x-amz-target'] ?? request.headers?.['X-Amz-Target']
+  return target ? jsonProtocol : queryProtocol
 }
 
-// ---------------------------------------------------------------------------
-// Per-action handlers
-// ---------------------------------------------------------------------------
-
 /**
- * Handle `AmazonSQS.SendMessage`.
+ * Serialize a result through the chosen adapter. The query adapter needs the
+ * action name (to name the XML envelope); the JSON adapter does not.
  *
- * Validates that `MessageBody` is present, enqueues the message, and
- * returns the AWS-shaped acknowledgement.
- *
- * @param {object} body      - Parsed JSON request body.
- * @param {string} queueUrl  - The resolved queue URL.
- * @param {object} store     - The in-memory queue store.
- * @param {object} h         - Hapi response toolkit.
+ * @param {object} adapter - The selected protocol adapter.
+ * @param {string} action  - The SQS action name.
+ * @param {object} result  - The plain result object from `runOp`.
+ * @param {object} h        - Hapi response toolkit.
  * @returns {object} Hapi response.
  */
-function handleSendMessage(body, queueUrl, store, h) {
-  if (!body.MessageBody) {
-    return errorResponse(
-      h,
-      400,
-      'AWS.SimpleQueueService.InvalidParameterValue',
-      'MessageBody is required.',
-    )
-  }
-
-  const attributes = body.MessageAttributes ?? {}
-
-  const { messageId } = store.send(queueUrl, body.MessageBody, attributes)
-
-  const responseBody = {
-    MD5OfMessageBody: md5(body.MessageBody),
-    MessageId: messageId,
-  }
-
-  const attributesMd5 = md5OfMessageAttributes(attributes)
-  if (attributesMd5 !== undefined) {
-    responseBody.MD5OfMessageAttributes = attributesMd5
-  }
-
-  return h.response(responseBody).code(200).type('application/x-amz-json-1.0')
+function serializeResult(adapter, action, result, h) {
+  return adapter === queryProtocol
+    ? adapter.serialize(action, result, h)
+    : adapter.serialize(result, h)
 }
 
 /**
- * Handle `AmazonSQS.ReceiveMessage`.
- *
- * Dequeues up to `MaxNumberOfMessages` messages (default 1, clamped to 10)
- * and returns them in AWS format. When the queue is empty the `Messages` key
- * is omitted from the response body, matching real SQS behaviour.
- *
- * @param {object} body      - Parsed JSON request body.
- * @param {string} queueUrl  - The resolved queue URL.
- * @param {object} store     - The in-memory queue store.
- * @param {object} h         - Hapi response toolkit.
- * @returns {object} Hapi response.
- */
-function handleReceiveMessage(body, queueUrl, store, h) {
-  const requested = body.MaxNumberOfMessages ?? 1
-  const maxMessages = Math.min(Math.max(1, requested), 10)
-
-  const records = store.receive(queueUrl, maxMessages)
-
-  if (records.length === 0) {
-    return h.response({}).code(200).type('application/x-amz-json-1.0')
-  }
-
-  const messages = records.map((r) => ({
-    MessageId: r.messageId,
-    ReceiptHandle: r.receiptHandle,
-    Body: r.body,
-    MD5OfBody: md5(r.body),
-    MessageAttributes: r.attributes,
-  }))
-
-  return h
-    .response({ Messages: messages })
-    .code(200)
-    .type('application/x-amz-json-1.0')
-}
-
-// ---------------------------------------------------------------------------
-// Factory
-// ---------------------------------------------------------------------------
-
-/**
- * Creates a Hapi route handler that dispatches SQS JSON-RPC requests to
- * per-action handlers.
- *
- * Routing:
- * 1. Extract `QueueUrl` from the JSON body and find the matching queue in the
- *    registry.  Unknown queues → 404 `NonExistentQueue`.
- * 2. Read the `X-Amz-Target` header to determine the action.
- *    Unknown actions → 400 `UnknownOperation`.
- * 3. Delegate to `handleSendMessage` or `handleReceiveMessage`.
+ * Creates a Hapi route handler that dispatches SQS requests across both wire
+ * protocols.
  *
  * @param {{
  *   store:    ReturnType<import('./queue-store.js').createQueueStore>,
@@ -139,48 +64,24 @@ function handleReceiveMessage(body, queueUrl, store, h) {
  */
 export function createSqsHandlers({ store, registry }) {
   return async function sqsHandler(request, h) {
-    const body = request.payload ?? {}
+    const adapter = selectAdapter(request)
 
-    // 1. Resolve queue URL.
-    const queueUrl = body.QueueUrl
-
-    let matchedQueue = null
-    for (const q of allSqsQueues(registry)) {
-      if (q.url === queueUrl) {
-        matchedQueue = q
-        break
+    let action
+    try {
+      const parsed = adapter.parse(request)
+      action = parsed.action
+      const result = runOp(action, parsed.params, { store, registry })
+      return serializeResult(adapter, action, result, h)
+    } catch (error) {
+      if (error instanceof SqsOpError) {
+        return adapter.serializeError(error, h)
       }
-    }
-
-    if (!matchedQueue) {
-      return errorResponse(
+      // An unexpected fault: respond in the active protocol's error shape with
+      // a 500 so the SDK surfaces a server error rather than a parse failure.
+      return adapter.serializeError(
+        new SqsOpError(CODE_INTERNAL_ERROR, 500, error.message),
         h,
-        404,
-        'AWS.SimpleQueueService.NonExistentQueue',
-        'Queue does not exist.',
       )
-    }
-
-    // 2. Determine the action from the X-Amz-Target header.
-    const targetHeader =
-      request.headers['x-amz-target'] ?? request.headers['X-Amz-Target'] ?? ''
-    const action = targetHeader.split('.').pop()
-
-    // 3. Dispatch.
-    switch (action) {
-      case 'SendMessage':
-        return handleSendMessage(body, queueUrl, store, h)
-
-      case 'ReceiveMessage':
-        return handleReceiveMessage(body, queueUrl, store, h)
-
-      default:
-        return errorResponse(
-          h,
-          400,
-          'AWS.SimpleQueueService.UnknownOperation',
-          `Unknown action: ${action}`,
-        )
     }
   }
 }
