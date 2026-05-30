@@ -1,4 +1,7 @@
-import { buildNonProxyEvent } from '../../../../../../../../../../lib/plugins/aws/offline/lib/app-server/rest-api/non-proxy/event-factory.js'
+import {
+  buildNonProxyEvent,
+  UNSUPPORTED_MEDIA_TYPE_CODE,
+} from '../../../../../../../../../../lib/plugins/aws/offline/lib/app-server/rest-api/non-proxy/event-factory.js'
 
 function makeRequest(overrides = {}) {
   return {
@@ -28,18 +31,22 @@ describe('buildNonProxyEvent', () => {
     expect(event).toEqual({ id: '42', msg: 'world' })
   })
 
-  it('falls back to the request payload when no template matches the content type', () => {
-    const event = buildNonProxyEvent({
-      request: makeRequest({
-        headers: { 'content-type': 'text/plain' },
-        mime: 'text/plain',
-        payload: 'just text',
+  it('rejects an unsupported media type when no template matches the content type', () => {
+    // Default passthrough behavior NEVER: a content type with no configured
+    // template and no built-in default is rejected (415) rather than passed
+    // through to the integration.
+    expect(() =>
+      buildNonProxyEvent({
+        request: makeRequest({
+          headers: { 'content-type': 'text/plain' },
+          mime: 'text/plain',
+          payload: 'just text',
+        }),
+        stage: 'dev',
+        resourcePath: '/x',
+        requestTemplates: { 'application/json': '{"x": 1}' },
       }),
-      stage: 'dev',
-      resourcePath: '/x',
-      requestTemplates: { 'application/json': '{"x": 1}' },
-    })
-    expect(event).toBe('just text')
+    ).toThrow(expect.objectContaining({ code: UNSUPPORTED_MEDIA_TYPE_CODE }))
   })
 
   it('applies the default AWS request template for application/json when none is configured', () => {
@@ -97,14 +104,15 @@ describe('buildNonProxyEvent', () => {
     expect(event.body).toEqual({ a: '1', b: '2' })
   })
 
-  it('forwards the raw payload for a non-JSON content type with no template', () => {
-    const event = buildNonProxyEvent({
-      request: makeRequest({ mime: 'text/plain', payload: 'just text' }),
-      stage: 'dev',
-      resourcePath: '/x',
-      requestTemplates: undefined,
-    })
-    expect(event).toBe('just text')
+  it('rejects a non-JSON content type with no template and no built-in default', () => {
+    expect(() =>
+      buildNonProxyEvent({
+        request: makeRequest({ mime: 'text/plain', payload: 'just text' }),
+        stage: 'dev',
+        resourcePath: '/x',
+        requestTemplates: undefined,
+      }),
+    ).toThrow(expect.objectContaining({ code: UNSUPPORTED_MEDIA_TYPE_CODE }))
   })
 
   it('default content-type is application/json when request.mime is absent', () => {

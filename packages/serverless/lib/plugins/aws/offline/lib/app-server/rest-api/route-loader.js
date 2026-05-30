@@ -20,7 +20,10 @@ import { formatRestApiResponse } from './response-mapper.js'
 import { applyRequestIdHeaders } from '../shared/request-id-headers.js'
 import { detectIntegration } from './integration-detector.js'
 import { translateRestPath, buildMountedPath } from './path-translator.js'
-import { buildNonProxyEvent } from './non-proxy/event-factory.js'
+import {
+  buildNonProxyEvent,
+  UNSUPPORTED_MEDIA_TYPE_CODE,
+} from './non-proxy/event-factory.js'
 import { mapNonProxyResponse } from './non-proxy/response-mapper.js'
 import { getHandlerBaseDir } from '../../handler-base-dir.js'
 import {
@@ -465,6 +468,18 @@ export function registerRestApiRoutes({
                 requestTemplates,
               })
             } catch (err) {
+              // No request template matches the request's content type. The
+              // AWS (Lambda) integration's default passthrough behavior is
+              // NEVER, so API Gateway rejects the request with 415 and never
+              // invokes the integration.
+              if (err?.code === UNSUPPORTED_MEDIA_TYPE_CODE) {
+                return h
+                  .response(
+                    JSON.stringify({ message: 'Unsupported Media Type' }),
+                  )
+                  .code(415)
+                  .type('application/json')
+              }
               logHandlerError(serverless, functionKey, err)
               return h
                 .response(JSON.stringify({ message: 'Internal server error' }))

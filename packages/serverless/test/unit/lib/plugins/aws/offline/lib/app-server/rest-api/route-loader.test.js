@@ -911,6 +911,139 @@ describe('registerRestApiRoutes — AWS (non-proxy) integration dispatch', () =>
     expect(captured.event).toEqual({ id: '42', msg: 'world' })
   })
 
+  it('AWS integration: an untemplated content type is rejected with 415 and the handler is not invoked', async () => {
+    // The default passthrough behavior for an AWS (Lambda) integration is
+    // NEVER: a request whose Content-Type matches neither a configured request
+    // template nor a built-in default (application/json,
+    // application/x-www-form-urlencoded) is rejected with 415 and the body is
+    // never delivered to the integration.
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    const onRequest = jest.fn(async () => ({ ok: true }))
+    registerRestApiRoutes({
+      server,
+      serverless: makeServerless({
+        createItem: {
+          events: [
+            {
+              http: {
+                method: 'POST',
+                path: '/items',
+                integration: 'AWS',
+                request: {
+                  template: {
+                    'application/json': '{"received": $input.json(\'$\')}',
+                  },
+                },
+              },
+            },
+          ],
+        },
+      }),
+      stage: 'dev',
+      onRequest,
+    })
+    await server.start()
+
+    const res = await server.inject({
+      method: 'POST',
+      url: '/dev/items',
+      headers: { 'content-type': 'text/plain' },
+      payload: 'plain text body',
+    })
+
+    expect(res.statusCode).toBe(415)
+    expect(JSON.parse(res.payload)).toEqual({
+      message: 'Unsupported Media Type',
+    })
+    expect(onRequest).not.toHaveBeenCalled()
+  })
+
+  it('AWS integration: a configured-template content type is delivered to the handler (200)', async () => {
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    let captured
+    const onRequest = jest.fn(async (functionKey, event) => {
+      captured = { functionKey, event }
+      return { ok: true }
+    })
+    registerRestApiRoutes({
+      server,
+      serverless: makeServerless({
+        createItem: {
+          events: [
+            {
+              http: {
+                method: 'POST',
+                path: '/items',
+                integration: 'AWS',
+                request: {
+                  template: {
+                    'application/json': '{"received": $input.json(\'$\')}',
+                  },
+                },
+              },
+            },
+          ],
+        },
+      }),
+      stage: 'dev',
+      onRequest,
+    })
+    await server.start()
+
+    const res = await server.inject({
+      method: 'POST',
+      url: '/dev/items',
+      headers: { 'content-type': 'application/json' },
+      payload: JSON.stringify({ hello: 'world' }),
+    })
+
+    expect(res.statusCode).toBe(200)
+    expect(onRequest).toHaveBeenCalledTimes(1)
+    expect(captured.event).toEqual({ received: { hello: 'world' } })
+  })
+
+  it('AWS integration: a built-in default content type (x-www-form-urlencoded) is delivered to the handler (200)', async () => {
+    // application/x-www-form-urlencoded keeps its built-in default template even
+    // when only an application/json template is configured, so the request is
+    // not rejected.
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    const onRequest = jest.fn(async () => ({ ok: true }))
+    registerRestApiRoutes({
+      server,
+      serverless: makeServerless({
+        createItem: {
+          events: [
+            {
+              http: {
+                method: 'POST',
+                path: '/items',
+                integration: 'AWS',
+                request: {
+                  template: {
+                    'application/json': '{"received": $input.json(\'$\')}',
+                  },
+                },
+              },
+            },
+          ],
+        },
+      }),
+      stage: 'dev',
+      onRequest,
+    })
+    await server.start()
+
+    const res = await server.inject({
+      method: 'POST',
+      url: '/dev/items',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      payload: 'a=1&b=2',
+    })
+
+    expect(res.statusCode).toBe(200)
+    expect(onRequest).toHaveBeenCalledTimes(1)
+  })
+
   it('AWS integration: response selectionPattern picks the matching status on error', async () => {
     server = Hapi.server({ host: 'localhost', port: 0 })
     const onRequest = jest.fn(async () => {

@@ -4,16 +4,26 @@
  *
  * Selects the velocity request template matching the request's content type,
  * builds the `{ context, input, util }` scope, and renders the template into
- * the JSON event passed to the Lambda. For application/json with no configured
- * template, API Gateway's built-in passthrough template is applied. For any
- * other content type with no template, the parsed request payload is forwarded
- * verbatim.
+ * the JSON event passed to the Lambda. For application/json and
+ * application/x-www-form-urlencoded with no configured template, API Gateway's
+ * built-in passthrough template is applied. A request whose content type
+ * matches neither a configured template nor a built-in default is rejected:
+ * the default passthrough behavior for an AWS (Lambda) integration is NEVER, so
+ * API Gateway answers 415 Unsupported Media Type and never delivers the body to
+ * the integration.
  */
 
 import ServerlessError from '../../../../../../../serverless-error.js'
 import { buildVelocityContext } from '../velocity/context.js'
 import { renderVelocityTemplateObject } from '../velocity/render.js'
 import { defaultRequestTemplate } from '../velocity/templates/index.js'
+
+/**
+ * Error code thrown by `buildNonProxyEvent` when the request's content type has
+ * no matching request template (configured or built-in default). The non-proxy
+ * dispatch translates this into a 415 Unsupported Media Type reply.
+ */
+export const UNSUPPORTED_MEDIA_TYPE_CODE = 'OFFLINE_REST_UNSUPPORTED_MEDIA_TYPE'
 
 /**
  * Build the Lambda event for a non-proxy (Lambda integration) REST API route.
@@ -40,8 +50,7 @@ export function buildNonProxyEvent({
   // already parsed the form body into exactly that object (route payload
   // parsing is on for non-proxy integrations), so the JSON default template —
   // which emits `"body": $input.json("$")` — reproduces the correct event body
-  // for both content types. Other content types with no template forward the
-  // raw payload unchanged.
+  // for both content types.
   const template =
     explicit ??
     (contentType === 'application/json' ||
@@ -49,8 +58,15 @@ export function buildNonProxyEvent({
       ? defaultRequestTemplate
       : undefined)
 
+  // A content type with neither a configured template nor a built-in default
+  // is rejected. The AWS (Lambda) integration's default passthrough behavior is
+  // NEVER, so API Gateway answers 415 and the body never reaches the
+  // integration. The dispatch translates this signal into a 415 reply.
   if (template === undefined || template === null) {
-    return request.payload
+    throw new ServerlessError(
+      `No request template matches content type "${contentType}"`,
+      UNSUPPORTED_MEDIA_TYPE_CODE,
+    )
   }
 
   const velocityContext = buildVelocityContext({
