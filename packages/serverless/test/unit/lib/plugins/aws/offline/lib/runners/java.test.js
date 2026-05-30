@@ -98,6 +98,7 @@ describe('createJavaRunner (Docker)', () => {
         timeoutMs: overrides.timeoutMs ?? 5000,
         handler: 'com.example.Hello::handleRequest',
         functionName: functionKey,
+        ...(overrides.context ?? {}),
       },
       environment: overrides.environment ?? {},
       runtime: overrides.runtime ?? 'java21',
@@ -485,6 +486,122 @@ describe('createJavaRunner (Docker)', () => {
     expect(envMap.AWS_LAMBDA_FUNCTION_MEMORY_SIZE).toBe('512')
     expect(envMap.IS_OFFLINE).toBe('true')
     expect(envMap.MY_USER_VAR).toBe('value-1')
+  })
+
+  it('forwards the offline-runtime SDK env into the container, rewriting the endpoint host to the docker gateway', async () => {
+    let capturedOpts
+    const port = server.info.port
+    const runner = createJavaRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      dockerClient: makeFakeDockerClient(),
+      ensureImageReady: async () => {},
+      log: noopLog,
+      createContainerOverride: async (opts) => {
+        capturedOpts = opts
+        const apiBase = opts.Env.find((e) =>
+          e.startsWith('AWS_LAMBDA_RUNTIME_API='),
+        ).split('=')[1]
+        const httpBase = `http://${apiBase.replace('host.docker.internal', '127.0.0.1')}`
+        runSyntheticPoller(async () => {
+          const next = await fetch(
+            `${httpBase}/2018-06-01/runtime/invocation/next`,
+          )
+          const requestId = next.headers.get('lambda-runtime-aws-request-id')
+          await fetch(
+            `${httpBase}/2018-06-01/runtime/invocation/${requestId}/response`,
+            { method: 'POST', body: JSON.stringify({ ok: true }) },
+          )
+        })
+        return makeFakeContainer()
+      },
+      servicePath: '/tmp',
+    })
+
+    try {
+      await runner.invoke(
+        makeInvokeArgs({
+          context: {
+            isOffline: true,
+            endpointUrl: `http://localhost:${port}`,
+            accessKeyId: 'test',
+            secretAccessKey: 'test',
+            authorizer: '{}',
+          },
+        }),
+      )
+    } finally {
+      await runner.terminate()
+    }
+
+    const envMap = Object.fromEntries(
+      capturedOpts.Env.map((entry) => {
+        const idx = entry.indexOf('=')
+        return [entry.slice(0, idx), entry.slice(idx + 1)]
+      }),
+    )
+
+    // A container cannot reach the host loopback, so AWS_ENDPOINT_URL is
+    // rewritten to the docker gateway host (the same mapping used for the
+    // runtime API) — pointing a handler's SDK client at the local emulator.
+    expect(envMap.AWS_ENDPOINT_URL).toBe(`http://host.docker.internal:${port}`)
+    expect(envMap.AWS_ACCESS_KEY_ID).toBe('test')
+    expect(envMap.AWS_SECRET_ACCESS_KEY).toBe('test')
+    expect(envMap.AUTHORIZER).toBe('{}')
+    expect(envMap.IS_OFFLINE).toBe('true')
+  })
+
+  it('rewrites the offline endpoint host to a custom dockerHost', async () => {
+    let capturedOpts
+    const port = server.info.port
+    const runner = createJavaRunner({
+      idleEvictionMs: 60_000,
+      runtimeApiBase,
+      runtimeApiQueue: queue,
+      dockerClient: makeFakeDockerClient(),
+      ensureImageReady: async () => {},
+      log: noopLog,
+      dockerHost: 'offline-host.test',
+      createContainerOverride: async (opts) => {
+        capturedOpts = opts
+        const apiBase = opts.Env.find((e) =>
+          e.startsWith('AWS_LAMBDA_RUNTIME_API='),
+        ).split('=')[1]
+        const httpBase = `http://${apiBase.replace('offline-host.test', '127.0.0.1')}`
+        runSyntheticPoller(async () => {
+          const next = await fetch(
+            `${httpBase}/2018-06-01/runtime/invocation/next`,
+          )
+          const requestId = next.headers.get('lambda-runtime-aws-request-id')
+          await fetch(
+            `${httpBase}/2018-06-01/runtime/invocation/${requestId}/response`,
+            { method: 'POST', body: JSON.stringify({ ok: true }) },
+          )
+        })
+        return makeFakeContainer()
+      },
+      servicePath: '/tmp',
+    })
+
+    try {
+      await runner.invoke(
+        makeInvokeArgs({
+          context: { isOffline: true, endpointUrl: `http://127.0.0.1:${port}` },
+        }),
+      )
+    } finally {
+      await runner.terminate()
+    }
+
+    const envMap = Object.fromEntries(
+      capturedOpts.Env.map((entry) => {
+        const idx = entry.indexOf('=')
+        return [entry.slice(0, idx), entry.slice(idx + 1)]
+      }),
+    )
+
+    expect(envMap.AWS_ENDPOINT_URL).toBe(`http://offline-host.test:${port}`)
   })
 
   it('applies Docker host, network, and read-only knobs to container create options', async () => {

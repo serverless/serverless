@@ -70,6 +70,31 @@ export function createDockerRuntimeRunner({
     return `${dockerHost}:${url.port}${url.pathname.replace(/\/$/, '')}/${functionKey}`
   }
 
+  /**
+   * Rewrite the offline emulator endpoint so it is reachable from inside the
+   * container. The facade hands us a host-loopback URL (e.g.
+   * `http://localhost:<awsApiPort>`); a container cannot reach the host's
+   * loopback, so the host is swapped to the docker gateway (`dockerHost`,
+   * default `host.docker.internal`) — the same mapping `_apiBaseFor` applies to
+   * the runtime API. Returns `undefined` when no endpoint was supplied so
+   * `AWS_ENDPOINT_URL` is left unset.
+   *
+   * @param {string | undefined} endpointUrl
+   * @returns {string | undefined}
+   */
+  function _containerEndpointUrl(endpointUrl) {
+    if (typeof endpointUrl !== 'string' || endpointUrl.length === 0) {
+      return undefined
+    }
+    try {
+      const url = new URL(endpointUrl)
+      url.hostname = dockerHost
+      return `${url.protocol}//${url.host}${url.pathname.replace(/\/$/, '')}`
+    } catch {
+      return endpointUrl
+    }
+  }
+
   async function _resolveArgsForDocker(args) {
     if (/^java\d+(\.al2)?$/.test(args.runtime ?? '') && !args.artifactPath) {
       throw new ServerlessError(
@@ -144,6 +169,16 @@ export function createDockerRuntimeRunner({
         logStreamName,
         handler: handlerString,
         region,
+        // Offline-runtime SDK targeting — same fields the host runners forward,
+        // so a Dockerized handler's AWS SDK client hits the local emulator with
+        // placeholder credentials (and the synthetic authorizer under --noAuth).
+        // The endpoint host is rewritten to the docker gateway so it resolves
+        // from inside the container. IS_OFFLINE is set once below (authoritative
+        // over user environment), so it is intentionally not passed here.
+        endpointUrl: _containerEndpointUrl(context.endpointUrl),
+        accessKeyId: context.accessKeyId,
+        secretAccessKey: context.secretAccessKey,
+        authorizer: context.authorizer,
       })
       const javaOptsRaw = (process.env.JAVA_OPTS ?? '').trim()
       const javaToolOptionsEnv =
