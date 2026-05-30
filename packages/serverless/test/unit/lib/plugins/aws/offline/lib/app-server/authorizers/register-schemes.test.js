@@ -376,6 +376,37 @@ describe('registerAuthSchemes — HTTP API v2', () => {
     }
   })
 
+  it('warns that an aws_iam httpApi route is unauthenticated locally', () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      const result = registerAuthSchemes({
+        server,
+        serverless: makeServerless({
+          a: {
+            events: [
+              {
+                httpApi: {
+                  method: 'GET',
+                  path: '/p',
+                  authorizer: { type: 'aws_iam' },
+                },
+              },
+            ],
+          },
+        }),
+        lambdas: makeLambdas({}),
+        stage: 'dev',
+        accountId: '000000000000',
+        domainName: 'localhost',
+      })
+      expect(result.v2AuthorizerStrategies.size).toBe(0)
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('aws_iam'))
+    } finally {
+      warnSpy.mockRestore()
+    }
+  })
+
   it('resolves provider-level provider.httpApi.authorizers[name] as the base JWT config', () => {
     const server = Hapi.server({ host: 'localhost', port: 0 })
     const result = registerAuthSchemes({

@@ -138,13 +138,38 @@ export function registerAuthSchemes({
 
   const v2Authorizers = new Map() // name → merged + normalized def
   const v2UnresolvedNames = new Set() // for the skip-and-warn path
+  const v2IamWarned = new Set() // dedupe the aws_iam unauthenticated warning
 
   for (const [functionKey, fn] of Object.entries(functions)) {
     for (const eventEntry of fn?.events ?? []) {
       const httpApi = eventEntry?.httpApi
       if (!httpApi || typeof httpApi !== 'object') continue
       const inline = httpApi.authorizer
-      if (!inline || typeof inline !== 'object') continue
+      if (!inline) continue
+
+      // IAM (SigV4) authorization is not emulated; such a route runs
+      // unauthenticated locally. Warn once per function so it is not mistaken
+      // for working auth, then skip (no scheme registered → public route).
+      const inlineType =
+        typeof inline === 'string'
+          ? inline.toLowerCase()
+          : typeof inline.type === 'string'
+            ? inline.type.toLowerCase()
+            : undefined
+      if (inlineType === 'aws_iam') {
+        if (!v2IamWarned.has(functionKey)) {
+          // eslint-disable-next-line no-console
+          console.warn(
+            `[offline] Function "${functionKey}" declares an httpApi event with ` +
+              `aws_iam authorization, which is not emulated; the route is ` +
+              `unauthenticated locally.`,
+          )
+          v2IamWarned.add(functionKey)
+        }
+        continue
+      }
+
+      if (typeof inline !== 'object') continue
       if (typeof inline.name !== 'string') continue
       if (v2Authorizers.has(inline.name)) continue
       if (v2UnresolvedNames.has(inline.name)) continue
