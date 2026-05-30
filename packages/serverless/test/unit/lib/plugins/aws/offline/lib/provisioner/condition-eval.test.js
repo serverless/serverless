@@ -46,6 +46,18 @@ describe('evaluateConditions', () => {
     expect(out.get('D')).toBe(true)
   })
 
+  it('compares Fn::Equals operands as strings (Number param default equals its string form)', () => {
+    const t = {
+      Conditions: { Single: { 'Fn::Equals': [{ Ref: 'Replicas' }, '1'] } },
+    }
+    const numberCtx = {
+      parameters: { Replicas: 1 },
+      pseudoParams: {},
+      mappings: {},
+    }
+    expect(evaluateConditions(t, numberCtx).get('Single')).toBe(true)
+  })
+
   it('resolves Fn::FindInMap inside a condition', () => {
     const t = {
       Conditions: {

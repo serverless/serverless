@@ -159,11 +159,18 @@ function resolveScalar(value, context) {
 }
 
 /**
- * Structural equality for condition operands. Scalars compare by value;
- * objects/arrays compare by canonical JSON.
+ * Equality for `Fn::Equals` operands. CloudFormation compares operands as
+ * strings, so two non-null primitives match when their string forms are equal
+ * (a `Type: Number` parameter default arrives as a JS number yet equals its
+ * `'1'` string form). Objects and arrays still compare by canonical JSON.
  */
 function deepEqual(a, b) {
   if (a === b) return true
+  const aIsPrimitive = a !== null && typeof a !== 'object'
+  const bIsPrimitive = b !== null && typeof b !== 'object'
+  if (aIsPrimitive && bIsPrimitive) {
+    return String(a) === String(b)
+  }
   if (
     a === null ||
     b === null ||
