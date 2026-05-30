@@ -17,13 +17,39 @@ function makeServerless({
   service = 'offline-m0',
   stage = 'dev',
   compiledResources = {},
+  compiledConditions,
+  compiledParameters,
+  compiledMappings,
   providerEnvironment = {},
   functions = {},
 } = {}) {
-  return {
+  // `getProvider('aws').naming.getLambdaLogicalId` mirrors the Framework's own
+  // convention so sibling-function ARN seeding works: upper-case the first
+  // letter of the function key and append `LambdaFunction`.
+  const provider = {
+    naming: {
+      getLambdaLogicalId: (key) =>
+        `${key.charAt(0).toUpperCase()}${key.slice(1)}LambdaFunction`,
+    },
+  }
+
+  // `driveCompile` reloads the core template from disk and only preserves the
+  // pre-set `Resources`, then runs the finalize hooks. The real
+  // `mergeCustomProviderResources` finalize hook is what merges the user's
+  // `Conditions`/`Parameters`/`Mappings` into the compiled template, so the
+  // stub `runHooks` mirrors that by applying them onto the live template.
+  const runHooks = jest.fn(async () => {
+    const template = sls.service.provider.compiledCloudFormationTemplate
+    if (compiledConditions) template.Conditions = compiledConditions
+    if (compiledParameters) template.Parameters = compiledParameters
+    if (compiledMappings) template.Mappings = compiledMappings
+  })
+
+  const sls = {
+    getProvider: () => provider,
     pluginManager: {
       hooks: {},
-      runHooks: jest.fn().mockResolvedValue(undefined),
+      runHooks,
     },
     service: {
       service,
@@ -38,6 +64,8 @@ function makeServerless({
       functions,
     },
   }
+
+  return sls
 }
 
 // ---------------------------------------------------------------------------
@@ -240,4 +268,72 @@ it('10. uses the configured awsApiPort in lifted queue URLs', async () => {
   const record = registry.sqs.get('MyQueue')
   expect(record).toBeDefined()
   expect(record.url).toContain(':4567/')
+})
+
+// ---------------------------------------------------------------------------
+// 11. End-to-end: mixed template, cross-function refs, conditions, imports
+// ---------------------------------------------------------------------------
+
+it('11. provisions a mixed template end-to-end with cross references, conditions, and a dropped cross-stack import', async () => {
+  const sls = makeServerless({
+    compiledConditions: {
+      // A condition that always evaluates to false, gating off a resource.
+      CreateAnalytics: { 'Fn::Equals': ['enabled', 'disabled'] },
+    },
+    compiledResources: {
+      UploadsBucket: {
+        Type: 'AWS::S3::Bucket',
+        Properties: { BucketName: 'uploads-bucket' },
+      },
+      OrdersTopic: { Type: 'AWS::SNS::Topic' },
+      JobsQueue: { Type: 'AWS::SQS::Queue' },
+      // Gated off by a false condition — must not appear in the registry.
+      AnalyticsBucket: {
+        Type: 'AWS::S3::Bucket',
+        Condition: 'CreateAnalytics',
+        Properties: { BucketName: 'analytics-bucket' },
+      },
+    },
+    functions: {
+      api: {
+        handler: 'src/api.handler',
+        environment: {
+          BUCKET_NAME: { Ref: 'UploadsBucket' },
+          BUCKET_ARN: { 'Fn::GetAtt': ['UploadsBucket', 'Arn'] },
+          // Reference a sibling function's ARN via its CFN logical id.
+          WORKER_ARN: { 'Fn::GetAtt': ['WorkerLambdaFunction', 'Arn'] },
+          // A cross-stack import that cannot exist offline → dropped.
+          SHARED_X: { 'Fn::ImportValue': 'Shared-X' },
+        },
+      },
+      worker: { handler: 'src/worker.handler' },
+    },
+  })
+
+  const { registry, warnings } = await provision(sls)
+
+  // Supported resources lifted into the registry.
+  expect(registry.s3.has('UploadsBucket')).toBe(true)
+  expect(registry.sns.has('OrdersTopic')).toBe(true)
+  expect(registry.sqs.has('JobsQueue')).toBe(true)
+
+  // Condition-false resource absent from the registry.
+  expect(registry.s3.has('AnalyticsBucket')).toBe(false)
+
+  const env = sls.service.functions.api.environment
+  // Ref to a bucket resolves to its name.
+  expect(env.BUCKET_NAME).toBe('uploads-bucket')
+  // Fn::GetAtt …Arn resolves to the S3 ARN.
+  expect(env.BUCKET_ARN).toBe('arn:aws:s3:::uploads-bucket')
+  // Sibling-function ARN resolves via the seeded Lambda identity.
+  expect(env.WORKER_ARN).toBe(
+    'arn:aws:lambda:us-east-1:000000000000:function:worker',
+  )
+  // Cross-stack import key is dropped.
+  expect('SHARED_X' in env).toBe(false)
+
+  // A cross-stack-reference warning is surfaced.
+  expect(warnings.some((w) => w.code === 'OFFLINE_CROSS_STACK_REFERENCE')).toBe(
+    true,
+  )
 })
