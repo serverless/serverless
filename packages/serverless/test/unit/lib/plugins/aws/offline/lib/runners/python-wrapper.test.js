@@ -104,6 +104,34 @@ describe('python wrapper protocol', () => {
     })
   })
 
+  it('exposes the per-invocation context values passed by the runner', async () => {
+    const { envelope } = await invokeWrapper({
+      handlerFile: path.join(FIXTURES_DIR, 'context_echo.py'),
+      handlerName: 'handler',
+      event: {},
+      context: {
+        name: 'echoFn',
+        functionName: 'echoFn',
+        awsRequestId: 'req-abc',
+        memoryLimitInMB: '512',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:123456789012:function:echoFn',
+        logGroupName: '/aws/lambda/echoFn',
+        logStreamName: '2024/01/01/[$LATEST]abcdef1234567890',
+      },
+    })
+
+    expect(envelope.__offline_payload__).toEqual({
+      aws_request_id: 'req-abc',
+      memory_limit_in_mb: '512',
+      invoked_function_arn:
+        'arn:aws:lambda:us-east-1:123456789012:function:echoFn',
+      function_name: 'echoFn',
+      log_group_name: '/aws/lambda/echoFn',
+      log_stream_name: '2024/01/01/[$LATEST]abcdef1234567890',
+    })
+  })
+
   it('emits print() output as separate stdout lines, not as envelopes', async () => {
     const { envelope, lines } = await invokeWrapper({
       handlerFile: path.join(FIXTURES_DIR, 'with_print.py'),

@@ -23,8 +23,14 @@ class FakeLambdaContext
     @created_time = Time.now
   end
 
+  # Default budget (in seconds) when no timeout is configured, mirroring the
+  # Lambda default function timeout. Used so handlers can still call
+  # get_remaining_time_in_millis without a configured timeout.
+  DEFAULT_TIMEOUT_SECONDS = 6
+
   def get_remaining_time_in_millis
-    [@timeout * 1000 - ((Time.now - @created_time) * 1000).round, 0].max
+    timeout = @timeout || DEFAULT_TIMEOUT_SECONDS
+    [timeout * 1000 - ((Time.now - @created_time) * 1000).round, 0].max
   end
 end
 

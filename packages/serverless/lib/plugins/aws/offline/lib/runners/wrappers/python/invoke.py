@@ -31,23 +31,26 @@ class FakeLambdaContext(object):
 
     @property
     def invoked_function_arn(self):
-        return 'arn:aws:lambda:serverless:' + self.name
+        return getattr(self, 'invokedFunctionArn', None) \
+            or 'arn:aws:lambda:us-east-1:000000000000:function:' + self.name
 
     @property
     def memory_limit_in_mb(self):
-        return '1024'
+        return getattr(self, 'memoryLimitInMB', None) or '1024'
 
     @property
     def aws_request_id(self):
-        return '1234567890'
+        return getattr(self, 'awsRequestId', None) or '1234567890'
 
     @property
     def log_group_name(self):
-        return '/aws/lambda/' + self.name
+        return getattr(self, 'logGroupName', None) \
+            or '/aws/lambda/' + self.name
 
     @property
     def log_stream_name(self):
-        return strftime('%Y/%m/%d') + '/[$' + self.version + ']58419525dade4d17a495dceeeed44708'
+        return getattr(self, 'logStreamName', None) \
+            or strftime('%Y/%m/%d') + '/[$' + self.version + ']58419525dade4d17a495dceeeed44708'
 
     @property
     def log(self):

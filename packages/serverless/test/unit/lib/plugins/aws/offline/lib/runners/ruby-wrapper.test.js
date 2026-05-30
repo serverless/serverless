@@ -89,6 +89,54 @@ describe('ruby wrapper protocol', () => {
     })
   })
 
+  it('exposes the per-invocation context values passed by the runner', async () => {
+    const { envelope } = await runOnce({
+      handlerFile: path.join(FIXTURES, 'context_echo.rb'),
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'echoFn',
+        awsRequestId: 'req-abc',
+        memoryLimitInMB: '512',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:123456789012:function:echoFn',
+        logGroupName: '/aws/lambda/echoFn',
+        logStreamName: '2024/01/01/[$LATEST]abcdef1234567890',
+        timeout: 6,
+      },
+    })
+
+    expect(envelope.__offline_payload__).toEqual({
+      aws_request_id: 'req-abc',
+      memory_limit_in_mb: '512',
+      invoked_function_arn:
+        'arn:aws:lambda:us-east-1:123456789012:function:echoFn',
+      function_name: 'echoFn',
+      log_group_name: '/aws/lambda/echoFn',
+      log_stream_name: '2024/01/01/[$LATEST]abcdef1234567890',
+      remaining: 6000,
+    })
+  })
+
+  it('returns remaining time without a configured timeout', async () => {
+    const { envelope } = await runOnce({
+      handlerFile: path.join(FIXTURES, 'context_echo.rb'),
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'echoFn',
+        awsRequestId: 'req-abc',
+        memoryLimitInMB: '512',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:123456789012:function:echoFn',
+        logGroupName: '/aws/lambda/echoFn',
+        logStreamName: '2024/01/01/[$LATEST]abcdef1234567890',
+      },
+    })
+
+    expect(typeof envelope.__offline_payload__.remaining).toBe('number')
+  })
+
   it('emits puts() output as separate stdout lines, not as envelopes', async () => {
     const { envelope, lines } = await runOnce({
       handlerFile: path.join(FIXTURES, 'with_puts.rb'),
