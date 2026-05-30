@@ -163,31 +163,6 @@ describe('registerAuthSchemes', () => {
       warnSpy.mockRestore()
     }
   })
-
-  it('logs the auto-generated API key once', () => {
-    const server = Hapi.server({ host: 'localhost', port: 0 })
-    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
-    try {
-      registerAuthSchemes({
-        server,
-        serverless: makeServerless({
-          a: {
-            events: [{ http: { method: 'GET', path: '/a', private: true } }],
-          },
-        }),
-        lambdas: makeLambdas(),
-        stage: 'dev',
-        accountId: '000000000000',
-      })
-      expect(logSpy).toHaveBeenCalledWith(
-        expect.stringMatching(
-          /Key with token: 'd41d8cd98f00b204e9800998ecf8427e'/,
-        ),
-      )
-    } finally {
-      logSpy.mockRestore()
-    }
-  })
 })
 
 describe('registerAuthSchemes — HTTP API v2', () => {

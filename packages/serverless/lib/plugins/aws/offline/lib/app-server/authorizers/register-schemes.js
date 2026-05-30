@@ -94,10 +94,6 @@ export function registerAuthSchemes({
   let apiKeyStore = null
   if (anyPrivate) {
     const store = buildApiKeyStore(serverless)
-    if (store.generated) {
-      // eslint-disable-next-line no-console
-      console.log(`Key with token: '${[...store.keys][0]}'`)
-    }
     server.auth.scheme('api-key', createApiKeyScheme({ store }))
     server.auth.strategy('api-key', 'api-key')
     privateStrategy = 'api-key'

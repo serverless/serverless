@@ -9,41 +9,34 @@ function makeServerless(apiKeys) {
 }
 
 describe('buildApiKeyStore', () => {
-  it('auto-generates the deterministic empty-MD5 key when no keys configured', () => {
-    const { keys, generated } = buildApiKeyStore(makeServerless())
-    expect(generated).toBe(true)
-    expect(keys.size).toBe(1)
-    expect(keys.has('d41d8cd98f00b204e9800998ecf8427e')).toBe(true)
+  it('produces an empty store when no keys are configured (no default key)', () => {
+    const { keys } = buildApiKeyStore(makeServerless())
+    expect(keys.size).toBe(0)
+    expect(keys.has('d41d8cd98f00b204e9800998ecf8427e')).toBe(false)
   })
 
-  it('returns the configured string keys, no generation', () => {
-    const { keys, generated } = buildApiKeyStore(
-      makeServerless(['key-one', 'key-two']),
-    )
-    expect(generated).toBe(false)
+  it('returns the configured string keys', () => {
+    const { keys } = buildApiKeyStore(makeServerless(['key-one', 'key-two']))
     expect(keys.size).toBe(2)
     expect(keys.has('key-one')).toBe(true)
     expect(keys.has('key-two')).toBe(true)
   })
 
   it('extracts the value from the object form { name, value }', () => {
-    const { keys, generated } = buildApiKeyStore(
+    const { keys } = buildApiKeyStore(
       makeServerless([{ name: 'prod-key', value: 'p-secret' }, 'literal-key']),
     )
-    expect(generated).toBe(false)
     expect(keys.has('p-secret')).toBe(true)
     expect(keys.has('literal-key')).toBe(true)
   })
 
-  it('falls back to auto-gen when apiKeys is an empty array', () => {
-    const { keys, generated } = buildApiKeyStore(makeServerless([]))
-    expect(generated).toBe(true)
-    expect(keys.has('d41d8cd98f00b204e9800998ecf8427e')).toBe(true)
+  it('produces an empty store when apiKeys is an empty array', () => {
+    const { keys } = buildApiKeyStore(makeServerless([]))
+    expect(keys.size).toBe(0)
   })
 
   it('handles serverless without provider gracefully', () => {
-    const { keys, generated } = buildApiKeyStore({ service: {} })
-    expect(generated).toBe(true)
-    expect(keys.size).toBe(1)
+    const { keys } = buildApiKeyStore({ service: {} })
+    expect(keys.size).toBe(0)
   })
 })
