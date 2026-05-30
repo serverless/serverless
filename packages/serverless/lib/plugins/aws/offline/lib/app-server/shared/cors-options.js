@@ -227,10 +227,13 @@ export function applyCorsResponseHeaders(response, corsConfig, requestOrigin) {
  * Origin resolution is delegated to `resolveAllowOrigin` so preflight and
  * non-preflight responses share the exact same rules.
  *
- * @param {{ path: string, corsConfig: ReturnType<typeof normalizeCorsConfig> }} params
+ * `statusCode` lets the caller pick the preflight status: REST API answers a
+ * preflight from a MOCK integration with `200`, while HTTP API answers `204`.
+ *
+ * @param {{ path: string, corsConfig: ReturnType<typeof normalizeCorsConfig>, statusCode?: number }} params
  * @returns {{ method: 'OPTIONS', path: string, handler: Function }}
  */
-export function buildCorsOptionsRoute({ path, corsConfig }) {
+export function buildCorsOptionsRoute({ path, corsConfig, statusCode = 204 }) {
   return {
     handler(request, h) {
       const requestOrigin = request.headers.origin
@@ -240,7 +243,7 @@ export function buildCorsOptionsRoute({ path, corsConfig }) {
       // object — so chained / repeated header() calls all act on `response`.
       const response = h
         .response('')
-        .code(204)
+        .code(statusCode)
         .header('Access-Control-Allow-Origin', allowOrigin)
         .header('Access-Control-Allow-Headers', corsConfig.headers.join(','))
         .header('Access-Control-Allow-Methods', corsConfig.methods.join(','))

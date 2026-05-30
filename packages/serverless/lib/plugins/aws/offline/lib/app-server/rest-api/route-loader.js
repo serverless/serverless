@@ -582,6 +582,8 @@ export function registerRestApiRoutes({
           ...corsConfig,
           methods: mergeAllowMethods(corsConfig.methods, [...methods]),
         },
+        // REST API answers a CORS preflight from a MOCK integration with 200.
+        statusCode: 200,
       }),
     )
   }

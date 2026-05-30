@@ -622,7 +622,7 @@ describe('registerRestApiRoutes — live request via server.inject()', () => {
     await server.start()
 
     const res = await server.inject({ method: 'OPTIONS', url: '/dev/users' })
-    expect(res.statusCode).toBe(204)
+    expect(res.statusCode).toBe(200)
     const methods = res.headers['access-control-allow-methods'].split(',')
     expect(methods).toEqual(expect.arrayContaining(['GET', 'POST', 'OPTIONS']))
   })
