@@ -459,6 +459,18 @@ export function createQueueStore({ now = () => Date.now() } = {}) {
   }
 
   /**
+   * Return the live (normalised) config for a queue, or `undefined` when the
+   * queue does not exist. Read by the poller to learn a queue's visibility
+   * timeout without coupling it to the boot-time config object.
+   *
+   * @param {string} url
+   * @returns {object | undefined}
+   */
+  function getConfig(url) {
+    return queues.get(url)?.config
+  }
+
+  /**
    * Resolve a queue url by its name.
    *
    * @param {string} name
@@ -613,6 +625,7 @@ export function createQueueStore({ now = () => Date.now() } = {}) {
     changeMessageVisibility,
     sweep,
     size,
+    getConfig,
     getQueueUrl,
     listQueues,
     deleteQueue,

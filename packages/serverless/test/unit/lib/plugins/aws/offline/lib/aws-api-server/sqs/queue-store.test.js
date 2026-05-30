@@ -442,3 +442,19 @@ it('32. ensureQueue is idempotent and does not reset config on re-ensure', () =>
   expect(store.size(Q)).toBe(1)
   expect(store.getQueueAttributes(Q).VisibilityTimeout).toBe('30')
 })
+
+it('33. getConfig returns the normalised live config; undefined for an unknown queue', () => {
+  const store = createQueueStore()
+  store.ensureQueue(Q, {
+    visibilityTimeout: 45,
+    redrive: { dlqUrl: DLQ, maxReceiveCount: 3 },
+  })
+
+  const config = store.getConfig(Q)
+  expect(config.visibilityTimeout).toBe(45)
+  // Normalised defaults are filled in for omitted fields.
+  expect(config.delaySeconds).toBe(0)
+  expect(config.redrive).toEqual({ dlqUrl: DLQ, maxReceiveCount: 3 })
+
+  expect(store.getConfig(OTHER)).toBeUndefined()
+})
