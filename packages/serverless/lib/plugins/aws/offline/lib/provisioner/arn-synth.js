@@ -86,3 +86,15 @@ export function s3RegionalDomainName(bucketName) {
 export function s3WebsiteUrl(bucketName) {
   return `http://${bucketName}.s3-website-${FAKE_REGION}.amazonaws.com`
 }
+
+/**
+ * Returns an EventBridge rule ARN, matching the `Arn` return value of
+ * `AWS::Events::Rule`. Rule ARNs use a `rule/` infix, distinct from the
+ * `event-bus/` infix used for buses.
+ *
+ * @param {string} ruleName - The rule name.
+ * @returns {string} e.g. `arn:aws:events:us-east-1:000000000000:rule/my-rule`
+ */
+export function eventRuleArnFor(ruleName) {
+  return `arn:aws:events:${FAKE_REGION}:${FAKE_ACCOUNT_ID}:rule/${ruleName}`
+}
