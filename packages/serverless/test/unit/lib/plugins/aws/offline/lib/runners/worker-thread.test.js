@@ -217,6 +217,7 @@ describe('createWorkerThreadRunner', () => {
 
     expect(err).toBeInstanceOf(ServerlessError)
     expect(err.code).toBe('OFFLINE_HANDLER_TIMEOUT')
+    expect(err.message).toMatch(/Task timed out after \d+\.\d{2} seconds/)
   })
 
   // 7. Callback-style handler returns success via callback(null, result)

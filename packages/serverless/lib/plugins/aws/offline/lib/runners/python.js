@@ -383,7 +383,7 @@ export function createPythonRunner({
             }
             reject(
               new ServerlessError(
-                `Lambda invocation timed out after ${timeoutMs} ms`,
+                `Task timed out after ${(timeoutMs / 1000).toFixed(2)} seconds`,
                 'OFFLINE_HANDLER_TIMEOUT',
               ),
             )

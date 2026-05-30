@@ -600,7 +600,7 @@ export function createWorkerThreadRunner({
               readyTimer = setTimeout(() => {
                 reject(
                   new ServerlessError(
-                    `Lambda invocation timed out after ${timeoutMs} ms`,
+                    `Task timed out after ${(timeoutMs / 1000).toFixed(2)} seconds`,
                     'OFFLINE_HANDLER_TIMEOUT',
                   ),
                 )
@@ -676,7 +676,7 @@ export function createWorkerThreadRunner({
               _wakeCapWaiter(functionKey)
               reject(
                 new ServerlessError(
-                  `Lambda invocation timed out after ${timeoutMs} ms`,
+                  `Task timed out after ${(timeoutMs / 1000).toFixed(2)} seconds`,
                   'OFFLINE_HANDLER_TIMEOUT',
                 ),
               )
