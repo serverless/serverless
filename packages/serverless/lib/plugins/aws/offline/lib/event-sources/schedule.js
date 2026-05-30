@@ -197,18 +197,21 @@ export function createScheduler({
       const enabled = def.enabled !== false
       const rateExprs = Array.isArray(def.rate) ? def.rate : [def.rate]
 
+      // inputPath / inputTransformer are real EventBridge features we do not
+      // emulate; warn so the difference is visible (the synthesized scheduled
+      // event, or a configured `input`, is delivered instead).
+      if (def.inputPath !== undefined || def.inputTransformer !== undefined) {
+        logger.warning(
+          `[sls:offline:scheduler] inputPath/inputTransformer on the ` +
+            `${functionKey} schedule are not emulated; the default scheduled ` +
+            `event (or "input") is delivered instead.`,
+        )
+      }
+
       for (let rateIndex = 0; rateIndex < rateExprs.length; rateIndex++) {
         const rateExpr = rateExprs[rateIndex]
         const entryIndex =
           rateExprs.length === 1 ? index : `${index}-${rateIndex}`
-
-        scheduledCount++
-
-        // Validate-always: parse (and for cron, attempt croner construction)
-        // even when enabled:false so a typo throws at boot regardless of the
-        // flag. We just don't push the entry or arm a timer in that branch —
-        // flipping enabled later shouldn't surface a latent syntax error.
-        const parsed = parseExpression(rateExpr)
 
         /** @type {Entry} */
         const entry = {
@@ -219,24 +222,33 @@ export function createScheduler({
           // a truthiness check.
           hasInput: 'input' in def,
           input: def.input,
-          parsed,
+          parsed: undefined,
           armed: false,
         }
 
-        if (parsed.kind === 'cron') {
-          try {
+        // A single unschedulable rule must not abort the whole offline session
+        // — real EventBridge rejects only the offending rule at deploy time.
+        // Parse the expression and (for cron) construct the croner timer, which
+        // validates the pattern including operators croner does not support
+        // (e.g. `#`, `W`); on failure, warn and skip this one rule.
+        try {
+          entry.parsed = parseExpression(rateExpr)
+          if (entry.parsed.kind === 'cron') {
             entry.cron = new Cron(
-              parsed.expression,
+              entry.parsed.expression,
               { timezone: 'UTC', paused: true },
               () => _onTick(entry),
             )
-          } catch (err) {
-            throw new ServerlessError(
-              `Invalid cron pattern in "${rateExpr}": ${err.message}`,
-              'OFFLINE_SCHEDULE_INVALID_EXPRESSION',
-            )
           }
+        } catch (err) {
+          logger.warning(
+            `[sls:offline:scheduler] Skipping unschedulable schedule ` +
+              `"${rateExpr}" for ${functionKey} #${entryIndex}: ${err.message}`,
+          )
+          continue
         }
+
+        scheduledCount++
 
         if (!enabled) {
           disabledCount++

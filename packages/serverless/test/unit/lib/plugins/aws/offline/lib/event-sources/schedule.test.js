@@ -262,21 +262,24 @@ describe('createScheduler', () => {
     await scheduler.stop()
   })
 
-  it('rate(5 seconds) is rejected at construction', () => {
+  it('rate(5 seconds) is skipped with a warning, not a thrown abort', () => {
     const runner = makeStubRunner()
     const logger = makeLogger()
-    expect(() =>
-      createScheduler({
-        serverless: makeServerless({
-          fn: { events: [{ schedule: 'rate(5 seconds)' }] },
-        }),
-        getLambdaFunction: runner.getLambdaFunction,
-        logger,
-        region: 'us-east-1',
+    const scheduler = createScheduler({
+      serverless: makeServerless({
+        fn: { events: [{ schedule: 'rate(5 seconds)' }] },
       }),
-    ).toThrow(
-      expect.objectContaining({ code: 'OFFLINE_SCHEDULE_INVALID_EXPRESSION' }),
-    )
+      getLambdaFunction: runner.getLambdaFunction,
+      logger,
+      region: 'us-east-1',
+    })
+    expect(scheduler.scheduledCount).toBe(0)
+    expect(
+      logger.events.filter(
+        ([level, msg]) =>
+          level === 'warning' && msg.includes('rate(5 seconds)'),
+      ),
+    ).toHaveLength(1)
   })
 
   it('cron(0 12 * * ? *) fires at next noon UTC', async () => {
@@ -308,25 +311,70 @@ describe('createScheduler', () => {
     await scheduler.stop()
   })
 
-  it('rejects invalid cron expression at construction', () => {
+  it('skips an invalid cron expression with a warning, not a thrown abort', () => {
     const runner = makeStubRunner()
     const logger = makeLogger()
-    let caught
-    try {
-      createScheduler({
-        serverless: makeServerless({
-          fn: { events: [{ schedule: 'cron(not a real cron)' }] },
-        }),
-        getLambdaFunction: runner.getLambdaFunction,
-        logger,
-        region: 'us-east-1',
-      })
-    } catch (err) {
-      caught = err
-    }
-    expect(caught).toBeDefined()
-    expect(caught.code).toBe('OFFLINE_SCHEDULE_INVALID_EXPRESSION')
-    expect(caught.message).toContain('cron(not a real cron)')
+    const scheduler = createScheduler({
+      serverless: makeServerless({
+        fn: { events: [{ schedule: 'cron(not a real cron)' }] },
+      }),
+      getLambdaFunction: runner.getLambdaFunction,
+      logger,
+      region: 'us-east-1',
+    })
+    expect(scheduler.scheduledCount).toBe(0)
+    expect(
+      logger.events.filter(
+        ([level, msg]) =>
+          level === 'warning' && msg.includes('cron(not a real cron)'),
+      ),
+    ).toHaveLength(1)
+  })
+
+  it('skips only the unschedulable rule and still arms the valid ones', async () => {
+    const runner = makeStubRunner()
+    const logger = makeLogger()
+    const scheduler = createScheduler({
+      serverless: makeServerless({
+        good: { events: [{ schedule: 'rate(1 minute)' }] },
+        bad: { events: [{ schedule: 'rate(5 seconds)' }] },
+      }),
+      getLambdaFunction: runner.getLambdaFunction,
+      logger,
+      region: 'us-east-1',
+    })
+    expect(scheduler.scheduledCount).toBe(1)
+    expect(logger.events.filter(([level]) => level === 'warning')).toHaveLength(
+      1,
+    )
+
+    scheduler.start()
+    await jest.advanceTimersByTimeAsync(60_000)
+    expect(runner.calls.length).toBe(1)
+    await scheduler.stop()
+  })
+
+  it('warns that inputPath/inputTransformer are not emulated', () => {
+    const runner = makeStubRunner()
+    const logger = makeLogger()
+    createScheduler({
+      serverless: makeServerless({
+        fn: {
+          events: [
+            { schedule: { rate: 'rate(1 minute)', inputPath: '$.detail' } },
+          ],
+        },
+      }),
+      getLambdaFunction: runner.getLambdaFunction,
+      logger,
+      region: 'us-east-1',
+    })
+    expect(
+      logger.events.filter(
+        ([level, msg]) =>
+          level === 'warning' && msg.includes('inputPath/inputTransformer'),
+      ),
+    ).toHaveLength(1)
   })
 
   it('honors enabled:false — counts but does not arm', async () => {
@@ -353,23 +401,25 @@ describe('createScheduler', () => {
     await scheduler.stop()
   })
 
-  it('rejects disabled-but-invalid cron at construction', () => {
+  it('skips a disabled-but-invalid cron with a warning, not a thrown abort', () => {
     const runner = makeStubRunner()
     const logger = makeLogger()
-    expect(() =>
-      createScheduler({
-        serverless: makeServerless({
-          fn: {
-            events: [{ schedule: { rate: 'cron(garbage)', enabled: false } }],
-          },
-        }),
-        getLambdaFunction: runner.getLambdaFunction,
-        logger,
-        region: 'us-east-1',
+    const scheduler = createScheduler({
+      serverless: makeServerless({
+        fn: {
+          events: [{ schedule: { rate: 'cron(garbage)', enabled: false } }],
+        },
       }),
-    ).toThrow(
-      expect.objectContaining({ code: 'OFFLINE_SCHEDULE_INVALID_EXPRESSION' }),
-    )
+      getLambdaFunction: runner.getLambdaFunction,
+      logger,
+      region: 'us-east-1',
+    })
+    expect(scheduler.scheduledCount).toBe(0)
+    expect(
+      logger.events.filter(
+        ([level, msg]) => level === 'warning' && msg.includes('cron(garbage)'),
+      ),
+    ).toHaveLength(1)
   })
 
   it('delivers literal null when input is explicitly null', async () => {
