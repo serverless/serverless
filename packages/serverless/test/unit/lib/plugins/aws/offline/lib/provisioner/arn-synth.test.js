@@ -2,6 +2,7 @@ import {
   arnFor,
   queueUrlFor,
   s3DomainName,
+  s3DualStackDomainName,
   s3RegionalDomainName,
   s3WebsiteUrl,
 } from '../../../../../../../../lib/plugins/aws/offline/lib/provisioner/arn-synth.js'
@@ -70,6 +71,12 @@ describe('S3 GetAtt helpers', () => {
   it('s3WebsiteUrl produces the website endpoint URL', () => {
     expect(s3WebsiteUrl('my-bucket')).toBe(
       'http://my-bucket.s3-website-us-east-1.amazonaws.com',
+    )
+  })
+
+  it('s3DualStackDomainName produces the dual-stack bucket domain', () => {
+    expect(s3DualStackDomainName('my-bucket')).toBe(
+      'my-bucket.s3.dualstack.us-east-1.amazonaws.com',
     )
   })
 })

@@ -77,6 +77,17 @@ export function s3RegionalDomainName(bucketName) {
 }
 
 /**
+ * Returns the dual-stack S3 bucket domain name, matching the
+ * `DualStackDomainName` return value of `AWS::S3::Bucket`.
+ *
+ * @param {string} bucketName - The S3 bucket name.
+ * @returns {string} e.g. `my-bucket.s3.dualstack.us-east-1.amazonaws.com`
+ */
+export function s3DualStackDomainName(bucketName) {
+  return `${bucketName}.s3.dualstack.${FAKE_REGION}.amazonaws.com`
+}
+
+/**
  * Returns the S3 static-website endpoint URL, matching the `WebsiteURL`
  * return value of `AWS::S3::Bucket`.
  *

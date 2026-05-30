@@ -310,6 +310,18 @@ it('14c. Fn::GetAtt for S3 bucket attributes', () => {
   ).toBe('http://my-bucket.s3-website-us-east-1.amazonaws.com')
 })
 
+it('14c2. Fn::GetAtt ["MyBucket", "DualStackDomainName"] → dual-stack DNS', () => {
+  const ctx = makeContext({
+    registry: makeRegistry({ s3: [['MyBucket', BUCKET_RECORD]] }),
+  })
+  expect(
+    resolveIntrinsics(
+      { 'Fn::GetAtt': ['MyBucket', 'DualStackDomainName'] },
+      ctx,
+    ),
+  ).toBe('my-bucket.s3.dualstack.us-east-1.amazonaws.com')
+})
+
 it('14d. Fn::GetAtt for EventBridge Arn and Name', () => {
   const ctx = makeContext({
     registry: makeRegistry({ events: [['MyBus', EVENT_BUS_RECORD]] }),

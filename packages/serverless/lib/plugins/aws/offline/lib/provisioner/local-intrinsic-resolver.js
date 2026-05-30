@@ -1,6 +1,7 @@
 import ServerlessError from '../../../../../serverless-error.js'
 import {
   s3DomainName,
+  s3DualStackDomainName,
   s3RegionalDomainName,
   s3WebsiteUrl,
 } from './arn-synth.js'
@@ -304,6 +305,7 @@ function resolveGetAtt(spec, context) {
     table = {
       Arn: `arn:aws:s3:::${record.name}`,
       DomainName: s3DomainName(record.name),
+      DualStackDomainName: s3DualStackDomainName(record.name),
       RegionalDomainName: s3RegionalDomainName(record.name),
       WebsiteURL: s3WebsiteUrl(record.name),
     }
