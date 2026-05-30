@@ -881,10 +881,11 @@ it('27. returns an empty array when no httpApi events are declared', () => {
 })
 
 // ---------------------------------------------------------------------------
-// 24. multiValueHeaders sends one header line per value
+// 24. HTTP API v2 response payloads have no multiValueHeaders field; it is
+//     ignored, mirroring real API Gateway.
 // ---------------------------------------------------------------------------
 
-it('24. response.multiValueHeaders emits one header line per value', async () => {
+it('24. response.multiValueHeaders is ignored for HTTP API v2', async () => {
   const server = await makeServer()
   const onRequest = jest.fn().mockResolvedValue({
     statusCode: 200,
@@ -908,21 +909,18 @@ it('24. response.multiValueHeaders emits one header line per value', async () =>
   try {
     const res = await server.inject({ method: 'GET', url: '/multi' })
     expect(res.statusCode).toBe(200)
-    const tagHeader = res.headers['x-tag']
-    const values = Array.isArray(tagHeader)
-      ? tagHeader
-      : tagHeader.split(',').map((s) => s.trim())
-    expect(values).toEqual(expect.arrayContaining(['alpha', 'beta', 'gamma']))
+    expect(res.headers['x-tag']).toBeUndefined()
   } finally {
     await server.stop({ timeout: 5000 })
   }
 })
 
 // ---------------------------------------------------------------------------
-// 25. headers + multiValueHeaders are both applied (multi appended after single)
+// 25. With both headers and multiValueHeaders, HTTP API v2 honors only the
+//     single-value headers and ignores multiValueHeaders.
 // ---------------------------------------------------------------------------
 
-it('25. headers and multiValueHeaders combine — single value plus appended ones', async () => {
+it('25. headers are honored while multiValueHeaders is ignored (HTTP API v2)', async () => {
   const server = await makeServer()
   const onRequest = jest.fn().mockResolvedValue({
     statusCode: 200,
@@ -945,13 +943,7 @@ it('25. headers and multiValueHeaders combine — single value plus appended one
   try {
     const res = await server.inject({ method: 'GET', url: '/trace' })
     expect(res.statusCode).toBe(200)
-    const trace = res.headers['x-trace']
-    const values = Array.isArray(trace)
-      ? trace
-      : trace.split(',').map((s) => s.trim())
-    expect(values).toEqual(
-      expect.arrayContaining(['primary', 'secondary', 'tertiary']),
-    )
+    expect(res.headers['x-trace']).toBe('primary')
   } finally {
     await server.stop({ timeout: 5000 })
   }

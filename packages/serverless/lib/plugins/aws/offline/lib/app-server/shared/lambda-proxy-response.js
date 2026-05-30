@@ -99,7 +99,12 @@ export function formatLambdaProxyResponse(
   // values via `headers`, repeated values via `multiValueHeaders`.  On REST v1
   // Set-Cookie rides through this same channel; on HTTP API v2 it has its own
   // dedicated `cookies` array handled below.
-  if (multiValueHeaders) {
+  //
+  // HTTP API v2 response payloads have no `multiValueHeaders` field — they
+  // carry only single-value `headers` (with repeats comma-joined) plus
+  // `cookies`. API Gateway silently ignores any `multiValueHeaders` a v2
+  // handler returns, so we skip this channel entirely under payloadV2.
+  if (multiValueHeaders && !payloadV2) {
     for (const [name, values] of Object.entries(multiValueHeaders)) {
       if (!Array.isArray(values)) continue
       for (const value of values) {

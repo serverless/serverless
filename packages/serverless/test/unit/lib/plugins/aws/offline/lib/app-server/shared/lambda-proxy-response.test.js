@@ -129,6 +129,20 @@ describe('formatLambdaProxyResponse', () => {
     expect(xTag.every((c) => c.opts?.append === true)).toBe(true)
   })
 
+  it('multiValueHeaders is ignored under payloadV2 (HTTP API v2)', () => {
+    const h = makeH()
+    formatLambdaProxyResponse(
+      {
+        statusCode: 200,
+        body: 'ok',
+        multiValueHeaders: { 'x-tag': ['a', 'b'] },
+      },
+      h,
+      { payloadV2: true },
+    )
+    expect(h.calls.headers.filter((c) => c.name === 'x-tag')).toEqual([])
+  })
+
   it('cookies WITH option:true appends each as set-cookie (HTTP API v2)', () => {
     const h = makeH()
     formatLambdaProxyResponse(
