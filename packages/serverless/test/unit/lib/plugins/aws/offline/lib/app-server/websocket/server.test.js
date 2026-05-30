@@ -148,6 +148,35 @@ describe('WebSocket server — message dispatch', () => {
     }
   })
 
+  it('routes via a nested route-selection expression', async () => {
+    const handlerCalls = []
+    const ctx = await setup({
+      provider: {
+        websocketsApiRouteSelectionExpression: '$request.body.action.type',
+      },
+      functions: {
+        broadcast: { events: [{ websocket: { route: 'broadcast' } }] },
+      },
+      onRequest: jest.fn(async (fnKey, event) => {
+        handlerCalls.push({ fnKey, event })
+        return { statusCode: 200 }
+      }),
+    })
+    try {
+      const ws = await connectWs(ctx.url)
+      ws.send('{"action":{"type":"broadcast"}}')
+      await new Promise((r) => setTimeout(r, 50))
+      const match = handlerCalls.find(
+        (c) => c.event?.requestContext?.routeKey === 'broadcast',
+      )
+      expect(match).toBeDefined()
+      expect(match.fnKey).toBe('broadcast')
+      ws.close()
+    } finally {
+      await teardown(ctx)
+    }
+  })
+
   it('falls back to $default when body.action is missing', async () => {
     const handlerCalls = []
     const ctx = await setup({

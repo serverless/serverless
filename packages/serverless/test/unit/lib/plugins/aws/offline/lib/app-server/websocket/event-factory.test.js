@@ -378,3 +378,52 @@ describe('common: requestContext fields', () => {
     expect(event.requestContext.extendedRequestId).toMatch(/^[0-9a-f-]{36}$/)
   })
 })
+
+describe('connectedAt + messageId across event types', () => {
+  it('buildMessageEvent uses the supplied stable connectedAt', () => {
+    const event = buildMessageEvent({
+      connectionId: 'c-1',
+      route: 'broadcast',
+      payload: '{"action":"broadcast"}',
+      request: makeRequest(),
+      stage: 'dev',
+      apiId: 'private',
+      connectedAt: 1700000000000,
+    })
+    expect(event.requestContext.connectedAt).toBe(1700000000000)
+  })
+
+  it('buildMessageEvent emits a non-null messageId on MESSAGE events', () => {
+    const event = buildMessageEvent({
+      connectionId: 'c-1',
+      route: 'broadcast',
+      payload: '{}',
+      request: makeRequest(),
+      stage: 'dev',
+      apiId: 'private',
+    })
+    expect(event.requestContext.messageId).toMatch(/^[0-9a-f-]{36}$/)
+  })
+
+  it('buildConnectEvent emits messageId=null', () => {
+    const event = buildConnectEvent({
+      connectionId: 'c-1',
+      request: makeRequest(),
+      stage: 'dev',
+      apiId: 'private',
+    })
+    expect(event.requestContext.messageId).toBeNull()
+  })
+
+  it('buildDisconnectEvent uses the supplied connectedAt and emits messageId=null', () => {
+    const event = buildDisconnectEvent({
+      connectionId: 'c-1',
+      request: makeRequest(),
+      stage: 'dev',
+      apiId: 'private',
+      connectedAt: 1700000000000,
+    })
+    expect(event.requestContext.connectedAt).toBe(1700000000000)
+    expect(event.requestContext.messageId).toBeNull()
+  })
+})

@@ -59,6 +59,8 @@ function buildRequestContext({
   stage,
   apiId,
   authorizer,
+  connectedAt,
+  messageId = null,
 }) {
   const now = Date.now()
   // Compose `domainName` from the Host header but fall back to the
@@ -84,7 +86,9 @@ function buildRequestContext({
   return {
     apiId,
     ...(authorizer ? { authorizer } : {}),
-    connectedAt: now,
+    // The connection's establishment time is stable across all events for
+    // that connection; the connect event seeds it (defaulting to now).
+    connectedAt: connectedAt ?? now,
     connectionId,
     domainName: host,
     eventType,
@@ -104,7 +108,7 @@ function buildRequestContext({
       userArn: null,
     },
     messageDirection: 'IN',
-    messageId: null,
+    messageId,
     requestId: crypto.randomUUID(),
     requestTime: formatClfTime(new Date(now)),
     requestTimeEpoch: now,
@@ -156,6 +160,7 @@ export function buildDisconnectEvent({
   region,
   apiId,
   authorizer,
+  connectedAt,
 }) {
   const { single: headers, multi: multiValueHeaders } = parseHeaders(
     request.rawHeaders,
@@ -172,6 +177,7 @@ export function buildDisconnectEvent({
       stage,
       apiId,
       authorizer,
+      connectedAt,
     }),
   }
 }
@@ -186,6 +192,7 @@ export function buildMessageEvent({
   region,
   apiId,
   authorizer,
+  connectedAt,
 }) {
   return {
     body: payload,
@@ -198,6 +205,8 @@ export function buildMessageEvent({
       stage,
       apiId,
       authorizer,
+      connectedAt,
+      messageId: crypto.randomUUID(),
     }),
   }
 }

@@ -185,7 +185,11 @@ export function createWebSocketServer({
         try {
           const parsed = JSON.parse(payload)
           if (parsed && typeof parsed === 'object') {
-            const candidate = parsed[selectionKey]
+            // The selection key may be a nested dotted path (e.g.
+            // `$request.body.action.type` → `action.type`); walk it.
+            const candidate = selectionKey
+              .split('.')
+              .reduce((acc, k) => (acc == null ? undefined : acc[k]), parsed)
             if (typeof candidate === 'string') action = candidate
           }
         } catch {
@@ -204,6 +208,7 @@ export function createWebSocketServer({
           region,
           apiId,
           authorizer: connectionAuthorizer,
+          connectedAt: registry.get(connectionId)?.connectedAt,
         })
         let result
         try {
@@ -243,6 +248,8 @@ export function createWebSocketServer({
       ws.on('close', async () => {
         clearTimeout(hardTimer)
         clearTimeout(idleTimer)
+        // Capture the stable connect-time before removing the record.
+        const connectedAt = registry.get(connectionId)?.connectedAt
         registry.remove(connectionId)
         const disconnectRoute = routes.get('$disconnect')
         if (!disconnectRoute) return
@@ -254,6 +261,7 @@ export function createWebSocketServer({
           region,
           apiId,
           authorizer: connectionAuthorizer,
+          connectedAt,
         })
         try {
           await onRequest(disconnectRoute.functionKey, event)
