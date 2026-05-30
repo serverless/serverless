@@ -86,8 +86,15 @@ export function createJwtScheme({ authorizerDef, ignoreJWTSignature = false }) {
         const tokenScopes = Array.isArray(claims.scp)
           ? claims.scp
           : parseScopeClaim(claims.scope)
-        if (configuredScopes.length > 0) {
-          const overlap = tokenScopes.some((s) => configuredScopes.includes(s))
+        // Authorization scopes are per-route on AWS. When the route declares
+        // its own scopes they take precedence; otherwise fall back to any
+        // authorizer-level default.
+        const routeScopes = request.route?.settings?.plugins?.offline?.jwtScopes
+        const effectiveScopes = Array.isArray(routeScopes)
+          ? normalizeToArray(routeScopes)
+          : configuredScopes
+        if (effectiveScopes.length > 0) {
+          const overlap = tokenScopes.some((s) => effectiveScopes.includes(s))
           if (!overlap) return forbidden(h)
         }
 

@@ -449,3 +449,63 @@ describe('jwt-scheme — 401 paths', () => {
     }
   })
 })
+
+describe('jwt-scheme — per-route authorization scopes', () => {
+  async function makeServerWithRouteScopes(authorizerDef, routeJwtScopes) {
+    const scheme = createJwtScheme({ authorizerDef, ignoreJWTSignature: true })
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    server.auth.scheme('jwt', scheme)
+    server.auth.strategy('jwt', 'jwt')
+    server.route({
+      method: 'GET',
+      path: '/p',
+      options: {
+        auth: 'jwt',
+        ...(routeJwtScopes
+          ? { plugins: { offline: { jwtScopes: routeJwtScopes } } }
+          : {}),
+      },
+      handler: () => ({ ok: true }),
+    })
+    await server.initialize()
+    return server
+  }
+
+  const def = {
+    issuerUrl: 'https://issuer.example.com',
+    audience: ['client-1'],
+    scopes: ['read'],
+  }
+
+  it('enforces the route-level scopes over the authorizer default scopes', async () => {
+    const server = await makeServerWithRouteScopes(def, ['write'])
+    const token = makeJwt({
+      iss: 'https://issuer.example.com',
+      aud: 'client-1',
+      exp: FUTURE,
+      scope: 'read',
+    })
+    const res = await server.inject({
+      method: 'GET',
+      url: '/p',
+      headers: { authorization: `Bearer ${token}` },
+    })
+    expect(res.statusCode).toBe(403)
+  })
+
+  it('falls back to the authorizer default scopes when the route declares none', async () => {
+    const server = await makeServerWithRouteScopes(def, undefined)
+    const token = makeJwt({
+      iss: 'https://issuer.example.com',
+      aud: 'client-1',
+      exp: FUTURE,
+      scope: 'read',
+    })
+    const res = await server.inject({
+      method: 'GET',
+      url: '/p',
+      headers: { authorization: `Bearer ${token}` },
+    })
+    expect(res.statusCode).toBe(200)
+  })
+})

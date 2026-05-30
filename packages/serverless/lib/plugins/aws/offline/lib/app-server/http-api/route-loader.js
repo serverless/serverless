@@ -167,6 +167,20 @@ export function registerHttpApiRoutes({
               authStrategies?.v2AuthorizerStrategies ?? new Map(),
           })
 
+      // Authorization scopes are declared per route on AWS. Carry the route's
+      // own scopes on the route settings so the JWT scheme enforces them for
+      // this route specifically, rather than a single authorizer-wide default.
+      const inlineAuthorizer =
+        typeof eventEntry.httpApi === 'object'
+          ? eventEntry.httpApi.authorizer
+          : undefined
+      const jwtScopes =
+        inlineAuthorizer &&
+        typeof inlineAuthorizer === 'object' &&
+        Array.isArray(inlineAuthorizer.scopes)
+          ? inlineAuthorizer.scopes
+          : undefined
+
       server.route({
         method: hapiMethod,
         path: hapiPath,
@@ -181,6 +195,7 @@ export function registerHttpApiRoutes({
             failAction: 'ignore',
           },
           ...(authStrategy ? { auth: authStrategy } : {}),
+          ...(jwtScopes ? { plugins: { offline: { jwtScopes } } } : {}),
         },
         async handler(request, h) {
           try {

@@ -79,6 +79,49 @@ it('2. single httpApi event (long form) registers one route with uppercase metho
   expect(stub.routes[0].path).toBe('/users')
 })
 
+it('attaches the route-level authorizer scopes to the route settings', () => {
+  const stub = makeRouteStub()
+  registerHttpApiRoutes({
+    server: stub,
+    serverless: makeServerless({
+      myFn: {
+        events: [
+          {
+            httpApi: {
+              method: 'GET',
+              path: '/p',
+              authorizer: { name: 'jwt', scopes: ['read', 'write'] },
+            },
+          },
+        ],
+      },
+    }),
+    stage: 'dev',
+    domainName: 'localhost:3000',
+    onRequest: jest.fn(),
+  })
+  expect(stub.routes[0].options.plugins.offline.jwtScopes).toEqual([
+    'read',
+    'write',
+  ])
+})
+
+it('does not attach a plugins.offline block when no route scopes are declared', () => {
+  const stub = makeRouteStub()
+  registerHttpApiRoutes({
+    server: stub,
+    serverless: makeServerless({
+      myFn: {
+        events: [{ httpApi: { method: 'GET', path: '/p' } }],
+      },
+    }),
+    stage: 'dev',
+    domainName: 'localhost:3000',
+    onRequest: jest.fn(),
+  })
+  expect(stub.routes[0].options.plugins).toBeUndefined()
+})
+
 // ---------------------------------------------------------------------------
 // 3. Short string form → method and path parsed correctly
 // ---------------------------------------------------------------------------
