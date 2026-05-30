@@ -22,6 +22,7 @@ function makeServerless({
   compiledMappings,
   providerEnvironment = {},
   functions = {},
+  serviceParams = {},
 } = {}) {
   // `getProvider('aws').naming.getLambdaLogicalId` mirrors the Framework's own
   // convention so sibling-function ARN seeding works: upper-case the first
@@ -53,7 +54,7 @@ function makeServerless({
     },
     service: {
       service,
-      params: {},
+      params: serviceParams,
       provider: {
         stage,
         environment: providerEnvironment,
@@ -336,4 +337,43 @@ it('11. provisions a mixed template end-to-end with cross references, conditions
   expect(warnings.some((w) => w.code === 'OFFLINE_CROSS_STACK_REFERENCE')).toBe(
     true,
   )
+})
+
+// ---------------------------------------------------------------------------
+// 12. Template parameter defaults are the offline source; a stage-nested
+//     service params map never leaks into reference resolution.
+// ---------------------------------------------------------------------------
+
+it('12. resolves { Ref: Param } to a Type: Number template default and ignores a stage-nested service params map', async () => {
+  const sls = makeServerless({
+    compiledParameters: {
+      Replicas: { Type: 'Number', Default: 3 },
+    },
+    // Framework `service.params` is stage-nested and feeds `${param:}`, not
+    // CloudFormation parameters — its keys must not become resolvable Refs.
+    serviceParams: {
+      default: { someValue: 'from-default-stage' },
+      dev: { someValue: 'from-dev-stage' },
+    },
+    functions: {
+      myFn: {
+        environment: {
+          REPLICAS: { Ref: 'Replicas' },
+          // The stage names from `service.params` must NOT be Refable, so
+          // these keys are dropped rather than resolving to the stage maps.
+          LEAKED_DEFAULT: { Ref: 'default' },
+          LEAKED_STAGE: { Ref: 'dev' },
+        },
+      },
+    },
+  })
+
+  await provision(sls)
+
+  const env = sls.service.functions.myFn.environment
+  // The Number-typed template default resolves via Ref.
+  expect(env.REPLICAS).toBe(3)
+  // Stage names from the service params map do not leak in as parameters.
+  expect('LEAKED_DEFAULT' in env).toBe(false)
+  expect('LEAKED_STAGE' in env).toBe(false)
 })

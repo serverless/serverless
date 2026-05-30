@@ -73,7 +73,15 @@ export async function provision(
     'AWS::NoValue': Symbol.for('AWS::NoValue'),
   }
 
-  // 4. Collect template-parameter defaults, overlaid with any supplied params.
+  // 4. Collect template-parameter defaults. The CloudFormation template's
+  //    `Parameters[*].Default` is the only offline source for `{ Ref: Param }`
+  //    values: real parameter overrides are not available without a deploy, so
+  //    each parameter resolves to its declared default. The Framework's
+  //    `service.params` is stage-nested (`{ default: {...}, <stage>: {...} }`)
+  //    and feeds `${param:}` (already resolved before offline boots); it is not
+  //    a CloudFormation Parameters source and must not be overlaid here, or its
+  //    stage names would leak in as parameter keys (and could shadow a real CFN
+  //    parameter named `default`/`<stage>`).
   const templateParameters = template.Parameters ?? {}
   const defaultsFromTemplateParameters = {}
   for (const [name, definition] of Object.entries(templateParameters)) {
@@ -81,10 +89,7 @@ export async function provision(
       defaultsFromTemplateParameters[name] = definition.Default
     }
   }
-  const parameters = {
-    ...defaultsFromTemplateParameters,
-    ...(service.params ?? {}),
-  }
+  const parameters = defaultsFromTemplateParameters
 
   // 5. Mappings and condition evaluation.
   const mappings = template.Mappings ?? {}
