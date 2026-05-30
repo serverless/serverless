@@ -53,6 +53,7 @@ export function toInvokeError(err, h) {
     .code(200)
     .type('application/json')
     .header('X-Amz-Function-Error', 'Unhandled')
+    .header('X-Amz-Executed-Version', '$LATEST')
 }
 
 /**

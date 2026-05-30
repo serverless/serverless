@@ -78,6 +78,12 @@ describe('lambda invoke response shapers', () => {
       expect(Array.isArray(parsed.trace)).toBe(true)
     })
 
+    it('carries the executed-version header on the function-error response', () => {
+      const { h, resp } = makeH()
+      toInvokeError(new Error('boom'), h)
+      expect(resp.headers['X-Amz-Executed-Version']).toBe('$LATEST')
+    })
+
     it('uses a custom error name as the errorType', () => {
       const { h, resp } = makeH()
       const err = new Error('custom failure')

@@ -121,7 +121,10 @@ export function registerLambdaInvokeRoutes(
       // DryRun validates the request (function existence, here) without
       // invoking the handler and returns an empty 204, matching real Lambda.
       if (invocationType === 'DryRun') {
-        return h.response().code(204)
+        return h
+          .response()
+          .code(204)
+          .header('X-Amz-Executed-Version', '$LATEST')
       }
 
       if (invocationType !== 'Event' && invocationType !== 'RequestResponse') {

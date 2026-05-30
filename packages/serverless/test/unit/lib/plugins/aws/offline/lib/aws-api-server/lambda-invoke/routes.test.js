@@ -130,6 +130,7 @@ describe('registerLambdaInvokeRoutes', () => {
 
     expect(res.statusCode).toBe(204)
     expect(res.payload).toBe('')
+    expect(res.headers['x-amz-executed-version']).toBe('$LATEST')
     await nextTick()
     expect(facade.calls).toHaveLength(0)
   })
