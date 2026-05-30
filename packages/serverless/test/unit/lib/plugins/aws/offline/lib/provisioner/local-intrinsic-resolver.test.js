@@ -492,10 +492,21 @@ it('17k. Fn::Select with an out-of-range index → throws OFFLINE_MALFORMED_INTR
   ).toThrow(expect.objectContaining({ code: 'OFFLINE_MALFORMED_INTRINSIC' }))
 })
 
-it('17l. Fn::Select on a non-array list → throws OFFLINE_MALFORMED_INTRINSIC', () => {
-  expect(() =>
-    resolveIntrinsics({ 'Fn::Select': [0, 'not-a-list'] }, makeContext()),
-  ).toThrow(expect.objectContaining({ code: 'OFFLINE_MALFORMED_INTRINSIC' }))
+it('17l. Fn::Select over a non-array list value → UNRESOLVED + warning, no throw', () => {
+  // A CommaDelimitedList parameter resolves to a plain string, so selecting
+  // from it must degrade gracefully rather than crash boot on a valid template.
+  const warnings = []
+  const ctx = makeContext({
+    parameters: { ListParam: 'a,b,c' },
+    warnings,
+  })
+  let result
+  expect(() => {
+    result = resolveIntrinsics({ 'Fn::Select': [0, { Ref: 'ListParam' }] }, ctx)
+  }).not.toThrow()
+  expect(result).toBe(UNRESOLVED)
+  expect(warnings).toHaveLength(1)
+  expect(warnings[0]).toMatchObject({ code: 'OFFLINE_UNRESOLVED_REFERENCE' })
 })
 
 it('17m. Fn::Split splits the string on the delimiter', () => {

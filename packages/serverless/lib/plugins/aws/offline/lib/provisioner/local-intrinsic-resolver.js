@@ -41,8 +41,11 @@ export const UNRESOLVED = Symbol.for('OFFLINE::Unresolved')
  *   key. `AWS::NoValue` likewise drops object keys and array elements.
  * - Only structural faults throw `OFFLINE_MALFORMED_INTRINSIC`: a `Fn::GetAtt`
  *   that is neither a 2-element array nor a dotted string, a `Fn::Select`
- *   index out of range or against a non-array list, a `Fn::If` referencing an
- *   unknown condition, and similar wrong-arity specs.
+ *   index out of range against a resolved array, a `Fn::If` referencing an
+ *   unknown condition, and similar wrong-arity specs. A `Fn::Select` whose list
+ *   operand resolves to a non-array value (e.g. a CommaDelimitedList parameter
+ *   that resolves to a string) is a valid template and degrades to `UNRESOLVED`
+ *   plus a warning instead of throwing.
  *
  * @param {unknown} value
  *   The CFN value tree to resolve. May be a primitive, array, or plain object
@@ -427,12 +430,20 @@ function resolveJoin(spec, context) {
 }
 
 /**
- * Resolves `Fn::Select` `[index, list]`. An out-of-range index or a non-array
- * list throws `OFFLINE_MALFORMED_INTRINSIC`.
+ * Resolves `Fn::Select` `[index, list]`.
+ *
+ * The spec itself must be a 2-element array, otherwise it is structurally
+ * malformed and throws `OFFLINE_MALFORMED_INTRINSIC`. If the list resolves to a
+ * value that is not an array — e.g. a `CommaDelimitedList` parameter that
+ * resolves to a plain string — that is a valid template offline, so the result
+ * degrades to a warning plus `UNRESOLVED` rather than crashing boot. An
+ * `UNRESOLVED` list or index likewise yields `UNRESOLVED`. Only a genuinely
+ * malformed select — an out-of-range or non-integer index against a resolved
+ * array — throws `OFFLINE_MALFORMED_INTRINSIC`.
  *
  * @param {unknown} spec - The `Fn::Select` value.
  * @param {object} context - The resolution context.
- * @returns {unknown} The selected element, or `UNRESOLVED` if the list is.
+ * @returns {unknown} The selected element, or `UNRESOLVED`.
  */
 function resolveSelect(spec, context) {
   if (!Array.isArray(spec) || spec.length !== 2) {
@@ -441,10 +452,19 @@ function resolveSelect(spec, context) {
       'OFFLINE_MALFORMED_INTRINSIC',
     )
   }
-  const index = Number(resolveIntrinsics(spec[0], context))
+  const rawIndex = resolveIntrinsics(spec[0], context)
   const list = resolveIntrinsics(spec[1], context)
-  if (list === UNRESOLVED) return UNRESOLVED
-  if (!Array.isArray(list) || index < 0 || index >= list.length) {
+  if (rawIndex === UNRESOLVED || list === UNRESOLVED) return UNRESOLVED
+  if (!Array.isArray(list)) {
+    return warn(
+      context,
+      'OFFLINE_UNRESOLVED_REFERENCE',
+      'Fn::Select',
+      `Cannot resolve Fn::Select — the list operand resolved to a non-array value offline; the value referencing it is dropped.`,
+    )
+  }
+  const index = Number(rawIndex)
+  if (!Number.isInteger(index) || index < 0 || index >= list.length) {
     throw new ServerlessError(
       `Fn::Select index ${index} is out of range for the resolved list.`,
       'OFFLINE_MALFORMED_INTRINSIC',
