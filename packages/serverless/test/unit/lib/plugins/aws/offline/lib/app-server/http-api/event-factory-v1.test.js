@@ -91,6 +91,28 @@ it('uses the flat REST-style requestContext fields (no http block)', () => {
   expect(ctx.resourceId).toBe('offline')
 })
 
+it('preserves a trailing slash and percent-encoding in path / requestContext.path from the wire path', () => {
+  // AWS API Gateway HTTP API delivers the path verbatim — a trailing slash is
+  // preserved and percent-encoding is not decoded. The app server strips the
+  // trailing slash for slash-insensitive route matching and Hapi decodes
+  // request.path, so the raw path must come from the original wire path.
+  const slashEvent = build({
+    path: '/items',
+    url: new URL('http://localhost:3000/items/'),
+    raw: { req: { url: '/items/' } },
+  })
+  expect(slashEvent.path).toBe('/items/')
+  expect(slashEvent.requestContext.path).toBe('/items/')
+
+  const encodedEvent = build({
+    path: '/a/b',
+    url: new URL('http://localhost:3000/a%2Fb'),
+    raw: { req: { url: '/a%2Fb' } },
+  })
+  expect(encodedEvent.path).toBe('/a%2Fb')
+  expect(encodedEvent.requestContext.path).toBe('/a%2Fb')
+})
+
 it('reports apiId, domainName and domainPrefix in requestContext', () => {
   const ctx = build().requestContext
   expect(ctx.apiId).toBe('offline')

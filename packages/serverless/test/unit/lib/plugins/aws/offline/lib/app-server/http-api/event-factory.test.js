@@ -101,6 +101,62 @@ it('3. rawPath is the actual request path without query string', () => {
   expect(event.rawPath).toBe('/users/42')
 })
 
+it('3b. rawPath preserves a trailing slash from the original wire path', () => {
+  // AWS API Gateway HTTP API delivers rawPath verbatim, including a trailing
+  // slash. The app server strips the trailing slash for slash-insensitive route
+  // matching, so the raw path must come from the original wire path, not the
+  // route-matched request.path.
+  const event = buildHttpApiV2Event({
+    request: makeRequest({
+      path: '/items',
+      url: new URL('http://localhost:3000/items/'),
+      raw: { req: { url: '/items/' } },
+    }),
+    route: { method: 'GET', path: '/items', functionName: 'listItems' },
+    stage: 'dev',
+    accountId: '000000000000',
+    domainName: 'localhost:3000',
+  })
+  expect(event.rawPath).toBe('/items/')
+  expect(event.requestContext.http.path).toBe('/items/')
+})
+
+it('3c. rawPath preserves percent-encoding from the original wire path', () => {
+  // AWS API Gateway HTTP API does NOT decode the path, so an encoded slash
+  // (%2F) survives verbatim in rawPath. Hapi hands us a decoded request.path
+  // (/a/b), so the raw path must be sourced from the original wire path.
+  const event = buildHttpApiV2Event({
+    request: makeRequest({
+      path: '/a/b',
+      url: new URL('http://localhost:3000/a%2Fb'),
+      raw: { req: { url: '/a%2Fb' } },
+    }),
+    route: { method: 'GET', path: '/a/b', functionName: 'getAb' },
+    stage: 'dev',
+    accountId: '000000000000',
+    domainName: 'localhost:3000',
+  })
+  expect(event.rawPath).toBe('/a%2Fb')
+  expect(event.requestContext.http.path).toBe('/a%2Fb')
+})
+
+it('3d. rawPath drops the query string from the original wire path', () => {
+  // The raw path is the wire path with the query string removed; a trailing
+  // slash before the `?` is preserved.
+  const event = buildHttpApiV2Event({
+    request: makeRequest({
+      path: '/items',
+      url: new URL('http://localhost:3000/items/?x=1'),
+      raw: { req: { url: '/items/?x=1' } },
+    }),
+    route: { method: 'GET', path: '/items', functionName: 'listItems' },
+    stage: 'dev',
+    accountId: '000000000000',
+    domainName: 'localhost:3000',
+  })
+  expect(event.rawPath).toBe('/items/')
+})
+
 // ---------------------------------------------------------------------------
 // 4. rawQueryString
 // ---------------------------------------------------------------------------

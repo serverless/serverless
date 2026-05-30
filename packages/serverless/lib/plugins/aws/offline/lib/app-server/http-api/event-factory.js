@@ -13,6 +13,7 @@ import { Buffer } from 'node:buffer'
 import { FAKE_ACCOUNT_ID } from '../../constants.js'
 import { parseJsonSafe } from '../shared/json-utils.js'
 import { formatClfTime } from '../shared/clf-time.js'
+import { resolveRawPath } from '../shared/raw-path.js'
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -251,7 +252,10 @@ export function buildHttpApiV2Event({
   const routeKey = route.isDefault
     ? '$default'
     : `${route.method.toUpperCase()} ${route.path}`
-  const rawPath = request.path
+  // rawPath is reported verbatim: a trailing slash is preserved and
+  // percent-encoding is not decoded. Sourced from the original wire path rather
+  // than Hapi's trailing-slash-stripped, percent-decoded request.path.
+  const rawPath = resolveRawPath(request)
 
   // Query string — re-encode via URLSearchParams for consistent normalization
   // (+ vs %20, percent-encoding). Returns '' when no query params, matching

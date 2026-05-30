@@ -29,6 +29,7 @@ import { FAKE_ACCOUNT_ID } from '../../constants.js'
 import { parseJsonSafe } from '../shared/json-utils.js'
 import { formatClfTime } from '../shared/clf-time.js'
 import { buildRestIdentity } from '../shared/rest-identity.js'
+import { resolveRawPath } from '../shared/raw-path.js'
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -309,7 +310,10 @@ export function buildHttpApiV1Event({
   domainName,
 }) {
   const httpMethod = request.method.toUpperCase()
-  const path = request.path
+  // path is reported verbatim: a trailing slash is preserved and
+  // percent-encoding is not decoded. Sourced from the original wire path rather
+  // than Hapi's trailing-slash-stripped, percent-decoded request.path.
+  const path = resolveRawPath(request)
   // The catch-all route reports the `$default` route key; every other route
   // reports `METHOD /original/apigw/path`.
   const routeKey = route.isDefault
