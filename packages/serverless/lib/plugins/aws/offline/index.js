@@ -561,16 +561,16 @@ export default class OfflinePlugin {
       }
     }
 
-    // 3. Set process env vars for runtime env parity before booting the runner.
-    process.env.IS_OFFLINE = 'true'
-    process.env.AWS_REGION = provider.region ?? FAKE_REGION
-    process.env.AWS_DEFAULT_REGION = process.env.AWS_REGION
-    process.env.AWS_ENDPOINT_URL = `http://localhost:${awsApiPort}`
-    process.env.AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID ?? 'test'
-    process.env.AWS_SECRET_ACCESS_KEY =
-      process.env.AWS_SECRET_ACCESS_KEY ?? 'test'
-    if (noAuth) {
-      process.env.AUTHORIZER = '{}'
+    // 3. Compute the offline runtime values injected into each invoked
+    //    handler's env (IS_OFFLINE, AWS_ENDPOINT_URL, region, placeholder
+    //    credentials, and AUTHORIZER under --noAuth). These reach handler
+    //    scope via the Lambda function facade — they are deliberately NOT
+    //    written onto the host process. Writing AWS_ENDPOINT_URL onto the
+    //    long-lived process would redirect the framework's own and sibling
+    //    plugins' AWS SDK clients to the local emulator.
+    const offlineRuntime = {
+      endpointUrl: `http://localhost:${awsApiPort}`,
+      noAuth,
     }
 
     // 4. Run the provisioner to populate the registry from CFN.
@@ -676,6 +676,7 @@ export default class OfflinePlugin {
           noTimeout,
           localEnvironment,
           layerOptDir: layerOptDirs.get(functionKey) ?? null,
+          offlineRuntime,
         })
         lambdaFunctions.set(functionKey, fn)
       }

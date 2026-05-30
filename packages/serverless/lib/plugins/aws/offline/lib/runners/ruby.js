@@ -336,6 +336,11 @@ export function createRubyRunner({
           logStreamName,
           handler: context?.handler,
           region,
+          isOffline: context?.isOffline,
+          endpointUrl: context?.endpointUrl,
+          accessKeyId: context?.accessKeyId,
+          secretAccessKey: context?.secretAccessKey,
+          authorizer: context?.authorizer,
         })
         entry = _spawn(functionKey, handlerPath, handlerName, {
           ...lambdaEnv,

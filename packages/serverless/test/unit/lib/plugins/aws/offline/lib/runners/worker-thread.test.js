@@ -486,6 +486,36 @@ describe('createWorkerThreadRunner', () => {
     expect(result).toBe('first')
   })
 
+  // 19b. Offline runtime env reaches the worker via the built env (not the
+  // parent process.env). The values are carried on the context and built into
+  // the per-invocation env block, so the worker sees them even though the
+  // parent process never had them set.
+  it('offline runtime env is visible inside the worker via the built env', async () => {
+    const handlerPath = await writeTmpHandler(
+      'export const handler = async () => ({ IS_OFFLINE: process.env.IS_OFFLINE, AWS_ENDPOINT_URL: process.env.AWS_ENDPOINT_URL })',
+    )
+    const result = await runner.invoke({
+      functionKey: 'fn-offline',
+      handlerPath,
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'offlineFn',
+        awsRequestId: 'req-offline',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:offlineFn',
+        isOffline: true,
+        endpointUrl: 'http://localhost:4000',
+        accessKeyId: 'test',
+        secretAccessKey: 'test',
+      },
+    })
+    expect(result).toEqual({
+      IS_OFFLINE: 'true',
+      AWS_ENDPOINT_URL: 'http://localhost:4000',
+    })
+  })
+
   // 20. AWS_LAMBDA_FUNCTION_NAME visible inside the worker
   it('AWS_LAMBDA_FUNCTION_NAME env var is visible inside the handler', async () => {
     const handlerPath = await writeTmpHandler(
@@ -1329,9 +1359,11 @@ describe('createWorkerThreadRunner', () => {
     }
   })
 
-  // ENV-8: allowlisted parent env entries DO reach the worker (so native
-  // modules and Node module resolution keep working).
-  it('env: allowlisted parent variables (PATH, AWS_REGION) are forwarded', async () => {
+  // ENV-8: allowlisted parent OS essentials DO reach the worker (so native
+  // modules and Node module resolution keep working). AWS region is NOT a
+  // parent passthrough — it is injected per invocation from context.region —
+  // so a region set only on the parent shell does not leak into the worker.
+  it('env: allowlisted parent variables (PATH) are forwarded; region comes from context', async () => {
     // Capture the actual parent PATH so the test matches the real value.
     const parentPath = process.env.PATH
     const previousRegion = process.env.AWS_REGION
@@ -1351,11 +1383,16 @@ describe('createWorkerThreadRunner', () => {
         handlerPath,
         handlerName: 'handler',
         event: {},
-        context: { functionName: 'myFn', awsRequestId: 'req-allow' },
+        context: {
+          functionName: 'myFn',
+          awsRequestId: 'req-allow',
+          region: 'eu-west-1',
+        },
       })
 
       expect(result.PATH).toBe(parentPath)
-      expect(result.AWS_REGION).toBe('eu-central-1')
+      // Region is driven by context.region, not the parent shell's AWS_REGION.
+      expect(result.AWS_REGION).toBe('eu-west-1')
 
       await r.terminate()
     } finally {

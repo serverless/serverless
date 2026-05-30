@@ -64,4 +64,37 @@ describe('buildLambdaRuntimeEnv', () => {
     buildLambdaRuntimeEnv(baseContext)
     expect(process.env).toEqual(before)
   })
+
+  it('carries the offline runtime values when they are provided', () => {
+    const env = buildLambdaRuntimeEnv({
+      ...baseContext,
+      isOffline: true,
+      endpointUrl: 'http://localhost:4000',
+      accessKeyId: 'test',
+      secretAccessKey: 'test',
+    })
+    expect(env.IS_OFFLINE).toBe('true')
+    expect(env.AWS_ENDPOINT_URL).toBe('http://localhost:4000')
+    expect(env.AWS_ACCESS_KEY_ID).toBe('test')
+    expect(env.AWS_SECRET_ACCESS_KEY).toBe('test')
+  })
+
+  it('sets AUTHORIZER only when an authorizer value is provided', () => {
+    const withAuthorizer = buildLambdaRuntimeEnv({
+      ...baseContext,
+      authorizer: '{}',
+    })
+    expect(withAuthorizer.AUTHORIZER).toBe('{}')
+
+    const withoutAuthorizer = buildLambdaRuntimeEnv(baseContext)
+    expect('AUTHORIZER' in withoutAuthorizer).toBe(false)
+  })
+
+  it('omits the offline runtime values when they are not provided', () => {
+    const env = buildLambdaRuntimeEnv(baseContext)
+    expect('IS_OFFLINE' in env).toBe(false)
+    expect('AWS_ENDPOINT_URL' in env).toBe(false)
+    expect('AWS_ACCESS_KEY_ID' in env).toBe(false)
+    expect('AWS_SECRET_ACCESS_KEY' in env).toBe(false)
+  })
 })

@@ -31,17 +31,14 @@ const BASE_ENV_ALLOWLIST = [
   'LC_CTYPE',
   'NODE_PATH',
   'NODE_OPTIONS',
-  // AWS region / endpoint env vars that OfflinePlugin sets on the parent
-  // before any worker is spawned. Forwarded so handler code that constructs
-  // an SDK client picks up the local emulator endpoint and the configured
-  // provider.region without us having to plumb every var via context.
-  'AWS_REGION',
-  'AWS_DEFAULT_REGION',
-  'AWS_ENDPOINT_URL',
-  'AWS_ACCESS_KEY_ID',
-  'AWS_SECRET_ACCESS_KEY',
+  // A session token from the developer's shell is the one AWS credential the
+  // per-invocation env block does not synthesize, so forward it when present
+  // for handlers that assume an existing role's temporary credentials. The
+  // region, endpoint, IS_OFFLINE and the access-key/secret pair are injected
+  // per invocation via buildLambdaRuntimeEnv (carried on the worker message),
+  // so they are intentionally NOT copied from the parent here. Long-lived
+  // profile selectors such as AWS_PROFILE stay off the allowlist.
   'AWS_SESSION_TOKEN',
-  'IS_OFFLINE',
 ]
 
 /**

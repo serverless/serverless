@@ -28,6 +28,17 @@
  * @param {string} context.logStreamName
  * @param {string} [context.handler] - raw handler string, e.g. 'src/foo.handler'
  * @param {string} context.region
+ * @param {boolean} [context.isOffline] - when truthy, sets IS_OFFLINE='true'
+ *   so handlers can branch on running under the local emulator.
+ * @param {string} [context.endpointUrl] - local emulator URL; when present,
+ *   sets AWS_ENDPOINT_URL so a handler's AWS SDK client talks to the emulator
+ *   instead of real AWS. Set per handler env only — never on the host process,
+ *   which would redirect the framework's own SDK clients to the emulator.
+ * @param {string} [context.accessKeyId] - value for AWS_ACCESS_KEY_ID; set only
+ *   when provided so a real shell credential the caller chose to keep is honored.
+ * @param {string} [context.secretAccessKey] - value for AWS_SECRET_ACCESS_KEY.
+ * @param {string} [context.authorizer] - serialized authorizer context; when
+ *   present, sets AUTHORIZER so handlers receive a synthetic authorizer payload.
  * @returns {Record<string, string>} env vars to apply
  */
 export function buildLambdaRuntimeEnv(context) {
@@ -39,6 +50,11 @@ export function buildLambdaRuntimeEnv(context) {
     logStreamName,
     handler,
     region,
+    isOffline,
+    endpointUrl,
+    accessKeyId,
+    secretAccessKey,
+    authorizer,
   } = context
 
   const env = {
@@ -71,6 +87,27 @@ export function buildLambdaRuntimeEnv(context) {
   // as "no handler" inside the runtime) rather than omit it.
   if (typeof handler === 'string' && handler.length > 0) {
     env._HANDLER = handler
+  }
+
+  // Offline runtime values. These are injected into the handler's env block
+  // only — they must never be written onto the host process, where
+  // AWS_ENDPOINT_URL in particular would redirect the framework's own and
+  // sibling plugins' AWS SDK clients to the local emulator. Each is gated so
+  // an absent value is omitted rather than set to the string 'undefined'.
+  if (isOffline) {
+    env.IS_OFFLINE = 'true'
+  }
+  if (typeof endpointUrl === 'string' && endpointUrl.length > 0) {
+    env.AWS_ENDPOINT_URL = endpointUrl
+  }
+  if (typeof accessKeyId === 'string' && accessKeyId.length > 0) {
+    env.AWS_ACCESS_KEY_ID = accessKeyId
+  }
+  if (typeof secretAccessKey === 'string' && secretAccessKey.length > 0) {
+    env.AWS_SECRET_ACCESS_KEY = secretAccessKey
+  }
+  if (typeof authorizer === 'string') {
+    env.AUTHORIZER = authorizer
   }
 
   return env

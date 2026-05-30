@@ -119,6 +119,11 @@ export function createInProcessRunner() {
         logStreamName,
         handler: context?.handler,
         region,
+        isOffline: context?.isOffline,
+        endpointUrl: context?.endpointUrl,
+        accessKeyId: context?.accessKeyId,
+        secretAccessKey: context?.secretAccessKey,
+        authorizer: context?.authorizer,
       })
       const fullEnv = { ...lambdaEnv, ...(environment ?? {}) }
 

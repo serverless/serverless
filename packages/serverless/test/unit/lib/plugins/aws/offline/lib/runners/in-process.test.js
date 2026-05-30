@@ -63,6 +63,67 @@ describe('createInProcessRunner', () => {
     expect(process.env.USER_VAR).toBeUndefined()
   })
 
+  it('handler sees the offline runtime env DURING the invocation', async () => {
+    const runner = createInProcessRunner()
+    const result = await runner.invoke({
+      functionKey: 'offlineEnv',
+      handlerPath: path.join(FIXTURES, 'offline-env-echo.mjs'),
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'offlineEnv',
+        awsRequestId: 'r-offline',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:offlineEnv',
+        memoryLimitInMB: '128',
+        timeoutMs: 6000,
+        handler: 'src/offlineEnv.handler',
+        region: 'eu-west-1',
+        isOffline: true,
+        endpointUrl: 'http://localhost:4000',
+        accessKeyId: 'test',
+        secretAccessKey: 'test',
+      },
+      environment: {},
+    })
+
+    expect(result.IS_OFFLINE).toBe('true')
+    expect(result.AWS_ENDPOINT_URL).toBe('http://localhost:4000')
+    expect(result.AWS_REGION).toBe('eu-west-1')
+    expect(result.AWS_DEFAULT_REGION).toBe('eu-west-1')
+    expect(result.AWS_ACCESS_KEY_ID).toBe('test')
+    expect(result.AWS_SECRET_ACCESS_KEY).toBe('test')
+  })
+
+  it('does NOT leak the offline runtime env onto the parent process.env', async () => {
+    const runner = createInProcessRunner()
+    const before = { ...process.env }
+
+    await runner.invoke({
+      functionKey: 'offlineEnv',
+      handlerPath: path.join(FIXTURES, 'offline-env-echo.mjs'),
+      handlerName: 'handler',
+      event: {},
+      context: {
+        functionName: 'offlineEnv',
+        awsRequestId: 'r-offline-2',
+        invokedFunctionArn:
+          'arn:aws:lambda:us-east-1:000000000000:function:offlineEnv',
+        memoryLimitInMB: '128',
+        timeoutMs: 6000,
+        handler: 'src/offlineEnv.handler',
+        region: 'eu-west-1',
+        isOffline: true,
+        endpointUrl: 'http://localhost:4000',
+        accessKeyId: 'test',
+        secretAccessKey: 'test',
+      },
+      environment: {},
+    })
+
+    expect(process.env).toEqual(before)
+  })
+
   it('handler sees AWS_LAMBDA_* + user env DURING the invocation', async () => {
     const runner = createInProcessRunner()
     const result = await runner.invoke({

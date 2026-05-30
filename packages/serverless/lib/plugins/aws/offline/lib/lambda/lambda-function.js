@@ -132,6 +132,17 @@ function resolveHandlerSync(handlerString, baseDir, runtime) {
  * @param {string | null} [params.layerOptDir=null]
  *   Host dir of this function's extracted layer set, mounted at /opt by the
  *   Docker runner; null when none.
+ * @param {object} [params.offlineRuntime]
+ *   Boot-level offline runtime values injected into every handler's env so
+ *   handler code (and its AWS SDK clients) target the local emulator. These
+ *   reach the handler scope only — they are never written onto the host
+ *   process, where AWS_ENDPOINT_URL would redirect the framework's own SDK
+ *   clients to the emulator.
+ * @param {string} [params.offlineRuntime.endpointUrl]
+ *   Local AWS emulator URL, e.g. `http://localhost:<awsApiPort>`.
+ * @param {boolean} [params.offlineRuntime.noAuth=false]
+ *   When true, an empty AUTHORIZER (`{}`) is injected so authorizer-aware
+ *   handlers receive a synthetic context with authentication disabled.
  * @returns {{
  *   invoke(event: unknown): Promise<unknown>,
  *   readonly functionKey: string,
@@ -145,6 +156,7 @@ export function createLambdaFunction({
   noTimeout = false,
   localEnvironment = false,
   layerOptDir = null,
+  offlineRuntime = {},
 }) {
   /**
    * Emit the per-invocation execution trace. Best-effort: silently no-ops if
@@ -251,6 +263,17 @@ export function createLambdaFunction({
         // base64 X-Amz-Client-Context header), null otherwise. Mirrors the
         // real Lambda context.clientContext field.
         clientContext: options.clientContext ?? null,
+        // Boot-level offline runtime values. The runner injects these into the
+        // handler's env block (never the host process). AWS_ENDPOINT_URL points
+        // a handler's SDK client at the local emulator; placeholder credentials
+        // default to 'test' only when the host shell has not already provided a
+        // real value (read-only here — the host env is not mutated). IS_OFFLINE
+        // and AUTHORIZER follow the configured offline options.
+        isOffline: true,
+        endpointUrl: offlineRuntime.endpointUrl,
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? 'test',
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? 'test',
+        authorizer: offlineRuntime.noAuth ? '{}' : undefined,
       }
 
       const environment = {
