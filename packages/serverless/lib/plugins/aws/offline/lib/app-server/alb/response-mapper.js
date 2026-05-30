@@ -10,6 +10,11 @@
 // a wire-level concern that the real ALB→client HTTP/1.1 status line carries,
 // Hapi reconstructs the status line from the numeric code on its own, and no
 // offline consumer downstream of this mapper reads `statusDescription`.
+//
+// Unlike API Gateway proxy integrations — which normalize a bare object
+// without `statusCode` into a 200 JSON response — ALB requires `statusCode` on
+// every Lambda response document and returns 502 Bad Gateway when it is
+// missing.  We opt into that strictness via `requireStatusCode`.
 
 import { formatLambdaProxyResponse } from '../shared/lambda-proxy-response.js'
 
@@ -21,5 +26,5 @@ import { formatLambdaProxyResponse } from '../shared/lambda-proxy-response.js'
  * @returns {import('@hapi/hapi').ResponseObject}
  */
 export function formatAlbResponse(result, h) {
-  return formatLambdaProxyResponse(result, h)
+  return formatLambdaProxyResponse(result, h, { requireStatusCode: true })
 }

@@ -29,12 +29,23 @@
  * @param {boolean} [options.cookies=false]  When true, also processes the
  *   `cookies` field on shaped responses (HTTP API v2 only). REST API v1
  *   responses carry Set-Cookie via headers / multiValueHeaders only.
+ * @param {boolean} [options.requireStatusCode=false]  When true, an object
+ *   result that omits `statusCode` is treated as a malformed response and
+ *   yields a 502 envelope. ALB requires `statusCode` on every Lambda response
+ *   document and returns 502 Bad Gateway when it is missing. API Gateway
+ *   proxy integrations (REST v1 / HTTP API v2) instead normalize a bare object
+ *   without `statusCode` into a 200 JSON response, so they leave this false.
  * @returns {import('@hapi/hapi').ResponseObject}
  */
 export function formatLambdaProxyResponse(
   result,
   h,
-  { cookies = false, payloadV2 = false, defaultContentType } = {},
+  {
+    cookies = false,
+    payloadV2 = false,
+    defaultContentType,
+    requireStatusCode = false,
+  } = {},
 ) {
   // null / undefined → empty 200
   if (result === null || result === undefined) {
@@ -50,8 +61,14 @@ export function formatLambdaProxyResponse(
       .type(payloadV2 ? 'application/json' : 'text/plain')
   }
 
-  // Object without statusCode → 200 application/json
+  // Object without statusCode. API Gateway proxy integrations normalize this
+  // into a 200 JSON response. ALB requires `statusCode` on the response
+  // document and returns 502 Bad Gateway when it is absent, so callers that set
+  // requireStatusCode get the AWS error envelope instead.
   if (typeof result === 'object' && result.statusCode === undefined) {
+    if (requireStatusCode) {
+      return badGatewayResponse(h)
+    }
     return h.response(JSON.stringify(result)).code(200).type('application/json')
   }
 
@@ -70,14 +87,7 @@ export function formatLambdaProxyResponse(
   // silently coercing the body — including when isBase64Encoded is true, since
   // a base64 body must still be delivered as a string.
   if (body !== undefined && body !== null && typeof body !== 'string') {
-    return h
-      .response(
-        JSON.stringify({
-          message: 'Internal server error',
-        }),
-      )
-      .code(502)
-      .type('application/json')
+    return badGatewayResponse(h)
   }
 
   let responseBody = body ?? ''
@@ -135,4 +145,23 @@ export function formatLambdaProxyResponse(
   }
 
   return response
+}
+
+/**
+ * Build the AWS 502 Bad Gateway envelope returned for a malformed Lambda
+ * response (a non-string body, or — on ALB — a response document missing
+ * `statusCode`).
+ *
+ * @param {import('@hapi/hapi').ResponseToolkit} h  Hapi response toolkit.
+ * @returns {import('@hapi/hapi').ResponseObject}
+ */
+function badGatewayResponse(h) {
+  return h
+    .response(
+      JSON.stringify({
+        message: 'Internal server error',
+      }),
+    )
+    .code(502)
+    .type('application/json')
 }

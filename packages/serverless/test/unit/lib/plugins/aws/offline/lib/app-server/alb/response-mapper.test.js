@@ -42,12 +42,14 @@ describe('formatAlbResponse — ALB Lambda response', () => {
     expect(h.calls.contentType).toBe('text/plain')
   })
 
-  it('plain object without statusCode → 200 application/json', () => {
+  it('plain object without statusCode → 502 envelope', () => {
     const h = makeH()
     formatAlbResponse({ ok: true }, h)
-    expect(h.calls.statusCode).toBe(200)
+    expect(h.calls.statusCode).toBe(502)
+    expect(JSON.parse(h.calls.payload)).toEqual({
+      message: 'Internal server error',
+    })
     expect(h.calls.contentType).toBe('application/json')
-    expect(JSON.parse(h.calls.payload)).toEqual({ ok: true })
   })
 
   it('shaped response: statusCode + body + headers honored', () => {
@@ -87,6 +89,16 @@ describe('formatAlbResponse — ALB Lambda response', () => {
   it('non-string body without isBase64Encoded → 502 envelope (inherited from shared core)', () => {
     const h = makeH()
     formatAlbResponse({ statusCode: 200, body: { wrong: 'shape' } }, h)
+    expect(h.calls.statusCode).toBe(502)
+    expect(JSON.parse(h.calls.payload)).toEqual({
+      message: 'Internal server error',
+    })
+    expect(h.calls.contentType).toBe('application/json')
+  })
+
+  it('shaped response omitting statusCode → 502 envelope', () => {
+    const h = makeH()
+    formatAlbResponse({ body: 'x' }, h)
     expect(h.calls.statusCode).toBe(502)
     expect(JSON.parse(h.calls.payload)).toEqual({
       message: 'Internal server error',
