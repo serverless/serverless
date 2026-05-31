@@ -250,6 +250,27 @@ it('17. ListObjects (v1) → 200 XML with a Marker element', () => {
   expect(res.body).toContain('<MaxKeys>1000</MaxKeys>')
 })
 
+it('17a. ListObjectsV2 echoes the requested MaxKeys while clamping the page to 1000', () => {
+  const store = makeStore()
+  store.createBucket(BUCKET)
+  for (let i = 0; i < 1200; i += 1) {
+    store.putObject(BUCKET, `k${String(i).padStart(5, '0')}`, {
+      body: Buffer.from('x'),
+    })
+  }
+  const res = run(store, 'ListObjectsV2', {
+    bucket: BUCKET,
+    key: '',
+    maxKeys: 5000,
+  })
+  expect(res.statusCode).toBe(200)
+  // The client's requested MaxKeys is echoed verbatim, as real S3 does.
+  expect(res.body).toContain('<MaxKeys>5000</MaxKeys>')
+  // The page itself is capped at 1000 entries and the listing is truncated.
+  expect(res.body).toContain('<KeyCount>1000</KeyCount>')
+  expect(res.body).toContain('<IsTruncated>true</IsTruncated>')
+})
+
 it('18. ListObjectsV2 on a missing bucket → NoSuchBucket (404)', () => {
   const store = makeStore()
   expect(() =>

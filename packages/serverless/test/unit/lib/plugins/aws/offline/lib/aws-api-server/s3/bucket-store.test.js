@@ -403,6 +403,74 @@ it('30. listObjectsV2 startAfter skips keys at or before the marker', () => {
   expect(result.contents.map((c) => c.key)).toEqual(['c', 'd'])
 })
 
+it('30a. listObjectsV2 maxKeys=0 returns an empty 200-shape list (no crash, no token)', () => {
+  const store = createBucketStore()
+  store.ensureBucket(BUCKET)
+  store.putObject(BUCKET, 'a', { body: Buffer.from('a') })
+  store.putObject(BUCKET, 'b', { body: Buffer.from('b') })
+  const result = store.listObjectsV2(BUCKET, { maxKeys: 0 })
+  expect(result.contents).toEqual([])
+  expect(result.commonPrefixes).toEqual([])
+  expect(result.isTruncated).toBe(false)
+  expect(result.keyCount).toBe(0)
+  expect(result.nextContinuationToken).toBeUndefined()
+})
+
+it('30b. listObjectsV2 with no matching keys returns an empty list without a token', () => {
+  const store = createBucketStore()
+  store.ensureBucket(BUCKET)
+  store.putObject(BUCKET, 'a', { body: Buffer.from('a') })
+  const result = store.listObjectsV2(BUCKET, { prefix: 'no-match/' })
+  expect(result.contents).toEqual([])
+  expect(result.isTruncated).toBe(false)
+  expect(result.keyCount).toBe(0)
+  expect(result.nextContinuationToken).toBeUndefined()
+})
+
+it('30c. listObjectsV2 paginates a delimited listing without re-rolling a prefix across a page boundary', () => {
+  const store = createBucketStore()
+  store.ensureBucket(BUCKET)
+  // Two keys roll into the `b/` prefix; the page boundary falls on that
+  // prefix, so a naive token (the prefix value `b/`) would re-roll it.
+  store.putObject(BUCKET, 'a', { body: Buffer.from('a') })
+  store.putObject(BUCKET, 'b/1', { body: Buffer.from('1') })
+  store.putObject(BUCKET, 'b/2', { body: Buffer.from('2') })
+  store.putObject(BUCKET, 'c', { body: Buffer.from('c') })
+
+  const seenPrefixes = []
+  const seenKeys = []
+  let token
+  let guard = 0
+  do {
+    const page = store.listObjectsV2(BUCKET, {
+      delimiter: '/',
+      maxKeys: 2,
+      continuationToken: token,
+    })
+    seenKeys.push(...page.contents.map((entry) => entry.key))
+    seenPrefixes.push(...page.commonPrefixes)
+    token = page.isTruncated ? page.nextContinuationToken : undefined
+    if (++guard > 20) throw new Error('pagination did not terminate')
+  } while (token)
+
+  expect(seenKeys).toEqual(['a', 'c'])
+  // The `b/` prefix is emitted exactly once across all pages.
+  expect(seenPrefixes).toEqual(['b/'])
+})
+
+it('30d. listObjectsV2 clamps the effective page size to 1000 but isTruncated reflects the cap', () => {
+  const store = createBucketStore()
+  store.ensureBucket(BUCKET)
+  for (let i = 0; i < 1500; i += 1) {
+    const key = `k${String(i).padStart(5, '0')}`
+    store.putObject(BUCKET, key, { body: Buffer.from('x') })
+  }
+  const result = store.listObjectsV2(BUCKET, { maxKeys: 5000 })
+  expect(result.contents).toHaveLength(1000)
+  expect(result.isTruncated).toBe(true)
+  expect(result.nextContinuationToken).toBeTruthy()
+})
+
 // ===========================================================================
 // listObjects (v1)
 // ===========================================================================
@@ -430,6 +498,45 @@ it('32. listObjects (v1) delimiter produces commonPrefixes', () => {
   store.putObject(BUCKET, 'b/1', { body: Buffer.from('1') })
   const result = store.listObjects(BUCKET, { delimiter: '/' })
   expect(result.commonPrefixes.sort()).toEqual(['a/', 'b/'])
+})
+
+it('32a. listObjects (v1) maxKeys=0 returns an empty list without a marker', () => {
+  const store = createBucketStore()
+  store.ensureBucket(BUCKET)
+  store.putObject(BUCKET, 'a', { body: Buffer.from('a') })
+  const result = store.listObjects(BUCKET, { maxKeys: 0 })
+  expect(result.contents).toEqual([])
+  expect(result.commonPrefixes).toEqual([])
+  expect(result.isTruncated).toBe(false)
+  expect(result.nextMarker).toBeUndefined()
+})
+
+it('32b. listObjects (v1) paginates a delimited listing without re-rolling a prefix', () => {
+  const store = createBucketStore()
+  store.ensureBucket(BUCKET)
+  store.putObject(BUCKET, 'a', { body: Buffer.from('a') })
+  store.putObject(BUCKET, 'b/1', { body: Buffer.from('1') })
+  store.putObject(BUCKET, 'b/2', { body: Buffer.from('2') })
+  store.putObject(BUCKET, 'c', { body: Buffer.from('c') })
+
+  const seenPrefixes = []
+  const seenKeys = []
+  let marker
+  let guard = 0
+  do {
+    const page = store.listObjects(BUCKET, {
+      delimiter: '/',
+      maxKeys: 2,
+      marker,
+    })
+    seenKeys.push(...page.contents.map((entry) => entry.key))
+    seenPrefixes.push(...page.commonPrefixes)
+    marker = page.isTruncated ? page.nextMarker : undefined
+    if (++guard > 20) throw new Error('pagination did not terminate')
+  } while (marker)
+
+  expect(seenKeys).toEqual(['a', 'c'])
+  expect(seenPrefixes).toEqual(['b/'])
 })
 
 // ===========================================================================

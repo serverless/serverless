@@ -480,41 +480,110 @@ export function createBucketStore({ onMutation, now = () => Date.now() } = {}) {
   }
 
   /**
-   * Split a sorted key set into direct contents + common prefixes, honouring an
-   * optional delimiter. Keys that contain the delimiter after `prefix` are
-   * rolled up into a CommonPrefix instead of being listed individually.
+   * Walk a sorted, prefix-filtered key set and assemble one page of the listing
+   * shared by the v1 and v2 implementations.
    *
-   * @param {string[]} keys
+   * Keys are visited in lexical order. With a `delimiter`, a key whose remainder
+   * after `prefix` contains the delimiter is rolled up into a CommonPrefix
+   * (emitted once); every other key becomes a Contents entry. Both Contents
+   * entries and freshly-opened CommonPrefixes count one slot each against the
+   * effective page size, which is clamped to {@link DEFAULT_MAX_KEYS}.
+   *
+   * The continuation cursor is the last RAW underlying key consumed on the page
+   * — whether it was emitted as Contents or folded into a CommonPrefix. Resuming
+   * with `key > cursor` therefore skips the entire already-emitted prefix group
+   * (its members all sort at or below that raw key), so each CommonPrefix is
+   * emitted exactly once and pagination always makes forward progress.
+   *
+   * @param {object} bucket
+   * @param {string[]} keys - sorted, prefix-filtered, post-cursor keys.
    * @param {string} prefix
    * @param {string} [delimiter]
-   * @returns {{ contentKeys: string[], commonPrefixes: string[] }}
+   * @param {number} maxKeys - the client's requested page size (may exceed the
+   *   cap; the effective size is clamped to {@link DEFAULT_MAX_KEYS}).
+   * @returns {{
+   *   contents: object[],
+   *   commonPrefixes: string[],
+   *   isTruncated: boolean,
+   *   keyCount: number,
+   *   nextToken?: string,
+   * }}
    */
-  function applyDelimiter(keys, prefix, delimiter) {
-    if (!delimiter) return { contentKeys: keys, commonPrefixes: [] }
+  function buildListPage(bucket, keys, prefix, delimiter, maxKeys) {
+    const effectiveMax = Math.min(maxKeys, DEFAULT_MAX_KEYS)
 
-    const contentKeys = []
-    const commonPrefixes = []
-    const seenPrefixes = new Set()
-    for (const key of keys) {
-      const rest = key.slice(prefix.length)
-      const idx = rest.indexOf(delimiter)
-      if (idx === -1) {
-        contentKeys.push(key)
-        continue
-      }
-      const commonPrefix = prefix + rest.slice(0, idx + delimiter.length)
-      if (!seenPrefixes.has(commonPrefix)) {
-        seenPrefixes.add(commonPrefix)
-        commonPrefixes.push(commonPrefix)
+    // A maxKeys of 0 is a valid existence probe: an empty, non-truncated list
+    // with no continuation cursor (S3 answers a 200 empty ListBucketResult).
+    if (effectiveMax <= 0) {
+      return {
+        contents: [],
+        commonPrefixes: [],
+        isTruncated: false,
+        keyCount: 0,
       }
     }
-    return { contentKeys, commonPrefixes }
+
+    const contents = []
+    const commonPrefixes = []
+    let slots = 0
+    let lastRawKey
+    let consumed = 0
+
+    let index = 0
+    while (index < keys.length) {
+      if (slots >= effectiveMax) break
+      const key = keys[index]
+
+      let commonPrefix
+      if (delimiter) {
+        const rest = key.slice(prefix.length)
+        const idx = rest.indexOf(delimiter)
+        if (idx !== -1) {
+          commonPrefix = prefix + rest.slice(0, idx + delimiter.length)
+        }
+      }
+
+      if (commonPrefix !== undefined) {
+        // Open the prefix group and absorb every contiguous member (the keys
+        // are sorted, so a group is a run). The cursor advances to the LAST
+        // member so resuming with `key > cursor` skips the whole group — the
+        // prefix is emitted exactly once even when a page boundary lands inside
+        // the group.
+        commonPrefixes.push(commonPrefix)
+        while (index < keys.length && keys[index].startsWith(commonPrefix)) {
+          lastRawKey = keys[index]
+          consumed += 1
+          index += 1
+        }
+      } else {
+        contents.push(listEntry(bucket, key))
+        lastRawKey = key
+        consumed += 1
+        index += 1
+      }
+
+      slots += 1
+    }
+
+    const isTruncated = consumed < keys.length
+    const result = {
+      contents,
+      commonPrefixes,
+      isTruncated,
+      keyCount: contents.length + commonPrefixes.length,
+    }
+    if (isTruncated && lastRawKey !== undefined) {
+      result.nextToken = lastRawKey
+    }
+    return result
   }
 
   /**
    * List objects (V2). Keys are sorted lexicographically; `delimiter` rolls
-   * keys up into `commonPrefixes`; `maxKeys` truncates the result and emits a
-   * `nextContinuationToken` (the last returned key, used opaquely).
+   * keys up into `commonPrefixes`; `maxKeys` (clamped to 1000) truncates the
+   * result and emits a `nextContinuationToken` (the last raw key consumed, used
+   * opaquely). A `maxKeys` of 0 is a valid existence probe and returns an empty
+   * list with no token.
    *
    * @param {string} bucketName
    * @param {{
@@ -546,41 +615,19 @@ export function createBucketStore({ onMutation, now = () => Date.now() } = {}) {
     let keys = sortedKeys(bucket, prefix)
 
     // continuationToken takes precedence over startAfter, both being exclusive
-    // lower bounds (the token is the last key returned by the previous page).
+    // lower bounds (the token is the last raw key consumed by the previous page).
     const after = continuationToken || startAfter
     if (after) keys = keys.filter((k) => k > after)
 
-    const { contentKeys, commonPrefixes } = applyDelimiter(
-      keys,
-      prefix,
-      delimiter,
-    )
-
-    // Truncation counts both content keys and rolled-up prefixes against the
-    // cap, walked in lexical order, so a page never exceeds maxKeys entries.
-    const combined = [
-      ...contentKeys.map((key) => ({ type: 'key', value: key })),
-      ...commonPrefixes.map((value) => ({ type: 'prefix', value })),
-    ].sort((a, b) => (a.value < b.value ? -1 : a.value > b.value ? 1 : 0))
-
-    const page = combined.slice(0, maxKeys)
-    const isTruncated = combined.length > maxKeys
-
-    const contents = page
-      .filter((entry) => entry.type === 'key')
-      .map((entry) => listEntry(bucket, entry.value))
-    const pagePrefixes = page
-      .filter((entry) => entry.type === 'prefix')
-      .map((entry) => entry.value)
-
+    const page = buildListPage(bucket, keys, prefix, delimiter, maxKeys)
     const result = {
-      contents,
-      commonPrefixes: pagePrefixes,
-      isTruncated,
-      keyCount: page.length,
+      contents: page.contents,
+      commonPrefixes: page.commonPrefixes,
+      isTruncated: page.isTruncated,
+      keyCount: page.keyCount,
     }
-    if (isTruncated) {
-      result.nextContinuationToken = page[page.length - 1].value
+    if (page.nextToken !== undefined) {
+      result.nextContinuationToken = page.nextToken
     }
     return result
   }
@@ -588,7 +635,7 @@ export function createBucketStore({ onMutation, now = () => Date.now() } = {}) {
   /**
    * List objects (V1, marker-based). Mirrors {@link listObjectsV2} with the v1
    * response shape: `marker` is the exclusive lower bound and `nextMarker` the
-   * continuation cursor.
+   * continuation cursor (the last raw key consumed by the page).
    *
    * @param {string} bucketName
    * @param {{
@@ -612,34 +659,14 @@ export function createBucketStore({ onMutation, now = () => Date.now() } = {}) {
     let keys = sortedKeys(bucket, prefix)
     if (marker) keys = keys.filter((k) => k > marker)
 
-    const { contentKeys, commonPrefixes } = applyDelimiter(
-      keys,
-      prefix,
-      delimiter,
-    )
-
-    const combined = [
-      ...contentKeys.map((key) => ({ type: 'key', value: key })),
-      ...commonPrefixes.map((value) => ({ type: 'prefix', value })),
-    ].sort((a, b) => (a.value < b.value ? -1 : a.value > b.value ? 1 : 0))
-
-    const page = combined.slice(0, maxKeys)
-    const isTruncated = combined.length > maxKeys
-
-    const contents = page
-      .filter((entry) => entry.type === 'key')
-      .map((entry) => listEntry(bucket, entry.value))
-    const pagePrefixes = page
-      .filter((entry) => entry.type === 'prefix')
-      .map((entry) => entry.value)
-
+    const page = buildListPage(bucket, keys, prefix, delimiter, maxKeys)
     const result = {
-      contents,
-      commonPrefixes: pagePrefixes,
-      isTruncated,
+      contents: page.contents,
+      commonPrefixes: page.commonPrefixes,
+      isTruncated: page.isTruncated,
     }
-    if (isTruncated) {
-      result.nextMarker = page[page.length - 1].value
+    if (page.nextToken !== undefined) {
+      result.nextMarker = page.nextToken
     }
     return result
   }
