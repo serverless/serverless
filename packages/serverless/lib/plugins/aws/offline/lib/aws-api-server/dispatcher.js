@@ -105,9 +105,17 @@ function detectServiceFromAuthHeader(request) {
 
 /**
  * Whether a request without a resolvable Authorization header is a presigned
- * S3 request. True when the presigned `X-Amz-Credential` scope names the s3
- * service, or when the request is a presigned URL against a bucket-shaped path
- * (a non-empty first path segment).
+ * S3 request.
+ *
+ * A SigV4 presign carries its target service in the `X-Amz-Credential` scope,
+ * so it routes to s3 ONLY when that scope names s3 (`/s3/`). A SigV4 presign
+ * whose scope names a different service is left for that service's own
+ * handling and is never claimed for s3 — the bucket-shaped fallback would
+ * otherwise mis-route, say, an `/sqs/`-scoped presign against `/my-bucket/...`.
+ *
+ * The bucket-shaped fallback therefore applies only to legacy SigV2 presigns
+ * (`AWSAccessKeyId` + `Signature`), which carry no service scope: such a
+ * presign aimed at a bucket-shaped path is treated as s3.
  *
  * @param {{ query?: Record<string, string>, path?: string }} request
  * @returns {boolean}
@@ -118,14 +126,16 @@ function isPresignedS3Request(request) {
     return false
   }
 
-  // The SigV4 credential scope names the target service directly.
+  // A SigV4 presign names its target service in the credential scope; it is
+  // authoritative. Route to s3 only when the scope is s3, and never let the
+  // bucket-shaped fallback claim a scoped (non-s3) presign.
   const credential = query['X-Amz-Credential']
-  if (typeof credential === 'string' && credential.includes('/s3/')) {
-    return true
+  if (typeof credential === 'string') {
+    return credential.includes('/s3/')
   }
 
-  // Otherwise accept any presigned URL aimed at a bucket-shaped path (the
-  // first path segment is a non-empty bucket name, not the service root).
+  // No SigV4 service scope: a legacy SigV2 presign (AWSAccessKeyId + Signature)
+  // aimed at a bucket-shaped path is treated as s3.
   return isPresigned(query) && isBucketShapedPath(request.path)
 }
 

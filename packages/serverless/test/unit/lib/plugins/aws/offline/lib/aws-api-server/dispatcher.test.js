@@ -219,3 +219,51 @@ it('16. tolerates a request with no query field at all', () => {
   // The original auth-header-only callers pass `{ headers }` with no `query`.
   expect(detectService({ headers: {} })).toBeNull()
 })
+
+it('17. does NOT route a SigV4 presign scoped to sqs to s3, even on a bucket-shaped path', () => {
+  // The credential scope names sqs, so the s3 handler must not claim it; the
+  // bucket-shaped fallback only applies to scopeless v2 presigns.
+  expect(
+    detectService(
+      makePresignedRequest({
+        query: presignedQuery('sqs'),
+        path: '/my-bucket/key.txt',
+      }),
+    ),
+  ).toBeNull()
+})
+
+it('18. does NOT route a SigV4 presign scoped to sns/lambda/events to s3', () => {
+  for (const service of ['sns', 'lambda', 'events']) {
+    expect(
+      detectService(
+        makePresignedRequest({
+          query: presignedQuery(service),
+          path: '/my-bucket/key.txt',
+        }),
+      ),
+    ).toBeNull()
+  }
+})
+
+it('19. routes a SigV4 presign scoped to s3 to s3 even when the credential is the only signal', () => {
+  // No bucket-shaped reliance: the `/s3/` scope alone is authoritative.
+  expect(
+    detectService(
+      makePresignedRequest({ query: presignedQuery('s3'), path: '/' }),
+    ),
+  ).toBe('s3')
+})
+
+it('20. does NOT route a SigV4 presign scoped to an unrecognised service to s3', () => {
+  // An iam-scoped presign is neither s3 nor a recognised non-s3 service that
+  // the auth-header path would handle; it must not be claimed for s3.
+  expect(
+    detectService(
+      makePresignedRequest({
+        query: presignedQuery('iam'),
+        path: '/my-bucket/key.txt',
+      }),
+    ),
+  ).toBeNull()
+})
