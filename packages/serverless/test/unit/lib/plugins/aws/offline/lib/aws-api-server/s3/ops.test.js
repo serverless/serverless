@@ -339,6 +339,30 @@ it('17a. ListObjectsV2 echoes the requested MaxKeys while clamping the page to 1
   expect(res.body).toContain('<IsTruncated>true</IsTruncated>')
 })
 
+it('17b. ListObjectsV2 with encodingType=url URL-encodes the keys and emits EncodingType', () => {
+  const store = makeStore()
+  store.createBucket(BUCKET)
+  store.putObject(BUCKET, 'a+b c.txt', { body: Buffer.from('1') })
+  const res = run(store, 'ListObjectsV2', {
+    bucket: BUCKET,
+    key: '',
+    encodingType: 'url',
+  })
+  expect(res.statusCode).toBe(200)
+  expect(res.body).toContain('<EncodingType>url</EncodingType>')
+  expect(res.body).toContain('<Key>a%2Bb%20c.txt</Key>')
+  expect(decodeURIComponent('a%2Bb%20c.txt')).toBe('a+b c.txt')
+})
+
+it('17c. ListObjectsV2 without encodingType returns the raw key', () => {
+  const store = makeStore()
+  store.createBucket(BUCKET)
+  store.putObject(BUCKET, 'a+b c.txt', { body: Buffer.from('1') })
+  const res = run(store, 'ListObjectsV2', { bucket: BUCKET, key: '' })
+  expect(res.body).not.toContain('EncodingType')
+  expect(res.body).toContain('<Key>a+b c.txt</Key>')
+})
+
 it('18. ListObjectsV2 on a missing bucket → NoSuchBucket (404)', () => {
   const store = makeStore()
   expect(() =>

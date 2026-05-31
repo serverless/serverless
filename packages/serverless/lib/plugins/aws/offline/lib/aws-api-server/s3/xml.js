@@ -93,15 +93,36 @@ function doc(root, body) {
 }
 
 /**
+ * URL-encode a list response value when `encoding-type=url` was requested.
+ *
+ * The AWS JS SDK sends `encoding-type=url` by default and `decodeURIComponent`s
+ * the returned values, so a key carrying characters the SDK would otherwise
+ * mis-split (spaces, `+`, `/`) must be percent-encoded. `encodeURIComponent`
+ * already escapes `/` to `%2F`, matching S3's full-key encoding; when no
+ * encoding was requested the value passes through verbatim.
+ *
+ * @param {string} value
+ * @param {string | undefined} encodingType
+ * @returns {string}
+ */
+function encodeListValue(value, encodingType) {
+  if (encodingType !== 'url' || value === undefined || value === null) {
+    return value
+  }
+  return encodeURIComponent(value)
+}
+
+/**
  * Render an object list entry (`<Contents>`), shared by v1 and v2 listings.
  *
  * @param {{ key: string, lastModified: number, etag: string, size: number }} entry
+ * @param {string} [encodingType] - when `'url'`, the Key is percent-encoded.
  * @returns {string}
  */
-function contentsEl(entry) {
+function contentsEl(entry, encodingType) {
   return (
     '<Contents>' +
-    el('Key', entry.key) +
+    el('Key', encodeListValue(entry.key, encodingType)) +
     timeEl('LastModified', entry.lastModified) +
     el('ETag', entry.etag) +
     el('Size', entry.size) +
@@ -114,10 +135,11 @@ function contentsEl(entry) {
  * Render a `<CommonPrefixes>` element for a rolled-up prefix.
  *
  * @param {string} prefix
+ * @param {string} [encodingType] - when `'url'`, the Prefix is percent-encoded.
  * @returns {string}
  */
-function commonPrefixEl(prefix) {
-  return `<CommonPrefixes>${el('Prefix', prefix)}</CommonPrefixes>`
+function commonPrefixEl(prefix, encodingType) {
+  return `<CommonPrefixes>${el('Prefix', encodeListValue(prefix, encodingType))}</CommonPrefixes>`
 }
 
 /**
@@ -155,32 +177,44 @@ export function serializeListAllMyBuckets(buckets) {
  *   continuationToken?: string,
  *   nextContinuationToken?: string,
  *   startAfter?: string,
+ *   encodingType?: string,
  *   contents: object[],
  *   commonPrefixes: string[],
  * }} result
  * @returns {string}
  */
 export function serializeListBucketResultV2(result) {
+  const enc = result.encodingType
   let body =
     el('Name', result.name) +
-    el('Prefix', result.prefix || '') +
+    el('Prefix', encodeListValue(result.prefix || '', enc)) +
     el('KeyCount', result.keyCount) +
     el('MaxKeys', result.maxKeys) +
     el('IsTruncated', result.isTruncated ? 'true' : 'false')
   if (result.delimiter !== undefined && result.delimiter !== '') {
-    body += el('Delimiter', result.delimiter)
+    body += el('Delimiter', encodeListValue(result.delimiter, enc))
+  }
+  if (enc === 'url') {
+    body += el('EncodingType', 'url')
   }
   if (result.continuationToken !== undefined) {
     body += el('ContinuationToken', result.continuationToken)
   }
   if (result.startAfter !== undefined) {
-    body += el('StartAfter', result.startAfter)
+    body += el('StartAfter', encodeListValue(result.startAfter, enc))
   }
   if (result.isTruncated && result.nextContinuationToken !== undefined) {
-    body += el('NextContinuationToken', result.nextContinuationToken)
+    body += el(
+      'NextContinuationToken',
+      encodeListValue(result.nextContinuationToken, enc),
+    )
   }
-  body += (result.contents || []).map(contentsEl).join('')
-  body += (result.commonPrefixes || []).map(commonPrefixEl).join('')
+  body += (result.contents || [])
+    .map((entry) => contentsEl(entry, enc))
+    .join('')
+  body += (result.commonPrefixes || [])
+    .map((prefix) => commonPrefixEl(prefix, enc))
+    .join('')
   return doc('ListBucketResult', body)
 }
 
@@ -195,26 +229,35 @@ export function serializeListBucketResultV2(result) {
  *   marker?: string,
  *   nextMarker?: string,
  *   isTruncated: boolean,
+ *   encodingType?: string,
  *   contents: object[],
  *   commonPrefixes: string[],
  * }} result
  * @returns {string}
  */
 export function serializeListBucketResultV1(result) {
+  const enc = result.encodingType
   let body =
     el('Name', result.name) +
-    el('Prefix', result.prefix || '') +
-    el('Marker', result.marker || '') +
+    el('Prefix', encodeListValue(result.prefix || '', enc)) +
+    el('Marker', encodeListValue(result.marker || '', enc)) +
     el('MaxKeys', result.maxKeys) +
     el('IsTruncated', result.isTruncated ? 'true' : 'false')
   if (result.delimiter !== undefined && result.delimiter !== '') {
-    body += el('Delimiter', result.delimiter)
+    body += el('Delimiter', encodeListValue(result.delimiter, enc))
+  }
+  if (enc === 'url') {
+    body += el('EncodingType', 'url')
   }
   if (result.isTruncated && result.nextMarker !== undefined) {
-    body += el('NextMarker', result.nextMarker)
+    body += el('NextMarker', encodeListValue(result.nextMarker, enc))
   }
-  body += (result.contents || []).map(contentsEl).join('')
-  body += (result.commonPrefixes || []).map(commonPrefixEl).join('')
+  body += (result.contents || [])
+    .map((entry) => contentsEl(entry, enc))
+    .join('')
+  body += (result.commonPrefixes || [])
+    .map((prefix) => commonPrefixEl(prefix, enc))
+    .join('')
   return doc('ListBucketResult', body)
 }
 

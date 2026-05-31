@@ -87,6 +87,31 @@ it('8. GET /<bucket>?list-type=2 → ListObjectsV2', () => {
   })
 })
 
+it('8a. GET /<bucket>?list-type=2&encoding-type=url carries encodingType', () => {
+  const parsed = req({
+    method: 'GET',
+    path: '/my-bucket',
+    query: { 'list-type': '2', 'encoding-type': 'url' },
+  })
+  expect(parsed.operation).toBe('ListObjectsV2')
+  expect(parsed.params.encodingType).toBe('url')
+})
+
+it('8b. GET /<bucket>?encoding-type=url (v1) carries encodingType', () => {
+  const parsed = req({
+    method: 'GET',
+    path: '/my-bucket',
+    query: { 'encoding-type': 'url' },
+  })
+  expect(parsed.operation).toBe('ListObjects')
+  expect(parsed.params.encodingType).toBe('url')
+})
+
+it('8c. list without encoding-type leaves encodingType undefined', () => {
+  const parsed = req({ method: 'GET', path: '/my-bucket' })
+  expect(parsed.params.encodingType).toBeUndefined()
+})
+
 it('9. GET /<bucket>?location → GetBucketLocation', () => {
   expect(
     req({ method: 'GET', path: '/my-bucket', query: { location: '' } })

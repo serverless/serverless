@@ -99,6 +99,57 @@ it('3. serializeListBucketResultV2 emits NextContinuationToken only when truncat
   expect(full).not.toContain('NextContinuationToken')
 })
 
+it('3a. serializeListBucketResultV2 with encodingType=url URL-encodes keys and emits EncodingType', () => {
+  const xml = serializeListBucketResultV2({
+    name: 'b',
+    prefix: 'p ',
+    delimiter: '/',
+    maxKeys: 1000,
+    keyCount: 1,
+    isTruncated: false,
+    encodingType: 'url',
+    contents: [{ key: 'a+b c.txt', lastModified: MS, etag: '"e"', size: 1 }],
+    commonPrefixes: ['sub dir/'],
+  })
+  expect(xml).toContain('<EncodingType>url</EncodingType>')
+  expect(xml).toContain('<Key>a%2Bb%20c.txt</Key>')
+  expect(xml).toContain('<Prefix>p%20</Prefix>')
+  expect(xml).toContain(
+    '<CommonPrefixes><Prefix>sub%20dir%2F</Prefix></CommonPrefixes>',
+  )
+  // The encoded value round-trips back to the original key.
+  expect(decodeURIComponent('a%2Bb%20c.txt')).toBe('a+b c.txt')
+})
+
+it('3b. serializeListBucketResultV2 without encodingType emits raw keys and no EncodingType', () => {
+  const xml = serializeListBucketResultV2({
+    name: 'b',
+    maxKeys: 1000,
+    keyCount: 1,
+    isTruncated: false,
+    contents: [{ key: 'a+b c.txt', lastModified: MS, etag: '"e"', size: 1 }],
+    commonPrefixes: [],
+  })
+  expect(xml).not.toContain('EncodingType')
+  expect(xml).toContain('<Key>a+b c.txt</Key>')
+})
+
+it('3c. serializeListBucketResultV2 with encodingType=url encodes the NextContinuationToken', () => {
+  const xml = serializeListBucketResultV2({
+    name: 'b',
+    maxKeys: 1,
+    keyCount: 1,
+    isTruncated: true,
+    encodingType: 'url',
+    nextContinuationToken: 'a b/c',
+    contents: [],
+    commonPrefixes: [],
+  })
+  expect(xml).toContain(
+    '<NextContinuationToken>a%20b%2Fc</NextContinuationToken>',
+  )
+})
+
 // ===========================================================================
 // ListBucketResult v1
 // ===========================================================================
@@ -118,6 +169,23 @@ it('4. serializeListBucketResultV1 renders Marker and NextMarker when truncated'
   expect(xml).toContain('<Marker>m0</Marker>')
   expect(xml).toContain('<NextMarker>m1</NextMarker>')
   expect(xml).not.toContain('KeyCount')
+})
+
+it('4a. serializeListBucketResultV1 with encodingType=url encodes keys, NextMarker and emits EncodingType', () => {
+  const xml = serializeListBucketResultV1({
+    name: 'b',
+    prefix: '',
+    maxKeys: 1,
+    marker: '',
+    isTruncated: true,
+    nextMarker: 'a b/c',
+    encodingType: 'url',
+    contents: [{ key: 'x y.txt', lastModified: MS, etag: '"e"', size: 3 }],
+    commonPrefixes: [],
+  })
+  expect(xml).toContain('<EncodingType>url</EncodingType>')
+  expect(xml).toContain('<Key>x%20y.txt</Key>')
+  expect(xml).toContain('<NextMarker>a%20b%2Fc</NextMarker>')
 })
 
 // ===========================================================================

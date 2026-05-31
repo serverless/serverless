@@ -281,6 +281,7 @@ export function runOp(operation, params, { store }) {
         continuationToken: params.continuationToken,
         nextContinuationToken: result.nextContinuationToken,
         startAfter: params.startAfter,
+        encodingType: params.encodingType,
         contents: result.contents,
         commonPrefixes: result.commonPrefixes,
       })
@@ -305,6 +306,7 @@ export function runOp(operation, params, { store }) {
         marker: params.marker,
         nextMarker: result.nextMarker,
         isTruncated: result.isTruncated,
+        encodingType: params.encodingType,
         contents: result.contents,
         commonPrefixes: result.commonPrefixes,
       })

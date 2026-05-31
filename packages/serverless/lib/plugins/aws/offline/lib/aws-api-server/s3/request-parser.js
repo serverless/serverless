@@ -141,6 +141,11 @@ function listParams(query) {
   if (query.delimiter !== undefined) params.delimiter = query.delimiter
   const maxKeys = toInt(query['max-keys'])
   if (maxKeys !== undefined) params.maxKeys = maxKeys
+  // The AWS JS SDK sends `encoding-type=url` by default and URL-decodes the
+  // returned keys, so the response must URL-encode them when it is set.
+  if (query['encoding-type'] !== undefined) {
+    params.encodingType = query['encoding-type']
+  }
   return params
 }
 
