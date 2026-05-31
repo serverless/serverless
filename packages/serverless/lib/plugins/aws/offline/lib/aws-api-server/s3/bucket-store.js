@@ -8,8 +8,11 @@
  * (`"<md5-of-concatenated-part-digests>-<partCount>"`).
  *
  * After every successful mutating operation the store invokes `onMutation`
- * with `{ bucket, key, eventName, size, etag, sequencer }` so a notifier can
- * derive S3 events. `sequencer` is a monotonically increasing hex counter.
+ * with `{ bucket, key, eventName, size, etag, sequencer, origin }` so a notifier
+ * can derive S3 events. `sequencer` is a monotonically increasing hex counter;
+ * `origin` is an optional tag a caller passes through (e.g. `'drop-folder'`) so
+ * a downstream consumer can tell SDK-originated writes apart from filesystem
+ * ones and avoid mirroring a change back to its source.
  *
  * All time reads go through an injectable `now()` so `lastModified` /
  * `initiated` timestamps are deterministic under test.
@@ -141,8 +144,10 @@ export function createBucketStore({ onMutation, now = () => Date.now() } = {}) {
    * @param {string} eventName
    * @param {number} size
    * @param {string} etag
+   * @param {string} [origin] - optional caller-supplied origin tag, passed
+   *   through verbatim so a consumer can tell SDK writes from filesystem writes.
    */
-  function emitMutation(bucket, key, eventName, size, etag) {
+  function emitMutation(bucket, key, eventName, size, etag, origin) {
     if (!onMutation) return
     onMutation({
       bucket,
@@ -151,6 +156,7 @@ export function createBucketStore({ onMutation, now = () => Date.now() } = {}) {
       size,
       etag,
       sequencer: nextSequencer(),
+      origin,
     })
   }
 
@@ -242,9 +248,16 @@ export function createBucketStore({ onMutation, now = () => Date.now() } = {}) {
    * @param {string} bucketName
    * @param {string} key
    * @param {{ body: Buffer, contentType?: string, metadata?: object }} input
+   * @param {{ origin?: string }} [options] - an optional origin tag forwarded
+   *   verbatim to `onMutation` (e.g. `'drop-folder'`).
    * @returns {{ etag: string }}
    */
-  function putObject(bucketName, key, { body, contentType, metadata } = {}) {
+  function putObject(
+    bucketName,
+    key,
+    { body, contentType, metadata } = {},
+    { origin } = {},
+  ) {
     const bucket = requireBucket(bucketName)
     const etag = quotedEtag(body)
     bucket.objects.set(key, {
@@ -255,7 +268,14 @@ export function createBucketStore({ onMutation, now = () => Date.now() } = {}) {
       etag,
       lastModified: now(),
     })
-    emitMutation(bucketName, key, 'ObjectCreated:Put', body.length, etag)
+    emitMutation(
+      bucketName,
+      key,
+      'ObjectCreated:Put',
+      body.length,
+      etag,
+      origin,
+    )
     return { etag }
   }
 
@@ -334,14 +354,16 @@ export function createBucketStore({ onMutation, now = () => Date.now() } = {}) {
    *
    * @param {string} bucketName
    * @param {string} key
+   * @param {{ origin?: string }} [options] - an optional origin tag forwarded
+   *   verbatim to `onMutation` (e.g. `'drop-folder'`).
    * @returns {void}
    */
-  function deleteObject(bucketName, key) {
+  function deleteObject(bucketName, key, { origin } = {}) {
     const bucket = buckets.get(bucketName)
     if (!bucket) return
     if (!bucket.objects.has(key)) return
     bucket.objects.delete(key)
-    emitMutation(bucketName, key, 'ObjectRemoved:Delete', 0, '')
+    emitMutation(bucketName, key, 'ObjectRemoved:Delete', 0, '', origin)
   }
 
   /**
