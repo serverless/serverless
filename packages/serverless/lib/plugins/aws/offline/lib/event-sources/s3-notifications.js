@@ -160,9 +160,11 @@ export function createS3Notifier({
 
       const event = buildEvent({ config, mutation, region, now })
       // Fire-and-forget: the mutation has already committed, so a failed
-      // handler is logged but never bubbles into the store's data path.
+      // handler is logged but never bubbles into the store's data path. S3
+      // notifications are asynchronous invocations, so `{ async: true }` opts
+      // the function into onSuccess/onFailure destination routing.
       Promise.resolve(
-        getLambdaFunction(config.functionKey).invoke(event),
+        getLambdaFunction(config.functionKey).invoke(event, { async: true }),
       ).catch((err) => {
         logger.error(
           `[sls:offline:s3] Notification invoke of "${config.functionKey}" for ` +

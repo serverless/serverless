@@ -140,8 +140,10 @@ export function createDeliverer({
       ],
     }
 
+    // SNS-triggered Lambda invocations are asynchronous, so `{ async: true }`
+    // opts the function into onSuccess/onFailure destination routing.
     Promise.resolve(
-      getLambdaFunction(sub.target.functionKey).invoke(event),
+      getLambdaFunction(sub.target.functionKey).invoke(event, { async: true }),
     ).catch((err) => {
       logger.error(
         `SNS delivery to "${sub.target.functionKey}" failed: ${err.message}`,

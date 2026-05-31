@@ -66,6 +66,7 @@ import { createWatcher } from './lib/watcher.js'
 import { assertSupportedRuntimes } from './lib/runtime-guard.js'
 import { getHandlerBaseDir } from './lib/handler-base-dir.js'
 import { createLambdaFunction } from './lib/lambda/lambda-function.js'
+import { createDestinationRouter } from './lib/lambda/lambda-destinations.js'
 
 const logger = log.get(LOG_NAMESPACE)
 
@@ -738,6 +739,13 @@ export default class OfflinePlugin {
     //  - community serverless-esbuild sets custom['serverless-offline'].location
     const lambdaFunctions = new Map()
     const lambdaLogger = log.get('sls:offline:lambda')
+    // Mutable async-destination routing seam. The facade is created here (and
+    // memoised per function), but the router can only be built once the SQS,
+    // SNS and EventBridge sinks below exist. Passing the object now and setting
+    // `.route` later lets every facade observe destinations without re-creating
+    // them. `.route` stays null until step 7d, so until then an async invoke is
+    // a strict no-op.
+    const destRouter = { route: null }
     function getLambdaFunction(functionKey) {
       let fn = lambdaFunctions.get(functionKey)
       if (!fn) {
@@ -750,6 +758,7 @@ export default class OfflinePlugin {
           localEnvironment,
           layerOptDir: layerOptDirs.get(functionKey) ?? null,
           offlineRuntime,
+          destinationRouter: destRouter,
         })
         lambdaFunctions.set(functionKey, fn)
       }
@@ -833,6 +842,21 @@ export default class OfflinePlugin {
       store: ebStore,
       logger: ebLogger,
     })
+
+    // 7e. Wire the Lambda async-destination router now that every sink (SQS
+    //     queue store, SNS publish seam, EventBridge deliverer) exists. Setting
+    //     `destRouter.route` flips on onSuccess/onFailure routing for every
+    //     `{ async: true }` invoke of a function that declares `destinations`.
+    //     The EventBridge sink reuses the same `deliver` the JSON-RPC PutEvents
+    //     path uses, so a destination event fans out through the rule engine.
+    destRouter.route = createDestinationRouter({
+      registry,
+      getLambdaFunction,
+      queueSend: (url, message) => store.send(url, message),
+      snsPublish,
+      ebPutEvents: (busName, event) => ebDeliver.deliver(busName, event),
+      logger: log.get('sls:offline:destinations'),
+    }).route
 
     // 8. Start SQS pollers so subscribers are in place before the server
     //    starts accepting connections.
