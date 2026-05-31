@@ -79,13 +79,44 @@ function extractArn(sqsEvent) {
 }
 
 /**
+ * Transform an SQS wire-shape message-attribute map
+ * (`{ Name: { DataType, StringValue?, BinaryValue? } }`) into the AWS Lambda
+ * SQS-event shape (`{ name: { stringValue?, binaryValue?, stringListValues: [],
+ * binaryListValues: [], dataType } }`). Keys map DataType→dataType,
+ * StringValue→stringValue, BinaryValue→binaryValue; the two empty list arrays
+ * are always present, mirroring the real Lambda payload.
+ *
+ * @param {object|undefined} wireAttributes
+ * @returns {object}
+ */
+export function toLambdaMessageAttributes(wireAttributes) {
+  const out = {}
+  for (const [name, attribute] of Object.entries(wireAttributes ?? {})) {
+    const mapped = {
+      dataType: attribute.DataType,
+      stringListValues: [],
+      binaryListValues: [],
+    }
+    if (attribute.StringValue !== undefined) {
+      mapped.stringValue = attribute.StringValue
+    }
+    if (attribute.BinaryValue !== undefined) {
+      mapped.binaryValue = attribute.BinaryValue
+    }
+    out[name] = mapped
+  }
+  return out
+}
+
+/**
  * Build the SQS batch-event record for a single received message.
  *
  * Mirrors the AWS SQS Lambda event-record shape: `attributes` carries the
  * system attributes the store stamps on receive (ApproximateReceiveCount,
  * SentTimestamp, SenderId, ApproximateFirstReceiveTimestamp, plus the FIFO
- * fields when present), `messageAttributes` carries the user attributes, and
- * `md5OfBody` is the digest of the raw body.
+ * fields when present), `messageAttributes` carries the user attributes in the
+ * Lambda shape (camelCase keys + the empty list arrays), and `md5OfBody` is the
+ * digest of the raw body.
  *
  * @param {object} record - A record returned by `store.receive`.
  * @param {string} arn    - The queue ARN (becomes `eventSourceARN`).
@@ -97,7 +128,7 @@ function buildEventRecord(record, arn) {
     receiptHandle: record.receiptHandle,
     body: record.body,
     attributes: record.systemAttributes ?? {},
-    messageAttributes: record.messageAttributes ?? {},
+    messageAttributes: toLambdaMessageAttributes(record.messageAttributes),
     md5OfBody: md5(record.body),
     eventSource: 'aws:sqs',
     eventSourceARN: arn,
@@ -106,31 +137,49 @@ function buildEventRecord(record, arn) {
 }
 
 /**
- * Normalise the set of failed messageIds reported by a Lambda result.
+ * Decide which received messages to delete given a Lambda invoke result, per
+ * AWS's ReportBatchItemFailures contract.
  *
- * AWS's ReportBatchItemFailures contract: a result object carrying a
- * `batchItemFailures` array of `{ itemIdentifier }` marks exactly those message
- * ids as failed; everything else in the batch succeeded. A non-object result
- * (or one without the array) means the whole batch succeeded.
+ * - A result that is not an object, or carries no `batchItemFailures` array ⇒
+ *   full success: delete every received message.
+ * - An empty `batchItemFailures: []` ⇒ full success: delete every message.
+ * - A report is a COMPLETE FAILURE (delete none, all redeliver) when ANY
+ *   reported entry has a missing/empty/null/non-string `itemIdentifier`, or an
+ *   `itemIdentifier` that does not match any messageId in the received batch.
+ * - Otherwise (every reported id is a non-empty string matching a received
+ *   messageId) ⇒ partial: delete the messages NOT listed; the listed ones
+ *   redeliver.
  *
  * @param {unknown} result
- * @returns {Set<string> | null} the failed ids, or `null` when not a partial report.
+ * @param {Set<string>} receivedIds - the messageIds in the received batch.
+ * @returns {Set<string>} the messageIds to delete.
  */
-function failedIdsFromResult(result) {
+function idsToDelete(result, receivedIds) {
   if (
     result === null ||
     typeof result !== 'object' ||
     !Array.isArray(result.batchItemFailures)
   ) {
-    return null
+    // No partial report: the whole batch succeeded.
+    return new Set(receivedIds)
   }
-  const ids = new Set()
+
+  const failedIds = new Set()
   for (const entry of result.batchItemFailures) {
-    if (entry && entry.itemIdentifier !== undefined) {
-      ids.add(String(entry.itemIdentifier))
+    const id = entry && entry.itemIdentifier
+    if (typeof id !== 'string' || id.length === 0 || !receivedIds.has(id)) {
+      // Malformed or unrecognised entry ⇒ COMPLETE failure: delete nothing.
+      return new Set()
     }
+    failedIds.add(id)
   }
-  return ids
+
+  // Delete the messages that were NOT reported as failed.
+  const toDelete = new Set()
+  for (const id of receivedIds) {
+    if (!failedIds.has(id)) toDelete.add(id)
+  }
+  return toDelete
 }
 
 // ---------------------------------------------------------------------------
@@ -267,13 +316,15 @@ export async function startSqsPollers({
 
         Promise.resolve(getLambdaFunction(fnName).invoke(sqsEvent))
           .then((result) => {
-            const failedIds = failedIdsFromResult(result)
+            // Resolve the delete set per AWS's ReportBatchItemFailures contract.
+            // Messages NOT in the set stay in flight and redeliver (→ DLQ once
+            // maxReceiveCount is reached).
+            const receivedIds = new Set(handlesById.keys())
+            const deleteIds = idsToDelete(result, receivedIds)
             for (const [messageId, receiptHandle] of handlesById) {
-              // Partial-failure report: keep the failures in flight so they
-              // redeliver (→ DLQ once maxReceiveCount is exceeded). No report:
-              // the whole batch succeeded, so delete every message.
-              if (failedIds && failedIds.has(messageId)) continue
-              store.deleteMessage(queueUrl, receiptHandle)
+              if (deleteIds.has(messageId)) {
+                store.deleteMessage(queueUrl, receiptHandle)
+              }
             }
           })
           .catch((err) => {

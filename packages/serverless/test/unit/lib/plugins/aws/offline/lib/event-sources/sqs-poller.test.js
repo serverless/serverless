@@ -1,7 +1,10 @@
 import { jest } from '@jest/globals'
 import { createQueueStore } from '../../../../../../../../lib/plugins/aws/offline/lib/aws-api-server/sqs/queue-store.js'
 import { createRegistry } from '../../../../../../../../lib/plugins/aws/offline/lib/provisioner/registry.js'
-import { startSqsPollers } from '../../../../../../../../lib/plugins/aws/offline/lib/event-sources/sqs-poller.js'
+import {
+  startSqsPollers,
+  toLambdaMessageAttributes,
+} from '../../../../../../../../lib/plugins/aws/offline/lib/event-sources/sqs-poller.js'
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -746,4 +749,189 @@ it('15. a message that keeps failing dead-letters after maxReceiveCount', async 
   // The source queue drained the poison message; it now lives in the DLQ.
   expect(store.size(QUEUE_URL)).toBe(0)
   expect(store.size(DLQ_URL)).toBe(1)
+})
+
+// ---------------------------------------------------------------------------
+// H2. toLambdaMessageAttributes: SQS wire shape → AWS Lambda SQS-event shape.
+// ---------------------------------------------------------------------------
+
+it('16. toLambdaMessageAttributes maps a String attribute to the Lambda shape', () => {
+  const out = toLambdaMessageAttributes({
+    Author: { DataType: 'String', StringValue: 'alice' },
+  })
+
+  expect(out).toEqual({
+    Author: {
+      stringValue: 'alice',
+      binaryListValues: [],
+      stringListValues: [],
+      dataType: 'String',
+    },
+  })
+})
+
+it('17. toLambdaMessageAttributes maps a Binary attribute and omits absent values', () => {
+  const out = toLambdaMessageAttributes({
+    Blob: { DataType: 'Binary', BinaryValue: 'AAEC' },
+  })
+
+  expect(out.Blob).toEqual({
+    binaryValue: 'AAEC',
+    binaryListValues: [],
+    stringListValues: [],
+    dataType: 'Binary',
+  })
+  expect(out.Blob).not.toHaveProperty('stringValue')
+})
+
+it('18. toLambdaMessageAttributes returns an empty object for no attributes', () => {
+  expect(toLambdaMessageAttributes(undefined)).toEqual({})
+  expect(toLambdaMessageAttributes({})).toEqual({})
+})
+
+it('19. the event record carries messageAttributes in the AWS Lambda shape', async () => {
+  const store = createQueueStore()
+  store.ensureQueue(QUEUE_URL)
+
+  const registry = makeRegistry()
+  const invokeMock = jest.fn().mockResolvedValue(undefined)
+  const lambdaFn = makeLambdaFn(invokeMock)
+  const logger = makeLogger()
+
+  const serverless = makeServerless({
+    functions: {
+      myFn: {
+        handler: 'src/handler.main',
+        events: [{ sqs: { arn: QUEUE_ARN } }],
+      },
+    },
+  })
+
+  await startSqsPollers({
+    serverless,
+    registry,
+    store,
+    getLambdaFunction: makeGetLambdaFunction({ myFn: lambdaFn }),
+    logger,
+  })
+
+  store.send(QUEUE_URL, 'body', {
+    Author: { DataType: 'String', StringValue: 'alice' },
+  })
+
+  const rec = invokeMock.mock.calls[0][0].Records[0]
+  expect(rec.messageAttributes).toEqual({
+    Author: {
+      stringValue: 'alice',
+      binaryListValues: [],
+      stringListValues: [],
+      dataType: 'String',
+    },
+  })
+})
+
+// ---------------------------------------------------------------------------
+// H3. batchItemFailures contract: a malformed or unrecognised report is a
+// COMPLETE failure (delete none); only a fully-valid report does a partial
+// delete; empty array / no report ⇒ full success.
+// ---------------------------------------------------------------------------
+
+/**
+ * Drive a single batch of two messages through one invoke that returns
+ * `result`, then assert how many messages remain (deleted = received − remain).
+ *
+ * @param {unknown} result - the value the invoke resolves with.
+ * @returns {Promise<number>} the store size after the batch settles.
+ */
+async function runBatchWithResult(makeResult) {
+  const store = createQueueStore()
+  store.ensureQueue(QUEUE_URL, { visibilityTimeout: 30 })
+  const registry = makeRegistry()
+
+  let releaseFirst
+  const firstPending = new Promise((resolve) => {
+    releaseFirst = resolve
+  })
+  let call = 0
+  const invokeMock = jest.fn().mockImplementation((event) => {
+    call += 1
+    if (call === 1) return firstPending
+    if (call === 2) return Promise.resolve(makeResult(event))
+    return Promise.resolve(undefined)
+  })
+  const lambdaFn = makeLambdaFn(invokeMock)
+  const logger = makeLogger()
+
+  const serverless = makeServerless({
+    functions: {
+      myFn: {
+        handler: 'src/handler.main',
+        events: [{ sqs: { arn: QUEUE_ARN } }],
+      },
+    },
+  })
+
+  await startSqsPollers({
+    serverless,
+    registry,
+    store,
+    getLambdaFunction: makeGetLambdaFunction({ myFn: lambdaFn }),
+    logger,
+  })
+
+  // `seed` gates invoke #1; `a` and `b` drain together as batch #2.
+  store.send(QUEUE_URL, 'seed', {})
+  store.send(QUEUE_URL, 'a', {})
+  store.send(QUEUE_URL, 'b', {})
+  releaseFirst(undefined)
+  await flushMicrotasks()
+
+  return store.size(QUEUE_URL)
+}
+
+it('20. an empty batchItemFailures array is a full success (delete all)', async () => {
+  const remaining = await runBatchWithResult(() => ({ batchItemFailures: [] }))
+  expect(remaining).toBe(0)
+})
+
+it('21. a result without batchItemFailures is a full success (delete all)', async () => {
+  const remaining = await runBatchWithResult(() => ({ ok: true }))
+  expect(remaining).toBe(0)
+})
+
+it('22. a non-object result is a full success (delete all)', async () => {
+  const remaining = await runBatchWithResult(() => 'done')
+  expect(remaining).toBe(0)
+})
+
+it('23. a valid partial report deletes only the unlisted messages', async () => {
+  const remaining = await runBatchWithResult((event) => ({
+    batchItemFailures: [{ itemIdentifier: event.Records[1].messageId }],
+  }))
+  // Only the listed failure stays in flight.
+  expect(remaining).toBe(1)
+})
+
+it('24. a report with an unrecognised itemIdentifier is a COMPLETE failure (delete none)', async () => {
+  const remaining = await runBatchWithResult(() => ({
+    batchItemFailures: [{ itemIdentifier: 'not-a-real-message-id' }],
+  }))
+  expect(remaining).toBe(2)
+})
+
+it('25. a report with a missing/empty itemIdentifier is a COMPLETE failure (delete none)', async () => {
+  const remaining = await runBatchWithResult((event) => ({
+    batchItemFailures: [
+      { itemIdentifier: event.Records[0].messageId },
+      { itemIdentifier: '' },
+    ],
+  }))
+  expect(remaining).toBe(2)
+})
+
+it('26. a report with a non-string itemIdentifier is a COMPLETE failure (delete none)', async () => {
+  const remaining = await runBatchWithResult((event) => ({
+    batchItemFailures: [{ itemIdentifier: 123 }],
+  }))
+  expect(remaining).toBe(2)
 })
