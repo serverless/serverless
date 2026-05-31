@@ -28,6 +28,10 @@ import { allSqsQueues } from './lib/provisioner/registry.js'
 import { createQueueStore } from './lib/aws-api-server/sqs/queue-store.js'
 import { parseQueueConfig } from './lib/aws-api-server/sqs/attributes.js'
 import { createSqsHandlers } from './lib/aws-api-server/sqs/handlers.js'
+import { createTopicStore } from './lib/aws-api-server/sns/topic-store.js'
+import { createDeliverer } from './lib/aws-api-server/sns/delivery.js'
+import { createSnsHandlers } from './lib/aws-api-server/sns/handlers.js'
+import { wireSns } from './lib/event-sources/sns-wiring.js'
 import { createAwsApiServer } from './lib/aws-api-server/index.js'
 import { buildFunctionNameMap } from './lib/aws-api-server/lambda-invoke/name-map.js'
 import {
@@ -151,6 +155,7 @@ export function resolveOfflineOptions({ cliOptions = {}, offline = {} } = {}) {
  * @param {{ method: string, path: string, mountedPath: string, apigwMountedPath: string, functionKey: string }[]} [params.restApiRoutes]
  * @param {number} params.sqsPollerCount
  * @param {number} params.sqsQueueCount  Total provisioned SQS queues (including DLQs).
+ * @param {number} params.snsTopicCount  Total SNS topics wired into the emulator.
  * @param {string} params.stage
  * @param {boolean} params.useInProcess  Whether the in-process Node runner is active.
  * @param {boolean} params.useDocker  Whether Docker mode is enabled for supported runtimes.
@@ -174,6 +179,7 @@ function logBootSummary({
   restApiRoutes,
   sqsPollerCount,
   sqsQueueCount,
+  snsTopicCount,
   stage,
   useInProcess,
   useDocker,
@@ -322,6 +328,10 @@ function logBootSummary({
     logger.notice(
       `  SQS pollers:     ${sqsPollerCount} queue${sqsPollerCount === 1 ? '' : 's'} subscribed`,
     )
+  }
+
+  if (snsTopicCount > 0) {
+    logger.notice(`  SNS topics:      ${snsTopicCount}`)
   }
 
   logger.notice('')
@@ -726,6 +736,33 @@ export default class OfflinePlugin {
       return fn
     }
 
+    // 7b. Stand up the SNS emulator: an in-memory topic store, a synchronous
+    //     fan-out deliverer (Lambda invoke + SQS send, reusing the queue store
+    //     above), and the query-protocol handlers. `wireSns` derives the topics
+    //     and subscriptions from the registry, each function's `events: - sns`,
+    //     and any `AWS::SNS::Subscription` resources in the compiled template.
+    //     Delivery is synchronous on Publish, so there is no poller or timer to
+    //     tear down — the only shared resource is the AWS API server itself.
+    const snsLogger = log.get('sls:offline:sns')
+    const snsStore = createTopicStore()
+    const snsDeliver = createDeliverer({
+      store: snsStore,
+      getLambdaFunction,
+      queueStore: store,
+      logger: snsLogger,
+    })
+    const snsHandlers = createSnsHandlers({
+      store: snsStore,
+      registry,
+      deliver: snsDeliver.deliver,
+    })
+    const { topicCount: snsTopicCount } = wireSns({
+      serverless,
+      registry,
+      store: snsStore,
+      logger: snsLogger,
+    })
+
     // 8. Start SQS pollers so subscribers are in place before the server
     //    starts accepting connections.
     const pollerController = await startSqsPollers({
@@ -868,7 +905,7 @@ export default class OfflinePlugin {
     const awsApiServer = await createAwsApiServer({
       awsApiPort,
       host: awsApiBindHost,
-      handlers: { sqs: sqsHandlers },
+      handlers: { sqs: sqsHandlers, sns: snsHandlers },
       logger: log.get('sls:offline:aws-api'),
       // Mount the Lambda Runtime API routes when any Go function is in
       // the service. The Go runner enqueues into this queue; the routes
@@ -964,6 +1001,7 @@ export default class OfflinePlugin {
           restApiRoutes,
           sqsPollerCount: pollerController.pollerCount,
           sqsQueueCount: sqsRecords.length,
+          snsTopicCount,
           stage,
           useInProcess,
           useDocker,
