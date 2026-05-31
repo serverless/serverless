@@ -561,4 +561,180 @@ describe('createLambdaFunction', () => {
     )
     expect(runner.calls[0].context.timeoutMs).toBe(1000)
   })
+
+  // -------------------------------------------------------------------------
+  // Async destinations ({ async } option + destinationRouter seam)
+  // -------------------------------------------------------------------------
+
+  /** A runner whose invoke rejects with the given error. */
+  function makeFailingRunner(error) {
+    return {
+      async invoke() {
+        throw error
+      },
+    }
+  }
+
+  /** A stub destination router recording every route call. */
+  function makeRouter() {
+    const calls = []
+    return {
+      calls,
+      route: jest.fn(async (outcome) => {
+        calls.push(outcome)
+      }),
+    }
+  }
+
+  const DESTINATIONS = {
+    onSuccess: 'arn:aws:sqs:us-east-1:000000000000:on-success',
+    onFailure: 'arn:aws:sqs:us-east-1:000000000000:on-failure',
+  }
+
+  // A tick so the fire-and-forget routing promise settles after invoke returns.
+  const tick = () => new Promise((r) => setImmediate(r))
+
+  test('async invoke that resolves routes the result (no error)', async () => {
+    const runner = makeRunner()
+    const router = makeRouter()
+    const fn = createLambdaFunction({
+      serverless: makeServerless({
+        servicePath: tmpDir,
+        functions: {
+          worker: {
+            handler: 'src/handler.main',
+            name: 'svc-dev-worker',
+            destinations: DESTINATIONS,
+          },
+        },
+      }),
+      functionKey: 'worker',
+      runner,
+      destinationRouter: router,
+    })
+
+    const result = await fn.invoke({ msg: 'hi' }, { async: true })
+    await tick()
+
+    // The original outcome is still returned unchanged to the caller.
+    expect(result).toEqual({ ok: true, args: runner.calls[0] })
+    expect(router.route).toHaveBeenCalledTimes(1)
+    const outcome = router.calls[0]
+    expect(outcome.functionName).toBe('svc-dev-worker')
+    expect(outcome.functionArn).toBe(
+      'arn:aws:lambda:us-east-1:000000000000:function:svc-dev-worker',
+    )
+    expect(outcome.destinations).toEqual(DESTINATIONS)
+    expect(outcome.event).toEqual({ msg: 'hi' })
+    expect(outcome.result).toEqual({ ok: true, args: runner.calls[0] })
+    expect(outcome.error).toBeUndefined()
+  })
+
+  test('async invoke that throws routes the error AND still rejects to the caller', async () => {
+    const error = new Error('handler boom')
+    const runner = makeFailingRunner(error)
+    const router = makeRouter()
+    const fn = createLambdaFunction({
+      serverless: makeServerless({
+        servicePath: tmpDir,
+        functions: {
+          worker: { handler: 'src/handler.main', destinations: DESTINATIONS },
+        },
+      }),
+      functionKey: 'worker',
+      runner,
+      destinationRouter: router,
+    })
+
+    await expect(fn.invoke({ msg: 'hi' }, { async: true })).rejects.toThrow(
+      'handler boom',
+    )
+    await tick()
+
+    expect(router.route).toHaveBeenCalledTimes(1)
+    const outcome = router.calls[0]
+    expect(outcome.error).toBe(error)
+    expect(outcome.result).toBeUndefined()
+  })
+
+  test('sync invoke (no async) does not route', async () => {
+    const runner = makeRunner()
+    const router = makeRouter()
+    const fn = createLambdaFunction({
+      serverless: makeServerless({
+        servicePath: tmpDir,
+        functions: {
+          worker: { handler: 'src/handler.main', destinations: DESTINATIONS },
+        },
+      }),
+      functionKey: 'worker',
+      runner,
+      destinationRouter: router,
+    })
+
+    await fn.invoke({ msg: 'hi' })
+    await tick()
+
+    expect(router.route).not.toHaveBeenCalled()
+  })
+
+  test('async invoke for a function with no destinations does not route', async () => {
+    const runner = makeRunner()
+    const router = makeRouter()
+    const fn = createLambdaFunction({
+      serverless: makeServerless({
+        servicePath: tmpDir,
+        functions: { worker: { handler: 'src/handler.main' } },
+      }),
+      functionKey: 'worker',
+      runner,
+      destinationRouter: router,
+    })
+
+    await fn.invoke({ msg: 'hi' }, { async: true })
+    await tick()
+
+    expect(router.route).not.toHaveBeenCalled()
+  })
+
+  test('async invoke with destinations but no router is a plain invoke', async () => {
+    const runner = makeRunner()
+    const fn = createLambdaFunction({
+      serverless: makeServerless({
+        servicePath: tmpDir,
+        functions: {
+          worker: { handler: 'src/handler.main', destinations: DESTINATIONS },
+        },
+      }),
+      functionKey: 'worker',
+      runner,
+      // no destinationRouter
+    })
+
+    const result = await fn.invoke({ msg: 'hi' }, { async: true })
+    expect(result).toEqual({ ok: true, args: runner.calls[0] })
+  })
+
+  test('a routing fault never affects what the caller receives', async () => {
+    const runner = makeRunner()
+    const router = {
+      route: jest.fn(() => Promise.reject(new Error('router down'))),
+    }
+    const fn = createLambdaFunction({
+      serverless: makeServerless({
+        servicePath: tmpDir,
+        functions: {
+          worker: { handler: 'src/handler.main', destinations: DESTINATIONS },
+        },
+      }),
+      functionKey: 'worker',
+      runner,
+      destinationRouter: router,
+    })
+
+    await expect(
+      fn.invoke({ msg: 'hi' }, { async: true }),
+    ).resolves.toBeDefined()
+    await tick()
+  })
 })

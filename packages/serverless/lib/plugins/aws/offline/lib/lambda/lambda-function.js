@@ -143,8 +143,15 @@ function resolveHandlerSync(handlerString, baseDir, runtime) {
  * @param {boolean} [params.offlineRuntime.noAuth=false]
  *   When true, an empty AUTHORIZER (`{}`) is injected so authorizer-aware
  *   handlers receive a synthetic context with authentication disabled.
+ * @param {{ route?: Function } | null} [params.destinationRouter=null]
+ *   Lambda async-destination router (`lambda-destinations.js`). A mutable seam:
+ *   boot passes the object early and sets `.route` once the downstream stores
+ *   exist. Consulted only for an `{ async: true }` invoke of a function that
+ *   declares `destinations`; a settled invoke then fires `route(...)` and the
+ *   outcome the caller receives is unchanged. `null` (or `.route` unset) means
+ *   no routing — the strictly synchronous behaviour.
  * @returns {{
- *   invoke(event: unknown): Promise<unknown>,
+ *   invoke(event: unknown, options?: object): Promise<unknown>,
  *   readonly functionKey: string,
  * }}
  */
@@ -157,6 +164,7 @@ export function createLambdaFunction({
   localEnvironment = false,
   layerOptDir = null,
   offlineRuntime = {},
+  destinationRouter = null,
 }) {
   /**
    * Emit the per-invocation execution trace. Best-effort: silently no-ops if
@@ -193,11 +201,14 @@ export function createLambdaFunction({
      *     by other plugins.
      *
      * @param {unknown} event
-     * @param {{ clientContext?: unknown }} [options]  Optional invoke
-     *   options. `clientContext` carries the decoded value of a
+     * @param {{ clientContext?: unknown, async?: boolean }} [options]  Optional
+     *   invoke options. `clientContext` carries the decoded value of a
      *   `LambdaClient.invoke` `ClientContext` argument (the base64
      *   `X-Amz-Client-Context` header) and is surfaced on the synthesized
-     *   Lambda context.
+     *   Lambda context. `async` marks an asynchronous (event) invocation: when
+     *   set AND the function declares `destinations` AND a destination router is
+     *   wired, the settled outcome is forwarded to the router fire-and-forget.
+     *   It never changes what this method returns or throws to the caller.
      * @returns {Promise<unknown>}
      */
     async invoke(event, options = {}) {
@@ -282,12 +293,22 @@ export function createLambdaFunction({
         ...(fn.environment ?? {}),
       }
 
+      // Async-destination routing is engaged only for an `{ async: true }`
+      // invoke of a function that declares `destinations`, and only when a
+      // router is wired with a live `.route`. For every other path (sync
+      // invoke, no destinations, no router) `route` stays null and the
+      // invocation is byte-for-byte the original synchronous behaviour.
+      const route =
+        options.async === true && fn.destinations && destinationRouter?.route
+          ? destinationRouter.route
+          : null
+
       // Measure wall-clock duration around the runner invocation. Use the
       // monotonic high-resolution clock so NTP adjustments cannot warp the
       // measurement on long-running handlers.
       const startedAt = performance.now()
       try {
-        return await runner.invoke({
+        const result = await runner.invoke({
           functionKey,
           handlerPath,
           handlerName,
@@ -311,6 +332,36 @@ export function createLambdaFunction({
           // the runner does not arm its termination timer.
           timeoutMs: noTimeout ? undefined : timeoutMs,
         })
+        // Fire-and-forget the success outcome to the destination router. A
+        // routing fault is the router's own responsibility to absorb; guard it
+        // here too so it can never reject into the caller's invoke result.
+        if (route) {
+          Promise.resolve(
+            route({
+              functionName: deployedName,
+              functionArn: context.invokedFunctionArn,
+              destinations: fn.destinations,
+              event,
+              result,
+            }),
+          ).catch(() => {})
+        }
+        return result
+      } catch (error) {
+        // Fire-and-forget the failure outcome, then re-throw the original error
+        // unchanged — the caller's reject is never delayed or swallowed.
+        if (route) {
+          Promise.resolve(
+            route({
+              functionName: deployedName,
+              functionArn: context.invokedFunctionArn,
+              destinations: fn.destinations,
+              event,
+              error,
+            }),
+          ).catch(() => {})
+        }
+        throw error
       } finally {
         const durationMs = performance.now() - startedAt
         logExecution(awsRequestId, durationMs)
