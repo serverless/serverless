@@ -119,3 +119,103 @@ it('10b. works when header key is upper-case Authorization', () => {
     detectService(makeRequest({ Authorization: sigV4Header('sqs') })),
   ).toBe('sqs')
 })
+
+// ---------------------------------------------------------------------------
+// 11–15. Presigned-URL routing (no Authorization header).
+//
+// Presigned S3 URLs carry their signature in the query string, not the
+// Authorization header, so the auth-header path never matches them. The
+// dispatcher additionally routes a presigned request to 's3' when the
+// X-Amz-Credential scope names the s3 service, or when the request is a
+// presigned URL against a bucket-shaped path.
+// ---------------------------------------------------------------------------
+
+/**
+ * Build a fake request with an explicit query and path (no auth header), as a
+ * presigned URL arrives.
+ *
+ * @param {{ query?: object, path?: string, headers?: object }} input
+ * @returns {{ headers: object, query: object, path: string }}
+ */
+function makePresignedRequest({ query = {}, path = '/', headers = {} } = {}) {
+  return { headers, query, path }
+}
+
+/**
+ * A SigV4 presigned query whose credential scope names the s3 service.
+ *
+ * @param {string} [service] - service segment of the credential scope.
+ * @returns {Record<string, string>}
+ */
+function presignedQuery(service = 's3') {
+  return {
+    'X-Amz-Algorithm': 'AWS4-HMAC-SHA256',
+    'X-Amz-Credential': `AKIAIOSFODNN7EXAMPLE/20260531/us-east-1/${service}/aws4_request`,
+    'X-Amz-Date': '20260531T120000Z',
+    'X-Amz-Expires': '900',
+    'X-Amz-SignedHeaders': 'host',
+    'X-Amz-Signature': 'abc123def456',
+  }
+}
+
+it('11. routes a presigned S3 query (no auth header) to s3 via the credential scope', () => {
+  expect(
+    detectService(
+      makePresignedRequest({
+        query: presignedQuery('s3'),
+        path: '/my-bucket/key.txt',
+      }),
+    ),
+  ).toBe('s3')
+})
+
+it('12. routes a presigned URL against a bucket-shaped path to s3', () => {
+  // A SigV2 presigned query carries no `/s3/` credential scope, so routing
+  // falls back to the presigned-against-a-bucket-path signal.
+  const query = {
+    AWSAccessKeyId: 'AKIAIOSFODNN7EXAMPLE',
+    Signature: 'abc123def456',
+    Expires: '1900000000',
+  }
+  expect(
+    detectService(makePresignedRequest({ query, path: '/my-bucket/key.txt' })),
+  ).toBe('s3')
+})
+
+it('13. returns null for a presigned request against the service root (no bucket)', () => {
+  const query = {
+    AWSAccessKeyId: 'AKIAIOSFODNN7EXAMPLE',
+    Signature: 'abc123def456',
+    Expires: '1900000000',
+  }
+  expect(detectService(makePresignedRequest({ query, path: '/' }))).toBeNull()
+})
+
+it('14. returns null for a non-presigned, unknown request with no auth header', () => {
+  expect(
+    detectService(
+      makePresignedRequest({
+        query: { 'list-type': '2' },
+        path: '/my-bucket',
+      }),
+    ),
+  ).toBeNull()
+})
+
+it('15. an auth-header SigV4 request still routes by the header, ignoring the query', () => {
+  // Even with an s3 credential scope in the query, a present auth header for a
+  // different service wins — the additive presigned path only runs when the
+  // header did not already resolve a service.
+  expect(
+    detectService({
+      headers: { authorization: sigV4Header('sqs') },
+      query: presignedQuery('s3'),
+      path: '/my-bucket/key.txt',
+    }),
+  ).toBe('sqs')
+})
+
+it('16. tolerates a request with no query field at all', () => {
+  // The original auth-header-only callers pass `{ headers }` with no `query`.
+  expect(detectService({ headers: {} })).toBeNull()
+})

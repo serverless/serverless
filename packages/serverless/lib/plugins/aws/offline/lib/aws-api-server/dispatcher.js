@@ -1,11 +1,19 @@
 /**
- * Authorization-header-only service dispatcher for the offline AWS API server.
+ * Service dispatcher for the offline AWS API server.
  *
- * Routing is performed exclusively by inspecting the SigV4 Authorization
- * header — specifically the service segment within the Credential scope.
- * No body inspection, no X-Amz-Target header, and no signature verification
- * are performed.
+ * Primary routing inspects the SigV4 Authorization header — specifically the
+ * service segment within the Credential scope. No body inspection, no
+ * X-Amz-Target header, and no signature verification are performed.
+ *
+ * Presigned S3 URLs are the one case with no Authorization header: they carry
+ * the signature in the query string. So when the header does not resolve a
+ * service, the dispatcher additionally routes to 's3' for a presigned request
+ * whose credential scope names s3, or any presigned request against a
+ * bucket-shaped path. This fallback is additive — it never overrides a
+ * service the Authorization header already resolved.
  */
+
+import { isPresigned } from './s3/presigned.js'
 
 /**
  * The set of AWS service names that this offline implementation recognises.
@@ -26,16 +34,42 @@ const RECOGNISED_SERVICES = new Set(['lambda', 'sqs', 'sns', 's3', 'events'])
  * The service is the 4th `/`-separated segment (zero-indexed: index 3) within
  * the Credential value, i.e. the string between the region and `aws4_request`.
  *
- * @param {{ headers: Record<string, string> }} request
+ * @param {{
+ *   headers: Record<string, string>,
+ *   query?: Record<string, string>,
+ *   path?: string,
+ * }} request
  *   A Hapi request object (or any object with a `headers` map).  Hapi
  *   lower-cases all header names; the function also checks the upper-case
- *   `Authorization` key for compatibility with raw Node.js objects.
+ *   `Authorization` key for compatibility with raw Node.js objects. `query`
+ *   and `path` are consulted only for the presigned-S3 fallback.
  *
  * @returns {'lambda' | 'sqs' | 'sns' | 's3' | 'events' | null}
- *   The recognised service name, or `null` when the header is absent,
- *   not a SigV4 string, malformed, or targets an unrecognised service.
+ *   The recognised service name, the presigned-S3 fallback `'s3'`, or `null`
+ *   when nothing matches.
  */
 export function detectService(request) {
+  const headerService = detectServiceFromAuthHeader(request)
+  if (headerService) {
+    return headerService
+  }
+
+  // No service from the Authorization header: a presigned S3 URL is the one
+  // case that arrives without one, so fall back to the query-based signal.
+  if (isPresignedS3Request(request)) {
+    return 's3'
+  }
+
+  return null
+}
+
+/**
+ * Resolve the target service from the SigV4 Authorization header alone.
+ *
+ * @param {{ headers: Record<string, string> }} request
+ * @returns {'lambda' | 'sqs' | 'sns' | 's3' | 'events' | null}
+ */
+function detectServiceFromAuthHeader(request) {
   // Hapi normalises headers to lower-case; also accept the original casing.
   const authHeader =
     request.headers['authorization'] ?? request.headers['Authorization']
@@ -67,4 +101,43 @@ export function detectService(request) {
   const service = parts[3]
 
   return RECOGNISED_SERVICES.has(service) ? service : null
+}
+
+/**
+ * Whether a request without a resolvable Authorization header is a presigned
+ * S3 request. True when the presigned `X-Amz-Credential` scope names the s3
+ * service, or when the request is a presigned URL against a bucket-shaped path
+ * (a non-empty first path segment).
+ *
+ * @param {{ query?: Record<string, string>, path?: string }} request
+ * @returns {boolean}
+ */
+function isPresignedS3Request(request) {
+  const query = request.query
+  if (!query) {
+    return false
+  }
+
+  // The SigV4 credential scope names the target service directly.
+  const credential = query['X-Amz-Credential']
+  if (typeof credential === 'string' && credential.includes('/s3/')) {
+    return true
+  }
+
+  // Otherwise accept any presigned URL aimed at a bucket-shaped path (the
+  // first path segment is a non-empty bucket name, not the service root).
+  return isPresigned(query) && isBucketShapedPath(request.path)
+}
+
+/**
+ * Whether a path is bucket-shaped: it has a non-empty first segment
+ * (`/<bucket>` or `/<bucket>/<key>`), as opposed to the service root (`/`).
+ *
+ * @param {string | undefined} path
+ * @returns {boolean}
+ */
+function isBucketShapedPath(path) {
+  const trimmed = String(path || '').replace(/^\/+/, '')
+  const bucket = trimmed.split('/')[0]
+  return bucket.length > 0
 }
