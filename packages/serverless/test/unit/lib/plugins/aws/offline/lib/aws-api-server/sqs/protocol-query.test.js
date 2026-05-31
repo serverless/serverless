@@ -262,7 +262,7 @@ it('serialize renders ListQueues QueueUrls as repeated <QueueUrl> elements', () 
 // serializeError — error XML
 // ---------------------------------------------------------------------------
 
-it('serializeError emits the AWS ErrorResponse XML with the op status', () => {
+it('serializeError emits a Sender-fault ErrorResponse for a 4xx op status', () => {
   const h = makeH()
   const error = new SqsOpError(
     'AWS.SimpleQueueService.NonExistentQueue',
@@ -284,4 +284,16 @@ it('serializeError emits the AWS ErrorResponse XML with the op status', () => {
     '<Message>The specified queue does not exist: u</Message>',
   )
   expect(result.payload).toContain('<RequestId>')
+})
+
+it('serializeError emits a Receiver-fault ErrorResponse for a 5xx op status', () => {
+  const h = makeH()
+  const error = new SqsOpError('InternalFailure', 500, 'boom')
+
+  serializeError(error, h)
+  const result = h._last()
+
+  expect(result.statusCode).toBe(500)
+  expect(result.payload).toContain('<Type>Receiver</Type>')
+  expect(result.payload).not.toContain('<Type>Sender</Type>')
 })

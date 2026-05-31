@@ -412,16 +412,19 @@ export function serialize(action, result, h) {
 }
 
 /**
- * Serialize an `SqsOpError` into the AWS `ErrorResponse` XML.
+ * Serialize an `SqsOpError` into the AWS `ErrorResponse` XML. The `<Type>` is
+ * `Receiver` for a server fault (httpStatus >= 500) and `Sender` otherwise.
  *
  * @param {{ awsCode: string, httpStatus: number, message: string }} opError
  * @param {object} h - Hapi response toolkit.
  * @returns {object} Hapi response.
  */
 export function serializeError(opError, h) {
+  // A server fault (5xx) is a Receiver-side error; anything else is Sender.
+  const type = opError.httpStatus >= 500 ? 'Receiver' : 'Sender'
   const xml =
     `<ErrorResponse xmlns="${XMLNS}">` +
-    `<Error><Type>Sender</Type><Code>${escapeXml(opError.awsCode)}</Code>` +
+    `<Error><Type>${type}</Type><Code>${escapeXml(opError.awsCode)}</Code>` +
     `<Message>${escapeXml(opError.message)}</Message></Error>` +
     `<RequestId>${randomUUID()}</RequestId>` +
     `</ErrorResponse>`
