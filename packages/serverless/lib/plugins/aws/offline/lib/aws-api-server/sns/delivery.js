@@ -91,25 +91,30 @@ export function createDeliverer({
    * @returns {void}
    */
   function deliverToLambda(sub, topicArn, record) {
+    const sns = {
+      Type: 'Notification',
+      MessageId: record.messageId,
+      TopicArn: topicArn,
+      Message: record.message,
+      Timestamp: now(),
+      SignatureVersion: '1',
+      Signature: 'offline',
+      SigningCertUrl: 'http://localhost/cert.pem',
+      UnsubscribeUrl: 'http://localhost/?Action=Unsubscribe',
+      MessageAttributes: toSnsEventAttributes(record.messageAttributes),
+    }
+    // AWS omits the Subject key entirely when the publish carried no Subject.
+    if (record.subject !== undefined && record.subject !== null) {
+      sns.Subject = record.subject
+    }
+
     const event = {
       Records: [
         {
           EventSource: 'aws:sns',
           EventVersion: '1.0',
           EventSubscriptionArn: sub.arn,
-          Sns: {
-            Type: 'Notification',
-            MessageId: record.messageId,
-            TopicArn: topicArn,
-            Subject: record.subject ?? null,
-            Message: record.message,
-            Timestamp: now(),
-            SignatureVersion: '1',
-            Signature: 'offline',
-            SigningCertUrl: 'http://localhost/cert.pem',
-            UnsubscribeUrl: 'http://localhost/?Action=Unsubscribe',
-            MessageAttributes: toSnsEventAttributes(record.messageAttributes),
-          },
+          Sns: sns,
         },
       ],
     }

@@ -101,7 +101,7 @@ test('delivers to a lambda subscriber with the AWS SNS event shape', async () =>
   })
 })
 
-test('lambda Subject defaults to null when the publish had none', async () => {
+test('omits the lambda Sns.Subject key when the publish had none', async () => {
   const store = createTopicStore()
   store.ensureTopic(TOPIC_ARN, { name: 'MyTopic' })
   store.subscribe(TOPIC_ARN, {
@@ -122,7 +122,7 @@ test('lambda Subject defaults to null when the publish had none', async () => {
   await deliverer.deliver(TOPIC_ARN, makeRecord())
   await flushMicrotasks()
 
-  expect(invoke.mock.calls[0][0].Records[0].Sns.Subject).toBeNull()
+  expect('Subject' in invoke.mock.calls[0][0].Records[0].Sns).toBe(false)
 })
 
 test('a rejected lambda invoke is logged and does not throw', async () => {
