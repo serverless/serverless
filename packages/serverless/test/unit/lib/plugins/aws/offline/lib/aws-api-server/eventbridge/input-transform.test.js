@@ -102,24 +102,27 @@ it('11. InputPath takes precedence over InputTransformer', () => {
 // InputTransformer
 // ===========================================================================
 
-it('12. InputTransformer substitutes vars and parses a JSON object result', () => {
+it('12. InputTransformer auto-quotes a resolved string var so unquoted JSON is valid', () => {
   const result = applyInputTransform(EVENT, {
     inputTransformer: {
       InputPathsMap: { id: '$.detail.orderId', total: '$.detail.total' },
-      InputTemplate: '{ "order": "<id>", "amount": <total> }',
+      // No quotes around <id>: AWS auto-quotes the resolved string value, so
+      // the assembled template is valid JSON.
+      InputTemplate: '{ "order": <id>, "amount": <total> }',
     },
   })
   expect(result).toEqual({ order: 'o-9', amount: 42 })
 })
 
-it('13. InputTransformer that produces a non-JSON string delivers the string', () => {
+it('13. InputTransformer JSON-encodes a resolved string var into a plain template', () => {
   const result = applyInputTransform(EVENT, {
     inputTransformer: {
       InputPathsMap: { id: '$.detail.orderId' },
       InputTemplate: 'Order <id> received',
     },
   })
-  expect(result).toBe('Order o-9 received')
+  // The resolved string is auto-quoted, so it lands JSON-encoded in the text.
+  expect(result).toBe('Order "o-9" received')
 })
 
 it('14. InputTransformer stringifies non-string resolved values as JSON', () => {
@@ -139,7 +142,8 @@ it('15. InputTransformer substitutes every occurrence of a var', () => {
       InputTemplate: '<id>-<id>',
     },
   })
-  expect(result).toBe('o-9-o-9')
+  // Each occurrence is auto-quoted (the resolved value is a string).
+  expect(result).toBe('"o-9"-"o-9"')
 })
 
 it('16. InputTransformer supports the reserved <aws.events.event.json> var', () => {
@@ -160,4 +164,91 @@ it('17. a var that resolves to nothing substitutes an empty string', () => {
     },
   })
   expect(result).toBe('value=[]')
+})
+
+// ---------------------------------------------------------------------------
+// String auto-quoting (M4): unquoted vars yield valid JSON
+// ---------------------------------------------------------------------------
+
+it('18. an unquoted string var produces valid JSON', () => {
+  const result = applyInputTransform(EVENT, {
+    inputTransformer: {
+      InputPathsMap: { instance: '$.detail.orderId' },
+      InputTemplate: '{"id": <instance>}',
+    },
+  })
+  expect(result).toEqual({ id: 'o-9' })
+})
+
+it('19. a resolved object var is inserted as JSON (not double-encoded)', () => {
+  const result = applyInputTransform(EVENT, {
+    inputTransformer: {
+      InputPathsMap: { who: '$.detail.customer' },
+      InputTemplate: '{"customer": <who>}',
+    },
+  })
+  expect(result).toEqual({ customer: { name: 'Ada' } })
+})
+
+// ---------------------------------------------------------------------------
+// Reserved variables (M3)
+// ---------------------------------------------------------------------------
+
+it('20. <aws.events.event> inserts the event without its detail key', () => {
+  const result = applyInputTransform(EVENT, {
+    inputTransformer: {
+      InputPathsMap: {},
+      InputTemplate: '<aws.events.event>',
+    },
+  })
+  const { detail, ...withoutDetail } = EVENT
+  expect(result).toEqual(withoutDetail)
+  expect('detail' in result).toBe(false)
+})
+
+it('21. <aws.events.rule-name> and <aws.events.rule-arn> come from context', () => {
+  const result = applyInputTransform(
+    EVENT,
+    {
+      inputTransformer: {
+        InputPathsMap: {},
+        // The reserved vars are string values and auto-quoted, so they appear
+        // unquoted in the template just like InputPathsMap string vars.
+        InputTemplate:
+          '{"rule": <aws.events.rule-name>, "arn": <aws.events.rule-arn>}',
+      },
+    },
+    {
+      ruleName: 'orders-rule',
+      ruleArn: 'arn:aws:events:us-east-1:000000000000:rule/orders-rule',
+    },
+  )
+  expect(result).toEqual({
+    rule: 'orders-rule',
+    arn: 'arn:aws:events:us-east-1:000000000000:rule/orders-rule',
+  })
+})
+
+it('22. <aws.events.ingestion-time> falls back to the event time when not in context', () => {
+  const result = applyInputTransform(EVENT, {
+    inputTransformer: {
+      InputPathsMap: {},
+      InputTemplate: '{"at": <aws.events.ingestion-time>}',
+    },
+  })
+  expect(result).toEqual({ at: EVENT.time })
+})
+
+it('23. <aws.events.ingestion-time> uses the context value when provided', () => {
+  const result = applyInputTransform(
+    EVENT,
+    {
+      inputTransformer: {
+        InputPathsMap: {},
+        InputTemplate: '{"at": <aws.events.ingestion-time>}',
+      },
+    },
+    { ingestionTime: '2030-01-01T00:00:00Z' },
+  )
+  expect(result).toEqual({ at: '2030-01-01T00:00:00Z' })
 })

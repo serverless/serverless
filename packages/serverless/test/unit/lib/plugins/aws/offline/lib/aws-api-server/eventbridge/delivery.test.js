@@ -126,6 +126,38 @@ it('applies the target input transform before invoking the lambda', async () => 
   expect(invokes[0].event).toEqual({ fixed: true })
 })
 
+it('threads the rule arn and name into an InputTransformer context', async () => {
+  const store = createBusStore()
+  const { getLambdaFunction, invokes } = makeLambdas()
+  seedMatchingRule(store, [
+    {
+      id: 'fn',
+      kind: 'lambda',
+      resolved: { functionKey: 'handler' },
+      inputTransformer: {
+        InputPathsMap: {},
+        InputTemplate:
+          '{"rule": <aws.events.rule-name>, "arn": <aws.events.rule-arn>}',
+      },
+    },
+  ])
+  const deliverer = createEbDeliverer({
+    store,
+    getLambdaFunction,
+    queueStore: { send: jest.fn() },
+    snsPublish: jest.fn(),
+    logger: makeLogger(),
+  })
+
+  await deliverer.deliver('default', EVENT)
+
+  expect(invokes).toHaveLength(1)
+  expect(invokes[0].event).toEqual({
+    rule: 'orders-rule',
+    arn: 'arn:aws:events:us-east-1:000000000000:rule/orders-rule',
+  })
+})
+
 it('does not invoke a target when the rule pattern does not match', async () => {
   const store = createBusStore()
   const { getLambdaFunction, invokes } = makeLambdas()

@@ -69,7 +69,10 @@ export function createEbDeliverer({
 
       for (const target of store.listTargetsByRule(busName, ruleMeta.name)) {
         try {
-          await dispatchTarget(target, event, depth, warnedUnsupported)
+          await dispatchTarget(target, event, depth, warnedUnsupported, {
+            ruleArn: ruleMeta.arn,
+            ruleName: ruleMeta.name,
+          })
         } catch (err) {
           logger.error(
             `EventBridge delivery to target "${target.id}" on rule ` +
@@ -87,14 +90,26 @@ export function createEbDeliverer({
    * @param {object} event
    * @param {number} depth
    * @param {Set<string>} warnedUnsupported
+   * @param {{ ruleArn?: string, ruleName?: string }} ruleContext - The
+   *   delivering rule's metadata, fed to the InputTransformer reserved vars.
    * @returns {Promise<void>}
    */
-  async function dispatchTarget(target, event, depth, warnedUnsupported) {
-    const payload = applyInputTransform(event, {
-      input: target.input,
-      inputPath: target.inputPath,
-      inputTransformer: target.inputTransformer,
-    })
+  async function dispatchTarget(
+    target,
+    event,
+    depth,
+    warnedUnsupported,
+    ruleContext,
+  ) {
+    const payload = applyInputTransform(
+      event,
+      {
+        input: target.input,
+        inputPath: target.inputPath,
+        inputTransformer: target.inputTransformer,
+      },
+      ruleContext,
+    )
 
     switch (target.kind) {
       case 'lambda':
