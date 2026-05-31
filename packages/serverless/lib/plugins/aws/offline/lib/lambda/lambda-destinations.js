@@ -24,6 +24,10 @@ import {
   allLambdas,
 } from '../provisioner/registry.js'
 
+/** Fixed local-offline identity used when building the EventBridge envelope. */
+const ACCOUNT_ID = '000000000000'
+const REGION = 'us-east-1'
+
 /**
  * Resolve a destination ARN to its sink kind and a resolved descriptor, using
  * the resource registry. Mirrors the EventBridge target resolution: a lambda /
@@ -200,9 +204,16 @@ export function createDestinationRouter({
       case 'eventbus':
         await Promise.resolve(
           ebPutEvents(resolved.busName, {
+            version: '0',
+            id: uuid(),
             source: 'lambda',
             'detail-type': `Lambda Function Invocation Result - ${condition}`,
+            account: ACCOUNT_ID,
+            time: now(),
+            region: REGION,
+            resources: [functionArn],
             detail: record,
+            'event-bus-name': resolved.busName,
           }),
         ).catch(logger.error)
         return

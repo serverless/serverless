@@ -230,7 +230,7 @@ describe('createDestinationRouter', () => {
     expect(record.responsePayload).toEqual({ out: 2 })
   })
 
-  test('an event-bus destination puts a wrapped EB event entry', async () => {
+  test('an event-bus destination puts a full EB event envelope', async () => {
     const ctx = makeRouter()
     await ctx.router.route({
       functionName: 'svc-dev-worker',
@@ -244,12 +244,42 @@ describe('createDestinationRouter', () => {
     expect(ctx.ebPutEvents).toHaveLength(1)
     expect(ctx.ebPutEvents[0].busName).toBe('dest-bus')
     const ebEvent = ctx.ebPutEvents[0].event
+    // Full EventBridge envelope, not just source/detail-type/detail.
+    expect(ebEvent.version).toBe('0')
+    expect(ebEvent.id).toEqual(expect.any(String))
     expect(ebEvent.source).toBe('lambda')
     expect(ebEvent['detail-type']).toBe(
       'Lambda Function Invocation Result - Success',
     )
+    expect(ebEvent.account).toBe('000000000000')
+    expect(ebEvent.region).toBe('us-east-1')
+    expect(ebEvent.time).toEqual(expect.any(String))
+    expect(ebEvent.resources).toEqual([FUNCTION_ARN])
+    expect(ebEvent['event-bus-name']).toBe('dest-bus')
+    // detail is the async-invocation destination record.
+    expect(ebEvent.detail.version).toBe('1.0')
     expect(ebEvent.detail.requestContext.condition).toBe('Success')
     expect(ebEvent.detail.responsePayload).toEqual({ out: 2 })
+  })
+
+  test('an onFailure event-bus destination tags the envelope RetriesExhausted', async () => {
+    const ctx = makeRouter()
+    await ctx.router.route({
+      functionName: 'svc-dev-worker',
+      functionArn: FUNCTION_ARN,
+      destinations: { onFailure: BUS_ARN },
+      event: { in: 1 },
+      error: new Error('boom'),
+    })
+    await tick()
+
+    expect(ctx.ebPutEvents).toHaveLength(1)
+    const ebEvent = ctx.ebPutEvents[0].event
+    expect(ebEvent['detail-type']).toBe(
+      'Lambda Function Invocation Result - RetriesExhausted',
+    )
+    expect(ebEvent.resources).toEqual([FUNCTION_ARN])
+    expect(ebEvent.detail.requestContext.condition).toBe('RetriesExhausted')
   })
 
   test('a lambda destination invokes the resolved function async with the record', async () => {
