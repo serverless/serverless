@@ -133,6 +133,74 @@ it('8. GetObject with a Range → 206 and a Content-Range header', () => {
   expect(res.headers['Content-Length']).toBe(4)
 })
 
+it('8a. GetObject with an unsatisfiable Range (start past size) → 416 InvalidRange', () => {
+  const store = makeStore()
+  store.createBucket(BUCKET)
+  store.putObject(BUCKET, 'k', { body: Buffer.from('0123456789') })
+  const res = run(store, 'GetObject', {
+    bucket: BUCKET,
+    key: 'k',
+    range: 'bytes=50-60',
+  })
+  expect(res.statusCode).toBe(416)
+})
+
+it('8b. GetObject 416 carries Content-Range bytes */<size> and an XML error body', () => {
+  const store = makeStore()
+  store.createBucket(BUCKET)
+  store.putObject(BUCKET, 'k', { body: Buffer.from('0123456789') })
+  const res = run(store, 'GetObject', {
+    bucket: BUCKET,
+    key: 'k',
+    range: 'bytes=50-60',
+  })
+  expect(res.statusCode).toBe(416)
+  expect(res.headers['Content-Range']).toBe('bytes */10')
+  expect(res.body).toContain('<Code>InvalidRange</Code>')
+  expect(res.body).toContain('<Error>')
+})
+
+it('8c. GetObject with a reversed Range (start > end) → 416 InvalidRange', () => {
+  const store = makeStore()
+  store.createBucket(BUCKET)
+  store.putObject(BUCKET, 'k', { body: Buffer.from('0123456789') })
+  const res = run(store, 'GetObject', {
+    bucket: BUCKET,
+    key: 'k',
+    range: 'bytes=8-3',
+  })
+  expect(res.statusCode).toBe(416)
+  expect(res.headers['Content-Range']).toBe('bytes */10')
+})
+
+it('8d. GetObject with a zero-length suffix Range bytes=-0 → 416 InvalidRange', () => {
+  const store = makeStore()
+  store.createBucket(BUCKET)
+  store.putObject(BUCKET, 'k', { body: Buffer.from('0123456789') })
+  const res = run(store, 'GetObject', {
+    bucket: BUCKET,
+    key: 'k',
+    range: 'bytes=-0',
+  })
+  expect(res.statusCode).toBe(416)
+  expect(res.headers['Content-Range']).toBe('bytes */10')
+})
+
+it('8e. GetObject with a partially-valid Range (end past size) → 206 clamped', () => {
+  const store = makeStore()
+  store.createBucket(BUCKET)
+  store.putObject(BUCKET, 'k', { body: Buffer.from('0123456789') })
+  const res = run(store, 'GetObject', {
+    bucket: BUCKET,
+    key: 'k',
+    range: 'bytes=5-99',
+  })
+  expect(res.statusCode).toBe(206)
+  expect(res.body.toString()).toBe('56789')
+  expect(res.headers['Content-Range']).toBe('bytes 5-9/10')
+  expect(res.headers['Content-Length']).toBe(5)
+})
+
 it('9. GetObject missing key → NoSuchKey (404)', () => {
   const store = makeStore()
   store.createBucket(BUCKET)

@@ -66,12 +66,17 @@ function md5DigestBuffer(buffer) {
 /**
  * Parse an HTTP `bytes=start-end` Range against an object of `size` bytes.
  * Supports closed ranges (`bytes=2-5`), open-ended ranges (`bytes=4-`) and
- * suffix ranges (`bytes=-512`). Returns `null` when the header is absent or
- * not a byte range (the caller then serves the full body).
+ * suffix ranges (`bytes=-512`).
+ *
+ * Returns `null` when the header is absent or not a byte range (the caller then
+ * serves the full body). Returns `{ invalid: true }` for an unsatisfiable range
+ * — a start at or past the object size, a reversed range (`start > end`), or a
+ * zero-length suffix (`bytes=-0`) — which S3 answers with 416. A range whose end
+ * lies past the last byte is CLAMPED to `size - 1` and is satisfiable (206).
  *
  * @param {string | undefined} range
  * @param {number} size
- * @returns {{ start: number, end: number } | null}
+ * @returns {{ start: number, end: number } | { invalid: true } | null}
  */
 function parseRange(range, size) {
   if (!range) return null
@@ -82,14 +87,20 @@ function parseRange(range, size) {
   if (rawStart === '' && rawEnd === '') return null
 
   if (rawStart === '') {
-    // Suffix range: the last `rawEnd` bytes.
+    // Suffix range: the last `rawEnd` bytes. A zero-length suffix (`bytes=-0`)
+    // requests no bytes and is unsatisfiable.
     const suffix = Number(rawEnd)
+    if (suffix <= 0) return { invalid: true }
     const start = Math.max(0, size - suffix)
     return { start, end: size - 1 }
   }
 
   const start = Number(rawStart)
+  // A start at or past the size cannot be served.
+  if (start >= size) return { invalid: true }
+  // An end past the last byte is clamped; a reversed range is unsatisfiable.
   const end = rawEnd === '' ? size - 1 : Math.min(Number(rawEnd), size - 1)
+  if (start > end) return { invalid: true }
   return { start, end }
 }
 
@@ -282,6 +293,9 @@ export function createBucketStore({ onMutation, now = () => Date.now() } = {}) {
   /**
    * Retrieve an object, optionally slicing it to a byte range.
    *
+   * An unsatisfiable range (start at/past size, reversed, or `bytes=-0`) yields
+   * `{ invalidRange: true, size }` with no body, which the op layer maps to 416.
+   *
    * @param {string} bucketName
    * @param {string} key
    * @param {{ range?: string }} [options]
@@ -293,13 +307,18 @@ export function createBucketStore({ onMutation, now = () => Date.now() } = {}) {
    *   lastModified: number,
    *   size: number,
    *   contentRange?: string,
-   * } | null}
+   * } | { invalidRange: true, size: number } | null}
    */
   function getObject(bucketName, key, { range } = {}) {
     const bucket = buckets.get(bucketName)
     if (!bucket) return null
     const object = bucket.objects.get(key)
     if (!object) return null
+
+    const parsed = parseRange(range, object.size)
+    if (parsed && parsed.invalid) {
+      return { invalidRange: true, size: object.size }
+    }
 
     const base = {
       etag: object.etag,
@@ -309,7 +328,6 @@ export function createBucketStore({ onMutation, now = () => Date.now() } = {}) {
       size: object.size,
     }
 
-    const parsed = parseRange(range, object.size)
     if (parsed) {
       return {
         ...base,
@@ -764,9 +782,10 @@ export function createBucketStore({ onMutation, now = () => Date.now() } = {}) {
     }
 
     const parsed = parseRange(range, sourceObject.size)
-    const body = parsed
-      ? sourceObject.body.subarray(parsed.start, parsed.end + 1)
-      : sourceObject.body
+    const body =
+      parsed && !parsed.invalid
+        ? sourceObject.body.subarray(parsed.start, parsed.end + 1)
+        : sourceObject.body
     const etag = quotedEtag(body)
     const lastModified = now()
     upload.parts.set(Number(partNumber), {

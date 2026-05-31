@@ -237,6 +237,44 @@ it('21. getObject without a range returns the full body and no contentRange', ()
   expect(obj.contentRange).toBeUndefined()
 })
 
+it('21a. getObject signals invalidRange when the range start is at or past the size', () => {
+  const store = createBucketStore()
+  store.ensureBucket(BUCKET)
+  store.putObject(BUCKET, 'k', { body: Buffer.from('0123456789') })
+  const obj = store.getObject(BUCKET, 'k', { range: 'bytes=50-60' })
+  expect(obj.invalidRange).toBe(true)
+  expect(obj.size).toBe(10)
+  expect(obj.body).toBeUndefined()
+})
+
+it('21b. getObject signals invalidRange when start > end', () => {
+  const store = createBucketStore()
+  store.ensureBucket(BUCKET)
+  store.putObject(BUCKET, 'k', { body: Buffer.from('0123456789') })
+  const obj = store.getObject(BUCKET, 'k', { range: 'bytes=8-3' })
+  expect(obj.invalidRange).toBe(true)
+  expect(obj.size).toBe(10)
+})
+
+it('21c. getObject signals invalidRange for a zero-length suffix range bytes=-0', () => {
+  const store = createBucketStore()
+  store.ensureBucket(BUCKET)
+  store.putObject(BUCKET, 'k', { body: Buffer.from('0123456789') })
+  const obj = store.getObject(BUCKET, 'k', { range: 'bytes=-0' })
+  expect(obj.invalidRange).toBe(true)
+  expect(obj.size).toBe(10)
+})
+
+it('21d. getObject clamps a partially-valid range (end past size) to the last byte', () => {
+  const store = createBucketStore()
+  store.ensureBucket(BUCKET)
+  store.putObject(BUCKET, 'k', { body: Buffer.from('0123456789') })
+  const obj = store.getObject(BUCKET, 'k', { range: 'bytes=5-99' })
+  expect(obj.invalidRange).toBeUndefined()
+  expect(obj.body.toString()).toBe('56789')
+  expect(obj.contentRange).toBe('bytes 5-9/10')
+})
+
 // ===========================================================================
 // Copy
 // ===========================================================================

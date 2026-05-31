@@ -30,6 +30,7 @@ import {
   serializeListParts,
   serializeDeleteResult,
   serializeLocationConstraint,
+  serializeError,
   parseDeleteRequest,
   parseCompleteMultipartUpload,
 } from './xml.js'
@@ -210,6 +211,18 @@ export function runOp(operation, params, { store }) {
     case 'GetObject': {
       const object = store.getObject(bucket, key, { range: params.range })
       if (!object) throwNoSuchKey()
+      // An unsatisfiable Range is answered with 416 + `Content-Range: bytes
+      // */<size>` and the S3 InvalidRange error envelope, matching real S3.
+      if (object.invalidRange) {
+        return {
+          statusCode: 416,
+          headers: { 'Content-Range': `bytes */${object.size}` },
+          body: serializeError({
+            code: 'InvalidRange',
+            message: 'The requested range is not satisfiable',
+          }),
+        }
+      }
       const headers = objectHeaders(object)
       // The body may be a slice; report its actual length.
       headers['Content-Length'] = object.body.length
