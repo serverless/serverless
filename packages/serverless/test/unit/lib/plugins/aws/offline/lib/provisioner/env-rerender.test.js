@@ -109,6 +109,35 @@ describe('rerenderFunctionEnvironments', () => {
     expect(arn).toBe('arn:aws:sqs:us-east-1:000000000000:MyQueue')
   })
 
+  it('resolves intrinsics in a function destinations config', () => {
+    const registry = createRegistry()
+    registerSqsQueue(registry, {
+      logicalId: 'Dlq',
+      name: 'Dlq',
+      arn: 'arn:aws:sqs:us-east-1:000000000000:Dlq',
+      url: 'http://localhost:3002/000000000000/Dlq',
+      properties: {},
+    })
+    const { resolveIntrinsics: resolve } = makeResolver({ registry })
+    const serverless = {
+      service: {
+        provider: {},
+        functions: {
+          worker: {
+            destinations: {
+              onFailure: { arn: { 'Fn::GetAtt': ['Dlq', 'Arn'] } },
+            },
+          },
+        },
+      },
+    }
+
+    rerenderFunctionEnvironments(serverless, { resolveIntrinsics: resolve })
+
+    const onFailure = serverless.service.functions.worker.destinations.onFailure
+    expect(onFailure.arn).toBe('arn:aws:sqs:us-east-1:000000000000:Dlq')
+  })
+
   it('leaves a function without events untouched and does not crash', () => {
     const { resolveIntrinsics: resolve } = makeResolver()
     const serverless = {
