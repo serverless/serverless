@@ -21,6 +21,14 @@ const CODE_NON_EXISTENT_QUEUE = 'AWS.SimpleQueueService.NonExistentQueue'
 const CODE_INVALID_PARAMETER = 'AWS.SimpleQueueService.InvalidParameterValue'
 const CODE_UNKNOWN_OPERATION = 'AWS.SimpleQueueService.UnknownOperation'
 const CODE_MISSING_PARAMETER = 'AWS.SimpleQueueService.MissingParameter'
+const CODE_EMPTY_BATCH = 'AWS.SimpleQueueService.EmptyBatchRequest'
+const CODE_TOO_MANY_ENTRIES =
+  'AWS.SimpleQueueService.TooManyEntriesInBatchRequest'
+const CODE_BATCH_IDS_NOT_DISTINCT =
+  'AWS.SimpleQueueService.BatchEntryIdsNotDistinct'
+
+/** Maximum number of entries AWS accepts in a single batch request. */
+const MAX_BATCH_ENTRIES = 10
 
 /**
  * A tagged operation error. Carries the AWS error code, the HTTP status the
@@ -86,12 +94,119 @@ function resolveQueueUrl(url, { store, registry }) {
 }
 
 /**
- * Map a single message-store record to the AWS ReceiveMessage message shape.
+ * Validate the `Entries` collection of a batch request against AWS's batch
+ * constraints: it must be non-empty, carry at most 10 entries, and use distinct
+ * entry ids. All three faults are sender faults answered with a 400.
+ *
+ * @param {object[]} entries
+ * @returns {void}
+ * @throws {SqsOpError}
+ */
+function validateBatchEntries(entries) {
+  if (entries.length === 0) {
+    throw new SqsOpError(
+      CODE_EMPTY_BATCH,
+      400,
+      'There should be at least one SendMessageBatchRequestEntry in the request.',
+    )
+  }
+  if (entries.length > MAX_BATCH_ENTRIES) {
+    throw new SqsOpError(
+      CODE_TOO_MANY_ENTRIES,
+      400,
+      `Maximum number of entries per request are ${MAX_BATCH_ENTRIES}. You have sent ${entries.length}.`,
+    )
+  }
+  const seen = new Set()
+  for (const entry of entries) {
+    if (seen.has(entry.Id)) {
+      throw new SqsOpError(
+        CODE_BATCH_IDS_NOT_DISTINCT,
+        400,
+        `Id ${entry.Id} repeated.`,
+      )
+    }
+    seen.add(entry.Id)
+  }
+}
+
+/**
+ * Whether a queue url names a FIFO queue (its name ends with `.fifo`).
+ *
+ * @param {string} url
+ * @returns {boolean}
+ */
+function isFifoQueueUrl(url) {
+  return String(url).split('/').pop().endsWith('.fifo')
+}
+
+/**
+ * Validate a single send entry's FIFO-specific parameters against the queue's
+ * type and configuration. Non-FIFO queues impose no requirement.
+ *
+ * @param {object} entry - `{ MessageBody, MessageGroupId?, MessageDeduplicationId? }`
+ * @param {string} url   - The target queue url.
+ * @param {object} ctx
+ * @returns {void}
+ * @throws {SqsOpError}
+ */
+function validateFifoSendEntry(entry, url, ctx) {
+  if (!isFifoQueueUrl(url)) return
+
+  if (entry.MessageGroupId === undefined || entry.MessageGroupId === null) {
+    throw new SqsOpError(
+      CODE_MISSING_PARAMETER,
+      400,
+      'The request must contain the parameter MessageGroupId.',
+    )
+  }
+
+  const contentBasedDedup = ctx.store.getConfig(url)?.contentBasedDedup
+  if (
+    !contentBasedDedup &&
+    (entry.MessageDeduplicationId === undefined ||
+      entry.MessageDeduplicationId === null)
+  ) {
+    throw new SqsOpError(
+      CODE_INVALID_PARAMETER,
+      400,
+      'The queue should either have ContentBasedDeduplication enabled or ' +
+        'MessageDeduplicationId provided explicitly.',
+    )
+  }
+}
+
+/**
+ * Compute the set of system-attribute names a ReceiveMessage caller requested.
+ * Honors both `AttributeNames` (legacy) and `MessageSystemAttributeNames`. An
+ * `All` / `.*` member selects every name; an absent/empty selection selects
+ * none.
+ *
+ * @param {object} params
+ * @returns {{ all: boolean, names: Set<string> }}
+ */
+function requestedSystemAttributeNames(params) {
+  const requested = [
+    ...(params.AttributeNames ?? []),
+    ...(params.MessageSystemAttributeNames ?? []),
+  ]
+  const all = requested.some((name) => name === 'All' || name === '.*')
+  return { all, names: new Set(requested) }
+}
+
+/**
+ * Map a single message-store record to the AWS ReceiveMessage message shape,
+ * applying the caller's attribute selection: system `Attributes` are returned
+ * only for the names requested via `AttributeNames` /
+ * `MessageSystemAttributeNames` (`All`/`.*` ⇒ all; none requested ⇒ omitted),
+ * and user `MessageAttributes` only for the names requested via
+ * `MessageAttributeNames` (`All` ⇒ all; none requested ⇒ omitted).
  *
  * @param {object} record - A store record (see queue-store `toRecord`).
+ * @param {object} params - The ReceiveMessage params (drives attribute selection).
  * @returns {object}
  */
-function toAwsMessage(record) {
+function toAwsMessage(record, params) {
   const message = {
     MessageId: record.messageId,
     ReceiptHandle: record.receiptHandle,
@@ -99,17 +214,70 @@ function toAwsMessage(record) {
     MD5OfBody: md5(record.body),
   }
 
-  const attributesMd5 = md5OfMessageAttributes(record.messageAttributes)
+  const messageAttributes = selectMessageAttributes(
+    record.messageAttributes,
+    params,
+  )
+  const attributesMd5 = md5OfMessageAttributes(messageAttributes)
   if (attributesMd5 !== undefined) {
     message.MD5OfMessageAttributes = attributesMd5
-    message.MessageAttributes = record.messageAttributes
+    message.MessageAttributes = messageAttributes
   }
 
-  if (record.systemAttributes && Object.keys(record.systemAttributes).length) {
-    message.Attributes = record.systemAttributes
+  const systemAttributes = selectSystemAttributes(
+    record.systemAttributes,
+    params,
+  )
+  if (systemAttributes && Object.keys(systemAttributes).length) {
+    message.Attributes = systemAttributes
   }
 
   return message
+}
+
+/**
+ * Select the requested system attributes from a record's full system-attribute
+ * map. Returns `undefined` when nothing was requested.
+ *
+ * @param {object} systemAttributes
+ * @param {object} params
+ * @returns {object|undefined}
+ */
+function selectSystemAttributes(systemAttributes, params) {
+  if (!systemAttributes) return undefined
+  const { all, names } = requestedSystemAttributeNames(params)
+  if (names.size === 0) return undefined
+  if (all) return systemAttributes
+
+  const subset = {}
+  for (const [key, value] of Object.entries(systemAttributes)) {
+    if (names.has(key)) subset[key] = value
+  }
+  return subset
+}
+
+/**
+ * Select the requested user message attributes from a record's full map.
+ * Returns `undefined` when nothing was requested.
+ *
+ * @param {object} messageAttributes
+ * @param {object} params
+ * @returns {object|undefined}
+ */
+function selectMessageAttributes(messageAttributes, params) {
+  const requested = params.MessageAttributeNames ?? []
+  if (requested.length === 0) return undefined
+  if (requested.some((name) => name === 'All' || name === '.*')) {
+    return messageAttributes
+  }
+
+  const subset = {}
+  for (const name of requested) {
+    if (messageAttributes && name in messageAttributes) {
+      subset[name] = messageAttributes[name]
+    }
+  }
+  return subset
 }
 
 /**
@@ -175,6 +343,7 @@ function sendMessage(params, ctx) {
       'The request must contain the parameter MessageBody.',
     )
   }
+  validateFifoSendEntry(params, url, ctx)
 
   const sent = ctx.store.send(url, toSendOptions(params))
   return toSendResult(params, sent)
@@ -188,6 +357,7 @@ function sendMessage(params, ctx) {
 function sendMessageBatch(params, ctx) {
   const url = resolveQueueUrl(params.QueueUrl, ctx)
   const entries = params.Entries ?? []
+  validateBatchEntries(entries)
 
   const Successful = []
   const Failed = []
@@ -202,6 +372,7 @@ function sendMessageBatch(params, ctx) {
       })
       continue
     }
+    validateFifoSendEntry(entry, url, ctx)
     const sent = ctx.store.send(url, toSendOptions(entry))
     Successful.push({ Id: entry.Id, ...toSendResult(entry, sent) })
   }
@@ -216,8 +387,19 @@ function sendMessageBatch(params, ctx) {
  */
 function receiveMessage(params, ctx) {
   const url = resolveQueueUrl(params.QueueUrl, ctx)
-  const requested = params.MaxNumberOfMessages ?? 1
-  const max = Math.min(Math.max(1, Number(requested)), 10)
+
+  let max = 1
+  if (params.MaxNumberOfMessages !== undefined) {
+    max = Number(params.MaxNumberOfMessages)
+    // AWS accepts 1–10 inclusive; out-of-range is rejected, never clamped.
+    if (!Number.isInteger(max) || max < 1 || max > 10) {
+      throw new SqsOpError(
+        CODE_INVALID_PARAMETER,
+        400,
+        `Value ${params.MaxNumberOfMessages} for parameter MaxNumberOfMessages is invalid. Reason: Must be between 1 and 10, if provided.`,
+      )
+    }
+  }
 
   const options = { max }
   if (params.VisibilityTimeout !== undefined) {
@@ -227,7 +409,7 @@ function receiveMessage(params, ctx) {
   const records = ctx.store.receive(url, options)
   if (records.length === 0) return {}
 
-  return { Messages: records.map(toAwsMessage) }
+  return { Messages: records.map((record) => toAwsMessage(record, params)) }
 }
 
 /**
@@ -249,6 +431,7 @@ function deleteMessage(params, ctx) {
 function deleteMessageBatch(params, ctx) {
   const url = resolveQueueUrl(params.QueueUrl, ctx)
   const entries = params.Entries ?? []
+  validateBatchEntries(entries)
 
   const Successful = []
   const Failed = []
@@ -293,6 +476,7 @@ function changeMessageVisibility(params, ctx) {
 function changeMessageVisibilityBatch(params, ctx) {
   const url = resolveQueueUrl(params.QueueUrl, ctx)
   const entries = params.Entries ?? []
+  validateBatchEntries(entries)
 
   const Successful = []
   const Failed = []

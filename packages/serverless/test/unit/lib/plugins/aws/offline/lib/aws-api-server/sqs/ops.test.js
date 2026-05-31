@@ -9,26 +9,31 @@ import {
 } from '../../../../../../../../../lib/plugins/aws/offline/lib/provisioner/registry.js'
 
 const QUEUE_URL = 'http://localhost:3002/000000000000/TestQueue'
+const FIFO_QUEUE_URL = 'http://localhost:3002/000000000000/TestQueue.fifo'
 
 /**
- * Build a store + registry with a single queue registered at QUEUE_URL.
+ * Build a store + registry with a single queue registered. A FIFO queue is
+ * named with the `.fifo` suffix AWS requires.
  *
  * @returns {{ store: object, registry: object, ctx: object }}
  */
-function setup({ fifo = false } = {}) {
+function setup({ fifo = false, contentBasedDedup = false } = {}) {
   const store = createQueueStore()
   const registry = createRegistry()
 
-  store.ensureQueue(QUEUE_URL, { fifo })
+  const name = fifo ? 'TestQueue.fifo' : 'TestQueue'
+  const url = fifo ? FIFO_QUEUE_URL : QUEUE_URL
+
+  store.ensureQueue(url, { fifo, contentBasedDedup })
   registerSqsQueue(registry, {
     logicalId: 'TestQueue',
-    name: 'TestQueue',
-    arn: 'arn:aws:sqs:us-east-1:000000000000:TestQueue',
-    url: QUEUE_URL,
+    name,
+    arn: `arn:aws:sqs:us-east-1:000000000000:${name}`,
+    url,
     properties: {},
   })
 
-  return { store, registry, ctx: { store, registry } }
+  return { store, registry, ctx: { store, registry }, url }
 }
 
 /**
@@ -84,12 +89,12 @@ it('SendMessage with attributes returns MD5OfMessageAttributes', () => {
 })
 
 it('SendMessage to a FIFO queue returns a SequenceNumber', () => {
-  const { ctx } = setup({ fifo: true })
+  const { ctx, url } = setup({ fifo: true })
 
   const result = runOp(
     'SendMessage',
     {
-      QueueUrl: QUEUE_URL,
+      QueueUrl: url,
       MessageBody: 'hi',
       MessageGroupId: 'g1',
       MessageDeduplicationId: 'd1',
@@ -187,6 +192,60 @@ it('SendMessageBatch reports per-entry failures without aborting the batch', () 
 })
 
 // ---------------------------------------------------------------------------
+// Batch request validation (M2): EmptyBatchRequest / TooManyEntriesInBatchRequest
+// / BatchEntryIdsNotDistinct apply to all three batch actions.
+// ---------------------------------------------------------------------------
+
+const BATCH_ACTIONS = [
+  ['SendMessageBatch', (id) => ({ Id: id, MessageBody: 'x' })],
+  ['DeleteMessageBatch', (id) => ({ Id: id, ReceiptHandle: `rh-${id}` })],
+  [
+    'ChangeMessageVisibilityBatch',
+    (id) => ({ Id: id, ReceiptHandle: `rh-${id}`, VisibilityTimeout: 10 }),
+  ],
+]
+
+for (const [action, makeEntry] of BATCH_ACTIONS) {
+  it(`${action} with an empty Entries throws EmptyBatchRequest (400, SenderFault)`, () => {
+    const { ctx } = setup()
+
+    const err = catchOpError(() =>
+      runOp(action, { QueueUrl: QUEUE_URL, Entries: [] }, ctx),
+    )
+
+    expect(err).toBeInstanceOf(SqsOpError)
+    expect(err.awsCode).toBe('AWS.SimpleQueueService.EmptyBatchRequest')
+    expect(err.httpStatus).toBe(400)
+  })
+
+  it(`${action} with more than 10 entries throws TooManyEntriesInBatchRequest (400)`, () => {
+    const { ctx } = setup()
+    const Entries = Array.from({ length: 11 }, (_, i) => makeEntry(String(i)))
+
+    const err = catchOpError(() =>
+      runOp(action, { QueueUrl: QUEUE_URL, Entries }, ctx),
+    )
+
+    expect(err.awsCode).toBe(
+      'AWS.SimpleQueueService.TooManyEntriesInBatchRequest',
+    )
+    expect(err.httpStatus).toBe(400)
+  })
+
+  it(`${action} with duplicate entry Ids throws BatchEntryIdsNotDistinct (400)`, () => {
+    const { ctx } = setup()
+    const Entries = [makeEntry('dup'), makeEntry('dup')]
+
+    const err = catchOpError(() =>
+      runOp(action, { QueueUrl: QUEUE_URL, Entries }, ctx),
+    )
+
+    expect(err.awsCode).toBe('AWS.SimpleQueueService.BatchEntryIdsNotDistinct')
+    expect(err.httpStatus).toBe(400)
+  })
+}
+
+// ---------------------------------------------------------------------------
 // ReceiveMessage
 // ---------------------------------------------------------------------------
 
@@ -212,7 +271,7 @@ it('ReceiveMessage returns Body, MD5OfBody, MessageId, ReceiptHandle', () => {
   expect(msg.ReceiptHandle).toEqual(expect.any(String))
 })
 
-it('ReceiveMessage clamps MaxNumberOfMessages and includes MessageAttributes when requested', () => {
+it('ReceiveMessage honors a valid MaxNumberOfMessages (1-10)', () => {
   const { ctx } = setup()
   for (let i = 0; i < 5; i++) {
     runOp('SendMessage', { QueueUrl: QUEUE_URL, MessageBody: `m-${i}` }, ctx)
@@ -227,15 +286,251 @@ it('ReceiveMessage clamps MaxNumberOfMessages and includes MessageAttributes whe
   expect(result.Messages).toHaveLength(2)
 })
 
-it('ReceiveMessage surfaces system Attributes (ApproximateReceiveCount, SentTimestamp)', () => {
+it('ReceiveMessage surfaces system Attributes (ApproximateReceiveCount, SentTimestamp) when requested', () => {
   const { ctx } = setup()
   runOp('SendMessage', { QueueUrl: QUEUE_URL, MessageBody: 'x' }, ctx)
 
-  const result = runOp('ReceiveMessage', { QueueUrl: QUEUE_URL }, ctx)
+  const result = runOp(
+    'ReceiveMessage',
+    { QueueUrl: QUEUE_URL, AttributeNames: ['All'] },
+    ctx,
+  )
   const msg = result.Messages[0]
 
   expect(msg.Attributes.ApproximateReceiveCount).toBe('1')
   expect(msg.Attributes.SentTimestamp).toEqual(expect.any(String))
+})
+
+it('ReceiveMessage with MaxNumberOfMessages below 1 throws InvalidParameterValue (400)', () => {
+  const { ctx } = setup()
+
+  const err = catchOpError(() =>
+    runOp(
+      'ReceiveMessage',
+      { QueueUrl: QUEUE_URL, MaxNumberOfMessages: 0 },
+      ctx,
+    ),
+  )
+
+  expect(err).toBeInstanceOf(SqsOpError)
+  expect(err.awsCode).toBe('AWS.SimpleQueueService.InvalidParameterValue')
+  expect(err.httpStatus).toBe(400)
+})
+
+it('ReceiveMessage with MaxNumberOfMessages above 10 throws InvalidParameterValue (400)', () => {
+  const { ctx } = setup()
+
+  const err = catchOpError(() =>
+    runOp(
+      'ReceiveMessage',
+      { QueueUrl: QUEUE_URL, MaxNumberOfMessages: 11 },
+      ctx,
+    ),
+  )
+
+  expect(err.awsCode).toBe('AWS.SimpleQueueService.InvalidParameterValue')
+  expect(err.httpStatus).toBe(400)
+})
+
+it('ReceiveMessage omits system Attributes when none are requested', () => {
+  const { ctx } = setup()
+  runOp('SendMessage', { QueueUrl: QUEUE_URL, MessageBody: 'x' }, ctx)
+
+  const result = runOp('ReceiveMessage', { QueueUrl: QUEUE_URL }, ctx)
+
+  expect(result.Messages[0]).not.toHaveProperty('Attributes')
+})
+
+it('ReceiveMessage returns only the requested system Attributes', () => {
+  const { ctx } = setup()
+  runOp('SendMessage', { QueueUrl: QUEUE_URL, MessageBody: 'x' }, ctx)
+
+  const result = runOp(
+    'ReceiveMessage',
+    { QueueUrl: QUEUE_URL, AttributeNames: ['ApproximateReceiveCount'] },
+    ctx,
+  )
+  const attrs = result.Messages[0].Attributes
+
+  expect(attrs.ApproximateReceiveCount).toBe('1')
+  expect(attrs).not.toHaveProperty('SentTimestamp')
+  expect(attrs).not.toHaveProperty('SenderId')
+})
+
+it('ReceiveMessage with AttributeNames All returns every system Attribute', () => {
+  const { ctx } = setup()
+  runOp('SendMessage', { QueueUrl: QUEUE_URL, MessageBody: 'x' }, ctx)
+
+  const result = runOp(
+    'ReceiveMessage',
+    { QueueUrl: QUEUE_URL, AttributeNames: ['All'] },
+    ctx,
+  )
+  const attrs = result.Messages[0].Attributes
+
+  expect(attrs.ApproximateReceiveCount).toBe('1')
+  expect(attrs.SentTimestamp).toEqual(expect.any(String))
+  expect(attrs.SenderId).toEqual(expect.any(String))
+})
+
+it('ReceiveMessage honors MessageSystemAttributeNames for system Attributes', () => {
+  const { ctx } = setup()
+  runOp('SendMessage', { QueueUrl: QUEUE_URL, MessageBody: 'x' }, ctx)
+
+  const result = runOp(
+    'ReceiveMessage',
+    { QueueUrl: QUEUE_URL, MessageSystemAttributeNames: ['SentTimestamp'] },
+    ctx,
+  )
+  const attrs = result.Messages[0].Attributes
+
+  expect(attrs.SentTimestamp).toEqual(expect.any(String))
+  expect(attrs).not.toHaveProperty('ApproximateReceiveCount')
+})
+
+it('ReceiveMessage omits MessageAttributes when none are requested', () => {
+  const { ctx } = setup()
+  runOp(
+    'SendMessage',
+    {
+      QueueUrl: QUEUE_URL,
+      MessageBody: 'x',
+      MessageAttributes: { Author: { DataType: 'String', StringValue: 'a' } },
+    },
+    ctx,
+  )
+
+  const result = runOp('ReceiveMessage', { QueueUrl: QUEUE_URL }, ctx)
+
+  expect(result.Messages[0]).not.toHaveProperty('MessageAttributes')
+  expect(result.Messages[0]).not.toHaveProperty('MD5OfMessageAttributes')
+})
+
+it('ReceiveMessage returns only the requested user MessageAttributes', () => {
+  const { ctx } = setup()
+  runOp(
+    'SendMessage',
+    {
+      QueueUrl: QUEUE_URL,
+      MessageBody: 'x',
+      MessageAttributes: {
+        Author: { DataType: 'String', StringValue: 'alice' },
+        Topic: { DataType: 'String', StringValue: 'news' },
+      },
+    },
+    ctx,
+  )
+
+  const result = runOp(
+    'ReceiveMessage',
+    { QueueUrl: QUEUE_URL, MessageAttributeNames: ['Author'] },
+    ctx,
+  )
+  const msg = result.Messages[0]
+
+  expect(msg.MessageAttributes).toEqual({
+    Author: { DataType: 'String', StringValue: 'alice' },
+  })
+})
+
+it('ReceiveMessage with MessageAttributeNames All returns all user MessageAttributes', () => {
+  const { ctx } = setup()
+  runOp(
+    'SendMessage',
+    {
+      QueueUrl: QUEUE_URL,
+      MessageBody: 'x',
+      MessageAttributes: {
+        Author: { DataType: 'String', StringValue: 'alice' },
+        Topic: { DataType: 'String', StringValue: 'news' },
+      },
+    },
+    ctx,
+  )
+
+  const result = runOp(
+    'ReceiveMessage',
+    { QueueUrl: QUEUE_URL, MessageAttributeNames: ['All'] },
+    ctx,
+  )
+
+  expect(Object.keys(result.Messages[0].MessageAttributes).sort()).toEqual([
+    'Author',
+    'Topic',
+  ])
+})
+
+// ---------------------------------------------------------------------------
+// FIFO request-parameter validation (M4).
+// ---------------------------------------------------------------------------
+
+it('SendMessage to a FIFO queue without MessageGroupId throws MissingParameter (400)', () => {
+  const { ctx, url } = setup({ fifo: true })
+
+  const err = catchOpError(() =>
+    runOp(
+      'SendMessage',
+      { QueueUrl: url, MessageBody: 'x', MessageDeduplicationId: 'd1' },
+      ctx,
+    ),
+  )
+
+  expect(err).toBeInstanceOf(SqsOpError)
+  expect(err.awsCode).toBe('AWS.SimpleQueueService.MissingParameter')
+  expect(err.httpStatus).toBe(400)
+})
+
+it('SendMessage to a FIFO queue without MessageDeduplicationId (content-based off) throws InvalidParameterValue (400)', () => {
+  const { ctx, url } = setup({ fifo: true })
+
+  const err = catchOpError(() =>
+    runOp(
+      'SendMessage',
+      { QueueUrl: url, MessageBody: 'x', MessageGroupId: 'g1' },
+      ctx,
+    ),
+  )
+
+  expect(err.awsCode).toBe('AWS.SimpleQueueService.InvalidParameterValue')
+  expect(err.httpStatus).toBe(400)
+})
+
+it('SendMessage to a FIFO queue with content-based dedup needs no MessageDeduplicationId', () => {
+  const { ctx, url } = setup({ fifo: true, contentBasedDedup: true })
+
+  expect(() =>
+    runOp(
+      'SendMessage',
+      { QueueUrl: url, MessageBody: 'x', MessageGroupId: 'g1' },
+      ctx,
+    ),
+  ).not.toThrow()
+})
+
+it('SendMessageBatch to a FIFO queue validates each entry for MessageGroupId', () => {
+  const { ctx, url } = setup({ fifo: true })
+
+  const err = catchOpError(() =>
+    runOp(
+      'SendMessageBatch',
+      {
+        QueueUrl: url,
+        Entries: [{ Id: 'a', MessageBody: 'x', MessageDeduplicationId: 'd1' }],
+      },
+      ctx,
+    ),
+  )
+
+  expect(err.awsCode).toBe('AWS.SimpleQueueService.MissingParameter')
+  expect(err.httpStatus).toBe(400)
+})
+
+it('SendMessage to a non-FIFO queue needs no MessageGroupId', () => {
+  const { ctx } = setup()
+
+  expect(() =>
+    runOp('SendMessage', { QueueUrl: QUEUE_URL, MessageBody: 'x' }, ctx),
+  ).not.toThrow()
 })
 
 // ---------------------------------------------------------------------------
