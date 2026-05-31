@@ -215,7 +215,7 @@ it('16. queue-level delaySeconds applies when no per-message delay is given', ()
 // Redrive / dead-letter routing
 // ===========================================================================
 
-it('17. a message exceeding maxReceiveCount is routed to the DLQ on sweep', () => {
+it('17. a message received maxReceiveCount times is routed to the DLQ on sweep', () => {
   const clock = makeClock()
   const store = createQueueStore({ now: clock.now })
   store.ensureQueue(DLQ)
@@ -225,19 +225,14 @@ it('17. a message exceeding maxReceiveCount is routed to the DLQ on sweep', () =
   })
   store.send(Q, 'poison', {})
 
-  // Receive #1, lapse, sweep → back to available (receiveCount 1, not over).
+  // Receive #1, lapse, sweep → back to available (receiveCount 1, below max).
   store.receive(Q, 1)
   clock.tick(2_000)
   store.sweep()
   expect(store.size(DLQ)).toBe(0)
 
-  // Receive #2, lapse, sweep → back to available (receiveCount 2, == max, not over).
-  store.receive(Q, 1)
-  clock.tick(2_000)
-  store.sweep()
-  expect(store.size(DLQ)).toBe(0)
-
-  // Receive #3, lapse, sweep → receiveCount 3 > max 2 → moves to DLQ.
+  // Receive #2 (receiveCount now == max). AWS delivers at most maxReceiveCount
+  // times, so the next reclaim dead-letters instead of redelivering.
   store.receive(Q, 1)
   clock.tick(2_000)
   const woken = store.sweep()
@@ -249,6 +244,90 @@ it('17. a message exceeding maxReceiveCount is routed to the DLQ on sweep', () =
   // The DLQ message is a fresh available one carrying the original body.
   const [dead] = store.receive(DLQ, 1)
   expect(dead.body).toBe('poison')
+})
+
+// ---------------------------------------------------------------------------
+// L1 — DLQ identity: the dead-lettered message keeps its original identity.
+// ---------------------------------------------------------------------------
+
+it('17b. dead-lettering preserves the original messageId and sentAt', () => {
+  const clock = makeClock()
+  const store = createQueueStore({ now: clock.now })
+  store.ensureQueue(DLQ)
+  store.ensureQueue(Q, {
+    visibilityTimeout: 1,
+    redrive: { dlqUrl: DLQ, maxReceiveCount: 1 },
+  })
+  const { messageId } = store.send(Q, 'poison', {})
+
+  // Receive once (receiveCount == max 1); the next reclaim dead-letters it.
+  store.receive(Q, 1)
+  clock.tick(2_000)
+  store.sweep()
+
+  const [dead] = store.receive(DLQ, 1)
+  expect(dead.messageId).toBe(messageId)
+  // SentTimestamp on the DLQ copy is the source message's original sentAt.
+  expect(dead.systemAttributes.SentTimestamp).toBe('1000000')
+})
+
+// ---------------------------------------------------------------------------
+// M1 — lazy reclaim: receive reclaims expired-inflight messages inline.
+// ---------------------------------------------------------------------------
+
+it('17c. receive reclaims an expired-inflight message inline (no sweep needed)', () => {
+  const clock = makeClock()
+  const store = createQueueStore({ now: clock.now })
+  store.ensureQueue(Q, { visibilityTimeout: 30 })
+  store.send(Q, 'msg', {})
+
+  const [r1] = store.receive(Q, 1)
+  expect(r1.systemAttributes.ApproximateReceiveCount).toBe('1')
+
+  // ChangeMessageVisibility → 0 makes the message immediately receivable.
+  store.changeMessageVisibility(Q, r1.receiptHandle, 0)
+
+  // No sweep: receive itself must reclaim and redeliver it.
+  const [r2] = store.receive(Q, 1)
+  expect(r2).toBeTruthy()
+  expect(r2.body).toBe('msg')
+  expect(r2.systemAttributes.ApproximateReceiveCount).toBe('2')
+})
+
+it('17d. inline reclaim applies the dead-letter gate before redelivering', () => {
+  const clock = makeClock()
+  const store = createQueueStore({ now: clock.now })
+  store.ensureQueue(DLQ)
+  store.ensureQueue(Q, {
+    visibilityTimeout: 30,
+    redrive: { dlqUrl: DLQ, maxReceiveCount: 1 },
+  })
+  store.send(Q, 'poison', {})
+
+  const [r1] = store.receive(Q, 1)
+  // receiveCount == max 1; expire the inflight window via ChangeMessageVisibility.
+  store.changeMessageVisibility(Q, r1.receiptHandle, 0)
+
+  // Inline reclaim on the next receive must dead-letter (no redelivery), so the
+  // source queue yields nothing and the DLQ gains the message.
+  expect(store.receive(Q, 1)).toEqual([])
+  expect(store.size(Q)).toBe(0)
+  expect(store.size(DLQ)).toBe(1)
+})
+
+it('17e. inline reclaim frees the FIFO group so the reclaimed message redelivers', () => {
+  const clock = makeClock()
+  const store = createQueueStore({ now: clock.now })
+  store.ensureQueue(Q, { fifo: true, visibilityTimeout: 30 })
+  store.send(Q, { body: 'g1-a', groupId: 'g1', dedupId: 'd1' })
+
+  const [r1] = store.receive(Q, 1)
+  store.changeMessageVisibility(Q, r1.receiptHandle, 0)
+
+  const [r2] = store.receive(Q, 1)
+  expect(r2).toBeTruthy()
+  expect(r2.body).toBe('g1-a')
+  expect(r2.systemAttributes.ApproximateReceiveCount).toBe('2')
 })
 
 it('18. sweep returns the set of queue urls that gained newly-available messages', () => {
@@ -356,6 +435,25 @@ it('24. FIFO content-based dedup uses the body hash when no dedupId is given', (
   expect(store.size(Q)).toBe(1)
 })
 
+it('24b. dedup-suppressed send returns the original messageId even after the original was deleted', () => {
+  const clock = makeClock()
+  const store = createQueueStore({ now: clock.now })
+  store.ensureQueue(Q, { fifo: true })
+
+  const first = store.send(Q, { body: 'dup', groupId: 'g1', dedupId: 'same' })
+
+  // Receive and delete the original so it no longer lives in the queue.
+  const [r] = store.receive(Q, 1)
+  store.deleteMessage(Q, r.receiptHandle)
+  expect(store.size(Q)).toBe(0)
+
+  // A duplicate within the window is still suppressed and echoes the ORIGINAL
+  // messageId, even though the source message is gone.
+  const second = store.send(Q, { body: 'dup', groupId: 'g1', dedupId: 'same' })
+  expect(second.messageId).toBe(first.messageId)
+  expect(store.size(Q)).toBe(0)
+})
+
 it('25. dedup entries expire after the 5-min window, allowing re-enqueue', () => {
   const clock = makeClock()
   const store = createQueueStore({ now: clock.now })
@@ -424,6 +522,27 @@ it('30. getQueueAttributes reports counts and config-derived values', () => {
   expect(attrs.VisibilityTimeout).toBe('45')
   expect(attrs.FifoQueue).toBe('true')
   expect(JSON.parse(attrs.RedrivePolicy).maxReceiveCount).toBe(3)
+})
+
+it('30b. getQueueAttributes counts delayed messages separately from not-visible', () => {
+  const clock = makeClock()
+  const store = createQueueStore({ now: clock.now })
+  store.ensureQueue(Q)
+  // One immediately-available, one still inside its delay window.
+  store.send(Q, 'ready', {})
+  store.send(Q, { body: 'delayed', delaySeconds: 10 })
+
+  const attrs = store.getQueueAttributes(Q)
+  expect(attrs.ApproximateNumberOfMessages).toBe('1')
+  expect(attrs.ApproximateNumberOfMessagesDelayed).toBe('1')
+  // The delayed message must NOT be counted as not-visible.
+  expect(attrs.ApproximateNumberOfMessagesNotVisible).toBe('0')
+
+  // Once the delay lapses it becomes available and is no longer delayed.
+  clock.tick(10_000)
+  const after = store.getQueueAttributes(Q)
+  expect(after.ApproximateNumberOfMessages).toBe('2')
+  expect(after.ApproximateNumberOfMessagesDelayed).toBe('0')
 })
 
 it('31. setQueueAttributes mutates the live queue config', () => {

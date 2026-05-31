@@ -39,6 +39,7 @@ const SENDER_ID = 'AIDAOFFLINE'
  *   visibleAt:         number,
  *   delayUntil:        number,
  *   sentAt:            number,
+ *   enqueuedAt:        number,
  *   firstReceivedAt:   number | null,
  *   groupId?:          string,
  *   dedupId?:          string,
@@ -70,7 +71,7 @@ export function createQueueStore({ now = () => Date.now() } = {}) {
    *   config: object,
    *   messages: Message[],
    *   groupsInFlight: Set<string>,
-   *   dedup: Map<string, number>,
+   *   dedup: Map<string, { ts: number, messageId: string, sequenceNumber?: string }>,
    *   seq: number,
    *   subscribers: Set<Function>,
    * }>
@@ -174,16 +175,16 @@ export function createQueueStore({ now = () => Date.now() } = {}) {
           : undefined)
 
       if (dedupId !== undefined) {
-        const seenAt = bucket.dedup.get(dedupId)
-        if (seenAt !== undefined && ts - seenAt < DEDUP_WINDOW_MS) {
-          // Duplicate within the window: accept but do not enqueue.
-          const existing = bucket.messages.find((m) => m.dedupId === dedupId)
+        const seen = bucket.dedup.get(dedupId)
+        if (seen !== undefined && ts - seen.ts < DEDUP_WINDOW_MS) {
+          // Duplicate within the window: accept but do not enqueue. Echo the
+          // original messageId (stored in the dedup map) even after the original
+          // message has been deleted.
           return {
-            messageId: existing ? existing.messageId : randomUUID(),
-            sequenceNumber: existing ? existing.sequenceNumber : undefined,
+            messageId: seen.messageId,
+            sequenceNumber: seen.sequenceNumber,
           }
         }
-        bucket.dedup.set(dedupId, ts)
       }
 
       bucket.seq += 1
@@ -191,7 +192,16 @@ export function createQueueStore({ now = () => Date.now() } = {}) {
     }
 
     const delaySeconds = opts.delaySeconds ?? config.delaySeconds
-    const messageId = randomUUID()
+    // Dead-letter routing preserves the source message's identity; a regular
+    // send mints a fresh id and stamps the current time. `sentAt` is the
+    // reported SentTimestamp (preserved across a dead-letter move), while
+    // `enqueuedAt` always reflects the actual enqueue time and drives retention.
+    const messageId = opts.messageId ?? randomUUID()
+    const sentAt = opts.sentAt ?? ts
+
+    if (config.fifo && dedupId !== undefined) {
+      bucket.dedup.set(dedupId, { ts, messageId, sequenceNumber })
+    }
 
     /** @type {Message} */
     const message = {
@@ -204,7 +214,8 @@ export function createQueueStore({ now = () => Date.now() } = {}) {
       receiveCount: 0,
       visibleAt: ts,
       delayUntil: ts + delaySeconds * 1000,
-      sentAt: ts,
+      sentAt,
+      enqueuedAt: ts,
       firstReceivedAt: null,
       groupId: opts.groupId,
       dedupId,
@@ -285,6 +296,11 @@ export function createQueueStore({ now = () => Date.now() } = {}) {
     const visibilityTimeout =
       opts.visibilityTimeout ?? bucket.config.visibilityTimeout
     const ts = now()
+
+    // Reclaim expired-inflight messages inline so a lapsed visibility window
+    // (e.g. ChangeMessageVisibility→0) is observed immediately, with no
+    // dependency on a sweep tick. Dead-letter routing is applied here too.
+    reclaimExpired(bucket, ts)
 
     const out = []
     // Track groups claimed within this single receive so we never hand out
@@ -388,12 +404,61 @@ export function createQueueStore({ now = () => Date.now() } = {}) {
   }
 
   /**
+   * Reclaim every expired-inflight message in `bucket` (state `inflight` with a
+   * lapsed `visibleAt`). AWS delivers a message at most `maxReceiveCount` times:
+   * a message that has already been received that many times is dead-lettered
+   * (when a redrive policy is configured) instead of redelivered; otherwise it
+   * returns to the available state. The dead-letter copy preserves the source
+   * message's `messageId` and `sentAt`. The FIFO group is freed on either path.
+   *
+   * Shared by `receive` (inline, before selecting deliverable messages, so a
+   * ChangeMessageVisibility→0 is observed without a sweep) and `sweep`.
+   *
+   * @param {object} bucket
+   * @param {number} nowTs
+   * @returns {{ wokenSelf: boolean, wokenDlqs: Set<string> }}
+   */
+  function reclaimExpired(bucket, nowTs) {
+    const { config } = bucket
+    const wokenDlqs = new Set()
+    let wokenSelf = false
+    const deadLettered = new Set()
+
+    for (const m of bucket.messages) {
+      if (m.state !== 'inflight' || m.visibleAt > nowTs) continue
+
+      if (config.redrive && m.receiveCount >= config.redrive.maxReceiveCount) {
+        // Route to the dead-letter queue, preserving the message's identity.
+        freeGroup(bucket, m)
+        send(config.redrive.dlqUrl, {
+          body: m.body,
+          messageAttributes: m.messageAttributes,
+          messageId: m.messageId,
+          sentAt: m.sentAt,
+        })
+        wokenDlqs.add(config.redrive.dlqUrl)
+        deadLettered.add(m)
+        continue
+      }
+
+      returnToAvailable(bucket, m)
+      wokenSelf = true
+    }
+
+    if (deadLettered.size > 0) {
+      bucket.messages = bucket.messages.filter((m) => !deadLettered.has(m))
+    }
+
+    return { wokenSelf, wokenDlqs }
+  }
+
+  /**
    * Periodic + opportunistic maintenance pass.
    *
-   * For each inflight message whose visibility window has lapsed: route it to
-   * the dead-letter queue when a redrive policy is configured and its
-   * receiveCount exceeds `maxReceiveCount`, otherwise return it to the available
-   * state. Also drops available messages older than the retention period.
+   * Reclaims every expired-inflight message (returning it to available, or
+   * dead-lettering it once it has been received `maxReceiveCount` times — see
+   * `reclaimExpired`) and drops available messages older than the retention
+   * period.
    *
    * @param {number} [nowTs] - the reference time; defaults to `now()`.
    * @returns {Set<string>} urls that gained newly-available messages.
@@ -403,40 +468,23 @@ export function createQueueStore({ now = () => Date.now() } = {}) {
 
     for (const [url, bucket] of queues) {
       const { config } = bucket
-      const survivors = []
 
-      for (const m of bucket.messages) {
-        // Drop available messages past the retention period.
+      // Reclaim/dead-letter expired-inflight messages (shared with `receive`).
+      const { wokenSelf, wokenDlqs } = reclaimExpired(bucket, nowTs)
+      if (wokenSelf) woken.add(url)
+      for (const dlqUrl of wokenDlqs) woken.add(dlqUrl)
+
+      // Drop available messages past the retention period.
+      bucket.messages = bucket.messages.filter((m) => {
         if (
           m.state === 'available' &&
-          nowTs - m.sentAt >= config.messageRetentionPeriod * 1000
+          nowTs - m.enqueuedAt >= config.messageRetentionPeriod * 1000
         ) {
           freeGroup(bucket, m)
-          continue
+          return false
         }
-
-        if (m.state === 'inflight' && m.visibleAt <= nowTs) {
-          if (
-            config.redrive &&
-            m.receiveCount > config.redrive.maxReceiveCount
-          ) {
-            // Route to the dead-letter queue as a fresh available message.
-            freeGroup(bucket, m)
-            send(config.redrive.dlqUrl, {
-              body: m.body,
-              messageAttributes: m.messageAttributes,
-            })
-            woken.add(config.redrive.dlqUrl)
-            continue // drop from this queue
-          }
-          returnToAvailable(bucket, m)
-          woken.add(url)
-        }
-
-        survivors.push(m)
-      }
-
-      bucket.messages = survivors
+        return true
+      })
     }
 
     // Notify subscribers of queues that gained availability so pollers wake.
@@ -532,16 +580,23 @@ export function createQueueStore({ now = () => Date.now() } = {}) {
 
     let available = 0
     let notVisible = 0
+    let delayed = 0
     const ts = now()
     for (const m of bucket.messages) {
-      if (isAvailable(m, ts)) available += 1
-      else notVisible += 1
+      if (isAvailable(m, ts)) {
+        available += 1
+      } else if (m.state === 'available' && m.delayUntil > ts) {
+        // Still inside its delay window: counted as delayed, not not-visible.
+        delayed += 1
+      } else {
+        notVisible += 1
+      }
     }
 
     const all = {
       ApproximateNumberOfMessages: String(available),
       ApproximateNumberOfMessagesNotVisible: String(notVisible),
-      ApproximateNumberOfMessagesDelayed: '0',
+      ApproximateNumberOfMessagesDelayed: String(delayed),
       VisibilityTimeout: String(config.visibilityTimeout),
       DelaySeconds: String(config.delaySeconds),
       MessageRetentionPeriod: String(config.messageRetentionPeriod),
