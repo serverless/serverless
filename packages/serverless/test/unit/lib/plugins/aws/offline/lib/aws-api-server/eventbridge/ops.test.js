@@ -158,6 +158,60 @@ it('4. PutEvents reports a malformed Detail as a failed entry', async () => {
   expect(ctx.delivered[0].event.source).toBe('ok')
 })
 
+it('4b. PutEvents fails an entry missing both Source and DetailType', async () => {
+  const ctx = setup()
+  const result = await run('PutEvents', { Entries: [{ Detail: '{}' }] }, ctx)
+  expect(result.FailedEntryCount).toBe(1)
+  expect(result.Entries).toHaveLength(1)
+  expect(result.Entries[0].ErrorCode).toBe('ValidationException')
+  expect(result.Entries[0].ErrorMessage).toEqual(expect.any(String))
+  expect(result.Entries[0].EventId).toBeUndefined()
+  // No event is built or delivered for the invalid entry.
+  expect(ctx.delivered).toHaveLength(0)
+})
+
+it('4c. PutEvents fails entries missing Source or with a non-string DetailType', async () => {
+  const ctx = setup()
+  const result = await run(
+    'PutEvents',
+    {
+      Entries: [
+        { DetailType: 'd', Detail: '{}' }, // missing Source
+        { Source: 's', Detail: '{}' }, // missing DetailType
+        { Source: 's', DetailType: 5, Detail: '{}' }, // non-string DetailType
+      ],
+    },
+    ctx,
+  )
+  expect(result.FailedEntryCount).toBe(3)
+  expect(
+    result.Entries.every((e) => e.ErrorCode === 'ValidationException'),
+  ).toBe(true)
+  expect(ctx.delivered).toHaveLength(0)
+})
+
+it('4d. PutEvents in a mixed batch delivers only the valid entry', async () => {
+  const ctx = setup()
+  const result = await run(
+    'PutEvents',
+    {
+      Entries: [
+        { Source: 'shop.orders', DetailType: 'order placed', Detail: '{}' },
+        { Detail: '{}' }, // invalid — missing Source and DetailType
+      ],
+    },
+    ctx,
+  )
+  expect(result.FailedEntryCount).toBe(1)
+  expect(result.Entries).toHaveLength(2)
+  expect(result.Entries[0].EventId).toEqual(expect.any(String))
+  expect(result.Entries[1].ErrorCode).toBe('ValidationException')
+  expect(result.Entries[1].EventId).toBeUndefined()
+  // Only the valid entry was built and delivered.
+  expect(ctx.delivered).toHaveLength(1)
+  expect(ctx.delivered[0].event.source).toBe('shop.orders')
+})
+
 // ===========================================================================
 // Rules
 // ===========================================================================

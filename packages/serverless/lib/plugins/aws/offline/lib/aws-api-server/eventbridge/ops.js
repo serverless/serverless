@@ -81,7 +81,9 @@ export function runOp(action, params, ctx) {
 
 /**
  * Fan a batch of entries out to the deliverer, building a full EventBridge
- * event per entry. A malformed `Detail` fails just that entry.
+ * event per entry. An entry missing `Source` or `DetailType` (or carrying a
+ * non-string one), or with a malformed `Detail`, fails just that entry — no
+ * event is built or delivered for it.
  *
  * @param {object} params
  * @param {object} ctx
@@ -93,6 +95,21 @@ async function putEvents(params, { deliver }) {
   let failedEntryCount = 0
 
   for (const entry of entries) {
+    // AWS requires both Source and DetailType on every entry; a missing or
+    // non-string field fails that entry without building or delivering it.
+    if (
+      typeof entry.Source !== 'string' ||
+      typeof entry.DetailType !== 'string'
+    ) {
+      failedEntryCount += 1
+      resultEntries.push({
+        ErrorCode: 'ValidationException',
+        ErrorMessage:
+          'Source/DetailType are required and must be strings on every entry.',
+      })
+      continue
+    }
+
     let detail
     try {
       detail = JSON.parse(entry.Detail ?? '{}')
