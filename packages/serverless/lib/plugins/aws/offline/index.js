@@ -32,6 +32,9 @@ import { createTopicStore } from './lib/aws-api-server/sns/topic-store.js'
 import { createDeliverer } from './lib/aws-api-server/sns/delivery.js'
 import { createSnsHandlers } from './lib/aws-api-server/sns/handlers.js'
 import { wireSns } from './lib/event-sources/sns-wiring.js'
+import { createBucketStore } from './lib/aws-api-server/s3/bucket-store.js'
+import { createS3Handlers } from './lib/aws-api-server/s3/handlers.js'
+import { wireS3 } from './lib/event-sources/s3-wiring.js'
 import { createAwsApiServer } from './lib/aws-api-server/index.js'
 import { buildFunctionNameMap } from './lib/aws-api-server/lambda-invoke/name-map.js'
 import {
@@ -156,6 +159,7 @@ export function resolveOfflineOptions({ cliOptions = {}, offline = {} } = {}) {
  * @param {number} params.sqsPollerCount
  * @param {number} params.sqsQueueCount  Total provisioned SQS queues (including DLQs).
  * @param {number} params.snsTopicCount  Total SNS topics wired into the emulator.
+ * @param {number} params.s3BucketCount  Total S3 buckets wired into the emulator.
  * @param {string} params.stage
  * @param {boolean} params.useInProcess  Whether the in-process Node runner is active.
  * @param {boolean} params.useDocker  Whether Docker mode is enabled for supported runtimes.
@@ -180,6 +184,7 @@ function logBootSummary({
   sqsPollerCount,
   sqsQueueCount,
   snsTopicCount,
+  s3BucketCount,
   stage,
   useInProcess,
   useDocker,
@@ -332,6 +337,10 @@ function logBootSummary({
 
   if (snsTopicCount > 0) {
     logger.notice(`  SNS topics:      ${snsTopicCount}`)
+  }
+
+  if (s3BucketCount > 0) {
+    logger.notice(`  S3 buckets:      ${s3BucketCount}`)
   }
 
   logger.notice('')
@@ -763,6 +772,26 @@ export default class OfflinePlugin {
       logger: snsLogger,
     })
 
+    // 7c. Stand up the S3 emulator: an in-memory bucket store whose mutation
+    //     hook is wired through a one-element seam so the store can be created
+    //     before `wireS3` (which owns the notifier + drop-folder mirror) exists.
+    //     `wireS3` ensures buckets from the registry and `events: - s3`, builds
+    //     the S3 → Lambda notifier, starts a drop-folder watcher per bucket, and
+    //     returns the combined `onMutation` that both notifies and mirrors SDK
+    //     writes to disk. The watchers are torn down on shutdown (below).
+    const s3Logger = log.get('sls:offline:s3')
+    const s3Mut = { fn: null }
+    const s3Store = createBucketStore({ onMutation: (ev) => s3Mut.fn?.(ev) })
+    const s3Handlers = createS3Handlers({ store: s3Store })
+    const s3Wired = await wireS3({
+      serverless,
+      registry,
+      store: s3Store,
+      getLambdaFunction,
+      logger: s3Logger,
+    })
+    s3Mut.fn = s3Wired.onMutation
+
     // 8. Start SQS pollers so subscribers are in place before the server
     //    starts accepting connections.
     const pollerController = await startSqsPollers({
@@ -905,7 +934,7 @@ export default class OfflinePlugin {
     const awsApiServer = await createAwsApiServer({
       awsApiPort,
       host: awsApiBindHost,
-      handlers: { sqs: sqsHandlers, sns: snsHandlers },
+      handlers: { sqs: sqsHandlers, sns: snsHandlers, s3: s3Handlers },
       logger: log.get('sls:offline:aws-api'),
       // Mount the Lambda Runtime API routes when any Go function is in
       // the service. The Go runner enqueues into this queue; the routes
@@ -936,6 +965,11 @@ export default class OfflinePlugin {
       clearInterval(sweeper)
       await pollerController.stop()
     })
+    // Stop the S3 drop-folder watchers (one per bucket). Closing each chokidar
+    // watcher releases its filesystem handles so the process can exit cleanly.
+    orchestrator.onShutdown(() =>
+      Promise.all(s3Wired.watchers.map((watcher) => watcher.stop())),
+    )
     // Scheduler teardown registered BEFORE runner.terminate so LIFO drains
     // in-flight schedule invocations before runners shut down.
     orchestrator.onShutdown(() => scheduler.stop())
@@ -1002,6 +1036,7 @@ export default class OfflinePlugin {
           sqsPollerCount: pollerController.pollerCount,
           sqsQueueCount: sqsRecords.length,
           snsTopicCount,
+          s3BucketCount: s3Wired.bucketCount,
           stage,
           useInProcess,
           useDocker,
