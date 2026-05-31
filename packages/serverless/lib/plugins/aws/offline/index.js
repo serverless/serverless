@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { randomUUID } from 'node:crypto'
 import { DockerClient, log } from '@serverless/util'
 import { LambdaClient } from '@aws-sdk/client-lambda'
 import ServerlessError from '../../../serverless-error.js'
@@ -35,6 +36,10 @@ import { wireSns } from './lib/event-sources/sns-wiring.js'
 import { createBucketStore } from './lib/aws-api-server/s3/bucket-store.js'
 import { createS3Handlers } from './lib/aws-api-server/s3/handlers.js'
 import { wireS3 } from './lib/event-sources/s3-wiring.js'
+import { createBusStore } from './lib/aws-api-server/eventbridge/bus-store.js'
+import { createEbDeliverer } from './lib/aws-api-server/eventbridge/delivery.js'
+import { createEventBridgeHandlers } from './lib/aws-api-server/eventbridge/handlers.js'
+import { wireEventBridge } from './lib/event-sources/eb-wiring.js'
 import { createAwsApiServer } from './lib/aws-api-server/index.js'
 import { buildFunctionNameMap } from './lib/aws-api-server/lambda-invoke/name-map.js'
 import {
@@ -160,6 +165,7 @@ export function resolveOfflineOptions({ cliOptions = {}, offline = {} } = {}) {
  * @param {number} params.sqsQueueCount  Total provisioned SQS queues (including DLQs).
  * @param {number} params.snsTopicCount  Total SNS topics wired into the emulator.
  * @param {number} params.s3BucketCount  Total S3 buckets wired into the emulator.
+ * @param {number} params.ebRuleCount  Total EventBridge rules wired into the emulator.
  * @param {string} params.stage
  * @param {boolean} params.useInProcess  Whether the in-process Node runner is active.
  * @param {boolean} params.useDocker  Whether Docker mode is enabled for supported runtimes.
@@ -185,6 +191,7 @@ function logBootSummary({
   sqsQueueCount,
   snsTopicCount,
   s3BucketCount,
+  ebRuleCount,
   stage,
   useInProcess,
   useDocker,
@@ -341,6 +348,10 @@ function logBootSummary({
 
   if (s3BucketCount > 0) {
     logger.notice(`  S3 buckets:      ${s3BucketCount}`)
+  }
+
+  if (ebRuleCount > 0) {
+    logger.notice(`  EventBridge rules: ${ebRuleCount}`)
   }
 
   logger.notice('')
@@ -792,6 +803,37 @@ export default class OfflinePlugin {
     })
     s3Mut.fn = s3Wired.onMutation
 
+    // 7d. Stand up the EventBridge emulator: an in-memory bus store, a
+    //     synchronous PutEvents fan-out deliverer (Lambda invoke + SQS send +
+    //     SNS publish + cross-bus re-delivery), and the JSON-RPC handlers.
+    //     `wireEventBridge` derives buses, rules, and lambda targets from the
+    //     registry and each function's `events: - eventBridge` pattern. SNS
+    //     fan-out is reached through a thin publish seam over the SNS deliverer
+    //     so an EB → SNS target reuses the topic store. Like SNS, delivery is
+    //     synchronous on PutEvents — there is no poller or timer to tear down.
+    const ebLogger = log.get('sls:offline:eventbridge')
+    const ebStore = createBusStore()
+    const snsPublish = (topicArn, message) =>
+      snsDeliver.deliver(topicArn, { messageId: randomUUID(), message })
+    const ebDeliver = createEbDeliverer({
+      store: ebStore,
+      getLambdaFunction,
+      queueStore: store,
+      snsPublish,
+      logger: ebLogger,
+    })
+    const ebHandlers = createEventBridgeHandlers({
+      store: ebStore,
+      registry,
+      deliver: ebDeliver.deliver,
+    })
+    const { ruleCount: ebRuleCount } = wireEventBridge({
+      serverless,
+      registry,
+      store: ebStore,
+      logger: ebLogger,
+    })
+
     // 8. Start SQS pollers so subscribers are in place before the server
     //    starts accepting connections.
     const pollerController = await startSqsPollers({
@@ -934,7 +976,12 @@ export default class OfflinePlugin {
     const awsApiServer = await createAwsApiServer({
       awsApiPort,
       host: awsApiBindHost,
-      handlers: { sqs: sqsHandlers, sns: snsHandlers, s3: s3Handlers },
+      handlers: {
+        sqs: sqsHandlers,
+        sns: snsHandlers,
+        s3: s3Handlers,
+        events: ebHandlers,
+      },
       logger: log.get('sls:offline:aws-api'),
       // Mount the Lambda Runtime API routes when any Go function is in
       // the service. The Go runner enqueues into this queue; the routes
@@ -1037,6 +1084,7 @@ export default class OfflinePlugin {
           sqsQueueCount: sqsRecords.length,
           snsTopicCount,
           s3BucketCount: s3Wired.bucketCount,
+          ebRuleCount,
           stage,
           useInProcess,
           useDocker,
