@@ -188,14 +188,7 @@ function evaluateCondition(value, condition, fieldExists) {
 
   const anythingBut = condition['anything-but']
   if (anythingBut) {
-    if (isPlainObject(anythingBut)) {
-      const notPrefix = anythingBut.prefix
-      return !String(value).startsWith(notPrefix)
-    }
-    if (Array.isArray(anythingBut)) {
-      return !anythingBut.includes(value)
-    }
-    return value !== anythingBut
+    return evaluateAnythingBut(anythingBut, value)
   }
 
   const prefix = condition.prefix
@@ -224,6 +217,53 @@ function evaluateCondition(value, condition, fieldExists) {
   }
 
   return false
+}
+
+/**
+ * Evaluate an `anything-but` operand against a concrete value. The operand is
+ * one of: a scalar (matches anything but that value), a list (matches anything
+ * not in the list), or an operator object — `{ prefix }`, `{ suffix }`, or
+ * `{ equals-ignore-case }` (scalar or list) — each negated so the condition
+ * holds when the value does NOT satisfy the wrapped operator. Any unrecognised
+ * operator object yields no match, mirroring real AWS SNS rather than letting
+ * an unsupported shape through as a spurious match.
+ *
+ * @param {*} anythingBut
+ * @param {*} value
+ * @returns {boolean}
+ */
+function evaluateAnythingBut(anythingBut, value) {
+  if (isPlainObject(anythingBut)) {
+    const notPrefix = anythingBut.prefix
+    if (notPrefix != null) {
+      return !String(value).startsWith(notPrefix)
+    }
+
+    const notSuffix = anythingBut.suffix
+    if (notSuffix != null) {
+      return !String(value).endsWith(notSuffix)
+    }
+
+    const notEqualsIgnoreCase = anythingBut['equals-ignore-case']
+    if (notEqualsIgnoreCase != null) {
+      const candidates = Array.isArray(notEqualsIgnoreCase)
+        ? notEqualsIgnoreCase
+        : [notEqualsIgnoreCase]
+      const lowered = String(value).toLowerCase()
+      return !candidates.some(
+        (entry) => String(entry).toLowerCase() === lowered,
+      )
+    }
+
+    // An unrecognised operator object never matches.
+    return false
+  }
+
+  if (Array.isArray(anythingBut)) {
+    return !anythingBut.includes(value)
+  }
+
+  return value !== anythingBut
 }
 
 /**

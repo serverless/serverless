@@ -231,6 +231,61 @@ it('18. { anything-but: { prefix } } matches values not starting with prefix', (
   ).toBe(false)
 })
 
+it('18a. { anything-but: { suffix } } matches values not ending with suffix', () => {
+  const policy = { file: [{ 'anything-but': { suffix: '.png' } }] }
+  expect(
+    matchesFilterPolicy(policy, {
+      messageAttributes: { file: attr('String', 'photo.jpg') },
+    }),
+  ).toBe(true)
+  expect(
+    matchesFilterPolicy(policy, {
+      messageAttributes: { file: attr('String', 'photo.png') },
+    }),
+  ).toBe(false)
+})
+
+it('18b. { anything-but: { equals-ignore-case } } negates a case-insensitive match', () => {
+  const policy = {
+    name: [{ 'anything-but': { 'equals-ignore-case': 'Alice' } }],
+  }
+  expect(
+    matchesFilterPolicy(policy, {
+      messageAttributes: { name: attr('String', 'bob') },
+    }),
+  ).toBe(true)
+  expect(
+    matchesFilterPolicy(policy, {
+      messageAttributes: { name: attr('String', 'ALICE') },
+    }),
+  ).toBe(false)
+})
+
+it('18c. { anything-but: { equals-ignore-case: [list] } } negates any case-insensitive match', () => {
+  const policy = {
+    name: [{ 'anything-but': { 'equals-ignore-case': ['Alice', 'Bob'] } }],
+  }
+  expect(
+    matchesFilterPolicy(policy, {
+      messageAttributes: { name: attr('String', 'carol') },
+    }),
+  ).toBe(true)
+  expect(
+    matchesFilterPolicy(policy, {
+      messageAttributes: { name: attr('String', 'BOB') },
+    }),
+  ).toBe(false)
+})
+
+it('18d. an unknown anything-but operator object does not match (no spurious match)', () => {
+  const policy = { region: [{ 'anything-but': { wildcard: 'us-*' } }] }
+  expect(
+    matchesFilterPolicy(policy, {
+      messageAttributes: { region: attr('String', 'eu-west-1') },
+    }),
+  ).toBe(false)
+})
+
 // ===========================================================================
 // numeric — single op and ranges
 // ===========================================================================
