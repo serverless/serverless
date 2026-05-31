@@ -368,6 +368,106 @@ test('skips an unsupported target and debug-logs once per protocol', async () =>
   expect(logger.debug).toHaveBeenCalledTimes(1)
 })
 
+test('MessageStructure json delivers the protocol-specific entry to each subscriber', async () => {
+  const store = createTopicStore()
+  store.ensureTopic(TOPIC_ARN, { name: 'MyTopic' })
+  store.subscribe(TOPIC_ARN, {
+    protocol: 'lambda',
+    endpoint: 'arn',
+    target: { kind: 'lambda', functionKey: 'fn' },
+  })
+  store.subscribe(TOPIC_ARN, {
+    protocol: 'sqs',
+    endpoint: 'arn',
+    target: { kind: 'sqs', queueUrl: QUEUE_URL },
+  })
+
+  const invoke = jest.fn().mockResolvedValue(undefined)
+  const send = jest.fn()
+  const deliverer = createDeliverer({
+    store,
+    getLambdaFunction: () => makeLambdaFn(invoke),
+    queueStore: { send },
+    logger: makeLogger(),
+    now: () => FIXED_TIMESTAMP,
+  })
+
+  await deliverer.deliver(
+    TOPIC_ARN,
+    makeRecord({
+      messageStructure: 'json',
+      message: JSON.stringify({
+        default: 'for-everyone',
+        lambda: 'for-lambda',
+        sqs: 'for-sqs',
+      }),
+    }),
+  )
+  await flushMicrotasks()
+
+  expect(invoke.mock.calls[0][0].Records[0].Sns.Message).toBe('for-lambda')
+  const envelope = JSON.parse(send.mock.calls[0][1].body)
+  expect(envelope.Message).toBe('for-sqs')
+})
+
+test('MessageStructure json falls back to the default entry when the protocol key is absent', async () => {
+  const store = createTopicStore()
+  store.ensureTopic(TOPIC_ARN, { name: 'MyTopic' })
+  store.subscribe(TOPIC_ARN, {
+    protocol: 'sqs',
+    endpoint: 'arn',
+    target: { kind: 'sqs', queueUrl: QUEUE_URL },
+  })
+
+  const send = jest.fn()
+  const deliverer = createDeliverer({
+    store,
+    getLambdaFunction: jest.fn(),
+    queueStore: { send },
+    logger: makeLogger(),
+    now: () => FIXED_TIMESTAMP,
+  })
+
+  await deliverer.deliver(
+    TOPIC_ARN,
+    makeRecord({
+      messageStructure: 'json',
+      message: JSON.stringify({ default: 'fallback', lambda: 'for-lambda' }),
+    }),
+  )
+
+  const envelope = JSON.parse(send.mock.calls[0][1].body)
+  expect(envelope.Message).toBe('fallback')
+})
+
+test('MessageStructure json skips a subscriber with neither its protocol nor a default entry', async () => {
+  const store = createTopicStore()
+  store.ensureTopic(TOPIC_ARN, { name: 'MyTopic' })
+  store.subscribe(TOPIC_ARN, {
+    protocol: 'sqs',
+    endpoint: 'arn',
+    target: { kind: 'sqs', queueUrl: QUEUE_URL },
+  })
+
+  const send = jest.fn()
+  const deliverer = createDeliverer({
+    store,
+    getLambdaFunction: jest.fn(),
+    queueStore: { send },
+    logger: makeLogger(),
+  })
+
+  await deliverer.deliver(
+    TOPIC_ARN,
+    makeRecord({
+      messageStructure: 'json',
+      message: JSON.stringify({ lambda: 'for-lambda' }),
+    }),
+  )
+
+  expect(send).not.toHaveBeenCalled()
+})
+
 test('delivers to every matching subscriber on the topic', async () => {
   const store = createTopicStore()
   store.ensureTopic(TOPIC_ARN, { name: 'MyTopic' })

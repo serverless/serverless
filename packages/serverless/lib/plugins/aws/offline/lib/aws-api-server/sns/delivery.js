@@ -46,10 +46,17 @@ export function createDeliverer({
    * Fan a published message out to every matching subscription on the topic.
    *
    * @param {string} topicArn
-   * @param {object} record - `{ messageId, message, subject?, messageAttributes }`
+   * @param {object} record - `{ messageId, message, subject?, messageAttributes, messageStructure? }`
    * @returns {Promise<void>}
    */
   async function deliver(topicArn, record) {
+    // For a `json` message structure the body is a protocol→message map, parsed
+    // once here and selected per-subscription below.
+    const structuredMessage =
+      record.messageStructure === 'json'
+        ? parseStructuredMessage(record.message)
+        : null
+
     for (const sub of store.listSubscriptionsByTopic(topicArn)) {
       if (
         sub.filterPolicy != null &&
@@ -62,12 +69,25 @@ export function createDeliverer({
         continue
       }
 
+      // Resolve the message this subscriber receives. With a `json` structure,
+      // pick the protocol-specific entry (falling back to `default`); when
+      // neither is present, AWS requires `default` — here we skip gracefully.
+      let message = record.message
+      if (structuredMessage != null) {
+        const selected = selectStructuredMessage(
+          structuredMessage,
+          sub.protocol,
+        )
+        if (selected === undefined) continue
+        message = selected
+      }
+
       switch (sub.target.kind) {
         case 'lambda':
-          deliverToLambda(sub, topicArn, record)
+          deliverToLambda(sub, topicArn, record, message)
           break
         case 'sqs':
-          deliverToSqs(sub, topicArn, record)
+          deliverToSqs(sub, topicArn, record, message)
           break
         default:
           if (!warnedUnsupported.has(sub.target.protocol)) {
@@ -88,14 +108,15 @@ export function createDeliverer({
    * @param {object} sub
    * @param {string} topicArn
    * @param {object} record
+   * @param {string} message - the message body resolved for this subscriber.
    * @returns {void}
    */
-  function deliverToLambda(sub, topicArn, record) {
+  function deliverToLambda(sub, topicArn, record, message) {
     const sns = {
       Type: 'Notification',
       MessageId: record.messageId,
       TopicArn: topicArn,
-      Message: record.message,
+      Message: message,
       Timestamp: now(),
       SignatureVersion: '1',
       Signature: 'offline',
@@ -136,12 +157,13 @@ export function createDeliverer({
    * @param {object} sub
    * @param {string} topicArn
    * @param {object} record
+   * @param {string} message - the message body resolved for this subscriber.
    * @returns {void}
    */
-  function deliverToSqs(sub, topicArn, record) {
+  function deliverToSqs(sub, topicArn, record, message) {
     if (sub.rawMessageDelivery) {
       queueStore.send(sub.target.queueUrl, {
-        body: record.message,
+        body: message,
         messageAttributes: record.messageAttributes,
       })
       return
@@ -151,7 +173,7 @@ export function createDeliverer({
       Type: 'Notification',
       MessageId: record.messageId,
       TopicArn: topicArn,
-      Message: record.message,
+      Message: message,
       Timestamp: now(),
       SignatureVersion: '1',
       Signature: 'offline',
@@ -170,6 +192,46 @@ export function createDeliverer({
   }
 
   return { deliver }
+}
+
+/**
+ * Parse a `MessageStructure: 'json'` body into its protocol→message map. A body
+ * that is not a JSON object yields an empty map, so every subscriber falls
+ * through to the skip path rather than receiving the raw JSON string.
+ *
+ * @param {string} message
+ * @returns {object}
+ */
+function parseStructuredMessage(message) {
+  let parsed
+  try {
+    parsed = JSON.parse(message)
+  } catch {
+    return {}
+  }
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    return {}
+  }
+  return parsed
+}
+
+/**
+ * Select the message a given protocol receives from a parsed `json` structure:
+ * the protocol-specific entry when present, otherwise the `default` entry.
+ * Returns `undefined` when neither exists (the subscriber is skipped).
+ *
+ * @param {object} structuredMessage
+ * @param {string} protocol
+ * @returns {string|undefined}
+ */
+function selectStructuredMessage(structuredMessage, protocol) {
+  if (typeof structuredMessage[protocol] === 'string') {
+    return structuredMessage[protocol]
+  }
+  if (typeof structuredMessage.default === 'string') {
+    return structuredMessage.default
+  }
+  return undefined
 }
 
 /**
