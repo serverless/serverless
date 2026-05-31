@@ -9,6 +9,9 @@
 
 import { randomUUID } from 'node:crypto'
 
+/** FIFO deduplication window: a duplicate id within 5 minutes is suppressed. */
+const DEDUP_WINDOW_MS = 5 * 60 * 1000
+
 /**
  * @typedef {{
  *   arn:         string,
@@ -41,13 +44,21 @@ import { randomUUID } from 'node:crypto'
 /**
  * Creates and returns a fresh, empty in-memory SNS store.
  *
+ * @param {{ now?: () => number }} [options]
+ *   `now` returns the current epoch-millis; inject a mutable clock under test
+ *   so the FIFO deduplication window is deterministic (mirrors the queue store).
  * @returns {object} The store API (see method JSDoc below).
  */
-export function createTopicStore() {
+export function createTopicStore({ now = () => Date.now() } = {}) {
   /** @type {Map<string, Topic>} keyed by topic ARN. */
   const topics = new Map()
   /** @type {Map<string, Subscription>} keyed by subscription ARN. */
   const subscriptions = new Map()
+  /**
+   * @type {Map<string, Map<string, { ts: number, messageId: string }>>}
+   * per-topic FIFO dedup id → last-seen timestamp and the accepted message id.
+   */
+  const dedup = new Map()
 
   /**
    * Ensure a topic exists for `arn`. Idempotent — re-ensuring keeps the
@@ -119,6 +130,7 @@ export function createTopicStore() {
    */
   function deleteTopic(arn) {
     topics.delete(arn)
+    dedup.delete(arn)
     for (const [subArn, sub] of subscriptions) {
       if (sub.topicArn === arn) subscriptions.delete(subArn)
     }
@@ -302,6 +314,39 @@ export function createTopicStore() {
     }
   }
 
+  /**
+   * Record a FIFO deduplication id for a topic and report whether it is new.
+   *
+   * Returns `{ isNew: true, messageId }` when the id has not been seen within
+   * the last 5 minutes — the publish proceeds and `messageId` echoes back the
+   * caller's candidate (which is stored as the canonical id for the window).
+   * Returns `{ isNew: false, messageId }` when the id is a duplicate inside the
+   * window — the publish should be suppressed and `messageId` is the ORIGINAL
+   * accepted id, so callers can return it verbatim. A duplicate whose previous
+   * sighting has aged past the window is treated as new and re-stamped.
+   *
+   * @param {string} topicArn
+   * @param {string} dedupId
+   * @param {string} messageId - the candidate id for a first-seen publish.
+   * @returns {{ isNew: boolean, messageId: string }}
+   */
+  function recordDedup(topicArn, dedupId, messageId) {
+    const ts = now()
+    let seen = dedup.get(topicArn)
+    if (!seen) {
+      seen = new Map()
+      dedup.set(topicArn, seen)
+    }
+
+    const last = seen.get(dedupId)
+    if (last !== undefined && ts - last.ts < DEDUP_WINDOW_MS) {
+      return { isNew: false, messageId: last.messageId }
+    }
+
+    seen.set(dedupId, { ts, messageId })
+    return { isNew: true, messageId }
+  }
+
   return {
     ensureTopic,
     getTopicByArn,
@@ -317,6 +362,7 @@ export function createTopicStore() {
     listSubscriptionsByTopic,
     getSubscriptionAttributes,
     setSubscriptionAttributes,
+    recordDedup,
   }
 }
 

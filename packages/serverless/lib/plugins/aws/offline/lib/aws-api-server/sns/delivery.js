@@ -152,7 +152,9 @@ export function createDeliverer({
   /**
    * Enqueue the message into the target SQS queue. With raw-message-delivery the
    * bare message goes through verbatim with its attributes; otherwise the SNS
-   * notification JSON envelope becomes the SQS body.
+   * notification JSON envelope becomes the SQS body. A FIFO publish forwards its
+   * group and deduplication ids so a FIFO SQS subscriber preserves ordering and
+   * dedup; the queue store ignores them for a standard queue.
    *
    * @param {object} sub
    * @param {string} topicArn
@@ -165,6 +167,8 @@ export function createDeliverer({
       queueStore.send(sub.target.queueUrl, {
         body: message,
         messageAttributes: record.messageAttributes,
+        groupId: record.messageGroupId,
+        dedupId: record.messageDeduplicationId,
       })
       return
     }
@@ -188,7 +192,11 @@ export function createDeliverer({
       envelope.MessageAttributes = eventAttributes
     }
 
-    queueStore.send(sub.target.queueUrl, { body: JSON.stringify(envelope) })
+    queueStore.send(sub.target.queueUrl, {
+      body: JSON.stringify(envelope),
+      groupId: record.messageGroupId,
+      dedupId: record.messageDeduplicationId,
+    })
   }
 
   return { deliver }

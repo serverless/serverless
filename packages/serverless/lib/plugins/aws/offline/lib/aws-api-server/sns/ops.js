@@ -12,7 +12,7 @@
  * into here. `Publish` fans out by calling the caller-supplied `deliver`.
  */
 
-import { randomUUID } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 
 import { allLambdas, allSqsQueues } from '../../provisioner/registry.js'
 import { arnFor } from '../../provisioner/arn-synth.js'
@@ -424,8 +424,44 @@ async function publish(params, ctx) {
   validatePublishEntry(params, topic.fifo)
 
   const record = toPublishRecord(params)
+
+  // FIFO topics deduplicate: an explicit MessageDeduplicationId, or a SHA-256 of
+  // the body when the topic has ContentBasedDeduplication. A duplicate within
+  // the 5-minute window is suppressed — the original MessageId is returned and
+  // delivery is skipped.
+  const dedupId = effectiveDedupId(topic, record)
+  if (dedupId !== undefined) {
+    const { isNew, messageId } = ctx.store.recordDedup(
+      topicArn,
+      dedupId,
+      record.messageId,
+    )
+    if (!isNew) return { MessageId: messageId }
+  }
+
   await ctx.deliver(topicArn, record)
   return { MessageId: record.messageId }
+}
+
+/**
+ * Resolve the FIFO deduplication id for a publish, or `undefined` when the topic
+ * is not FIFO or no id applies. Prefers an explicit `MessageDeduplicationId`;
+ * otherwise, when the topic has `ContentBasedDeduplication`, derives a SHA-256
+ * of the message body.
+ *
+ * @param {object} topic
+ * @param {object} record
+ * @returns {string|undefined}
+ */
+function effectiveDedupId(topic, record) {
+  if (!topic.fifo) return undefined
+  if (record.messageDeduplicationId != null) {
+    return record.messageDeduplicationId
+  }
+  if (topic.attributes?.ContentBasedDeduplication === 'true') {
+    return createHash('sha256').update(record.message, 'utf8').digest('hex')
+  }
+  return undefined
 }
 
 /**

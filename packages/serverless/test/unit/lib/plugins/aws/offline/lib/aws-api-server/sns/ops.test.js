@@ -19,16 +19,20 @@ const QUEUE_ARN = 'arn:aws:sqs:us-east-1:000000000000:TestQueue'
  * Build a store + registry pre-seeded with a topic, a lambda identity, and an
  * SQS queue, plus a spy `deliver`. Returns the ctx ops consume.
  *
- * @param {{ fifo?: boolean }} [opts]
+ * @param {{ fifo?: boolean, contentBasedDedup?: boolean }} [opts]
  * @returns {{ store: object, registry: object, ctx: object, delivered: object[] }}
  */
-function setup({ fifo = false } = {}) {
+function setup({ fifo = false, contentBasedDedup = false } = {}) {
   const store = createTopicStore()
   const registry = createRegistry()
 
   const arn = fifo ? FIFO_TOPIC_ARN : TOPIC_ARN
   const name = fifo ? 'TestTopic.fifo' : 'TestTopic'
-  store.ensureTopic(arn, { name, fifo })
+  store.ensureTopic(arn, {
+    name,
+    fifo,
+    attributes: contentBasedDedup ? { ContentBasedDeduplication: 'true' } : {},
+  })
 
   registerLambda(registry, {
     logicalId: 'MyFn',
@@ -523,6 +527,114 @@ it('Publish to a FIFO topic with a MessageGroupId succeeds and carries the group
 
   expect(result.MessageId).toEqual(expect.any(String))
   expect(delivered[0].record.messageGroupId).toBe('g1')
+})
+
+it('Publish to a FIFO topic carries the MessageDeduplicationId on the record', async () => {
+  const { ctx, delivered } = setup({ fifo: true })
+
+  await runOp(
+    'Publish',
+    {
+      TopicArn: FIFO_TOPIC_ARN,
+      Message: 'x',
+      MessageGroupId: 'g1',
+      MessageDeduplicationId: 'd1',
+    },
+    ctx,
+  )
+
+  expect(delivered[0].record.messageDeduplicationId).toBe('d1')
+})
+
+it('Publish suppresses a duplicate MessageDeduplicationId within the window', async () => {
+  const { ctx, delivered } = setup({ fifo: true })
+
+  const first = await runOp(
+    'Publish',
+    {
+      TopicArn: FIFO_TOPIC_ARN,
+      Message: 'x',
+      MessageGroupId: 'g1',
+      MessageDeduplicationId: 'd1',
+    },
+    ctx,
+  )
+  const second = await runOp(
+    'Publish',
+    {
+      TopicArn: FIFO_TOPIC_ARN,
+      Message: 'y',
+      MessageGroupId: 'g1',
+      MessageDeduplicationId: 'd1',
+    },
+    ctx,
+  )
+
+  // The duplicate is suppressed: deliver runs once and the original id echoes.
+  expect(delivered).toHaveLength(1)
+  expect(second.MessageId).toBe(first.MessageId)
+})
+
+it('Publish with ContentBasedDeduplication suppresses identical bodies', async () => {
+  const { ctx, delivered } = setup({ fifo: true, contentBasedDedup: true })
+
+  const first = await runOp(
+    'Publish',
+    { TopicArn: FIFO_TOPIC_ARN, Message: 'same-body', MessageGroupId: 'g1' },
+    ctx,
+  )
+  const second = await runOp(
+    'Publish',
+    { TopicArn: FIFO_TOPIC_ARN, Message: 'same-body', MessageGroupId: 'g1' },
+    ctx,
+  )
+
+  expect(delivered).toHaveLength(1)
+  expect(second.MessageId).toBe(first.MessageId)
+})
+
+it('Publish to a FIFO topic delivers distinct dedup ids normally', async () => {
+  const { ctx, delivered } = setup({ fifo: true })
+
+  await runOp(
+    'Publish',
+    {
+      TopicArn: FIFO_TOPIC_ARN,
+      Message: 'x',
+      MessageGroupId: 'g1',
+      MessageDeduplicationId: 'd1',
+    },
+    ctx,
+  )
+  await runOp(
+    'Publish',
+    {
+      TopicArn: FIFO_TOPIC_ARN,
+      Message: 'y',
+      MessageGroupId: 'g1',
+      MessageDeduplicationId: 'd2',
+    },
+    ctx,
+  )
+
+  expect(delivered).toHaveLength(2)
+})
+
+it('Publish to a non-FIFO topic ignores deduplication entirely', async () => {
+  const { ctx, delivered } = setup()
+
+  await runOp(
+    'Publish',
+    { TopicArn: TOPIC_ARN, Message: 'x', MessageDeduplicationId: 'd1' },
+    ctx,
+  )
+  await runOp(
+    'Publish',
+    { TopicArn: TOPIC_ARN, Message: 'x', MessageDeduplicationId: 'd1' },
+    ctx,
+  )
+
+  expect(delivered).toHaveLength(2)
 })
 
 // ---------------------------------------------------------------------------

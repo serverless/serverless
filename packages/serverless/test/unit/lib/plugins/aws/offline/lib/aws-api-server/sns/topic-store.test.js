@@ -267,3 +267,40 @@ it('20. getSubscriptionAttributes reflects a FilterPolicy as a JSON string', () 
   expect(JSON.parse(attrs.FilterPolicy)).toEqual({ store: ['example_corp'] })
   expect(attrs.FilterPolicyScope).toBe('MessageBody')
 })
+
+// ===========================================================================
+// FIFO deduplication
+// ===========================================================================
+
+it('21. recordDedup reports a first id as new and a duplicate within the window as suppressed', () => {
+  let clock = 0
+  const store = createTopicStore({ now: () => clock })
+  store.ensureTopic(FIFO_ARN, { name: 'MyTopic.fifo', fifo: true })
+
+  expect(store.recordDedup(FIFO_ARN, 'd1', 'mid-1').isNew).toBe(true)
+  clock = 60 * 1000
+  const duplicate = store.recordDedup(FIFO_ARN, 'd1', 'mid-2')
+  expect(duplicate.isNew).toBe(false)
+  // The suppressed duplicate echoes the original accepted message id.
+  expect(duplicate.messageId).toBe('mid-1')
+})
+
+it('22. recordDedup treats a duplicate as new once the 5-minute window lapses', () => {
+  let clock = 0
+  const store = createTopicStore({ now: () => clock })
+  store.ensureTopic(FIFO_ARN, { name: 'MyTopic.fifo', fifo: true })
+
+  expect(store.recordDedup(FIFO_ARN, 'd1', 'mid-1').isNew).toBe(true)
+  clock = 5 * 60 * 1000
+  expect(store.recordDedup(FIFO_ARN, 'd1', 'mid-2').isNew).toBe(true)
+})
+
+it('23. recordDedup isolates the dedup window per topic', () => {
+  const store = createTopicStore({ now: () => 0 })
+  store.ensureTopic(FIFO_ARN, { name: 'MyTopic.fifo', fifo: true })
+  store.ensureTopic(OTHER_ARN, { name: 'OtherTopic.fifo', fifo: true })
+
+  expect(store.recordDedup(FIFO_ARN, 'd1', 'mid-1').isNew).toBe(true)
+  expect(store.recordDedup(OTHER_ARN, 'd1', 'mid-2').isNew).toBe(true)
+  expect(store.recordDedup(FIFO_ARN, 'd1', 'mid-3').isNew).toBe(false)
+})

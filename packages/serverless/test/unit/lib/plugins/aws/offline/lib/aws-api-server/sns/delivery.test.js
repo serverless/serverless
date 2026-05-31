@@ -468,6 +468,68 @@ test('MessageStructure json skips a subscriber with neither its protocol nor a d
   expect(send).not.toHaveBeenCalled()
 })
 
+test('forwards the FIFO group and dedup ids to the SQS queue store', async () => {
+  const store = createTopicStore()
+  store.ensureTopic(TOPIC_ARN, { name: 'MyTopic' })
+  store.subscribe(TOPIC_ARN, {
+    protocol: 'sqs',
+    endpoint: 'arn',
+    target: { kind: 'sqs', queueUrl: QUEUE_URL },
+  })
+
+  const send = jest.fn()
+  const deliverer = createDeliverer({
+    store,
+    getLambdaFunction: jest.fn(),
+    queueStore: { send },
+    logger: makeLogger(),
+    now: () => FIXED_TIMESTAMP,
+  })
+
+  await deliverer.deliver(
+    TOPIC_ARN,
+    makeRecord({
+      messageGroupId: 'group-1',
+      messageDeduplicationId: 'dedup-1',
+    }),
+  )
+
+  const [, payload] = send.mock.calls[0]
+  expect(payload.groupId).toBe('group-1')
+  expect(payload.dedupId).toBe('dedup-1')
+})
+
+test('forwards the FIFO group and dedup ids on raw-message-delivery too', async () => {
+  const store = createTopicStore()
+  store.ensureTopic(TOPIC_ARN, { name: 'MyTopic' })
+  store.subscribe(TOPIC_ARN, {
+    protocol: 'sqs',
+    endpoint: 'arn',
+    rawMessageDelivery: true,
+    target: { kind: 'sqs', queueUrl: QUEUE_URL },
+  })
+
+  const send = jest.fn()
+  const deliverer = createDeliverer({
+    store,
+    getLambdaFunction: jest.fn(),
+    queueStore: { send },
+    logger: makeLogger(),
+  })
+
+  await deliverer.deliver(
+    TOPIC_ARN,
+    makeRecord({
+      messageGroupId: 'group-1',
+      messageDeduplicationId: 'dedup-1',
+    }),
+  )
+
+  const [, payload] = send.mock.calls[0]
+  expect(payload.groupId).toBe('group-1')
+  expect(payload.dedupId).toBe('dedup-1')
+})
+
 test('delivers to every matching subscriber on the topic', async () => {
   const store = createTopicStore()
   store.ensureTopic(TOPIC_ARN, { name: 'MyTopic' })
