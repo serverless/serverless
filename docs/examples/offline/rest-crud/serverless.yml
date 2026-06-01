@@ -1,0 +1,26 @@
+service: offline-rest-crud
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+
+functions:
+  create:
+    handler: handler.create
+    events:
+      - http:
+          path: items
+          method: post
+  get:
+    handler: handler.get
+    events:
+      - http:
+          path: items/{id}
+          method: get
+  list:
+    handler: handler.list
+    events:
+      - http:
+          path: items
+          method: get
