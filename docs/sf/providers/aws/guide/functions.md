@@ -723,6 +723,8 @@ provider:
   versionFunctions: false
 ```
 
+Functions using `durableConfig`, `provisionedConcurrency`, or `snapStart` always have a published version created regardless of the `versionFunctions` setting, since those features require a stable qualified ARN. Setting `versionFunction: false` on a function that also uses `durableConfig` is rejected at deploy time.
+
 ## Dead Letter Queue (DLQ)
 
 When AWS lambda functions fail, they are [retried](http://docs.aws.amazon.com/lambda/latest/dg/retries-on-errors.html). If the retries also fail, AWS has a feature to send information about the failed request to a SNS topic or SQS queue, called the [Dead Letter Queue](http://docs.aws.amazon.com/lambda/latest/dg/dlq.html), which you can use to track and diagnose and react to lambda failures.

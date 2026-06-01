@@ -38,7 +38,7 @@ serverless invoke [local] --function functionName
 - `--stage` or `-s` The stage in your service you want to invoke your function in.
 - `--region` or `-r` The region in your stage that you want to invoke your function in.
 - `--aws-profile` The AWS profile you want to use.
-- `--qualifier` or `-q` The version number or alias to invoke your function in. Default is `$LATEST`.
+- `--qualifier` or `-q` The version number or alias to invoke your function in. Default is `$LATEST`. For durable functions, AWS rejects unqualified invocations — pass `--qualifier durable` (the alias the framework auto-creates) or another explicit qualifier.
 - `--data` or `-d` String data to be passed as an event to your function. By default data is read from standard input.
 - `--raw` Pass data as a raw string even if it is JSON. If not set, JSON data are parsed and passed as an object.
 - `--path` or `-p` The path to a json file with input data to be passed to the invoked function. This path is relative to the root directory of the service.
