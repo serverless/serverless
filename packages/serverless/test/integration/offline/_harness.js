@@ -1,0 +1,108 @@
+import { spawn } from 'node:child_process'
+import { createServer } from 'node:net'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { setTimeout as delay } from 'node:timers/promises'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+// repo root → packages/serverless/test/integration/offline → up 4 lands in packages
+const SF_CORE = path.resolve(__dirname, '../../../../sf-core/bin/sf-core.js')
+
+const READY_RE = /sls offline ready/i
+const APP_RE = /App endpoint:\s*(\S+)/i
+const LAMBDA_RE = /Lambda endpoint:\s*(\S+)/i
+
+/**
+ * Reserve a free TCP port by letting the OS assign one, then releasing it.
+ * Our offline rejects appPort === lambdaPort, so the harness picks two
+ * distinct free ports rather than relying on httpPort/lambdaPort 0 (which both
+ * resolve to 0 and trip the collision guard).
+ *
+ * @returns {Promise<number>}
+ */
+function freePort() {
+  return new Promise((resolve, reject) => {
+    const srv = createServer()
+    srv.unref()
+    srv.on('error', reject)
+    srv.listen(0, '127.0.0.1', () => {
+      const { port } = srv.address()
+      srv.close(() => resolve(port))
+    })
+  })
+}
+
+async function twoFreePorts() {
+  const a = await freePort()
+  let b = await freePort()
+  while (b === a) b = await freePort()
+  return [a, b]
+}
+
+/**
+ * Boot our built-in `sls offline` against a fixture dir as a child process.
+ * The fixture must NOT list serverless-offline in plugins (so OUR impl runs).
+ * The harness picks two distinct free ephemeral ports and passes them as
+ * --appPort / --lambdaPort so concurrent boots never collide; the actual bound
+ * URLs are still parsed from the ready banner.
+ *
+ * @param {{ cwd: string, env?: Record<string,string>, readyMs?: number }} opts
+ */
+export async function bootOffline({ cwd, env = {}, readyMs = 60_000 }) {
+  const [appPort, lambdaPort] = await twoFreePorts()
+  const child = spawn(
+    'node',
+    [
+      SF_CORE,
+      'offline',
+      '--appPort',
+      String(appPort),
+      '--lambdaPort',
+      String(lambdaPort),
+    ],
+    {
+      cwd,
+      env: { ...process.env, ...env },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    },
+  )
+  let out = ''
+  child.stdout.on('data', (d) => (out += d.toString()))
+  child.stderr.on('data', (d) => (out += d.toString()))
+
+  const deadline = Date.now() + readyMs
+  let appUrl, lambdaUrl
+  while (Date.now() < deadline) {
+    if (child.exitCode !== null) {
+      throw new Error(`offline exited early (code ${child.exitCode}):\n${out}`)
+    }
+    const a = out.match(APP_RE)
+    const l = out.match(LAMBDA_RE)
+    if (READY_RE.test(out) && a && l) {
+      appUrl = a[1]
+      lambdaUrl = l[1]
+      break
+    }
+    await delay(250)
+  }
+  if (!appUrl) throw new Error(`offline did not become ready:\n${out}`)
+
+  const http = (p, init) => fetch(`${appUrl}${p}`, init)
+  const invoke = (deployedName, payload, { async: ev } = {}) =>
+    fetch(`${lambdaUrl}/2015-03-31/functions/${deployedName}/invocations`, {
+      method: 'POST',
+      headers: ev ? { 'x-amz-invocation-type': 'Event' } : {},
+      body: payload === undefined ? '' : JSON.stringify(payload),
+    })
+
+  async function stop() {
+    if (child.exitCode === null) {
+      child.kill('SIGINT')
+      const limit = Date.now() + 5000
+      while (child.exitCode === null && Date.now() < limit) await delay(100)
+      if (child.exitCode === null) child.kill('SIGKILL')
+    }
+  }
+
+  return { appUrl, lambdaUrl, http, invoke, logs: () => out, stop, child }
+}

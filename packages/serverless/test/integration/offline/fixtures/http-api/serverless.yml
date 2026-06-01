@@ -1,0 +1,14 @@
+service: it-http-api
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+custom:
+  serverless-offline:
+    httpPort: 0
+    lambdaPort: 0
+functions:
+  echo:
+    handler: handler.echo
+    events:
+      - httpApi: { method: POST, path: /echo }
