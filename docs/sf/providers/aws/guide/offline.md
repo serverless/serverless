@@ -28,7 +28,7 @@ The `offline` command runs your Lambda functions on your machine behind the API 
 
 It is built into the Framework. There is nothing to install, and it reads the same `serverless.yml` you deploy with: your `functions:` and their `events:`.
 
-For the full list of flags and the `offline:` configuration block, see the [offline CLI reference](../cli-reference/offline.md).
+For the full list of flags and how to configure Offline under `custom.serverless-offline`, see the [offline CLI reference](../cli-reference/offline.md).
 
 ## Quick start
 
@@ -42,6 +42,28 @@ Offline binds two ports:
 
 - **`appPort`** (default `3000`) — your application edge. HTTP API, REST API, ALB, and WebSocket routes are served here.
 - **`lambdaPort`** (default `3002`) — the AWS **Lambda Invoke** API endpoint. Point a Lambda SDK client at it to invoke your functions locally.
+
+### Configuration
+
+Configure Offline either in `serverless.yml` under `custom.serverless-offline` (the same config home and property names the community [`serverless-offline`](https://github.com/dherault/serverless-offline) plugin uses) or with CLI flags. There is no top-level `offline:` block — if you add one the Framework warns about unrecognized configuration.
+
+```yaml
+custom:
+  serverless-offline:
+    httpPort: 3000
+    lambdaPort: 3002
+    useInProcess: true
+```
+
+Precedence is **CLI flags > `custom.serverless-offline` > defaults**, so a flag always overrides the matching config key.
+
+A few notes:
+
+- **`httpPort` is an alias of `appPort`** — the single port that serves HTTP API, REST, ALB, and WebSocket (default `3000`). Set either one; `--httpPort` is an alias of `--appPort` on the CLI. `lambdaPort` (default `3002`) is the separate Lambda Invoke endpoint.
+- **Hot reload defaults OFF.** Enable it with `--watch`, with `--reloadHandler`, or with `custom.serverless-offline.reloadHandler: true`. `reloadHandler` maps to the built-in file watch, so `reloadHandler: false` (or `--noWatch`) turns it off. Hot reload is also disabled automatically when a bundler plugin (the built-in esbuild support or `serverless-esbuild`) owns the build.
+- **Some `serverless-offline` keys are accepted but ignored.** `websocketPort` and `albPort` are ignored because WebSocket and ALB are served on the app port; `preLoadModules` and `resourceRoutes` are ignored as well; `noSponsor` is accepted and silently ignored. A one-time boot warning lists any ignored keys it finds.
+
+For the full flag and key reference, see the [offline CLI reference](../cli-reference/offline.md).
 
 ### Handler environment and AWS credentials
 
@@ -74,7 +96,7 @@ When the server is ready, Offline prints a banner listing the routes it is servi
 
 From that point on, your HTTP/REST/ALB/WebSocket routes and `schedule` events are **live triggers** — the same wiring you declared for deployment.
 
-Edit a handler file and the next invocation reflects your change — no restart needed. This hot reload is on by default. It is automatically disabled when a bundler plugin (for example the built-in esbuild support or `serverless-esbuild`) is managing your build, since the bundler owns recompilation in that case. For non-Node runtimes, files are read fresh on each invocation.
+Edit a handler file and the next invocation reflects your change — no restart needed. This hot reload defaults OFF; enable it with `--watch`, `--reloadHandler`, or `custom.serverless-offline.reloadHandler: true`. Even when enabled, it is automatically disabled when a bundler plugin (for example the built-in esbuild support or `serverless-esbuild`) is managing your build, since the bundler owns recompilation in that case. For non-Node runtimes, files are read fresh on each invocation.
 
 ## Event sources
 
@@ -169,7 +191,7 @@ await client.send(
 ```
 
 If you track connection ids in module memory rather than a datastore, run with
-`--useInProcess` (or set `offline.useInProcess: true`). The default per-invocation
+`--useInProcess` (or set `custom.serverless-offline.useInProcess: true`). The default per-invocation
 worker threads each keep their own memory, so concurrent connections can land on
 different workers and a broadcast would miss them; a single shared process avoids
 that. A deployed app would store connection ids in a datastore (e.g. DynamoDB).
@@ -216,7 +238,7 @@ Offline runs your authorizers the same way the gateway would, so you can verify 
 - **IAM** — IAM-authorized routes are accepted locally (SigV4 signatures are not re-validated).
 - **Lambda authorizers (TOKEN and REQUEST)** — your authorizer function runs locally. A returned `Allow` policy lets the request through and its `context` is surfaced under `requestContext.authorizer`; a `Deny` (or a thrown error) rejects the request. REQUEST authorizers receive the full request; TOKEN authorizers receive the identity-source token.
 - **JWT** (HTTP API) — the token is verified against the issuer's JWKS by default, including `exp`/`iss`/`aud` and any required scopes. Pass `--ignoreJWTSignature` to decode the token without verifying its signature, which is useful with self-minted local tokens. Claims still flow into `requestContext.authorizer.jwt`.
-- **Custom authentication provider** — set `customAuthenticationProvider` in the `offline:` block (it is a config key, not a CLI flag) to point at a module that supplies your own provider for local authorizers.
+- **Custom authentication provider** — set `customAuthenticationProvider` under `custom.serverless-offline` (it is a config key, not a CLI flag) to point at a module that supplies your own provider for local authorizers.
 
 To bypass authorizers entirely, run with `--noAuth`, or set the `AUTHORIZER` environment variable to inject a fixed authorizer context for every request. With `--noAuth`, an empty `authorizer` object is emitted so handlers that read it still see a value.
 
@@ -275,49 +297,52 @@ If you are coming from the community [`serverless-offline`](https://github.com/d
 
 ### User-facing differences
 
-**Configuration block.** The built-in reads from a top-level `offline:` block, not from `custom.serverless-offline.*`. The keys map as follows:
+**Configuration block.** The built-in reads from `custom.serverless-offline.*` — the same config home and property names the community plugin uses — so most existing config carries over unchanged. The keys behave as follows:
 
-| `custom.serverless-offline.*` | `offline.*` | Notes |
-| --- | --- | --- |
-| `httpPort` | `appPort` | One port now serves HTTP API, REST, ALB, and WebSocket |
-| `lambdaPort` | `lambdaPort` | The Lambda invoke endpoint (same name) |
-| `albPort` | _removed_ | ALB shares `appPort` |
-| `websocketPort` | _removed_ | WebSocket shares `appPort` |
-| `reloadHandler` | _removed_ | Hot reload is on by default; toggle with `watch`/`noWatch` |
-| `host` / `httpsProtocol` | `host` / `httpsProtocol` | Same |
-| `corsAllowHeaders` / `corsAllowOrigin` / `corsDisallowCredentials` / `corsExposedHeaders` | same names | Same keys (defaults differ — see below) |
-| `disableCookieValidation` / `enforceSecureCookies` | same names | Same |
-| `dockerHost` / `dockerHostServicePath` / `dockerNetwork` / `dockerReadOnly` | same names | Same (`dockerHost` defaults to `host.docker.internal`) |
-| `layersDir` / `localEnvironment` / `noAuth` / `noPrependStageInUrl` / `noTimeout` / `prefix` | same names | Same |
-| `ignoreJWTSignature` / `customAuthenticationProvider` | same names | Same |
-| `terminateIdleLambdaTime` / `useDocker` / `useInProcess` | same names | Same |
-| `webSocketHardTimeout` / `webSocketIdleTimeout` | same names | Same |
-| `noSponsor` | n/a | No banner to suppress |
-| `preLoadModules` | _removed_ | No equivalent |
-| `resourceRoutes` | _removed_ | No equivalent |
+| `custom.serverless-offline.*` key | Built-in behavior |
+| --- | --- |
+| `httpPort` | Alias of `appPort`; one port serves HTTP API, REST, ALB, and WebSocket |
+| `appPort` | The single app-edge port (default `3000`) |
+| `lambdaPort` | The Lambda invoke endpoint (default `3002`) |
+| `reloadHandler` | Maps to the built-in file watch; hot reload defaults OFF |
+| `websocketPort` | Accepted but ignored (WebSocket shares the app port) |
+| `albPort` | Accepted but ignored (ALB shares the app port) |
+| `preLoadModules` | Accepted but ignored |
+| `resourceRoutes` | Accepted but ignored |
+| `noSponsor` | Accepted and silently ignored |
+| `host` / `httpsProtocol` | Same |
+| `corsAllowHeaders` / `corsAllowOrigin` / `corsDisallowCredentials` / `corsExposedHeaders` | Same keys (defaults differ — see below) |
+| `disableCookieValidation` / `enforceSecureCookies` | Same |
+| `dockerHost` / `dockerHostServicePath` / `dockerNetwork` / `dockerReadOnly` | Same (`dockerHost` defaults to `host.docker.internal`) |
+| `layersDir` / `localEnvironment` / `noAuth` / `noPrependStageInUrl` / `noTimeout` / `prefix` | Same |
+| `ignoreJWTSignature` / `customAuthenticationProvider` | Same |
+| `terminateIdleLambdaTime` / `useDocker` / `useInProcess` | Same |
+| `webSocketHardTimeout` / `webSocketIdleTimeout` | Same |
 
-**CLI flags.** The flag names follow the same mapping:
+A one-time boot warning lists any accepted-but-ignored keys it finds. A top-level `offline:` block is **not** supported; if present, the Framework warns about unrecognized configuration.
 
-| Community flag | Built-in flag | Notes |
-| --- | --- | --- |
-| `--httpPort` | `--appPort` | Renamed |
-| `--lambdaPort` | `--lambdaPort` | Same name; the Lambda invoke endpoint |
-| `--albPort` / `--websocketPort` | _removed_ | Both share `--appPort` |
-| `--reloadHandler` | `--watch` / `--noWatch` | Hot reload defaults on; disable with `--noWatch` |
-| `--host` / `-o` | `--host` | No `-o` shortcut |
-| `--httpsProtocol` / `-H` | `--httpsProtocol` | No shortcut |
-| `--noTimeout` / `-t` | `--noTimeout` | No shortcut |
-| `--prefix` / `-p` | `--prefix` | No shortcut |
-| `--noSponsor` / `--preLoadModules` / `--resourceRoutes` | _removed_ | No equivalents |
-| all `--cors*`, `--docker*`, `--ignoreJWTSignature`, `--layersDir`, `--localEnvironment`, `--noAuth`, `--noPrependStageInUrl`, `--terminateIdleLambdaTime`, `--useDocker`, `--useInProcess`, `--webSocket*` | same names | Same |
+**CLI flags.** The flags mirror the config keys, with `--httpPort` kept as an alias of `--appPort`:
 
-Note that `customAuthenticationProvider` is a config-only key under `offline:`; it has no CLI flag.
+| Flag | Built-in behavior |
+| --- | --- |
+| `--httpPort` | Alias of `--appPort` |
+| `--appPort` | The single app-edge port (default `3000`) |
+| `--lambdaPort` | The Lambda invoke endpoint (default `3002`) |
+| `--watch` / `--noWatch` / `--reloadHandler` | Control hot reload; it defaults OFF |
+| `--websocketPort` / `--albPort` / `--preLoadModules` / `--resourceRoutes` / `--noSponsor` | Accepted for serverless-offline compatibility; ignored |
+| `--host` / `-o` | `--host` (no `-o` shortcut) |
+| `--httpsProtocol` / `-H` | `--httpsProtocol` (no shortcut) |
+| `--noTimeout` / `-t` | `--noTimeout` (no shortcut) |
+| `--prefix` / `-p` | `--prefix` (no shortcut) |
+| all `--cors*`, `--docker*`, `--ignoreJWTSignature`, `--layersDir`, `--localEnvironment`, `--noAuth`, `--noPrependStageInUrl`, `--terminateIdleLambdaTime`, `--useDocker`, `--useInProcess`, `--webSocket*` | Same names |
+
+Note that `customAuthenticationProvider` is a config-only key under `custom.serverless-offline`; it has no CLI flag.
 
 Other user-facing changes:
 
 - **Two ports, not four.** The built-in binds `appPort` (3000) and `lambdaPort` (3002). The community plugin binds up to four listening ports (`httpPort`, `websocketPort`, `lambdaPort`, `albPort`).
 - **No `start` subcommand.** Run `serverless offline`. There is no `serverless offline start`.
-- **Hot reload by default.** Handler changes are picked up automatically (auto-disabled when a bundler plugin owns the build); the community plugin requires `reloadHandler`.
+- **Hot reload defaults off.** Enable it with `--watch`, `--reloadHandler`, or `custom.serverless-offline.reloadHandler: true` (auto-disabled when a bundler plugin owns the build).
 - **Zero install.** The command ships with the Framework; there is no plugin to add to `plugins:`.
 
 ### Functional and behavioral differences

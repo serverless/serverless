@@ -48,6 +48,7 @@ Offline does **not** inject `AWS_ENDPOINT_URL` and does **not** force placeholde
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
+| `--albPort` | string | — | Accepted for serverless-offline compatibility; ignored (ALB is served on the app port) |
 | `--appPort` | string | `3000` | Port for the HTTP API / REST / ALB / WebSocket server (default 3000) |
 | `--corsAllowHeaders` | string | — | Used to build the Access-Control-Allow-Headers header for CORS support |
 | `--corsAllowOrigin` | string | — | Used to build the Access-Control-Allow-Origin header for CORS support |
@@ -60,6 +61,7 @@ Offline does **not** inject `AWS_ENDPOINT_URL` and does **not** force placeholde
 | `--dockerReadOnly` | boolean | `true` | Mount Docker code layers read-only (default true) |
 | `--enforceSecureCookies` | boolean | `false` | Enforce secure cookies in local REST responses |
 | `--host` | string | `localhost` | Host the local servers bind to (default localhost) |
+| `--httpPort` | string | `3000` | Alias of `--appPort`, for serverless-offline compatibility (default 3000) |
 | `--httpsProtocol` | string | — | Enable HTTPS by specifying a directory containing cert.pem and key.pem |
 | `--ignoreJWTSignature` | boolean | `false` | When using HTTP API JWT authorizers, skip JWT signature verification |
 | `--lambdaPort` | string | `3002` | Port for the Lambda invoke endpoint (default 3002) |
@@ -67,30 +69,38 @@ Offline does **not** inject `AWS_ENDPOINT_URL` and does **not** force placeholde
 | `--localEnvironment` | boolean | `false` | Copy local process environment variables into Lambda handlers |
 | `--noAuth` | boolean | `false` | Turn off all authorizers |
 | `--noPrependStageInUrl` | boolean | `false` | Do NOT prepend the deployment stage to REST API URLs |
+| `--noSponsor` | boolean | — | Accepted for serverless-offline compatibility; ignored |
 | `--noTimeout` | boolean | `false` | Disable handler timeout enforcement |
 | `--noWatch` | boolean | `false` | Disable hot-reload of handler files |
+| `--preLoadModules` | string | — | Accepted for serverless-offline compatibility; ignored |
 | `--prefix` | string | — | Extra path segment to prepend after the stage in REST API URLs (e.g. `--prefix api` -> `/<stage>/api/<route>`) |
+| `--reloadHandler` | boolean | `false` | Reload handlers on change, for serverless-offline compatibility (maps to `--watch`) |
+| `--resourceRoutes` | boolean | — | Accepted for serverless-offline compatibility; ignored |
 | `--terminateIdleLambdaTime` | string | `60` | Number of seconds an idle Lambda runner stays warm before it is terminated. Default: 60. |
 | `--useDocker` | boolean | `false` | Run supported Lambda handlers in Docker containers |
 | `--useInProcess` | boolean | `false` | Run Lambda handlers in the offline server process (Node.js only) instead of spawning a worker thread per concurrent invocation. Faster invocation, but handler module state and process.env mutations persist between calls. Default: false. |
-| `--watch` | boolean | `true` | Enable hot-reload of handler files (default true) |
+| `--watch` | boolean | `false` | Enable hot-reload of handler files (defaults off) |
 | `--webSocketHardTimeout` | string | `7200` | Set WebSocket hard timeout in seconds to reproduce AWS limits (default 7200) |
 | `--webSocketIdleTimeout` | string | `600` | Set WebSocket idle timeout in seconds to reproduce AWS limits (default 600) |
+| `--websocketPort` | string | — | Accepted for serverless-offline compatibility; ignored (WebSocket is served on the app port) |
 
-## Configuration (`offline:` block)
+`--httpPort` is an alias of `--appPort` — the single port serving HTTP API, REST, ALB, and WebSocket. The flags marked _(serverless-offline compatibility; ignored)_ — `--albPort`, `--websocketPort`, `--preLoadModules`, `--resourceRoutes`, and `--noSponsor` — are accepted so existing `serverless-offline` config and command lines keep working, but they have no effect; a one-time boot warning lists any ignored keys it detects. Hot reload defaults **off**; enable it with `--watch` or `--reloadHandler`.
 
-The same runtime knobs can be set under a top-level `offline:` block in `serverless.yml`, using the same names as the CLI flags. When both are present, the CLI flag wins.
+## Configuration (`custom.serverless-offline`)
+
+The same runtime knobs can be set in `serverless.yml` under `custom.serverless-offline`, using the same config home and property names as the community [`serverless-offline`](https://github.com/dherault/serverless-offline) plugin (and the same names as the CLI flags). Precedence is **CLI flags > `custom.serverless-offline` > defaults**. There is no top-level `offline:` block — adding one produces an "unrecognized configuration" warning.
 
 This block configures the offline runtime only. Event sources are not declared here — they come from your service's `events:` definitions, exactly as they would when deployed.
 
 ```yaml
-offline:
-  appPort: 3000
-  lambdaPort: 3002
-  useInProcess: true
+custom:
+  serverless-offline:
+    httpPort: 3000
+    lambdaPort: 3002
+    useInProcess: true
 ```
 
-`customAuthenticationProvider` is a config-only key (it has no CLI flag). Set it under the `offline:` block to point at a module that provides a custom authentication provider for local authorizers.
+`httpPort` is an alias of `appPort`. `customAuthenticationProvider` is a config-only key (it has no CLI flag). Set it under `custom.serverless-offline` to point at a module that provides a custom authentication provider for local authorizers.
 
 ## Debugging
 
