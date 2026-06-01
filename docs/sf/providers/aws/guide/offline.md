@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Offline
 short_title: Offline
-description: Run your AWS Lambda functions and their event sources locally with the built-in Serverless Framework offline command
+description: Run your AWS Lambda functions locally behind the API Gateway edge with the built-in Serverless Framework offline command
 keywords:
   [
     'Serverless Framework',
@@ -9,11 +9,10 @@ keywords:
     'offline',
     'local development',
     'API Gateway',
+    'REST',
+    'ALB',
     'WebSocket',
-    'SQS',
-    'SNS',
-    'S3',
-    'EventBridge',
+    'Schedule',
   ]
 -->
 
@@ -25,9 +24,9 @@ keywords:
 
 # Offline
 
-The `offline` command runs your Lambda functions and their event sources on your machine. API Gateway (HTTP API and REST), ALB, WebSocket, and Schedule triggers are served locally, and SQS, SNS, S3, and EventBridge are emulated in-process — so you can exercise an event-driven service end to end without deploying anything.
+The `offline` command runs your Lambda functions on your machine behind the API Gateway edge. It emulates the API Gateway edge (HTTP API and REST), ALB, WebSocket, runs your Lambdas locally (Node in-process/worker, plus Python, Ruby, Go, and Java), fires `schedule` events, and exposes a local AWS **Lambda Invoke** endpoint — so you can exercise your service without deploying anything.
 
-It is built into the Framework. There is nothing to install, and it reads the same `serverless.yml` you deploy with: your `functions:`, their `events:`, and your `resources:`.
+It is built into the Framework. There is nothing to install, and it reads the same `serverless.yml` you deploy with: your `functions:` and their `events:`.
 
 For the full list of flags and the `offline:` configuration block, see the [offline CLI reference](../cli-reference/offline.md).
 
@@ -42,45 +41,38 @@ serverless offline
 Offline binds two ports:
 
 - **`appPort`** (default `3000`) — your application edge. HTTP API, REST API, ALB, and WebSocket routes are served here.
-- **`awsApiPort`** (default `3002`) — the AWS SDK endpoint. Point any AWS SDK client at it and S3, SQS, SNS, EventBridge, and Lambda `Invoke` calls are handled locally.
+- **`lambdaPort`** (default `3002`) — the AWS **Lambda Invoke** API endpoint. Point a Lambda SDK client at it to invoke your functions locally.
 
-Your handlers are launched with their AWS SDK clients already pointed at the local emulator. Each handler's environment includes:
+### Handler environment and AWS credentials
 
-- `AWS_ENDPOINT_URL=http://localhost:3002`
+Each invoked handler receives an environment that includes:
+
 - `IS_OFFLINE=true`
-- placeholder credentials (so the SDK has something to sign with)
+- the `AWS_LAMBDA_*` Lambda runtime variables and the region
 
-So inside a handler you usually do not need to configure anything — `new S3Client({})` already talks to the local emulator.
+Offline does **not** inject `AWS_ENDPOINT_URL` and does **not** force placeholder credentials. Your handler's AWS SDK calls therefore use your **normal AWS credentials and go to real AWS** for every service — S3, SQS, SNS, DynamoDB, EventBridge, and everything else — exactly like `serverless-offline`. There is no local emulation of those services.
 
-If you call the emulator from your own scripts or tests, point the client at `awsApiPort` explicitly. For the AWS SDK for JavaScript v3:
+The only thing served locally for the AWS SDK is the **Lambda Invoke** endpoint on `lambdaPort`. See [Calling another Lambda locally](#calling-another-lambda-locally) below.
+
+### Calling another Lambda locally
+
+Because no endpoint is injected, a handler reaches the local Lambda Invoke endpoint only by setting its client `endpoint` itself, gated on `IS_OFFLINE`:
 
 ```js
-import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs'
+import { LambdaClient } from '@aws-sdk/client-lambda'
 
-const sqs = new SQSClient({
-  endpoint: 'http://localhost:3002',
-  region: 'us-east-1',
-  credentials: { accessKeyId: 'test', secretAccessKey: 'test' },
-})
-
-const queueUrl = 'http://localhost:3002/000000000000/my-queue'
-await sqs.send(
-  new SendMessageCommand({ QueueUrl: queueUrl, MessageBody: 'hello' }),
+const lambda = new LambdaClient(
+  process.env.IS_OFFLINE ? { endpoint: 'http://localhost:3002' } : {},
 )
 ```
 
-You can also set `AWS_ENDPOINT_URL=http://localhost:3002` in your shell instead of passing `endpoint` to each client.
-
-For S3, both addressing styles work. The emulator reads the bucket name from a virtual-hosted-style `Host` header, so `forcePathStyle` is **not** required — though it remains supported if you prefer path-style addressing.
+When deployed (`IS_OFFLINE` unset) the client uses its default AWS endpoint; locally it targets the offline Lambda Invoke endpoint. This mirrors `serverless-offline`'s documented pattern.
 
 ## What happens when you run it
 
-When the server is ready, Offline prints a banner listing what it stood up:
+When the server is ready, Offline prints a banner listing the routes it is serving (HTTP API, REST, ALB, WebSocket, and Schedule triggers), with their methods and paths.
 
-- the routes it is serving (HTTP API, REST, ALB, WebSocket, and Schedule triggers), with their methods and paths
-- the local resources it provisioned from your `resources:` and `events:` (queues, topics, buckets, buses)
-
-From that point on, your `events:` are **live triggers**. Putting an object in a bucket, sending a message to a queue, publishing to a topic, or putting an event on a bus invokes the function wired to it — the same wiring you declared for deployment.
+From that point on, your HTTP/REST/ALB/WebSocket routes and `schedule` events are **live triggers** — the same wiring you declared for deployment.
 
 Edit a handler file and the next invocation reflects your change — no restart needed. This hot reload is on by default. It is automatically disabled when a bundler plugin (for example the built-in esbuild support or `serverless-esbuild`) is managing your build, since the bundler owns recompilation in that case. For non-Node runtimes, files are read fresh on each invocation.
 
@@ -154,7 +146,7 @@ functions:
 
 Connect a WebSocket client to `ws://localhost:3000`. The `$connect`, `$disconnect`, and route-selected handlers fire as clients connect, disconnect, and send frames.
 
-To push messages back to a client, use the API Gateway Management API `@connections` endpoint — it is served on `appPort` and your handler's SDK client is already pointed at it:
+To push messages back to a client, use the API Gateway Management API `@connections` endpoint — it is served on `appPort`. Build the client endpoint from the event's `requestContext.domainName`/`stage` (offline sets `domainName` to `localhost:3000`, so it resolves locally):
 
 ```js
 import {
@@ -198,12 +190,14 @@ Scheduled functions are invoked locally on their `rate(...)`/`cron(...)` cadence
 
 ### Direct Lambda invoke
 
-Any function can be invoked directly through the AWS SDK against `awsApiPort`, with `RequestResponse` or `Event` (async) invocation types:
+Any function can be invoked directly through the AWS SDK against `lambdaPort`, with `RequestResponse` or `Event` (async) invocation types:
 
 ```js
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda'
 
-const lambda = new LambdaClient({ endpoint: 'http://localhost:3002' })
+const lambda = new LambdaClient(
+  process.env.IS_OFFLINE ? { endpoint: 'http://localhost:3002' } : {},
+)
 await lambda.send(
   new InvokeCommand({
     FunctionName: 'my-service-dev-worker',
@@ -212,7 +206,7 @@ await lambda.send(
 )
 ```
 
-This is also how one function invokes another locally.
+This is also how one function invokes another locally — gate the `endpoint` on `IS_OFFLINE` so the same code works when deployed.
 
 ## Authorizers
 
@@ -248,7 +242,7 @@ The [`polyglot` reference app](https://github.com/serverless/serverless/tree/mai
 
 Pass `--useDocker` to run supported handlers inside Docker containers instead of on the host, which more closely matches the Lambda execution environment. Configure the container's view of the host with `--dockerHost` (default `host.docker.internal`), `--dockerNetwork`, and related flags.
 
-When any function runs in a container (via `--useDocker`, or the Java runtime, which is always container-based), the `awsApiPort` server binds to `0.0.0.0` instead of `localhost`. Containers reach the host through `host.docker.internal`, which resolves to a non-loopback address from inside the container, so a `localhost`-only bind would refuse their connections to the Lambda Runtime API. The boot summary's **AWS endpoint** line shows the bind host in effect; from your machine the endpoint is still reachable at `http://localhost:<awsApiPort>`.
+When any function runs in a container (via `--useDocker`, or the Java runtime, which is always container-based), the `lambdaPort` server binds to `0.0.0.0` instead of `localhost`. Containers reach the host through `host.docker.internal`, which resolves to a non-loopback address from inside the container, so a `localhost`-only bind would refuse their connections to the Lambda Runtime API. The boot summary's endpoint line shows the bind host in effect; from your machine the endpoint is still reachable at `http://localhost:<lambdaPort>`.
 
 ### Lambda layers
 
@@ -258,143 +252,22 @@ Layers referenced by your functions are downloaded and cached under `<service>/.
 
 Handlers are subject to their configured `timeout`. Pass `--noTimeout` to disable timeout enforcement while you debug a slow handler.
 
-## Local AWS resources
+## AWS services and the handler environment
 
-Queues, topics, buckets, and buses declared in your `resources:` — or implied by your `events:` — exist locally the moment Offline boots. You do not create them by hand; they are listed in the ready banner.
+Offline emulates the API Gateway edge (HTTP/REST/ALB/WebSocket), runs your Lambdas locally (Node in-process/worker, plus Python/Ruby/Go/Java), fires `schedule` events, and exposes a local **Lambda Invoke** endpoint on `lambdaPort`. **All other AWS SDK calls from your handlers go to real AWS with your normal credentials** — exactly like `serverless-offline`. There is no local emulation of SQS, SNS, S3, or EventBridge.
 
-Because they exist at boot, intrinsic functions in your `environment:` resolve to working local values. `!Ref` on a queue yields its local queue URL, `!GetAtt` on a topic yields its local ARN, and `!Sub` strings are interpolated — so the URL or ARN your handler reads from `process.env` actually points at the live local resource.
+This means:
 
-Local ARNs are realistic in shape: account `000000000000`, region `us-east-1`, for example `arn:aws:sqs:us-east-1:000000000000:my-queue`. References that cannot be resolved locally — such as a cross-stack `Fn::ImportValue` to a stack that is not part of this service — are reported at boot so you know which values will be missing.
+- Offline injects `IS_OFFLINE=true`, the `AWS_LAMBDA_*` runtime variables, and the region. It does **not** inject `AWS_ENDPOINT_URL` and does **not** force placeholder credentials.
+- A handler that calls, say, `new S3Client({})` will hit **real S3** using your developer credentials. Use a dedicated dev account or bucket/queue/table if you want to avoid touching production data.
+- To invoke another function locally, set the Lambda client `endpoint` yourself, gated on `IS_OFFLINE` — see [Calling another Lambda locally](#calling-another-lambda-locally).
 
-## SQS, SNS, S3, and EventBridge
+### Environment variable rendering
 
-These four services are emulated in-process and reachable through the AWS SDK at `awsApiPort`. You send/publish/put using the normal SDK calls, and the consumers you declared in `events:` fire automatically.
+Values in `provider.environment` and a function's `environment` are rendered with the same rules as `serverless-offline`:
 
-The [`s3-sqs-sns-chain` reference app](https://github.com/serverless/serverless/tree/main/docs/examples/offline/s3-sqs-sns-chain) wires all of these together: drop an object → S3 event → Lambda → SQS → consumer → SNS.
-
-### SQS
-
-Send a message with `SendMessage`/`SendMessageBatch` and the function with an `sqs:` event on that queue is invoked with a normal SQS records event. Visible knobs:
-
-- **FIFO queues** — `.fifo` queues enforce `MessageGroupId` and deduplication.
-- **Dead-letter queues** — declare a `RedrivePolicy` with a `maxReceiveCount`. After a message fails that many times, it is moved to the configured DLQ, exactly as on AWS.
-- **Visibility** — an in-flight message is hidden for its visibility timeout and reappears if not deleted; `ChangeMessageVisibility` adjusts it.
-
-### SNS
-
-Publish with `Publish`/`PublishBatch` and every matching subscription is delivered. Subscriptions can be other Lambda functions or SQS queues (fan-out). Visible knobs:
-
-- **Filter policies** — a subscription's filter policy is evaluated against the message attributes (and, where configured, the body), so only matching messages are delivered.
-
-### S3
-
-Put an object with the SDK, or drop a file into the bucket's local folder, and the matching `s3:` event (for example `s3:ObjectCreated:*`) invokes your function with a standard S3 records event. Each bucket is mirrored on disk under `.serverless-offline/buckets/<bucketName>`, so dropping a file there is equivalent to a `PutObject`. Visible knobs:
-
-- **Prefix / suffix rules** — the `rules:` (prefix/suffix) on your `s3:` event are honored, so only objects matching the filter trigger the function.
-
-### EventBridge
-
-Put an event with `PutEvents` and any rule whose pattern matches is triggered. Visible knobs:
-
-- **Event patterns** — a rule's `pattern` is matched against the event; non-matching events are ignored.
-- **Input transformers** — a target's `InputTransformer` (input paths plus a template, including reserved variables such as `<aws.events.event.json>`) shapes the payload your target receives.
-
-### Lambda destinations
-
-For asynchronous invocations (invocation type `Event`, including SQS/SNS/S3/EventBridge-driven invocations), a function's `destinations` are honored. On success the result is routed to the `onSuccess` target; on failure to the `onFailure` target. Targets can be an SQS queue, SNS topic, another Lambda function, or an EventBridge bus.
-
-## Supported AWS API operations
-
-The emulators implement the operations below. Operations not listed return a `NotImplemented`-style error.
-
-### SQS
-
-| Operation | Supported |
-| --- | --- |
-| `SendMessage` | Yes |
-| `SendMessageBatch` | Yes |
-| `ReceiveMessage` | Yes |
-| `DeleteMessage` | Yes |
-| `DeleteMessageBatch` | Yes |
-| `ChangeMessageVisibility` | Yes |
-| `ChangeMessageVisibilityBatch` | Yes |
-| `GetQueueAttributes` | Yes |
-| `SetQueueAttributes` | Yes |
-| `GetQueueUrl` | Yes |
-| `CreateQueue` | Yes |
-| `DeleteQueue` | Yes |
-| `ListQueues` | Yes |
-| `PurgeQueue` | Yes |
-
-### SNS
-
-| Operation | Supported |
-| --- | --- |
-| `Publish` | Yes |
-| `PublishBatch` | Yes |
-| `CreateTopic` | Yes |
-| `DeleteTopic` | Yes |
-| `ListTopics` | Yes |
-| `Subscribe` | Yes |
-| `Unsubscribe` | Yes |
-| `ListSubscriptions` | Yes |
-| `ListSubscriptionsByTopic` | Yes |
-| `ConfirmSubscription` | Yes |
-| `GetTopicAttributes` | Yes |
-| `SetTopicAttributes` | Yes |
-| `GetSubscriptionAttributes` | Yes |
-| `SetSubscriptionAttributes` | Yes |
-
-### S3
-
-| Operation | Supported |
-| --- | --- |
-| `PutObject` | Yes |
-| `GetObject` | Yes |
-| `HeadObject` | Yes |
-| `CopyObject` | Yes |
-| `DeleteObject` | Yes |
-| `DeleteObjects` | Yes |
-| `ListObjectsV2` | Yes |
-| `ListObjects` | Yes |
-| `CreateBucket` | Yes |
-| `DeleteBucket` | Yes |
-| `ListBuckets` | Yes |
-| `GetBucketLocation` | Yes |
-| `CreateMultipartUpload` | Yes |
-| `UploadPart` | Yes |
-| `UploadPartCopy` | Yes |
-| `CompleteMultipartUpload` | Yes |
-| `AbortMultipartUpload` | Yes |
-| `ListMultipartUploads` | Yes |
-| `ListParts` | Yes |
-
-Both path-style and virtual-hosted-style addressing are accepted, so `forcePathStyle` is optional.
-
-### EventBridge
-
-| Operation | Supported |
-| --- | --- |
-| `PutEvents` | Yes |
-| `PutRule` | Yes |
-| `DeleteRule` | Yes |
-| `EnableRule` | Yes |
-| `DisableRule` | Yes |
-| `DescribeRule` | Yes |
-| `ListRules` | Yes |
-| `PutTargets` | Yes |
-| `RemoveTargets` | Yes |
-| `ListTargetsByRule` | Yes |
-| `CreateEventBus` | Yes |
-| `DeleteEventBus` | Yes |
-| `ListEventBuses` | Yes |
-| `TestEventPattern` | Yes |
-
-### Lambda
-
-| Operation | Supported |
-| --- | --- |
-| `Invoke` (`RequestResponse` and `Event`) | Yes |
+- `Fn::Join` and `Fn::Sub` are rendered.
+- `Ref` and `Fn::GetAtt` pass through **unresolved** — there is no local resource provisioner to resolve them against, so a handler reading such a value sees the raw intrinsic rather than a deployed ARN or URL.
 
 ## Differences from the `serverless-offline` plugin
 
@@ -407,7 +280,7 @@ If you are coming from the community [`serverless-offline`](https://github.com/d
 | `custom.serverless-offline.*` | `offline.*` | Notes |
 | --- | --- | --- |
 | `httpPort` | `appPort` | One port now serves HTTP API, REST, ALB, and WebSocket |
-| `lambdaPort` | `awsApiPort` | The AWS SDK endpoint |
+| `lambdaPort` | `lambdaPort` | The Lambda invoke endpoint (same name) |
 | `albPort` | _removed_ | ALB shares `appPort` |
 | `websocketPort` | _removed_ | WebSocket shares `appPort` |
 | `reloadHandler` | _removed_ | Hot reload is on by default; toggle with `watch`/`noWatch` |
@@ -428,7 +301,7 @@ If you are coming from the community [`serverless-offline`](https://github.com/d
 | Community flag | Built-in flag | Notes |
 | --- | --- | --- |
 | `--httpPort` | `--appPort` | Renamed |
-| `--lambdaPort` | `--awsApiPort` | Renamed |
+| `--lambdaPort` | `--lambdaPort` | Same name; the Lambda invoke endpoint |
 | `--albPort` / `--websocketPort` | _removed_ | Both share `--appPort` |
 | `--reloadHandler` | `--watch` / `--noWatch` | Hot reload defaults on; disable with `--noWatch` |
 | `--host` / `-o` | `--host` | No `-o` shortcut |
@@ -442,19 +315,16 @@ Note that `customAuthenticationProvider` is a config-only key under `offline:`; 
 
 Other user-facing changes:
 
-- **Two ports, not four.** The built-in binds `appPort` (3000) and `awsApiPort` (3002). The community plugin binds up to four listening ports (`httpPort`, `websocketPort`, `lambdaPort`, `albPort`).
+- **Two ports, not four.** The built-in binds `appPort` (3000) and `lambdaPort` (3002). The community plugin binds up to four listening ports (`httpPort`, `websocketPort`, `lambdaPort`, `albPort`).
 - **No `start` subcommand.** Run `serverless offline`. There is no `serverless offline start`.
 - **Hot reload by default.** Handler changes are picked up automatically (auto-disabled when a bundler plugin owns the build); the community plugin requires `reloadHandler`.
-- **Drop-folder paths are auto-derived.** S3 buckets are mirrored under `.serverless-offline/buckets/<bucketName>` with no config knob.
 - **Zero install.** The command ships with the Framework; there is no plugin to add to `plugins:`.
-- **Bigger event-source floor.** SQS, SNS, S3, and EventBridge are emulated in-process. The community plugin emulates only HTTP, ALB, WebSocket, and Schedule.
 
 ### Functional and behavioral differences
 
 These are intentional behaviors you can observe at runtime:
 
-- **Realistic ARNs and identifiers.** Local resources synthesize real-shaped ARNs using account `000000000000` and region `us-east-1` (for example `arn:aws:sqs:us-east-1:000000000000:my-queue`).
-- **Curated handler environment.** Handlers receive a fixed AWS runtime block (`AWS_LAMBDA_*`, `AWS_REGION`/`AWS_DEFAULT_REGION`, `LAMBDA_TASK_ROOT`, the local endpoint and credentials, `IS_OFFLINE`) plus your declared `provider.environment` and function `environment`. Your shell's full environment is **not** copied in unless you pass `--localEnvironment`.
+- **Curated handler environment.** Handlers receive a fixed AWS runtime block (`AWS_LAMBDA_*`, `AWS_REGION`/`AWS_DEFAULT_REGION`, `LAMBDA_TASK_ROOT`, `IS_OFFLINE`) plus your declared `provider.environment` and function `environment`. Your shell's full environment is **not** copied in unless you pass `--localEnvironment`. `AWS_ENDPOINT_URL` is **not** set and credentials are **not** overridden, so handler SDK calls use your real AWS credentials.
 - **JWT verification on by default.** HTTP API JWT authorizers verify the token signature against JWKS (plus `exp`/`iss`/`aud`/scopes). Use `--ignoreJWTSignature` to skip signature verification.
 - **CORS scoped to your declared config.** The built-in leaves CORS overrides unset by default, so each route's own CORS configuration applies — there is no blanket origin reflection. The community plugin ships global CORS defaults (for example `corsAllowOrigin: '*'`).
 - **CLF access-log time uses `+0000`.** Request times are emitted in UTC (`dd/Mon/YYYY:HH:MM:SS +0000`).
@@ -462,9 +332,3 @@ These are intentional behaviors you can observe at runtime:
 - **`requestContext.authorizer` is omitted when a route has no authorizer**, matching AWS. Under `--noAuth` an empty object is emitted so handlers that read it still see a value.
 - **Null identity for unauthenticated requests.** Identity fields other than `sourceIp` and `userAgent` are `null`.
 - **HTTP API v2 cookie handling.** The `Cookie` header is stripped from `headers` and surfaced as a separate `cookies` array (omitted when there are none); ALB events have no `cookies` field.
-
-Net-new capabilities the community plugin does not provide:
-
-- A resource provisioner that lifts SQS/SNS/S3/EventBridge out of your `resources:`/`events:` and resolves `!Ref`/`!GetAtt`/`!Sub` in `environment:` to working local URLs and ARNs.
-- In-process SQS (FIFO, DLQ via `RedrivePolicy`), SNS filter policies, S3 prefix/suffix rules with a drop folder, and EventBridge patterns with input transformers.
-- Lambda async destinations (`onSuccess`/`onFailure`) routing to SQS, SNS, Lambda, or EventBridge.
