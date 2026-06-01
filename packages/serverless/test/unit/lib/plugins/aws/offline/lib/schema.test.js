@@ -34,6 +34,7 @@ describe('offline schema', () => {
       noTimeout: { type: 'boolean' },
       noWatch: { type: 'boolean' },
       prefix: { type: 'string' },
+      proxyToAws: { enum: [false, 'unsupported'] },
       terminateIdleLambdaTime: { type: 'integer', minimum: 0 },
       useDocker: { type: 'boolean' },
       useInProcess: { type: 'boolean' },
@@ -43,7 +44,7 @@ describe('offline schema', () => {
     })
   })
 
-  it('declares the 29 expected keys at the top level', () => {
+  it('declares the 30 expected keys at the top level', () => {
     expect(Object.keys(offlineSchema.properties).sort()).toEqual([
       'appPort',
       'awsApiPort',
@@ -68,6 +69,7 @@ describe('offline schema', () => {
       'noTimeout',
       'noWatch',
       'prefix',
+      'proxyToAws',
       'terminateIdleLambdaTime',
       'useDocker',
       'useInProcess',
@@ -175,5 +177,11 @@ describe('offline schema', () => {
 
   it('defines useInProcess as a boolean property', () => {
     expect(offlineSchema.properties.useInProcess).toEqual({ type: 'boolean' })
+  })
+
+  it('proxyToAws accepts only false and "unsupported"', () => {
+    expect(offlineSchema.properties.proxyToAws).toEqual({
+      enum: [false, 'unsupported'],
+    })
   })
 })

@@ -35,6 +35,7 @@ const offlineSchema = {
     noTimeout: { type: 'boolean' },
     noWatch: { type: 'boolean' },
     prefix: { type: 'string' },
+    proxyToAws: { enum: [false, 'unsupported'] },
     terminateIdleLambdaTime: { type: 'integer', minimum: 0 },
     useDocker: { type: 'boolean' },
     useInProcess: { type: 'boolean' },
