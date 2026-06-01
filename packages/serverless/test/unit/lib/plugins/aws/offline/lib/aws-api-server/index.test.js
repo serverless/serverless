@@ -2,20 +2,6 @@ import { jest } from '@jest/globals'
 import { createAwsApiServer } from '../../../../../../../../lib/plugins/aws/offline/lib/aws-api-server/index.js'
 
 /**
- * Build a SigV4 Authorization header targeting the given service.
- *
- * @param {string} service
- * @returns {string}
- */
-function sigV4Header(service) {
-  return (
-    `AWS4-HMAC-SHA256 Credential=AKIAIOSFODNN7EXAMPLE/20260522/us-east-1/${service}/aws4_request, ` +
-    'SignedHeaders=content-type;host;x-amz-date, ' +
-    'Signature=abc123def456'
-  )
-}
-
-/**
  * Create a minimal logger stub that satisfies the server's expectations.
  *
  * @returns {{ debug: jest.Mock }}
@@ -32,7 +18,6 @@ it('1. server boots and stops cleanly using OS-assigned random port (port 0)', a
   const server = await createAwsApiServer({
     awsApiPort: 0,
     host: 'localhost',
-    handlers: {},
     logger: makeLogger(),
   })
 
@@ -42,222 +27,43 @@ it('1. server boots and stops cleanly using OS-assigned random port (port 0)', a
 })
 
 // ---------------------------------------------------------------------------
-// 2. Routes to the correct handler based on Authorization header
+// 2. An unmatched path returns a clean AWS-shaped 404.
 // ---------------------------------------------------------------------------
 
-it('2. routes to the right handler based on Authorization header', async () => {
-  const sqsHandler = jest.fn((_request, h) =>
-    h.response({ service: 'sqs' }).code(200),
-  )
-  const snsHandler = jest.fn((_request, h) =>
-    h.response({ service: 'sns' }).code(200),
-  )
-
+it('2. returns 404 with an AWS-shaped body for an unknown path', async () => {
   const server = await createAwsApiServer({
     awsApiPort: 0,
     host: 'localhost',
-    handlers: { sqs: sqsHandler, sns: snsHandler },
-    logger: makeLogger(),
-  })
-
-  try {
-    const sqsRes = await server.inject({
-      method: 'POST',
-      url: '/anything',
-      headers: { authorization: sigV4Header('sqs') },
-      payload: '{}',
-    })
-    expect(sqsRes.statusCode).toBe(200)
-    expect(JSON.parse(sqsRes.payload).service).toBe('sqs')
-
-    const snsRes = await server.inject({
-      method: 'POST',
-      url: '/anything',
-      headers: { authorization: sigV4Header('sns') },
-      payload: '{}',
-    })
-    expect(snsRes.statusCode).toBe(200)
-    expect(JSON.parse(snsRes.payload).service).toBe('sns')
-
-    expect(sqsHandler).toHaveBeenCalledTimes(1)
-    expect(snsHandler).toHaveBeenCalledTimes(1)
-  } finally {
-    await server.stop({ timeout: 5000 })
-  }
-})
-
-// ---------------------------------------------------------------------------
-// 3. Returns 400 with OFFLINE_UNROUTED_REQUEST for missing / unparseable
-//    Authorization header
-// ---------------------------------------------------------------------------
-
-it('3. returns 400 OFFLINE_UNROUTED_REQUEST for missing Authorization header', async () => {
-  const server = await createAwsApiServer({
-    awsApiPort: 0,
-    host: 'localhost',
-    handlers: {},
     logger: makeLogger(),
   })
 
   try {
     const res = await server.inject({
       method: 'POST',
-      url: '/any',
+      url: '/anything',
       payload: '{}',
     })
-    expect(res.statusCode).toBe(400)
+    expect(res.statusCode).toBe(404)
     const body = JSON.parse(res.payload)
-    expect(body.error.code).toBe('OFFLINE_UNROUTED_REQUEST')
-  } finally {
-    await server.stop({ timeout: 5000 })
-  }
-})
-
-it('3b. returns 400 OFFLINE_UNROUTED_REQUEST for non-SigV4 Authorization header', async () => {
-  const server = await createAwsApiServer({
-    awsApiPort: 0,
-    host: 'localhost',
-    handlers: {},
-    logger: makeLogger(),
-  })
-
-  try {
-    const res = await server.inject({
-      method: 'POST',
-      url: '/any',
-      headers: { authorization: 'Bearer sometoken' },
-      payload: '{}',
-    })
-    expect(res.statusCode).toBe(400)
-    const body = JSON.parse(res.payload)
-    expect(body.error.code).toBe('OFFLINE_UNROUTED_REQUEST')
+    expect(typeof body.message).toBe('string')
   } finally {
     await server.stop({ timeout: 5000 })
   }
 })
 
 // ---------------------------------------------------------------------------
-// 4. Returns 501 with OFFLINE_UNSUPPORTED_SERVICE for a recognised service
-//    that has no handler registered
+// 3. When lambdaInvoke is supplied, the specific invocation path is routed by
+//    the Lambda Invoke routes (registered before the catch-all), NOT
+//    swallowed by the 404.
 // ---------------------------------------------------------------------------
 
-it('4. returns 501 OFFLINE_UNSUPPORTED_SERVICE when service is recognised but has no handler', async () => {
-  const server = await createAwsApiServer({
-    awsApiPort: 0,
-    host: 'localhost',
-    handlers: {}, // no sqs handler registered
-    logger: makeLogger(),
-  })
-
-  try {
-    const res = await server.inject({
-      method: 'POST',
-      url: '/any',
-      headers: { authorization: sigV4Header('sqs') },
-      payload: '{}',
-    })
-    expect(res.statusCode).toBe(501)
-    const body = JSON.parse(res.payload)
-    expect(body.error.code).toBe('OFFLINE_UNSUPPORTED_SERVICE')
-    expect(body.error.message).toContain('sqs')
-  } finally {
-    await server.stop({ timeout: 5000 })
-  }
-})
-
-// ---------------------------------------------------------------------------
-// 5. Content-Type: application/x-amz-json-1.0 reaches the handler as a raw
-//    Buffer (the catch-all no longer parses — each service adapter does).
-//    Regression guard for the AWS SDK v3 / SQS 415 bug.
-// ---------------------------------------------------------------------------
-
-it('5. delivers the raw body Buffer when Content-Type is application/x-amz-json-1.0', async () => {
-  const sqsHandler = jest.fn((request, h) =>
-    h.response({ received: request.payload.toString() }).code(200),
-  )
-
-  const server = await createAwsApiServer({
-    awsApiPort: 0,
-    host: 'localhost',
-    handlers: { sqs: sqsHandler },
-    logger: makeLogger(),
-  })
-
-  try {
-    const res = await server.inject({
-      method: 'POST',
-      url: '/anything',
-      headers: {
-        authorization: sigV4Header('sqs'),
-        'content-type': 'application/x-amz-json-1.0',
-      },
-      payload: JSON.stringify({ Foo: 'bar' }),
-    })
-
-    expect(res.statusCode).toBe(200)
-    expect(sqsHandler).toHaveBeenCalledTimes(1)
-    const [[calledRequest]] = sqsHandler.mock.calls
-    expect(Buffer.isBuffer(calledRequest.payload)).toBe(true)
-    expect(JSON.parse(calledRequest.payload.toString())).toEqual({ Foo: 'bar' })
-  } finally {
-    await server.stop({ timeout: 5000 })
-  }
-})
-
-// ---------------------------------------------------------------------------
-// 6. A form-urlencoded query-protocol body reaches the handler as a raw Buffer
-//    rather than being 400'd by a JSON parser at the catch-all.
-// ---------------------------------------------------------------------------
-
-it('6. delivers a form-urlencoded query body as a raw Buffer', async () => {
-  const sqsHandler = jest.fn((request, h) =>
-    h.response({ received: request.payload.toString() }).code(200),
-  )
-
-  const server = await createAwsApiServer({
-    awsApiPort: 0,
-    host: 'localhost',
-    handlers: { sqs: sqsHandler },
-    logger: makeLogger(),
-  })
-
-  try {
-    const res = await server.inject({
-      method: 'POST',
-      url: '/anything',
-      headers: {
-        authorization: sigV4Header('sqs'),
-        'content-type': 'application/x-www-form-urlencoded',
-      },
-      payload: 'Action=SendMessage&MessageBody=hello',
-    })
-
-    expect(res.statusCode).toBe(200)
-    expect(sqsHandler).toHaveBeenCalledTimes(1)
-    const [[calledRequest]] = sqsHandler.mock.calls
-    expect(Buffer.isBuffer(calledRequest.payload)).toBe(true)
-    expect(calledRequest.payload.toString()).toBe(
-      'Action=SendMessage&MessageBody=hello',
-    )
-  } finally {
-    await server.stop({ timeout: 5000 })
-  }
-})
-
-// ---------------------------------------------------------------------------
-// 7. When lambdaInvoke is supplied, the specific invocation path is routed by
-//    the Lambda Invoke routes (registered before the SigV4 catch-all), NOT
-//    swallowed by the catch-all dispatcher.
-// ---------------------------------------------------------------------------
-
-it('7. routes Lambda invoke paths to the invoke handler when lambdaInvoke is supplied', async () => {
+it('3. routes Lambda invoke paths to the invoke handler when lambdaInvoke is supplied', async () => {
   const invoke = jest.fn(async () => ({ ok: true }))
   const getLambdaFunction = jest.fn(() => ({ invoke }))
 
   const server = await createAwsApiServer({
     awsApiPort: 0,
     host: 'localhost',
-    handlers: {},
     logger: makeLogger(),
     lambdaInvoke: {
       getLambdaFunction,
@@ -281,14 +87,13 @@ it('7. routes Lambda invoke paths to the invoke handler when lambdaInvoke is sup
   }
 })
 
-it('7b. routes a Lambda invoke path with a trailing slash (the SDK appends one)', async () => {
+it('3b. routes a Lambda invoke path with a trailing slash (the SDK appends one)', async () => {
   const invoke = jest.fn(async () => ({ ok: true }))
   const getLambdaFunction = jest.fn(() => ({ invoke }))
 
   const server = await createAwsApiServer({
     awsApiPort: 0,
     host: 'localhost',
-    handlers: {},
     logger: makeLogger(),
     lambdaInvoke: {
       getLambdaFunction,
@@ -310,78 +115,11 @@ it('7b. routes a Lambda invoke path with a trailing slash (the SDK appends one)'
   }
 })
 
-// ---------------------------------------------------------------------------
-// 8. When awsProxy is supplied, an un-emulated service is forwarded to the
-//    proxy with the resolved { service, region } target instead of 400'ing.
-// ---------------------------------------------------------------------------
-
-it('8. routes an un-emulated service to awsProxy when configured', async () => {
-  const calls = []
-  const awsProxy = (_request, target, h) => {
-    calls.push(target)
-    return h.response({ proxied: true }).code(200)
-  }
-
-  const server = await createAwsApiServer({
-    awsApiPort: 0,
-    host: 'localhost',
-    handlers: {},
-    logger: makeLogger(),
-    awsProxy,
-  })
-
-  try {
-    const res = await server.inject({
-      method: 'POST',
-      url: '/',
-      headers: {
-        authorization: sigV4Header('dynamodb'),
-        'x-amz-target': 'DynamoDB_20120810.PutItem',
-      },
-      payload: '{}',
-    })
-
-    expect(calls).toEqual([{ service: 'dynamodb', region: 'us-east-1' }])
-    expect(res.statusCode).toBe(200)
-    expect(JSON.parse(res.payload)).toEqual({ proxied: true })
-  } finally {
-    await server.stop({ timeout: 5000 })
-  }
-})
-
-it('8b. still returns 400 OFFLINE_UNROUTED_REQUEST for an un-emulated service when no awsProxy is supplied', async () => {
-  const server = await createAwsApiServer({
-    awsApiPort: 0,
-    host: 'localhost',
-    handlers: {},
-    logger: makeLogger(),
-  })
-
-  try {
-    const res = await server.inject({
-      method: 'POST',
-      url: '/',
-      headers: {
-        authorization: sigV4Header('dynamodb'),
-        'x-amz-target': 'DynamoDB_20120810.PutItem',
-      },
-      payload: '{}',
-    })
-
-    expect(res.statusCode).toBe(400)
-    const body = JSON.parse(res.payload)
-    expect(body.error.code).toBe('OFFLINE_UNROUTED_REQUEST')
-  } finally {
-    await server.stop({ timeout: 5000 })
-  }
-})
-
 it('exposes the bound URL via server.info.uri (the boot summary owns the log line)', async () => {
   const notice = jest.fn()
   const server = await createAwsApiServer({
     awsApiPort: 0,
     host: 'localhost',
-    handlers: {},
     logger: { notice },
   })
   try {

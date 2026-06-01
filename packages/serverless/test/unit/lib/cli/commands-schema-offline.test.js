@@ -94,7 +94,6 @@ describe('commands-schema offline entry', () => {
       'noTimeout',
       'noWatch',
       'prefix',
-      'proxyToAws',
       'terminateIdleLambdaTime',
       'useDocker',
       'useInProcess',

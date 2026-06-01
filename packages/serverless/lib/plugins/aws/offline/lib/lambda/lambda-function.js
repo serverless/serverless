@@ -133,13 +133,9 @@ function resolveHandlerSync(handlerString, baseDir, runtime) {
  *   Host dir of this function's extracted layer set, mounted at /opt by the
  *   Docker runner; null when none.
  * @param {object} [params.offlineRuntime]
- *   Boot-level offline runtime values injected into every handler's env so
- *   handler code (and its AWS SDK clients) target the local emulator. These
- *   reach the handler scope only — they are never written onto the host
- *   process, where AWS_ENDPOINT_URL would redirect the framework's own SDK
- *   clients to the emulator.
- * @param {string} [params.offlineRuntime.endpointUrl]
- *   Local AWS emulator URL, e.g. `http://localhost:<awsApiPort>`.
+ *   Boot-level offline runtime values injected into every handler's env.
+ *   These reach the handler scope only — they are never written onto the
+ *   host process.
  * @param {boolean} [params.offlineRuntime.noAuth=false]
  *   When true, an empty AUTHORIZER (`{}`) is injected so authorizer-aware
  *   handlers receive a synthetic context with authentication disabled.
@@ -275,15 +271,13 @@ export function createLambdaFunction({
         // real Lambda context.clientContext field.
         clientContext: options.clientContext ?? null,
         // Boot-level offline runtime values. The runner injects these into the
-        // handler's env block (never the host process). AWS_ENDPOINT_URL points
-        // a handler's SDK client at the local emulator; placeholder credentials
-        // default to 'test' only when the host shell has not already provided a
-        // real value (read-only here — the host env is not mutated). IS_OFFLINE
+        // handler's env block (never the host process). Credentials are passed
+        // straight through from the host shell — when unset, lambda-env omits
+        // the env var so the SDK's normal credential chain applies. IS_OFFLINE
         // and AUTHORIZER follow the configured offline options.
         isOffline: true,
-        endpointUrl: offlineRuntime.endpointUrl,
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? 'test',
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? 'test',
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
         authorizer: offlineRuntime.noAuth ? '{}' : undefined,
       }
 

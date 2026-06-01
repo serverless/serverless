@@ -340,11 +340,6 @@ commands.set('offline', {
         'Extra path segment to prepend after the stage in REST API URLs (e.g. --prefix api → /<stage>/api/<route>)',
       type: 'string',
     },
-    proxyToAws: {
-      usage:
-        "Forward requests to AWS services the emulator does not support to real AWS. Set to 'unsupported' to enable.",
-      type: 'string',
-    },
     terminateIdleLambdaTime: {
       usage:
         'Number of seconds an idle Lambda runner stays warm before it is terminated. Default: 60.',

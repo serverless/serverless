@@ -31,10 +31,4 @@ describe('Offline top-level command plugin', () => {
       offlineSchema,
     )
   })
-
-  it('exposes the proxyToAws CLI option', () => {
-    const opt = cliCommandsSchema.get('offline').options.proxyToAws
-    expect(opt).toBeDefined()
-    expect(opt.type).toBe('string')
-  })
 })

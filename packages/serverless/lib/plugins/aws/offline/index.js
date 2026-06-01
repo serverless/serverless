@@ -1,5 +1,4 @@
 import path from 'node:path'
-import { randomUUID } from 'node:crypto'
 import { DockerClient, log } from '@serverless/util'
 import { LambdaClient } from '@aws-sdk/client-lambda'
 import ServerlessError from '../../../serverless-error.js'
@@ -23,24 +22,7 @@ import {
 import { getStage } from './lib/stage.js'
 import { createHookBridge } from './lib/hook-bridge.js'
 import { createOrchestrator } from './lib/orchestrator.js'
-import { provision } from './lib/provisioner/index.js'
-import { allSqsQueues } from './lib/provisioner/registry.js'
-import { createQueueStore } from './lib/aws-api-server/sqs/queue-store.js'
-import { parseQueueConfig } from './lib/aws-api-server/sqs/attributes.js'
-import { createSqsHandlers } from './lib/aws-api-server/sqs/handlers.js'
-import { createTopicStore } from './lib/aws-api-server/sns/topic-store.js'
-import { createDeliverer } from './lib/aws-api-server/sns/delivery.js'
-import { createSnsHandlers } from './lib/aws-api-server/sns/handlers.js'
-import { wireSns } from './lib/event-sources/sns-wiring.js'
-import { createBucketStore } from './lib/aws-api-server/s3/bucket-store.js'
-import { createS3Handlers } from './lib/aws-api-server/s3/handlers.js'
-import { wireS3 } from './lib/event-sources/s3-wiring.js'
-import { createBusStore } from './lib/aws-api-server/eventbridge/bus-store.js'
-import { createEbDeliverer } from './lib/aws-api-server/eventbridge/delivery.js'
-import { createEventBridgeHandlers } from './lib/aws-api-server/eventbridge/handlers.js'
-import { wireEventBridge } from './lib/event-sources/eb-wiring.js'
 import { createAwsApiServer } from './lib/aws-api-server/index.js'
-import { createAwsProxy } from './lib/aws-api-server/aws-proxy.js'
 import { buildFunctionNameMap } from './lib/aws-api-server/lambda-invoke/name-map.js'
 import {
   resolveFunctionLayers,
@@ -51,7 +33,6 @@ import { downloadLayerSet } from './lib/runners/layers/layer-downloader.js'
 import { createRunner } from './lib/runners/create-runner.js'
 import { createInvocationQueue } from './lib/runners/invocation-queue.js'
 import { createScheduler } from './lib/event-sources/schedule.js'
-import { startSqsPollers } from './lib/event-sources/sqs-poller.js'
 import { createAppServer } from './lib/app-server/index.js'
 import { registerAlbRoutes } from './lib/app-server/alb/route-loader.js'
 import { registerHttpApiRoutes } from './lib/app-server/http-api/route-loader.js'
@@ -66,7 +47,6 @@ import { createWatcher } from './lib/watcher.js'
 import { assertSupportedRuntimes } from './lib/runtime-guard.js'
 import { getHandlerBaseDir } from './lib/handler-base-dir.js'
 import { createLambdaFunction } from './lib/lambda/lambda-function.js'
-import { createDestinationRouter } from './lib/lambda/lambda-destinations.js'
 
 const logger = log.get(LOG_NAMESPACE)
 
@@ -84,12 +64,6 @@ function coerceInt(value) {
   if (typeof value === 'number') return value
   const n = Number.parseInt(value, 10)
   return Number.isNaN(n) ? undefined : n
-}
-
-// Only the string 'unsupported' enables proxying; everything else (undefined,
-// false, 'true', true, junk) is off. 'true' mode is not supported yet.
-function resolveProxyToAws(value) {
-  return value === 'unsupported' ? 'unsupported' : false
 }
 
 export function resolveOfflineOptions({ cliOptions = {}, offline = {} } = {}) {
@@ -134,7 +108,6 @@ export function resolveOfflineOptions({ cliOptions = {}, offline = {} } = {}) {
       cliOptions.noPrependStageInUrl ?? offline.noPrependStageInUrl ?? false,
     noTimeout: cliOptions.noTimeout ?? offline.noTimeout ?? false,
     prefix: cliOptions.prefix ?? offline.prefix,
-    proxyToAws: resolveProxyToAws(cliOptions.proxyToAws ?? offline.proxyToAws),
     terminateIdleLambdaTime:
       coerceInt(cliOptions.terminateIdleLambdaTime) ??
       offline.terminateIdleLambdaTime ??
@@ -166,14 +139,9 @@ export function resolveOfflineOptions({ cliOptions = {}, offline = {} } = {}) {
  * @param {object} params
  * @param {{ notice: (msg: string) => void }} params.logger
  * @param {string} params.appUrl                              The HTTP API / REST / ALB / WebSocket endpoint.
- * @param {string} params.awsApiUrl                           The AWS SDK endpoint (Lambda Invoke, SQS, etc.).
+ * @param {string} params.awsApiUrl                           The Lambda endpoint (Lambda Invoke, Runtime API).
  * @param {{ method: string, path: string, functionKey: string }[]} params.httpApiRoutes
  * @param {{ method: string, path: string, mountedPath: string, apigwMountedPath: string, functionKey: string }[]} [params.restApiRoutes]
- * @param {number} params.sqsPollerCount
- * @param {number} params.sqsQueueCount  Total provisioned SQS queues (including DLQs).
- * @param {number} params.snsTopicCount  Total SNS topics wired into the emulator.
- * @param {number} params.s3BucketCount  Total S3 buckets wired into the emulator.
- * @param {number} params.ebRuleCount  Total EventBridge rules wired into the emulator.
  * @param {string} params.stage
  * @param {boolean} params.useInProcess  Whether the in-process Node runner is active.
  * @param {boolean} params.useDocker  Whether Docker mode is enabled for supported runtimes.
@@ -195,11 +163,6 @@ function logBootSummary({
   wsRoutes,
   httpApiRoutes,
   restApiRoutes,
-  sqsPollerCount,
-  sqsQueueCount,
-  snsTopicCount,
-  s3BucketCount,
-  ebRuleCount,
   stage,
   useInProcess,
   useDocker,
@@ -217,7 +180,7 @@ function logBootSummary({
   logger.notice('')
   logger.notice(`sls offline ready (stage: ${stage})`)
   logger.notice(`  App endpoint:    ${appUrl}`)
-  logger.notice(`  AWS endpoint:    ${awsApiUrl}`)
+  logger.notice(`  Lambda endpoint: ${awsApiUrl}`)
   if (useDocker && hasDockerFunctions) {
     logger.notice(
       '  Node runner:     docker when supported, worker-thread fallback',
@@ -340,55 +303,7 @@ function logBootSummary({
     }
   }
 
-  if (sqsQueueCount > 0) {
-    logger.notice(`  SQS queues:      ${sqsQueueCount}`)
-  }
-
-  if (sqsPollerCount > 0) {
-    logger.notice(
-      `  SQS pollers:     ${sqsPollerCount} queue${sqsPollerCount === 1 ? '' : 's'} subscribed`,
-    )
-  }
-
-  if (snsTopicCount > 0) {
-    logger.notice(`  SNS topics:      ${snsTopicCount}`)
-  }
-
-  if (s3BucketCount > 0) {
-    logger.notice(`  S3 buckets:      ${s3BucketCount}`)
-  }
-
-  if (ebRuleCount > 0) {
-    logger.notice(`  EventBridge rules: ${ebRuleCount}`)
-  }
-
   logger.notice('')
-}
-
-/**
- * Boot-banner lines describing the active proxyToAws mode. Empty when off.
- *
- * @param {{ proxyToAws: false | 'unsupported', hasCredentials?: boolean, accountId?: string | null, region?: string }} params
- * @returns {string[]}
- */
-export function buildProxyBannerLines({
-  proxyToAws,
-  hasCredentials,
-  accountId,
-  region,
-}) {
-  if (proxyToAws !== 'unsupported') {
-    return []
-  }
-  if (!hasCredentials) {
-    return [
-      '  Proxy to AWS:    unsupported (UNAVAILABLE — no credentials resolved; un-emulated services will error)',
-    ]
-  }
-  return [
-    '  Proxy to AWS:    unsupported — un-emulated services hit REAL AWS',
-    `    account ${accountId ?? 'unknown'} · region ${region}`,
-  ]
 }
 
 /**
@@ -466,7 +381,6 @@ export default class OfflinePlugin {
       noPrependStageInUrl,
       noTimeout,
       prefix,
-      proxyToAws,
       terminateIdleLambdaTime,
       useDocker,
       useInProcess,
@@ -630,60 +544,12 @@ export default class OfflinePlugin {
     }
 
     // 3. Compute the offline runtime values injected into each invoked
-    //    handler's env (IS_OFFLINE, AWS_ENDPOINT_URL, region, placeholder
-    //    credentials, and AUTHORIZER under --noAuth). These reach handler
-    //    scope via the Lambda function facade — they are deliberately NOT
-    //    written onto the host process. Writing AWS_ENDPOINT_URL onto the
-    //    long-lived process would redirect the framework's own and sibling
-    //    plugins' AWS SDK clients to the local emulator.
+    //    handler's env (IS_OFFLINE, region, and AUTHORIZER under --noAuth).
+    //    These reach handler scope via the Lambda function facade — they are
+    //    deliberately NOT written onto the host process.
     const offlineRuntime = {
-      endpointUrl: `http://localhost:${awsApiPort}`,
       noAuth,
     }
-
-    // 4. Run the provisioner to populate the registry from CFN. The logger
-    //    surfaces a provisioned-resource summary and one line per unresolved
-    //    reference (e.g. a cross-stack import that cannot be resolved offline).
-    const { registry } = await provision(serverless, { awsApiPort, logger })
-
-    // 5. Create a queue store and initialise it from the provisioned
-    //    `AWS::SQS::Queue` resources. Each queue's config comes from its lifted
-    //    Properties; the RedrivePolicy's dead-letter target ARN is resolved to
-    //    a local queue URL against the registry. A redrive target that is not
-    //    itself a provisioned queue is dropped (with a warning) so a missing
-    //    DLQ never silently swallows messages.
-    const store = createQueueStore()
-
-    const sqsRecords = [...allSqsQueues(registry)]
-    for (const record of sqsRecords) {
-      const cfg = parseQueueConfig(record.properties)
-
-      let redrive = null
-      if (cfg.redrive) {
-        const dlqRecord = sqsRecords.find(
-          (candidate) => candidate.arn === cfg.redrive.dlqArn,
-        )
-        if (dlqRecord) {
-          // Carry both the resolved URL (used by the sweeper to route) and the
-          // original ARN (echoed back by GetQueueAttributes' RedrivePolicy).
-          redrive = {
-            dlqUrl: dlqRecord.url,
-            dlqArn: cfg.redrive.dlqArn,
-            maxReceiveCount: cfg.redrive.maxReceiveCount,
-          }
-        } else {
-          logger.warning(
-            `SQS queue "${record.name}" declares a RedrivePolicy whose dead-letter ` +
-              `target "${cfg.redrive.dlqArn}" is not a provisioned queue; dead-lettering is disabled for it.`,
-          )
-        }
-      }
-
-      store.ensureQueue(record.url, { ...cfg, redrive })
-    }
-
-    // 6. Create the SQS handlers bound to that store + registry.
-    const sqsHandlers = createSqsHandlers({ store, registry })
 
     // 7. Create the runner.
     //    Worker-thread (default) receives handlerPath at invoke()-time (already
@@ -765,13 +631,6 @@ export default class OfflinePlugin {
     //  - community serverless-esbuild sets custom['serverless-offline'].location
     const lambdaFunctions = new Map()
     const lambdaLogger = log.get('sls:offline:lambda')
-    // Mutable async-destination routing seam. The facade is created here (and
-    // memoised per function), but the router can only be built once the SQS,
-    // SNS and EventBridge sinks below exist. Passing the object now and setting
-    // `.route` later lets every facade observe destinations without re-creating
-    // them. `.route` stays null until step 7d, so until then an async invoke is
-    // a strict no-op.
-    const destRouter = { route: null }
     function getLambdaFunction(functionKey) {
       let fn = lambdaFunctions.get(functionKey)
       if (!fn) {
@@ -784,123 +643,11 @@ export default class OfflinePlugin {
           localEnvironment,
           layerOptDir: layerOptDirs.get(functionKey) ?? null,
           offlineRuntime,
-          destinationRouter: destRouter,
         })
         lambdaFunctions.set(functionKey, fn)
       }
       return fn
     }
-
-    // 7b. Stand up the SNS emulator: an in-memory topic store, a synchronous
-    //     fan-out deliverer (Lambda invoke + SQS send, reusing the queue store
-    //     above), and the query-protocol handlers. `wireSns` derives the topics
-    //     and subscriptions from the registry, each function's `events: - sns`,
-    //     and any `AWS::SNS::Subscription` resources in the compiled template.
-    //     Delivery is synchronous on Publish, so there is no poller or timer to
-    //     tear down — the only shared resource is the AWS API server itself.
-    const snsLogger = log.get('sls:offline:sns')
-    const snsStore = createTopicStore()
-    const snsDeliver = createDeliverer({
-      store: snsStore,
-      getLambdaFunction,
-      queueStore: store,
-      logger: snsLogger,
-    })
-    const snsHandlers = createSnsHandlers({
-      store: snsStore,
-      registry,
-      deliver: snsDeliver.deliver,
-    })
-    const { topicCount: snsTopicCount } = wireSns({
-      serverless,
-      registry,
-      store: snsStore,
-      logger: snsLogger,
-    })
-
-    // 7c. Stand up the S3 emulator: an in-memory bucket store whose mutation
-    //     hook is wired through a one-element seam so the store can be created
-    //     before `wireS3` (which owns the notifier + drop-folder mirror) exists.
-    //     `wireS3` ensures buckets from the registry and `events: - s3`, builds
-    //     the S3 → Lambda notifier, starts a drop-folder watcher per bucket, and
-    //     returns the combined `onMutation` that both notifies and mirrors SDK
-    //     writes to disk. The watchers are torn down on shutdown (below).
-    const s3Logger = log.get('sls:offline:s3')
-    const s3Mut = { fn: null }
-    const s3Store = createBucketStore({ onMutation: (ev) => s3Mut.fn?.(ev) })
-    const s3Handlers = createS3Handlers({ store: s3Store, host })
-    const s3Wired = await wireS3({
-      serverless,
-      registry,
-      store: s3Store,
-      getLambdaFunction,
-      logger: s3Logger,
-    })
-    s3Mut.fn = s3Wired.onMutation
-
-    // 7d. Stand up the EventBridge emulator: an in-memory bus store, a
-    //     synchronous PutEvents fan-out deliverer (Lambda invoke + SQS send +
-    //     SNS publish + cross-bus re-delivery), and the JSON-RPC handlers.
-    //     `wireEventBridge` derives buses, rules, and lambda targets from the
-    //     registry and each function's `events: - eventBridge` pattern. SNS
-    //     fan-out is reached through a thin publish seam over the SNS deliverer
-    //     so an EB → SNS target reuses the topic store. Like SNS, delivery is
-    //     synchronous on PutEvents — there is no poller or timer to tear down.
-    const ebLogger = log.get('sls:offline:eventbridge')
-    const ebStore = createBusStore()
-    const snsPublish = (topicArn, message) =>
-      snsDeliver.deliver(topicArn, { messageId: randomUUID(), message })
-    const ebDeliver = createEbDeliverer({
-      store: ebStore,
-      getLambdaFunction,
-      queueStore: store,
-      snsPublish,
-      logger: ebLogger,
-    })
-    const ebHandlers = createEventBridgeHandlers({
-      store: ebStore,
-      registry,
-      deliver: ebDeliver.deliver,
-    })
-    const { ruleCount: ebRuleCount } = wireEventBridge({
-      serverless,
-      registry,
-      store: ebStore,
-      logger: ebLogger,
-    })
-
-    // 7e. Wire the Lambda async-destination router now that every sink (SQS
-    //     queue store, SNS publish seam, EventBridge deliverer) exists. Setting
-    //     `destRouter.route` flips on onSuccess/onFailure routing for every
-    //     `{ async: true }` invoke of a function that declares `destinations`.
-    //     The EventBridge sink reuses the same `deliver` the JSON-RPC PutEvents
-    //     path uses, so a destination event fans out through the rule engine.
-    destRouter.route = createDestinationRouter({
-      registry,
-      getLambdaFunction,
-      queueSend: (url, message) => store.send(url, message),
-      snsPublish,
-      ebPutEvents: (busName, event) => ebDeliver.deliver(busName, event),
-      logger: log.get('sls:offline:destinations'),
-    }).route
-
-    // 8. Start SQS pollers so subscribers are in place before the server
-    //    starts accepting connections.
-    const pollerController = await startSqsPollers({
-      serverless,
-      registry,
-      store,
-      getLambdaFunction,
-      logger: log.get('sls:offline:sqs-poller'),
-    })
-
-    // 8a. Run the SQS visibility sweeper. Once per second it returns expired
-    //     in-flight messages to the available state, dead-letters those past
-    //     maxReceiveCount, and drops messages past their retention period —
-    //     waking the relevant pollers via the store's subscriptions. `unref()`
-    //     keeps the timer from holding the process open on shutdown.
-    const sweeper = setInterval(() => store.sweep(), 1000)
-    sweeper.unref?.()
 
     // 8b. Construct the scheduler. Construction validates every schedule
     //     expression and pre-creates croner instances (paused), so a typo'd
@@ -1021,36 +768,11 @@ export default class OfflinePlugin {
       },
     })
 
-    // Resolve the developer's deploy credentials and build the AWS proxy when
-    // opted in. The proxy re-signs requests for un-emulated services and
-    // forwards them to real AWS; when credentials cannot be resolved we still
-    // construct it with `null` so it returns a clear error instead of crashing.
-    let awsProxy
-    let proxyAccountId = null
-    let proxyHasCredentials = false
-    if (proxyToAws === 'unsupported') {
-      try {
-        const creds = await this.provider.getCredentials()
-        proxyAccountId = creds?.accountId ?? null
-        awsProxy = createAwsProxy({ credentials: creds })
-        proxyHasCredentials = Boolean(creds?.accessKeyId)
-      } catch {
-        awsProxy = createAwsProxy({ credentials: null })
-      }
-    }
-
-    // 10. Boot the AWS API server (Hapi starts listening here — subscribers are
-    //     already registered, so no SendMessage can arrive without a consumer).
+    // 10. Boot the AWS API server (Hapi starts listening here). It exposes the
+    //     Lambda Invoke API and, when needed, the Lambda Runtime API.
     const awsApiServer = await createAwsApiServer({
       awsApiPort,
       host: awsApiBindHost,
-      awsProxy,
-      handlers: {
-        sqs: sqsHandlers,
-        sns: snsHandlers,
-        s3: s3Handlers,
-        events: ebHandlers,
-      },
       logger: log.get('sls:offline:aws-api'),
       // Mount the Lambda Runtime API routes when any Go function is in
       // the service. The Go runner enqueues into this queue; the routes
@@ -1064,28 +786,17 @@ export default class OfflinePlugin {
       },
     })
 
-    // 11. Register teardowns for the servers and pollers (LIFO — runner and
+    // 11. Register teardowns for the servers (LIFO — runner and
     //     watcher are added after bridge.fireBeforeStart so they appear last,
     //     meaning they are torn down first).
-    //     Registration order so far: awsApiServer → appServer → pollers
-    //     LIFO teardown for these: pollers, appServer, awsApiServer.
+    //     Registration order so far: awsApiServer → appServer
+    //     LIFO teardown for these: appServer, awsApiServer.
     orchestrator.onShutdown(() => awsApiServer.stop({ timeout: 5000 }))
     orchestrator.onShutdown(() => appServer.stop({ timeout: 5000 }))
     // The WS server closes all open sockets (code 1001) before the Hapi
     // app server tears down its listener. Order matters: shut WS first so
     // clients get a clean close frame, not a TCP RST.
     orchestrator.onShutdown(() => (wsServer ? wsServer.stop() : undefined))
-    // Stop the SQS subsystem: clear the visibility sweeper, then unsubscribe
-    // every poller (which also stops draining queues).
-    orchestrator.onShutdown(async () => {
-      clearInterval(sweeper)
-      await pollerController.stop()
-    })
-    // Stop the S3 drop-folder watchers (one per bucket). Closing each chokidar
-    // watcher releases its filesystem handles so the process can exit cleanly.
-    orchestrator.onShutdown(() =>
-      Promise.all(s3Wired.watchers.map((watcher) => watcher.stop())),
-    )
     // Scheduler teardown registered BEFORE runner.terminate so LIFO drains
     // in-flight schedule invocations before runners shut down.
     orchestrator.onShutdown(() => scheduler.stop())
@@ -1111,7 +822,7 @@ export default class OfflinePlugin {
     })
 
     // Register runner + watcher teardowns last so they are first in LIFO order.
-    // LIFO teardown: watcher → runner → (pollers, appServer, awsApiServer above).
+    // LIFO teardown: watcher → runner → (appServer, awsApiServer above).
     orchestrator.onShutdown(() => runner.terminate())
     orchestrator.onShutdown(() => watcher.stop())
 
@@ -1149,11 +860,6 @@ export default class OfflinePlugin {
           wsRoutes,
           httpApiRoutes,
           restApiRoutes,
-          sqsPollerCount: pollerController.pollerCount,
-          sqsQueueCount: sqsRecords.length,
-          snsTopicCount,
-          s3BucketCount: s3Wired.bucketCount,
-          ebRuleCount,
           stage,
           useInProcess,
           useDocker,
@@ -1168,14 +874,6 @@ export default class OfflinePlugin {
           scheduledCount: scheduler.scheduledCount,
           disabledScheduleCount: scheduler.disabledCount,
         })
-        for (const line of buildProxyBannerLines({
-          proxyToAws,
-          hasCredentials: proxyHasCredentials,
-          accountId: proxyAccountId,
-          region: this.provider.getRegion(),
-        })) {
-          logger.notice(line)
-        }
       },
     })
 
