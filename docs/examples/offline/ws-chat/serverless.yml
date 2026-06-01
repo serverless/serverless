@@ -5,6 +5,14 @@ provider:
   runtime: nodejs20.x
   region: us-east-1
 
+# The connection registry lives in module memory and must be shared across every
+# route invocation. Run the handler in the offline process (one shared module
+# instance) rather than the default per-invocation worker threads, which would
+# each get their own registry. A deployed app would use a persistent store
+# (e.g. DynamoDB) instead and would not need this.
+offline:
+  useInProcess: true
+
 functions:
   ws:
     handler: handler.ws

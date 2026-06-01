@@ -2,11 +2,15 @@
 
 A minimal WebSocket chat runnable entirely locally with `serverless offline`.
 Every route (`$connect`, `$disconnect`, `broadcast`) is handled by a single
-Lambda function, so the in-memory connection registry is shared across routes
-for the life of the offline process. If the routes lived in separate functions,
-each would run in its own worker and the registry would not be shared. This
-keeps the demo self-contained; a production app would persist connection ids in
-a real datastore (e.g. DynamoDB) instead of process memory.
+Lambda function that keeps the connection registry in module memory.
+
+Because the registry must be shared across every invocation, this example sets
+`offline.useInProcess: true` in `serverless.yml` so the handler runs in the
+offline process (one shared module instance). With the default per-invocation
+worker threads, concurrent connections can land on different workers, each with
+its own empty registry, and a broadcast would reach no one. A deployed app would
+persist connection ids in a real datastore (e.g. DynamoDB) and would not rely on
+process memory at all.
 
 ## Requirements
 

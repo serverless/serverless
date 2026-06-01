@@ -176,6 +176,12 @@ await client.send(
 )
 ```
 
+If you track connection ids in module memory rather than a datastore, run with
+`--useInProcess` (or set `offline.useInProcess: true`). The default per-invocation
+worker threads each keep their own memory, so concurrent connections can land on
+different workers and a broadcast would miss them; a single shared process avoids
+that. A deployed app would store connection ids in a datastore (e.g. DynamoDB).
+
 See the [`ws-chat` reference app](https://github.com/serverless/serverless/tree/main/docs/examples/offline/ws-chat) for a full chat service using `@connections`.
 
 ### Schedule
