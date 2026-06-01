@@ -2,10 +2,11 @@
  * Top-level `offline:` schema for the built-in sls offline command.
  *
  * Single source of truth for the offline config schema. Add sub-properties
- * to `properties` here as new capabilities are introduced. The plugin's
- * `index.js` calls `defineTopLevelProperty('offline', schema)` exactly
- * once at construction — do not mutate the schema handler internals from
- * elsewhere.
+ * to `properties` here as new capabilities are introduced. The always-loaded
+ * shell (`lib/plugins/offline.js`) calls `defineTopLevelProperty('offline',
+ * schema)` exactly once at construction — so the block validates even when the
+ * community `serverless-offline` plugin owns the command — do not mutate the
+ * schema handler internals from elsewhere.
  */
 const offlineSchema = {
   type: 'object',
