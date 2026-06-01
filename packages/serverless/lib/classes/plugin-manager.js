@@ -305,7 +305,7 @@ class PluginManager {
         ' Built-in integration activates whenever `custom.apiGatewayServiceProxies` is present and non-empty, so you can remove the legacy plugin entry and keep just the `custom` block.'
     } else if (pluginName === 'serverless-offline') {
       errorMessage +=
-        ' A built-in `serverless offline` command now ships with the Framework (HTTP API, REST, ALB, WebSocket, plus emulated S3 / SQS / SNS / EventBridge / Schedule). To migrate, see https://www.serverless.com/framework/docs/providers/aws/guide/offline. You can keep using the community plugin — it continues to handle the command when listed in `plugins:`.'
+        ' A built-in `serverless offline` command now ships with the Framework (HTTP API, REST, ALB, WebSocket, plus emulated S3 / SQS / SNS / EventBridge / Schedule). To migrate, see https://www.serverless.com/framework/docs/providers/aws/guide/offline. Removing it is optional — while it stays in `plugins:` the community version keeps handling the command.'
     }
     log.warning(errorMessage)
     log.blankLine()
