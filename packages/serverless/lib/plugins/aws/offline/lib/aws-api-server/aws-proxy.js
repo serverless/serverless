@@ -104,7 +104,7 @@ export function createAwsProxy({ credentials, forward = defaultForward }) {
         lower === 'host'
       )
         continue
-      headers[k] = v
+      headers[k] = Array.isArray(v) ? v.join(', ') : String(v)
     }
     headers.host = hostname
 
@@ -129,7 +129,15 @@ export function createAwsProxy({ credentials, forward = defaultForward }) {
       body,
     })
 
-    const qs = new URLSearchParams(request.query || {}).toString()
+    const params = new URLSearchParams()
+    for (const [key, value] of Object.entries(request.query || {})) {
+      if (Array.isArray(value)) {
+        for (const item of value) params.append(key, item)
+      } else if (value !== undefined && value !== null) {
+        params.append(key, value)
+      }
+    }
+    const qs = params.toString()
     const url = `${endpoint}${request.path || '/'}${qs ? `?${qs}` : ''}`
 
     let upstream

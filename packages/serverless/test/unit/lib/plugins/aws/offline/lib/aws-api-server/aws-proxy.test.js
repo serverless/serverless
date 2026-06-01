@@ -131,6 +131,71 @@ describe('createAwsProxy', () => {
       'OFFLINE_PROXY_UPSTREAM_ERROR',
     )
   })
+
+  it('forwards repeated query params individually so the signature matches', async () => {
+    const sent = {}
+    const forward = async ({ url }) => {
+      sent.url = url
+      return { statusCode: 200, headers: {}, body: '' }
+    }
+    const proxy = createAwsProxy({
+      credentials: { accessKeyId: 'AKIAREAL', secretAccessKey: 'realsecret' },
+      forward,
+    })
+    await proxy(
+      {
+        method: 'GET',
+        path: '/',
+        query: { ids: ['1', '2'], q: 'x' },
+        headers: {
+          authorization:
+            'AWS4-HMAC-SHA256 Credential=test/20260601/us-east-1/dynamodb/aws4_request, SignedHeaders=host, Signature=placeholder',
+        },
+        payload: Buffer.from(''),
+      },
+      { service: 'dynamodb', region: 'us-east-1' },
+      makeH(),
+    )
+    expect(sent.url).toContain('ids=1')
+    expect(sent.url).toContain('ids=2')
+    expect(sent.url).not.toContain('ids=1%2C2')
+    expect(sent.url).not.toContain('ids=1,2')
+    expect(sent.url).toContain('q=x')
+  })
+
+  it('passes temporary-credential session token to the signer', async () => {
+    const sent = {}
+    const forward = async ({ headers }) => {
+      sent.headers = headers
+      return { statusCode: 200, headers: {}, body: '' }
+    }
+    const proxy = createAwsProxy({
+      credentials: {
+        accessKeyId: 'AKIAREAL',
+        secretAccessKey: 's',
+        sessionToken: 'TEMPTOKEN',
+      },
+      forward,
+    })
+    await proxy(
+      {
+        method: 'POST',
+        path: '/',
+        query: {},
+        headers: {
+          authorization:
+            'AWS4-HMAC-SHA256 Credential=test/20260601/us-east-1/dynamodb/aws4_request, SignedHeaders=host, Signature=placeholder',
+        },
+        payload: Buffer.from('{}'),
+      },
+      { service: 'dynamodb', region: 'us-east-1' },
+      makeH(),
+    )
+    const tokenHeader =
+      sent.headers['x-amz-security-token'] ||
+      sent.headers['X-Amz-Security-Token']
+    expect(tokenHeader).toBe('TEMPTOKEN')
+  })
 })
 
 describe('buildAwsEndpoint', () => {
