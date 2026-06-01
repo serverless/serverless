@@ -228,9 +228,13 @@ When a route has **no** authorizer, `requestContext.authorizer` is omitted from 
 
 Node handlers run by default in a worker thread per concurrent invocation, which isolates module state and `process.env` between calls. Pass `--useInProcess` to run them in the Offline process instead: invocations are faster, but handler module state and `process.env` mutations persist between calls.
 
-### Python, Ruby, Go, Java
+### Python, Ruby, Go
 
-Non-Node runtimes run as a subprocess using the runtime declared on the function or provider. You need that runtime installed and on your `PATH` (for example `python3`, `ruby`, `go`, a JVM). Pick the runtime the same way you would for deployment — via `provider.runtime` or a per-function `runtime:`.
+These runtimes run as a subprocess using the runtime declared on the function or provider. You need that runtime installed and on your `PATH` (for example `python3`, `ruby`, `go`). Pick the runtime the same way you would for deployment — via `provider.runtime` or a per-function `runtime:`.
+
+### Java
+
+Java functions always run inside a Docker container (the official `public.ecr.aws/lambda/java` image), so Docker must be running — you do not need a local JVM, and this does not require the `--useDocker` flag.
 
 The [`polyglot` reference app](https://github.com/serverless/serverless/tree/main/docs/examples/offline/polyglot) runs Node and Python functions side by side in one service.
 

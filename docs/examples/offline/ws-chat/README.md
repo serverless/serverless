@@ -8,6 +8,17 @@ each would run in its own worker and the registry would not be shared. This
 keeps the demo self-contained; a production app would persist connection ids in
 a real datastore (e.g. DynamoDB) instead of process memory.
 
+## Requirements
+
+The handler uses the AWS SDK for JavaScript v3 to push messages back to clients,
+so install that client in this project first:
+
+```bash
+npm install @aws-sdk/client-apigatewaymanagementapi
+```
+
+(On AWS, the Lambda Node.js runtime bundles the SDK; locally you install it.)
+
 ## Run
 
 ```bash

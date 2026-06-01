@@ -20,6 +20,17 @@ local URL (`WORK_QUEUE_URL`) and `!Ref DoneTopic` becomes the topic's local ARN
 (`DONE_TOPIC_ARN`). The SDK clients in `handler.js` need no endpoint — offline
 injects `AWS_ENDPOINT_URL` so they talk to the local AWS API server.
 
+## Requirements
+
+The handlers use the AWS SDK for JavaScript v3, so install the clients they
+import in this project first:
+
+```bash
+npm install @aws-sdk/client-sqs @aws-sdk/client-sns
+```
+
+(On AWS, the Lambda Node.js runtime bundles the SDK; locally you install it.)
+
 ## Run
 
 ```bash
