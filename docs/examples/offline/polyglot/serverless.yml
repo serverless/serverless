@@ -1,0 +1,21 @@
+service: offline-polyglot
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+
+functions:
+  node:
+    handler: node.handler
+    events:
+      - http:
+          path: node
+          method: get
+  python:
+    handler: handler.handler
+    runtime: python3.12
+    events:
+      - http:
+          path: python
+          method: get
