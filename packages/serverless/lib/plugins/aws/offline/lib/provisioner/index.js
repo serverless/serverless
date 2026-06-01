@@ -125,12 +125,37 @@ export async function provision(
   const deploymentBucketLogicalId =
     serverless.getProvider?.('aws')?.naming?.getDeploymentBucketLogicalId?.() ??
     'ServerlessDeploymentBucket'
-  walkResources(template, {
-    resolveIntrinsics: resolveIntrinsicsBound,
+  const walkOptions = {
     conditions,
     registry,
     awsApiPort,
     exclude: new Set([deploymentBucketLogicalId, 'ServerlessDeploymentBucket']),
+  }
+
+  // Seed every resource's identity into the registry first so Ref / Fn::GetAtt
+  // to a resource declared later in the template resolve regardless of order
+  // (CloudFormation is order-independent). A resource's identity (name / arn /
+  // url) derives from its own logical id, so the seed pass populates it even
+  // though forward cross-references are still unresolved here. Pass-1 warnings
+  // are discarded; the real warnings are collected on the second,
+  // fully-resolved pass, which overwrites the seed records with resolved ones.
+  const seedWarnings = []
+  const seedResolveIntrinsics = (value) =>
+    resolveIntrinsics(value, {
+      registry,
+      parameters,
+      pseudoParams,
+      conditions,
+      mappings,
+      warnings: seedWarnings,
+    })
+  walkResources(template, {
+    ...walkOptions,
+    resolveIntrinsics: seedResolveIntrinsics,
+  })
+  walkResources(template, {
+    ...walkOptions,
+    resolveIntrinsics: resolveIntrinsicsBound,
   })
 
   // 10. Re-render function environments and event declarations.

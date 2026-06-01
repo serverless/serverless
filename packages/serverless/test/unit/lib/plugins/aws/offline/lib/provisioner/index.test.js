@@ -377,3 +377,47 @@ it('12. resolves { Ref: Param } to a Type: Number template default and ignores a
   expect('LEAKED_DEFAULT' in env).toBe(false)
   expect('LEAKED_STAGE' in env).toBe(false)
 })
+
+// ---------------------------------------------------------------------------
+// 13. Forward references resolve regardless of declaration order: a queue
+//     declared BEFORE the resource it references still resolves it.
+// ---------------------------------------------------------------------------
+
+it('13. resolves Ref / Fn::GetAtt to a resource declared later in the template', async () => {
+  const sls = makeServerless({
+    compiledResources: {
+      // Declared FIRST but references a DLQ and a topic declared after it.
+      WorkQueue: {
+        Type: 'AWS::SQS::Queue',
+        Properties: {
+          RedrivePolicy: {
+            deadLetterTargetArn: { 'Fn::GetAtt': ['DlqQueue', 'Arn'] },
+            maxReceiveCount: 5,
+          },
+          // A forward Ref to a topic declared later resolves to its ARN.
+          ForwardTopicRef: { Ref: 'OrdersTopic' },
+        },
+      },
+      DlqQueue: { Type: 'AWS::SQS::Queue' },
+      OrdersTopic: { Type: 'AWS::SNS::Topic' },
+    },
+  })
+
+  const { registry, warnings } = await provision(sls)
+
+  const dlq = registry.sqs.get('DlqQueue')
+  const topic = registry.sns.get('OrdersTopic')
+  const work = registry.sqs.get('WorkQueue')
+
+  // The forward Fn::GetAtt to the DLQ's ARN is resolved into the redrive
+  // target rather than being dropped.
+  expect(work.properties.RedrivePolicy.deadLetterTargetArn).toBe(dlq.arn)
+  expect(work.properties.RedrivePolicy.maxReceiveCount).toBe(5)
+  // The forward Ref to the topic resolves to its ARN.
+  expect(work.properties.ForwardTopicRef).toBe(topic.arn)
+
+  // No unresolved-reference warning was produced for the forward references.
+  expect(warnings.some((w) => w.code === 'OFFLINE_UNRESOLVED_REFERENCE')).toBe(
+    false,
+  )
+})
