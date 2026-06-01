@@ -1,0 +1,36 @@
+service: it-alb
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+custom:
+  serverless-offline:
+    httpPort: 0
+    lambdaPort: 0
+    albPort: 0
+functions:
+  single:
+    handler: handler.echo
+    events:
+      # ALB target with single-value header/query maps (the default — the
+      # target group's lambda.multi_value_headers.enabled attribute is off).
+      - alb:
+          listenerArn: arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/my-lb/50dc6c495c0c9188/f2f7dc8efc522ab2
+          priority: 1
+          conditions:
+            path: /single
+            method:
+              - GET
+              - POST
+  multi:
+    handler: handler.echo
+    events:
+      # ALB target with multi-value header/query maps enabled.
+      - alb:
+          listenerArn: arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/my-lb/50dc6c495c0c9188/f2f7dc8efc522ab2
+          priority: 2
+          multiValueHeaders: true
+          conditions:
+            path: /multi
+            method:
+              - GET
