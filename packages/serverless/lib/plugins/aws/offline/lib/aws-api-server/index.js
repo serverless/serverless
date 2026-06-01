@@ -8,7 +8,7 @@
 
 import Hapi from '@hapi/hapi'
 import { DEFAULT_AWS_API_PORT } from '../constants.js'
-import { detectService } from './dispatcher.js'
+import { detectService, resolveServiceAndRegion } from './dispatcher.js'
 import { registerRuntimeApiRoutes } from './runtime-api-routes.js'
 import { registerLambdaInvokeRoutes } from './lambda-invoke/routes.js'
 
@@ -65,6 +65,12 @@ import { registerLambdaInvokeRoutes } from './lambda-invoke/routes.js'
  *   maps each function's deployed name to its key; `getLambdaFunction`
  *   returns the invoke facade for a key.
  *
+ * @param {(request: object, target: { service: string, region: string }, h: object) => unknown} [options.awsProxy]
+ *   When present, a request whose target service is not locally emulated is
+ *   forwarded to this proxy with the resolved `{ service, region }` target
+ *   instead of returning the `OFFLINE_UNROUTED_REQUEST` 400. Recognised
+ *   services still route to their handlers first and never reach the proxy.
+ *
  * @returns {Promise<import('@hapi/hapi').Server>}
  *   The started Hapi server.  Register teardown via
  *   `server.stop({ timeout: 5000 })`.
@@ -76,6 +82,7 @@ export async function createAwsApiServer({
   logger,
   runtimeApi,
   lambdaInvoke,
+  awsProxy,
 } = {}) {
   // AWS SDK clients append a trailing slash to some endpoints (notably the
   // legacy InvokeAsync path), so trailing slashes must be insignificant when
@@ -124,6 +131,12 @@ export async function createAwsApiServer({
       const service = detectService(request)
 
       if (!service) {
+        if (awsProxy) {
+          const target = resolveServiceAndRegion(request)
+          if (target) {
+            return await awsProxy(request, target, h)
+          }
+        }
         logger?.debug?.({
           msg: 'unrouted-request',
           headers: request.headers,

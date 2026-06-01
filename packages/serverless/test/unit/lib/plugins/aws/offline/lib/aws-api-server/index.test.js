@@ -310,6 +310,72 @@ it('7b. routes a Lambda invoke path with a trailing slash (the SDK appends one)'
   }
 })
 
+// ---------------------------------------------------------------------------
+// 8. When awsProxy is supplied, an un-emulated service is forwarded to the
+//    proxy with the resolved { service, region } target instead of 400'ing.
+// ---------------------------------------------------------------------------
+
+it('8. routes an un-emulated service to awsProxy when configured', async () => {
+  const calls = []
+  const awsProxy = (_request, target, h) => {
+    calls.push(target)
+    return h.response({ proxied: true }).code(200)
+  }
+
+  const server = await createAwsApiServer({
+    awsApiPort: 0,
+    host: 'localhost',
+    handlers: {},
+    logger: makeLogger(),
+    awsProxy,
+  })
+
+  try {
+    const res = await server.inject({
+      method: 'POST',
+      url: '/',
+      headers: {
+        authorization: sigV4Header('dynamodb'),
+        'x-amz-target': 'DynamoDB_20120810.PutItem',
+      },
+      payload: '{}',
+    })
+
+    expect(calls).toEqual([{ service: 'dynamodb', region: 'us-east-1' }])
+    expect(res.statusCode).toBe(200)
+    expect(JSON.parse(res.payload)).toEqual({ proxied: true })
+  } finally {
+    await server.stop({ timeout: 5000 })
+  }
+})
+
+it('8b. still returns 400 OFFLINE_UNROUTED_REQUEST for an un-emulated service when no awsProxy is supplied', async () => {
+  const server = await createAwsApiServer({
+    awsApiPort: 0,
+    host: 'localhost',
+    handlers: {},
+    logger: makeLogger(),
+  })
+
+  try {
+    const res = await server.inject({
+      method: 'POST',
+      url: '/',
+      headers: {
+        authorization: sigV4Header('dynamodb'),
+        'x-amz-target': 'DynamoDB_20120810.PutItem',
+      },
+      payload: '{}',
+    })
+
+    expect(res.statusCode).toBe(400)
+    const body = JSON.parse(res.payload)
+    expect(body.error.code).toBe('OFFLINE_UNROUTED_REQUEST')
+  } finally {
+    await server.stop({ timeout: 5000 })
+  }
+})
+
 it('exposes the bound URL via server.info.uri (the boot summary owns the log line)', async () => {
   const notice = jest.fn()
   const server = await createAwsApiServer({
