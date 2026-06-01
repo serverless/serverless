@@ -1,0 +1,17 @@
+service: offline-ws-chat
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+
+functions:
+  ws:
+    handler: handler.ws
+    events:
+      - websocket:
+          route: $connect
+      - websocket:
+          route: $disconnect
+      - websocket:
+          route: broadcast
