@@ -490,11 +490,9 @@ export default class OfflinePlugin {
       )
     }
 
-    // 3. Resolve + download Lambda layers BEFORE placeholder credentials are
-    //    set below, so the layer lookups use the developer's real AWS
-    //    credentials (env or shared-config profile) rather than the 'test'
-    //    placeholders. Docker-only; a per-layer failure soft-warns and never
-    //    blocks boot.
+    // 3. Resolve + download Lambda layers using the developer's real AWS
+    //    credentials (env or shared-config profile). Docker-only; a per-layer
+    //    failure soft-warns and never blocks boot.
     const layersDir =
       cliOptions.layersDir ??
       offline.layersDir ??
