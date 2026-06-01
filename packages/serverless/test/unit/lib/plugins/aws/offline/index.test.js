@@ -2,10 +2,12 @@ import { jest } from '@jest/globals'
 import OfflinePlugin, {
   resolveOfflineOptions,
 } from '../../../../../../lib/plugins/aws/offline/index.js'
+import { CUSTOM_SERVERLESS_OFFLINE_SCHEMA } from '../../../../../../lib/plugins/aws/offline/lib/plugin-compat.js'
 
 const makeServerless = () => ({
   configSchemaHandler: {
     defineTopLevelProperty: jest.fn(),
+    defineCustomProperties: jest.fn(),
   },
   getProvider: jest.fn(() => ({ name: 'aws' })),
   pluginManager: {
@@ -18,12 +20,41 @@ const makeServerless = () => ({
 })
 
 describe('OfflinePlugin', () => {
-  it('does not register the offline top-level schema (the shell owns it)', () => {
+  it('does not register a top-level offline schema', () => {
     const sls = makeServerless()
     new OfflinePlugin(sls, {})
     expect(
       sls.configSchemaHandler.defineTopLevelProperty,
     ).not.toHaveBeenCalled()
+  })
+
+  it('registers a permissive custom.serverless-offline schema', () => {
+    const sls = makeServerless()
+    new OfflinePlugin(sls, {})
+    expect(
+      sls.configSchemaHandler.defineCustomProperties,
+    ).toHaveBeenCalledTimes(1)
+    expect(sls.configSchemaHandler.defineCustomProperties).toHaveBeenCalledWith(
+      {
+        properties: {
+          'serverless-offline': CUSTOM_SERVERLESS_OFFLINE_SCHEMA,
+        },
+      },
+    )
+  })
+
+  it('does not throw when the config schema handler is absent', () => {
+    expect(
+      () =>
+        new OfflinePlugin(
+          {
+            getProvider: jest.fn(() => ({ name: 'aws' })),
+            pluginManager: { hooks: {} },
+            service: { provider: { name: 'aws' }, functions: {} },
+          },
+          {},
+        ),
+    ).not.toThrow()
   })
 
   it('stores serverless, options, aws provider', () => {

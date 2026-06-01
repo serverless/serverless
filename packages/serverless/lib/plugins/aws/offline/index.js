@@ -23,6 +23,7 @@ import {
 import {
   normalizePluginKeys,
   collectUnsupportedKeys,
+  CUSTOM_SERVERLESS_OFFLINE_SCHEMA,
 } from './lib/plugin-compat.js'
 import { getStage } from './lib/stage.js'
 import { createHookBridge } from './lib/hook-bridge.js'
@@ -347,6 +348,23 @@ export default class OfflinePlugin {
     this.serverless = serverless
     this.options = options || {}
     this.provider = serverless.getProvider('aws')
+
+    // Register a permissive schema for the `custom.serverless-offline` block so
+    // a migrating user who keeps that config doesn't trip the framework's
+    // "unrecognized configuration" warning. This plugin is skipped whenever the
+    // community `serverless-offline` plugin is in `plugins:` (it owns the same
+    // registration), so this never collides. The constructor runs during plugin
+    // load — before config validation — so the schema is in place in time.
+    // Wrapped defensively so construction never throws on the registration.
+    try {
+      serverless?.configSchemaHandler?.defineCustomProperties?.({
+        properties: {
+          'serverless-offline': CUSTOM_SERVERLESS_OFFLINE_SCHEMA,
+        },
+      })
+    } catch {
+      // no-op: schema registration is best-effort
+    }
 
     this.hooks = {
       'offline:offline': () => this.#run(),
