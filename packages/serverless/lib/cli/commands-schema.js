@@ -246,10 +246,6 @@ commands.set('offline', {
         'Port for the HTTP API / REST / ALB / WebSocket server (default 3000)',
       type: 'string',
     },
-    awsApiPort: {
-      usage: 'Port for the AWS SDK endpoint (default 3002)',
-      type: 'string',
-    },
     corsAllowHeaders: {
       usage:
         'Used to build the Access-Control-Allow-Headers header for CORS support',
@@ -309,6 +305,10 @@ commands.set('offline', {
       usage:
         'When using HTTP API JWT authorizers, skip JWT signature verification',
       type: 'boolean',
+    },
+    lambdaPort: {
+      usage: 'Port for the Lambda invoke endpoint (default 3002)',
+      type: 'string',
     },
     layersDir: {
       usage:

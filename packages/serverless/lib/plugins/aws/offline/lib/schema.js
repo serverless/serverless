@@ -13,7 +13,6 @@ const offlineSchema = {
   additionalProperties: false,
   properties: {
     appPort: { type: 'integer', minimum: 1, maximum: 65535 },
-    awsApiPort: { type: 'integer', minimum: 1, maximum: 65535 },
     corsAllowHeaders: { type: 'string' },
     corsAllowOrigin: { type: 'string' },
     corsDisallowCredentials: { type: 'boolean' },
@@ -28,6 +27,7 @@ const offlineSchema = {
     host: { type: 'string' },
     httpsProtocol: { type: 'string' },
     ignoreJWTSignature: { type: 'boolean' },
+    lambdaPort: { type: 'integer', minimum: 1, maximum: 65535 },
     layersDir: { type: 'string' },
     localEnvironment: { type: 'boolean' },
     noAuth: { type: 'boolean' },

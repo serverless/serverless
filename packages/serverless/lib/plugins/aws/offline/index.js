@@ -13,8 +13,8 @@ import {
 import {
   LOG_NAMESPACE,
   DEFAULT_APP_PORT,
-  DEFAULT_AWS_API_PORT,
   DEFAULT_HOST,
+  DEFAULT_LAMBDA_PORT,
   DEFAULT_TERMINATE_IDLE_LAMBDA_TIME,
   FAKE_ACCOUNT_ID,
   FAKE_REGION,
@@ -70,10 +70,10 @@ export function resolveOfflineOptions({ cliOptions = {}, offline = {} } = {}) {
   return {
     appPort:
       coerceInt(cliOptions.appPort) ?? offline.appPort ?? DEFAULT_APP_PORT,
-    awsApiPort:
-      coerceInt(cliOptions.awsApiPort) ??
-      offline.awsApiPort ??
-      DEFAULT_AWS_API_PORT,
+    lambdaPort:
+      coerceInt(cliOptions.lambdaPort) ??
+      offline.lambdaPort ??
+      DEFAULT_LAMBDA_PORT,
     // The cors* knobs are global overrides applied only when the user sets
     // them (CLI or YAML). Left undefined by default so each route's own `cors`
     // config — and the AWS-correct defaults it expands to — flows through
@@ -362,7 +362,6 @@ export default class OfflinePlugin {
     //    arrives as "4000"); coerce port strings to integers locally.
     const {
       appPort,
-      awsApiPort,
       corsAllowHeaders,
       corsAllowOrigin,
       corsDisallowCredentials,
@@ -376,6 +375,7 @@ export default class OfflinePlugin {
       host,
       httpsProtocol,
       ignoreJWTSignature,
+      lambdaPort,
       localEnvironment,
       noAuth,
       noPrependStageInUrl,
@@ -482,10 +482,10 @@ export default class OfflinePlugin {
     // doing so produces an opaque EADDRINUSE deep inside Hapi instead of a
     // clear actionable error. Run this check after CLI / YAML / default
     // resolution so the values we test are the ones we'd actually bind.
-    if (appPort === awsApiPort) {
+    if (appPort === lambdaPort) {
       throw new ServerlessError(
-        `appPort and awsApiPort must differ (both resolved to ${appPort}). ` +
-          'Adjust --appPort, --awsApiPort, or the offline.appPort / offline.awsApiPort entries in serverless.yml.',
+        `appPort and lambdaPort must differ (both resolved to ${appPort}). ` +
+          'Adjust --appPort, --lambdaPort, or the offline.appPort / offline.lambdaPort entries in serverless.yml.',
         'OFFLINE_PORT_COLLISION',
       )
     }
@@ -575,9 +575,9 @@ export default class OfflinePlugin {
     // when Docker-backed functions are present. (The "AWS endpoint" line in
     // the boot summary shows the resulting bind host; the rationale lives in
     // the offline docs rather than a boot notice.)
-    const awsApiBindHost = hasDockerFunctions ? '0.0.0.0' : host
-    const hostRuntimeApiBase = `http://${host}:${awsApiPort}/runtime`
-    const dockerRuntimeApiBase = `http://${awsApiBindHost}:${awsApiPort}/runtime`
+    const lambdaBindHost = hasDockerFunctions ? '0.0.0.0' : host
+    const hostRuntimeApiBase = `http://${host}:${lambdaPort}/runtime`
+    const dockerRuntimeApiBase = `http://${lambdaBindHost}:${lambdaPort}/runtime`
     const runner = createRunner({
       useInProcess,
       useDocker,
@@ -772,8 +772,8 @@ export default class OfflinePlugin {
     // 8. Boot the AWS API server (Hapi starts listening here). It exposes the
     //    Lambda Invoke API and, when needed, the Lambda Runtime API.
     const awsApiServer = await createAwsApiServer({
-      awsApiPort,
-      host: awsApiBindHost,
+      lambdaPort,
+      host: lambdaBindHost,
       logger: log.get('sls:offline:aws-api'),
       // Mount the Lambda Runtime API routes when any Go function is in
       // the service. The Go runner enqueues into this queue; the routes
@@ -852,7 +852,7 @@ export default class OfflinePlugin {
         // Boot summary — printed after every component is up so users get a
         // single coherent diagnostic block instead of interleaved listening
         // lines per subsystem.  `server.info.uri` is the URL Hapi actually
-        // bound (matters when appPort/awsApiPort is 0 → OS-assigned).
+        // bound (matters when appPort/lambdaPort is 0 → OS-assigned).
         logBootSummary({
           logger,
           appUrl: appServer.info.uri,

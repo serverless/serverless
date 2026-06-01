@@ -1,5 +1,5 @@
 export const DEFAULT_APP_PORT = 3000
-export const DEFAULT_AWS_API_PORT = 3002
+export const DEFAULT_LAMBDA_PORT = 3002
 export const DEFAULT_HOST = 'localhost'
 export const DEFAULT_MAX_CONCURRENT_INVOCATIONS = 100
 export const DEFAULT_STAGE = 'dev'

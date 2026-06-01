@@ -73,7 +73,7 @@ export function createDockerRuntimeRunner({
   /**
    * Rewrite the offline emulator endpoint so it is reachable from inside the
    * container. The facade hands us a host-loopback URL (e.g.
-   * `http://localhost:<awsApiPort>`); a container cannot reach the host's
+   * `http://localhost:<lambdaPort>`); a container cannot reach the host's
    * loopback, so the host is swapped to the docker gateway (`dockerHost`,
    * default `host.docker.internal`) — the same mapping `_apiBaseFor` applies to
    * the runtime API. Returns `undefined` when no endpoint was supplied so

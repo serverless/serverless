@@ -1,7 +1,7 @@
 import {
   DEFAULT_APP_PORT,
-  DEFAULT_AWS_API_PORT,
   DEFAULT_HOST,
+  DEFAULT_LAMBDA_PORT,
   DEFAULT_STAGE,
   DEFAULT_TERMINATE_IDLE_LAMBDA_TIME,
   DEFAULT_WATCH,
@@ -13,7 +13,7 @@ import {
 describe('offline constants', () => {
   it('exposes default ports', () => {
     expect(DEFAULT_APP_PORT).toBe(3000)
-    expect(DEFAULT_AWS_API_PORT).toBe(3002)
+    expect(DEFAULT_LAMBDA_PORT).toBe(3002)
   })
 
   it('exposes default stage', () => {

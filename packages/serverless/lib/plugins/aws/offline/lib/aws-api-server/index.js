@@ -1,13 +1,13 @@
 /**
  * Hapi-based AWS API server for sls offline.
  *
- * Boots a single Hapi server that listens on `awsApiPort` and exposes the
+ * Boots a single Hapi server that listens on `lambdaPort` and exposes the
  * Lambda Invoke API and, when needed, the Lambda Runtime API. Any other
  * path returns a 404.
  */
 
 import Hapi from '@hapi/hapi'
-import { DEFAULT_AWS_API_PORT } from '../constants.js'
+import { DEFAULT_LAMBDA_PORT } from '../constants.js'
 import { registerRuntimeApiRoutes } from './runtime-api-routes.js'
 import { registerLambdaInvokeRoutes } from './lambda-invoke/routes.js'
 
@@ -19,12 +19,12 @@ import { registerLambdaInvokeRoutes } from './lambda-invoke/routes.js'
  * catch-all that returns a 404 with an AWS-shaped JSON body.
  *
  * @param {{
- *   awsApiPort?: number,
+ *   lambdaPort?: number,
  *   host?: string,
  *   logger?: { debug?: (data: object) => void },
  * }} options
  *
- * @param {number}  [options.awsApiPort=DEFAULT_AWS_API_PORT]
+ * @param {number}  [options.lambdaPort=DEFAULT_LAMBDA_PORT]
  *   TCP port to listen on.  Pass `0` to let the OS assign a random port
  *   (required by the cross-cutting random-port policy in integration tests).
  *
@@ -61,7 +61,7 @@ import { registerLambdaInvokeRoutes } from './lambda-invoke/routes.js'
  *   `server.stop({ timeout: 5000 })`.
  */
 export async function createAwsApiServer({
-  awsApiPort = DEFAULT_AWS_API_PORT,
+  lambdaPort = DEFAULT_LAMBDA_PORT,
   host = 'localhost',
   logger,
   runtimeApi,
@@ -72,7 +72,7 @@ export async function createAwsApiServer({
   // matching routes.
   const server = Hapi.server({
     host,
-    port: awsApiPort,
+    port: lambdaPort,
     router: { stripTrailingSlash: true },
   })
 

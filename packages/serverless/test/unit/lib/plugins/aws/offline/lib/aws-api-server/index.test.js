@@ -16,7 +16,7 @@ function makeLogger() {
 
 it('1. server boots and stops cleanly using OS-assigned random port (port 0)', async () => {
   const server = await createAwsApiServer({
-    awsApiPort: 0,
+    lambdaPort: 0,
     host: 'localhost',
     logger: makeLogger(),
   })
@@ -32,7 +32,7 @@ it('1. server boots and stops cleanly using OS-assigned random port (port 0)', a
 
 it('2. returns 404 with an AWS-shaped body for an unknown path', async () => {
   const server = await createAwsApiServer({
-    awsApiPort: 0,
+    lambdaPort: 0,
     host: 'localhost',
     logger: makeLogger(),
   })
@@ -62,7 +62,7 @@ it('3. routes Lambda invoke paths to the invoke handler when lambdaInvoke is sup
   const getLambdaFunction = jest.fn(() => ({ invoke }))
 
   const server = await createAwsApiServer({
-    awsApiPort: 0,
+    lambdaPort: 0,
     host: 'localhost',
     logger: makeLogger(),
     lambdaInvoke: {
@@ -92,7 +92,7 @@ it('3b. routes a Lambda invoke path with a trailing slash (the SDK appends one)'
   const getLambdaFunction = jest.fn(() => ({ invoke }))
 
   const server = await createAwsApiServer({
-    awsApiPort: 0,
+    lambdaPort: 0,
     host: 'localhost',
     logger: makeLogger(),
     lambdaInvoke: {
@@ -118,7 +118,7 @@ it('3b. routes a Lambda invoke path with a trailing slash (the SDK appends one)'
 it('exposes the bound URL via server.info.uri (the boot summary owns the log line)', async () => {
   const notice = jest.fn()
   const server = await createAwsApiServer({
-    awsApiPort: 0,
+    lambdaPort: 0,
     host: 'localhost',
     logger: { notice },
   })

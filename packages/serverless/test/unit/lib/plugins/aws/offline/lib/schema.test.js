@@ -12,7 +12,6 @@ describe('offline schema', () => {
   it('defines all top-level properties', () => {
     expect(offlineSchema.properties).toEqual({
       appPort: { type: 'integer', minimum: 1, maximum: 65535 },
-      awsApiPort: { type: 'integer', minimum: 1, maximum: 65535 },
       corsAllowHeaders: { type: 'string' },
       corsAllowOrigin: { type: 'string' },
       corsDisallowCredentials: { type: 'boolean' },
@@ -27,6 +26,7 @@ describe('offline schema', () => {
       host: { type: 'string' },
       httpsProtocol: { type: 'string' },
       ignoreJWTSignature: { type: 'boolean' },
+      lambdaPort: { type: 'integer', minimum: 1, maximum: 65535 },
       layersDir: { type: 'string' },
       localEnvironment: { type: 'boolean' },
       noAuth: { type: 'boolean' },
@@ -46,7 +46,6 @@ describe('offline schema', () => {
   it('declares the 29 expected keys at the top level', () => {
     expect(Object.keys(offlineSchema.properties).sort()).toEqual([
       'appPort',
-      'awsApiPort',
       'corsAllowHeaders',
       'corsAllowOrigin',
       'corsDisallowCredentials',
@@ -61,6 +60,7 @@ describe('offline schema', () => {
       'host',
       'httpsProtocol',
       'ignoreJWTSignature',
+      'lambdaPort',
       'layersDir',
       'localEnvironment',
       'noAuth',
@@ -130,8 +130,8 @@ describe('offline schema', () => {
     })
   })
 
-  it('accepts valid port values for awsApiPort and appPort', () => {
-    expect(offlineSchema.properties.awsApiPort).toEqual({
+  it('accepts valid port values for lambdaPort and appPort', () => {
+    expect(offlineSchema.properties.lambdaPort).toEqual({
       type: 'integer',
       minimum: 1,
       maximum: 65535,
@@ -143,10 +143,10 @@ describe('offline schema', () => {
     })
     // Spot-check that the defaults fit within the schema constraints.
     expect(3002).toBeGreaterThanOrEqual(
-      offlineSchema.properties.awsApiPort.minimum,
+      offlineSchema.properties.lambdaPort.minimum,
     )
     expect(3002).toBeLessThanOrEqual(
-      offlineSchema.properties.awsApiPort.maximum,
+      offlineSchema.properties.lambdaPort.maximum,
     )
     expect(3000).toBeGreaterThanOrEqual(
       offlineSchema.properties.appPort.minimum,

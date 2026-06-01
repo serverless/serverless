@@ -31,7 +31,7 @@ describe('commands-schema offline entry', () => {
   it('exposes the basic runtime-knob options as CLI flags', () => {
     expect(entry.options).toMatchObject({
       appPort: { type: 'string' },
-      awsApiPort: { type: 'string' },
+      lambdaPort: { type: 'string' },
       host: { type: 'string' },
       noTimeout: { type: 'boolean' },
       watch: { type: 'boolean' },
@@ -73,7 +73,6 @@ describe('commands-schema offline entry', () => {
   it('declares the complete offline CLI option set', () => {
     expect(Object.keys(entry.options).sort()).toEqual([
       'appPort',
-      'awsApiPort',
       'corsAllowHeaders',
       'corsAllowOrigin',
       'corsDisallowCredentials',
@@ -87,6 +86,7 @@ describe('commands-schema offline entry', () => {
       'host',
       'httpsProtocol',
       'ignoreJWTSignature',
+      'lambdaPort',
       'layersDir',
       'localEnvironment',
       'noAuth',
