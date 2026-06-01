@@ -248,6 +248,8 @@ The [`polyglot` reference app](https://github.com/serverless/serverless/tree/mai
 
 Pass `--useDocker` to run supported handlers inside Docker containers instead of on the host, which more closely matches the Lambda execution environment. Configure the container's view of the host with `--dockerHost` (default `host.docker.internal`), `--dockerNetwork`, and related flags.
 
+When any function runs in a container (via `--useDocker`, or the Java runtime, which is always container-based), the `awsApiPort` server binds to `0.0.0.0` instead of `localhost`. Containers reach the host through `host.docker.internal`, which resolves to a non-loopback address from inside the container, so a `localhost`-only bind would refuse their connections to the Lambda Runtime API. The boot summary's **AWS endpoint** line shows the bind host in effect; from your machine the endpoint is still reachable at `http://localhost:<awsApiPort>`.
+
 ### Lambda layers
 
 Layers referenced by your functions are downloaded and cached under `<service>/.serverless-offline/layers` (override with `--layersDir`) and made available to the handler at runtime.

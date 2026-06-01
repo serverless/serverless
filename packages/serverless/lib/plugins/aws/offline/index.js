@@ -671,13 +671,10 @@ export default class OfflinePlugin {
     // Containers reach the host via host.docker.internal, which resolves
     // to a non-loopback IP from the container's POV. A localhost-only
     // bind would refuse the container's connection — bind to 0.0.0.0
-    // when Docker-backed functions are present.
+    // when Docker-backed functions are present. (The "AWS endpoint" line in
+    // the boot summary shows the resulting bind host; the rationale lives in
+    // the offline docs rather than a boot notice.)
     const awsApiBindHost = hasDockerFunctions ? '0.0.0.0' : host
-    if (hasDockerFunctions && host !== '0.0.0.0') {
-      logger.notice(
-        `awsApiPort bound to 0.0.0.0 (required for Docker-based functions to reach the Runtime API via ${dockerHost}).`,
-      )
-    }
     const hostRuntimeApiBase = `http://${host}:${awsApiPort}/runtime`
     const dockerRuntimeApiBase = `http://${awsApiBindHost}:${awsApiPort}/runtime`
     const runner = createRunner({
