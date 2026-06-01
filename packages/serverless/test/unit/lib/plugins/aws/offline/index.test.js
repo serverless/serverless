@@ -1,6 +1,7 @@
 import { jest } from '@jest/globals'
 import OfflinePlugin, {
   resolveOfflineOptions,
+  buildProxyBannerLines,
 } from '../../../../../../lib/plugins/aws/offline/index.js'
 
 const makeServerless = () => ({
@@ -191,5 +192,31 @@ describe('resolveOfflineOptions', () => {
     expect(
       resolveOfflineOptions({ offline: { proxyToAws: 'nope' } }).proxyToAws,
     ).toBe(false)
+  })
+})
+
+describe('buildProxyBannerLines', () => {
+  it('off → no lines', () => {
+    expect(buildProxyBannerLines({ proxyToAws: false })).toEqual([])
+  })
+
+  it('unsupported with creds → account + region + real-AWS warning', () => {
+    const text = buildProxyBannerLines({
+      proxyToAws: 'unsupported',
+      accountId: '123456789012',
+      region: 'us-east-1',
+    }).join('\n')
+    expect(text).toContain('123456789012')
+    expect(text).toContain('us-east-1')
+    expect(text.toLowerCase()).toContain('real aws')
+  })
+
+  it('unsupported without creds → unavailable note', () => {
+    const text = buildProxyBannerLines({
+      proxyToAws: 'unsupported',
+      accountId: null,
+      region: 'us-east-1',
+    }).join('\n')
+    expect(text.toLowerCase()).toContain('unavailable')
   })
 })

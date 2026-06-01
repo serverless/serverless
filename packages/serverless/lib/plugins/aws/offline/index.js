@@ -40,6 +40,7 @@ import { createEbDeliverer } from './lib/aws-api-server/eventbridge/delivery.js'
 import { createEventBridgeHandlers } from './lib/aws-api-server/eventbridge/handlers.js'
 import { wireEventBridge } from './lib/event-sources/eb-wiring.js'
 import { createAwsApiServer } from './lib/aws-api-server/index.js'
+import { createAwsProxy } from './lib/aws-api-server/aws-proxy.js'
 import { buildFunctionNameMap } from './lib/aws-api-server/lambda-invoke/name-map.js'
 import {
   resolveFunctionLayers,
@@ -365,6 +366,27 @@ function logBootSummary({
 }
 
 /**
+ * Boot-banner lines describing the active proxyToAws mode. Empty when off.
+ *
+ * @param {{ proxyToAws: false | 'unsupported', accountId?: string | null, region?: string }} params
+ * @returns {string[]}
+ */
+export function buildProxyBannerLines({ proxyToAws, accountId, region }) {
+  if (proxyToAws !== 'unsupported') {
+    return []
+  }
+  if (!accountId) {
+    return [
+      '  Proxy to AWS:    unsupported (UNAVAILABLE — no credentials resolved; un-emulated services will error)',
+    ]
+  }
+  return [
+    '  Proxy to AWS:    unsupported — un-emulated services hit REAL AWS',
+    `    account ${accountId} · region ${region}`,
+  ]
+}
+
+/**
  * Built-in sls offline command — local dev loop for Lambda handlers
  * triggered by HTTP API, REST API, ALB, WebSocket, Schedule, S3, SQS,
  * SNS, and EventBridge events.
@@ -439,6 +461,7 @@ export default class OfflinePlugin {
       noPrependStageInUrl,
       noTimeout,
       prefix,
+      proxyToAws,
       terminateIdleLambdaTime,
       useDocker,
       useInProcess,
@@ -993,11 +1016,28 @@ export default class OfflinePlugin {
       },
     })
 
+    // Resolve the developer's deploy credentials and build the AWS proxy when
+    // opted in. The proxy re-signs requests for un-emulated services and
+    // forwards them to real AWS; when credentials cannot be resolved we still
+    // construct it with `null` so it returns a clear error instead of crashing.
+    let awsProxy
+    let proxyAccountId = null
+    if (proxyToAws === 'unsupported') {
+      try {
+        const creds = await this.provider.getCredentials()
+        proxyAccountId = creds?.accountId ?? null
+        awsProxy = createAwsProxy({ credentials: creds })
+      } catch {
+        awsProxy = createAwsProxy({ credentials: null })
+      }
+    }
+
     // 10. Boot the AWS API server (Hapi starts listening here — subscribers are
     //     already registered, so no SendMessage can arrive without a consumer).
     const awsApiServer = await createAwsApiServer({
       awsApiPort,
       host: awsApiBindHost,
+      awsProxy,
       handlers: {
         sqs: sqsHandlers,
         sns: snsHandlers,
@@ -1121,6 +1161,13 @@ export default class OfflinePlugin {
           scheduledCount: scheduler.scheduledCount,
           disabledScheduleCount: scheduler.disabledCount,
         })
+        for (const line of buildProxyBannerLines({
+          proxyToAws,
+          accountId: proxyAccountId,
+          region: this.provider.getRegion(),
+        })) {
+          logger.notice(line)
+        }
       },
     })
 
