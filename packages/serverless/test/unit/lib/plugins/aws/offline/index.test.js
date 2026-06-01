@@ -2,7 +2,6 @@ import { jest } from '@jest/globals'
 import OfflinePlugin, {
   resolveOfflineOptions,
 } from '../../../../../../lib/plugins/aws/offline/index.js'
-import offlineSchema from '../../../../../../lib/plugins/aws/offline/lib/schema.js'
 
 const makeServerless = () => ({
   configSchemaHandler: {
@@ -19,16 +18,12 @@ const makeServerless = () => ({
 })
 
 describe('OfflinePlugin', () => {
-  it('registers the offline top-level schema exactly once', () => {
+  it('does not register the offline top-level schema (the shell owns it)', () => {
     const sls = makeServerless()
     new OfflinePlugin(sls, {})
     expect(
       sls.configSchemaHandler.defineTopLevelProperty,
-    ).toHaveBeenCalledTimes(1)
-    expect(sls.configSchemaHandler.defineTopLevelProperty).toHaveBeenCalledWith(
-      'offline',
-      offlineSchema,
-    )
+    ).not.toHaveBeenCalled()
   })
 
   it('stores serverless, options, aws provider', () => {

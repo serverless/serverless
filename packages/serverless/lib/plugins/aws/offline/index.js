@@ -11,7 +11,6 @@ import {
   isDockerSupportedRuntime,
   runtimeToDockerImage,
 } from './lib/runners/docker-runtime-image.js'
-import offlineSchema from './lib/schema.js'
 import {
   LOG_NAMESPACE,
   DEFAULT_APP_PORT,
@@ -372,11 +371,6 @@ export default class OfflinePlugin {
     this.serverless = serverless
     this.options = options || {}
     this.provider = serverless.getProvider('aws')
-
-    serverless.configSchemaHandler.defineTopLevelProperty(
-      'offline',
-      offlineSchema,
-    )
 
     this.hooks = {
       'offline:offline': () => this.#run(),

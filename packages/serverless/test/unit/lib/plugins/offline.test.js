@@ -1,5 +1,7 @@
+import { jest } from '@jest/globals'
 import Offline from '../../../../lib/plugins/offline.js'
 import cliCommandsSchema from '../../../../lib/cli/commands-schema.js'
+import offlineSchema from '../../../../lib/plugins/aws/offline/lib/schema.js'
 
 describe('Offline top-level command plugin', () => {
   it('registers the offline command with the runtime plugin manager', () => {
@@ -18,5 +20,15 @@ describe('Offline top-level command plugin', () => {
     const fakeServerless = { service: {} }
     const plugin = new Offline(fakeServerless)
     expect(plugin.serverless).toBe(fakeServerless)
+  })
+
+  it('registers the offline top-level schema once', () => {
+    const defineTopLevelProperty = jest.fn()
+    new Offline({ configSchemaHandler: { defineTopLevelProperty } })
+    expect(defineTopLevelProperty).toHaveBeenCalledTimes(1)
+    expect(defineTopLevelProperty).toHaveBeenCalledWith(
+      'offline',
+      offlineSchema,
+    )
   })
 })
