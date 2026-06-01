@@ -63,6 +63,7 @@ const sqs = new SQSClient({
   credentials: { accessKeyId: 'test', secretAccessKey: 'test' },
 })
 
+const queueUrl = 'http://localhost:3002/000000000000/my-queue'
 await sqs.send(
   new SendMessageCommand({ QueueUrl: queueUrl, MessageBody: 'hello' }),
 )
@@ -161,10 +162,11 @@ import {
   PostToConnectionCommand,
 } from '@aws-sdk/client-apigatewaymanagementapi'
 
+const { domainName, stage } = event.requestContext
 const client = new ApiGatewayManagementApiClient({
-  endpoint: event.requestContext.domainName
-    ? `http://${event.requestContext.domainName}`
-    : process.env.AWS_ENDPOINT_URL,
+  // The @connections endpoint lives on appPort at /<stage>/@connections;
+  // offline sets domainName to localhost:3000, so this resolves locally.
+  endpoint: `http://${domainName}/${stage}`,
 })
 await client.send(
   new PostToConnectionCommand({
