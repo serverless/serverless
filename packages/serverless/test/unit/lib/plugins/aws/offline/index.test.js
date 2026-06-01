@@ -168,4 +168,28 @@ describe('resolveOfflineOptions', () => {
       useDocker: true,
     })
   })
+
+  it('resolves proxyToAws: default false, "unsupported" honored, anything else false', () => {
+    expect(resolveOfflineOptions({}).proxyToAws).toBe(false)
+    expect(
+      resolveOfflineOptions({ offline: { proxyToAws: 'unsupported' } })
+        .proxyToAws,
+    ).toBe('unsupported')
+    expect(
+      resolveOfflineOptions({ cliOptions: { proxyToAws: 'unsupported' } })
+        .proxyToAws,
+    ).toBe('unsupported')
+    expect(
+      resolveOfflineOptions({
+        cliOptions: { proxyToAws: 'unsupported' },
+        offline: { proxyToAws: false },
+      }).proxyToAws,
+    ).toBe('unsupported')
+    expect(
+      resolveOfflineOptions({ cliOptions: { proxyToAws: 'true' } }).proxyToAws,
+    ).toBe(false)
+    expect(
+      resolveOfflineOptions({ offline: { proxyToAws: 'nope' } }).proxyToAws,
+    ).toBe(false)
+  })
 })

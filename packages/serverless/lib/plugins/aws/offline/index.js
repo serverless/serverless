@@ -85,6 +85,12 @@ function coerceInt(value) {
   return Number.isNaN(n) ? undefined : n
 }
 
+// Only the string 'unsupported' enables proxying; everything else (undefined,
+// false, 'true', true, junk) is off. 'true' mode is not supported yet.
+function resolveProxyToAws(value) {
+  return value === 'unsupported' ? 'unsupported' : false
+}
+
 export function resolveOfflineOptions({ cliOptions = {}, offline = {} } = {}) {
   return {
     appPort:
@@ -127,6 +133,7 @@ export function resolveOfflineOptions({ cliOptions = {}, offline = {} } = {}) {
       cliOptions.noPrependStageInUrl ?? offline.noPrependStageInUrl ?? false,
     noTimeout: cliOptions.noTimeout ?? offline.noTimeout ?? false,
     prefix: cliOptions.prefix ?? offline.prefix,
+    proxyToAws: resolveProxyToAws(cliOptions.proxyToAws ?? offline.proxyToAws),
     terminateIdleLambdaTime:
       coerceInt(cliOptions.terminateIdleLambdaTime) ??
       offline.terminateIdleLambdaTime ??
