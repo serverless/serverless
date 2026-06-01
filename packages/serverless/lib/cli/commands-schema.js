@@ -239,7 +239,7 @@ commands.set('dev', {
 commands.set('offline', {
   groupName: 'main',
   usage:
-    'Run your Lambda handlers locally with API Gateway, ALB, WebSocket, S3, SQS, SNS, EventBridge, and Schedule event sources emulated in-process.',
+    'Run your Lambda handlers locally behind API Gateway (HTTP API, REST), ALB, WebSocket, and Schedule event sources, with a local Lambda Invoke endpoint.',
   options: {
     appPort: {
       usage:
