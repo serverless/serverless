@@ -20,6 +20,7 @@ import { resolve, join } from 'node:path'
 import { performance } from 'node:perf_hooks'
 import { getHandlerBaseDir } from '../handler-base-dir.js'
 import { FAKE_ACCOUNT_ID, FAKE_REGION } from '../constants.js'
+import { renderIntrinsicFunction } from '../render-intrinsic-function.js'
 
 /**
  * Handler file extensions tried in order, keyed by runtime family.
@@ -274,8 +275,8 @@ export function createLambdaFunction({
 
       const environment = {
         ...(localEnvironment ? process.env : {}),
-        ...(provider.environment ?? {}),
-        ...(fn.environment ?? {}),
+        ...renderIntrinsicFunction(provider.environment ?? {}),
+        ...renderIntrinsicFunction(fn.environment ?? {}),
       }
 
       // Measure wall-clock duration around the runner invocation. Use the
