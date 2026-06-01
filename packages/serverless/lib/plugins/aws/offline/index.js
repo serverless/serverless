@@ -16,9 +16,14 @@ import {
   DEFAULT_HOST,
   DEFAULT_LAMBDA_PORT,
   DEFAULT_TERMINATE_IDLE_LAMBDA_TIME,
+  DEFAULT_WATCH,
   FAKE_ACCOUNT_ID,
   FAKE_REGION,
 } from './lib/constants.js'
+import {
+  normalizePluginKeys,
+  collectUnsupportedKeys,
+} from './lib/plugin-compat.js'
 import { getStage } from './lib/stage.js'
 import { createHookBridge } from './lib/hook-bridge.js'
 import { createOrchestrator } from './lib/orchestrator.js'
@@ -66,65 +71,87 @@ function coerceInt(value) {
   return Number.isNaN(n) ? undefined : n
 }
 
-export function resolveOfflineOptions({ cliOptions = {}, offline = {} } = {}) {
+/**
+ * Resolve the file-watch toggle for the offline session.
+ *
+ * Precedence (highest wins):
+ *   1. cli.noWatch === true            → false (explicit CLI opt-out)
+ *   2. cli.watch (true/false)          → that value
+ *   3. cli.reloadHandler (true/false)  → that value (serverless-offline CLI flag)
+ *   4. custom.reloadHandler (true/false) → that value (serverless-offline config)
+ *   5. DEFAULT_WATCH (false)           → no auto-reload, matching serverless-offline
+ *
+ * @param {Record<string, unknown>} cli     Normalized CLI options.
+ * @param {Record<string, unknown>} custom  Normalized custom.serverless-offline config.
+ * @returns {boolean}
+ */
+function resolveWatchEnabled(cli, custom) {
+  if (cli.noWatch === true) return false
+  if (cli.watch === true) return true
+  if (cli.watch === false) return false
+  if (cli.reloadHandler === true) return true
+  if (cli.reloadHandler === false) return false
+  if (custom.reloadHandler === true) return true
+  if (custom.reloadHandler === false) return false
+  return DEFAULT_WATCH
+}
+
+export function resolveOfflineOptions({
+  cliOptions = {},
+  pluginCustom = {},
+} = {}) {
+  const cli = normalizePluginKeys(cliOptions)
+  const custom = normalizePluginKeys(pluginCustom)
   return {
     appPort:
-      coerceInt(cliOptions.appPort) ?? offline.appPort ?? DEFAULT_APP_PORT,
+      coerceInt(cli.appPort) ?? coerceInt(custom.appPort) ?? DEFAULT_APP_PORT,
     lambdaPort:
-      coerceInt(cliOptions.lambdaPort) ??
-      offline.lambdaPort ??
+      coerceInt(cli.lambdaPort) ??
+      coerceInt(custom.lambdaPort) ??
       DEFAULT_LAMBDA_PORT,
     // The cors* knobs are global overrides applied only when the user sets
-    // them (CLI or YAML). Left undefined by default so each route's own `cors`
-    // config — and the AWS-correct defaults it expands to — flows through
-    // unchanged, keeping the offline preflight in step with deployed API
-    // Gateway rather than imposing a fixed header set on every route.
-    corsAllowHeaders: cliOptions.corsAllowHeaders ?? offline.corsAllowHeaders,
-    corsAllowOrigin: cliOptions.corsAllowOrigin ?? offline.corsAllowOrigin,
+    // them (CLI or custom config). Left undefined by default so each route's
+    // own `cors` config — and the AWS-correct defaults it expands to — flows
+    // through unchanged, keeping the offline preflight in step with deployed
+    // API Gateway rather than imposing a fixed header set on every route.
+    corsAllowHeaders: cli.corsAllowHeaders ?? custom.corsAllowHeaders,
+    corsAllowOrigin: cli.corsAllowOrigin ?? custom.corsAllowOrigin,
     corsDisallowCredentials:
-      cliOptions.corsDisallowCredentials ?? offline.corsDisallowCredentials,
-    corsExposedHeaders:
-      cliOptions.corsExposedHeaders ?? offline.corsExposedHeaders,
+      cli.corsDisallowCredentials ?? custom.corsDisallowCredentials,
+    corsExposedHeaders: cli.corsExposedHeaders ?? custom.corsExposedHeaders,
     disableCookieValidation:
-      cliOptions.disableCookieValidation ??
-      offline.disableCookieValidation ??
-      false,
-    dockerHost:
-      cliOptions.dockerHost ?? offline.dockerHost ?? 'host.docker.internal',
+      cli.disableCookieValidation ?? custom.disableCookieValidation ?? false,
+    dockerHost: cli.dockerHost ?? custom.dockerHost ?? 'host.docker.internal',
     dockerHostServicePath:
-      cliOptions.dockerHostServicePath ?? offline.dockerHostServicePath ?? null,
-    dockerNetwork: cliOptions.dockerNetwork ?? offline.dockerNetwork ?? null,
-    dockerReadOnly: cliOptions.dockerReadOnly ?? offline.dockerReadOnly ?? true,
+      cli.dockerHostServicePath ?? custom.dockerHostServicePath ?? null,
+    dockerNetwork: cli.dockerNetwork ?? custom.dockerNetwork ?? null,
+    dockerReadOnly: cli.dockerReadOnly ?? custom.dockerReadOnly ?? true,
     enforceSecureCookies:
-      cliOptions.enforceSecureCookies ?? offline.enforceSecureCookies ?? false,
-    host: cliOptions.host ?? offline.host ?? DEFAULT_HOST,
-    httpsProtocol: cliOptions.httpsProtocol ?? offline.httpsProtocol,
+      cli.enforceSecureCookies ?? custom.enforceSecureCookies ?? false,
+    host: cli.host ?? custom.host ?? DEFAULT_HOST,
+    httpsProtocol: cli.httpsProtocol ?? custom.httpsProtocol,
     ignoreJWTSignature:
-      cliOptions.ignoreJWTSignature ?? offline.ignoreJWTSignature ?? false,
-    localEnvironment:
-      cliOptions.localEnvironment ?? offline.localEnvironment ?? false,
-    noAuth: cliOptions.noAuth ?? offline.noAuth ?? false,
+      cli.ignoreJWTSignature ?? custom.ignoreJWTSignature ?? false,
+    localEnvironment: cli.localEnvironment ?? custom.localEnvironment ?? false,
+    noAuth: cli.noAuth ?? custom.noAuth ?? false,
     noPrependStageInUrl:
-      cliOptions.noPrependStageInUrl ?? offline.noPrependStageInUrl ?? false,
-    noTimeout: cliOptions.noTimeout ?? offline.noTimeout ?? false,
-    prefix: cliOptions.prefix ?? offline.prefix,
+      cli.noPrependStageInUrl ?? custom.noPrependStageInUrl ?? false,
+    noTimeout: cli.noTimeout ?? custom.noTimeout ?? false,
+    prefix: cli.prefix ?? custom.prefix,
     terminateIdleLambdaTime:
-      coerceInt(cliOptions.terminateIdleLambdaTime) ??
-      offline.terminateIdleLambdaTime ??
+      coerceInt(cli.terminateIdleLambdaTime) ??
+      coerceInt(custom.terminateIdleLambdaTime) ??
       DEFAULT_TERMINATE_IDLE_LAMBDA_TIME,
-    useDocker: cliOptions.useDocker ?? offline.useDocker ?? false,
-    useInProcess: cliOptions.useInProcess ?? offline.useInProcess ?? false,
-    watchEnabled:
-      cliOptions.noWatch === true || offline.noWatch === true
-        ? false
-        : (cliOptions.watch ?? offline.watch ?? true),
+    useDocker: cli.useDocker ?? custom.useDocker ?? false,
+    useInProcess: cli.useInProcess ?? custom.useInProcess ?? false,
+    watchEnabled: resolveWatchEnabled(cli, custom),
     webSocketHardTimeout:
-      coerceInt(cliOptions.webSocketHardTimeout) ??
-      coerceInt(offline.webSocketHardTimeout) ??
+      coerceInt(cli.webSocketHardTimeout) ??
+      coerceInt(custom.webSocketHardTimeout) ??
       7200,
     webSocketIdleTimeout:
-      coerceInt(cliOptions.webSocketIdleTimeout) ??
-      coerceInt(offline.webSocketIdleTimeout) ??
+      coerceInt(cli.webSocketIdleTimeout) ??
+      coerceInt(custom.webSocketIdleTimeout) ??
       600,
   }
 }
@@ -346,20 +373,24 @@ export default class OfflinePlugin {
 
     // Framework v4 / sf-core stores top-level YAML blocks on
     // `service.initialServerlessConfig` rather than as direct service
-    // properties. Read from the canonical raw-config location so users
-    // who declare config in YAML (e.g. `offline.appPort: 4000`) are
-    // honored, falling back to `service.offline` for compatibility.
-    const offline =
-      serverless.service.initialServerlessConfig?.offline ??
-      serverless.service.offline ??
+    // properties. Read serverless-offline's plugin config from the canonical
+    // raw-config location (`custom.serverless-offline`) so users who configure
+    // the community plugin are honored by the built-in command, falling back
+    // to `service.custom['serverless-offline']` for compatibility.
+    const pluginCustom =
+      serverless.service.initialServerlessConfig?.custom?.[
+        'serverless-offline'
+      ] ??
+      serverless.service.custom?.['serverless-offline'] ??
       {}
     const provider = serverless.service.provider ?? {}
     const cliOptions = this.options ?? {}
 
     // 2. Read config values.
-    //    Precedence (highest wins): CLI flag → offline.<key> in YAML → built-in default.
-    //    Framework's CLI parser returns option values as strings (e.g. --appPort 4000
-    //    arrives as "4000"); coerce port strings to integers locally.
+    //    Precedence (highest wins): CLI flag → custom.serverless-offline.<key>
+    //    in YAML → built-in default. Framework's CLI parser returns option
+    //    values as strings (e.g. --appPort 4000 arrives as "4000"); coerce
+    //    port strings to integers locally.
     const {
       appPort,
       corsAllowHeaders,
@@ -387,7 +418,19 @@ export default class OfflinePlugin {
       watchEnabled,
       webSocketHardTimeout,
       webSocketIdleTimeout,
-    } = resolveOfflineOptions({ cliOptions, offline })
+    } = resolveOfflineOptions({ cliOptions, pluginCustom })
+
+    // Surface serverless-offline options that the built-in command cannot
+    // honor (WebSocket/ALB run on the app port; the rest have no local
+    // equivalent). Emitted once at boot so users aren't silently misled.
+    const ignoredKeys = collectUnsupportedKeys({ cliOptions, pluginCustom })
+    if (ignoredKeys.length > 0) {
+      logger.warning(
+        `Ignoring serverless-offline option(s) not supported by the built-in offline command: ${ignoredKeys.join(
+          ', ',
+        )}. WebSocket and ALB are served on the app port; the rest have no local equivalent.`,
+      )
+    }
     const stage = getStage(serverless)
     const domainName = `${host}:${appPort}`
     // NOTE: servicePath is intentionally NOT captured here — it must be read
@@ -485,7 +528,7 @@ export default class OfflinePlugin {
     if (appPort === lambdaPort) {
       throw new ServerlessError(
         `appPort and lambdaPort must differ (both resolved to ${appPort}). ` +
-          'Adjust --appPort, --lambdaPort, or the offline.appPort / offline.lambdaPort entries in serverless.yml.',
+          'Adjust --appPort, --lambdaPort, or the custom.serverless-offline httpPort / lambdaPort entries in serverless.yml.',
         'OFFLINE_PORT_COLLISION',
       )
     }
@@ -495,7 +538,7 @@ export default class OfflinePlugin {
     //    failure soft-warns and never blocks boot.
     const layersDir =
       cliOptions.layersDir ??
-      offline.layersDir ??
+      pluginCustom.layersDir ??
       path.join(
         serverless.serviceDir ?? process.cwd(),
         '.serverless-offline',

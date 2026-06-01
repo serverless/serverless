@@ -34,7 +34,7 @@ describe('offline constants', () => {
   })
 
   it('exposes default watch flag', () => {
-    expect(DEFAULT_WATCH).toBe(true)
+    expect(DEFAULT_WATCH).toBe(false)
   })
 
   it('exposes default terminate idle lambda time in seconds', () => {

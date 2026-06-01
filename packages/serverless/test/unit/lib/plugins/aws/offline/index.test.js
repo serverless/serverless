@@ -69,8 +69,11 @@ describe('OfflinePlugin', () => {
 })
 
 describe('resolveOfflineOptions', () => {
-  it('resolves option-parity defaults when CLI and YAML omit them', () => {
-    const resolved = resolveOfflineOptions({ cliOptions: {}, offline: {} })
+  it('resolves option-parity defaults when CLI and custom omit them', () => {
+    const resolved = resolveOfflineOptions({
+      cliOptions: {},
+      pluginCustom: {},
+    })
     // The cors* overrides are left undefined by default so each route's own
     // `cors` config (and its AWS-correct defaults) is used as-is; they only
     // take effect when the user explicitly sets them.
@@ -79,6 +82,8 @@ describe('resolveOfflineOptions', () => {
     expect(resolved.corsDisallowCredentials).toBeUndefined()
     expect(resolved.corsExposedHeaders).toBeUndefined()
     expect(resolved).toMatchObject({
+      appPort: 3000,
+      lambdaPort: 3002,
       disableCookieValidation: false,
       dockerHost: 'host.docker.internal',
       dockerHostServicePath: null,
@@ -91,81 +96,170 @@ describe('resolveOfflineOptions', () => {
       noAuth: false,
       noTimeout: false,
       useDocker: false,
+      watchEnabled: false,
       webSocketHardTimeout: 7200,
       webSocketIdleTimeout: 600,
     })
   })
 
-  it('honors noTimeout from YAML and lets CLI override it', () => {
-    expect(
-      resolveOfflineOptions({ cliOptions: {}, offline: { noTimeout: true } })
-        .noTimeout,
-    ).toBe(true)
-    expect(
-      resolveOfflineOptions({
-        cliOptions: { noTimeout: true },
-        offline: {},
-      }).noTimeout,
-    ).toBe(true)
-    expect(
-      resolveOfflineOptions({ cliOptions: {}, offline: {} }).noTimeout,
-    ).toBe(false)
-  })
+  describe('appPort / httpPort alias', () => {
+    it('maps httpPort to appPort from CLI options', () => {
+      expect(
+        resolveOfflineOptions({
+          cliOptions: { httpPort: '4000' },
+          pluginCustom: {},
+        }).appPort,
+      ).toBe(4000)
+    })
 
-  it('lets CLI values override YAML values for option-parity flags', () => {
-    expect(
-      resolveOfflineOptions({
-        cliOptions: {
-          corsAllowOrigin: 'https://cli.example.com',
-          dockerHost: 'cli.docker.internal',
-          dockerHostServicePath: '/cli-service',
-          dockerNetwork: 'cli-network',
-          dockerReadOnly: false,
-          ignoreJWTSignature: true,
-          useDocker: true,
-          webSocketHardTimeout: '30',
-        },
-        offline: {
-          corsAllowOrigin: 'https://yaml.example.com',
-          dockerHost: 'yaml.docker.internal',
-          dockerHostServicePath: '/yaml-service',
-          dockerNetwork: 'yaml-network',
-          dockerReadOnly: true,
-          ignoreJWTSignature: false,
-          useDocker: false,
-          webSocketHardTimeout: 60,
-        },
-      }),
-    ).toMatchObject({
-      corsAllowOrigin: 'https://cli.example.com',
-      dockerHost: 'cli.docker.internal',
-      dockerHostServicePath: '/cli-service',
-      dockerNetwork: 'cli-network',
-      dockerReadOnly: false,
-      ignoreJWTSignature: true,
-      useDocker: true,
-      webSocketHardTimeout: 30,
+    it('maps httpPort to appPort from custom config', () => {
+      expect(
+        resolveOfflineOptions({
+          cliOptions: {},
+          pluginCustom: { httpPort: 4000 },
+        }).appPort,
+      ).toBe(4000)
+    })
+
+    it('lets an explicit appPort beat httpPort', () => {
+      expect(
+        resolveOfflineOptions({
+          cliOptions: { appPort: '5000', httpPort: '4000' },
+          pluginCustom: {},
+        }).appPort,
+      ).toBe(5000)
     })
   })
 
-  it('uses YAML docker option values when CLI values are omitted', () => {
-    expect(
-      resolveOfflineOptions({
-        cliOptions: {},
-        offline: {
-          dockerHost: 'yaml.docker.internal',
-          dockerHostServicePath: '/yaml-service',
-          dockerNetwork: 'yaml-network',
-          dockerReadOnly: false,
-          useDocker: true,
-        },
-      }),
-    ).toMatchObject({
-      dockerHost: 'yaml.docker.internal',
-      dockerHostServicePath: '/yaml-service',
-      dockerNetwork: 'yaml-network',
-      dockerReadOnly: false,
-      useDocker: true,
+  describe('precedence', () => {
+    it('honors noTimeout from custom and lets CLI override it', () => {
+      expect(
+        resolveOfflineOptions({
+          cliOptions: {},
+          pluginCustom: { noTimeout: true },
+        }).noTimeout,
+      ).toBe(true)
+      expect(
+        resolveOfflineOptions({
+          cliOptions: { noTimeout: true },
+          pluginCustom: {},
+        }).noTimeout,
+      ).toBe(true)
+      expect(
+        resolveOfflineOptions({ cliOptions: {}, pluginCustom: {} }).noTimeout,
+      ).toBe(false)
     })
+
+    it('lets CLI values override custom values for option-parity flags', () => {
+      expect(
+        resolveOfflineOptions({
+          cliOptions: {
+            corsAllowOrigin: 'https://cli.example.com',
+            dockerHost: 'cli.docker.internal',
+            dockerHostServicePath: '/cli-service',
+            dockerNetwork: 'cli-network',
+            dockerReadOnly: false,
+            ignoreJWTSignature: true,
+            useDocker: true,
+            webSocketHardTimeout: '30',
+          },
+          pluginCustom: {
+            corsAllowOrigin: 'https://yaml.example.com',
+            dockerHost: 'yaml.docker.internal',
+            dockerHostServicePath: '/yaml-service',
+            dockerNetwork: 'yaml-network',
+            dockerReadOnly: true,
+            ignoreJWTSignature: false,
+            useDocker: false,
+            webSocketHardTimeout: 60,
+          },
+        }),
+      ).toMatchObject({
+        corsAllowOrigin: 'https://cli.example.com',
+        dockerHost: 'cli.docker.internal',
+        dockerHostServicePath: '/cli-service',
+        dockerNetwork: 'cli-network',
+        dockerReadOnly: false,
+        ignoreJWTSignature: true,
+        useDocker: true,
+        webSocketHardTimeout: 30,
+      })
+    })
+
+    it('uses custom docker option values when CLI values are omitted', () => {
+      expect(
+        resolveOfflineOptions({
+          cliOptions: {},
+          pluginCustom: {
+            dockerHost: 'yaml.docker.internal',
+            dockerHostServicePath: '/yaml-service',
+            dockerNetwork: 'yaml-network',
+            dockerReadOnly: false,
+            useDocker: true,
+          },
+        }),
+      ).toMatchObject({
+        dockerHost: 'yaml.docker.internal',
+        dockerHostServicePath: '/yaml-service',
+        dockerNetwork: 'yaml-network',
+        dockerReadOnly: false,
+        useDocker: true,
+      })
+    })
+  })
+
+  describe('watchEnabled', () => {
+    const watch = (cliOptions = {}, pluginCustom = {}) =>
+      resolveOfflineOptions({ cliOptions, pluginCustom }).watchEnabled
+
+    it('defaults OFF when no flags and no reloadHandler are set', () => {
+      expect(watch()).toBe(false)
+    })
+
+    it('enables watch when cli.watch === true', () => {
+      expect(watch({ watch: true })).toBe(true)
+    })
+
+    it('disables watch when cli.watch === false', () => {
+      expect(watch({ watch: false })).toBe(false)
+    })
+
+    it('disables watch when cli.noWatch === true', () => {
+      expect(watch({ noWatch: true })).toBe(false)
+    })
+
+    it('maps cli.reloadHandler === true to watch on', () => {
+      expect(watch({ reloadHandler: true })).toBe(true)
+    })
+
+    it('maps cli.reloadHandler === false to watch off', () => {
+      expect(watch({ reloadHandler: false })).toBe(false)
+    })
+
+    it('maps custom.reloadHandler === true to watch on', () => {
+      expect(watch({}, { reloadHandler: true })).toBe(true)
+    })
+
+    it('maps custom.reloadHandler === false to watch off', () => {
+      expect(watch({}, { reloadHandler: false })).toBe(false)
+    })
+
+    it('lets cli.watch beat custom.reloadHandler', () => {
+      expect(watch({ watch: true }, { reloadHandler: false })).toBe(true)
+      expect(watch({ watch: false }, { reloadHandler: true })).toBe(false)
+    })
+
+    it('lets cli.noWatch beat custom.reloadHandler', () => {
+      expect(watch({ noWatch: true }, { reloadHandler: true })).toBe(false)
+    })
+  })
+
+  it('does not throw when unsupported plugin keys are passed', () => {
+    expect(() =>
+      resolveOfflineOptions({
+        cliOptions: { websocketPort: 3001, albPort: 3003 },
+        pluginCustom: { resourceRoutes: {}, preLoadModules: [] },
+      }),
+    ).not.toThrow()
   })
 })
