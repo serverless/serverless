@@ -1,4 +1,7 @@
-import { detectService } from '../../../../../../../../lib/plugins/aws/offline/lib/aws-api-server/dispatcher.js'
+import {
+  detectService,
+  resolveServiceAndRegion,
+} from '../../../../../../../../lib/plugins/aws/offline/lib/aws-api-server/dispatcher.js'
 
 /**
  * Build a minimal fake Hapi request with only the headers object populated.
@@ -266,4 +269,31 @@ it('20. does NOT route a SigV4 presign scoped to an unrecognised service to s3',
       }),
     ),
   ).toBeNull()
+})
+
+// ---------------------------------------------------------------------------
+// resolveServiceAndRegion
+// ---------------------------------------------------------------------------
+
+const auth = (service, region = 'us-east-1') =>
+  `AWS4-HMAC-SHA256 Credential=test/20260601/${region}/${service}/aws4_request, SignedHeaders=host, Signature=x`
+
+describe('resolveServiceAndRegion', () => {
+  it('returns service+region even for un-emulated services', () => {
+    expect(
+      resolveServiceAndRegion({
+        headers: { authorization: auth('dynamodb', 'eu-west-1') },
+      }),
+    ).toEqual({ service: 'dynamodb', region: 'eu-west-1' })
+  })
+
+  it('works for emulated services too', () => {
+    expect(
+      resolveServiceAndRegion({ headers: { authorization: auth('sqs') } }),
+    ).toEqual({ service: 'sqs', region: 'us-east-1' })
+  })
+
+  it('returns null without a SigV4 header', () => {
+    expect(resolveServiceAndRegion({ headers: {} })).toBeNull()
+  })
 })

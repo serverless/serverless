@@ -64,6 +64,30 @@ export function detectService(request) {
 }
 
 /**
+ * Resolve the target service AND region from the SigV4 Authorization header,
+ * regardless of whether the service is locally emulated. Used by the proxy.
+ *
+ * @param {{ headers: Record<string, string> }} request
+ * @returns {{ service: string, region: string } | null}
+ */
+export function resolveServiceAndRegion(request) {
+  const authHeader =
+    request.headers['authorization'] ?? request.headers['Authorization']
+  if (!authHeader || !authHeader.startsWith('AWS4-HMAC-SHA256 ')) {
+    return null
+  }
+  const credentialMatch = authHeader.match(/Credential=([^,\s]+)/)
+  if (!credentialMatch) {
+    return null
+  }
+  const parts = credentialMatch[1].split('/')
+  if (parts.length < 5) {
+    return null
+  }
+  return { region: parts[2], service: parts[3] }
+}
+
+/**
  * Resolve the target service from the SigV4 Authorization header alone.
  *
  * @param {{ headers: Record<string, string> }} request
