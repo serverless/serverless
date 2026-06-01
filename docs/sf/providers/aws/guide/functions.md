@@ -325,6 +325,8 @@ Alternatively lambda environment can be configured through docker images. Image 
 
 Serverless will create an ECR repository for your image, but it currently does not manage updates to it. An ECR repository is created only for new services or the first time that a function configured with an `image` is deployed. In service configuration, you can configure the ECR repository to scan for CVEs via the `provider.ecr.scanOnPush` property, which is `false` by default. (See [documentation](https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html))
 
+To bound how much the repository grows over time, set `provider.ecr.maxImages` to a positive integer. The framework will attach an ECR [lifecycle policy](https://docs.aws.amazon.com/AmazonECR/latest/userguide/LifecyclePolicies.html) that expires older, superseded image versions once their count exceeds the configured value. Currently-tagged images — the live digest for every entry under `provider.ecr.images` — are never expired, so updating one image many times will not break another function's image that has not changed. Pick a value that comfortably covers the published Lambda function versions you might still need to roll back to, since they reference older image digests that the lifecycle rule may expire once the tag has moved on. The deployer principal needs `ecr:PutLifecyclePolicy` permission on the repository.
+
 In service configuration, images can be configured via `provider.ecr.images`. To define an image that will be built locally, you need to specify `path` property, which should point to valid docker context directory. Optionally, you can also set `file` to specify Dockerfile that should be used when building an image. It is also possible to define images that already exist in AWS ECR repository. In order to do that, you need to define `uri` property, which should follow `<account>.dkr.ecr.<region>.amazonaws.com/<repository>@<digest>` or `<account>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>` format.
 
 Additionally, you can define arguments that will be passed to the `docker build` command via the following properties:
@@ -345,6 +347,7 @@ provider:
   name: aws
   ecr:
     scanOnPush: true
+    maxImages: 10
     images:
       baseimage:
         path: ./path/to/context
@@ -413,7 +416,7 @@ functions:
         - flag
 ```
 
-During the first deployment when locally built images are used, Framework will automatically create a dedicated ECR repository to store these images, with name `serverless-<service>-<stage>`. Currently, the Framework will not remove older versions of images uploaded to ECR as they still might be in use by versioned functions. During `sls remove`, the created ECR repository will be removed. During deployment, Framework will attempt to `docker login` to ECR if needed. Depending on your local configuration, docker authorization token might be stored unencrypted. Please refer to documentation for more details: https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+During the first deployment when locally built images are used, Framework will automatically create a dedicated ECR repository to store these images, with name `serverless-<service>-<stage>`. By default the Framework keeps every pushed image in place, since previously published function versions may still point at older digests; opt in to automatic expiry with `provider.ecr.maxImages` (see above). During `sls remove`, the created ECR repository will be removed. During deployment, Framework will attempt to `docker login` to ECR if needed. Depending on your local configuration, docker authorization token might be stored unencrypted. Please refer to documentation for more details: https://docs.docker.com/engine/reference/commandline/login/#credentials-store
 
 ## Instruction set architecture
 
@@ -498,6 +501,17 @@ functions:
 ```
 
 **Note:** Lambda SnapStart only supports the Java 11, Java 17 and Java 21 runtimes and does not support provisioned concurrency, the arm64 architecture, the Lambda Extensions API, Amazon Elastic File System (Amazon EFS), AWS X-Ray, or ephemeral storage greater than 512 MB.
+
+## Recursive Loop Detection
+
+By default, AWS Lambda [detects and stops recursive invocation loops](https://docs.aws.amazon.com/lambda/latest/dg/invocation-recursion.html) between supported AWS services. To allow recursive loops for a function, set `recursiveLoop` to `allow`. To explicitly enforce termination (the default behavior), set it to `terminate`. The value is case-insensitive.
+
+```yaml
+functions:
+  hello:
+    handler: handler.hello
+    recursiveLoop: allow
+```
 
 ## VPC Configuration
 
@@ -709,6 +723,47 @@ functions:
     logDataProtectionPolicy:
       Name: data-protection-policy
 ```
+
+### Infrequent Access log class
+
+You can select the CloudWatch Logs [log group class](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatch_Logs_Log_Classes.html) by setting `logs.logGroupClass`. Valid values are `standard` (the default) and `infrequent_access`; both are matched case-insensitively. The Infrequent Access class costs roughly 50% less per GB ingested and is suited to log groups used primarily for storage and on-demand troubleshooting rather than for real-time querying or alarms.
+
+```yml
+functions:
+  archived:
+    handler: handler.archived
+    logs:
+      logGroupClass: infrequent_access
+```
+
+You can also set it for every function at once on the provider:
+
+```yml
+provider:
+  logs:
+    lambda:
+      logGroupClass: infrequent_access
+```
+
+Function-level configuration takes precedence over the provider-level value, so individual functions can opt back into `standard` even when the provider default is `infrequent_access`.
+
+When `logGroupClass: infrequent_access` is set for a function, the framework:
+
+- Continues to create the standard log group at `/aws/lambda/{functionName}`, so any historical logs there are preserved when migrating an existing service.
+- Additionally creates an Infrequent Access log group at `/aws/lambda/{functionName}-ia` with `LogGroupClass: INFREQUENT_ACCESS`.
+- Sets `LoggingConfig.LogGroup` on the Lambda function so new invocations write to the Infrequent Access log group.
+- Marks the Infrequent Access log group with `DeletionPolicy: Retain` so its data survives a stack removal.
+
+The Infrequent Access class supports a reduced subset of CloudWatch Logs features — review the [AWS log class comparison](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatch_Logs_Log_Classes.html) before opting in.
+
+**Framework behavior notes:**
+
+- `sls logs -f <function>` cannot read an Infrequent Access log group and fails fast with a clear error. Read these logs through CloudWatch Logs Insights instead.
+- AWS does not allow the class of an existing log group to be changed in place. If you later remove `logGroupClass` from your configuration, the framework stops emitting the Infrequent Access log group resource. Because of `DeletionPolicy: Retain`, the AWS log group and its logs are preserved, but the resource is no longer tracked by your stack.
+
+> **⚠️ Re-enabling Infrequent Access on a previously-orphaned group will fail.** Once an Infrequent Access log group has been retained out of the stack (by removing `logGroupClass` and redeploying), a subsequent attempt to re-enable `infrequent_access` for the same function deploys with `ResourceAlreadyExistsException` — CloudFormation tries to create a log group with a name that already exists in AWS but is no longer managed by the stack. Recover by either deleting the orphaned group from CloudWatch (loses the retained history) or importing it back into the stack with [`aws cloudformation create-change-set --change-set-type IMPORT`](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resource-import.html) (keeps it). Plan toggling between classes accordingly.
+
+`logGroupClass` cannot be combined with `logs.logGroup` or `provider.logs.lambda.logGroup` — when you supply a custom log group name you also own its class. Set `LogGroupClass` directly on that externally-managed log group.
 
 ## Versioning Deployed Functions
 

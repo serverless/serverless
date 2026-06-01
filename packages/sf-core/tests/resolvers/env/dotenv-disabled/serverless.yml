@@ -1,0 +1,10 @@
+service: resolvers-env-test
+org: serverlesstestaccount
+
+useDotenv: false
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${env:LOCAL_KEY, 'default-not-loaded'}
+    description: ${env:STAGE_KEY, 'stage-not-loaded'}

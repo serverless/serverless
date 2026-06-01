@@ -1,4 +1,5 @@
 import path from 'path'
+import { existsSync } from 'fs'
 import fsp from 'fs/promises'
 import { globby } from 'globby'
 import _ from 'lodash'
@@ -6,6 +7,51 @@ import micromatch from 'micromatch'
 import ServerlessError from '../../../serverless-error.js'
 import parseS3URI from '../../aws/utils/parse-s3-uri.js'
 import { log } from '@serverless/util'
+
+/**
+ * Configuration file extensions the framework knows how to parse.
+ * Kept in sync with `lib/configuration/read.js`.
+ */
+const SERVERLESS_CONFIG_EXTENSIONS = [
+  'yml',
+  'yaml',
+  'json',
+  'toml',
+  'ts',
+  'cjs',
+  'mjs',
+  'js',
+]
+
+/**
+ * Resolve the user's service-configuration filename(s) for exclusion from
+ * the deployable artifact.
+ *
+ * Honors custom config filenames (e.g., `my-service.yml`) by using
+ * `serverless.configurationFilename` as the base.
+ *
+ * When `configurationFilename` does not carry a file extension, this helper
+ * probes the service directory for which `<base>.<ext>` files actually exist
+ * and excludes those. If the value already carries an extension, it is used
+ * verbatim.
+ */
+function resolveServerlessConfigFileExcludes(serverless) {
+  const base = serverless.configurationFilename
+  if (!base) return []
+
+  // Already has an extension — use as-is.
+  if (path.extname(base)) return [base]
+
+  // No extension — probe the filesystem for matching `<base>.<ext>` files.
+  const candidates = SERVERLESS_CONFIG_EXTENSIONS.map((ext) => `${base}.${ext}`)
+  const present = candidates.filter((name) =>
+    existsSync(path.join(serverless.serviceDir, name)),
+  )
+
+  // If nothing matched (unusual — the framework wouldn't have loaded
+  // anything), fall back to excluding the bare name.
+  return present.length > 0 ? present : [base]
+}
 
 export default {
   defaultExcludes: [
@@ -49,9 +95,9 @@ export default {
       : []
     // add defaults for exclude
 
-    const serverlessConfigFileExclude = this.serverless.configurationFilename
-      ? [this.serverless.configurationFilename]
-      : []
+    const serverlessConfigFileExclude = resolveServerlessConfigFileExcludes(
+      this.serverless,
+    )
 
     const configurationInput = this.serverless.configurationInput
     const envFilesExclude =

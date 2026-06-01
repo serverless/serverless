@@ -7,6 +7,7 @@ import getHashForFilePath from '../lib/get-hash-for-file-path.js'
 import resolveLambdaTarget from '../../utils/resolve-lambda-target.js'
 import parseS3URI from '../../utils/parse-s3-uri.js'
 import resolveFileSystemType from '../../utils/resolve-file-system-type.js'
+import { LOG_GROUP_CLASSES } from '../../lib/naming.js'
 import { log, ServerlessError } from '@serverless/util'
 
 const defaultCors = {
@@ -25,6 +26,10 @@ const runtimeManagementMap = new Map([
   ['auto', 'Auto'],
   ['onFunctionUpdate', 'FunctionUpdate'],
   ['manual', 'Manual'],
+])
+const recursiveLoopMap = new Map([
+  ['allow', 'Allow'],
+  ['terminate', 'Terminate'],
 ])
 
 class AwsCompileFunctions {
@@ -190,6 +195,19 @@ class AwsCompileFunctions {
       throw new ServerlessError(
         `Either "handler" or "image" property (not both) needs to be set on function "${functionName}".`,
         'FUNCTION_BOTH_HANDLER_AND_IMAGE_DEFINED_ERROR',
+      )
+    }
+    const effectiveLogGroupClass =
+      this.provider.getLogGroupClass(functionObject)
+    if (
+      effectiveLogGroupClass &&
+      (functionObject.logs?.logGroup ||
+        this.serverless.service.provider.logs?.lambda?.logGroup)
+    ) {
+      throw new ServerlessError(
+        `logGroupClass cannot be used with a custom log group name (logs.logGroup) for function "${functionName}". Set LogGroupClass directly on your externally-managed log group instead.`,
+        'FUNCTION_LOG_GROUP_CLASS_CUSTOM_LOG_GROUP_CONFLICT',
+        { stack: false },
       )
     }
 
@@ -778,14 +796,30 @@ class AwsCompileFunctions {
         functionObject.reservedConcurrency
     }
 
+    if (functionObject.recursiveLoop) {
+      functionResource.Properties.RecursiveLoop = recursiveLoopMap.get(
+        functionObject.recursiveLoop.toLowerCase(),
+      )
+    }
+
     if (
       !functionObject.disableLogs &&
       !functionObject?.logs?.logGroup &&
       !this.serverless.service.provider.logs?.lambda?.logGroup
     ) {
-      functionResource.DependsOn = [
+      const logGroupDependencies = [
         this.provider.naming.getLogGroupLogicalId(functionName),
-      ].concat(functionResource.DependsOn || [])
+      ]
+      if (effectiveLogGroupClass === LOG_GROUP_CLASSES.INFREQUENT_ACCESS) {
+        logGroupDependencies.push(
+          this.provider.naming.getLogGroupLogicalId(functionName, {
+            logGroupClass: LOG_GROUP_CLASSES.INFREQUENT_ACCESS,
+          }),
+        )
+      }
+      functionResource.DependsOn = logGroupDependencies.concat(
+        functionResource.DependsOn || [],
+      )
     }
 
     if (functionObject.layers) {
@@ -869,6 +903,7 @@ class AwsCompileFunctions {
       if (!functionObject.image) delete functionProperties.Code
       // Properties applied to function globally (not specific to version or alias)
       delete functionProperties.ReservedConcurrentExecutions
+      delete functionProperties.RecursiveLoop
       delete functionProperties.Tags
 
       const lambdaHashingVersion =
@@ -1067,6 +1102,19 @@ class AwsCompileFunctions {
       }
       if (logGroup) {
         finalizedLogConfiguration.LogGroup = logGroup
+      } else if (
+        effectiveLogGroupClass === LOG_GROUP_CLASSES.INFREQUENT_ACCESS &&
+        !functionObject.disableLogs
+      ) {
+        // Skip routing Lambda's log writes to the -ia group when logs are
+        // disabled for the function. The framework emits no log group
+        // resource and no IAM grant in that case, so setting LogGroup here
+        // would leave a dangling reference in the template that Lambda's
+        // runtime cannot resolve.
+        finalizedLogConfiguration.LogGroup =
+          this.provider.naming.getLogGroupName(functionObject.name, {
+            logGroupClass: LOG_GROUP_CLASSES.INFREQUENT_ACCESS,
+          })
       }
       if (systemLogLevel && logFormat && logFormat === 'JSON') {
         finalizedLogConfiguration.SystemLogLevel = systemLogLevel

@@ -1,6 +1,6 @@
 {
   "name": "@serverlessinc/framework-alpha",
-  "version": "4.36.1",
+  "version": "4.37.0",
   "description": "",
   "main": "index.js",
   "type": "module",

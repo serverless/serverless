@@ -1,0 +1,10 @@
+org: serverlesstestaccount
+service: resolvers-env-stage-from-file-test
+
+provider:
+  stage: ${env:STAGE_FROM_DOTENV, 'fallback-stage'}
+
+functions:
+  hello:
+    handler: handler.hello
+    description: ${sls:stage}

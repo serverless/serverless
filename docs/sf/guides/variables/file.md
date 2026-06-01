@@ -1,8 +1,8 @@
 <!--
-title: Serverless Framework - Variables - External YAML/JSON Files
-description: How to reference external YAML/JSON files in serverless.yml
-short_title: Serverless Variables - External YAML/JSON Files
-keywords: ['Serverless Framework', 'YAML', 'JSON', 'Configuration']
+title: Serverless Framework - Variables - External Files
+description: How to reference external YAML, JSON, JavaScript, and TypeScript files in serverless.yml
+short_title: Serverless Variables - External Files
+keywords: ['Serverless Framework', 'YAML', 'JSON', 'JavaScript', 'TypeScript', 'Configuration']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -81,3 +81,41 @@ functions:
 ```
 
 **Note:** If the referenced file is a symlink, the targeted file will be read.
+
+## Reference JavaScript or TypeScript files
+
+You can also reference values from JavaScript (`.js`, `.cjs`, `.mjs`) or TypeScript (`.ts`, `.mts`, `.cts`) modules. TypeScript modules are compiled on the fly with [tsx](https://tsx.is/) — the same mechanism the Framework uses to load `serverless.ts`, so no separate build step is required.
+
+A module may export either a value or a function. Functions receive `{ options, resolveVariable, resolveConfigurationProperty }` and may be `async`. The property after `:` selects a named export.
+
+```ts
+// scripts/secrets.ts
+export const getSecrets = async () => {
+  return { apiKey: process.env.API_KEY }
+}
+```
+
+```ts
+// serverless.ts
+import type { AWS } from '@serverless/typescript'
+
+const serverlessConfiguration: AWS = {
+  service: 'my-service',
+  provider: { name: 'aws' },
+  custom: {
+    SECRETS: '${file(./scripts/secrets.ts):getSecrets}',
+  },
+  functions: {
+    /* ... */
+  },
+}
+
+export default serverlessConfiguration
+```
+
+The same works from `serverless.yml`:
+
+```yml
+custom:
+  SECRETS: ${file(./scripts/secrets.ts):getSecrets}
+```

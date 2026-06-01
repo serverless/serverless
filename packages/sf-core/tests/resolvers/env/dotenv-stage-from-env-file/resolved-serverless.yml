@@ -1,0 +1,10 @@
+org: serverlesstestaccount
+service: resolvers-env-stage-from-file-test
+
+provider:
+  stage: fallback-stage
+
+functions:
+  hello:
+    handler: handler.hello
+    description: fallback-stage

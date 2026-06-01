@@ -1,0 +1,374 @@
+import { jest } from '@jest/globals'
+import path from 'path'
+import url from 'url'
+
+// The resolver loads `.ts` files via tsx's CJS API (`tsx/cjs/api`'s
+// `require`). Mock it here so the tests don't depend on tsx actually
+// transpiling inside the jest VM — we feed the resolver pre-fabricated
+// CJS module shapes and exercise its wiring against them. Real
+// transpilation is covered by the manual repro and integration fixtures.
+//
+// Note: the resolver previously used tsx's ESM API (`tsImport`). That path
+// works from source but breaks in the bundled distribution because Node's
+// ESM loader hook requires `tsx/dist/esm/index.mjs` as a real on-disk
+// file, which esbuild cannot extract from the bundle. The CJS API is the
+// same one `serverless.ts` loading already uses successfully — see
+// packages/serverless/lib/configuration/read.js.
+
+const mockTsxRequire = jest.fn()
+jest.unstable_mockModule('tsx/cjs/api', () => ({
+  require: mockTsxRequire,
+}))
+
+const { File } =
+  await import('../../../src/lib/resolvers/providers/file/file.js')
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
+const fixturesDir = path.join(__dirname, 'fixtures')
+
+const buildResolver = (overrides = {}) =>
+  new File({
+    logger: { debug: jest.fn() },
+    providerConfig: {},
+    serviceConfigFile: {},
+    configFileDirPath: fixturesDir,
+    options: {},
+    stage: 'dev',
+    dashboard: null,
+    composeParams: null,
+    resolveVariableFunc: jest.fn(),
+    resolveConfigurationPropertyFunc: jest.fn(),
+    versionFramework: '4.0.0',
+    ...overrides,
+  })
+
+describe('File Resolver - TS module resolution', () => {
+  beforeEach(() => {
+    mockTsxRequire.mockReset()
+  })
+
+  test('routes .ts files through the TS loader with an absolute path', async () => {
+    mockTsxRequire.mockReturnValue({ default: { result: 'ts-default' } })
+    const resolver = buildResolver()
+
+    const result = await resolver.resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'test-default.ts',
+    })
+
+    expect(result).toEqual({ result: 'ts-default' })
+    expect(mockTsxRequire).toHaveBeenCalledTimes(1)
+    const [calledPath, parentUrl] = mockTsxRequire.mock.calls[0]
+    // tsxRequire takes an absolute path (not a file:// URL like tsImport did).
+    expect(path.isAbsolute(calledPath)).toBe(true)
+    expect(calledPath).toMatch(/test-default\.ts$/)
+    expect(parentUrl).toMatch(/file\.js$/)
+  })
+
+  test('routes .mts files through the TS loader', async () => {
+    mockTsxRequire.mockReturnValue({ default: { result: 'mts' } })
+
+    const result = await buildResolver().resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'whatever.mts',
+    })
+
+    expect(result).toEqual({ result: 'mts' })
+    expect(mockTsxRequire.mock.calls[0][0]).toMatch(/\.mts$/)
+  })
+
+  test('routes .cts files through the TS loader', async () => {
+    mockTsxRequire.mockReturnValue({ default: { result: 'cts' } })
+
+    const result = await buildResolver().resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'whatever.cts',
+    })
+
+    expect(result).toEqual({ result: 'cts' })
+    expect(mockTsxRequire.mock.calls[0][0]).toMatch(/\.cts$/)
+  })
+
+  test('invokes async default-export function with resolver context', async () => {
+    const ran = jest.fn().mockResolvedValue({ result: 'ts-function' })
+    mockTsxRequire.mockReturnValue({ default: ran })
+
+    const result = await buildResolver().resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'test-function.ts',
+    })
+
+    expect(result).toEqual({ result: 'ts-function' })
+    expect(ran).toHaveBeenCalledTimes(1)
+    const ctx = ran.mock.calls[0][0]
+    expect(ctx).toHaveProperty('options')
+    expect(typeof ctx.resolveVariable).toBe('function')
+    expect(typeof ctx.resolveConfigurationProperty).toBe('function')
+  })
+
+  test('injects resolveVariable into the TS module function', async () => {
+    const resolveVariableFunc = jest.fn().mockResolvedValue('localhost:5432')
+    const inner = jest.fn().mockImplementation(async ({ resolveVariable }) => ({
+      dbHost: await resolveVariable('env:DB_HOST'),
+    }))
+    mockTsxRequire.mockReturnValue({ default: inner })
+
+    const result = await buildResolver({
+      resolveVariableFunc,
+    }).resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'test-with-resolve-variable.ts',
+    })
+
+    expect(result).toEqual({ dbHost: 'localhost:5432' })
+    expect(resolveVariableFunc).toHaveBeenCalledWith('env:DB_HOST')
+  })
+
+  test('resolves named property function with #propertyPath', async () => {
+    const propertyFn = jest.fn().mockImplementation(async ({ options }) => ({
+      result: 'ts-property-function',
+      stage: options?.stage || 'default',
+    }))
+    // CJS module.exports.property = fn — top-level named export, no `default`.
+    mockTsxRequire.mockReturnValue({ property: propertyFn })
+
+    const result = await buildResolver({
+      options: { stage: 'production' },
+    }).resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'test-property-function.ts#property',
+    })
+
+    expect(result).toEqual({
+      result: 'ts-property-function',
+      stage: 'production',
+    })
+  })
+
+  test('resolves nested property from default-export object', async () => {
+    mockTsxRequire.mockReturnValue({
+      default: { nested: { deep: { value: 'found' } } },
+    })
+
+    const result = await buildResolver().resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'config.ts#nested.deep.value',
+    })
+
+    expect(result).toBe('found')
+  })
+
+  test('wraps loader errors with a "Cannot load" message', async () => {
+    mockTsxRequire.mockImplementation(() => {
+      throw new Error('boom')
+    })
+
+    await expect(
+      buildResolver().resolveVariable({
+        resolverType: 'file',
+        resolutionDetails: {},
+        key: 'broken.ts',
+      }),
+    ).rejects.toThrow(/Cannot load TS module .* boom/)
+  })
+
+  test('propagates a thrown error from the TS module body with a "Cannot execute" message', async () => {
+    mockTsxRequire.mockReturnValue({
+      default: async () => {
+        throw new Error('TS promise rejected intentionally')
+      },
+    })
+
+    await expect(
+      buildResolver().resolveVariable({
+        resolverType: 'file',
+        resolutionDetails: {},
+        key: 'throws.ts',
+      }),
+    ).rejects.toThrow(/Cannot execute TS module .* TS promise rejected/)
+  })
+
+  test('resolves named property function from CJS-shape default export', async () => {
+    // tsx's CJS adapter may surface modules as `{ default: { property: fn } }`
+    // when the source uses `module.exports = { property: fn }` style.
+    // `resolveLoadedModule` falls back from the namespace to the default
+    // object — this exercises that branch for the TS path.
+    const propertyFn = jest.fn().mockResolvedValue({
+      result: 'ts-cjs-shape',
+    })
+    mockTsxRequire.mockReturnValue({ default: { property: propertyFn } })
+
+    const result = await buildResolver().resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'cjs-shape.ts#property',
+    })
+
+    expect(result).toEqual({ result: 'ts-cjs-shape' })
+    expect(propertyFn).toHaveBeenCalledTimes(1)
+  })
+
+  test('does not invoke the TS loader for .js files', async () => {
+    await buildResolver().resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'test-default.js',
+    })
+
+    expect(mockTsxRequire).not.toHaveBeenCalled()
+  })
+})
+
+describe('File Resolver - TS module __esModule unwrap', () => {
+  // tsx's CJS adapter compiles ESM-default-export TS source to CJS-with-
+  // __esModule and returns a nested namespace:
+  //   { default: { __esModule: true, default: X, ...named } }
+  // The resolver unwraps one layer when it sees the `__esModule` marker so
+  // the value the rest of the pipeline operates on is the user's intended
+  // module shape, not tsx's interop wrapper. Without the unwrap, a
+  // selector-less `${file(./mod.ts)}` returned a null-prototype Module
+  // Namespace exotic (on the previous ESM-API path) that crashed downstream
+  // string interpolation in the resolver manager with
+  // `TypeError: Cannot convert object to primitive value`.
+  beforeEach(() => {
+    mockTsxRequire.mockReset()
+  })
+
+  test('returns the inner default for a selector-less reference to a default-only TS module', async () => {
+    // Shape emitted by tsx for: `export default { apiKey: 'k', region: 'r' }`.
+    mockTsxRequire.mockReturnValue({
+      default: {
+        __esModule: true,
+        default: { apiKey: 'k', region: 'r' },
+      },
+    })
+
+    const result = await buildResolver().resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'secrets.ts',
+    })
+
+    expect(result).toEqual({ apiKey: 'k', region: 'r' })
+  })
+
+  test('returns a plain object (not a null-prototype namespace) so downstream string interpolation works', async () => {
+    mockTsxRequire.mockReturnValue({
+      default: {
+        __esModule: true,
+        default: { apiKey: 'k' },
+      },
+    })
+
+    const result = await buildResolver().resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'secrets.ts',
+    })
+
+    expect(Object.getPrototypeOf(result)).toBe(Object.prototype)
+    // The exact symptom of the regression: `String.replace(/x/, result)`
+    // coerces `result` to primitive. A null-prototype namespace threw here.
+    expect('x'.replace('x', result)).toBe('[object Object]')
+  })
+
+  test('resolves a property selector against a named export under the __esModule wrap', async () => {
+    // Shape for: `export const getSecrets = async () => ({...})`.
+    const getSecrets = jest.fn().mockResolvedValue({ apiKey: 'from-fn' })
+    mockTsxRequire.mockReturnValue({
+      default: {
+        __esModule: true,
+        getSecrets,
+      },
+    })
+
+    const result = await buildResolver().resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'secrets.ts#getSecrets',
+    })
+
+    expect(result).toEqual({ apiKey: 'from-fn' })
+    expect(getSecrets).toHaveBeenCalledTimes(1)
+  })
+
+  test('resolves a property selector against the default-export object under the __esModule wrap', async () => {
+    // Mixed shape: both `export default {...}` and `export const … = …`.
+    mockTsxRequire.mockReturnValue({
+      default: {
+        __esModule: true,
+        default: { apiKey: 'k' },
+        other: 'unused',
+      },
+    })
+
+    const result = await buildResolver().resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'secrets.ts#apiKey',
+    })
+
+    expect(result).toBe('k')
+  })
+
+  test('invokes an async default-export function under the __esModule wrap', async () => {
+    const ran = jest.fn().mockResolvedValue({ apiKey: 'fn-result' })
+    mockTsxRequire.mockReturnValue({
+      default: {
+        __esModule: true,
+        default: ran,
+      },
+    })
+
+    const result = await buildResolver().resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'secrets.ts',
+    })
+
+    expect(result).toEqual({ apiKey: 'fn-result' })
+    expect(ran).toHaveBeenCalledTimes(1)
+    const ctx = ran.mock.calls[0][0]
+    expect(ctx).toHaveProperty('options')
+    expect(typeof ctx.resolveVariable).toBe('function')
+    expect(typeof ctx.resolveConfigurationProperty).toBe('function')
+  })
+
+  test('does not unwrap when __esModule marker is absent (plain CJS module.exports shape)', async () => {
+    // Mirror of the pre-existing top-level test for default-export objects:
+    // returns `module.default` verbatim, no extra layer to peel.
+    mockTsxRequire.mockReturnValue({
+      default: { apiKey: 'k', __esModule: false },
+    })
+
+    const result = await buildResolver().resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'secrets.ts',
+    })
+
+    expect(result).toEqual({ apiKey: 'k', __esModule: false })
+  })
+
+  test('does not unwrap when the default export is not an object', async () => {
+    // `export default 42` — `__esModule` lookup would short-circuit on a
+    // non-object anyway, but assert it explicitly so a future refactor
+    // doesn't introduce a NPE here.
+    mockTsxRequire.mockReturnValue({ default: 42 })
+
+    const result = await buildResolver().resolveVariable({
+      resolverType: 'file',
+      resolutionDetails: {},
+      key: 'secrets.ts',
+    })
+
+    expect(result).toBe(42)
+  })
+})

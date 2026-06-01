@@ -1,0 +1,12 @@
+service: resolvers-env-test
+org: serverlesstestaccount
+
+useDotenv:
+  - ./overrides.env
+  - ./shared
+
+functions:
+  hello:
+    handler: handler.hello
+    name: file-wins
+    description: shared-value

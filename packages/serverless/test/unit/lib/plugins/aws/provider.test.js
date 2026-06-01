@@ -440,4 +440,218 @@ describe('AwsProvider', () => {
       )
     })
   })
+
+  describe('#getOrCreateEcrRepository()', () => {
+    const repositoryName = 'serverless-test-dev'
+    const repositoryUri = `123456789012.dkr.ecr.us-east-1.amazonaws.com/${repositoryName}`
+
+    beforeEach(() => {
+      jest.spyOn(awsProvider, 'getCredentials').mockResolvedValue({})
+      jest.spyOn(awsProvider, 'getAccountId').mockResolvedValue('123456789012')
+      awsProvider.naming = { getEcrRepositoryName: () => repositoryName }
+    })
+
+    const mockEcrResponses = ({ describeFails = false } = {}) => {
+      mockAwsRequest.mockImplementation((_params, method) => {
+        if (method === 'describeRepositories') {
+          if (describeFails) {
+            const err = new Error('RepositoryNotFoundException')
+            err.providerError = { code: 'RepositoryNotFoundException' }
+            return Promise.reject(err)
+          }
+          return Promise.resolve({ repositories: [{ repositoryUri }] })
+        }
+        if (method === 'createRepository') {
+          return Promise.resolve({ repository: { repositoryUri } })
+        }
+        if (method === 'putLifecyclePolicy') {
+          return Promise.resolve({})
+        }
+        return Promise.resolve({})
+      })
+    }
+
+    it('should not call putLifecyclePolicy when maxImages is not set', async () => {
+      mockEcrResponses()
+
+      const result = await awsProvider.getOrCreateEcrRepository(false)
+
+      expect(result).toEqual({ repositoryUri, repositoryName })
+      const putCalls = mockAwsRequest.mock.calls.filter(
+        ([, method]) => method === 'putLifecyclePolicy',
+      )
+      expect(putCalls).toHaveLength(0)
+    })
+
+    it('should call putLifecyclePolicy on an existing repo when maxImages is set', async () => {
+      mockEcrResponses()
+
+      await awsProvider.getOrCreateEcrRepository(false, 10)
+
+      const putCall = mockAwsRequest.mock.calls.find(
+        ([, method]) => method === 'putLifecyclePolicy',
+      )
+      expect(putCall).toBeDefined()
+      const params = putCall[2]
+      expect(params.repositoryName).toBe(repositoryName)
+      expect(JSON.parse(params.lifecyclePolicyText)).toEqual({
+        rules: [
+          {
+            rulePriority: 1000,
+            description:
+              'Expire superseded image versions (provider.ecr.maxImages)',
+            selection: {
+              tagStatus: 'untagged',
+              countType: 'imageCountMoreThan',
+              countNumber: 10,
+            },
+            action: { type: 'expire' },
+          },
+        ],
+      })
+    })
+
+    it('should create the repo and apply the lifecycle policy when maxImages is set on a fresh repo', async () => {
+      mockEcrResponses({ describeFails: true })
+
+      await awsProvider.getOrCreateEcrRepository(true, 5)
+
+      const methods = mockAwsRequest.mock.calls.map(([, method]) => method)
+      expect(methods).toContain('createRepository')
+      const putCall = mockAwsRequest.mock.calls.find(
+        ([, method]) => method === 'putLifecyclePolicy',
+      )
+      expect(putCall).toBeDefined()
+      const policy = JSON.parse(putCall[2].lifecyclePolicyText)
+      expect(policy.rules[0].selection.countNumber).toBe(5)
+    })
+  })
+
+  describe('logGroupClass schema', () => {
+    let schemaServerless
+
+    beforeEach(() => {
+      schemaServerless = new Serverless({ commands: [], options: {} })
+      schemaServerless.credentialProviders = {
+        aws: { getCredentials: jest.fn() },
+      }
+      schemaServerless.service.provider.name = 'aws'
+      new AwsProvider(schemaServerless, options)
+    })
+
+    it('defines awsLogGroupClass with a single case-insensitive regex covering both values', () => {
+      const def =
+        schemaServerless.configSchemaHandler.schema.definitions.awsLogGroupClass
+      expect(def).toBeDefined()
+      expect(def.type).toBe('string')
+      expect(def.regexp).toBe('/^(STANDARD|INFREQUENT_ACCESS)$/i')
+    })
+
+    it('exposes logGroupClass on awsLambdaLoggingConfiguration as a reference', () => {
+      const props =
+        schemaServerless.configSchemaHandler.schema.definitions
+          .awsLambdaLoggingConfiguration.properties
+      expect(props.logGroupClass).toBeDefined()
+      expect(props.logGroupClass.$ref).toBe('#/definitions/awsLogGroupClass')
+    })
+  })
+
+  describe('#getLogGroupClass()', () => {
+    it('returns function-level logGroupClass when set', () => {
+      const fn = { logs: { logGroupClass: 'INFREQUENT_ACCESS' } }
+      expect(awsProvider.getLogGroupClass(fn)).toBe('INFREQUENT_ACCESS')
+    })
+
+    it('falls back to provider.logs.lambda.logGroupClass when function level is unset', () => {
+      serverless.service.provider.logs = {
+        lambda: { logGroupClass: 'INFREQUENT_ACCESS' },
+      }
+      expect(awsProvider.getLogGroupClass({})).toBe('INFREQUENT_ACCESS')
+    })
+
+    it('function-level value wins over provider-level value', () => {
+      serverless.service.provider.logs = {
+        lambda: { logGroupClass: 'INFREQUENT_ACCESS' },
+      }
+      const fn = { logs: { logGroupClass: 'STANDARD' } }
+      expect(awsProvider.getLogGroupClass(fn)).toBe('STANDARD')
+    })
+
+    it('returns undefined when no logGroupClass is set anywhere', () => {
+      expect(awsProvider.getLogGroupClass({})).toBeUndefined()
+    })
+
+    it('normalizes a lowercase function-level value to canonical uppercase', () => {
+      const fn = { logs: { logGroupClass: 'infrequent_access' } }
+      expect(awsProvider.getLogGroupClass(fn)).toBe('INFREQUENT_ACCESS')
+    })
+
+    it('normalizes a mixed-case provider-level value to canonical uppercase', () => {
+      serverless.service.provider.logs = {
+        lambda: { logGroupClass: 'Infrequent_Access' },
+      }
+      expect(awsProvider.getLogGroupClass({})).toBe('INFREQUENT_ACCESS')
+    })
+
+    it('normalizes STANDARD identically regardless of input case', () => {
+      const fn = { logs: { logGroupClass: 'standard' } }
+      expect(awsProvider.getLogGroupClass(fn)).toBe('STANDARD')
+    })
+  })
+
+  describe('logGroupClass schema (case-insensitive)', () => {
+    let schemaServerless
+
+    beforeEach(() => {
+      schemaServerless = new Serverless({ commands: [], options: {} })
+      schemaServerless.credentialProviders = {
+        aws: { getCredentials: jest.fn() },
+      }
+      schemaServerless.service.provider.name = 'aws'
+      new AwsProvider(schemaServerless, options)
+    })
+
+    it('accepts lowercase, mixed-case, and uppercase values for awsLogGroupClass', async () => {
+      const Ajv = (await import('ajv')).default
+      const { default: regexpKeyword } =
+        await import('../../../../../lib/classes/config-schema-handler/regexp-keyword.js')
+      const ajv = new Ajv({ allErrors: true, strict: false })
+      ajv.addKeyword(regexpKeyword)
+      const validate = ajv.compile(
+        schemaServerless.configSchemaHandler.schema.definitions
+          .awsLogGroupClass,
+      )
+
+      expect(validate('STANDARD')).toBe(true)
+      expect(validate('standard')).toBe(true)
+      expect(validate('INFREQUENT_ACCESS')).toBe(true)
+      expect(validate('infrequent_access')).toBe(true)
+      expect(validate('Infrequent_Access')).toBe(true)
+      expect(validate('NOT_A_REAL_CLASS')).toBe(false)
+    })
+
+    it('produces an actionable error message for an invalid value', async () => {
+      const Ajv = (await import('ajv')).default
+      const { default: regexpKeyword } =
+        await import('../../../../../lib/classes/config-schema-handler/regexp-keyword.js')
+      const { default: normalizeAjvErrors } =
+        await import('../../../../../lib/classes/config-schema-handler/normalize-ajv-errors.js')
+      const ajv = new Ajv({
+        allErrors: true,
+        strict: false,
+        verbose: true,
+      })
+      ajv.addKeyword(regexpKeyword)
+      const validate = ajv.compile(
+        schemaServerless.configSchemaHandler.schema.definitions
+          .awsLogGroupClass,
+      )
+
+      validate('BUDGET')
+      const messages = normalizeAjvErrors(validate.errors).map((e) => e.message)
+      expect(messages).toEqual([expect.stringContaining(`value 'BUDGET'`)])
+      expect(messages[0]).toContain('STANDARD')
+      expect(messages[0]).toContain('INFREQUENT_ACCESS')
+    })
+  })
 })
