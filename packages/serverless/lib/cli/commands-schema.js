@@ -241,6 +241,11 @@ commands.set('offline', {
   usage:
     'Run your Lambda handlers locally behind API Gateway (HTTP API, REST), ALB, WebSocket, and Schedule event sources, with a local Lambda Invoke endpoint.',
   options: {
+    albPort: {
+      usage:
+        'Accepted for serverless-offline compatibility; ignored (ALB is served on the app port)',
+      type: 'string',
+    },
     appPort: {
       usage:
         'Port for the HTTP API / REST / ALB / WebSocket server (default 3000)',
@@ -296,6 +301,11 @@ commands.set('offline', {
       usage: 'Host the local servers bind to (default localhost)',
       type: 'string',
     },
+    httpPort: {
+      usage:
+        'Alias of --appPort, for serverless-offline compatibility (default 3000)',
+      type: 'string',
+    },
     httpsProtocol: {
       usage:
         'Enable HTTPS by specifying a directory containing cert.pem and key.pem',
@@ -327,6 +337,10 @@ commands.set('offline', {
       usage: 'Do NOT prepend the deployment stage to REST API URLs',
       type: 'boolean',
     },
+    noSponsor: {
+      usage: 'Accepted for serverless-offline compatibility; ignored',
+      type: 'boolean',
+    },
     noTimeout: {
       usage: 'Disable handler timeout enforcement',
       type: 'boolean',
@@ -335,10 +349,23 @@ commands.set('offline', {
       usage: 'Disable hot-reload of handler files',
       type: 'boolean',
     },
+    preLoadModules: {
+      usage: 'Accepted for serverless-offline compatibility; ignored',
+      type: 'string',
+    },
     prefix: {
       usage:
         'Extra path segment to prepend after the stage in REST API URLs (e.g. --prefix api → /<stage>/api/<route>)',
       type: 'string',
+    },
+    reloadHandler: {
+      usage:
+        'Reload handlers on change, for serverless-offline compatibility (maps to --watch)',
+      type: 'boolean',
+    },
+    resourceRoutes: {
+      usage: 'Accepted for serverless-offline compatibility; ignored',
+      type: 'boolean',
     },
     terminateIdleLambdaTime: {
       usage:
@@ -366,6 +393,11 @@ commands.set('offline', {
     webSocketIdleTimeout: {
       usage:
         'Set WebSocket idle timeout in seconds to reproduce AWS limits (default 600)',
+      type: 'string',
+    },
+    websocketPort: {
+      usage:
+        'Accepted for serverless-offline compatibility; ignored (WebSocket is served on the app port)',
       type: 'string',
     },
   },

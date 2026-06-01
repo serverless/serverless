@@ -72,6 +72,7 @@ describe('commands-schema offline entry', () => {
 
   it('declares the complete offline CLI option set', () => {
     expect(Object.keys(entry.options).sort()).toEqual([
+      'albPort',
       'appPort',
       'corsAllowHeaders',
       'corsAllowOrigin',
@@ -84,6 +85,7 @@ describe('commands-schema offline entry', () => {
       'dockerReadOnly',
       'enforceSecureCookies',
       'host',
+      'httpPort',
       'httpsProtocol',
       'ignoreJWTSignature',
       'lambdaPort',
@@ -91,15 +93,20 @@ describe('commands-schema offline entry', () => {
       'localEnvironment',
       'noAuth',
       'noPrependStageInUrl',
+      'noSponsor',
       'noTimeout',
       'noWatch',
+      'preLoadModules',
       'prefix',
+      'reloadHandler',
+      'resourceRoutes',
       'terminateIdleLambdaTime',
       'useDocker',
       'useInProcess',
       'watch',
       'webSocketHardTimeout',
       'webSocketIdleTimeout',
+      'websocketPort',
     ])
   })
 
