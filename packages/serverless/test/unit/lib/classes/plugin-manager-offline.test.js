@@ -53,4 +53,13 @@ describe('plugin-manager wires the offline plugin', () => {
     )
     expect(block).toMatch(/allowCommunityOverride:\s*true/)
   })
+
+  it('adds a serverless-offline migration notice branch in logBundledPluginNotice', () => {
+    expect(pluginManagerSrc).toMatch(
+      /pluginName === ['"]serverless-offline['"]/,
+    )
+    expect(pluginManagerSrc).toMatch(
+      /serverless\.com\/framework\/docs\/providers\/aws\/guide\/offline/,
+    )
+  })
 })
