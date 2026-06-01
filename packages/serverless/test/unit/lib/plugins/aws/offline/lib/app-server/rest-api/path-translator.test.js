@@ -83,4 +83,14 @@ describe('buildMountedPath', () => {
       '/dev/users',
     )
   })
+
+  it('adds the missing separator when the path has no leading slash', () => {
+    expect(buildMountedPath('items', 'dev')).toBe('/dev/items')
+  })
+
+  it('normalizes a no-leading-slash path even without a stage', () => {
+    expect(buildMountedPath('items', 'dev', { includeStage: false })).toBe(
+      '/items',
+    )
+  })
 })

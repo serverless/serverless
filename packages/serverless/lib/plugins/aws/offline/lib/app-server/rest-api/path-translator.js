@@ -56,6 +56,10 @@ export function translateRestPath(apigwPath) {
 export function buildMountedPath(path, stage, opts = {}) {
   const { includeStage = true, prefix } = opts
 
+  // Callers may pass a path without a leading slash (`items`); AWS treats it the
+  // same as `/items`, so normalize before joining segments.
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`
+
   // Trim surrounding slashes so `'api'`, `'/api'`, `'/api/'` all yield `'api'`.
   // An empty / slash-only prefix is treated as no prefix at all.
   const normalizedPrefix = prefix ? prefix.replace(/^\/+|\/+$/g, '') : ''
@@ -66,7 +70,7 @@ export function buildMountedPath(path, stage, opts = {}) {
 
   // No segments to prepend — leave the path untouched so callers don't have to
   // special-case the "no prefix configured" branch.
-  if (segments.length === 0) return path
+  if (segments.length === 0) return normalizedPath
 
-  return `/${segments.join('/')}${path}`
+  return `/${segments.join('/')}${normalizedPath}`
 }
