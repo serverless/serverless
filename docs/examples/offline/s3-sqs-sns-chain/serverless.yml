@@ -1,0 +1,44 @@
+service: offline-s3-sqs-sns-chain
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  environment:
+    WORK_QUEUE_URL: !Ref WorkQueue
+    DONE_TOPIC_ARN: !Ref DoneTopic
+
+functions:
+  onUpload:
+    handler: handler.onUpload
+    environment:
+      WORK_QUEUE_URL: !Ref WorkQueue
+    events:
+      - s3:
+          bucket: uploads
+          event: s3:ObjectCreated:*
+          existing: true
+          rules:
+            - prefix: incoming/
+  worker:
+    handler: handler.worker
+    environment:
+      DONE_TOPIC_ARN: !Ref DoneTopic
+    events:
+      - sqs:
+          arn: !GetAtt WorkQueue.Arn
+
+resources:
+  Resources:
+    UploadsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: uploads
+    WorkQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: work-queue
+    DoneTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: done-topic
