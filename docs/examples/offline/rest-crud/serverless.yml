@@ -6,21 +6,15 @@ provider:
   region: us-east-1
 
 functions:
-  create:
-    handler: handler.create
+  api:
+    handler: handler.api
     events:
       - http:
           path: items
           method: post
-  get:
-    handler: handler.get
-    events:
-      - http:
-          path: items/{id}
-          method: get
-  list:
-    handler: handler.list
-    events:
       - http:
           path: items
+          method: get
+      - http:
+          path: items/{id}
           method: get

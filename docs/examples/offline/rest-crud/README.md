@@ -1,7 +1,10 @@
 # REST CRUD example for `serverless offline`
 
-A minimal REST API with three routes backed by an in-memory store, runnable
-entirely locally with `serverless offline`.
+A minimal REST CRUD API runnable entirely locally with `serverless offline`. All
+three routes are handled by a single Lambda function, so the in-memory store is
+shared across requests for the life of the offline process. This keeps the demo
+self-contained; a production app would back the routes with a real datastore
+(e.g. DynamoDB) instead of process memory.
 
 ## Run
 
@@ -10,37 +13,27 @@ serverless offline
 ```
 
 This boots the local app server (default app port `3000`) and prints the
-registered REST API routes.
+registered REST API routes. The routes mount under the stage, so with the
+default `dev` stage they are reachable at `localhost:3000/dev/items`.
 
-## Routes
-
-REST API v1 routes are mounted under the stage, so the local URLs carry the
-`dev` stage segment. With the default stage the routes are reachable at
-`localhost:3000/devitems`:
+## Try it
 
 ```bash
 # Create an item
-curl -s -XPOST localhost:3000/devitems \
-  -d '{"name":"a"}' -H 'content-type: application/json'
-# → {"id":"1","name":"a"}
+curl -s -XPOST localhost:3000/dev/items -d '{"name":"a"}' -H 'content-type: application/json'
 
 # List items
-curl -s localhost:3000/devitems
-# → [...]
+curl -s localhost:3000/dev/items
 
 # Get an item by id
-curl -s localhost:3000/devitems/1
-# → {"id":"1","name":"a"}
+curl -s localhost:3000/dev/items/1
 ```
 
 ## What you should see
 
-The `POST` returns `201` with the created item (an auto-assigned string `id`
-plus your posted fields). The `GET` list and `GET` by id read from the same
-in-memory store within their own function.
-
-Note: each function (`create`, `get`, `list`) runs as a separate Lambda, so the
-in-memory `Map` in `handler.js` is per-function — it is not shared across the
-three routes, exactly as it would not be on AWS. For a store shared across
-routes, back the handlers with a real data store (e.g. DynamoDB) or collapse
-the CRUD operations into a single function.
+Creating an item returns `201` with the created item (an auto-assigned string
+`id` plus your posted fields), e.g. `{"id":"1","name":"a"}`. Listing then
+returns an array containing it, e.g. `[{"id":"1","name":"a"}]` — because every
+route shares the same in-memory store. Getting it by id returns the single item,
+and requesting an unknown id (e.g. `localhost:3000/dev/items/999`) returns `404`
+with `{"message":"Not found"}`.

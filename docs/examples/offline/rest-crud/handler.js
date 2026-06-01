@@ -1,5 +1,6 @@
-// In-memory CRUD store for the offline REST example. Module state persists for
-// the life of the offline process (single demo instance).
+// Single-function REST CRUD for the offline example. All three routes map to
+// this one Lambda, so the in-memory store is shared across requests for the
+// life of the offline process (a demo store — real apps use DynamoDB etc.).
 const items = new Map()
 let nextId = 1
 
@@ -9,17 +10,25 @@ const json = (statusCode, body) => ({
   body: JSON.stringify(body),
 })
 
-export const create = async (event) => {
-  const data = event.body ? JSON.parse(event.body) : {}
-  const id = String(nextId++)
-  const item = { id, ...data }
-  items.set(id, item)
-  return json(201, item)
-}
+export const api = async (event) => {
+  const method = event.httpMethod
+  const id = event.pathParameters?.id
 
-export const get = async (event) => {
-  const item = items.get(event.pathParameters?.id)
-  return item ? json(200, item) : json(404, { message: 'Not found' })
-}
+  if (method === 'POST') {
+    const data = event.body ? JSON.parse(event.body) : {}
+    const created = { id: String(nextId++), ...data }
+    items.set(created.id, created)
+    return json(201, created)
+  }
 
-export const list = async () => json(200, [...items.values()])
+  if (method === 'GET' && id) {
+    const item = items.get(id)
+    return item ? json(200, item) : json(404, { message: 'Not found' })
+  }
+
+  if (method === 'GET') {
+    return json(200, [...items.values()])
+  }
+
+  return json(405, { message: 'Method not allowed' })
+}
