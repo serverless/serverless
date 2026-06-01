@@ -1,20 +1,29 @@
 /**
- * Path-style S3 REST request parser for sls offline.
+ * S3 REST request parser for sls offline.
  *
  * Turns a normalised HTTP request descriptor — `{ method, path, query, headers }`
  * — into `{ operation, bucket, key, params }`, the shape `ops.runOp` consumes.
  *
- * Only path-style addressing is supported (`/<bucket>/<key>`): the first path
- * segment is the bucket (possibly empty for the service root), and everything
- * after it is the (URL-decoded) object key. The operation is then chosen from
- * the HTTP method, the presence of a key, and the S3 query markers / headers
- * that distinguish otherwise identical verb+path pairs (e.g. `?list-type=2`,
- * `?uploads`, `?uploadId`, `?partNumber`, `?delete`, `?location`, and the
- * `x-amz-copy-source` / `range` headers).
+ * Both S3 addressing styles are supported:
+ *  - **Path-style** (`/<bucket>/<key>`): the first path segment is the bucket
+ *    (possibly empty for the service root) and the remainder is the key.
+ *  - **Virtual-hosted-style** (`<bucket>.<endpoint-host>/<key>`): the AWS SDK's
+ *    default when `forcePathStyle` is not set. The bucket arrives as a leading
+ *    label on the `Host` header and the whole path is the key. The bucket is
+ *    read from the host when it sits over one of the recognised endpoint hosts
+ *    (`hosts`, default `['localhost']`); otherwise the request is path-style.
+ *
+ * The operation is then chosen from the HTTP method, the presence of a key, and
+ * the S3 query markers / headers that distinguish otherwise identical verb+path
+ * pairs (e.g. `?list-type=2`, `?uploads`, `?uploadId`, `?partNumber`,
+ * `?delete`, `?location`, and the `x-amz-copy-source` / `range` headers).
  *
  * `params` carries only the bits each operation needs, already coerced (numeric
  * `maxKeys`/`partNumber`, parsed copy source, folded `x-amz-meta-*` metadata).
  */
+
+/** Endpoint hosts recognised as a virtual-hosted-style bucket suffix. */
+const DEFAULT_HOSTS = ['localhost']
 
 /**
  * Read a header case-insensitively. HTTP header names are case-insensitive and
@@ -93,6 +102,36 @@ function splitPath(path) {
 }
 
 /**
+ * Resolve the bucket from a virtual-hosted-style `Host` header, if present.
+ *
+ * In virtual-hosted-style addressing the SDK puts the bucket in the host as a
+ * leading label over the endpoint host (`<bucket>.localhost:3002`) and sends
+ * only the key in the path. The bucket is the portion before a recognised
+ * endpoint-host suffix; the port and case are ignored when matching. Returns
+ * `undefined` for path-style requests (a bare endpoint host, an IP, or any host
+ * not in `hosts`), leaving the caller to fall back to `splitPath`.
+ *
+ * @param {Record<string, string>} headers
+ * @param {string[]} hosts - recognised endpoint host names (no port).
+ * @returns {string | undefined} the bucket label, or undefined for path-style.
+ */
+function bucketFromHost(headers, hosts) {
+  const raw = header(headers, 'host')
+  if (!raw) return undefined
+  const hostname = raw.replace(/:\d+$/, '')
+  const lower = hostname.toLowerCase()
+  for (const base of hosts) {
+    const suffix = `.${String(base).toLowerCase()}`
+    // A leading bucket label must precede the suffix (length strictly greater),
+    // so a bare endpoint host (`localhost`) stays path-style.
+    if (lower.endsWith(suffix) && lower.length > suffix.length) {
+      return hostname.slice(0, hostname.length - suffix.length)
+    }
+  }
+  return undefined
+}
+
+/**
  * Parse an `x-amz-copy-source` header (`/<bucket>/<key>` or `<bucket>/<key>`,
  * URL-encoded) into `{ bucket, key }`. The leading slash is optional.
  *
@@ -157,12 +196,29 @@ function listParams(query) {
  *   path: string,
  *   query?: Record<string, string>,
  *   headers?: Record<string, string>,
- * }} request
+ *   hosts?: string[],
+ * }} request - `hosts` lists the endpoint host names recognised as a
+ *   virtual-hosted-style bucket suffix (defaults to `['localhost']`).
  * @returns {{ operation: string, bucket: string, key: string, params: object }}
  */
-export function parseS3Request({ method, path, query = {}, headers = {} }) {
+export function parseS3Request({
+  method,
+  path,
+  query = {},
+  headers = {},
+  hosts = DEFAULT_HOSTS,
+}) {
   const verb = String(method || '').toUpperCase()
-  const { bucket, key } = splitPath(path)
+  // Virtual-hosted-style requests carry the bucket on the Host header and the
+  // whole path as the key; path-style requests split the bucket off the path.
+  const hostBucket = bucketFromHost(headers, hosts)
+  const { bucket, key } =
+    hostBucket !== undefined
+      ? {
+          bucket: hostBucket,
+          key: decode(String(path || '').replace(/^\/+/, '')),
+        }
+      : splitPath(path)
 
   const copySourceHeader = header(headers, 'x-amz-copy-source')
   const copySource = copySourceHeader

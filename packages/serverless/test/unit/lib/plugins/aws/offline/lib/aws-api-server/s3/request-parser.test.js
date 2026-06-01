@@ -300,3 +300,76 @@ it('25. list maxKeys defaults to undefined when absent (ops applies the cap)', (
   const parsed = req({ method: 'GET', path: '/my-bucket' })
   expect(parsed.params.maxKeys).toBeUndefined()
 })
+
+// ===========================================================================
+// Virtual-hosted-style addressing (bucket carried in the Host header)
+//
+// The AWS SDK uses this by default (no `forcePathStyle`): the bucket becomes a
+// leading label on the endpoint host (`<bucket>.localhost:3002`) and the path
+// carries only the key.
+// ===========================================================================
+
+it('26. virtual-hosted Host → bucket from host, full path is the key', () => {
+  const parsed = req({
+    method: 'GET',
+    path: '/a/b/c.txt',
+    headers: { Host: 'uploads.localhost:3002' },
+  })
+  expect(parsed.operation).toBe('GetObject')
+  expect(parsed.bucket).toBe('uploads')
+  expect(parsed.key).toBe('a/b/c.txt')
+})
+
+it('27. virtual-hosted bucket-level op (root path) → ListObjectsV2', () => {
+  const parsed = req({
+    method: 'GET',
+    path: '/',
+    query: { 'list-type': '2' },
+    headers: { host: 'uploads.localhost:3002' },
+  })
+  expect(parsed.operation).toBe('ListObjectsV2')
+  expect(parsed.bucket).toBe('uploads')
+  expect(parsed.key).toBe('')
+})
+
+it('28. virtual-hosted PUT → PutObject with key from path', () => {
+  const parsed = req({
+    method: 'PUT',
+    path: '/photo%20(1).jpg',
+    headers: { host: 'uploads.localhost:3002' },
+  })
+  expect(parsed.operation).toBe('PutObject')
+  expect(parsed.bucket).toBe('uploads')
+  expect(parsed.key).toBe('photo (1).jpg')
+})
+
+it('29. virtual-hosted host honours an explicit hosts allowlist', () => {
+  const parsed = parseS3Request({
+    method: 'GET',
+    path: '/k',
+    headers: { host: 'uploads.s3.example.test:9000' },
+    hosts: ['s3.example.test'],
+  })
+  expect(parsed.bucket).toBe('uploads')
+  expect(parsed.key).toBe('k')
+})
+
+it('30. path-style Host (no bucket prefix) keeps path-style parsing', () => {
+  const parsed = req({
+    method: 'GET',
+    path: '/my-bucket/a/b.txt',
+    headers: { host: 'localhost:3002' },
+  })
+  expect(parsed.bucket).toBe('my-bucket')
+  expect(parsed.key).toBe('a/b.txt')
+})
+
+it('31. IP host is never treated as virtual-hosted', () => {
+  const parsed = req({
+    method: 'GET',
+    path: '/my-bucket/a.txt',
+    headers: { host: '127.0.0.1:3002' },
+  })
+  expect(parsed.bucket).toBe('my-bucket')
+  expect(parsed.key).toBe('a.txt')
+})

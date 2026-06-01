@@ -802,7 +802,7 @@ export default class OfflinePlugin {
     const s3Logger = log.get('sls:offline:s3')
     const s3Mut = { fn: null }
     const s3Store = createBucketStore({ onMutation: (ev) => s3Mut.fn?.(ev) })
-    const s3Handlers = createS3Handlers({ store: s3Store })
+    const s3Handlers = createS3Handlers({ store: s3Store, host })
     const s3Wired = await wireS3({
       serverless,
       registry,

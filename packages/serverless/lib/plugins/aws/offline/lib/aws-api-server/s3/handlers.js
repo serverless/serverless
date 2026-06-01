@@ -89,11 +89,16 @@ function toHapiResponse(h, { statusCode, headers, body }) {
  * @param {{
  *   store: ReturnType<import('./bucket-store.js').createBucketStore>,
  *   now?: () => number,
- * }} options
+ *   host?: string,
+ * }} options - `host` is the offline endpoint host (default `localhost`); it is
+ *   recognised, alongside `localhost`, as a virtual-hosted-style bucket suffix
+ *   so the SDK works without `forcePathStyle`.
  * @returns {(request: object, h: object) => Promise<object>}
  *   A Hapi route handler `async (request, h) => response`.
  */
-export function createS3Handlers({ store, now }) {
+export function createS3Handlers({ store, now, host = 'localhost' }) {
+  // De-dupe so a `localhost` host doesn't list itself twice.
+  const hosts = [...new Set([host, 'localhost'])]
   return async function s3Handler(request, h) {
     const { query, path } = request
 
