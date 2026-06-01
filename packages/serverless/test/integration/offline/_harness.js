@@ -1,8 +1,8 @@
 import { spawn } from 'node:child_process'
-import { createServer } from 'node:net'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { setTimeout as delay } from 'node:timers/promises'
+import { twoFreePorts } from './_ports.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // repo root → packages/serverless/test/integration/offline → up 4 lands in packages
@@ -13,30 +13,21 @@ const APP_RE = /App endpoint:\s*(\S+)/i
 const LAMBDA_RE = /Lambda endpoint:\s*(\S+)/i
 
 /**
- * Reserve a free TCP port by letting the OS assign one, then releasing it.
- * Our offline rejects appPort === lambdaPort, so the harness picks two
- * distinct free ports rather than relying on httpPort/lambdaPort 0 (which both
- * resolve to 0 and trip the collision guard).
+ * Kill a child with SIGKILL and briefly await its exit, so callers never leak
+ * a process when bailing out on an error path.
  *
- * @returns {Promise<number>}
+ * @param {import('node:child_process').ChildProcess} child
  */
-function freePort() {
-  return new Promise((resolve, reject) => {
-    const srv = createServer()
-    srv.unref()
-    srv.on('error', reject)
-    srv.listen(0, '127.0.0.1', () => {
-      const { port } = srv.address()
-      srv.close(() => resolve(port))
-    })
-  })
-}
-
-async function twoFreePorts() {
-  const a = await freePort()
-  let b = await freePort()
-  while (b === a) b = await freePort()
-  return [a, b]
+async function killChild(child) {
+  if (child.exitCode !== null || child.signalCode !== null) return
+  child.kill('SIGKILL')
+  const limit = Date.now() + 5000
+  while (
+    child.exitCode === null &&
+    child.signalCode === null &&
+    Date.now() < limit
+  )
+    await delay(50)
 }
 
 /**
@@ -85,7 +76,12 @@ export async function bootOffline({ cwd, env = {}, readyMs = 60_000 }) {
     }
     await delay(250)
   }
-  if (!appUrl) throw new Error(`offline did not become ready:\n${out}`)
+  if (!appUrl) {
+    // Readiness deadline passed while the child is still alive: kill it before
+    // throwing so the test's afterAll never leaks an orphaned offline process.
+    await killChild(child)
+    throw new Error(`offline did not become ready:\n${out}`)
+  }
 
   const http = (p, init) => fetch(`${appUrl}${p}`, init)
   const invoke = (deployedName, payload, { async: ev } = {}) =>
