@@ -4,9 +4,8 @@
  * Several subsystems need the stage value: the HTTP API event factory
  * populates `event.requestContext.stage`, the REST API route loader prepends
  * `/<stage>/` to route paths (unless `--noPrependStageInUrl`), the WebSocket
- * `@connections` mount lives at `/<stage>/@connections/{id}`, ARN/URL
- * synthesizers embed it, and the provisioner builds the local CloudFormation
- * stack name from it. Inlining `provider.stage ?? DEFAULT_STAGE` at every
+ * `@connections` mount lives at `/<stage>/@connections/{id}`, and ARN/URL
+ * synthesizers embed it. Inlining `provider.stage ?? DEFAULT_STAGE` at every
  * site invites drift; centralising avoids it.
  *
  * Framework already wires `--stage` into `serverless.service.provider.stage`,

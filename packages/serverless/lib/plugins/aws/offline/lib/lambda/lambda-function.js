@@ -19,7 +19,7 @@ import fs from 'node:fs'
 import { resolve, join } from 'node:path'
 import { performance } from 'node:perf_hooks'
 import { getHandlerBaseDir } from '../handler-base-dir.js'
-import { arnFor } from '../provisioner/arn-synth.js'
+import { FAKE_ACCOUNT_ID, FAKE_REGION } from '../constants.js'
 
 /**
  * Handler file extensions tried in order, keyed by runtime family.
@@ -140,9 +140,9 @@ function resolveHandlerSync(handlerString, baseDir, runtime) {
  *   When true, an empty AUTHORIZER (`{}`) is injected so authorizer-aware
  *   handlers receive a synthetic context with authentication disabled.
  * @param {{ route?: Function } | null} [params.destinationRouter=null]
- *   Lambda async-destination router (`lambda-destinations.js`). A mutable seam:
- *   boot passes the object early and sets `.route` once the downstream stores
- *   exist. Consulted only for an `{ async: true }` invoke of a function that
+ *   Optional Lambda async-destination router. A mutable seam: a caller may pass
+ *   the object early and set `.route` once any downstream stores exist.
+ *   Consulted only for an `{ async: true }` invoke of a function that
  *   declares `destinations`; a settled invoke then fires `route(...)` and the
  *   outcome the caller receives is unchanged. `null` (or `.route` unset) means
  *   no routing — the strictly synchronous behaviour.
@@ -255,7 +255,7 @@ export function createLambdaFunction({
       const context = {
         functionName: deployedName,
         awsRequestId,
-        invokedFunctionArn: arnFor('lambda', deployedName),
+        invokedFunctionArn: `arn:aws:lambda:${FAKE_REGION}:${FAKE_ACCOUNT_ID}:function:${deployedName}`,
         memoryLimitInMB,
         callbackWaitsForEmptyEventLoop: true,
         // Configured per-invocation budget in ms. The worker reads this and
