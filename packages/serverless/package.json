@@ -19,7 +19,6 @@
   ],
   "main": "lib/serverless.js",
   "dependencies": {
-    "@aws-crypto/sha256-js": "^5.2.0",
     "@aws-sdk/client-acm": "3.1043.0",
     "@aws-sdk/client-api-gateway": "3.1043.0",
     "@aws-sdk/client-apigatewayv2": "3.1043.0",
@@ -41,7 +40,6 @@
     "@iarna/toml": "^2.2.5",
     "@serverlessinc/sf-core": "*",
     "@smithy/node-http-handler": "^4.4.14",
-    "@smithy/signature-v4": "^5.3.14",
     "@smithy/util-retry": "^4.3.8",
     "adm-zip": "^0.5.17",
     "ajv": "8.18.0",
