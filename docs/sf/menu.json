@@ -13,6 +13,7 @@
     "Packaging": "providers/aws/guide/packaging",
     "Building": "providers/aws/guide/building",
     "Testing": "providers/aws/guide/testing",
+    "Offline": "providers/aws/guide/offline",
     "Services": "providers/aws/guide/services",
     "Functions": "providers/aws/guide/functions",
     "Events": {
@@ -129,6 +130,7 @@
     "login aws": "providers/aws/cli-reference/login-aws",
     "login aws sso": "providers/aws/cli-reference/login-aws-sso",
     "metrics": "providers/aws/cli-reference/metrics",
+    "offline": "providers/aws/cli-reference/offline",
     "info": "providers/aws/cli-reference/info",
     "rollback": "providers/aws/cli-reference/rollback",
     "rollback function": "providers/aws/cli-reference/rollback-function",
