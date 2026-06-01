@@ -368,21 +368,26 @@ function logBootSummary({
 /**
  * Boot-banner lines describing the active proxyToAws mode. Empty when off.
  *
- * @param {{ proxyToAws: false | 'unsupported', accountId?: string | null, region?: string }} params
+ * @param {{ proxyToAws: false | 'unsupported', hasCredentials?: boolean, accountId?: string | null, region?: string }} params
  * @returns {string[]}
  */
-export function buildProxyBannerLines({ proxyToAws, accountId, region }) {
+export function buildProxyBannerLines({
+  proxyToAws,
+  hasCredentials,
+  accountId,
+  region,
+}) {
   if (proxyToAws !== 'unsupported') {
     return []
   }
-  if (!accountId) {
+  if (!hasCredentials) {
     return [
       '  Proxy to AWS:    unsupported (UNAVAILABLE — no credentials resolved; un-emulated services will error)',
     ]
   }
   return [
     '  Proxy to AWS:    unsupported — un-emulated services hit REAL AWS',
-    `    account ${accountId} · region ${region}`,
+    `    account ${accountId ?? 'unknown'} · region ${region}`,
   ]
 }
 
@@ -1022,11 +1027,13 @@ export default class OfflinePlugin {
     // construct it with `null` so it returns a clear error instead of crashing.
     let awsProxy
     let proxyAccountId = null
+    let proxyHasCredentials = false
     if (proxyToAws === 'unsupported') {
       try {
         const creds = await this.provider.getCredentials()
         proxyAccountId = creds?.accountId ?? null
         awsProxy = createAwsProxy({ credentials: creds })
+        proxyHasCredentials = Boolean(creds?.accessKeyId)
       } catch {
         awsProxy = createAwsProxy({ credentials: null })
       }
@@ -1163,6 +1170,7 @@ export default class OfflinePlugin {
         })
         for (const line of buildProxyBannerLines({
           proxyToAws,
+          hasCredentials: proxyHasCredentials,
           accountId: proxyAccountId,
           region: this.provider.getRegion(),
         })) {

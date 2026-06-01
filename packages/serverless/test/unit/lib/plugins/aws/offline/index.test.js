@@ -203,6 +203,7 @@ describe('buildProxyBannerLines', () => {
   it('unsupported with creds → account + region + real-AWS warning', () => {
     const text = buildProxyBannerLines({
       proxyToAws: 'unsupported',
+      hasCredentials: true,
       accountId: '123456789012',
       region: 'us-east-1',
     }).join('\n')
@@ -214,9 +215,21 @@ describe('buildProxyBannerLines', () => {
   it('unsupported without creds → unavailable note', () => {
     const text = buildProxyBannerLines({
       proxyToAws: 'unsupported',
-      accountId: null,
+      hasCredentials: false,
       region: 'us-east-1',
     }).join('\n')
     expect(text.toLowerCase()).toContain('unavailable')
+  })
+
+  it('unsupported with creds but no account id → real-AWS warning, not unavailable', () => {
+    const text = buildProxyBannerLines({
+      proxyToAws: 'unsupported',
+      hasCredentials: true,
+      accountId: null,
+      region: 'us-east-1',
+    }).join('\n')
+    expect(text.toLowerCase()).toContain('real aws')
+    expect(text.toLowerCase()).toContain('unknown')
+    expect(text.toLowerCase()).not.toContain('unavailable')
   })
 })
