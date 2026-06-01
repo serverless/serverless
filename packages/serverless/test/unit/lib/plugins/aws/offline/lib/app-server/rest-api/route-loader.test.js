@@ -376,6 +376,35 @@ describe('registerRestApiRoutes — live request via server.inject()', () => {
     )
   })
 
+  it('normalizes a no-leading-slash path to a leading slash in resource/resourcePath', async () => {
+    // AWS API Gateway always normalizes the resource path to a leading slash,
+    // regardless of how it is written in serverless.yml (`items` and `/items`
+    // both deploy as `/items`).
+    server = Hapi.server({ host: 'localhost', port: 0 })
+    let captured
+    const onRequest = jest.fn(async (functionKey, event) => {
+      captured = { functionKey, event }
+      return { statusCode: 200, body: '{}' }
+    })
+    registerRestApiRoutes({
+      server,
+      serverless: makeServerless({
+        getItem: {
+          events: [{ http: { method: 'GET', path: 'items/{id}' } }],
+        },
+      }),
+      stage: 'dev',
+      onRequest,
+    })
+    await server.start()
+
+    const res = await server.inject({ method: 'GET', url: '/dev/items/42' })
+
+    expect(res.statusCode).toBe(200)
+    expect(captured.event.resource).toBe('/items/{id}')
+    expect(captured.event.requestContext.resourcePath).toBe('/items/{id}')
+  })
+
   it('strips both stage and --prefix from event.path on a real request', async () => {
     server = Hapi.server({ host: 'localhost', port: 0 })
     let captured

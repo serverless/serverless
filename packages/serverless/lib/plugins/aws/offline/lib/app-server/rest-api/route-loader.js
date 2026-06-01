@@ -347,8 +347,15 @@ export function registerRestApiRoutes({
         }
       }
 
-      const { method: rawMethod, path: apigwPath } =
+      const { method: rawMethod, path: rawApigwPath } =
         normalizeHttpEvent(httpEvent)
+      // AWS normalizes the resource path to a leading slash regardless of how
+      // it is written in serverless.yml (`items` and `/items` both deploy as
+      // `/items`).
+      const apigwPath =
+        rawApigwPath === '*' || rawApigwPath.startsWith('/')
+          ? rawApigwPath
+          : `/${rawApigwPath}`
 
       const hapiMethod = toHapiMethod(rawMethod)
       const hapiPath = translateRestPath(apigwPath)
