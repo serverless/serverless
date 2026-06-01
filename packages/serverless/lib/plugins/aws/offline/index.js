@@ -308,8 +308,8 @@ function logBootSummary({
 
 /**
  * Built-in sls offline command — local dev loop for Lambda handlers
- * triggered by HTTP API, REST API, ALB, WebSocket, Schedule, S3, SQS,
- * SNS, and EventBridge events.
+ * triggered by HTTP API, REST API, ALB, WebSocket, Schedule, and direct
+ * Lambda invoke.
  *
  * Yields to the `serverless-offline` plugin when present in the user's
  * `plugins:` list — Framework's plugin-manager skips this plugin via
@@ -490,11 +490,11 @@ export default class OfflinePlugin {
       )
     }
 
-    // 2c. Resolve + download Lambda layers BEFORE placeholder credentials are
-    //     set below, so the layer lookups use the developer's real AWS
-    //     credentials (env or shared-config profile) rather than the 'test'
-    //     placeholders. Docker-only; a per-layer failure soft-warns and never
-    //     blocks boot.
+    // 3. Resolve + download Lambda layers BEFORE placeholder credentials are
+    //    set below, so the layer lookups use the developer's real AWS
+    //    credentials (env or shared-config profile) rather than the 'test'
+    //    placeholders. Docker-only; a per-layer failure soft-warns and never
+    //    blocks boot.
     const layersDir =
       cliOptions.layersDir ??
       offline.layersDir ??
@@ -543,7 +543,7 @@ export default class OfflinePlugin {
       }
     }
 
-    // 3. Compute the offline runtime values injected into each invoked
+    // 4. Compute the offline runtime values injected into each invoked
     //    handler's env (IS_OFFLINE, region, and AUTHORIZER under --noAuth).
     //    These reach handler scope via the Lambda function facade — they are
     //    deliberately NOT written onto the host process.
@@ -551,7 +551,7 @@ export default class OfflinePlugin {
       noAuth,
     }
 
-    // 7. Create the runner.
+    // 5. Create the runner.
     //    Worker-thread (default) receives handlerPath at invoke()-time (already
     //    fully resolved), so servicePath in workerData is unused — pass a
     //    placeholder that will be overwritten before any invocation. The real
@@ -561,7 +561,7 @@ export default class OfflinePlugin {
     //    and ignores terminateIdleLambdaTime (no workers to recycle).
     //    When any function uses the Go runtime family, also create the shared
     //    invocation queue that bridges the runner to the AWS Lambda Runtime
-    //    API routes mounted on the aws-api-server (see step 10).
+    //    API routes mounted on the aws-api-server (see step 8).
     // The Lambda Runtime API queue + Hapi routes are shared by every
     // runner that uses the AWS RIC convention (Go via aws-lambda-go,
     // Java via the official RIC).
@@ -623,8 +623,9 @@ export default class OfflinePlugin {
 
     // Lambda function facade: single invocation entry point per function.
     // Builds the per-invocation context + environment uniformly and dispatches
-    // to the runner pool. Used by every trigger source (HTTP API, SQS poller,
-    // future REST/WS/EB) so the shape stays consistent.
+    // to the runner pool. Used by every trigger source (HTTP API, REST API,
+    // ALB, WebSocket, Schedule, direct Lambda invoke) so the shape stays
+    // consistent.
     //
     // Lazy resolution inside .invoke() keeps both bundler contracts working:
     //  - built-in esbuild swaps serverless.config.servicePath
@@ -649,10 +650,10 @@ export default class OfflinePlugin {
       return fn
     }
 
-    // 8b. Construct the scheduler. Construction validates every schedule
-    //     expression and pre-creates croner instances (paused), so a typo'd
-    //     cron throws at boot rather than failing at first tick. start() is
-    //     deferred until after teardowns are registered (below).
+    // 6. Construct the scheduler. Construction validates every schedule
+    //    expression and pre-creates croner instances (paused), so a typo'd
+    //    cron throws at boot rather than failing at first tick. start() is
+    //    deferred until after teardowns are registered (below).
     const scheduler = createScheduler({
       serverless,
       getLambdaFunction,
@@ -660,7 +661,7 @@ export default class OfflinePlugin {
       region: provider.region ?? FAKE_REGION,
     })
 
-    // 9. Boot the app server (Hapi v21) for user traffic.
+    // 7. Boot the app server (Hapi v21) for user traffic.
     /** @type {{ method: string, path: string, functionKey: string }[]} */
     let albRoutes = []
     /** @type {{ method: string, path: string, functionKey: string }[]} */
@@ -768,8 +769,8 @@ export default class OfflinePlugin {
       },
     })
 
-    // 10. Boot the AWS API server (Hapi starts listening here). It exposes the
-    //     Lambda Invoke API and, when needed, the Lambda Runtime API.
+    // 8. Boot the AWS API server (Hapi starts listening here). It exposes the
+    //    Lambda Invoke API and, when needed, the Lambda Runtime API.
     const awsApiServer = await createAwsApiServer({
       awsApiPort,
       host: awsApiBindHost,
@@ -786,11 +787,11 @@ export default class OfflinePlugin {
       },
     })
 
-    // 11. Register teardowns for the servers (LIFO — runner and
-    //     watcher are added after bridge.fireBeforeStart so they appear last,
-    //     meaning they are torn down first).
-    //     Registration order so far: awsApiServer → appServer
-    //     LIFO teardown for these: appServer, awsApiServer.
+    // 9. Register teardowns for the servers (LIFO — runner and
+    //    watcher are added after bridge.fireBeforeStart so they appear last,
+    //    meaning they are torn down first).
+    //    Registration order so far: awsApiServer → appServer
+    //    LIFO teardown for these: appServer, awsApiServer.
     orchestrator.onShutdown(() => awsApiServer.stop({ timeout: 5000 }))
     orchestrator.onShutdown(() => appServer.stop({ timeout: 5000 }))
     // The WS server closes all open sockets (code 1001) before the Hapi
@@ -801,13 +802,13 @@ export default class OfflinePlugin {
     // in-flight schedule invocations before runners shut down.
     orchestrator.onShutdown(() => scheduler.stop())
 
-    // 12. Fire before:offline:start so that bundler plugins (e.g. built-in
+    // 10. Fire before:offline:start so that bundler plugins (e.g. built-in
     //     esbuild) can bundle TS handlers and swap serverless.config.servicePath
     //     to the build output directory BEFORE the watcher resolves handler
     //     paths or the runner is used for the first time.
     await bridge.fireBeforeStart()
 
-    // 13. Start the native file watcher AFTER fireBeforeStart so it resolves
+    // 11. Start the native file watcher AFTER fireBeforeStart so it resolves
     //     handler paths against the (possibly bundler-swapped) base directory.
     //     getHandlerBaseDir() honours both the built-in esbuild swap and the
     //     community serverless-esbuild custom location contract.

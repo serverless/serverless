@@ -291,8 +291,7 @@ export function createScheduler({
 
     // Fire-and-forget — real AWS does not serialize ticks. Tracked in
     // inFlightPromises so stop() can await drain at shutdown. A scheduled
-    // invocation is asynchronous, so `{ async: true }` opts the function into
-    // onSuccess/onFailure destination routing.
+    // invocation is asynchronous, so it is dispatched with `{ async: true }`.
     const invocationPromise = getLambdaFunction(entry.functionKey)
       .invoke(event, { async: true })
       .catch((err) => {
