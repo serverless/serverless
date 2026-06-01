@@ -1,0 +1,50 @@
+service: it-rest-velocity
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+custom:
+  serverless-offline:
+    httpPort: 0
+    lambdaPort: 0
+functions:
+  proxy:
+    handler: handler.proxy
+    events:
+      # Lambda-proxy (AWS_PROXY) route: the handler echoes the raw event so the
+      # test can assert the full APIGW REST API v1 proxy event shape. CORS is
+      # enabled here so an OPTIONS preflight is synthesized for this path.
+      - http:
+          method: GET
+          path: /items/{id}
+          cors: true
+  velocity:
+    handler: handler.velocity
+    events:
+      # Non-proxy (AWS / lambda) route with a velocity request template mapping
+      # $input/$context into the handler input, a default response template that
+      # renders the handler result, and a status-code mapping that selects 404
+      # for a matching error.
+      - http:
+          method: POST
+          path: /items
+          integration: lambda
+          request:
+            template:
+              application/json: >
+                {
+                  "who": $input.json('$.name'),
+                  "fullBody": $input.json('$'),
+                  "method": "$context.httpMethod",
+                  "stage": "$context.stage",
+                  "resourcePath": "$context.resourcePath",
+                  "agent": "$input.params('x-test')"
+                }
+          response:
+            template: >
+              { "message": "$input.path('$.echoedWho')", "wrapped": true }
+            statusCodes:
+              '404':
+                pattern: '.*not found.*'
+                template: >
+                  { "error": "missing" }
