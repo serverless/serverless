@@ -30,12 +30,14 @@ Run your Lambda handlers locally behind the API Gateway edge (HTTP API, REST, AL
 serverless offline
 ```
 
-## Two ports
+## Ports
 
-Offline listens on two ports. Together they replace the four listening ports used by the community `serverless-offline` plugin.
+Offline binds a port per surface, matching the listening ports the community `serverless-offline` plugin uses.
 
-- **`appPort`** (default `3000`) — the user-facing edge. It serves your HTTP API, REST API, ALB, and WebSocket routes, and hosts the API Gateway Management API `@connections` endpoint used to post messages back to connected WebSocket clients.
+- **`httpPort`** (default `3000`) — your HTTP API and REST API edge.
+- **`websocketPort`** (default `3001`) — the WebSocket edge and the API Gateway Management API `@connections` endpoint used to post messages back to connected WebSocket clients. Bound only when your service declares `websocket` events.
 - **`lambdaPort`** (default `3002`) — the AWS **Lambda Invoke** API endpoint. Point a Lambda SDK client at it to invoke your functions locally.
+- **`albPort`** (default `3003`) — the ALB edge. Bound only when your service declares `alb` events.
 
 Each invoked handler receives an environment that includes:
 
@@ -48,8 +50,7 @@ Offline does **not** inject `AWS_ENDPOINT_URL` and does **not** force placeholde
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
-| `--albPort` | string | — | Accepted for serverless-offline compatibility; ignored (ALB is served on the app port) |
-| `--appPort` | string | `3000` | Port for the HTTP API / REST / ALB / WebSocket server (default 3000) |
+| `--albPort` | string | `3003` | Port for the ALB server (default 3003) |
 | `--corsAllowHeaders` | string | — | Used to build the Access-Control-Allow-Headers header for CORS support |
 | `--corsAllowOrigin` | string | — | Used to build the Access-Control-Allow-Origin header for CORS support |
 | `--corsDisallowCredentials` | boolean | — | Used to override the Access-Control-Allow-Credentials default to false |
@@ -61,7 +62,7 @@ Offline does **not** inject `AWS_ENDPOINT_URL` and does **not** force placeholde
 | `--dockerReadOnly` | boolean | `true` | Mount Docker code layers read-only (default true) |
 | `--enforceSecureCookies` | boolean | `false` | Enforce secure cookies in local REST responses |
 | `--host` | string | `localhost` | Host the local servers bind to (default localhost) |
-| `--httpPort` | string | `3000` | Alias of `--appPort`, for serverless-offline compatibility (default 3000) |
+| `--httpPort` | string | `3000` | Port for the HTTP API / REST server (default 3000) |
 | `--httpsProtocol` | string | — | Enable HTTPS by specifying a directory containing cert.pem and key.pem |
 | `--ignoreJWTSignature` | boolean | `false` | When using HTTP API JWT authorizers, skip JWT signature verification |
 | `--lambdaPort` | string | `3002` | Port for the Lambda invoke endpoint (default 3002) |
@@ -82,9 +83,9 @@ Offline does **not** inject `AWS_ENDPOINT_URL` and does **not** force placeholde
 | `--watch` | boolean | `false` | Enable hot-reload of handler files (defaults off) |
 | `--webSocketHardTimeout` | string | `7200` | Set WebSocket hard timeout in seconds to reproduce AWS limits (default 7200) |
 | `--webSocketIdleTimeout` | string | `600` | Set WebSocket idle timeout in seconds to reproduce AWS limits (default 600) |
-| `--websocketPort` | string | — | Accepted for serverless-offline compatibility; ignored (WebSocket is served on the app port) |
+| `--websocketPort` | string | `3001` | Port for the WebSocket server (default 3001) |
 
-`--httpPort` is an alias of `--appPort` — the single port serving HTTP API, REST, ALB, and WebSocket. The flags marked _(serverless-offline compatibility; ignored)_ — `--albPort`, `--websocketPort`, `--preLoadModules`, `--resourceRoutes`, and `--noSponsor` — are accepted so existing `serverless-offline` config and command lines keep working, but they have no effect; a one-time boot warning lists any ignored keys it detects. Hot reload defaults **off**; enable it with `--watch` or `--reloadHandler`.
+Each surface binds its own port — `--httpPort` (HTTP API + REST), `--websocketPort` (WebSocket + `@connections`), `--albPort` (ALB), and `--lambdaPort` (Lambda Invoke) — matching the community plugin's ports. The flags marked _(serverless-offline compatibility; ignored)_ — `--preLoadModules`, `--resourceRoutes`, and `--noSponsor` — are accepted so existing `serverless-offline` config and command lines keep working, but they have no effect; a one-time boot warning lists any ignored keys it detects. Hot reload defaults **off**; enable it with `--watch` or `--reloadHandler`.
 
 ## Configuration (`custom.serverless-offline`)
 
@@ -100,7 +101,7 @@ custom:
     useInProcess: true
 ```
 
-`httpPort` is an alias of `appPort`. `customAuthenticationProvider` is a config-only key (it has no CLI flag). Set it under `custom.serverless-offline` to point at a module that provides a custom authentication provider for local authorizers.
+`customAuthenticationProvider` is a config-only key (it has no CLI flag). Set it under `custom.serverless-offline` to point at a module that provides a custom authentication provider for local authorizers.
 
 ## Debugging
 

@@ -424,22 +424,6 @@ export const DIVERGENCES = [
   },
   {
     surface: 'config',
-    field: 'websocketPort',
-    category: 'A',
-    plugin: 'binds a separate websocketPort',
-    ours: 'accepts but ignores websocketPort (WebSocket shares the app port)',
-    reason: 'scope cut — one app port serves HTTP/REST/ALB/WebSocket',
-  },
-  {
-    surface: 'config',
-    field: 'albPort',
-    category: 'A',
-    plugin: 'binds a separate albPort',
-    ours: 'accepts but ignores albPort (ALB shares the app port)',
-    reason: 'scope cut — one app port serves HTTP/REST/ALB/WebSocket',
-  },
-  {
-    surface: 'config',
     field: 'hotReloadDefault',
     category: 'A',
     plugin: 'hot reload defaults on',

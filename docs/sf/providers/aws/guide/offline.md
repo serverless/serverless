@@ -38,10 +38,12 @@ From a service directory, run:
 serverless offline
 ```
 
-Offline binds two ports:
+Offline binds a port per surface, matching the community plugin:
 
-- **`appPort`** (default `3000`) — your application edge. HTTP API, REST API, ALB, and WebSocket routes are served here.
+- **`httpPort`** (default `3000`) — your HTTP API and REST API edge.
+- **`websocketPort`** (default `3001`) — the WebSocket edge and the `@connections` management endpoint. Bound only when your service declares `websocket` events.
 - **`lambdaPort`** (default `3002`) — the AWS **Lambda Invoke** API endpoint. Point a Lambda SDK client at it to invoke your functions locally.
+- **`albPort`** (default `3003`) — the ALB edge. Bound only when your service declares `alb` events.
 
 ### Configuration
 
@@ -59,9 +61,9 @@ Precedence is **CLI flags > `custom.serverless-offline` > defaults**, so a flag 
 
 A few notes:
 
-- **`httpPort` is an alias of `appPort`** — the single port that serves HTTP API, REST, ALB, and WebSocket (default `3000`). Set either one; `--httpPort` is an alias of `--appPort` on the CLI. `lambdaPort` (default `3002`) is the separate Lambda Invoke endpoint.
+- **Each surface binds its own port**, matching the community plugin: `httpPort` (default `3000`) serves HTTP API and REST; `websocketPort` (default `3001`) serves WebSocket and the `@connections` management endpoint; `albPort` (default `3003`) serves ALB; `lambdaPort` (default `3002`) is the separate Lambda Invoke endpoint.
 - **Hot reload defaults OFF.** Enable it with `--watch`, with `--reloadHandler`, or with `custom.serverless-offline.reloadHandler: true`. `reloadHandler` maps to the built-in file watch, so `reloadHandler: false` (or `--noWatch`) turns it off. Hot reload is also disabled automatically when a bundler plugin (the built-in esbuild support or `serverless-esbuild`) owns the build.
-- **Some `serverless-offline` keys are accepted but ignored.** `websocketPort` and `albPort` are ignored because WebSocket and ALB are served on the app port; `preLoadModules` and `resourceRoutes` are ignored as well; `noSponsor` is accepted and silently ignored. A one-time boot warning lists any ignored keys it finds.
+- **Some `serverless-offline` keys are accepted but ignored.** `preLoadModules` and `resourceRoutes` are ignored; `noSponsor` is accepted and silently ignored. A one-time boot warning lists any ignored keys it finds.
 
 For the full flag and key reference, see the [offline CLI reference](../cli-reference/offline.md).
 
@@ -148,7 +150,7 @@ functions:
             path: /alb
 ```
 
-ALB routes are served on `appPort`. The handler receives an ALB event whose request header names are **lowercased**, matching how real ALB delivers headers. Respond with `{ statusCode, statusDescription, headers, body }`.
+ALB routes are served on `albPort` (default `3003`). The handler receives an ALB event whose request header names are **lowercased**, matching how real ALB delivers headers. Respond with `{ statusCode, statusDescription, headers, body }`.
 
 ### WebSocket
 
@@ -166,9 +168,9 @@ functions:
           route: $default
 ```
 
-Connect a WebSocket client to `ws://localhost:3000`. The `$connect`, `$disconnect`, and route-selected handlers fire as clients connect, disconnect, and send frames.
+Connect a WebSocket client to `ws://localhost:3001`. The `$connect`, `$disconnect`, and route-selected handlers fire as clients connect, disconnect, and send frames.
 
-To push messages back to a client, use the API Gateway Management API `@connections` endpoint — it is served on `appPort`. Build the client endpoint from the event's `requestContext.domainName`/`stage` (offline sets `domainName` to `localhost:3000`, so it resolves locally):
+To push messages back to a client, use the API Gateway Management API `@connections` endpoint — it is served on `websocketPort`. Build the client endpoint from the event's `requestContext.domainName`/`stage` (offline sets `domainName` to `localhost:<websocketPort>`, e.g. `localhost:3001`, so it resolves locally):
 
 ```js
 import {
@@ -178,8 +180,9 @@ import {
 
 const { domainName, stage } = event.requestContext
 const client = new ApiGatewayManagementApiClient({
-  // The @connections endpoint lives on appPort at /<stage>/@connections;
-  // offline sets domainName to localhost:3000, so this resolves locally.
+  // The @connections endpoint lives on websocketPort at /<stage>/@connections;
+  // offline sets domainName to localhost:<websocketPort> (e.g. localhost:3001),
+  // so this resolves locally.
   endpoint: `http://${domainName}/${stage}`,
 })
 await client.send(
@@ -301,12 +304,11 @@ If you are coming from the community [`serverless-offline`](https://github.com/d
 
 | `custom.serverless-offline.*` key | Built-in behavior |
 | --- | --- |
-| `httpPort` | Alias of `appPort`; one port serves HTTP API, REST, ALB, and WebSocket |
-| `appPort` | The single app-edge port (default `3000`) |
+| `httpPort` | HTTP API / REST server port (default `3000`) |
+| `websocketPort` | WebSocket server port (default `3001`) |
 | `lambdaPort` | The Lambda invoke endpoint (default `3002`) |
+| `albPort` | ALB server port (default `3003`) |
 | `reloadHandler` | Maps to the built-in file watch; hot reload defaults OFF |
-| `websocketPort` | Accepted but ignored (WebSocket shares the app port) |
-| `albPort` | Accepted but ignored (ALB shares the app port) |
 | `preLoadModules` | Accepted but ignored |
 | `resourceRoutes` | Accepted but ignored |
 | `noSponsor` | Accepted and silently ignored |
@@ -321,15 +323,16 @@ If you are coming from the community [`serverless-offline`](https://github.com/d
 
 A one-time boot warning lists any accepted-but-ignored keys it finds. A top-level `offline:` block is **not** supported; if present, the Framework warns about unrecognized configuration.
 
-**CLI flags.** The flags mirror the config keys, with `--httpPort` kept as an alias of `--appPort`:
+**CLI flags.** The flags mirror the config keys:
 
 | Flag | Built-in behavior |
 | --- | --- |
-| `--httpPort` | Alias of `--appPort` |
-| `--appPort` | The single app-edge port (default `3000`) |
+| `--httpPort` | HTTP API / REST server port (default `3000`) |
+| `--websocketPort` | WebSocket server port (default `3001`) |
 | `--lambdaPort` | The Lambda invoke endpoint (default `3002`) |
+| `--albPort` | ALB server port (default `3003`) |
 | `--watch` / `--noWatch` / `--reloadHandler` | Control hot reload; it defaults OFF |
-| `--websocketPort` / `--albPort` / `--preLoadModules` / `--resourceRoutes` / `--noSponsor` | Accepted for serverless-offline compatibility; ignored |
+| `--preLoadModules` / `--resourceRoutes` / `--noSponsor` | Accepted for serverless-offline compatibility; ignored |
 | `--host` / `-o` | `--host` (no `-o` shortcut) |
 | `--httpsProtocol` / `-H` | `--httpsProtocol` (no shortcut) |
 | `--noTimeout` / `-t` | `--noTimeout` (no shortcut) |
@@ -340,7 +343,7 @@ Note that `customAuthenticationProvider` is a config-only key under `custom.offl
 
 Other user-facing changes:
 
-- **Two ports, not four.** The built-in binds `appPort` (3000) and `lambdaPort` (3002). The community plugin binds up to four listening ports (`httpPort`, `websocketPort`, `lambdaPort`, `albPort`).
+- **Same port model as the plugin.** The built-in binds `httpPort` (3000, HTTP API + REST), `websocketPort` (3001, WebSocket + `@connections`), `lambdaPort` (3002, Lambda Invoke), and `albPort` (3003, ALB) — the same listening ports the community plugin uses. ALB and WebSocket each bind their own port (3003/3001) only when your service declares those events, exactly like serverless-offline, so the earlier shared-port caveat (an ALB rule colliding with an API route) no longer applies.
 - **No `start` subcommand.** Run `serverless offline`. There is no `serverless offline start`.
 - **Hot reload defaults off.** Enable it with `--watch`, `--reloadHandler`, or `custom.serverless-offline.reloadHandler: true` (auto-disabled when a bundler plugin owns the build).
 - **Zero install.** The command ships with the Framework; there is no plugin to add to `plugins:`.
@@ -375,7 +378,7 @@ The remaining differences are places where Offline matches the AWS event/respons
 
 **WebSocket.** Offline follows AWS here; the community plugin differs.
 
-- `requestContext.domainName` is the real, routable `localhost:<appPort>` and `requestContext.stage` is your configured stage (for example `dev`). The `@connections` management route is mounted at `/<stage>/@connections/{connectionId}` on the same app port — exactly the endpoint the AWS SDK's `ApiGatewayManagementApiClient` composes from `domainName` + stage. As a result, **SDK-style `@connections` fan-out works offline**: a handler that POSTs to `https://${domainName}/${stage}/@connections/${connectionId}` reaches the other connected clients. Against the community plugin (which hardcodes `domainName`/`stage` and mounts the route on a separate port without the stage prefix) the same broadcast does not reach them.
+- `requestContext.domainName` is the real, routable `localhost:<websocketPort>` (for example `localhost:3001`) and `requestContext.stage` is your configured stage (for example `dev`). The `@connections` management route is mounted at `/<stage>/@connections/{connectionId}` on the WebSocket server — exactly the endpoint the AWS SDK's `ApiGatewayManagementApiClient` composes from `domainName` + stage. As a result, **SDK-style `@connections` fan-out works offline**: a handler that POSTs to `https://${domainName}/${stage}/@connections/${connectionId}` reaches the other connected clients. Against the community plugin (which hardcodes `domainName`/`stage` and omits the stage prefix on its `@connections` route) the same broadcast does not reach them.
 - `requestContext.messageId` is present only on **message** (route) events — never on `$connect`/`$disconnect`, matching AWS.
 - `$disconnect` events carry `disconnectStatusCode` and `disconnectReason` taken from the WebSocket close frame.
 
@@ -396,7 +399,6 @@ The remaining differences are places where Offline matches the AWS event/respons
 These capabilities of the community plugin are intentionally not part of the built-in command:
 
 - **No local emulation of other AWS services.** Offline emulates the API edge (HTTP API, REST, ALB, WebSocket), runs your Lambdas, fires `schedule` events, and serves the Lambda Invoke endpoint. SQS, SNS, S3, EventBridge, DynamoDB, and every other service your handler's SDK calls go to **real AWS** with your normal credentials — there is no built-in local emulation of them.
-- **Single app port.** `websocketPort` and `albPort` are accepted but ignored; WebSocket and ALB share the one app port.
 - **Hot reload defaults off.** Enable it with `--watch`, `--reloadHandler`, or `custom.serverless-offline.reloadHandler: true`.
 - **`noSponsor` is accepted and ignored** (there is no sponsor banner to suppress).
 - **Layers** are mounted only for Docker-backed functions and are sourced by downloading a published layer ARN from AWS; locally-defined service layers are skipped with a boot notice.
