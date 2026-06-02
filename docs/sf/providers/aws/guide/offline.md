@@ -400,4 +400,5 @@ These capabilities of the community plugin are intentionally not part of the bui
 - **Hot reload defaults off.** Enable it with `--watch`, `--reloadHandler`, or `custom.serverless-offline.reloadHandler: true`.
 - **`noSponsor` is accepted and ignored** (there is no sponsor banner to suppress).
 - **Layers** are mounted only for Docker-backed functions and are sourced by downloading a published layer ARN from AWS; locally-defined service layers are skipped with a boot notice.
-- **Host runtimes use the interpreter on your PATH.** For Python, Ruby, and Go, the configured runtime version selects the runner, but the actual interpreter/toolchain is whatever is installed on your machine; only Docker mode pins the exact Lambda image. The custom authentication provider is read from the top-level `offline.customAuthenticationProvider` block and applies only to routes that reference its returned `name`.
+- **Host runtimes use the interpreter on your PATH.** For Python, Ruby, and Go, the configured runtime version selects the runner, but the actual interpreter/toolchain is whatever is installed on your machine; only Docker mode pins the exact Lambda image.
+- **The custom authentication provider** is read from `custom.serverless-offline.customAuthenticationProvider` and applies only to routes that reference its returned `name`.

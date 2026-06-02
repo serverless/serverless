@@ -353,9 +353,9 @@ export const DIVERGENCES = [
     field: 'customAuthenticationProvider.configLocation',
     category: 'A',
     plugin: 'reads custom.offline.customAuthenticationProvider',
-    ours: 'reads the top-level offline.customAuthenticationProvider block (sf-core canonical)',
+    ours: 'reads custom.serverless-offline.customAuthenticationProvider (our canonical offline config home)',
     reason:
-      'config-surface difference; a migrating fixture moves the key up one level',
+      'config-surface difference; a migrating fixture renames the custom sub-key from offline to serverless-offline',
   },
   {
     surface: 'authorizers',
