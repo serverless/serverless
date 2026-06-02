@@ -1,7 +1,7 @@
 /**
  * App server for sls offline.
  *
- * Boots a Hapi v21 server on `appPort` that serves user traffic (HTTP API,
+ * Boots a Hapi v21 server on the given `port` that serves user traffic (HTTP API,
  * ALB, WebSocket, …).  This server is intentionally separate from the
  * AWS-API server — Hapi v21 removed multi-connection support in favour of
  * independent server instances.
@@ -12,7 +12,7 @@
  */
 
 import Hapi from '@hapi/hapi'
-import { DEFAULT_APP_PORT, DEFAULT_HOST } from '../constants.js'
+import { DEFAULT_HTTP_PORT, DEFAULT_HOST } from '../constants.js'
 import { loadTlsCerts } from './load-tls-certs.js'
 
 /**
@@ -25,7 +25,7 @@ import { loadTlsCerts } from './load-tls-certs.js'
  *
  * @param {object} opts
  *
- * @param {number} [opts.appPort=DEFAULT_APP_PORT]
+ * @param {number} [opts.port=DEFAULT_HTTP_PORT]
  *   TCP port to listen on.  Pass `0` to let the OS assign a random port
  *   (required by the cross-cutting random-port policy in integration tests).
  *
@@ -55,7 +55,7 @@ import { loadTlsCerts } from './load-tls-certs.js'
  * @throws {TypeError} If `registerRoutes` is not a function.
  */
 export async function createAppServer({
-  appPort = DEFAULT_APP_PORT,
+  port = DEFAULT_HTTP_PORT,
   host = DEFAULT_HOST,
   httpsProtocol,
   logger,
@@ -74,7 +74,7 @@ export async function createAppServer({
   // Mirror that by stripping the trailing slash before Hapi matches the route.
   const server = Hapi.server({
     host,
-    port: appPort,
+    port,
     router: { stripTrailingSlash: true },
     ...(tls ? { tls } : {}),
   })

@@ -1,5 +1,7 @@
-export const DEFAULT_APP_PORT = 3000
+export const DEFAULT_HTTP_PORT = 3000
+export const DEFAULT_WEBSOCKET_PORT = 3001
 export const DEFAULT_LAMBDA_PORT = 3002
+export const DEFAULT_ALB_PORT = 3003
 export const DEFAULT_HOST = 'localhost'
 export const DEFAULT_MAX_CONCURRENT_INVOCATIONS = 100
 export const DEFAULT_STAGE = 'dev'

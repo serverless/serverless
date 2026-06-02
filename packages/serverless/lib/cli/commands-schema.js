@@ -242,13 +242,7 @@ commands.set('offline', {
     'Run your Lambda handlers locally behind API Gateway (HTTP API, REST), ALB, WebSocket, and Schedule event sources, with a local Lambda Invoke endpoint.',
   options: {
     albPort: {
-      usage:
-        'Accepted for serverless-offline compatibility; ignored (ALB is served on the app port)',
-      type: 'string',
-    },
-    appPort: {
-      usage:
-        'Port for the HTTP API / REST / ALB / WebSocket server (default 3000)',
+      usage: 'ALB server port (default 3003)',
       type: 'string',
     },
     corsAllowHeaders: {
@@ -302,8 +296,7 @@ commands.set('offline', {
       type: 'string',
     },
     httpPort: {
-      usage:
-        'Alias of --appPort, for serverless-offline compatibility (default 3000)',
+      usage: 'HTTP server port — REST + HTTP API (default 3000)',
       type: 'string',
     },
     httpsProtocol: {
@@ -396,8 +389,7 @@ commands.set('offline', {
       type: 'string',
     },
     websocketPort: {
-      usage:
-        'Accepted for serverless-offline compatibility; ignored (WebSocket is served on the app port)',
+      usage: 'WebSocket server port (default 3001)',
       type: 'string',
     },
   },

@@ -1,5 +1,7 @@
 import {
-  DEFAULT_APP_PORT,
+  DEFAULT_HTTP_PORT,
+  DEFAULT_WEBSOCKET_PORT,
+  DEFAULT_ALB_PORT,
   DEFAULT_HOST,
   DEFAULT_LAMBDA_PORT,
   DEFAULT_STAGE,
@@ -12,8 +14,10 @@ import {
 
 describe('offline constants', () => {
   it('exposes default ports', () => {
-    expect(DEFAULT_APP_PORT).toBe(3000)
+    expect(DEFAULT_HTTP_PORT).toBe(3000)
+    expect(DEFAULT_WEBSOCKET_PORT).toBe(3001)
     expect(DEFAULT_LAMBDA_PORT).toBe(3002)
+    expect(DEFAULT_ALB_PORT).toBe(3003)
   })
 
   it('exposes default stage', () => {

@@ -1,22 +1,21 @@
 import {
-  ALIAS_KEYS,
   UNSUPPORTED_KEYS,
   SILENT_IGNORE_KEYS,
   CUSTOM_SERVERLESS_OFFLINE_SCHEMA,
-  normalizePluginKeys,
   collectUnsupportedKeys,
 } from '../../../../../../../lib/plugins/aws/offline/lib/plugin-compat.js'
 
 describe('plugin-compat', () => {
   describe('exported constants', () => {
-    it('ALIAS_KEYS maps httpPort to appPort', () => {
-      expect(ALIAS_KEYS).toEqual({ httpPort: 'appPort' })
-    })
-
     it('UNSUPPORTED_KEYS has the exact expected membership', () => {
       expect([...UNSUPPORTED_KEYS].sort()).toEqual(
-        ['albPort', 'preLoadModules', 'resourceRoutes', 'websocketPort'].sort(),
+        ['preLoadModules', 'resourceRoutes'].sort(),
       )
+    })
+
+    it('UNSUPPORTED_KEYS no longer lists websocketPort or albPort', () => {
+      expect(UNSUPPORTED_KEYS).not.toContain('websocketPort')
+      expect(UNSUPPORTED_KEYS).not.toContain('albPort')
     })
 
     it('SILENT_IGNORE_KEYS holds noSponsor', () => {
@@ -31,52 +30,23 @@ describe('plugin-compat', () => {
     })
   })
 
-  describe('normalizePluginKeys', () => {
-    it('renames httpPort to appPort preserving the value', () => {
-      const result = normalizePluginKeys({ httpPort: 4000 })
-      expect(result).toEqual({ appPort: 4000 })
-      expect(result.httpPort).toBeUndefined()
-    })
-
-    it('leaves all other keys untouched', () => {
-      const source = { host: 'localhost', lambdaPort: 3002, noAuth: true }
-      expect(normalizePluginKeys(source)).toEqual({
-        host: 'localhost',
-        lambdaPort: 3002,
-        noAuth: true,
-      })
-    })
-
-    it('returns a new object and does not mutate the input', () => {
-      const source = { httpPort: 4000, host: 'localhost' }
-      const result = normalizePluginKeys(source)
-      expect(result).not.toBe(source)
-      expect(source).toEqual({ httpPort: 4000, host: 'localhost' })
-    })
-
-    it('keeps explicit appPort and drops httpPort when both are present', () => {
-      const result = normalizePluginKeys({ httpPort: 4000, appPort: 5000 })
-      expect(result).toEqual({ appPort: 5000 })
-      expect(result.httpPort).toBeUndefined()
-    })
-
-    it('handles empty input', () => {
-      expect(normalizePluginKeys({})).toEqual({})
-    })
-
-    it('handles undefined input', () => {
-      expect(normalizePluginKeys()).toEqual({})
-    })
-  })
-
   describe('collectUnsupportedKeys', () => {
     it('returns sorted unsupported keys present in either source', () => {
+      expect(
+        collectUnsupportedKeys({
+          cliOptions: { resourceRoutes: true },
+          pluginCustom: { preLoadModules: [] },
+        }),
+      ).toEqual(['preLoadModules', 'resourceRoutes'])
+    })
+
+    it('does not treat websocketPort or albPort as unsupported', () => {
       expect(
         collectUnsupportedKeys({
           cliOptions: { websocketPort: 3001 },
           pluginCustom: { albPort: 3003 },
         }),
-      ).toEqual(['albPort', 'websocketPort'])
+      ).toEqual([])
     })
 
     it('deduplicates keys present in both sources', () => {
@@ -100,7 +70,7 @@ describe('plugin-compat', () => {
     it('ignores keys whose value is undefined', () => {
       expect(
         collectUnsupportedKeys({
-          cliOptions: { albPort: undefined },
+          cliOptions: { resourceRoutes: undefined },
           pluginCustom: {},
         }),
       ).toEqual([])

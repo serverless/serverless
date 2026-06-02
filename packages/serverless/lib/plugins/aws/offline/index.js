@@ -12,7 +12,9 @@ import {
 } from './lib/runners/docker-runtime-image.js'
 import {
   LOG_NAMESPACE,
-  DEFAULT_APP_PORT,
+  DEFAULT_HTTP_PORT,
+  DEFAULT_WEBSOCKET_PORT,
+  DEFAULT_ALB_PORT,
   DEFAULT_HOST,
   DEFAULT_LAMBDA_PORT,
   DEFAULT_TERMINATE_IDLE_LAMBDA_TIME,
@@ -21,7 +23,6 @@ import {
   FAKE_REGION,
 } from './lib/constants.js'
 import {
-  normalizePluginKeys,
   collectUnsupportedKeys,
   CUSTOM_SERVERLESS_OFFLINE_SCHEMA,
 } from './lib/plugin-compat.js'
@@ -58,7 +59,7 @@ const logger = log.get(LOG_NAMESPACE)
 
 /**
  * Coerce a CLI-option string to an integer. CLI flags arrive as strings (e.g.
- * `--appPort 4000` → `"4000"`), but YAML and defaults are already typed.
+ * `--httpPort 4000` → `"4000"`), but YAML and defaults are already typed.
  * Returns `undefined` for missing input or non-numeric strings so callers can
  * fall through with `??` to the next precedence layer.
  *
@@ -101,15 +102,23 @@ export function resolveOfflineOptions({
   cliOptions = {},
   pluginCustom = {},
 } = {}) {
-  const cli = normalizePluginKeys(cliOptions)
-  const custom = normalizePluginKeys(pluginCustom)
+  const cli = cliOptions
+  const custom = pluginCustom
   return {
-    appPort:
-      coerceInt(cli.appPort) ?? coerceInt(custom.appPort) ?? DEFAULT_APP_PORT,
+    httpPort:
+      coerceInt(cli.httpPort) ??
+      coerceInt(custom.httpPort) ??
+      DEFAULT_HTTP_PORT,
+    websocketPort:
+      coerceInt(cli.websocketPort) ??
+      coerceInt(custom.websocketPort) ??
+      DEFAULT_WEBSOCKET_PORT,
     lambdaPort:
       coerceInt(cli.lambdaPort) ??
       coerceInt(custom.lambdaPort) ??
       DEFAULT_LAMBDA_PORT,
+    albPort:
+      coerceInt(cli.albPort) ?? coerceInt(custom.albPort) ?? DEFAULT_ALB_PORT,
     // The cors* knobs are global overrides applied only when the user sets
     // them (CLI or custom config). Left undefined by default so each route's
     // own `cors` config — and the AWS-correct defaults it expands to — flows
@@ -420,10 +429,10 @@ export default class OfflinePlugin {
     // 2. Read config values.
     //    Precedence (highest wins): CLI flag → custom.serverless-offline.<key>
     //    in YAML → built-in default. Framework's CLI parser returns option
-    //    values as strings (e.g. --appPort 4000 arrives as "4000"); coerce
+    //    values as strings (e.g. --httpPort 4000 arrives as "4000"); coerce
     //    port strings to integers locally.
     const {
-      appPort,
+      httpPort,
       corsAllowHeaders,
       corsAllowOrigin,
       corsDisallowCredentials,
@@ -452,18 +461,18 @@ export default class OfflinePlugin {
     } = resolveOfflineOptions({ cliOptions, pluginCustom })
 
     // Surface serverless-offline options that the built-in command cannot
-    // honor (WebSocket/ALB run on the app port; the rest have no local
-    // equivalent). Emitted once at boot so users aren't silently misled.
+    // honor (no local equivalent). Emitted once at boot so users aren't
+    // silently misled.
     const ignoredKeys = collectUnsupportedKeys({ cliOptions, pluginCustom })
     if (ignoredKeys.length > 0) {
       logger.warning(
         `Ignoring serverless-offline option(s) not supported by the built-in offline command: ${ignoredKeys.join(
           ', ',
-        )}. WebSocket and ALB are served on the app port; the rest have no local equivalent.`,
+        )}. These have no local equivalent.`,
       )
     }
     const stage = getStage(serverless)
-    const domainName = `${host}:${appPort}`
+    const domainName = `${host}:${httpPort}`
     // NOTE: servicePath is intentionally NOT captured here — it must be read
     // lazily each time it's needed so that bundler plugins (e.g. built-in
     // esbuild) that swap serverless.config.servicePath in their
@@ -556,10 +565,10 @@ export default class OfflinePlugin {
     // doing so produces an opaque EADDRINUSE deep inside Hapi instead of a
     // clear actionable error. Run this check after CLI / YAML / default
     // resolution so the values we test are the ones we'd actually bind.
-    if (appPort === lambdaPort) {
+    if (httpPort === lambdaPort) {
       throw new ServerlessError(
-        `appPort and lambdaPort must differ (both resolved to ${appPort}). ` +
-          'Adjust --appPort, --lambdaPort, or the custom.serverless-offline httpPort / lambdaPort entries in serverless.yml.',
+        `httpPort and lambdaPort must differ (both resolved to ${httpPort}). ` +
+          'Adjust --httpPort, --lambdaPort, or the custom.serverless-offline httpPort / lambdaPort entries in serverless.yml.',
         'OFFLINE_PORT_COLLISION',
       )
     }
@@ -750,7 +759,7 @@ export default class OfflinePlugin {
     // generated (i.e. private routes exist AND no apiGateway.apiKeys configured).
     let generatedApiKey = null
     const appServer = await createAppServer({
-      appPort,
+      port: httpPort,
       host,
       httpsProtocol,
       logger: log.get('sls:offline:app-server'),
@@ -782,7 +791,7 @@ export default class OfflinePlugin {
           generatedApiKey = key
         }
 
-        // WebSocket: shared appPort. The Hapi server's `upgrade` event
+        // WebSocket: shared HTTP port. The Hapi server's `upgrade` event
         // hands incoming WS handshakes to a dedicated ws.Server; HTTP
         // routes (management API, ALB, REST, HTTP API) coexist
         // independently — no separate websocketPort.
@@ -815,7 +824,7 @@ export default class OfflinePlugin {
         // ALB routes register FIRST (among the regular HTTP surfaces) so
         // their literal-path declarations win same-method-same-path
         // collisions against REST / HTTP API routes (Hapi resolves by
-        // registration order). ALB shares appPort.
+        // registration order). ALB shares the HTTP port.
         albRoutes = registerAlbRoutes({
           server,
           serverless,
@@ -938,7 +947,7 @@ export default class OfflinePlugin {
         // Boot summary — printed after every component is up so users get a
         // single coherent diagnostic block instead of interleaved listening
         // lines per subsystem.  `server.info.uri` is the URL Hapi actually
-        // bound (matters when appPort/lambdaPort is 0 → OS-assigned).
+        // bound (matters when httpPort/lambdaPort is 0 → OS-assigned).
         logBootSummary({
           logger,
           appUrl: appServer.info.uri,

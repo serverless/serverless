@@ -77,9 +77,9 @@ afterEach(async () => {
 // 1. Server boots on port 0 (OS-assigned port)
 // ---------------------------------------------------------------------------
 
-it('1. server boots on OS-assigned port when appPort is 0', async () => {
+it('1. server boots on OS-assigned port when port is 0', async () => {
   server = await createAppServer({
-    appPort: 0,
+    port: 0,
     host: 'localhost',
     logger: makeLogger(),
     registerRoutes: async () => {},
@@ -99,7 +99,7 @@ it('2. routes registered via callback are reachable immediately after createAppS
   const callOrder = []
 
   server = await createAppServer({
-    appPort: 0,
+    port: 0,
     host: 'localhost',
     logger: makeLogger(),
     registerRoutes: async (hapiServer) => {
@@ -131,7 +131,7 @@ it('2. routes registered via callback are reachable immediately after createAppS
 
 it('3. server.info.host matches the provided host option', async () => {
   server = await createAppServer({
-    appPort: 0,
+    port: 0,
     host: '127.0.0.1',
     logger: makeLogger(),
     registerRoutes: async () => {},
@@ -149,7 +149,7 @@ it('4. server.info.uri exposes the bound URL so the boot summary can print it', 
   const logger = makeLogger()
 
   server = await createAppServer({
-    appPort: 0,
+    port: 0,
     host: 'localhost',
     logger,
     registerRoutes: async () => {},
@@ -170,7 +170,7 @@ it('5. serves HTTPS when httpsProtocol points at TLS certs', async () => {
     await writeFile(join(certDir, 'key.pem'), TEST_KEY)
 
     server = await createAppServer({
-      appPort: 0,
+      port: 0,
       host: 'localhost',
       httpsProtocol: certDir,
       logger: makeLogger(),
@@ -193,7 +193,7 @@ it('5. serves HTTPS when httpsProtocol points at TLS certs', async () => {
 
 it('7. matches a route declared at /items when the request has a trailing slash', async () => {
   server = await createAppServer({
-    appPort: 0,
+    port: 0,
     host: 'localhost',
     logger: makeLogger(),
     registerRoutes: async (hapiServer) => {
@@ -217,7 +217,7 @@ it('7. matches a route declared at /items when the request has a trailing slash'
 it('6. throws when registerRoutes is not a function', async () => {
   await expect(
     createAppServer({
-      appPort: 0,
+      port: 0,
       host: 'localhost',
       logger: makeLogger(),
       registerRoutes: 'not-a-function',

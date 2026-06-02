@@ -1,25 +1,11 @@
 /**
- * Maps serverless-offline plugin option names to their built-in `sls offline`
- * equivalents. Only names that differ between the plugin and the built-in
- * command are listed here.
- *
- * @type {Record<string, string>}
- */
-export const ALIAS_KEYS = { httpPort: 'appPort' }
-
-/**
  * serverless-offline plugin option names with no equivalent in the built-in
  * `sls offline` command. Presence of any of these should be surfaced to the
  * user since the corresponding feature is not supported.
  *
  * @type {string[]}
  */
-export const UNSUPPORTED_KEYS = [
-  'websocketPort',
-  'albPort',
-  'preLoadModules',
-  'resourceRoutes',
-]
+export const UNSUPPORTED_KEYS = ['preLoadModules', 'resourceRoutes']
 
 /**
  * serverless-offline plugin option names that the built-in command silently
@@ -38,29 +24,6 @@ export const SILENT_IGNORE_KEYS = ['noSponsor']
 export const CUSTOM_SERVERLESS_OFFLINE_SCHEMA = {
   type: 'object',
   additionalProperties: true,
-}
-
-/**
- * Returns a shallow copy of `source` with serverless-offline plugin option
- * names rewritten to their built-in equivalents per {@link ALIAS_KEYS}. The
- * canonical (built-in) name wins: if both the alias and its target are present,
- * the explicit target value is kept and the alias key is dropped.
- *
- * @param {Record<string, unknown>} [source={}] Plugin-named options.
- * @returns {Record<string, unknown>} A new object with normalized key names.
- */
-export function normalizePluginKeys(source = {}) {
-  const result = { ...source }
-
-  for (const [from, to] of Object.entries(ALIAS_KEYS)) {
-    if (source[from] !== undefined && result[to] === undefined) {
-      result[to] = source[from]
-    }
-
-    delete result[from]
-  }
-
-  return result
 }
 
 /**

@@ -62,9 +62,9 @@ describe('OfflinePlugin', () => {
 
   it('stores serverless, options, aws provider', () => {
     const sls = makeServerless()
-    const plugin = new OfflinePlugin(sls, { appPort: 4000 })
+    const plugin = new OfflinePlugin(sls, { httpPort: 4000 })
     expect(plugin.serverless).toBe(sls)
-    expect(plugin.options).toEqual({ appPort: 4000 })
+    expect(plugin.options).toEqual({ httpPort: 4000 })
     expect(plugin.provider).toEqual({ name: 'aws' })
   })
 
@@ -74,13 +74,13 @@ describe('OfflinePlugin', () => {
     expect(typeof plugin.hooks['offline:offline']).toBe('function')
   })
 
-  it('throws OFFLINE_PORT_COLLISION when appPort and lambdaPort resolve to the same value', async () => {
+  it('throws OFFLINE_PORT_COLLISION when httpPort and lambdaPort resolve to the same value', async () => {
     const sls = makeServerless()
     // Both flags point to the same port — guard must fire before either
     // Hapi server is constructed (the second .listen() would otherwise fail
     // with an opaque EADDRINUSE from somewhere deep inside Hapi).
     const plugin = new OfflinePlugin(sls, {
-      appPort: '4000',
+      httpPort: '4000',
       lambdaPort: '4000',
     })
 
@@ -91,8 +91,8 @@ describe('OfflinePlugin', () => {
   })
 
   it('throws OFFLINE_PORT_COLLISION when defaults collide because user matched one via flag', async () => {
-    // The default appPort is 3000 and lambdaPort is 3002. A user who passes
-    // --lambdaPort 3000 (matching the default appPort) hits the collision.
+    // The default httpPort is 3000 and lambdaPort is 3002. A user who passes
+    // --lambdaPort 3000 (matching the default httpPort) hits the collision.
     const sls = makeServerless()
     const plugin = new OfflinePlugin(sls, { lambdaPort: '3000' })
 
@@ -116,8 +116,10 @@ describe('resolveOfflineOptions', () => {
     expect(resolved.corsDisallowCredentials).toBeUndefined()
     expect(resolved.corsExposedHeaders).toBeUndefined()
     expect(resolved).toMatchObject({
-      appPort: 3000,
+      httpPort: 3000,
+      websocketPort: 3001,
       lambdaPort: 3002,
+      albPort: 3003,
       disableCookieValidation: false,
       dockerHost: 'host.docker.internal',
       dockerHostServicePath: null,
@@ -136,32 +138,103 @@ describe('resolveOfflineOptions', () => {
     })
   })
 
-  describe('appPort / httpPort alias', () => {
-    it('maps httpPort to appPort from CLI options', () => {
+  describe('httpPort', () => {
+    it('reads httpPort from CLI options', () => {
       expect(
         resolveOfflineOptions({
           cliOptions: { httpPort: '4000' },
           pluginCustom: {},
-        }).appPort,
+        }).httpPort,
       ).toBe(4000)
     })
 
-    it('maps httpPort to appPort from custom config', () => {
+    it('reads httpPort from custom config', () => {
       expect(
         resolveOfflineOptions({
           cliOptions: {},
           pluginCustom: { httpPort: 4000 },
-        }).appPort,
+        }).httpPort,
       ).toBe(4000)
     })
 
-    it('lets an explicit appPort beat httpPort', () => {
+    it('lets a CLI httpPort beat a custom httpPort', () => {
       expect(
         resolveOfflineOptions({
-          cliOptions: { appPort: '5000', httpPort: '4000' },
-          pluginCustom: {},
-        }).appPort,
+          cliOptions: { httpPort: '5000' },
+          pluginCustom: { httpPort: 4000 },
+        }).httpPort,
       ).toBe(5000)
+    })
+  })
+
+  describe('websocketPort', () => {
+    it('defaults to 3001', () => {
+      expect(
+        resolveOfflineOptions({ cliOptions: {}, pluginCustom: {} })
+          .websocketPort,
+      ).toBe(3001)
+    })
+
+    it('reads websocketPort from CLI options', () => {
+      expect(
+        resolveOfflineOptions({
+          cliOptions: { websocketPort: '4001' },
+          pluginCustom: {},
+        }).websocketPort,
+      ).toBe(4001)
+    })
+
+    it('reads websocketPort from custom config', () => {
+      expect(
+        resolveOfflineOptions({
+          cliOptions: {},
+          pluginCustom: { websocketPort: 4001 },
+        }).websocketPort,
+      ).toBe(4001)
+    })
+
+    it('lets a CLI websocketPort beat a custom websocketPort', () => {
+      expect(
+        resolveOfflineOptions({
+          cliOptions: { websocketPort: '5001' },
+          pluginCustom: { websocketPort: 4001 },
+        }).websocketPort,
+      ).toBe(5001)
+    })
+  })
+
+  describe('albPort', () => {
+    it('defaults to 3003', () => {
+      expect(
+        resolveOfflineOptions({ cliOptions: {}, pluginCustom: {} }).albPort,
+      ).toBe(3003)
+    })
+
+    it('reads albPort from CLI options', () => {
+      expect(
+        resolveOfflineOptions({
+          cliOptions: { albPort: '4003' },
+          pluginCustom: {},
+        }).albPort,
+      ).toBe(4003)
+    })
+
+    it('reads albPort from custom config', () => {
+      expect(
+        resolveOfflineOptions({
+          cliOptions: {},
+          pluginCustom: { albPort: 4003 },
+        }).albPort,
+      ).toBe(4003)
+    })
+
+    it('lets a CLI albPort beat a custom albPort', () => {
+      expect(
+        resolveOfflineOptions({
+          cliOptions: { albPort: '5003' },
+          pluginCustom: { albPort: 4003 },
+        }).albPort,
+      ).toBe(5003)
     })
   })
 
@@ -291,7 +364,7 @@ describe('resolveOfflineOptions', () => {
   it('does not throw when unsupported plugin keys are passed', () => {
     expect(() =>
       resolveOfflineOptions({
-        cliOptions: { websocketPort: 3001, albPort: 3003 },
+        cliOptions: {},
         pluginCustom: { resourceRoutes: {}, preLoadModules: [] },
       }),
     ).not.toThrow()
