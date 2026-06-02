@@ -98,6 +98,31 @@ function resolveWatchEnabled(cli, custom) {
   return DEFAULT_WATCH
 }
 
+/**
+ * Detect whether any function in the service declares an `alb` event. Used to
+ * decide whether the dedicated ALB Hapi server is worth binding — a plain
+ * HTTP-only service should not bind `albPort` or print an ALB endpoint banner.
+ * Mirrors the iteration in `lib/app-server/alb/route-loader.js`
+ * (`Object.prototype.hasOwnProperty.call(eventEntry, 'alb')`).
+ *
+ * @param {object} serverless
+ * @returns {boolean}
+ */
+export function hasAlbEvents(serverless) {
+  const functions = serverless?.service?.functions ?? {}
+  for (const fn of Object.values(functions)) {
+    for (const eventEntry of fn?.events ?? []) {
+      if (
+        eventEntry &&
+        Object.prototype.hasOwnProperty.call(eventEntry, 'alb')
+      ) {
+        return true
+      }
+    }
+  }
+  return false
+}
+
 export function resolveOfflineOptions({
   cliOptions = {},
   pluginCustom = {},
@@ -176,8 +201,8 @@ export function resolveOfflineOptions({
  * @param {object} params
  * @param {{ notice: (msg: string) => void }} params.logger
  * @param {string} params.appUrl                              The HTTP API / REST endpoint.
- * @param {string} params.albUrl                              The ALB endpoint.
- * @param {string} params.wsUrl                               The WebSocket / @connections endpoint.
+ * @param {string | null} params.albUrl                       The ALB endpoint, or null when the ALB server was not created.
+ * @param {string | null} params.wsUrl                        The WebSocket / @connections endpoint, or null when the WebSocket server was not created.
  * @param {string} params.awsApiUrl                           The Lambda endpoint (Lambda Invoke, Runtime API).
  * @param {{ method: string, path: string, functionKey: string }[]} params.httpApiRoutes
  * @param {{ method: string, path: string, mountedPath: string, apigwMountedPath: string, functionKey: string }[]} [params.restApiRoutes]
@@ -223,8 +248,12 @@ function logBootSummary({
   logger.notice('')
   logger.notice(`sls offline ready (stage: ${stage})`)
   logger.notice(`  HTTP endpoint:      ${appUrl}`)
-  logger.notice(`  ALB endpoint:       ${albUrl}`)
-  logger.notice(`  WebSocket endpoint: ${wsUrl}`)
+  if (albUrl) {
+    logger.notice(`  ALB endpoint:       ${albUrl}`)
+  }
+  if (wsUrl) {
+    logger.notice(`  WebSocket endpoint: ${wsUrl}`)
+  }
   logger.notice(`  Lambda endpoint:    ${awsApiUrl}`)
   if (generatedApiKey) {
     // A private route had no configured api key, so one was generated. Print it
@@ -280,7 +309,7 @@ function logBootSummary({
   // WebSocket routes — listed against the dedicated WebSocket endpoint.
   // Followed by the management-API mount note (the ApiGatewayManagementApi
   // endpoint clients should target, also on the WebSocket server).
-  if (wsRoutes && wsRoutes.size > 0) {
+  if (wsUrl && wsRoutes && wsRoutes.size > 0) {
     logger.notice('  WebSocket routes:')
     const sortedRoutes = Array.from(wsRoutes.entries()).sort(([a], [b]) =>
       a.localeCompare(b),
@@ -300,7 +329,7 @@ function logBootSummary({
   }
 
   // ALB routes live on their own server now, listed against the ALB endpoint.
-  if (albRoutes && albRoutes.length > 0) {
+  if (albUrl && albRoutes && albRoutes.length > 0) {
     logger.notice('  ALB routes:')
     const sorted = [...albRoutes].sort(
       (a, b) =>
@@ -774,8 +803,20 @@ export default class OfflinePlugin {
     let httpApiRoutes = []
     /** @type {{ method: string, path: string, mountedPath: string, functionKey: string }[]} */
     let restApiRoutes = []
+    // Detect ALB and WebSocket events up front so the dedicated servers for
+    // each surface are only bound when matching events exist. A plain
+    // HTTP-only service must not bind albPort / websocketPort, attach an idle
+    // WebSocket upgrade handler, or print ALB / WebSocket banner lines for
+    // empty servers (parity with the community serverless-offline plugin,
+    // which gates #createAlb / #createWebSocket on event presence).
+    const hasAlb = hasAlbEvents(serverless)
+    // Compute the WebSocket route map once and reuse it for both the
+    // create-or-skip decision and route registration (never normalized twice
+    // with potentially divergent results).
+    const webSocketEvents = normalizeWebsocketEvents(serverless)
+    const hasWebSocketEvents = webSocketEvents.size > 0
     /** @type {Map<string, { functionKey: string, authorizer?: object }>} */
-    let wsRoutes = new Map()
+    let wsRoutes = hasWebSocketEvents ? webSocketEvents : new Map()
     /** @type {{ stop: () => Promise<void> } | null} */
     let wsController = null
     // When a private route has no configured api key, the api-key store
@@ -847,63 +888,70 @@ export default class OfflinePlugin {
       },
     })
 
-    // 8. Boot the ALB server on its own port. ALB routes register before
-    //    REST / HTTP API on their own Hapi server, so there's no longer a
-    //    cross-surface path-collision ordering concern — ALB lives alone.
-    const albServer = await createAppServer({
-      port: albPort,
-      host,
-      httpsProtocol,
-      logger: log.get('sls:offline:alb'),
-      async registerRoutes(server) {
-        albRoutes = registerAlbRoutes({
-          server,
-          serverless,
-          async onRequest(functionKey, event) {
-            return getLambdaFunction(functionKey).invoke(event)
+    // 8. Boot the ALB server on its own port — but only when the service
+    //    declares an `alb` event. ALB routes register before REST / HTTP API
+    //    on their own Hapi server, so there's no longer a cross-surface
+    //    path-collision ordering concern — ALB lives alone. Left null when no
+    //    ALB events exist so albPort stays unbound and the banner omits it.
+    const albServer = hasAlb
+      ? await createAppServer({
+          port: albPort,
+          host,
+          httpsProtocol,
+          logger: log.get('sls:offline:alb'),
+          async registerRoutes(server) {
+            albRoutes = registerAlbRoutes({
+              server,
+              serverless,
+              async onRequest(functionKey, event) {
+                return getLambdaFunction(functionKey).invoke(event)
+              },
+            })
           },
         })
-      },
-    })
+      : null
 
-    // 9. Boot the WebSocket server on its own port. The Hapi server's
-    //    `upgrade` event hands incoming WS handshakes to a dedicated
-    //    ws.Server; the ApiGatewayManagementApi (@connections) HTTP routes
-    //    mount on the same server. Because WS binds its own port, the event
-    //    factory derives `domainName = localhost:<websocketPort>` from the
-    //    upgrade request, so handler-composed @connections endpoints target
-    //    this server.
-    const wsHapiServer = await createAppServer({
-      port: websocketPort,
-      host,
-      httpsProtocol,
-      logger: log.get('sls:offline:websocket'),
-      async registerRoutes(server) {
-        const wsRegistry = createConnectionRegistry()
-        wsRoutes = normalizeWebsocketEvents(serverless)
-        wsController = createWebSocketServer({
-          hapiServer: server,
-          serverless,
-          onRequest: async (functionKey, event) =>
-            getLambdaFunction(functionKey).invoke(event),
-          registry: wsRegistry,
-          stage,
-          accountId: FAKE_ACCOUNT_ID,
-          region: FAKE_REGION,
-          noAuth,
-          webSocketHardTimeout,
-          webSocketIdleTimeout,
+    // 9. Boot the WebSocket server on its own port — but only when the service
+    //    declares a `websocket` event. The Hapi server's `upgrade` event hands
+    //    incoming WS handshakes to a dedicated ws.Server; the
+    //    ApiGatewayManagementApi (@connections) HTTP routes mount on the same
+    //    server. Because WS binds its own port, the event factory derives
+    //    `domainName = localhost:<websocketPort>` from the upgrade request, so
+    //    handler-composed @connections endpoints target this server. Left null
+    //    when no WebSocket events exist so websocketPort stays unbound, no idle
+    //    upgrade handler is attached, and the banner omits it.
+    const wsHapiServer = hasWebSocketEvents
+      ? await createAppServer({
+          port: websocketPort,
+          host,
+          httpsProtocol,
           logger: log.get('sls:offline:websocket'),
-        })
+          async registerRoutes(server) {
+            const wsRegistry = createConnectionRegistry()
+            wsController = createWebSocketServer({
+              hapiServer: server,
+              serverless,
+              onRequest: async (functionKey, event) =>
+                getLambdaFunction(functionKey).invoke(event),
+              registry: wsRegistry,
+              stage,
+              accountId: FAKE_ACCOUNT_ID,
+              region: FAKE_REGION,
+              noAuth,
+              webSocketHardTimeout,
+              webSocketIdleTimeout,
+              logger: log.get('sls:offline:websocket'),
+            })
 
-        // ApiGatewayManagementApi: HTTP routes at /<stage>/@connections/{id}.
-        registerManagementApiRoutes({
-          hapiServer: server,
-          registry: wsRegistry,
-          stage,
+            // ApiGatewayManagementApi: HTTP routes at /<stage>/@connections/{id}.
+            registerManagementApiRoutes({
+              hapiServer: server,
+              registry: wsRegistry,
+              stage,
+            })
+          },
         })
-      },
-    })
+      : null
 
     // 10. Boot the AWS API server (Hapi starts listening here). It exposes the
     //    Lambda Invoke API and, when needed, the Lambda Runtime API.
@@ -931,8 +979,12 @@ export default class OfflinePlugin {
     //    LIFO teardown for these: appServer, albServer, wsHapiServer,
     //    awsApiServer.
     orchestrator.onShutdown(() => awsApiServer.stop({ timeout: 5000 }))
-    orchestrator.onShutdown(() => wsHapiServer.stop({ timeout: 5000 }))
-    orchestrator.onShutdown(() => albServer.stop({ timeout: 5000 }))
+    orchestrator.onShutdown(() =>
+      wsHapiServer ? wsHapiServer.stop({ timeout: 5000 }) : undefined,
+    )
+    orchestrator.onShutdown(() =>
+      albServer ? albServer.stop({ timeout: 5000 }) : undefined,
+    )
     orchestrator.onShutdown(() => appServer.stop({ timeout: 5000 }))
     // The WS control object closes all open sockets (code 1001) before the
     // WebSocket Hapi server tears down its listener. Order matters: shut the
@@ -999,8 +1051,8 @@ export default class OfflinePlugin {
         logBootSummary({
           logger,
           appUrl: appServer.info.uri,
-          albUrl: albServer.info.uri,
-          wsUrl: wsHapiServer.info.uri,
+          albUrl: albServer ? albServer.info.uri : null,
+          wsUrl: wsHapiServer ? wsHapiServer.info.uri : null,
           awsApiUrl: awsApiServer.info.uri,
           albRoutes,
           wsRoutes,

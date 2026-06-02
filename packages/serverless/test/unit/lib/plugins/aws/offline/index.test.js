@@ -1,6 +1,7 @@
 import { jest } from '@jest/globals'
 import OfflinePlugin, {
   resolveOfflineOptions,
+  hasAlbEvents,
 } from '../../../../../../lib/plugins/aws/offline/index.js'
 import { CUSTOM_SERVERLESS_OFFLINE_SCHEMA } from '../../../../../../lib/plugins/aws/offline/lib/plugin-compat.js'
 
@@ -368,5 +369,66 @@ describe('resolveOfflineOptions', () => {
         pluginCustom: { resourceRoutes: {}, preLoadModules: [] },
       }),
     ).not.toThrow()
+  })
+})
+
+describe('hasAlbEvents', () => {
+  // The boot wiring only binds the dedicated ALB Hapi server when this
+  // predicate is true, so a plain HTTP-only service never binds albPort or
+  // prints an ALB banner line.
+  it('returns true when any function declares an alb event', () => {
+    expect(
+      hasAlbEvents({
+        service: {
+          functions: {
+            fn: { events: [{ alb: { conditions: { path: '/x' } } }] },
+          },
+        },
+      }),
+    ).toBe(true)
+  })
+
+  it('returns true when an alb event is mixed with other event types', () => {
+    expect(
+      hasAlbEvents({
+        service: {
+          functions: {
+            http: { events: [{ httpApi: { method: 'GET', path: '/h' } }] },
+            albFn: { events: [{ alb: { conditions: { path: '/a' } } }] },
+          },
+        },
+      }),
+    ).toBe(true)
+  })
+
+  it('returns false when no function declares an alb event', () => {
+    expect(
+      hasAlbEvents({
+        service: {
+          functions: {
+            fn: {
+              events: [
+                { httpApi: { method: 'POST', path: '/echo' } },
+                { websocket: { route: '$connect' } },
+              ],
+            },
+          },
+        },
+      }),
+    ).toBe(false)
+  })
+
+  it('returns false for a service with no functions', () => {
+    expect(hasAlbEvents({ service: { functions: {} } })).toBe(false)
+  })
+
+  it('tolerates missing service / functions / events shapes', () => {
+    expect(hasAlbEvents(undefined)).toBe(false)
+    expect(hasAlbEvents({})).toBe(false)
+    expect(hasAlbEvents({ service: {} })).toBe(false)
+    expect(hasAlbEvents({ service: { functions: { fn: {} } } })).toBe(false)
+    expect(
+      hasAlbEvents({ service: { functions: { fn: { events: [null] } } } }),
+    ).toBe(false)
   })
 })
