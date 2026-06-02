@@ -28,13 +28,15 @@ import { resolveRawPath } from '../shared/raw-path.js'
  *   3. `noAuth` mode default — an empty authorizer object `{}` so handlers
  *      that read `requestContext.authorizer` still see a value when
  *      authorizers are disabled.
- *   4. `request.auth.credentials.authorizer` (from the executed authorizer
- *      Hapi scheme).
+ *   4. `request.auth.credentials.authorizer` (from a built-in jwt/lambda Hapi
+ *      scheme, which is responsible for building the v2-namespaced shape —
+ *      `{ jwt: { claims, scopes } }` or `{ lambda: <ctx> }`).
+ *   5. A custom authentication provider's plugin-shape credentials
+ *      `{ principalId, context }` — mapped to `{ lambda: context }` the same way
+ *      the community serverless-offline plugin maps a v2 payload.
  *
  * Header / env JSON values are emitted VERBATIM — no `.jwt` / `.lambda`
- * namespacing is applied. The credentials value is also passed through
- * verbatim because the auth scheme is responsible for building the
- * v2-namespaced shape (`{ jwt: { claims, scopes } }` or `{ lambda: <ctx> }`).
+ * namespacing is applied.
  *
  * Returns `undefined` when none apply — the event omits the field, matching
  * AWS API Gateway when no authorizer is attached to the route.
@@ -54,9 +56,21 @@ function resolveAuthorizer(request, noAuth = false) {
 
   if (noAuth) return {}
 
-  const fromCredentials = request?.auth?.credentials?.authorizer
+  const credentials = request?.auth?.credentials
+  const fromCredentials = credentials?.authorizer
   if (fromCredentials && typeof fromCredentials === 'object') {
     return fromCredentials
+  }
+
+  // Plugin-shape custom provider: credentials = { principalId, context }.
+  // HTTP API v2 namespaces the context under `lambda`. (principalId is not
+  // surfaced in the v2 authorizer block.)
+  if (credentials && (credentials.context || credentials.principalId)) {
+    const context =
+      credentials.context && typeof credentials.context === 'object'
+        ? credentials.context
+        : {}
+    return { lambda: context }
   }
   return undefined
 }

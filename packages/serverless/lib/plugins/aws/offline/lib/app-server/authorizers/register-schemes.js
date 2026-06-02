@@ -25,6 +25,13 @@
  * Returns a map the route loaders use to set each route's `options.auth`
  * string.
  *
+ * Custom authentication provider — GLOBAL application: when a custom provider
+ * is configured, it authenticates EVERY REST + HTTP API route, overriding any
+ * per-route JWT/Lambda authorizer (matching the community serverless-offline
+ * plugin). `customStrategyName` carries the strategy name so the route loaders
+ * can force it on every route regardless of the route's own `authorizer:`
+ * declaration.
+ *
  * @param {object} args
  * @param {import('@hapi/hapi').Server} args.server
  * @param {object} args.serverless
@@ -38,6 +45,7 @@
  *   apiKeyStore: { keys: Set<string>, generated: boolean } | null,
  *   authorizerStrategies: Map<string, string>,
  *   v2AuthorizerStrategies: Map<string, string>,
+ *   customStrategyName: string | null,
  * }}
  */
 import ServerlessError from '../../../../../../serverless-error.js'
@@ -65,6 +73,11 @@ export function registerAuthSchemes({
   // Custom-auth registration runs FIRST so its name takes precedence over
   // any colliding Lambda/JWT names discovered by the subsequent v1 + v2
   // scan loops (each loop checks `if (...has(name)) continue`).
+  //
+  // A configured custom provider is the GLOBAL default auth strategy: the route
+  // loaders force `customStrategyName` on every REST + HTTP API route, so it is
+  // recorded here and also kept in the name-keyed maps for completeness.
+  let customStrategyName = null
   if (customAuthStrategy) {
     server.auth.scheme(
       customAuthStrategy.scheme,
@@ -73,6 +86,7 @@ export function registerAuthSchemes({
     server.auth.strategy(customAuthStrategy.name, customAuthStrategy.scheme)
     authorizerStrategies.set(customAuthStrategy.name, customAuthStrategy.name)
     v2AuthorizerStrategies.set(customAuthStrategy.name, customAuthStrategy.name)
+    customStrategyName = customAuthStrategy.name
   }
 
   let anyPrivate = false
@@ -270,6 +284,7 @@ export function registerAuthSchemes({
     apiKeyStore,
     authorizerStrategies,
     v2AuthorizerStrategies,
+    customStrategyName,
   }
 }
 

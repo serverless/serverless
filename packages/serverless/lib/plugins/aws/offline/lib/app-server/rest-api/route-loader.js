@@ -418,14 +418,20 @@ export function registerRestApiRoutes({
 
       // Resolve the Hapi auth strategy for this route, if any. Returns
       // undefined for public routes — Hapi leaves `options.auth` unset.
+      //
+      // A configured custom authentication provider is the GLOBAL default: it
+      // authenticates every route, overriding any per-route authorizer
+      // declaration (matching the community serverless-offline plugin). When
+      // present it wins over `resolveAuthStrategy`.
       const authStrategy = noAuth
         ? undefined
-        : resolveAuthStrategy({
+        : (authStrategies?.customStrategyName ??
+          resolveAuthStrategy({
             event: eventEntry.http,
             privateStrategy: authStrategies?.privateStrategy ?? null,
             authorizerStrategies:
               authStrategies?.authorizerStrategies ?? new Map(),
-          })
+          }))
 
       // Whether this route is `private: true`. A private route requires a
       // valid api-key regardless of which strategy resolves to run (e.g. an

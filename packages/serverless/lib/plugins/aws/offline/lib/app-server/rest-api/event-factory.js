@@ -80,8 +80,14 @@ function stripMountDecoration(rawPath, { stage, prefix, noPrependStageInUrl }) {
  *   3. `noAuth` mode default — an empty authorizer object `{}` so handlers
  *      that read `requestContext.authorizer` still see a value when
  *      authorizers are disabled.
- *   4. `request.auth.credentials.authorizer` (from the executed authorizer
- *      Hapi scheme).
+ *   4. `request.auth.credentials.authorizer` (from a built-in jwt/lambda Hapi
+ *      scheme, which attaches the already-shaped REST v1 authorizer object).
+ *   5. A custom authentication provider's plugin-shape credentials
+ *      `{ principalId, context }` — mapped into the REST v1 authorizer the same
+ *      way the community serverless-offline plugin does: the context object is
+ *      spread at the root and a `principalId` key is added on top. The
+ *      principalId resolves to `credentials.principalId`, else
+ *      `process.env.PRINCIPAL_ID`, else `'offlineContext_authorizer_principalId'`.
  *
  * Returns `undefined` when none apply — the event omits the field, matching
  * AWS API Gateway when no authorizer is attached to the route.
@@ -101,9 +107,24 @@ function resolveAuthorizer(request, noAuth = false) {
 
   if (noAuth) return {}
 
-  const fromCredentials = request?.auth?.credentials?.authorizer
+  const credentials = request?.auth?.credentials
+  const fromCredentials = credentials?.authorizer
   if (fromCredentials && typeof fromCredentials === 'object') {
     return fromCredentials
+  }
+
+  // Plugin-shape custom provider: credentials = { principalId, context }.
+  // REST v1 spreads the context at the root and adds a principalId on top.
+  if (credentials && (credentials.context || credentials.principalId)) {
+    const context =
+      credentials.context && typeof credentials.context === 'object'
+        ? credentials.context
+        : {}
+    const principalId =
+      credentials.principalId ??
+      process.env.PRINCIPAL_ID ??
+      'offlineContext_authorizer_principalId'
+    return { ...context, principalId }
   }
 
   return undefined

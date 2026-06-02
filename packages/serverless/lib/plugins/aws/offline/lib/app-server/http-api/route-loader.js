@@ -159,14 +159,20 @@ export function registerHttpApiRoutes({
       // Resolve the v2 auth strategy for this route (JWT or v2 Lambda).
       // Returns undefined for routes without an authorizer — the route stays
       // public.
+      //
+      // A configured custom authentication provider is the GLOBAL default: it
+      // authenticates every route, overriding any per-route authorizer
+      // declaration (matching the community serverless-offline plugin). When
+      // present it wins over `resolveAuthStrategy`.
       const authStrategy = noAuth
         ? undefined
-        : resolveAuthStrategy({
+        : (authStrategies?.customStrategyName ??
+          resolveAuthStrategy({
             event: eventEntry.httpApi,
             privateStrategy: null, // HTTP API v2 has no private:true equivalent
             authorizerStrategies:
               authStrategies?.v2AuthorizerStrategies ?? new Map(),
-          })
+          }))
 
       // Authorization scopes are declared per route on AWS. Carry the route's
       // own scopes on the route settings so the JWT scheme enforces them for

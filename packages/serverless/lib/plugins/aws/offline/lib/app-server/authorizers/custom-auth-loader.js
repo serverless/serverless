@@ -5,8 +5,19 @@
  * as a string path (relative to the service directory). At boot we resolve the path,
  * dynamic-import the file, and call its default export — a factory
  * function — once to obtain a `{ name, scheme, getAuthenticateFunction }`
- * tuple that `registerAuthSchemes` then wires into both v1 and v2
- * authorizer-strategy maps.
+ * tuple that `registerAuthSchemes` then wires in. A configured provider is the
+ * GLOBAL default auth strategy: it authenticates every REST + HTTP API route,
+ * overriding any per-route authorizer (matching the community
+ * serverless-offline plugin).
+ *
+ * Credentials contract — the Hapi authenticate function the factory provides
+ * returns credentials in the community plugin's shape:
+ *   `h.authenticated({ credentials: { principalId, context } })`
+ * The event factories map those credentials into `requestContext.authorizer`:
+ *   - REST v1 / HTTP API 1.0: the `context` object is spread at the root and a
+ *     `principalId` key is added on top (principalId falls back to
+ *     `process.env.PRINCIPAL_ID`, then `'offlineContext_authorizer_principalId'`).
+ *   - HTTP API v2: `{ lambda: context }`.
  *
  * Boot-time invocation (not per-route): the upstream pattern calls the
  * factory per endpoint with `(endpoint, functionKey, method, path)`. We
