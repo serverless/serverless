@@ -1,0 +1,29 @@
+service: it-schedule
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+custom:
+  serverless-offline:
+    httpPort: 0
+    lambdaPort: 0
+    # Run handlers in-process so the scheduler's invoke shares this process and
+    # the handler can append the received event to SCHEDULE_EVENT_LOG.
+    useInProcess: true
+functions:
+  # Fires on a fixed cadence (rate(1 minute) -> first tick within ~60s). The
+  # handler records the AWS EventBridge scheduled-event shape it receives.
+  ticker:
+    handler: handler.ticker
+    events:
+      - schedule: rate(1 minute)
+
+  # cron(...) with an `input` override: the scheduler delivers `input` verbatim
+  # as the event instead of a synthesized scheduled-event.
+  cronInput:
+    handler: handler.cronInput
+    events:
+      - schedule:
+          rate: cron(0/1 * * * ? *)
+          input:
+            foo: bar
