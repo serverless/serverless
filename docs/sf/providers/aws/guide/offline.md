@@ -356,4 +356,48 @@ These are intentional behaviors you can observe at runtime:
 - **ALB lowercases request headers.** The inbound ALB event's header names are lowercased, matching real ALB.
 - **`requestContext.authorizer` is omitted when a route has no authorizer**, matching AWS. Under `--noAuth` an empty object is emitted so handlers that read it still see a value.
 - **Null identity for unauthenticated requests.** Identity fields other than `sourceIp` and `userAgent` are `null`.
-- **HTTP API v2 cookie handling.** The `Cookie` header is stripped from `headers` and surfaced as a separate `cookies` array (omitted when there are none); ALB events have no `cookies` field.
+- **HTTP API v2 cookie handling.** The `Cookie` header is stripped from `headers` and surfaced as a separate `cookies` array. Offline follows AWS here: the `cookies` field is **omitted** when the request carries no cookies (the community plugin always emits an empty `cookies: []`). ALB events have no `cookies` field.
+
+The remaining differences are places where Offline matches the AWS event/response contract more closely than the community plugin. If you have assertions written against the plugin's output, expect these to differ:
+
+**REST API (v1).** Offline follows AWS here; the community plugin differs.
+
+- `requestContext.path` **includes the stage** (for example `/dev/items/42`), and `requestContext.resourcePath` is **stage-less** (`/items/{id}`) — matching the AWS `$context.path` / `$context.resourcePath` values. The community plugin reverses these.
+- With `cors: true`, the preflight returns `Access-Control-Allow-Origin: *` (no `Access-Control-Allow-Credentials`), lists the route method **plus** `OPTIONS` in `Access-Control-Allow-Methods`, and returns the AWS default `Access-Control-Allow-Headers` set — matching the AWS `cors: true` defaults. The community plugin echoes the request origin, sets credentials, and reflects the request's own header list.
+- Lambda (non-proxy) integrations apply your `request`/`response` mapping templates and select the response status via the `statusCodes` `selectionPattern` (for example mapping a matching error to `404`). The community plugin returned the raw handler result and a generic `502` for this case.
+
+**Application Load Balancer (ALB).** Offline follows AWS here; the community plugin differs.
+
+- ALB targets are served at the **stage-less path** (`/single`, not `/dev/single`) and the event's `path` is stage-less, because a real ALB has no stages.
+- The event carries **exactly one** of the single-value or multi-value header/query maps, governed by the target group's `multiValueHeaders` setting — never both. The community plugin always emits both.
+- A real load balancer's forwarding and trace headers (`x-forwarded-for`, `x-forwarded-proto`, `x-forwarded-port`, `x-amzn-trace-id`) are synthesized onto the event.
+- A bodyless request still includes `body: ""` (an ALB always sends a `body` field). Offline also marshals an ALB response that includes a `headers` object correctly; the community plugin's ALB server can crash on such a response.
+
+**WebSocket.** Offline follows AWS here; the community plugin differs.
+
+- `requestContext.domainName` is the real, routable `localhost:<appPort>` and `requestContext.stage` is your configured stage (for example `dev`). The `@connections` management route is mounted at `/<stage>/@connections/{connectionId}` on the same app port — exactly the endpoint the AWS SDK's `ApiGatewayManagementApiClient` composes from `domainName` + stage. As a result, **SDK-style `@connections` fan-out works offline**: a handler that POSTs to `https://${domainName}/${stage}/@connections/${connectionId}` reaches the other connected clients. Against the community plugin (which hardcodes `domainName`/`stage` and mounts the route on a separate port without the stage prefix) the same broadcast does not reach them.
+- `requestContext.messageId` is present only on **message** (route) events — never on `$connect`/`$disconnect`, matching AWS.
+- `$disconnect` events carry `disconnectStatusCode` and `disconnectReason` taken from the WebSocket close frame.
+
+**Authorizers.** Offline follows AWS here; the community plugin differs.
+
+- A rejected request returns the AWS-shaped envelope — a flat `{ "message": "Unauthorized" }` (401) or `{ "message": "Forbidden" }` (403) body plus an `x-amzn-ErrorType: UnauthorizedException` / `ForbiddenException` header. The community plugin returns a nested Boom-style `{ statusCode, error, message }` envelope.
+- For an `aws_iam` route, no Lambda-authorizer context is attached: the `requestContext.authorizer` block is omitted entirely (SigV4 is not enforced locally, so the route runs unauthenticated, and Offline logs a one-time warning). The community plugin injects a placeholder `authorizer`.
+- For HTTP API v2, exactly one of `requestContext.authorizer.jwt` or `requestContext.authorizer.lambda` is populated, per the route's authorizer type — Offline does not emit the empty sibling block the community plugin adds.
+- A REQUEST authorizer with simple responses (`enableSimpleResponses`) that returns the `Unauthorized` literal yields **401** (the AWS sentinel for an unauthorized denial); the community plugin returns `403` here.
+
+**Lambda invoke.** Offline follows AWS here; the community plugin differs.
+
+- A successful synchronous (`RequestResponse`) invoke returns the `X-Amz-Executed-Version: $LATEST` header.
+- A `DryRun` invoke returns `204` with no body (AWS validates parameters and returns no payload). The community plugin rejects `DryRun` with a `400 InvalidParameterValueException`.
+
+### Scope limits
+
+These capabilities of the community plugin are intentionally not part of the built-in command:
+
+- **No local emulation of other AWS services.** Offline emulates the API edge (HTTP API, REST, ALB, WebSocket), runs your Lambdas, fires `schedule` events, and serves the Lambda Invoke endpoint. SQS, SNS, S3, EventBridge, DynamoDB, and every other service your handler's SDK calls go to **real AWS** with your normal credentials — there is no built-in local emulation of them.
+- **Single app port.** `websocketPort` and `albPort` are accepted but ignored; WebSocket and ALB share the one app port.
+- **Hot reload defaults off.** Enable it with `--watch`, `--reloadHandler`, or `custom.serverless-offline.reloadHandler: true`.
+- **`noSponsor` is accepted and ignored** (there is no sponsor banner to suppress).
+- **Layers** are mounted only for Docker-backed functions and are sourced by downloading a published layer ARN from AWS; locally-defined service layers are skipped with a boot notice.
+- **Host runtimes use the interpreter on your PATH.** For Python, Ruby, and Go, the configured runtime version selects the runner, but the actual interpreter/toolchain is whatever is installed on your machine; only Docker mode pins the exact Lambda image. The custom authentication provider is read from the top-level `offline.customAuthenticationProvider` block and applies only to routes that reference its returned `name`.
