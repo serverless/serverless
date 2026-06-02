@@ -238,7 +238,7 @@ Offline runs your authorizers the same way the gateway would, so you can verify 
 - **IAM** — IAM-authorized routes are accepted locally (SigV4 signatures are not re-validated).
 - **Lambda authorizers (TOKEN and REQUEST)** — your authorizer function runs locally. A returned `Allow` policy lets the request through and its `context` is surfaced under `requestContext.authorizer`; a `Deny` (or a thrown error) rejects the request. REQUEST authorizers receive the full request; TOKEN authorizers receive the identity-source token.
 - **JWT** (HTTP API) — the token is verified against the issuer's JWKS by default, including `exp`/`iss`/`aud` and any required scopes. Pass `--ignoreJWTSignature` to decode the token without verifying its signature, which is useful with self-minted local tokens. Claims still flow into `requestContext.authorizer.jwt`.
-- **Custom authentication provider** — set `customAuthenticationProvider` under `custom.serverless-offline` (it is a config key, not a CLI flag) to point at a module that supplies your own Hapi auth provider. When configured, it authenticates **every** route, overriding any per-route authorizer. The provider's authenticate function returns `credentials` as `{ principalId, context }`: for REST and HTTP API 1.0 the `context` is surfaced at the root of `requestContext.authorizer` alongside `principalId`; for HTTP API 2.0 it is surfaced as `requestContext.authorizer.lambda`.
+- **Custom authentication provider** — set `customAuthenticationProvider` under `custom.offline` (it is a config key, not a CLI flag) to point at a module that supplies your own Hapi auth provider. This key intentionally lives under `custom.offline` rather than `custom.serverless-offline` — it mirrors the location the community `serverless-offline` plugin reads, so an existing serverless-offline config works unmodified. When configured, it authenticates **every** route, overriding any per-route authorizer. The provider's authenticate function returns `credentials` as `{ principalId, context }`: for REST and HTTP API 1.0 the `context` is surfaced at the root of `requestContext.authorizer` alongside `principalId`; for HTTP API 2.0 it is surfaced as `requestContext.authorizer.lambda`.
 
 To bypass authorizers entirely, run with `--noAuth`, or set the `AUTHORIZER` environment variable to inject a fixed authorizer context for every request. With `--noAuth`, an empty `authorizer` object is emitted so handlers that read it still see a value.
 
@@ -336,7 +336,7 @@ A one-time boot warning lists any accepted-but-ignored keys it finds. A top-leve
 | `--prefix` / `-p` | `--prefix` (no shortcut) |
 | all `--cors*`, `--docker*`, `--ignoreJWTSignature`, `--layersDir`, `--localEnvironment`, `--noAuth`, `--noPrependStageInUrl`, `--terminateIdleLambdaTime`, `--useDocker`, `--useInProcess`, `--webSocket*` | Same names |
 
-Note that `customAuthenticationProvider` is a config-only key under `custom.serverless-offline`; it has no CLI flag.
+Note that `customAuthenticationProvider` is a config-only key under `custom.offline` (mirroring the community `serverless-offline` plugin's location); it has no CLI flag.
 
 Other user-facing changes:
 
@@ -401,4 +401,4 @@ These capabilities of the community plugin are intentionally not part of the bui
 - **`noSponsor` is accepted and ignored** (there is no sponsor banner to suppress).
 - **Layers** are mounted only for Docker-backed functions and are sourced by downloading a published layer ARN from AWS; locally-defined service layers are skipped with a boot notice.
 - **Host runtimes use the interpreter on your PATH.** For Python, Ruby, and Go, the configured runtime version selects the runner, but the actual interpreter/toolchain is whatever is installed on your machine; only Docker mode pins the exact Lambda image.
-- **The custom authentication provider** is read from `custom.serverless-offline.customAuthenticationProvider` (the community `serverless-offline` plugin reads it from `custom.offline` — a migrating user renames that sub-key). When configured it authenticates every route as the default auth strategy.
+- **The custom authentication provider** is read from `custom.offline.customAuthenticationProvider` — the same location the community `serverless-offline` plugin reads, so an existing serverless-offline config works unmodified. When configured it authenticates every route as the default auth strategy.

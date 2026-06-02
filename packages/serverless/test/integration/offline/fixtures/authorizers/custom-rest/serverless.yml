@@ -4,14 +4,14 @@ provider:
   runtime: nodejs20.x
   region: us-east-1
 custom:
-  # OUR built-in offline reads the provider from custom.serverless-offline.
+  # General offline options live under custom.serverless-offline (OUR canonical
+  # config home, matching the community plugin's CUSTOM_OPTION).
   serverless-offline:
     httpPort: 0
     lambdaPort: 0
-    customAuthenticationProvider: ./authProvider.js
-  # The community serverless-offline plugin reads it from custom.offline. Both
-  # keys point at the same provider so the same fixture can be booted by either
-  # implementation (OUR harness vs the capture helper).
+  # customAuthenticationProvider is the ONE key read from custom.offline — exact
+  # parity with the community serverless-offline plugin, so the same fixture can
+  # be booted by either implementation (OUR harness vs the capture helper).
   offline:
     customAuthenticationProvider: ./authProvider.js
 functions:

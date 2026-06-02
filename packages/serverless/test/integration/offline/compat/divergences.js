@@ -350,15 +350,6 @@ export const DIVERGENCES = [
   },
   {
     surface: 'authorizers',
-    field: 'customAuthenticationProvider.configLocation',
-    category: 'A',
-    plugin: 'reads custom.offline.customAuthenticationProvider',
-    ours: 'reads custom.serverless-offline.customAuthenticationProvider (our canonical offline config home)',
-    reason:
-      'config-surface difference; a migrating fixture renames the custom sub-key from offline to serverless-offline',
-  },
-  {
-    surface: 'authorizers',
     field: 'customAuthenticationProvider.noAuthPrecedence',
     category: 'B',
     plugin:

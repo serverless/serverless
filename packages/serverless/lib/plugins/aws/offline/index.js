@@ -351,15 +351,20 @@ export default class OfflinePlugin {
 
     // Register a permissive schema for the `custom.serverless-offline` block so
     // a migrating user who keeps that config doesn't trip the framework's
-    // "unrecognized configuration" warning. This plugin is skipped whenever the
-    // community `serverless-offline` plugin is in `plugins:` (it owns the same
-    // registration), so this never collides. The constructor runs during plugin
-    // load — before config validation — so the schema is in place in time.
-    // Wrapped defensively so construction never throws on the registration.
+    // "unrecognized configuration" warning. The `custom.offline` block is also
+    // registered permissively because `customAuthenticationProvider` lives there
+    // (exact parity with the community serverless-offline plugin, which reads
+    // that single key from `custom.offline`). This plugin is skipped whenever
+    // the community `serverless-offline` plugin is in `plugins:` (it owns the
+    // same registration), so this never collides. The constructor runs during
+    // plugin load — before config validation — so the schema is in place in
+    // time. Wrapped defensively so construction never throws on the
+    // registration.
     try {
       serverless?.configSchemaHandler?.defineCustomProperties?.({
         properties: {
           'serverless-offline': CUSTOM_SERVERLESS_OFFLINE_SCHEMA,
+          offline: { type: 'object', additionalProperties: true },
         },
       })
     } catch {

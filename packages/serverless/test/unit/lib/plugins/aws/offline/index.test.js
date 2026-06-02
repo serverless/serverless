@@ -28,7 +28,7 @@ describe('OfflinePlugin', () => {
     ).not.toHaveBeenCalled()
   })
 
-  it('registers a permissive custom.serverless-offline schema', () => {
+  it('registers permissive custom.serverless-offline and custom.offline schemas', () => {
     const sls = makeServerless()
     new OfflinePlugin(sls, {})
     expect(
@@ -38,6 +38,9 @@ describe('OfflinePlugin', () => {
       {
         properties: {
           'serverless-offline': CUSTOM_SERVERLESS_OFFLINE_SCHEMA,
+          // `customAuthenticationProvider` lives under custom.offline (plugin
+          // parity), so that block is registered permissively too.
+          offline: { type: 'object', additionalProperties: true },
         },
       },
     )

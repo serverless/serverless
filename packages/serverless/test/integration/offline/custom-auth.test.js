@@ -57,6 +57,13 @@ describe('customAuthenticationProvider — REST API (v1), global application', (
     expect(ev.requestContext.authorizer).toBeDefined()
   })
 
+  it('boots without a framework "Unrecognized configuration" warning for custom.offline', () => {
+    // The fixture declares the provider under `custom.offline` (plugin parity).
+    // The built-in command registers a permissive schema for that block so the
+    // framework does not flag it as unrecognized config.
+    expect(offline.logs()).not.toMatch(/[Uu]nrecognized configuration/)
+  })
+
   it('maps plugin-shape credentials into the REST v1 authorizer (context spread + principalId)', async () => {
     const res = await offline.http('/dev/echo')
     expect(res.status).toBe(200)

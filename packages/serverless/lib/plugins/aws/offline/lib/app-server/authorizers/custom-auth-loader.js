@@ -1,7 +1,7 @@
 /**
  * Load and validate a user-provided custom authentication provider.
  *
- * The user configures `custom.serverless-offline.customAuthenticationProvider`
+ * The user configures `custom.offline.customAuthenticationProvider`
  * as a string path (relative to the service directory). At boot we resolve the path,
  * dynamic-import the file, and call its default export — a factory
  * function — once to obtain a `{ name, scheme, getAuthenticateFunction }`
@@ -34,32 +34,31 @@ import ServerlessError from '../../../../../../serverless-error.js'
  * @param {object} args
  * @param {object} args.serverless  Framework's serverless instance — must
  *   expose `serviceDir` and
- *   `service.custom['serverless-offline'].customAuthenticationProvider`
+ *   `service.custom.offline.customAuthenticationProvider`
  *   when configured.
  * @returns {Promise<
  *   { name: string, scheme: string, getAuthenticateFunction: Function }
  *   | null
  * >}
  *   Resolved strategy definition, or null when the user did not configure
- *   `custom.serverless-offline.customAuthenticationProvider`.
+ *   `custom.offline.customAuthenticationProvider`.
  *
  * @throws {ServerlessError} OFFLINE_CUSTOM_AUTH_LOAD_FAILED — on any of:
  *   file missing, import failure, export not a function, factory returns
  *   malformed shape.
  */
 export async function loadCustomAuthenticationProvider({ serverless }) {
-  // Read from the canonical offline config home (`custom.serverless-offline`),
-  // matching every other offline option. Framework v4 / sf-core stores the raw
-  // YAML on `service.initialServerlessConfig`; fall back to the resolved
+  // Read from `custom.offline.customAuthenticationProvider` — exact parity with
+  // the community serverless-offline plugin, which reads this single key from
+  // `custom.offline` (all OTHER offline options live under
+  // `custom.serverless-offline`). Framework v4 / sf-core stores the raw YAML on
+  // `service.initialServerlessConfig`; fall back to the resolved
   // `service.custom` so users who declare
-  // `custom.serverless-offline.customAuthenticationProvider:` are honored.
-  const offlineBlock =
-    serverless?.service?.initialServerlessConfig?.custom?.[
-      'serverless-offline'
-    ] ??
-    serverless?.service?.custom?.['serverless-offline'] ??
-    {}
-  const providerPath = offlineBlock.customAuthenticationProvider
+  // `custom.offline.customAuthenticationProvider:` are honored.
+  const providerPath =
+    serverless?.service?.initialServerlessConfig?.custom?.offline
+      ?.customAuthenticationProvider ??
+    serverless?.service?.custom?.offline?.customAuthenticationProvider
   if (typeof providerPath !== 'string' || providerPath.length === 0) {
     return null
   }
@@ -73,7 +72,7 @@ export async function loadCustomAuthenticationProvider({ serverless }) {
     imported = await import(fileUrl)
   } catch (err) {
     throw new ServerlessError(
-      `Failed to load custom.serverless-offline.customAuthenticationProvider at "${absPath}": ${err.message}`,
+      `Failed to load custom.offline.customAuthenticationProvider at "${absPath}": ${err.message}`,
       'OFFLINE_CUSTOM_AUTH_LOAD_FAILED',
     )
   }
@@ -88,7 +87,7 @@ export async function loadCustomAuthenticationProvider({ serverless }) {
     factory = imported
   } else {
     throw new ServerlessError(
-      `custom.serverless-offline.customAuthenticationProvider at "${absPath}" must export a factory function (default export).`,
+      `custom.offline.customAuthenticationProvider at "${absPath}" must export a factory function (default export).`,
       'OFFLINE_CUSTOM_AUTH_LOAD_FAILED',
     )
   }
@@ -99,7 +98,7 @@ export async function loadCustomAuthenticationProvider({ serverless }) {
     strategy = factory(null, null, null, null)
   } catch (err) {
     throw new ServerlessError(
-      `custom.serverless-offline.customAuthenticationProvider factory at "${absPath}" threw during initialization: ${err.message}`,
+      `custom.offline.customAuthenticationProvider factory at "${absPath}" threw during initialization: ${err.message}`,
       'OFFLINE_CUSTOM_AUTH_LOAD_FAILED',
     )
   }
@@ -111,7 +110,7 @@ export async function loadCustomAuthenticationProvider({ serverless }) {
     typeof strategy.getAuthenticateFunction !== 'function'
   ) {
     throw new ServerlessError(
-      `custom.serverless-offline.customAuthenticationProvider factory at "${absPath}" must return { name: string, scheme: string, getAuthenticateFunction: Function }.`,
+      `custom.offline.customAuthenticationProvider factory at "${absPath}" must return { name: string, scheme: string, getAuthenticateFunction: Function }.`,
       'OFFLINE_CUSTOM_AUTH_LOAD_FAILED',
     )
   }
