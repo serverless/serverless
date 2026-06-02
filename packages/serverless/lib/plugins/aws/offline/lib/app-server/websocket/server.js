@@ -41,6 +41,7 @@ export function createWebSocketServer({
   noAuth = false,
   webSocketHardTimeout = DEFAULT_HARD_TIMEOUT_SECONDS,
   webSocketIdleTimeout = DEFAULT_IDLE_TIMEOUT_SECONDS,
+  logger,
 }) {
   const routes = normalizeWebsocketEvents(serverless)
   const wss = new WebSocketServer({ noServer: true })
@@ -220,7 +221,13 @@ export function createWebSocketServer({
         let result
         try {
           result = await onRequest(entry.functionKey, event)
-        } catch {
+        } catch (err) {
+          // Surface the handler failure — otherwise it is invisible (no log)
+          // and only ever reported to the client when a $default route
+          // response is declared.
+          logger?.error?.(
+            `WebSocket route "${route}" handler failed: ${err?.message ?? err}`,
+          )
           // Handler error. When the route declares a $default route response,
           // API Gateway returns an error frame to the client on the same
           // connection; otherwise the failure is invisible to WS clients.

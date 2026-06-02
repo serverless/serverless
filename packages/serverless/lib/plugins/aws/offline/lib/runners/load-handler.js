@@ -18,7 +18,18 @@ import { pathToFileURL } from 'node:url'
  */
 export async function loadHandler(handlerPath, handlerName) {
   const mod = await import(pathToFileURL(handlerPath).href)
-  const handler = mod[handlerName]
+  let handler = mod[handlerName]
+  // CommonJS interop: for `exports.<name> = fn`, the named export can live on
+  // the module.exports object surfaced as the ESM `default` binding — notably
+  // `exports.default = fn` makes `mod.default` the whole `{ default: fn }`
+  // object rather than the function. Fall back to that nested lookup.
+  if (
+    typeof handler !== 'function' &&
+    mod.default &&
+    typeof mod.default[handlerName] === 'function'
+  ) {
+    handler = mod.default[handlerName]
+  }
   if (typeof handler !== 'function') {
     throw new Error(
       `Handler export "${handlerName}" is not a function in ${handlerPath}`,

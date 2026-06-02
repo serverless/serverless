@@ -774,6 +774,7 @@ export default class OfflinePlugin {
           noAuth,
           webSocketHardTimeout,
           webSocketIdleTimeout,
+          logger: log.get('sls:offline:websocket'),
         })
 
         // ApiGatewayManagementApi: HTTP routes at /<stage>/@connections/{id}.
