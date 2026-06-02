@@ -208,7 +208,7 @@ export const DIVERGENCES = [
     field: 'requestContext.domainName',
     category: 'B',
     plugin: 'hardcodes "localhost" (no port)',
-    ours: 'reports the real localhost:<appPort>',
+    ours: 'reports the real localhost:<websocketPort>',
     reason:
       'AWS sets domainName to the routable host so handlers can compose the @connections endpoint',
   },
@@ -226,8 +226,8 @@ export const DIVERGENCES = [
     field: 'connectionsRoute',
     category: 'B',
     plugin:
-      'mounts POST /@connections/{id} on a separate websocketPort with no /<stage>/ prefix',
-    ours: 'mounts /<stage>/@connections/{id} on the shared appPort',
+      'mounts POST /@connections/{id} on the websocketPort with no /<stage>/ prefix',
+    ours: 'mounts /<stage>/@connections/{id} on the websocketPort',
     reason:
       'matches the domainName + "/" + stage URL the AWS SDK management client builds',
   },

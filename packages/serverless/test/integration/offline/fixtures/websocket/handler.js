@@ -26,7 +26,7 @@ function record(event) {
 
 // Post a message to a single connection via the API Gateway Management API.
 // The endpoint mirrors what real AWS exposes: domainName + '/' + stage, which
-// offline serves at http://localhost:<appPort>/<stage>/@connections/<id>.
+// offline serves at http://localhost:<websocketPort>/<stage>/@connections/<id>.
 async function postToConnection(event, connectionId, body) {
   const { domainName, stage } = event.requestContext
   const url = `http://${domainName}/${stage}/@connections/${connectionId}`

@@ -36,7 +36,7 @@ describe('alb integration', () => {
   afterAll(async () => offline?.stop())
 
   it('delivers a single-value ALB event and honors the ALB response contract', async () => {
-    const res = await offline.http('/single?q=a&q=b&single=x', {
+    const res = await offline.albHttp('/single?q=a&q=b&single=x', {
       method: 'GET',
       headers: { 'x-test': 'abc', accept: 'application/json' },
     })
@@ -78,7 +78,7 @@ describe('alb integration', () => {
   })
 
   it('delivers the request body verbatim on a POST', async () => {
-    const res = await offline.http('/single', {
+    const res = await offline.albHttp('/single', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ hello: 'world' }),
@@ -93,7 +93,7 @@ describe('alb integration', () => {
   })
 
   it('delivers a multi-value ALB event when the target group enables it', async () => {
-    const res = await offline.http('/multi?q=a&q=b&single=x', {
+    const res = await offline.albHttp('/multi?q=a&q=b&single=x', {
       method: 'GET',
       headers: { 'x-test': 'abc' },
     })

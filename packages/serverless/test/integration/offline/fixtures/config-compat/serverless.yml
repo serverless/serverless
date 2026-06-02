@@ -4,9 +4,10 @@ provider:
   runtime: nodejs20.x
   region: us-east-1
 # serverless-offline's own config home + property names (NO plugin installed,
-# so OUR built-in offline command runs). httpPort is the plugin's name for our
-# appPort; lambdaPort maps directly; websocketPort has no built-in equivalent
-# (ignored + warned); reloadHandler:false disables hot reload.
+# so OUR built-in offline command runs). httpPort + lambdaPort map directly onto
+# the built-in HTTP / Lambda servers; websocketPort is ignored + warned here
+# because this fixture has no websocket events; reloadHandler:false disables hot
+# reload.
 custom:
   serverless-offline:
     httpPort: 4170

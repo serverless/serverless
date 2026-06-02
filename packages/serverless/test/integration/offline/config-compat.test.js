@@ -12,7 +12,7 @@ const FIXTURE = path.join(__dirname, 'fixtures/config-compat')
 const FIXTURE_HTTP_PORT = 4170
 const FIXTURE_LAMBDA_PORT = 4172
 
-const APP_RE = /App endpoint:\s*\S*:(\d+)/i
+const HTTP_RE = /HTTP endpoint:\s*\S*:(\d+)/i
 const LAMBDA_RE = /Lambda endpoint:\s*\S*:(\d+)/i
 
 // This suite asserts OUR built-in offline's serverless-offline config
@@ -29,7 +29,7 @@ describe('offline serverless-offline config compatibility', () => {
     afterAll(async () => offline?.stop())
 
     it('honors the httpPort alias on the app server', () => {
-      const port = Number(offline.logs().match(APP_RE)?.[1])
+      const port = Number(offline.logs().match(HTTP_RE)?.[1])
       expect(port).toBe(FIXTURE_HTTP_PORT)
     })
 
@@ -64,9 +64,9 @@ describe('offline serverless-offline config compatibility', () => {
     let offline
     beforeAll(async () => {
       await requireEnv({})
-      // Boot with the CLI flag --httpPort (alias of --appPort). A distinct free
-      // lambda port is injected so the appPort !== lambdaPort guard is satisfied
-      // and concurrent boots never collide.
+      // Boot with the CLI flag --httpPort. A distinct free lambda port is
+      // injected so the httpPort !== lambdaPort guard is satisfied and
+      // concurrent boots never collide.
       const httpPort = await freePort()
       let lambdaPort = await freePort()
       while (lambdaPort === httpPort) lambdaPort = await freePort()
@@ -85,7 +85,7 @@ describe('offline serverless-offline config compatibility', () => {
     afterAll(async () => offline?.stop())
 
     it('binds the app server to the CLI --httpPort value', () => {
-      const port = Number(offline.logs().match(APP_RE)?.[1])
+      const port = Number(offline.logs().match(HTTP_RE)?.[1])
       expect(port).toBe(offline.expectedHttpPort)
     })
   })
