@@ -8,6 +8,10 @@ import { bootOffline } from './_harness.js'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const REST_FIXTURE = path.join(__dirname, 'fixtures/authorizers/rest')
 const HTTPAPI_FIXTURE = path.join(__dirname, 'fixtures/authorizers/httpapi')
+const API_KEY_GENERATED_FIXTURE = path.join(
+  __dirname,
+  'fixtures/authorizers/api-key-generated',
+)
 
 // A configured REST API key (provider.apiGateway.apiKeys). The community
 // plugin honors this exact key; deployed AWS denies a private route with no
@@ -272,5 +276,52 @@ describe('HTTP API (v2) authorizers', () => {
       // the community plugin adds a spurious empty `jwt: {}` sibling.
       expect(ev.requestContext.authorizer.jwt).toBeUndefined()
     })
+  })
+})
+
+describe('REST API (v1) private route with NO configured api key', () => {
+  // Captured-and-verified against the community serverless-offline plugin: with
+  // a private route and no `provider.apiGateway.apiKeys`, the plugin generates a
+  // key at boot, prints it, accepts it as `x-api-key` (200), and rejects an
+  // absent/wrong key (403). OUR offline matches that UX but emits a unique
+  // RANDOM key (the plugin emits the constant md5-of-empty
+  // `d41d8cd98f00b204e9800998ecf8427e`, a known plugin bug). This is a local-dev
+  // convenience; deployed AWS requires a usable key in the route's usage plan.
+  let offline
+  let generatedKey
+  beforeAll(async () => {
+    await requireEnv({}) // node-only fixture; no docker/runtimes needed
+    offline = await bootOffline({ cwd: API_KEY_GENERATED_FIXTURE })
+    const m = offline.logs().match(/API key \(generated[^)]*\):\s*(\S+)/)
+    generatedKey = m?.[1]
+  })
+  afterAll(async () => offline?.stop())
+
+  it('prints a generated api key at boot (none configured)', () => {
+    expect(generatedKey).toBeDefined()
+    // A unique random key — never the plugin's constant md5-of-empty.
+    expect(generatedKey).not.toBe('d41d8cd98f00b204e9800998ecf8427e')
+    expect(generatedKey.length).toBeGreaterThan(0)
+  })
+
+  it('rejects a request with no x-api-key (403 Forbidden)', async () => {
+    const res = await offline.http('/dev/private')
+    expect(res.status).toBe(403)
+    expect(await res.json()).toEqual({ message: 'Forbidden' })
+  })
+
+  it('rejects an invalid x-api-key (403 Forbidden)', async () => {
+    const res = await offline.http('/dev/private', {
+      headers: { 'x-api-key': 'not-the-generated-key' },
+    })
+    expect(res.status).toBe(403)
+    expect(await res.json()).toEqual({ message: 'Forbidden' })
+  })
+
+  it('accepts the generated x-api-key (200)', async () => {
+    const res = await offline.http('/dev/private', {
+      headers: { 'x-api-key': generatedKey },
+    })
+    expect(res.status).toBe(200)
   })
 })

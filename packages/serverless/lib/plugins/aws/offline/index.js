@@ -182,6 +182,7 @@ export function resolveOfflineOptions({
  * @param {Set<string>} [params.dockerImages]  Set of Docker image URIs discovered for Docker mode.
  * @param {number} params.scheduledCount  Total schedule entries discovered (including disabled).
  * @param {number} params.disabledScheduleCount  Subset where enabled === false.
+ * @param {string | null} [params.generatedApiKey]  An auto-generated api key to print when a private route had no configured key.
  */
 function logBootSummary({
   logger,
@@ -204,11 +205,18 @@ function logBootSummary({
   layerCount,
   scheduledCount,
   disabledScheduleCount,
+  generatedApiKey,
 }) {
   logger.notice('')
   logger.notice(`sls offline ready (stage: ${stage})`)
   logger.notice(`  App endpoint:    ${appUrl}`)
   logger.notice(`  Lambda endpoint: ${awsApiUrl}`)
+  if (generatedApiKey) {
+    // A private route had no configured api key, so one was generated. Print it
+    // so the user can send it as the `x-api-key` header (serverless-offline
+    // parity — a local-dev convenience; deployed AWS requires a configured key).
+    logger.notice(`  API key (generated, none configured): ${generatedApiKey}`)
+  }
   if (useDocker && hasDockerFunctions) {
     logger.notice(
       '  Node runner:     docker when supported, worker-thread fallback',
@@ -736,6 +744,11 @@ export default class OfflinePlugin {
     let wsRoutes = new Map()
     /** @type {{ stop: () => Promise<void> } | null} */
     let wsServer = null
+    // When a private route has no configured api key, the api-key store
+    // generates one at boot. Surface it here so the boot summary can print it
+    // for the user to copy into the `x-api-key` header. Null unless a key was
+    // generated (i.e. private routes exist AND no apiGateway.apiKeys configured).
+    let generatedApiKey = null
     const appServer = await createAppServer({
       appPort,
       host,
@@ -760,6 +773,14 @@ export default class OfflinePlugin {
           customAuthStrategy,
           ignoreJWTSignature,
         })
+
+        // Capture an auto-generated api key (private route + no configured key)
+        // so the boot summary can print it. `apiKeyStore` is non-null only when
+        // the api-key scheme was registered (i.e. a private route exists).
+        if (authStrategies.apiKeyStore?.generated) {
+          const [key] = authStrategies.apiKeyStore.keys
+          generatedApiKey = key
+        }
 
         // WebSocket: shared appPort. The Hapi server's `upgrade` event
         // hands incoming WS handshakes to a dedicated ws.Server; HTTP
@@ -939,6 +960,7 @@ export default class OfflinePlugin {
           layerCount: layerOptDirs.size,
           scheduledCount: scheduler.scheduledCount,
           disabledScheduleCount: scheduler.disabledCount,
+          generatedApiKey,
         })
       },
     })

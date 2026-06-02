@@ -1,0 +1,22 @@
+service: it-auth-api-key-generated
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  # NOTE: NO provider.apiGateway.apiKeys here. With a private route and no
+  # configured key, the built-in command generates a random key at boot and
+  # prints it (serverless-offline parity — a local-dev convenience).
+custom:
+  serverless-offline:
+    httpPort: 0
+    lambdaPort: 0
+functions:
+  # A private REST (v1) route with NO configured api key. Absent/wrong key -> 403;
+  # the generated key (read from the boot log) -> 200.
+  privateEcho:
+    handler: handler.echo
+    events:
+      - http:
+          method: GET
+          path: /private
+          private: true

@@ -350,6 +350,16 @@ export const DIVERGENCES = [
   },
   {
     surface: 'authorizers',
+    field: 'apiKey.generatedValue',
+    category: 'B',
+    plugin:
+      "generates the constant md5-of-empty 'd41d8cd98f00b204e9800998ecf8427e' for a private route with no configured key",
+    ours: 'generates a unique random key (printed at boot) for a private route with no configured key',
+    reason:
+      "the plugin's createApiKey() hashes no input (a plugin bug); a unique key is more correct. Both print the key at boot for the same migration UX",
+  },
+  {
+    surface: 'authorizers',
     field: 'customAuthenticationProvider.noAuthPrecedence',
     category: 'B',
     plugin:

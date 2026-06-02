@@ -234,7 +234,7 @@ This is also how one function invokes another locally — gate the `endpoint` on
 
 Offline runs your authorizers the same way the gateway would, so you can verify both the allow and deny paths.
 
-- **API key** — requests to a key-protected route must present a valid `x-api-key`; missing or unknown keys are rejected.
+- **API key** — requests to a key-protected route must present a valid `x-api-key`; missing or unknown keys are rejected. If a `private` route has no key configured under `provider.apiGateway.apiKeys`, a key is generated and printed at boot (look for `API key (generated, none configured): <key>`) — send that value as `x-api-key`. This matches the community `serverless-offline` plugin and is a local-dev convenience; deployed AWS requires a usable key in the route's usage plan and otherwise denies all callers.
 - **IAM** — IAM-authorized routes are accepted locally (SigV4 signatures are not re-validated).
 - **Lambda authorizers (TOKEN and REQUEST)** — your authorizer function runs locally. A returned `Allow` policy lets the request through and its `context` is surfaced under `requestContext.authorizer`; a `Deny` (or a thrown error) rejects the request. REQUEST authorizers receive the full request; TOKEN authorizers receive the identity-source token.
 - **JWT** (HTTP API) — the token is verified against the issuer's JWKS by default, including `exp`/`iss`/`aud` and any required scopes. Pass `--ignoreJWTSignature` to decode the token without verifying its signature, which is useful with self-minted local tokens. Claims still flow into `requestContext.authorizer.jwt`.
