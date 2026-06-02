@@ -297,6 +297,6 @@ function normalizeAuthorizerRef(authorizer) {
       enableSimpleResponses: authorizer.enableSimpleResponses ?? false,
     }
   }
-  // ARN form, JWT, etc. — out of scope for this milestone.
+  // ARN form, JWT, etc. — not supported for REST v1 authorizer refs here.
   return null
 }

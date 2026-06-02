@@ -12,7 +12,7 @@
  * factory per endpoint with `(endpoint, functionKey, method, path)`. We
  * call once at boot with stub args `(null, null, null, null)`. Factories
  * that ignore the args work identically. Factories that depend on the
- * args are a known limitation — tracked for a future milestone.
+ * args are a known limitation — tracked as a future enhancement.
  */
 
 import path from 'node:path'

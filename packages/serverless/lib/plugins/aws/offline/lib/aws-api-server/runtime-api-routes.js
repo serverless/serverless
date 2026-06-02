@@ -12,9 +12,9 @@
  *  - POST /runtime/{functionKey}/2018-06-01/runtime/invocation/{requestId}/response
  *  - POST /runtime/{functionKey}/2018-06-01/runtime/invocation/{requestId}/error
  *
- * The handlers in this scaffold throw `OFFLINE_NOT_IMPLEMENTED` to make
- * accidental hits during early integration immediately visible; subsequent
- * milestones replace each handler body with the real implementation.
+ * Each handler is backed by the long-poll invocation queue: `next` parks
+ * until work is available (or the runtime client disconnects), while
+ * `response`/`error` resolve the corresponding pending invocation.
  */
 
 /**

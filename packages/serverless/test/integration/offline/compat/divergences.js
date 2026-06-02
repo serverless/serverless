@@ -30,7 +30,7 @@
 
 /** @type {Divergence[]} */
 export const DIVERGENCES = [
-  // --- REST API v1 (G2) ---
+  // --- REST API v1 ---
   {
     surface: 'rest',
     field: 'requestContext.path',
@@ -114,7 +114,7 @@ export const DIVERGENCES = [
     reason: 'AWS integration-response status-code selection',
   },
 
-  // --- HTTP API v2 (G1) ---
+  // --- HTTP API v2 ---
   {
     surface: 'http-api',
     field: 'cookies',
@@ -124,7 +124,7 @@ export const DIVERGENCES = [
     reason: 'AWS omits cookies from the v2 event when there are none',
   },
 
-  // --- ALB (G2) ---
+  // --- ALB ---
   {
     surface: 'alb',
     field: 'urlStagePrefix',
@@ -202,7 +202,7 @@ export const DIVERGENCES = [
     reason: 'plugin bug; ours follows the ALB response contract',
   },
 
-  // --- WebSocket (G3) ---
+  // --- WebSocket ---
   {
     surface: 'websocket',
     field: 'requestContext.domainName',
@@ -267,7 +267,7 @@ export const DIVERGENCES = [
     reason: 'AWS reports the close reason on $disconnect',
   },
 
-  // --- Authorizers (G4) ---
+  // --- Authorizers ---
   // The REST authorizer fixture is API Gateway REST v1, so it carries the same
   // REST path/resourcePath/resourceId divergences as the rest surface.
   {
@@ -377,7 +377,7 @@ export const DIVERGENCES = [
       'provider authoring contract differs; net handler-visible surface is the same',
   },
 
-  // --- Schedule (G5) ---
+  // --- Schedule ---
   {
     surface: 'schedule',
     field: 'account',
@@ -386,16 +386,12 @@ export const DIVERGENCES = [
     ours: 'sets account to a synthesized account-style value (no real account offline)',
     reason: 'AWS sets account to the 12-digit AWS account ID; cosmetic offline',
   },
-  {
-    surface: 'schedule',
-    field: 'resources',
-    category: 'A',
-    plugin: 'emits resources: []',
-    ours: 'emits resources: [] (no synthesized rule ARN offline)',
-    reason: 'AWS emits the EventBridge rule ARN; not synthesized offline',
-  },
+  // NOTE: `schedule.resources` is intentionally NOT listed. Both sides emit
+  // `resources: []` offline (only real AWS emits the EventBridge rule ARN), so
+  // it is parity with the plugin — a shared AWS-fidelity limitation, not a
+  // divergence the differential could ever surface.
 
-  // --- Lambda invoke (G5) ---
+  // --- Lambda invoke ---
   {
     surface: 'invoke',
     field: 'headers.x-amz-executed-version',
@@ -414,38 +410,17 @@ export const DIVERGENCES = [
     reason: 'AWS validates a DryRun invoke and returns 204',
   },
 
-  // --- Runtimes (G6) ---
-  {
-    surface: 'runtimes',
-    field: 'pythonInterpreterVersion',
-    category: 'A',
-    plugin: 'host child-process runner uses whatever python3 is on PATH',
-    ours: 'host child-process runner uses whatever python3 is on PATH',
-    reason:
-      'host-runner scope: faithful host execution, not a version-managed sandbox',
-  },
-  {
-    surface: 'runtimes',
-    field: 'rubyInterpreterVersion',
-    category: 'A',
-    plugin: 'host child-process runner uses whatever ruby is on PATH',
-    ours: 'host child-process runner uses whatever ruby is on PATH',
-    reason:
-      'host-runner scope: faithful host execution, not a version-managed sandbox',
-  },
+  // NOTE: runtime interpreter versions (python3/ruby) and local-path layer
+  // mounting are intentionally NOT listed. Both sides behave identically:
+  //   - host runners execute whatever python3/ruby is on PATH (neither pins a
+  //     version-managed sandbox), and
+  //   - layers are sourced ONLY by downloading a published ARN for Docker
+  //     functions; neither side mounts a locally-defined `layers:` entry from
+  //     disk offline.
+  // These are parity with the plugin (shared limitations vs real AWS), not
+  // divergences the differential could surface.
 
-  // --- Layers (G6) ---
-  {
-    surface: 'layers',
-    field: 'localPathLayers',
-    category: 'A',
-    plugin: 'mounts locally-defined layers from disk',
-    ours: 'mounts only published-ARN layers (downloaded), Docker functions only; local layers skipped with a notice',
-    reason:
-      'scope cut — published-ARN download is the only supported layer source offline',
-  },
-
-  // --- Compat-milestone scope cuts (config surface) ---
+  // --- Configuration-surface scope cuts ---
   {
     surface: 'config',
     field: 'emulatedServices',
