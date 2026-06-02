@@ -115,6 +115,7 @@
     "test:unit": "cross-env NODE_OPTIONS='--experimental-vm-modules' NODE_NO_WARNINGS=1 jest",
     "test:offline:unit": "cross-env NODE_OPTIONS='--experimental-vm-modules' NODE_NO_WARNINGS=1 jest --runInBand --forceExit --testTimeout=15000 --testPathPatterns 'test/unit/lib/plugins/aws/offline'",
     "test:offline:integration": "cross-env NODE_OPTIONS='--experimental-vm-modules' NODE_NO_WARNINGS=1 jest --runInBand --forceExit --testTimeout=600000 --testPathPatterns 'test/integration/offline'",
+    "test:offline:compat": "node test/integration/offline/compat/differential.js",
     "build:devmode:shim": "esbuild lib/plugins/aws/dev/shim.js --bundle --platform=node --minify --outfile=lib/plugins/aws/dev/shim.min.js"
   },
   "engines": {
