@@ -810,13 +810,14 @@ export default class OfflinePlugin {
     // empty servers (parity with the community serverless-offline plugin,
     // which gates #createAlb / #createWebSocket on event presence).
     const hasAlb = hasAlbEvents(serverless)
-    // Compute the WebSocket route map once and reuse it for both the
-    // create-or-skip decision and route registration (never normalized twice
-    // with potentially divergent results).
+    // Compute the WebSocket route map once here and reuse it for both the
+    // create-or-skip decision and route registration, so this function never
+    // normalizes twice with potentially divergent results. (The WebSocket
+    // server independently re-derives its own copy for dispatch.)
     const webSocketEvents = normalizeWebsocketEvents(serverless)
     const hasWebSocketEvents = webSocketEvents.size > 0
     /** @type {Map<string, { functionKey: string, authorizer?: object }>} */
-    let wsRoutes = hasWebSocketEvents ? webSocketEvents : new Map()
+    const wsRoutes = hasWebSocketEvents ? webSocketEvents : new Map()
     /** @type {{ stop: () => Promise<void> } | null} */
     let wsController = null
     // When a private route has no configured api key, the api-key store
@@ -974,10 +975,10 @@ export default class OfflinePlugin {
     // 11. Register teardowns for the servers (LIFO — runner and
     //    watcher are added after bridge.fireBeforeStart so they appear last,
     //    meaning they are torn down first).
-    //    Registration order so far: awsApiServer → wsHapiServer → albServer
-    //    → appServer.
-    //    LIFO teardown for these: appServer, albServer, wsHapiServer,
-    //    awsApiServer.
+    //    Registration order here: awsApiServer → wsHapiServer → albServer →
+    //    appServer → wsController.
+    //    LIFO teardown for these: wsController, appServer, albServer,
+    //    wsHapiServer, awsApiServer (uncreated servers are null-guarded).
     orchestrator.onShutdown(() => awsApiServer.stop({ timeout: 5000 }))
     orchestrator.onShutdown(() =>
       wsHapiServer ? wsHapiServer.stop({ timeout: 5000 }) : undefined,
