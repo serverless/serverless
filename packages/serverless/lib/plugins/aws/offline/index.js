@@ -175,7 +175,9 @@ export function resolveOfflineOptions({
  *
  * @param {object} params
  * @param {{ notice: (msg: string) => void }} params.logger
- * @param {string} params.appUrl                              The HTTP API / REST / ALB / WebSocket endpoint.
+ * @param {string} params.appUrl                              The HTTP API / REST endpoint.
+ * @param {string} params.albUrl                              The ALB endpoint.
+ * @param {string} params.wsUrl                               The WebSocket / @connections endpoint.
  * @param {string} params.awsApiUrl                           The Lambda endpoint (Lambda Invoke, Runtime API).
  * @param {{ method: string, path: string, functionKey: string }[]} params.httpApiRoutes
  * @param {{ method: string, path: string, mountedPath: string, apigwMountedPath: string, functionKey: string }[]} [params.restApiRoutes]
@@ -196,6 +198,8 @@ export function resolveOfflineOptions({
 function logBootSummary({
   logger,
   appUrl,
+  albUrl,
+  wsUrl,
   awsApiUrl,
   albRoutes,
   wsRoutes,
@@ -218,8 +222,10 @@ function logBootSummary({
 }) {
   logger.notice('')
   logger.notice(`sls offline ready (stage: ${stage})`)
-  logger.notice(`  App endpoint:    ${appUrl}`)
-  logger.notice(`  Lambda endpoint: ${awsApiUrl}`)
+  logger.notice(`  HTTP endpoint:      ${appUrl}`)
+  logger.notice(`  ALB endpoint:       ${albUrl}`)
+  logger.notice(`  WebSocket endpoint: ${wsUrl}`)
+  logger.notice(`  Lambda endpoint:    ${awsApiUrl}`)
   if (generatedApiKey) {
     // A private route had no configured api key, so one was generated. Print it
     // so the user can send it as the `x-api-key` header (serverless-offline
@@ -271,29 +277,29 @@ function logBootSummary({
     logger.notice(`  Scheduled functions: ${scheduledCount}${suffix}`)
   }
 
-  // WebSocket routes — emit first because the WS upgrade handler fires
-  // before any HTTP route resolution. Followed by the management-API
-  // mount note (ApiGatewayManagementApi endpoint clients should target).
+  // WebSocket routes — listed against the dedicated WebSocket endpoint.
+  // Followed by the management-API mount note (the ApiGatewayManagementApi
+  // endpoint clients should target, also on the WebSocket server).
   if (wsRoutes && wsRoutes.size > 0) {
     logger.notice('  WebSocket routes:')
     const sortedRoutes = Array.from(wsRoutes.entries()).sort(([a], [b]) =>
       a.localeCompare(b),
     )
     const widest = Math.max(...sortedRoutes.map(([r]) => r.length))
-    const wsUrl = appUrl.replace(/^http:/, 'ws:')
+    const wsProtocolUrl = wsUrl
+      .replace(/^http:/, 'ws:')
+      .replace(/^https:/, 'wss:')
     for (const [route, entry] of sortedRoutes) {
       logger.notice(
-        `    ${route.padEnd(widest)}  ${wsUrl}/${stage}  →  ${entry.functionKey}`,
+        `    ${route.padEnd(widest)}  ${wsProtocolUrl}/${stage}  →  ${entry.functionKey}`,
       )
     }
     logger.notice(
-      `  Management API:  ${appUrl}/${stage}/@connections/{id}  (POST / GET / DELETE)`,
+      `  Management API:  ${wsUrl}/${stage}/@connections/{id}  (POST / GET / DELETE)`,
     )
   }
 
-  // ALB routes register first on Hapi (and thus win path-collisions over
-  // REST / HTTP API), so list them at the top of the boot table — the
-  // visual order matches the routing-precedence rule users hit at runtime.
+  // ALB routes live on their own server now, listed against the ALB endpoint.
   if (albRoutes && albRoutes.length > 0) {
     logger.notice('  ALB routes:')
     const sorted = [...albRoutes].sort(
@@ -303,7 +309,7 @@ function logBootSummary({
     const methodWidth = Math.max(...sorted.map((r) => r.method.length))
     for (const r of sorted) {
       logger.notice(
-        `    ${r.method.padEnd(methodWidth)}  ${appUrl}${r.path}  →  ${r.functionKey}`,
+        `    ${r.method.padEnd(methodWidth)}  ${albUrl}${r.path}  →  ${r.functionKey}`,
       )
     }
   }
@@ -433,6 +439,8 @@ export default class OfflinePlugin {
     //    port strings to integers locally.
     const {
       httpPort,
+      websocketPort,
+      albPort,
       corsAllowHeaders,
       corsAllowOrigin,
       corsDisallowCredentials,
@@ -561,16 +569,32 @@ export default class OfflinePlugin {
       ensureImageReady = checker.ensureImageReady
     }
 
-    // Refuse to start when both Hapi servers would bind to the same port —
+    // Refuse to start when two Hapi servers would bind to the same port —
     // doing so produces an opaque EADDRINUSE deep inside Hapi instead of a
     // clear actionable error. Run this check after CLI / YAML / default
     // resolution so the values we test are the ones we'd actually bind.
-    if (httpPort === lambdaPort) {
-      throw new ServerlessError(
-        `httpPort and lambdaPort must differ (both resolved to ${httpPort}). ` +
-          'Adjust --httpPort, --lambdaPort, or the custom.serverless-offline httpPort / lambdaPort entries in serverless.yml.',
-        'OFFLINE_PORT_COLLISION',
-      )
+    // Port 0 means "let the OS assign a free port" (used by integration
+    // tests) and never actually collides, so it's excluded from the check.
+    const portsToCheck = [
+      ['httpPort', httpPort],
+      ['lambdaPort', lambdaPort],
+      ['websocketPort', websocketPort],
+      ['albPort', albPort],
+    ]
+    const seenPorts = new Map()
+    for (const [name, value] of portsToCheck) {
+      if (value === 0) continue
+      if (seenPorts.has(value)) {
+        const other = seenPorts.get(value)
+        throw new ServerlessError(
+          `httpPort, lambdaPort, websocketPort, and albPort must be pairwise distinct, ` +
+            `but ${other} and ${name} both resolved to ${value}. ` +
+            'Adjust the corresponding --httpPort / --lambdaPort / --websocketPort / --albPort ' +
+            'flags or the custom.serverless-offline entries in serverless.yml.',
+          'OFFLINE_PORT_COLLISION',
+        )
+      }
+      seenPorts.set(value, name)
     }
 
     // 3. Resolve + download Lambda layers using the developer's real AWS
@@ -742,7 +766,8 @@ export default class OfflinePlugin {
       region: provider.region ?? FAKE_REGION,
     })
 
-    // 7. Boot the app server (Hapi v21) for user traffic.
+    // 7. Boot the HTTP server (Hapi v21) for REST + HTTP API traffic. ALB
+    //    and WebSocket get their own Hapi servers on their own ports below.
     /** @type {{ method: string, path: string, functionKey: string }[]} */
     let albRoutes = []
     /** @type {{ method: string, path: string, functionKey: string }[]} */
@@ -752,7 +777,7 @@ export default class OfflinePlugin {
     /** @type {Map<string, { functionKey: string, authorizer?: object }>} */
     let wsRoutes = new Map()
     /** @type {{ stop: () => Promise<void> } | null} */
-    let wsServer = null
+    let wsController = null
     // When a private route has no configured api key, the api-key store
     // generates one at boot. Surface it here so the boot summary can print it
     // for the user to copy into the `x-api-key` header. Null unless a key was
@@ -791,48 +816,6 @@ export default class OfflinePlugin {
           generatedApiKey = key
         }
 
-        // WebSocket: shared HTTP port. The Hapi server's `upgrade` event
-        // hands incoming WS handshakes to a dedicated ws.Server; HTTP
-        // routes (management API, ALB, REST, HTTP API) coexist
-        // independently — no separate websocketPort.
-        const wsRegistry = createConnectionRegistry()
-        wsRoutes = normalizeWebsocketEvents(serverless)
-        wsServer = createWebSocketServer({
-          hapiServer: server,
-          serverless,
-          onRequest: async (functionKey, event) =>
-            getLambdaFunction(functionKey).invoke(event),
-          registry: wsRegistry,
-          stage,
-          accountId: FAKE_ACCOUNT_ID,
-          region: FAKE_REGION,
-          noAuth,
-          webSocketHardTimeout,
-          webSocketIdleTimeout,
-          logger: log.get('sls:offline:websocket'),
-        })
-
-        // ApiGatewayManagementApi: HTTP routes at /<stage>/@connections/{id}.
-        // Register BEFORE ALB so the path always resolves to the
-        // management API regardless of any colliding ALB declaration.
-        registerManagementApiRoutes({
-          hapiServer: server,
-          registry: wsRegistry,
-          stage,
-        })
-
-        // ALB routes register FIRST (among the regular HTTP surfaces) so
-        // their literal-path declarations win same-method-same-path
-        // collisions against REST / HTTP API routes (Hapi resolves by
-        // registration order). ALB shares the HTTP port.
-        albRoutes = registerAlbRoutes({
-          server,
-          serverless,
-          async onRequest(functionKey, event) {
-            return getLambdaFunction(functionKey).invoke(event)
-          },
-        })
-
         httpApiRoutes = registerHttpApiRoutes({
           server,
           serverless,
@@ -864,7 +847,65 @@ export default class OfflinePlugin {
       },
     })
 
-    // 8. Boot the AWS API server (Hapi starts listening here). It exposes the
+    // 8. Boot the ALB server on its own port. ALB routes register before
+    //    REST / HTTP API on their own Hapi server, so there's no longer a
+    //    cross-surface path-collision ordering concern — ALB lives alone.
+    const albServer = await createAppServer({
+      port: albPort,
+      host,
+      httpsProtocol,
+      logger: log.get('sls:offline:alb'),
+      async registerRoutes(server) {
+        albRoutes = registerAlbRoutes({
+          server,
+          serverless,
+          async onRequest(functionKey, event) {
+            return getLambdaFunction(functionKey).invoke(event)
+          },
+        })
+      },
+    })
+
+    // 9. Boot the WebSocket server on its own port. The Hapi server's
+    //    `upgrade` event hands incoming WS handshakes to a dedicated
+    //    ws.Server; the ApiGatewayManagementApi (@connections) HTTP routes
+    //    mount on the same server. Because WS binds its own port, the event
+    //    factory derives `domainName = localhost:<websocketPort>` from the
+    //    upgrade request, so handler-composed @connections endpoints target
+    //    this server.
+    const wsHapiServer = await createAppServer({
+      port: websocketPort,
+      host,
+      httpsProtocol,
+      logger: log.get('sls:offline:websocket'),
+      async registerRoutes(server) {
+        const wsRegistry = createConnectionRegistry()
+        wsRoutes = normalizeWebsocketEvents(serverless)
+        wsController = createWebSocketServer({
+          hapiServer: server,
+          serverless,
+          onRequest: async (functionKey, event) =>
+            getLambdaFunction(functionKey).invoke(event),
+          registry: wsRegistry,
+          stage,
+          accountId: FAKE_ACCOUNT_ID,
+          region: FAKE_REGION,
+          noAuth,
+          webSocketHardTimeout,
+          webSocketIdleTimeout,
+          logger: log.get('sls:offline:websocket'),
+        })
+
+        // ApiGatewayManagementApi: HTTP routes at /<stage>/@connections/{id}.
+        registerManagementApiRoutes({
+          hapiServer: server,
+          registry: wsRegistry,
+          stage,
+        })
+      },
+    })
+
+    // 10. Boot the AWS API server (Hapi starts listening here). It exposes the
     //    Lambda Invoke API and, when needed, the Lambda Runtime API.
     const awsApiServer = await createAwsApiServer({
       lambdaPort,
@@ -882,28 +923,34 @@ export default class OfflinePlugin {
       },
     })
 
-    // 9. Register teardowns for the servers (LIFO — runner and
+    // 11. Register teardowns for the servers (LIFO — runner and
     //    watcher are added after bridge.fireBeforeStart so they appear last,
     //    meaning they are torn down first).
-    //    Registration order so far: awsApiServer → appServer
-    //    LIFO teardown for these: appServer, awsApiServer.
+    //    Registration order so far: awsApiServer → wsHapiServer → albServer
+    //    → appServer.
+    //    LIFO teardown for these: appServer, albServer, wsHapiServer,
+    //    awsApiServer.
     orchestrator.onShutdown(() => awsApiServer.stop({ timeout: 5000 }))
+    orchestrator.onShutdown(() => wsHapiServer.stop({ timeout: 5000 }))
+    orchestrator.onShutdown(() => albServer.stop({ timeout: 5000 }))
     orchestrator.onShutdown(() => appServer.stop({ timeout: 5000 }))
-    // The WS server closes all open sockets (code 1001) before the Hapi
-    // app server tears down its listener. Order matters: shut WS first so
-    // clients get a clean close frame, not a TCP RST.
-    orchestrator.onShutdown(() => (wsServer ? wsServer.stop() : undefined))
+    // The WS control object closes all open sockets (code 1001) before the
+    // WebSocket Hapi server tears down its listener. Order matters: shut the
+    // sockets first so clients get a clean close frame, not a TCP RST.
+    orchestrator.onShutdown(() =>
+      wsController ? wsController.stop() : undefined,
+    )
     // Scheduler teardown registered BEFORE runner.terminate so LIFO drains
     // in-flight schedule invocations before runners shut down.
     orchestrator.onShutdown(() => scheduler.stop())
 
-    // 10. Fire before:offline:start so that bundler plugins (e.g. built-in
+    // 12. Fire before:offline:start so that bundler plugins (e.g. built-in
     //     esbuild) can bundle TS handlers and swap serverless.config.servicePath
     //     to the build output directory BEFORE the watcher resolves handler
     //     paths or the runner is used for the first time.
     await bridge.fireBeforeStart()
 
-    // 11. Start the native file watcher AFTER fireBeforeStart so it resolves
+    // 13. Start the native file watcher AFTER fireBeforeStart so it resolves
     //     handler paths against the (possibly bundler-swapped) base directory.
     //     getHandlerBaseDir() honours both the built-in esbuild swap and the
     //     community serverless-esbuild custom location contract.
@@ -918,7 +965,8 @@ export default class OfflinePlugin {
     })
 
     // Register runner + watcher teardowns last so they are first in LIFO order.
-    // LIFO teardown: watcher → runner → (appServer, awsApiServer above).
+    // LIFO teardown: watcher → runner → (appServer, albServer, wsHapiServer,
+    // awsApiServer above).
     orchestrator.onShutdown(() => runner.terminate())
     orchestrator.onShutdown(() => watcher.stop())
 
@@ -951,6 +999,8 @@ export default class OfflinePlugin {
         logBootSummary({
           logger,
           appUrl: appServer.info.uri,
+          albUrl: albServer.info.uri,
+          wsUrl: wsHapiServer.info.uri,
           awsApiUrl: awsApiServer.info.uri,
           albRoutes,
           wsRoutes,
