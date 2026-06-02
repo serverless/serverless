@@ -38,10 +38,17 @@ describe('offline serverless-offline config compatibility', () => {
       expect(port).toBe(FIXTURE_LAMBDA_PORT)
     })
 
-    it('warns once that websocketPort is ignored', () => {
+    it('does not warn that websocketPort is ignored (it is a recognized option)', () => {
+      const logs = offline.logs()
+      expect(logs).not.toMatch(
+        /Ignoring serverless-offline option\(s\)[^\n]*websocketPort/i,
+      )
+    })
+
+    it('warns once about a still-unsupported key (resourceRoutes)', () => {
       const logs = offline.logs()
       const matches = logs.match(
-        /Ignoring serverless-offline option\(s\)[^\n]*websocketPort/gi,
+        /Ignoring serverless-offline option\(s\)[^\n]*resourceRoutes/gi,
       )
       expect(matches).toHaveLength(1)
     })
