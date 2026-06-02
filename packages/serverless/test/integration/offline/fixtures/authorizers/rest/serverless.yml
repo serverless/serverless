@@ -1,0 +1,57 @@
+service: it-auth-rest
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  apiGateway:
+    apiKeys:
+      - it-auth-rest-key-abc123
+custom:
+  serverless-offline:
+    httpPort: 0
+    lambdaPort: 0
+functions:
+  # 1. API key (private: true) — no/invalid x-api-key -> 403; valid -> 200.
+  privateEcho:
+    handler: handler.echo
+    events:
+      - http:
+          method: GET
+          path: /private
+          private: true
+
+  # 2. IAM authorizer — not emulated locally; route runs unauthenticated.
+  iamEcho:
+    handler: handler.echo
+    events:
+      - http:
+          method: GET
+          path: /iam
+          authorizer: aws_iam
+
+  # 3. Lambda authorizer TOKEN — Authorization header -> authorizer -> policy.
+  tokenAuthorizer:
+    handler: handler.tokenAuthorizer
+  tokenEcho:
+    handler: handler.echo
+    events:
+      - http:
+          method: GET
+          path: /token
+          authorizer:
+            name: tokenAuthorizer
+            type: token
+
+  # 4. Lambda authorizer REQUEST — identitySource header -> authorizer.
+  requestAuthorizer:
+    handler: handler.requestAuthorizer
+  requestEcho:
+    handler: handler.echo
+    events:
+      - http:
+          method: GET
+          path: /request
+          authorizer:
+            name: requestAuthorizer
+            type: request
+            identitySource: method.request.header.Authorization

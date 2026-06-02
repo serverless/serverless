@@ -1,0 +1,63 @@
+service: it-auth-httpapi
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  httpApi:
+    authorizers:
+      jwtAuth:
+        type: jwt
+        identitySource: $request.header.Authorization
+        issuerUrl: https://issuer.example.com
+        audience:
+          - it-auth-audience
+      v2RequestAuthorizer:
+        type: request
+        functionName: v2RequestAuthorizer
+        identitySource: $request.header.Authorization
+        enableSimpleResponses: true
+custom:
+  serverless-offline:
+    httpPort: 0
+    lambdaPort: 0
+    # Decode JWTs without fetching a JWKS endpoint; all claim checks
+    # (exp / iss / aud / scope) still run.
+    ignoreJWTSignature: true
+# Custom authentication provider (top-level offline block). Our offline
+# resolves the provider relative to the service directory.
+offline:
+  customAuthenticationProvider: ./authProvider.js
+functions:
+  # 5. JWT authorizer (HTTP API v2).
+  jwtEcho:
+    handler: handler.echo
+    events:
+      - httpApi:
+          method: GET
+          path: /jwt
+          authorizer:
+            name: jwtAuth
+
+  # 4. Lambda authorizer REQUEST (HTTP API v2, simple responses).
+  v2RequestAuthorizer:
+    handler: handler.v2RequestAuthorizer
+  v2RequestEcho:
+    handler: handler.echo
+    events:
+      - httpApi:
+          method: GET
+          path: /v2request
+          authorizer:
+            name: v2RequestAuthorizer
+
+  # 6. Custom authentication provider — a Hapi auth scheme injected via
+  # offline.customAuthenticationProvider. The route references it by the
+  # strategy name the provider returns.
+  customEcho:
+    handler: handler.echo
+    events:
+      - httpApi:
+          method: GET
+          path: /custom
+          authorizer:
+            name: customScheme
