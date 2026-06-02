@@ -1,10 +1,12 @@
 /**
- * App server for sls offline.
+ * App server factory for sls offline.
  *
- * Boots a Hapi v21 server on the given `port` that serves user traffic (HTTP API,
- * ALB, WebSocket, …).  This server is intentionally separate from the
- * AWS-API server — Hapi v21 removed multi-connection support in favour of
- * independent server instances.
+ * Boots a Hapi v21 server on the given `port`. The offline command uses this
+ * factory for each user-facing server it stands up — the HTTP server (REST +
+ * HTTP API), the ALB server, and the WebSocket server — each on its own port,
+ * mirroring the community serverless-offline plugin's per-surface ports. Hapi
+ * v21 removed multi-connection support in favour of independent server
+ * instances, so each surface is a distinct server.
  *
  * The caller is responsible for:
  *  - Registering routes via the `registerRoutes` callback.

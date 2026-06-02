@@ -2,10 +2,10 @@
  * ALB (Application Load Balancer) route loader for the offline app server.
  *
  * Walks `serverless.service.functions[*].events[].alb`, registers one Hapi
- * route per (method, path) pair on the shared appPort. ALB routes are
- * registered FIRST in the boot wiring so they win same-method-same-path
- * collisions against later REST + HTTP API registrations (Hapi resolves
- * by registration order).
+ * route per (method, path) pair on the dedicated ALB server (its own
+ * `albPort`, separate from the REST/HTTP-API server) — matching how the
+ * community serverless-offline plugin binds ALB to its own port. Because ALB
+ * has its own server, its routes never collide with REST/HTTP API routes.
  *
  * Real ALB path-pattern conditions treat a `*` segment as a wildcard, so a
  * `conditions.path` whose segments include `*` is translated to the

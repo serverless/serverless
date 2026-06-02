@@ -256,7 +256,7 @@ function parseQueryStringParameters(searchParams) {
  * @param {string} opts.domainName
  *   The host and port string to populate `requestContext.domainName` and
  *   `requestContext.domainPrefix` (e.g. `'localhost:3000'`).  The route loader
- *   / app-server computes this from `host` + `appPort` and passes it in.
+ *   / app-server computes this from `host` + `httpPort` and passes it in.
  *
  * @param {boolean} [opts.noAuth]
  *   When `true` (the `--noAuth` flag), authorizers are skipped and
