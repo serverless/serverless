@@ -357,6 +357,16 @@ export const DIVERGENCES = [
     reason:
       'config-surface difference; a migrating fixture renames the custom sub-key from offline to serverless-offline',
   },
+  {
+    surface: 'authorizers',
+    field: 'customAuthenticationProvider.noAuthPrecedence',
+    category: 'B',
+    plugin:
+      'still runs the custom provider under --noAuth (the custom-strategy branch precedes the noAuth check)',
+    ours: 'treats --noAuth as disabling all auth, including the custom provider',
+    reason:
+      '--noAuth means no authentication; running an authenticator under it contradicts the flag',
+  },
 
   // --- Schedule ---
   {

@@ -26,10 +26,11 @@ async function event(res) {
 // EVERY route, overriding per-route authorizers, and its plugin-shape
 // credentials `{ principalId, context }` map into requestContext.authorizer.
 //
-// The expected values below are the captured-and-verified baseline. Both
-// flavors were captured from the community plugin against these exact fixtures
-// (see _capture-custom.mjs) and validated against the AWS API Gateway
-// Lambda-authorizer context contract:
+// The expected values below are the captured-and-verified baseline: both
+// flavors were captured by booting the community plugin against these exact
+// fixtures (the provider declared under custom.offline, which is the plugin's
+// config home) and validated against the AWS API Gateway Lambda-authorizer
+// context contract:
 //   - REST v1: the authorizer context is the function's returned context spread
 //     at the root of requestContext.authorizer, plus principalId.
 //   - HTTP API v2: the authorizer context is namespaced under
