@@ -1,0 +1,22 @@
+service: it-layers-mount
+provider:
+  name: aws
+  runtime: python3.12
+  region: us-east-1
+  layers:
+    # Published-ARN layer supplied by the operator at test time. Offline
+    # downloads it from real AWS and mounts the extracted tree read-only at
+    # /opt inside the Docker container (host runners do not mount layers).
+    - ${env:OFFLINE_LAYER_ARN}
+custom:
+  serverless-offline:
+    httpPort: 0
+    lambdaPort: 0
+    # Layers are only mounted for Docker-backed functions; force Docker so the
+    # published layer is downloaded and bind-mounted at /opt.
+    useDocker: true
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - httpApi: { method: GET, path: /opt-read }
