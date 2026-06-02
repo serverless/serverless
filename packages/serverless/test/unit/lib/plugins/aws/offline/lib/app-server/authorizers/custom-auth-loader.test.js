@@ -6,7 +6,7 @@ import { loadCustomAuthenticationProvider } from '../../../../../../../../../lib
 
 /**
  * Build a serverless-shaped stub with a `serviceDir` and optional
- * `offline.customAuthenticationProvider` value.
+ * `custom.serverless-offline.customAuthenticationProvider` value.
  *
  * @param {string} serviceDir
  * @param {string | undefined} providerPath
@@ -15,10 +15,12 @@ function makeServerless(serviceDir, providerPath) {
   return {
     serviceDir,
     service: {
-      offline:
-        providerPath === undefined
-          ? {}
-          : { customAuthenticationProvider: providerPath },
+      custom: {
+        'serverless-offline':
+          providerPath === undefined
+            ? {}
+            : { customAuthenticationProvider: providerPath },
+      },
     },
   }
 }
@@ -36,14 +38,14 @@ async function makeFixture(fileName, contents) {
 }
 
 describe('loadCustomAuthenticationProvider', () => {
-  it('returns null when offline.customAuthenticationProvider is not configured', async () => {
+  it('returns null when custom.serverless-offline.customAuthenticationProvider is not configured', async () => {
     const result = await loadCustomAuthenticationProvider({
       serverless: makeServerless('/tmp/anything', undefined),
     })
     expect(result).toBeNull()
   })
 
-  it('returns null when offline block is entirely absent', async () => {
+  it('returns null when the custom.serverless-offline block is entirely absent', async () => {
     const result = await loadCustomAuthenticationProvider({
       serverless: { serviceDir: '/tmp/anything', service: {} },
     })
