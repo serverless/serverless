@@ -245,6 +245,19 @@ describe('HTTP API (v2) authorizers', () => {
       expect(await res.json()).toEqual({ message: 'Forbidden' })
     })
 
+    it('returns 401 when the authorizer returns the Unauthorized literal', async () => {
+      // AWS draws a distinction the simple-response shape cannot: a v2
+      // simple-response `{ isAuthorized: false }` is a 403, but throwing/
+      // returning the `Unauthorized` literal is the 401 failure path. OUR
+      // offline honors that split; the captured community baseline collapses
+      // this case to 403 (a plugin bug), so we assert the AWS-correct 401.
+      const res = await offline.http('/v2request', {
+        headers: { Authorization: 'deny-401' },
+      })
+      expect(res.status).toBe(401)
+      expect(await res.json()).toEqual({ message: 'Unauthorized' })
+    })
+
     it('returns 200 and surfaces requestContext.authorizer.lambda on authorize', async () => {
       const res = await offline.http('/v2request', {
         headers: { Authorization: 'allow-me' },
