@@ -295,3 +295,54 @@ it('keeps the last single value and all multi values per query key', () => {
     page: ['2'],
   })
 })
+
+// ---------------------------------------------------------------------------
+// requestContext.authorizer
+// ---------------------------------------------------------------------------
+
+describe('buildHttpApiV1Event — requestContext.authorizer', () => {
+  afterEach(() => {
+    delete process.env.AUTHORIZER
+  })
+
+  it('omits authorizer when no credentials', () => {
+    const event = build({ auth: { credentials: {} } })
+    expect(event.requestContext.authorizer).toBeUndefined()
+  })
+
+  it('surfaces credentials.authorizer verbatim (built-in scheme)', () => {
+    const event = build({
+      auth: { credentials: { authorizer: { principalId: 'u-1', a: 'b' } } },
+    })
+    expect(event.requestContext.authorizer).toEqual({
+      principalId: 'u-1',
+      a: 'b',
+    })
+  })
+
+  it('maps plugin-shape credentials { principalId, context } (context spread + principalId)', () => {
+    const event = build({
+      auth: {
+        credentials: {
+          principalId: 'user-123',
+          context: { source: 'custom-provider', count: 7 },
+        },
+      },
+    })
+    expect(event.requestContext.authorizer).toEqual({
+      source: 'custom-provider',
+      count: 7,
+      principalId: 'user-123',
+    })
+  })
+
+  it('plugin-shape principalId falls back to the placeholder when absent', () => {
+    const event = build({
+      auth: { credentials: { context: { a: 1 } } },
+    })
+    expect(event.requestContext.authorizer).toEqual({
+      a: 1,
+      principalId: 'offlineContext_authorizer_principalId',
+    })
+  })
+})

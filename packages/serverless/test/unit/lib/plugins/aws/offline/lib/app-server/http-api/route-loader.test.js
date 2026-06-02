@@ -1328,4 +1328,52 @@ describe('registerHttpApiRoutes — auth strategy wiring', () => {
     ).not.toThrow()
     expect(stub.routes[0].options.auth).toBeUndefined()
   })
+
+  it('forces customStrategyName as the global default on a v2 route with NO authorizer', () => {
+    const stub = makeRouteStub()
+    registerHttpApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        a: { events: [{ httpApi: { method: 'GET', path: '/p' } }] },
+      }),
+      stage: 'dev',
+      domainName: 'localhost',
+      onRequest: jest.fn(),
+      authStrategies: {
+        v2AuthorizerStrategies: new Map(),
+        customStrategyName: 'customScheme',
+      },
+    })
+    expect(stub.routes[0].options.auth).toBe('customScheme')
+  })
+
+  it('customStrategyName overrides a per-route v2 authorizer (global scope)', () => {
+    const stub = makeRouteStub()
+    registerHttpApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        a: {
+          events: [
+            {
+              httpApi: {
+                method: 'GET',
+                path: '/p',
+                authorizer: { name: 'authFn' },
+              },
+            },
+          ],
+        },
+      }),
+      stage: 'dev',
+      domainName: 'localhost',
+      onRequest: jest.fn(),
+      authStrategies: {
+        v2AuthorizerStrategies: new Map([
+          ['authFn', 'lambda-authorizer:v2:authFn'],
+        ]),
+        customStrategyName: 'customScheme',
+      },
+    })
+    expect(stub.routes[0].options.auth).toBe('customScheme')
+  })
 })

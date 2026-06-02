@@ -23,9 +23,6 @@ custom:
     # Decode JWTs without fetching a JWKS endpoint; all claim checks
     # (exp / iss / aud / scope) still run.
     ignoreJWTSignature: true
-    # Custom authentication provider. Our offline resolves the provider
-    # relative to the service directory.
-    customAuthenticationProvider: ./authProvider.js
 functions:
   # 5. JWT authorizer (HTTP API v2).
   jwtEcho:
@@ -48,15 +45,3 @@ functions:
           path: /v2request
           authorizer:
             name: v2RequestAuthorizer
-
-  # 6. Custom authentication provider — a Hapi auth scheme injected via
-  # custom.serverless-offline.customAuthenticationProvider. The route
-  # references it by the strategy name the provider returns.
-  customEcho:
-    handler: handler.echo
-    events:
-      - httpApi:
-          method: GET
-          path: /custom
-          authorizer:
-            name: customScheme

@@ -1489,6 +1489,52 @@ describe('registerRestApiRoutes — auth strategy wiring', () => {
     expect(stub.routes[0].options.auth).toBeUndefined()
   })
 
+  it('forces customStrategyName as the global default on a route with NO authorizer', () => {
+    const stub = makeRouteStub()
+    registerRestApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        a: { events: [{ http: { method: 'GET', path: '/p' } }] },
+      }),
+      stage: 'dev',
+      onRequest: jest.fn(),
+      authStrategies: {
+        privateStrategy: null,
+        authorizerStrategies: new Map(),
+        customStrategyName: 'customScheme',
+      },
+    })
+    expect(stub.routes[0].options.auth).toBe('customScheme')
+  })
+
+  it('customStrategyName overrides a per-route authorizer (global scope)', () => {
+    const stub = makeRouteStub()
+    registerRestApiRoutes({
+      server: stub,
+      serverless: makeServerless({
+        a: {
+          events: [
+            {
+              http: {
+                method: 'GET',
+                path: '/p',
+                authorizer: { name: 'authFn' },
+              },
+            },
+          ],
+        },
+      }),
+      stage: 'dev',
+      onRequest: jest.fn(),
+      authStrategies: {
+        privateStrategy: null,
+        authorizerStrategies: new Map([['authFn', 'lambda-authorizer:authFn']]),
+        customStrategyName: 'customScheme',
+      },
+    })
+    expect(stub.routes[0].options.auth).toBe('customScheme')
+  })
+
   it('falls back gracefully when authStrategies is omitted (back-compat)', () => {
     const stub = makeRouteStub()
     expect(() =>

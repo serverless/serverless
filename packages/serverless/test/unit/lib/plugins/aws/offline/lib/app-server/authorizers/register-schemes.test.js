@@ -602,6 +602,22 @@ describe('registerAuthSchemes — customAuthenticationProvider', () => {
     ).not.toThrow()
   })
 
+  it('returns the custom strategy as the global-default customStrategyName', () => {
+    const server = Hapi.server({ host: 'localhost', port: 0 })
+    const customAuthStrategy = makeCustomAuthStrategy('my-custom')
+    const result = registerAuthSchemes({
+      server,
+      serverless: makeServerless({}),
+      lambdas: makeLambdas(),
+      stage: 'dev',
+      accountId: '000000000000',
+      domainName: 'localhost',
+      customAuthStrategy,
+    })
+    // The route loaders force this strategy on every route (global scope).
+    expect(result.customStrategyName).toBe('my-custom')
+  })
+
   it('does NOT touch the maps when customAuthStrategy is null', () => {
     const server = Hapi.server({ host: 'localhost', port: 0 })
     const result = registerAuthSchemes({
@@ -615,6 +631,7 @@ describe('registerAuthSchemes — customAuthenticationProvider', () => {
     })
     expect(result.authorizerStrategies.size).toBe(0)
     expect(result.v2AuthorizerStrategies.size).toBe(0)
+    expect(result.customStrategyName).toBeNull()
   })
 
   it('custom-auth name takes precedence over a colliding REST v1 Lambda authorizer name', () => {

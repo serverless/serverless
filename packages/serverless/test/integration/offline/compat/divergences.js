@@ -357,25 +357,6 @@ export const DIVERGENCES = [
     reason:
       'config-surface difference; a migrating fixture renames the custom sub-key from offline to serverless-offline',
   },
-  {
-    surface: 'authorizers',
-    field: 'customAuthenticationProvider.scope',
-    category: 'A',
-    plugin: 'applies the provider globally as the default auth on every route',
-    ours: 'applies it only to routes that reference its returned name via authorizer: { name }',
-    reason:
-      'scope cut — no global default-auth wiring; the route must opt in by name',
-  },
-  {
-    surface: 'authorizers',
-    field: 'customAuthenticationProvider.credentialsKey',
-    category: 'A',
-    plugin:
-      'surfaces credentials.context at requestContext.authorizer.lambda.<key>',
-    ours: 'surfaces credentials.authorizer verbatim (provider returns { authorizer: { lambda } })',
-    reason:
-      'provider authoring contract differs; net handler-visible surface is the same',
-  },
 
   // --- Schedule ---
   {

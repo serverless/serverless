@@ -1072,4 +1072,37 @@ describe('buildHttpApiV2Event — requestContext.authorizer', () => {
       lambda: { principalId: 'u' },
     })
   })
+
+  it('maps plugin-shape credentials { principalId, context } to { lambda: context }', () => {
+    const event = buildEvent({
+      request: {
+        auth: {
+          credentials: {
+            principalId: 'user-123',
+            context: { source: 'custom-provider', count: 7 },
+          },
+        },
+      },
+    })
+    // v2 namespaces the context under `lambda`; principalId is not surfaced in
+    // the v2 authorizer block, and no empty `jwt: {}` sibling is emitted.
+    expect(event.requestContext.authorizer).toEqual({
+      lambda: { source: 'custom-provider', count: 7 },
+    })
+    expect(event.requestContext.authorizer.jwt).toBeUndefined()
+  })
+
+  it('prefers credentials.authorizer over the plugin-shape mapping when both present', () => {
+    const event = buildEvent({
+      request: {
+        auth: {
+          credentials: {
+            authorizer: { lambda: { built: 'in' } },
+            context: { ignored: true },
+          },
+        },
+      },
+    })
+    expect(event.requestContext.authorizer).toEqual({ lambda: { built: 'in' } })
+  })
 })

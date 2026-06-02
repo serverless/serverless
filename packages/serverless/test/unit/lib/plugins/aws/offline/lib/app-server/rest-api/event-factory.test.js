@@ -602,4 +602,51 @@ describe('buildRestApiEvent — requestContext.authorizer', () => {
     })
     expect(event.requestContext.authorizer).toEqual({ from: 'env' })
   })
+
+  it('maps plugin-shape credentials { principalId, context } (context spread + principalId)', () => {
+    const event = buildEvent({
+      request: {
+        auth: {
+          credentials: {
+            principalId: 'user-123',
+            context: { source: 'custom-provider', count: 7 },
+          },
+        },
+      },
+    })
+    expect(event.requestContext.authorizer).toEqual({
+      source: 'custom-provider',
+      count: 7,
+      principalId: 'user-123',
+    })
+  })
+
+  it('plugin-shape principalId falls back to PRINCIPAL_ID then the placeholder', () => {
+    const event = buildEvent({
+      request: {
+        auth: { credentials: { context: { a: 1 } } },
+      },
+    })
+    expect(event.requestContext.authorizer).toEqual({
+      a: 1,
+      principalId: 'offlineContext_authorizer_principalId',
+    })
+  })
+
+  it('prefers credentials.authorizer over the plugin-shape mapping when both present', () => {
+    const event = buildEvent({
+      request: {
+        auth: {
+          credentials: {
+            authorizer: { principalId: 'built-in', role: 'x' },
+            context: { ignored: true },
+          },
+        },
+      },
+    })
+    expect(event.requestContext.authorizer).toEqual({
+      principalId: 'built-in',
+      role: 'x',
+    })
+  })
 })

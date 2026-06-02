@@ -273,21 +273,4 @@ describe('HTTP API (v2) authorizers', () => {
       expect(ev.requestContext.authorizer.jwt).toBeUndefined()
     })
   })
-
-  describe('Custom authentication provider', () => {
-    it('returns 200 and surfaces the injected context at requestContext.authorizer.lambda', async () => {
-      const res = await offline.http('/custom')
-      expect(res.status).toBe(200)
-      const ev = await event(res)
-      // The provider attaches credentials.authorizer = { lambda: <ctx> }; the
-      // v2 event factory surfaces it verbatim. The captured community baseline
-      // surfaces the same `authorizer.lambda` shape from credentials.context
-      // (the credentials-key and global-vs-named application scope differ
-      // between the two; the handler-visible surface is identical).
-      expect(ev.requestContext.authorizer.lambda).toEqual({
-        source: 'custom-provider',
-        expected: 'it works',
-      })
-    })
-  })
 })
