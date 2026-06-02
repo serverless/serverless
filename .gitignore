@@ -2,6 +2,9 @@
 **/dist
 # **/.env # TODO: Our tests use many .env files, so we cannot ignore them ATM.
 **/.serverless
+# Local-only capture-first baselines for offline integration tests; embed
+# machine-specific data (absolute paths, ephemeral ports, real account IDs).
+**/.captured/
 .DS_Store
 .idea
 
