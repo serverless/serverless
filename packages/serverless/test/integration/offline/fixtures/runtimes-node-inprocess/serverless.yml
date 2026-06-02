@@ -1,0 +1,16 @@
+service: it-runtimes-node-inprocess
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+custom:
+  serverless-offline:
+    httpPort: 0
+    lambdaPort: 0
+    # Force the in-process Node runner instead of the default worker-thread.
+    useInProcess: true
+functions:
+  node:
+    handler: node_handler.hello
+    events:
+      - httpApi: { method: GET, path: /node }

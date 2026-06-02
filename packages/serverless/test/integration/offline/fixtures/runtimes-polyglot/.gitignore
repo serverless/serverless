@@ -1,0 +1,3 @@
+.serverless-offline/
+__pycache__/
+*.pyc

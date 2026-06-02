@@ -1,0 +1,36 @@
+service: it-runtimes-polyglot
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+custom:
+  serverless-offline:
+    httpPort: 0
+    lambdaPort: 0
+functions:
+  # Node, default worker-thread runner.
+  node:
+    handler: node_handler.hello
+    events:
+      - httpApi: { method: GET, path: /node }
+  # Python, host python3 child-process runner.
+  python:
+    runtime: python3.12
+    handler: py_handler.hello
+    events:
+      - httpApi: { method: GET, path: /python }
+  # Ruby, host ruby child-process runner. The wrapper our offline ships runs
+  # on the host ruby (2.6 in this environment) — see runtimes.test.js for the
+  # host-vs-Docker decision and the divergence note.
+  ruby:
+    runtime: ruby3.2
+    handler: rb_handler.hello
+    events:
+      - httpApi: { method: GET, path: /ruby }
+  # Go, host `go build` of a bootstrap binary. provided.al2 + non-jar artifact
+  # routes to the Go runner per our runtime guard.
+  go:
+    runtime: provided.al2
+    handler: go/hello/main.Handler
+    events:
+      - httpApi: { method: GET, path: /go }

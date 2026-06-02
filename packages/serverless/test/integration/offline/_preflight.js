@@ -12,8 +12,13 @@ async function dockerOk() {
 }
 
 function onPath(bin) {
+  // Most tools answer `--version`; the Go toolchain uses `go version` (a
+  // subcommand, not a flag) and exits non-zero on `go --version`, so probe it
+  // with its own form. Without this, an installed `go` is wrongly reported as
+  // missing and the always-on Go runtime contract fails to boot.
+  const args = bin === 'go' ? ['version'] : ['--version']
   try {
-    execFileSync(bin, ['--version'], { stdio: 'ignore' })
+    execFileSync(bin, args, { stdio: 'ignore' })
     return true
   } catch {
     return false
