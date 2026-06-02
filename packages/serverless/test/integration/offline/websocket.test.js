@@ -18,8 +18,7 @@ const FIXTURE = path.join(__dirname, 'fixtures/websocket')
 // message → eventType=MESSAGE / routeKey=broadcast / body=<frame> / messageId;
 // $default fallback for unrouted frames; $disconnect → eventType=DISCONNECT /
 // routeKey=$disconnect. Several fields are AWS-fidelity assertions where OUR
-// offline is the AWS-correct one and the plugin diverges (recorded in
-// docs/superpowers/M13-DIVERGENCES.md § G3):
+// offline is the AWS-correct one and the community plugin diverges:
 //   1. requestContext.domainName — plugin hardcodes "localhost" (no port);
 //      OUR offline reports the real host:port, so the value composed into the
 //      @connections management endpoint actually routes. This is the reason
