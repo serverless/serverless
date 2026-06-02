@@ -1,0 +1,17 @@
+service: it-lambda-invoke
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+custom:
+  serverless-offline:
+    httpPort: 0
+    lambdaPort: 0
+functions:
+  # Returns a value — exercises the sync RequestResponse + async Event paths.
+  worker:
+    handler: handler.worker
+
+  # Throws — exercises the handler-error (Unhandled) envelope path.
+  thrower:
+    handler: handler.thrower
