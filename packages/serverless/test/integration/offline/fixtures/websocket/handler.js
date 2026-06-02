@@ -45,7 +45,11 @@ exports.disconnect = async (event) => {
   return { statusCode: 200 }
 }
 
-exports.defaultRoute = async (event) => {
+// The `$default` route deliberately uses a CommonJS `default`-named export
+// (`handler: handler.default` in serverless.yml). This exercises the offline
+// loader's CJS interop: `exports.default = fn` makes the ESM `default` binding
+// the whole `{ default: fn }` object, which the loader must unwrap.
+exports.default = async (event) => {
   record(event)
   return { statusCode: 200 }
 }

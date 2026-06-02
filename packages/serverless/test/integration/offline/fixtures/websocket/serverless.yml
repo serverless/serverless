@@ -21,7 +21,7 @@ functions:
     events:
       - websocket: { route: $disconnect }
   default:
-    handler: handler.defaultRoute
+    handler: handler.default
     events:
       - websocket: { route: $default }
   broadcast:
