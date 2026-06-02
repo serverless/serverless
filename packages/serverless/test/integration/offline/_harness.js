@@ -34,30 +34,36 @@ async function killChild(child) {
 /**
  * Boot our built-in `sls offline` against a fixture dir as a child process.
  * The fixture must NOT list serverless-offline in plugins (so OUR impl runs).
- * The harness picks two distinct free ephemeral ports and passes them as
- * --appPort / --lambdaPort so concurrent boots never collide; the actual bound
- * URLs are still parsed from the ready banner.
+ * By default the harness picks two distinct free ephemeral ports and passes
+ * them as --appPort / --lambdaPort so concurrent boots never collide; the
+ * actual bound URLs are still parsed from the ready banner.
  *
- * @param {{ cwd: string, env?: Record<string,string>, readyMs?: number }} opts
+ * Pass `injectPorts: false` to skip the --appPort/--lambdaPort injection so a
+ * fixture's own custom.serverless-offline httpPort / lambdaPort take effect
+ * (useful for asserting config-compatibility behavior). Pass `extraArgs` to
+ * append additional CLI flags (e.g. ['--httpPort', '4170']). Both are opt-in
+ * and backward-compatible — the default keeps injecting free ports.
+ *
+ * @param {{ cwd: string, env?: Record<string,string>, readyMs?: number, injectPorts?: boolean, extraArgs?: string[] }} opts
  */
-export async function bootOffline({ cwd, env = {}, readyMs = 60_000 }) {
-  const [appPort, lambdaPort] = await twoFreePorts()
-  const child = spawn(
-    'node',
-    [
-      SF_CORE,
-      'offline',
-      '--appPort',
-      String(appPort),
-      '--lambdaPort',
-      String(lambdaPort),
-    ],
-    {
-      cwd,
-      env: { ...process.env, ...env },
-      stdio: ['ignore', 'pipe', 'pipe'],
-    },
-  )
+export async function bootOffline({
+  cwd,
+  env = {},
+  readyMs = 60_000,
+  injectPorts = true,
+  extraArgs = [],
+}) {
+  const args = [SF_CORE, 'offline']
+  if (injectPorts) {
+    const [appPort, lambdaPort] = await twoFreePorts()
+    args.push('--appPort', String(appPort), '--lambdaPort', String(lambdaPort))
+  }
+  args.push(...extraArgs)
+  const child = spawn('node', args, {
+    cwd,
+    env: { ...process.env, ...env },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
   let out = ''
   child.stdout.on('data', (d) => (out += d.toString()))
   child.stderr.on('data', (d) => (out += d.toString()))

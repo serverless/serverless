@@ -1,0 +1,20 @@
+service: it-config-compat
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+# serverless-offline's own config home + property names (NO plugin installed,
+# so OUR built-in offline command runs). httpPort is the plugin's name for our
+# appPort; lambdaPort maps directly; websocketPort has no built-in equivalent
+# (ignored + warned); reloadHandler:false disables hot reload.
+custom:
+  serverless-offline:
+    httpPort: 4170
+    lambdaPort: 4172
+    websocketPort: 3001
+    reloadHandler: false
+functions:
+  ping:
+    handler: handler.ping
+    events:
+      - httpApi: { method: GET, path: /ping }
