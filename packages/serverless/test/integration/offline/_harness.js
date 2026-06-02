@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { setTimeout as delay } from 'node:timers/promises'
+import WebSocket from 'ws'
 import { twoFreePorts } from './_ports.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -100,5 +101,20 @@ export async function bootOffline({ cwd, env = {}, readyMs = 60_000 }) {
     }
   }
 
-  return { appUrl, lambdaUrl, http, invoke, logs: () => out, stop, child }
+  // Open a WebSocket against the app server (shares appPort with HTTP). The
+  // app URL is http(s); swap the scheme to ws(s) and append the optional path
+  // (e.g. a query string for $connect).
+  const wsConnect = (p = '') =>
+    new WebSocket(`${appUrl.replace(/^http/, 'ws')}${p}`)
+
+  return {
+    appUrl,
+    lambdaUrl,
+    http,
+    invoke,
+    wsConnect,
+    logs: () => out,
+    stop,
+    child,
+  }
 }

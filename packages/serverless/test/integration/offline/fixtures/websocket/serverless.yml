@@ -1,0 +1,30 @@
+service: it-websocket
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+custom:
+  serverless-offline:
+    httpPort: 0
+    lambdaPort: 0
+    # Run handlers in-process so the module-level connection Set is shared
+    # across the $connect / $disconnect / broadcast routes — mirrors the
+    # ws-chat reference app and keeps the fixture dependency-free.
+    useInProcess: true
+functions:
+  connect:
+    handler: handler.connect
+    events:
+      - websocket: { route: $connect }
+  disconnect:
+    handler: handler.disconnect
+    events:
+      - websocket: { route: $disconnect }
+  default:
+    handler: handler.defaultRoute
+    events:
+      - websocket: { route: $default }
+  broadcast:
+    handler: handler.broadcast
+    events:
+      - websocket: { route: broadcast }
