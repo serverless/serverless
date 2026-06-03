@@ -1,5 +1,6 @@
 /**
- * CloudFormation `resources` block parser for API Gateway HTTP_PROXY routes.
+ * CloudFormation `resources` block parser and Hapi route registrar for API
+ * Gateway HTTP_PROXY routes.
  *
  * The Serverless Framework allows users to define raw CloudFormation resources
  * alongside the functions block.  When a user wires up an `AWS::ApiGateway::Method`
@@ -7,10 +8,16 @@
  * needs to know about those routes so it can forward matching requests upstream
  * instead of returning a 404.
  *
- * This module is intentionally a pure function — no Hapi, no I/O, no throwing —
- * so it can be exercised by unit tests without a live server and called eagerly
- * during option-loading without side effects.
+ * `parseResources` is intentionally a pure function — no Hapi, no I/O, no
+ * throwing — so it can be exercised by unit tests without a live server and
+ * called eagerly during option-loading without side effects.
+ *
+ * `registerResourceRoutes` consumes the parsed result and registers Hapi proxy
+ * routes backed by `@hapi/h2o2`.  The caller is responsible for registering
+ * h2o2 on the server before calling this function.
  */
+
+import { translateRestPath, buildMountedPath } from './path-translator.js'
 
 /**
  * Extract the `PathPart` from a `AWS::ApiGateway::Resource` object.
@@ -172,4 +179,134 @@ export function parseResources(resources) {
   }
 
   return result
+}
+
+/**
+ * Register Hapi proxy routes for every HTTP_PROXY method found in the
+ * CloudFormation `resources` block.
+ *
+ * The caller must register `@hapi/h2o2` on `server` before calling this
+ * function.  Route registration must happen before `server.start()`.
+ *
+ * @param {import('@hapi/hapi').Server} server
+ *   A Hapi server instance with h2o2 already registered.
+ * @param {object} opts
+ * @param {object | undefined} opts.resources
+ *   The `service.resources` value (raw CloudFormation).
+ * @param {true | { [methodId: string]: { Uri?: string } }} opts.resourceRoutes
+ *   `true` to use the URIs declared in the template, or an object map of
+ *   per-method URI overrides keyed by CloudFormation logical ID.
+ * @param {string} opts.stage
+ *   API Gateway stage name (e.g. `'dev'`).
+ * @param {string} [opts.prefix]
+ *   Extra path segment to apply after the stage (matches the `--prefix` flag).
+ * @param {boolean} [opts.stageInUrl=true]
+ *   When `false`, the `/<stage>/` segment is omitted from the mounted URL.
+ * @param {object | false} [opts.corsConfig]
+ *   Hapi CORS options to attach to every resource route, or `false` to
+ *   disable CORS headers.
+ * @param {boolean} [opts.disableCookieValidation=false]
+ *   When `true`, cookie parsing is disabled on resource routes.
+ * @param {{ notice: (msg: string) => void, warning: (msg: string) => void }} opts.logger
+ *   Logger with `.notice` and `.warning` methods.
+ */
+export async function registerResourceRoutes(
+  server,
+  {
+    resources,
+    resourceRoutes,
+    stage,
+    prefix,
+    stageInUrl = true,
+    corsConfig,
+    disableCookieValidation = false,
+    logger,
+  },
+) {
+  const parsed = parseResources(resources)
+
+  for (const [methodId, info] of Object.entries(parsed)) {
+    // Non-proxy integrations cannot be forwarded — warn and skip.
+    if (!info.isProxy) {
+      logger.warning(
+        `Only HTTP_PROXY is supported. Path '${info.pathResource}' is ignored.`,
+      )
+      continue
+    }
+
+    // Path could not be statically resolved (missing PathPart etc.).
+    if (!info.pathResource) {
+      logger.warning(`Could not resolve path for '${methodId}'.`)
+      continue
+    }
+
+    // Resolve the proxy URI, applying any per-method override from the
+    // `resourceRoutes` map.
+    const proxyUri =
+      (typeof resourceRoutes === 'object' &&
+        resourceRoutes !== null &&
+        resourceRoutes[methodId]?.Uri) ||
+      info.proxyUri
+
+    if (!proxyUri) {
+      logger.warning(`Could not load proxy URI for '${methodId}'.`)
+      continue
+    }
+
+    // Build the Hapi path using the same helpers used by `registerRestApiRoutes`:
+    //   1. translateRestPath   — converts `{proxy+}` → `{proxy*}` (Hapi syntax)
+    //   2. buildMountedPath    — prepends /<stage> and optional /<prefix>
+    const hapiPath = buildMountedPath(
+      translateRestPath(info.pathResource),
+      stage,
+      {
+        includeStage: stageInUrl !== false,
+        prefix,
+      },
+    )
+
+    // Hapi maps 'ANY' as '*'; HEAD routes cannot be registered (Hapi rejects
+    // them) so we skip with a notice matching the community plugin's wording.
+    const hapiMethod = info.method === 'ANY' ? '*' : info.method
+    if (hapiMethod === 'HEAD') {
+      logger.notice('HEAD method detected; skipping route mapping')
+      continue
+    }
+
+    // Route options: mirror `registerRestApiRoutes` conventions.
+    //   - state.parse / failAction — cookie handling
+    //   - payload.parse: false     — stream raw body to upstream for non-GET
+    const routeOptions = {
+      cors: corsConfig,
+      state: {
+        parse: !disableCookieValidation,
+        failAction: 'ignore',
+      },
+      ...(hapiMethod !== 'GET' && hapiMethod !== 'HEAD'
+        ? { payload: { parse: false } }
+        : {}),
+    }
+
+    server.route({
+      method: hapiMethod,
+      path: hapiPath,
+      options: routeOptions,
+      handler(request, h) {
+        // Substitute path parameters into the upstream URI.
+        let uri = proxyUri
+        for (const [key, value] of Object.entries(request.params)) {
+          uri = uri.replace(`{${key}}`, value)
+        }
+
+        // Forward the query string when present.
+        if (request.url.search) {
+          uri += request.url.search
+        }
+
+        return h.proxy({ passThrough: true, uri })
+      },
+    })
+
+    logger.notice(`${info.method} ${hapiPath} -> ${proxyUri}`)
+  }
 }
