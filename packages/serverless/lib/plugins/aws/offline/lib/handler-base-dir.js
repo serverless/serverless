@@ -10,7 +10,7 @@ import { resolve } from 'node:path'
  *    `_setConfigForLocalInvocation()` which swaps
  *    `serverless.config.servicePath` to `<serviceDir>/.serverless/build`.
  *    Because we read `serverless.serviceDir ?? serverless.config?.servicePath`
- *    lazily (after `before:offline:start` fires), the swapped value is
+ *    lazily (after `before:offline:start:init` fires), the swapped value is
  *    automatically picked up.
  *
  * 2. **Community `serverless-esbuild` plugin** — does NOT touch

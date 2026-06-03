@@ -513,7 +513,7 @@ export default class OfflinePlugin {
     // NOTE: servicePath is intentionally NOT captured here — it must be read
     // lazily each time it's needed so that bundler plugins (e.g. built-in
     // esbuild) that swap serverless.config.servicePath in their
-    // before:offline:start hook are reflected correctly.
+    // before:offline:start:init hook are reflected correctly.
     // Detect Python functions so the boot summary advertises the python3
     // child-process runner alongside the Node runner. Uses the same regex
     // as runtime-guard.js to keep the "what counts as Python" definition

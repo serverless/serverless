@@ -5,7 +5,7 @@
  * resolves the handler file path lazily so that bundler plugins which swap
  * `serverless.config.servicePath` (built-in esbuild) or set
  * `custom['serverless-offline'].location` (community `serverless-esbuild`)
- * during the `before:offline:start` hook are honoured, and dispatches the
+ * during the `before:offline:start:init` hook are honoured, and dispatches the
  * call to the worker-thread runner pool.
  *
  * Created once per function definition during plugin boot; consumed by every
