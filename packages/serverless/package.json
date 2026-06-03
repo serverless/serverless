@@ -36,6 +36,7 @@
     "@aws-sdk/credential-providers": "3.1043.0",
     "@aws-sdk/lib-storage": "3.1043.0",
     "@graphql-tools/merge": "^9.1.9",
+    "@hapi/h2o2": "^10",
     "@hapi/hapi": "^21",
     "@iarna/toml": "^2.2.5",
     "@serverlessinc/sf-core": "*",
