@@ -45,12 +45,19 @@ describe('offline serverless-offline config compatibility', () => {
       )
     })
 
-    it('warns once about a still-unsupported key (resourceRoutes)', () => {
+    it('warns once about a still-unsupported key (preLoadModules)', () => {
       const logs = offline.logs()
       const matches = logs.match(
-        /Ignoring serverless-offline option\(s\)[^\n]*resourceRoutes/gi,
+        /Ignoring serverless-offline option\(s\)[^\n]*preLoadModules/gi,
       )
       expect(matches).toHaveLength(1)
+    })
+
+    it('does not warn that resourceRoutes is ignored (now a recognized option)', () => {
+      const logs = offline.logs()
+      expect(logs).not.toMatch(
+        /Ignoring serverless-offline option\(s\)[^\n]*resourceRoutes/i,
+      )
     })
 
     it('does not emit a framework unrecognized-configuration warning', () => {

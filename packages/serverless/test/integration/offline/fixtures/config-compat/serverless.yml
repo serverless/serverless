@@ -7,14 +7,16 @@ provider:
 # so OUR built-in offline command runs). httpPort + lambdaPort map directly onto
 # the built-in HTTP / Lambda servers. websocketPort is a recognized option (the
 # WS server simply isn't started here because the fixture has no websocket
-# events). resourceRoutes is genuinely unsupported, so it triggers the one-time
-# "ignoring" boot warning. reloadHandler:false disables hot reload.
+# events). resourceRoutes is now a recognized option (no warning). preLoadModules
+# is genuinely unsupported, so it triggers the one-time "ignoring" boot warning.
+# reloadHandler:false disables hot reload.
 custom:
   serverless-offline:
     httpPort: 4170
     lambdaPort: 4172
     websocketPort: 3001
     resourceRoutes: true
+    preLoadModules: example-module
     reloadHandler: false
 functions:
   ping:
