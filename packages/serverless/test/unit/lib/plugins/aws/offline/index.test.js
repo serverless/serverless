@@ -132,6 +132,7 @@ describe('resolveOfflineOptions', () => {
       localEnvironment: false,
       noAuth: false,
       noTimeout: false,
+      resourceRoutes: false,
       useDocker: false,
       watchEnabled: false,
       webSocketHardTimeout: 7200,
@@ -369,6 +370,43 @@ describe('resolveOfflineOptions', () => {
         pluginCustom: { resourceRoutes: {}, preLoadModules: [] },
       }),
     ).not.toThrow()
+  })
+
+  describe('resourceRoutes', () => {
+    it('defaults to false', () => {
+      expect(
+        resolveOfflineOptions({ cliOptions: {}, pluginCustom: {} })
+          .resourceRoutes,
+      ).toBe(false)
+    })
+
+    it('reads resourceRoutes from custom config (object map)', () => {
+      const overrides = { MyMethod: { Uri: 'http://example.com' } }
+      expect(
+        resolveOfflineOptions({
+          cliOptions: {},
+          pluginCustom: { resourceRoutes: overrides },
+        }).resourceRoutes,
+      ).toBe(overrides)
+    })
+
+    it('reads resourceRoutes from CLI (boolean)', () => {
+      expect(
+        resolveOfflineOptions({
+          cliOptions: { resourceRoutes: true },
+          pluginCustom: {},
+        }).resourceRoutes,
+      ).toBe(true)
+    })
+
+    it('lets a CLI resourceRoutes beat a custom resourceRoutes', () => {
+      expect(
+        resolveOfflineOptions({
+          cliOptions: { resourceRoutes: true },
+          pluginCustom: { resourceRoutes: { MyMethod: { Uri: 'http://x' } } },
+        }).resourceRoutes,
+      ).toBe(true)
+    })
   })
 })
 

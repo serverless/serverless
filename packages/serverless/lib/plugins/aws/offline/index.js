@@ -44,6 +44,8 @@ import { createAppServer } from './lib/app-server/index.js'
 import { registerAlbRoutes } from './lib/app-server/alb/route-loader.js'
 import { registerHttpApiRoutes } from './lib/app-server/http-api/route-loader.js'
 import { registerRestApiRoutes } from './lib/app-server/rest-api/route-loader.js'
+import { registerResourceRoutes } from './lib/app-server/rest-api/resource-routes.js'
+import h2o2 from '@hapi/h2o2'
 import { registerAuthSchemes } from './lib/app-server/authorizers/register-schemes.js'
 import { loadCustomAuthenticationProvider } from './lib/app-server/authorizers/custom-auth-loader.js'
 import { createConnectionRegistry } from './lib/app-server/websocket/connection-registry.js'
@@ -156,6 +158,7 @@ export function resolveOfflineOptions({
     corsExposedHeaders: cli.corsExposedHeaders ?? custom.corsExposedHeaders,
     disableCookieValidation:
       cli.disableCookieValidation ?? custom.disableCookieValidation ?? false,
+    resourceRoutes: cli.resourceRoutes ?? custom.resourceRoutes ?? false,
     dockerHost: cli.dockerHost ?? custom.dockerHost ?? 'host.docker.internal',
     dockerHostServicePath:
       cli.dockerHostServicePath ?? custom.dockerHostServicePath ?? null,
@@ -489,6 +492,7 @@ export default class OfflinePlugin {
       noPrependStageInUrl,
       noTimeout,
       prefix,
+      resourceRoutes,
       terminateIdleLambdaTime,
       useDocker,
       useInProcess,
@@ -825,12 +829,15 @@ export default class OfflinePlugin {
     // for the user to copy into the `x-api-key` header. Null unless a key was
     // generated (i.e. private routes exist AND no apiGateway.apiKeys configured).
     let generatedApiKey = null
+    const appServerLogger = log.get('sls:offline:app-server')
     const appServer = await createAppServer({
       port: httpPort,
       host,
       httpsProtocol,
-      logger: log.get('sls:offline:app-server'),
+      logger: appServerLogger,
       async registerRoutes(server) {
+        await server.register(h2o2)
+
         // Register Hapi auth schemes + strategies BEFORE any routes — Hapi
         // rejects `route.options.auth` references to strategies that don't
         // exist yet at registration time.
@@ -886,6 +893,51 @@ export default class OfflinePlugin {
             return getLambdaFunction(functionKey).invoke(event)
           },
         })
+
+        if (resourceRoutes) {
+          // Build a Hapi-compatible CORS options object from the same global
+          // overrides passed to registerRestApiRoutes so resource routes behave
+          // consistently.  When no overrides are configured, CORS is disabled
+          // on resource routes (upstream HTTP_PROXY targets handle it
+          // themselves via passThrough: true).
+          const resourceRoutesCorsConfig =
+            corsAllowOrigin !== undefined ||
+            corsAllowHeaders !== undefined ||
+            corsDisallowCredentials !== undefined ||
+            corsExposedHeaders !== undefined
+              ? {
+                  origin:
+                    corsAllowOrigin !== undefined ? [corsAllowOrigin] : ['*'],
+                  ...(corsAllowHeaders !== undefined
+                    ? {
+                        additionalHeaders: String(corsAllowHeaders)
+                          .split(',')
+                          .map((s) => s.trim())
+                          .filter(Boolean),
+                      }
+                    : {}),
+                  credentials: corsDisallowCredentials !== true,
+                  ...(corsExposedHeaders !== undefined
+                    ? {
+                        additionalExposedHeaders: String(corsExposedHeaders)
+                          .split(',')
+                          .map((s) => s.trim())
+                          .filter(Boolean),
+                      }
+                    : {}),
+                }
+              : false
+          await registerResourceRoutes(server, {
+            resources: serverless.service.resources,
+            resourceRoutes,
+            stage,
+            prefix,
+            stageInUrl: !noPrependStageInUrl,
+            corsConfig: resourceRoutesCorsConfig,
+            disableCookieValidation,
+            logger: appServerLogger,
+          })
+        }
       },
     })
 
