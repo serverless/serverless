@@ -8,14 +8,13 @@ import {
 describe('plugin-compat', () => {
   describe('exported constants', () => {
     it('UNSUPPORTED_KEYS has the exact expected membership', () => {
-      expect([...UNSUPPORTED_KEYS].sort()).toEqual(
-        ['preLoadModules', 'resourceRoutes'].sort(),
-      )
+      expect([...UNSUPPORTED_KEYS].sort()).toEqual(['preLoadModules'].sort())
     })
 
-    it('UNSUPPORTED_KEYS no longer lists websocketPort or albPort', () => {
+    it('UNSUPPORTED_KEYS no longer lists websocketPort, albPort, or resourceRoutes', () => {
       expect(UNSUPPORTED_KEYS).not.toContain('websocketPort')
       expect(UNSUPPORTED_KEYS).not.toContain('albPort')
+      expect(UNSUPPORTED_KEYS).not.toContain('resourceRoutes')
     })
 
     it('SILENT_IGNORE_KEYS holds noSponsor', () => {
@@ -31,13 +30,22 @@ describe('plugin-compat', () => {
   })
 
   describe('collectUnsupportedKeys', () => {
-    it('returns sorted unsupported keys present in either source', () => {
+    it('returns the unsupported key present in a source', () => {
+      expect(
+        collectUnsupportedKeys({
+          cliOptions: {},
+          pluginCustom: { preLoadModules: [] },
+        }),
+      ).toEqual(['preLoadModules'])
+    })
+
+    it('does not treat resourceRoutes as unsupported (now implemented)', () => {
       expect(
         collectUnsupportedKeys({
           cliOptions: { resourceRoutes: true },
-          pluginCustom: { preLoadModules: [] },
+          pluginCustom: { resourceRoutes: { SomeMethod: { Uri: 'http://x' } } },
         }),
-      ).toEqual(['preLoadModules', 'resourceRoutes'])
+      ).toEqual([])
     })
 
     it('does not treat websocketPort or albPort as unsupported', () => {
@@ -52,10 +60,10 @@ describe('plugin-compat', () => {
     it('deduplicates keys present in both sources', () => {
       expect(
         collectUnsupportedKeys({
-          cliOptions: { resourceRoutes: true },
-          pluginCustom: { resourceRoutes: true },
+          cliOptions: { preLoadModules: ['a'] },
+          pluginCustom: { preLoadModules: ['b'] },
         }),
-      ).toEqual(['resourceRoutes'])
+      ).toEqual(['preLoadModules'])
     })
 
     it('returns empty when none are present', () => {
@@ -70,7 +78,7 @@ describe('plugin-compat', () => {
     it('ignores keys whose value is undefined', () => {
       expect(
         collectUnsupportedKeys({
-          cliOptions: { resourceRoutes: undefined },
+          cliOptions: { preLoadModules: undefined },
           pluginCustom: {},
         }),
       ).toEqual([])

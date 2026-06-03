@@ -5,7 +5,7 @@
  *
  * @type {string[]}
  */
-export const UNSUPPORTED_KEYS = ['preLoadModules', 'resourceRoutes']
+export const UNSUPPORTED_KEYS = ['preLoadModules']
 
 /**
  * serverless-offline plugin option names that the built-in command silently
