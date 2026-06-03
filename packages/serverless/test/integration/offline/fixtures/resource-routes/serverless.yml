@@ -1,0 +1,57 @@
+service: it-resource-routes
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+custom:
+  serverless-offline:
+    httpPort: 0
+    lambdaPort: 0
+    # Enable parsing of raw CloudFormation API Gateway HTTP_PROXY integrations
+    # from the resources block and proxying matching requests upstream.
+    resourceRoutes: true
+functions:
+  # The service needs at least one function entry; this one is never invoked —
+  # the test exercises the HTTP_PROXY resource route declared below.
+  noop:
+    handler: handler.noop
+resources:
+  Resources:
+    ApiGatewayRestApi:
+      Type: AWS::ApiGateway::RestApi
+      Properties:
+        Name: it-resource-routes
+    Public:
+      Type: AWS::ApiGateway::Resource
+      Properties:
+        PathPart: public
+        ParentId:
+          Fn::GetAtt:
+            - ApiGatewayRestApi
+            - RootResourceId
+        RestApiId:
+          Ref: ApiGatewayRestApi
+    PublicProxy:
+      Type: AWS::ApiGateway::Resource
+      Properties:
+        PathPart: '{proxy+}'
+        ParentId:
+          Ref: Public
+        RestApiId:
+          Ref: ApiGatewayRestApi
+    PublicProxyMethod:
+      Type: AWS::ApiGateway::Method
+      Properties:
+        HttpMethod: ANY
+        ResourceId:
+          Ref: PublicProxy
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        AuthorizationType: NONE
+        Integration:
+          Type: HTTP_PROXY
+          # The upstream base URL is injected at test time on an ephemeral port,
+          # so it cannot be hardcoded. The Framework resolves ${env:} at config
+          # load, and the offline child inherits process.env from the harness.
+          Uri: ${env:RESOURCE_ROUTES_UPSTREAM}/up/{proxy}
+          IntegrationHttpMethod: ANY
