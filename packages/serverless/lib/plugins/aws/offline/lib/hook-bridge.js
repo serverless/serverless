@@ -1,7 +1,12 @@
 /**
- * Emits legacy lifecycle event names so bundler plugins and other listeners
- * registered on the community `serverless-offline` plugin's events keep
- * working unchanged.
+ * Mirrors the community `serverless-offline` plugin's `offline start`
+ * lifecycle so listeners registered on its events keep working unchanged.
+ *
+ * `offline start` is a regular command, so the Framework runs each of its
+ * lifecycle sub-events (`init`, `ready`, `end`) as a before→at→after triplet
+ * (see `PluginManager.invoke()`). We reproduce that exact triplet here per
+ * sub-event, which means every companion handler lands on precisely one
+ * fired event — no gaps and no double-starts.
  *
  * Canonical events (`before:offline:offline`, `offline:offline`,
  * `after:offline:offline`) are dispatched by the Framework's invoke loop
@@ -22,17 +27,18 @@ export function createHookBridge(pluginManager) {
     await pluginManager.runHooks(eventName, hooks)
   }
 
-  const emitAll = async (...eventNames) => {
-    for (const name of eventNames) {
-      await emit(name)
-    }
+  // Run a lifecycle event as the Framework's invoke loop does: before → at →
+  // after (PluginManager.invoke()).
+  const emitLifecycle = async (name) => {
+    await emit('before:' + name)
+    await emit(name)
+    await emit('after:' + name)
   }
 
   return {
-    fireBeforeStart: () => emit('before:offline:start'),
-    fireStart: () => emitAll('offline:start', 'offline:start:init'),
-    fireReady: () => emit('offline:start:ready'),
-    fireEnd: () => emitAll('offline:start:end', 'after:offline:start'),
+    fireInit: () => emitLifecycle('offline:start:init'),
+    fireReady: () => emitLifecycle('offline:start:ready'),
+    fireEnd: () => emitLifecycle('offline:start:end'),
     fireFunctionsUpdated: () => emit('offline:functionsUpdated:cleanup'),
   }
 }

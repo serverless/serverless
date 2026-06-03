@@ -690,7 +690,7 @@ export default class OfflinePlugin {
     //    fully resolved), so servicePath in workerData is unused — pass a
     //    placeholder that will be overwritten before any invocation. The real
     //    resolution happens lazily in resolveHandlerPath below, after
-    //    bridge.fireBeforeStart() has run.
+    //    bridge.fireInit() has run.
     //    In-process runner (--useInProcess) shares the offline server's process
     //    and ignores terminateIdleLambdaTime (no workers to recycle).
     //    When any function uses the Go runtime family, also create the shared
@@ -973,7 +973,7 @@ export default class OfflinePlugin {
     })
 
     // 11. Register teardowns for the servers (LIFO — runner and
-    //    watcher are added after bridge.fireBeforeStart so they appear last,
+    //    watcher are added after bridge.fireInit so they appear last,
     //    meaning they are torn down first).
     //    Registration order here: awsApiServer → wsHapiServer → albServer →
     //    appServer → wsController.
@@ -997,13 +997,14 @@ export default class OfflinePlugin {
     // in-flight schedule invocations before runners shut down.
     orchestrator.onShutdown(() => scheduler.stop())
 
-    // 12. Fire before:offline:start so that bundler plugins (e.g. built-in
-    //     esbuild) can bundle TS handlers and swap serverless.config.servicePath
-    //     to the build output directory BEFORE the watcher resolves handler
-    //     paths or the runner is used for the first time.
-    await bridge.fireBeforeStart()
+    // 12. Fire the `offline:start:init` lifecycle (mirrors community
+    //     `offline start`) so that bundler plugins (e.g. built-in esbuild) can
+    //     bundle TS handlers and swap serverless.config.servicePath to the
+    //     build output directory BEFORE the watcher resolves handler paths or
+    //     the runner is used for the first time.
+    await bridge.fireInit()
 
-    // 13. Start the native file watcher AFTER fireBeforeStart so it resolves
+    // 13. Start the native file watcher AFTER fireInit so it resolves
     //     handler paths against the (possibly bundler-swapped) base directory.
     //     getHandlerBaseDir() honours both the built-in esbuild swap and the
     //     community serverless-esbuild custom location contract.
@@ -1043,7 +1044,7 @@ export default class OfflinePlugin {
 
     await orchestrator.start({
       onReady: async () => {
-        await bridge.fireStart()
+        // Fire the `offline:start:ready` lifecycle once every component is up.
         await bridge.fireReady()
         // Boot summary — printed after every component is up so users get a
         // single coherent diagnostic block instead of interleaved listening
@@ -1083,6 +1084,8 @@ export default class OfflinePlugin {
     } catch (err) {
       shutdownError = err
     } finally {
+      // Fire the `offline:start:end` lifecycle on shutdown so companion
+      // emulators tear down (mirrors community `offline start`).
       await bridge.fireEnd()
     }
     if (shutdownError) throw shutdownError

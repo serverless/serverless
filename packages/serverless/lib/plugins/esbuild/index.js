@@ -39,7 +39,7 @@ class Esbuild {
         }
       },
       // Make sure we build for the serverless-offline plugin too
-      'before:offline:start': async () => {
+      'before:offline:start:init': async () => {
         if (await this._shouldRun()) {
           await this._build()
           this._setConfigForLocalInvocation()
