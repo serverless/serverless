@@ -576,36 +576,56 @@ export class ResolverManager {
     selectedProviders = [],
     selectedPaths = [],
     graph,
-    state = this.processingState,
   } = {}) {
     const filteredGraph = this.#createFilteredGraph(
       graph,
       selectedPaths,
       selectedProviders,
     )
+    // Save the active-pass context on entry and restore it on exit; each pass
+    // also gets its own `state`. Do NOT clear `graphBeingProcessed` or share one
+    // `processingState` across passes.
+    //
+    // Resolution is re-entrant: a JS/TS file resolver can call resolveVariable()
+    // or resolveConfigurationProperty(), which open a nested pass here. The
+    // fields must always point at the innermost running pass and fall back to
+    // its parent when it exits. If a nested pass cleared them instead, the
+    // still-running outer pass would look inactive, and a later re-entrant call
+    // would start its own narrow pass (scoped to a temporary property) that runs
+    // alongside the outer pass and can leave nested placeholders unresolved.
+    // Stacking the context keeps re-entrant calls on the outermost (unscoped)
+    // pass so the full dependency chain resolves cooperatively.
+    const previousGraph = this.graphBeingProcessed
+    const previousState = this.processingState
+    const state = {}
     this.graphBeingProcessed = filteredGraph
-    await processGraphInParallel(
-      filteredGraph,
-      async (nodeName) => {
-        const nodeLabel = filteredGraph.node(nodeName)
-        if (nodeLabel?.provider) {
-          this.#handleProviderNode(nodeName)
-        } else if (nodeLabel?.dedicatedResolverConfig) {
-          this.#handleDedicatedResolverNode(nodeName, filteredGraph)
-        } else {
-          await this.#handlePlaceholderNode(
-            nodeName,
-            nodeLabel,
-            filteredGraph,
-            selectedProviders,
-            selectedPaths,
-          )
-        }
-      },
-      graph,
-      state,
-    )
-    this.graphBeingProcessed = null
+    this.processingState = state
+    try {
+      await processGraphInParallel(
+        filteredGraph,
+        async (nodeName) => {
+          const nodeLabel = filteredGraph.node(nodeName)
+          if (nodeLabel?.provider) {
+            this.#handleProviderNode(nodeName)
+          } else if (nodeLabel?.dedicatedResolverConfig) {
+            this.#handleDedicatedResolverNode(nodeName, filteredGraph)
+          } else {
+            await this.#handlePlaceholderNode(
+              nodeName,
+              nodeLabel,
+              filteredGraph,
+              selectedProviders,
+              selectedPaths,
+            )
+          }
+        },
+        graph,
+        state,
+      )
+    } finally {
+      this.graphBeingProcessed = previousGraph
+      this.processingState = previousState
+    }
   }
 
   #addResolverProvider = (nodeName) => {

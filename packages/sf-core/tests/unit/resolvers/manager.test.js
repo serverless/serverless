@@ -642,6 +642,71 @@ describe('ResolverManager', () => {
     })
   })
 
+  describe('Re-entrant resolution (pass context)', () => {
+    // Regression guard: a JS/TS file resolver can call resolveVariable() or
+    // resolveConfigurationProperty() while the framework is already resolving a
+    // value. Each such call opens a nested resolution pass. The nested pass must
+    // NOT strand the outer pass — previously it reset `graphBeingProcessed` to
+    // null on exit, so a subsequent re-entrant call saw "no pass running" and
+    // spun up its own narrow, racing pass that could leave nested placeholders
+    // unresolved (observed only under certain async schedules, e.g. jest 30.4.x).
+    // The active-pass context must be saved and restored, not cleared.
+    test('nested resolution restores the outer pass context', async () => {
+      const serviceConfig = {
+        service: 'test-service',
+        provider: { stage: 'dev' },
+        custom: { simple: 'plain' },
+        target: '${probe:run}',
+      }
+      // Use a local manager so this test does not mutate the shared `manager`
+      // that sibling describes rely on.
+      const reentrantManager = new ResolverManager(
+        mockLogger,
+        serviceConfig,
+        '/path/to/config',
+        { stage: 'dev' },
+        null,
+        null,
+        null,
+        false,
+        '4.0.0',
+      )
+
+      let graphDuringOuterPass
+      let graphAfterNestedPass
+      const probe = jest.fn(async () => {
+        // We are inside the outer pass that is resolving `target`.
+        graphDuringOuterPass = reentrantManager.graphBeingProcessed
+        // Mirror a file resolver reaching back into the manager mid-resolution.
+        await reentrantManager.resolveConfigurationProperty([
+          'custom',
+          'simple',
+        ])
+        // The outer pass must still be active after the nested pass returns.
+        graphAfterNestedPass = reentrantManager.graphBeingProcessed
+        return 'done'
+      })
+
+      reentrantManager.addResolverProvider('probe', {
+        instance: { constructor: { type: 'probe', defaultResolver: 'run' } },
+        resolvers: { run: probe, default: probe },
+      })
+
+      await reentrantManager.loadPlaceholders()
+      await reentrantManager.resolveAndReplacePlaceholdersInConfig({
+        selectedPaths: [['target']],
+      })
+
+      expect(probe).toHaveBeenCalled()
+      // The outer pass was active when the resolver ran...
+      expect(graphDuringOuterPass).toBeTruthy()
+      // ...and remained the SAME active pass after the nested resolution,
+      // rather than being cleared to null (the pre-fix behavior).
+      expect(graphAfterNestedPass).toBe(graphDuringOuterPass)
+      expect(reentrantManager.serviceConfigFile.target).toBe('done')
+    })
+  })
+
   describe('Resolution Scenarios (Edge Cases)', () => {
     test('resolves fallback when source is missing', async () => {
       // Fallback string must be valid JSON (quoted)
