@@ -74,6 +74,7 @@ s3:resolvers-integration-test/test.txt: file content
 ssm:test-param: ssm-value
 aws:accountId: 762003938904
 aws:region: us-east-1
+aws:partition: aws
 pluginCountBob: ${`Bob${stage}`.length}
 pluginCountFoobarStage: ${`foobar${stage}`.length}
 `)

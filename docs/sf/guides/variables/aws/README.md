@@ -11,6 +11,7 @@ keywords:
   - deployment
   - accountId
   - region
+  - partition
 -->
 
 # Resolvers
@@ -74,3 +75,30 @@ functions:
 **region**
 
 The region used by the Serverless CLI. The `${aws:region}` variable is a shortcut for `${opt:region, self:provider.region, "us-east-1"}`.
+
+**partition**
+
+The AWS partition for the resolved region, derived locally with no AWS API call. This is useful for building ARNs that work across partitions such as AWS GovCloud (US) and China, where the ARN prefix is `aws-us-gov` or `aws-cn` instead of `aws`.
+
+| Region (example) | `${aws:partition}` |
+| ---------------- | ------------------ |
+| `us-east-1`      | `aws`              |
+| `cn-north-1`     | `aws-cn`           |
+| `us-gov-west-1`  | `aws-us-gov`       |
+
+All AWS partitions are supported, including the isolated and sovereign ones: `aws-iso`, `aws-iso-b`, `aws-iso-e`, and `aws-iso-f` (US ISO regions) and `aws-eusc` (European Sovereign Cloud).
+
+Unknown regions fall back to `aws`, matching the behavior of the CloudFormation `AWS::Partition` pseudo-parameter.
+
+```yml
+service: new-service
+provider:
+  name: aws
+
+functions:
+  func1:
+    name: function-1
+    handler: handler.func1
+    environment:
+      QUEUE_ARN: arn:${aws:partition}:sqs:${aws:region}:${aws:accountId}:my-queue
+```

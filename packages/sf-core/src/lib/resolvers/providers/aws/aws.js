@@ -3,6 +3,7 @@ import { resolveVariableFromSsm } from './ssm.js'
 import { resolveVariableFromS3, storeDataInS3 } from './s3.js'
 import { resolveVariableFromCloudFormation } from './cf.js'
 import { GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts'
+import { partition } from '@aws-sdk/core/client'
 import { addProxyToAwsClient } from '@serverless/util'
 import { getAwsCredentials } from './credentials.js'
 import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
@@ -95,6 +96,10 @@ export class Aws extends AbstractProvider {
 
       if (key === 'region') {
         return region
+      }
+
+      if (key === 'partition') {
+        return resolvePartition(region)
       }
 
       if (resolverType === 'ssm') {
@@ -222,3 +227,15 @@ const resolveRegion = (
   }
   return 'us-east-1'
 }
+
+/**
+ * Resolve the AWS partition for a region (e.g. `aws`, `aws-cn`, `aws-us-gov`,
+ * `aws-iso-e`). Backed by the AWS SDK's bundled partition data, so it requires
+ * no network call and no credentials — it is a pure function of the region
+ * string — and stays correct as AWS adds partitions/regions instead of relying
+ * on a hand-maintained prefix table. Unknown regions fall back to `aws`,
+ * matching the CloudFormation `AWS::Partition` pseudo-parameter.
+ * @param {string} region - The AWS region (e.g. `us-east-1`).
+ * @returns {string} The partition name (e.g. `aws`).
+ */
+const resolvePartition = (region) => partition(region).name
