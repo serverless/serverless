@@ -22,6 +22,7 @@ functions:
       ssm:test-param: ${ssm:/resolvers/sample-param}
       aws:accountId: ${aws:accountId}
       aws:region: ${aws:region}
+      aws:partition: ${aws:partition}
       pluginCountBob: ${count:${self:custom.foreachParams.0.name}}
       pluginCountFoobarStage: ${count:${file(conf/${opt:region}.yml):toCount}}
 
@@ -31,6 +32,7 @@ functions:
   # ssm:test-param: ${ssm:/resolvers/sample-param} # ssm-value from /resolvers/sample-param SSM parameter
   # aws:accountId: ${aws:accountId} # 762003938904 serverlesstestaccount AWS account ID
   # aws:region: ${aws:region} # us-east-1 from provider region
+  # aws:partition: ${aws:partition} # aws, derived from the us-east-1 region
 
   function2:
     handler: index.handler

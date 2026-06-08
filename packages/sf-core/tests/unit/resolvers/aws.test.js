@@ -383,6 +383,50 @@ describe('Aws Resolver', () => {
 
       expect(result).toBe('eu-central-1')
     })
+
+    // Mapping table doubles as the safety net for our use of the AWS SDK's
+    // `partition` helper. If an SDK upgrade changes the export shape or the
+    // partition data, these fail loudly in CI instead of silently producing
+    // wrong ARNs (e.g. for GovCloud users). The unknown-region case asserts the
+    // fallback to `aws`, matching the CloudFormation `AWS::Partition`
+    // pseudo-parameter.
+    test.each([
+      ['us-east-1', 'aws'],
+      ['eu-west-1', 'aws'],
+      ['ap-southeast-2', 'aws'],
+      ['cn-north-1', 'aws-cn'],
+      ['cn-northwest-1', 'aws-cn'],
+      ['us-gov-east-1', 'aws-us-gov'],
+      ['us-gov-west-1', 'aws-us-gov'],
+      ['us-iso-east-1', 'aws-iso'],
+      ['us-isob-east-1', 'aws-iso-b'],
+      ['eu-isoe-west-1', 'aws-iso-e'],
+      ['us-isof-south-1', 'aws-iso-f'],
+      ['eusc-de-east-1', 'aws-eusc'],
+      ['made-up-region-9', 'aws'],
+    ])('resolves partition for region %s to %s', async (region, expected) => {
+      const resolver = new Aws({
+        logger: mockLogger,
+        providerConfig: { region },
+        serviceConfigFile: {},
+        configFileDirPath: '/tmp',
+        options: {},
+        stage: 'dev',
+        dashboard: null,
+        composeParams: null,
+        resolveVariableFunc: jest.fn(),
+        resolveConfigurationPropertyFunc: jest.fn(),
+      })
+      resolver.credentials = { accessKeyId: 'test', secretAccessKey: 'test' }
+
+      const result = await resolver.resolveVariable({
+        resolverType: 'ssm',
+        resolutionDetails: {},
+        key: 'partition',
+      })
+
+      expect(result).toBe(expected)
+    })
   })
 
   describe('static properties', () => {
