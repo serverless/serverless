@@ -26,7 +26,7 @@ jobs:
       - name: 'Setup: AWS Credentials'
         uses: aws-actions/configure-aws-credentials@99214aa6889fcddfa57764031d71add364327e59 # v6.1.3
         with:
-          role-to-assume: arn:aws:iam::802587217904:role/GithubActionsDeploymentRole
+          role-to-assume: arn:aws:iam::802587217904:role/GithubActionsPublicServerlessRepoAccessRole
           aws-region: us-east-1
       - name: 'Test: Unit'
         run: make test
