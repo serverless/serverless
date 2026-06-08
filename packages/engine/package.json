@@ -51,7 +51,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "jest": "^30.3.0",
+    "jest": "^30.4.2",
     "jest-mock-extended": "^4.0.1",
     "js-yaml": "^4.1.1"
   }
