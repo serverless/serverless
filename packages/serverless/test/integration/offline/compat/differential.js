@@ -43,9 +43,9 @@ import { isAllowed } from './divergences.js'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const FIXTURES = path.resolve(__dirname, '../fixtures')
 const SF_CORE = path.resolve(__dirname, '../../../../../sf-core/bin/sf-core.js')
-const PLUGIN_DIR =
-  process.env.SERVERLESS_OFFLINE_DIR ??
-  '/Users/czubocha/GolandProjects/serverless-offline'
+// Local `serverless-offline` checkout to diff against. Set SERVERLESS_OFFLINE_DIR
+// to a clone to enable the drift-detector; unset makes this script skip cleanly.
+const PLUGIN_DIR = process.env.SERVERLESS_OFFLINE_DIR
 
 // Header names worth diffing per surface. Volatile/transport headers (date,
 // connection, content-length, etc.) and request-id-style values are ignored —
@@ -576,6 +576,7 @@ const SURFACES = [
 ]
 
 async function pluginAvailable() {
+  if (!PLUGIN_DIR) return false
   try {
     await access(PLUGIN_DIR)
     return true
@@ -587,7 +588,7 @@ async function pluginAvailable() {
 async function main() {
   if (!(await pluginAvailable())) {
     console.log(
-      `community plugin not found at ${PLUGIN_DIR}; set SERVERLESS_OFFLINE_DIR. Skipping.`,
+      'community plugin checkout not available (set SERVERLESS_OFFLINE_DIR to a local serverless-offline clone). Skipping.',
     )
     process.exit(0)
   }

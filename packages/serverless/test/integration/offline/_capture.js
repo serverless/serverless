@@ -17,9 +17,10 @@ import { twoFreePorts } from './_ports.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const SF_CORE = path.resolve(__dirname, '../../../../sf-core/bin/sf-core.js')
-const PLUGIN_DIR =
-  process.env.SERVERLESS_OFFLINE_DIR ??
-  '/Users/czubocha/GolandProjects/serverless-offline'
+// Path to a local `serverless-offline` checkout — used only by the differential
+// drift-detector (`npm run test:offline:compat`) to boot the community plugin for
+// comparison. Set SERVERLESS_OFFLINE_DIR to enable it; unset leaves it disabled.
+const PLUGIN_DIR = process.env.SERVERLESS_OFFLINE_DIR
 
 /**
  * Kill a child with SIGKILL and briefly await its exit, so error paths never
@@ -74,6 +75,11 @@ export async function bootCommunityPlugin({ fixtureDir, readyMs = 90_000 }) {
     lambdaPort,
   }
   await writeFile(ymlPath, yaml.dump(doc))
+  if (!PLUGIN_DIR) {
+    throw new Error(
+      'SERVERLESS_OFFLINE_DIR is not set — point it at a local serverless-offline checkout to run the differential drift-detector.',
+    )
+  }
   await mkdir(path.join(dir, 'node_modules'), { recursive: true })
   await symlink(
     PLUGIN_DIR,
