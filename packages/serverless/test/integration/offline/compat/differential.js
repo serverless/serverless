@@ -392,7 +392,7 @@ async function runAlb() {
     return [
       {
         name: 'single-value-event',
-        ours: await snapshot(await ours.http(`/single${query}`, init)),
+        ours: await snapshot(await ours.albHttp(`/single${query}`, init)),
         plugin: await snapshot(
           await fetch(`${plugin.albUrl}/dev/single${query}`, init),
         ),
