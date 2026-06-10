@@ -18,7 +18,12 @@ import { convertPluginToResolverProvider } from '../resolvers/providers.js'
 import { Runner } from './index.js'
 import { configureLocalstackAWSEndpoint } from '../../utils/local/localstack.js'
 import path from 'path'
+import { stat } from 'node:fs/promises'
 import Esbuild from '@serverless/framework/lib/plugins/esbuild/index.js'
+import {
+  collectArtifactPaths,
+  deriveAnalysisEnrichment,
+} from './framework-analytics.js'
 import { Deployment } from '../platform/deployments.js'
 
 export class TraditionalRunner extends Runner {
@@ -93,12 +98,18 @@ export class TraditionalRunner extends Runner {
       })
     )?.serviceUniqueId
 
+    // Captured pre-run so isFirstDeploy can distinguish create vs update —
+    // awsCfStack.timeUpdated is unreliable for this (still null on the 2nd
+    // deploy, since stack info is snapshotted before the update runs)
+    this.analyticsMetrics = { stackExistedBeforeRun: Boolean(serviceUniqueId) }
+
     // Run the command
     const {
       state,
       integrations,
       compiledCloudFormationTemplate,
       coreCloudFormationTemplate,
+      analyticsMetrics,
     } = await runFramework({
       accessKeyV1: authenticatedData.accessKeyV1,
       accessKeyV2: authenticatedData.accessKeyV2,
@@ -122,6 +133,7 @@ export class TraditionalRunner extends Runner {
     this.integrations = integrations
     this.compiledCloudFormationTemplate = compiledCloudFormationTemplate
     this.coreCloudFormationTemplate = coreCloudFormationTemplate
+    Object.assign(this.analyticsMetrics, analyticsMetrics)
 
     if (!serviceUniqueId) {
       serviceUniqueId = (
@@ -232,6 +244,16 @@ export class TraditionalRunner extends Runner {
         this.configFilePath,
       ),
       integrations: this.integrations,
+      // Service-shape and build metrics; deriveAnalysisEnrichment is total
+      // (never throws) — a throw escaping this method aborts finalization
+      // and silently drops the billing usage event
+      ...deriveAnalysisEnrichment({
+        config: this.config,
+        compiledCloudFormationTemplate: this.compiledCloudFormationTemplate,
+        command: this.command,
+        serviceUniqueId: this.serviceUniqueId,
+        analyticsMetrics: this.analyticsMetrics,
+      }),
     }
 
     // plugins
@@ -545,6 +567,38 @@ const runFramework = async ({
   if (fullCommand === 'remove') {
     state = {}
   }
+
+  const analyticsMetrics = {}
+  const lifecycleEventDurations =
+    serverless.pluginManager?.lifecycleEventDurations ?? {}
+  const buildDurationMs =
+    (lifecycleEventDurations['package:createDeploymentArtifacts'] ?? 0) +
+    (lifecycleEventDurations['deploy:function:packageFunction'] ?? 0)
+  if (buildDurationMs > 0) {
+    analyticsMetrics.buildDurationMs = buildDurationMs
+  }
+
+  try {
+    // Classic individually-packaged artifacts are recorded relative to the
+    // service dir; resolve and dedupe before stat
+    const artifactPaths = [
+      ...new Set(
+        collectArtifactPaths(serverless.service).map((artifactPath) =>
+          path.resolve(servicePath, artifactPath),
+        ),
+      ),
+    ]
+    if (artifactPaths.length > 0) {
+      const artifactSizesBytes = []
+      for (const artifactPath of artifactPaths) {
+        artifactSizesBytes.push((await stat(artifactPath)).size)
+      }
+      analyticsMetrics.artifactSizesBytes = artifactSizesBytes
+    }
+  } catch (err) {
+    logger.debug('error collecting artifact sizes', err)
+  }
+
   return {
     state,
     integrations: serverless.integrations,
@@ -552,6 +606,7 @@ const runFramework = async ({
       serverless.service?.provider?.compiledCloudFormationTemplate,
     coreCloudFormationTemplate:
       serverless.service?.provider?.coreCloudFormationTemplate,
+    analyticsMetrics,
   }
 }
 
