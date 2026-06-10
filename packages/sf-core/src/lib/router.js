@@ -58,6 +58,7 @@ const runners = [
  * @returns {Promise<void>} - Resolves when routing is complete.
  */
 const route = async ({ command, options, versions, compose }) => {
+  const commandStartTime = Date.now()
   const logger = log.get('core:router')
   const progressMain = progress.get('main')
   progressMain.notice('Initializing')
@@ -136,6 +137,7 @@ const route = async ({ command, options, versions, compose }) => {
       logger,
       versionFramework: versions?.serverless_framework,
       command,
+      commandStartTime,
       options,
       resolverManager,
       compose,
@@ -155,6 +157,7 @@ const route = async ({ command, options, versions, compose }) => {
     await handleFinalizationError({
       versionFramework: versions?.serverless_framework,
       command,
+      commandStartTime,
       options,
       configFilePath,
       resolverManager,
@@ -346,6 +349,7 @@ const createAnalysisEvent = ({
   orgId,
   versionFramework,
   command,
+  commandStartTime,
   configFileName,
   isCompose,
   userId,
@@ -377,6 +381,10 @@ const createAnalysisEvent = ({
     configurationFileName: configFileName,
     resolvers: Array.from(new Set(resolvers)),
     ...runnerSpecificDetails,
+  }
+
+  if (typeof commandStartTime === 'number') {
+    analysisEvent.commandDurationMs = Date.now() - commandStartTime
   }
 
   if (error instanceof Error) {
@@ -525,6 +533,7 @@ const finalize = async ({
   logger,
   versionFramework,
   command,
+  commandStartTime,
   options,
   resolverManager,
   compose,
@@ -562,6 +571,7 @@ const finalize = async ({
       orgId,
       versionFramework,
       command,
+      commandStartTime,
       configFilePath,
       runner,
       compose,
@@ -619,6 +629,7 @@ const finalize = async ({
 const handleFinalizationError = async ({
   versionFramework,
   command,
+  commandStartTime,
   options,
   configFilePath,
   resolverManager,
@@ -635,6 +646,7 @@ const handleFinalizationError = async ({
       orgId: authenticatedData?.orgId,
       versionFramework,
       command,
+      commandStartTime,
       configFileName: configFilePath && path.basename(configFilePath),
       isCompose:
         runner.constructor.name === 'ComposeRunner' ||
@@ -715,6 +727,7 @@ async function sendAnalysisAndUsageEvent({
   orgId,
   versionFramework,
   command,
+  commandStartTime,
   configFilePath,
   runner,
   compose,
@@ -730,6 +743,7 @@ async function sendAnalysisAndUsageEvent({
     orgId,
     versionFramework,
     command,
+    commandStartTime,
     configFileName: configFilePath && path.basename(configFilePath),
     isCompose:
       runner.constructor.name === 'ComposeRunner' ||
