@@ -333,6 +333,7 @@ const createUsageEvent = ({
  * @param {string} params.orgId - Organization ID.
  * @param {string} params.versionFramework - Version of the Serverless Framework being used.
  * @param {string[]} params.command - The command executed as part of the Serverless action.
+ * @param {number} [params.commandStartTime] - Epoch ms timestamp of command start, used to compute commandDurationMs.
  * @param {string} params.configFileName - Name of the configuration file.
  * @param {boolean} params.isCompose - Indicates if this is within a Compose project.
  * @param {string[]} params.cliOptions - CLI options passed during execution.
@@ -516,6 +517,7 @@ export const getRunner = async ({
  * @param logger
  * @param versionFramework
  * @param command
+ * @param commandStartTime
  * @param options
  * @param resolverManager
  * @param compose
