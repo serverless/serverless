@@ -111,11 +111,11 @@ export const deriveAnalysisEnrichment = ({
     const eventSourceTypes = deriveEventSourceTypes(config?.functions)
     if (eventSourceTypes.length > 0) details.eventSourceTypes = eventSourceTypes
 
-    const customResourceTypeBreakdown = tallyResourceTypes(
+    const configResourceTypeBreakdown = tallyResourceTypes(
       config?.resources?.Resources,
     )
-    if (customResourceTypeBreakdown) {
-      details.customResourceTypeBreakdown = customResourceTypeBreakdown
+    if (configResourceTypeBreakdown) {
+      details.configResourceTypeBreakdown = configResourceTypeBreakdown
     }
 
     const compiledResources = compiledCloudFormationTemplate?.Resources

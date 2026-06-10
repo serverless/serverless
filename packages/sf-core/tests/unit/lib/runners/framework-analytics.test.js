@@ -155,7 +155,7 @@ describe('deriveAnalysisEnrichment', () => {
       functionCount: 2,
       layerCount: 1,
       eventSourceTypes: ['httpApi', 'sqs'],
-      customResourceTypeBreakdown: { 'AWS::S3::Bucket': 1, Custom: 1 },
+      configResourceTypeBreakdown: { 'AWS::S3::Bucket': 1, Custom: 1 },
       resourceTypeBreakdown: {
         'AWS::Lambda::Function': 1,
         'AWS::IAM::Role': 1,
