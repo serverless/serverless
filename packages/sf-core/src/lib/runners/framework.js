@@ -588,11 +588,17 @@ const runFramework = async ({
         ),
       ),
     ]
-    if (artifactPaths.length > 0) {
-      const artifactSizesBytes = []
-      for (const artifactPath of artifactPaths) {
+    const artifactSizesBytes = []
+    for (const artifactPath of artifactPaths) {
+      try {
         artifactSizesBytes.push((await stat(artifactPath)).size)
+      } catch (err) {
+        // e.g. a disabled function whose configured artifact was never
+        // written — skip it and keep the sizes of the artifacts that exist
+        logger.debug(`error reading artifact size for ${artifactPath}`, err)
       }
+    }
+    if (artifactSizesBytes.length > 0) {
       analyticsMetrics.artifactSizesBytes = artifactSizesBytes
     }
   } catch (err) {
