@@ -125,7 +125,7 @@ describe('Schema Validator', () => {
             .runtime
         expect(runtimeSchema).toBeDefined()
         expect(runtimeSchema.anyOf).toBeDefined()
-        expect(runtimeSchema.anyOf).toHaveLength(4)
+        expect(runtimeSchema.anyOf).toHaveLength(5)
         // Each entry should be a case-insensitive regex pattern
         runtimeSchema.anyOf.forEach((entry) => {
           expect(entry.type).toBe('string')

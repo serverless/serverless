@@ -20,6 +20,10 @@ describe('Runtime Utilities', () => {
       expect(normalizeRuntime('python3.13')).toBe('PYTHON_3_13')
     })
 
+    test('maps python3.14 to PYTHON_3_14', () => {
+      expect(normalizeRuntime('python3.14')).toBe('PYTHON_3_14')
+    })
+
     test('handles case-insensitive input', () => {
       expect(normalizeRuntime('Python3.12')).toBe('PYTHON_3_12')
       expect(normalizeRuntime('PYTHON3.13')).toBe('PYTHON_3_13')
