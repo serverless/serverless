@@ -125,12 +125,33 @@ describe('Schema Validator', () => {
             .runtime
         expect(runtimeSchema).toBeDefined()
         expect(runtimeSchema.anyOf).toBeDefined()
-        expect(runtimeSchema.anyOf).toHaveLength(4)
+        expect(runtimeSchema.anyOf).toHaveLength(5)
         // Each entry should be a case-insensitive regex pattern
         runtimeSchema.anyOf.forEach((entry) => {
           expect(entry.type).toBe('string')
           expect(entry.regexp).toBeDefined()
         })
+      })
+
+      test('runtime values match literally (regex metacharacters escaped)', () => {
+        defineAgentsSchema(mockServerless)
+
+        const runtimeSchema =
+          capturedAiSchema.properties.agents.additionalProperties.properties
+            .runtime
+        // Rebuild RegExp objects from their serialized `.toString()` form.
+        const toRegExp = (str) => {
+          const lastSlash = str.lastIndexOf('/')
+          return new RegExp(str.slice(1, lastSlash), str.slice(lastSlash + 1))
+        }
+        const patterns = runtimeSchema.anyOf.map((entry) =>
+          toRegExp(entry.regexp),
+        )
+        // A supported value matches (case-insensitively)...
+        expect(patterns.some((re) => re.test('python3.13'))).toBe(true)
+        expect(patterns.some((re) => re.test('PYTHON3.13'))).toBe(true)
+        // ...but a look-alike with the dot replaced must not (escaped '.').
+        expect(patterns.some((re) => re.test('python3x13'))).toBe(false)
       })
 
       test('includes artifact property with image and s3', () => {

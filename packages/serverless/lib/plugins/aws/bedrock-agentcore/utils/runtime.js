@@ -8,12 +8,17 @@
  * the BedrockAgentCore Runtime resource.
  */
 
-const RUNTIME_MAP = {
-  'python3.10': 'PYTHON_3_10',
-  'python3.11': 'PYTHON_3_11',
-  'python3.12': 'PYTHON_3_12',
-  'python3.13': 'PYTHON_3_13',
-}
+import { SUPPORTED_AGENT_RUNTIMES } from '../validators/schema.js'
+
+// Derived from the single supported-runtimes allowlist so the deploy mapping
+// and the config/dev validation can never drift. The CloudFormation enum is a
+// deterministic transform of the Lambda-style id, e.g. python3.14 -> PYTHON_3_14.
+const RUNTIME_MAP = Object.fromEntries(
+  SUPPORTED_AGENT_RUNTIMES.map((runtime) => [
+    runtime,
+    `PYTHON_${runtime.replace(/^python/, '').replace('.', '_')}`,
+  ]),
+)
 
 /**
  * Normalize a Lambda-style runtime identifier to CloudFormation format.

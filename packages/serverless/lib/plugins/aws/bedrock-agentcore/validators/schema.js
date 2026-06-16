@@ -12,8 +12,25 @@
  * { anyOf: ['NONE', 'AWS_IAM'].map(caseInsensitive) }
  */
 function caseInsensitive(str) {
-  return { type: 'string', regexp: new RegExp(`^${str}$`, 'i').toString() }
+  // Escape regex metacharacters so literals match exactly — without this the
+  // '.' in values like 'python3.13' would act as a wildcard (e.g. 'python3x13'
+  // would incorrectly match).
+  const escaped = str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return { type: 'string', regexp: new RegExp(`^${escaped}$`, 'i').toString() }
 }
+
+/**
+ * Python runtimes supported by AgentCore code-deployment agents.
+ * Single source of truth shared by the config schema (below) and the dev-mode
+ * runtime validation in `dev/code-mode.js`.
+ */
+const SUPPORTED_AGENT_RUNTIMES = [
+  'python3.10',
+  'python3.11',
+  'python3.12',
+  'python3.13',
+  'python3.14',
+]
 
 /**
  * IAM policy statement schema for role customization
@@ -628,9 +645,7 @@ const runtimeAgentSchema = {
       // Python file for the agent entry point, e.g., 'agent.py'
     },
     runtime: {
-      anyOf: ['python3.10', 'python3.11', 'python3.12', 'python3.13'].map(
-        caseInsensitive,
-      ),
+      anyOf: SUPPORTED_AGENT_RUNTIMES.map(caseInsensitive),
       // Defaults to python3.13 for code deployment
     },
 
@@ -799,4 +814,5 @@ export {
   codeInterpreterConfigSchema,
   runtimeAgentSchema,
   caseInsensitive,
+  SUPPORTED_AGENT_RUNTIMES,
 }

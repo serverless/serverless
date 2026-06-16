@@ -5,11 +5,12 @@ import os from 'os'
 import fs from 'fs'
 import { spawn } from 'child_process'
 import { promisify } from 'util'
-import { exec } from 'child_process'
+import { execFile } from 'child_process'
 import { setTimeout as asyncSetTimeout } from 'node:timers/promises'
-import { log } from '@serverless/util'
+import { log, ServerlessError } from '@serverless/util'
+import { SUPPORTED_AGENT_RUNTIMES } from '../validators/schema.js'
 
-const execP = promisify(exec)
+const execFileP = promisify(execFile)
 const logger = log.get('agentcore:code-mode')
 
 /**
@@ -45,6 +46,32 @@ export class AgentCoreCodeMode {
     const handler = this.#agentConfig.handler
     const handlerPath = path.resolve(this.#projectPath, handler)
     const runtime = this.#agentConfig.runtime || 'python3.13'
+
+    // Reject unsupported/malformed runtimes before deriving any command.
+    // The config schema can't be relied on here: `dev` reads the raw
+    // `initialServerlessConfig`, never runs the package lifecycle, and ajv
+    // config validation is advisory by default (configValidationMode 'warn'
+    // logs but does not block). So we enforce the same allowlist at the point
+    // of use. Normalize via the same logic as #getPythonCommand so a value
+    // that passes is guaranteed to map onto a supported `python3.x` binary name.
+    // Guard for non-string values (e.g. an unquoted `runtime: 3.13` parsed as a
+    // number) so they yield the clear error below rather than a raw TypeError.
+    const normalizedRuntime =
+      typeof runtime === 'string' ? this.#normalizePythonRuntime(runtime) : null
+    if (
+      normalizedRuntime === null ||
+      !SUPPORTED_AGENT_RUNTIMES.includes(normalizedRuntime)
+    ) {
+      throw new ServerlessError(
+        `Unsupported agent runtime "${runtime}". The "runtime" option only ` +
+          `selects the Python version and must be one of: ` +
+          `${SUPPORTED_AGENT_RUNTIMES.join(', ')}. To use a specific Python ` +
+          `installation (a pyenv build, Homebrew, a custom location), activate ` +
+          `a virtualenv or adjust your PATH — "runtime" only chooses the ` +
+          `version, and the matching interpreter is resolved from your environment.`,
+        'AGENTCORE_INVALID_RUNTIME',
+      )
+    }
 
     // Get Python command
     const pythonCmd = this.#getPythonCommand(runtime)
@@ -218,6 +245,17 @@ export class AgentCoreCodeMode {
       return 'python.exe'
     }
 
+    return this.#normalizePythonRuntime(runtime)
+  }
+
+  /**
+   * Normalize a user-supplied runtime string to its canonical `python3.x`
+   * command form (e.g. 'PYTHON_3_12' -> 'python3.12'). Used both to validate
+   * the runtime against the supported allowlist and to derive the command on
+   * non-Windows platforms.
+   * @private
+   */
+  #normalizePythonRuntime(runtime) {
     const version = runtime
       .toLowerCase()
       .replace(/^python/, '')
@@ -250,7 +288,7 @@ export class AgentCoreCodeMode {
    */
   async #checkPythonVersion(pythonCmd, expectedRuntime) {
     try {
-      const { stdout } = await execP(`${pythonCmd} --version`)
+      const { stdout } = await execFileP(pythonCmd, ['--version'])
       const installedVersion = stdout.trim() // "Python 3.13.1"
       const expectedVersion = expectedRuntime
         .toLowerCase()
