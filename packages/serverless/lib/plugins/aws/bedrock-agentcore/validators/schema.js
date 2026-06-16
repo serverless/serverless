@@ -12,7 +12,11 @@
  * { anyOf: ['NONE', 'AWS_IAM'].map(caseInsensitive) }
  */
 function caseInsensitive(str) {
-  return { type: 'string', regexp: new RegExp(`^${str}$`, 'i').toString() }
+  // Escape regex metacharacters so literals match exactly — without this the
+  // '.' in values like 'python3.13' would act as a wildcard (e.g. 'python3x13'
+  // would incorrectly match).
+  const escaped = str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return { type: 'string', regexp: new RegExp(`^${escaped}$`, 'i').toString() }
 }
 
 /**

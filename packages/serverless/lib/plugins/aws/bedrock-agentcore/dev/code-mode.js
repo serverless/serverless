@@ -54,8 +54,14 @@ export class AgentCoreCodeMode {
     // logs but does not block). So we enforce the same allowlist at the point
     // of use. Normalize via the same logic as #getPythonCommand so a value
     // that passes is guaranteed to map onto a supported `python3.x` binary name.
-    const normalizedRuntime = this.#normalizePythonRuntime(runtime)
-    if (!SUPPORTED_AGENT_RUNTIMES.includes(normalizedRuntime)) {
+    // Guard for non-string values (e.g. an unquoted `runtime: 3.13` parsed as a
+    // number) so they yield the clear error below rather than a raw TypeError.
+    const normalizedRuntime =
+      typeof runtime === 'string' ? this.#normalizePythonRuntime(runtime) : null
+    if (
+      normalizedRuntime === null ||
+      !SUPPORTED_AGENT_RUNTIMES.includes(normalizedRuntime)
+    ) {
       throw new ServerlessError(
         `Unsupported agent runtime "${runtime}". The "runtime" option only ` +
           `selects the Python version and must be one of: ` +

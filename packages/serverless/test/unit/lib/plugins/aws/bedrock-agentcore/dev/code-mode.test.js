@@ -327,6 +327,15 @@ describe('AgentCoreCodeMode', () => {
       })
     })
 
+    test('rejects a non-string runtime without crashing', async () => {
+      // e.g. an unquoted `runtime: 3.13` in serverless.yml parses as a number.
+      await expect(startWith(3.13)).rejects.toMatchObject({
+        code: 'AGENTCORE_INVALID_RUNTIME',
+      })
+      expect(mockSpawn).not.toHaveBeenCalled()
+      expect(mockExecP).not.toHaveBeenCalled()
+    })
+
     test.each([
       'python3.10',
       'python3.11',
