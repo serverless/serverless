@@ -145,12 +145,20 @@ export class DockerBuilder {
     const contextPath = path.resolve(servicePath, context)
     const buildOptions = dockerConfig.buildOptions || []
 
-    // Use heroku builder for ARM64 buildpacks support
-    // AgentCore requires ARM64, and heroku/builder:24 supports --platform flag
+    // Use heroku builder for ARM64 buildpacks support.
+    // AgentCore requires ARM64, and heroku/builder:24 supports --platform flag.
+    //
+    // Do NOT hardcode an @sha256 digest here: heroku/builder is a rolling tag
+    // rebuilt frequently, publishes no immutable versioned tags, and Docker Hub
+    // garbage-collects superseded manifests -- so a pinned digest becomes
+    // unresolvable (MANIFEST_UNKNOWN) within days and breaks every arm64
+    // buildpacks deploy. Users who need a reproducible, supply-chain-hardened
+    // builder can mirror one to a registry they control and set
+    // `artifact.image.builder`. A blank/whitespace value falls back to the
+    // default rather than suppressing it.
     const builder =
-      platform === 'linux/arm64'
-        ? 'heroku/builder:24@sha256:ad175c86d61399f70bbdab31bbd8b22b34f2d0e2c88e329edb49a8416003b734'
-        : null
+      dockerConfig.builder?.trim() ||
+      (platform === 'linux/arm64' ? 'heroku/builder:24' : null)
 
     this.log.info(`Building Docker image: ${imageUri}`)
     this.log.info(`  Context: ${contextPath}`)
