@@ -667,6 +667,10 @@ const runtimeAgentSchema = {
                   type: 'object',
                   additionalProperties: { type: 'string' },
                 },
+                // Buildpacks builder image. Defaults to heroku/builder:24 on
+                // arm64. Point this at a digest-pinned image in a registry you
+                // control for reproducible, supply-chain-hardened builds.
+                builder: { type: 'string' },
               },
             },
           ],

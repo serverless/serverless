@@ -108,7 +108,13 @@ export async function buildDockerImages(config) {
     const dockerConfig =
       typeof imageConfig === 'string' ? { name: imageConfig } : imageConfig
 
-    if (dockerConfig.path || dockerConfig.repository || dockerConfig.file) {
+    if (
+      dockerConfig.path ||
+      dockerConfig.repository ||
+      dockerConfig.file ||
+      dockerConfig.builder
+    ) {
+      dockerConfig.path = dockerConfig.path || '.'
       log.info(`Building Docker image for runtime: ${name}`)
       const buildMetadataItem = await builder.buildForRuntime(
         name,
