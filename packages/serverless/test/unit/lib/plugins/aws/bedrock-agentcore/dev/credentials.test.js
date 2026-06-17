@@ -20,6 +20,7 @@ import {
   addPrincipalToPolicy,
   calculateBackoffDelay,
   normalizeAssumedRoleArn,
+  resolvePrincipalArn,
 } from '../../../../../../../lib/plugins/aws/bedrock-agentcore/dev/credentials.js'
 
 describe('dev/credentials', () => {
@@ -293,6 +294,70 @@ describe('dev/credentials', () => {
     it('should respect custom base and max', () => {
       expect(calculateBackoffDelay(1, 1000, 10000)).toBe(1000)
       expect(calculateBackoffDelay(5, 1000, 10000)).toBe(10000) // Capped
+    })
+  })
+
+  describe('resolvePrincipalArn', () => {
+    it('resolves an SSO assumed-role session ARN to the real IAM role ARN via GetRole', async () => {
+      /**
+       * The real IAM Identity Center role ARN includes a region segment in its
+       * path (.../sso.amazonaws.com/<region>/AWSReservedSSO_...). That region is
+       * NOT present in the STS assumed-role ARN, so it can only be obtained by
+       * asking IAM for the role.
+       */
+      const realArn =
+        'arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/eu-central-1/AWSReservedSSO_Admin_abc123'
+      const send = jest.fn().mockResolvedValue({ Role: { Arn: realArn } })
+      const iamClient = { send }
+
+      const result = await resolvePrincipalArn(
+        iamClient,
+        'arn:aws:sts::123456789012:assumed-role/AWSReservedSSO_Admin_abc123/user@example.com',
+      )
+
+      expect(result).toBe(realArn)
+      expect(send).toHaveBeenCalledTimes(1)
+      expect(send.mock.calls[0][0].input).toEqual({
+        RoleName: 'AWSReservedSSO_Admin_abc123',
+      })
+    })
+
+    it('does not call IAM for a standard (non-SSO) assumed-role ARN', async () => {
+      const send = jest.fn()
+      const iamClient = { send }
+
+      const result = await resolvePrincipalArn(
+        iamClient,
+        'arn:aws:sts::123456789012:assumed-role/MyRole/session',
+      )
+
+      expect(result).toBe('arn:aws:iam::123456789012:role/MyRole')
+      expect(send).not.toHaveBeenCalled()
+    })
+
+    it('returns a non-assumed-role ARN as-is without calling IAM', async () => {
+      const send = jest.fn()
+      const iamClient = { send }
+
+      const arn = 'arn:aws:iam::123456789012:user/dev-user'
+      const result = await resolvePrincipalArn(iamClient, arn)
+
+      expect(result).toBe(arn)
+      expect(send).not.toHaveBeenCalled()
+    })
+
+    it('falls back to the best-effort ARN when GetRole fails', async () => {
+      const send = jest.fn().mockRejectedValue(new Error('AccessDenied'))
+      const iamClient = { send }
+
+      const result = await resolvePrincipalArn(
+        iamClient,
+        'arn:aws:sts::123456789012:assumed-role/AWSReservedSSO_Admin_abc123/user@example.com',
+      )
+
+      expect(result).toBe(
+        'arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Admin_abc123',
+      )
     })
   })
 })
