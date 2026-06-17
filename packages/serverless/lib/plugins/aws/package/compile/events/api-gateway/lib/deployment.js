@@ -38,7 +38,7 @@ export default {
                 { Ref: 'AWS::Region' },
                 '.',
                 { Ref: 'AWS::URLSuffix' },
-                `/${this.provider.getStage()}`,
+                `/${this.provider.getApiGatewayStage()}`,
               ],
             ],
           },
