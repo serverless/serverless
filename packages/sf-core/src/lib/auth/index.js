@@ -993,6 +993,7 @@ export class Authentication {
       return await this.authenticateInteractive({
         message: 'What would you like to do?',
         baseFilename,
+        ssoConnection,
       })
     } else if (answer === 'purchase') {
       logger.aside(
@@ -1027,6 +1028,7 @@ export class Authentication {
       return await this.authenticateInteractive({
         message: 'What would you like to do?',
         baseFilename,
+        ssoConnection,
       })
     }
   }
