@@ -97,14 +97,17 @@ class CoreRunner extends Runner {
               },
             ],
           },
-        ],
-        options: {
-          sso: {
-            description:
-              'Log in with an enterprise SSO connection (its Auth0 connection name)',
-            type: 'string',
+          {
+            options: {
+              sso: {
+                description:
+                  'Log in with an enterprise SSO connection (its Auth0 connection name)',
+                type: 'string',
+              },
+            },
           },
-        },
+        ],
+        options: {},
       },
       {
         command: 'logout',
