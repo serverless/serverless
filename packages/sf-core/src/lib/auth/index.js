@@ -164,6 +164,10 @@ export class Authentication {
           authenticateMessage ||
           'Serverless Framework V4 CLI is free for developers and organizations making less than $2 million annually, but requires an account or a license key.\n\nPlease login/register or enter your license key:',
         baseFilename,
+        // Optional enterprise SSO connection (e.g. `--sso <connection>`): opens
+        // the dedicated /sso/<connection> dashboard route instead of the normal
+        // login page, so the browser redirects straight to the customer's IdP.
+        ssoConnection: options?.sso,
       })
 
       // Track that the user required authentication
@@ -686,7 +690,11 @@ export class Authentication {
    * login/register or provide a License Key. This is also the
    * way to add a new License Key to .{baseFilename}rc, if it doesn't exist.
    */
-  async authenticateInteractive({ message, baseFilename = 'serverless' } = {}) {
+  async authenticateInteractive({
+    message,
+    baseFilename = 'serverless',
+    ssoConnection,
+  } = {}) {
     const logger = log.get('core:auth:authenticate')
     const progressMain = progress.get('main')
 
@@ -823,7 +831,7 @@ export class Authentication {
       progressMain.notice('Opening web browser')
 
       const { loginUrl, loginData: loginDataDeferred } =
-        await this.loginViaBrowser()
+        await this.loginViaBrowser(ssoConnection)
       logger.aside(
         'If your browser does not open automatically, please open this URL:',
         loginUrl,
@@ -1164,8 +1172,13 @@ export class Authentication {
   /**
    * Login via web browser to Serverless Dashboard,
    * supporting both prod and dev environments
+   *
+   * @param {string} [ssoConnection] Optional Auth0 enterprise connection name.
+   *   When provided, the browser is opened to the dedicated SSO route
+   *   (/sso/<connection>) which redirects straight to the customer's IdP,
+   *   instead of the normal login page.
    */
-  async loginViaBrowser() {
+  async loginViaBrowser(ssoConnection) {
     // Determine URLs based on environment
     const serverlessStage = process.env.SERVERLESS_PLATFORM_STAGE || 'prod'
     const coreUrl =
@@ -1256,7 +1269,13 @@ export class Authentication {
       client: 'cli',
       transactionId,
     }).toString()
-    const loginUrl = `${dashboardUrl}?${auth0Queries}`
+    // When an SSO connection is given, open the dedicated SSO route so the
+    // dashboard redirects straight to the customer's IdP. The client and
+    // transactionId params are preserved so the CLI flow completes the same
+    // way as a normal login.
+    const loginUrl = ssoConnection
+      ? `${dashboardUrl}/sso/${encodeURIComponent(ssoConnection)}?${auth0Queries}`
+      : `${dashboardUrl}?${auth0Queries}`
 
     return {
       loginUrl,
