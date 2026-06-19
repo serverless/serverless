@@ -254,7 +254,7 @@ const getBinaryName = () => {
 const getBinary = () => {
   const binaryName = getBinaryName()
   const url = `https://install.serverless.com/installer-builds/${binaryName}`
-  const binary = new Binary(binaryName, url, '0.0.2')
+  const binary = new Binary(binaryName, url, '0.0.3')
   return binary
 }
 
