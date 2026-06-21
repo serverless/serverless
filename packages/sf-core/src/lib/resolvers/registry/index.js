@@ -11,6 +11,10 @@ import { StrToBool } from '../providers/str-to-bool/str-to-bool.js'
 import { Output } from '../providers/output/output.js'
 import { Terraform } from '../providers/terraform/terraform.js'
 import { Doppler } from '../providers/doppler/doppler.js'
+import { GcpSecretManager } from '../providers/gcp-secret-manager/gcp-secret-manager.js'
+import { AzureKeyVault } from '../providers/azure-key-vault/azure-key-vault.js'
+import { Consul } from '../providers/consul/consul.js'
+import { CloudflareKv } from '../providers/cloudflare-kv/cloudflare-kv.js'
 
 class ProviderRegistry {
   constructor() {
@@ -28,6 +32,10 @@ class ProviderRegistry {
       [Output.type]: Output,
       [Terraform.type]: Terraform,
       [Doppler.type]: Doppler,
+      [GcpSecretManager.type]: GcpSecretManager,
+      [AzureKeyVault.type]: AzureKeyVault,
+      [Consul.type]: Consul,
+      [CloudflareKv.type]: CloudflareKv,
     }
   }
 
