@@ -6,7 +6,7 @@ import fs from 'fs/promises'
 
 const require = createRequire(import.meta.url)
 
-// Mock AWS Request
+// Mock AWS Request (v2 path)
 const mockAwsRequest = jest.fn()
 const mockAwsRequestMemoized = jest.fn()
 mockAwsRequest.memoized = mockAwsRequestMemoized
@@ -14,6 +14,16 @@ mockAwsRequest.memoized = mockAwsRequestMemoized
 jest.unstable_mockModule('../../../../../lib/aws/request.js', () => ({
   __esModule: true,
   default: mockAwsRequest,
+}))
+
+// Mock AWS Request (v3 path)
+const mockV3Request = jest.fn()
+const mockV3RequestMemoized = jest.fn()
+mockV3Request.memoized = mockV3RequestMemoized
+
+jest.unstable_mockModule('../../../../../lib/aws/v3/request.js', () => ({
+  __esModule: true,
+  default: mockV3Request,
 }))
 
 // Mock Utils
@@ -53,6 +63,9 @@ describe('AwsProvider', () => {
     mockAwsRequest.mockReset()
     mockAwsRequestMemoized.mockReset()
     mockAwsRequest.memoized = mockAwsRequestMemoized
+    mockV3Request.mockReset()
+    mockV3RequestMemoized.mockReset()
+    mockV3Request.memoized = mockV3RequestMemoized
 
     serverless = new Serverless({ commands: [], options: {} })
     serverless.cli = {
@@ -126,6 +139,20 @@ describe('AwsProvider', () => {
     it('should use memoized request if useCache is true', async () => {
       await awsProvider.request('S3', 'getObject', {}, { useCache: true })
       expect(mockAwsRequestMemoized).toHaveBeenCalledTimes(1)
+      expect(mockAwsRequest).not.toHaveBeenCalled()
+    })
+
+    it('should route to v3Request when sdkVersion is 3', async () => {
+      await awsProvider.request(
+        'LambdaMicrovms',
+        'listManagedMicrovmImageVersions',
+        {
+          ImageIdentifier:
+            'arn:aws:lambda:us-east-1:aws:microvm-image:al2023-1',
+        },
+        { sdkVersion: 3 },
+      )
+      expect(mockV3Request).toHaveBeenCalledTimes(1)
       expect(mockAwsRequest).not.toHaveBeenCalled()
     })
   })

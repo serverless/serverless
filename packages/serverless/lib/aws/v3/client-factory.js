@@ -12,6 +12,7 @@ import * as IAM from '@aws-sdk/client-iam'
 import * as APIGatewayNS from '@aws-sdk/client-api-gateway'
 import * as ApiGatewayV2NS from '@aws-sdk/client-apigatewayv2'
 import * as IoTNS from '@aws-sdk/client-iot'
+import * as LambdaMicrovmsNS from '@aws-sdk/client-lambda-microvms'
 import { addProxyToAwsClient } from '@serverless/util'
 
 const nsByService = {
@@ -22,6 +23,7 @@ const nsByService = {
   CloudWatch,
   CloudWatchLogs,
   Lambda: LambdaNS,
+  LambdaMicrovms: LambdaMicrovmsNS,
   IAM,
   APIGateway: APIGatewayNS,
   ApiGatewayV2: ApiGatewayV2NS,

@@ -206,6 +206,38 @@ export function normalizeAssumedRoleArn(arn) {
 }
 
 /**
+ * Resolve the IAM principal ARN to put in a trust policy from an STS caller ARN.
+ *
+ * For SSO permission-set sessions, the STS assumed-role ARN
+ * (arn:…:sts::ACCT:assumed-role/AWSReservedSSO_<name>_<hash>/<session>) carries only the
+ * role NAME, never the IAM path. Modern IAM Identity Center provisions the role at a
+ * REGION-scoped path (…/sso.amazonaws.com/<region>/AWSReservedSSO_…), so rebuilding the
+ * ARN by string (normalizeAssumedRoleArn) yields a non-existent role and IAM rejects it
+ * as "Invalid principal in policy" (GitHub issue #13652). For those roles we ask IAM for
+ * the authoritative ARN by role name (path-independent), falling back to the string form.
+ *
+ * @param {string} stsArn - ARN from STS GetCallerIdentity
+ * @param {(roleName: string) => Promise<string|undefined>} getRoleArn - resolves a role
+ *   name to its authoritative IAM ARN (e.g. via iam:GetRole). May reject or return falsy.
+ * @returns {Promise<string>} the IAM principal ARN to use in the trust policy
+ */
+export async function resolveCallerPrincipalArn(stsArn, getRoleArn) {
+  const match = stsArn.match(
+    /^arn:(aws[\w-]*):sts::(\d+):assumed-role\/(.+?)\/[^/]+$/,
+  )
+  const roleName = match && match[3]
+  if (roleName && roleName.startsWith('AWSReservedSSO_') && getRoleArn) {
+    try {
+      const arn = await getRoleArn(roleName)
+      if (arn) return arn
+    } catch {
+      // fall through to the best-effort string normalization
+    }
+  }
+  return normalizeAssumedRoleArn(stsArn)
+}
+
+/**
  * Calculate exponential backoff delay with cap
  *
  * @param {number} attempt - Current attempt number (1-based)

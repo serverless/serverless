@@ -1,0 +1,262 @@
+'use strict'
+
+import ServerlessError from '../../../../serverless-error.js'
+import { validateSandboxes } from '../validators/config.js'
+import { getLogicalId } from '../utils/naming.js'
+import { resolveBaseImage } from '../utils/baseImage.js'
+import { computeCodeArtifact } from '../packaging/artifact.js'
+import {
+  shouldGenerateRole,
+  resolveRole,
+  generateBuildRole,
+  generateExecutionRole,
+  generateOperatorRole,
+} from '../iam/policies.js'
+import { compileImage } from '../compilers/image.js'
+import { compileNetworkConnector } from '../compilers/networkConnector.js'
+import {
+  resolveObservability,
+  compileLogGroup,
+  compileMetricFilters,
+  compileAlarms,
+  compileDashboard,
+} from '../compilers/observability.js'
+
+/**
+ * The well-known AWS-managed INTERNET_EGRESS connector ARN prefix.
+ * The region is always the region where the image lives.
+ *
+ * Format: arn:aws:lambda:<region>:aws:network-connector:aws-network-connector:INTERNET_EGRESS
+ *
+ * We derive it from ctx.region so tests can pass whatever region they like.
+ */
+function internetEgressArn(region) {
+  return `arn:aws:lambda:${region}:aws:network-connector:aws-network-connector:INTERNET_EGRESS`
+}
+
+/**
+ * Build the CFN value for CodeArtifact.Uri for a local-dir sandbox.
+ *
+ * When the user specifies a local directory, we don't know the deployment
+ * bucket name at compile time (it may be a CFN-managed resource named
+ * `ServerlessDeploymentBucket`).  We mirror the pattern used for Lambda
+ * functions: if `provider.deploymentBucket` is a pre-configured name use it
+ * directly; otherwise emit a `{ Ref: 'ServerlessDeploymentBucket' }` intrinsic
+ * so CloudFormation resolves it at deploy time.
+ *
+ * @param {string|undefined} configuredBucket - ctx.deploymentBucket (may be undefined)
+ * @param {string}           key              - The content-addressed S3 key
+ * @returns CFN intrinsic or literal string suitable for CodeArtifact.Uri
+ */
+function buildBucketRefUri(configuredBucket, key) {
+  const bucketRef = configuredBucket
+    ? configuredBucket
+    : { Ref: 'ServerlessDeploymentBucket' }
+
+  return { 'Fn::Sub': ['s3://${B}/' + key, { B: bucketRef }] }
+}
+
+/**
+ * Compile all sandbox resources and merge them into a CloudFormation template.
+ *
+ * For each named sandbox:
+ *   1. Validate configuration.
+ *   2. Resolve base image via provider SDK call.
+ *   3. Compute the code-artifact (zip + sha256) but do NOT upload — upload
+ *      happens at deploy time in `ServerlessSandboxes#packageArtifacts()`.
+ *   4. Generate BuildRole and ExecutionRole (unless caller supplies explicit refs).
+ *   5. If vpc is configured: generate OperatorRole + compile NetworkConnector.
+ *   6. Compile the MicrovmImage resource.
+ *      - EgressNetworkConnectors always contains INTERNET_EGRESS (build needs internet).
+ *      - When vpc is set the connector is created and its ARN is exposed as a stack Output
+ *        for the data-plane run path.
+ *   7. Merge all resources + outputs into template.
+ *
+ * @param {object}   params
+ * @param {object}   params.sandboxesConfig - Map of sandbox name → config
+ * @param {object}   params.ctx             - Deployment context from ServerlessSandboxes#getContext()
+ * @param {object}   params.template        - CloudFormation template object (mutated in place)
+ * @param {object}   params.provider        - Serverless AWS provider
+ * @param {object}   params.serverless      - Serverless instance
+ * @param {object}   params.log             - Logger
+ * @param {Function} [params._zipDir]       - Optional zip function override (injected in unit tests)
+ * @returns {Map<string, { key: string, zipBuffer: Buffer }>} pendingUploads - cache for deploy hook
+ */
+export async function orchestrate({
+  sandboxesConfig,
+  ctx,
+  template,
+  provider,
+  serverless,
+  log,
+  _zipDir,
+}) {
+  // Collect validation errors rather than throwing immediately so we surface all issues at once.
+  const errors = []
+  validateSandboxes(sandboxesConfig, { throwError: (msg) => errors.push(msg) })
+  if (errors.length > 0) {
+    throw new ServerlessError(errors.join('\n'), 'SANDBOXES_VALIDATION_ERROR')
+  }
+
+  const {
+    region,
+    deploymentBucket: bucket,
+    serviceName,
+    stage,
+    serviceDir,
+  } = ctx
+
+  /** @type {Map<string, { key: string, zipBuffer: Buffer }>} */
+  const pendingUploads = new Map()
+
+  for (const [name, cfg] of Object.entries(sandboxesConfig || {})) {
+    log.debug?.(`sandboxes: compiling "${name}"`)
+
+    // ── Base image ──────────────────────────────────────────────────────────
+    const baseImage = await resolveBaseImage(
+      provider,
+      region,
+      cfg.baseImageAlias,
+    )
+
+    // ── Code artifact (compute only — no S3 upload) ─────────────────────────
+    const { uri, key, zipBuffer } = await computeCodeArtifact(cfg, {
+      serviceName,
+      stage,
+      name,
+      serviceDir,
+      zipDir: _zipDir,
+    })
+
+    // For local-dir: emit a CFN intrinsic referencing the deployment bucket.
+    // For s3://: use the literal URI string.
+    //
+    // Mirror functions.js: when the framework resolved a concrete deployment
+    // bucket (a user-provided bucket OR the global deployment bucket), it
+    // records the name on `service.package.deploymentBucket` and DELETES the
+    // `ServerlessDeploymentBucket` template resource (generate-core-template).
+    // Prefer that resolved name; only fall back to `ctx.deploymentBucket` /
+    // the `Ref` for the legacy in-stack bucket where the resource still exists.
+    const resolvedBucket =
+      serverless?.service?.package?.deploymentBucket || bucket
+    const codeArtifactUri =
+      uri !== undefined ? uri : buildBucketRefUri(resolvedBucket, key)
+
+    // Cache the pending upload so the deploy hook can perform it.
+    if (key !== undefined && zipBuffer !== undefined) {
+      pendingUploads.set(name, { key, zipBuffer })
+    }
+
+    // ── IAM roles ────────────────────────────────────────────────────────────
+    const buildRoleCfg = cfg.iam?.buildRole
+    const execRoleCfg = cfg.iam?.executionRole
+
+    const buildRoleLogicalId = getLogicalId(name, 'ImageBuildRole')
+    const execRoleLogicalId = getLogicalId(name, 'ImageExecutionRole')
+
+    const buildRoleArn = resolveRole(buildRoleCfg, buildRoleLogicalId)
+    const execRoleArn = resolveRole(execRoleCfg, execRoleLogicalId)
+
+    // When the artifact is an s3:// URI the artifact may live in a DIFFERENT
+    // bucket than the deployment bucket.  Parse it so generateBuildRole can
+    // scope s3:GetObject to the correct bucket.
+    let artifactBucket
+    if (cfg.artifact && cfg.artifact.startsWith('s3://')) {
+      const withoutScheme = cfg.artifact.slice('s3://'.length)
+      artifactBucket = withoutScheme.split('/')[0]
+    }
+
+    // ── VPC / NetworkConnector ───────────────────────────────────────────────
+    let connectorLogicalId
+    let operatorRoleLogicalId
+
+    if (cfg.vpc) {
+      operatorRoleLogicalId = getLogicalId(name, 'ConnectorOperatorRole')
+      connectorLogicalId = getLogicalId(name, 'Connector')
+    }
+
+    // ── Compile image ────────────────────────────────────────────────────────
+    const imageCtx = {
+      ...ctx,
+      baseImage,
+      codeArtifactUri,
+      buildRoleArn,
+      execRoleArn,
+      // BUILD always needs internet egress to pull FROM images etc.
+      egressConnectors: [internetEgressArn(region)],
+    }
+
+    const imageLogicalId = getLogicalId(name, 'Image')
+    const imageResource = compileImage(name, cfg, imageCtx)
+
+    // ── Observability (log group always owned; metrics/dashboard default on) ──
+    const obs = resolveObservability(cfg.observability)
+    const logGroupLogicalId = getLogicalId(name, 'ImageLogGroup')
+    const obsCtx = { serviceName, stage, region }
+
+    template.Resources[logGroupLogicalId] = compileLogGroup(name, obs, obsCtx)
+    // Image must not build before its (now CFN-owned) log group exists.
+    imageResource.DependsOn = [
+      ...(imageResource.DependsOn || []),
+      logGroupLogicalId,
+    ]
+    Object.assign(
+      template.Resources,
+      compileMetricFilters(name, obs, obsCtx, logGroupLogicalId),
+      compileAlarms(name, obs, obsCtx),
+      compileDashboard(name, obs, obsCtx),
+    )
+
+    // ── Merge into template ──────────────────────────────────────────────────
+    if (shouldGenerateRole(buildRoleCfg)) {
+      template.Resources[buildRoleLogicalId] = generateBuildRole(
+        name,
+        { ...cfg, artifactBucket },
+        { ...ctx, bucket: resolvedBucket },
+      )
+    }
+
+    if (shouldGenerateRole(execRoleCfg)) {
+      template.Resources[execRoleLogicalId] = generateExecutionRole(name, cfg, {
+        ...ctx,
+        bucket: resolvedBucket,
+      })
+    }
+
+    if (cfg.vpc) {
+      const operatorRoleResource = generateOperatorRole(name, ctx)
+      template.Resources[operatorRoleLogicalId] = operatorRoleResource
+
+      const connectorCtx = {
+        ...ctx,
+        operatorRoleArn: { 'Fn::GetAtt': [operatorRoleLogicalId, 'Arn'] },
+      }
+      const connectorResource = compileNetworkConnector(
+        name,
+        cfg.vpc,
+        connectorCtx,
+      )
+      template.Resources[connectorLogicalId] = connectorResource
+
+      // Expose connector ARN as Output for Phase-2 data-plane run path.
+      template.Outputs[`${getLogicalId(name, 'Connector')}Arn`] = {
+        Value: { Ref: connectorLogicalId },
+      }
+    }
+
+    template.Resources[imageLogicalId] = imageResource
+
+    // Image ARN output.
+    template.Outputs[`${imageLogicalId}Arn`] = {
+      Value: { Ref: imageLogicalId },
+    }
+
+    // Execution-role ARN output — invoke passes this to RunMicrovm.
+    template.Outputs[`${imageLogicalId}ExecutionRoleArn`] = {
+      Value: execRoleArn,
+      Description: `Execution role ARN for the ${name} sandbox MicroVM`,
+    }
+  }
+
+  return pendingUploads
+}

@@ -39,7 +39,31 @@ function buildHarness({
   return { serverless, provider, pluginUtils }
 }
 
+function makeLogsPlugin(options = {}) {
+  const { serverless, pluginUtils } = buildHarness()
+  return new AwsLogs(serverless, options, pluginUtils)
+}
+
 describe('AwsLogs', () => {
+  describe('hooks[logs:logs]', () => {
+    test('throws when no --function, --agent, or --sandbox is provided', async () => {
+      const inst = makeLogsPlugin({})
+      await expect(inst.hooks['logs:logs']()).rejects.toThrow(
+        /--function.*--agent.*--sandbox/,
+      )
+    })
+
+    test('does not throw when only --sandbox is provided', async () => {
+      const inst = makeLogsPlugin({ sandbox: 'echo' })
+      await expect(inst.hooks['logs:logs']()).resolves.toBeUndefined()
+    })
+
+    test('does not throw when only --agent is provided (regression guard)', async () => {
+      const inst = makeLogsPlugin({ agent: 'my-agent' })
+      await expect(inst.hooks['logs:logs']()).resolves.toBeUndefined()
+    })
+  })
+
   describe('extendedValidate', () => {
     test('resolves the AWS-default Lambda log group name from the function name', () => {
       const { serverless, provider, pluginUtils } = buildHarness({

@@ -1,0 +1,22 @@
+service: sfc-sandboxes
+org: serverlesstestaccount
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  region: us-east-1
+
+sandboxes:
+  echo:
+    artifact: ./app
+    memory: 2048
+    environment:
+      GREETING: hi
+    hooks:
+      ready: true
+      run: true
+    tags:
+      purpose: integration
+    observability:
+      logs:
+        retentionDays: 7
