@@ -48,8 +48,8 @@ provider:
   region: us-east-1
 
 sandboxes:
-  echo:                      # sandbox name — used in CloudFormation logical IDs
-    artifact: ./app          # local directory that contains a Dockerfile
+  echo: # sandbox name — used in CloudFormation logical IDs
+    artifact: ./app # local directory that contains a Dockerfile
 ```
 
 **2. Create `./app/Dockerfile`** (path relative to `serverless.yml`):
@@ -81,7 +81,7 @@ The `artifact` property tells the framework where to find your container source.
 ```yml
 sandboxes:
   api:
-    artifact: ./docker/api   # path resolved relative to serverless.yml
+    artifact: ./docker/api # path resolved relative to serverless.yml
 ```
 
 The directory must exist and must contain a `Dockerfile`. The framework zips the entire directory, computes a SHA-256 content hash, and uploads the zip to the deployment bucket at:
@@ -149,19 +149,19 @@ sandboxes:
       Key: Value
 ```
 
-| Property | Type | Default | Description |
-|---|---|---|---|
-| `artifact` | string | — **(required)** | Local directory path (contains `Dockerfile`) or `s3://` URI |
-| `name` | string | derived | Accepted by the schema but not yet applied by the compiler. The MicroVM image name is always derived from the service name, sandbox key, and stage. |
-| `memory` | number | `2048` | Minimum memory in MiB. Must be one of: `512`, `1024`, `2048`, `4096`, `8192`. |
-| `description` | string | auto | Human-readable description embedded in the CloudFormation resource. |
-| `environment` | object | `{}` | Environment variables injected into the MicroVM at runtime. Values must be strings. |
-| `osCapabilities` | array | `[]` | Additional OS capabilities granted to the container. Accepted value: `all` (case-insensitive). |
-| `hooks` | object | `{}` | Lifecycle hook configuration. See [Hooks](#hooks). |
-| `vpc` | object | — | VPC egress configuration. See [Networking / VPC](#networking--vpc). |
-| `iam` | object | — | IAM role customisation. See [IAM](#iam). |
-| `observability` | boolean \| object | `true` | Controls the owned log group, error metric filter, CloudWatch dashboard, and optional alarms. `true` (default) enables metrics and dashboard; `false` opts out of metrics and dashboard (log group is still created). Object form accepts `logs`, `metrics`, `alarms`, and `dashboard` sub-blocks. Alarms require `observability.alarms.notify` (SNS topic ARN or CloudFormation ref). See [Observability](#observability). |
-| `tags` | object | — | Key/value tags applied to the `AWS::Lambda::MicrovmImage` resource. Values must be strings. |
+| Property         | Type              | Default          | Description                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ---------------- | ----------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `artifact`       | string            | — **(required)** | Local directory path (contains `Dockerfile`) or `s3://` URI                                                                                                                                                                                                                                                                                                                                                                 |
+| `name`           | string            | derived          | Accepted by the schema but not yet applied by the compiler. The MicroVM image name is always derived from the service name, sandbox key, and stage.                                                                                                                                                                                                                                                                         |
+| `memory`         | number            | `2048`           | Minimum memory in MiB. Must be one of: `512`, `1024`, `2048`, `4096`, `8192`.                                                                                                                                                                                                                                                                                                                                               |
+| `description`    | string            | auto             | Human-readable description embedded in the CloudFormation resource.                                                                                                                                                                                                                                                                                                                                                         |
+| `environment`    | object            | `{}`             | Environment variables injected into the MicroVM at runtime. Values must be strings.                                                                                                                                                                                                                                                                                                                                         |
+| `osCapabilities` | array             | `[]`             | Additional OS capabilities granted to the container. Accepted value: `all` (case-insensitive).                                                                                                                                                                                                                                                                                                                              |
+| `hooks`          | object            | `{}`             | Lifecycle hook configuration. See [Hooks](#hooks).                                                                                                                                                                                                                                                                                                                                                                          |
+| `vpc`            | object            | —                | VPC egress configuration. See [Networking / VPC](#networking--vpc).                                                                                                                                                                                                                                                                                                                                                         |
+| `iam`            | object            | —                | IAM role customisation. See [IAM](#iam).                                                                                                                                                                                                                                                                                                                                                                                    |
+| `observability`  | boolean \| object | `true`           | Controls the owned log group, error metric filter, CloudWatch dashboard, and optional alarms. `true` (default) enables metrics and dashboard; `false` opts out of metrics and dashboard (log group is still created). Object form accepts `logs`, `metrics`, `alarms`, and `dashboard` sub-blocks. Alarms require `observability.alarms.notify` (SNS topic ARN or CloudFormation ref). See [Observability](#observability). |
+| `tags`           | object            | —                | Key/value tags applied to the `AWS::Lambda::MicrovmImage` resource. Values must be strings.                                                                                                                                                                                                                                                                                                                                 |
 
 ---
 
@@ -178,23 +178,23 @@ sandboxes:
   api:
     artifact: ./app
     hooks:
-      port: 9000       # port your app listens on for hook requests (default 9000)
+      port: 9000 # port your app listens on for hook requests (default 9000)
 
       # Image-build hooks — called once when the MicroVM image is built
       ready:
-        timeout: 30    # seconds; default 30
+        timeout: 30 # seconds; default 30
       validate:
-        timeout: 30    # seconds; default 30
+        timeout: 30 # seconds; default 30
 
       # Runtime hooks — called on each instance lifecycle event
       run:
-        timeout: 2     # seconds; default 2
+        timeout: 2 # seconds; default 2
       resume:
-        timeout: 2     # seconds; default 2
+        timeout: 2 # seconds; default 2
       suspend:
-        timeout: 5     # seconds; default 5
+        timeout: 5 # seconds; default 5
       terminate:
-        timeout: 5     # seconds; default 5
+        timeout: 5 # seconds; default 5
 ```
 
 You can also enable a hook with just `true` to accept all defaults:
@@ -207,10 +207,10 @@ hooks:
 
 ### Hook categories
 
-| Category | Hooks | When called |
-|---|---|---|
-| Image hooks | `ready`, `validate` | During the MicroVM image build phase |
-| Runtime hooks | `run`, `resume`, `suspend`, `terminate` | On each running MicroVM instance |
+| Category      | Hooks                                   | When called                          |
+| ------------- | --------------------------------------- | ------------------------------------ |
+| Image hooks   | `ready`, `validate`                     | During the MicroVM image build phase |
+| Runtime hooks | `run`, `resume`, `suspend`, `terminate` | On each running MicroVM instance     |
 
 > **Note:** Enabling any runtime hook (`run`, `resume`, `suspend`, or `terminate`) automatically enables the `ready` image hook as well.
 
@@ -256,14 +256,14 @@ sandboxes:
         - subnet-0def5678
       securityGroups:
         - sg-0aabbccdd
-      protocol: ipv4   # 'ipv4' (default) or 'dualstack'
+      protocol: ipv4 # 'ipv4' (default) or 'dualstack'
 ```
 
-| Property | Type | Default | Description |
-|---|---|---|---|
-| `subnets` | string[] | — | List of subnet IDs for the network connector. |
-| `securityGroups` | string[] | — | List of security group IDs for the network connector. |
-| `protocol` | string | `ipv4` | IP protocol: `ipv4` or `dualstack` (case-insensitive). |
+| Property         | Type     | Default | Description                                            |
+| ---------------- | -------- | ------- | ------------------------------------------------------ |
+| `subnets`        | string[] | —       | List of subnet IDs for the network connector.          |
+| `securityGroups` | string[] | —       | List of security group IDs for the network connector.  |
+| `protocol`       | string   | `ipv4`  | IP protocol: `ipv4` or `dualstack` (case-insensitive). |
 
 When `vpc` is set, the framework creates an `AWS::Lambda::NetworkConnector` and an associated operator IAM role (see [IAM](#iam)). The connector ARN is exported as a CloudFormation stack output for use by the data-plane run path.
 
@@ -280,12 +280,14 @@ The framework creates two IAM roles per sandbox automatically:
 **Build role** (`AWS::IAM::Role` — `<Name>ImageBuildRole`)
 
 Permissions:
+
 - `s3:GetObject` on the deployment bucket (to fetch the artifact zip)
 - `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents` on `/aws/lambda-microvms/*`
 
 **Execution role** (`AWS::IAM::Role` — `<Name>ImageExecutionRole`)
 
 Permissions:
+
 - `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents` on `/aws/lambda-microvms/*`
 
 Both roles use a trust policy for `lambda.amazonaws.com` with an `aws:SourceAccount` condition to prevent confused-deputy attacks.
@@ -317,11 +319,11 @@ sandboxes:
 
 Supported customisation keys:
 
-| Key | Type | Description |
-|---|---|---|
-| `statements` | array | Additional IAM policy statements appended to the inline policy. |
-| `managedPolicies` | array | Managed policy ARNs attached to the role. |
-| `permissionsBoundary` | string | ARN of a permissions boundary policy. |
+| Key                   | Type   | Description                                                     |
+| --------------------- | ------ | --------------------------------------------------------------- |
+| `statements`          | array  | Additional IAM policy statements appended to the inline policy. |
+| `managedPolicies`     | array  | Managed policy ARNs attached to the role.                       |
+| `permissionsBoundary` | string | ARN of a permissions boundary policy.                           |
 
 ### Providing an external role
 
@@ -345,23 +347,23 @@ Supported forms: ARN string, `Ref`, `Fn::GetAtt`, `Fn::ImportValue`, `Fn::Sub`. 
 
 For each sandbox, `serverless deploy` creates the following CloudFormation resources:
 
-| Resource | Type | Condition |
-|---|---|---|
-| `<Name>Image` | `AWS::Lambda::MicrovmImage` | Always |
-| `<Name>ImageBuildRole` | `AWS::IAM::Role` | Unless `iam.buildRole` is an external ref |
-| `<Name>ImageExecutionRole` | `AWS::IAM::Role` | Unless `iam.executionRole` is an external ref |
-| `<Name>Connector` | `AWS::Lambda::NetworkConnector` | Only when `vpc` is set |
-| `<Name>ConnectorOperatorRole` | `AWS::IAM::Role` | Only when `vpc` is set |
-| `<Name>ImageLogGroup` | `AWS::Logs::LogGroup` | Always |
-| `<Name>ImageErrorsMetricFilter` | `AWS::Logs::MetricFilter` | When `observability` is on (default) |
-| `<Name>ImageDashboard` | `AWS::CloudWatch::Dashboard` | When `observability` is on (default) |
-| `<Name>ImageErrorsAlarm` | `AWS::CloudWatch::Alarm` | Only when `observability.alarms.notify` is set |
+| Resource                        | Type                            | Condition                                      |
+| ------------------------------- | ------------------------------- | ---------------------------------------------- |
+| `<Name>Image`                   | `AWS::Lambda::MicrovmImage`     | Always                                         |
+| `<Name>ImageBuildRole`          | `AWS::IAM::Role`                | Unless `iam.buildRole` is an external ref      |
+| `<Name>ImageExecutionRole`      | `AWS::IAM::Role`                | Unless `iam.executionRole` is an external ref  |
+| `<Name>Connector`               | `AWS::Lambda::NetworkConnector` | Only when `vpc` is set                         |
+| `<Name>ConnectorOperatorRole`   | `AWS::IAM::Role`                | Only when `vpc` is set                         |
+| `<Name>ImageLogGroup`           | `AWS::Logs::LogGroup`           | Always                                         |
+| `<Name>ImageErrorsMetricFilter` | `AWS::Logs::MetricFilter`       | When `observability` is on (default)           |
+| `<Name>ImageDashboard`          | `AWS::CloudWatch::Dashboard`    | When `observability` is on (default)           |
+| `<Name>ImageErrorsAlarm`        | `AWS::CloudWatch::Alarm`        | Only when `observability.alarms.notify` is set |
 
 Stack outputs:
 
-| Output key | Value |
-|---|---|
-| `<Name>ImageArn` | ARN of the `MicrovmImage` resource |
+| Output key           | Value                                                  |
+| -------------------- | ------------------------------------------------------ |
+| `<Name>ImageArn`     | ARN of the `MicrovmImage` resource                     |
 | `<Name>ConnectorArn` | ARN of the `NetworkConnector` (only when `vpc` is set) |
 
 CloudWatch logs are always shipped to the owned log group `/aws/lambda-microvms/<image-name>` (default 14-day retention). See [Observability](#observability).
@@ -387,13 +389,13 @@ serverless invoke --sandbox <name> [--path <path>] [--method <method>] [--data '
 
 ### Options
 
-| Flag | Default | Description |
-|---|---|---|
-| `--sandbox <name>` | — **(required)** | Sandbox name as defined in `serverless.yml` |
-| `--path <path>` | `/` | HTTP request path |
-| `--method <method>` | `GET` | HTTP method |
-| `--data '<body>'` | — | Request body (non-GET requests) |
-| `--port <port>` | `8080` | Container port to send the request to |
+| Flag                | Default          | Description                                 |
+| ------------------- | ---------------- | ------------------------------------------- |
+| `--sandbox <name>`  | — **(required)** | Sandbox name as defined in `serverless.yml` |
+| `--path <path>`     | `/`              | HTTP request path                           |
+| `--method <method>` | `GET`            | HTTP method                                 |
+| `--data '<body>'`   | —                | Request body (non-GET requests)             |
+| `--port <port>`     | `8080`           | Container port to send the request to       |
 
 ### Examples
 
@@ -447,7 +449,7 @@ sandboxes:
     observability:
       logs:
         retentionDays: 30
-        logGroup: /my-org/sandboxes/api   # optional name override
+        logGroup: /my-org/sandboxes/api # optional name override
 ```
 
 `retentionDays` must be one of the values accepted by CloudWatch Logs (e.g. `1`, `3`, `5`, `7`, `14`, `30`, `60`, `90`, `120`, `150`, `180`, `365`, etc.).
@@ -465,7 +467,7 @@ Set `observability: false` to opt out of both the metric filter and the dashboar
 sandboxes:
   api:
     artifact: ./app
-    observability: false   # no metric filter, no dashboard; log group still created
+    observability: false # no metric filter, no dashboard; log group still created
 ```
 
 Or disable just the dashboard while keeping the metric:
@@ -494,14 +496,14 @@ sandboxes:
 
 This creates an `AWS::CloudWatch::Alarm` for the error metric with these defaults:
 
-| Setting | Default |
-|---|---|
-| Threshold | `5` (errors per evaluation period) |
-| Period | `300` s |
-| Evaluation periods | `1` |
-| Datapoints to alarm | `1` |
-| Comparison | `GreaterThanThreshold` |
-| Missing data treatment | `notBreaching` |
+| Setting                | Default                            |
+| ---------------------- | ---------------------------------- |
+| Threshold              | `5` (errors per evaluation period) |
+| Period                 | `300` s                            |
+| Evaluation periods     | `1`                                |
+| Datapoints to alarm    | `1`                                |
+| Comparison             | `GreaterThanThreshold`             |
+| Missing data treatment | `notBreaching`                     |
 
 Override any of these under `alarms.thresholds.errors`:
 
@@ -529,12 +531,12 @@ observability:
 
 ### CloudFormation resources emitted
 
-| Resource | Type | Condition |
-|---|---|---|
-| `<Name>ImageLogGroup` | `AWS::Logs::LogGroup` | **Always** |
-| `<Name>ImageErrorsMetricFilter` | `AWS::Logs::MetricFilter` | When observability is on (default) |
-| `<Name>ImageDashboard` | `AWS::CloudWatch::Dashboard` | When observability is on (default) |
-| `<Name>ImageErrorsAlarm` | `AWS::CloudWatch::Alarm` | Only when `alarms.notify` is set |
+| Resource                        | Type                         | Condition                          |
+| ------------------------------- | ---------------------------- | ---------------------------------- |
+| `<Name>ImageLogGroup`           | `AWS::Logs::LogGroup`        | **Always**                         |
+| `<Name>ImageErrorsMetricFilter` | `AWS::Logs::MetricFilter`    | When observability is on (default) |
+| `<Name>ImageDashboard`          | `AWS::CloudWatch::Dashboard` | When observability is on (default) |
+| `<Name>ImageErrorsAlarm`        | `AWS::CloudWatch::Alarm`     | Only when `alarms.notify` is set   |
 
 ### Limitations
 
@@ -642,17 +644,17 @@ provider:
 
 sandboxes:
   api:
-    artifact: ./app          # directory with a Dockerfile
-    memory: 2048             # MiB
+    artifact: ./app # directory with a Dockerfile
+    memory: 2048 # MiB
     description: 'HTTP API sandbox'
     environment:
       LOG_LEVEL: info
       PORT: '8080'
     hooks:
-      port: 9000             # hook server port inside the container
-      ready: true            # image-build hook with defaults
+      port: 9000 # hook server port inside the container
+      ready: true # image-build hook with defaults
       run:
-        timeout: 2           # runtime hook: called on each new instance
+        timeout: 2 # runtime hook: called on each new instance
     vpc:
       subnets:
         - subnet-0abc1234
