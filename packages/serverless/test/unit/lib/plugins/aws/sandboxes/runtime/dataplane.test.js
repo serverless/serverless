@@ -38,6 +38,13 @@ test('runMicrovm sends camelCase input and returns id/endpoint/state', async () 
   expect(client.sent[0].input.imageIdentifier).toBe('arn:img')
   expect(client.sent[0].input.executionRoleArn).toBe('arn:role')
   expect(client.sent[0].input.egressNetworkConnectors).toBeUndefined()
+  // One-shot idle policy: short idle, no suspend window, no auto-resume, so a
+  // leaked MicroVM self-terminates instead of lingering.
+  expect(client.sent[0].input.idlePolicy).toEqual({
+    maxIdleDurationSeconds: 60,
+    suspendedDurationSeconds: 0,
+    autoResumeEnabled: false,
+  })
 })
 
 test('runMicrovm passes egressNetworkConnectors when a connector ARN is given', async () => {

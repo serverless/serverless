@@ -101,6 +101,10 @@ class AwsInvokeSandbox {
               ? this.options.data
               : JSON.stringify(this.options.data)
         }
+        // Intentionally unbounded: a sandbox invoke may be a long-running
+        // operation, so we don't impose a client timeout. A MicroVM that's
+        // abandoned (e.g. the user interrupts the CLI) is reaped by the one-shot
+        // idle policy in runMicrovm rather than a fixed deadline here.
         const res = await fetch(url, init)
         const body = await res.text()
         process.stdout.write(body.endsWith('\n') ? body : body + '\n')

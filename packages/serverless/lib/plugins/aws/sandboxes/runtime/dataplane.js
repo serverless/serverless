@@ -30,10 +30,15 @@ export async function runMicrovm(
   const input = {
     imageIdentifier: imageArn,
     executionRoleArn,
+    // `invoke` is one-shot: no suspend window, no auto-resume, short idle. So a
+    // MicroVM we fail to terminate explicitly (e.g. the CLI is killed mid-call)
+    // self-terminates ~60s after the request instead of lingering. Idle is
+    // measured by endpoint traffic, and an in-flight request counts as activity,
+    // so this never cuts off a legitimate invocation.
     idlePolicy: {
-      maxIdleDurationSeconds: 900,
-      suspendedDurationSeconds: 300,
-      autoResumeEnabled: true,
+      maxIdleDurationSeconds: 60,
+      suspendedDurationSeconds: 0,
+      autoResumeEnabled: false,
     },
   }
   if (egressConnectorArn) input.egressNetworkConnectors = [egressConnectorArn]
