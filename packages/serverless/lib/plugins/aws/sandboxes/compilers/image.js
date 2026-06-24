@@ -53,7 +53,16 @@ export function compileImage(name, cfg, ctx) {
         cfg.description ||
         `${ctx.serviceName} ${name} sandbox (Serverless Framework)`,
       CodeArtifact: { Uri: ctx.codeArtifactUri },
-      Logging: { CloudWatch: { LogGroup: `/aws/lambda-microvms/${Name}` } },
+      // Exactly one of CloudWatch / Disabled. `observability.logs.enabled: false`
+      // turns logging off at the MicroVM level; otherwise logs go to the resolved
+      // group (a custom `observability.logs.logGroup` or the default).
+      Logging: ctx.loggingDisabled
+        ? { Disabled: true }
+        : {
+            CloudWatch: {
+              LogGroup: ctx.logGroupName || `/aws/lambda-microvms/${Name}`,
+            },
+          },
       EgressNetworkConnectors: ctx.egressConnectors,
       CpuConfigurations: [{ Architecture: 'ARM_64' }],
       Resources: [{ MinimumMemoryInMiB: cfg.memory || 2048 }],

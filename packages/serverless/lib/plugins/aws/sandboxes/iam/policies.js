@@ -1,5 +1,7 @@
 'use strict'
 
+import { getResourceName } from '../utils/naming.js'
+
 /**
  * Determine if an IAM role should be generated for a sandbox resource.
  *
@@ -100,6 +102,16 @@ function withCustomizations(role, roleCfg) {
   }
 
   if (roleCfg.statements && roleCfg.statements.length > 0) {
+    // The role may have no base inline policy (e.g. an execution role with
+    // logging disabled). Create the policy holder before appending.
+    if (!role.Properties.Policies) {
+      role.Properties.Policies = [
+        {
+          PolicyName: 'sandboxes-execution-policy',
+          PolicyDocument: { Version: '2012-10-17', Statement: [] },
+        },
+      ]
+    }
     role.Properties.Policies[0].PolicyDocument.Statement.push(
       ...roleCfg.statements,
     )
@@ -131,6 +143,11 @@ function withCustomizations(role, roleCfg) {
  * @returns {object} CloudFormation AWS::IAM::Role resource object
  */
 export function generateBuildRole(name, cfg, ctx) {
+  // The log group build logs go to (custom override or default). Scoping the
+  // grant to exactly this group keeps the role least-privilege.
+  const logGroupName =
+    ctx.logGroupName ||
+    `/aws/lambda-microvms/${getResourceName(ctx.serviceName, name, ctx.stage)}`
   // Build the s3:GetObject resource(s).  When the artifact lives in a separate
   // bucket (s3:// passthrough path), we must also grant access to that bucket.
   const deployBucketArn = `arn:\${AWS::Partition}:s3:::${ctx.bucket}/*`
@@ -166,16 +183,14 @@ export function generateBuildRole(name, cfg, ctx) {
                 Effect: 'Allow',
                 Action: ['logs:CreateLogGroup', 'logs:CreateLogStream'],
                 Resource: {
-                  'Fn::Sub':
-                    'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda-microvms/*',
+                  'Fn::Sub': `arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:${logGroupName}:*`,
                 },
               },
               {
                 Effect: 'Allow',
                 Action: ['logs:PutLogEvents'],
                 Resource: {
-                  'Fn::Sub':
-                    'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda-microvms/*:log-stream:*',
+                  'Fn::Sub': `arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:${logGroupName}:log-stream:*`,
                 },
               },
             ],
@@ -200,38 +215,47 @@ export function generateBuildRole(name, cfg, ctx) {
  * @returns {object} CloudFormation AWS::IAM::Role resource object
  */
 export function generateExecutionRole(name, cfg, ctx) {
+  // The log group the MicroVM logs to (custom override or default). Scoping the
+  // grant to exactly this group keeps the role least-privilege.
+  const logGroupName =
+    ctx.logGroupName ||
+    `/aws/lambda-microvms/${getResourceName(ctx.serviceName, name, ctx.stage)}`
   const role = {
     Type: 'AWS::IAM::Role',
     Properties: {
       AssumeRolePolicyDocument: lambdaTrustPolicy(),
-      Policies: [
-        {
-          PolicyName: 'sandboxes-execution-policy',
-          PolicyDocument: {
-            Version: '2012-10-17',
-            Statement: [
-              // Write execution logs to the microVMs log group
-              {
-                Effect: 'Allow',
-                Action: ['logs:CreateLogGroup', 'logs:CreateLogStream'],
-                Resource: {
-                  'Fn::Sub':
-                    'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda-microvms/*',
-                },
-              },
-              {
-                Effect: 'Allow',
-                Action: ['logs:PutLogEvents'],
-                Resource: {
-                  'Fn::Sub':
-                    'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda-microvms/*:log-stream:*',
-                },
-              },
-            ],
-          },
-        },
-      ],
     },
+  }
+
+  // Grant the CloudWatch Logs permissions only when logging is enabled. With
+  // `observability.logs.enabled: false` the MicroVM doesn't log, so the role
+  // needs no logs:* grant (and an inline policy with no statements is invalid).
+  if (!ctx.loggingDisabled) {
+    role.Properties.Policies = [
+      {
+        PolicyName: 'sandboxes-execution-policy',
+        PolicyDocument: {
+          Version: '2012-10-17',
+          Statement: [
+            // Write execution logs to the microVMs log group
+            {
+              Effect: 'Allow',
+              Action: ['logs:CreateLogGroup', 'logs:CreateLogStream'],
+              Resource: {
+                'Fn::Sub': `arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:${logGroupName}:*`,
+              },
+            },
+            {
+              Effect: 'Allow',
+              Action: ['logs:PutLogEvents'],
+              Resource: {
+                'Fn::Sub': `arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:${logGroupName}:log-stream:*`,
+              },
+            },
+          ],
+        },
+      },
+    ]
   }
 
   return withCustomizations(role, cfg.iam && cfg.iam.executionRole)

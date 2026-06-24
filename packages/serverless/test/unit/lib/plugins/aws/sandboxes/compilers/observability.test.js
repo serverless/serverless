@@ -17,24 +17,40 @@ test('true ⇒ same as absent', () => {
   expect(resolveObservability(true)).toEqual(resolveObservability(undefined))
 })
 
-test('false ⇒ metrics + dashboard off, alarms null (log group still default)', () => {
+test('false ⇒ metrics + dashboard off, alarms null (logging itself still on)', () => {
   const r = resolveObservability(false)
   expect(r.metrics.enabled).toBe(false)
   expect(r.dashboard.enabled).toBe(false)
   expect(r.alarms).toBeNull()
   expect(r.logs.retentionDays).toBe(14)
+  // `observability: false` opts out of the monitoring layer only — logging stays on.
+  expect(r.logs.enabled).toBe(true)
 })
 
-test('object: alarms enabled only with notify; custom retention/logGroup respected', () => {
+test('object: alarms enabled only with notify; custom retention respected', () => {
   const r = resolveObservability({
-    logs: { retentionDays: 30, logGroup: '/custom/group' },
+    logs: { retentionDays: 30 },
     alarms: { notify: 'arn:sns' },
   })
   expect(r.logs.retentionDays).toBe(30)
-  expect(r.logs.logGroup).toBe('/custom/group')
+  expect(r.logs.enabled).toBe(true)
   expect(r.alarms.notify).toBe('arn:sns')
   expect(r.metrics.enabled).toBe(true) // present-object defaults on
   expect(r.dashboard.enabled).toBe(true)
+})
+
+test('logs.enabled:false ⇒ logging disabled; metrics/dashboard/alarms forced off', () => {
+  const r = resolveObservability({
+    logs: { enabled: false },
+    metrics: { enabled: true },
+    dashboard: { enabled: true },
+    alarms: { notify: 'arn:sns' },
+  })
+  expect(r.logs.enabled).toBe(false)
+  // Everything that reads from the log group is off when logging is disabled.
+  expect(r.metrics.enabled).toBe(false)
+  expect(r.dashboard.enabled).toBe(false)
+  expect(r.alarms).toBeNull()
 })
 
 test('object: metrics.enabled:false turns metrics off', () => {
@@ -53,13 +69,20 @@ test('compileLogGroup: owns /aws/lambda-microvms/<Name> with retention', () => {
   expect(res.Properties.RetentionInDays).toBe(14)
 })
 
-test('compileLogGroup: honors logGroup name override', () => {
-  const r = resolveObservability({
-    logs: { logGroup: '/custom/g', retentionDays: 7 },
-  })
+test('compileLogGroup: uses the default name + custom retention', () => {
+  const r = resolveObservability({ logs: { retentionDays: 7 } })
   const res = compileLogGroup('echo', r, { serviceName: 'svc', stage: 'dev' })
-  expect(res.Properties.LogGroupName).toBe('/custom/g')
+  expect(res.Properties.LogGroupName).toBe('/aws/lambda-microvms/svc-echo-dev')
   expect(res.Properties.RetentionInDays).toBe(7)
+})
+
+test('logGroup override is carried through and names the owned group', () => {
+  const r = resolveObservability({
+    logs: { logGroup: '/my-org/sbx/api', retentionDays: 7 },
+  })
+  expect(r.logs.logGroup).toBe('/my-org/sbx/api')
+  const res = compileLogGroup('echo', r, { serviceName: 'svc', stage: 'dev' })
+  expect(res.Properties.LogGroupName).toBe('/my-org/sbx/api')
 })
 
 import {

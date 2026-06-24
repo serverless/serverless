@@ -95,7 +95,7 @@ describe('ServerlessSandboxes', () => {
     expect(resources.RunnerImage.Type).toBe('AWS::Lambda::MicrovmImage')
   })
 
-  test('compile() sets BaseImageVersion to "0" when provider returns no versions (fallback)', async () => {
+  test('compile() throws a clear error when the provider returns no base image versions', async () => {
     const provider = makeProvider({
       request: jest.fn().mockImplementation((service, method) => {
         if (
@@ -112,10 +112,9 @@ describe('ServerlessSandboxes', () => {
       provider,
     )
     const p = new ServerlessSandboxes(sls, {}, { log: { debug: jest.fn() } })
-    await p.compile()
-    const resources =
-      sls.service.provider.compiledCloudFormationTemplate.Resources
-    expect(resources.RunnerImage.Properties.BaseImageVersion).toBe('0')
+    await expect(p.compile()).rejects.toThrow(
+      /No managed MicroVM base image versions/i,
+    )
   })
 
   test('compile() is idempotent — second call is a no-op', async () => {

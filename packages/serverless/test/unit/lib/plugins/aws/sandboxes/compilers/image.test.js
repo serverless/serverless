@@ -59,3 +59,24 @@ test('honors memory + environment + privileged + custom hooks', () => {
   expect(r.Properties.Hooks.MicrovmImageHooks.Ready).toBe('ENABLED') // auto-enabled
   expect(r.Properties.Hooks.MicrovmHooks.Run).toBe('ENABLED')
 })
+test('Logging: CloudWatch by default, Disabled when loggingDisabled', () => {
+  const enabled = compileImage('runner', { artifact: './app' }, ctx)
+  expect(enabled.Properties.Logging).toEqual({
+    CloudWatch: { LogGroup: '/aws/lambda-microvms/svc-runner-dev' },
+  })
+  const disabled = compileImage(
+    'runner',
+    { artifact: './app' },
+    { ...ctx, loggingDisabled: true },
+  )
+  expect(disabled.Properties.Logging).toEqual({ Disabled: true })
+
+  const custom = compileImage(
+    'runner',
+    { artifact: './app' },
+    { ...ctx, logGroupName: '/my-org/sbx/runner' },
+  )
+  expect(custom.Properties.Logging).toEqual({
+    CloudWatch: { LogGroup: '/my-org/sbx/runner' },
+  })
+})

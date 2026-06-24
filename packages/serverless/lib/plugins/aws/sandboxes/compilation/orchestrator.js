@@ -2,7 +2,7 @@
 
 import ServerlessError from '../../../../serverless-error.js'
 import { validateSandboxes } from '../validators/config.js'
-import { getLogicalId } from '../utils/naming.js'
+import { getLogicalId, getResourceName } from '../utils/naming.js'
 import { resolveBaseImage } from '../utils/baseImage.js'
 import { computeCodeArtifact } from '../packaging/artifact.js'
 import {
@@ -175,6 +175,20 @@ export async function orchestrate({
       connectorLogicalId = getLogicalId(name, 'Connector')
     }
 
+    // ── Observability (resolve first so the image's Logging block knows whether
+    //    logging is disabled). Logging is on by default; `logs.enabled: false`
+    //    turns it off entirely. ──
+    const obs = resolveObservability(cfg.observability)
+    const loggingDisabled = !obs.logs.enabled
+    const logGroupLogicalId = getLogicalId(name, 'ImageLogGroup')
+    const obsCtx = { serviceName, stage, region }
+    // The group the MicroVM logs to: a custom `observability.logs.logGroup` or
+    // the default. Threaded to the image (Logging) and to the IAM logs grant so
+    // the role is scoped to exactly this group (least privilege).
+    const logGroupName =
+      obs.logs.logGroup ||
+      `/aws/lambda-microvms/${getResourceName(serviceName, name, stage)}`
+
     // ── Compile image ────────────────────────────────────────────────────────
     const imageCtx = {
       ...ctx,
@@ -182,6 +196,8 @@ export async function orchestrate({
       codeArtifactUri,
       buildRoleArn,
       execRoleArn,
+      loggingDisabled,
+      logGroupName,
       // BUILD always needs internet egress to pull FROM images etc.
       egressConnectors: [internetEgressArn(region)],
     }
@@ -189,30 +205,29 @@ export async function orchestrate({
     const imageLogicalId = getLogicalId(name, 'Image')
     const imageResource = compileImage(name, cfg, imageCtx)
 
-    // ── Observability (log group always owned; metrics/dashboard default on) ──
-    const obs = resolveObservability(cfg.observability)
-    const logGroupLogicalId = getLogicalId(name, 'ImageLogGroup')
-    const obsCtx = { serviceName, stage, region }
-
-    template.Resources[logGroupLogicalId] = compileLogGroup(name, obs, obsCtx)
-    // Image must not build before its (now CFN-owned) log group exists.
-    imageResource.DependsOn = [
-      ...(imageResource.DependsOn || []),
-      logGroupLogicalId,
-    ]
-    Object.assign(
-      template.Resources,
-      compileMetricFilters(name, obs, obsCtx, logGroupLogicalId),
-      compileAlarms(name, obs, obsCtx),
-      compileDashboard(name, obs, obsCtx),
-    )
+    // Owned log group + monitoring resources (metric filters / alarms /
+    // dashboard) exist only when logging is enabled — they read from the group.
+    if (obs.logs.enabled) {
+      template.Resources[logGroupLogicalId] = compileLogGroup(name, obs, obsCtx)
+      // Image must not build before its (now CFN-owned) log group exists.
+      imageResource.DependsOn = [
+        ...(imageResource.DependsOn || []),
+        logGroupLogicalId,
+      ]
+      Object.assign(
+        template.Resources,
+        compileMetricFilters(name, obs, obsCtx, logGroupLogicalId),
+        compileAlarms(name, obs, obsCtx),
+        compileDashboard(name, obs, obsCtx),
+      )
+    }
 
     // ── Merge into template ──────────────────────────────────────────────────
     if (shouldGenerateRole(buildRoleCfg)) {
       template.Resources[buildRoleLogicalId] = generateBuildRole(
         name,
         { ...cfg, artifactBucket },
-        { ...ctx, bucket: resolvedBucket },
+        { ...ctx, bucket: resolvedBucket, logGroupName },
       )
     }
 
@@ -220,6 +235,8 @@ export async function orchestrate({
       template.Resources[execRoleLogicalId] = generateExecutionRole(name, cfg, {
         ...ctx,
         bucket: resolvedBucket,
+        loggingDisabled,
+        logGroupName,
       })
     }
 

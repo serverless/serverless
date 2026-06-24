@@ -292,6 +292,60 @@ describe('generateExecutionRole', () => {
     expect(dynStmt).toBeDefined()
   })
 
+  test('scopes the logs grant to the resolved log group (custom override)', () => {
+    const role = generateExecutionRole(
+      'runner',
+      {},
+      {
+        ...ctx,
+        logGroupName: '/my-org/sbx/runner',
+      },
+    )
+    const stmts = role.Properties.Policies[0].PolicyDocument.Statement
+    const create = stmts.find((s) => s.Action.includes('logs:CreateLogGroup'))
+    expect(create.Resource['Fn::Sub']).toContain(
+      ':log-group:/my-org/sbx/runner:*',
+    )
+    const put = stmts.find((s) => s.Action.includes('logs:PutLogEvents'))
+    expect(put.Resource['Fn::Sub']).toContain(
+      ':log-group:/my-org/sbx/runner:log-stream:*',
+    )
+  })
+
+  test('omits the logs policy entirely when logging is disabled', () => {
+    const role = generateExecutionRole(
+      'runner',
+      {},
+      {
+        ...ctx,
+        loggingDisabled: true,
+      },
+    )
+    // No inline policy at all — a logging-disabled VM needs no logs:* grant,
+    // and an inline policy with zero statements would be invalid.
+    expect(role.Properties.Policies).toBeUndefined()
+  })
+
+  test('applies custom statements even when logging is disabled (creates the policy holder)', () => {
+    const cfg = {
+      iam: {
+        executionRole: {
+          statements: [
+            { Effect: 'Allow', Action: ['s3:GetObject'], Resource: '*' },
+          ],
+        },
+      },
+    }
+    const role = generateExecutionRole('runner', cfg, {
+      ...ctx,
+      loggingDisabled: true,
+    })
+    const stmts = role.Properties.Policies[0].PolicyDocument.Statement
+    expect(stmts.some((s) => s.Action.includes('s3:GetObject'))).toBe(true)
+    // ...but no logs grant, since logging is off.
+    expect(stmts.flatMap((s) => s.Action)).not.toContain('logs:PutLogEvents')
+  })
+
   test('merges managedPolicies from cfg.iam.executionRole', () => {
     const cfg = {
       iam: {

@@ -12,7 +12,7 @@ const DEFAULT_RETENTION_DAYS = 14
 
 /**
  * Normalize cfg.observability (undefined|true|false|object) to a resolved shape.
- * @returns {{logs:{retentionDays:number,logGroup?:string},
+ * @returns {{logs:{enabled:boolean,retentionDays:number,logGroup?:string},
  *            metrics:{enabled:boolean,filters:object},
  *            dashboard:{enabled:boolean},
  *            alarms:{notify:any,thresholds:object}|null}}
@@ -23,23 +23,30 @@ export function resolveObservability(raw) {
   const obj = raw && typeof raw === 'object' ? raw : {}
 
   const logsCfg = obj.logs || {}
+  // `logs.enabled: false` turns MicroVM logging off entirely — the image emits
+  // `Logging: { Disabled: true }` and the owned log group is not created.
+  // Metrics/dashboard/alarms read from that log group, so they require logging.
+  const logsEnabled = logsCfg.enabled !== false
   const logs = {
+    enabled: logsEnabled,
     retentionDays: logsCfg.retentionDays ?? DEFAULT_RETENTION_DAYS,
     logGroup: logsCfg.logGroup, // undefined ⇒ default /aws/lambda-microvms/<Name>
   }
 
   const metricsCfg = obj.metrics || {}
   const metrics = {
-    enabled: monitoringOn && metricsCfg.enabled !== false,
+    enabled: logsEnabled && monitoringOn && metricsCfg.enabled !== false,
     filters: metricsCfg.filters || DEFAULT_ERROR_FILTER,
   }
 
   const dashboardCfg = obj.dashboard || {}
-  const dashboard = { enabled: monitoringOn && dashboardCfg.enabled !== false }
+  const dashboard = {
+    enabled: logsEnabled && monitoringOn && dashboardCfg.enabled !== false,
+  }
 
-  // Alarms only when an alarms block with a notify target is present.
+  // Alarms only when logging is on AND an alarms block with a notify target is present.
   let alarms = null
-  if (obj.alarms && obj.alarms.notify) {
+  if (logsEnabled && obj.alarms && obj.alarms.notify) {
     alarms = {
       notify: obj.alarms.notify,
       thresholds: obj.alarms.thresholds || {},

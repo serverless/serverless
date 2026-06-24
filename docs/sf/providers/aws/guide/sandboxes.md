@@ -127,8 +127,9 @@ sandboxes:
     iam: { ... }
     observability: true | false        # boolean shorthand, or the object form:
       logs:
+        enabled: true                      # set false to disable MicroVM logging entirely
         retentionDays: 14                  # CloudWatch-allowed value; default 14
-        logGroup: /aws/lambda-microvms/<name>   # override the log group name
+        logGroup: /my-org/sandboxes/<name> # optional: write logs to a custom group
       metrics:
         enabled: true
         filters:
@@ -440,7 +441,7 @@ Observability is **on by default**. Every sandbox automatically gets a CloudWatc
 
 The framework creates and owns the `AWS::Logs::LogGroup` for each sandbox — `/aws/lambda-microvms/<image-name>` — with a default retention of **14 days**. Owning the group means retention is enforced and the group is removed when you run `serverless remove`. The group is created before the MicroVM image build runs so that retention applies from the first log event.
 
-The log group is **always created**, even when `observability: false`. To customize retention or the group name:
+The log group is created whenever logging is enabled (the default) — including when `observability: false`, which only opts out of the metrics/dashboard/alarms layer. To customize retention, or to turn MicroVM logging off entirely:
 
 ```yml
 sandboxes:
@@ -449,10 +450,15 @@ sandboxes:
     observability:
       logs:
         retentionDays: 30
-        logGroup: /my-org/sandboxes/api # optional name override
+        logGroup: /my-org/sandboxes/api # optional: write logs to a custom group
+        # enabled: false                # or disable MicroVM logging completely
 ```
 
 `retentionDays` must be one of the values accepted by CloudWatch Logs (e.g. `1`, `3`, `5`, `7`, `14`, `30`, `60`, `90`, `120`, `150`, `180`, `365`, etc.).
+
+`logGroup` overrides the destination group name end-to-end: the MicroVM's `Logging` config points at it, the owned `AWS::Logs::LogGroup` is created with that name, the build/execution roles are scoped to exactly that group, and the metric filters and dashboard read from it.
+
+When `logs.enabled: false`, the MicroVM image is built with `Logging: { Disabled: true }`, the owned log group is not created, and the metric filters, alarms, and dashboard (which read from that group) are skipped.
 
 ### Error metric and dashboard
 
