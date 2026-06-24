@@ -47,6 +47,19 @@ export function validateSandboxes(sandboxesConfig, { throwError }) {
           `sandbox "${name}": observability.alarms requires "notify" (an SNS topic ARN or ref)`,
         )
       }
+      // Alarms watch the filter metrics; with metrics (or the logging they read
+      // from) disabled there is no backing metric, so the alarm would sit in
+      // INSUFFICIENT_DATA forever. Treat that combination as a config error.
+      if (
+        obs.alarms &&
+        obs.alarms.notify &&
+        ((obs.metrics && obs.metrics.enabled === false) ||
+          (obs.logs && obs.logs.enabled === false))
+      ) {
+        throwError(
+          `sandbox "${name}": observability.alarms requires metrics — remove alarms, or enable metrics and logging`,
+        )
+      }
       const ALLOWED_RETENTION = [
         1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096,
         1827, 2192, 2557, 2922, 3288, 3653,

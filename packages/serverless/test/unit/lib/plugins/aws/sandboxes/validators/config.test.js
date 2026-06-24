@@ -110,4 +110,38 @@ describe('validateSandboxes', () => {
     )
     expect(errors.join('\n')).toMatch(/retentionDays/i)
   })
+
+  test('alarms with metrics.enabled:false is an error (no backing metric)', () => {
+    const errors = []
+    validateSandboxes(
+      {
+        a: {
+          artifact: './x',
+          observability: {
+            metrics: { enabled: false },
+            alarms: { notify: 'arn' },
+          },
+        },
+      },
+      { throwError: (m) => errors.push(m) },
+    )
+    expect(errors.join('\n')).toMatch(/alarms requires metrics/i)
+  })
+
+  test('alarms with logs.enabled:false is an error (logging disabled)', () => {
+    const errors = []
+    validateSandboxes(
+      {
+        a: {
+          artifact: './x',
+          observability: {
+            logs: { enabled: false },
+            alarms: { notify: 'arn' },
+          },
+        },
+      },
+      { throwError: (m) => errors.push(m) },
+    )
+    expect(errors.join('\n')).toMatch(/alarms requires metrics/i)
+  })
 })

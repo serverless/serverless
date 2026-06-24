@@ -150,50 +150,64 @@ export function compileDashboard(name, resolved, ctx) {
   const Name = getResourceName(ctx.serviceName, name, ctx.stage)
   const logGroupName = resolved.logs.logGroup || `/aws/lambda-microvms/${Name}`
   const region = ctx.region
-  const errMetric = metricName(name, ctx, 'errors')
 
-  const body = {
-    widgets: [
-      {
+  // Log-volume + recent-logs read straight from the owned log group, so they
+  // are valid whenever the dashboard exists.
+  const widgets = [
+    {
+      type: 'metric',
+      width: 12,
+      height: 6,
+      properties: {
+        title: 'Log volume & events',
+        region,
+        metrics: [
+          ['AWS/Logs', 'IncomingBytes', 'LogGroupName', logGroupName],
+          ['AWS/Logs', 'IncomingLogEvents', 'LogGroupName', logGroupName],
+        ],
+        stat: 'Sum',
+        period: 300,
+      },
+    },
+  ]
+
+  // The filter metrics exist only when metrics are enabled, and their names come
+  // from the configured filters — derive the widget from those keys rather than
+  // hard-coding an `errors` metric that may not exist.
+  if (resolved.metrics.enabled) {
+    const filterKeys = Object.keys(resolved.metrics.filters)
+    if (filterKeys.length) {
+      widgets.push({
         type: 'metric',
         width: 12,
         height: 6,
         properties: {
-          title: 'Log volume & events',
+          title: 'Filtered metrics',
           region,
-          metrics: [
-            ['AWS/Logs', 'IncomingBytes', 'LogGroupName', logGroupName],
-            ['AWS/Logs', 'IncomingLogEvents', 'LogGroupName', logGroupName],
-          ],
+          metrics: filterKeys.map((k) => [
+            METRIC_NAMESPACE,
+            metricName(name, ctx, k),
+          ]),
           stat: 'Sum',
           period: 300,
         },
-      },
-      {
-        type: 'metric',
-        width: 12,
-        height: 6,
-        properties: {
-          title: 'Errors',
-          region,
-          metrics: [[METRIC_NAMESPACE, errMetric]],
-          stat: 'Sum',
-          period: 300,
-        },
-      },
-      {
-        type: 'log',
-        width: 24,
-        height: 6,
-        properties: {
-          title: 'Recent logs',
-          region,
-          query: `SOURCE '${logGroupName}' | fields @timestamp, @message | sort @timestamp desc | limit 50`,
-          view: 'table',
-        },
-      },
-    ],
+      })
+    }
   }
+
+  widgets.push({
+    type: 'log',
+    width: 24,
+    height: 6,
+    properties: {
+      title: 'Recent logs',
+      region,
+      query: `SOURCE '${logGroupName}' | fields @timestamp, @message | sort @timestamp desc | limit 50`,
+      view: 'table',
+    },
+  })
+
+  const body = { widgets }
 
   const logicalId = getLogicalId(name, 'ImageDashboard')
   return {

@@ -183,3 +183,27 @@ test('compileDashboard: disabled → none', () => {
     }),
   ).toEqual({})
 })
+
+test('compileDashboard: metric widget derives from filter keys, not a hard-coded errors metric', () => {
+  const r = resolveObservability({ metrics: { filters: { fail: '%FAIL%' } } })
+  const out = compileDashboard('echo', r, {
+    serviceName: 'svc',
+    stage: 'dev',
+    region: 'us-east-1',
+  })
+  const blob = JSON.stringify(out[Object.keys(out)[0]])
+  expect(blob).toContain('svc-echo-dev-fail') // the configured filter's metric
+  expect(blob).not.toContain('svc-echo-dev-errors') // no hard-coded errors metric
+})
+
+test('compileDashboard: metrics disabled → only log widgets, no filter-metric widget', () => {
+  const r = resolveObservability({ metrics: { enabled: false } })
+  const out = compileDashboard('echo', r, {
+    serviceName: 'svc',
+    stage: 'dev',
+    region: 'us-east-1',
+  })
+  const body = JSON.parse(out[Object.keys(out)[0]].Properties.DashboardBody)
+  expect(body.widgets).toHaveLength(2) // log volume + recent logs only
+  expect(JSON.stringify(body)).not.toContain('ServerlessFramework/Sandboxes')
+})
