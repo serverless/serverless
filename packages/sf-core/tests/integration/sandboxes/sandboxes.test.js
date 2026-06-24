@@ -335,6 +335,19 @@ describe('Serverless Framework Service - Sandboxes', () => {
           await microvmsClient.send(
             new TerminateMicrovmCommand({ microvmIdentifier: microvmId }),
           )
+          // Wait for the MicroVM to actually finish terminating before leaving
+          // cleanup. TerminateMicrovm returns before the instance is gone, and a
+          // MicroVM still referencing the image can otherwise race the later
+          // `remove` test and intermittently block stack deletion.
+          await pollUntil(
+            () =>
+              microvmsClient
+                .send(new GetMicrovmCommand({ microvmIdentifier: microvmId }))
+                .then((r) => r.state)
+                .catch(() => 'TERMINATED'), // NotFound ⇒ already gone
+            (state) => state === 'TERMINATED',
+            { intervalMs: 5000, maxMs: 180000, label: 'MicroVM termination' },
+          )
         } catch (err) {
           // Termination is best-effort in cleanup; log but don't rethrow
           console.error('TerminateMicrovm cleanup error:', err.message)

@@ -254,6 +254,9 @@ class SandboxesDevMode {
   }
 
   _isIgnored(filePath, stats) {
+    // chokidar reports OS-native separators; normalize to '/' so the directory
+    // matches below work on Windows (where paths use '\') too.
+    const p = filePath.replace(/\\/g, '/')
     const EXCLUDED = [
       '/.serverless/',
       '/node_modules/',
@@ -265,13 +268,13 @@ class SandboxesDevMode {
       '/.mypy_cache/',
       '/coverage/',
     ]
-    if (EXCLUDED.some((dir) => filePath.includes(dir))) return true
+    if (EXCLUDED.some((dir) => p.includes(dir))) return true
     if (
       stats?.isFile() &&
-      (filePath.endsWith('.test.js') ||
-        filePath.endsWith('.spec.js') ||
-        filePath.endsWith('_test.py') ||
-        filePath.endsWith('.test.py'))
+      (p.endsWith('.test.js') ||
+        p.endsWith('.spec.js') ||
+        p.endsWith('_test.py') ||
+        p.endsWith('.test.py'))
     ) {
       return true
     }

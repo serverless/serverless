@@ -366,6 +366,16 @@ test('_isIgnored excludes framework/output dirs and test files, includes sources
   expect(d._isIgnored('/svc/app/Dockerfile', file)).toBe(false)
 })
 
+test('_isIgnored matches Windows backslash paths too', () => {
+  const d = make({ sandbox: 'api' }, { api: { artifact: './app' } })
+  const file = { isFile: () => true }
+  expect(d._isIgnored('C:\\svc\\app\\node_modules\\x\\index.js', file)).toBe(
+    true,
+  )
+  expect(d._isIgnored('C:\\svc\\app\\.serverless\\state.json', file)).toBe(true)
+  expect(d._isIgnored('C:\\svc\\app\\handler.js', file)).toBe(false)
+})
+
 test('startWatcher triggers a rebuild on a non-ignored change', async () => {
   const handlers = {}
   const watcher = {

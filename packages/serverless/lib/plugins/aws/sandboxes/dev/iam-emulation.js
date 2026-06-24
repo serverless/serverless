@@ -127,7 +127,15 @@ class SandboxIamEmulation {
     if (res.Role?.MaxSessionDuration) {
       this.maxSessionDuration = res.Role.MaxSessionDuration
     }
-    return JSON.parse(decodeURIComponent(res.Role.AssumeRolePolicyDocument))
+    const doc = JSON.parse(
+      decodeURIComponent(res.Role.AssumeRolePolicyDocument),
+    )
+    // IAM allows `Statement` to be a single object rather than an array;
+    // normalize so the find/push/splice below can treat it uniformly.
+    if (doc.Statement && !Array.isArray(doc.Statement)) {
+      doc.Statement = [doc.Statement]
+    }
+    return doc
   }
 
   async _ensureTrustPolicy() {

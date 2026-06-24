@@ -47,4 +47,15 @@ describe('naming', () => {
   test('getLogicalId expands underscores', () => {
     expect(getLogicalId('my_runner', 'Image')).toBe('MyUnderscorerunnerImage')
   })
+  test('getLogicalId caps over-long names within the CFN limit, keeping the suffix', () => {
+    const id = getLogicalId('x'.repeat(400), 'ImageExecutionRole')
+    expect(id.length).toBeLessThanOrEqual(255)
+    expect(id.endsWith('ImageExecutionRole')).toBe(true)
+    expect(id).toMatch(/^[A-Za-z0-9]+$/) // alphanumeric — a valid CFN logical id
+  })
+  test('getLogicalId keeps distinct long names distinct (hash suffix)', () => {
+    const a = getLogicalId('a'.repeat(300), 'Image')
+    const b = getLogicalId('a'.repeat(299) + 'b', 'Image')
+    expect(a).not.toBe(b)
+  })
 })

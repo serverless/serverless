@@ -269,3 +269,38 @@ test('cleanUp is a no-op (no throw) when setUp never added a principal', async (
     provider.calls.find((c) => c.method === 'updateAssumeRolePolicy'),
   ).toBeUndefined()
 })
+
+test('normalizes a single-object trust-policy Statement before mutating it', async () => {
+  // IAM may return Statement as a lone object rather than an array.
+  const singleStmt = {
+    Version: '2012-10-17',
+    Statement: {
+      Effect: 'Allow',
+      Principal: { Service: 'lambda.amazonaws.com' },
+      Action: 'sts:AssumeRole',
+    },
+  }
+  const { iam, provider } = make(
+    defaultHandlers({
+      'IAM.getRole': () => ({
+        Role: {
+          Arn: ROLE_ARN,
+          MaxSessionDuration: 3600,
+          AssumeRolePolicyDocument: encodeURIComponent(
+            JSON.stringify(singleStmt),
+          ),
+        },
+      }),
+    }),
+  )
+  const env = await iam.setUp('api')
+  expect(env).toBeTruthy() // did not throw on the object-shaped Statement
+  const update = provider.calls.find(
+    (c) => c.method === 'updateAssumeRolePolicy',
+  )
+  const doc = JSON.parse(update.params.PolicyDocument)
+  expect(Array.isArray(doc.Statement)).toBe(true)
+  expect(
+    doc.Statement.some((s) => s.Sid === 'ServerlessSandboxesLocalDevPolicy'),
+  ).toBe(true)
+})

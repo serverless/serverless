@@ -23,3 +23,10 @@ test('resolves base image arn + version major', async () => {
     { sdkVersion: 3 },
   )
 })
+
+test('throws a clear error when no managed base image versions are returned', async () => {
+  const provider = { request: jest.fn().mockResolvedValue({ items: [] }) }
+  await expect(
+    resolveBaseImage(provider, 'us-east-1', 'al2023-1'),
+  ).rejects.toThrow(/No managed MicroVM base image versions/i)
+})
