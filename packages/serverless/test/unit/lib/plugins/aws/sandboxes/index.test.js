@@ -26,6 +26,7 @@ function makeProvider(overrides = {}) {
 const makeServerless = (sandboxes, providerOverride) => {
   const provider = providerOverride ?? makeProvider()
   return {
+    serviceDir: '/svc',
     configurationInput: { sandboxes },
     service: {
       service: 'svc',
@@ -38,6 +39,24 @@ const makeServerless = (sandboxes, providerOverride) => {
     getProvider: () => provider,
     configSchemaHandler: { defineTopLevelProperty: jest.fn() },
     classes: { Error },
+  }
+}
+
+// fs/promises-like stub for the package-dir hand-off. `manifest` (when given)
+// is returned for the manifest read; any other read returns a fake zip body.
+function makeFakeFs(manifest) {
+  return {
+    mkdir: jest.fn(async () => {}),
+    writeFile: jest.fn(async () => {}),
+    readFile: jest.fn(async (p) => {
+      if (String(p).endsWith('sandboxes-uploads.json')) {
+        if (!manifest) {
+          throw Object.assign(new Error('not found'), { code: 'ENOENT' })
+        }
+        return JSON.stringify(manifest)
+      }
+      return Buffer.from('fake-zip')
+    }),
   }
 }
 
@@ -152,25 +171,28 @@ describe('ServerlessSandboxes', () => {
     expect(s3UploadCalls).toHaveLength(0)
   })
 
-  test('packageArtifacts() uploads local-dir artifact to S3 at deploy time', async () => {
+  test('packageArtifacts() uploads artifacts from the package-dir manifest (works for deploy --package)', async () => {
     const provider = makeProvider()
     const sls = makeServerless(
       { runner: { artifact: 's3://bucket/artifact.zip' } },
       provider,
     )
-    const p = new ServerlessSandboxes(sls, {}, { log: { debug: jest.fn() } })
-
-    // Manually inject a pending upload to simulate what compile() would do
-    // for a local-dir artifact, without needing real filesystem zip.
-    p._pendingUploads = new Map([
-      [
-        'runner',
-        {
-          key: 'serverless/svc/dev/sandboxes/runner-abc123.zip',
-          zipBuffer: Buffer.from('fake-zip'),
-        },
-      ],
+    // A separate `deploy --package` process: no compile() ran, the manifest is
+    // read from disk. The fake fs returns it (and a zip body) without touching
+    // the real filesystem.
+    const fakeFs = makeFakeFs([
+      {
+        name: 'runner',
+        key: 'serverless/svc/dev/sandboxes/runner-abc123.zip',
+        file: 'sandboxes/runner-abc123.zip',
+      },
     ])
+    const p = new ServerlessSandboxes(
+      sls,
+      {},
+      { log: { debug: jest.fn() } },
+      { fs: fakeFs },
+    )
 
     await p.packageArtifacts()
 
@@ -185,15 +207,20 @@ describe('ServerlessSandboxes', () => {
     expect(params.ContentType).toBe('application/zip')
   })
 
-  test('packageArtifacts() is a no-op when there are no pending uploads (s3:// artifact)', async () => {
+  test('packageArtifacts() is a no-op when there is no manifest (only s3:// artifacts)', async () => {
     const provider = makeProvider()
     const sls = makeServerless(
       { runner: { artifact: 's3://bucket/artifact.zip' } },
       provider,
     )
-    const p = new ServerlessSandboxes(sls, {}, { log: { debug: jest.fn() } })
+    const fakeFs = makeFakeFs(null) // manifest read → ENOENT → []
+    const p = new ServerlessSandboxes(
+      sls,
+      {},
+      { log: { debug: jest.fn() } },
+      { fs: fakeFs },
+    )
     await p.compile()
-    // _pendingUploads should be empty for s3:// artifact
     await p.packageArtifacts()
     expect(provider.getServerlessDeploymentBucketName).not.toHaveBeenCalled()
     const s3UploadCalls = provider.request.mock.calls.filter(

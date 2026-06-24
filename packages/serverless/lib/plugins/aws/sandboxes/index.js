@@ -1,9 +1,12 @@
 'use strict'
 
+import path from 'path'
+import fsPromises from 'fs/promises'
 import { defineSandboxesSchema } from './validators/schema.js'
 import { validateSandboxes } from './validators/config.js'
 import { orchestrate } from './compilation/orchestrator.js'
 import { uploadArtifact } from './packaging/artifact.js'
+import { persistArtifacts, readUploadManifest } from './packaging/persist.js'
 
 /**
  * Serverless Framework internal plugin for AWS Lambda MicroVM sandboxes.
@@ -14,8 +17,12 @@ import { uploadArtifact } from './packaging/artifact.js'
  * Hook lifecycle:
  *   before:package:initialize  → validate configuration (fast, synchronous)
  *   before:package:finalize    → compile CloudFormation resources (idempotent);
- *                                 zip local artifacts and cache them (no S3)
- *   before:deploy:deploy       → upload cached local artifacts to S3
+ *                                 zip local artifacts to the package dir + manifest (no S3)
+ *   before:deploy:deploy       → upload the packaged artifacts (from disk) to S3
+ *
+ * Artifacts are written to disk at package time and uploaded from disk at deploy
+ * time — the same hand-off the framework uses for function zips — so `serverless
+ * package` stays offline and `serverless deploy --package <dir>` works.
  */
 class ServerlessSandboxes {
   /**
@@ -26,19 +33,14 @@ class ServerlessSandboxes {
     return Boolean(cfg && Object.keys(cfg).length > 0)
   }
 
-  constructor(serverless, options, { log }) {
+  constructor(serverless, options, { log }, deps = {}) {
     this.serverless = serverless
     this.options = options
     this.log = log
     this.provider = serverless.getProvider('aws')
     this.resourcesCompiled = false
-
-    /**
-     * Pending uploads populated by compile() and consumed by packageArtifacts().
-     * Map of sandbox name → { key: string, zipBuffer: Buffer }
-     * @type {Map<string, { key: string, zipBuffer: Buffer }>}
-     */
-    this._pendingUploads = new Map()
+    // Injectable fs/promises-like for tests; defaults to the real module.
+    this._fs = deps.fs || fsPromises
 
     defineSandboxesSchema(serverless)
 
@@ -87,42 +89,55 @@ class ServerlessSandboxes {
   }
 
   /**
-   * Upload any local code artifacts to S3. Called at before:deploy:deploy so
-   * artifacts are staged before CloudFormation executes.
+   * Resolve the package output directory, mirroring the package/deploy commands:
+   * the --package option, else service.package.path, else <serviceDir>/.serverless.
+   */
+  getPackageDir() {
+    const configured =
+      this.options?.package || this.serverless.service.package?.path
+    const serviceDir = this.serverless.serviceDir || '.'
+    if (!configured) return path.join(serviceDir, '.serverless')
+    return path.isAbsolute(configured)
+      ? configured
+      : path.join(serviceDir, configured)
+  }
+
+  /**
+   * Upload the packaged local-dir artifacts to S3. Called at before:deploy:deploy.
    *
-   * The zip buffers and S3 keys were computed during compile() and cached on
-   * `this._pendingUploads`.  s3:// pass-through artifacts produce no entry in
-   * the cache and are skipped here.
+   * Reads the upload manifest written into the package directory at package time
+   * (not in-memory state), so this works for both `serverless deploy` and the
+   * separate-process `serverless deploy --package <dir>`. s3:// pass-through
+   * artifacts produce no manifest entry and are skipped.
    */
   async packageArtifacts() {
-    if (this._pendingUploads.size === 0) return
+    const packageDir = this.getPackageDir()
+    const manifest = await readUploadManifest({ packageDir, fs: this._fs })
+    if (manifest.length === 0) return
 
     const bucket = await this.provider.getServerlessDeploymentBucketName()
     const deploymentBucketObject =
       this.serverless.service.provider?.deploymentBucketObject
 
-    const uploads = []
-    for (const [, { key, zipBuffer }] of this._pendingUploads) {
-      uploads.push(
+    await Promise.all(
+      manifest.map(async ({ key, file }) =>
         uploadArtifact({
           provider: this.provider,
           bucket,
           key,
-          body: zipBuffer,
+          body: await this._fs.readFile(path.join(packageDir, file)),
           deploymentBucketObject,
         }),
-      )
-    }
-
-    await Promise.all(uploads)
+      ),
+    )
   }
 
   /**
    * Compile all sandbox CloudFormation resources into the provider template.
    * Idempotent: subsequent calls are no-ops once resourcesCompiled is set.
    *
-   * Local-dir artifacts are zipped and their keys+buffers are cached on
-   * `this._pendingUploads`; the actual S3 upload happens in packageArtifacts().
+   * Local-dir artifacts are zipped and written (with a manifest) into the
+   * package directory; the actual S3 upload happens in packageArtifacts().
    */
   async compile() {
     if (this.resourcesCompiled) return
@@ -134,13 +149,22 @@ class ServerlessSandboxes {
     const template =
       this.serverless.service.provider.compiledCloudFormationTemplate
 
-    this._pendingUploads = await orchestrate({
+    const pendingUploads = await orchestrate({
       sandboxesConfig,
       ctx,
       template,
       provider: this.provider,
       serverless: this.serverless,
       log: this.log,
+    })
+
+    // Persist local-dir artifacts + a manifest into the package directory so the
+    // deploy step uploads them from disk (matching how function zips are handed
+    // from `package` to `deploy`, and enabling `deploy --package`).
+    await persistArtifacts({
+      packageDir: this.getPackageDir(),
+      pendingUploads,
+      fs: this._fs,
     })
 
     this.resourcesCompiled = true
