@@ -11,7 +11,12 @@ import { startInstanceProxy } from './proxy.js'
 // prematurely and the following POST fails. An HTTP request only completes once the in-VM server is
 // actually serving (any status code counts; a hooks server replying 404/501 to GET is "ready").
 // Resolves true once the server responds, false on timeout (the caller proceeds either way).
-function defaultWaitForPort(host, port, timeoutMs = 15000, intervalMs = 200) {
+export function defaultWaitForPort(
+  host,
+  port,
+  timeoutMs = 15000,
+  intervalMs = 200,
+) {
   if (!port) return Promise.resolve(false)
   const deadline = Date.now() + timeoutMs
   return new Promise((resolve) => {
@@ -278,24 +283,35 @@ export async function startControlPlane({
   const port = server.address().port
 
   // One reaper pass: apply idlePolicy-driven suspend/terminate transitions.
+  // Re-entrancy guard: a pass awaits fireHook + Docker pause/stop before the registry state flips,
+  // so without this a slow pass overlapping the next interval tick would see the same instance still
+  // "due" and fire suspend/terminate (and pause/stop) a second time — violating the fire-once hook
+  // contract. An overlapping tick returns immediately; the next tick picks up anything still due.
+  let reaping = false
   const reapTick = async () => {
-    for (const { microvmId, action } of registry.dueTransitions()) {
-      const inst = registry.getInstance(microvmId)
-      if (!inst) continue
-      if (action === 'suspend') {
-        await fireHook('suspend', inst)
-        await inst.pauseFn().catch(() => {})
-        registry.markSuspended(microvmId)
-      } else if (action === 'terminate') {
-        try {
-          inst.proxyServer?.close?.()
-        } catch {
-          /* ignore */
+    if (reaping) return
+    reaping = true
+    try {
+      for (const { microvmId, action } of registry.dueTransitions()) {
+        const inst = registry.getInstance(microvmId)
+        if (!inst) continue
+        if (action === 'suspend') {
+          await fireHook('suspend', inst)
+          await inst.pauseFn().catch(() => {})
+          registry.markSuspended(microvmId)
+        } else if (action === 'terminate') {
+          try {
+            inst.proxyServer?.close?.()
+          } catch {
+            /* ignore */
+          }
+          await fireHook('terminate', inst)
+          await inst.stopFn().catch(() => {})
+          registry.terminate(microvmId)
         }
-        await fireHook('terminate', inst)
-        await inst.stopFn().catch(() => {})
-        registry.terminate(microvmId)
       }
+    } finally {
+      reaping = false
     }
   }
   const reaperTimer = setIntervalImpl(() => {
