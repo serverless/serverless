@@ -127,6 +127,7 @@ export async function startControlPlane({
         pauseFn: c.pause,
         unpauseFn: c.unpause,
         idlePolicy: body?.idlePolicy,
+        maximumDurationInSeconds: body?.maximumDurationInSeconds,
       })
       const inst = registry.getInstance(microvmId)
       const { server, port } = await startProxy({
@@ -137,6 +138,7 @@ export async function startControlPlane({
           const decision = registry.onRequest(microvmId)
           if (decision === 'resume') {
             await inst.unpauseFn().catch(() => {})
+            await fireHook('resume', inst)
             return 'forward'
           }
           return decision // 'forward' | 'reject'
@@ -144,6 +146,8 @@ export async function startControlPlane({
       })
       const endpoint = `http://127.0.0.1:${port}`
       registry.markRunning(microvmId, { endpoint, proxyServer: server })
+      await fireHook('ready', inst)
+      await fireHook('run', inst, body?.runHookPayload)
       return { microvmId, endpoint, state: 'RUNNING' }
     },
 
@@ -164,22 +168,11 @@ export async function startControlPlane({
       return { authToken: { 'X-aws-proxy-auth': token } }
     },
 
-    TerminateMicrovm: async (_req, _body, params) => {
-      const inst = registry.terminate(params.microvmIdentifier)
-      if (!inst) return notFound(params.microvmIdentifier)
-      try {
-        inst.proxyServer?.close?.()
-      } catch {
-        /* ignore */
-      }
-      await inst.stopFn().catch(() => {})
-      return {} // real AWS returns an empty body
-    },
-
     // Explicit lifecycle ops (real API; confirmed empty `{}` responses, Appendix A).
     SuspendMicrovm: async (_req, _body, params) => {
       const inst = registry.getInstance(params.microvmIdentifier)
       if (!inst) return notFound(params.microvmIdentifier)
+      await fireHook('suspend', inst)
       await inst.pauseFn().catch(() => {})
       registry.markSuspended(params.microvmIdentifier)
       return {}
@@ -188,8 +181,22 @@ export async function startControlPlane({
       const inst = registry.getInstance(params.microvmIdentifier)
       if (!inst) return notFound(params.microvmIdentifier)
       await inst.unpauseFn().catch(() => {})
+      await fireHook('resume', inst)
       registry.markResumed(params.microvmIdentifier)
       return {}
+    },
+
+    TerminateMicrovm: async (_req, _body, params) => {
+      const inst = registry.terminate(params.microvmIdentifier)
+      if (!inst) return notFound(params.microvmIdentifier)
+      try {
+        inst.proxyServer?.close?.()
+      } catch {
+        /* ignore */
+      }
+      await fireHook('terminate', inst)
+      await inst.stopFn().catch(() => {})
+      return {} // real AWS returns an empty body
     },
   }
 
@@ -237,6 +244,7 @@ export async function startControlPlane({
       const inst = registry.getInstance(microvmId)
       if (!inst) continue
       if (action === 'suspend') {
+        await fireHook('suspend', inst)
         await inst.pauseFn().catch(() => {})
         registry.markSuspended(microvmId)
       } else if (action === 'terminate') {
@@ -245,6 +253,7 @@ export async function startControlPlane({
         } catch {
           /* ignore */
         }
+        await fireHook('terminate', inst)
         await inst.stopFn().catch(() => {})
         registry.terminate(microvmId)
       }

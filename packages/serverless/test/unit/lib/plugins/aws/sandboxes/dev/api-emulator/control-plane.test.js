@@ -46,7 +46,7 @@ function recordingContainerManager(containers) {
 // startProxy stub: avoids opening real per-instance servers in unit tests.
 const fakeStartProxy = async () => ({ server: { close() {} }, port: 40001 })
 
-async function harness({ c } = {}) {
+async function harness({ c, fireHook } = {}) {
   const containers = []
   const registry = new EmulatorRegistry({
     sandboxName: 'echo',
@@ -64,6 +64,7 @@ async function harness({ c } = {}) {
     startProxy: fakeStartProxy,
     setIntervalImpl: () => 0, // no background reaping in tests — drive cp.reapTick() manually
     clearIntervalImpl: () => {},
+    ...(fireHook ? { fireHook } : {}),
   })
   return { cp, registry, containers }
 }
@@ -183,6 +184,32 @@ test('explicit SuspendMicrovm / ResumeMicrovm pause + resume the instance (empty
     expect(res.status).toBe(200)
     expect(registry.getInstance(id).state).toBe('RUNNING')
     expect(containers[0].unpause).toHaveBeenCalled()
+  } finally {
+    await cp.shutdown()
+  }
+})
+
+test('lifecycle fires hooks: ready+run on RunMicrovm, suspend/resume/terminate on the ops', async () => {
+  const fired = []
+  // harness extended to inject fireHook (thread it through to startControlPlane).
+  const { cp } = await harness({
+    fireHook: async (name, inst, payload) =>
+      fired.push([name, payload ?? null]),
+  })
+  try {
+    const id = (
+      await req(cp.port, 'POST', '/microvms', { runHookPayload: 'P' })
+    ).json.microvmId
+    await req(cp.port, 'POST', `/microvms/${id}/suspend`)
+    await req(cp.port, 'POST', `/microvms/${id}/resume`)
+    await req(cp.port, 'DELETE', `/microvms/${id}`)
+    expect(fired).toEqual([
+      ['ready', null],
+      ['run', 'P'],
+      ['suspend', null],
+      ['resume', null],
+      ['terminate', null],
+    ])
   } finally {
     await cp.shutdown()
   }
