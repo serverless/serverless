@@ -1,0 +1,189 @@
+// control-plane.test.js
+import http from 'http'
+import { jest } from '@jest/globals'
+import { startControlPlane } from '../../../../../../../../lib/plugins/aws/sandboxes/dev/api-emulator/control-plane.js'
+import { EmulatorRegistry } from '../../../../../../../../lib/plugins/aws/sandboxes/dev/api-emulator/registry.js'
+
+function req(port, method, path, body) {
+  return new Promise((resolve, reject) => {
+    const r = http.request({ host: '127.0.0.1', port, method, path }, (res) => {
+      const chunks = []
+      res.on('data', (c) => chunks.push(c))
+      res.on('end', () =>
+        resolve({
+          status: res.statusCode,
+          json: JSON.parse(Buffer.concat(chunks).toString() || '{}'),
+        }),
+      )
+    })
+    r.on('error', reject)
+    if (body) r.write(JSON.stringify(body))
+    r.end()
+  })
+}
+
+function clock(start = 0) {
+  let t = start
+  return { now: () => t, advance: (ms) => (t += ms) }
+}
+
+function recordingContainerManager(containers) {
+  return {
+    run: async () => {
+      const handle = {
+        containerName: `c${containers.length + 1}`,
+        portMap: { 8080: 50080, 9000: 50090 },
+        stop: jest.fn(async () => {}),
+        pause: jest.fn(async () => {}),
+        unpause: jest.fn(async () => {}),
+      }
+      containers.push(handle)
+      return handle
+    },
+  }
+}
+
+// startProxy stub: avoids opening real per-instance servers in unit tests.
+const fakeStartProxy = async () => ({ server: { close() {} }, port: 40001 })
+
+async function harness({ c } = {}) {
+  const containers = []
+  const registry = new EmulatorRegistry({
+    sandboxName: 'echo',
+    minimumMemoryInMiB: 2048,
+    imageArn: 'arn:local',
+    idFactory: (() => {
+      let n = 0
+      return () => `mvm-${++n}`
+    })(),
+    now: c ? c.now : undefined,
+  })
+  const cp = await startControlPlane({
+    registry,
+    containerManager: recordingContainerManager(containers),
+    startProxy: fakeStartProxy,
+    setIntervalImpl: () => 0, // no background reaping in tests — drive cp.reapTick() manually
+    clearIntervalImpl: () => {},
+  })
+  return { cp, registry, containers }
+}
+
+test('GetMicrovmImage returns CREATED', async () => {
+  const { cp } = await harness()
+  try {
+    const res = await req(cp.port, 'GET', '/microvm-images/arn:local')
+    expect(res.status).toBe(200)
+    expect(res.json.state).toBe('CREATED')
+    expect(res.json.latestActiveImageVersion).toBeTruthy()
+  } finally {
+    await cp.shutdown()
+  }
+})
+
+test('RunMicrovm -> GetMicrovm RUNNING -> CreateMicrovmAuthToken -> Terminate', async () => {
+  const { cp } = await harness()
+  try {
+    const run = await req(cp.port, 'POST', '/microvms', {
+      imageIdentifier: 'arn:local',
+    })
+    expect(run.status).toBe(200)
+    expect(run.json.microvmId).toBe('mvm-1')
+    expect(run.json.endpoint).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/)
+    expect(run.json.state).toBe('RUNNING')
+
+    const get = await req(cp.port, 'GET', `/microvms/${run.json.microvmId}`)
+    expect(get.json.state).toBe('RUNNING')
+    expect(get.json.endpoint).toBe(run.json.endpoint)
+
+    const tok = await req(
+      cp.port,
+      'POST',
+      `/microvms/${run.json.microvmId}/auth-token`,
+      {
+        allowedPorts: [{ port: 8080 }],
+      },
+    )
+    expect(tok.json.authToken['X-aws-proxy-auth']).toBeTruthy()
+
+    const del = await req(cp.port, 'DELETE', `/microvms/${run.json.microvmId}`)
+    expect(del.status).toBe(200)
+    const after = await req(cp.port, 'GET', `/microvms/${run.json.microvmId}`)
+    expect(after.json.state).toBe('TERMINATED')
+  } finally {
+    await cp.shutdown()
+  }
+})
+
+test('unknown route returns 4xx JSON, not a crash', async () => {
+  const { cp } = await harness()
+  try {
+    const res = await req(cp.port, 'GET', '/nope')
+    expect(res.status).toBeGreaterThanOrEqual(400)
+  } finally {
+    await cp.shutdown()
+  }
+})
+
+test('reaper honors idlePolicy {maxIdle:1,suspended:0}: idle -> TERMINATED + container stopped', async () => {
+  const c = clock()
+  const { cp, registry, containers } = await harness({ c })
+  try {
+    const run = await req(cp.port, 'POST', '/microvms', {
+      idlePolicy: {
+        maxIdleDurationSeconds: 1,
+        suspendedDurationSeconds: 0,
+        autoResumeEnabled: false,
+      },
+    })
+    const id = run.json.microvmId
+    c.advance(2000)
+    await cp.reapTick()
+    expect(registry.getInstance(id).state).toBe('TERMINATED')
+    expect(containers[0].stop).toHaveBeenCalled()
+  } finally {
+    await cp.shutdown()
+  }
+})
+
+test('reaper honors a suspend window: idle -> SUSPENDED (pause) -> TERMINATED', async () => {
+  const c = clock()
+  const { cp, registry, containers } = await harness({ c })
+  try {
+    const run = await req(cp.port, 'POST', '/microvms', {
+      idlePolicy: {
+        maxIdleDurationSeconds: 1,
+        suspendedDurationSeconds: 5,
+        autoResumeEnabled: true,
+      },
+    })
+    const id = run.json.microvmId
+    c.advance(2000)
+    await cp.reapTick()
+    expect(registry.getInstance(id).state).toBe('SUSPENDED')
+    expect(containers[0].pause).toHaveBeenCalled()
+    c.advance(6000)
+    await cp.reapTick()
+    expect(registry.getInstance(id).state).toBe('TERMINATED')
+    expect(containers[0].stop).toHaveBeenCalled()
+  } finally {
+    await cp.shutdown()
+  }
+})
+
+test('explicit SuspendMicrovm / ResumeMicrovm pause + resume the instance (empty {} body)', async () => {
+  const { cp, registry, containers } = await harness()
+  try {
+    const id = (await req(cp.port, 'POST', '/microvms', {})).json.microvmId
+    const sus = await req(cp.port, 'POST', `/microvms/${id}/suspend`)
+    expect(sus.status).toBe(200)
+    expect(sus.json).toEqual({})
+    expect(registry.getInstance(id).state).toBe('SUSPENDED')
+    expect(containers[0].pause).toHaveBeenCalled()
+    const res = await req(cp.port, 'POST', `/microvms/${id}/resume`)
+    expect(res.status).toBe(200)
+    expect(registry.getInstance(id).state).toBe('RUNNING')
+    expect(containers[0].unpause).toHaveBeenCalled()
+  } finally {
+    await cp.shutdown()
+  }
+})
