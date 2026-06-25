@@ -64,6 +64,7 @@ async function harness({ c, fireHook } = {}) {
     startProxy: fakeStartProxy,
     setIntervalImpl: () => 0, // no background reaping in tests — drive cp.reapTick() manually
     clearIntervalImpl: () => {},
+    waitForPort: async () => true, // fake containers have no real port to probe; skip the readiness wait
     ...(fireHook ? { fireHook } : {}),
   })
   return { cp, registry, containers }

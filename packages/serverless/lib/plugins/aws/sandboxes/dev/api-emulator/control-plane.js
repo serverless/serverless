@@ -1,7 +1,32 @@
 'use strict'
 
 import http from 'http'
+import net from 'net'
 import { startInstanceProxy } from './proxy.js'
+
+// Best-effort, bounded wait for a TCP port to accept connections. Used to let a freshly
+// started container bind its hook server (:9000) before we deliver lifecycle hooks — otherwise
+// the run-hook payload is POSTed to a not-yet-listening port and lost. Resolves true once
+// reachable, false on timeout (the caller proceeds either way).
+function defaultWaitForPort(host, port, timeoutMs = 15000, intervalMs = 200) {
+  if (!port) return Promise.resolve(false)
+  const deadline = Date.now() + timeoutMs
+  return new Promise((resolve) => {
+    const attempt = () => {
+      const sock = net.connect({ host, port })
+      sock.once('connect', () => {
+        sock.destroy()
+        resolve(true)
+      })
+      sock.once('error', () => {
+        sock.destroy()
+        if (Date.now() >= deadline) resolve(false)
+        else setTimeout(attempt, intervalMs)
+      })
+    }
+    attempt()
+  })
+}
 
 // Each route: HTTP method + a matcher that returns captured params or null.
 export const ROUTES = [
@@ -99,6 +124,9 @@ export async function startControlPlane({
   clearIntervalImpl = clearInterval,
   reapIntervalMs = 5000,
   fireHook = async () => {},
+  hookPort = 9000,
+  readinessTimeoutMs = 15000,
+  waitForPort = defaultWaitForPort,
 }) {
   const send = (res, status, obj) => {
     res.writeHead(status, { 'content-type': 'application/json' })
@@ -146,6 +174,9 @@ export async function startControlPlane({
       })
       const endpoint = `http://127.0.0.1:${port}`
       registry.markRunning(microvmId, { endpoint, proxyServer: server })
+      // Let the container bind its hook server before delivering lifecycle hooks, so the
+      // run-hook payload isn't POSTed to a not-yet-listening :9000 and lost. Best-effort + bounded.
+      await waitForPort(host, inst.portMap[hookPort], readinessTimeoutMs)
       await fireHook('ready', inst)
       await fireHook('run', inst, body?.runHookPayload)
       return { microvmId, endpoint, state: 'RUNNING' }
