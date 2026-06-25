@@ -556,39 +556,41 @@ Metric filters are free. The derived metric costs approximately $0.30/month. Clo
 
 ## Local development (`serverless dev`)
 
-Run a sandbox container locally for a fast inner loop:
+Run a sandbox locally for a fast inner loop. `serverless dev --sandbox` builds your sandbox image
+from its `Dockerfile` and starts a local, SDK-compatible **AWS Lambda MicroVMs control-plane** (see
+[AWS API emulation](#aws-api-emulation) below) that launches MicroVM instances as Docker containers
+on demand:
 
 ```bash
 serverless dev --sandbox app          # --sandbox optional when only one is defined
 serverless dev --mode sandboxes       # equivalent; auto-detected when the service has only sandboxes
-serverless dev --sandbox app --port 9090   # map the container's :8080 to a host port
+serverless dev --sandbox app --port 9300   # control-plane endpoint port (default 9100)
 ```
 
-`dev` builds the sandbox's `Dockerfile` locally, runs it as a container, maps the
-app port (8080) to your host, and streams container logs. Press Ctrl-C to stop and
-remove the container.
+The control-plane endpoint is **stable across runs** (default `http://127.0.0.1:9100`) and
+customizable with `--port`, so the address your code targets doesn't change between sessions. If the
+port is already in use, `dev` exits with a clear error so you can pick another; run two sandboxes at
+once by giving each its own `--port`. Press Ctrl-C to stop.
 
 > **Note:** `dev` requires a local Docker daemon and a local `artifact` directory
 > containing a `Dockerfile`. A sandbox whose `artifact` is an `s3://` zip cannot be
 > run with `dev` — use a local directory for the dev loop.
 
-> Higher-fidelity dev features (real-execution-role credentials, the
-> production proxy/auth contract, and egress isolation) are added in later increments.
-
 ### Hot reloading
 
 `serverless dev --sandbox <name>` watches the sandbox's build-context directory (the
 `artifact` directory — the Dockerfile and your sources). When a file changes, the image
-is rebuilt and the container is restarted automatically on the same port, so you can
-iterate without re-running the command.
+is rebuilt; the **next** `RunMicrovm` launches a fresh container from the updated image
+(already-running instances keep the image they started with), so you can iterate without
+re-running the command.
 
 - Framework and tooling directories are ignored, including `.serverless`,
   `node_modules`, `.git`, virtualenv/cache directories, and test files
   (`*.test.js`, `*.spec.js`, `*_test.py`, `*.test.py`).
-- If a rebuild fails (for example, a Docker build error), the previous container keeps
-  running and the error is printed — the dev session stays up so you can fix the issue
-  and save again.
-- Press `Ctrl-C` to stop; the container is removed on exit.
+- If a rebuild fails (for example, a Docker build error), running instances keep working
+  and the error is printed — the dev session stays up so you can fix the issue and save
+  again.
+- Press `Ctrl-C` to stop.
 
 ### IAM emulation
 
@@ -617,12 +619,12 @@ localhost, backed by Docker. Your own orchestration code — anything that drive
 run unchanged against it: `RunMicrovm` → `GetMicrovm` → `CreateMicrovmAuthToken` → call the instance
 endpoint → `TerminateMicrovm`.
 
-On start, `dev` prints the endpoint:
+On start, `dev` prints the endpoint (stable default port `9100`; change with `--port`):
 
 ```
-Local MicroVMs API: http://127.0.0.1:54321 (Ctrl-C to stop)
-Point your code at it: export AWS_ENDPOINT_URL_LAMBDA_MICROVMS=http://127.0.0.1:54321
-  (or pass endpoint: 'http://127.0.0.1:54321' to LambdaMicrovmsClient)
+Local MicroVMs API: http://127.0.0.1:9100 (Ctrl-C to stop)
+Point your code at it: export AWS_ENDPOINT_URL_LAMBDA_MICROVMS=http://127.0.0.1:9100
+  (or pass endpoint: 'http://127.0.0.1:9100' to LambdaMicrovmsClient)
 ```
 
 - Each `RunMicrovm` starts a **fresh container** from the current image and returns a **unique** `endpoint`;

@@ -166,7 +166,7 @@ function makeRebuildable(overrides = {}) {
     name: 'api',
     cfg: { artifact: './app' },
     contextPath: '/svc/app',
-    hostPort: '8080',
+    controlPlanePort: 9100,
     platform: 'linux/amd64',
     imageUri: 'serverless-sandbox-dev/svc-api:latest',
     containerName: 'sls-sandbox-dev-svc-api',
@@ -291,12 +291,88 @@ test('run() starts the control-plane and prints the endpoint; SIGINT+SIGTERM shu
   const runP = dev.run()
   await new Promise((r) => setImmediate(r))
   expect(startControlPlane).toHaveBeenCalled()
+  // No --port → stable default control-plane port.
+  expect(startControlPlane).toHaveBeenCalledWith(
+    expect.objectContaining({ port: 9100 }),
+  )
   expect(notices.some((n) => n.includes('http://127.0.0.1:45000'))).toBe(true)
   expect(typeof signals.SIGINT).toBe('function')
   expect(typeof signals.SIGTERM).toBe('function')
   await signals.SIGTERM()
   await runP
   expect(shutdown).toHaveBeenCalled()
+})
+
+test('--port overrides the control-plane port', async () => {
+  const startControlPlane = jest.fn(async () => ({
+    url: 'http://127.0.0.1:7777',
+    port: 7777,
+    server: {},
+    shutdown: async () => {},
+  }))
+  const dev = new SandboxesDevMode(
+    {
+      service: { service: 'svc', sandboxes: { echo: { artifact: './app' } } },
+      serviceDir: '/tmp',
+      getProvider: () => ({}),
+    },
+    { sandbox: 'echo', 'assume-role': false, port: '7777' },
+    {
+      log: { notice() {}, debug() {} },
+      progress: { notice() {}, remove() {} },
+    },
+    {
+      docker: { ensureIsRunning: async () => {}, buildImage: async () => {} },
+      fileExists: () => true,
+      onSignal: (sig, h) => {
+        if (sig === 'SIGTERM') setImmediate(h)
+      },
+      createWatcher: () => ({ on() {}, close: async () => {} }),
+      startControlPlane,
+      makeContainerManager: () => ({
+        run: async () => ({ portMap: {}, stop: async () => {} }),
+      }),
+      makeRegistry: () => ({}),
+    },
+  )
+  await dev.run()
+  expect(startControlPlane).toHaveBeenCalledWith(
+    expect.objectContaining({ port: 7777 }),
+  )
+})
+
+test('run() surfaces a clear error when the control-plane port is in use', async () => {
+  const startControlPlane = jest.fn(async () => {
+    const e = new Error('Local MicroVMs API port 9100 is already in use.')
+    e.code = 'EADDRINUSE'
+    throw e
+  })
+  const dev = new SandboxesDevMode(
+    {
+      service: { service: 'svc', sandboxes: { echo: { artifact: './app' } } },
+      serviceDir: '/tmp',
+      getProvider: () => ({}),
+    },
+    { sandbox: 'echo', 'assume-role': false },
+    {
+      log: { notice() {}, debug() {} },
+      progress: { notice() {}, remove() {} },
+    },
+    {
+      docker: { ensureIsRunning: async () => {}, buildImage: async () => {} },
+      fileExists: () => true,
+      onSignal: () => {},
+      createWatcher: () => ({ on() {}, close: async () => {} }),
+      startControlPlane,
+      makeContainerManager: () => ({
+        run: async () => ({ portMap: {}, stop: async () => {} }),
+      }),
+      makeRegistry: () => ({}),
+    },
+  )
+  await expect(dev.run()).rejects.toMatchObject({
+    code: 'SANDBOX_DEV_PORT_IN_USE',
+  })
 })
 
 test('run() builds the image before starting the control-plane', async () => {

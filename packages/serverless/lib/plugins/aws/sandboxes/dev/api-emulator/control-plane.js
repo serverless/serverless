@@ -133,6 +133,10 @@ export async function startControlPlane({
   startProxy = startInstanceProxy,
   createServer = http.createServer,
   host = '127.0.0.1',
+  // Control-plane listen port. Default 0 = OS-assigned ephemeral (used by embedding callers and
+  // tests so concurrent instances never collide). `serverless dev --sandbox` passes a stable,
+  // user-customizable port so the endpoint address doesn't change between runs.
+  port = 0,
   setIntervalImpl = setInterval,
   clearIntervalImpl = clearInterval,
   reapIntervalMs = 5000,
@@ -279,8 +283,22 @@ export async function startControlPlane({
     }
   })
 
-  await new Promise((resolve) => server.listen(0, host, resolve))
-  const port = server.address().port
+  await new Promise((resolve, reject) => {
+    server.once('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        const e = new Error(
+          `Local MicroVMs API port ${port} is already in use.`,
+        )
+        e.code = 'EADDRINUSE'
+        reject(e)
+      } else {
+        reject(err)
+      }
+    })
+    server.listen(port, host, resolve)
+  })
+  // With port 0 the OS assigned one; read back the actual bound port either way.
+  const boundPort = server.address().port
 
   // One reaper pass: apply idlePolicy-driven suspend/terminate transitions.
   // Re-entrancy guard: a pass awaits fireHook + Docker pause/stop before the registry state flips,
@@ -332,5 +350,11 @@ export async function startControlPlane({
     await new Promise((resolve) => server.close(resolve))
   }
 
-  return { server, port, url: `http://127.0.0.1:${port}`, shutdown, reapTick }
+  return {
+    server,
+    port: boundPort,
+    url: `http://127.0.0.1:${boundPort}`,
+    shutdown,
+    reapTick,
+  }
 }

@@ -39,8 +39,6 @@ class SandboxesDevMode {
           (m) => new m.EmulatorRegistry(args),
         ))
     this.controlPlane = null
-
-    this.container = null
     this.watcher = null
     this.ctx = null
     this.iam = null
@@ -90,13 +88,16 @@ class SandboxesDevMode {
     const name = this.resolveSandboxName()
     const cfg = this.getSandboxesConfig()[name]
     const contextPath = this.resolveArtifactDir(cfg)
-    const hostPort = String(this.options.port || 8080)
+    // Stable, customizable control-plane port — the address the SDK/launcher target. Constant by
+    // default so the endpoint doesn't change between runs (unlike the per-instance proxy ports,
+    // which are dynamic); override with --port. Defaults to 9100.
+    const controlPlanePort = Number(this.options.port) || 9100
     const platform = process.arch === 'arm64' ? 'linux/arm64' : 'linux/amd64'
     this.ctx = {
       name,
       cfg,
       contextPath,
-      hostPort,
+      controlPlanePort,
       platform,
       imageUri: `serverless-sandbox-dev/${this.serverless.service.service}-${name}:latest`,
       containerName: `sls-sandbox-dev-${this.serverless.service.service}-${name}`,
@@ -171,11 +172,24 @@ class SandboxesDevMode {
       enabledHooks.add('ready')
     const { createHookFirer } = await import('./api-emulator/hooks.js')
     const fireHook = createHookFirer({ enabledHooks, logger: this.logger })
-    this.controlPlane = await this.startControlPlane({
-      registry,
-      containerManager,
-      fireHook,
-    })
+    try {
+      this.controlPlane = await this.startControlPlane({
+        registry,
+        containerManager,
+        fireHook,
+        port: this.ctx.controlPlanePort,
+      })
+    } catch (err) {
+      if (err?.code === 'EADDRINUSE') {
+        throw new ServerlessError(
+          `Port ${this.ctx.controlPlanePort} is already in use for the local MicroVMs API. ` +
+            `Free it, or pick another with: serverless dev --sandbox ${name} --port <port>.`,
+          'SANDBOX_DEV_PORT_IN_USE',
+          { stack: false },
+        )
+      }
+      throw err
+    }
     this.progress?.remove?.()
     this.logger.notice(
       `Local MicroVMs API: ${this.controlPlane.url} (Ctrl-C to stop)`,
@@ -200,57 +214,6 @@ class SandboxesDevMode {
       imageUri: this.ctx.imageUri,
       platform: this.ctx.platform,
     })
-  }
-
-  async startContainer() {
-    // Clean any stale container from a previous run or rebuild.
-    await this.docker
-      .removeContainer({ containerName: this.ctx.containerName })
-      .catch(() => {})
-    this.container = await this.docker.createContainer({
-      imageUri: this.ctx.imageUri,
-      name: this.ctx.containerName,
-      exposedPorts: { '8080/tcp': {} },
-      env: { ...(this.ctx.cfg.environment || {}), ...(this.credsEnv || {}) },
-      hostConfig: {
-        PortBindings: { '8080/tcp': [{ HostPort: this.ctx.hostPort }] },
-      },
-      labels: {
-        'com.serverless.sandboxes.dev-mode': 'true',
-        'com.serverless.sandboxes.name': this.ctx.name,
-      },
-    })
-    await this.container.start()
-  }
-
-  streamLogs() {
-    // Non-blocking: wire the log stream and return so the watch loop keeps running.
-    this.docker
-      .tailLogs({
-        containerName: this.ctx.containerName,
-        onData: (chunk) => process.stdout.write(chunk),
-        onEnd: () => {
-          // Suppress the "exited" notice when WE stopped it (rebuild/shutdown).
-          if (!this.shuttingDown && !this.isRebuilding) {
-            this.logger.notice(`Sandbox "${this.ctx.name}" container exited.`)
-          }
-        },
-      })
-      .catch((err) =>
-        this.logger.debug?.(`Log streaming error: ${err.message}`),
-      )
-  }
-
-  async stop() {
-    try {
-      if (this.container) await this.container.kill()
-    } catch {
-      // already stopped
-    }
-    await this.docker
-      .removeContainer({ containerName: this.ctx.containerName })
-      .catch(() => {})
-    this.container = null
   }
 
   async shutdown() {

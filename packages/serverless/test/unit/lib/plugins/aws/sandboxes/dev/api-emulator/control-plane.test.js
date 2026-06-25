@@ -46,7 +46,7 @@ function recordingContainerManager(containers) {
 // startProxy stub: avoids opening real per-instance servers in unit tests.
 const fakeStartProxy = async () => ({ server: { close() {} }, port: 40001 })
 
-async function harness({ c, fireHook } = {}) {
+async function harness({ c, fireHook, port } = {}) {
   const containers = []
   const registry = new EmulatorRegistry({
     sandboxName: 'echo',
@@ -65,6 +65,7 @@ async function harness({ c, fireHook } = {}) {
     setIntervalImpl: () => 0, // no background reaping in tests — drive cp.reapTick() manually
     clearIntervalImpl: () => {},
     waitForPort: async () => true, // fake containers have no real port to probe; skip the readiness wait
+    ...(port !== undefined ? { port } : {}), // default 0 (ephemeral) keeps concurrent tests collision-free
     ...(fireHook ? { fireHook } : {}),
   })
   return { cp, registry, containers }
@@ -213,5 +214,31 @@ test('lifecycle fires hooks: ready+run on RunMicrovm, suspend/resume/terminate o
     ])
   } finally {
     await cp.shutdown()
+  }
+})
+
+test('binds the requested control-plane port (stable, customizable endpoint)', async () => {
+  // Discover a free port via an ephemeral bind, release it, then ask for it explicitly.
+  const probe = await harness()
+  const wanted = probe.cp.port
+  await probe.cp.shutdown()
+
+  const { cp } = await harness({ port: wanted })
+  try {
+    expect(cp.port).toBe(wanted)
+    expect(cp.url).toBe(`http://127.0.0.1:${wanted}`)
+  } finally {
+    await cp.shutdown()
+  }
+})
+
+test('rejects with EADDRINUSE when the requested port is already taken', async () => {
+  const first = await harness() // ephemeral port
+  try {
+    await expect(harness({ port: first.cp.port })).rejects.toMatchObject({
+      code: 'EADDRINUSE',
+    })
+  } finally {
+    await first.cp.shutdown()
   }
 })
