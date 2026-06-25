@@ -610,6 +610,42 @@ instead of after deploy.
   (`169.254.169.254`) bypasses the injected credentials; only the AWS SDK default
   credential chain picks them up.
 
+### AWS API emulation
+
+`serverless dev --sandbox <name>` starts a local, SDK-compatible **AWS Lambda MicroVMs control-plane** on
+localhost, backed by Docker. Your own orchestration code — anything that drives `LambdaMicrovmsClient` — can
+run unchanged against it: `RunMicrovm` → `GetMicrovm` → `CreateMicrovmAuthToken` → call the instance
+endpoint → `TerminateMicrovm`.
+
+On start, `dev` prints the endpoint:
+
+```
+Local MicroVMs API: http://127.0.0.1:54321 (Ctrl-C to stop)
+Point your code at it: export AWS_ENDPOINT_URL_LAMBDA_MICROVMS=http://127.0.0.1:54321
+  (or pass endpoint: 'http://127.0.0.1:54321' to LambdaMicrovmsClient)
+```
+
+- Each `RunMicrovm` starts a **fresh container** from the current image and returns a **unique** `endpoint`;
+  `TerminateMicrovm` stops it.
+- **Endpoint format:** locally the `endpoint` is a ready-to-use plain-HTTP URL like
+  `http://127.0.0.1:<port>` — **use it as-is**. (In production `endpoint` is a bare HTTPS hostname you
+  prepend `https://` to; locally it's HTTP so there's no TLS/cert setup and no
+  `NODE_TLS_REJECT_UNAUTHORIZED`. If your code hardcodes `https://${endpoint}`, point it at the value the
+  emulator returns instead.) Still send `X-aws-proxy-auth` + `X-aws-proxy-port` as in production.
+- **Idle lifecycle** mirrors production: the emulator honors the `idlePolicy` you pass to `RunMicrovm`
+  (`maxIdleDurationSeconds`, `suspendedDurationSeconds`, `autoResumeEnabled`). An idle instance is suspended
+  (`docker pause`) and then terminated; with `autoResumeEnabled`, traffic resumes a suspended instance. So
+  an instance you forget to terminate is reaped automatically instead of lingering.
+- The endpoint enforces the production proxy contract: it requires the `X-aws-proxy-auth` token from
+  `CreateMicrovmAuthToken` (`403` otherwise), routes by `X-aws-proxy-port` (default `8080`), strips
+  `x-aws-proxy-*`, and injects `x-amzn-requestid`.
+- **Hot reload** rebuilds the image on file changes; **new** `RunMicrovm` calls pick up the rebuild
+  (already-running instances keep their image).
+- **IAM emulation** still applies — each container runs as the assumed execution role unless
+  `--no-assume-role`.
+
+The emulator does not validate request signatures and does not emulate network isolation or service quotas.
+
 ---
 
 ## Scripting Without the CLI
