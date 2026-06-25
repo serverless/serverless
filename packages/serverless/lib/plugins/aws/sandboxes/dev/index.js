@@ -19,6 +19,26 @@ class SandboxesDevMode {
       deps.createWatcher || ((p, opts) => chokidar.watch(p, opts))
     this.sleep = deps.sleep || ((ms) => new Promise((r) => setTimeout(r, ms)))
     this.createIamEmulation = deps.createIamEmulation || null
+    this.startControlPlane =
+      deps.startControlPlane ||
+      (async (args) => {
+        const { startControlPlane } =
+          await import('./api-emulator/control-plane.js')
+        return startControlPlane(args)
+      })
+    this.makeContainerManager =
+      deps.makeContainerManager ||
+      ((args) =>
+        import('./api-emulator/container-manager.js').then(
+          (m) => new m.ContainerManager(args),
+        ))
+    this.makeRegistry =
+      deps.makeRegistry ||
+      ((args) =>
+        import('./api-emulator/registry.js').then(
+          (m) => new m.EmulatorRegistry(args),
+        ))
+    this.controlPlane = null
 
     this.container = null
     this.watcher = null
@@ -124,19 +144,51 @@ class SandboxesDevMode {
     }
 
     await this.build()
-    await this.startContainer()
+
+    const registry = await this.makeRegistry({
+      sandboxName: name,
+      minimumMemoryInMiB: this.ctx.cfg.memory || 2048,
+      imageArn: `arn:aws:lambda:local:000000000000:microvm-image:${this.serverless.service.service}-${name}`,
+    })
+    const self = this
+    const containerManager = await this.makeContainerManager({
+      docker: this.docker,
+      imageUri: this.ctx.imageUri,
+      serviceName: this.serverless.service.service,
+      sandboxName: name,
+      get env() {
+        return { ...(self.ctx.cfg.environment || {}), ...(self.credsEnv || {}) }
+      },
+    })
+    // Lifecycle hooks: fire only those declared in the sandbox config; `ready` auto-enables
+    // when any runtime hook is set (mirrors the framework's hook handling).
+    const RUNTIME_HOOKS = ['run', 'suspend', 'resume', 'terminate']
+    const declared = Object.keys(this.ctx.cfg.hooks || {}).filter(
+      (h) => this.ctx.cfg.hooks[h],
+    )
+    const enabledHooks = new Set(declared)
+    if (RUNTIME_HOOKS.some((h) => enabledHooks.has(h)))
+      enabledHooks.add('ready')
+    const { createHookFirer } = await import('./api-emulator/hooks.js')
+    const fireHook = createHookFirer({ enabledHooks, logger: this.logger })
+    this.controlPlane = await this.startControlPlane({
+      registry,
+      containerManager,
+      fireHook,
+    })
     this.progress?.remove?.()
     this.logger.notice(
-      `Sandbox "${name}" running at http://localhost:${hostPort} (Ctrl-C to stop)`,
+      `Local MicroVMs API: ${this.controlPlane.url} (Ctrl-C to stop)`,
     )
-    this.streamLogs()
+    this.logger.notice(
+      `Point your code at it: export AWS_ENDPOINT_URL_LAMBDA_MICROVMS=${this.controlPlane.url} ` +
+        `(or pass endpoint: '${this.controlPlane.url}' to LambdaMicrovmsClient)`,
+    )
 
-    // Register SIGINT before starting the watcher so we never miss a Ctrl-C.
-    // No process.on('exit') — that event is synchronous and never awaits async cleanup.
     this.onSignal('SIGINT', () => this.shutdown())
+    this.onSignal('SIGTERM', () => this.shutdown())
 
     this.startWatcher()
-
     await exitPromise
   }
 
@@ -205,7 +257,7 @@ class SandboxesDevMode {
     if (this.shuttingDown) return
     this.shuttingDown = true
     if (this.watcher) await this.watcher.close().catch(() => {})
-    await this.stop()
+    if (this.controlPlane) await this.controlPlane.shutdown().catch(() => {})
     if (this.iam) await this.iam.cleanUp().catch(() => {})
     this._resolveExit?.()
   }
@@ -220,7 +272,6 @@ class SandboxesDevMode {
     try {
       await this.sleep(100) // let the filesystem settle before reading sources
       this.progress?.notice?.('Rebuilding sandbox image…')
-      // Build FIRST: a failed build never touches the running container.
       await this.build()
       this.progress?.remove?.()
       // Abort if SIGINT fired while we were building — do not touch the container.
@@ -229,16 +280,8 @@ class SandboxesDevMode {
         const refreshed = await this.iam.refresh()
         if (refreshed) this.credsEnv = refreshed
       }
-      await this.stop()
-      await this.startContainer()
-      // Abort if SIGINT fired while startContainer was running — stop the container we just started.
-      if (this.shuttingDown) {
-        await this.stop()
-        return
-      }
-      this.streamLogs()
       this.logger.notice(
-        `Rebuild complete. Running on http://localhost:${this.ctx.hostPort}`,
+        'Rebuild complete. New RunMicrovm calls will use the updated image.',
       )
     } catch (err) {
       this.progress?.remove?.()
