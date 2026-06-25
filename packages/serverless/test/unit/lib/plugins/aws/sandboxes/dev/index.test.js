@@ -150,7 +150,7 @@ function makeRebuildable(overrides = {}) {
     },
     { sandbox: 'api' },
     {
-      log: { notice() {}, error: jest.fn(), debug() {} },
+      log: { notice: jest.fn(), error: jest.fn(), debug() {} },
       progress: { notice() {}, remove() {} },
     },
     {
@@ -179,7 +179,9 @@ test('performRebuild rebuilds: builds image only (no container swap in control-p
   await d.performRebuild()
   expect(docker.buildImage).toHaveBeenCalledTimes(1)
   // Control-plane model: no direct container operations from performRebuild
-  expect(d.logger.notice).not.toThrow
+  expect(d.logger.notice).toHaveBeenCalledWith(
+    expect.stringMatching(/Rebuild complete/i),
+  )
 })
 
 test('performRebuild collapses a burst: in-flight + exactly one queued rebuild', async () => {
