@@ -74,6 +74,8 @@ describe('dev API emulation — real SDK against the local control-plane', () =>
         new GetMicrovmCommand({ microvmIdentifier: run.microvmId }),
       )
       state = g.state
+      if (state === 'RUNNING') break
+      await new Promise((r) => setTimeout(r, 200)) // pace the poll so a slow start doesn't exhaust 30 calls instantly
     }
     expect(state).toBe('RUNNING')
 
@@ -91,13 +93,21 @@ describe('dev API emulation — real SDK against the local control-plane', () =>
     // 4b. Wait for container's app server to be ready (Python may take a moment to bind port 8080).
     //     Probe via the proxy with valid auth; retry while the proxy returns 502 (upstream not yet reachable).
     const deadline = Date.now() + 30000
+    let ready = false
     while (Date.now() < deadline) {
       const probe = await fetch(`${run.endpoint}/_ready`, {
         headers: { 'X-aws-proxy-auth': token, 'X-aws-proxy-port': '8080' },
       })
-      if (probe.status !== 502) break
+      if (probe.status !== 502) {
+        ready = true
+        break
+      }
       await new Promise((r) => setTimeout(r, 500))
     }
+    if (!ready)
+      throw new Error(
+        'container app server never became reachable (readiness probe timed out after 30s)',
+      )
 
     // 5. Proxy request with valid token + port 8080 → 200, x-amzn-requestid present,
     //    x-aws-proxy-* headers stripped from echo body
