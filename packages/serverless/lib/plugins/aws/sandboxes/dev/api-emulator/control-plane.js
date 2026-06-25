@@ -1,28 +1,36 @@
 'use strict'
 
 import http from 'http'
-import net from 'net'
 import { startInstanceProxy } from './proxy.js'
 
-// Best-effort, bounded wait for a TCP port to accept connections. Used to let a freshly
-// started container bind its hook server (:9000) before we deliver lifecycle hooks — otherwise
-// the run-hook payload is POSTed to a not-yet-listening port and lost. Resolves true once
-// reachable, false on timeout (the caller proceeds either way).
+// Best-effort, bounded wait for a freshly started container's hook server to accept HTTP, before
+// we deliver lifecycle hooks — otherwise the run-hook payload is POSTed to a not-yet-ready :9000
+// and lost. This MUST be an HTTP-level probe, not a bare TCP connect: Docker's published-port proxy
+// (docker-proxy / Docker Desktop's vpnkit) binds the host port and accepts connections the instant
+// the container starts, well before the in-container process binds :9000 — so a TCP connect succeeds
+// prematurely and the following POST fails. An HTTP request only completes once the in-VM server is
+// actually serving (any status code counts; a hooks server replying 404/501 to GET is "ready").
+// Resolves true once the server responds, false on timeout (the caller proceeds either way).
 function defaultWaitForPort(host, port, timeoutMs = 15000, intervalMs = 200) {
   if (!port) return Promise.resolve(false)
   const deadline = Date.now() + timeoutMs
   return new Promise((resolve) => {
     const attempt = () => {
-      const sock = net.connect({ host, port })
-      sock.once('connect', () => {
-        sock.destroy()
-        resolve(true)
-      })
-      sock.once('error', () => {
-        sock.destroy()
+      const req = http.request(
+        { host, port, method: 'GET', path: '/', timeout: 1000 },
+        (res) => {
+          res.resume() // drain so the socket can close
+          resolve(true)
+        },
+      )
+      const retry = () => {
+        req.destroy()
         if (Date.now() >= deadline) resolve(false)
         else setTimeout(attempt, intervalMs)
-      })
+      }
+      req.once('error', retry)
+      req.once('timeout', retry)
+      req.end()
     }
     attempt()
   })
