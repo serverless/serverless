@@ -16,6 +16,57 @@ function caseInsensitive(str) {
 }
 
 /**
+ * A single lifecycle hook value: `true` to enable with the default timeout, or
+ * an object with a custom `{ timeout }`. Mirrors what compilers/image.js reads.
+ */
+const hookValue = {
+  anyOf: [
+    { type: 'boolean' },
+    {
+      type: 'object',
+      additionalProperties: false,
+      properties: { timeout: { type: 'number' } },
+    },
+  ],
+}
+
+/**
+ * An IAM role customization (iam.buildRole / iam.executionRole): either an
+ * existing role ARN string, or an object adding inline `statements` and/or
+ * `managedPolicies` to the generated role. Mirrors iam/policies.js.
+ */
+const roleCustomization = {
+  anyOf: [
+    { type: 'string' },
+    {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        statements: { type: 'array', items: { type: 'object' } },
+        managedPolicies: { type: 'array', items: { type: 'string' } },
+      },
+    },
+  ],
+}
+
+/**
+ * Per-filter alarm threshold overrides (observability.alarms.thresholds.<filter>).
+ * Mirrors DEFAULT_THRESHOLD in compilers/observability.js.
+ */
+const thresholdConfig = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    threshold: { type: 'number' },
+    period: { type: 'number' },
+    evaluationPeriods: { type: 'number' },
+    datapointsToAlarm: { type: 'number' },
+    comparisonOperator: { type: 'string' },
+    treatMissingData: { type: 'string' },
+  },
+}
+
+/**
  * Per-sandbox configuration schema.
  * artifact is required; memory must be one of the supported MiB values.
  */
@@ -23,7 +74,6 @@ const sandboxConfigSchema = {
   type: 'object',
   properties: {
     artifact: { type: 'string' },
-    name: { type: 'string', maxLength: 64, pattern: '^[a-zA-Z0-9-_]+$' },
     memory: { enum: [512, 1024, 2048, 4096, 8192] },
     description: { type: 'string' },
     environment: { type: 'object', additionalProperties: { type: 'string' } },
@@ -31,16 +81,38 @@ const sandboxConfigSchema = {
       type: 'array',
       items: { anyOf: ['all'].map(caseInsensitive) },
     },
-    hooks: { type: 'object' },
+    hooks: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        port: { type: 'number' },
+        // Image (build-time) hooks.
+        ready: hookValue,
+        validate: hookValue,
+        // Runtime (per-instance) hooks.
+        run: hookValue,
+        resume: hookValue,
+        suspend: hookValue,
+        terminate: hookValue,
+      },
+    },
     vpc: {
       type: 'object',
+      additionalProperties: false,
       properties: {
         subnets: { type: 'array', items: { type: 'string' } },
         securityGroups: { type: 'array', items: { type: 'string' } },
         protocol: { anyOf: ['ipv4', 'dualstack'].map(caseInsensitive) },
       },
     },
-    iam: { type: 'object' },
+    iam: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        buildRole: roleCustomization,
+        executionRole: roleCustomization,
+      },
+    },
     observability: {
       anyOf: [
         { type: 'boolean' },
@@ -71,7 +143,13 @@ const sandboxConfigSchema = {
             alarms: {
               type: 'object',
               additionalProperties: false,
-              properties: { notify: {}, thresholds: { type: 'object' } },
+              properties: {
+                notify: {},
+                thresholds: {
+                  type: 'object',
+                  additionalProperties: thresholdConfig,
+                },
+              },
             },
             dashboard: {
               type: 'object',

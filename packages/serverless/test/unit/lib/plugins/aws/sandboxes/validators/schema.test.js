@@ -92,6 +92,83 @@ describe('defineSandboxesSchema', () => {
     expect(sandboxSchema.additionalProperties).toBe(false)
   })
 
+  test('per-sandbox schema does not define a "name" property', () => {
+    // Resource names derive from the YAML key (getResourceName(service, key,
+    // stage)); a per-sandbox `name` was accepted but never consumed, so it is
+    // not part of the schema (unknown keys warn via additionalProperties:false).
+    defineSandboxesSchema(mockServerless)
+    const sandboxSchema = capturedSandboxesSchema.additionalProperties
+    expect(sandboxSchema.properties.name).toBeUndefined()
+  })
+
+  test('per-sandbox schema hooks is constrained (known keys + additionalProperties:false)', () => {
+    defineSandboxesSchema(mockServerless)
+    const s = capturedSandboxesSchema.additionalProperties
+    const hooks = s.properties.hooks
+    expect(hooks.type).toBe('object')
+    expect(hooks.additionalProperties).toBe(false)
+    ;[
+      'port',
+      'ready',
+      'validate',
+      'run',
+      'resume',
+      'suspend',
+      'terminate',
+    ].forEach((k) => expect(hooks.properties[k]).toBeDefined())
+    // typo'd hook key is not a known property → warns via additionalProperties:false
+    expect(hooks.properties.redy).toBeUndefined()
+  })
+
+  test('per-sandbox schema hook value accepts boolean or {timeout}', () => {
+    defineSandboxesSchema(mockServerless)
+    const s = capturedSandboxesSchema.additionalProperties
+    const ready = s.properties.hooks.properties.ready
+    expect(ready.anyOf).toBeDefined()
+    expect(ready.anyOf.some((b) => b.type === 'boolean')).toBe(true)
+    const obj = ready.anyOf.find((b) => b.type === 'object')
+    expect(obj.additionalProperties).toBe(false)
+    expect(obj.properties.timeout.type).toBe('number')
+  })
+
+  test('per-sandbox schema iam is constrained to buildRole/executionRole', () => {
+    defineSandboxesSchema(mockServerless)
+    const s = capturedSandboxesSchema.additionalProperties
+    const iam = s.properties.iam
+    expect(iam.additionalProperties).toBe(false)
+    expect(iam.properties.buildRole).toBeDefined()
+    expect(iam.properties.executionRole).toBeDefined()
+    expect(iam.properties.operatorRole).toBeUndefined() // operator role is not user-customizable
+    // role value: an ARN string OR { statements, managedPolicies }
+    const rv = iam.properties.executionRole
+    expect(rv.anyOf.some((b) => b.type === 'string')).toBe(true)
+    const obj = rv.anyOf.find((b) => b.type === 'object')
+    expect(obj.additionalProperties).toBe(false)
+    expect(obj.properties.statements).toBeDefined()
+    expect(obj.properties.managedPolicies).toBeDefined()
+  })
+
+  test('per-sandbox schema alarms.thresholds validates per-filter threshold keys', () => {
+    defineSandboxesSchema(mockServerless)
+    const s = capturedSandboxesSchema.additionalProperties
+    const objBranch = s.properties.observability.anyOf.find(
+      (x) => x.type === 'object',
+    )
+    const thresholds = objBranch.properties.alarms.properties.thresholds
+    // map of filter-name -> threshold config
+    const perFilter = thresholds.additionalProperties
+    expect(perFilter.additionalProperties).toBe(false)
+    expect(perFilter.properties.threshold.type).toBe('number')
+    expect(perFilter.properties.period.type).toBe('number')
+    expect(perFilter.properties.evaluationPeriods.type).toBe('number')
+  })
+
+  test('per-sandbox schema vpc rejects unknown keys', () => {
+    defineSandboxesSchema(mockServerless)
+    const s = capturedSandboxesSchema.additionalProperties
+    expect(s.properties.vpc.additionalProperties).toBe(false)
+  })
+
   test('does nothing when configSchemaHandler is absent', () => {
     expect(() => defineSandboxesSchema({})).not.toThrow()
   })
