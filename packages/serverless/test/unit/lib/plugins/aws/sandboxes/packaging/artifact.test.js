@@ -1,4 +1,7 @@
 import { jest } from '@jest/globals'
+import fs from 'fs'
+import os from 'os'
+import path from 'path'
 import {
   computeCodeArtifact,
   uploadArtifact,
@@ -99,6 +102,28 @@ describe('computeCodeArtifact', () => {
         { serviceName: 's', stage: 'dev', name: 'echo', serviceDir: '/' },
       ),
     ).rejects.toThrow(/artifact directory not found/)
+  })
+
+  test('throws a clear error when the artifact dir has no Dockerfile (not the opaque build failure)', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sbx-nodockerfile-'))
+    fs.writeFileSync(path.join(dir, 'app.js'), '// app, but no Dockerfile')
+    await expect(
+      computeCodeArtifact(
+        { artifact: dir },
+        { serviceName: 's', stage: 'dev', name: 'echo', serviceDir: '/' },
+      ),
+    ).rejects.toThrow(/no Dockerfile found/)
+  })
+
+  test('zips a real dir that contains a Dockerfile (no zipDir stub)', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sbx-withdockerfile-'))
+    fs.writeFileSync(path.join(dir, 'Dockerfile'), 'FROM scratch')
+    const r = await computeCodeArtifact(
+      { artifact: dir },
+      { serviceName: 's', stage: 'dev', name: 'echo', serviceDir: '/' },
+    )
+    expect(r.key).toMatch(/sandboxes\/echo-[a-f0-9]+\.zip$/)
+    expect(Buffer.isBuffer(r.zipBuffer)).toBe(true)
   })
 
   test('does NOT call provider.request (no AWS calls during compute)', async () => {

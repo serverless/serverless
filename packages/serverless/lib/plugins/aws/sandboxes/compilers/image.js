@@ -18,9 +18,14 @@ function compileHooks(hooks) {
   const anyRuntime = RUNTIME.some(enabled)
   const anyImage = IMAGE.some(enabled)
   if (!anyRuntime && !anyImage) return {}
-  const timeout = (k) =>
-    (hooks[k] && typeof hooks[k] === 'object' && hooks[k].timeout) ||
-    DEFAULT_TIMEOUT[k]
+  const timeout = (k) => {
+    const h = hooks[k]
+    // Use the explicit timeout when provided (including 0) — `||` would treat 0
+    // as "unset" and silently substitute the default.
+    return h && typeof h === 'object' && h.timeout != null
+      ? h.timeout
+      : DEFAULT_TIMEOUT[k]
+  }
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1)
   const img = {}
   for (const k of IMAGE)

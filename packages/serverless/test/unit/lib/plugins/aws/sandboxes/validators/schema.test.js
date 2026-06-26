@@ -131,6 +131,15 @@ describe('defineSandboxesSchema', () => {
     expect(obj.properties.timeout.type).toBe('number')
   })
 
+  test('per-sandbox schema hook timeout and port require a positive value', () => {
+    defineSandboxesSchema(mockServerless)
+    const s = capturedSandboxesSchema.additionalProperties
+    const hooks = s.properties.hooks
+    expect(hooks.properties.port.minimum).toBe(1)
+    const obj = hooks.properties.ready.anyOf.find((b) => b.type === 'object')
+    expect(obj.properties.timeout.minimum).toBe(1)
+  })
+
   test('per-sandbox schema iam is constrained to buildRole/executionRole', () => {
     defineSandboxesSchema(mockServerless)
     const s = capturedSandboxesSchema.additionalProperties

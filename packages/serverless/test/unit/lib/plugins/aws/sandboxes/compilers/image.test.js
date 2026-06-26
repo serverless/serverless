@@ -58,6 +58,17 @@ test('honors memory + environment + privileged + custom hooks', () => {
   expect(r.Properties.Hooks.Port).toBe(9000)
   expect(r.Properties.Hooks.MicrovmImageHooks.Ready).toBe('ENABLED') // auto-enabled
   expect(r.Properties.Hooks.MicrovmHooks.Run).toBe('ENABLED')
+  expect(r.Properties.Hooks.MicrovmHooks.RunTimeoutInSeconds).toBe(5) // explicit value
+})
+
+test('explicit hook timeout is respected verbatim (0 is not replaced by the default)', () => {
+  const r = compileImage(
+    'runner',
+    { artifact: './app', hooks: { ready: { timeout: 0 } } },
+    ctx,
+  )
+  // `||` used to coerce 0 → default (30); the value must be passed through as-is.
+  expect(r.Properties.Hooks.MicrovmImageHooks.ReadyTimeoutInSeconds).toBe(0)
 })
 test('Logging: CloudWatch by default, Disabled when loggingDisabled', () => {
   const enabled = compileImage('runner', { artifact: './app' }, ctx)

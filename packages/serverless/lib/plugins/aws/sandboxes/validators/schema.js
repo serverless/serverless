@@ -25,7 +25,7 @@ const hookValue = {
     {
       type: 'object',
       additionalProperties: false,
-      properties: { timeout: { type: 'number' } },
+      properties: { timeout: { type: 'number', minimum: 1 } },
     },
   ],
 }
@@ -101,7 +101,7 @@ const sandboxConfigSchema = {
       type: 'object',
       additionalProperties: false,
       properties: {
-        port: { type: 'number' },
+        port: { type: 'number', minimum: 1 },
         // Image (build-time) hooks.
         ready: hookValue,
         validate: hookValue,

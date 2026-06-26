@@ -28,6 +28,17 @@ async function defaultZipDir(dirPath) {
       'SANDBOXES_ARTIFACT_NOT_FOUND',
     )
   }
+  // The MicroVM image is built FROM a Dockerfile in the artifact dir. Catch a
+  // missing one here — otherwise the build fails ~80s later at deploy with an
+  // opaque "MicrovmImage did not stabilize" error.
+  if (!fs.existsSync(path.join(dirPath, 'Dockerfile'))) {
+    throw new ServerlessError(
+      `sandboxes: no Dockerfile found in artifact directory "${dirPath}". ` +
+        `A local sandbox artifact must contain a Dockerfile (the image is built ` +
+        `from it). Add a Dockerfile, or point "artifact" at a pre-built s3:// zip.`,
+      'SANDBOXES_DOCKERFILE_NOT_FOUND',
+    )
+  }
   return new Promise((resolve, reject) => {
     const chunks = []
     const archive = archiver('zip', { zlib: { level: 9 } })
