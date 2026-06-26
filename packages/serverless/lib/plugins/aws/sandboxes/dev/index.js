@@ -4,7 +4,7 @@ import path from 'path'
 import fs from 'fs'
 import chokidar from 'chokidar'
 import { DockerClient } from '@serverless/util/src/docker/index.js'
-import { stringToSafeColor } from '@serverless/util'
+import { stringToSafeColor, style } from '@serverless/util'
 import {
   createDockerLogDemuxer,
   shortMicrovmId,
@@ -124,6 +124,16 @@ class SandboxesDevMode {
       )
     }
 
+    // Header — the same "Dev ϟ Mode" banner functions Dev Mode prints, so the `serverless dev`
+    // family reads as one product. A one-line description follows (grey). Optional-chained: test
+    // doubles may not implement these logger surfaces.
+    this.logger.logoDevMode?.()
+    this.logger.blankLine?.()
+    this.logger.aside?.(
+      `Runs sandbox "${name}" locally — emulates the AWS Lambda MicroVMs API so your code runs unchanged.`,
+    )
+    this.logger.blankLine?.()
+
     // IAM emulation: assume the sandbox's real execution role unless --no-assume-role.
     if (this.options['assume-role'] !== false) {
       const factory =
@@ -218,15 +228,25 @@ class SandboxesDevMode {
     }
     this.progress?.remove?.()
     const url = this.controlPlane.url
-    this.logger.notice(`Local MicroVMs API ready → ${url}   (Ctrl-C to stop)`)
+    this.logger.blankLine?.()
     this.logger.notice(
-      `Point your code at it:  export AWS_ENDPOINT_URL_LAMBDA_MICROVMS=${url}`,
+      `Local MicroVMs API ready → ${style.bold(url)}   (Ctrl-C to stop)`,
     )
-    // Self-explaining legend (grey): tells a first-time human or agent what they're about to see,
-    // so they can follow along without reading docs. Optional-chained: not every logger surface
-    // (e.g. test doubles) implements `aside`.
+    // Tell users to target the endpoint via their SDK/CLI's endpoint-url setting rather than a
+    // global `export AWS_ENDPOINT_URL_LAMBDA_MICROVMS=…`: that var is honored by every AWS client,
+    // so exporting it would also redirect `serverless deploy`'s own MicroVMs calls. A per-command
+    // (`--endpoint-url`) or per-client endpoint targets only your code, sidestepping the collision.
+    this.logger.notice(
+      `Point your AWS SDK or CLI at this endpoint URL — e.g. aws … --endpoint-url ${url}`,
+    )
+    // Self-explaining lines (grey): surface Hot Module Reloading (otherwise invisible until it
+    // fires) and the per-MicroVM log tag, so a first-time human or agent can follow without docs.
+    this.logger.blankLine?.()
     this.logger.aside?.(
-      `Waiting for RunMicrovm calls. Each launch streams that MicroVM's logs below, tagged "─ <id> …"; grey lines are emulator operations.`,
+      `Watching for code & Dockerfile changes — edits rebuild the image automatically.`,
+    )
+    this.logger.aside?.(
+      `Each launch streams that MicroVM's logs below as "─ <id> …"; grey lines are emulator operations.`,
     )
 
     this.onSignal('SIGINT', () => this.shutdown())
