@@ -39,6 +39,18 @@ serverless dev
 
 **Note:** While it is possible, we do not recommend activating a development session in your `prod` stage.
 
+## Sandboxes (Lambda MicroVMs)
+
+For [sandboxes](../guide/sandboxes.md), `serverless dev --sandbox <name>` runs the sandbox **locally as a Docker container** — a different mechanism from the Lambda IoT-Core session described above. It builds the sandbox's `Dockerfile`, runs it, maps the app port to your host, streams logs, and hot-reloads on file changes.
+
+```bash
+serverless dev --sandbox <name>             # --sandbox is optional when only one sandbox is defined
+serverless dev --mode sandboxes             # equivalent; auto-detected when the service only has sandboxes
+serverless dev --sandbox <name> --port 9090 # map the container's :8080 to a host port
+```
+
+Requires a local Docker daemon and a local `artifact` directory (a sandbox whose `artifact` is an `s3://` zip can't be run with `dev`). By default the container runs under the sandbox's deployed execution role, so AWS calls use real IAM. See the [local development section](../guide/sandboxes.md#local-development-serverless-dev) of the sandboxes guide.
+
 ## Supported runtimes
 
 - Node.js (JS & TS)

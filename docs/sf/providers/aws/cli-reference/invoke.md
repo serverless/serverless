@@ -49,6 +49,22 @@ serverless invoke [local] --function functionName
 - `--tenant-id` The Tenant ID for the invocation.
 - `--durable-execution-name` Unique name for durable function execution (enables idempotency, 1-64 alphanumeric chars with hyphens/underscores).
 
+## Invoking a sandbox
+
+For [AWS Lambda MicroVMs (sandboxes)](../guide/sandboxes.md), use `--sandbox` instead of `--function`. The framework starts a fresh MicroVM instance, sends the HTTP request through the AWS proxy, prints the response, and terminates the instance.
+
+```bash
+serverless invoke --sandbox <name> [--path /health] [--method POST] [--data '{...}'] [--port 8080]
+```
+
+- `--sandbox` The sandbox name as defined under `sandboxes` in `serverless.yml`. **Required** (cannot be combined with `--function` or `--agent`).
+- `--path` or `-p` HTTP request path. Default `/`.
+- `--method` HTTP method. Default `GET`.
+- `--data` or `-d` Request body (for non-GET requests).
+- `--port` Container port to send the request to. Default `8080`.
+
+See the [sandboxes guide](../guide/sandboxes.md#invoking-a-sandbox) for the caller IAM prerequisites and full details.
+
 ## Provided lifecycle events
 
 - `invoke:invoke`

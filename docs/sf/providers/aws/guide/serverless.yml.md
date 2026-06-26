@@ -1640,6 +1640,22 @@ layers:
     retain: false
 ```
 
+## AWS Lambda MicroVMs (Sandboxes)
+
+Run container workloads as [AWS Lambda MicroVMs](./sandboxes.md) alongside your Lambda functions. The `sandboxes` top-level property defines one or more sandboxes, each built from a `Dockerfile` (or pulled from a pre-built `s3://` artifact). `serverless deploy` builds the MicroVM image and provisions its IAM roles, log group, metrics, and dashboard; `serverless invoke --sandbox <name>`, `serverless logs --sandbox <name>`, and `serverless dev --sandbox <name>` operate on it. See the [complete documentation](./sandboxes.md) for all options.
+
+```yml
+# serverless.yml
+
+sandboxes:
+  api: # sandbox name (used in CloudFormation logical IDs)
+    artifact: ./app # local directory with a Dockerfile, or an s3:// zip
+    memory: 2048
+    environment:
+      KEY: value
+    observability: true # log group + metrics + dashboard (on by default)
+```
+
 ## AI Agents
 
 Deploy AI agents to [AWS Bedrock AgentCore](./agents/README.md) alongside your Lambda functions. The `ai` property is the top-level container for all AgentCore resources: agents, tools, gateways, memory, browsers, and code interpreters. See [complete documentation](./agents/README.md) for more details.

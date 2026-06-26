@@ -13,7 +13,7 @@ keywords: ['Serverless', 'Framework', 'logs', 'AWS Lambda', 'CloudWatch', 'Agent
 
 # AWS - Logs
 
-Lets you watch the logs of a specific function or agent.
+Lets you watch the logs of a specific function, agent, or sandbox.
 
 ```bash
 # Lambda function logs
@@ -21,6 +21,9 @@ serverless logs -f hello
 
 # Agent logs
 serverless logs -a myAgent
+
+# Sandbox (Lambda MicroVM) logs
+serverless logs --sandbox mySandbox
 
 # Optionally tail the logs with --tail or -t
 serverless logs -f hello -t
@@ -33,6 +36,7 @@ This command returns as many log events as can fit in 1MB (up to 10,000 log even
 
 - `--function` or `-f` The function you want to fetch the logs for. **Required when not using `--agent`.**
 - `--agent` or `-a` The agent name (for AgentCore Runtime agents). **Required when not using `--function`.** Cannot be used together with `--function`.
+- `--sandbox` The sandbox name (for [AWS Lambda MicroVMs](../guide/sandboxes.md)). Use instead of `--function` / `--agent` to fetch a sandbox's CloudWatch logs.
 - `--stage` or `-s` The stage you want to view the function logs for. If not provided, the plugin will use the default stage listed in `serverless.yml`. If that doesn't exist either it'll just fetch the logs from the `dev` stage.
 - `--region` or `-r` The region you want to view the function logs for. If not provided, the plugin will use the default region listed in `serverless.yml`. If that doesn't exist either it'll just fetch the logs from the `us-east-1` region.
 - `--aws-profile` The AWS profile you want to use.
