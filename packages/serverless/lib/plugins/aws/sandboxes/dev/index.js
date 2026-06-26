@@ -200,6 +200,7 @@ class SandboxesDevMode {
         logger: this.logger,
         attachLogs: (containerName, microvmId) =>
           this.attachContainerLogs(containerName, microvmId),
+        beforeRun: () => this.refreshCredsIfExpiring(),
       })
     } catch (err) {
       if (err?.code === 'EADDRINUSE') {
@@ -226,6 +227,17 @@ class SandboxesDevMode {
 
     this.startWatcher()
     await exitPromise
+  }
+
+  // Refresh the assumed-role credentials when they're near expiry, so a long-running dev session
+  // doesn't inject stale creds into a freshly launched MicroVM. Only does an STS AssumeRole when
+  // `credentialsExpiring()` says it's needed (10-min buffer) — not on every call. No-op for
+  // --no-assume-role (no `iam`); the SDK's own provider handles ambient-cred refresh.
+  async refreshCredsIfExpiring() {
+    if (this.iam && this.credsEnv && this.iam.credentialsExpiring()) {
+      const refreshed = await this.iam.refresh()
+      if (refreshed) this.credsEnv = refreshed
+    }
   }
 
   // Resolve the framework's normally-chosen AWS credentials as container env vars (same shape IAM
@@ -308,10 +320,7 @@ class SandboxesDevMode {
       this.progress?.remove?.()
       // Abort if SIGINT fired while we were building — do not touch the container.
       if (this.shuttingDown) return
-      if (this.iam && this.credsEnv && this.iam.credentialsExpiring()) {
-        const refreshed = await this.iam.refresh()
-        if (refreshed) this.credsEnv = refreshed
-      }
+      await this.refreshCredsIfExpiring()
       this.logger.notice(
         'Rebuild complete. New RunMicrovm calls will use the updated image.',
       )

@@ -21,6 +21,33 @@ function make(options, sandboxes, { fileExists = () => true } = {}) {
   )
 }
 
+test('refreshCredsIfExpiring re-assumes ONLY when the role creds are expiring', async () => {
+  // expiring → refreshes and updates credsEnv
+  const refresh = jest.fn(async () => ({ AWS_ACCESS_KEY_ID: 'NEW' }))
+  const d1 = make({ sandbox: 'api' }, { api: { artifact: './app' } })
+  d1.iam = { credentialsExpiring: () => true, refresh }
+  d1.credsEnv = { AWS_ACCESS_KEY_ID: 'OLD' }
+  await d1.refreshCredsIfExpiring()
+  expect(refresh).toHaveBeenCalledTimes(1)
+  expect(d1.credsEnv.AWS_ACCESS_KEY_ID).toBe('NEW')
+
+  // not expiring → no STS call, creds untouched
+  const refresh2 = jest.fn(async () => ({ AWS_ACCESS_KEY_ID: 'NEW' }))
+  const d2 = make({ sandbox: 'api' }, { api: { artifact: './app' } })
+  d2.iam = { credentialsExpiring: () => false, refresh: refresh2 }
+  d2.credsEnv = { AWS_ACCESS_KEY_ID: 'KEEP' }
+  await d2.refreshCredsIfExpiring()
+  expect(refresh2).not.toHaveBeenCalled()
+  expect(d2.credsEnv.AWS_ACCESS_KEY_ID).toBe('KEEP')
+
+  // --no-assume-role (no iam) → no-op, ambient creds untouched
+  const d3 = make({ sandbox: 'api' }, { api: { artifact: './app' } })
+  d3.iam = null
+  d3.credsEnv = { AWS_ACCESS_KEY_ID: 'AMBIENT' }
+  await d3.refreshCredsIfExpiring()
+  expect(d3.credsEnv.AWS_ACCESS_KEY_ID).toBe('AMBIENT')
+})
+
 test('resolveSandboxName uses --sandbox when provided', () => {
   const d = make({ sandbox: 'api' }, { api: { artifact: './app' }, web: {} })
   expect(d.resolveSandboxName()).toBe('api')

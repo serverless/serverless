@@ -150,6 +150,10 @@ export async function startControlPlane({
   // attachLogs(containerName, microvmId) -> stop(): begin streaming a container's logs to the dev
   // terminal (prefixed per MicroVM); returns a stop fn called on terminate. No-op by default.
   attachLogs = () => () => {},
+  // beforeRun(): awaited at the start of RunMicrovm, before a container is launched. Used to
+  // refresh injected credentials when they're near expiry, so a long-running dev session doesn't
+  // hand a freshly launched MicroVM stale creds. No-op by default.
+  beforeRun = async () => {},
 }) {
   const send = (res, status, obj) => {
     res.writeHead(status, { 'content-type': 'application/json' })
@@ -185,6 +189,7 @@ export async function startControlPlane({
       registry.getImageVersion(params.imageIdentifier, params.imageVersion),
 
     RunMicrovm: async (_req, body) => {
+      await beforeRun() // refresh near-expiry injected creds before launching the container
       const c = await containerManager.run()
       const microvmId = registry.createInstance({
         portMap: c.portMap,

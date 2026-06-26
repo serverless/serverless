@@ -263,6 +263,47 @@ test('narrates ops via logger.aside and streams container logs (attach on run, s
   }
 })
 
+test('awaits beforeRun before launching the container on RunMicrovm', async () => {
+  const seq = []
+  const beforeRun = jest.fn(async () => {
+    seq.push('beforeRun')
+  })
+  const containerManager = {
+    run: async () => {
+      seq.push('run')
+      return {
+        containerName: 'c1',
+        portMap: { 8080: 50080, 9000: 50090 },
+        stop: jest.fn(async () => {}),
+        pause: jest.fn(async () => {}),
+        unpause: jest.fn(async () => {}),
+      }
+    },
+  }
+  const registry = new EmulatorRegistry({
+    sandboxName: 'echo',
+    minimumMemoryInMiB: 2048,
+    imageArn: 'arn:local',
+    idFactory: () => 'mvm-1',
+  })
+  const cp = await startControlPlane({
+    registry,
+    containerManager,
+    startProxy: fakeStartProxy,
+    setIntervalImpl: () => 0,
+    clearIntervalImpl: () => {},
+    waitForPort: async () => true,
+    beforeRun,
+  })
+  try {
+    await req(cp.port, 'POST', '/microvms', {})
+    expect(beforeRun).toHaveBeenCalledTimes(1)
+    expect(seq).toEqual(['beforeRun', 'run']) // refresh happens before the container launches
+  } finally {
+    await cp.shutdown()
+  }
+})
+
 test('binds the requested control-plane port (stable, customizable endpoint)', async () => {
   // Discover a free port via an ephemeral bind, release it, then ask for it explicitly.
   const probe = await harness()
