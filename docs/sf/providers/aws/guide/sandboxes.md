@@ -115,7 +115,6 @@ sandboxes:
     artifact: <string>
 
     # optional
-    name: <string>
     memory: 512 | 1024 | 2048 | 4096 | 8192
     description: <string>
     environment:
@@ -132,8 +131,9 @@ sandboxes:
         logGroup: /my-org/sandboxes/<name> # optional: write logs to a custom group
       metrics:
         enabled: true
-        filters:
-          errors: "<pattern>"              # override the default error filter pattern
+        filters:                           # one CloudWatch metric (+ alarm + dashboard
+          errors: "<pattern>"              # series) per key; override `errors` or add
+          warnings: "<pattern>"            # your own keys
       alarms:
         notify: <SNS ARN | CFN ref>        # required when alarms block is present
         thresholds:
@@ -153,8 +153,7 @@ sandboxes:
 | Property         | Type              | Default          | Description                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | ---------------- | ----------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `artifact`       | string            | — **(required)** | Local directory path (contains `Dockerfile`) or `s3://` URI                                                                                                                                                                                                                                                                                                                                                                 |
-| `name`           | string            | derived          | Accepted by the schema but not yet applied by the compiler. The MicroVM image name is always derived from the service name, sandbox key, and stage.                                                                                                                                                                                                                                                                         |
-| `memory`         | number            | `2048`           | Minimum memory in MiB. Must be one of: `512`, `1024`, `2048`, `4096`, `8192`.                                                                                                                                                                                                                                                                                                                                               |
+| `memory`         | number            | `2048`           | Minimum memory in MiB. Must be one of: `512`, `1024`, `2048`, `4096`, `8192`. The MicroVM image name is derived from the service name, sandbox key, and stage.                                                                                                                                                                                                                                                              |
 | `description`    | string            | auto             | Human-readable description embedded in the CloudFormation resource.                                                                                                                                                                                                                                                                                                                                                         |
 | `environment`    | object            | `{}`             | Environment variables injected into the MicroVM at runtime. Values must be strings.                                                                                                                                                                                                                                                                                                                                         |
 | `osCapabilities` | array             | `[]`             | Additional OS capabilities granted to the container. Accepted value: `all` (case-insensitive).                                                                                                                                                                                                                                                                                                                              |
@@ -162,7 +161,7 @@ sandboxes:
 | `vpc`            | object            | —                | VPC egress configuration. See [Networking / VPC](#networking--vpc).                                                                                                                                                                                                                                                                                                                                                         |
 | `iam`            | object            | —                | IAM role customisation. See [IAM](#iam).                                                                                                                                                                                                                                                                                                                                                                                    |
 | `observability`  | boolean \| object | `true`           | Controls the owned log group, error metric filter, CloudWatch dashboard, and optional alarms. `true` (default) enables metrics and dashboard; `false` opts out of metrics and dashboard (log group is still created). Object form accepts `logs`, `metrics`, `alarms`, and `dashboard` sub-blocks. Alarms require `observability.alarms.notify` (SNS topic ARN or CloudFormation ref). See [Observability](#observability). |
-| `tags`           | object            | —                | Key/value tags applied to the `AWS::Lambda::MicrovmImage` resource. Values must be strings.                                                                                                                                                                                                                                                                                                                                 |
+| `tags`           | object            | —                | Key/value tags applied to every taggable resource the sandbox creates (image, log group, IAM roles, alarms, network connector). Values must be strings.                                                                                                                                                                                                                                                                                                                                 |
 
 ---
 
@@ -356,9 +355,9 @@ For each sandbox, `serverless deploy` creates the following CloudFormation resou
 | `<Name>Connector`               | `AWS::Lambda::NetworkConnector` | Only when `vpc` is set                         |
 | `<Name>ConnectorOperatorRole`   | `AWS::IAM::Role`                | Only when `vpc` is set                         |
 | `<Name>ImageLogGroup`           | `AWS::Logs::LogGroup`           | Always                                         |
-| `<Name>ImageErrorsMetricFilter` | `AWS::Logs::MetricFilter`       | When `observability` is on (default)           |
-| `<Name>ImageDashboard`          | `AWS::CloudWatch::Dashboard`    | When `observability` is on (default)           |
-| `<Name>ImageErrorsAlarm`        | `AWS::CloudWatch::Alarm`        | Only when `observability.alarms.notify` is set |
+| `<Name>Image<Filter>MetricFilter` | `AWS::Logs::MetricFilter`     | One per `observability.metrics.filters` entry (default `errors`) |
+| `<Name>Image<Filter>Alarm`      | `AWS::CloudWatch::Alarm`        | One per filter, only when `observability.alarms.notify` is set |
+| `SandboxesDashboard`            | `AWS::CloudWatch::Dashboard`    | One **per service** (not per sandbox), when any sandbox has the dashboard enabled |
 
 Stack outputs:
 
@@ -465,7 +464,7 @@ When `logs.enabled: false`, the MicroVM image is built with `Logging: { Disabled
 When observability is on (the default), the framework also creates:
 
 - An `AWS::Logs::MetricFilter` that counts log lines containing `error`, `exception`, or `fail` (case-insensitive) and publishes them to a CloudWatch metric in the `ServerlessFramework/Sandboxes` namespace. The metric name is `<image-name>-errors`.
-- An `AWS::CloudWatch::Dashboard` with three widgets: log volume (incoming bytes and events), the error metric, and a recent-logs Insights query.
+- **One `AWS::CloudWatch::Dashboard` per service** (`<service>-<stage>-sandboxes`), with a section per sandbox. Each section has: log volume (incoming bytes on the left axis, events on the right), the filter-derived metrics (with a horizontal threshold band per filter when alarms are configured), a "MicroVMs created" bar chart (distinct log streams = instances), a recent-logs table, a recent-errors table, and — when alarms are set — an alarm status widget. Multiple sandboxes share the one dashboard.
 
 Set `observability: false` to opt out of both the metric filter and the dashboard. The log group is still created.
 
@@ -540,9 +539,9 @@ observability:
 | Resource                        | Type                         | Condition                          |
 | ------------------------------- | ---------------------------- | ---------------------------------- |
 | `<Name>ImageLogGroup`           | `AWS::Logs::LogGroup`        | **Always**                         |
-| `<Name>ImageErrorsMetricFilter` | `AWS::Logs::MetricFilter`    | When observability is on (default) |
-| `<Name>ImageDashboard`          | `AWS::CloudWatch::Dashboard` | When observability is on (default) |
-| `<Name>ImageErrorsAlarm`        | `AWS::CloudWatch::Alarm`     | Only when `alarms.notify` is set   |
+| `<Name>Image<Filter>MetricFilter` | `AWS::Logs::MetricFilter`  | One per `metrics.filters` entry (default `errors`) |
+| `<Name>Image<Filter>Alarm`      | `AWS::CloudWatch::Alarm`     | One per filter, only when `alarms.notify` is set |
+| `SandboxesDashboard`            | `AWS::CloudWatch::Dashboard` | One **per service** when any sandbox has the dashboard enabled |
 
 ### Limitations
 
@@ -550,7 +549,7 @@ observability:
 
 ### Cost
 
-Metric filters are free. The derived metric costs approximately $0.30/month. CloudWatch **dashboards are free for the first three per account**, then approximately **$3/month each**. Because observability is on by default, each sandbox creates one dashboard. If your account already has three or more dashboards, set `observability: false` or `dashboard.enabled: false` to avoid the charge.
+Metric filters are free. Each derived metric costs approximately $0.30/month. CloudWatch **dashboards are free for the first three per account**, then approximately **$3/month each**. The framework creates **one dashboard per service** (shared by all its sandboxes), so a multi-sandbox service still only adds a single dashboard. If your account already has three or more dashboards, set `observability: false` or `dashboard.enabled: false` (on every sandbox) to avoid the charge.
 
 ---
 
