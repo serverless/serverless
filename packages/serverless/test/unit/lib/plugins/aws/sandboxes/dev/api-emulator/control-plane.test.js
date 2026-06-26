@@ -217,6 +217,52 @@ test('lifecycle fires hooks: ready+run on RunMicrovm, suspend/resume/terminate o
   }
 })
 
+test('narrates ops via logger.aside and streams container logs (attach on run, stop on terminate)', async () => {
+  const aside = []
+  const logger = { aside: (m) => aside.push(m), notice() {}, debug() {} }
+  const attachStops = []
+  const attachLogs = jest.fn((containerName, microvmId) => {
+    const stop = jest.fn()
+    attachStops.push({ containerName, microvmId, stop })
+    return stop
+  })
+  const containers = []
+  const registry = new EmulatorRegistry({
+    sandboxName: 'echo',
+    minimumMemoryInMiB: 2048,
+    imageArn: 'arn:local',
+    idFactory: () => 'mvm-1',
+  })
+  const cp = await startControlPlane({
+    registry,
+    containerManager: recordingContainerManager(containers),
+    startProxy: fakeStartProxy,
+    setIntervalImpl: () => 0,
+    clearIntervalImpl: () => {},
+    waitForPort: async () => true,
+    logger,
+    attachLogs,
+  })
+  try {
+    const id = (await req(cp.port, 'POST', '/microvms', {})).json.microvmId
+    // attachLogs called with the container name + microvm id; a RunMicrovm aside line emitted.
+    expect(attachLogs).toHaveBeenCalledWith(containers[0].containerName, id)
+    expect(aside.some((l) => l.includes('RunMicrovm') && l.includes(id))).toBe(
+      true,
+    )
+    expect(attachStops[0].stop).not.toHaveBeenCalled()
+
+    await req(cp.port, 'DELETE', `/microvms/${id}`)
+    // terminate stops the log stream + logs a terminate aside line.
+    expect(attachStops[0].stop).toHaveBeenCalledTimes(1)
+    expect(
+      aside.some((l) => l.includes('TerminateMicrovm') && l.includes(id)),
+    ).toBe(true)
+  } finally {
+    await cp.shutdown()
+  }
+})
+
 test('binds the requested control-plane port (stable, customizable endpoint)', async () => {
   // Discover a free port via an ephemeral bind, release it, then ask for it explicitly.
   const probe = await harness()

@@ -4,6 +4,8 @@ import path from 'path'
 import fs from 'fs'
 import chokidar from 'chokidar'
 import { DockerClient } from '@serverless/util/src/docker/index.js'
+import { stringToSafeColor } from '@serverless/util'
+import { createDockerLogDemuxer } from './api-emulator/container-logs.js'
 import ServerlessError from '../../../../serverless-error.js'
 
 class SandboxesDevMode {
@@ -178,6 +180,9 @@ class SandboxesDevMode {
         containerManager,
         fireHook,
         port: this.ctx.controlPlanePort,
+        logger: this.logger,
+        attachLogs: (containerName, microvmId) =>
+          this.attachContainerLogs(containerName, microvmId),
       })
     } catch (err) {
       if (err?.code === 'EADDRINUSE') {
@@ -204,6 +209,38 @@ class SandboxesDevMode {
 
     this.startWatcher()
     await exitPromise
+  }
+
+  // Stream a MicroVM container's logs to the dev terminal, each line prefixed with the (stably
+  // colored) MicroVM id so you can tell which VM it came from. Returns a stop() the control-plane
+  // calls on terminate. Container logs are multiplexed (non-TTY) — demux into clean lines.
+  attachContainerLogs(containerName, microvmId) {
+    const color = stringToSafeColor(microvmId)
+    const label = color(microvmId)
+    const demux = createDockerLogDemuxer((line) => {
+      if (line.length) this.logger.notice(`${label} ${line}`)
+    })
+    let stream
+    let stopped = false
+    this.docker
+      .tailLogs({ containerName, onData: (chunk) => demux(chunk) })
+      .then((s) => {
+        stream = s
+        if (stopped) s?.destroy?.() // terminated before the stream resolved
+      })
+      .catch((err) =>
+        this.logger.debug?.(
+          `log stream for ${microvmId} failed: ${err.message}`,
+        ),
+      )
+    return () => {
+      stopped = true
+      try {
+        stream?.destroy?.()
+      } catch {
+        /* ignore */
+      }
+    }
   }
 
   async build() {

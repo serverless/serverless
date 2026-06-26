@@ -144,10 +144,30 @@ export async function startControlPlane({
   hookPort = 9000,
   readinessTimeoutMs = 15000,
   waitForPort = defaultWaitForPort,
+  // Narrates emulator operations to the dev terminal (grey `aside` lines); no-op by default so
+  // embedding callers/tests stay silent.
+  logger = { aside() {}, notice() {}, debug() {} },
+  // attachLogs(containerName, microvmId) -> stop(): begin streaming a container's logs to the dev
+  // terminal (prefixed per MicroVM); returns a stop fn called on terminate. No-op by default.
+  attachLogs = () => () => {},
 }) {
   const send = (res, status, obj) => {
     res.writeHead(status, { 'content-type': 'application/json' })
     res.end(JSON.stringify(obj))
+  }
+
+  // Per-MicroVM container-log stream stoppers, so terminate/reap can stop tailing.
+  const logStops = new Map()
+  const stopLogsFor = (id) => {
+    const stop = logStops.get(id)
+    if (stop) {
+      try {
+        stop()
+      } catch {
+        /* ignore */
+      }
+      logStops.delete(id)
+    }
   }
 
   // Real AWS returns ResourceNotFoundException (HTTP 404). Setting x-amzn-errortype makes the
@@ -191,11 +211,16 @@ export async function startControlPlane({
       })
       const endpoint = `http://127.0.0.1:${port}`
       registry.markRunning(microvmId, { endpoint, proxyServer: server })
+      logger.aside(`→ RunMicrovm  ${microvmId}  RUNNING  ${endpoint}`)
+      // Stream this MicroVM's container logs to the dev terminal (prefixed per MicroVM).
+      const stop = attachLogs(c.containerName, microvmId)
+      if (typeof stop === 'function') logStops.set(microvmId, stop)
       // Let the container bind its hook server before delivering lifecycle hooks, so the
       // run-hook payload isn't POSTed to a not-yet-listening :9000 and lost. Best-effort + bounded.
       await waitForPort(host, inst.portMap[hookPort], readinessTimeoutMs)
       await fireHook('ready', inst)
       await fireHook('run', inst, body?.runHookPayload)
+      logger.aside(`  hooks ready+run delivered  ${microvmId}`)
       return { microvmId, endpoint, state: 'RUNNING' }
     },
 
@@ -213,6 +238,9 @@ export async function startControlPlane({
       const ports = (body?.allowedPorts || [{ port: 8080 }]).map((p) => p.port)
       const token = registry.issueToken(params.microvmIdentifier, ports)
       if (!token) return notFound(params.microvmIdentifier)
+      logger.aside(
+        `  auth token issued  ${params.microvmIdentifier}  ports=[${ports.join(',')}]`,
+      )
       return { authToken: { 'X-aws-proxy-auth': token } }
     },
 
@@ -223,6 +251,7 @@ export async function startControlPlane({
       await fireHook('suspend', inst)
       await inst.pauseFn().catch(() => {})
       registry.markSuspended(params.microvmIdentifier)
+      logger.aside(`⏸ SuspendMicrovm  ${params.microvmIdentifier}  SUSPENDED`)
       return {}
     },
     ResumeMicrovm: async (_req, _body, params) => {
@@ -231,6 +260,7 @@ export async function startControlPlane({
       await inst.unpauseFn().catch(() => {})
       await fireHook('resume', inst)
       registry.markResumed(params.microvmIdentifier)
+      logger.aside(`▶ ResumeMicrovm  ${params.microvmIdentifier}  RUNNING`)
       return {}
     },
 
@@ -244,6 +274,10 @@ export async function startControlPlane({
       }
       await fireHook('terminate', inst)
       await inst.stopFn().catch(() => {})
+      stopLogsFor(params.microvmIdentifier)
+      logger.aside(
+        `✕ TerminateMicrovm  ${params.microvmIdentifier}  TERMINATED`,
+      )
       return {} // real AWS returns an empty body
     },
   }
@@ -317,6 +351,7 @@ export async function startControlPlane({
           await fireHook('suspend', inst)
           await inst.pauseFn().catch(() => {})
           registry.markSuspended(microvmId)
+          logger.aside(`⏸ ${microvmId} idle → SUSPENDED`)
         } else if (action === 'terminate') {
           try {
             inst.proxyServer?.close?.()
@@ -326,6 +361,8 @@ export async function startControlPlane({
           await fireHook('terminate', inst)
           await inst.stopFn().catch(() => {})
           registry.terminate(microvmId)
+          stopLogsFor(microvmId)
+          logger.aside(`✕ ${microvmId} → TERMINATED (idle)`)
         }
       }
     } finally {
@@ -345,6 +382,7 @@ export async function startControlPlane({
         /* ignore */
       }
       await inst.stopFn().catch(() => {})
+      stopLogsFor(inst.microvmId)
       registry.terminate(inst.microvmId)
     }
     await new Promise((resolve) => server.close(resolve))
