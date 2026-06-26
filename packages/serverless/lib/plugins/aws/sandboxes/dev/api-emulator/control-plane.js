@@ -252,11 +252,47 @@ export async function startControlPlane({
         logger.aside(
           `⚠ ${short} not ready after ${Math.round(readinessTimeoutMs / 1000)}s — hooks may not have been delivered`,
         )
-      // Report exactly which hooks were delivered (a sandbox may enable only some, or none).
+      // Deliver the lifecycle hooks AND enforce the platform's gate: a non-2xx ready/run is a
+      // failure, not just a log line. Live AWS fails the MicrovmImage build on a bad `ready` and
+      // TERMINATES the VM on a bad `run` (findings: microvms-lifecycle-hooks.txt). Mirror that so dev
+      // surfaces what prod would reject. (Hook impls returning a bare truthy value instead of
+      // { status } — e.g. test doubles — are treated as delivered-OK; no gate.)
       const firedHooks = []
-      if (await fireHook('ready', inst)) firedHooks.push('ready')
-      if (await fireHook('run', inst, body?.runHookPayload))
-        firedHooks.push('run')
+      let gate = null
+      for (const [name, payload] of [
+        ['ready', undefined],
+        ['run', body?.runHookPayload],
+      ]) {
+        const res = await fireHook(name, inst, payload)
+        if (!res) continue // not enabled / not delivered
+        firedHooks.push(name)
+        const status = res.status
+        if (
+          !gate &&
+          typeof status === 'number' &&
+          (status < 200 || status >= 300)
+        )
+          gate = { name, status }
+      }
+      if (gate) {
+        const stateReason =
+          gate.name === 'run'
+            ? `Run lifecycle hook returned HTTP status ${gate.status}. Please check your hook endpoint and application logs for more details.`
+            : `Ready lifecycle hook returned HTTP status ${gate.status}; in production this fails the MicrovmImage build.`
+        try {
+          server.close?.()
+        } catch {
+          /* ignore */
+        }
+        await inst.stopFn?.().catch(() => {})
+        stopLogsFor(microvmId)
+        const terminated = registry.terminate(microvmId)
+        if (terminated) terminated.stateReason = stateReason
+        logger.aside(
+          `✕ ${short} terminated — ${gate.name} hook returned ${gate.status}`,
+        )
+        return { microvmId, state: 'TERMINATED', stateReason }
+      }
       if (firedHooks.length)
         logger.aside(`  hooks ${firedHooks.join('+')} delivered  ${short}`)
       return { microvmId, endpoint, state: 'RUNNING' }
@@ -269,6 +305,7 @@ export async function startControlPlane({
         microvmId: inst.microvmId,
         state: inst.state,
         endpoint: inst.endpoint,
+        ...(inst.stateReason ? { stateReason: inst.stateReason } : {}),
       }
     },
 

@@ -358,6 +358,76 @@ test('warns (⚠) when the container never becomes ready (waitForPort times out)
   }
 })
 
+test('a non-2xx run hook gates the launch: VM TERMINATED with a stateReason (matches live AWS)', async () => {
+  const aside = []
+  const logger = { aside: (m) => aside.push(m), notice() {}, debug() {} }
+  const containers = []
+  const registry = new EmulatorRegistry({
+    sandboxName: 'echo',
+    minimumMemoryInMiB: 2048,
+    imageArn: 'arn:local',
+    idFactory: () => 'mvm-1',
+  })
+  const cp = await startControlPlane({
+    registry,
+    containerManager: recordingContainerManager(containers),
+    startProxy: fakeStartProxy,
+    setIntervalImpl: () => 0,
+    clearIntervalImpl: () => {},
+    waitForPort: async () => true,
+    // ready ok (200), run fails (500) — like a worker whose run hook errors
+    fireHook: async (name) =>
+      name === 'run' ? { status: 500 } : { status: 200 },
+    logger,
+  })
+  try {
+    const res = await req(cp.port, 'POST', '/microvms', {})
+    // RunMicrovm reflects the terminal state + AWS's stateReason string
+    expect(res.json.state).toBe('TERMINATED')
+    expect(res.json.stateReason).toMatch(
+      /Run lifecycle hook returned HTTP status 500/,
+    )
+    // container stopped + a terminate aside logged
+    expect(containers[0].stop).toHaveBeenCalled()
+    expect(
+      aside.some(
+        (l) => l.includes('terminated') && l.includes('run hook returned 500'),
+      ),
+    ).toBe(true)
+    // GetMicrovm surfaces the same terminal state + reason
+    const got = await req(cp.port, 'GET', `/microvms/${res.json.microvmId}`)
+    expect(got.json.state).toBe('TERMINATED')
+    expect(got.json.stateReason).toMatch(/HTTP status 500/)
+  } finally {
+    await cp.shutdown()
+  }
+})
+
+test('a 2xx run hook does NOT gate: VM stays RUNNING', async () => {
+  const registry = new EmulatorRegistry({
+    sandboxName: 'echo',
+    minimumMemoryInMiB: 2048,
+    imageArn: 'arn:local',
+    idFactory: () => 'mvm-1',
+  })
+  const cp = await startControlPlane({
+    registry,
+    containerManager: recordingContainerManager([]),
+    startProxy: fakeStartProxy,
+    setIntervalImpl: () => 0,
+    clearIntervalImpl: () => {},
+    waitForPort: async () => true,
+    fireHook: async () => ({ status: 200 }),
+  })
+  try {
+    const res = await req(cp.port, 'POST', '/microvms', {})
+    expect(res.json.state).toBe('RUNNING')
+    expect(res.json.stateReason).toBeUndefined()
+  } finally {
+    await cp.shutdown()
+  }
+})
+
 test('awaits beforeRun before launching the container on RunMicrovm', async () => {
   const seq = []
   const beforeRun = jest.fn(async () => {

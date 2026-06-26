@@ -8,12 +8,13 @@ export function createHookFirer({
   fetchImpl = fetch,
   logger,
 } = {}) {
-  // Returns true if the hook was actually delivered (enabled + a reachable port + the POST
-  // succeeded), false otherwise — so callers can report exactly which hooks fired.
+  // Returns { status } when the hook POST completes (so callers can both report which hooks fired
+  // AND enforce the platform's non-2xx gate), or null when not delivered (disabled, no :9000 port
+  // mapping, or a network error).
   return async function fire(name, instance, runHookPayload) {
-    if (!enabledHooks.has(name)) return false
+    if (!enabledHooks.has(name)) return null
     const hostPort = instance?.portMap?.[hookPort]
-    if (!hostPort) return false
+    if (!hostPort) return null
     // Live capture (Appendix A): only `run` carries a JSON body + content-type; the empty-body
     // hooks (ready/suspend/resume/terminate) are a bare POST (no content-type).
     const init = { method: 'POST' }
@@ -25,11 +26,14 @@ export function createHookFirer({
       })
     }
     try {
-      await fetchImpl(`http://127.0.0.1:${hostPort}${HOOK_PATH}/${name}`, init)
-      return true
+      const res = await fetchImpl(
+        `http://127.0.0.1:${hostPort}${HOOK_PATH}/${name}`,
+        init,
+      )
+      return { status: res.status }
     } catch (err) {
       logger?.debug?.(`hook '${name}' failed: ${err.message}`)
-      return false
+      return null
     }
   }
 }
