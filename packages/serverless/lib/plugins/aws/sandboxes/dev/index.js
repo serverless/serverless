@@ -229,29 +229,37 @@ class SandboxesDevMode {
     }
     this.progress?.remove?.()
     const url = this.controlPlane.url
-    // Labeled summary block (Identity / Endpoint), mirroring functions Dev Mode's
-    // Functions:/Endpoints: sections — both labels are 8 chars, so the values line up. Printed
+    // Region shown is exactly the AWS_REGION we inject into the container (so the worker's
+    // default-region SDK calls land there); read it from credsEnv rather than re-querying the
+    // provider. Source is the build context the watcher watches — edits there rebuild the image.
+    const region = this.credsEnv?.AWS_REGION
+    const base = this.serverless.config?.serviceDir || process.cwd()
+    const sourceRel = path.relative(base, this.ctx.contextPath) || '.'
+    // Labeled summary block (Identity / Region / Endpoint / Source), mirroring functions Dev Mode's
+    // Functions:/Endpoints: sections. Labels pad to a fixed column so the values align. Printed
     // post-build (like functions Dev's summary) so the identity captured during IAM setup lands
     // here next to the endpoint rather than scrolling away above the build output.
+    const PAD = 11
     this.logger.blankLine?.()
     if (this.identityLabel)
-      this.logger.notice(`Identity   ${this.identityLabel}`)
+      this.logger.notice(`${'Identity'.padEnd(PAD)}${this.identityLabel}`)
+    if (region) this.logger.notice(`${'Region'.padEnd(PAD)}${region}`)
     this.logger.notice(
-      `Endpoint   ${style.bold(url)}   ← point your AWS SDK or CLI here`,
+      `${'Endpoint'.padEnd(PAD)}${style.bold(url)}   ← point your AWS SDK or CLI here`,
     )
     // Target the endpoint via the SDK/CLI's endpoint-url setting rather than a global
     // `export AWS_ENDPOINT_URL_LAMBDA_MICROVMS=…`: that var is honored by every AWS client, so
     // exporting it would also redirect `serverless deploy`'s own MicroVMs calls. A per-command
     // (`--endpoint-url`) or per-client endpoint targets only the user's code. Indented to nest
-    // under the endpoint value (8-char label + 3 spaces).
-    this.logger.aside?.(`           e.g.  aws … --endpoint-url ${url}`)
+    // under the endpoint value.
+    this.logger.aside?.(`${' '.repeat(PAD)}e.g.  aws … --endpoint-url ${url}`)
+    // Source carries the Hot Module Reloading hint inline (the watched dir is what rebuilds), so no
+    // separate "watching…" line is needed.
+    this.logger.notice(
+      `${'Source'.padEnd(PAD)}${sourceRel}   (watched — edits rebuild the image)`,
+    )
     this.logger.blankLine?.()
     this.logger.notice(`MicroVMs API ready — Ctrl-C to stop`)
-    // Self-explaining grey lines: surface Hot Module Reloading (otherwise invisible until it
-    // fires) and the per-MicroVM log tag, so a first-time human or agent can follow without docs.
-    this.logger.aside?.(
-      `Watching for code & Dockerfile changes — edits rebuild the image automatically.`,
-    )
     this.logger.aside?.(
       `Each launch streams that MicroVM's logs below as "─ <id> …"; grey lines are MicroVMs platform operations (launch, suspend, terminate).`,
     )
