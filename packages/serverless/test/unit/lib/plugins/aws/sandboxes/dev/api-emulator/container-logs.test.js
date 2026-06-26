@@ -60,3 +60,22 @@ test('demuxes interleaved stdout (1) and stderr (2) frames', () => {
   feed(Buffer.concat([frame(1, 'out line\n'), frame(2, 'err line\n')]))
   expect(lines).toEqual(['out line', 'err line'])
 })
+
+test('tags each emitted line with its stream (stdout=1, stderr=2)', () => {
+  const out = []
+  const feed = createDockerLogDemuxer((l, stream) => out.push([stream, l]))
+  feed(Buffer.concat([frame(1, 'normal line\n'), frame(2, 'error line\n')]))
+  expect(out).toEqual([
+    ['stdout', 'normal line'],
+    ['stderr', 'error line'],
+  ])
+})
+
+test('flush() emits a buffered partial (unterminated) line with its stream', () => {
+  const out = []
+  const feed = createDockerLogDemuxer((l, stream) => out.push([stream, l]))
+  feed(frame(2, 'dying without a newline')) // no '\n' → buffered, not emitted yet
+  expect(out).toEqual([])
+  feed.flush()
+  expect(out).toEqual([['stderr', 'dying without a newline']])
+})

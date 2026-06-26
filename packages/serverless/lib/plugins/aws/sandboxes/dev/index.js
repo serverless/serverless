@@ -306,8 +306,14 @@ class SandboxesDevMode {
     // log lines get `─ <short-id>` (color-coded, stable per VM) so the whole `serverless dev`
     // family reads with one grammar. The full 45-char id is shown once at launch for copy-paste.
     const label = color(`─ ${shortMicrovmId(microvmId)}`)
-    const demux = createDockerLogDemuxer((line) => {
-      if (line.length) this.logger.notice(`${label}  ${line}`)
+    // Render stderr (frame type 2) red, like functions Dev Mode, so worker errors stand out from
+    // normal output. stderr isn't strictly "errors only", but that's where errors live — and
+    // functions Dev Mode makes the same tradeoff (visibility wins).
+    const demux = createDockerLogDemuxer((line, stream) => {
+      if (!line.length) return
+      this.logger.notice(
+        `${label}  ${stream === 'stderr' ? style.error(line) : line}`,
+      )
     })
     let stream
     let stopped = false
@@ -325,6 +331,7 @@ class SandboxesDevMode {
     return () => {
       stopped = true
       try {
+        demux.flush() // emit any buffered partial line before we stop tailing
         stream?.destroy?.()
       } catch {
         /* ignore */

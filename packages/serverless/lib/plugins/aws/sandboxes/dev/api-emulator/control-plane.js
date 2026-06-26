@@ -236,7 +236,16 @@ export async function startControlPlane({
       if (typeof stop === 'function') logStops.set(microvmId, stop)
       // Let the container bind its hook server before delivering lifecycle hooks, so the
       // run-hook payload isn't POSTed to a not-yet-listening :9000 and lost. Best-effort + bounded.
-      await waitForPort(host, inst.portMap[hookPort], readinessTimeoutMs)
+      const ready = await waitForPort(
+        host,
+        inst.portMap[hookPort],
+        readinessTimeoutMs,
+      )
+      // A silent readiness timeout would make the hooks below quietly not fire; say so.
+      if (!ready)
+        logger.aside(
+          `⚠ ${short} not ready after ${Math.round(readinessTimeoutMs / 1000)}s — hooks may not have been delivered`,
+        )
       // Report exactly which hooks were delivered (a sandbox may enable only some, or none).
       const firedHooks = []
       if (await fireHook('ready', inst)) firedHooks.push('ready')
@@ -311,6 +320,7 @@ export async function startControlPlane({
   }
 
   const server = createServer(async (req, res) => {
+    let op = 'request'
     try {
       // The SDK prefixes every path with an API version date, e.g. `/2025-09-09/microvms`
       // (confirmed via wire capture, Appendix A). Strip a leading `/YYYY-MM-DD` so the ROUTES
@@ -325,6 +335,7 @@ export async function startControlPlane({
         return send(res, 404, {
           message: `No route for ${req.method} ${pathname}`,
         })
+      op = route.op
       const params = route.match(pathname)
       const body =
         req.method === 'GET' || req.method === 'DELETE'
@@ -341,6 +352,9 @@ export async function startControlPlane({
       }
       return send(res, 200, result)
     } catch (err) {
+      // Surface the failure in the dev terminal — otherwise it's only a 500 in the caller's output
+      // and the op silently never appears here.
+      logger.aside(`✕ ${op} failed — ${err.message}`)
       return send(res, 500, { message: err.message })
     }
   })

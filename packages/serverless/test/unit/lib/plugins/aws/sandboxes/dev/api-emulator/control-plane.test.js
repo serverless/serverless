@@ -296,6 +296,68 @@ test('the hooks line reflects only the hooks that actually fired (not a hardcode
   }
 })
 
+test('logs a failure (✕) and returns 500 when a handler throws', async () => {
+  const aside = []
+  const logger = { aside: (m) => aside.push(m), notice() {}, debug() {} }
+  const registry = new EmulatorRegistry({
+    sandboxName: 'echo',
+    minimumMemoryInMiB: 2048,
+    imageArn: 'arn:local',
+    idFactory: () => 'mvm-1',
+  })
+  const cp = await startControlPlane({
+    registry,
+    // run() throws → the RunMicrovm handler throws → 500 + a terminal failure line
+    containerManager: {
+      run: async () => {
+        throw new Error('boom')
+      },
+    },
+    startProxy: fakeStartProxy,
+    setIntervalImpl: () => 0,
+    clearIntervalImpl: () => {},
+    waitForPort: async () => true,
+    logger,
+  })
+  try {
+    const res = await req(cp.port, 'POST', '/microvms', {})
+    expect(res.status).toBe(500)
+    expect(
+      aside.some((l) => l.includes('RunMicrovm failed') && l.includes('boom')),
+    ).toBe(true)
+  } finally {
+    await cp.shutdown()
+  }
+})
+
+test('warns (⚠) when the container never becomes ready (waitForPort times out)', async () => {
+  const aside = []
+  const logger = { aside: (m) => aside.push(m), notice() {}, debug() {} }
+  const registry = new EmulatorRegistry({
+    sandboxName: 'echo',
+    minimumMemoryInMiB: 2048,
+    imageArn: 'arn:local',
+    idFactory: () => 'mvm-1',
+  })
+  const cp = await startControlPlane({
+    registry,
+    containerManager: recordingContainerManager([]),
+    startProxy: fakeStartProxy,
+    setIntervalImpl: () => 0,
+    clearIntervalImpl: () => {},
+    waitForPort: async () => false, // never ready
+    logger,
+  })
+  try {
+    await req(cp.port, 'POST', '/microvms', {})
+    expect(
+      aside.some((l) => l.includes('not ready') && l.includes('mvm-1')),
+    ).toBe(true)
+  } finally {
+    await cp.shutdown()
+  }
+})
+
 test('awaits beforeRun before launching the container on RunMicrovm', async () => {
   const seq = []
   const beforeRun = jest.fn(async () => {
