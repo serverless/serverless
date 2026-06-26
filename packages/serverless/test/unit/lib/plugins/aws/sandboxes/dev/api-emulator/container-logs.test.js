@@ -1,5 +1,16 @@
 // Demuxer for Docker's multiplexed log stream → clean lines. Pure; no Docker.
-import { createDockerLogDemuxer } from '../../../../../../../../lib/plugins/aws/sandboxes/dev/api-emulator/container-logs.js'
+import {
+  createDockerLogDemuxer,
+  shortMicrovmId,
+} from '../../../../../../../../lib/plugins/aws/sandboxes/dev/api-emulator/container-logs.js'
+
+test('shortMicrovmId trims the microvm- prefix to 8 chars for readable log tags', () => {
+  expect(shortMicrovmId('microvm-75e525bb-ad71-4caf-8dc7-6d5d6d6149ba')).toBe(
+    '75e525bb',
+  )
+  expect(shortMicrovmId('mvm-1')).toBe('mvm-1') // no microvm- prefix → first 8 chars
+  expect(shortMicrovmId(undefined)).toBe('')
+})
 
 // Build one multiplexed frame: [type][0,0,0][size BE32][payload].
 function frame(type, text) {

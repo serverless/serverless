@@ -1,5 +1,14 @@
 'use strict'
 
+// A short, readable tag for a MicroVM id (`microvm-75e525bb-…-6149ba` → `75e525bb`) — used to
+// prefix that VM's streamed logs without repeating the full 45-char id on every line. The full id
+// is printed once at launch (and returned by the API) for copy-paste into `aws lambda-microvms`.
+export function shortMicrovmId(id) {
+  return String(id || '')
+    .replace(/^microvm-/, '')
+    .slice(0, 8)
+}
+
 // Demux a Docker multiplexed log stream into clean, complete text lines.
 //
 // `container.logs({follow,stdout,stderr})` on a non-TTY container (which is how the emulator runs

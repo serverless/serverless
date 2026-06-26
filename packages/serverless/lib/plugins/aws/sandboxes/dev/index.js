@@ -5,7 +5,10 @@ import fs from 'fs'
 import chokidar from 'chokidar'
 import { DockerClient } from '@serverless/util/src/docker/index.js'
 import { stringToSafeColor } from '@serverless/util'
-import { createDockerLogDemuxer } from './api-emulator/container-logs.js'
+import {
+  createDockerLogDemuxer,
+  shortMicrovmId,
+} from './api-emulator/container-logs.js'
 import ServerlessError from '../../../../serverless-error.js'
 
 class SandboxesDevMode {
@@ -214,12 +217,16 @@ class SandboxesDevMode {
       throw err
     }
     this.progress?.remove?.()
+    const url = this.controlPlane.url
+    this.logger.notice(`Local MicroVMs API ready → ${url}   (Ctrl-C to stop)`)
     this.logger.notice(
-      `Local MicroVMs API: ${this.controlPlane.url} (Ctrl-C to stop)`,
+      `Point your code at it:  export AWS_ENDPOINT_URL_LAMBDA_MICROVMS=${url}`,
     )
-    this.logger.notice(
-      `Point your code at it: export AWS_ENDPOINT_URL_LAMBDA_MICROVMS=${this.controlPlane.url} ` +
-        `(or pass endpoint: '${this.controlPlane.url}' to LambdaMicrovmsClient)`,
+    // Self-explaining legend (grey): tells a first-time human or agent what they're about to see,
+    // so they can follow along without reading docs. Optional-chained: not every logger surface
+    // (e.g. test doubles) implements `aside`.
+    this.logger.aside?.(
+      `Waiting for RunMicrovm calls. Each launch streams that MicroVM's logs below, tagged "<id> │ …"; grey lines are emulator operations.`,
     )
 
     this.onSignal('SIGINT', () => this.shutdown())
@@ -260,7 +267,9 @@ class SandboxesDevMode {
   // calls on terminate. Container logs are multiplexed (non-TTY) — demux into clean lines.
   attachContainerLogs(containerName, microvmId) {
     const color = stringToSafeColor(microvmId)
-    const label = color(microvmId)
+    // Short, color-coded tag + a separator, so a MicroVM's own logs are easy to scan and attribute
+    // without the full 45-char id on every line (the full id is shown once at launch).
+    const label = color(`${shortMicrovmId(microvmId)} │`)
     const demux = createDockerLogDemuxer((line) => {
       if (line.length) this.logger.notice(`${label} ${line}`)
     })
