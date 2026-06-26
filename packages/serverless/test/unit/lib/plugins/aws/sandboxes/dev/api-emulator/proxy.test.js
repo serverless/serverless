@@ -134,3 +134,30 @@ test('502 when onRequest rejects (suspended, non-resumable — real AWS behavior
     server.close()
   }
 })
+
+test('onResponse reports the final status, method, and path (forward + deny)', async () => {
+  const seen = []
+  const { server, port } = await startInstanceProxy({
+    validateToken: (t) => t === 'good',
+    resolveHostPort: () => 12345,
+    onResponse: (status, method, path) => seen.push([status, method, path]),
+    fetchImpl: async () => new Response('ok', { status: 201 }),
+  })
+  try {
+    // forwarded request → reports the upstream status (201)
+    await fetch(`http://127.0.0.1:${port}/webhook?q=1`, {
+      method: 'POST',
+      headers: { 'X-aws-proxy-auth': 'good' },
+    })
+    // denied request (bad token) → reports 403
+    await fetch(`http://127.0.0.1:${port}/denied`, {
+      headers: { 'X-aws-proxy-auth': 'bad' },
+    })
+    expect(seen).toEqual([
+      [201, 'POST', '/webhook'], // query string stripped from the reported path
+      [403, 'GET', '/denied'],
+    ])
+  } finally {
+    server.close()
+  }
+})

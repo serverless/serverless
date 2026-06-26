@@ -19,16 +19,29 @@ export async function startInstanceProxy({
   isPortAllowed = () => true,
   resolveHostPort,
   onRequest = async () => 'forward',
+  // Reports the final status of each forwarded request (status, method, path) so the control-plane
+  // can narrate data-plane traffic to the dev terminal — otherwise an execution that logs nothing
+  // is invisible. No-op by default so embedding callers/tests stay silent.
+  onResponse = () => {},
   host = '127.0.0.1',
   createServer = http.createServer,
   fetchImpl = fetch,
   requestId = () => crypto.randomUUID(),
 }) {
   const handler = async (req, res) => {
+    const method = req.method
+    const pathStr = (req.url || '').split('?')[0]
+    let reported = false
+    const report = (status) => {
+      if (reported) return // exactly one report per request
+      reported = true
+      onResponse(status, method, pathStr)
+    }
     try {
       // Match real AWS bodies/statuses (see Appendix A).
       const reqId = requestId()
       const deny = (status, body) => {
+        report(status)
         res.writeHead(status, {
           'x-amzn-requestid': reqId,
           'cache-control': 'private, no-store',
@@ -60,6 +73,7 @@ export async function startInstanceProxy({
 
       const hostPort = resolveHostPort(inVmPort)
       if (!hostPort) {
+        report(502)
         res.writeHead(502, { 'content-type': 'application/json' })
         res.end(JSON.stringify({ message: `No upstream for port ${inVmPort}` }))
         return
@@ -94,6 +108,7 @@ export async function startInstanceProxy({
           body,
         })
       } catch {
+        report(502)
         res.writeHead(502, { 'content-type': 'application/json' })
         res.end(
           JSON.stringify({ message: 'Bad Gateway: upstream unreachable' }),
@@ -108,9 +123,11 @@ export async function startInstanceProxy({
       })
       respHeaders['x-amzn-requestid'] = reqId // real proxy echoes the request id on the response too
       const buf = Buffer.from(await upstream.arrayBuffer())
+      report(upstream.status)
       res.writeHead(upstream.status, respHeaders)
       res.end(buf)
     } catch (err) {
+      report(502)
       res.writeHead(502, { 'content-type': 'application/json' })
       res.end(JSON.stringify({ message: `Proxy error: ${err.message}` }))
     }

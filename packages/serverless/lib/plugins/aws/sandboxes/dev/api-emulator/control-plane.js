@@ -215,6 +215,12 @@ export async function startControlPlane({
           }
           return decision // 'forward' | 'reject'
         },
+        // Narrate each forwarded request's outcome — otherwise an execution that logs nothing is
+        // invisible. Grey, like functions Dev Mode's `← λ launcher (200)`.
+        onResponse: (status, method, p) =>
+          logger.aside(
+            `← ${shortMicrovmId(microvmId)}  ${status}  ${method} ${p}`,
+          ),
       })
       const endpoint = `http://127.0.0.1:${port}`
       registry.markRunning(microvmId, { endpoint, proxyServer: server })
