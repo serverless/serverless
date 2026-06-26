@@ -430,4 +430,65 @@ describe('orchestrate', () => {
       expect(alarm.Properties.AlarmActions).toEqual(['arn:sns:t'])
     })
   })
+
+  describe('tags propagation', () => {
+    let template
+    const TAGS = [{ Key: 'team', Value: 'platform' }]
+
+    beforeEach(async () => {
+      template = makeTemplate()
+      await orchestrate({
+        sandboxesConfig: {
+          runner: {
+            artifact: './app',
+            tags: { team: 'platform' },
+            observability: { alarms: { notify: 'arn:sns:t' } },
+            vpc: { subnets: ['subnet-a'], securityGroups: ['sg-a'] },
+          },
+        },
+        ctx: makeCtx(),
+        template,
+        provider: makeProvider(),
+        serverless: {},
+        log: { debug: jest.fn() },
+        _zipDir: stubZipDir,
+      })
+    })
+
+    test('tags every taggable resource the sandbox creates', () => {
+      for (const id of [
+        'RunnerImage',
+        'RunnerImageLogGroup',
+        'RunnerImageBuildRole',
+        'RunnerImageExecutionRole',
+        'RunnerImageErrorsAlarm',
+        'RunnerImageDashboard',
+        'RunnerConnector',
+        'RunnerConnectorOperatorRole',
+      ]) {
+        expect(template.Resources[id]).toBeDefined()
+        expect(template.Resources[id].Properties.Tags).toEqual(TAGS)
+      }
+    })
+
+    test('does NOT add Tags to AWS::Logs::MetricFilter (unsupported)', () => {
+      const mf = template.Resources.RunnerImageErrorsMetricFilter
+      expect(mf.Type).toBe('AWS::Logs::MetricFilter')
+      expect(mf.Properties.Tags).toBeUndefined()
+    })
+
+    test('no tags config ⇒ no Tags on the image', async () => {
+      const t2 = makeTemplate()
+      await orchestrate({
+        sandboxesConfig: { runner: { artifact: './app' } },
+        ctx: makeCtx(),
+        template: t2,
+        provider: makeProvider(),
+        serverless: {},
+        log: { debug: jest.fn() },
+        _zipDir: stubZipDir,
+      })
+      expect(t2.Resources.RunnerImage.Properties.Tags).toBeUndefined()
+    })
+  })
 })

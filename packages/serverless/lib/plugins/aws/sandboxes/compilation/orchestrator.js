@@ -34,6 +34,29 @@ function internetEgressArn(region) {
   return `arn:aws:lambda:${region}:aws:network-connector:aws-network-connector:INTERNET_EGRESS`
 }
 
+// CloudFormation types created for a sandbox that do NOT support a Tags property.
+const TAG_UNSUPPORTED_TYPES = new Set(['AWS::Logs::MetricFilter'])
+
+/**
+ * Apply the sandbox's `tags` to each given resource that supports Tags.
+ * Tags use the standard `[{ Key, Value }]` shape across all taggable types here.
+ *
+ * @param {object} resources   - template.Resources
+ * @param {string[]} logicalIds - ids of resources created for this sandbox
+ * @param {object|undefined} tags
+ */
+function applySandboxTags(resources, logicalIds, tags) {
+  const entries = Object.entries(tags || {})
+  if (entries.length === 0) return
+  const Tags = entries.map(([Key, Value]) => ({ Key, Value: String(Value) }))
+  for (const id of logicalIds) {
+    const r = resources[id]
+    if (!r || TAG_UNSUPPORTED_TYPES.has(r.Type)) continue
+    r.Properties = r.Properties || {}
+    r.Properties.Tags = Tags
+  }
+}
+
 /**
  * Build the CFN value for CodeArtifact.Uri for a local-dir sandbox.
  *
@@ -111,6 +134,10 @@ export async function orchestrate({
 
   for (const [name, cfg] of Object.entries(sandboxesConfig || {})) {
     log.debug?.(`sandboxes: compiling "${name}"`)
+
+    // Snapshot existing resource ids so we can tag exactly the ones this sandbox
+    // adds (see the tag post-pass at the end of the loop body).
+    const resourceIdsBefore = new Set(Object.keys(template.Resources))
 
     // ── Base image ──────────────────────────────────────────────────────────
     const baseImage = await resolveBaseImage(
@@ -273,6 +300,15 @@ export async function orchestrate({
       Value: execRoleArn,
       Description: `Execution role ARN for the ${name} sandbox MicroVM`,
     }
+
+    // ── Tags ───────────────────────────────────────────────────────────────────
+    // Apply `cfg.tags` to every taggable resource this sandbox created (image,
+    // log group, IAM roles, alarms, dashboard, network connector) — not just the
+    // image. MetricFilter is the only created type that does not support Tags.
+    const addedIds = Object.keys(template.Resources).filter(
+      (id) => !resourceIdsBefore.has(id),
+    )
+    applySandboxTags(template.Resources, addedIds, cfg.tags)
   }
 
   return pendingUploads

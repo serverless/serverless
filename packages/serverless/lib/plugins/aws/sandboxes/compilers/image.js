@@ -73,12 +73,8 @@ export function compileImage(name, cfg, ctx) {
       EnvironmentVariables: Object.entries(cfg.environment || {}).map(
         ([Key, Value]) => ({ Key, Value: String(Value) }),
       ),
-      ...(cfg.tags && {
-        Tags: Object.entries(cfg.tags).map(([Key, Value]) => ({
-          Key,
-          Value: String(Value),
-        })),
-      }),
+      // Tags are applied centrally by the orchestrator to every taggable
+      // resource the sandbox creates (not just the image).
     },
   }
 }
