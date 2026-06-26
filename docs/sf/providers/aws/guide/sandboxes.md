@@ -124,7 +124,7 @@ sandboxes:
     hooks: { ... }
     vpc: { ... }
     iam: { ... }
-    observability: true | false        # boolean shorthand, or the object form:
+    observability: # `true` (default) | `false` — or the object form shown below:
       logs:
         enabled: true                      # set false to disable MicroVM logging entirely
         retentionDays: 14                  # CloudWatch-allowed value; default 14
@@ -171,7 +171,7 @@ Hooks let the MicroVM notify your application at key points in its lifecycle. Yo
 
 ### Hook shape
 
-Each hook is either `true` (enable with defaults) or an object with optional `timeout` and/or `port` overrides:
+Each hook is either `true` (enable with defaults) or an object with an optional `timeout` override. The hook-server `port` is set once for all hooks (see the `port` key below), not per hook:
 
 ```yml
 sandboxes:
@@ -434,7 +434,7 @@ Prints the recent window of log events from the sandbox's CloudWatch log group `
 
 ## Observability
 
-Observability is **on by default**. Every sandbox automatically gets a CloudWatch log group, an error metric filter, and a CloudWatch dashboard. You do not need to add anything to `serverless.yml` to enable monitoring.
+Observability is **on by default**. Every sandbox automatically gets a CloudWatch log group, an error metric filter, and a section in the service's CloudWatch dashboard (one dashboard per service). You do not need to add anything to `serverless.yml` to enable monitoring.
 
 ### Log group
 
@@ -463,7 +463,7 @@ When `logs.enabled: false`, the MicroVM image is built with `Logging: { Disabled
 
 When observability is on (the default), the framework also creates:
 
-- An `AWS::Logs::MetricFilter` that counts log lines containing `error`, `exception`, or `fail` (case-insensitive) and publishes them to a CloudWatch metric in the `ServerlessFramework/Sandboxes` namespace. The metric name is `<image-name>-errors`.
+- An `AWS::Logs::MetricFilter` per `metrics.filters` entry. The default `errors` filter counts log lines containing `error`, `exception`, or `fail` (case-insensitive) and publishes them to a CloudWatch metric in the `ServerlessFramework/Sandboxes` namespace, named `<image-name>-errors` (custom filters use `<image-name>-<filter-key>`). Like AWS Lambda's own `Errors` metric, it is sparse — a data point is emitted only when matching lines occur — so alarms default to `treatMissingData: notBreaching`.
 - **One `AWS::CloudWatch::Dashboard` per service** (`<service>-<stage>-sandboxes`), with a section per sandbox. Each section has: log volume (incoming bytes on the left axis, events on the right), the filter-derived metrics (with a horizontal threshold band per filter when alarms are configured), a "MicroVMs created" bar chart (distinct log streams = instances), a recent-logs table, a recent-errors table, and — when alarms are set — an alarm status widget. Multiple sandboxes share the one dashboard.
 
 Set `observability: false` to opt out of both the metric filter and the dashboard. The log group is still created.
@@ -571,8 +571,9 @@ remove the container.
 > containing a `Dockerfile`. A sandbox whose `artifact` is an `s3://` zip cannot be
 > run with `dev` — use a local directory for the dev loop.
 
-> Higher-fidelity dev features (real-execution-role credentials, the
-> production proxy/auth contract, and egress isolation) are added in later increments.
+> The dev loop already runs under the sandbox's real execution role (see [IAM
+> emulation](#iam-emulation) below). Higher-fidelity features still in progress:
+> the production proxy/auth contract and network egress isolation.
 
 ### Hot reloading
 
