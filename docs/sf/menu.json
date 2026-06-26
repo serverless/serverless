@@ -42,7 +42,7 @@
     },
     "Layers": "providers/aws/guide/layers",
     "Managed Instances": "providers/aws/guide/managed-instances",
-    "AWS Lambda MicroVMs": "providers/aws/guide/sandboxes",
+    "Sandboxes (Lambda MicroVMs)": "providers/aws/guide/sandboxes",
     "Alerts": "providers/aws/guide/alerts",
     "Version Pruning": "providers/aws/guide/prune",
     "Domains": "providers/aws/guide/domains",

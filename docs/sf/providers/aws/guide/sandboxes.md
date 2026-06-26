@@ -1,7 +1,7 @@
 <!--
-title: Serverless Framework - AWS Lambda MicroVMs (Sandboxes)
-description: How to define, deploy, and invoke AWS Lambda MicroVM sandboxes with the Serverless Framework
-short_title: Lambda MicroVMs
+title: Serverless Framework - Sandboxes (AWS Lambda MicroVMs)
+description: How to define, deploy, and invoke sandboxes (AWS Lambda MicroVMs) with the Serverless Framework
+short_title: Sandboxes
 keywords:
   [
     'Serverless Framework',
@@ -18,7 +18,7 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# AWS Lambda MicroVMs (Sandboxes)
+# Sandboxes (AWS Lambda MicroVMs)
 
 AWS Lambda MicroVMs let you run arbitrary container workloads inside isolated virtual machines managed by the Lambda data plane. Unlike standard Lambda functions, each MicroVM runs a full container image built from a `Dockerfile` you provide, exposes one or more HTTP ports to callers, and supports lifecycle hooks that fire at boot, suspend, and resume.
 
