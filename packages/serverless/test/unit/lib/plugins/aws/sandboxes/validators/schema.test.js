@@ -142,10 +142,20 @@ describe('defineSandboxesSchema', () => {
     // role value: an ARN string OR { statements, managedPolicies }
     const rv = iam.properties.executionRole
     expect(rv.anyOf.some((b) => b.type === 'string')).toBe(true)
-    const obj = rv.anyOf.find((b) => b.type === 'object')
-    expect(obj.additionalProperties).toBe(false)
-    expect(obj.properties.statements).toBeDefined()
-    expect(obj.properties.managedPolicies).toBeDefined()
+    // the customization object branch (statements / managedPolicies / permissionsBoundary)
+    const custom = rv.anyOf.find(
+      (b) => b.type === 'object' && b.properties && b.properties.statements,
+    )
+    expect(custom.additionalProperties).toBe(false)
+    expect(custom.properties.managedPolicies).toBeDefined()
+    expect(custom.properties.permissionsBoundary).toBeDefined()
+    // a CloudFormation-intrinsic branch (external role via Ref/Fn::GetAtt/…)
+    const intrinsic = rv.anyOf.find(
+      (b) => b.type === 'object' && b.properties && b.properties.Ref,
+    )
+    expect(intrinsic).toBeDefined()
+    expect(intrinsic.properties['Fn::ImportValue']).toBeDefined()
+    expect(intrinsic.properties['Fn::GetAtt']).toBeDefined()
   })
 
   test('per-sandbox schema alarms.thresholds validates per-filter threshold keys', () => {

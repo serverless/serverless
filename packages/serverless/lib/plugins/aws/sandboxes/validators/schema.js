@@ -37,13 +37,29 @@ const hookValue = {
  */
 const roleCustomization = {
   anyOf: [
+    // An existing role ARN string.
     { type: 'string' },
+    // Extend the generated role with extra statements / managed policies /
+    // a permissions boundary.
     {
       type: 'object',
       additionalProperties: false,
       properties: {
         statements: { type: 'array', items: { type: 'object' } },
         managedPolicies: { type: 'array', items: { type: 'string' } },
+        permissionsBoundary: { type: 'string' },
+      },
+    },
+    // A CloudFormation intrinsic that resolves to an existing role ARN
+    // (skips role generation): Ref / Fn::GetAtt / Fn::ImportValue / Fn::Sub.
+    {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        Ref: {},
+        'Fn::GetAtt': {},
+        'Fn::ImportValue': {},
+        'Fn::Sub': {},
       },
     },
   ],
