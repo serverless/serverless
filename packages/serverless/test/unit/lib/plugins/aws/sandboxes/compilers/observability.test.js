@@ -109,7 +109,9 @@ test('compileMetricFilters: one filter → MetricFilter on the group with namesp
   expect(mt.MetricNamespace).toBe(METRIC_NAMESPACE)
   expect(mt.MetricName).toBe('svc-echo-dev-errors')
   expect(mt.MetricValue).toBe('1')
-  expect(mt.DefaultValue).toBe(0)
+  // Follow Lambda's Errors-metric behavior: sparse, no DefaultValue zero-fill.
+  // Robust alarming comes from the alarm's TreatMissingData: notBreaching.
+  expect(mt.DefaultValue).toBeUndefined()
 })
 
 test('compileMetricFilters: metrics disabled → no filters', () => {
@@ -129,6 +131,8 @@ test('compileAlarms: notify → alarm with defaults + AlarmActions', () => {
   const out = compileAlarms('echo', r, ctx)
   const al = out[Object.keys(out)[0]]
   expect(al.Type).toBe('AWS::CloudWatch::Alarm')
+  // Deterministic AlarmName so the dashboard alarm widget can build its ARN.
+  expect(al.Properties.AlarmName).toBe('svc-echo-dev-errors')
   expect(al.Properties.Namespace).toBe(METRIC_NAMESPACE)
   expect(al.Properties.MetricName).toBe('svc-echo-dev-errors')
   expect(al.Properties.Threshold).toBe(5)
@@ -204,6 +208,94 @@ test('compileDashboard: metrics disabled → only log widgets, no filter-metric 
     region: 'us-east-1',
   })
   const body = JSON.parse(out[Object.keys(out)[0]].Properties.DashboardBody)
-  expect(body.widgets).toHaveLength(2) // log volume + recent logs only
+  // log volume + MicroVMs + recent logs (both error widgets gated on metrics)
+  expect(body.widgets).toHaveLength(3)
   expect(JSON.stringify(body)).not.toContain('ServerlessFramework/Sandboxes')
+})
+
+const dctx = { serviceName: 'svc', stage: 'dev', region: 'us-east-1' }
+const dashBody = (r) =>
+  JSON.parse(
+    compileDashboard('echo', r, dctx)[
+      Object.keys(compileDashboard('echo', r, dctx))[0]
+    ].Properties.DashboardBody,
+  )
+
+test('compileDashboard: IncomingLogEvents is plotted on the right Y-axis', () => {
+  const body = dashBody(resolveObservability(undefined))
+  const vol = body.widgets.find(
+    (w) => w.properties.title === 'Log volume & events',
+  )
+  const events = vol.properties.metrics.find((m) =>
+    m.includes('IncomingLogEvents'),
+  )
+  expect(events[events.length - 1]).toEqual({ yAxis: 'right' })
+})
+
+test('compileDashboard: default error filter ⇒ metric widget titled "Errors"', () => {
+  const body = dashBody(resolveObservability(undefined))
+  expect(body.widgets.some((w) => w.properties.title === 'Errors')).toBe(true)
+  expect(
+    body.widgets.some((w) => w.properties.title === 'Filtered metrics'),
+  ).toBe(false)
+})
+
+test('compileDashboard: custom non-error filters ⇒ titled "Log-based metrics"', () => {
+  const body = dashBody(
+    resolveObservability({ metrics: { filters: { fail: '%FAIL%' } } }),
+  )
+  expect(
+    body.widgets.some((w) => w.properties.title === 'Log-based metrics'),
+  ).toBe(true)
+})
+
+test('compileDashboard: "MicroVMs created" graphs distinct log streams as bars', () => {
+  const body = dashBody(resolveObservability(undefined))
+  const w = body.widgets.find((x) => x.properties.title === 'MicroVMs created')
+  expect(w).toBeDefined()
+  expect(w.type).toBe('log')
+  expect(w.properties.view).toBe('bar')
+  expect(w.properties.query).toContain('count_distinct(@logStream)')
+  // No `legend` property — it's unsupported on log widgets, so we don't emit it.
+  expect(w.properties.legend).toBeUndefined()
+})
+
+test('compileDashboard: "Errors (recent)" log widget filters the error terms', () => {
+  const body = dashBody(resolveObservability(undefined))
+  const w = body.widgets.find((x) => x.properties.title === 'Errors (recent)')
+  expect(w).toBeDefined()
+  expect(w.type).toBe('log')
+  expect(w.properties.query).toContain('(?i)(error|exception|fail)')
+})
+
+test('compileDashboard: "Errors (recent)" absent when no errors filter present', () => {
+  const body = dashBody(
+    resolveObservability({ metrics: { filters: { fail: '%FAIL%' } } }),
+  )
+  expect(
+    body.widgets.some((w) => w.properties.title === 'Errors (recent)'),
+  ).toBe(false)
+})
+
+test('compileDashboard: alarms configured ⇒ alarm status widget + Fn::Sub body', () => {
+  const r = resolveObservability({ alarms: { notify: 'arn:sns:topic' } })
+  const props = compileDashboard('echo', r, dctx)[
+    Object.keys(compileDashboard('echo', r, dctx))[0]
+  ].Properties
+  // Body is wrapped in Fn::Sub so account/partition resolve at deploy time.
+  expect(typeof props.DashboardBody['Fn::Sub']).toBe('string')
+  const body = JSON.parse(props.DashboardBody['Fn::Sub'])
+  const w = body.widgets.find((x) => x.type === 'alarm')
+  expect(w).toBeDefined()
+  expect(w.properties.alarms).toEqual([
+    'arn:${AWS::Partition}:cloudwatch:us-east-1:${AWS::AccountId}:alarm:svc-echo-dev-errors',
+  ])
+})
+
+test('compileDashboard: no alarms ⇒ plain-string body, no alarm widget', () => {
+  const out = compileDashboard('echo', resolveObservability(undefined), dctx)
+  const props = out[Object.keys(out)[0]].Properties
+  expect(typeof props.DashboardBody).toBe('string')
+  const body = JSON.parse(props.DashboardBody)
+  expect(body.widgets.some((w) => w.type === 'alarm')).toBe(false)
 })

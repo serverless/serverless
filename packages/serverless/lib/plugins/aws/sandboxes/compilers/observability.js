@@ -103,7 +103,11 @@ export function compileMetricFilters(name, resolved, ctx, logGroupLogicalId) {
             MetricNamespace: METRIC_NAMESPACE,
             MetricName: metricName(name, ctx, filterKey),
             MetricValue: '1',
-            DefaultValue: 0,
+            // No DefaultValue: mirror Lambda's Errors metric, which is sparse
+            // (a data point only when there's a match) rather than zero-filled.
+            // Alarms stay correct via TreatMissingData: notBreaching. Leaving
+            // DefaultValue off also keeps the door open for metric-filter
+            // dimensions later (the two are mutually exclusive).
           },
         ],
       },
@@ -124,6 +128,8 @@ export function compileAlarms(name, resolved, ctx) {
     out[logicalId] = {
       Type: 'AWS::CloudWatch::Alarm',
       Properties: {
+        // Deterministic name so the dashboard alarm widget can reference its ARN.
+        AlarmName: metricName(name, ctx, filterKey),
         AlarmDescription: `Sandbox ${name} ${filterKey} alarm`,
         Namespace: METRIC_NAMESPACE,
         MetricName: metricName(name, ctx, filterKey),
@@ -151,8 +157,9 @@ export function compileDashboard(name, resolved, ctx) {
   const logGroupName = resolved.logs.logGroup || `/aws/lambda-microvms/${Name}`
   const region = ctx.region
 
-  // Log-volume + recent-logs read straight from the owned log group, so they
-  // are valid whenever the dashboard exists.
+  // 1. Log volume & events. IncomingBytes (large) and IncomingLogEvents (small
+  //    counts) share a widget but sit on separate Y-axes, so the event-count
+  //    line isn't crushed flat against the byte scale.
   const widgets = [
     {
       type: 'metric',
@@ -163,26 +170,35 @@ export function compileDashboard(name, resolved, ctx) {
         region,
         metrics: [
           ['AWS/Logs', 'IncomingBytes', 'LogGroupName', logGroupName],
-          ['AWS/Logs', 'IncomingLogEvents', 'LogGroupName', logGroupName],
+          [
+            'AWS/Logs',
+            'IncomingLogEvents',
+            'LogGroupName',
+            logGroupName,
+            { yAxis: 'right' },
+          ],
         ],
         stat: 'Sum',
         period: 300,
+        yAxis: { left: { label: 'Bytes' }, right: { label: 'Events' } },
       },
     },
   ]
 
-  // The filter metrics exist only when metrics are enabled, and their names come
-  // from the configured filters — derive the widget from those keys rather than
-  // hard-coding an `errors` metric that may not exist.
+  // 2. Filter-derived metrics. Names come from the configured filters (not a
+  //    hard-coded `errors`); the title reflects the content — "Errors" for the
+  //    default single error filter, "Log-based metrics" for custom filters.
   if (resolved.metrics.enabled) {
     const filterKeys = Object.keys(resolved.metrics.filters)
     if (filterKeys.length) {
+      const isDefaultErrors =
+        filterKeys.length === 1 && filterKeys[0] === 'errors'
       widgets.push({
         type: 'metric',
         width: 12,
         height: 6,
         properties: {
-          title: 'Filtered metrics',
+          title: isDefaultErrors ? 'Errors' : 'Log-based metrics',
           region,
           metrics: filterKeys.map((k) => [
             METRIC_NAMESPACE,
@@ -195,6 +211,26 @@ export function compileDashboard(name, resolved, ctx) {
     }
   }
 
+  // 3. MicroVMs created. Each log stream is exactly one MicroVM instance (the
+  //    stream name embeds the microvmId), so a distinct-stream count over time
+  //    tracks instance creation / churn — a MicroVM-specific signal with no
+  //    equivalent CloudWatch metric.
+  widgets.push({
+    type: 'log',
+    width: 12,
+    height: 6,
+    properties: {
+      title: 'MicroVMs created',
+      region,
+      query: `SOURCE '${logGroupName}' | stats count_distinct(@logStream) as microvms by bin(5m)`,
+      view: 'bar',
+      // NOTE: log (Logs Insights) widgets don't support a `legend` property — it
+      // only works on metric widgets — so the single "microvms" series label is
+      // shown by CloudWatch regardless. No JSON knob hides it here.
+    },
+  })
+
+  // 4. Recent logs.
   widgets.push({
     type: 'log',
     width: 24,
@@ -207,7 +243,55 @@ export function compileDashboard(name, resolved, ctx) {
     },
   })
 
+  // 5. Recent error logs — the lines behind the errors metric. Logs Insights
+  //    can't use the metric filter's char-class pattern, so match the same
+  //    error/exception/fail terms with a case-insensitive regex. Gated on the
+  //    error filter (and metrics) so it tracks the errors metric widget.
+  if (resolved.metrics.enabled && resolved.metrics.filters.errors) {
+    widgets.push({
+      type: 'log',
+      width: 24,
+      height: 6,
+      properties: {
+        title: 'Errors (recent)',
+        region,
+        query: `SOURCE '${logGroupName}' | fields @timestamp, @message | filter @message like /(?i)(error|exception|fail)/ | sort @timestamp desc | limit 50`,
+        view: 'table',
+      },
+    })
+  }
+
+  // 6. Alarm status — only when alarms are configured. Pinned to the top so
+  //    state is the first thing you see. Referenced by ARN built from the
+  //    AlarmName set in compileAlarms; account/partition resolve at deploy via
+  //    Fn::Sub, keeping compile offline.
+  let useSub = false
+  if (resolved.alarms) {
+    const alarmArns = Object.keys(resolved.metrics.filters).map(
+      (k) =>
+        `arn:\${AWS::Partition}:cloudwatch:${region}:\${AWS::AccountId}:alarm:${metricName(
+          name,
+          ctx,
+          k,
+        )}`,
+    )
+    widgets.unshift({
+      type: 'alarm',
+      width: 24,
+      height: 2,
+      properties: {
+        title: 'Alarms',
+        alarms: alarmArns,
+        sortBy: 'stateUpdatedTimestamp',
+      },
+    })
+    useSub = true
+  }
+
   const body = { widgets }
+  const dashboardBody = useSub
+    ? { 'Fn::Sub': JSON.stringify(body) }
+    : JSON.stringify(body)
 
   const logicalId = getLogicalId(name, 'ImageDashboard')
   return {
@@ -215,7 +299,7 @@ export function compileDashboard(name, resolved, ctx) {
       Type: 'AWS::CloudWatch::Dashboard',
       Properties: {
         DashboardName: `${Name}-sandbox`,
-        DashboardBody: JSON.stringify(body),
+        DashboardBody: dashboardBody,
       },
     },
   }
