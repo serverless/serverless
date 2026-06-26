@@ -130,7 +130,7 @@ class SandboxesDevMode {
     this.logger.logoDevMode?.()
     this.logger.blankLine?.()
     this.logger.aside?.(
-      `Runs sandbox "${name}" locally — emulates the AWS Lambda MicroVMs API so your code runs unchanged.`,
+      `Runs sandbox "${name}" locally against an emulated AWS Lambda MicroVMs API — the same code runs in dev and production.`,
     )
     this.logger.blankLine?.()
 
@@ -246,7 +246,7 @@ class SandboxesDevMode {
       `Watching for code & Dockerfile changes — edits rebuild the image automatically.`,
     )
     this.logger.aside?.(
-      `Each launch streams that MicroVM's logs below as "─ <id> …"; grey lines are emulator operations.`,
+      `Each launch streams that MicroVM's logs below as "─ <id> …"; grey lines are MicroVMs platform operations (launch, suspend, terminate).`,
     )
 
     this.onSignal('SIGINT', () => this.shutdown())
