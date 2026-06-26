@@ -29,12 +29,29 @@ renderer.state = {
 // Color support level
 renderer.colorSupportLevel =
   typeof supportsColor === 'object' ? supportsColor.level : 3
-// Interactive setting
-renderer.isInteractive =
-  (process.stdin.isTTY &&
-    process.stdout.isTTY &&
-    typeof process.env.CI !== 'string') ||
-  process.env.SLS_INTERACTIVE_SETUP_ENABLE
+// Interactive setting.
+//
+// Animations (the ora spinner) additionally require a USABLE terminal width. A pty created without
+// a window size reports `columns: 0` (e.g. `script`/`pty.spawn`/some CI and agent harnesses), and
+// ora's clear-line math `ceil(stringWidth / columns)` then divides by zero → `Infinity` lines to
+// clear → an unbounded clear loop that emits gigabytes of escape sequences. Note `columns ?? 80`
+// in ora does NOT guard this (0 is not nullish). So we treat a 0/undefined width as non-interactive
+// and fall back to the bounded plain-text path — exactly like a pipe. (`SLS_INTERACTIVE_SETUP_ENABLE`
+// remains an explicit override.)
+function computeIsInteractive({
+  stdin = process.stdin,
+  stdout = process.stdout,
+  env = process.env,
+} = {}) {
+  const hasUsableTty =
+    Boolean(stdin.isTTY) &&
+    Boolean(stdout.isTTY) &&
+    typeof env.CI !== 'string' &&
+    Number.isInteger(stdout.columns) &&
+    stdout.columns > 0
+  return Boolean(hasUsableTty || env.SLS_INTERACTIVE_SETUP_ENABLE)
+}
+renderer.isInteractive = computeIsInteractive()
 // Log levels
 renderer.levels = {
   compose: 0, // This is for compose. It is the lowest log level to have full control over the CLI.
@@ -1201,6 +1218,7 @@ const getPluginWriters = (pluginName) => {
 // Exports (adjusted to CommonJS syntax)
 export {
   Logger,
+  computeIsInteractive,
   getGlobalRendererSettings,
   setGlobalRendererSettings,
   log,

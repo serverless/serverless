@@ -265,7 +265,7 @@ commands.set('dev', {
     },
     port: {
       usage:
-        'Port to expose the container on in agents or sandboxes dev mode (default: 8080)',
+        'Local dev-mode port: the AgentCore container (agents, default 8080), or the local MicroVMs API control-plane endpoint (sandboxes, default 9100)',
       shortcut: 'p',
       type: 'string',
     },
