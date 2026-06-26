@@ -292,6 +292,11 @@ Permissions:
 
 Both roles use a trust policy for `lambda.amazonaws.com` with an `aws:SourceAccount` condition to prevent confused-deputy attacks.
 
+> **Extending the build role for non-default setups.** The generated build role grants `s3:GetObject` on the deployment bucket plus CloudWatch Logs — enough for the default Serverless deployment bucket (SSE-S3) and public or managed base images. Two setups need extra permissions, which you add via [`iam.buildRole.statements`](#customising-auto-generated-roles):
+>
+> - **Deployment bucket encrypted with a customer-managed KMS key** → add `kms:Decrypt` (and `kms:DescribeKey`) on the key, otherwise the build fails fetching the artifact with `AccessDenied`.
+> - **`Dockerfile` that builds `FROM` a private ECR image** → add `ecr:GetAuthorizationToken` (on `*`) plus `ecr:BatchGetImage` and `ecr:GetDownloadUrlForLayer` on the repository.
+
 ### Customising auto-generated roles
 
 Pass an `iam.buildRole` or `iam.executionRole` customisation object to extend the generated role without replacing it:
@@ -606,6 +611,7 @@ instead of after deploy.
 - If the role cannot be assumed (not deployed, missing permissions, etc.), dev prints a
   notice and falls back to your ambient AWS credentials so the loop keeps working.
 - Pass `--no-assume-role` to skip emulation and run with your ambient credentials.
+- If `dev` is killed abruptly (e.g. `SIGKILL` rather than `Ctrl-C`), the temporary trust statement isn't removed; it's cleaned up — or reused without duplication — on the next `dev` run. Until then, your local identity remains able to assume the execution role.
 - **Caveat:** an app that reads credentials directly from the instance metadata service
   (`169.254.169.254`) bypasses the injected credentials; only the AWS SDK default
   credential chain picks them up.
