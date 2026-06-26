@@ -458,6 +458,14 @@ describe('generateOperatorRole', () => {
     )
   })
 
+  test('ec2:CreateTags is scoped to network-interface ARNs, not "*"', () => {
+    const role = generateOperatorRole('runner', operatorCtx)
+    const stmts = role.Properties.Policies[0].PolicyDocument.Statement
+    const stmt = stmts.find((s) => [s.Action].flat().includes('ec2:CreateTags'))
+    expect(stmt.Resource).not.toBe('*')
+    expect(stmt.Resource['Fn::Sub']).toContain('network-interface/*')
+  })
+
   test('flatMap of all actions contains both ec2:CreateNetworkInterface and ec2:CreateTags', () => {
     const role = generateOperatorRole('runner', operatorCtx)
     const actions =

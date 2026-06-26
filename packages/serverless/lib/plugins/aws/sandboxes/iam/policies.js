@@ -321,11 +321,17 @@ export function generateOperatorRole(name, ctx) {
                   },
                 ],
               },
-              // Allow tagging managed resources created by the network connector
+              // Allow tagging the ENIs the network connector creates. Scoped to
+              // network-interface ARNs (matching the AWS-managed
+              // AWSLambdaNetworkConnectorOperatorPolicy) and gated by the
+              // managed-resource-operator condition.
               {
                 Effect: 'Allow',
                 Action: ['ec2:CreateTags'],
-                Resource: '*',
+                Resource: {
+                  'Fn::Sub':
+                    'arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:network-interface/*',
+                },
                 Condition: {
                   StringEquals: {
                     'ec2:ManagedResourceOperator':
