@@ -226,7 +226,7 @@ class SandboxesDevMode {
     // so they can follow along without reading docs. Optional-chained: not every logger surface
     // (e.g. test doubles) implements `aside`.
     this.logger.aside?.(
-      `Waiting for RunMicrovm calls. Each launch streams that MicroVM's logs below, tagged "<id> │ …"; grey lines are emulator operations.`,
+      `Waiting for RunMicrovm calls. Each launch streams that MicroVM's logs below, tagged "─ <id> …"; grey lines are emulator operations.`,
     )
 
     this.onSignal('SIGINT', () => this.shutdown())
@@ -267,11 +267,12 @@ class SandboxesDevMode {
   // calls on terminate. Container logs are multiplexed (non-TTY) — demux into clean lines.
   attachContainerLogs(containerName, microvmId) {
     const color = stringToSafeColor(microvmId)
-    // Short, color-coded tag + a separator, so a MicroVM's own logs are easy to scan and attribute
-    // without the full 45-char id on every line (the full id is shown once at launch).
-    const label = color(`${shortMicrovmId(microvmId)} │`)
+    // Mirror functions Dev Mode, which prefixes a function's own output with `─`: each MicroVM's
+    // log lines get `─ <short-id>` (color-coded, stable per VM) so the whole `serverless dev`
+    // family reads with one grammar. The full 45-char id is shown once at launch for copy-paste.
+    const label = color(`─ ${shortMicrovmId(microvmId)}`)
     const demux = createDockerLogDemuxer((line) => {
-      if (line.length) this.logger.notice(`${label} ${line}`)
+      if (line.length) this.logger.notice(`${label}  ${line}`)
     })
     let stream
     let stopped = false

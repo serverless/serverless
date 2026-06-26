@@ -217,7 +217,15 @@ export async function startControlPlane({
       })
       const endpoint = `http://127.0.0.1:${port}`
       registry.markRunning(microvmId, { endpoint, proxyServer: server })
-      logger.aside(`→ RunMicrovm  ${microvmId}  RUNNING  ${endpoint}`)
+      // Surface the idle policy on launch so the later "terminated (idle)" line is self-explaining
+      // — a human/agent learns *when* this VM will be reaped without reading the config or docs.
+      const maxIdle = body?.idlePolicy?.maxIdleDurationSeconds
+      const lifecycleNote = maxIdle
+        ? `terminates after ${maxIdle}s idle`
+        : 'runs until terminated'
+      logger.aside(
+        `→ RunMicrovm  ${microvmId}  RUNNING  ${endpoint}  ·  ${lifecycleNote}`,
+      )
       // Stream this MicroVM's container logs to the dev terminal (prefixed per MicroVM).
       const stop = attachLogs(c.containerName, microvmId)
       if (typeof stop === 'function') logStops.set(microvmId, stop)
