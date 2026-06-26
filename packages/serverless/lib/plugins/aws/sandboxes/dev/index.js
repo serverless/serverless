@@ -144,6 +144,23 @@ class SandboxesDevMode {
         this.iam = null
         this.credsEnv = null
       }
+    } else {
+      // --no-assume-role: don't assume the execution role; instead run the container with the
+      // framework's normally-resolved (ambient) AWS credentials, so the worker's AWS calls use your
+      // local identity rather than NO credentials at all (a bare container inherits none).
+      try {
+        this.credsEnv = await this.resolveAmbientCredsEnv()
+        if (this.credsEnv) {
+          this.logger.notice(
+            `Running sandbox "${name}" with your local AWS credentials (--no-assume-role)`,
+          )
+        }
+      } catch (err) {
+        this.logger.debug?.(
+          `Could not resolve local AWS credentials: ${err.message}`,
+        )
+        this.credsEnv = null
+      }
     }
 
     await this.build()
@@ -209,6 +226,21 @@ class SandboxesDevMode {
 
     this.startWatcher()
     await exitPromise
+  }
+
+  // Resolve the framework's normally-chosen AWS credentials as container env vars (same shape IAM
+  // emulation injects). Used for --no-assume-role so the container runs with your local identity.
+  async resolveAmbientCredsEnv() {
+    const provider = this.serverless.getProvider('aws')
+    const c = await provider.getCredentials()
+    if (!c?.accessKeyId || !c?.secretAccessKey) return null
+    const env = {
+      AWS_ACCESS_KEY_ID: c.accessKeyId,
+      AWS_SECRET_ACCESS_KEY: c.secretAccessKey,
+      AWS_REGION: provider.getRegion(),
+    }
+    if (c.sessionToken) env.AWS_SESSION_TOKEN = c.sessionToken
+    return env
   }
 
   // Stream a MicroVM container's logs to the dev terminal, each line prefixed with the (stably

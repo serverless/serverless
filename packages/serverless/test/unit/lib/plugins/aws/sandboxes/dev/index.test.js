@@ -478,6 +478,67 @@ test('run() injects assumed-role creds into containerManager env by default', as
   expect(fakeIam.cleanUp).toHaveBeenCalled()
 })
 
+test("run() with --no-assume-role injects the framework's ambient creds into the container", async () => {
+  let capturedEnv
+  const startControlPlane = jest.fn(async () => ({
+    url: 'http://127.0.0.1:45004',
+    port: 45004,
+    server: {},
+    shutdown: async () => {},
+  }))
+  const signals = {}
+  const provider = {
+    getCredentials: jest.fn(async () => ({
+      accessKeyId: 'AKIA-LOCAL',
+      secretAccessKey: 'local-secret',
+      sessionToken: 'local-token',
+    })),
+    getRegion: () => 'us-east-1',
+  }
+  const d = new SandboxesDevMode(
+    {
+      serviceDir: '/svc',
+      service: { service: 'svc', sandboxes: { api: { artifact: './app' } } },
+      configurationInput: {},
+      classes: { Error },
+      getProvider: () => provider,
+    },
+    { sandbox: 'api', 'assume-role': false },
+    {
+      log: { notice() {}, error() {}, debug() {} },
+      progress: { notice() {}, remove() {} },
+    },
+    {
+      docker: { ensureIsRunning: async () => {}, buildImage: async () => {} },
+      fileExists: () => true,
+      onSignal: (s, h) => {
+        signals[s] = h
+      },
+      createWatcher: () => ({ on() {}, close: async () => {} }),
+      // No IAM emulation should run with --no-assume-role.
+      createIamEmulation: () => {
+        throw new Error('IAM emulation must not run with --no-assume-role')
+      },
+      startControlPlane,
+      makeContainerManager: (args) => {
+        capturedEnv = args.env
+        return {}
+      },
+      makeRegistry: () => ({}),
+    },
+  )
+  const p = d.run()
+  await new Promise((r) => setImmediate(r))
+  expect(provider.getCredentials).toHaveBeenCalled()
+  expect(capturedEnv).toBeDefined()
+  expect(capturedEnv.AWS_ACCESS_KEY_ID).toBe('AKIA-LOCAL')
+  expect(capturedEnv.AWS_SECRET_ACCESS_KEY).toBe('local-secret')
+  expect(capturedEnv.AWS_SESSION_TOKEN).toBe('local-token')
+  expect(capturedEnv.AWS_REGION).toBe('us-east-1')
+  await signals.SIGINT()
+  await p
+})
+
 test('run() with --no-assume-role does not create IAM emulation and injects no creds', async () => {
   let capturedEnv
   const startControlPlane = jest.fn(async () => ({
