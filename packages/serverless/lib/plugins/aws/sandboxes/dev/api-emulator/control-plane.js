@@ -209,6 +209,7 @@ export async function startControlPlane({
           if (decision === 'resume') {
             await inst.unpauseFn().catch(() => {})
             await fireHook('resume', inst)
+            logger.aside(`▶ ${microvmId} auto-resumed on traffic  RUNNING`)
             return 'forward'
           }
           return decision // 'forward' | 'reject'
@@ -223,9 +224,13 @@ export async function startControlPlane({
       // Let the container bind its hook server before delivering lifecycle hooks, so the
       // run-hook payload isn't POSTed to a not-yet-listening :9000 and lost. Best-effort + bounded.
       await waitForPort(host, inst.portMap[hookPort], readinessTimeoutMs)
-      await fireHook('ready', inst)
-      await fireHook('run', inst, body?.runHookPayload)
-      logger.aside(`  hooks ready+run delivered  ${microvmId}`)
+      // Report exactly which hooks were delivered (a sandbox may enable only some, or none).
+      const firedHooks = []
+      if (await fireHook('ready', inst)) firedHooks.push('ready')
+      if (await fireHook('run', inst, body?.runHookPayload))
+        firedHooks.push('run')
+      if (firedHooks.length)
+        logger.aside(`  hooks ${firedHooks.join('+')} delivered  ${microvmId}`)
       return { microvmId, endpoint, state: 'RUNNING' }
     },
 

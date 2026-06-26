@@ -15,9 +15,9 @@ test('fires only enabled hooks, to the 9000 host port, at the runtime path; run 
       return new Response('{}')
     },
   })
-  await fire('ready', inst)
-  await fire('run', inst, '{"x":1}')
-  await fire('suspend', inst) // not enabled → skipped
+  expect(await fire('ready', inst)).toBe(true) // delivered
+  expect(await fire('run', inst, '{"x":1}')).toBe(true)
+  expect(await fire('suspend', inst)).toBe(false) // not enabled → skipped
   expect(calls.map((c) => c.url)).toEqual([
     `http://127.0.0.1:59000${HOOK_PATH}/ready`,
     `http://127.0.0.1:59000${HOOK_PATH}/run`,
@@ -42,17 +42,17 @@ test('no-op when the hook is disabled or there is no 9000 mapping', async () => 
       return new Response('{}')
     },
   })
-  await fire('ready', { microvmId: 'x', portMap: {} }) // no 9000 port
-  await fire('terminate', inst) // not enabled
+  expect(await fire('ready', { microvmId: 'x', portMap: {} })).toBe(false) // no 9000 port
+  expect(await fire('terminate', inst)).toBe(false) // not enabled
   expect(called).toBe(false)
 })
 
-test('hook failure is swallowed (best-effort, never throws)', async () => {
+test('hook failure is swallowed (best-effort, never throws) and reports false', async () => {
   const fire = createHookFirer({
     enabledHooks: new Set(['terminate']),
     fetchImpl: async () => {
       throw new Error('down')
     },
   })
-  await expect(fire('terminate', inst)).resolves.toBeUndefined()
+  await expect(fire('terminate', inst)).resolves.toBe(false)
 })

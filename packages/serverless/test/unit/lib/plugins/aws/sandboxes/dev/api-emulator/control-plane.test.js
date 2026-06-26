@@ -263,6 +263,39 @@ test('narrates ops via logger.aside and streams container logs (attach on run, s
   }
 })
 
+test('the hooks line reflects only the hooks that actually fired (not a hardcoded ready+run)', async () => {
+  const aside = []
+  const logger = { aside: (m) => aside.push(m), notice() {}, debug() {} }
+  // Simulate a sandbox where only `ready` is enabled/delivered (run does not fire).
+  const fireHook = async (name) => name === 'ready'
+  const registry = new EmulatorRegistry({
+    sandboxName: 'echo',
+    minimumMemoryInMiB: 2048,
+    imageArn: 'arn:local',
+    idFactory: () => 'mvm-1',
+  })
+  const cp = await startControlPlane({
+    registry,
+    containerManager: recordingContainerManager([]),
+    startProxy: fakeStartProxy,
+    setIntervalImpl: () => 0,
+    clearIntervalImpl: () => {},
+    waitForPort: async () => true,
+    logger,
+    fireHook,
+  })
+  try {
+    await req(cp.port, 'POST', '/microvms', {})
+    const hookLine = aside.find(
+      (l) => l.includes('hooks') && l.includes('delivered'),
+    )
+    expect(hookLine).toContain('ready')
+    expect(hookLine).not.toContain('run') // run did not fire → not listed
+  } finally {
+    await cp.shutdown()
+  }
+})
+
 test('awaits beforeRun before launching the container on RunMicrovm', async () => {
   const seq = []
   const beforeRun = jest.fn(async () => {
