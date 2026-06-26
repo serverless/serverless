@@ -207,7 +207,9 @@ test('performRebuild rebuilds: builds image only (no container swap in control-p
   expect(docker.buildImage).toHaveBeenCalledTimes(1)
   // Control-plane model: no direct container operations from performRebuild
   expect(d.logger.notice).toHaveBeenCalledWith(
-    expect.stringMatching(/Rebuild complete/i),
+    expect.stringMatching(
+      /rebuilt in .*s — new launches use the updated image/i,
+    ),
   )
 })
 

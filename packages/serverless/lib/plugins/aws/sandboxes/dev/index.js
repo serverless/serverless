@@ -346,8 +346,27 @@ class SandboxesDevMode {
     if (this.shuttingDown) return
     this.shuttingDown = true
     if (this.watcher) await this.watcher.close().catch(() => {})
-    if (this.controlPlane) await this.controlPlane.shutdown().catch(() => {})
-    if (this.iam) await this.iam.cleanUp().catch(() => {})
+    let terminated = 0
+    if (this.controlPlane)
+      terminated = (await this.controlPlane.shutdown().catch(() => 0)) || 0
+    const restored = this.iam
+      ? await this.iam
+          .cleanUp()
+          .then(() => true)
+          .catch(() => false)
+      : false
+    // Confirm cleanup so Ctrl-C isn't a silent exit — above all, that the temporarily edited IAM
+    // role trust policy was reverted (we mutated it; the user deserves to see it undone).
+    const bits = []
+    if (terminated)
+      bits.push(
+        `${terminated} MicroVM${terminated === 1 ? '' : 's'} terminated`,
+      )
+    if (restored) bits.push('role trust policy restored')
+    this.logger.blankLine?.()
+    this.logger.notice?.(
+      bits.length ? `Stopped — ${bits.join(' · ')}` : 'Stopped.',
+    )
     this._resolveExit?.()
   }
 
@@ -358,6 +377,7 @@ class SandboxesDevMode {
       return
     }
     this.isRebuilding = true
+    const startedAt = Date.now()
     try {
       await this.sleep(100) // let the filesystem settle before reading sources
       this.progress?.notice?.('Rebuilding sandbox image…')
@@ -366,13 +386,14 @@ class SandboxesDevMode {
       // Abort if SIGINT fired while we were building — do not touch the container.
       if (this.shuttingDown) return
       await this.refreshCredsIfExpiring()
+      const secs = ((Date.now() - startedAt) / 1000).toFixed(1)
       this.logger.notice(
-        'Rebuild complete. New RunMicrovm calls will use the updated image.',
+        `↻ rebuilt in ${secs}s — new launches use the updated image`,
       )
     } catch (err) {
       this.progress?.remove?.()
       // Previous container keeps running; the loop survives.
-      this.logger.error(`Rebuild failed: ${err.message}`)
+      this.logger.error(`↻ rebuild failed: ${err.message}`)
     } finally {
       this.isRebuilding = false
       if (this.pendingRebuild && !this.shuttingDown) {
@@ -422,7 +443,7 @@ class SandboxesDevMode {
     this.watcher.on('all', async (event, filePath) => {
       if (this.shuttingDown) return
       const rel = path.relative(this.ctx.contextPath, filePath)
-      this.logger.notice(`Detected ${event} in ${rel}. Rebuilding...`)
+      this.logger.notice(`↻ ${rel || 'source'} changed — rebuilding…`)
       await this.performRebuild()
     })
   }
