@@ -51,6 +51,9 @@ class SandboxesDevMode {
     this.isRebuilding = false
     this.pendingRebuild = false
     this.shuttingDown = false
+    // Human label for the credentials the container runs with — captured during IAM setup, printed
+    // in the post-build summary block next to the endpoint.
+    this.identityLabel = null
   }
 
   getSandboxesConfig() {
@@ -150,7 +153,7 @@ class SandboxesDevMode {
         this.iam = await factory()
         this.credsEnv = await this.iam.setUp(name)
         if (this.credsEnv) {
-          this.logger.notice(`Running sandbox "${name}" as its execution role`)
+          this.identityLabel = `${name} execution role (IAM emulation)`
         }
       } catch (err) {
         this.logger.debug?.(`IAM emulation unavailable: ${err.message}`)
@@ -164,9 +167,7 @@ class SandboxesDevMode {
       try {
         this.credsEnv = await this.resolveAmbientCredsEnv()
         if (this.credsEnv) {
-          this.logger.notice(
-            `Running sandbox "${name}" with your local AWS credentials (--no-assume-role)`,
-          )
+          this.identityLabel = `your local AWS credentials (--no-assume-role)`
         }
       } catch (err) {
         this.logger.debug?.(
@@ -228,20 +229,26 @@ class SandboxesDevMode {
     }
     this.progress?.remove?.()
     const url = this.controlPlane.url
+    // Labeled summary block (Identity / Endpoint), mirroring functions Dev Mode's
+    // Functions:/Endpoints: sections — both labels are 8 chars, so the values line up. Printed
+    // post-build (like functions Dev's summary) so the identity captured during IAM setup lands
+    // here next to the endpoint rather than scrolling away above the build output.
     this.logger.blankLine?.()
+    if (this.identityLabel)
+      this.logger.notice(`Identity   ${this.identityLabel}`)
     this.logger.notice(
-      `Local MicroVMs API ready → ${style.bold(url)}   (Ctrl-C to stop)`,
+      `Endpoint   ${style.bold(url)}   ← point your AWS SDK or CLI here`,
     )
-    // Tell users to target the endpoint via their SDK/CLI's endpoint-url setting rather than a
-    // global `export AWS_ENDPOINT_URL_LAMBDA_MICROVMS=…`: that var is honored by every AWS client,
-    // so exporting it would also redirect `serverless deploy`'s own MicroVMs calls. A per-command
-    // (`--endpoint-url`) or per-client endpoint targets only your code, sidestepping the collision.
-    this.logger.notice(
-      `Point your AWS SDK or CLI at this endpoint URL — e.g. aws … --endpoint-url ${url}`,
-    )
-    // Self-explaining lines (grey): surface Hot Module Reloading (otherwise invisible until it
+    // Target the endpoint via the SDK/CLI's endpoint-url setting rather than a global
+    // `export AWS_ENDPOINT_URL_LAMBDA_MICROVMS=…`: that var is honored by every AWS client, so
+    // exporting it would also redirect `serverless deploy`'s own MicroVMs calls. A per-command
+    // (`--endpoint-url`) or per-client endpoint targets only the user's code. Indented to nest
+    // under the endpoint value (8-char label + 3 spaces).
+    this.logger.aside?.(`           e.g.  aws … --endpoint-url ${url}`)
+    this.logger.blankLine?.()
+    this.logger.notice(`MicroVMs API ready — Ctrl-C to stop`)
+    // Self-explaining grey lines: surface Hot Module Reloading (otherwise invisible until it
     // fires) and the per-MicroVM log tag, so a first-time human or agent can follow without docs.
-    this.logger.blankLine?.()
     this.logger.aside?.(
       `Watching for code & Dockerfile changes — edits rebuild the image automatically.`,
     )
