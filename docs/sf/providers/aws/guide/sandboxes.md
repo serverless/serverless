@@ -433,7 +433,7 @@ serverless logs --sandbox <name>
 
 Prints the recent window of log events from the sandbox's CloudWatch log group `/aws/lambda-microvms/<image-name>`. The output includes both image-build lines and runtime lines from MicroVM instances.
 
-> **Note:** `--tail` follow mode is not yet supported. The command prints the recent log window and exits.
+> **Note:** `serverless logs --sandbox` prints the recent log window and exits; it does not stream/follow (`--tail`).
 
 ---
 
@@ -548,9 +548,9 @@ observability:
 | `<Name>Image<Filter>Alarm`      | `AWS::CloudWatch::Alarm`     | One per filter, only when `alarms.notify` is set |
 | `SandboxesDashboard`            | `AWS::CloudWatch::Dashboard` | One **per service** when any sandbox has the dashboard enabled |
 
-### Limitations
+### How error detection works
 
-**Silent process death is not detected.** The error metric filter matches log content. If the MicroVM process crashes without writing a log line containing `error`, `exception`, or `fail`, the alarm will not fire. Detecting hard-down instances requires a synthetic probe or a proxy-layer health check, which is out of scope for this release.
+The error metric is derived from **log content** — it counts log lines matching your filter patterns (by default `error`, `exception`, or `fail`). This catches errors your application logs. To also detect a process that exits without logging anything, add a synthetic canary or a proxy-layer health check alongside the log-based metric.
 
 ### Cost
 
@@ -580,9 +580,10 @@ once by giving each its own `--port`. Press Ctrl-C to stop.
 > containing a `Dockerfile`. A sandbox whose `artifact` is an `s3://` zip cannot be
 > run with `dev` — use a local directory for the dev loop.
 
-> The dev loop already runs under the sandbox's real execution role (see [IAM
-> emulation](#iam-emulation) below). Higher-fidelity features still in progress:
-> the production proxy/auth contract and network egress isolation.
+> The dev loop runs under the sandbox's real execution role (see [IAM
+> emulation](#iam-emulation) below). It does not reproduce the production
+> proxy/auth path or network egress isolation, so validate those against a
+> deployed sandbox.
 
 ### Hot reloading
 

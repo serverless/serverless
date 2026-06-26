@@ -272,7 +272,7 @@ export function generateExecutionRole(name, cfg, ctx) {
  * execution roles (principal lambda.amazonaws.com), the network-connectors
  * service does not present SourceAccount when assuming this role, so the
  * condition makes the assume-role fail at deploy ("unable to assume the
- * provided NetworkConnectorOperatorRole"). Verified live.
+ * provided NetworkConnectorOperatorRole").
  *
  * Permissions:
  *   - ec2:CreateNetworkInterface on network-interface / subnet / security-group ARNs

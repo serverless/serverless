@@ -131,7 +131,7 @@ class AwsLogsSandbox {
 
     if (this.options.tail) {
       this.logger.notice(
-        '`--tail` for sandboxes is not yet supported; printed the recent window.',
+        '`--tail` (follow) is not available for sandbox logs; printed the recent window.',
       )
     }
   }

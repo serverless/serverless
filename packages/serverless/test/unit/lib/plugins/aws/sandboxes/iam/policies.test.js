@@ -403,7 +403,7 @@ describe('generateOperatorRole', () => {
     expect(stmt.Effect).toBe('Allow')
   })
 
-  test('trust policy has NO aws:SourceAccount condition (network-connectors service cannot assume it otherwise — verified live)', () => {
+  test('trust policy has NO aws:SourceAccount condition (network-connectors service cannot assume it otherwise)', () => {
     // Unlike the build/exec roles (lambda.amazonaws.com), the
     // network-connectors.lambda.amazonaws.com service does not present
     // SourceAccount; adding the condition makes the connector deploy fail with

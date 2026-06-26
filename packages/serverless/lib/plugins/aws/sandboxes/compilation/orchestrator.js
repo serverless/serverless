@@ -291,7 +291,7 @@ export async function orchestrate({
       )
       template.Resources[connectorLogicalId] = connectorResource
 
-      // Expose connector ARN as Output for Phase-2 data-plane run path.
+      // Expose the connector ARN as a stack output for the data-plane run path.
       template.Outputs[`${getLogicalId(name, 'Connector')}Arn`] = {
         Value: { Ref: connectorLogicalId },
       }
