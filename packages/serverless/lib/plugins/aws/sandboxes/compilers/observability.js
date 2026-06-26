@@ -151,70 +151,110 @@ function cap(s) {
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
-export function compileDashboard(name, resolved, ctx) {
-  if (!resolved.dashboard.enabled) return {}
+/**
+ * Build the dashboard widgets for ONE sandbox. Returns a flat array of widget
+ * objects (or [] when the dashboard is disabled). The service-level dashboard
+ * is assembled from these by compileServiceDashboard — there is one dashboard
+ * per service, not per sandbox.
+ */
+export function buildDashboardWidgets(name, resolved, ctx) {
+  if (!resolved.dashboard.enabled) return []
   const Name = getResourceName(ctx.serviceName, name, ctx.stage)
   const logGroupName = resolved.logs.logGroup || `/aws/lambda-microvms/${Name}`
   const region = ctx.region
+  const widgets = []
 
-  // 1. Log volume & events. IncomingBytes (large) and IncomingLogEvents (small
-  //    counts) share a widget but sit on separate Y-axes, so the event-count
-  //    line isn't crushed flat against the byte scale.
-  const widgets = [
-    {
-      type: 'metric',
-      width: 12,
-      height: 6,
+  // Alarm status first — state is the most important thing in the section.
+  // Referenced by ARN built from the AlarmName set in compileAlarms;
+  // account/partition resolve at deploy via Fn::Sub, keeping compile offline.
+  if (resolved.alarms) {
+    const alarmArns = Object.keys(resolved.metrics.filters).map(
+      (k) =>
+        `arn:\${AWS::Partition}:cloudwatch:${region}:\${AWS::AccountId}:alarm:${metricName(
+          name,
+          ctx,
+          k,
+        )}`,
+    )
+    widgets.push({
+      type: 'alarm',
+      width: 24,
+      height: 2,
       properties: {
-        title: 'Log volume & events',
-        region,
-        metrics: [
-          ['AWS/Logs', 'IncomingBytes', 'LogGroupName', logGroupName],
-          [
-            'AWS/Logs',
-            'IncomingLogEvents',
-            'LogGroupName',
-            logGroupName,
-            { yAxis: 'right' },
-          ],
-        ],
-        stat: 'Sum',
-        period: 300,
-        yAxis: { left: { label: 'Bytes' }, right: { label: 'Events' } },
+        title: 'Alarms',
+        alarms: alarmArns,
+        sortBy: 'stateUpdatedTimestamp',
       },
-    },
-  ]
+    })
+  }
 
-  // 2. Filter-derived metrics. Names come from the configured filters (not a
-  //    hard-coded `errors`); the title reflects the content — "Errors" for the
-  //    default single error filter, "Log-based metrics" for custom filters.
+  // Log volume & events. IncomingBytes (large) and IncomingLogEvents (small
+  // counts) share a widget but sit on separate Y-axes, so the event-count line
+  // isn't crushed flat against the byte scale.
+  widgets.push({
+    type: 'metric',
+    width: 12,
+    height: 6,
+    properties: {
+      title: 'Log volume & events',
+      region,
+      metrics: [
+        ['AWS/Logs', 'IncomingBytes', 'LogGroupName', logGroupName],
+        [
+          'AWS/Logs',
+          'IncomingLogEvents',
+          'LogGroupName',
+          logGroupName,
+          { yAxis: 'right' },
+        ],
+      ],
+      stat: 'Sum',
+      period: 300,
+      yAxis: { left: { label: 'Bytes' }, right: { label: 'Events' } },
+    },
+  })
+
+  // Filter-derived metrics. Names come from the configured filters (not a
+  // hard-coded `errors`); the title reflects the content — "Errors" for the
+  // default single error filter, "Log-based metrics" for custom filters. When
+  // alarms are configured, draw each filter's threshold as a horizontal band so
+  // the count is shown against the value that trips the alarm.
   if (resolved.metrics.enabled) {
     const filterKeys = Object.keys(resolved.metrics.filters)
     if (filterKeys.length) {
       const isDefaultErrors =
         filterKeys.length === 1 && filterKeys[0] === 'errors'
-      widgets.push({
-        type: 'metric',
-        width: 12,
-        height: 6,
-        properties: {
-          title: isDefaultErrors ? 'Errors' : 'Log-based metrics',
-          region,
-          metrics: filterKeys.map((k) => [
-            METRIC_NAMESPACE,
-            metricName(name, ctx, k),
-          ]),
-          stat: 'Sum',
-          period: 300,
-        },
-      })
+      const properties = {
+        title: isDefaultErrors ? 'Errors' : 'Log-based metrics',
+        region,
+        metrics: filterKeys.map((k) => [
+          METRIC_NAMESPACE,
+          metricName(name, ctx, k),
+        ]),
+        stat: 'Sum',
+        period: 300,
+      }
+      if (resolved.alarms) {
+        properties.annotations = {
+          horizontal: filterKeys.map((k) => ({
+            label: `${k} threshold`,
+            value:
+              (resolved.alarms.thresholds[k] &&
+                resolved.alarms.thresholds[k].threshold) ??
+              DEFAULT_THRESHOLD.threshold,
+            color: '#d13212',
+            fill: 'above',
+          })),
+        }
+      }
+      widgets.push({ type: 'metric', width: 12, height: 6, properties })
     }
   }
 
-  // 3. MicroVMs created. Each log stream is exactly one MicroVM instance (the
-  //    stream name embeds the microvmId), so a distinct-stream count over time
-  //    tracks instance creation / churn — a MicroVM-specific signal with no
-  //    equivalent CloudWatch metric.
+  // MicroVMs created. Each log stream is exactly one MicroVM instance (the
+  // stream name embeds the microvmId), so a distinct-stream count over time
+  // tracks instance creation / churn — a MicroVM-specific signal with no
+  // equivalent CloudWatch metric. (log widgets don't support hiding the legend.)
   widgets.push({
     type: 'log',
     width: 12,
@@ -224,13 +264,10 @@ export function compileDashboard(name, resolved, ctx) {
       region,
       query: `SOURCE '${logGroupName}' | stats count_distinct(@logStream) as microvms by bin(5m)`,
       view: 'bar',
-      // NOTE: log (Logs Insights) widgets don't support a `legend` property — it
-      // only works on metric widgets — so the single "microvms" series label is
-      // shown by CloudWatch regardless. No JSON knob hides it here.
     },
   })
 
-  // 4. Recent logs.
+  // Recent logs.
   widgets.push({
     type: 'log',
     width: 24,
@@ -243,10 +280,10 @@ export function compileDashboard(name, resolved, ctx) {
     },
   })
 
-  // 5. Recent error logs — the lines behind the errors metric. Logs Insights
-  //    can't use the metric filter's char-class pattern, so match the same
-  //    error/exception/fail terms with a case-insensitive regex. Gated on the
-  //    error filter (and metrics) so it tracks the errors metric widget.
+  // Recent error logs — the lines behind the errors metric. Logs Insights can't
+  // use the metric filter's char-class pattern, so match the same
+  // error/exception/fail terms with a case-insensitive regex. Gated on the
+  // error filter (and metrics) so it tracks the errors metric widget.
   if (resolved.metrics.enabled && resolved.metrics.filters.errors) {
     widgets.push({
       type: 'log',
@@ -261,44 +298,45 @@ export function compileDashboard(name, resolved, ctx) {
     })
   }
 
-  // 6. Alarm status — only when alarms are configured. Pinned to the top so
-  //    state is the first thing you see. Referenced by ARN built from the
-  //    AlarmName set in compileAlarms; account/partition resolve at deploy via
-  //    Fn::Sub, keeping compile offline.
-  let useSub = false
-  if (resolved.alarms) {
-    const alarmArns = Object.keys(resolved.metrics.filters).map(
-      (k) =>
-        `arn:\${AWS::Partition}:cloudwatch:${region}:\${AWS::AccountId}:alarm:${metricName(
-          name,
-          ctx,
-          k,
-        )}`,
-    )
-    widgets.unshift({
-      type: 'alarm',
+  return widgets
+}
+
+/**
+ * Assemble the single per-service dashboard from per-sandbox widget sections.
+ * Each section is preceded by a full-width text widget header (its sandbox
+ * name) so one dashboard cleanly shows every sandbox in the service.
+ *
+ * @param {Array<{name:string, widgets:object[]}>} sections
+ * @param {object} ctx - { serviceName, stage }
+ * @returns {object} CloudFormation resources ({} when no section has widgets)
+ */
+export function compileServiceDashboard(sections, ctx) {
+  const active = (sections || []).filter(
+    (s) => s.widgets && s.widgets.length > 0,
+  )
+  if (active.length === 0) return {}
+
+  const widgets = []
+  for (const section of active) {
+    widgets.push({
+      type: 'text',
       width: 24,
-      height: 2,
-      properties: {
-        title: 'Alarms',
-        alarms: alarmArns,
-        sortBy: 'stateUpdatedTimestamp',
-      },
+      height: 1,
+      properties: { markdown: `## ${section.name}` },
     })
-    useSub = true
+    widgets.push(...section.widgets)
   }
 
-  const body = { widgets }
-  const dashboardBody = useSub
-    ? { 'Fn::Sub': JSON.stringify(body) }
-    : JSON.stringify(body)
+  const json = JSON.stringify({ widgets })
+  // Alarm-widget ARNs embed ${AWS::Partition}/${AWS::AccountId}; wrap in Fn::Sub
+  // so they resolve at deploy. Plain string otherwise (keeps the body simpler).
+  const dashboardBody = json.includes('${') ? { 'Fn::Sub': json } : json
 
-  const logicalId = getLogicalId(name, 'ImageDashboard')
   return {
-    [logicalId]: {
+    SandboxesDashboard: {
       Type: 'AWS::CloudWatch::Dashboard',
       Properties: {
-        DashboardName: `${Name}-sandbox`,
+        DashboardName: `${ctx.serviceName}-${ctx.stage}-sandboxes`,
         DashboardBody: dashboardBody,
       },
     },

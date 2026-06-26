@@ -19,7 +19,8 @@ import {
   compileLogGroup,
   compileMetricFilters,
   compileAlarms,
-  compileDashboard,
+  buildDashboardWidgets,
+  compileServiceDashboard,
 } from '../compilers/observability.js'
 
 /**
@@ -132,6 +133,10 @@ export async function orchestrate({
   /** @type {Map<string, { key: string, zipBuffer: Buffer }>} */
   const pendingUploads = new Map()
 
+  // Collected per-sandbox dashboard widgets; assembled into ONE service-level
+  // dashboard after the loop (one dashboard per service, not per sandbox).
+  const dashboardSections = []
+
   for (const [name, cfg] of Object.entries(sandboxesConfig || {})) {
     log.debug?.(`sandboxes: compiling "${name}"`)
 
@@ -140,11 +145,10 @@ export async function orchestrate({
     const resourceIdsBefore = new Set(Object.keys(template.Resources))
 
     // ── Base image ──────────────────────────────────────────────────────────
-    const baseImage = await resolveBaseImage(
-      provider,
-      region,
-      cfg.baseImageAlias,
-    )
+    // AWS currently publishes exactly one managed base image (al2023-1), so we
+    // don't expose a user-facing alias knob — the resolver uses its default.
+    // resolveBaseImage still accepts an alias for when AWS ships more images.
+    const baseImage = await resolveBaseImage(provider, region)
 
     // ── Code artifact (compute only — no S3 upload) ─────────────────────────
     const { uri, key, zipBuffer } = await computeCodeArtifact(cfg, {
@@ -245,8 +249,13 @@ export async function orchestrate({
         template.Resources,
         compileMetricFilters(name, obs, obsCtx, logGroupLogicalId),
         compileAlarms(name, obs, obsCtx),
-        compileDashboard(name, obs, obsCtx),
       )
+      // Collect this sandbox's dashboard widgets; the single service dashboard
+      // is assembled after the loop. (Returns [] when the dashboard is disabled.)
+      dashboardSections.push({
+        name,
+        widgets: buildDashboardWidgets(name, obs, obsCtx),
+      })
     }
 
     // ── Merge into template ──────────────────────────────────────────────────
@@ -303,13 +312,20 @@ export async function orchestrate({
 
     // ── Tags ───────────────────────────────────────────────────────────────────
     // Apply `cfg.tags` to every taggable resource this sandbox created (image,
-    // log group, IAM roles, alarms, dashboard, network connector) — not just the
-    // image. MetricFilter is the only created type that does not support Tags.
+    // log group, IAM roles, alarms, network connector) — not just the image.
+    // MetricFilter is the only created type that does not support Tags. The
+    // service dashboard is added after the loop (service-scoped, not tagged).
     const addedIds = Object.keys(template.Resources).filter(
       (id) => !resourceIdsBefore.has(id),
     )
     applySandboxTags(template.Resources, addedIds, cfg.tags)
   }
+
+  // One dashboard per service, assembled from every sandbox's widget section.
+  Object.assign(
+    template.Resources,
+    compileServiceDashboard(dashboardSections, { serviceName, stage, region }),
+  )
 
   return pendingUploads
 }

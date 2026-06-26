@@ -136,7 +136,7 @@ describe('orchestrate', () => {
 
     test('observability default (absent⇒true): metric filter + dashboard emitted, no alarm', () => {
       expect(template.Resources.RunnerImageErrorsMetricFilter).toBeDefined()
-      expect(template.Resources.RunnerImageDashboard).toBeDefined()
+      expect(template.Resources.SandboxesDashboard).toBeDefined()
       const alarmKeys = Object.keys(template.Resources).filter((k) =>
         k.endsWith('Alarm'),
       )
@@ -404,7 +404,7 @@ describe('orchestrate', () => {
       })
       expect(template.Resources.RunnerImageLogGroup).toBeDefined()
       expect(template.Resources.RunnerImageErrorsMetricFilter).toBeUndefined()
-      expect(template.Resources.RunnerImageDashboard).toBeUndefined()
+      expect(template.Resources.SandboxesDashboard).toBeUndefined()
     })
   })
 
@@ -462,13 +462,19 @@ describe('orchestrate', () => {
         'RunnerImageBuildRole',
         'RunnerImageExecutionRole',
         'RunnerImageErrorsAlarm',
-        'RunnerImageDashboard',
         'RunnerConnector',
         'RunnerConnectorOperatorRole',
       ]) {
         expect(template.Resources[id]).toBeDefined()
         expect(template.Resources[id].Properties.Tags).toEqual(TAGS)
       }
+    })
+
+    test('the service dashboard is not tagged (it spans sandboxes)', () => {
+      expect(template.Resources.SandboxesDashboard).toBeDefined()
+      expect(
+        template.Resources.SandboxesDashboard.Properties.Tags,
+      ).toBeUndefined()
     })
 
     test('does NOT add Tags to AWS::Logs::MetricFilter (unsupported)', () => {

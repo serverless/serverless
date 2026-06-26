@@ -157,73 +157,38 @@ test('compileAlarms: per-metric threshold override', () => {
   expect(a.Properties.EvaluationPeriods).toBe(1) // unspecified ⇒ default
 })
 
-import { compileDashboard } from '../../../../../../../lib/plugins/aws/sandboxes/compilers/observability.js'
+import {
+  buildDashboardWidgets,
+  compileServiceDashboard,
+} from '../../../../../../../lib/plugins/aws/sandboxes/compilers/observability.js'
 
-test('compileDashboard: emits a Dashboard with a well-formed body referencing the group + metric', () => {
-  const r = resolveObservability(undefined)
-  const out = compileDashboard('echo', r, {
-    serviceName: 'svc',
-    stage: 'dev',
-    region: 'us-east-1',
-  })
-  const dash = out[Object.keys(out)[0]]
-  expect(dash.Type).toBe('AWS::CloudWatch::Dashboard')
-  expect(typeof dash.Properties.DashboardBody).toBe('string')
-  const body = JSON.parse(dash.Properties.DashboardBody)
-  expect(Array.isArray(body.widgets)).toBe(true)
-  expect(body.widgets.length).toBeGreaterThanOrEqual(3)
-  const blob = JSON.stringify(body)
+const dctx = { serviceName: 'svc', stage: 'dev', region: 'us-east-1' }
+const widgetsFor = (r, name = 'echo') => buildDashboardWidgets(name, r, dctx)
+const titlesOf = (w) => w.map((x) => x.properties.title)
+
+test('buildDashboardWidgets: disabled → []', () => {
+  expect(widgetsFor(resolveObservability(false))).toEqual([])
+})
+
+test('buildDashboardWidgets: default → volume + errors metric + microvms + recent + errors-recent', () => {
+  const w = widgetsFor(resolveObservability(undefined))
+  expect(titlesOf(w)).toEqual(
+    expect.arrayContaining([
+      'Log volume & events',
+      'Errors',
+      'MicroVMs created',
+      'Recent logs',
+      'Errors (recent)',
+    ]),
+  )
+  const blob = JSON.stringify(w)
   expect(blob).toContain('/aws/lambda-microvms/svc-echo-dev') // log group referenced
   expect(blob).toContain('ServerlessFramework/Sandboxes') // error metric namespace
   expect(blob).toContain('IncomingLogEvents') // AWS/Logs builtin
 })
 
-test('compileDashboard: disabled → none', () => {
-  expect(
-    compileDashboard('echo', resolveObservability(false), {
-      serviceName: 'svc',
-      stage: 'dev',
-      region: 'us-east-1',
-    }),
-  ).toEqual({})
-})
-
-test('compileDashboard: metric widget derives from filter keys, not a hard-coded errors metric', () => {
-  const r = resolveObservability({ metrics: { filters: { fail: '%FAIL%' } } })
-  const out = compileDashboard('echo', r, {
-    serviceName: 'svc',
-    stage: 'dev',
-    region: 'us-east-1',
-  })
-  const blob = JSON.stringify(out[Object.keys(out)[0]])
-  expect(blob).toContain('svc-echo-dev-fail') // the configured filter's metric
-  expect(blob).not.toContain('svc-echo-dev-errors') // no hard-coded errors metric
-})
-
-test('compileDashboard: metrics disabled → only log widgets, no filter-metric widget', () => {
-  const r = resolveObservability({ metrics: { enabled: false } })
-  const out = compileDashboard('echo', r, {
-    serviceName: 'svc',
-    stage: 'dev',
-    region: 'us-east-1',
-  })
-  const body = JSON.parse(out[Object.keys(out)[0]].Properties.DashboardBody)
-  // log volume + MicroVMs + recent logs (both error widgets gated on metrics)
-  expect(body.widgets).toHaveLength(3)
-  expect(JSON.stringify(body)).not.toContain('ServerlessFramework/Sandboxes')
-})
-
-const dctx = { serviceName: 'svc', stage: 'dev', region: 'us-east-1' }
-const dashBody = (r) =>
-  JSON.parse(
-    compileDashboard('echo', r, dctx)[
-      Object.keys(compileDashboard('echo', r, dctx))[0]
-    ].Properties.DashboardBody,
-  )
-
-test('compileDashboard: IncomingLogEvents is plotted on the right Y-axis', () => {
-  const body = dashBody(resolveObservability(undefined))
-  const vol = body.widgets.find(
+test('buildDashboardWidgets: IncomingLogEvents is plotted on the right Y-axis', () => {
+  const vol = widgetsFor(resolveObservability(undefined)).find(
     (w) => w.properties.title === 'Log volume & events',
   )
   const events = vol.properties.metrics.find((m) =>
@@ -232,27 +197,34 @@ test('compileDashboard: IncomingLogEvents is plotted on the right Y-axis', () =>
   expect(events[events.length - 1]).toEqual({ yAxis: 'right' })
 })
 
-test('compileDashboard: default error filter ⇒ metric widget titled "Errors"', () => {
-  const body = dashBody(resolveObservability(undefined))
-  expect(body.widgets.some((w) => w.properties.title === 'Errors')).toBe(true)
+test('buildDashboardWidgets: default error filter ⇒ "Errors"; custom ⇒ "Log-based metrics"', () => {
   expect(
-    body.widgets.some((w) => w.properties.title === 'Filtered metrics'),
-  ).toBe(false)
-})
-
-test('compileDashboard: custom non-error filters ⇒ titled "Log-based metrics"', () => {
-  const body = dashBody(
+    widgetsFor(resolveObservability(undefined)).some(
+      (w) => w.properties.title === 'Errors',
+    ),
+  ).toBe(true)
+  const custom = widgetsFor(
     resolveObservability({ metrics: { filters: { fail: '%FAIL%' } } }),
   )
-  expect(
-    body.widgets.some((w) => w.properties.title === 'Log-based metrics'),
-  ).toBe(true)
+  expect(custom.some((w) => w.properties.title === 'Log-based metrics')).toBe(
+    true,
+  )
+  const blob = JSON.stringify(custom)
+  expect(blob).toContain('svc-echo-dev-fail')
+  expect(blob).not.toContain('svc-echo-dev-errors')
 })
 
-test('compileDashboard: "MicroVMs created" graphs distinct log streams as bars', () => {
-  const body = dashBody(resolveObservability(undefined))
-  const w = body.widgets.find((x) => x.properties.title === 'MicroVMs created')
-  expect(w).toBeDefined()
+test('buildDashboardWidgets: metrics disabled → volume + microvms + recent only', () => {
+  const w = widgetsFor(resolveObservability({ metrics: { enabled: false } }))
+  expect(w).toHaveLength(3)
+  expect(JSON.stringify(w)).not.toContain('ServerlessFramework/Sandboxes')
+  expect(w.some((x) => x.properties.title === 'Errors (recent)')).toBe(false)
+})
+
+test('buildDashboardWidgets: MicroVMs widget graphs distinct streams as bars, no legend', () => {
+  const w = widgetsFor(resolveObservability(undefined)).find(
+    (x) => x.properties.title === 'MicroVMs created',
+  )
   expect(w.type).toBe('log')
   expect(w.properties.view).toBe('bar')
   expect(w.properties.query).toContain('count_distinct(@logStream)')
@@ -260,42 +232,85 @@ test('compileDashboard: "MicroVMs created" graphs distinct log streams as bars',
   expect(w.properties.legend).toBeUndefined()
 })
 
-test('compileDashboard: "Errors (recent)" log widget filters the error terms', () => {
-  const body = dashBody(resolveObservability(undefined))
-  const w = body.widgets.find((x) => x.properties.title === 'Errors (recent)')
-  expect(w).toBeDefined()
+test('buildDashboardWidgets: "Errors (recent)" filters error terms; absent w/o errors filter', () => {
+  const w = widgetsFor(resolveObservability(undefined)).find(
+    (x) => x.properties.title === 'Errors (recent)',
+  )
   expect(w.type).toBe('log')
   expect(w.properties.query).toContain('(?i)(error|exception|fail)')
-})
-
-test('compileDashboard: "Errors (recent)" absent when no errors filter present', () => {
-  const body = dashBody(
+  const custom = widgetsFor(
     resolveObservability({ metrics: { filters: { fail: '%FAIL%' } } }),
   )
-  expect(
-    body.widgets.some((w) => w.properties.title === 'Errors (recent)'),
-  ).toBe(false)
+  expect(custom.some((x) => x.properties.title === 'Errors (recent)')).toBe(
+    false,
+  )
 })
 
-test('compileDashboard: alarms configured ⇒ alarm status widget + Fn::Sub body', () => {
-  const r = resolveObservability({ alarms: { notify: 'arn:sns:topic' } })
-  const props = compileDashboard('echo', r, dctx)[
-    Object.keys(compileDashboard('echo', r, dctx))[0]
-  ].Properties
-  // Body is wrapped in Fn::Sub so account/partition resolve at deploy time.
-  expect(typeof props.DashboardBody['Fn::Sub']).toBe('string')
-  const body = JSON.parse(props.DashboardBody['Fn::Sub'])
-  const w = body.widgets.find((x) => x.type === 'alarm')
-  expect(w).toBeDefined()
-  expect(w.properties.alarms).toEqual([
+test('buildDashboardWidgets: alarms ⇒ alarm widget + threshold band on the metric widget', () => {
+  const w = widgetsFor(resolveObservability({ alarms: { notify: 'arn:sns' } }))
+  const alarm = w.find((x) => x.type === 'alarm')
+  expect(alarm.properties.alarms).toEqual([
     'arn:${AWS::Partition}:cloudwatch:us-east-1:${AWS::AccountId}:alarm:svc-echo-dev-errors',
   ])
+  const metric = w.find((x) => x.properties.title === 'Errors')
+  expect(metric.properties.annotations.horizontal[0].value).toBe(5) // default threshold
 })
 
-test('compileDashboard: no alarms ⇒ plain-string body, no alarm widget', () => {
-  const out = compileDashboard('echo', resolveObservability(undefined), dctx)
-  const props = out[Object.keys(out)[0]].Properties
-  expect(typeof props.DashboardBody).toBe('string')
-  const body = JSON.parse(props.DashboardBody)
-  expect(body.widgets.some((w) => w.type === 'alarm')).toBe(false)
+test('buildDashboardWidgets: threshold band honors per-filter override', () => {
+  const w = widgetsFor(
+    resolveObservability({
+      alarms: { notify: 'arn:sns', thresholds: { errors: { threshold: 12 } } },
+    }),
+  )
+  const metric = w.find((x) => x.properties.title === 'Errors')
+  expect(metric.properties.annotations.horizontal[0].value).toBe(12)
+})
+
+test('compileServiceDashboard: no widgets → {}', () => {
+  expect(compileServiceDashboard([{ name: 'a', widgets: [] }], dctx)).toEqual(
+    {},
+  )
+  expect(compileServiceDashboard([], dctx)).toEqual({})
+})
+
+test('compileServiceDashboard: ONE dashboard per service with a text header per sandbox', () => {
+  const sections = [
+    {
+      name: 'web',
+      widgets: widgetsFor(resolveObservability(undefined), 'web'),
+    },
+    {
+      name: 'worker',
+      widgets: widgetsFor(resolveObservability(undefined), 'worker'),
+    },
+  ]
+  const out = compileServiceDashboard(sections, dctx)
+  expect(Object.keys(out)).toEqual(['SandboxesDashboard'])
+  const dash = out.SandboxesDashboard
+  expect(dash.Type).toBe('AWS::CloudWatch::Dashboard')
+  expect(dash.Properties.DashboardName).toBe('svc-dev-sandboxes')
+  expect(typeof dash.Properties.DashboardBody).toBe('string') // no alarms → plain
+  const body = JSON.parse(dash.Properties.DashboardBody)
+  const headers = body.widgets
+    .filter((x) => x.type === 'text')
+    .map((x) => x.properties.markdown)
+  expect(headers).toEqual(['## web', '## worker'])
+})
+
+test('compileServiceDashboard: Fn::Sub body when a section has alarms', () => {
+  const out = compileServiceDashboard(
+    [
+      {
+        name: 'web',
+        widgets: widgetsFor(
+          resolveObservability({ alarms: { notify: 'arn:sns' } }),
+          'web',
+        ),
+      },
+    ],
+    dctx,
+  )
+  expect(
+    typeof out.SandboxesDashboard.Properties.DashboardBody['Fn::Sub'],
+  ).toBe('string')
 })
