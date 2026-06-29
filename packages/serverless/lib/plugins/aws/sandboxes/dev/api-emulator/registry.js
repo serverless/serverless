@@ -22,7 +22,7 @@ export class EmulatorRegistry {
     this._instances = new Map()
   }
 
-  // Real field names (see Appendix A): imageArn, name, state, latestActiveImageVersion: "1.0".
+  // Real API field names: imageArn, name, state, latestActiveImageVersion: "1.0".
   getImage(imageIdentifier) {
     return {
       imageArn: imageIdentifier || this.imageArn,

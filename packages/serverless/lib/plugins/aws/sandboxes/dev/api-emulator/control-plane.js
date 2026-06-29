@@ -53,7 +53,7 @@ export const ROUTES = [
     op: 'CreateMicrovmAuthToken',
     method: 'POST',
     match: (p) => {
-      // Real route is `auth-token` (singular) — confirmed via SDK wire capture (Appendix A).
+      // Real route is `auth-token` (singular), matching the SDK's request path.
       const m = p.match(/^\/microvms\/([^/]+)\/auth-token$/)
       return m ? { microvmIdentifier: decodeURIComponent(m[1]) } : null
     },
@@ -260,8 +260,8 @@ export async function startControlPlane({
             `⚠ ${short} not ready after ${Math.round(readinessTimeoutMs / 1000)}s — hooks may not have been delivered`,
           )
         // Deliver the lifecycle hooks AND enforce the platform's gate: a non-2xx ready/run is a
-        // failure, not just a log line. Live AWS fails the MicrovmImage build on a bad `ready` and
-        // TERMINATES the VM on a bad `run` (findings: microvms-lifecycle-hooks.txt). Mirror that so dev
+        // failure, not just a log line. The platform fails the MicrovmImage build on a bad `ready`
+        // and TERMINATES the VM on a bad `run`. Mirror that so dev
         // surfaces what prod would reject. (Hook impls returning a bare truthy value instead of
         // { status } — e.g. test doubles — are treated as delivered-OK; no gate.)
         const firedHooks = []
@@ -347,7 +347,7 @@ export async function startControlPlane({
       return { authToken: { 'X-aws-proxy-auth': token } }
     },
 
-    // Explicit lifecycle ops (real API; confirmed empty `{}` responses, Appendix A).
+    // Explicit lifecycle ops (real API; empty `{}` responses).
     SuspendMicrovm: async (_req, _body, params) => {
       const inst = registry.getInstance(params.microvmIdentifier)
       if (!inst) return notFound(params.microvmIdentifier)
@@ -392,9 +392,8 @@ export async function startControlPlane({
   const server = createServer(async (req, res) => {
     let op = 'request'
     try {
-      // The SDK prefixes every path with an API version date, e.g. `/2025-09-09/microvms`
-      // (confirmed via wire capture, Appendix A). Strip a leading `/YYYY-MM-DD` so the ROUTES
-      // stay clean and we don't pin a specific version date.
+      // The SDK prefixes every path with an API version date, e.g. `/2025-09-09/microvms`.
+      // Strip a leading `/YYYY-MM-DD` so the ROUTES stay clean and we don't pin a version date.
       const pathname = req.url
         .split('?')[0]
         .replace(/^\/\d{4}-\d{2}-\d{2}(?=\/)/, '')

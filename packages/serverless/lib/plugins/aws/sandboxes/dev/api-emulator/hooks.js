@@ -16,8 +16,8 @@ export function createHookFirer({
     if (!enabledHooks.has(name)) return null
     const hostPort = instance?.portMap?.[hookPort]
     if (!hostPort) return null
-    // Live capture (Appendix A): only `run` carries a JSON body + content-type; the empty-body
-    // hooks (ready/suspend/resume/terminate) are a bare POST (no content-type).
+    // Only `run` carries a JSON body + content-type; the empty-body hooks
+    // (ready/suspend/resume/terminate) are a bare POST (no content-type).
     const init = { method: 'POST' }
     if (name === 'run') {
       init.headers = { 'content-type': 'application/json' }

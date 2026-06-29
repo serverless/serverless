@@ -18,7 +18,7 @@ test('rejects missing/invalid token with 403', async () => {
     const missing = await get(port)
     expect(missing.status).toBe(403)
     expect(missing.body).toBe('Request missing authentication') // real AWS body
-    // wrong token is treated identically to missing (per Appendix A)
+    // wrong token is treated identically to missing (matches the real API)
     expect((await get(port, { 'X-aws-proxy-auth': 'bad' })).status).toBe(403)
   } finally {
     server.close()

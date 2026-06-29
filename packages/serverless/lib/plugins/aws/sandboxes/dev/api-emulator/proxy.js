@@ -38,7 +38,7 @@ export async function startInstanceProxy({
       onResponse(status, method, pathStr)
     }
     try {
-      // Match real AWS bodies/statuses (see Appendix A).
+      // Match the real API's bodies/statuses.
       const reqId = requestId()
       const deny = (status, body) => {
         report(status)
