@@ -72,6 +72,28 @@ test('token issue/validate is per-instance; allowedPorts gates ports', () => {
   expect(r.isPortAllowed(id, 9999)).toBe(false)
 })
 
+test('a token is rejected once its expiration window passes', () => {
+  const c = clock()
+  const r = make(c.now)
+  const id = r.createInstance({ portMap: {}, stopFn: noop, idlePolicy: POLICY })
+  const token = r.issueToken(id, [8080], 10) // 10-minute expiry
+  expect(r.validateToken(id, token)).toBe(true)
+  c.advance(9 * 60_000) // still inside the window
+  expect(r.validateToken(id, token)).toBe(true)
+  c.advance(2 * 60_000) // now past 10 minutes
+  expect(r.validateToken(id, token)).toBe(false)
+})
+
+test('issued tokens do not stay valid forever (default expiration applies)', () => {
+  const c = clock()
+  const r = make(c.now)
+  const id = r.createInstance({ portMap: {}, stopFn: noop, idlePolicy: POLICY })
+  const token = r.issueToken(id, [8080]) // no explicit expiration
+  expect(r.validateToken(id, token)).toBe(true)
+  c.advance(365 * 24 * 60 * 60_000) // a year later
+  expect(r.validateToken(id, token)).toBe(false)
+})
+
 test('liveInstances excludes terminated', () => {
   const r = make()
   const a = r.createInstance({ portMap: {}, stopFn: noop, idlePolicy: POLICY })

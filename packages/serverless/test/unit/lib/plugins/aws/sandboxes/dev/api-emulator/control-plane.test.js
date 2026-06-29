@@ -469,6 +469,94 @@ test('awaits beforeRun before launching the container on RunMicrovm', async () =
   }
 })
 
+test('tears down the container and registry entry when proxy setup fails mid-launch', async () => {
+  const containers = []
+  const registry = new EmulatorRegistry({
+    sandboxName: 'echo',
+    minimumMemoryInMiB: 2048,
+    imageArn: 'arn:local',
+    idFactory: () => 'mvm-1',
+  })
+  const cp = await startControlPlane({
+    registry,
+    containerManager: recordingContainerManager(containers),
+    startProxy: async () => {
+      throw new Error('proxy boom')
+    },
+    setIntervalImpl: () => 0,
+    clearIntervalImpl: () => {},
+    waitForPort: async () => true,
+  })
+  try {
+    const res = await req(cp.port, 'POST', '/microvms', {})
+    expect(res.status).toBe(500)
+    // The container launched, so a failed launch must not leave it (or a live
+    // registry entry) behind.
+    expect(containers[0].stop).toHaveBeenCalled()
+    expect(registry.getInstance('mvm-1').state).toBe('TERMINATED')
+    expect(registry.liveInstances()).toEqual([])
+  } finally {
+    await cp.shutdown()
+  }
+})
+
+test('tears down the container when readiness probing throws mid-launch', async () => {
+  const containers = []
+  const registry = new EmulatorRegistry({
+    sandboxName: 'echo',
+    minimumMemoryInMiB: 2048,
+    imageArn: 'arn:local',
+    idFactory: () => 'mvm-1',
+  })
+  const cp = await startControlPlane({
+    registry,
+    containerManager: recordingContainerManager(containers),
+    startProxy: fakeStartProxy,
+    setIntervalImpl: () => 0,
+    clearIntervalImpl: () => {},
+    waitForPort: async () => {
+      throw new Error('probe boom')
+    },
+  })
+  try {
+    const res = await req(cp.port, 'POST', '/microvms', {})
+    expect(res.status).toBe(500)
+    expect(containers[0].stop).toHaveBeenCalled()
+    expect(registry.getInstance('mvm-1').state).toBe('TERMINATED')
+  } finally {
+    await cp.shutdown()
+  }
+})
+
+test('CreateMicrovmAuthToken forwards the requested expiration to the registry', async () => {
+  const containers = []
+  const registry = new EmulatorRegistry({
+    sandboxName: 'echo',
+    minimumMemoryInMiB: 2048,
+    imageArn: 'arn:local',
+    idFactory: () => 'mvm-1',
+  })
+  const issueSpy = jest.spyOn(registry, 'issueToken')
+  const cp = await startControlPlane({
+    registry,
+    containerManager: recordingContainerManager(containers),
+    startProxy: fakeStartProxy,
+    setIntervalImpl: () => 0,
+    clearIntervalImpl: () => {},
+    waitForPort: async () => true,
+  })
+  try {
+    const id = (await req(cp.port, 'POST', '/microvms', {})).json.microvmId
+    await req(cp.port, 'POST', `/microvms/${id}/auth-token`, {
+      allowedPorts: [{ port: 8080 }],
+      expirationInMinutes: 15,
+    })
+    expect(issueSpy).toHaveBeenCalledWith('mvm-1', [8080], 15)
+  } finally {
+    await cp.shutdown()
+  }
+})
+
 test('binds the requested control-plane port (stable, customizable endpoint)', async () => {
   // Discover a free port via an ephemeral bind, release it, then ask for it explicitly.
   const probe = await harness()

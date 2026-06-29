@@ -2,6 +2,10 @@
 
 import crypto from 'crypto'
 
+// Fallback token lifetime when a request omits expirationInMinutes, so a token is
+// never valid for the whole instance lifetime.
+const DEFAULT_TOKEN_TTL_MINUTES = 60
+
 export class EmulatorRegistry {
   constructor({
     sandboxName,
@@ -59,6 +63,7 @@ export class EmulatorRegistry {
       endpoint: null,
       proxyServer: null,
       token: null,
+      tokenExpiresAt: null,
       allowedPorts: null,
       startedAt: t,
       lastActivityAt: t,
@@ -95,19 +100,25 @@ export class EmulatorRegistry {
     return this._instances.get(microvmId)
   }
 
-  issueToken(microvmId, allowedPorts) {
+  issueToken(microvmId, allowedPorts, expirationInMinutes) {
     const inst = this._instances.get(microvmId)
     if (!inst) return null
     inst.token = crypto.randomUUID()
     inst.allowedPorts = (
       allowedPorts && allowedPorts.length ? allowedPorts : [8080]
     ).map(Number)
+    const minutes =
+      Number(expirationInMinutes) > 0
+        ? Number(expirationInMinutes)
+        : DEFAULT_TOKEN_TTL_MINUTES
+    inst.tokenExpiresAt = this._now() + minutes * 60_000
     return inst.token
   }
 
   validateToken(microvmId, token) {
     const inst = this._instances.get(microvmId)
     if (!inst || !inst.token || !token) return false
+    if (inst.tokenExpiresAt && this._now() >= inst.tokenExpiresAt) return false
     return inst.token === token
   }
 

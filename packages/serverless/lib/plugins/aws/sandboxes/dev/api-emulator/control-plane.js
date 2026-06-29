@@ -192,110 +192,133 @@ export async function startControlPlane({
     RunMicrovm: async (_req, body) => {
       await beforeRun() // refresh near-expiry injected creds before launching the container
       const c = await containerManager.run()
-      const microvmId = registry.createInstance({
-        portMap: c.portMap,
-        stopFn: c.stop,
-        pauseFn: c.pause,
-        unpauseFn: c.unpause,
-        idlePolicy: body?.idlePolicy,
-        maximumDurationInSeconds: body?.maximumDurationInSeconds,
-      })
-      const inst = registry.getInstance(microvmId)
-      const { server, port } = await startProxy({
-        validateToken: (t) => registry.validateToken(microvmId, t),
-        isPortAllowed: (p) => registry.isPortAllowed(microvmId, p),
-        resolveHostPort: (inVmPort) => inst.portMap[inVmPort],
-        onRequest: async () => {
-          const decision = registry.onRequest(microvmId)
-          if (decision === 'resume') {
-            await inst.unpauseFn().catch(() => {})
-            await fireHook('resume', inst)
-            logger.aside(`▶ ${shortMicrovmId(microvmId)}  resumed (traffic)`)
-            return 'forward'
-          }
-          return decision // 'forward' | 'reject'
-        },
-        // Narrate each forwarded request's outcome — otherwise an execution that logs nothing is
-        // invisible. Grey, like functions Dev Mode's `← λ launcher (200)`.
-        onResponse: (status, method, p) =>
-          logger.aside(
-            `← ${shortMicrovmId(microvmId)}  ${status}  ${method} ${p}`,
-          ),
-      })
-      const endpoint = `http://127.0.0.1:${port}`
-      registry.markRunning(microvmId, { endpoint, proxyServer: server })
-      // Surface the idle policy on launch so the later "terminated (idle)" line is self-explaining
-      // — a human/agent learns *when* this VM will be reaped without reading the config or docs.
-      const maxIdle = body?.idlePolicy?.maxIdleDurationSeconds
-      const lifecycleNote = maxIdle
-        ? `terminates after ${maxIdle}s idle`
-        : 'runs until terminated'
-      // Lead with the short tag (matches this VM's streamed log prefix, so the two correlate); keep
-      // the full id in parens for `aws lambda-microvms` copy-paste. The marker implies the state, so
-      // no "RUNNING" word.
-      const short = shortMicrovmId(microvmId)
-      logger.aside(
-        `→ RunMicrovm  ${short}  ·  ${endpoint}  ·  ${lifecycleNote}   (${microvmId})`,
-      )
-      // Stream this MicroVM's container logs to the dev terminal (prefixed per MicroVM).
-      const stop = attachLogs(c.containerName, microvmId)
-      if (typeof stop === 'function') logStops.set(microvmId, stop)
-      // Let the container bind its hook server before delivering lifecycle hooks, so the
-      // run-hook payload isn't POSTed to a not-yet-listening :9000 and lost. Best-effort + bounded.
-      const ready = await waitForPort(
-        host,
-        inst.portMap[hookPort],
-        readinessTimeoutMs,
-      )
-      // A silent readiness timeout would make the hooks below quietly not fire; say so.
-      if (!ready)
+      // The container is now live. If any setup step below throws, tear it (and any
+      // registry/proxy/log-stream state) down before propagating, so a failed launch
+      // never leaves a running sandbox behind.
+      let microvmId
+      let proxyServer
+      try {
+        microvmId = registry.createInstance({
+          portMap: c.portMap,
+          stopFn: c.stop,
+          pauseFn: c.pause,
+          unpauseFn: c.unpause,
+          idlePolicy: body?.idlePolicy,
+          maximumDurationInSeconds: body?.maximumDurationInSeconds,
+        })
+        const inst = registry.getInstance(microvmId)
+        const { server, port } = await startProxy({
+          validateToken: (t) => registry.validateToken(microvmId, t),
+          isPortAllowed: (p) => registry.isPortAllowed(microvmId, p),
+          resolveHostPort: (inVmPort) => inst.portMap[inVmPort],
+          onRequest: async () => {
+            const decision = registry.onRequest(microvmId)
+            if (decision === 'resume') {
+              await inst.unpauseFn().catch(() => {})
+              await fireHook('resume', inst)
+              logger.aside(`▶ ${shortMicrovmId(microvmId)}  resumed (traffic)`)
+              return 'forward'
+            }
+            return decision // 'forward' | 'reject'
+          },
+          // Narrate each forwarded request's outcome — otherwise an execution that logs nothing is
+          // invisible. Grey, like functions Dev Mode's `← λ launcher (200)`.
+          onResponse: (status, method, p) =>
+            logger.aside(
+              `← ${shortMicrovmId(microvmId)}  ${status}  ${method} ${p}`,
+            ),
+        })
+        proxyServer = server
+        const endpoint = `http://127.0.0.1:${port}`
+        registry.markRunning(microvmId, { endpoint, proxyServer: server })
+        // Surface the idle policy on launch so the later "terminated (idle)" line is self-explaining
+        // — a human/agent learns *when* this VM will be reaped without reading the config or docs.
+        const maxIdle = body?.idlePolicy?.maxIdleDurationSeconds
+        const lifecycleNote = maxIdle
+          ? `terminates after ${maxIdle}s idle`
+          : 'runs until terminated'
+        // Lead with the short tag (matches this VM's streamed log prefix, so the two correlate); keep
+        // the full id in parens for `aws lambda-microvms` copy-paste. The marker implies the state, so
+        // no "RUNNING" word.
+        const short = shortMicrovmId(microvmId)
         logger.aside(
-          `⚠ ${short} not ready after ${Math.round(readinessTimeoutMs / 1000)}s — hooks may not have been delivered`,
+          `→ RunMicrovm  ${short}  ·  ${endpoint}  ·  ${lifecycleNote}   (${microvmId})`,
         )
-      // Deliver the lifecycle hooks AND enforce the platform's gate: a non-2xx ready/run is a
-      // failure, not just a log line. Live AWS fails the MicrovmImage build on a bad `ready` and
-      // TERMINATES the VM on a bad `run` (findings: microvms-lifecycle-hooks.txt). Mirror that so dev
-      // surfaces what prod would reject. (Hook impls returning a bare truthy value instead of
-      // { status } — e.g. test doubles — are treated as delivered-OK; no gate.)
-      const firedHooks = []
-      let gate = null
-      for (const [name, payload] of [
-        ['ready', undefined],
-        ['run', body?.runHookPayload],
-      ]) {
-        const res = await fireHook(name, inst, payload)
-        if (!res) continue // not enabled / not delivered
-        firedHooks.push(name)
-        const status = res.status
-        if (
-          !gate &&
-          typeof status === 'number' &&
-          (status < 200 || status >= 300)
+        // Stream this MicroVM's container logs to the dev terminal (prefixed per MicroVM).
+        const stop = attachLogs(c.containerName, microvmId)
+        if (typeof stop === 'function') logStops.set(microvmId, stop)
+        // Let the container bind its hook server before delivering lifecycle hooks, so the
+        // run-hook payload isn't POSTed to a not-yet-listening :9000 and lost. Best-effort + bounded.
+        const ready = await waitForPort(
+          host,
+          inst.portMap[hookPort],
+          readinessTimeoutMs,
         )
-          gate = { name, status }
-      }
-      if (gate) {
-        const stateReason =
-          gate.name === 'run'
-            ? `Run lifecycle hook returned HTTP status ${gate.status}. Please check your hook endpoint and application logs for more details.`
-            : `Ready lifecycle hook returned HTTP status ${gate.status}; in production this fails the MicrovmImage build.`
+        // A silent readiness timeout would make the hooks below quietly not fire; say so.
+        if (!ready)
+          logger.aside(
+            `⚠ ${short} not ready after ${Math.round(readinessTimeoutMs / 1000)}s — hooks may not have been delivered`,
+          )
+        // Deliver the lifecycle hooks AND enforce the platform's gate: a non-2xx ready/run is a
+        // failure, not just a log line. Live AWS fails the MicrovmImage build on a bad `ready` and
+        // TERMINATES the VM on a bad `run` (findings: microvms-lifecycle-hooks.txt). Mirror that so dev
+        // surfaces what prod would reject. (Hook impls returning a bare truthy value instead of
+        // { status } — e.g. test doubles — are treated as delivered-OK; no gate.)
+        const firedHooks = []
+        let gate = null
+        for (const [name, payload] of [
+          ['ready', undefined],
+          ['run', body?.runHookPayload],
+        ]) {
+          const res = await fireHook(name, inst, payload)
+          if (!res) continue // not enabled / not delivered
+          firedHooks.push(name)
+          const status = res.status
+          if (
+            !gate &&
+            typeof status === 'number' &&
+            (status < 200 || status >= 300)
+          )
+            gate = { name, status }
+        }
+        if (gate) {
+          const stateReason =
+            gate.name === 'run'
+              ? `Run lifecycle hook returned HTTP status ${gate.status}. Please check your hook endpoint and application logs for more details.`
+              : `Ready lifecycle hook returned HTTP status ${gate.status}; in production this fails the MicrovmImage build.`
+          try {
+            server.close?.()
+          } catch {
+            /* ignore */
+          }
+          await inst.stopFn?.().catch(() => {})
+          stopLogsFor(microvmId)
+          const terminated = registry.terminate(microvmId)
+          if (terminated) terminated.stateReason = stateReason
+          logger.aside(
+            `✕ ${short} terminated — ${gate.name} hook returned ${gate.status}`,
+          )
+          return { microvmId, state: 'TERMINATED', stateReason }
+        }
+        if (firedHooks.length)
+          logger.aside(`  hooks ${firedHooks.join('+')} delivered  ${short}`)
+        return { microvmId, endpoint, state: 'RUNNING' }
+      } catch (err) {
+        // A setup step after the container launched threw. Roll back so the failed
+        // launch can't leave a live container, proxy server, log stream, or registry
+        // entry behind.
         try {
-          server.close?.()
+          proxyServer?.close?.()
         } catch {
           /* ignore */
         }
-        await inst.stopFn?.().catch(() => {})
-        stopLogsFor(microvmId)
-        const terminated = registry.terminate(microvmId)
-        if (terminated) terminated.stateReason = stateReason
-        logger.aside(
-          `✕ ${short} terminated — ${gate.name} hook returned ${gate.status}`,
-        )
-        return { microvmId, state: 'TERMINATED', stateReason }
+        await c.stop?.().catch(() => {})
+        if (microvmId) {
+          stopLogsFor(microvmId)
+          registry.terminate(microvmId)
+        }
+        throw err
       }
-      if (firedHooks.length)
-        logger.aside(`  hooks ${firedHooks.join('+')} delivered  ${short}`)
-      return { microvmId, endpoint, state: 'RUNNING' }
     },
 
     GetMicrovm: (_req, _body, params) => {
@@ -311,7 +334,11 @@ export async function startControlPlane({
 
     CreateMicrovmAuthToken: (_req, body, params) => {
       const ports = (body?.allowedPorts || [{ port: 8080 }]).map((p) => p.port)
-      const token = registry.issueToken(params.microvmIdentifier, ports)
+      const token = registry.issueToken(
+        params.microvmIdentifier,
+        ports,
+        body?.expirationInMinutes,
+      )
       if (!token) return notFound(params.microvmIdentifier)
       // Internal proxy handshake — useful for debugging, noise for everyday use; keep at debug.
       logger.debug?.(
