@@ -108,6 +108,7 @@ When the value starts with `s3://` the framework passes the URI directly to Clou
 
 All sandboxes are defined under the top-level `sandboxes` key. Each key is the sandbox name; its value is a configuration object.
 
+<!-- prettier-ignore -->
 ```yml
 sandboxes:
   <name>:
@@ -161,7 +162,7 @@ sandboxes:
 | `vpc`            | object            | —                | VPC egress configuration. See [Networking / VPC](#networking--vpc).                                                                                                                                                                                                                                                                                                                                                         |
 | `iam`            | object            | —                | IAM role customization. See [IAM](#iam).                                                                                                                                                                                                                                                                                                                                                                                    |
 | `observability`  | boolean \| object | `true`           | Controls the owned log group, error metric filter, CloudWatch dashboard, and optional alarms. `true` (default) enables metrics and dashboard; `false` opts out of metrics and dashboard (log group is still created). Object form accepts `logs`, `metrics`, `alarms`, and `dashboard` sub-blocks. Alarms require `observability.alarms.notify` (SNS topic ARN or CloudFormation ref). See [Observability](#observability). |
-| `tags`           | object            | —                | Key/value tags applied to every taggable resource the sandbox creates (image, log group, IAM roles, alarms, network connector). Values must be strings.                                                                                                                                                                                                                                                                                                                                 |
+| `tags`           | object            | —                | Key/value tags applied to every taggable resource the sandbox creates (image, log group, IAM roles, alarms, network connector). Values must be strings.                                                                                                                                                                                                                                                                     |
 
 ---
 
@@ -352,17 +353,17 @@ Supported forms: ARN string, `Ref`, `Fn::GetAtt`, `Fn::ImportValue`, `Fn::Sub`. 
 
 For each sandbox, `serverless deploy` creates the following CloudFormation resources:
 
-| Resource                        | Type                            | Condition                                      |
-| ------------------------------- | ------------------------------- | ---------------------------------------------- |
-| `<Name>Image`                   | `AWS::Lambda::MicrovmImage`     | Always                                         |
-| `<Name>ImageBuildRole`          | `AWS::IAM::Role`                | Unless `iam.buildRole` is an external ref      |
-| `<Name>ImageExecutionRole`      | `AWS::IAM::Role`                | Unless `iam.executionRole` is an external ref  |
-| `<Name>Connector`               | `AWS::Lambda::NetworkConnector` | Only when `vpc` is set                         |
-| `<Name>ConnectorOperatorRole`   | `AWS::IAM::Role`                | Only when `vpc` is set                         |
-| `<Name>ImageLogGroup`           | `AWS::Logs::LogGroup`           | Always                                         |
-| `<Name>Image<Filter>MetricFilter` | `AWS::Logs::MetricFilter`     | One per `observability.metrics.filters` entry (default `errors`) |
-| `<Name>Image<Filter>Alarm`      | `AWS::CloudWatch::Alarm`        | One per filter, only when `observability.alarms.notify` is set |
-| `SandboxesDashboard`            | `AWS::CloudWatch::Dashboard`    | One **per service** (not per sandbox), when any sandbox has the dashboard enabled |
+| Resource                          | Type                            | Condition                                                                         |
+| --------------------------------- | ------------------------------- | --------------------------------------------------------------------------------- |
+| `<Name>Image`                     | `AWS::Lambda::MicrovmImage`     | Always                                                                            |
+| `<Name>ImageBuildRole`            | `AWS::IAM::Role`                | Unless `iam.buildRole` is an external ref                                         |
+| `<Name>ImageExecutionRole`        | `AWS::IAM::Role`                | Unless `iam.executionRole` is an external ref                                     |
+| `<Name>Connector`                 | `AWS::Lambda::NetworkConnector` | Only when `vpc` is set                                                            |
+| `<Name>ConnectorOperatorRole`     | `AWS::IAM::Role`                | Only when `vpc` is set                                                            |
+| `<Name>ImageLogGroup`             | `AWS::Logs::LogGroup`           | Always                                                                            |
+| `<Name>Image<Filter>MetricFilter` | `AWS::Logs::MetricFilter`       | One per `observability.metrics.filters` entry (default `errors`)                  |
+| `<Name>Image<Filter>Alarm`        | `AWS::CloudWatch::Alarm`        | One per filter, only when `observability.alarms.notify` is set                    |
+| `SandboxesDashboard`              | `AWS::CloudWatch::Dashboard`    | One **per service** (not per sandbox), when any sandbox has the dashboard enabled |
 
 Stack outputs:
 
@@ -541,12 +542,12 @@ observability:
 
 ### CloudFormation resources emitted
 
-| Resource                        | Type                         | Condition                          |
-| ------------------------------- | ---------------------------- | ---------------------------------- |
-| `<Name>ImageLogGroup`           | `AWS::Logs::LogGroup`        | **Always**                         |
-| `<Name>Image<Filter>MetricFilter` | `AWS::Logs::MetricFilter`  | One per `metrics.filters` entry (default `errors`) |
-| `<Name>Image<Filter>Alarm`      | `AWS::CloudWatch::Alarm`     | One per filter, only when `alarms.notify` is set |
-| `SandboxesDashboard`            | `AWS::CloudWatch::Dashboard` | One **per service** when any sandbox has the dashboard enabled |
+| Resource                          | Type                         | Condition                                                      |
+| --------------------------------- | ---------------------------- | -------------------------------------------------------------- |
+| `<Name>ImageLogGroup`             | `AWS::Logs::LogGroup`        | **Always**                                                     |
+| `<Name>Image<Filter>MetricFilter` | `AWS::Logs::MetricFilter`    | One per `metrics.filters` entry (default `errors`)             |
+| `<Name>Image<Filter>Alarm`        | `AWS::CloudWatch::Alarm`     | One per filter, only when `alarms.notify` is set               |
+| `SandboxesDashboard`              | `AWS::CloudWatch::Dashboard` | One **per service** when any sandbox has the dashboard enabled |
 
 ### How error detection works
 
