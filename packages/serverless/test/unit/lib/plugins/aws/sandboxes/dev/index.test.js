@@ -40,12 +40,26 @@ test('refreshCredsIfExpiring re-assumes ONLY when the role creds are expiring', 
   expect(refresh2).not.toHaveBeenCalled()
   expect(d2.credsEnv.AWS_ACCESS_KEY_ID).toBe('KEEP')
 
-  // --no-assume-role (no iam) → no-op, ambient creds untouched
+  // --no-assume-role (no iam) → re-resolve ambient creds, so a long-running session
+  // doesn't keep injecting an expired snapshot
   const d3 = make({ sandbox: 'api' }, { api: { artifact: './app' } })
   d3.iam = null
-  d3.credsEnv = { AWS_ACCESS_KEY_ID: 'AMBIENT' }
+  d3.credsEnv = { AWS_ACCESS_KEY_ID: 'STALE' }
+  d3.resolveAmbientCredsEnv = jest.fn(async () => ({
+    AWS_ACCESS_KEY_ID: 'FRESH',
+  }))
   await d3.refreshCredsIfExpiring()
-  expect(d3.credsEnv.AWS_ACCESS_KEY_ID).toBe('AMBIENT')
+  expect(d3.resolveAmbientCredsEnv).toHaveBeenCalledTimes(1)
+  expect(d3.credsEnv.AWS_ACCESS_KEY_ID).toBe('FRESH')
+
+  // --no-assume-role with no resolvable creds → stays null, no throw
+  const d4 = make({ sandbox: 'api' }, { api: { artifact: './app' } })
+  d4.iam = null
+  d4.credsEnv = null
+  d4.resolveAmbientCredsEnv = jest.fn(async () => ({ AWS_ACCESS_KEY_ID: 'X' }))
+  await d4.refreshCredsIfExpiring()
+  expect(d4.resolveAmbientCredsEnv).not.toHaveBeenCalled()
+  expect(d4.credsEnv).toBeNull()
 })
 
 test('resolveSandboxName uses --sandbox when provided', () => {

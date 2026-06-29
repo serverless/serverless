@@ -271,13 +271,23 @@ class SandboxesDevMode {
     await exitPromise
   }
 
-  // Refresh the assumed-role credentials when they're near expiry, so a long-running dev session
-  // doesn't inject stale creds into a freshly launched MicroVM. Only does an STS AssumeRole when
-  // `credentialsExpiring()` says it's needed (10-min buffer) — not on every call. No-op for
-  // --no-assume-role (no `iam`); the SDK's own provider handles ambient-cred refresh.
+  // Refresh the injected credentials before launching a MicroVM, so a long-running dev session
+  // doesn't hand a freshly launched container stale creds.
+  //   - IAM emulation: re-assume the execution role, but only when `credentialsExpiring()` says
+  //     it's needed (10-min buffer) — not on every call.
+  //   - --no-assume-role: re-resolve the ambient credentials each launch. They were snapshotted
+  //     into plain env vars at startup, so the provider's own refresh (SSO/STS/MFA) isn't visible
+  //     to the container unless we re-resolve and re-inject.
   async refreshCredsIfExpiring() {
-    if (this.iam && this.credsEnv && this.iam.credentialsExpiring()) {
-      const refreshed = await this.iam.refresh()
+    if (this.iam) {
+      if (this.credsEnv && this.iam.credentialsExpiring()) {
+        const refreshed = await this.iam.refresh()
+        if (refreshed) this.credsEnv = refreshed
+      }
+      return
+    }
+    if (this.credsEnv) {
+      const refreshed = await this.resolveAmbientCredsEnv()
       if (refreshed) this.credsEnv = refreshed
     }
   }

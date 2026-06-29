@@ -101,7 +101,7 @@ const sandboxConfigSchema = {
       type: 'object',
       additionalProperties: false,
       properties: {
-        port: { type: 'number', minimum: 1 },
+        port: { type: 'integer', minimum: 1, maximum: 65535 },
         // Image (build-time) hooks.
         ready: hookValue,
         validate: hookValue,

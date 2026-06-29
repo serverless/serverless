@@ -140,6 +140,16 @@ describe('defineSandboxesSchema', () => {
     expect(obj.properties.timeout.minimum).toBe(1)
   })
 
+  test('per-sandbox schema hook port is a bindable integer in 1-65535', () => {
+    defineSandboxesSchema(mockServerless)
+    const s = capturedSandboxesSchema.additionalProperties
+    const port = s.properties.hooks.properties.port
+    // Only an integer in the valid TCP range can actually bind; reject 1.5 / 70000.
+    expect(port.type).toBe('integer')
+    expect(port.minimum).toBe(1)
+    expect(port.maximum).toBe(65535)
+  })
+
   test('per-sandbox schema iam is constrained to buildRole/executionRole', () => {
     defineSandboxesSchema(mockServerless)
     const s = capturedSandboxesSchema.additionalProperties
