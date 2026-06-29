@@ -22,17 +22,18 @@ export function shortMicrovmId(id) {
 // container that dies mid-line) on stop.
 export function createDockerLogDemuxer(onLine) {
   let buf = Buffer.alloc(0)
-  let line = ''
-  let lineStream = 'stdout'
+  // Docker multiplexes stdout and stderr independently, so a partial (newline-less)
+  // line on one stream must not absorb bytes from the other. Buffer per stream.
+  const partial = { stdout: '', stderr: '' }
 
   const flush = (text, stream) => {
-    line += text
-    lineStream = stream
+    let pending = partial[stream] + text
     let i
-    while ((i = line.indexOf('\n')) >= 0) {
-      onLine(line.slice(0, i).replace(/\r$/, ''), stream)
-      line = line.slice(i + 1)
+    while ((i = pending.indexOf('\n')) >= 0) {
+      onLine(pending.slice(0, i).replace(/\r$/, ''), stream)
+      pending = pending.slice(i + 1)
     }
+    partial[stream] = pending
   }
 
   const feed = (chunk) => {
@@ -48,9 +49,11 @@ export function createDockerLogDemuxer(onLine) {
     }
   }
   feed.flush = () => {
-    if (line.length) {
-      onLine(line, lineStream)
-      line = ''
+    for (const stream of ['stdout', 'stderr']) {
+      if (partial[stream].length) {
+        onLine(partial[stream], stream)
+        partial[stream] = ''
+      }
     }
   }
   return feed

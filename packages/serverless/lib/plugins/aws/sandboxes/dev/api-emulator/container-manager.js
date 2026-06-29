@@ -2,6 +2,14 @@
 
 import crypto from 'crypto'
 
+// A removal error we can safely ignore: the container is already gone.
+function isContainerNotFound(err) {
+  return (
+    err?.statusCode === 404 ||
+    /no such container|not found/i.test(err?.message || '')
+  )
+}
+
 export class ContainerManager {
   constructor({
     docker,
@@ -40,19 +48,33 @@ export class ContainerManager {
       },
       hostConfig: { PortBindings: portBindings },
     })
-    await container.start()
-    const info = await container.inspect()
-    const portMap = {}
-    for (const p of this.ports) {
-      const binding = info.NetworkSettings?.Ports?.[`${p}/tcp`]?.[0]
-      if (binding?.HostPort) portMap[p] = Number(binding.HostPort)
-    }
     const docker = this.docker
+    let portMap
+    try {
+      await container.start()
+      const info = await container.inspect()
+      portMap = {}
+      for (const p of this.ports) {
+        const binding = info.NetworkSettings?.Ports?.[`${p}/tcp`]?.[0]
+        if (binding?.HostPort) portMap[p] = Number(binding.HostPort)
+      }
+    } catch (err) {
+      // The container was created but failed to come up — don't leak it.
+      await docker.removeContainer({ containerName }).catch(() => {})
+      throw err
+    }
     return {
       containerName,
       portMap,
       stop: async () => {
-        await docker.removeContainer({ containerName }).catch(() => {})
+        // Surface real removal failures so the control plane can't believe a
+        // termination succeeded while Docker kept the container running; only an
+        // already-gone container is safe to ignore.
+        try {
+          await docker.removeContainer({ containerName })
+        } catch (err) {
+          if (!isContainerNotFound(err)) throw err
+        }
       },
       // Suspend/resume analog: freeze/thaw the container's processes in place.
       pause: async () => {

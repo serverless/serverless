@@ -64,3 +64,31 @@ test('reports the HTTP status so callers can enforce the non-2xx gate', async ()
   })
   expect(await fire('run', inst, '{}')).toEqual({ status: 500 })
 })
+
+test('aborts a hook that accepts the connection but never responds, and reports null', async () => {
+  const fire = createHookFirer({
+    enabledHooks: new Set(['run']),
+    hookTimeoutMs: 25,
+    // Never resolves on its own; only settles when the deadline aborts the request.
+    fetchImpl: (url, init) =>
+      new Promise((_resolve, reject) => {
+        init.signal.addEventListener('abort', () =>
+          reject(Object.assign(new Error('aborted'), { name: 'AbortError' })),
+        )
+      }),
+  })
+  await expect(fire('run', inst, '{}')).resolves.toBeNull()
+})
+
+test('passes an abort signal on the request init', async () => {
+  let seenInit
+  const fire = createHookFirer({
+    enabledHooks: new Set(['ready']),
+    fetchImpl: async (url, init) => {
+      seenInit = init
+      return new Response('{}')
+    },
+  })
+  await fire('ready', inst)
+  expect(seenInit.signal).toBeInstanceOf(AbortSignal)
+})

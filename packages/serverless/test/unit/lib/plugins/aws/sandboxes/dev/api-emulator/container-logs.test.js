@@ -79,3 +79,32 @@ test('flush() emits a buffered partial (unterminated) line with its stream', () 
   feed.flush()
   expect(out).toEqual([['stderr', 'dying without a newline']])
 })
+
+test('keeps stdout and stderr partial lines independent (no cross-stream bleed)', () => {
+  const out = []
+  const feed = createDockerLogDemuxer((l, stream) => out.push([stream, l]))
+  // stdout opens a line but its newline hasn't arrived yet…
+  feed(frame(1, 'partial out'))
+  // …meanwhile a complete stderr line arrives. It must emit on its own stream,
+  // not get concatenated onto the pending stdout text and mislabeled.
+  feed(frame(2, 'complete err\n'))
+  expect(out).toEqual([['stderr', 'complete err']])
+  // stdout then finishes its line — emitted as stdout with only its own text.
+  feed(frame(1, ' done\n'))
+  expect(out).toEqual([
+    ['stderr', 'complete err'],
+    ['stdout', 'partial out done'],
+  ])
+})
+
+test('flush() emits a leftover partial for each stream independently', () => {
+  const out = []
+  const feed = createDockerLogDemuxer((l, stream) => out.push([stream, l]))
+  feed(frame(1, 'tail out')) // no newline
+  feed(frame(2, 'tail err')) // no newline
+  feed.flush()
+  expect(out).toEqual([
+    ['stdout', 'tail out'],
+    ['stderr', 'tail err'],
+  ])
+})

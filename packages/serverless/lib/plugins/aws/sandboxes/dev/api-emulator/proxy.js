@@ -56,7 +56,18 @@ export async function startInstanceProxy({
         return
       }
 
-      const inVmPort = Number(req.headers['x-aws-proxy-port']) || DEFAULT_PORT
+      // Absent header → default in-VM port. A present-but-malformed value is a client
+      // error: reject it rather than silently forwarding to the default port.
+      const portHeader = req.headers['x-aws-proxy-port']
+      let inVmPort = DEFAULT_PORT
+      if (portHeader !== undefined) {
+        const parsed = Number(portHeader)
+        if (!Number.isInteger(parsed) || parsed < 1 || parsed > 65535) {
+          deny(400, `Invalid x-aws-proxy-port: ${portHeader}`)
+          return
+        }
+        inVmPort = parsed
+      }
       if (!isPortAllowed(inVmPort)) {
         // Real AWS gates the port by the token's allowedPorts → 403, not 502.
         deny(403, 'Access to port denied')

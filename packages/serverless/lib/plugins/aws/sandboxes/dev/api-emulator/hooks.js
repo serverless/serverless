@@ -6,6 +6,7 @@ export function createHookFirer({
   enabledHooks = new Set(),
   hookPort = 9000,
   fetchImpl = fetch,
+  hookTimeoutMs = 10_000,
   logger,
 } = {}) {
   // Returns { status } when the hook POST completes (so callers can both report which hooks fired
@@ -25,6 +26,12 @@ export function createHookFirer({
         runHookPayload: runHookPayload ?? '',
       })
     }
+    // Bound each POST: a hook server that accepts the connection but never responds
+    // must not hang launch/suspend/resume/terminate/idle-reaping. On the deadline we
+    // abort and degrade to the same best-effort `null` as any other delivery failure.
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), hookTimeoutMs)
+    init.signal = controller.signal
     try {
       const res = await fetchImpl(
         `http://127.0.0.1:${hostPort}${HOOK_PATH}/${name}`,
@@ -34,6 +41,8 @@ export function createHookFirer({
     } catch (err) {
       logger?.debug?.(`hook '${name}' failed: ${err.message}`)
       return null
+    } finally {
+      clearTimeout(timer)
     }
   }
 }

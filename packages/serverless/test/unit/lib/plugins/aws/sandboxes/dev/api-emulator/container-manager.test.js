@@ -66,6 +66,93 @@ test('stop() removes the container by name', async () => {
   expect(docker.removed).toContain('sls-sandbox-dev-s-e-x')
 })
 
+// A docker double whose container/remove behaviour is configurable per test.
+function dockerWith({ start, inspect, removeContainer } = {}) {
+  const removed = []
+  return {
+    removed,
+    createContainer: async () => ({
+      start: start || (async () => {}),
+      inspect: inspect || (async () => ({ NetworkSettings: { Ports: {} } })),
+      pause: async () => {},
+      unpause: async () => {},
+    }),
+    removeContainer:
+      removeContainer ||
+      (async ({ containerName }) => {
+        removed.push(containerName)
+      }),
+  }
+}
+
+test('run() removes the partially-created container and rethrows when start fails', async () => {
+  const docker = dockerWith({
+    start: async () => {
+      throw new Error('start boom')
+    },
+  })
+  const cm = new ContainerManager({
+    docker,
+    imageUri: 'i',
+    serviceName: 's',
+    sandboxName: 'e',
+    idFactory: () => 'x',
+  })
+  await expect(cm.run()).rejects.toThrow('start boom')
+  expect(docker.removed).toContain('sls-sandbox-dev-s-e-x')
+})
+
+test('run() removes the partially-created container and rethrows when inspect fails', async () => {
+  const docker = dockerWith({
+    inspect: async () => {
+      throw new Error('inspect boom')
+    },
+  })
+  const cm = new ContainerManager({
+    docker,
+    imageUri: 'i',
+    serviceName: 's',
+    sandboxName: 'e',
+    idFactory: () => 'x',
+  })
+  await expect(cm.run()).rejects.toThrow('inspect boom')
+  expect(docker.removed).toContain('sls-sandbox-dev-s-e-x')
+})
+
+test('stop() ignores a "no such container" removal error (already gone)', async () => {
+  const docker = dockerWith({
+    removeContainer: async () => {
+      throw Object.assign(new Error('No such container'), { statusCode: 404 })
+    },
+  })
+  const cm = new ContainerManager({
+    docker,
+    imageUri: 'i',
+    serviceName: 's',
+    sandboxName: 'e',
+    idFactory: () => 'x',
+  })
+  const inst = await cm.run()
+  await expect(inst.stop()).resolves.toBeUndefined()
+})
+
+test('stop() propagates an unexpected removal error (termination is not falsely reported)', async () => {
+  const docker = dockerWith({
+    removeContainer: async () => {
+      throw new Error('docker daemon unreachable')
+    },
+  })
+  const cm = new ContainerManager({
+    docker,
+    imageUri: 'i',
+    serviceName: 's',
+    sandboxName: 'e',
+    idFactory: () => 'x',
+  })
+  const inst = await cm.run()
+  await expect(inst.stop()).rejects.toThrow('docker daemon unreachable')
+})
+
 test('pause()/unpause() map to the container freeze/thaw (suspend analog)', async () => {
   const docker = fakeDocker()
   const cm = new ContainerManager({

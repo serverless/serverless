@@ -135,6 +135,48 @@ test('502 when onRequest rejects (suspended, non-resumable — real AWS behavior
   }
 })
 
+test('rejects a malformed x-aws-proxy-port with 400 instead of forwarding to the default port', async () => {
+  const { server, port } = await startInstanceProxy({
+    validateToken: () => true,
+    isPortAllowed: () => true,
+    resolveHostPort: () => 12345,
+    fetchImpl: async () => {
+      throw new Error('should not forward')
+    },
+  })
+  try {
+    for (const bad of ['banana', '0', '-1', '1.5', '70000']) {
+      const res = await fetch(`http://127.0.0.1:${port}/x`, {
+        headers: { 'X-aws-proxy-auth': 'good', 'X-aws-proxy-port': bad },
+      })
+      expect(res.status).toBe(400)
+    }
+  } finally {
+    server.close()
+  }
+})
+
+test('falls back to the default in-VM port only when the header is absent', async () => {
+  let seenPort
+  const { server, port } = await startInstanceProxy({
+    validateToken: () => true,
+    isPortAllowed: () => true,
+    resolveHostPort: (p) => {
+      seenPort = p
+      return 12345
+    },
+    fetchImpl: async () => new Response('ok'),
+  })
+  try {
+    await fetch(`http://127.0.0.1:${port}/x`, {
+      headers: { 'X-aws-proxy-auth': 'good' }, // no x-aws-proxy-port header
+    })
+    expect(seenPort).toBe(8080)
+  } finally {
+    server.close()
+  }
+})
+
 test('onResponse reports the final status, method, and path (forward + deny)', async () => {
   const seen = []
   const { server, port } = await startInstanceProxy({
