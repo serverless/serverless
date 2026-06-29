@@ -159,7 +159,7 @@ sandboxes:
 | `osCapabilities` | array             | `[]`             | Additional OS capabilities granted to the container. Accepted value: `all` (case-insensitive).                                                                                                                                                                                                                                                                                                                              |
 | `hooks`          | object            | `{}`             | Lifecycle hook configuration. See [Hooks](#hooks).                                                                                                                                                                                                                                                                                                                                                                          |
 | `vpc`            | object            | —                | VPC egress configuration. See [Networking / VPC](#networking--vpc).                                                                                                                                                                                                                                                                                                                                                         |
-| `iam`            | object            | —                | IAM role customisation. See [IAM](#iam).                                                                                                                                                                                                                                                                                                                                                                                    |
+| `iam`            | object            | —                | IAM role customization. See [IAM](#iam).                                                                                                                                                                                                                                                                                                                                                                                    |
 | `observability`  | boolean \| object | `true`           | Controls the owned log group, error metric filter, CloudWatch dashboard, and optional alarms. `true` (default) enables metrics and dashboard; `false` opts out of metrics and dashboard (log group is still created). Object form accepts `logs`, `metrics`, `alarms`, and `dashboard` sub-blocks. Alarms require `observability.alarms.notify` (SNS topic ARN or CloudFormation ref). See [Observability](#observability). |
 | `tags`           | object            | —                | Key/value tags applied to every taggable resource the sandbox creates (image, log group, IAM roles, alarms, network connector). Values must be strings.                                                                                                                                                                                                                                                                                                                                 |
 
@@ -292,14 +292,14 @@ Permissions:
 
 Both roles use a trust policy for `lambda.amazonaws.com` with an `aws:SourceAccount` condition to prevent confused-deputy attacks.
 
-> **Extending the build role for non-default setups.** The generated build role grants `s3:GetObject` on the deployment bucket plus CloudWatch Logs — enough for the default Serverless deployment bucket (SSE-S3) and public or managed base images. Two setups need extra permissions, which you add via [`iam.buildRole.statements`](#customising-auto-generated-roles):
+> **Extending the build role for non-default setups.** The generated build role grants `s3:GetObject` on the deployment bucket plus CloudWatch Logs — enough for the default Serverless deployment bucket (SSE-S3) and public or managed base images. Two setups need extra permissions, which you add via [`iam.buildRole.statements`](#customizing-auto-generated-roles):
 >
 > - **Deployment bucket encrypted with a customer-managed KMS key** → add `kms:Decrypt` (and `kms:DescribeKey`) on the key, otherwise the build fails fetching the artifact with `AccessDenied`.
 > - **`Dockerfile` that builds `FROM` a private ECR image** → add `ecr:GetAuthorizationToken` (on `*`) plus `ecr:BatchGetImage` and `ecr:GetDownloadUrlForLayer` on the repository.
 
-### Customising auto-generated roles
+### Customizing auto-generated roles
 
-Pass an `iam.buildRole` or `iam.executionRole` customisation object to extend the generated role without replacing it:
+Pass an `iam.buildRole` or `iam.executionRole` customization object to extend the generated role without replacing it:
 
 ```yml
 sandboxes:
@@ -322,7 +322,7 @@ sandboxes:
             Resource: !GetAtt MyTable.Arn
 ```
 
-Supported customisation keys:
+Supported customization keys:
 
 | Key                   | Type   | Description                                                     |
 | --------------------- | ------ | --------------------------------------------------------------- |

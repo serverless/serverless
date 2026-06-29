@@ -1,5 +1,6 @@
 import path from 'path'
 import url from 'url'
+import { execFileSync } from 'child_process'
 import { jest } from '@jest/globals'
 import { DockerClient } from '@serverless/util/src/docker/index.js'
 import { startControlPlane } from '@serverless/framework/lib/plugins/aws/sandboxes/dev/api-emulator/control-plane.js'
@@ -16,6 +17,32 @@ import {
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const IMAGE = 'serverless-sandbox-dev-test/echo:latest'
+// ContainerManager names containers `sls-sandbox-dev-<service>-<sandbox>-<id>`.
+const CONTAINER_PREFIX = 'sls-sandbox-dev-test-echo'
+
+// Remove any containers this suite may have started, so an assertion or fetch
+// failure before the in-test terminate doesn't leave one running across runs.
+function forceRemoveByPrefix() {
+  const names = execFileSync('docker', [
+    'ps',
+    '-a',
+    '--filter',
+    `name=${CONTAINER_PREFIX}`,
+    '--format',
+    '{{.Names}}',
+  ])
+    .toString()
+    .trim()
+    .split('\n')
+    .filter(Boolean)
+  for (const n of names) {
+    try {
+      execFileSync('docker', ['rm', '-f', n])
+    } catch {
+      /* ignore */
+    }
+  }
+}
 
 describe('dev API emulation — real SDK against the local control-plane', () => {
   jest.setTimeout(180000)
@@ -24,6 +51,7 @@ describe('dev API emulation — real SDK against the local control-plane', () =>
 
   beforeAll(async () => {
     await docker.ensureIsRunning()
+    forceRemoveByPrefix() // clear any container left by a previous interrupted run
     await docker.buildImage({
       containerName: 'sls-sandbox-dev-test-echo',
       containerPath: path.join(__dirname, 'fixture', 'app'),
@@ -51,6 +79,7 @@ describe('dev API emulation — real SDK against the local control-plane', () =>
 
   afterAll(async () => {
     if (cp) await cp.shutdown()
+    forceRemoveByPrefix() // don't leak the run container if a test bailed before terminate
   })
 
   test('full lifecycle: image -> run -> running -> token -> request -> terminate', async () => {
