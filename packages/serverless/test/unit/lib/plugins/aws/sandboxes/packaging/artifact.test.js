@@ -2,6 +2,7 @@ import { jest } from '@jest/globals'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
+import AdmZip from 'adm-zip'
 import {
   computeCodeArtifact,
   uploadArtifact,
@@ -138,6 +139,60 @@ describe('computeCodeArtifact', () => {
       },
     )
     expect(provider.request).not.toHaveBeenCalled()
+  })
+})
+
+describe('computeCodeArtifact — deterministic zipping (stable content-addressed key)', () => {
+  // Build an artifact dir (Dockerfile + files in a subdir) so the real archiver
+  // path runs (no zipDir stub). The content-addressed key encodes the zip's
+  // sha256, so byte-stable zips ⇒ stable keys across machines/CI.
+  const mkArtifactDir = () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sbx-deterministic-'))
+    fs.writeFileSync(path.join(dir, 'Dockerfile'), 'FROM scratch\n')
+    fs.writeFileSync(path.join(dir, 'app.js'), 'console.log("hi")\n')
+    fs.mkdirSync(path.join(dir, 'lib'))
+    fs.writeFileSync(path.join(dir, 'lib', 'util.js'), 'export const x = 1\n')
+    return dir
+  }
+  const zipFor = (dir) =>
+    computeCodeArtifact(
+      { artifact: dir },
+      { serviceName: 's', stage: 'dev', name: 'echo', serviceDir: '/' },
+    ).then((r) => r.zipBuffer)
+  const keyFor = (dir) =>
+    computeCodeArtifact(
+      { artifact: dir },
+      { serviceName: 's', stage: 'dev', name: 'echo', serviceDir: '/' },
+    ).then((r) => r.key)
+
+  test('every entry carries a normalized timestamp, not the live file mtime', async () => {
+    const entries = new AdmZip(await zipFor(mkArtifactDir())).getEntries()
+    expect(entries.length).toBeGreaterThan(0)
+    // The live mtime would be the current year; pinning each entry to a fixed
+    // sentinel is what keeps the hash stable across checkouts/machines.
+    const currentYear = new Date().getUTCFullYear()
+    for (const e of entries) {
+      expect(e.header.time.getUTCFullYear()).toBeLessThan(currentYear)
+    }
+    // …and all entries share that one pinned timestamp.
+    const distinctTimes = new Set(entries.map((e) => e.header.time.getTime()))
+    expect(distinctTimes.size).toBe(1)
+  })
+
+  test('entries are emitted in deterministic (path-sorted) order', async () => {
+    const names = new AdmZip(await zipFor(mkArtifactDir()))
+      .getEntries()
+      .map((e) => e.entryName)
+    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)))
+  })
+
+  test('identical content zipped twice yields the same key', async () => {
+    const dir = mkArtifactDir()
+    expect(await keyFor(dir)).toBe(await keyFor(dir))
+  })
+
+  test('two separate dirs with identical content yield the same key', async () => {
+    expect(await keyFor(mkArtifactDir())).toBe(await keyFor(mkArtifactDir()))
   })
 })
 

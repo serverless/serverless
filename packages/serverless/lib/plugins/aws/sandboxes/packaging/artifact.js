@@ -5,6 +5,7 @@ import crypto from 'crypto'
 import path from 'path'
 import fs from 'fs'
 import archiver from 'archiver'
+import { globbySync } from 'globby'
 import setS3UploadEncryptionOptions from '../../../../aws/set-s3-upload-encryption-options.js'
 
 /**
@@ -47,7 +48,33 @@ async function defaultZipDir(dirPath) {
     archive.on('end', () => resolve(Buffer.concat(chunks)))
     archive.on('error', reject)
 
-    archive.directory(dirPath, false)
+    // Build the zip deterministically so the content-addressed S3 key is stable
+    // across machines and CI. `archive.directory()` embeds each file's live
+    // mtime and walks in filesystem order, so the same source bytes produce
+    // different zips on a fresh checkout — churning the key and triggering
+    // spurious ~100s MicrovmImage rebuilds. Mirror the framework's function
+    // packaging (lib/plugins/package/lib/zip-service.js): enumerate files,
+    // sort by path, and pin every entry's date to `new Date(0)`.
+    const files = globbySync('**/*', {
+      cwd: dirPath,
+      dot: true,
+      onlyFiles: true,
+    }).sort((a, b) => a.localeCompare(b))
+
+    for (const rel of files) {
+      const fullPath = path.join(dirPath, rel)
+      const stat = fs.statSync(fullPath)
+      // Preserve the executable bit (or force 0o755 on Windows), matching
+      // zip-service.js — otherwise scripts in the build context lose +x.
+      const mode =
+        stat.mode & 0o100 || process.platform === 'win32' ? 0o755 : 0o644
+      archive.append(fs.createReadStream(fullPath), {
+        name: rel,
+        mode,
+        date: new Date(0), // pin mtime → identical content yields an identical zip
+      })
+    }
+
     archive.finalize()
   })
 }
