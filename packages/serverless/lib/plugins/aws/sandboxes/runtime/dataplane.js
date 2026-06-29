@@ -53,7 +53,6 @@ export async function waitUntilRunning(
 ) {
   const GetMicrovmCommand = await cmd('GetMicrovmCommand')
   const deadline = Date.now() + timeoutMs
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     const r = await client.send(
       new GetMicrovmCommand({ microvmIdentifier: microvmId }),
