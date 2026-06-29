@@ -1642,7 +1642,7 @@ layers:
 
 ## AWS Lambda MicroVMs (Sandboxes)
 
-Run container workloads as [AWS Lambda MicroVMs](./sandboxes.md) alongside your Lambda functions. The `sandboxes` top-level property defines one or more sandboxes, each built from a `Dockerfile` (or pulled from a pre-built `s3://` artifact). `serverless deploy` builds the MicroVM image and provisions its IAM roles, log group, metrics, and dashboard; `serverless invoke --sandbox <name>`, `serverless logs --sandbox <name>`, and `serverless dev --sandbox <name>` operate on it. See the [complete documentation](./sandboxes.md) for all options.
+Run container workloads as [AWS Lambda MicroVMs](./sandboxes.md) alongside your Lambda functions. The `sandboxes` top-level property defines one or more sandboxes, each built from a `Dockerfile` (or pulled from a pre-built `s3://` artifact). `serverless deploy` provisions the MicroVM image with its IAM roles, log group, metrics, and dashboard, rebuilding the image only when the (content-addressed) artifact changes; `serverless invoke --sandbox <name>`, `serverless logs --sandbox <name>`, and `serverless dev --sandbox <name>` operate on it. See the [complete documentation](./sandboxes.md) for all options.
 
 ```yml
 # serverless.yml

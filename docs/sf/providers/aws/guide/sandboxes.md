@@ -29,7 +29,7 @@ AWS Lambda MicroVMs let you run arbitrary container workloads inside isolated vi
 - Your application startup is expensive and benefits from suspension/resumption rather than cold starts.
 - You want to bring an existing containerised service to the Lambda data plane without restructuring it as a handler function.
 
-The Serverless Framework v4 `sandboxes` top-level property handles deployment and runtime invocation. `serverless deploy` builds the MicroVM image and registers it with AWS; `serverless invoke --sandbox <name>` starts a fresh instance, runs your request, and terminates the instance when done (see [Invoking a Sandbox](#invoking-a-sandbox)). Logs are accessible via `serverless logs --sandbox <name>` (see [Logs](#logs)).
+The Serverless Framework v4 `sandboxes` top-level property handles deployment and runtime invocation. `serverless deploy` registers the MicroVM image with AWS, building it when the artifact changes — the artifact is content-addressed, so re-deploying an unchanged sandbox reuses the existing image instead of rebuilding. `serverless invoke --sandbox <name>` starts a fresh instance, runs your request, and terminates the instance when done (see [Invoking a Sandbox](#invoking-a-sandbox)). Logs are accessible via `serverless logs --sandbox <name>` (see [Logs](#logs)).
 
 `serverless dev --sandbox` supports running sandboxes locally (see [Local development](#local-development-serverless-dev)).
 
