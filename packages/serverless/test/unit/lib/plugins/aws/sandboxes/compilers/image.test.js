@@ -45,7 +45,7 @@ test('honors memory + environment + privileged + custom hooks', () => {
     'runner',
     {
       artifact: './app',
-      memory: 4096,
+      minimumMemory: 4096,
       environment: { A: 'b' },
       osCapabilities: ['ALL'],
       hooks: { ready: true, run: { timeout: 5 } },

@@ -181,7 +181,7 @@ class SandboxesDevMode {
 
     const registry = await this.makeRegistry({
       sandboxName: name,
-      minimumMemoryInMiB: this.ctx.cfg.memory || 2048,
+      minimumMemoryInMiB: this.ctx.cfg.minimumMemory || 2048,
       imageArn: `arn:aws:lambda:local:000000000000:microvm-image:${this.serverless.service.service}-${name}`,
     })
     const self = this

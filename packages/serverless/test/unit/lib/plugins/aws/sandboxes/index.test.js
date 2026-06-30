@@ -91,7 +91,7 @@ describe('ServerlessSandboxes', () => {
   })
 
   test('validate() throws when a sandbox is missing artifact', () => {
-    const sls = makeServerless({ broken: { memory: 512 } })
+    const sls = makeServerless({ broken: { minimumMemory: 512 } })
     const p = new ServerlessSandboxes(sls, {}, { log: { debug() {} } })
     expect(() => p.validate()).toThrow(/artifact/)
   })
@@ -249,7 +249,7 @@ describe('end-to-end compile', () => {
     // Full: every optional field set.
     full: {
       artifact: 's3://bucket/full.zip',
-      memory: 4096,
+      minimumMemory: 4096,
       description: 'my full sandbox',
       environment: { NODE_ENV: 'production', PORT: 3000 },
       osCapabilities: ['ALL'],
@@ -258,8 +258,8 @@ describe('end-to-end compile', () => {
         run: { timeout: 5 },
       },
       vpc: {
-        subnets: ['subnet-1'],
-        securityGroups: ['sg-1'],
+        subnetIds: ['subnet-1'],
+        securityGroupIds: ['sg-1'],
       },
       iam: {
         buildRole: {

@@ -21,22 +21,24 @@ export function validateSandboxes(sandboxesConfig, { throwError }) {
       )
       continue
     }
-    if (c.memory != null && !MEMORY.includes(c.memory)) {
+    if (c.minimumMemory != null && !MEMORY.includes(c.minimumMemory)) {
       throwError(
-        `sandboxes.${name}.memory must be one of ${MEMORY.join(', ')} MiB`,
+        `sandboxes.${name}.minimumMemory must be one of ${MEMORY.join(', ')} MiB`,
       )
       continue
     }
     if (c.vpc) {
-      if (!Array.isArray(c.vpc.subnets) || c.vpc.subnets.length === 0) {
-        throwError(`sandboxes.${name}.vpc requires at least one subnet`)
+      if (!Array.isArray(c.vpc.subnetIds) || c.vpc.subnetIds.length === 0) {
+        throwError(`sandboxes.${name}.vpc requires at least one subnetId`)
         continue
       }
       if (
-        !Array.isArray(c.vpc.securityGroups) ||
-        c.vpc.securityGroups.length === 0
+        !Array.isArray(c.vpc.securityGroupIds) ||
+        c.vpc.securityGroupIds.length === 0
       ) {
-        throwError(`sandboxes.${name}.vpc requires at least one securityGroup`)
+        throwError(
+          `sandboxes.${name}.vpc requires at least one securityGroupId`,
+        )
         continue
       }
     }

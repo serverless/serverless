@@ -90,7 +90,7 @@ const sandboxConfigSchema = {
   type: 'object',
   properties: {
     artifact: { type: 'string' },
-    memory: { enum: [512, 1024, 2048, 4096, 8192] },
+    minimumMemory: { enum: [512, 1024, 2048, 4096, 8192] },
     description: { type: 'string' },
     environment: { type: 'object', additionalProperties: { type: 'string' } },
     osCapabilities: {
@@ -116,8 +116,8 @@ const sandboxConfigSchema = {
       type: 'object',
       additionalProperties: false,
       properties: {
-        subnets: { type: 'array', items: { type: 'string' } },
-        securityGroups: { type: 'array', items: { type: 'string' } },
+        subnetIds: { type: 'array', items: { type: 'string' } },
+        securityGroupIds: { type: 'array', items: { type: 'string' } },
         protocol: { anyOf: ['ipv4', 'dualstack'].map(caseInsensitive) },
       },
     },

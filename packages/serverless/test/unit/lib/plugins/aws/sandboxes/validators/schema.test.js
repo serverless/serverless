@@ -50,7 +50,7 @@ describe('defineSandboxesSchema', () => {
   test('per-sandbox schema memory is an enum of valid MiB values', () => {
     defineSandboxesSchema(mockServerless)
     const sandboxSchema = capturedSandboxesSchema.additionalProperties
-    expect(sandboxSchema.properties.memory.enum).toEqual([
+    expect(sandboxSchema.properties.minimumMemory.enum).toEqual([
       512, 1024, 2048, 4096, 8192,
     ])
   })
@@ -77,13 +77,13 @@ describe('defineSandboxesSchema', () => {
     })
   })
 
-  test('per-sandbox schema vpc is object with subnets and securityGroups', () => {
+  test('per-sandbox schema vpc is object with subnetIds and securityGroupIds', () => {
     defineSandboxesSchema(mockServerless)
     const sandboxSchema = capturedSandboxesSchema.additionalProperties
     const vpcSchema = sandboxSchema.properties.vpc
     expect(vpcSchema.type).toBe('object')
-    expect(vpcSchema.properties.subnets.type).toBe('array')
-    expect(vpcSchema.properties.securityGroups.type).toBe('array')
+    expect(vpcSchema.properties.subnetIds.type).toBe('array')
+    expect(vpcSchema.properties.securityGroupIds.type).toBe('array')
   })
 
   test('per-sandbox schema has additionalProperties false', () => {

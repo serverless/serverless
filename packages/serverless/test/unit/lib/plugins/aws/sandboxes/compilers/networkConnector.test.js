@@ -11,18 +11,18 @@ describe('compileNetworkConnector', () => {
   test('emits AWS::Lambda::NetworkConnector type', () => {
     const r = compileNetworkConnector(
       'runner',
-      { subnets: ['subnet-1'], securityGroups: ['sg-1'], protocol: 'ipv4' },
+      { subnetIds: ['subnet-1'], securityGroupIds: ['sg-1'], protocol: 'ipv4' },
       ctx,
     )
     expect(r.Type).toBe('AWS::Lambda::NetworkConnector')
   })
 
-  test('sets SubnetIds from vpcCfg.subnets', () => {
+  test('sets SubnetIds from vpcCfg.subnetIds', () => {
     const r = compileNetworkConnector(
       'runner',
       {
-        subnets: ['subnet-1', 'subnet-2'],
-        securityGroups: ['sg-1'],
+        subnetIds: ['subnet-1', 'subnet-2'],
+        securityGroupIds: ['sg-1'],
         protocol: 'ipv4',
       },
       ctx,
@@ -32,12 +32,12 @@ describe('compileNetworkConnector', () => {
     )
   })
 
-  test('sets SecurityGroupIds from vpcCfg.securityGroups', () => {
+  test('sets SecurityGroupIds from vpcCfg.securityGroupIds', () => {
     const r = compileNetworkConnector(
       'runner',
       {
-        subnets: ['subnet-1'],
-        securityGroups: ['sg-1', 'sg-2'],
+        subnetIds: ['subnet-1'],
+        securityGroupIds: ['sg-1', 'sg-2'],
         protocol: 'ipv4',
       },
       ctx,
@@ -50,7 +50,7 @@ describe('compileNetworkConnector', () => {
   test('normalizes ipv4 protocol to IPv4', () => {
     const r = compileNetworkConnector(
       'runner',
-      { subnets: ['subnet-1'], securityGroups: ['sg-1'], protocol: 'ipv4' },
+      { subnetIds: ['subnet-1'], securityGroupIds: ['sg-1'], protocol: 'ipv4' },
       ctx,
     )
     expect(
@@ -62,8 +62,8 @@ describe('compileNetworkConnector', () => {
     const r = compileNetworkConnector(
       'runner',
       {
-        subnets: ['subnet-1'],
-        securityGroups: ['sg-1'],
+        subnetIds: ['subnet-1'],
+        securityGroupIds: ['sg-1'],
         protocol: 'dualstack',
       },
       ctx,
@@ -76,7 +76,7 @@ describe('compileNetworkConnector', () => {
   test('normalizes IPv4 (already cased) to IPv4', () => {
     const r = compileNetworkConnector(
       'runner',
-      { subnets: ['subnet-1'], securityGroups: ['sg-1'], protocol: 'IPv4' },
+      { subnetIds: ['subnet-1'], securityGroupIds: ['sg-1'], protocol: 'IPv4' },
       ctx,
     )
     expect(
@@ -87,7 +87,7 @@ describe('compileNetworkConnector', () => {
   test('sets AssociatedComputeResourceTypes to [MicroVm]', () => {
     const r = compileNetworkConnector(
       'runner',
-      { subnets: ['subnet-1'], securityGroups: ['sg-1'], protocol: 'ipv4' },
+      { subnetIds: ['subnet-1'], securityGroupIds: ['sg-1'], protocol: 'ipv4' },
       ctx,
     )
     expect(
@@ -99,7 +99,7 @@ describe('compileNetworkConnector', () => {
   test('sets OperatorRole from ctx.operatorRoleArn', () => {
     const r = compileNetworkConnector(
       'runner',
-      { subnets: ['subnet-1'], securityGroups: ['sg-1'], protocol: 'ipv4' },
+      { subnetIds: ['subnet-1'], securityGroupIds: ['sg-1'], protocol: 'ipv4' },
       ctx,
     )
     expect(r.Properties.OperatorRole).toEqual(ctx.operatorRoleArn)
@@ -108,7 +108,7 @@ describe('compileNetworkConnector', () => {
   test('Name is derived via getResourceName', () => {
     const r = compileNetworkConnector(
       'runner',
-      { subnets: ['subnet-1'], securityGroups: ['sg-1'], protocol: 'ipv4' },
+      { subnetIds: ['subnet-1'], securityGroupIds: ['sg-1'], protocol: 'ipv4' },
       ctx,
     )
     expect(r.Properties.Name).toBe('svc-runner-dev')

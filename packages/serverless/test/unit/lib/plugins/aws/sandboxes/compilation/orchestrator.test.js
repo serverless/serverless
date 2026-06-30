@@ -47,7 +47,7 @@ describe('orchestrate', () => {
       provider = makeProvider()
       await orchestrate({
         sandboxesConfig: {
-          runner: { artifact: './app', memory: 2048 },
+          runner: { artifact: './app', minimumMemory: 2048 },
         },
         ctx: makeCtx(),
         template,
@@ -158,7 +158,7 @@ describe('orchestrate', () => {
       const template = makeTemplate()
       await orchestrate({
         sandboxesConfig: {
-          runner: { artifact: './app', memory: 2048 },
+          runner: { artifact: './app', minimumMemory: 2048 },
         },
         ctx: makeCtx({ deploymentBucket: undefined }),
         template,
@@ -177,7 +177,7 @@ describe('orchestrate', () => {
       const template = makeTemplate()
       await orchestrate({
         sandboxesConfig: {
-          runner: { artifact: './app', memory: 2048 },
+          runner: { artifact: './app', minimumMemory: 2048 },
         },
         ctx: makeCtx({ deploymentBucket: undefined }),
         template,
@@ -223,8 +223,8 @@ describe('orchestrate', () => {
           runner: {
             artifact: 's3://my-bucket/artifact.zip',
             vpc: {
-              subnets: ['subnet-aaa', 'subnet-bbb'],
-              securityGroups: ['sg-111'],
+              subnetIds: ['subnet-aaa', 'subnet-bbb'],
+              securityGroupIds: ['sg-111'],
             },
           },
         },
@@ -441,7 +441,7 @@ describe('orchestrate', () => {
             artifact: './app',
             tags: { team: 'platform' },
             observability: { alarms: { notify: 'arn:sns:t' } },
-            vpc: { subnets: ['subnet-a'], securityGroups: ['sg-a'] },
+            vpc: { subnetIds: ['subnet-a'], securityGroupIds: ['sg-a'] },
           },
         },
         ctx: makeCtx(),

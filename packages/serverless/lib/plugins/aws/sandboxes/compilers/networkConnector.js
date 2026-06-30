@@ -31,8 +31,8 @@ export function compileNetworkConnector(name, vpcCfg, ctx) {
       Name,
       Configuration: {
         VpcEgressConfiguration: {
-          SubnetIds: vpcCfg.subnets,
-          SecurityGroupIds: vpcCfg.securityGroups,
+          SubnetIds: vpcCfg.subnetIds,
+          SecurityGroupIds: vpcCfg.securityGroupIds,
           NetworkProtocol: normalizeProtocol(vpcCfg.protocol),
           AssociatedComputeResourceTypes: ['MicroVm'],
         },

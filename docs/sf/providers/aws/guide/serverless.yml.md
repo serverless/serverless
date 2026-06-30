@@ -1650,7 +1650,7 @@ Run container workloads as [AWS Lambda MicroVMs](./sandboxes.md) alongside your 
 sandboxes:
   api: # sandbox name (used in CloudFormation logical IDs)
     artifact: ./app # local directory with a Dockerfile, or an s3:// zip
-    memory: 2048
+    minimumMemory: 2048
     environment:
       KEY: value
     observability: true # log group + metrics + dashboard (on by default)

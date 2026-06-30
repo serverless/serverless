@@ -24,7 +24,7 @@ describe('validateSandboxes', () => {
   test('rejects invalid memory', () => {
     expect(() =>
       validateSandboxes(
-        { a: { artifact: './x', memory: 3000 } },
+        { a: { artifact: './x', minimumMemory: 3000 } },
         { throwError: err() },
       ),
     ).toThrow(/memory must be one of/i)
@@ -38,43 +38,46 @@ describe('validateSandboxes', () => {
     const errors = []
     const collect = (m) => errors.push(m)
     expect(() =>
-      validateSandboxes({ a: { memory: 3000 } }, { throwError: collect }),
+      validateSandboxes(
+        { a: { minimumMemory: 3000 } },
+        { throwError: collect },
+      ),
     ).not.toThrow()
     expect(errors).toEqual([expect.stringMatching(/artifact.*required/i)])
   })
-  test('vpc with subnets but no securityGroups → error', () => {
+  test('vpc with subnetIds but no securityGroupIds → error', () => {
     expect(() =>
       validateSandboxes(
         {
           a: {
             artifact: './x',
-            vpc: { subnets: ['subnet-aaa'] },
+            vpc: { subnetIds: ['subnet-aaa'] },
           },
         },
         { throwError: err() },
       ),
     ).toThrow(/securityGroup/i)
   })
-  test('vpc with empty securityGroups array → error', () => {
+  test('vpc with empty securityGroupIds array → error', () => {
     expect(() =>
       validateSandboxes(
         {
           a: {
             artifact: './x',
-            vpc: { subnets: ['subnet-aaa'], securityGroups: [] },
+            vpc: { subnetIds: ['subnet-aaa'], securityGroupIds: [] },
           },
         },
         { throwError: err() },
       ),
     ).toThrow(/securityGroup/i)
   })
-  test('vpc with both subnets and securityGroups → ok', () => {
+  test('vpc with both subnetIds and securityGroupIds → ok', () => {
     expect(() =>
       validateSandboxes(
         {
           a: {
             artifact: './x',
-            vpc: { subnets: ['subnet-aaa'], securityGroups: ['sg-111'] },
+            vpc: { subnetIds: ['subnet-aaa'], securityGroupIds: ['sg-111'] },
           },
         },
         { throwError: err() },

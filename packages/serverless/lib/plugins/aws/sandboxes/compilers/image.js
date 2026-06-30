@@ -70,7 +70,7 @@ export function compileImage(name, cfg, ctx) {
           },
       EgressNetworkConnectors: ctx.egressConnectors,
       CpuConfigurations: [{ Architecture: 'ARM_64' }],
-      Resources: [{ MinimumMemoryInMiB: cfg.memory || 2048 }],
+      Resources: [{ MinimumMemoryInMiB: cfg.minimumMemory || 2048 }],
       AdditionalOsCapabilities: (cfg.osCapabilities || []).map((c) =>
         String(c).toUpperCase(),
       ),

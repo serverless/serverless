@@ -116,7 +116,7 @@ sandboxes:
     artifact: <string>
 
     # optional
-    memory: 512 | 1024 | 2048 | 4096 | 8192
+    minimumMemory: 512 | 1024 | 2048 | 4096 | 8192
     description: <string>
     environment:
       KEY: value
@@ -154,7 +154,7 @@ sandboxes:
 | Property         | Type              | Default          | Description                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | ---------------- | ----------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `artifact`       | string            | — **(required)** | Local directory path (contains `Dockerfile`) or `s3://` URI                                                                                                                                                                                                                                                                                                                                                                 |
-| `memory`         | number            | `2048`           | Minimum memory in MiB. Must be one of: `512`, `1024`, `2048`, `4096`, `8192`. The MicroVM image name is derived from the service name, sandbox key, and stage.                                                                                                                                                                                                                                                              |
+| `minimumMemory`  | number            | `2048`           | Minimum memory in MiB the MicroVM is guaranteed (maps to `MinimumMemoryInMiB`) — a floor, not a cap. Must be one of: `512`, `1024`, `2048`, `4096`, `8192`.                                                                                                                                                                                                                                                                 |
 | `description`    | string            | auto             | Human-readable description embedded in the CloudFormation resource.                                                                                                                                                                                                                                                                                                                                                         |
 | `environment`    | object            | `{}`             | Environment variables injected into the MicroVM at runtime. Values must be strings.                                                                                                                                                                                                                                                                                                                                         |
 | `osCapabilities` | array             | `[]`             | Additional OS capabilities granted to the container. Accepted value: `all` (case-insensitive).                                                                                                                                                                                                                                                                                                                              |
@@ -252,19 +252,19 @@ sandboxes:
   api:
     artifact: ./app
     vpc:
-      subnets:
+      subnetIds:
         - subnet-0abc1234
         - subnet-0def5678
-      securityGroups:
+      securityGroupIds:
         - sg-0aabbccdd
       protocol: ipv4 # 'ipv4' (default) or 'dualstack'
 ```
 
-| Property         | Type     | Default | Description                                            |
-| ---------------- | -------- | ------- | ------------------------------------------------------ |
-| `subnets`        | string[] | —       | List of subnet IDs for the network connector.          |
-| `securityGroups` | string[] | —       | List of security group IDs for the network connector.  |
-| `protocol`       | string   | `ipv4`  | IP protocol: `ipv4` or `dualstack` (case-insensitive). |
+| Property           | Type     | Default | Description                                            |
+| ------------------ | -------- | ------- | ------------------------------------------------------ |
+| `subnetIds`        | string[] | —       | List of subnet IDs for the network connector.          |
+| `securityGroupIds` | string[] | —       | List of security group IDs for the network connector.  |
+| `protocol`         | string   | `ipv4`  | IP protocol: `ipv4` or `dualstack` (case-insensitive). |
 
 When `vpc` is set, the framework creates an `AWS::Lambda::NetworkConnector` and an associated operator IAM role (see [IAM](#iam)). The connector ARN is exported as a CloudFormation stack output for use by the data-plane run path.
 
@@ -703,7 +703,7 @@ provider:
 sandboxes:
   api:
     artifact: ./app # directory with a Dockerfile
-    memory: 2048 # MiB
+    minimumMemory: 2048 # MiB
     description: 'HTTP API sandbox'
     environment:
       LOG_LEVEL: info
@@ -714,9 +714,9 @@ sandboxes:
       run:
         timeout: 2 # runtime hook: called on each new instance
     vpc:
-      subnets:
+      subnetIds:
         - subnet-0abc1234
-      securityGroups:
+      securityGroupIds:
         - sg-0aabbccdd
       protocol: ipv4
     iam:
