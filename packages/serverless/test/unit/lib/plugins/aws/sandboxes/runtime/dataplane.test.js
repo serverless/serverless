@@ -30,7 +30,7 @@ test('runMicrovm sends camelCase input and returns id/endpoint/state', async () 
     },
   })
   const out = await runMicrovm(client, {
-    imageArn: 'arn:img',
+    imageIdentifier: 'arn:img',
     executionRoleArn: 'arn:role',
   })
   expect(out).toEqual({ microvmId: 'mv-1', endpoint: 'host', state: 'PENDING' })
@@ -52,7 +52,7 @@ test('runMicrovm passes egressNetworkConnectors when a connector ARN is given', 
     RunMicrovmCommand: { microvmId: 'mv-1', endpoint: 'h', state: 'PENDING' },
   })
   await runMicrovm(client, {
-    imageArn: 'arn:img',
+    imageIdentifier: 'arn:img',
     executionRoleArn: 'arn:role',
     egressConnectorArn: 'arn:conn',
   })
@@ -125,8 +125,8 @@ test('resolveSandboxOutputs reads image/exec/connector outputs by logical id', a
       Stacks: [
         {
           Outputs: [
-            { OutputKey: 'EchoImageArn', OutputValue: 'arn:img' },
-            { OutputKey: 'EchoImageExecutionRoleArn', OutputValue: 'arn:role' },
+            { OutputKey: 'EchoImageIdentifier', OutputValue: 'arn:img' },
+            { OutputKey: 'EchoExecutionRoleArn', OutputValue: 'arn:role' },
             { OutputKey: 'EchoConnectorArn', OutputValue: 'arn:conn' },
           ],
         },
@@ -135,7 +135,7 @@ test('resolveSandboxOutputs reads image/exec/connector outputs by logical id', a
   }
   const out = await resolveSandboxOutputs(provider, 'echo')
   expect(out).toEqual({
-    imageArn: 'arn:img',
+    imageIdentifier: 'arn:img',
     executionRoleArn: 'arn:role',
     connectorArn: 'arn:conn',
   })

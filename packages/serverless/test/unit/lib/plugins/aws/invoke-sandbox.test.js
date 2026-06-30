@@ -3,7 +3,7 @@ import { jest } from '@jest/globals'
 const dataplane = {
   makeClient: jest.fn(async () => ({})),
   resolveSandboxOutputs: jest.fn(async () => ({
-    imageArn: 'arn:img',
+    imageIdentifier: 'arn:img',
     executionRoleArn: 'arn:role',
     connectorArn: undefined,
   })),

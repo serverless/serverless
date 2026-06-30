@@ -70,23 +70,21 @@ describe('orchestrate', () => {
       expect(template.Resources.RunnerImageBuildRole.Type).toBe(
         'AWS::IAM::Role',
       )
-      expect(template.Resources).toHaveProperty('RunnerImageExecutionRole')
-      expect(template.Resources.RunnerImageExecutionRole.Type).toBe(
-        'AWS::IAM::Role',
-      )
+      expect(template.Resources).toHaveProperty('RunnerExecutionRole')
+      expect(template.Resources.RunnerExecutionRole.Type).toBe('AWS::IAM::Role')
     })
 
-    test('emits Outputs.RunnerImageArn', () => {
-      expect(template.Outputs).toHaveProperty('RunnerImageArn')
-      expect(template.Outputs.RunnerImageArn.Value).toEqual({
+    test('emits Outputs.RunnerImageIdentifier', () => {
+      expect(template.Outputs).toHaveProperty('RunnerImageIdentifier')
+      expect(template.Outputs.RunnerImageIdentifier.Value).toEqual({
         Ref: 'RunnerImage',
       })
     })
 
-    test('emits Outputs.RunnerImageExecutionRoleArn (GetAtt of the generated exec role)', () => {
-      expect(template.Outputs).toHaveProperty('RunnerImageExecutionRoleArn')
-      expect(template.Outputs.RunnerImageExecutionRoleArn.Value).toEqual({
-        'Fn::GetAtt': ['RunnerImageExecutionRole', 'Arn'],
+    test('emits Outputs.RunnerExecutionRoleArn (GetAtt of the generated exec role)', () => {
+      expect(template.Outputs).toHaveProperty('RunnerExecutionRoleArn')
+      expect(template.Outputs.RunnerExecutionRoleArn.Value).toEqual({
+        'Fn::GetAtt': ['RunnerExecutionRole', 'Arn'],
       })
     })
 
@@ -119,7 +117,7 @@ describe('orchestrate', () => {
     })
 
     test('always emits the owned LogGroup with default retention', () => {
-      const lg = template.Resources.RunnerImageLogGroup
+      const lg = template.Resources.RunnerLogGroup
       expect(lg).toBeDefined()
       expect(lg.Type).toBe('AWS::Logs::LogGroup')
       expect(lg.Properties.LogGroupName).toBe(
@@ -130,12 +128,12 @@ describe('orchestrate', () => {
 
     test('image DependsOn the log group', () => {
       expect(template.Resources.RunnerImage.DependsOn).toContain(
-        'RunnerImageLogGroup',
+        'RunnerLogGroup',
       )
     })
 
     test('observability default (absent⇒true): metric filter + dashboard emitted, no alarm', () => {
-      expect(template.Resources.RunnerImageErrorsMetricFilter).toBeDefined()
+      expect(template.Resources.RunnerErrorsMetricFilter).toBeDefined()
       expect(template.Resources.SandboxesDashboard).toBeDefined()
       const alarmKeys = Object.keys(template.Resources).filter((k) =>
         k.endsWith('Alarm'),
@@ -383,8 +381,8 @@ describe('orchestrate', () => {
       expect(template.Resources).toHaveProperty('BetaImage')
       expect(template.Resources).toHaveProperty('AlphaImageBuildRole')
       expect(template.Resources).toHaveProperty('BetaImageBuildRole')
-      expect(template.Outputs).toHaveProperty('AlphaImageArn')
-      expect(template.Outputs).toHaveProperty('BetaImageArn')
+      expect(template.Outputs).toHaveProperty('AlphaImageIdentifier')
+      expect(template.Outputs).toHaveProperty('BetaImageIdentifier')
     })
   })
 
@@ -402,8 +400,8 @@ describe('orchestrate', () => {
         log: { debug: jest.fn() },
         _zipDir: stubZipDir,
       })
-      expect(template.Resources.RunnerImageLogGroup).toBeDefined()
-      expect(template.Resources.RunnerImageErrorsMetricFilter).toBeUndefined()
+      expect(template.Resources.RunnerLogGroup).toBeDefined()
+      expect(template.Resources.RunnerErrorsMetricFilter).toBeUndefined()
       expect(template.Resources.SandboxesDashboard).toBeUndefined()
     })
   })
@@ -425,7 +423,7 @@ describe('orchestrate', () => {
         log: { debug: jest.fn() },
         _zipDir: stubZipDir,
       })
-      const alarm = template.Resources.RunnerImageErrorsAlarm
+      const alarm = template.Resources.RunnerErrorsAlarm
       expect(alarm).toBeDefined()
       expect(alarm.Properties.AlarmActions).toEqual(['arn:sns:t'])
     })
@@ -458,10 +456,10 @@ describe('orchestrate', () => {
     test('tags every taggable resource the sandbox creates', () => {
       for (const id of [
         'RunnerImage',
-        'RunnerImageLogGroup',
+        'RunnerLogGroup',
         'RunnerImageBuildRole',
-        'RunnerImageExecutionRole',
-        'RunnerImageErrorsAlarm',
+        'RunnerExecutionRole',
+        'RunnerErrorsAlarm',
         'RunnerConnector',
         'RunnerConnectorOperatorRole',
       ]) {
@@ -478,7 +476,7 @@ describe('orchestrate', () => {
     })
 
     test('does NOT add Tags to AWS::Logs::MetricFilter (unsupported)', () => {
-      const mf = template.Resources.RunnerImageErrorsMetricFilter
+      const mf = template.Resources.RunnerErrorsMetricFilter
       expect(mf.Type).toBe('AWS::Logs::MetricFilter')
       expect(mf.Properties.Tags).toBeUndefined()
     })

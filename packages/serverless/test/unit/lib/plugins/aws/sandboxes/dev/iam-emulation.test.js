@@ -40,10 +40,10 @@ function defaultHandlers(overrides = {}) {
         {
           Outputs: [
             {
-              OutputKey: 'ApiImageArn',
+              OutputKey: 'ApiImageIdentifier',
               OutputValue: 'arn:aws:ecr:us-east-1:123456789012:repository/api',
             },
-            { OutputKey: 'ApiImageExecutionRoleArn', OutputValue: ROLE_ARN },
+            { OutputKey: 'ApiExecutionRoleArn', OutputValue: ROLE_ARN },
           ],
         },
       ],
@@ -81,7 +81,7 @@ function make(handlers) {
 }
 
 // resolveSandboxOutputs reads the per-sandbox `<ImageLogicalId>ExecutionRoleArn` output;
-// the fake above uses 'ApiImageExecutionRoleArn' for sandbox name 'api'.
+// the fake above uses 'ApiExecutionRoleArn' for sandbox name 'api'.
 
 test('setUp assumes the role and returns the credential env map', async () => {
   const { iam, provider } = make(defaultHandlers())

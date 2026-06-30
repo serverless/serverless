@@ -48,9 +48,9 @@ describe('naming', () => {
     expect(getLogicalId('my_runner', 'Image')).toBe('MyUnderscorerunnerImage')
   })
   test('getLogicalId caps over-long names within the CFN limit, keeping the suffix', () => {
-    const id = getLogicalId('x'.repeat(400), 'ImageExecutionRole')
+    const id = getLogicalId('x'.repeat(400), 'ExecutionRole')
     expect(id.length).toBeLessThanOrEqual(255)
-    expect(id.endsWith('ImageExecutionRole')).toBe(true)
+    expect(id.endsWith('ExecutionRole')).toBe(true)
     expect(id).toMatch(/^[A-Za-z0-9]+$/) // alphanumeric — a valid CFN logical id
   })
   test('getLogicalId keeps distinct long names distinct (hash suffix)', () => {

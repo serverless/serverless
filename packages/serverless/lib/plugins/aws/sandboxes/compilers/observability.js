@@ -92,7 +92,7 @@ export function compileMetricFilters(name, resolved, ctx, logGroupLogicalId) {
   if (!resolved.metrics.enabled) return {}
   const out = {}
   for (const [filterKey, pattern] of Object.entries(resolved.metrics.filters)) {
-    const logicalId = getLogicalId(name, `Image${cap(filterKey)}MetricFilter`)
+    const logicalId = getLogicalId(name, `${cap(filterKey)}MetricFilter`)
     out[logicalId] = {
       Type: 'AWS::Logs::MetricFilter',
       Properties: {
@@ -124,7 +124,7 @@ export function compileAlarms(name, resolved, ctx) {
       ...DEFAULT_THRESHOLD,
       ...(resolved.alarms.thresholds[filterKey] || {}),
     }
-    const logicalId = getLogicalId(name, `Image${cap(filterKey)}Alarm`)
+    const logicalId = getLogicalId(name, `${cap(filterKey)}Alarm`)
     out[logicalId] = {
       Type: 'AWS::CloudWatch::Alarm',
       Properties: {

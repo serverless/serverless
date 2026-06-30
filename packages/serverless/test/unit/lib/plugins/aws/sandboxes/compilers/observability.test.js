@@ -96,7 +96,7 @@ const ctx = { serviceName: 'svc', stage: 'dev' }
 
 test('compileMetricFilters: one filter → MetricFilter on the group with namespaced metric', () => {
   const r = resolveObservability(undefined)
-  const lg = getLogicalId('echo', 'ImageLogGroup')
+  const lg = getLogicalId('echo', 'LogGroup')
   const out = compileMetricFilters('echo', r, ctx, lg)
   const key = Object.keys(out)[0]
   const mf = out[key]

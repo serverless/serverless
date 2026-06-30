@@ -285,7 +285,7 @@ Permissions:
 - `s3:GetObject` on the deployment bucket (to fetch the artifact zip)
 - `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents` on `/aws/lambda-microvms/*`
 
-**Execution role** (`AWS::IAM::Role` — `<Name>ImageExecutionRole`)
+**Execution role** (`AWS::IAM::Role` — `<Name>ExecutionRole`)
 
 Permissions:
 
@@ -353,24 +353,27 @@ Supported forms: ARN string, `Ref`, `Fn::GetAtt`, `Fn::ImportValue`, `Fn::Sub`. 
 
 For each sandbox, `serverless deploy` creates the following CloudFormation resources:
 
-| Resource                          | Type                            | Condition                                                                         |
-| --------------------------------- | ------------------------------- | --------------------------------------------------------------------------------- |
-| `<Name>Image`                     | `AWS::Lambda::MicrovmImage`     | Always                                                                            |
-| `<Name>ImageBuildRole`            | `AWS::IAM::Role`                | Unless `iam.buildRole` is an external ref                                         |
-| `<Name>ImageExecutionRole`        | `AWS::IAM::Role`                | Unless `iam.executionRole` is an external ref                                     |
-| `<Name>Connector`                 | `AWS::Lambda::NetworkConnector` | Only when `vpc` is set                                                            |
-| `<Name>ConnectorOperatorRole`     | `AWS::IAM::Role`                | Only when `vpc` is set                                                            |
-| `<Name>ImageLogGroup`             | `AWS::Logs::LogGroup`           | Always                                                                            |
-| `<Name>Image<Filter>MetricFilter` | `AWS::Logs::MetricFilter`       | One per `observability.metrics.filters` entry (default `errors`)                  |
-| `<Name>Image<Filter>Alarm`        | `AWS::CloudWatch::Alarm`        | One per filter, only when `observability.alarms.notify` is set                    |
-| `SandboxesDashboard`              | `AWS::CloudWatch::Dashboard`    | One **per service** (not per sandbox), when any sandbox has the dashboard enabled |
+"Image" marks the image and its build role; the execution role, log group, and metrics/alarms are named for what they are at runtime.
 
-Stack outputs:
+| Resource                      | Type                            | Condition                                                                         |
+| ----------------------------- | ------------------------------- | --------------------------------------------------------------------------------- |
+| `<Name>Image`                 | `AWS::Lambda::MicrovmImage`     | Always                                                                            |
+| `<Name>ImageBuildRole`        | `AWS::IAM::Role`                | Unless `iam.buildRole` is an external ref                                         |
+| `<Name>ExecutionRole`         | `AWS::IAM::Role`                | Unless `iam.executionRole` is an external ref                                     |
+| `<Name>Connector`             | `AWS::Lambda::NetworkConnector` | Only when `vpc` is set                                                            |
+| `<Name>ConnectorOperatorRole` | `AWS::IAM::Role`                | Only when `vpc` is set                                                            |
+| `<Name>LogGroup`              | `AWS::Logs::LogGroup`           | Always                                                                            |
+| `<Name><Filter>MetricFilter`  | `AWS::Logs::MetricFilter`       | One per `observability.metrics.filters` entry (default `errors`)                  |
+| `<Name><Filter>Alarm`         | `AWS::CloudWatch::Alarm`        | One per filter, only when `observability.alarms.notify` is set                    |
+| `SandboxesDashboard`          | `AWS::CloudWatch::Dashboard`    | One **per service** (not per sandbox), when any sandbox has the dashboard enabled |
 
-| Output key           | Value                                                  |
-| -------------------- | ------------------------------------------------------ |
-| `<Name>ImageArn`     | ARN of the `MicrovmImage` resource                     |
-| `<Name>ConnectorArn` | ARN of the `NetworkConnector` (only when `vpc` is set) |
+Stack outputs (use these instead of hard-coding logical IDs):
+
+| Output key               | Value                                                                                    |
+| ------------------------ | ---------------------------------------------------------------------------------------- |
+| `<Name>ImageIdentifier`  | Image identifier — pass to `RunMicrovm` / `list-microvms` as `imageIdentifier`           |
+| `<Name>ExecutionRoleArn` | ARN of the role the running MicroVM assumes (pass to `RunMicrovm` as `executionRoleArn`) |
+| `<Name>ConnectorArn`     | ARN of the egress `NetworkConnector` (only when `vpc` is set)                            |
 
 CloudWatch logs are always shipped to the owned log group `/aws/lambda-microvms/<image-name>` (default 14-day retention). See [Observability](#observability).
 
@@ -542,12 +545,12 @@ observability:
 
 ### CloudFormation resources emitted
 
-| Resource                          | Type                         | Condition                                                      |
-| --------------------------------- | ---------------------------- | -------------------------------------------------------------- |
-| `<Name>ImageLogGroup`             | `AWS::Logs::LogGroup`        | **Always**                                                     |
-| `<Name>Image<Filter>MetricFilter` | `AWS::Logs::MetricFilter`    | One per `metrics.filters` entry (default `errors`)             |
-| `<Name>Image<Filter>Alarm`        | `AWS::CloudWatch::Alarm`     | One per filter, only when `alarms.notify` is set               |
-| `SandboxesDashboard`              | `AWS::CloudWatch::Dashboard` | One **per service** when any sandbox has the dashboard enabled |
+| Resource                     | Type                         | Condition                                                      |
+| ---------------------------- | ---------------------------- | -------------------------------------------------------------- |
+| `<Name>LogGroup`             | `AWS::Logs::LogGroup`        | **Always**                                                     |
+| `<Name><Filter>MetricFilter` | `AWS::Logs::MetricFilter`    | One per `metrics.filters` entry (default `errors`)             |
+| `<Name><Filter>Alarm`        | `AWS::CloudWatch::Alarm`     | One per filter, only when `alarms.notify` is set               |
+| `SandboxesDashboard`         | `AWS::CloudWatch::Dashboard` | One **per service** when any sandbox has the dashboard enabled |
 
 ### How error detection works
 
@@ -671,7 +674,7 @@ If you need to drive MicroVM instances from your own scripts or CI pipelines, th
 4. **Request** — `curl -H "X-aws-proxy-auth: <token>" -H "X-aws-proxy-port: 8080" "https://<endpoint>/hello"`
 5. **Terminate** — `aws lambda-microvms terminate-microvm --microvm-identifier <id>`
 
-The `<ImageArn>` is the `<Name>ImageArn` CloudFormation stack output. The execution role ARN is available in the stack resources as `<Name>ImageExecutionRole`.
+The `<ImageArn>` value is the `<Name>ImageIdentifier` CloudFormation stack output (despite the CLI flag name, it takes the image identifier). The execution role ARN is the `<Name>ExecutionRoleArn` stack output.
 
 ---
 

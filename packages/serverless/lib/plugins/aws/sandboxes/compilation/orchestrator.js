@@ -183,7 +183,7 @@ export async function orchestrate({
     const execRoleCfg = cfg.iam?.executionRole
 
     const buildRoleLogicalId = getLogicalId(name, 'ImageBuildRole')
-    const execRoleLogicalId = getLogicalId(name, 'ImageExecutionRole')
+    const execRoleLogicalId = getLogicalId(name, 'ExecutionRole')
 
     const buildRoleArn = resolveRole(buildRoleCfg, buildRoleLogicalId)
     const execRoleArn = resolveRole(execRoleCfg, execRoleLogicalId)
@@ -211,7 +211,7 @@ export async function orchestrate({
     //    turns it off entirely. ──
     const obs = resolveObservability(cfg.observability)
     const loggingDisabled = !obs.logs.enabled
-    const logGroupLogicalId = getLogicalId(name, 'ImageLogGroup')
+    const logGroupLogicalId = getLogicalId(name, 'LogGroup')
     const obsCtx = { serviceName, stage, region }
     // The group the MicroVM logs to: a custom `observability.logs.logGroup` or
     // the default. Threaded to the image (Logging) and to the IAM logs grant so
@@ -292,20 +292,24 @@ export async function orchestrate({
       template.Resources[connectorLogicalId] = connectorResource
 
       // Expose the connector ARN as a stack output for the data-plane run path.
-      template.Outputs[`${getLogicalId(name, 'Connector')}Arn`] = {
+      template.Outputs[`${connectorLogicalId}Arn`] = {
         Value: { Ref: connectorLogicalId },
+        Description: `Egress network connector ARN for the ${name} sandbox`,
       }
     }
 
     template.Resources[imageLogicalId] = imageResource
 
-    // Image ARN output.
-    template.Outputs[`${imageLogicalId}Arn`] = {
+    // Image identifier output. `Ref` on AWS::Lambda::MicrovmImage returns the
+    // image name/identifier (not an ARN) — this is what RunMicrovm/list-microvms
+    // take as `imageIdentifier`.
+    template.Outputs[`${imageLogicalId}Identifier`] = {
       Value: { Ref: imageLogicalId },
+      Description: `Image identifier for the ${name} sandbox (pass as imageIdentifier to RunMicrovm)`,
     }
 
     // Execution-role ARN output — invoke passes this to RunMicrovm.
-    template.Outputs[`${imageLogicalId}ExecutionRoleArn`] = {
+    template.Outputs[`${execRoleLogicalId}Arn`] = {
       Value: execRoleArn,
       Description: `Execution role ARN for the ${name} sandbox MicroVM`,
     }

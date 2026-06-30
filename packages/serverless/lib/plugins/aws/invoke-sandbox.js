@@ -73,14 +73,14 @@ class AwsInvokeSandbox {
       const reqPath = this.options.path || '/'
       const method = (this.options.method || 'GET').toUpperCase()
 
-      const { imageArn, executionRoleArn, connectorArn } =
+      const { imageIdentifier, executionRoleArn, connectorArn } =
         await resolveSandboxOutputs(this.provider, name)
       const client = await makeClient(this.provider)
 
       let microvmId
       try {
         const run = await runMicrovm(client, {
-          imageArn,
+          imageIdentifier,
           executionRoleArn,
           egressConnectorArn: connectorArn,
         })

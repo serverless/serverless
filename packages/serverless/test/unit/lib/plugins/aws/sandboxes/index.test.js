@@ -392,11 +392,9 @@ describe('end-to-end compile', () => {
       expect(template.Resources.MiniImageBuildRole.Type).toBe('AWS::IAM::Role')
     })
 
-    test('emits MiniImageExecutionRole (AWS::IAM::Role)', () => {
-      expect(template.Resources).toHaveProperty('MiniImageExecutionRole')
-      expect(template.Resources.MiniImageExecutionRole.Type).toBe(
-        'AWS::IAM::Role',
-      )
+    test('emits MiniExecutionRole (AWS::IAM::Role)', () => {
+      expect(template.Resources).toHaveProperty('MiniExecutionRole')
+      expect(template.Resources.MiniExecutionRole.Type).toBe('AWS::IAM::Role')
     })
 
     test('does NOT emit MiniConnector or MiniConnectorOperatorRole (no vpc)', () => {
@@ -404,9 +402,9 @@ describe('end-to-end compile', () => {
       expect(template.Resources).not.toHaveProperty('MiniConnectorOperatorRole')
     })
 
-    test('emits MiniImageArn Output referencing MiniImage', () => {
-      expect(template.Outputs).toHaveProperty('MiniImageArn')
-      expect(template.Outputs.MiniImageArn.Value).toEqual({
+    test('emits MiniImageIdentifier Output referencing MiniImage', () => {
+      expect(template.Outputs).toHaveProperty('MiniImageIdentifier')
+      expect(template.Outputs.MiniImageIdentifier.Value).toEqual({
         Ref: 'MiniImage',
       })
     })
@@ -537,11 +535,9 @@ describe('end-to-end compile', () => {
       expect(extraStmt.Action).toEqual(['s3:GetObject'])
     })
 
-    test('emits FullImageExecutionRole (AWS::IAM::Role)', () => {
-      expect(template.Resources).toHaveProperty('FullImageExecutionRole')
-      expect(template.Resources.FullImageExecutionRole.Type).toBe(
-        'AWS::IAM::Role',
-      )
+    test('emits FullExecutionRole (AWS::IAM::Role)', () => {
+      expect(template.Resources).toHaveProperty('FullExecutionRole')
+      expect(template.Resources.FullExecutionRole.Type).toBe('AWS::IAM::Role')
     })
 
     test('emits FullConnector (AWS::Lambda::NetworkConnector) for vpc sandbox', () => {
@@ -576,9 +572,9 @@ describe('end-to-end compile', () => {
       )
     })
 
-    test('emits FullImageArn Output referencing FullImage', () => {
-      expect(template.Outputs).toHaveProperty('FullImageArn')
-      expect(template.Outputs.FullImageArn.Value).toEqual({
+    test('emits FullImageIdentifier Output referencing FullImage', () => {
+      expect(template.Outputs).toHaveProperty('FullImageIdentifier')
+      expect(template.Outputs.FullImageIdentifier.Value).toEqual({
         Ref: 'FullImage',
       })
     })
@@ -601,10 +597,10 @@ describe('end-to-end compile', () => {
       const expectedKeys = [
         'MiniImage',
         'MiniImageBuildRole',
-        'MiniImageExecutionRole',
+        'MiniExecutionRole',
         'FullImage',
         'FullImageBuildRole',
-        'FullImageExecutionRole',
+        'FullExecutionRole',
         'FullConnector',
         'FullConnectorOperatorRole',
       ]
@@ -617,10 +613,10 @@ describe('end-to-end compile', () => {
 
     test('template has exactly 5 Outputs (image + execution-role ARNs for both sandboxes, plus FullConnectorArn — no MiniConnectorArn)', () => {
       const outputKeys = Object.keys(template.Outputs)
-      expect(outputKeys).toContain('MiniImageArn')
-      expect(outputKeys).toContain('MiniImageExecutionRoleArn')
-      expect(outputKeys).toContain('FullImageArn')
-      expect(outputKeys).toContain('FullImageExecutionRoleArn')
+      expect(outputKeys).toContain('MiniImageIdentifier')
+      expect(outputKeys).toContain('MiniExecutionRoleArn')
+      expect(outputKeys).toContain('FullImageIdentifier')
+      expect(outputKeys).toContain('FullExecutionRoleArn')
       expect(outputKeys).toContain('FullConnectorArn')
       expect(outputKeys).not.toContain('MiniConnectorArn')
       expect(outputKeys).toHaveLength(5)
@@ -629,9 +625,9 @@ describe('end-to-end compile', () => {
     test('all IAM roles use the Lambda trust principal (not network-connectors) except operator role', () => {
       const lambdaRoles = [
         'MiniImageBuildRole',
-        'MiniImageExecutionRole',
+        'MiniExecutionRole',
         'FullImageBuildRole',
-        'FullImageExecutionRole',
+        'FullExecutionRole',
       ]
       for (const roleId of lambdaRoles) {
         const principal =

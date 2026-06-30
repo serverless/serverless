@@ -24,11 +24,11 @@ async function cmd(name) {
 
 export async function runMicrovm(
   client,
-  { imageArn, executionRoleArn, egressConnectorArn },
+  { imageIdentifier, executionRoleArn, egressConnectorArn },
 ) {
   const RunMicrovmCommand = await cmd('RunMicrovmCommand')
   const input = {
-    imageIdentifier: imageArn,
+    imageIdentifier,
     executionRoleArn,
     // `invoke` is one-shot: no suspend window, no auto-resume, short idle. So a
     // MicroVM we fail to terminate explicitly (e.g. the CLI is killed mid-call)
@@ -127,9 +127,11 @@ export async function resolveSandboxOutputs(provider, sandboxName) {
   const connectorLogicalId = getLogicalId(sandboxName, 'Connector')
   const get = (key) =>
     stack.Outputs?.find((o) => o.OutputKey === key)?.OutputValue
-  const imageArn = get(`${imageLogicalId}Arn`)
-  const executionRoleArn = get(`${imageLogicalId}ExecutionRoleArn`)
-  if (!imageArn || !executionRoleArn) {
+  const imageIdentifier = get(`${imageLogicalId}Identifier`)
+  const executionRoleArn = get(
+    `${getLogicalId(sandboxName, 'ExecutionRole')}Arn`,
+  )
+  if (!imageIdentifier || !executionRoleArn) {
     throw new ServerlessError(
       `Sandbox '${sandboxName}' outputs not found in stack '${stackName}'. ` +
         `Make sure the sandbox is deployed.`,
@@ -137,7 +139,7 @@ export async function resolveSandboxOutputs(provider, sandboxName) {
     )
   }
   return {
-    imageArn,
+    imageIdentifier,
     executionRoleArn,
     connectorArn: get(`${connectorLogicalId}Arn`),
   }
