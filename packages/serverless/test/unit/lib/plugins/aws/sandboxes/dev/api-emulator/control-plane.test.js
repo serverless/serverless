@@ -557,6 +557,36 @@ test('CreateMicrovmAuthToken forwards the requested expiration to the registry',
   }
 })
 
+test('readiness probe targets loopback, not the control-plane bind host', async () => {
+  const probed = []
+  const registry = new EmulatorRegistry({
+    sandboxName: 'echo',
+    minimumMemoryInMiB: 2048,
+    imageArn: 'arn:local',
+    idFactory: () => 'mvm-1',
+  })
+  const cp = await startControlPlane({
+    registry,
+    containerManager: recordingContainerManager([]),
+    startProxy: fakeStartProxy,
+    setIntervalImpl: () => 0,
+    clearIntervalImpl: () => {},
+    host: '0.0.0.0', // bind the API to all interfaces
+    waitForPort: async (host, port) => {
+      probed.push({ host, port })
+      return true
+    },
+  })
+  try {
+    await req(cp.port, 'POST', '/microvms', {})
+    // The container's hook port is published on loopback regardless of which interface
+    // the control-plane API binds, so the probe must target 127.0.0.1, not `host`.
+    expect(probed[0].host).toBe('127.0.0.1')
+  } finally {
+    await cp.shutdown()
+  }
+})
+
 test('binds the requested control-plane port (stable, customizable endpoint)', async () => {
   // Discover a free port via an ephemeral bind, release it, then ask for it explicitly.
   const probe = await harness()

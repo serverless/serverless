@@ -249,8 +249,10 @@ export async function startControlPlane({
         if (typeof stop === 'function') logStops.set(microvmId, stop)
         // Let the container bind its hook server before delivering lifecycle hooks, so the
         // run-hook payload isn't POSTed to a not-yet-listening :9000 and lost. Best-effort + bounded.
+        // The hook port is published on loopback regardless of which interface the control-plane
+        // API binds (`host`), so probe 127.0.0.1 explicitly rather than reusing the bind address.
         const ready = await waitForPort(
-          host,
+          '127.0.0.1',
           inst.portMap[hookPort],
           readinessTimeoutMs,
         )
