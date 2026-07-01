@@ -47,7 +47,7 @@ describe('defineSandboxesSchema', () => {
     expect(sandboxSchema.properties.artifact.type).toBe('string')
   })
 
-  test('per-sandbox schema memory is an enum of valid MiB values', () => {
+  test('per-sandbox schema minimumMemory is an enum of valid MiB values', () => {
     defineSandboxesSchema(mockServerless)
     const sandboxSchema = capturedSandboxesSchema.additionalProperties
     expect(sandboxSchema.properties.minimumMemory.enum).toEqual([

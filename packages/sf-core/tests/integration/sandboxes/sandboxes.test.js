@@ -173,12 +173,12 @@ describe('Serverless Framework Service - Sandboxes', () => {
     const stack = Stacks[0]
     expect(stack.StackStatus).toBe('CREATE_COMPLETE')
 
-    // 2b. Image ARN must be present as a stack output
-    const imageArnOutput = stack.Outputs?.find(
-      (o) => o.OutputKey === 'EchoImageArn',
+    // 2b. Image identifier (the image ARN) must be present as a stack output
+    const imageIdentifierOutput = stack.Outputs?.find(
+      (o) => o.OutputKey === 'EchoImageIdentifier',
     )
-    expect(imageArnOutput).toBeDefined()
-    expect(imageArnOutput.OutputValue).toMatch(/^arn:aws:lambda/)
+    expect(imageIdentifierOutput).toBeDefined()
+    expect(imageIdentifierOutput.OutputValue).toMatch(/^arn:aws:lambda/)
 
     // 2c. At least one AWS::Lambda::MicrovmImage resource must exist
     const { StackResources } = await cfnClient.send(
@@ -191,7 +191,7 @@ describe('Serverless Framework Service - Sandboxes', () => {
     expect(microvmImageResource.ResourceStatus).toMatch(/COMPLETE$/)
 
     // 2d. GetMicrovmImage: state must be CREATED
-    const imageArn = imageArnOutput.OutputValue
+    const imageArn = imageIdentifierOutput.OutputValue
     const imageInfo = await microvmsClient.send(
       new GetMicrovmImageCommand({ imageIdentifier: imageArn }),
     )
@@ -248,18 +248,18 @@ describe('Serverless Framework Service - Sandboxes', () => {
     const stack = Stacks[0]
 
     const imageArn = stack.Outputs?.find(
-      (o) => o.OutputKey === 'EchoImageArn',
+      (o) => o.OutputKey === 'EchoImageIdentifier',
     )?.OutputValue
     expect(imageArn).toBeDefined()
 
     // The execution role is not a stack output; read it from StackResources via GetAtt equivalent.
-    // We look up the physical resource ID of EchoImageExecutionRole and derive its ARN from the
+    // We look up the physical resource ID of EchoExecutionRole and derive its ARN from the
     // account/region embedded in the image ARN.
     const { StackResources } = await cfnClient.send(
       new DescribeStackResourcesCommand({ StackName: stackName }),
     )
     const execRoleResource = StackResources?.find(
-      (r) => r.LogicalResourceId === 'EchoImageExecutionRole',
+      (r) => r.LogicalResourceId === 'EchoExecutionRole',
     )
     expect(execRoleResource).toBeDefined()
     // PhysicalResourceId for an IAM::Role is the role name; build the ARN
@@ -429,7 +429,7 @@ describe('Serverless Framework Service - Sandboxes', () => {
       new DescribeStacksCommand({ StackName: stackName }),
     )
     const roleName = Stacks[0].Outputs.find(
-      (o) => o.OutputKey === 'EchoImageExecutionRoleArn',
+      (o) => o.OutputKey === 'EchoExecutionRoleArn',
     )
       .OutputValue.split('/')
       .pop()

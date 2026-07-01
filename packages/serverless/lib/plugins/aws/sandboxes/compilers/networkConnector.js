@@ -19,7 +19,7 @@ function normalizeProtocol(protocol) {
  * Compile an AWS::Lambda::NetworkConnector resource for VPC egress.
  *
  * @param {string} name    - Sandbox runner name
- * @param {object} vpcCfg  - VPC configuration: { subnets, securityGroups, protocol }
+ * @param {object} vpcCfg  - VPC configuration: { subnetIds, securityGroupIds, protocol }
  * @param {object} ctx     - Deployment context: { serviceName, stage, region, operatorRoleArn }
  * @returns {object} CloudFormation AWS::Lambda::NetworkConnector resource object
  */

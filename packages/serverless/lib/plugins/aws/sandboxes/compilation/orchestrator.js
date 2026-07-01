@@ -301,8 +301,7 @@ export async function orchestrate({
     template.Resources[imageLogicalId] = imageResource
 
     // Image identifier output. `Ref` on AWS::Lambda::MicrovmImage returns the
-    // image name/identifier (not an ARN) — this is what RunMicrovm/list-microvms
-    // take as `imageIdentifier`.
+    // image ARN — this is what RunMicrovm/list-microvms take as `imageIdentifier`.
     template.Outputs[`${imageLogicalId}Identifier`] = {
       Value: { Ref: imageLogicalId },
       Description: `Image identifier for the ${name} sandbox (pass as imageIdentifier to RunMicrovm)`,

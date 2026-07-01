@@ -21,13 +21,13 @@ describe('validateSandboxes', () => {
       ),
     ).toThrow(/must be a local directory or an s3:\/\/ URI/i)
   })
-  test('rejects invalid memory', () => {
+  test('rejects invalid minimumMemory', () => {
     expect(() =>
       validateSandboxes(
         { a: { artifact: './x', minimumMemory: 3000 } },
         { throwError: err() },
       ),
-    ).toThrow(/memory must be one of/i)
+    ).toThrow(/minimumMemory must be one of/)
   })
   test('accepts a valid minimal config', () => {
     expect(() =>
