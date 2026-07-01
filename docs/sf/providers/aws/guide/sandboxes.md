@@ -215,6 +215,8 @@ hooks:
 
 > **Note:** Enabling any runtime hook (`run`, `resume`, `suspend`, or `terminate`) automatically enables the `ready` image hook as well.
 
+> **Hooks are opt-in notifications, not the lifecycle itself.** A MicroVM still runs, suspends, resumes, and terminates whether or not you declare the matching hook — enabling a hook only means your application is _notified_ at that point. If you need to act on a transition (flush state on `terminate`, re-open connections on `resume`), you must declare that hook; otherwise the transition happens silently with no callback to your code.
+
 ### Hook HTTP contract
 
 The Lambda runtime posts to:
@@ -223,7 +225,7 @@ The Lambda runtime posts to:
 POST http://localhost:<port>/aws/lambda-microvms/runtime/v1/<hook-name>
 ```
 
-Your server must respond with HTTP 200 within the configured timeout. A non-200 response or timeout causes the lifecycle step to fail. A minimal Python implementation:
+Your server must respond with HTTP 200 within the configured timeout. A non-200 response or timeout causes the lifecycle step to fail. **Respond 200 promptly and do any heavy work asynchronously** — the `run` and `resume` timeouts default to just **2 seconds**, so a handler that runs the actual workload before replying will trip the timeout and fail the step. Acknowledge first, then process. A minimal Python implementation:
 
 ```python
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -444,6 +446,8 @@ Prints the recent window of log events from the sandbox's CloudWatch log group `
 ## Observability
 
 Observability is **on by default**. Every sandbox automatically gets a CloudWatch log group, an error metric filter, and a section in the service's CloudWatch dashboard (one dashboard per service). You do not need to add anything to `serverless.yml` to enable monitoring.
+
+When a dashboard is created, `serverless deploy` prints its console URL in the deploy summary as a `dashboard` line, so you can open it straight from the terminal.
 
 ### Log group
 
@@ -675,6 +679,30 @@ If you need to drive MicroVM instances from your own scripts or CI pipelines, th
 5. **Terminate** — `aws lambda-microvms terminate-microvm --microvm-identifier <id>`
 
 The `<ImageArn>` value is the `<Name>ImageIdentifier` CloudFormation stack output (despite the CLI flag name, it takes the image identifier). The execution role ARN is the `<Name>ExecutionRoleArn` stack output.
+
+> **Caller IAM — passing network connectors:** `run-microvm` attaches network connectors to each instance (an HTTP-ingress connector so the platform can deliver hooks and proxy requests, plus any egress connector), and the caller must be allowed to pass each one. Grant `lambda:PassNetworkConnector` for every connector ARN you attach — for example `arn:aws:lambda:<region>:aws:network-connector:aws-network-connector:HTTP_INGRESS` and `…:INTERNET_EGRESS`. A missing grant surfaces as an `AccessDeniedException` that names `PassNetworkConnector` and the specific connector; add the permission for the named connector to resolve it. This is in addition to `iam:PassRole` for the execution role.
+
+### Instance lifecycle and idle policy
+
+A running instance moves through `RUNNING → SUSPENDED → TERMINATED`. The **idle policy** you pass to `run-microvm` controls the two automatic gates between those states — they run **in sequence**, not as alternatives:
+
+<!-- prettier-ignore -->
+```
+            idle for maxIdleDurationSeconds          suspended for suspendedDurationSeconds
+   RUNNING ─────────────────────────────────▶ SUSPENDED ──────────────────────────────────▶ TERMINATED
+      ▲                                            │
+      └──────────── request arrives ──────────────┘   (only when autoResumeEnabled: true)
+```
+
+| Field                      | Meaning                                                                | AWS default |
+| -------------------------- | ---------------------------------------------------------------------- | ----------- |
+| `maxIdleDurationSeconds`   | How long an instance may stay idle while `RUNNING` before it suspends  | 300         |
+| `suspendedDurationSeconds` | How long an instance stays `SUSPENDED` before it terminates            | 300         |
+| `autoResumeEnabled`        | Whether inbound traffic resumes a suspended instance back to `RUNNING` | —           |
+
+So an idle instance is reclaimed after roughly `maxIdleDurationSeconds + suspendedDurationSeconds`. Pass `maximumDurationInSeconds` (max **28,800** — 8 hours) as a hard ceiling that applies regardless of activity.
+
+> **"Idle" means no inbound traffic at the MicroVM's endpoint URL — not "no code running."** AWS measures idle time by requests arriving at the endpoint, so the timer resets on each request and is unaffected by what your code is doing. A worker that does only outbound work (for example, polls a queue, runs a task, then exits) looks idle to the policy even while it is busy. For workers like that, rely on the process exiting — or on `maximumDurationInSeconds` — to end the instance, and give `maxIdleDurationSeconds` enough headroom that an actively-working instance is never suspended out from under itself.
 
 ---
 
