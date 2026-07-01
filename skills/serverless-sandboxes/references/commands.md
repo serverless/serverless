@@ -1,0 +1,140 @@
+# CLI commands for sandboxes
+
+Two command surfaces apply to a sandbox: the Serverless Framework CLI
+(deploy, invoke, logs, dev, rollback, remove) and the AWS CLI against the
+Lambda MicroVMs and Lambda control planes (`aws lambda-microvms`,
+`aws lambda-core`) for direct instance and connector operations.
+
+## Framework CLI
+
+### `serverless deploy`
+
+Builds the sandbox's image in the cloud — this is a real Firecracker
+snapshot build and takes minutes, not seconds. Let it run; killing a
+slow-looking deploy and retrying only restarts the build from scratch.
+
+If the sandbox's `observability` block has its dashboard enabled, the
+deploy summary includes a `dashboard:` line with the CloudWatch console URL
+for the service-level dashboard. A bare `serverless package` never triggers
+this — the dashboard URL only appears on `deploy`.
+
+Artifacts are content-addressed: deploying again with no change to the
+uploaded zip or Dockerfile content is a no-op and skips the rebuild. Any
+change to the artifact — even one that produces byte-identical output under
+a different reference — is enough to trigger a new build.
+
+### `serverless invoke --sandbox <name> [--method GET --path /]`
+
+```bash
+serverless invoke --sandbox app --method GET --path /health
+```
+
+`--sandbox <name>` is required on every call, even when the service defines
+only one sandbox — there is no implicit default the way there can be for a
+single function. Omitting it fails with a "specify which sandbox" error
+listing the available names.
+
+Each invocation launches a fresh MicroVM instance, waits for it to reach
+`RUNNING`, sends the one HTTP request, and terminates the instance
+afterward — it is not a way to reach a long-lived, already-running
+instance. Use `--method` (default `GET`) and `--path` (default `/`) to
+shape the request; pass `--data` for a body on non-`GET` methods. `--port`
+selects which container port to call (default `8080`).
+
+### `serverless logs --sandbox <name> [--startTime 30m]`
+
+```bash
+serverless logs --sandbox app
+serverless logs --sandbox app --startTime 30m
+```
+
+`--sandbox <name>` is required, same rule as `invoke`. The default window
+is the **last 10 minutes** — pass `--startTime` to widen it, either as a
+relative offset (e.g. `30m`, `2h`, `1d`) or an absolute timestamp. There is
+no `--tail`/follow mode for sandbox logs: passing `--tail` is accepted but
+ignored with a warning, and the command always prints the resolved window
+and exits rather than streaming.
+
+### `serverless dev --sandbox <name>`
+
+Runs the sandbox locally against an emulator instead of deploying. See
+`references/dev-mode.md` for the full loop (piping output, driving the
+emulator with the AWS CLI, reading the log markers, IAM emulation).
+
+### `serverless deploy list` / `serverless rollback --timestamp <ts>`
+
+```bash
+serverless deploy list
+serverless rollback --timestamp <ts>
+```
+
+Both work for sandboxes with no special casing — they use the same
+deployment-history mechanism as the rest of the framework. Because
+artifacts are content-addressed, old images are not deleted as new ones are
+deployed; they accumulate and remain available to roll back to until
+`serverless remove` tears down the stack.
+
+### `serverless remove`
+
+Tears down the sandbox's stack, including the log group the sandbox owns
+(the CloudWatch log group is a stack resource, not retained separately —
+removing the stack removes the logs with it).
+
+Terminate any running MicroVM instances first. An instance that is still
+`RUNNING` or `SUSPENDED` references the image it was launched from, and an
+active reference can block the image resource from being deleted during
+stack removal. Use `aws lambda-microvms list-microvms` to find instances
+against the sandbox's image and `terminate-microvm` on each before removing.
+
+### `serverless info --json`
+
+Every sandbox exposes its stack outputs under the logical ID of its image
+and execution role, not a fixed name — read them instead of hard-coding a
+logical ID that can change between services:
+
+- `<Name>ImageIdentifier` — the image ARN. Pass this value as
+  `imageIdentifier` to `run-microvm`, `get-microvm`, and `list-microvms
+  --image-identifier`.
+- `<Name>ExecutionRoleArn` — the IAM role instances of this sandbox run as.
+
+```bash
+serverless info --json | jq -r '.outputs[] | select(.OutputKey=="<Name>ImageIdentifier").OutputValue'
+```
+
+Substitute the sandbox's actual logical-ID prefix for `<Name>` — it derives
+from the sandbox name, not a constant string.
+
+## AWS CLI
+
+### `aws lambda-microvms`
+
+Direct control-plane operations against MicroVM instances and images. All
+of these accept `--endpoint-url` (or `AWS_ENDPOINT_URL_LAMBDA_MICROVMS`) to
+target the local `dev` emulator instead of the real service — see
+`references/dev-mode.md`.
+
+- **`run-microvm`** — launch a new instance from an image identifier.
+  Returns `microvmId`, `state`, and the proxied `endpoint`.
+- **`get-microvm --microvm-identifier <id>`** — fetch current state. On an
+  unexpected `TERMINATED` state, check `stateReason` — it names which hook
+  failed (or which idle/duration limit was hit) rather than leaving you to
+  guess.
+- **`list-microvms --image-identifier <arn> --query 'items[].[microvmId,state]'`**
+  — list instances for a given image. The response's list key is `items`
+  (not `microvms` or `instances`) — the `--query` above reflects that.
+- **`suspend-microvm`** / **`resume-microvm`** — manually move an instance
+  between `RUNNING` and `SUSPENDED` outside the automatic idle policy.
+- **`terminate-microvm --microvm-identifier <id>`** — stop an instance for
+  good; do this before `serverless remove` for any instance still
+  referencing the sandbox's image.
+- **`create-microvm-auth-token --microvm-identifier <id> --expiration-in-minutes <n> --allowed-ports <spec>`**
+  — mint the token required in the `X-aws-proxy-auth` header to call an
+  instance's endpoint directly.
+
+### `aws lambda-core create-network-connector`
+
+Creates an `AWS::Lambda::NetworkConnector` for VPC egress independently of
+a `serverless deploy` (the framework creates one automatically when a
+sandbox's `vpc` block is set — see `references/config.md`). The operator
+role that calls this needs the `AWSLambdaNetworkConnectorOperatorPolicy`
+managed policy attached.
