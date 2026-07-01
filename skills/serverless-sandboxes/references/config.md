@@ -20,6 +20,7 @@ over by analogy; check this table first.
 | `minimumMemory` | enum | no | `2048` | One of `512 \| 1024 \| 2048 \| 4096 \| 8192` (MiB). vCPU count is memory-in-GB ÷ 2. Architecture is fixed at ARM64/Graviton. Instances may burst up to 4× their baseline vCPU. Disk scales with the tier: 8 GB disk at ≤2 GB memory, 16 GB disk at 4 GB memory, 32 GB disk at 8 GB memory. |
 | `description` | string | no | `"<service> <name> sandbox (Serverless Framework)"` | Free-text image description. |
 | `environment` | object (string values) | no | `{}` | Environment variables baked into the image at build time. Identical for every instance booted from that image — there is no per-instance environment override; instance-specific data goes through the `run` hook payload instead. |
+| `osCapabilities` | array | no | — | Additional Linux OS capabilities granted to the instance. Allowed value: `all` (case-insensitive). Advanced setting. |
 | `tags` | object (string values) | no | `{}` | Applied to the sandbox's taggable resources. |
 | `hooks` | object | no | — | See `## Hooks` below. |
 | `vpc` | object | no | — | See `## VPC` below. |
@@ -48,6 +49,8 @@ sandboxes:
     description: Interactive code-execution sandbox
     environment:
       LOG_LEVEL: debug
+    # osCapabilities:
+    #   - all
     tags:
       team: platform
     hooks:
@@ -124,7 +127,8 @@ until the hook's timeout elapses.
 
 - `subnetIds` — subnets to place instances in. All subnets must belong to a
   single VPC.
-- `securityGroupIds` — security groups to attach.
+- `securityGroupIds` — security groups to attach. At least one entry is
+  required once `vpc` is set (enforced at validation).
 - `protocol` — `ipv4` or `dualstack`.
 
 Pick subnets by **AZ ID** (e.g. `use1-az3`), not by availability-zone name —
@@ -151,7 +155,10 @@ still runs; you just lose the owned logging/metrics/dashboard resources).
 
 To customize instead of disabling, use the nested object form:
 
+- `logs.enabled` — boolean; enable/disable log group creation. Defaults to `true`.
 - `logs.retentionDays` — override the 14-day default.
+- `logs.logGroup` — custom log-group name override (defaults to `/aws/lambda-microvms/<image-name>`).
+- `metrics.enabled` — boolean; enable/disable metric filters. Defaults to `true`.
 - `metrics.filters` — a map of filter name → CloudWatch Logs filter pattern,
   replacing the default error filter.
 - `alarms.notify` — required to enable alarms at all; an SNS topic ARN (or
@@ -164,10 +171,28 @@ To customize instead of disabling, use the nested object form:
 
 ## IAM
 
-`iam.executionRole.statements` and `iam.executionRole.managedPolicies` are
-merged into the least-privilege execution role the framework generates for
-the sandbox — they extend it, they don't replace it. Add only the specific
+`iam.executionRole` and `iam.buildRole` each accept one of three forms:
+
+1. **Customization object** — `{ statements: [...], managedPolicies: [...], permissionsBoundary: "..." }` — extends the generated role.
+2. **Existing role ARN string** — an existing IAM role ARN (`arn:aws:iam::111122223333:role/...`) — skips generation and uses that role as-is.
+3. **CloudFormation intrinsic** — `{ Ref: "..." }`, `{ Fn::GetAtt: [...] }`, `{ Fn::ImportValue: "..." }`, or `{ Fn::Sub: "..." }` — resolves to an existing role ARN and skips generation.
+
+When using the customization object form, `statements` and `managedPolicies`
+are merged into the least-privilege execution/build role the framework
+generates — they extend it, they don't replace it. Add only the specific
 per-sandbox statements your instance code needs (e.g. access to one bucket
 or table); never point `executionRole` at a broad, pre-existing role as a
-shortcut. The same shape (`statements` / `managedPolicies`) is also available
-under `iam.buildRole` for permissions needed only during the image build.
+shortcut.
+
+Example using an existing role:
+```yaml
+iam:
+  executionRole: arn:aws:iam::111122223333:role/MyExistingRole
+```
+
+Example using CloudFormation:
+```yaml
+iam:
+  executionRole:
+    Fn::ImportValue: SharedExecutionRoleArn
+```
