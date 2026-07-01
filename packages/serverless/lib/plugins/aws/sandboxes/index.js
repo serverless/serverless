@@ -5,6 +5,7 @@ import fsPromises from 'fs/promises'
 import { defineSandboxesSchema } from './validators/schema.js'
 import { validateSandboxes } from './validators/config.js'
 import { orchestrate } from './compilation/orchestrator.js'
+import { dashboardConsoleUrl } from './compilers/observability.js'
 import { uploadArtifact } from './packaging/artifact.js'
 import { persistArtifacts, readUploadManifest } from './packaging/persist.js'
 
@@ -166,6 +167,22 @@ class ServerlessSandboxes {
       pendingUploads,
       fs: this._fs,
     })
+
+    // Surface the CloudWatch dashboard URL in the post-deploy summary (alongside
+    // endpoints/functions). The `SandboxesDashboard` resource exists only when
+    // observability is enabled; the URL comes from the dashboard compiler's own
+    // naming helper, so it can't drift from the deployed DashboardName. Only on
+    // `deploy` — a bare `package` doesn't create the dashboard.
+    if (
+      template.Resources.SandboxesDashboard &&
+      typeof this.serverless.addServiceOutputSection === 'function' &&
+      this.serverless.processedInput?.commands?.join(' ') === 'deploy'
+    ) {
+      this.serverless.addServiceOutputSection(
+        'dashboard',
+        dashboardConsoleUrl(ctx),
+      )
+    }
 
     this.resourcesCompiled = true
   }

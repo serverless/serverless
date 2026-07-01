@@ -38,6 +38,8 @@ const makeServerless = (sandboxes, providerOverride) => {
     },
     getProvider: () => provider,
     configSchemaHandler: { defineTopLevelProperty: jest.fn() },
+    addServiceOutputSection: jest.fn(),
+    processedInput: { commands: ['deploy'] },
     classes: { Error },
   }
 }
@@ -112,6 +114,44 @@ describe('ServerlessSandboxes', () => {
       sls.service.provider.compiledCloudFormationTemplate.Resources
     expect(resources).toHaveProperty('RunnerImage')
     expect(resources.RunnerImage.Type).toBe('AWS::Lambda::MicrovmImage')
+  })
+
+  test('compile() surfaces the CloudWatch dashboard URL via addServiceOutputSection (observability on by default)', async () => {
+    const sls = makeServerless({
+      runner: { artifact: 's3://bucket/artifact.zip' },
+    })
+    const p = new ServerlessSandboxes(sls, {}, { log: { debug: jest.fn() } })
+    await p.compile()
+    // Dashboard name is `${service}-${stage}-sandboxes`; region from the provider.
+    expect(sls.addServiceOutputSection).toHaveBeenCalledWith(
+      'dashboard',
+      'https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards/dashboard/svc-dev-sandboxes',
+    )
+  })
+
+  test('compile() does NOT surface a dashboard URL on a bare `package` (no deploy)', async () => {
+    const sls = makeServerless({
+      runner: { artifact: 's3://bucket/artifact.zip' },
+    })
+    sls.processedInput = { commands: ['package'] }
+    const p = new ServerlessSandboxes(sls, {}, { log: { debug: jest.fn() } })
+    await p.compile()
+    const dashboardCall = sls.addServiceOutputSection.mock.calls.find(
+      ([section]) => section === 'dashboard',
+    )
+    expect(dashboardCall).toBeUndefined()
+  })
+
+  test('compile() does NOT surface a dashboard URL when observability is disabled', async () => {
+    const sls = makeServerless({
+      runner: { artifact: 's3://bucket/artifact.zip', observability: false },
+    })
+    const p = new ServerlessSandboxes(sls, {}, { log: { debug: jest.fn() } })
+    await p.compile()
+    const dashboardCall = sls.addServiceOutputSection.mock.calls.find(
+      ([section]) => section === 'dashboard',
+    )
+    expect(dashboardCall).toBeUndefined()
   })
 
   test('compile() throws a clear error when the provider returns no base image versions', async () => {

@@ -302,6 +302,33 @@ export function buildDashboardWidgets(name, resolved, ctx) {
 }
 
 /**
+ * The service dashboard's physical name — the single source of truth, shared
+ * by the resource below and the console URL printed in the deploy summary.
+ *
+ * @param {object} ctx - { serviceName, stage }
+ * @returns {string}
+ */
+export function dashboardName(ctx) {
+  return `${ctx.serviceName}-${ctx.stage}-sandboxes`
+}
+
+/**
+ * Console deep link to the service dashboard. Partition-aware: the China and
+ * GovCloud consoles live on different domains.
+ *
+ * @param {object} ctx - { serviceName, stage, region }
+ * @returns {string}
+ */
+export function dashboardConsoleUrl(ctx) {
+  const domain = ctx.region.startsWith('cn-')
+    ? 'console.amazonaws.cn'
+    : ctx.region.startsWith('us-gov-')
+      ? 'console.amazonaws-us-gov.com'
+      : 'console.aws.amazon.com'
+  return `https://${ctx.region}.${domain}/cloudwatch/home?region=${ctx.region}#dashboards/dashboard/${encodeURIComponent(dashboardName(ctx))}`
+}
+
+/**
  * Assemble the single per-service dashboard from per-sandbox widget sections.
  * Each section is preceded by a full-width text widget header (its sandbox
  * name) so one dashboard cleanly shows every sandbox in the service.
@@ -336,7 +363,7 @@ export function compileServiceDashboard(sections, ctx) {
     SandboxesDashboard: {
       Type: 'AWS::CloudWatch::Dashboard',
       Properties: {
-        DashboardName: `${ctx.serviceName}-${ctx.stage}-sandboxes`,
+        DashboardName: dashboardName(ctx),
         DashboardBody: dashboardBody,
       },
     },
