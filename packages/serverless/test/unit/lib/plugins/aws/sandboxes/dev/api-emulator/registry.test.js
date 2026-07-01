@@ -72,6 +72,34 @@ test('token issue/validate is per-instance; allowedPorts gates ports', () => {
   expect(r.isPortAllowed(id, 9999)).toBe(false)
 })
 
+test('allowedPorts accepts the {port: N} spec shape from the real API', () => {
+  const r = make()
+  const id = r.createInstance({ portMap: {}, stopFn: noop, idlePolicy: POLICY })
+  r.issueToken(id, [{ port: 9000 }])
+  expect(r.isPortAllowed(id, 9000)).toBe(true)
+  expect(r.isPortAllowed(id, 8080)).toBe(false)
+})
+
+test('allowedPorts accepts the {range: {startPort, endPort}} spec shape (inclusive bounds)', () => {
+  const r = make()
+  const id = r.createInstance({ portMap: {}, stopFn: noop, idlePolicy: POLICY })
+  r.issueToken(id, [{ range: { startPort: 8000, endPort: 8100 } }])
+  expect(r.isPortAllowed(id, 8000)).toBe(true)
+  expect(r.isPortAllowed(id, 8080)).toBe(true)
+  expect(r.isPortAllowed(id, 8100)).toBe(true)
+  expect(r.isPortAllowed(id, 8101)).toBe(false)
+  expect(r.isPortAllowed(id, 7999)).toBe(false)
+})
+
+test('allowedPorts accepts the {allPorts: {}} spec shape (every port allowed)', () => {
+  const r = make()
+  const id = r.createInstance({ portMap: {}, stopFn: noop, idlePolicy: POLICY })
+  r.issueToken(id, [{ allPorts: {} }])
+  expect(r.isPortAllowed(id, 1)).toBe(true)
+  expect(r.isPortAllowed(id, 8080)).toBe(true)
+  expect(r.isPortAllowed(id, 65535)).toBe(true)
+})
+
 test('a token is rejected once its expiration window passes', () => {
   const c = clock()
   const r = make(c.now)

@@ -142,6 +142,10 @@ export async function startControlPlane({
   clearIntervalImpl = clearInterval,
   reapIntervalMs = 5000,
   fireHook = async () => {},
+  // Whether the sandbox declares any lifecycle hooks. When false, RunMicrovm skips the
+  // hook-port readiness wait entirely — nothing will ever bind that port, so waiting only
+  // delays the launch and ends in a misleading "not ready" warning.
+  hooksEnabled = true,
   hookPort = 9000,
   readinessTimeoutMs = 15000,
   waitForPort = defaultWaitForPort,
@@ -251,16 +255,19 @@ export async function startControlPlane({
         // run-hook payload isn't POSTed to a not-yet-listening :9000 and lost. Best-effort + bounded.
         // The hook port is published on loopback regardless of which interface the control-plane
         // API binds (`host`), so probe 127.0.0.1 explicitly rather than reusing the bind address.
-        const ready = await waitForPort(
-          '127.0.0.1',
-          inst.portMap[hookPort],
-          readinessTimeoutMs,
-        )
-        // A silent readiness timeout would make the hooks below quietly not fire; say so.
-        if (!ready)
-          logger.aside(
-            `⚠ ${short} not ready after ${Math.round(readinessTimeoutMs / 1000)}s — hooks may not have been delivered`,
+        // Skipped entirely when the sandbox declares no hooks: nothing ever binds the hook port.
+        if (hooksEnabled) {
+          const ready = await waitForPort(
+            '127.0.0.1',
+            inst.portMap[hookPort],
+            readinessTimeoutMs,
           )
+          // A silent readiness timeout would make the hooks below quietly not fire; say so.
+          if (!ready)
+            logger.aside(
+              `⚠ ${short} not ready after ${Math.round(readinessTimeoutMs / 1000)}s — hooks may not have been delivered`,
+            )
+        }
         // Deliver the lifecycle hooks AND enforce the platform's gate: a non-2xx ready/run is a
         // failure, not just a log line. The platform fails the MicrovmImage build on a bad `ready`
         // and TERMINATES the VM on a bad `run`. Mirror that so dev
@@ -335,16 +342,27 @@ export async function startControlPlane({
     },
 
     CreateMicrovmAuthToken: (_req, body, params) => {
-      const ports = (body?.allowedPorts || [{ port: 8080 }]).map((p) => p.port)
+      // Pass the allowedPorts specs through unchanged — the real API accepts {port},
+      // {range: {startPort, endPort}}, and {allPorts: {}}; the registry matches them.
+      const specs = body?.allowedPorts?.length
+        ? body.allowedPorts
+        : [{ port: 8080 }]
       const token = registry.issueToken(
         params.microvmIdentifier,
-        ports,
+        specs,
         body?.expirationInMinutes,
       )
       if (!token) return notFound(params.microvmIdentifier)
+      const described = specs.map((s) =>
+        s.allPorts !== undefined
+          ? 'all'
+          : s.range
+            ? `${s.range.startPort}-${s.range.endPort}`
+            : s.port,
+      )
       // Internal proxy handshake — useful for debugging, noise for everyday use; keep at debug.
       logger.debug?.(
-        `auth token issued ${shortMicrovmId(params.microvmIdentifier)} ports=[${ports.join(',')}]`,
+        `auth token issued ${shortMicrovmId(params.microvmIdentifier)} ports=[${described.join(',')}]`,
       )
       return { authToken: { 'X-aws-proxy-auth': token } }
     },

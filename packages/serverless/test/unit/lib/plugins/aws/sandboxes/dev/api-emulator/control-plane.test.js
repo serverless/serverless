@@ -46,7 +46,7 @@ function recordingContainerManager(containers) {
 // startProxy stub: avoids opening real per-instance servers in unit tests.
 const fakeStartProxy = async () => ({ server: { close() {} }, port: 40001 })
 
-async function harness({ c, fireHook, port } = {}) {
+async function harness({ c, fireHook, port, ...overrides } = {}) {
   const containers = []
   const registry = new EmulatorRegistry({
     sandboxName: 'echo',
@@ -67,6 +67,7 @@ async function harness({ c, fireHook, port } = {}) {
     waitForPort: async () => true, // fake containers have no real port to probe; skip the readiness wait
     ...(port !== undefined ? { port } : {}), // default 0 (ephemeral) keeps concurrent tests collision-free
     ...(fireHook ? { fireHook } : {}),
+    ...overrides,
   })
   return { cp, registry, containers }
 }
@@ -528,6 +529,54 @@ test('tears down the container when readiness probing throws mid-launch', async 
   }
 })
 
+test('CreateMicrovmAuthToken accepts the {allPorts: {}} and {range} spec shapes from the real API', async () => {
+  const { cp, registry } = await harness()
+  try {
+    const run = await req(cp.port, 'POST', '/microvms', {
+      imageIdentifier: 'arn:local',
+    })
+    const id = run.json.microvmId
+
+    // {allPorts: {}} — every port must be allowed (real AWS accepts this shape).
+    const all = await req(cp.port, 'POST', `/microvms/${id}/auth-token`, {
+      allowedPorts: [{ allPorts: {} }],
+    })
+    expect(all.json.authToken['X-aws-proxy-auth']).toBeTruthy()
+    expect(registry.isPortAllowed(id, 8080)).toBe(true)
+    expect(registry.isPortAllowed(id, 12345)).toBe(true)
+
+    // {range: {startPort, endPort}} — ports inside the range allowed, outside denied.
+    await req(cp.port, 'POST', `/microvms/${id}/auth-token`, {
+      allowedPorts: [{ range: { startPort: 9000, endPort: 9100 } }],
+    })
+    expect(registry.isPortAllowed(id, 9050)).toBe(true)
+    expect(registry.isPortAllowed(id, 8080)).toBe(false)
+  } finally {
+    await cp.shutdown()
+  }
+})
+
+test('RunMicrovm skips the hook-port readiness wait (and its warning) when hooks are disabled', async () => {
+  const waitForPort = jest.fn(async () => false) // would warn if it ran
+  const asides = []
+  const { cp } = await harness({
+    hooksEnabled: false,
+    waitForPort,
+    logger: { aside: (l) => asides.push(l), notice() {}, debug() {} },
+  })
+  try {
+    const run = await req(cp.port, 'POST', '/microvms', {
+      imageIdentifier: 'arn:local',
+    })
+    expect(run.status).toBe(200)
+    expect(run.json.state).toBe('RUNNING')
+    expect(waitForPort).not.toHaveBeenCalled()
+    expect(asides.join('\n')).not.toMatch(/not ready after/)
+  } finally {
+    await cp.shutdown()
+  }
+})
+
 test('CreateMicrovmAuthToken forwards the requested expiration to the registry', async () => {
   const containers = []
   const registry = new EmulatorRegistry({
@@ -551,7 +600,8 @@ test('CreateMicrovmAuthToken forwards the requested expiration to the registry',
       allowedPorts: [{ port: 8080 }],
       expirationInMinutes: 15,
     })
-    expect(issueSpy).toHaveBeenCalledWith('mvm-1', [8080], 15)
+    // allowedPorts specs pass through to the registry unchanged (it owns the matching).
+    expect(issueSpy).toHaveBeenCalledWith('mvm-1', [{ port: 8080 }], 15)
   } finally {
     await cp.shutdown()
   }

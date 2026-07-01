@@ -210,6 +210,7 @@ class SandboxesDevMode {
         registry,
         containerManager,
         fireHook,
+        hooksEnabled: enabledHooks.size > 0,
         port: this.ctx.controlPlanePort,
         logger: this.logger,
         attachLogs: (containerName, microvmId) =>

@@ -104,9 +104,14 @@ export class EmulatorRegistry {
     const inst = this._instances.get(microvmId)
     if (!inst) return null
     inst.token = crypto.randomUUID()
+    // Real-API spec shapes — {port}, {range: {startPort, endPort}}, {allPorts: {}} — plus bare
+    // numbers from internal callers. Stored normalized; matching happens in isPortAllowed
+    // (a range may span thousands of ports, so it is never expanded into a list).
     inst.allowedPorts = (
       allowedPorts && allowedPorts.length ? allowedPorts : [8080]
-    ).map(Number)
+    ).map((s) =>
+      typeof s === 'object' && s !== null ? s : { port: Number(s) },
+    )
     const minutes =
       Number(expirationInMinutes) > 0
         ? Number(expirationInMinutes)
@@ -125,7 +130,15 @@ export class EmulatorRegistry {
   isPortAllowed(microvmId, port) {
     const inst = this._instances.get(microvmId)
     if (!inst || !inst.allowedPorts) return false
-    return inst.allowedPorts.includes(Number(port))
+    const p = Number(port)
+    return inst.allowedPorts.some(
+      (s) =>
+        s.allPorts !== undefined ||
+        (s.port !== undefined && Number(s.port) === p) ||
+        (s.range &&
+          p >= Number(s.range.startPort) &&
+          p <= Number(s.range.endPort)),
+    )
   }
 
   terminate(microvmId) {
