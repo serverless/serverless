@@ -7,6 +7,8 @@
  * and STS credential management.
  */
 
+import { GetRoleCommand } from '@aws-sdk/client-iam'
+
 /**
  * The SID used for local dev trust policy statements.
  * This allows Serverless Framework to identify and update
@@ -203,6 +205,51 @@ export function normalizeAssumedRoleArn(arn) {
   }
 
   return `arn:${partition}:iam::${accountId}:role/${roleName}`
+}
+
+/**
+ * Resolve the IAM principal ARN to put in the local dev trust policy.
+ *
+ * normalizeAssumedRoleArn() can only rebuild the IAM role ARN from the STS
+ * assumed-role session ARN, but that session ARN does not carry the role's
+ * IAM path. For IAM Identity Center (SSO) roles the real ARN contains a region
+ * segment that the session ARN omits:
+ *   arn:aws:iam::ACCOUNT:role/aws-reserved/sso.amazonaws.com/<region>/AWSReservedSSO_...
+ * Rebuilding it without that segment yields an ARN that points at no existing
+ * role, so iam:UpdateAssumeRolePolicy rejects it with "Invalid principal in
+ * policy" and dev mode fails for every SSO user whose Identity Center instance
+ * uses the region-scoped path (the modern default).
+ *
+ * For SSO roles we therefore ask IAM for the authoritative ARN via GetRole,
+ * which resolves a role by its name regardless of path. For any other ARN the
+ * pure normalization is already correct, so we avoid the extra IAM call. If the
+ * GetRole lookup fails (e.g. missing iam:GetRole permission) we fall back to
+ * the best-effort normalized ARN, preserving the previous behavior.
+ *
+ * @param {import('@aws-sdk/client-iam').IAMClient} iamClient - IAM client
+ * @param {string} callerArn - The ARN from GetCallerIdentity
+ * @returns {Promise<string>} The IAM principal ARN to use in the trust policy
+ */
+export async function resolvePrincipalArn(iamClient, callerArn) {
+  const assumedRoleMatch = callerArn.match(
+    /^arn:(aws[\w-]*):sts::(\d+):assumed-role\/(.+?)\/[^/]+$/,
+  )
+  const roleName = assumedRoleMatch?.[3]
+
+  if (roleName?.startsWith('AWSReservedSSO_')) {
+    try {
+      const { Role } = await iamClient.send(
+        new GetRoleCommand({ RoleName: roleName }),
+      )
+      if (Role?.Arn) {
+        return Role.Arn
+      }
+    } catch {
+      // Fall back to the best-effort normalized ARN below.
+    }
+  }
+
+  return normalizeAssumedRoleArn(callerArn)
 }
 
 /**
