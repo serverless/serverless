@@ -70,6 +70,20 @@ serverless deploy
 
 The framework zips `./app`, uploads it to the deployment bucket, resolves the latest al2023 base image, and creates (or updates) an `AWS::Lambda::MicrovmImage` CloudFormation resource.
 
+> **If the image build fails or reports `NotStabilized`**, inspect the underlying build record for the specific reason:
+>
+> ```bash
+> aws lambda-microvms list-microvm-image-builds \
+>   --image-identifier <image-arn> --image-version <version> \
+>   --query 'items[].[architecture,buildState,stateReason]' --output table
+> ```
+>
+> `stateReason` names one of three causes:
+>
+> - **`CONTAINER_BUILD_FAILED`** — your `Dockerfile` doesn't build. Reproduce locally with `docker build` against the same artifact directory, and check the build logs in the sandbox's log group (`/aws/lambda-microvms/<image-name>`).
+> - **`DISK_STORAGE_FULL`** — the built image exceeds the disk allotted for the sandbox's `minimumMemory` tier. Trim image layers (smaller base image, fewer installed packages, multi-stage builds) or raise `minimumMemory` to move to a larger disk tier.
+> - **`INTERNAL_PLATFORM_ERROR`** — a platform-side failure unrelated to your artifact. Retry the deploy.
+
 ---
 
 ## Artifact
@@ -101,6 +115,14 @@ sandboxes:
 ```
 
 When the value starts with `s3://` the framework passes the URI directly to CloudFormation as the `CodeArtifact.Uri`. No upload is performed.
+
+### Snapshots and per-instance state
+
+Every instance boots from a single snapshot captured when the image is built — there is no separate boot process per instance. One consequence follows directly from that: **any value your code generates at build time is baked into the snapshot and comes out identical across every instance**, including instances resumed later from the same snapshot. UUIDs, PRNG seeds, tokens, and similar one-time values must not be generated during the build (for example, in a `ready` or `validate` hook, or at container startup before the snapshot is taken) — generate them in the `run` hook instead, or per-call from a cryptographically secure random number generator (in Node.js, `crypto.randomUUID()` or `crypto.randomBytes()`, never a `Math.random()`-seeded value).
+
+Outbound TCP connections are also killed on both `run` and `resume` — the platform doesn't preserve open sockets across either transition. The AWS SDKs retry transparently through this, so calls to AWS services generally just work; for other HTTP or database clients, make sure reconnect/retry is configured rather than assuming a long-lived connection survives a resume.
+
+For CSPRNG guidance in other languages, see [AWS's MicroVMs image documentation](https://docs.aws.amazon.com/lambda/latest/dg/microvms-images.html).
 
 ---
 
@@ -156,7 +178,7 @@ sandboxes:
 | `artifact`       | string            | — **(required)** | Local directory path (contains `Dockerfile`) or `s3://` URI                                                                                                                                                                                                                                                                                                                                                                 |
 | `minimumMemory`  | number            | `2048`           | Minimum memory in MiB the MicroVM is guaranteed (maps to `MinimumMemoryInMiB`) — a floor, not a cap. Must be one of: `512`, `1024`, `2048`, `4096`, `8192`.                                                                                                                                                                                                                                                                 |
 | `description`    | string            | auto             | Human-readable description embedded in the CloudFormation resource.                                                                                                                                                                                                                                                                                                                                                         |
-| `environment`    | object            | `{}`             | Environment variables injected into the MicroVM at runtime. Values must be strings.                                                                                                                                                                                                                                                                                                                                         |
+| `environment`    | object            | `{}`             | Environment variables injected into the MicroVM at runtime. Values must be strings. **Baked into the image snapshot at build time** — identical across every instance of that image version and persists across suspend/resume. Use it only for static, non-sensitive configuration. Per-instance data (session IDs, tenant IDs, and similar) has to travel through the launch call's `runHookPayload` instead. Real secrets shouldn't go in `environment` at all — fetch them at runtime through the execution role (Secrets Manager or SSM). See [Snapshots and per-instance state](#snapshots-and-per-instance-state). |
 | `osCapabilities` | array             | `[]`             | Additional OS capabilities granted to the container. Accepted value: `all` (case-insensitive).                                                                                                                                                                                                                                                                                                                              |
 | `hooks`          | object            | `{}`             | Lifecycle hook configuration. See [Hooks](#hooks).                                                                                                                                                                                                                                                                                                                                                                          |
 | `vpc`            | object            | —                | VPC egress configuration. See [Networking / VPC](#networking--vpc).                                                                                                                                                                                                                                                                                                                                                         |
@@ -221,6 +243,8 @@ hooks:
 > **Note:** Enabling any runtime hook (`run`, `resume`, `suspend`, or `terminate`) automatically enables the `ready` image hook as well.
 
 > **Hooks are opt-in notifications, not the lifecycle itself.** A MicroVM still runs, suspends, resumes, and terminates whether or not you declare the matching hook — enabling a hook only means your application is _notified_ at that point. If you need to act on a transition (flush state on `terminate`, re-open connections on `resume`), you must declare that hook; otherwise the transition happens silently with no callback to your code.
+
+> **Idempotency:** the platform may retry `suspend` and `terminate` hook calls under failure conditions — write handlers for those hooks so a repeated call is safe.
 
 ### Hook HTTP contract
 
@@ -397,11 +421,13 @@ serverless invoke --sandbox <name> [--path <path>] [--method <method>] [--data '
 `--sandbox <name>` is required and identifies which sandbox to invoke (analogous to `--function` for Lambda invocations). The framework:
 
 1. Starts a fresh MicroVM instance using the sandbox's deployed image ARN and execution role.
-2. Polls until the instance state is `RUNNING`.
+2. Verifies the instance is ready by sending an authenticated request with retry/backoff, rather than polling `get-microvm` for a `RUNNING` state — instance state is [eventually consistent](#eventual-consistency), so a `502` in the first seconds after launch is expected while the snapshot restores. Treat it as transient and retry rather than as a hard failure.
 3. Mints a short-lived auth token for the target port.
 4. Sends the HTTP request through the AWS proxy.
 5. Prints the response body.
 6. **Always terminates the instance** when done, regardless of success or failure.
+
+The CLI launches this one-shot instance with an injected idle policy (`maxIdleDurationSeconds: 60`, `suspendedDurationSeconds: 0`, `autoResumeEnabled: false`), so even if the invoke is interrupted mid-flight, the instance self-terminates about a minute later — nothing to configure, nothing left running.
 
 ### Options
 
@@ -456,7 +482,7 @@ When a dashboard is created, `serverless deploy` prints its console URL in the d
 
 ### Log group
 
-The framework creates and owns the `AWS::Logs::LogGroup` for each sandbox — `/aws/lambda-microvms/<image-name>` — with a default retention of **14 days**. Owning the group means retention is enforced and the group is removed when you run `serverless remove`. The group is created before the MicroVM image build runs so that retention applies from the first log event.
+The framework creates and owns the `AWS::Logs::LogGroup` for each sandbox — `/aws/lambda-microvms/<image-name>` — with a default retention of **14 days**. That 14-day default is the framework's choice for the group it owns, not an AWS default — a raw CloudWatch log group never expires on its own unless retention is set explicitly, so this is the framework applying a sane default on your behalf. `retentionDays` overrides it. Owning the group means retention is enforced and the group is removed when you run `serverless remove`. The group is created before the MicroVM image build runs so that retention applies from the first log event.
 
 The log group is created whenever logging is enabled (the default) — including when `observability: false`, which only opts out of the metrics/dashboard/alarms layer. To customize retention, or to turn MicroVM logging off entirely:
 
@@ -678,7 +704,7 @@ The emulator does not validate request signatures and does not emulate network i
 If you need to drive MicroVM instances from your own scripts or CI pipelines, the underlying AWS data-plane calls are:
 
 1. **Start** — `aws lambda-microvms run-microvm --image-identifier <ImageArn> --execution-role-arn <ExecutionRoleArn> ...`
-2. **Wait** — poll `aws lambda-microvms get-microvm --microvm-identifier <id>` until `state` is `RUNNING`
+2. **Wait** — verify readiness by sending an authenticated request to the instance's endpoint with retry/backoff (see [Eventual consistency](#eventual-consistency) below) rather than polling `get-microvm` for `state: RUNNING`
 3. **Token** — `aws lambda-microvms create-microvm-auth-token --microvm-identifier <id> --allowed-ports '[{"port":8080}]' ...`
 4. **Request** — `curl -H "X-aws-proxy-auth: <token>" -H "X-aws-proxy-port: 8080" "https://<endpoint>/hello"`
 5. **Terminate** — `aws lambda-microvms terminate-microvm --microvm-identifier <id>`
@@ -686,6 +712,25 @@ If you need to drive MicroVM instances from your own scripts or CI pipelines, th
 The `<ImageArn>` value is the `<Name>ImageIdentifier` CloudFormation stack output (despite the CLI flag name, it takes the image identifier). The execution role ARN is the `<Name>ExecutionRoleArn` stack output.
 
 > **Caller IAM — passing network connectors:** `run-microvm` attaches network connectors to each instance (an HTTP-ingress connector so the platform can deliver hooks and proxy requests, plus any egress connector), and the caller must be allowed to pass each one. Grant `lambda:PassNetworkConnector` for every connector ARN you attach — for example `arn:aws:lambda:<region>:aws:network-connector:aws-network-connector:HTTP_INGRESS` and `…:INTERNET_EGRESS`. A missing grant surfaces as an `AccessDeniedException` that names `PassNetworkConnector` and the specific connector; add the permission for the named connector to resolve it. This is in addition to `iam:PassRole` for the execution role.
+
+### Eventual consistency
+
+After launching an instance, don't poll `get-microvm` waiting for a ready state — its `state` field is [eventually consistent](https://docs.aws.amazon.com/lambda/latest/dg/microvms-images.html) and can lag behind reality. Instead, verify readiness by sending an authenticated request against the instance's endpoint with retry/backoff, and treat a successful response as the readiness signal. A `502` in the first few seconds after launch is expected while the snapshot restores — retry rather than treating it as a hard failure.
+
+### Shell access
+
+To get an interactive shell inside a running instance, launch it with the `SHELL_INGRESS` connector attached — `arn:aws:lambda:<region>:aws:network-connector:aws-network-connector:SHELL_INGRESS` in the instance's ingress network connectors. Connectors are fixed at launch, so include this up front if you expect to need shell access; you can't attach it to an already-running instance.
+
+Mint a shell token:
+
+```bash
+aws lambda-microvms create-microvm-shell-auth-token \
+  --microvm-identifier <microvm-id> --expiration-in-minutes 15
+```
+
+Then connect either via the AWS console's "Connect" button on the MicroVM detail page, or any WebSocket client using subprotocols `lambda-microvms`, `lambda-microvms.authentication.<token>`, and `lambda-microvms.port.8022`.
+
+The shell lands in the same container as your application — same filesystem, processes, and network. The caller additionally needs `lambda:CreateMicrovmShellAuthToken`. Treat the token as a secret: keep the expiration short.
 
 ### Instance lifecycle and idle policy
 
@@ -708,6 +753,27 @@ A running instance moves through `RUNNING → SUSPENDED → TERMINATED`. The **i
 So an idle instance is reclaimed after roughly `maxIdleDurationSeconds + suspendedDurationSeconds`. Pass `maximumDurationInSeconds` (max **28,800** — 8 hours) as a hard ceiling that applies regardless of activity.
 
 > **"Idle" means no inbound traffic at the MicroVM's endpoint URL — not "no code running."** AWS measures idle time by requests arriving at the endpoint, so the timer resets on each request and is unaffected by what your code is doing. A worker that does only outbound work (for example, polls a queue, runs a task, then exits) looks idle to the policy even while it is busy. For workers like that, rely on the process exiting — or on `maximumDurationInSeconds` — to end the instance, and give `maxIdleDurationSeconds` enough headroom that an actively-working instance is never suspended out from under itself.
+
+Setting `suspendedDurationSeconds: 0` skips the suspended window entirely — the instance terminates immediately on suspend instead of waiting there. And `autoResumeEnabled` only revives a `SUSPENDED` instance; it never brings back one that has already reached `TERMINATED`.
+
+### Worker patterns
+
+Which of these applies to your worker depends on one question: **will this instance be needed again, and is its in-memory/disk state worth keeping?** While suspended, full memory and disk state is preserved and compute billing stops — you pay only snapshot storage — so suspension is the tool for "yes"; exiting/terminating is the tool for "no".
+
+**One-shot — exit when done.** For a worker that handles exactly one unit of work and never needs its state again, do the work and exit the process; a process exit terminates the instance immediately regardless of idle policy. Don't lean on the idle policy here — it cuts both ways for an outbound-only worker, since the idle timer only sees inbound traffic: it never fires on its own, but it can also fire against you, suspending a busy instance mid-work once `maxIdleDurationSeconds` elapses. Either omit `idlePolicy` from the `run-microvm` call to turn off automatic suspension entirely, or set `maxIdleDurationSeconds` above the longest unit of work.
+
+**Session — suspend on idle, auto-resume on traffic.** For an instance that serves inbound requests with gaps between them (an agent session, a notebook/REPL, a per-user dev environment), suspension is the point of MicroVMs — don't exit between requests. Launch with `idlePolicy: { autoResumeEnabled: true, ... }`: after `maxIdleDurationSeconds` without inbound traffic the instance suspends, and the next inbound request resumes it automatically — the platform holds that request during the resume and delivers it once the app is back, returning `502` only if the resume itself fails. Treat `suspendedDurationSeconds` as the session-retention window: how long a user can stay away before the instance terminates and its state is gone for good.
+
+**Orchestrated — explicit suspend/resume.** When your own code knows the activity boundaries better than the idle timer does (an agent waiting on human approval, a worker paused between queue drains), drive the lifecycle directly from outside the instance:
+
+```bash
+aws lambda-microvms suspend-microvm --microvm-identifier <id>  # state kept, compute billing stops
+aws lambda-microvms resume-microvm  --microvm-identifier <id>  # continues exactly where it left off
+```
+
+This works even for outbound-only workers whose idle timer never fires. The call must come from outside the instance — there is no self-suspend from inside a MicroVM. This requires `lambda:SuspendMicrovm` / `lambda:ResumeMicrovm` on the caller.
+
+Across all three patterns, `maximumDurationInSeconds` (max **28,800** seconds, counted across `RUNNING` **and** `SUSPENDED` time combined) remains the hard ceiling — after that the instance terminates regardless of activity.
 
 ---
 
