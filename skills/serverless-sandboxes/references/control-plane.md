@@ -221,6 +221,17 @@ that the instance terminates regardless of activity.
   `TERMINATED` sooner than expected, call `get-microvm` and read
   `stateReason` — it names which hook failed or which limit was hit, rather
   than leaving you to guess (see `references/commands.md`).
+- **`ConflictException` from `RunMicrovm`** — the `clientToken` was reused
+  with parameters that don't match the original call. Either replay the
+  identical request or mint a fresh token.
+- **Readiness after `RunMicrovm`** — don't poll `get-microvm` waiting for a
+  ready state; its state is eventually consistent and can lag. Instead
+  determine readiness by attempting an authenticated request against the
+  instance with retry/backoff.
+- **Interactive debugging** — to shell into a launcher-started worker,
+  include `SHELL_INGRESS` in `ingressNetworkConnectors` at launch;
+  connectors are fixed at launch and can't be added later. See
+  `references/commands.md`.
 
 ## Full example
 
