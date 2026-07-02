@@ -2,6 +2,7 @@ import path from 'path'
 import { MappingTemplate } from './MappingTemplate.js'
 import { SyncConfig } from './SyncConfig.js'
 import { JsResolver } from './JsResolver.js'
+import { resolveS3Location } from './Resolver.js'
 
 export class PipelineFunction {
   constructor(api, config) {
@@ -11,6 +12,17 @@ export class PipelineFunction {
 
   compile() {
     const { dataSource, code } = this.config
+
+    if (
+      code &&
+      (this.config.requestS3Location || this.config.responseS3Location)
+    ) {
+      throw new this.api.plugin.serverless.classes.Error(
+        `Pipeline Function '${this.config.name}': ` +
+          "'code' (JS) cannot be combined with an S3 mapping-template location (VTL only)",
+      )
+    }
+
     if (!this.api.hasDataSource(dataSource)) {
       throw new this.api.plugin.serverless.classes.Error(
         `Pipeline Function '${this.config.name}' references unknown DataSource '${dataSource}'`,
@@ -40,14 +52,38 @@ export class PipelineFunction {
         RuntimeVersion: '1.0.0',
       }
     } else {
-      const requestMappingTemplates = this.resolveMappingTemplate('request')
-      if (requestMappingTemplates) {
-        Properties.RequestMappingTemplate = requestMappingTemplates
+      if (this.config.requestS3Location) {
+        if (this.config.request) {
+          throw new this.api.plugin.serverless.classes.Error(
+            `Pipeline Function '${this.config.name}': ` +
+              "'request' and 'requestS3Location' are mutually exclusive",
+          )
+        }
+        Properties.RequestMappingTemplateS3Location = resolveS3Location(
+          this.config.requestS3Location,
+        )
+      } else {
+        const requestMappingTemplates = this.resolveMappingTemplate('request')
+        if (requestMappingTemplates) {
+          Properties.RequestMappingTemplate = requestMappingTemplates
+        }
       }
 
-      const responseMappingTemplate = this.resolveMappingTemplate('response')
-      if (responseMappingTemplate) {
-        Properties.ResponseMappingTemplate = responseMappingTemplate
+      if (this.config.responseS3Location) {
+        if (this.config.response) {
+          throw new this.api.plugin.serverless.classes.Error(
+            `Pipeline Function '${this.config.name}': ` +
+              "'response' and 'responseS3Location' are mutually exclusive",
+          )
+        }
+        Properties.ResponseMappingTemplateS3Location = resolveS3Location(
+          this.config.responseS3Location,
+        )
+      } else {
+        const responseMappingTemplate = this.resolveMappingTemplate('response')
+        if (responseMappingTemplate) {
+          Properties.ResponseMappingTemplate = responseMappingTemplate
+        }
       }
     }
 

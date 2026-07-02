@@ -225,4 +225,163 @@ describe('Basic', () => {
       })
     })
   })
+
+  describe('S3 Location', () => {
+    it('should accept a valid requestS3Location on a resolver', () => {
+      expect(
+        validateConfig({
+          ...basicConfig,
+          resolvers: {
+            'Query.user': {
+              kind: 'UNIT',
+              dataSource: 'myDs',
+              requestS3Location: { bucket: 'my-bucket', key: 'request.vtl' },
+            },
+          },
+        }),
+      ).toBe(true)
+    })
+
+    it('should accept a valid responseS3Location', () => {
+      expect(
+        validateConfig({
+          ...basicConfig,
+          resolvers: {
+            'Query.user': {
+              kind: 'UNIT',
+              dataSource: 'myDs',
+              responseS3Location: {
+                bucket: 'my-bucket',
+                key: 'response.vtl',
+              },
+            },
+          },
+        }),
+      ).toBe(true)
+    })
+
+    it('should throw when request and requestS3Location are both set', () => {
+      expect(() => {
+        validateConfig({
+          ...basicConfig,
+          resolvers: {
+            'Query.user': {
+              kind: 'UNIT',
+              dataSource: 'myDs',
+              request: 'request.vtl',
+              requestS3Location: { bucket: 'my-bucket', key: 'request.vtl' },
+            },
+          },
+        })
+      }).toThrow('mutually exclusive')
+    })
+
+    it('should throw when request and requestS3Location are split across array entries', () => {
+      expect(() => {
+        validateConfig({
+          ...basicConfig,
+          resolvers: [
+            {
+              'Query.user': {
+                kind: 'UNIT',
+                dataSource: 'myDs',
+                request: 'request.vtl',
+              },
+            },
+            {
+              'Query.user': {
+                kind: 'UNIT',
+                dataSource: 'myDs',
+                requestS3Location: { bucket: 'my-bucket', key: 'request.vtl' },
+              },
+            },
+          ],
+        })
+      }).toThrow('mutually exclusive')
+    })
+
+    it('should throw when an empty request string is combined with requestS3Location', () => {
+      expect(() => {
+        validateConfig({
+          ...basicConfig,
+          resolvers: {
+            'Query.user': {
+              kind: 'UNIT',
+              dataSource: 'myDs',
+              request: '',
+              requestS3Location: { bucket: 'my-bucket', key: 'request.vtl' },
+            },
+          },
+        })
+      }).toThrow('mutually exclusive')
+    })
+
+    it('should throw when response and responseS3Location are both set', () => {
+      expect(() => {
+        validateConfig({
+          ...basicConfig,
+          resolvers: {
+            'Query.user': {
+              kind: 'UNIT',
+              dataSource: 'myDs',
+              response: 'response.vtl',
+              responseS3Location: { bucket: 'my-bucket', key: 'response.vtl' },
+            },
+          },
+        })
+      }).toThrow('mutually exclusive')
+    })
+
+    it('should throw when code and requestS3Location are combined', () => {
+      expect(() => {
+        validateConfig({
+          ...basicConfig,
+          resolvers: {
+            'Query.user': {
+              kind: 'UNIT',
+              dataSource: 'myDs',
+              code: 'resolver.js',
+              requestS3Location: { bucket: 'my-bucket', key: 'request.vtl' },
+            },
+          },
+        })
+      }).toThrow(
+        "'code' (JS) cannot be combined with an S3 mapping-template location",
+      )
+    })
+
+    it('should throw when requestS3Location is missing key', () => {
+      expect(() => {
+        validateConfig({
+          ...basicConfig,
+          resolvers: {
+            'Query.user': {
+              kind: 'UNIT',
+              dataSource: 'myDs',
+              requestS3Location: { bucket: 'my-bucket' },
+            },
+          },
+        })
+      }).toThrow()
+    })
+
+    it('should throw when requestS3Location has unknown property', () => {
+      expect(() => {
+        validateConfig({
+          ...basicConfig,
+          resolvers: {
+            'Query.user': {
+              kind: 'UNIT',
+              dataSource: 'myDs',
+              requestS3Location: {
+                bucket: 'my-bucket',
+                key: 'request.vtl',
+                bucketName: 'typo',
+              },
+            },
+          },
+        })
+      }).toThrow()
+    })
+  })
 })
