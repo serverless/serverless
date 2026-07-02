@@ -55,6 +55,8 @@ no `--tail`/follow mode for sandbox logs: passing `--tail` is accepted but
 ignored with a warning, and the command always prints the resolved window
 and exits rather than streaming.
 
+The log group also receives the in-cloud image-build transcript alongside your application's runtime stdout and stderr, so build output (e.g., Docker BuildKit stages) may appear interleaved with your container's request logs — match on your application's own log lines when judging behavior.
+
 ### `serverless dev --sandbox <name>`
 
 Runs the sandbox locally against an emulator instead of deploying. See

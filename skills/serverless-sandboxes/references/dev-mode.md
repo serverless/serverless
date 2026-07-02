@@ -70,8 +70,11 @@ MicroVMs API.
    `{"allPorts":{}}`, or `{"range":{"startPort":…,"endPort":…}}`:
 
    ```bash
-   aws lambda-microvms create-microvm-auth-token --microvm-identifier <id> --expiration-in-minutes 5 --allowed-ports '[{"port":8080}]'
+   aws lambda-microvms create-microvm-auth-token --microvm-identifier <id> --expiration-in-minutes 5 --allowed-ports '[{"port":8080}]' \
+     --query 'authToken."X-aws-proxy-auth"' --output text
    ```
+
+   The response shape is `{"authToken":{"X-aws-proxy-auth":"<token>"}}`. Extract the token value with the `--query` and `--output text` flags shown above; guessing a different field name (e.g., `--query token`) returns nothing useful and fails silently — the subsequent request then fails with `403 Request missing authentication` instead of showing you the extraction error.
 
 6. Call the instance through its endpoint, presenting the token:
 
@@ -87,6 +90,10 @@ MicroVMs API.
    ```bash
    aws lambda-microvms terminate-microvm --microvm-identifier <id>
    ```
+
+## Stopping the dev process
+
+Once you are done with the emulator, stop the backgrounded `dev` process by sending it SIGTERM with `kill <pid>`, then wait a few seconds for it to shut down the emulator and stop the sandbox containers. If the process remains alive after a few seconds, force-kill it with `kill -9 <pid>` — but then manually verify cleanup with `docker ps` to ensure no stray containers are left running.
 
 ## Reading the piped output
 
