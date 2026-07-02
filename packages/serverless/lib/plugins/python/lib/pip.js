@@ -1035,4 +1035,88 @@ async function installAllRequirements() {
   }
 }
 
-export { installAllRequirements }
+/**
+ * Install requirements from an explicit requirements file into a per-layer working directory.
+ * Mirrors installRequirementsIfNeeded but is driven by an explicit file rather than modulePath.
+ * @param {string} requirementsFile - path (absolute or relative to servicePath) to requirements file
+ * @param {string} layerName - name of the layer (used to derive the working directory)
+ * @param {Object} pluginInstance
+ * @return {Promise<string>} path to the directory containing the installed packages
+ */
+async function installRequirementsForFile(
+  requirementsFile,
+  layerName,
+  pluginInstance,
+) {
+  const { servicePath, options, serverless } = pluginInstance
+  const absRequirementsFile = path.isAbsolute(requirementsFile)
+    ? requirementsFile
+    : path.resolve(servicePath, requirementsFile)
+
+  if (
+    !fse.pathExistsSync(absRequirementsFile) ||
+    !fse.statSync(absRequirementsFile).isFile()
+  ) {
+    throw new ServerlessError(
+      `Python Requirements: layer "${layerName}" requirementsFile "${requirementsFile}" does not exist or is not a file.`,
+      'PYTHON_REQUIREMENTS_LAYER_REQUIREMENTS_FILE_INVALID',
+      { stack: false },
+    )
+  }
+
+  const layerDir = path.join(
+    servicePath,
+    '.serverless',
+    `pythonRequirements-${layerName}`,
+  )
+  fse.ensureDirSync(layerDir)
+  const slsReqsTxt = path.join(layerDir, 'requirements.txt')
+
+  generateRequirementsFile(absRequirementsFile, slsReqsTxt, pluginInstance)
+
+  if (!fse.existsSync(slsReqsTxt) || fse.statSync(slsReqsTxt).size === 0) {
+    return layerDir
+  }
+
+  const reqChecksum = sha256Path(slsReqsTxt)
+  const workingReqsFolder = getRequirementsWorkingPath(
+    reqChecksum,
+    layerDir,
+    options,
+    serverless,
+  )
+
+  if (fse.existsSync(workingReqsFolder)) {
+    if (
+      fse.existsSync(path.join(workingReqsFolder, '.completed_requirements')) &&
+      workingReqsFolder.endsWith('_slspyc')
+    ) {
+      fse.utimesSync(workingReqsFolder, new Date(), new Date())
+      return workingReqsFolder
+    }
+    if (
+      workingReqsFolder.endsWith('_slspyc') ||
+      workingReqsFolder.endsWith('.requirements')
+    ) {
+      fse.removeSync(workingReqsFolder)
+    }
+  }
+
+  fse.ensureDirSync(workingReqsFolder)
+  fse.copySync(slsReqsTxt, path.join(workingReqsFolder, 'requirements.txt'))
+  await installRequirements(workingReqsFolder, pluginInstance, {})
+  if (options.vendor) {
+    copyVendors(options.vendor, workingReqsFolder, pluginInstance)
+  }
+  if (options.useStaticCache) {
+    fse.closeSync(
+      fse.openSync(
+        path.join(workingReqsFolder, '.completed_requirements'),
+        'w',
+      ),
+    )
+  }
+  return workingReqsFolder
+}
+
+export { installAllRequirements, installRequirementsForFile }
