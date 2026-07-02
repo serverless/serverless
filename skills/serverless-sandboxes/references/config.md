@@ -112,12 +112,19 @@ Declaring **any** runtime hook auto-enables `ready` even if you didn't list
 it explicitly — the platform needs a build-time readiness signal before it
 will boot instances from that image.
 
-Each hook's value is either `true` (enable with the default timeout) or an
-object with a custom `{ timeout: <seconds> }`.
+Each hook's value is either `true` (enable it and let AWS apply its platform
+default timeout) or an object with an explicit `{ timeout: <seconds> }`. The
+framework sets no default of its own — an omitted `timeout` leaves the
+property unset so the AWS default applies, and those defaults are tight:
+`ready` defaults to **60s**, while `validate`, `run`, `resume`, `suspend`, and
+`terminate` each default to **1s**. Set an explicit `timeout` for any hook
+that needs longer (build hooks accept 1–3600s, runtime hooks 1–60s).
 
 Handler contract: answer the hook's HTTP call with a fast `200` and do any
 heavy work asynchronously after responding — don't block the response on
-long-running setup. The `ready` hook is the one exception: it may respond
+long-running setup. With the 1s default on `validate` and the runtime hooks, a
+handler that does real work before replying will trip the timeout unless you
+raise it. The `ready` hook is the one exception to fast-200: it may respond
 `503` to mean "not ready yet, retry me" and the platform will keep retrying
 until the hook's timeout elapses.
 

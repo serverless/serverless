@@ -77,12 +77,14 @@ your artifact, before any instance boots from it:
 
 - **`ready`** — the build gate. A non-2xx response, or a timeout, fails the
   image build outright. Respond `503` to mean "not ready yet, keep trying" —
-  the platform retries until the hook's own timeout elapses. Timeout range:
-  **1–3600 seconds**.
+  the platform retries until the hook's own timeout elapses. Timeout range
+  **1–3600 seconds**, AWS default **60**.
 - **`validate`** — runs after `ready` succeeds, against a fresh VM booted
   from the not-yet-finalized image. Use it for correctness checks and
   snapshot-profiling work (warming caches, exercising code paths you want
-  captured in the snapshot) before the image is sealed.
+  captured in the snapshot) before the image is sealed. Timeout range
+  **1–3600 seconds**, but the AWS default is only **1 second** — set an
+  explicit `validate` timeout for any real validation work.
 
 **Runtime (per-instance) hooks** — run against a specific instance as it
 moves through its lifecycle:
@@ -97,7 +99,9 @@ moves through its lifecycle:
 - **`suspend`** — runs as the instance transitions into `SUSPENDED`.
 - **`terminate`** — runs as the instance transitions into `TERMINATED`.
 
-All runtime hooks share a timeout range of **1–60 seconds**.
+All runtime hooks share a timeout range of **1–60 seconds** and default to
+**1 second** when you don't set one — tight enough that any runtime hook doing
+real work should declare an explicit `timeout`.
 
 **`runHookPayload` (≤16 KB) is the only per-instance data channel.** Baked-in
 `environment` variables (see `references/config.md`) are fixed at build time
