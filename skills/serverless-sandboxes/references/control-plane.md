@@ -100,15 +100,13 @@ Field by field:
 
 The principal calling `RunMicrovm` (the launcher's execution role) needs:
 
-- **`lambda:RunMicroVm`** (note the capitalization — the IAM action is
-  `RunMicroVm`, not `RunMicrovm`, even though the API operation and SDK
-  command are `RunMicrovm`) — plus `Get`/`List`/`Suspend`/`Resume`/`Terminate`
+- **`lambda:RunMicrovm`** — plus `Get`/`List`/`Suspend`/`Resume`/`Terminate`
   actions on the equivalent resources if the launcher also manages
   instances after launch.
 - **`iam:PassRole`** on the execution role passed as `executionRoleArn`.
 - **`lambda:PassNetworkConnector`** on **each** connector ARN passed in
   `ingressNetworkConnectors`/`egressNetworkConnectors` — this is a
-  per-connector grant, not implied by `RunMicroVm`. A missing grant surfaces
+  per-connector grant, not implied by `RunMicrovm`. A missing grant surfaces
   as an `AccessDeniedException` naming the specific action and connector
   ARN it was denied on; add that exact ARN to the `PassNetworkConnector`
   resource list.
@@ -117,7 +115,7 @@ Minimal IAM statement shape:
 
 ```yaml
 - Effect: Allow
-  Action: lambda:RunMicroVm
+  Action: lambda:RunMicrovm
   Resource: '*'
 - Effect: Allow
   Action: iam:PassRole
