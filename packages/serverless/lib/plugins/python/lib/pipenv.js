@@ -42,16 +42,33 @@ async function getPipenvVersion(pluginInstance) {
   }
 }
 
+function assertManifestFile(filePath, label) {
+  if (!fse.existsSync(filePath) || !fse.statSync(filePath).isFile()) {
+    throw new ServerlessError(
+      `Python Requirements: ${label} path does not point to a file: ${filePath}`,
+      'PYTHON_REQUIREMENTS_INVALID_MANIFEST_PATH',
+      { stack: false },
+    )
+  }
+}
+
 /**
  * pipenv install
  */
 async function pipfileToRequirements() {
-  if (
-    !this.options.usePipenv ||
-    !fse.existsSync(path.join(this.servicePath, 'Pipfile'))
-  ) {
+  if (!this.options.usePipenv) return
+
+  const pipfilePath =
+    this.options.pipenvFilePath ?? path.join(this.servicePath, 'Pipfile')
+  if (this.options.pipenvFilePath) {
+    assertManifestFile(this.options.pipenvFilePath, 'Pipenv')
+  } else if (!fse.existsSync(pipfilePath)) {
     return
   }
+
+  const pipenvCwd = this.options.pipenvFilePath
+    ? path.dirname(this.options.pipenvFilePath)
+    : this.servicePath
 
   let generateRequirementsProgress
   if (this.progress && this.log) {
@@ -83,7 +100,7 @@ async function pipfileToRequirements() {
       // See: https://pipenv.pypa.io/en/latest/advanced/#generating-a-requirements-txt
       try {
         res = await spawn('pipenv', ['requirements'], {
-          cwd: this.servicePath,
+          cwd: pipenvCwd,
         })
       } catch (e) {
         const stderrBufferContent =
@@ -100,10 +117,10 @@ async function pipfileToRequirements() {
             )
           }
           await spawn('pipenv', ['lock'], {
-            cwd: this.servicePath,
+            cwd: pipenvCwd,
           })
           res = await spawn('pipenv', ['requirements'], {
-            cwd: this.servicePath,
+            cwd: pipenvCwd,
           })
         } else {
           throw e
@@ -115,7 +132,7 @@ async function pipfileToRequirements() {
         'pipenv',
         ['lock', '--requirements', '--keep-outdated'],
         {
-          cwd: this.servicePath,
+          cwd: pipenvCwd,
         },
       )
     }

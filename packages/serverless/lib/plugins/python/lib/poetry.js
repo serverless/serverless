@@ -9,11 +9,35 @@ import { ServerlessError } from '@serverless/util'
 /**
  * poetry install
  */
+function assertManifestFile(filePath, label) {
+  if (!fse.existsSync(filePath) || !fse.statSync(filePath).isFile()) {
+    throw new ServerlessError(
+      `Python Requirements: ${label} path does not point to a file: ${filePath}`,
+      'PYTHON_REQUIREMENTS_INVALID_MANIFEST_PATH',
+      { stack: false },
+    )
+  }
+}
+
 async function pyprojectTomlToRequirements(modulePath, pluginInstance) {
   const { serverless, servicePath, options, log, progress } = pluginInstance
 
-  const moduleProjectPath = path.join(servicePath, modulePath)
-  if (!options.usePoetry || !isPoetryProject(moduleProjectPath)) {
+  if (!options.usePoetry) return
+
+  const moduleProjectPath = options.poetryFilePath
+    ? path.dirname(options.poetryFilePath)
+    : path.join(servicePath, modulePath)
+
+  if (options.poetryFilePath) {
+    assertManifestFile(options.poetryFilePath, 'poetry')
+    if (!isPoetryProject(moduleProjectPath, options.poetryFilePath)) {
+      throw new ServerlessError(
+        `Python Requirements: poetry path points to a file that is not a poetry project: ${options.poetryFilePath}`,
+        'PYTHON_REQUIREMENTS_INVALID_MANIFEST_PATH',
+        { stack: false },
+      )
+    }
+  } else if (!isPoetryProject(moduleProjectPath)) {
     return
   }
 
@@ -121,8 +145,8 @@ async function pyprojectTomlToRequirements(modulePath, pluginInstance) {
 /**
  * Check if pyproject.toml file exists and is a poetry project.
  */
-function isPoetryProject(servicePath) {
-  const pyprojectPath = path.join(servicePath, 'pyproject.toml')
+function isPoetryProject(servicePath, filePath) {
+  const pyprojectPath = filePath ?? path.join(servicePath, 'pyproject.toml')
 
   if (!fse.existsSync(pyprojectPath)) {
     return false

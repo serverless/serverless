@@ -49,6 +49,16 @@ function filterCommands(commands) {
   return commands.filter((cmd) => Boolean(cmd) && cmd.length > 0)
 }
 
+function assertManifestFile(filePath, label) {
+  if (!fse.existsSync(filePath) || !fse.statSync(filePath).isFile()) {
+    throw new ServerlessError(
+      `Python Requirements: ${label} path does not point to a file: ${filePath}`,
+      'PYTHON_REQUIREMENTS_INVALID_MANIFEST_PATH',
+      { stack: false },
+    )
+  }
+}
+
 /**
  * Render zero or more commands as a single command for a Unix environment.
  * In this context, a "command" is a list of arguments. An empty list or falsy value is ommitted.
@@ -85,7 +95,15 @@ function generateRequirementsFile(
 ) {
   const { serverless, servicePath, options, log } = pluginInstance
   const modulePath = path.dirname(requirementsPath)
-  if (options.usePoetry && isPoetryProject(modulePath)) {
+  if (
+    options.usePoetry &&
+    (options.poetryFilePath
+      ? isPoetryProject(
+          path.dirname(options.poetryFilePath),
+          options.poetryFilePath,
+        )
+      : isPoetryProject(modulePath))
+  ) {
     filterRequirementsFile(targetFile, targetFile, pluginInstance)
     if (log) {
       log.info(`Parsed requirements.txt from pyproject.toml in ${targetFile}`)
@@ -96,8 +114,11 @@ function generateRequirementsFile(
     }
   } else if (
     options.usePipenv &&
-    fse.existsSync(path.join(servicePath, 'Pipfile'))
+    (options.pipenvFilePath ||
+      fse.existsSync(path.join(servicePath, 'Pipfile')))
   ) {
+    if (options.pipenvFilePath)
+      assertManifestFile(options.pipenvFilePath, 'Pipenv')
     filterRequirementsFile(
       path.join(servicePath, '.serverless/requirements.txt'),
       targetFile,
@@ -112,8 +133,9 @@ function generateRequirementsFile(
     }
   } else if (
     options.useUv &&
-    fse.existsSync(path.join(servicePath, 'uv.lock'))
+    (options.uvFilePath || fse.existsSync(path.join(servicePath, 'uv.lock')))
   ) {
+    if (options.uvFilePath) assertManifestFile(options.uvFilePath, 'uv')
     filterRequirementsFile(
       path.join(servicePath, '.serverless/requirements.txt'),
       targetFile,
@@ -768,15 +790,33 @@ function copyVendors(vendorFolder, targetFolder, { serverless, log }) {
  * @param {string} fileName
  */
 function requirementsFileExists(servicePath, options, fileName) {
-  if (options.usePoetry && isPoetryProject(path.dirname(fileName))) {
+  if (
+    options.usePoetry &&
+    (options.poetryFilePath
+      ? isPoetryProject(
+          path.dirname(options.poetryFilePath),
+          options.poetryFilePath,
+        )
+      : isPoetryProject(path.dirname(fileName)))
+  ) {
     return true
   }
 
-  if (options.usePipenv && fse.existsSync(path.join(servicePath, 'Pipfile'))) {
+  if (
+    options.usePipenv &&
+    (options.pipenvFilePath ||
+      fse.existsSync(path.join(servicePath, 'Pipfile')))
+  ) {
+    if (options.pipenvFilePath)
+      assertManifestFile(options.pipenvFilePath, 'Pipenv')
     return true
   }
 
-  if (options.useUv && fse.existsSync(path.join(servicePath, 'uv.lock'))) {
+  if (
+    options.useUv &&
+    (options.uvFilePath || fse.existsSync(path.join(servicePath, 'uv.lock')))
+  ) {
+    if (options.uvFilePath) assertManifestFile(options.uvFilePath, 'uv')
     return true
   }
 
@@ -1072,4 +1112,10 @@ async function installAllRequirements() {
   }
 }
 
-export { assertPipCmdExtraArgs, installAllRequirements, pipAcceptsSystem }
+export {
+  assertPipCmdExtraArgs,
+  installAllRequirements,
+  pipAcceptsSystem,
+  generateRequirementsFile,
+  requirementsFileExists,
+}
