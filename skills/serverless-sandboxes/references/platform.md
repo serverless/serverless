@@ -188,10 +188,10 @@ in one of these ways, in order of preference:
    rather than seeding state once. In Node, use `crypto.randomUUID()` or
    `crypto.randomBytes()` — never a `Math.random()`-seeded generator.
 
-Per-call CSPRNG reads are safe because the kernel's RNG is reseeded on
-resume. That reseeding is a kernel guarantee, but userspace libraries don't
-automatically benefit from it unless they also re-read from the kernel per
-call — only AWS's own default base
+AWS documents the kernel RNG as reseeded across snapshot resume, so per-call
+reads (e.g. `/dev/urandom`, `crypto.randomBytes`) stay safe. But userspace
+libraries don't automatically benefit from that reseeding unless they also
+re-read from the kernel per call — only AWS's own default base
 (`public.ecr.aws/lambda/microvms:al2023-minimal`) ships an OpenSSL build that
 auto-reseeds on resume; other base images may not. For safe CSPRNGs in other
 languages, see

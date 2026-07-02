@@ -47,9 +47,10 @@ only one sandbox — there is no implicit default the way there can be for a
 single function. Omitting it fails with a "specify which sandbox" error
 listing the available names.
 
-Each invocation launches a fresh MicroVM instance, waits for it to reach
-`RUNNING`, sends the one HTTP request, and terminates the instance
-afterward — it is not a way to reach a long-lived, already-running
+Each invocation launches a fresh MicroVM instance, verifies readiness by
+making an authenticated request to it with retry/backoff (instance state is
+eventually consistent), sends the one HTTP request, and terminates the
+instance afterward — it is not a way to reach a long-lived, already-running
 instance. Use `--method` (default `GET`) and `--path` (default `/`) to
 shape the request; pass `--data` for a body on non-`GET` methods. `--port`
 selects which container port to call (default `8080`).
