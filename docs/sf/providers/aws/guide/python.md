@@ -119,6 +119,16 @@ custom:
     usePipenv: false
 ```
 
+You can also point `usePipenv` at a `Pipfile` that lives outside the service root. Pass a path (relative to the service path, or absolute) instead of a boolean:
+
+```yaml
+custom:
+  pythonRequirements:
+    usePipenv: backend/Pipfile # path to a Pipfile outside the service root
+```
+
+The path is resolved relative to the service path. `true`/`false` continue to work as before. An explicit path overrides the default `Pipfile` detection; pipenv will run with the manifest's directory as its working directory.
+
 ## Poetry support
 
 If you include a `pyproject.toml` and have `poetry` installed instead of a `requirements.txt` this will use
@@ -130,6 +140,16 @@ custom:
   pythonRequirements:
     usePoetry: false
 ```
+
+You can also point `usePoetry` at a `pyproject.toml` that lives outside the service root:
+
+```yaml
+custom:
+  pythonRequirements:
+    usePoetry: ../shared/pyproject.toml # path to a pyproject.toml outside the service root
+```
+
+The path is resolved relative to the service path. `true`/`false` continue to work as before. An explicit path overrides the default `pyproject.toml` detection; poetry will run with the manifest's directory as its working directory.
 
 Be aware that if no `poetry.lock` file is present, a new one will be generated on the fly. To help having predictable builds,
 you can set the `requirePoetryLockFile` flag to true to throw an error when `poetry.lock` is missing.
@@ -180,6 +200,16 @@ bottle = {git = "ssh://git@github.com/bottlepy/bottle.git", tag = "0.12.16"}
 ## uv support
 
 [`uv`](https://docs.astral.sh/uv/) projects behave just like Pipenv or Poetry projects. When a `uv.lock` file is present and `custom.pythonRequirements.useUv` is not disabled, the Framework will run `uv export --no-dev --frozen --no-hashes` to generate an intermediate `requirements.txt` in `.serverless/requirements.txt` before packaging. Set `useUv: false` if you prefer to manage that file yourself.
+
+You can also point `useUv` at a `uv.lock` that lives outside the service root:
+
+```yaml
+custom:
+  pythonRequirements:
+    useUv: infra/uv.lock # path to a uv.lock outside the service root
+```
+
+The path is resolved relative to the service path. `true`/`false` continue to work as before. An explicit path overrides the default `uv.lock` detection; uv will run with the lock file's directory as its working directory.
 
 ### Using uv to install dependencies
 
