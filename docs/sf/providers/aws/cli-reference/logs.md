@@ -36,7 +36,7 @@ This command returns as many log events as can fit in 1MB (up to 10,000 log even
 
 - `--function` or `-f` The function you want to fetch the logs for. **Required when not using `--agent`.**
 - `--agent` or `-a` The agent name (for AgentCore Runtime agents). **Required when not using `--function`.** Cannot be used together with `--function`.
-- `--sandbox` The sandbox name (for [AWS Lambda MicroVMs](../guide/sandboxes.md)). Use instead of `--function` / `--agent` to fetch a sandbox's CloudWatch logs.
+- `--sandbox` The sandbox name (for [AWS Lambda MicroVMs](../guide/sandboxes.md)). Use instead of `--function` / `--agent` to fetch a sandbox's CloudWatch logs. Defaults to the last 10 minutes; use `--startTime` to widen the window. **`--tail` does not stream/follow sandbox logs** — it prints a one-time notice and falls back to the same one-shot window.
 - `--stage` or `-s` The stage you want to view the function logs for. If not provided, the plugin will use the default stage listed in `serverless.yml`. If that doesn't exist either it'll just fetch the logs from the `dev` stage.
 - `--region` or `-r` The region you want to view the function logs for. If not provided, the plugin will use the default region listed in `serverless.yml`. If that doesn't exist either it'll just fetch the logs from the `us-east-1` region.
 - `--aws-profile` The AWS profile you want to use.
