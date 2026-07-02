@@ -127,25 +127,86 @@ Minimal IAM statement shape:
     - arn:aws:lambda:<region>:aws:network-connector:aws-network-connector:INTERNET_EGRESS
 ```
 
-## Worker pattern
+## Worker patterns
 
-The MicroVM instance launched by `RunMicrovm` runs your worker artifact.
-For a per-event, per-session pattern:
+The MicroVM instance launched by `RunMicrovm` runs your worker artifact. In
+every pattern, implement the `run` hook the same way: the platform holds
+all inbound endpoint traffic until this hook responds `200`, and delivers
+the launch's `runHookPayload` in the hook's request body — read the
+per-instance data out of it there, acknowledge quickly (return `200`
+immediately), and do the actual work asynchronously after responding.
 
-1. Implement the `run` hook. The platform holds all inbound endpoint
-   traffic until this hook responds `200`, and delivers the launch's
-   `runHookPayload` in the hook's request body — read the per-instance data
-   out of it there. Acknowledge quickly (return `200` immediately) and do
-   the actual work asynchronously after responding, rather than blocking
-   the hook response on it.
-2. Do the outbound work the instance exists for.
-3. **Exit the process when the work is done.** A process exit terminates
-   the instance immediately, regardless of idle policy — for a worker that
-   only ever makes outbound calls, this is simpler and cheaper than tuning
-   idle-policy timers, because the idle timer only ever sees *inbound*
-   endpoint traffic and will not fire on its own for an outbound-only
-   worker. Fall back on `maximumDurationInSeconds` as the backstop for a
-   worker that never exits cleanly.
+What happens *after* the work differs. Pick a pattern by asking: **will
+this instance be needed again, and is its in-memory/disk state worth
+keeping?** While suspended, full memory + disk state is preserved and
+compute billing stops — you pay only snapshot storage — so suspension is
+the tool for "yes"; exit/terminate is the tool for "no".
+
+### One-shot worker — exit when done
+
+For a worker that handles exactly one unit of work and never needs its
+state again:
+
+1. Do the outbound work the instance exists for.
+2. **Exit the process.** A process exit terminates the instance
+   immediately, regardless of idle policy.
+
+Don't lean on the idle policy here — it cuts both ways for an
+outbound-only worker. The idle timer only sees *inbound* endpoint traffic,
+so it never fires on its own **and** it can fire against you: an instance
+busy with outbound work still looks idle and is suspended mid-work once
+`maxIdleDurationSeconds` elapses. Omit `idlePolicy` from the launch call
+to turn automatic suspension off entirely, or set
+`maxIdleDurationSeconds` above the longest unit of work.
+`maximumDurationInSeconds` is the backstop for a worker that never exits
+cleanly.
+
+### Session worker — suspend on idle, auto-resume on traffic
+
+For an instance that serves *inbound* requests with gaps between them
+(agent sessions, notebooks/REPLs, per-user dev environments, sessionful
+game or simulation servers), suspension is the point of MicroVMs — don't
+exit between requests:
+
+- Launch with `idlePolicy: { autoResumeEnabled: true, ... }`. After
+  `maxIdleDurationSeconds` without inbound traffic the instance suspends;
+  the next inbound request resumes it automatically — the platform holds
+  that request during the resume and delivers it once the app is back
+  (`502` only if the resume itself fails). Warm state — installed
+  dependencies, caches, the user's session — survives, so resume is
+  near-instant compared to a fresh `RunMicrovm` + image boot.
+- Treat `suspendedDurationSeconds` as the session-retention window: how
+  long a user can stay away before the instance terminates and its state
+  is gone for good.
+- Implement the `suspend` hook (flush pending writes, close connections
+  that must not survive the boundary) and the `resume` hook (refresh
+  credentials, re-establish connections) — mechanics in
+  `references/platform.md`.
+
+### Orchestrated worker — explicit suspend/resume
+
+When your control plane knows the activity boundaries better than the idle
+timer does — an agent waiting on human approval, a worker paused between
+queue drains — drive the lifecycle directly:
+
+```bash
+aws lambda-microvms suspend-microvm --microvm-identifier <id>  # state kept, compute billing stops
+aws lambda-microvms resume-microvm  --microvm-identifier <id>  # continues exactly where it left off
+```
+
+This works even for outbound-only workers whose idle timer never fires:
+the launcher suspends the instance when a unit of work completes and
+resumes it when the next arrives — keeping expensive state (cloned repo,
+warm model, installed deps) without paying for idle compute or
+re-launching from the image. The call must come from **outside** the
+instance — there is no self-suspend from inside a MicroVM (and a VM that
+froze itself could never receive the API response). Requires
+`lambda:SuspendMicrovm` / `lambda:ResumeMicrovm` on the orchestrator (see
+Caller IAM above).
+
+Across all patterns, `maximumDurationInSeconds` (max 28,800 s = 8 h,
+counted across `RUNNING` **and** `SUSPENDED`) is the hard ceiling — after
+that the instance terminates regardless of activity.
 
 ## Operational notes
 

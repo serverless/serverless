@@ -3,8 +3,9 @@
 `serverless dev --sandbox <name>` builds the sandbox's image locally and
 starts an SDK-compatible MicroVMs API emulator on your machine — the endpoint
 it prints (default `http://127.0.0.1:9100`, override with `--port`) speaks
-the same `RunMicrovm` / `CreateMicrovmAuthToken` / `TerminateMicrovm` calls as
-the real Lambda MicroVMs control plane. It watches the artifact directory and
+the same `RunMicrovm` / `CreateMicrovmAuthToken` / `SuspendMicrovm` /
+`ResumeMicrovm` / `TerminateMicrovm` calls as the real Lambda MicroVMs
+control plane. It watches the artifact directory and
 rebuilds automatically on change, and each instance you launch runs as a
 local Docker container rather than a real Firecracker VM.
 
@@ -94,6 +95,35 @@ MicroVMs API.
    aws lambda-microvms terminate-microvm --microvm-identifier <id>
    ```
 
+## Suspend and resume in dev
+
+The emulator implements the full suspend/resume lifecycle, so the session
+and orchestrated worker patterns (see `references/control-plane.md`) can be
+exercised locally before touching AWS:
+
+- **Explicit APIs** — `suspend-microvm` flips the instance to `SUSPENDED`
+  and pauses its Docker container (`docker ps` shows `(Paused)` — processes
+  frozen in place, the local analog of the production memory snapshot);
+  `resume-microvm` unpauses it back to `RUNNING` with state intact.
+- **Idle policy is enforced** — with no inbound traffic for
+  `maxIdleDurationSeconds` the instance auto-suspends, and after a further
+  `suspendedDurationSeconds` it auto-terminates (`get-microvm` reports
+  `TERMINATED`), same two-gate sequence as production. Omitting
+  `--idle-policy` disables both gates (the instance just runs) — the right
+  launch shape for testing a one-shot worker.
+- **Auto-resume** — with `autoResumeEnabled: true`, an authenticated
+  request to a `SUSPENDED` instance's endpoint is held while the instance
+  resumes, then served normally; the caller sees latency, not an error.
+- **`suspend`/`resume` hooks** — delivered only if declared under `hooks`
+  in `serverless.yml`, matching production's opt-in contract. A sandbox
+  that declares only `ready`/`run` sees no hook traffic on suspend/resume.
+
+One fidelity caveat: a paused container's processes are frozen but the
+image state lives in the running container, not a real snapshot — so
+timing-sensitive code (timers firing late, wall-clock jumps after resume)
+behaves *approximately* like production, and resume latency is near-zero
+locally where production pays a snapshot restore.
+
 ## Stopping the dev process
 
 Once you are done with the emulator, stop the backgrounded `dev` process by sending it SIGTERM with `kill <pid>`, then wait a few seconds for it to shut down the emulator and stop the sandbox containers. If the process remains alive after a few seconds, force-kill it with `kill -9 <pid>` — but then manually verify cleanup with `docker ps` to ensure no stray containers are left running.
@@ -109,6 +139,8 @@ than the animation:
 - Container logs: `─ <short> …` (one line per line of container stdout/stderr)
 - Per-request access log: `← <short> <status> <METHOD> <path>`
 - Rebuild triggered by a source change: `↻ <file> changed — rebuilding…`
+- Explicit suspend/resume: `⏸ SuspendMicrovm <short>` / `▶ ResumeMicrovm <short>`
+- Idle-policy transitions: `⏸ <short> suspended (idle)`, `▶ <short> resumed (traffic)`, `✕ <short> terminated (idle)`
 - Explicit termination: `✕ TerminateMicrovm <short>`
 
 `<short>` is a stable, color-coded short form of the microvm ID that ties a
@@ -118,10 +150,11 @@ instances are running at once.
 
 ## Hooks in dev
 
-The emulator delivers the same `ready` and `run` hooks a deployed sandbox
-gets, and enforces the same gate production does: a non-2xx response from
-`run` terminates the instance immediately, with a `stateReason` explaining
-which hook failed and what status it returned. Build your hook handlers
+The emulator delivers every hook a deployed sandbox gets — `ready` and
+`run`, plus `suspend`/`resume`/`terminate` when declared — and enforces the
+same gate production does: a non-2xx response from `run` terminates the
+instance immediately, with a `stateReason` explaining which hook failed and
+what status it returned. Build your hook handlers
 against this loop the same way you would against a real deploy — a hook bug
 that would fail in production fails here too, before you spend a deploy
 cycle finding out. See `references/config.md` for the full `hooks` schema
