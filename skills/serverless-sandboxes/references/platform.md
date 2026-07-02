@@ -65,6 +65,11 @@ bypassing both gates:
 | `suspendedDurationSeconds` | minimum 0 |
 | `autoResumeEnabled` | boolean; controls whether a `SUSPENDED` instance auto-resumes on inbound traffic (vs. staying suspended until `suspend-microvm`/`resume-microvm` is called manually, or until it terminates) |
 
+Setting `suspendedDurationSeconds: 0` skips the suspended window entirely —
+the instance terminates immediately on suspend instead of waiting. Note that
+`autoResumeEnabled` only revives a `SUSPENDED` instance; it never brings back
+one that has already reached `TERMINATED`.
+
 ## Hooks contract
 
 Your artifact serves hooks as plain HTTP endpoints on the port it listens
@@ -143,6 +148,19 @@ Proxy-level error statuses:
 
 Bandwidth scales with instance size: roughly **1 MB/s per 0.5 GB** of
 configured memory as a baseline, up to a ceiling of **16 MB/s** per instance.
+Saturating that ceiling shows up as increased latency, not errors — don't rely
+on error rates alone to detect a bandwidth-constrained instance.
+
+The `x-aws-proxy-*` header namespace is reserved for the proxy itself: any
+such header you send is stripped before the request reaches your instance.
+Send `X-aws-proxy-force-h2: true` to force HTTP/2 to a plaintext HTTP/1.1
+upstream.
+
+`get-microvm` state is eventually consistent — don't poll it to decide when
+an instance is ready. Instead, attempt an authenticated request against the
+endpoint and treat success as readiness. A `502` in the first few seconds
+after launch is expected while the snapshot restores; retry rather than
+treating it as a hard failure.
 
 ## Build model
 
@@ -155,6 +173,30 @@ session tokens, or identifiers during the build — they'd be identical across
 every instance. Generate them in the `run` hook instead, once you have that
 instance's `runHookPayload`.
 
+### Snapshot uniqueness
+
+Because every instance boots from the same snapshot, anything your code
+generates while the image builds — UUIDs, PRNG seeds, tokens, fetched
+secrets — is baked into that snapshot and comes out **identical across every
+instance**, including instances resumed later from the same snapshot. Fix it
+in one of these ways, in order of preference:
+
+1. Generate the value at first use instead of at build time.
+2. Generate it in the `run` hook — the one point that's guaranteed to run
+   per-instance.
+3. If you must read randomness elsewhere, read it per-call from a CSPRNG
+   rather than seeding state once. In Node, use `crypto.randomUUID()` or
+   `crypto.randomBytes()` — never a `Math.random()`-seeded generator.
+
+Per-call CSPRNG reads are safe because the kernel's RNG is reseeded on
+resume. That reseeding is a kernel guarantee, but userspace libraries don't
+automatically benefit from it unless they also re-read from the kernel per
+call — only AWS's own default base
+(`public.ecr.aws/lambda/microvms:al2023-minimal`) ships an OpenSSL build that
+auto-reseeds on resume; other base images may not. For safe CSPRNGs in other
+languages, see
+[AWS's MicroVMs image docs](https://docs.aws.amazon.com/lambda/latest/dg/microvms-images.html).
+
 Container base images:
 
 - Default: `public.ecr.aws/lambda/microvms:al2023-minimal`.
@@ -162,12 +204,22 @@ Container base images:
 
 Managed base image versions move through a deprecation lifecycle:
 `AVAILABLE → DEPRECATED (60 days) → EXPIRING (30 days) → EXPIRED`. Once
-`EXPIRED`, the version can no longer be used to build new images.
+`EXPIRED`, the version can no longer be used to build new images. AWS also
+releases new managed base-image versions periodically, independent of that
+deprecation clock — redeploying rebuilds against whatever is current, so
+redeploying periodically is enough to keep your images up to date.
 
 Rebuild trigger: **any** change to the artifact content — the zip or the
 Dockerfile build context, even a change that produces byte-identical output
 under a different reference — triggers a full image rebuild. Deploying with
 no artifact change is a no-op.
+
+All non-local outbound TCP connections are killed on `run` and on `resume`
+alike — the platform doesn't preserve open sockets across either transition.
+The AWS SDKs retry transparently through this, so calls to AWS services
+generally just work; for other HTTP or database clients, make sure
+reconnect/retry is configured rather than assuming a long-lived connection
+survives a resume.
 
 ## Quotas & limits
 
