@@ -27,11 +27,11 @@ without that evidence.
 | 502 from the instance endpoint | App not listening, crashed, or resume failed (suspended + `autoResumeEnabled: false`) | Check container logs / instance state; resume or relaunch |
 | 429 from the instance endpoint | Per-instance RPS/connection cap | Larger `minimumMemory` (caps scale with size) or spread across instances |
 
-## Local dev
+## Logs
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `serverless logs --sandbox` prints nothing | Default window is the last 10 minutes | `--startTime 30m` (or `--tail`) |
+| `serverless logs --sandbox` prints nothing | Default window is the last 10 minutes | `--startTime 30m` |
 
 See `references/config.md` for the full property surface, `references/dev-mode.md`
 for the local dev loop and IAM emulation, and `references/platform.md` for the

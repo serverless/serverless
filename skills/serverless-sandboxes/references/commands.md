@@ -10,8 +10,9 @@ Lambda MicroVMs and Lambda control planes (`aws lambda-microvms`,
 ### `serverless deploy`
 
 Builds the sandbox's image in the cloud — this is a real Firecracker
-snapshot build and takes minutes, not seconds. Let it run; killing a
-slow-looking deploy and retrying only restarts the build from scratch.
+snapshot build and takes minutes, not seconds. Let it run; the in-cloud
+build continues even if you kill the CLI — retrying can't speed it up and
+may collide with the in-progress stack update.
 
 If the sandbox's `observability` block has its dashboard enabled, the
 deploy summary includes a `dashboard:` line with the CloudWatch console URL

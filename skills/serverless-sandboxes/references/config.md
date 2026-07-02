@@ -127,15 +127,17 @@ until the hook's timeout elapses.
 
 - `subnetIds` — subnets to place instances in. All subnets must belong to a
   single VPC.
-- `securityGroupIds` — security groups to attach. At least one entry is
-  required once `vpc` is set (enforced at validation).
+- `securityGroupIds` — security groups to attach.
 - `protocol` — `ipv4` or `dualstack`.
+
+At least one entry is required for each of `subnetIds` and `securityGroupIds`
+once `vpc` is set (enforced at validation).
 
 Pick subnets by **AZ ID** (e.g. `use1-az3`), not by availability-zone name —
 AZ names are account-specific aliases and don't reliably map to the same
 underlying AZ ID across accounts. Some AZs do not support MicroVMs, and AWS
 does not publish a list of which ones — `use1-az3` in `us-east-1` is a
-live-verified example of an unsupported AZ ID. If a deploy fails with a
+known example of an unsupported AZ ID. If a deploy fails with a
 capacity or placement error tied to a subnet, see `references/troubleshooting.md`
 for the full diagnostic flow.
 

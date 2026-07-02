@@ -14,8 +14,9 @@ description: >-
 # Serverless Framework Sandboxes (AWS Lambda MicroVMs)
 
 A sandbox has two halves: an **image** and its **instances**. The image is
-built once from a zip (or a Dockerfile, for custom runtimes) that you upload;
-the build happens in the cloud and produces a Firecracker snapshot. Every
+built once from a build context you upload — a local directory containing a
+Dockerfile, or a pre-built `s3://` zip; the build happens in the cloud and
+produces a Firecracker snapshot. Every
 instance then boots — or resumes — from that same snapshot. Because all
 instances share one snapshot, anything generated at build time (installed
 packages, baked-in files, warmed caches) is common to every instance; data
@@ -51,8 +52,10 @@ AWS SDK or CLI calls at the endpoint it prints. Source edits after that are
 picked up automatically and rebuild without restarting the command.
 
 **Deploy.** A deploy triggers a real image build in AWS — it takes minutes,
-not seconds. Let it run. Do not kill a slow-looking deploy and do not retry
-it out of impatience; that only starts the build over.
+not seconds. Let it run. The in-cloud build continues even if you kill the
+CLI — retrying can't speed it up and may collide with the in-progress stack
+update. Do not kill a slow-looking deploy and do not retry it out of
+impatience.
 
 **Verify, clean up, report.** Confirm the success signal you defined at the
 start, then tear down scratch deployments and report the evidence you

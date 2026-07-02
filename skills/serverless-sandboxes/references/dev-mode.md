@@ -29,7 +29,7 @@ container with your local/ambient AWS credentials on purpose — useful when
 the sandbox isn't deployed yet (no role to assume) or when you deliberately
 want your own identity instead of the sandbox's.
 
-## Driving it as an agent (the verified loop)
+## Driving it as an agent
 
 Run `dev` piped to a background process — never attached and blocking — then
 drive the emulator with the AWS CLI or SDK exactly as you would the real
@@ -46,6 +46,9 @@ MicroVMs API.
    ```
    MicroVMs API ready — Ctrl-C to stop
    ```
+
+   If the ready line never appears, the build failed — check the piped log
+   for the error.
 
 3. Point the AWS CLI/SDK at the printed endpoint:
 
