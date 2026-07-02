@@ -54,6 +54,64 @@ describe('Resolvers', () => {
       ).toMatchSnapshot()
     })
 
+    it('should generate Resources with S3 mapping template locations', () => {
+      const api = new Api(
+        given.appSyncConfig({
+          dataSources: {
+            myTable: {
+              name: 'myTable',
+              type: 'AMAZON_DYNAMODB',
+              config: { tableName: 'data' },
+            },
+          },
+        }),
+        plugin,
+      )
+      const result = api.compileResolver({
+        dataSource: 'myTable',
+        kind: 'UNIT',
+        type: 'Query',
+        field: 'user',
+        requestS3Location: { bucket: 'my-bucket', key: 'request.vtl' },
+        responseS3Location: { bucket: 'my-bucket', key: 'response.vtl' },
+      })
+      expect(result).toMatchSnapshot()
+      const resource = result[Object.keys(result)[0]].Properties
+      expect(resource.RequestMappingTemplateS3Location).toBe(
+        's3://my-bucket/request.vtl',
+      )
+      expect(resource.ResponseMappingTemplateS3Location).toBe(
+        's3://my-bucket/response.vtl',
+      )
+      expect(resource.RequestMappingTemplate).toBeUndefined()
+      expect(resource.ResponseMappingTemplate).toBeUndefined()
+    })
+
+    it('should throw when combining code with requestS3Location', () => {
+      const api = new Api(
+        given.appSyncConfig({
+          dataSources: {
+            myTable: {
+              name: 'myTable',
+              type: 'AMAZON_DYNAMODB',
+              config: { tableName: 'data' },
+            },
+          },
+        }),
+        plugin,
+      )
+      expect(() => {
+        api.compileResolver({
+          dataSource: 'myTable',
+          kind: 'UNIT',
+          type: 'Query',
+          field: 'user',
+          code: 'resolver.js',
+          requestS3Location: { bucket: 'my-bucket', key: 'request.vtl' },
+        })
+      }).toThrow()
+    })
+
     it('should generate Resources with direct Lambda', () => {
       const api = new Api(
         given.appSyncConfig({
@@ -243,6 +301,51 @@ describe('Resolvers', () => {
         })
       }).toThrowErrorMatchingSnapshot()
     })
+
+    it('should generate S3-only PIPELINE resolver with PipelineConfig (not JS)', () => {
+      const api = new Api(
+        given.appSyncConfig({
+          dataSources: {
+            myTable: {
+              name: 'myTable',
+              type: 'AMAZON_DYNAMODB',
+              config: { tableName: 'data' },
+            },
+          },
+          pipelineFunctions: {
+            function1: {
+              name: 'function1',
+              dataSource: 'myTable',
+            },
+            function2: {
+              name: 'function2',
+              dataSource: 'myTable',
+            },
+          },
+        }),
+        plugin,
+      )
+      const result = api.compileResolver({
+        kind: 'PIPELINE',
+        type: 'Query',
+        field: 'user',
+        functions: ['function1', 'function2'],
+        requestS3Location: { bucket: 'my-bucket', key: 'request.vtl' },
+        responseS3Location: { bucket: 'my-bucket', key: 'response.vtl' },
+      })
+      expect(result).toMatchSnapshot()
+      const resource = result[Object.keys(result)[0]].Properties
+      expect(resource.Kind).toBe('PIPELINE')
+      expect(resource.PipelineConfig).toBeDefined()
+      expect(resource.Code).toBeUndefined()
+      expect(resource.Runtime).toBeUndefined()
+      expect(resource.RequestMappingTemplateS3Location).toBe(
+        's3://my-bucket/request.vtl',
+      )
+      expect(resource.ResponseMappingTemplateS3Location).toBe(
+        's3://my-bucket/response.vtl',
+      )
+    })
   })
 
   describe('Pipeline Function', () => {
@@ -363,6 +466,44 @@ describe('Resolvers', () => {
           description: 'Function1 Pipeline Resolver',
         })
       }).toThrowErrorMatchingSnapshot()
+    })
+
+    it('should generate Pipeline Function Resources with S3 mapping template locations', () => {
+      const api = new Api(
+        given.appSyncConfig({
+          dataSources: {
+            myTable: {
+              name: 'myTable',
+              type: 'AMAZON_DYNAMODB',
+              config: { tableName: 'data' },
+            },
+          },
+        }),
+        plugin,
+      )
+      const result = api.compilePipelineFunctionResource({
+        name: 'function1',
+        dataSource: 'myTable',
+        description: 'Function1 Pipeline Resolver',
+        requestS3Location: {
+          bucket: 'my-bucket',
+          key: 'function1.request.vtl',
+        },
+        responseS3Location: {
+          bucket: 'my-bucket',
+          key: 'function1.response.vtl',
+        },
+      })
+      expect(result).toMatchSnapshot()
+      const resource = result[Object.keys(result)[0]].Properties
+      expect(resource.RequestMappingTemplateS3Location).toBe(
+        's3://my-bucket/function1.request.vtl',
+      )
+      expect(resource.ResponseMappingTemplateS3Location).toBe(
+        's3://my-bucket/function1.response.vtl',
+      )
+      expect(resource.RequestMappingTemplate).toBeUndefined()
+      expect(resource.ResponseMappingTemplate).toBeUndefined()
     })
   })
 
