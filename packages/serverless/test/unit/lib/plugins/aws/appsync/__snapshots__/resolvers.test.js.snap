@@ -106,6 +106,34 @@ exports[`Resolvers Caching should generate Resources with custom keys 1`] = `
 
 exports[`Resolvers Pipeline Function should fail if Pipeline Function references unexisting data source 1`] = `"Cannot read properties of undefined (reading 'Error')"`;
 
+exports[`Resolvers Pipeline Function should generate Pipeline Function Resources with S3 mapping template locations 1`] = `
+{
+  "GraphQlFunctionConfigurationfunction1": {
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "DataSourceName": {
+        "Fn::GetAtt": [
+          "GraphQlDsmyTable",
+          "Name",
+        ],
+      },
+      "Description": "Function1 Pipeline Resolver",
+      "FunctionVersion": "2018-05-29",
+      "MaxBatchSize": undefined,
+      "Name": "function1",
+      "RequestMappingTemplateS3Location": "s3://my-bucket/function1.request.vtl",
+      "ResponseMappingTemplateS3Location": "s3://my-bucket/function1.response.vtl",
+    },
+    "Type": "AWS::AppSync::FunctionConfiguration",
+  },
+}
+`;
+
 exports[`Resolvers Pipeline Function should generate Pipeline Function Resources with VTL mapping templates 1`] = `
 {
   "GraphQlFunctionConfigurationfunction1": {
@@ -315,7 +343,78 @@ exports[`Resolvers Pipeline Resolvers should generate Resources with VTL mapping
 }
 `;
 
+exports[`Resolvers Pipeline Resolvers should generate S3-only PIPELINE resolver with PipelineConfig (not JS) 1`] = `
+{
+  "GraphQlResolverQueryuser": {
+    "DependsOn": [
+      "GraphQlSchema",
+    ],
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "FieldName": "user",
+      "Kind": "PIPELINE",
+      "PipelineConfig": {
+        "Functions": [
+          {
+            "Fn::GetAtt": [
+              "GraphQlFunctionConfigurationfunction1",
+              "FunctionId",
+            ],
+          },
+          {
+            "Fn::GetAtt": [
+              "GraphQlFunctionConfigurationfunction2",
+              "FunctionId",
+            ],
+          },
+        ],
+      },
+      "RequestMappingTemplateS3Location": "s3://my-bucket/request.vtl",
+      "ResponseMappingTemplateS3Location": "s3://my-bucket/response.vtl",
+      "TypeName": "Query",
+    },
+    "Type": "AWS::AppSync::Resolver",
+  },
+}
+`;
+
 exports[`Resolvers Unit Resolvers should fail when referencing unknown data source 1`] = `"Cannot read properties of undefined (reading 'Error')"`;
+
+exports[`Resolvers Unit Resolvers should generate Resources with S3 mapping template locations 1`] = `
+{
+  "GraphQlResolverQueryuser": {
+    "DependsOn": [
+      "GraphQlSchema",
+    ],
+    "Properties": {
+      "ApiId": {
+        "Fn::GetAtt": [
+          "GraphQlApi",
+          "ApiId",
+        ],
+      },
+      "DataSourceName": {
+        "Fn::GetAtt": [
+          "GraphQlDsmyTable",
+          "Name",
+        ],
+      },
+      "FieldName": "user",
+      "Kind": "UNIT",
+      "MaxBatchSize": undefined,
+      "RequestMappingTemplateS3Location": "s3://my-bucket/request.vtl",
+      "ResponseMappingTemplateS3Location": "s3://my-bucket/response.vtl",
+      "TypeName": "Query",
+    },
+    "Type": "AWS::AppSync::Resolver",
+  },
+}
+`;
 
 exports[`Resolvers Unit Resolvers should generate Resources with VTL mapping templates 1`] = `
 {
