@@ -62,13 +62,13 @@ bypassing both gates:
 | Field | Constraint |
 |---|---|
 | `maxIdleDurationSeconds` | 60–28,800 |
-| `suspendedDurationSeconds` | minimum 0 (no fixed maximum beyond the overall duration ceiling) |
+| `suspendedDurationSeconds` | minimum 0 |
 | `autoResumeEnabled` | boolean; controls whether a `SUSPENDED` instance auto-resumes on inbound traffic (vs. staying suspended until `suspend-microvm`/`resume-microvm` is called manually, or until it terminates) |
 
 ## Hooks contract
 
 Your artifact serves hooks as plain HTTP endpoints on the port it listens
-on (default `9000`, configurable): the platform calls
+on (the configured hooks port, default `9000` — see `config.md`): the platform calls
 `POST /aws/lambda-microvms/runtime/v1/<hook>` and expects a fast response.
 There are five hooks split across two lifecycle groups.
 
@@ -181,9 +181,7 @@ no artifact change is a no-op.
 | Per-instance RPS | 40–160, scaling with instance size |
 | Per-instance concurrent connections | 8–128, scaling with instance size |
 
-Live account audit (`aws service-quotas list-service-quotas --service-code
-lambda --region us-east-1`, filtered to MicroVM quotas) corroborates every
-TPS value above exactly, plus the per-size RPS and connection endpoints:
+Service Quotas entries for MicroVMs:
 
 - `Rate of RunMicrovm API requests` = 5
 - `Rate of ResumeMicrovm API requests` = 5
@@ -196,10 +194,8 @@ TPS value above exactly, plus the per-size RPS and connection endpoints:
 - `Concurrent connections per {1,2,4,8,16} vCPU MicroVM` = 8, 16, 32, 64, 128
 - `Max Execution Duration of a MicroVM (in Hours)` = 8
 
-The account memory pool (400 GB / 1,024 GB) is not surfaced as its own
-adjustable entry in `list-service-quotas` output — it did not appear in this
-audit — so treat it as the platform-documented default rather than something
-you can spot-check per account this way.
+The account memory pool may not appear as a named entry in `list-service-quotas`;
+to confirm your account's current ceiling, check the Service Quotas console or ask AWS Support.
 
 All of these are standard Service Quotas entries and adjustable through the
 Service Quotas console or `aws service-quotas request-service-quota-increase`.
