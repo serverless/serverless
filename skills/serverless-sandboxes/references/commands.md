@@ -24,6 +24,18 @@ uploaded zip or Dockerfile content is a no-op and skips the rebuild. Any
 change to the artifact — even one that produces byte-identical output under
 a different reference — is enough to trigger a new build.
 
+If a deploy fails on the image build, inspect the underlying build record
+for the specific error code:
+
+```bash
+aws lambda-microvms list-microvm-image-builds \
+  --image-identifier <image-arn> --image-version <version> \
+  --query 'items[].[architecture,buildState,stateReason]' --output table
+```
+
+`stateReason` carries the specific error; cross-reference
+`references/troubleshooting.md`.
+
 ### `serverless invoke --sandbox <name> [--method GET --path /]`
 
 ```bash
@@ -41,6 +53,12 @@ afterward — it is not a way to reach a long-lived, already-running
 instance. Use `--method` (default `GET`) and `--path` (default `/`) to
 shape the request; pass `--data` for a body on non-`GET` methods. `--port`
 selects which container port to call (default `8080`).
+
+The framework launches this one-shot instance with an injected idle policy
+(`maxIdleDurationSeconds: 60`, `suspendedDurationSeconds: 0`,
+`autoResumeEnabled: false`), so even if the CLI is interrupted mid-invoke
+the instance self-terminates about a minute later — nothing to configure,
+nothing leaks.
 
 ### `serverless logs --sandbox <name> [--startTime 30m]`
 
@@ -133,6 +151,39 @@ target the local `dev` emulator instead of the real service — see
 - **`create-microvm-auth-token --microvm-identifier <id> --expiration-in-minutes <n> --allowed-ports <spec>`**
   — mint the token required in the `X-aws-proxy-auth` header to call an
   instance's endpoint directly.
+- **`run-microvm --logging '{"cloudWatch":{"logGroup":"..."}}'`** —
+  redirects a single instance's runtime logs to a custom log group.
+
+Every image version bills snapshot storage for as long as it exists,
+including `INACTIVE` ones — prune old versions with
+`delete-microvm-image-version`. The last remaining version can only be
+removed via `delete-microvm-image`.
+
+### Shell access (debugging a running instance)
+
+To get an interactive shell inside a running instance of your deployed
+sandbox, launch it with the `SHELL_INGRESS` connector attached —
+`arn:aws:lambda:<region>:aws:network-connector:aws-network-connector:SHELL_INGRESS`
+in `ingressNetworkConnectors`. Connectors are fixed at launch: you can't add
+this to an already-running instance, so include it up front if you expect
+to need shell access.
+
+Mint a shell token:
+
+```bash
+aws lambda-microvms create-microvm-shell-auth-token \
+  --microvm-identifier <microvm-id> --expiration-in-minutes 15
+```
+
+Then connect either via the AWS console's "Connect" button on the MicroVM
+detail page, or any WebSocket client using subprotocols
+`lambda-microvms`, `lambda-microvms.authentication.<token>`,
+`lambda-microvms.port.8022`.
+
+The shell lands in the same container as your application — same
+filesystem, processes, network. Caller IAM additionally needs
+`lambda:CreateMicrovmShellAuthToken`. Treat the token as a secret: keep the
+expiration short (≤60 min).
 
 ### `aws lambda-core create-network-connector`
 
