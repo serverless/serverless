@@ -17,7 +17,7 @@ over by analogy; check this table first.
 | Property | Type | Required | Default | Notes |
 |---|---|---|---|---|
 | `artifact` | string | yes | — | Local directory containing a `Dockerfile`, or an `s3://` zip URI. Any other URI form (e.g. an ECR reference) is rejected — Lambda MicroVMs does not support container-registry artifacts. |
-| `minimumMemory` | enum | no | `2048` | One of `512 \| 1024 \| 2048 \| 4096 \| 8192` (MiB). vCPU count is memory-in-GB ÷ 2. Architecture is fixed at ARM64/Graviton. Instances may burst up to 4× their baseline vCPU. Disk scales with the tier: 8 GB disk at ≤2 GB memory, 16 GB disk at 4 GB memory, 32 GB disk at 8 GB memory. |
+| `minimumMemory` | enum | no | `2048` | One of `512 \| 1024 \| 2048 \| 4096 \| 8192` (MiB). vCPU count is memory-in-GB ÷ 2. Architecture is fixed at ARM64/Graviton. Instances may burst up to 4× their baseline vCPU. Disk scales with the tier: 8 GB disk at ≤2 GB memory, 16 GB disk at 4 GB memory, 32 GB disk at 8 GB memory. Changing this value produces a new image build — the framework builds one image per size, not a single image reconfigured at launch. |
 | `description` | string | no | `"<service> <name> sandbox (Serverless Framework)"` | Free-text image description. |
 | `environment` | object (string values) | no | `{}` | Environment variables baked into the image at build time. Identical for every instance booted from that image — there is no per-instance environment override; instance-specific data goes through the `run` hook payload instead. |
 | `osCapabilities` | array | no | — | Additional Linux OS capabilities granted to the instance. Allowed value: `all` (case-insensitive). Advanced setting. |
@@ -26,6 +26,16 @@ over by analogy; check this table first.
 | `vpc` | object | no | — | See `## VPC` below. |
 | `observability` | boolean or object | no | on (equivalent to omitted/`true`) | See `## Observability` below. `false` disables the owned logging/metrics/dashboard layer entirely. |
 | `iam` | object | no | — | See `## IAM` below. |
+
+`environment` values are baked into the image snapshot at build time, so
+they're identical across every instance of that image version and persist
+across suspend/resume — use them only for static, non-sensitive
+configuration. Per-instance data (session IDs, tenant IDs, and similar) has
+to travel a different path: pass it through the launch call's
+`runHookPayload` instead. Real secrets shouldn't go in `environment` at all —
+fetch them at runtime with the execution role (Secrets Manager or SSM). See
+`references/platform.md` for why build-time values end up shared across
+every instance (snapshot uniqueness).
 
 ## Minimal config
 
@@ -99,7 +109,10 @@ sandboxes:
 
 `hooks` configures the HTTP endpoints your artifact exposes for the platform
 to call back into, plus the `port` they listen on (default `9000` if
-omitted).
+omitted). Your Dockerfile must `EXPOSE` both the application port and, if you
+declare any `hooks`, the hooks port — a port the platform can't see in the
+image's exposed-ports list won't be reachable even if your process is
+listening on it.
 
 Two lifecycle groups:
 

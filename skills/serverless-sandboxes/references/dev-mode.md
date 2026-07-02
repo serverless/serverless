@@ -122,7 +122,13 @@ One fidelity caveat: a paused container's processes are frozen but the
 image state lives in the running container, not a real snapshot — so
 timing-sensitive code (timers firing late, wall-clock jumps after resume)
 behaves *approximately* like production, and resume latency is near-zero
-locally where production pays a snapshot restore.
+locally where production pays a snapshot restore. Local emulation also
+doesn't reproduce snapshot semantics on the network and entropy side:
+outbound TCP connections are **not** killed on run/resume the way a real
+snapshot restore would sever them, and there's no entropy-reseed behavior to
+exercise. Validate any snapshot-sensitive behavior — connection handling
+across suspend/resume, fresh randomness after resume — against a deployed
+sandbox, not just `dev`.
 
 ## Stopping the dev process
 

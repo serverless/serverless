@@ -20,8 +20,9 @@ produces a Firecracker snapshot. Every
 instance then boots — or resumes — from that same snapshot. Because all
 instances share one snapshot, anything generated at build time (installed
 packages, baked-in files, warmed caches) is common to every instance; data
-that is specific to one instance arrives later, at launch, via the `run` hook
-payload. Instances are not reached directly — they sit behind an authenticated,
+that is specific to one instance — and any secrets or randomness that must
+be fresh per instance rather than baked into the shared snapshot — arrives
+later, at launch, via the `run` hook payload. Instances are not reached directly — they sit behind an authenticated,
 proxied HTTPS endpoint that the framework prints for you. Billing follows
 state: you pay compute while an instance is RUNNING, and only snapshot-storage
 rates while it is SUSPENDED.
