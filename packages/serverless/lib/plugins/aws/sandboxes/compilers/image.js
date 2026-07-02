@@ -2,14 +2,6 @@ import { getResourceName } from '../utils/naming.js'
 
 const RUNTIME = ['run', 'resume', 'suspend', 'terminate']
 const IMAGE = ['ready', 'validate']
-const DEFAULT_TIMEOUT = {
-  ready: 30,
-  validate: 30,
-  run: 2,
-  resume: 2,
-  suspend: 5,
-  terminate: 5,
-}
 
 function compileHooks(hooks) {
   if (!hooks) return {}
@@ -18,27 +10,26 @@ function compileHooks(hooks) {
   const anyRuntime = RUNTIME.some(enabled)
   const anyImage = IMAGE.some(enabled)
   if (!anyRuntime && !anyImage) return {}
-  const timeout = (k) => {
+  // Only the explicit timeout, when the user set one (including 0). The framework
+  // does not impose its own default — an omitted timeout leaves the CloudFormation
+  // property unset so the AWS platform default applies.
+  const explicitTimeout = (k) => {
     const h = hooks[k]
-    // Use the explicit timeout when provided (including 0) — `||` would treat 0
-    // as "unset" and silently substitute the default.
     return h && typeof h === 'object' && h.timeout != null
       ? h.timeout
-      : DEFAULT_TIMEOUT[k]
+      : undefined
   }
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1)
+  const setHook = (target, k) => {
+    target[cap(k)] = 'ENABLED'
+    const t = explicitTimeout(k)
+    if (t != null) target[`${cap(k)}TimeoutInSeconds`] = t
+  }
   const img = {}
   for (const k of IMAGE)
-    if (enabled(k) || (k === 'ready' && anyRuntime)) {
-      img[cap(k)] = 'ENABLED'
-      img[`${cap(k)}TimeoutInSeconds`] = timeout(k)
-    }
+    if (enabled(k) || (k === 'ready' && anyRuntime)) setHook(img, k)
   const rt = {}
-  for (const k of RUNTIME)
-    if (enabled(k)) {
-      rt[cap(k)] = 'ENABLED'
-      rt[`${cap(k)}TimeoutInSeconds`] = timeout(k)
-    }
+  for (const k of RUNTIME) if (enabled(k)) setHook(rt, k)
   const out = { Port: hooks.port || 9000 }
   if (Object.keys(img).length) out.MicrovmImageHooks = img
   if (Object.keys(rt).length) out.MicrovmHooks = rt

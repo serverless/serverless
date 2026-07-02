@@ -531,16 +531,16 @@ describe('end-to-end compile', () => {
       ).toEqual(['ALL'])
     })
 
-    test('FullImage.Hooks: ready+run hooks auto-enable Ready with correct timeouts', () => {
+    test('FullImage.Hooks: ready auto-enables (no framework timeout); explicit run timeout passes through', () => {
       const hooks = template.Resources.FullImage.Properties.Hooks
       // Port defaults to 9000
       expect(hooks.Port).toBe(9000)
-      // MicrovmImageHooks: ready is enabled (explicitly), ReadyTimeoutInSeconds = 30
+      // ready is enabled (auto), with NO timeout property — the framework sets no
+      // default, so the AWS platform default applies.
       expect(hooks.MicrovmImageHooks).toEqual({
         Ready: 'ENABLED',
-        ReadyTimeoutInSeconds: 30,
       })
-      // MicrovmHooks: run enabled with timeout=5
+      // run enabled with its explicit timeout=5 passed through verbatim
       expect(hooks.MicrovmHooks).toEqual({
         Run: 'ENABLED',
         RunTimeoutInSeconds: 5,

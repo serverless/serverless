@@ -181,24 +181,29 @@ sandboxes:
     hooks:
       port: 9000 # port your app listens on for hook requests (default 9000)
 
-      # Image-build hooks — called once when the MicroVM image is built
+      # Image-build hooks — called once when the MicroVM image is built.
+      # Omit `timeout` to use the AWS default; set it to override (range 1–3600s).
       ready:
-        timeout: 30 # seconds; default 30
+        timeout: 120 # give a slow boot more than the 60s AWS default
       validate:
-        timeout: 30 # seconds; default 30
+        timeout: 30 # AWS default is only 1s — set this for real validation work
 
-      # Runtime hooks — called on each instance lifecycle event
+      # Runtime hooks — called on each instance lifecycle event.
+      # Omit `timeout` to use the AWS default (1s); set it to override (range 1–60s).
       run:
-        timeout: 2 # seconds; default 2
+        timeout: 5
       resume:
-        timeout: 2 # seconds; default 2
+        timeout: 5
       suspend:
-        timeout: 5 # seconds; default 5
+        timeout: 5
       terminate:
-        timeout: 5 # seconds; default 5
+        timeout: 5
 ```
 
-You can also enable a hook with just `true` to accept all defaults:
+The framework sets no timeout of its own — omitting `timeout` leaves the
+property unset so the AWS platform default applies (`ready` 60s; `validate`,
+`run`, `resume`, `suspend`, and `terminate` 1s each). You can enable a hook
+with just `true` to take those AWS defaults:
 
 ```yml
 hooks:
@@ -225,7 +230,7 @@ The Lambda runtime posts to:
 POST http://localhost:<port>/aws/lambda-microvms/runtime/v1/<hook-name>
 ```
 
-Your server must respond with HTTP 200 within the configured timeout. A non-200 response or timeout causes the lifecycle step to fail. **Respond 200 promptly and do any heavy work asynchronously** — the `run` and `resume` timeouts default to just **2 seconds**, so a handler that runs the actual workload before replying will trip the timeout and fail the step. Acknowledge first, then process. A minimal Python implementation:
+Your server must respond with HTTP 200 within the configured timeout. A non-200 response or timeout causes the lifecycle step to fail. When you omit a hook's `timeout`, the AWS platform default applies — and those defaults are tight: `validate`, `run`, `resume`, `suspend`, and `terminate` each default to just **1 second** (`ready` gets 60). So **respond 200 promptly and do any heavy work asynchronously**, or raise the `timeout` for hooks that legitimately need longer — a handler that runs the actual workload before replying will otherwise trip the timeout and fail the step. Acknowledge first, then process. A minimal Python implementation:
 
 ```python
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
