@@ -264,6 +264,22 @@ test('narrates ops via logger.aside and streams container logs (attach on run, s
   }
 })
 
+test('a run hook that times out terminates the instance (mirrors AWS run-hook timeout)', async () => {
+  // fireHook reports a timeout for `run` — the emulator must treat it as a gate
+  // failure and terminate, exactly as AWS does when a run hook exceeds its timeout.
+  const fireHook = async (name) =>
+    name === 'run' ? { timedOut: true } : { status: 200 }
+  const { cp, registry } = await harness({ fireHook })
+  try {
+    const run = await req(cp.port, 'POST', '/microvms', {})
+    expect(run.json.state).toBe('TERMINATED')
+    expect(run.json.stateReason).toMatch(/run .*timed out/i)
+    expect(registry.getInstance(run.json.microvmId).state).toBe('TERMINATED')
+  } finally {
+    await cp.shutdown()
+  }
+})
+
 test('the hooks line reflects only the hooks that actually fired (not a hardcoded ready+run)', async () => {
   const aside = []
   const logger = { aside: (m) => aside.push(m), notice() {}, debug() {} }
@@ -392,7 +408,9 @@ test('a non-2xx run hook gates the launch: VM TERMINATED with a stateReason (mat
     expect(containers[0].stop).toHaveBeenCalled()
     expect(
       aside.some(
-        (l) => l.includes('terminated') && l.includes('run hook returned 500'),
+        (l) =>
+          l.includes('terminated') &&
+          l.includes('run hook returned HTTP status 500'),
       ),
     ).toBe(true)
     // GetMicrovm surfaces the same terminal state + reason

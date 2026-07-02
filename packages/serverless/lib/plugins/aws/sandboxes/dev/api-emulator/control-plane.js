@@ -282,8 +282,11 @@ export async function startControlPlane({
           const res = await fireHook(name, inst, payload)
           if (!res) continue // not enabled / not delivered
           firedHooks.push(name)
+          // A non-2xx status OR a timeout is a gate failure: AWS fails the build
+          // on a bad/slow `ready` and TERMINATES the VM on a bad/slow `run`.
           const status = res.status
-          if (
+          if (!gate && res.timedOut) gate = { name, timedOut: true }
+          else if (
             !gate &&
             typeof status === 'number' &&
             (status < 200 || status >= 300)
@@ -291,10 +294,13 @@ export async function startControlPlane({
             gate = { name, status }
         }
         if (gate) {
+          const how = gate.timedOut
+            ? 'timed out'
+            : `returned HTTP status ${gate.status}`
           const stateReason =
             gate.name === 'run'
-              ? `Run lifecycle hook returned HTTP status ${gate.status}. Please check your hook endpoint and application logs for more details.`
-              : `Ready lifecycle hook returned HTTP status ${gate.status}; in production this fails the MicrovmImage build.`
+              ? `Run lifecycle hook ${how}. Please check your hook endpoint and application logs for more details.`
+              : `Ready lifecycle hook ${how}; in production this fails the MicrovmImage build.`
           try {
             server.close?.()
           } catch {
@@ -304,9 +310,7 @@ export async function startControlPlane({
           stopLogsFor(microvmId)
           const terminated = registry.terminate(microvmId)
           if (terminated) terminated.stateReason = stateReason
-          logger.aside(
-            `✕ ${short} terminated — ${gate.name} hook returned ${gate.status}`,
-          )
+          logger.aside(`✕ ${short} terminated — ${gate.name} hook ${how}`)
           return { microvmId, state: 'TERMINATED', stateReason }
         }
         if (firedHooks.length)

@@ -203,8 +203,16 @@ class SandboxesDevMode {
     const enabledHooks = new Set(declared)
     if (RUNTIME_HOOKS.some((h) => enabledHooks.has(h)))
       enabledHooks.add('ready')
-    const { createHookFirer } = await import('./api-emulator/hooks.js')
-    const fireHook = createHookFirer({ enabledHooks, logger: this.logger })
+    const { createHookFirer, resolveHookTimeouts } =
+      await import('./api-emulator/hooks.js')
+    // Mirror production timeout enforcement: each hook runs under the user's
+    // explicit `timeout` or the AWS platform default, so dev terminates a
+    // too-slow hook exactly as a deployed sandbox would.
+    const fireHook = createHookFirer({
+      enabledHooks,
+      hookTimeouts: resolveHookTimeouts(this.ctx.cfg.hooks),
+      logger: this.logger,
+    })
     try {
       this.controlPlane = await this.startControlPlane({
         registry,
