@@ -654,4 +654,52 @@ describe('AwsProvider', () => {
       expect(messages[0]).toContain('INFREQUENT_ACCESS')
     })
   })
+
+  describe('awsCfIf in awsArn schema', () => {
+    let schemaServerless
+
+    beforeEach(() => {
+      schemaServerless = new Serverless({ commands: [], options: {} })
+      schemaServerless.credentialProviders = {
+        aws: { getCredentials: jest.fn() },
+      }
+      schemaServerless.service.provider.name = 'aws'
+      new AwsProvider(schemaServerless, options)
+    })
+
+    it('includes awsCfIf alongside awsCfFunction in awsArn', () => {
+      const awsArn =
+        schemaServerless.configSchemaHandler.schema.definitions.awsArn
+
+      expect(awsArn.anyOf).toEqual(
+        expect.arrayContaining([
+          { $ref: '#/definitions/awsCfFunction' },
+          { $ref: '#/definitions/awsCfIf' },
+        ]),
+      )
+    })
+
+    it('accepts Fn::If authorizer arn values', async () => {
+      const Ajv = (await import('ajv')).default
+      const { default: regexpKeyword } =
+        await import('../../../../../lib/classes/config-schema-handler/regexp-keyword.js')
+      const schema = schemaServerless.configSchemaHandler.schema
+      const ajv = new Ajv({ allErrors: true, strict: false })
+      ajv.addKeyword(regexpKeyword)
+      const validate = ajv.compile({
+        ...schema.definitions.awsArn,
+        definitions: schema.definitions,
+      })
+
+      expect(
+        validate({
+          'Fn::If': [
+            'CreateUserPool',
+            { 'Fn::GetAtt': ['UserPool', 'Arn'] },
+            '${env:COGNITO_USER_POOL_ARN}',
+          ],
+        }),
+      ).toBe(true)
+    })
+  })
 })
