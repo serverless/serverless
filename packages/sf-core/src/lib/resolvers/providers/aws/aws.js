@@ -2,6 +2,7 @@ import { AbstractProvider } from '../index.js'
 import { resolveVariableFromSsm } from './ssm.js'
 import { resolveVariableFromS3, storeDataInS3 } from './s3.js'
 import { resolveVariableFromCloudFormation } from './cf.js'
+import { resolveValueFromAppConfig } from './appconfig.js'
 import { GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts'
 import { partition } from '@aws-sdk/core/client'
 import { addProxyToAwsClient } from '@serverless/util'
@@ -10,7 +11,7 @@ import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
 
 export class Aws extends AbstractProvider {
   static type = 'aws'
-  static resolvers = ['ssm', 's3', 'cf']
+  static resolvers = ['ssm', 's3', 'cf', 'appconfig']
   static defaultResolver = 'ssm'
 
   static validateConfig(config) {
@@ -128,6 +129,14 @@ export class Aws extends AbstractProvider {
           this.config,
           region,
           key,
+        )
+      }
+      if (resolverType === 'appconfig') {
+        return resolveValueFromAppConfig(
+          this.credentials,
+          region,
+          key,
+          this.config,
         )
       }
     } catch (error) {
