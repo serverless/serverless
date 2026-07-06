@@ -182,6 +182,16 @@ describe('deriveAnalysisEnrichment', () => {
         .isFirstDeploy,
     ).toBeUndefined()
     expect(
+      deriveAnalysisEnrichment({ ...fullInput, command: ['deploy', 'list'] })
+        .isFirstDeploy,
+    ).toBeUndefined()
+    expect(
+      deriveAnalysisEnrichment({
+        ...fullInput,
+        command: ['deploy', 'function'],
+      }).isFirstDeploy,
+    ).toBeUndefined()
+    expect(
       deriveAnalysisEnrichment({ ...fullInput, serviceUniqueId: null })
         .isFirstDeploy,
     ).toBeUndefined()

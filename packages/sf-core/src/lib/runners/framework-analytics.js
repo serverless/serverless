@@ -125,8 +125,11 @@ export const deriveAnalysisEnrichment = ({
       details.resourceCount = Object.keys(compiledResources).length
     }
 
+    // Only the plain `deploy` command can create the stack — sub-commands
+    // (`deploy function`, `deploy list`) never do, so they don't report it
     if (
       Array.isArray(command) &&
+      command.length === 1 &&
       command[0] === 'deploy' &&
       serviceUniqueId &&
       typeof analyticsMetrics?.stackExistedBeforeRun === 'boolean'
