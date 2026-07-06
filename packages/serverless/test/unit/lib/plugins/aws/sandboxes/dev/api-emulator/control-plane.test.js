@@ -447,6 +447,38 @@ test('a 2xx run hook does NOT gate: VM stays RUNNING', async () => {
   }
 })
 
+test('a failed ready hook does NOT deliver run (build-gate short-circuit)', async () => {
+  const fired = []
+  const registry = new EmulatorRegistry({
+    sandboxName: 'echo',
+    minimumMemoryInMiB: 2048,
+    imageArn: 'arn:local',
+    idFactory: () => 'mvm-1',
+  })
+  const cp = await startControlPlane({
+    registry,
+    containerManager: recordingContainerManager([]),
+    startProxy: fakeStartProxy,
+    setIntervalImpl: () => 0,
+    clearIntervalImpl: () => {},
+    waitForPort: async () => true,
+    // ready fails (500); run would succeed — but must never be delivered after ready fails
+    fireHook: async (name) => {
+      fired.push(name)
+      return name === 'ready' ? { status: 500 } : { status: 200 }
+    },
+    logger: { aside() {}, notice() {}, debug() {} },
+  })
+  try {
+    const res = await req(cp.port, 'POST', '/microvms', {})
+    expect(res.json.state).toBe('TERMINATED')
+    expect(res.json.stateReason).toMatch(/Ready lifecycle hook/)
+    expect(fired).toEqual(['ready']) // run was NOT fired against a build-failed image
+  } finally {
+    await cp.shutdown()
+  }
+})
+
 test('awaits beforeRun before launching the container on RunMicrovm', async () => {
   const seq = []
   const beforeRun = jest.fn(async () => {

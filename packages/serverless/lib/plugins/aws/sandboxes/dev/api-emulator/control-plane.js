@@ -292,6 +292,9 @@ export async function startControlPlane({
             (status < 200 || status >= 300)
           )
             gate = { name, status }
+          // A failed `ready` fails the image build in prod, so `run` never fires against that
+          // image — stop here instead of delivering `run` to a container that wouldn't exist.
+          if (gate) break
         }
         if (gate) {
           const how = gate.timedOut
@@ -396,8 +399,11 @@ export async function startControlPlane({
     },
 
     TerminateMicrovm: async (_req, _body, params) => {
-      const inst = registry.terminate(params.microvmIdentifier)
+      const inst = registry.getInstance(params.microvmIdentifier)
       if (!inst) return notFound(params.microvmIdentifier)
+      // Clean up BEFORE marking the registry terminated (mirrors the reaper's terminate branch):
+      // a cleanup step that failed must not leave the instance reading TERMINATED while its
+      // container is still running.
       try {
         inst.proxyServer?.close?.()
       } catch {
@@ -405,6 +411,7 @@ export async function startControlPlane({
       }
       await fireHook('terminate', inst)
       await inst.stopFn().catch(() => {})
+      registry.terminate(params.microvmIdentifier)
       stopLogsFor(params.microvmIdentifier)
       logger.aside(
         `✕ TerminateMicrovm  ${shortMicrovmId(params.microvmIdentifier)}`,
