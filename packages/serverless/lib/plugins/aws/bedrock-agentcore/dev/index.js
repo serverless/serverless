@@ -36,7 +36,7 @@ import {
   getCredentialExpirationMinutes,
   getRoleNameFromArn,
   isPrincipalInPolicy,
-  normalizeAssumedRoleArn,
+  resolveCallerPrincipalArn,
 } from './credentials.js'
 
 const logger = log.get('agentcore:dev-mode')
@@ -194,12 +194,19 @@ export class AgentCoreDevMode {
       logger.debug(`Local user ARN: ${callerArn}`)
 
       /**
-       * Normalize the caller ARN to an IAM role ARN.
-       * SSO sessions return arn:aws:sts::ACCOUNT:assumed-role/ROLE/SESSION
-       * but trust policies need arn:aws:iam::ACCOUNT:role/... to work
-       * reliably without waiting for IAM eventual consistency.
+       * Resolve the caller ARN to an IAM principal ARN. For SSO permission-set
+       * sessions we must ask IAM for the authoritative ARN (region-scoped path),
+       * not rebuild it by string — see GitHub issue #13652.
        */
-      const principalArn = normalizeAssumedRoleArn(callerArn)
+      const principalArn = await resolveCallerPrincipalArn(
+        callerArn,
+        async (roleName) => {
+          const res = await this.#iamClient.send(
+            new GetRoleCommand({ RoleName: roleName }),
+          )
+          return res.Role?.Arn
+        },
+      )
       if (principalArn !== callerArn) {
         logger.debug(`Normalized principal ARN: ${principalArn}`)
       }

@@ -1,0 +1,516 @@
+'use strict'
+
+import path from 'path'
+import fs from 'fs'
+import chokidar from 'chokidar'
+import { DockerClient } from '@serverless/util/src/docker/index.js'
+import { stringToSafeColor, style } from '@serverless/util'
+import {
+  createDockerLogDemuxer,
+  shortMicrovmId,
+} from './api-emulator/container-logs.js'
+import ServerlessError from '../../../../serverless-error.js'
+
+class SandboxesDevMode {
+  constructor(serverless, options, pluginUtils, deps = {}) {
+    this.serverless = serverless
+    this.options = options || {}
+    this.logger = pluginUtils.log
+    this.progress = pluginUtils.progress
+    this.docker = deps.docker || new DockerClient()
+    this.fileExists = deps.fileExists || ((p) => fs.existsSync(p))
+    this.onSignal = deps.onSignal || ((sig, h) => process.on(sig, h))
+    this.createWatcher =
+      deps.createWatcher || ((p, opts) => chokidar.watch(p, opts))
+    this.sleep = deps.sleep || ((ms) => new Promise((r) => setTimeout(r, ms)))
+    this.createIamEmulation = deps.createIamEmulation || null
+    this.startControlPlane =
+      deps.startControlPlane ||
+      (async (args) => {
+        const { startControlPlane } =
+          await import('./api-emulator/control-plane.js')
+        return startControlPlane(args)
+      })
+    this.makeContainerManager =
+      deps.makeContainerManager ||
+      ((args) =>
+        import('./api-emulator/container-manager.js').then(
+          (m) => new m.ContainerManager(args),
+        ))
+    this.makeRegistry =
+      deps.makeRegistry ||
+      ((args) =>
+        import('./api-emulator/registry.js').then(
+          (m) => new m.EmulatorRegistry(args),
+        ))
+    this.controlPlane = null
+    this.watcher = null
+    this.ctx = null
+    this.iam = null
+    this.credsEnv = null
+    this.isRebuilding = false
+    this.pendingRebuild = false
+    this.shuttingDown = false
+    // Human label for the credentials the container runs with — captured during IAM setup, printed
+    // in the post-build summary block next to the endpoint.
+    this.identityLabel = null
+  }
+
+  getSandboxesConfig() {
+    return (
+      this.serverless.service.sandboxes ||
+      this.serverless.configurationInput?.sandboxes ||
+      null
+    )
+  }
+
+  resolveSandboxName() {
+    const sandboxes = this.getSandboxesConfig()
+    if (!sandboxes || Object.keys(sandboxes).length === 0) {
+      throw new ServerlessError(
+        'No sandboxes defined in serverless.yml under `sandboxes`.',
+        'NO_SANDBOXES_DEFINED',
+        { stack: false },
+      )
+    }
+    const names = Object.keys(sandboxes)
+    if (this.options.sandbox) {
+      if (!sandboxes[this.options.sandbox]) {
+        throw new ServerlessError(
+          `Sandbox '${this.options.sandbox}' not found. Available: ${names.join(', ')}`,
+          'SANDBOX_NOT_FOUND',
+          { stack: false },
+        )
+      }
+      return this.options.sandbox
+    }
+    if (names.length === 1) return names[0]
+    throw new ServerlessError(
+      `Multiple sandboxes defined (${names.join(', ')}); choose one with --sandbox <name>.`,
+      'SANDBOX_TARGET_AMBIGUOUS',
+      { stack: false },
+    )
+  }
+
+  async run() {
+    const name = this.resolveSandboxName()
+    const cfg = this.getSandboxesConfig()[name]
+    const contextPath = this.resolveArtifactDir(cfg)
+    // Stable, customizable control-plane port — the address the SDK/launcher target. Constant by
+    // default so the endpoint doesn't change between runs (unlike the per-instance proxy ports,
+    // which are dynamic); override with --port. Defaults to 9100.
+    const controlPlanePort = Number(this.options.port) || 9100
+    const platform = process.arch === 'arm64' ? 'linux/arm64' : 'linux/amd64'
+    this.ctx = {
+      name,
+      cfg,
+      contextPath,
+      controlPlanePort,
+      platform,
+      imageUri: `serverless-sandbox-dev/${this.serverless.service.service}-${name}:latest`,
+      containerName: `sls-sandbox-dev-${this.serverless.service.service}-${name}`,
+    }
+
+    // Keep-alive resolver — set BEFORE any await so an early SIGINT still resolves run().
+    const exitPromise = new Promise((resolve) => {
+      this._resolveExit = resolve
+    })
+
+    // Fail fast if Docker is unreachable.
+    try {
+      await this.docker.ensureIsRunning()
+    } catch (err) {
+      throw new ServerlessError(
+        `Docker is required for 'serverless dev --sandbox'; could not reach the Docker daemon: ${err.message}`,
+        'SANDBOX_DEV_DOCKER_UNAVAILABLE',
+        { stack: false },
+      )
+    }
+
+    // Header — the same "Dev ϟ Mode" banner functions Dev Mode prints, so the `serverless dev`
+    // family reads as one product. A one-line description follows (grey). Optional-chained: test
+    // doubles may not implement these logger surfaces.
+    this.logger.logoDevMode?.()
+    this.logger.blankLine?.()
+    this.logger.aside?.(
+      `Runs sandbox "${name}" locally against an emulated AWS Lambda MicroVMs API — the same code runs in dev and production.`,
+    )
+    this.logger.blankLine?.()
+
+    // IAM emulation: assume the sandbox's real execution role unless --no-assume-role.
+    if (this.options['assume-role'] !== false) {
+      const factory =
+        this.createIamEmulation ||
+        (async () => {
+          const { default: SandboxIamEmulation } =
+            await import('./iam-emulation.js')
+          return new SandboxIamEmulation({
+            provider: this.serverless.getProvider('aws'),
+            logger: this.logger,
+          })
+        })
+      try {
+        this.iam = await factory()
+        this.credsEnv = await this.iam.setUp(name)
+        if (this.credsEnv) {
+          this.identityLabel = `${name} execution role (IAM emulation)`
+        }
+      } catch (err) {
+        this.logger.debug?.(`IAM emulation unavailable: ${err.message}`)
+        this.iam = null
+        this.credsEnv = null
+      }
+    } else {
+      // --no-assume-role: don't assume the execution role; instead run the container with the
+      // framework's normally-resolved (ambient) AWS credentials, so the worker's AWS calls use your
+      // local identity rather than NO credentials at all (a bare container inherits none).
+      try {
+        this.credsEnv = await this.resolveAmbientCredsEnv()
+        if (this.credsEnv) {
+          this.identityLabel = `your local AWS credentials (--no-assume-role)`
+        }
+      } catch (err) {
+        this.logger.debug?.(
+          `Could not resolve local AWS credentials: ${err.message}`,
+        )
+        this.credsEnv = null
+      }
+    }
+
+    await this.build()
+
+    const registry = await this.makeRegistry({
+      sandboxName: name,
+      minimumMemoryInMiB: this.ctx.cfg.minimumMemory || 2048,
+      imageArn: `arn:aws:lambda:local:000000000000:microvm-image:${this.serverless.service.service}-${name}`,
+    })
+    const self = this
+    const containerManager = await this.makeContainerManager({
+      docker: this.docker,
+      imageUri: this.ctx.imageUri,
+      serviceName: this.serverless.service.service,
+      sandboxName: name,
+      get env() {
+        return { ...(self.ctx.cfg.environment || {}), ...(self.credsEnv || {}) }
+      },
+    })
+    // Lifecycle hooks: fire only those declared in the sandbox config; `ready` auto-enables
+    // when any runtime hook is set (mirrors the framework's hook handling).
+    const RUNTIME_HOOKS = ['run', 'suspend', 'resume', 'terminate']
+    const declared = Object.keys(this.ctx.cfg.hooks || {}).filter(
+      (h) => this.ctx.cfg.hooks[h],
+    )
+    const enabledHooks = new Set(declared)
+    if (RUNTIME_HOOKS.some((h) => enabledHooks.has(h)))
+      enabledHooks.add('ready')
+    const { createHookFirer, resolveHookTimeouts } =
+      await import('./api-emulator/hooks.js')
+    // Mirror production timeout enforcement: each hook runs under the user's
+    // explicit `timeout` or the AWS platform default, so dev terminates a
+    // too-slow hook exactly as a deployed sandbox would.
+    const fireHook = createHookFirer({
+      enabledHooks,
+      hookTimeouts: resolveHookTimeouts(this.ctx.cfg.hooks),
+      logger: this.logger,
+    })
+    try {
+      this.controlPlane = await this.startControlPlane({
+        registry,
+        containerManager,
+        fireHook,
+        hooksEnabled: enabledHooks.size > 0,
+        port: this.ctx.controlPlanePort,
+        logger: this.logger,
+        attachLogs: (containerName, microvmId) =>
+          this.attachContainerLogs(containerName, microvmId),
+        beforeRun: () => this.refreshCredsIfExpiring(),
+      })
+    } catch (err) {
+      if (err?.code === 'EADDRINUSE') {
+        throw new ServerlessError(
+          `Port ${this.ctx.controlPlanePort} is already in use for the local MicroVMs API. ` +
+            `Free it, or pick another with: serverless dev --sandbox ${name} --port <port>.`,
+          'SANDBOX_DEV_PORT_IN_USE',
+          { stack: false },
+        )
+      }
+      throw err
+    }
+    this.progress?.remove?.()
+    const url = this.controlPlane.url
+    // Region shown is exactly the AWS_REGION we inject into the container (so the worker's
+    // default-region SDK calls land there); read it from credsEnv rather than re-querying the
+    // provider. Source is the build context the watcher watches — edits there rebuild the image.
+    const region = this.credsEnv?.AWS_REGION
+    const base = this.serverless.config?.serviceDir || process.cwd()
+    const sourceRel = path.relative(base, this.ctx.contextPath) || '.'
+    // Labeled summary block (Identity / Region / Endpoint / Source), mirroring functions Dev Mode's
+    // Functions:/Endpoints: sections. Labels pad to a fixed column so the values align. Printed
+    // post-build (like functions Dev's summary) so the identity captured during IAM setup lands
+    // here next to the endpoint rather than scrolling away above the build output.
+    const PAD = 11
+    this.logger.blankLine?.()
+    if (this.identityLabel)
+      this.logger.notice(`${'Identity'.padEnd(PAD)}${this.identityLabel}`)
+    if (region) this.logger.notice(`${'Region'.padEnd(PAD)}${region}`)
+    this.logger.notice(
+      `${'Endpoint'.padEnd(PAD)}${style.bold(url)}   ← point your AWS SDK or CLI here`,
+    )
+    // Target the endpoint via the SDK/CLI's endpoint-url setting rather than a global
+    // `export AWS_ENDPOINT_URL_LAMBDA_MICROVMS=…`: that var is honored by every AWS client, so
+    // exporting it would also redirect `serverless deploy`'s own MicroVMs calls. A per-command
+    // (`--endpoint-url`) or per-client endpoint targets only the user's code. Indented to nest
+    // under the endpoint value.
+    this.logger.aside?.(`${' '.repeat(PAD)}e.g.  aws … --endpoint-url ${url}`)
+    // Source carries the Hot Module Reloading hint inline (the watched dir is what rebuilds), so no
+    // separate "watching…" line is needed.
+    this.logger.notice(
+      `${'Source'.padEnd(PAD)}${sourceRel}   (watched — edits rebuild the image)`,
+    )
+    this.logger.blankLine?.()
+    this.logger.notice(`MicroVMs API ready — Ctrl-C to stop`)
+    this.logger.aside?.(
+      `Each launch streams that MicroVM's logs below as "─ <id> …"; grey lines are MicroVMs platform operations (launch, suspend, terminate).`,
+    )
+
+    this.onSignal('SIGINT', () => this.shutdown())
+    this.onSignal('SIGTERM', () => this.shutdown())
+
+    this.startWatcher()
+    await exitPromise
+  }
+
+  // Refresh the injected credentials before launching a MicroVM, so a long-running dev session
+  // doesn't hand a freshly launched container stale creds.
+  //   - IAM emulation: re-assume the execution role, but only when `credentialsExpiring()` says
+  //     it's needed (10-min buffer) — not on every call.
+  //   - --no-assume-role: re-resolve the ambient credentials each launch. They were snapshotted
+  //     into plain env vars at startup, so the provider's own refresh (SSO/STS/MFA) isn't visible
+  //     to the container unless we re-resolve and re-inject.
+  async refreshCredsIfExpiring() {
+    if (this.iam) {
+      if (this.credsEnv && this.iam.credentialsExpiring()) {
+        const refreshed = await this.iam.refresh()
+        if (refreshed) this.credsEnv = refreshed
+      }
+      return
+    }
+    if (this.credsEnv) {
+      const refreshed = await this.resolveAmbientCredsEnv()
+      if (refreshed) this.credsEnv = refreshed
+    }
+  }
+
+  // Resolve the framework's normally-chosen AWS credentials as container env vars (same shape IAM
+  // emulation injects). Used for --no-assume-role so the container runs with your local identity.
+  async resolveAmbientCredsEnv() {
+    const provider = this.serverless.getProvider('aws')
+    const c = await provider.getCredentials()
+    if (!c?.accessKeyId || !c?.secretAccessKey) return null
+    const env = {
+      AWS_ACCESS_KEY_ID: c.accessKeyId,
+      AWS_SECRET_ACCESS_KEY: c.secretAccessKey,
+      AWS_REGION: provider.getRegion(),
+    }
+    if (c.sessionToken) env.AWS_SESSION_TOKEN = c.sessionToken
+    return env
+  }
+
+  // Stream a MicroVM container's logs to the dev terminal, each line prefixed with the (stably
+  // colored) MicroVM id so you can tell which VM it came from. Returns a stop() the control-plane
+  // calls on terminate. Container logs are multiplexed (non-TTY) — demux into clean lines.
+  attachContainerLogs(containerName, microvmId) {
+    const color = stringToSafeColor(microvmId)
+    // Mirror functions Dev Mode, which prefixes a function's own output with `─`: each MicroVM's
+    // log lines get `─ <short-id>` (color-coded, stable per VM) so the whole `serverless dev`
+    // family reads with one grammar. The full 45-char id is shown once at launch for copy-paste.
+    const label = color(`─ ${shortMicrovmId(microvmId)}`)
+    // Render stderr (frame type 2) red, like functions Dev Mode, so worker errors stand out from
+    // normal output. stderr isn't strictly "errors only", but that's where errors live — and
+    // functions Dev Mode makes the same tradeoff (visibility wins).
+    const demux = createDockerLogDemuxer((line, stream) => {
+      if (!line.length) return
+      this.logger.notice(
+        `${label}  ${stream === 'stderr' ? style.error(line) : line}`,
+      )
+    })
+    let stream
+    let stopped = false
+    this.docker
+      .tailLogs({ containerName, onData: (chunk) => demux(chunk) })
+      .then((s) => {
+        stream = s
+        if (stopped) s?.destroy?.() // terminated before the stream resolved
+      })
+      .catch((err) =>
+        this.logger.debug?.(
+          `log stream for ${microvmId} failed: ${err.message}`,
+        ),
+      )
+    return () => {
+      stopped = true
+      try {
+        demux.flush() // emit any buffered partial line before we stop tailing
+        stream?.destroy?.()
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+
+  async build() {
+    this.progress?.notice?.(`Building sandbox image for "${this.ctx.name}"`)
+    await this.docker.buildImage({
+      containerName: this.ctx.containerName,
+      containerPath: this.ctx.contextPath,
+      imageUri: this.ctx.imageUri,
+      platform: this.ctx.platform,
+    })
+  }
+
+  async shutdown() {
+    if (this.shuttingDown) return
+    this.shuttingDown = true
+    if (this.watcher) await this.watcher.close().catch(() => {})
+    let terminated = 0
+    if (this.controlPlane)
+      terminated = (await this.controlPlane.shutdown().catch(() => 0)) || 0
+    const restored = this.iam
+      ? await this.iam
+          .cleanUp()
+          .then(() => true)
+          .catch(() => false)
+      : false
+    // Confirm cleanup so Ctrl-C isn't a silent exit — above all, that the temporarily edited IAM
+    // role trust policy was reverted (we mutated it; the user deserves to see it undone).
+    const bits = []
+    if (terminated)
+      bits.push(
+        `${terminated} MicroVM${terminated === 1 ? '' : 's'} terminated`,
+      )
+    if (restored) bits.push('role trust policy restored')
+    this.logger.blankLine?.()
+    this.logger.notice?.(
+      bits.length ? `Stopped — ${bits.join(' · ')}` : 'Stopped.',
+    )
+    this._resolveExit?.()
+  }
+
+  async performRebuild() {
+    // Collapse rapid bursts: if a rebuild is in flight, queue exactly one more.
+    if (this.isRebuilding) {
+      this.pendingRebuild = true
+      return
+    }
+    this.isRebuilding = true
+    const startedAt = Date.now()
+    try {
+      await this.sleep(100) // let the filesystem settle before reading sources
+      this.progress?.notice?.('Rebuilding sandbox image…')
+      await this.build()
+      this.progress?.remove?.()
+      // Abort if SIGINT fired while we were building — do not touch the container.
+      if (this.shuttingDown) return
+      await this.refreshCredsIfExpiring()
+      const secs = ((Date.now() - startedAt) / 1000).toFixed(1)
+      this.logger.notice(
+        `↻ rebuilt in ${secs}s — new launches use the updated image`,
+      )
+    } catch (err) {
+      this.progress?.remove?.()
+      // Previous container keeps running; the loop survives.
+      this.logger.error(`↻ rebuild failed: ${err.message}`)
+    } finally {
+      this.isRebuilding = false
+      if (this.pendingRebuild && !this.shuttingDown) {
+        this.pendingRebuild = false
+        await this.performRebuild()
+      }
+    }
+  }
+
+  _isIgnored(filePath, stats) {
+    // chokidar reports OS-native separators; normalize to '/' so the directory
+    // matches below work on Windows (where paths use '\') too.
+    const p = filePath.replace(/\\/g, '/')
+    const EXCLUDED = [
+      '/.serverless/',
+      '/node_modules/',
+      '/.git/',
+      '/__pycache__/',
+      '/.venv/',
+      '/venv/',
+      '/.pytest_cache/',
+      '/.mypy_cache/',
+      '/coverage/',
+    ]
+    if (EXCLUDED.some((dir) => p.includes(dir))) return true
+    if (
+      stats?.isFile() &&
+      (p.endsWith('.test.js') ||
+        p.endsWith('.spec.js') ||
+        p.endsWith('_test.py') ||
+        p.endsWith('.test.py'))
+    ) {
+      return true
+    }
+    return false
+  }
+
+  startWatcher() {
+    this.watcher = this.createWatcher(this.ctx.contextPath, {
+      ignored: (filePath, stats) => this._isIgnored(filePath, stats),
+      ignoreInitial: true,
+      followSymlinks: false,
+      // chokidar v4 dropped fsevents; polling avoids EMFILE on macOS.
+      usePolling: true,
+      awaitWriteFinish: { stabilityThreshold: 300, pollInterval: 100 },
+    })
+    this.watcher.on('all', async (event, filePath) => {
+      if (this.shuttingDown) return
+      const rel = path.relative(this.ctx.contextPath, filePath)
+      this.logger.notice(`↻ ${rel || 'source'} changed — rebuilding…`)
+      await this.performRebuild()
+    })
+  }
+
+  resolveArtifactDir(cfg) {
+    const artifact = cfg.artifact
+    if (!artifact || typeof artifact !== 'string') {
+      throw new ServerlessError(
+        `Sandbox is missing the required "artifact" property in serverless.yml. ` +
+          `Set "artifact" to a local directory that contains a Dockerfile.`,
+        'SANDBOX_DEV_ARTIFACT_MISSING',
+        { stack: false },
+      )
+    }
+    if (artifact.startsWith('s3://')) {
+      throw new ServerlessError(
+        `'dev' needs local source, but artifact is an s3:// zip (${artifact}). ` +
+          `Use a local directory containing a Dockerfile for the dev loop.`,
+        'SANDBOX_DEV_NO_LOCAL_SOURCE',
+        { stack: false },
+      )
+    }
+    const dir = path.isAbsolute(artifact)
+      ? artifact
+      : path.resolve(this.serverless.serviceDir || '.', artifact)
+    if (!this.fileExists(dir)) {
+      throw new ServerlessError(
+        `Artifact directory not found: "${dir}".`,
+        'SANDBOX_DEV_ARTIFACT_DIR_NOT_FOUND',
+        { stack: false },
+      )
+    }
+    if (!this.fileExists(path.join(dir, 'Dockerfile'))) {
+      throw new ServerlessError(
+        `No Dockerfile found in "${dir}". 'dev' builds the sandbox image from a Dockerfile.`,
+        'SANDBOX_DEV_NO_DOCKERFILE',
+        { stack: false },
+      )
+    }
+    return dir
+  }
+}
+
+export default SandboxesDevMode

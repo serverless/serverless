@@ -20,6 +20,7 @@ import {
   addPrincipalToPolicy,
   calculateBackoffDelay,
   normalizeAssumedRoleArn,
+  resolveCallerPrincipalArn,
 } from '../../../../../../../lib/plugins/aws/bedrock-agentcore/dev/credentials.js'
 
 describe('dev/credentials', () => {
@@ -294,5 +295,50 @@ describe('dev/credentials', () => {
       expect(calculateBackoffDelay(1, 1000, 10000)).toBe(1000)
       expect(calculateBackoffDelay(5, 1000, 10000)).toBe(10000) // Capped
     })
+  })
+})
+
+describe('resolveCallerPrincipalArn (issue #13652)', () => {
+  test('region-scoped SSO role resolves via getRoleArn (authoritative ARN)', async () => {
+    const sts =
+      'arn:aws:sts::123456789012:assumed-role/AWSReservedSSO_Admin_abc123/user@example.com'
+    const authoritative =
+      'arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/eu-central-1/AWSReservedSSO_Admin_abc123'
+    const getRoleArn = jest.fn(async (roleName) => {
+      expect(roleName).toBe('AWSReservedSSO_Admin_abc123')
+      return authoritative
+    })
+    await expect(resolveCallerPrincipalArn(sts, getRoleArn)).resolves.toBe(
+      authoritative,
+    )
+    expect(getRoleArn).toHaveBeenCalledTimes(1)
+  })
+
+  test('falls back to string normalization when getRoleArn throws (e.g. AccessDenied)', async () => {
+    const sts =
+      'arn:aws:sts::123456789012:assumed-role/AWSReservedSSO_Admin_abc123/user@example.com'
+    const getRoleArn = jest.fn(async () => {
+      throw new Error('AccessDenied')
+    })
+    // normalizeAssumedRoleArn rebuilds the region-less SSO path as a best effort.
+    await expect(resolveCallerPrincipalArn(sts, getRoleArn)).resolves.toBe(
+      'arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Admin_abc123',
+    )
+  })
+
+  test('non-SSO assumed-role ARN does not call getRoleArn and normalizes to the role ARN', async () => {
+    const sts = 'arn:aws:sts::123456789012:assumed-role/MyRole/session'
+    const getRoleArn = jest.fn()
+    await expect(resolveCallerPrincipalArn(sts, getRoleArn)).resolves.toBe(
+      'arn:aws:iam::123456789012:role/MyRole',
+    )
+    expect(getRoleArn).not.toHaveBeenCalled()
+  })
+
+  test('an already-IAM ARN is returned unchanged and does not call getRoleArn', async () => {
+    const iam = 'arn:aws:iam::123456789012:role/MyRole'
+    const getRoleArn = jest.fn()
+    await expect(resolveCallerPrincipalArn(iam, getRoleArn)).resolves.toBe(iam)
+    expect(getRoleArn).not.toHaveBeenCalled()
   })
 })
