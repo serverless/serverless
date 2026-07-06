@@ -14,7 +14,11 @@ import { syncSkills } from './engine.js'
 export const autoUpdateAgentSkills = async ({
   command,
   configFilePath,
-  homeDir = os.homedir(),
+  // Resolved inside the try below, not as a default param: os.homedir() can
+  // throw (e.g. a minimal container with no resolvable home), and a default
+  // param is evaluated before the try is entered -- which would defeat the
+  // "never throws" guarantee this hook depends on.
+  homeDir,
   getBundled = getBundledSkills, // test seam
 }) => {
   const logger = log.get('core:agent-skills:auto-update')
@@ -27,7 +31,7 @@ export const autoUpdateAgentSkills = async ({
     const targetDirs = await resolveTargetDirs({
       mode: 'auto',
       serviceDir,
-      homeDir,
+      homeDir: homeDir ?? os.homedir(),
     })
     if (!targetDirs.length) return // opt-in gate
 

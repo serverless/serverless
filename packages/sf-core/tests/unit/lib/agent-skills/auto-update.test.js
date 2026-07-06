@@ -1,5 +1,6 @@
+import { jest } from '@jest/globals'
 import { mkdtemp, writeFile, readFile, rm } from 'fs/promises'
-import { tmpdir } from 'os'
+import os, { tmpdir } from 'os'
 import path from 'path'
 import { autoUpdateAgentSkills } from '../../../../src/lib/agent-skills/auto-update.js'
 import { syncSkills } from '../../../../src/lib/agent-skills/engine.js'
@@ -109,6 +110,30 @@ it('skipped for the agent command itself and when no config', async () => {
   expect(
     await readFile(path.join(claudeSkills(), 'sls-test', 'SKILL.md'), 'utf8'),
   ).toContain('body v1')
+})
+
+it('never throws when os.homedir() fails and homeDir is not injected', async () => {
+  await syncSkills({
+    bundledSkills: [
+      { name: 'sls-test', version: 1, files: { 'SKILL.md': managedMd(1) } },
+    ],
+    targetDirs: [claudeSkills()],
+  })
+  const spy = jest.spyOn(os, 'homedir').mockImplementation(() => {
+    throw new Error('no resolvable home directory')
+  })
+  try {
+    // Note: homeDir intentionally omitted, so the hook must fall back to
+    // os.homedir() — the seam this regression guards.
+    await expect(
+      autoUpdateAgentSkills({
+        command: ['deploy'],
+        configFilePath: path.join(svc, 'serverless.yml'),
+      }),
+    ).resolves.toBeUndefined()
+  } finally {
+    spy.mockRestore()
+  }
 })
 
 it('never throws even when sync explodes', async () => {
