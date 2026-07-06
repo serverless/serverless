@@ -578,31 +578,36 @@ const runFramework = async ({
     analyticsMetrics.buildDurationMs = buildDurationMs
   }
 
-  try {
-    // Classic individually-packaged artifacts are recorded relative to the
-    // service dir; resolve and dedupe before stat
-    const artifactPaths = [
-      ...new Set(
-        collectArtifactPaths(serverless.service).map((artifactPath) =>
-          path.resolve(servicePath, artifactPath),
+  // Only packaging commands produce artifacts; other commands (e.g. info)
+  // may still carry a pre-configured package.artifact path, which is not an
+  // output of this run
+  if (['package', 'deploy', 'deploy function'].includes(fullCommand)) {
+    try {
+      // Classic individually-packaged artifacts are recorded relative to the
+      // service dir; resolve and dedupe before stat
+      const artifactPaths = [
+        ...new Set(
+          collectArtifactPaths(serverless.service).map((artifactPath) =>
+            path.resolve(servicePath, artifactPath),
+          ),
         ),
-      ),
-    ]
-    const artifactSizesBytes = []
-    for (const artifactPath of artifactPaths) {
-      try {
-        artifactSizesBytes.push((await stat(artifactPath)).size)
-      } catch (err) {
-        // e.g. a disabled function whose configured artifact was never
-        // written — skip it and keep the sizes of the artifacts that exist
-        logger.debug(`error reading artifact size for ${artifactPath}`, err)
+      ]
+      const artifactSizesBytes = []
+      for (const artifactPath of artifactPaths) {
+        try {
+          artifactSizesBytes.push((await stat(artifactPath)).size)
+        } catch (err) {
+          // e.g. a disabled function whose configured artifact was never
+          // written — skip it and keep the sizes of the artifacts that exist
+          logger.debug(`error reading artifact size for ${artifactPath}`, err)
+        }
       }
+      if (artifactSizesBytes.length > 0) {
+        analyticsMetrics.artifactSizesBytes = artifactSizesBytes
+      }
+    } catch (err) {
+      logger.debug('error collecting artifact sizes', err)
     }
-    if (artifactSizesBytes.length > 0) {
-      analyticsMetrics.artifactSizesBytes = artifactSizesBytes
-    }
-  } catch (err) {
-    logger.debug('error collecting artifact sizes', err)
   }
 
   return {
