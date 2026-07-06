@@ -23,8 +23,7 @@ export class AwsCloudWatchClient {
   /**
    * Constructor for the AwsCloudWatchClient.
    *
-   * @param {Object} params - Constructor parameters.
-   * @param {Object} [params.awsConfig] - AWS SDK configuration options.
+   * @param {Object} [awsConfig={}] - AWS SDK configuration options.
    */
   constructor(awsConfig = {}) {
     this.logsClient = addProxyToAwsClient(

@@ -34,6 +34,8 @@ jobs:
         run: npm run lint
       - name: 'Lint: Prettier'
         run: npm run prettier
+      - name: 'Lint: Agent Skills'
+        run: node packages/sf-core/scripts/lint-skills.js
 
   test-engine:
     name: 'Test: Engine'

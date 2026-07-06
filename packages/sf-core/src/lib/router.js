@@ -27,6 +27,7 @@ import {
 } from './platform/deployments.js'
 import { variables } from './resolvers/index.js'
 import { logDeferredNotifications } from './runners/notification.js'
+import { autoUpdateAgentSkills } from './agent-skills/auto-update.js'
 
 const runners = [
   ComposeRunner,
@@ -129,6 +130,12 @@ const route = async ({ command, options, versions, compose }) => {
       'Deferred notification logging error:',
       error?.message || error,
     )
+  }
+
+  // Silently converge already-installed managed agent skills to the bundled
+  // set. Internally guarded (CI, `agent` command, no config) and never throws.
+  if (!runnerError) {
+    await autoUpdateAgentSkills({ command, configFilePath })
   }
 
   try {
