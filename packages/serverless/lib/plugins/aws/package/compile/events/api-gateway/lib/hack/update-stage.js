@@ -346,7 +346,7 @@ function handleTags() {
   )
 
   const restApiId = this.apiGatewayRestApiId
-  const stageName = this.options.stage
+  const stageName = this.provider.getApiGatewayStage()
   const region = this.options.region
   const partition = this.partition
   const resourceArn = `arn:${partition}:apigateway:${region}::/restapis/${restApiId}/stages/${stageName}`

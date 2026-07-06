@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "4.37.0",
+  "version": "4.38.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -22,9 +22,13 @@
   },
   "dependencies": {
     "rimraf": "5.0.10",
-    "undici": "6.25.0"
+    "undici": "6.27.0"
   },
   "devDependencies": {},
+  "overrides": {
+    "minimatch": "^10.0.0",
+    "brace-expansion": "^5.0.7"
+  },
   "publishConfig": {
     "access": "public"
   },

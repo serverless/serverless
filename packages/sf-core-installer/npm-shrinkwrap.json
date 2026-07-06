@@ -1,16 +1,16 @@
 {
   "name": "serverless",
-  "version": "4.37.0",
+  "version": "4.38.1",
   "lockfileVersion": 3,
   "requires": true,
   "packages": {
     "": {
       "name": "serverless",
-      "version": "4.37.0",
+      "version": "4.38.1",
       "hasInstallScript": true,
       "dependencies": {
         "rimraf": "5.0.10",
-        "undici": "6.25.0"
+        "undici": "6.27.0"
       },
       "bin": {
         "serverless": "run.js",
@@ -73,18 +73,24 @@
       }
     },
     "node_modules/balanced-match": {
-      "version": "1.0.2",
-      "resolved": "https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.2.tgz",
-      "integrity": "sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==",
-      "license": "MIT"
+      "version": "4.0.4",
+      "resolved": "https://registry.npmjs.org/balanced-match/-/balanced-match-4.0.4.tgz",
+      "integrity": "sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==",
+      "license": "MIT",
+      "engines": {
+        "node": "18 || 20 || >=22"
+      }
     },
     "node_modules/brace-expansion": {
-      "version": "2.0.3",
-      "resolved": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-2.0.3.tgz",
-      "integrity": "sha512-MCV/fYJEbqx68aE58kv2cA/kiky1G8vux3OR6/jbS+jIMe/6fJWa0DTzJU7dqijOWYwHi1t29FlfYI9uytqlpA==",
+      "version": "5.0.7",
+      "resolved": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.7.tgz",
+      "integrity": "sha512-7oFy703dxfY3/NLxC1fh2SUCQ0H9rmAY+5EpDVfXjUTTs+HEwR2nYaqLv+GWcTsumwxPfiz6CzCNkwXwBUwqCA==",
       "license": "MIT",
       "dependencies": {
-        "balanced-match": "^1.0.0"
+        "balanced-match": "^4.0.2"
+      },
+      "engines": {
+        "node": "18 || 20 || >=22"
       }
     },
     "node_modules/color-convert": {
@@ -205,15 +211,15 @@
       "license": "ISC"
     },
     "node_modules/minimatch": {
-      "version": "9.0.9",
-      "resolved": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.9.tgz",
-      "integrity": "sha512-OBwBN9AL4dqmETlpS2zasx+vTeWclWzkblfZk7KTA5j3jeOONz/tRCnZomUyvNg83wL5Zv9Ss6HMJXAgL8R2Yg==",
-      "license": "ISC",
+      "version": "10.2.5",
+      "resolved": "https://registry.npmjs.org/minimatch/-/minimatch-10.2.5.tgz",
+      "integrity": "sha512-MULkVLfKGYDFYejP07QOurDLLQpcjk7Fw+7jXS2R2czRQzR56yHRveU5NDJEOviH+hETZKSkIk5c+T23GjFUMg==",
+      "license": "BlueOak-1.0.0",
       "dependencies": {
-        "brace-expansion": "^2.0.2"
+        "brace-expansion": "^5.0.5"
       },
       "engines": {
-        "node": ">=16 || 14 >=14.17"
+        "node": "18 || 20 || >=22"
       },
       "funding": {
         "url": "https://github.com/sponsors/isaacs"
@@ -404,9 +410,9 @@
       }
     },
     "node_modules/undici": {
-      "version": "6.25.0",
-      "resolved": "https://registry.npmjs.org/undici/-/undici-6.25.0.tgz",
-      "integrity": "sha512-ZgpWDC5gmNiuY9CnLVXEH8rl50xhRCuLNA97fAUnKi8RRuV4E6KG31pDTsLVUKnohJE0I3XDrTeEydAXRw47xg==",
+      "version": "6.27.0",
+      "resolved": "https://registry.npmjs.org/undici/-/undici-6.27.0.tgz",
+      "integrity": "sha512-YmfV3YnEDzXRC5lZ2jWtWWHKGUm1zIt8AhesR1tens+HTNv+YZlN/dp6G727LOvMJ8xjP9Be7Y2Sdr96LDm+pg==",
       "license": "MIT",
       "engines": {
         "node": ">=18.17"

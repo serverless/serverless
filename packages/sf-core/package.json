@@ -1,6 +1,6 @@
 {
   "name": "@serverlessinc/sf-core",
-  "version": "4.37.0",
+  "version": "4.38.1",
   "main": "src/index.js",
   "type": "module",
   "scripts": {
@@ -40,7 +40,7 @@
     "cross-env": "^10.1.0",
     "cross-spawn": "^7.0.6",
     "date-fns": "^4.1.0",
-    "esbuild": "0.28.0",
+    "esbuild": "0.28.1",
     "glob": "^10.5.0",
     "jest": "^30.4.2",
     "jszip": "^3.10.1",

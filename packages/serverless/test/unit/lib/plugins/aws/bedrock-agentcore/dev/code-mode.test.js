@@ -18,8 +18,8 @@ const mockExecP = jest.fn()
 
 jest.unstable_mockModule('child_process', () => ({
   spawn: mockSpawn,
-  exec: (cmd, cb) => {
-    mockExecP(cmd)
+  execFile: (file, args, cb) => {
+    mockExecP(file, args)
       .then((result) => cb(null, result))
       .catch((err) => cb(err))
   },
@@ -38,6 +38,13 @@ jest.unstable_mockModule('@serverless/util', () => ({
       error: jest.fn(),
       aside: jest.fn(),
     }),
+  },
+  ServerlessError: class ServerlessError extends Error {
+    constructor(message, code) {
+      super(message)
+      this.name = 'ServerlessError'
+      this.code = code
+    }
   },
 }))
 
@@ -268,6 +275,78 @@ describe('AgentCoreCodeMode', () => {
       mockExecP.mockRejectedValue(new Error('command not found'))
       const mode = new AgentCoreCodeMode(defaultOpts)
       await expect(mode.start(mockCredentials)).resolves.toBeDefined()
+    })
+
+    test('runs the version check without a shell (execFile + args array)', async () => {
+      const mode = new AgentCoreCodeMode(defaultOpts)
+      await mode.start(mockCredentials)
+      // The command and its flag are passed as separate argv entries
+      // (execFile), not assembled into a single string.
+      expect(mockExecP).toHaveBeenCalledWith(
+        isWin ? 'python.exe' : 'python3.13',
+        ['--version'],
+      )
+    })
+  })
+
+  describe('runtime validation', () => {
+    const startWith = (runtime) =>
+      new AgentCoreCodeMode({
+        ...defaultOpts,
+        agentConfig: { handler: 'agents/main.py', runtime },
+      }).start(mockCredentials)
+
+    test.each([
+      'python3.13;id',
+      'python3.13 && touch x',
+      'python3.13`id`',
+      'python3.13$(id)',
+      'python3.13|id',
+    ])('rejects malformed runtime %p without spawning', async (runtime) => {
+      await expect(startWith(runtime)).rejects.toThrow(
+        /Unsupported agent runtime/,
+      )
+      // Validation happens before any process is launched.
+      expect(mockSpawn).not.toHaveBeenCalled()
+      expect(mockExecP).not.toHaveBeenCalled()
+    })
+
+    test.each(['python4.0', 'python2.7', 'ruby', 'python'])(
+      'rejects unsupported runtime %p without spawning',
+      async (runtime) => {
+        await expect(startWith(runtime)).rejects.toThrow(
+          /Unsupported agent runtime/,
+        )
+        expect(mockSpawn).not.toHaveBeenCalled()
+      },
+    )
+
+    test('rejected error carries the AGENTCORE_INVALID_RUNTIME code', async () => {
+      await expect(startWith('python3.13;id')).rejects.toMatchObject({
+        code: 'AGENTCORE_INVALID_RUNTIME',
+      })
+    })
+
+    test('rejects a non-string runtime without crashing', async () => {
+      // e.g. an unquoted `runtime: 3.13` in serverless.yml parses as a number.
+      await expect(startWith(3.13)).rejects.toMatchObject({
+        code: 'AGENTCORE_INVALID_RUNTIME',
+      })
+      expect(mockSpawn).not.toHaveBeenCalled()
+      expect(mockExecP).not.toHaveBeenCalled()
+    })
+
+    test.each([
+      'python3.10',
+      'python3.11',
+      'python3.12',
+      'python3.13',
+      'python3.14',
+      'Python3.13',
+      'PYTHON_3_11',
+    ])('accepts supported runtime %p', async (runtime) => {
+      await expect(startWith(runtime)).resolves.toBeDefined()
+      expect(mockSpawn).toHaveBeenCalled()
     })
   })
 })
