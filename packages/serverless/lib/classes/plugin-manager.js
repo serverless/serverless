@@ -21,6 +21,7 @@ import pluginRollback from '../plugins/rollback.js'
 import pluginPlugin from '../plugins/plugin/plugin.js'
 import pluginList from '../plugins/plugin/list.js'
 import pluginSearch from '../plugins/plugin/search.js'
+import pluginAgentInspect from '../plugins/agent/inspect.js'
 import pluginAwsProvider from '../plugins/aws/provider.js'
 import pluginAwsCommon from '../plugins/aws/common/index.js'
 import pluginAwsPackage from '../plugins/aws/package/index.js'
@@ -90,6 +91,7 @@ const internalPlugins = [
   pluginPlugin,
   pluginList,
   pluginSearch,
+  pluginAgentInspect,
   pluginAwsProvider,
   pluginAwsCommon,
   pluginAwsPackage,
