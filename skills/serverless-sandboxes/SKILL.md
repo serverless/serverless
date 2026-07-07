@@ -9,6 +9,10 @@ description: >-
   `serverless dev --sandbox`, `invoke --sandbox`, `logs --sandbox`, RunMicrovm,
   or AWS Lambda MicroVMs. Trigger even when the user names neither "Serverless
   Framework" nor "sandbox" but describes an isolated AWS execution environment.
+metadata:
+  managed-by: serverless-framework
+  version: 1
+  author: Serverless Inc.
 ---
 
 # Serverless Framework Sandboxes (AWS Lambda MicroVMs)
