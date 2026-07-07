@@ -621,4 +621,23 @@ describe('fatal errors (non-zero exit, single JSON error on stdout)', () => {
     const payload = JSON.parse(mockWriteText.mock.calls[0][0])
     expect(payload.error.code).toBe('AGENT_INSPECT_UNKNOWN_AWS_SERVICE')
   })
+
+  test('a bad --format value errors up front instead of silently falling back to JSON', async () => {
+    const { serverless, provider } = buildHarness({
+      stackResources: [LAMBDA_SUMMARY],
+    })
+    const instance = new AgentInspect(serverless, { format: 'bogus' })
+
+    await expect(instance.inspect()).rejects.toMatchObject({
+      code: 'AGENT_INSPECT_UNKNOWN_FORMAT',
+    })
+
+    // The error document itself falls back to JSON (the requested format is
+    // unusable), and no discovery happened.
+    expect(mockWriteText).toHaveBeenCalledTimes(1)
+    const payload = JSON.parse(mockWriteText.mock.calls[0][0])
+    expect(payload.error.code).toBe('AGENT_INSPECT_UNKNOWN_FORMAT')
+    expect(payload.error.message).toContain('json, yaml')
+    expect(provider.request).not.toHaveBeenCalled()
+  })
 })

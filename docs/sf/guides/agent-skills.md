@@ -25,6 +25,11 @@ The Serverless Framework ships [Agent Skills](https://agentskills.io) — instru
 files that teach AI coding agents (Claude Code, Codex, Cursor, and any agent
 supporting the open standard) how to work with your service.
 
+The set of bundled skills varies by CLI version. If your version bundles none
+yet, `serverless agent skills install` reports
+`No skills are bundled with this CLI version.` and installs nothing — the rest
+of this guide applies once you're on a version that bundles skills.
+
 ## Install
 
 Run in your service directory (where `serverless.yml` lives):

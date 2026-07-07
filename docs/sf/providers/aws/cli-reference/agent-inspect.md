@@ -209,6 +209,12 @@ An unknown logical ID produces a structured error listing the valid IDs in
 the stack. A `--name` that matches a resource type outside the registry
 (the `other` bucket) errors explaining that the type isn't describable.
 
+`--name` is resolved against the full stack index (including nested
+stacks) before any category narrowing. If the same logical ID exists in
+both a parent and a nested child stack, `--name` errors as ambiguous even
+when a category flag would single one of them out — select by category or
+`--aws-services` instead in that case.
+
 ## Output contract
 
 - **Format:** pretty-printed JSON by default; `--format yaml` gives a
@@ -226,10 +232,15 @@ the stack. A `--name` that matches a resource type outside the registry
 - **Exit code 0** on success, including when individual resources failed to
   describe — those show up as `{ "error": "..." }` in their slot rather
   than aborting the run. Partial data is a successful inspect.
-- **Non-zero exit** only for fatal problems: an unknown flag, an unknown
-  `--aws-services` token, an unknown `--name`, a non-AWS provider, or a
-  stack that hasn't been deployed. Fatal errors emit a single structured
-  JSON error object on stdout before the non-zero exit.
+- **Non-zero exit** only for fatal problems. Errors the command itself
+  detects — an unknown `--aws-services` token, an unknown `--name`, a
+  `--name` on a non-describable type, an unknown `--format`, a non-AWS
+  provider, or a stack that hasn't been deployed — emit a single structured
+  JSON error object on stdout before the non-zero exit. Errors caught by
+  the CLI's general validation before the command runs — an unknown flag,
+  or running from a Serverless Compose root instead of a service
+  directory — also exit non-zero, but print a human-readable message on
+  stderr with nothing on stdout.
 - **Deterministic ordering:** categories appear in a fixed order and
   resources are sorted by logical ID, so output is byte-stable across runs
   against unchanged infrastructure — useful if you want to diff or cache
@@ -442,11 +453,13 @@ Notes on this policy:
   Lambda permission), just not as its own expanded entry.
 - **Output is raw AWS data and may be sensitive.** Because there's no field
   curation, a Lambda function's configuration includes its environment
-  variables in plaintext, and `GetFunction` includes a short-lived,
-  presigned download URL for the deployment package. This is the same data
-  `aws lambda get-function` would return — treat `agent inspect` output
-  with the same care you'd give any other AWS describe call's output, and
-  don't pipe it somewhere that isn't trusted with your service's secrets.
+  variables in plaintext — the same data `aws lambda get-function` would
+  return. Treat `agent inspect` output with the same care you'd give any
+  other AWS describe call's output, and don't pipe it somewhere that isn't
+  trusted with your service's secrets. (One exception to the pass-through:
+  the short-lived presigned deployment-package download URL that
+  `GetFunction` returns in `Code.Location` is stripped, both because it's a
+  credential-bearing URL and to keep output byte-stable across runs.)
 - **Sandboxes (Lambda MicroVMs) is a preview feature.** MicroVM images
   (`AWS::Lambda::MicrovmImage`) are describable via `--sandboxes` or
   `--aws-services lambda-microvms`. Network connectors

@@ -598,6 +598,25 @@ class CoreRunner extends Runner {
           break
         }
         if (this.command[1] === 'inspect') {
+          // At a Compose root the resolved config is serverless-compose.yml
+          // (the router still selects CoreRunner because `agent` lives in its
+          // CLI schema). Delegating would hand the compose file to the
+          // framework runner as a service config, which fails with a
+          // confusing '"service" property is missing' error. Compose fan-out
+          // is out of scope for inspect, so fail clearly instead.
+          if (
+            this.configFilePath &&
+            path.basename(
+              this.configFilePath,
+              path.extname(this.configFilePath),
+            ) === 'serverless-compose'
+          ) {
+            throw new ServerlessError(
+              '"serverless agent inspect" does not support Serverless Compose. Run it from one of your service directories instead.',
+              'AGENT_INSPECT_COMPOSE_NOT_SUPPORTED',
+              { stack: false },
+            )
+          }
           return this.delegateToFramework()
         }
         throw new Error(

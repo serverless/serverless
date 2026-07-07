@@ -146,6 +146,17 @@ class AgentInspect {
     const stage = this.provider.getStage()
 
     try {
+      // Guard: --format takes exactly two values. Validated up front so a typo
+      // fails loudly like every other bad token (the error document itself
+      // falls back to JSON, since the requested format is unusable).
+      const format = this.format()
+      if (format !== 'json' && format !== 'yaml') {
+        throw new ServerlessError(
+          `Unknown --format value "${format}". Valid values: json, yaml.`,
+          'AGENT_INSPECT_UNKNOWN_FORMAT',
+        )
+      }
+
       // Guard: this command only runs against the AWS provider. Structured
       // error up front, before any AWS call. (Compose-root / no-service cases
       // are handled by the framework's normal command guards.)

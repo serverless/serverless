@@ -254,6 +254,49 @@ describe('CoreRunner agent routing', () => {
     expect(frameworkCtorCalls[0].resolverManager).toBe(resolverManager)
   })
 
+  it('rejects `agent inspect` at a Compose root with a clear error (no delegation)', async () => {
+    // At a Compose root the router resolves serverless-compose.yml as the
+    // config but still selects CoreRunner (the `agent` command lives in its
+    // CLI schema). Delegating would hand the compose file to the framework
+    // runner as a service config, which dies with a confusing '"service"
+    // property is missing' error — so the guard must fail fast instead.
+    const runner = new CoreRunner({
+      command: ['agent', 'inspect'],
+      options: {},
+      config: { services: {} },
+      configFilePath: '/repo/serverless-compose.yml',
+      versionFramework: '4.0.0',
+      resolverManager: { resolveStage: jest.fn(async () => 'dev') },
+    })
+    await expect(runner.run()).rejects.toMatchObject({
+      code: 'AGENT_INSPECT_COMPOSE_NOT_SUPPORTED',
+      message: expect.stringMatching(/service director/),
+    })
+    expect(mockFrameworkRun).not.toHaveBeenCalled()
+    expect(frameworkCtorCalls).toHaveLength(0)
+  })
+
+  it('blocks every compose config extension, not just .yml', async () => {
+    for (const file of [
+      '/repo/serverless-compose.yaml',
+      '/repo/serverless-compose.ts',
+      '/repo/serverless-compose.js',
+    ]) {
+      const runner = new CoreRunner({
+        command: ['agent', 'inspect'],
+        options: {},
+        config: { services: {} },
+        configFilePath: file,
+        versionFramework: '4.0.0',
+        resolverManager: { resolveStage: jest.fn(async () => 'dev') },
+      })
+      await expect(runner.run()).rejects.toMatchObject({
+        code: 'AGENT_INSPECT_COMPOSE_NOT_SUPPORTED',
+      })
+    }
+    expect(mockFrameworkRun).not.toHaveBeenCalled()
+  })
+
   it('throws the skills hint for an unknown agent subcommand', async () => {
     const runner = makeRunner(['agent', 'bogus'], {})
     await expect(runner.run()).rejects.toThrow(

@@ -29,6 +29,10 @@ coding agents — Claude Code, Codex, Cursor, and any agent supporting the
 service. The command is idempotent: re-running it updates already-installed
 skills in place.
 
+The set of bundled skills varies by CLI version. On a version that bundles
+none yet, the command reports
+`No skills are bundled with this CLI version.` and installs nothing.
+
 ```bash
 serverless agent skills install
 ```
