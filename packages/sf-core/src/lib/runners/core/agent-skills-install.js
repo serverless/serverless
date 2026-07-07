@@ -37,6 +37,13 @@ export default async function agentSkillsInstall({
   const bundledSkills = await getBundledSkills()
   const report = await syncSkills({ bundledSkills, targetDirs })
 
+  // Nothing bundled → nothing was written; skip the Target/target-dir noise
+  // (it would announce dirs we never touched) and just say so.
+  if (!bundledSkills.length) {
+    logger.notice('No skills are bundled with this CLI version.')
+    return report
+  }
+
   for (const dir of targetDirs) {
     logger.notice(`Target: ${path.relative(serviceDir, dir)}`)
   }
@@ -51,12 +58,8 @@ export default async function agentSkillsInstall({
   for (const s of report.skipped.filter((s) => s.reason === 'ejected')) {
     logger.notice(`  · ${s.skill}: customized by you (no managed-by) — skipped`)
   }
-  if (!bundledSkills.length) {
-    logger.notice('No skills are bundled with this CLI version.')
-  } else {
-    logger.notice(
-      'Skills auto-update when you use a newer CLI. To customize a skill, remove its metadata.managed-by line. To uninstall, delete the skill folders.',
-    )
-  }
+  logger.notice(
+    'Skills auto-update when you use a newer CLI. To customize a skill, remove its metadata.managed-by line. To uninstall, delete the skill folders.',
+  )
   return report
 }

@@ -66,6 +66,12 @@ if (expected.length === 0) {
         output,
     )
   }
+  // With nothing to install, don't announce target dirs we never touched.
+  if (/Target:/.test(output)) {
+    throw new Error(
+      'zero bundled skills but the command printed a "Target:" line — should stay silent about target dirs when nothing is installed',
+    )
+  }
   for (const dir of ['.claude/skills', '.agents/skills']) {
     if (await exists(path.join(svc, dir))) {
       throw new Error(
