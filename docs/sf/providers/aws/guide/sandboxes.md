@@ -686,10 +686,13 @@ endpoint → `TerminateMicrovm`.
 On start, `dev` prints the endpoint (stable default port `9100`; change with `--port`):
 
 ```
-Local MicroVMs API: http://127.0.0.1:9100 (Ctrl-C to stop)
-Point your code at it: export AWS_ENDPOINT_URL_LAMBDA_MICROVMS=http://127.0.0.1:9100
-  (or pass endpoint: 'http://127.0.0.1:9100' to LambdaMicrovmsClient)
+Endpoint   http://127.0.0.1:9100   ← point your AWS SDK or CLI here
+           e.g.  aws … --endpoint-url http://127.0.0.1:9100
+
+MicroVMs API ready — Ctrl-C to stop
 ```
+
+Prefer a per-command `--endpoint-url` (or a per-client `endpoint` on `LambdaMicrovmsClient`) over exporting `AWS_ENDPOINT_URL_LAMBDA_MICROVMS` globally — the environment variable is honored by every AWS client in the shell, including `serverless deploy`'s own MicroVMs calls.
 
 - Each `RunMicrovm` starts a **fresh container** from the current image and returns a **unique** `endpoint`;
   `TerminateMicrovm` stops it.

@@ -58,6 +58,10 @@ MicroVMs API.
    ```
 
    (or pass `--endpoint-url` on each `aws` call instead of exporting it).
+   Note the export is honored by **every** AWS client in that shell —
+   including `serverless deploy`'s own MicroVMs calls — so don't run a
+   deploy from a shell that has it set; prefer per-call `--endpoint-url`
+   when in doubt.
 
 4. Launch an instance — the emulator maps any image identifier to the one
    local sandbox you're running `dev` against, so `local` works as a

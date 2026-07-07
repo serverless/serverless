@@ -24,7 +24,7 @@ over by analogy; check this table first.
 | `tags`           | object (string values) | no       | `{}`                                                | Applied to the sandbox's taggable resources.                                                                                                                                                                                                                                                                                                                                                                                    |
 | `hooks`          | object                 | no       | —                                                   | See `## Hooks` below.                                                                                                                                                                                                                                                                                                                                                                                                           |
 | `vpc`            | object                 | no       | —                                                   | See `## VPC` below.                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `observability`  | boolean or object      | no       | on (equivalent to omitted/`true`)                   | See `## Observability` below. `false` disables the owned logging/metrics/dashboard layer entirely.                                                                                                                                                                                                                                                                                                                              |
+| `observability`  | boolean or object      | no       | on (equivalent to omitted/`true`)                   | See `## Observability` below. `false` disables the metrics/dashboard/alarms layer; the owned log group is still created (turn logging itself off with `logs.enabled: false`).                                                                                                                                                                                                                                                   |
 | `iam`            | object                 | no       | —                                                   | See `## IAM` below.                                                                                                                                                                                                                                                                                                                                                                                                             |
 
 `environment` values are baked into the image snapshot at build time, so
@@ -170,10 +170,12 @@ Observability is **on by default** — omitting the key, or setting it to
   14 days.
 - An error metric filter over that log group.
 - A per-service CloudWatch dashboard.
-- The dashboard's console URL printed at the end of `serverless deploy`.
+- The dashboard's console URL printed at the end of `serverless deploy` and
+  in `serverless info`.
 
-Set `observability: false` to opt out of this layer entirely (the sandbox
-still runs; you just lose the owned logging/metrics/dashboard resources).
+Set `observability: false` to opt out of the metrics/dashboard/alarms layer
+(the sandbox still runs, and the owned log group is **still created** — only
+`logs.enabled: false` turns MicroVM logging off entirely).
 
 To customize instead of disabling, use the nested object form:
 

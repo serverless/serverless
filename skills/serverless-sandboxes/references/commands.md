@@ -14,10 +14,12 @@ snapshot build and takes minutes, not seconds. Let it run; the in-cloud
 build continues even if you kill the CLI — retrying can't speed it up and
 may collide with the in-progress stack update.
 
-If the sandbox's `observability` block has its dashboard enabled, the
-deploy summary includes a `dashboard:` line with the CloudWatch console URL
-for the service-level dashboard. A bare `serverless package` never triggers
-this — the dashboard URL only appears on `deploy`.
+The deploy summary — and `serverless info` — list the service's sandboxes
+under a `sandboxes:` section (name → deployed image name; the image name is
+also the log-group suffix), and, when the sandbox's `observability` block
+has its dashboard enabled, a `dashboard:` line with the CloudWatch console
+URL for the service-level dashboard. A bare `serverless package` prints
+neither.
 
 Artifacts are content-addressed: deploying again with no change to the
 uploaded zip or Dockerfile content is a no-op and skips the rebuild. Any
@@ -47,9 +49,9 @@ only one sandbox — there is no implicit default the way there can be for a
 single function. Omitting it fails with a "specify which sandbox" error
 listing the available names.
 
-Each invocation launches a fresh MicroVM instance, verifies readiness by
-making an authenticated request to it with retry/backoff (instance state is
-eventually consistent), sends the one HTTP request, and terminates the
+Each invocation launches a fresh MicroVM instance, polls `get-microvm`
+until it reports `RUNNING` (failing fast on a terminal state, with the
+platform's `stateReason`), sends the one HTTP request, and terminates the
 instance afterward — it is not a way to reach a long-lived, already-running
 instance. Use `--method` (default `GET`) and `--path` (default `/`) to
 shape the request; pass `--data` for a body on non-`GET` methods. `--port`
