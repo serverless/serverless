@@ -58,6 +58,7 @@ const runners = [
  * @returns {Promise<void>} - Resolves when routing is complete.
  */
 const route = async ({ command, options, versions, compose }) => {
+  const commandStartTime = Date.now()
   const logger = log.get('core:router')
   const progressMain = progress.get('main')
   progressMain.notice('Initializing')
@@ -136,6 +137,7 @@ const route = async ({ command, options, versions, compose }) => {
       logger,
       versionFramework: versions?.serverless_framework,
       command,
+      commandStartTime,
       options,
       resolverManager,
       compose,
@@ -155,6 +157,7 @@ const route = async ({ command, options, versions, compose }) => {
     await handleFinalizationError({
       versionFramework: versions?.serverless_framework,
       command,
+      commandStartTime,
       options,
       configFilePath,
       resolverManager,
@@ -330,6 +333,7 @@ const createUsageEvent = ({
  * @param {string} params.orgId - Organization ID.
  * @param {string} params.versionFramework - Version of the Serverless Framework being used.
  * @param {string[]} params.command - The command executed as part of the Serverless action.
+ * @param {number} [params.commandStartTime] - Epoch ms timestamp of command start, used to compute commandDurationMs.
  * @param {string} params.configFileName - Name of the configuration file.
  * @param {boolean} params.isCompose - Indicates if this is within a Compose project.
  * @param {string[]} params.cliOptions - CLI options passed during execution.
@@ -346,6 +350,7 @@ const createAnalysisEvent = ({
   orgId,
   versionFramework,
   command,
+  commandStartTime,
   configFileName,
   isCompose,
   userId,
@@ -377,6 +382,10 @@ const createAnalysisEvent = ({
     configurationFileName: configFileName,
     resolvers: Array.from(new Set(resolvers)),
     ...runnerSpecificDetails,
+  }
+
+  if (typeof commandStartTime === 'number') {
+    analysisEvent.commandDurationMs = Date.now() - commandStartTime
   }
 
   if (error instanceof Error) {
@@ -508,6 +517,7 @@ export const getRunner = async ({
  * @param logger
  * @param versionFramework
  * @param command
+ * @param commandStartTime
  * @param options
  * @param resolverManager
  * @param compose
@@ -525,6 +535,7 @@ const finalize = async ({
   logger,
   versionFramework,
   command,
+  commandStartTime,
   options,
   resolverManager,
   compose,
@@ -562,6 +573,7 @@ const finalize = async ({
       orgId,
       versionFramework,
       command,
+      commandStartTime,
       configFilePath,
       runner,
       compose,
@@ -619,6 +631,7 @@ const finalize = async ({
 const handleFinalizationError = async ({
   versionFramework,
   command,
+  commandStartTime,
   options,
   configFilePath,
   resolverManager,
@@ -635,6 +648,7 @@ const handleFinalizationError = async ({
       orgId: authenticatedData?.orgId,
       versionFramework,
       command,
+      commandStartTime,
       configFileName: configFilePath && path.basename(configFilePath),
       isCompose:
         runner.constructor.name === 'ComposeRunner' ||
@@ -715,6 +729,7 @@ async function sendAnalysisAndUsageEvent({
   orgId,
   versionFramework,
   command,
+  commandStartTime,
   configFilePath,
   runner,
   compose,
@@ -730,6 +745,7 @@ async function sendAnalysisAndUsageEvent({
     orgId,
     versionFramework,
     command,
+    commandStartTime,
     configFileName: configFilePath && path.basename(configFilePath),
     isCompose:
       runner.constructor.name === 'ComposeRunner' ||
