@@ -17,16 +17,20 @@ class AwsInvoke {
 
     this.hooks = {
       'invoke:invoke': async () => {
-        // Ensure at least one of --function or --agent is provided
-        if (!this.options.function && !this.options.agent) {
+        // Ensure at least one of --function, --agent, or --sandbox is provided
+        if (
+          !this.options.function &&
+          !this.options.agent &&
+          !this.options.sandbox
+        ) {
           throw new ServerlessError(
-            'One of the required options must be provided: --function (-f) or --agent (-a)',
+            'One of the required options must be provided: --function (-f), --agent (-a), or --sandbox',
             'INVOKE_MISSING_OPTION',
           )
         }
 
-        // Skip if --agent is provided (handled by invoke-agent plugin)
-        if (this.options.agent) {
+        // Skip if --agent or --sandbox is provided (handled by their dedicated plugins)
+        if (this.options.agent || this.options.sandbox) {
           return
         }
 

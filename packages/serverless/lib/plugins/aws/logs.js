@@ -22,14 +22,20 @@ class AwsLogs {
 
     this.hooks = {
       'logs:logs': async () => {
-        if (!this.options.function && !this.options.agent) {
+        // Ensure at least one of --function, --agent, or --sandbox is provided
+        if (
+          !this.options.function &&
+          !this.options.agent &&
+          !this.options.sandbox
+        ) {
           throw new ServerlessError(
-            'One of the required options must be provided: --function (-f) or --agent (-a)',
+            'One of the required options must be provided: --function (-f), --agent (-a), or --sandbox',
             'LOGS_MISSING_OPTION',
           )
         }
 
-        if (this.options.agent) {
+        // Skip if --agent or --sandbox is provided (handled by their dedicated plugins)
+        if (this.options.agent || this.options.sandbox) {
           return
         }
 

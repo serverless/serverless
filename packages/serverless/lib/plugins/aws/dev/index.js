@@ -68,9 +68,17 @@ class AwsDev {
     /**
      * We need to pack and deploy the dev mode shim only when running the dev command.
      * Since hooks are registered for all plugins regardless of the command, we need to
-     * make sure we only overwrite the default packaging behavior in the case of dev mode
+     * make sure we only overwrite the default packaging behavior in the case of dev mode.
+     * Skip the hook for sandbox mode — sandboxes build a local Docker image and never
+     * trigger the package lifecycle.
      */
-    if (this.serverless.processedInput.commands.includes('dev')) {
+    const isSandboxMode =
+      this.serverless.processedInput.options?.sandbox !== undefined ||
+      this.serverless.processedInput.options?.mode === 'sandboxes'
+    if (
+      this.serverless.processedInput.commands.includes('dev') &&
+      !isSandboxMode
+    ) {
       this.hooks['before:package:createDeploymentArtifacts'] = async () =>
         await this.pack()
     }
@@ -86,7 +94,7 @@ class AwsDev {
    * Validate the --mode option value
    */
   validateModeOption() {
-    const validModes = ['functions', 'agents']
+    const validModes = ['functions', 'agents', 'sandboxes']
     const mode = this.options.mode
 
     if (mode === undefined) {
@@ -138,6 +146,68 @@ class AwsDev {
     }
 
     return false
+  }
+
+  /**
+   * Check if sandboxes dev mode should be used
+   * @returns {boolean} True if sandboxes dev mode should be used
+   */
+  shouldUseSandboxesDevMode() {
+    const mode = this.options.mode
+    const hasSandboxes =
+      Object.keys(
+        this.serverless.service.sandboxes ||
+          this.serverless.configurationInput?.sandboxes ||
+          {},
+      ).length > 0
+
+    // If --sandbox was explicitly provided, always route to sandbox mode
+    // regardless of what else is defined in the service (functions, agents, etc.).
+    if (this.options.sandbox !== undefined) {
+      if (!hasSandboxes) {
+        throw new ServerlessError(
+          'No sandboxes defined in configuration. Cannot use --sandbox.',
+          'NO_SANDBOXES_DEFINED',
+          { stack: false },
+        )
+      }
+      return true
+    }
+
+    if (mode === 'sandboxes') {
+      if (!hasSandboxes) {
+        throw new ServerlessError(
+          'No sandboxes defined in configuration. Cannot use --mode sandboxes.',
+          'NO_SANDBOXES_DEFINED',
+          { stack: false },
+        )
+      }
+      return true
+    }
+    if (mode === 'functions' || mode === 'agents') return false
+    // Auto-detect: only sandboxes defined (no functions, no agents).
+    const hasFunctions =
+      Object.keys(this.serverless.service.functions || {}).length > 0
+    const hasAgents =
+      Object.keys(
+        this.serverless.service.initialServerlessConfig?.ai?.agents || {},
+      ).length > 0
+    return hasSandboxes && !hasFunctions && !hasAgents
+  }
+
+  /**
+   * Start sandboxes dev mode using the SandboxesDevMode plugin
+   * @async
+   * @returns {Promise<void>}
+   */
+  async startSandboxesDevMode() {
+    const { default: SandboxesDevMode } =
+      await import('../sandboxes/dev/index.js')
+    const dev = new SandboxesDevMode(this.serverless, this.options, {
+      log,
+      progress,
+    })
+    await dev.run()
   }
 
   /**
@@ -349,6 +419,10 @@ class AwsDev {
    */
   async dev() {
     this.validateModeOption()
+
+    if (this.shouldUseSandboxesDevMode()) {
+      return await this.startSandboxesDevMode()
+    }
 
     if (this.shouldUseAgentsDevMode()) {
       return await this.startAgentsDevMode()

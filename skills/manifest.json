@@ -1,1 +1,6 @@
-{}
+{
+  "serverless-sandboxes": {
+    "version": 1,
+    "hash": "f4771bfa41a73fb52fe266f129409019c2633045ee8b443efb29967ade35b492"
+  }
+}
