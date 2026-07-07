@@ -460,7 +460,7 @@ Notes on this policy:
   the short-lived presigned deployment-package download URL that
   `GetFunction` returns in `Code.Location` is stripped, both because it's a
   credential-bearing URL and to keep output byte-stable across runs.)
-- **Sandboxes (Lambda MicroVMs) is a preview feature.** MicroVM images
+- **Sandboxes (Lambda MicroVMs).** MicroVM images
   (`AWS::Lambda::MicrovmImage`) are describable via `--sandboxes` or
   `--aws-services lambda-microvms`. Network connectors
   (`AWS::Lambda::NetworkConnector`) have no describe operation in the AWS
