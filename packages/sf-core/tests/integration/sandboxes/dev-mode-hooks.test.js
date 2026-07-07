@@ -92,7 +92,29 @@ function forceRemoveByPrefix() {
   }
 }
 
-describe('dev mode — lifecycle hook delivery to a real container', () => {
+// These tests build and run real Docker containers via `docker build --load`
+// (a buildx/BuildKit flag). Skip cleanly where that build can't run rather than
+// hard-failing:
+//   - a runner with no Docker daemon (arm-linux release runner) → `docker`
+//     throws `ENOENT`;
+//   - a runner whose `docker build` is the classic builder (Windows runner) →
+//     rejects `--load` with "unknown flag: --load".
+// Probe the exact capability the build needs (does `docker build` accept
+// `--load`) so the suite still runs wherever buildx-backed builds work (ubuntu
+// CI, macOS Docker Desktop). No implementation change.
+function dockerBuildSupportsLoad() {
+  try {
+    const help = execFileSync('docker', ['build', '--help'], {
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).toString()
+    return help.includes('--load')
+  } catch {
+    return false
+  }
+}
+const d = dockerBuildSupportsLoad() ? describe : describe.skip
+
+d('dev mode — lifecycle hook delivery to a real container', () => {
   jest.setTimeout(180000)
   const docker = new DockerClient()
   let cp, client, logs
