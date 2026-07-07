@@ -272,6 +272,9 @@ class PluginManager {
     this.commands = {}
     this.aliases = {}
     this.hooks = {}
+    // Wall-clock duration (ms) spent in each lifecycle event's hooks,
+    // accumulated across invocations; keyed by lifecycle event name
+    this.lifecycleEventDurations = {}
     this.deprecatedEvents = {}
     // Track service-declared plugin names to coordinate bundled overrides per invocation
     this.servicePluginNames = new Set()
@@ -935,9 +938,16 @@ class PluginManager {
         lifecycleEventName,
         hooksData: { before, at, after },
       } of lifecycleEventsData) {
-        await this.runHooks(`before:${lifecycleEventName}`, before)
-        await this.runHooks(lifecycleEventName, at)
-        await this.runHooks(`after:${lifecycleEventName}`, after)
+        const lifecycleStart = Date.now()
+        try {
+          await this.runHooks(`before:${lifecycleEventName}`, before)
+          await this.runHooks(lifecycleEventName, at)
+          await this.runHooks(`after:${lifecycleEventName}`, after)
+        } finally {
+          this.lifecycleEventDurations[lifecycleEventName] =
+            (this.lifecycleEventDurations[lifecycleEventName] ?? 0) +
+            (Date.now() - lifecycleStart)
+        }
       }
     } catch (error) {
       if (error instanceof TerminateHookChain) {
