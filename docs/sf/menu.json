@@ -74,6 +74,7 @@
     "Composing Services": "guides/compose",
     "Deployment Bucket": "guides/deployment-bucket",
     "State": "guides/state",
+    "Agent Skills": "guides/agent-skills",
     "Python support": "providers/aws/guide/python",
     "AI Agents": {
       "Overview": "providers/aws/guide/agents",
@@ -118,6 +119,8 @@
   },
   "CLI Reference": {
     "Overview": "providers/aws/cli-reference",
+    "agent inspect": "providers/aws/cli-reference/agent-inspect",
+    "agent skills install": "providers/aws/cli-reference/agent-skills-install",
     "deploy": "providers/aws/cli-reference/deploy",
     "deploy function": "providers/aws/cli-reference/deploy-function",
     "deploy list": "providers/aws/cli-reference/deploy-list",

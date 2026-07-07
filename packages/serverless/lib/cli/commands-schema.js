@@ -500,6 +500,51 @@ commands.set('remove', {
   hasAwsExtension: true,
 })
 
+const agentInspectOptions = {}
+for (const flag of [
+  'functions',
+  'api',
+  'events',
+  'iam',
+  'storage',
+  'observability',
+  'cdn',
+  'identity',
+  'iot',
+  'sandboxes',
+]) {
+  agentInspectOptions[flag] = {
+    type: 'boolean',
+    usage: `Expand ${flag} resources`,
+  }
+}
+commands.set('agent inspect', {
+  usage:
+    'Inspect a deployed service: a cheap resource index, or the raw AWS state of selected resources',
+  options: {
+    ...agentInspectOptions,
+    all: { type: 'boolean', usage: 'Expand every category' },
+    'aws-services': {
+      type: 'string',
+      usage:
+        'Comma-separated AWS service tokens to expand (e.g. "lambda,iam,s3")',
+    },
+    name: {
+      type: 'multiple',
+      usage:
+        'Logical ID to scope to (repeatable; used alone auto-selects that resource)',
+    },
+    format: {
+      type: 'string',
+      usage: 'Output format: "json" (default) or "yaml"',
+      default: 'json',
+    },
+  },
+  lifecycleEvents: ['inspect'],
+  serviceDependencyMode: 'required',
+  hasAwsExtension: true,
+})
+
 commands.set('rollback', {
   usage: 'Rollback the Serverless service to a specific deployment',
   options: {
