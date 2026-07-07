@@ -265,6 +265,34 @@ describe('ServerlessSandboxes', () => {
     expect(params.ContentType).toBe('application/zip')
   })
 
+  test('packageArtifacts() rejects a manifest entry whose path escapes the package directory', async () => {
+    const provider = makeProvider()
+    const sls = makeServerless(
+      { runner: { artifact: 's3://bucket/artifact.zip' } },
+      provider,
+    )
+    // A tampered / attacker-supplied manifest (e.g. via `deploy --package <dir>`)
+    // pointing outside the package dir with `../` must be refused before any read.
+    const fakeFs = makeFakeFs([
+      {
+        name: 'runner',
+        key: 'serverless/svc/dev/sandboxes/runner-abc123.zip',
+        file: '../../../../../../etc/passwd',
+      },
+    ])
+    const p = new ServerlessSandboxes(
+      sls,
+      {},
+      { log: { debug: jest.fn() } },
+      { fs: fakeFs },
+    )
+    await expect(p.packageArtifacts()).rejects.toThrow(/escapes the package/i)
+    const s3UploadCalls = provider.request.mock.calls.filter(
+      ([svc, method]) => svc === 'S3' && method === 'upload',
+    )
+    expect(s3UploadCalls).toHaveLength(0)
+  })
+
   test('packageArtifacts() is a no-op when there is no manifest (only s3:// artifacts)', async () => {
     const provider = makeProvider()
     const sls = makeServerless(

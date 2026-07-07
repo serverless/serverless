@@ -45,10 +45,14 @@ test('run() starts a uniquely-named container and returns the host port map', as
   const inst = await cm.run()
   expect(inst.containerName).toBe('sls-sandbox-dev-svc-echo-abc123')
   expect(inst.portMap).toEqual({ 8080: 50080, 9000: 50090 })
-  // exposed + bound both requested ports with auto host port
-  expect(
-    docker.started[0].hostConfig.PortBindings['8080/tcp'][0].HostPort,
-  ).toBe('')
+  // exposed + bound both requested ports with auto host port, loopback-only
+  for (const p of ['8080/tcp', '9000/tcp']) {
+    const binding = docker.started[0].hostConfig.PortBindings[p][0]
+    expect(binding.HostPort).toBe('')
+    // HostIp must pin to loopback — a 0.0.0.0 bind would expose the dev
+    // container (running with assumed-role creds) to the whole network.
+    expect(binding.HostIp).toBe('127.0.0.1')
+  }
   expect(docker.started[0].env.GREETING).toBe('hi')
 })
 

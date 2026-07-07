@@ -126,15 +126,27 @@ class ServerlessSandboxes {
       this.serverless.service.provider?.deploymentBucketObject
 
     await Promise.all(
-      manifest.map(async ({ key, file }) =>
-        uploadArtifact({
+      manifest.map(async ({ key, file }) => {
+        // The manifest is read from disk (and may come from a `--package <dir>`
+        // built elsewhere), so treat `file` as untrusted: confine the resolved
+        // path to packageDir. Without this a tampered manifest with `../`
+        // segments could make deploy read — and upload to the deployment
+        // bucket — arbitrary files outside the package directory.
+        const resolved = path.resolve(packageDir, file)
+        const root = path.resolve(packageDir)
+        if (resolved !== root && !resolved.startsWith(root + path.sep)) {
+          throw new this.serverless.classes.Error(
+            `Refusing to upload sandbox artifact from '${file}': path escapes the package directory.`,
+          )
+        }
+        return uploadArtifact({
           provider: this.provider,
           bucket,
           key,
-          body: await this._fs.readFile(path.join(packageDir, file)),
+          body: await this._fs.readFile(resolved),
           deploymentBucketObject,
-        }),
-      ),
+        })
+      }),
     )
   }
 

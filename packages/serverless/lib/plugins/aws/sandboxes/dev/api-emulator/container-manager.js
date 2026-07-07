@@ -35,7 +35,14 @@ export class ContainerManager {
     const portBindings = {}
     for (const p of this.ports) {
       exposedPorts[`${p}/tcp`] = {}
-      portBindings[`${p}/tcp`] = [{ HostPort: '' }] // '' => Docker assigns a free host port
+      // HostIp: '127.0.0.1' keeps the published port loopback-only. Without it
+      // Docker binds the published port on 0.0.0.0 (all interfaces), which would
+      // expose the dev sandbox container — running with the assumed execution
+      // role's credentials — to any peer on the host's network, bypassing the
+      // proxy's auth-token gate. The proxy reaches the container via 127.0.0.1
+      // (see proxy.js), so loopback-only is fully sufficient.
+      // HostPort '' => Docker assigns a free host port.
+      portBindings[`${p}/tcp`] = [{ HostIp: '127.0.0.1', HostPort: '' }]
     }
     const container = await this.docker.createContainer({
       imageUri: this.imageUri,
