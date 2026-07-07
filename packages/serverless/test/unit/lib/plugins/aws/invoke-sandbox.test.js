@@ -96,6 +96,28 @@ test('full round-trip runs, tokens, fetches, prints, and always terminates', asy
   )
 })
 
+test('honors an http:// endpoint (local dev emulator) instead of forcing https', async () => {
+  // The dev emulator returns a full http://127.0.0.1:<port> URL; invoke must use it as-is,
+  // not build https://http://… (which fails to connect).
+  dataplane.waitUntilRunning.mockResolvedValueOnce({
+    state: 'RUNNING',
+    endpoint: 'http://127.0.0.1:9100',
+  })
+  global.fetch = jest.fn(async () => ({
+    status: 200,
+    text: async () => 'ok',
+  }))
+  const inst = makeInstance(
+    { sandbox: 'echo', path: '/health', port: 8080 },
+    { echo: { artifact: './app' } },
+  )
+  await inst.hooks['invoke:invoke']()
+  expect(global.fetch).toHaveBeenCalledWith(
+    'http://127.0.0.1:9100/health',
+    expect.anything(),
+  )
+})
+
 test('terminates even when the HTTP request throws', async () => {
   global.fetch = jest.fn(async () => {
     throw new Error('network')

@@ -711,6 +711,19 @@ If you need to drive MicroVM instances from your own scripts or CI pipelines, th
 
 The `<ImageArn>` value is the `<Name>ImageIdentifier` CloudFormation stack output (despite the CLI flag name, it takes the image identifier). The execution role ARN is the `<Name>ExecutionRoleArn` stack output.
 
+**Against the local `dev` emulator**, the same calls work — add `--endpoint-url http://127.0.0.1:9100` (or export `AWS_ENDPOINT_URL_LAMBDA_MICROVMS`). Two local differences: pass `--image-identifier local` (the emulator maps any identifier to the running sandbox, and `--execution-role-arn` is optional), and call the **`http://`** endpoint it returns — not `https://`:
+
+```bash
+EP=http://127.0.0.1:9100
+RUN=$(aws lambda-microvms run-microvm --endpoint-url $EP --image-identifier local)
+ID=$(echo "$RUN" | jq -r .microvmId); ENDPOINT=$(echo "$RUN" | jq -r .endpoint)
+TOK=$(aws lambda-microvms create-microvm-auth-token --endpoint-url $EP \
+  --microvm-identifier "$ID" --allowed-ports '[{"port":8080}]' --expiration-in-minutes 60 \
+  --query 'authToken."X-aws-proxy-auth"' --output text)
+curl -H "X-aws-proxy-auth: $TOK" -H "X-aws-proxy-port: 8080" "$ENDPOINT/hello"
+aws lambda-microvms terminate-microvm --endpoint-url $EP --microvm-identifier "$ID"
+```
+
 > **Caller IAM — passing network connectors:** `run-microvm` attaches network connectors to each instance (an HTTP-ingress connector so the platform can deliver hooks and proxy requests, plus any egress connector), and the caller must be allowed to pass each one. Grant `lambda:PassNetworkConnector` for every connector ARN you attach — for example `arn:aws:lambda:<region>:aws:network-connector:aws-network-connector:HTTP_INGRESS` and `…:INTERNET_EGRESS`. A missing grant surfaces as an `AccessDeniedException` that names `PassNetworkConnector` and the specific connector; add the permission for the named connector to resolve it. This is in addition to `iam:PassRole` for the execution role.
 
 ### Eventual consistency

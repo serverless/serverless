@@ -88,8 +88,15 @@ class AwsInvokeSandbox {
         const { endpoint } = await waitUntilRunning(client, microvmId)
         const token = await createAuthToken(client, microvmId, port)
 
+        // On real AWS the endpoint is a bare hostname, so default to https://. The local dev
+        // emulator returns a full http://127.0.0.1:<port> URL (plain HTTP, no TLS) — honor an
+        // existing scheme so `invoke --sandbox` works against the emulator too, per the guide's
+        // "use the endpoint as-is" note.
+        const base = /^https?:\/\//i.test(endpoint)
+          ? endpoint
+          : `https://${endpoint}`
         // Insert a leading slash when reqPath doesn't already have one.
-        const url = `https://${endpoint}${reqPath.startsWith('/') ? '' : '/'}${reqPath}`
+        const url = `${base}${reqPath.startsWith('/') ? '' : '/'}${reqPath}`
         const headers = {
           'X-aws-proxy-auth': token,
           'X-aws-proxy-port': String(port),
