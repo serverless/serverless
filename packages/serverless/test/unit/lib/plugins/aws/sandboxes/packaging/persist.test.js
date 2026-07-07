@@ -1,4 +1,5 @@
 import { jest } from '@jest/globals'
+import path from 'path'
 import {
   persistArtifacts,
   readUploadManifest,
@@ -45,11 +46,15 @@ test('persistArtifacts writes each zip + a manifest into the package dir', async
       file: 'sandboxes/runner-abc123.zip',
     },
   ])
-  // the zip is written under the package dir, and the manifest alongside it
-  expect(fs.files['/pkg/sandboxes/runner-abc123.zip']).toEqual(
+  // the zip is written under the package dir, and the manifest alongside it.
+  // The write path uses native path.join (backslashes on Windows), so key the
+  // lookup the same way rather than a hard-coded POSIX string.
+  expect(fs.files[path.join('/pkg', 'sandboxes', 'runner-abc123.zip')]).toEqual(
     Buffer.from('zip-bytes'),
   )
-  expect(JSON.parse(fs.files[`/pkg/${UPLOAD_MANIFEST}`])).toEqual(entries)
+  expect(JSON.parse(fs.files[path.join('/pkg', UPLOAD_MANIFEST)])).toEqual(
+    entries,
+  )
 })
 
 test('persistArtifacts writes no manifest when there are no artifacts (s3:// only)', async () => {
