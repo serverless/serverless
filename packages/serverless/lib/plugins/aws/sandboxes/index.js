@@ -5,9 +5,13 @@ import fsPromises from 'fs/promises'
 import { defineSandboxesSchema } from './validators/schema.js'
 import { validateSandboxes } from './validators/config.js'
 import { orchestrate } from './compilation/orchestrator.js'
-import { dashboardConsoleUrl } from './compilers/observability.js'
+import {
+  dashboardConsoleUrl,
+  resolveObservability,
+} from './compilers/observability.js'
 import { uploadArtifact } from './packaging/artifact.js'
 import { persistArtifacts, readUploadManifest } from './packaging/persist.js'
+import { getResourceName } from './utils/naming.js'
 
 /**
  * Serverless Framework internal plugin for AWS Lambda MicroVM sandboxes.
@@ -49,6 +53,7 @@ class ServerlessSandboxes {
       'before:package:initialize': () => this.validate(),
       'before:deploy:deploy': () => this.packageArtifacts(),
       'before:package:finalize': () => this.compile(),
+      'before:aws:info:gatherData': () => this.addSandboxServiceOutputs(),
     }
   }
 
@@ -134,6 +139,48 @@ class ServerlessSandboxes {
   }
 
   /**
+   * Surface the sandbox service-output sections: a `sandboxes` list (name →
+   * deployed MicroVM image name, mirroring the `functions` section) and the
+   * CloudWatch `dashboard` URL. Hooked on `before:aws:info:gatherData`, which
+   * fires for both commands that print service outputs — `info` directly, and
+   * `deploy` via its internal `aws:info` spawn — so one code path covers both
+   * summaries (including `deploy --package`, where no compile step runs
+   * in-process). The image names come from the same deterministic naming
+   * helper the compilers use, and whether a dashboard exists is derived from
+   * the sandbox configs with the same resolveObservability logic that gates
+   * the SandboxesDashboard resource. The `_serviceOutputsAdded` guard keeps
+   * this idempotent — addServiceOutputSection throws on a duplicate section.
+   */
+  addSandboxServiceOutputs() {
+    if (this._serviceOutputsAdded) return
+    if (typeof this.serverless.addServiceOutputSection !== 'function') return
+    const sandboxesConfig = this.getSandboxesConfig()
+    if (!sandboxesConfig) return
+    const names = Object.keys(sandboxesConfig)
+    if (names.length === 0) return
+    const ctx = this.getContext()
+
+    this.serverless.addServiceOutputSection(
+      'sandboxes',
+      names.map(
+        (name) =>
+          `${name}: ${getResourceName(ctx.serviceName, name, ctx.stage)}`,
+      ),
+    )
+
+    const anyDashboard = Object.values(sandboxesConfig).some(
+      (cfg) => resolveObservability(cfg?.observability).dashboard.enabled,
+    )
+    if (anyDashboard) {
+      this.serverless.addServiceOutputSection(
+        'dashboard',
+        dashboardConsoleUrl(ctx),
+      )
+    }
+    this._serviceOutputsAdded = true
+  }
+
+  /**
    * Compile all sandbox CloudFormation resources into the provider template.
    * Idempotent: subsequent calls are no-ops once resourcesCompiled is set.
    *
@@ -167,22 +214,6 @@ class ServerlessSandboxes {
       pendingUploads,
       fs: this._fs,
     })
-
-    // Surface the CloudWatch dashboard URL in the post-deploy summary (alongside
-    // endpoints/functions). The `SandboxesDashboard` resource exists only when
-    // observability is enabled; the URL comes from the dashboard compiler's own
-    // naming helper, so it can't drift from the deployed DashboardName. Only on
-    // `deploy` — a bare `package` doesn't create the dashboard.
-    if (
-      template.Resources.SandboxesDashboard &&
-      typeof this.serverless.addServiceOutputSection === 'function' &&
-      this.serverless.processedInput?.commands?.join(' ') === 'deploy'
-    ) {
-      this.serverless.addServiceOutputSection(
-        'dashboard',
-        dashboardConsoleUrl(ctx),
-      )
-    }
 
     this.resourcesCompiled = true
   }

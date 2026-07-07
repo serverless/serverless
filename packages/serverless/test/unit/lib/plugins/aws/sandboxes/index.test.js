@@ -90,6 +90,7 @@ describe('ServerlessSandboxes', () => {
     expect(p.hooks).toHaveProperty('before:package:initialize')
     expect(p.hooks).toHaveProperty('before:deploy:deploy')
     expect(p.hooks).toHaveProperty('before:package:finalize')
+    expect(p.hooks).toHaveProperty('before:aws:info:gatherData')
   })
 
   test('validate() throws when a sandbox is missing artifact', () => {
@@ -116,12 +117,28 @@ describe('ServerlessSandboxes', () => {
     expect(resources.RunnerImage.Type).toBe('AWS::Lambda::MicrovmImage')
   })
 
-  test('compile() surfaces the CloudWatch dashboard URL via addServiceOutputSection (observability on by default)', async () => {
+  test('compile() does NOT touch service outputs — the dashboard line comes from the aws:info hook (so a bare `package` never prints it)', async () => {
     const sls = makeServerless({
       runner: { artifact: 's3://bucket/artifact.zip' },
     })
+    sls.processedInput = { commands: ['package'] }
     const p = new ServerlessSandboxes(sls, {}, { log: { debug: jest.fn() } })
     await p.compile()
+    expect(sls.addServiceOutputSection).not.toHaveBeenCalled()
+  })
+
+  test('addSandboxServiceOutputs() surfaces the sandboxes list and the dashboard URL (fires for both `info` and `deploy` via aws:info:gatherData)', () => {
+    const sls = makeServerless({
+      runner: { artifact: 's3://bucket/artifact.zip' },
+      worker: { artifact: 's3://bucket/worker.zip' },
+    })
+    const p = new ServerlessSandboxes(sls, {}, { log: { debug: jest.fn() } })
+    p.addSandboxServiceOutputs()
+    // Sandbox list mirrors the `functions` section: name → deployed image name.
+    expect(sls.addServiceOutputSection).toHaveBeenCalledWith('sandboxes', [
+      'runner: svc-runner-dev',
+      'worker: svc-worker-dev',
+    ])
     // Dashboard name is `${service}-${stage}-sandboxes`; region from the provider.
     expect(sls.addServiceOutputSection).toHaveBeenCalledWith(
       'dashboard',
@@ -129,29 +146,30 @@ describe('ServerlessSandboxes', () => {
     )
   })
 
-  test('compile() does NOT surface a dashboard URL on a bare `package` (no deploy)', async () => {
+  test('addSandboxServiceOutputs() still lists sandboxes but omits the dashboard URL when observability is disabled', () => {
     const sls = makeServerless({
-      runner: { artifact: 's3://bucket/artifact.zip' },
+      runner: { artifact: 's3://bucket/artifact.zip', observability: false },
     })
-    sls.processedInput = { commands: ['package'] }
     const p = new ServerlessSandboxes(sls, {}, { log: { debug: jest.fn() } })
-    await p.compile()
+    p.addSandboxServiceOutputs()
+    expect(sls.addServiceOutputSection).toHaveBeenCalledWith('sandboxes', [
+      'runner: svc-runner-dev',
+    ])
     const dashboardCall = sls.addServiceOutputSection.mock.calls.find(
       ([section]) => section === 'dashboard',
     )
     expect(dashboardCall).toBeUndefined()
   })
 
-  test('compile() does NOT surface a dashboard URL when observability is disabled', async () => {
+  test('addSandboxServiceOutputs() is idempotent — a repeat call never adds a section twice (addServiceOutputSection throws on duplicates)', () => {
     const sls = makeServerless({
-      runner: { artifact: 's3://bucket/artifact.zip', observability: false },
+      runner: { artifact: 's3://bucket/artifact.zip' },
     })
     const p = new ServerlessSandboxes(sls, {}, { log: { debug: jest.fn() } })
-    await p.compile()
-    const dashboardCall = sls.addServiceOutputSection.mock.calls.find(
-      ([section]) => section === 'dashboard',
-    )
-    expect(dashboardCall).toBeUndefined()
+    p.addSandboxServiceOutputs()
+    p.addSandboxServiceOutputs()
+    // Exactly one 'sandboxes' + one 'dashboard' call across both invocations.
+    expect(sls.addServiceOutputSection).toHaveBeenCalledTimes(2)
   })
 
   test('compile() throws a clear error when the provider returns no base image versions', async () => {

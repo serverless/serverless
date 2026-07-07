@@ -421,6 +421,8 @@ Stack outputs (use these instead of hard-coding logical IDs):
 
 CloudWatch logs are always shipped to the owned log group `/aws/lambda-microvms/<image-name>` (default 14-day retention). See [Observability](#observability).
 
+The deploy summary — and `serverless info` — list each sandbox under a `sandboxes:` section (name → deployed image name), alongside the `dashboard` console URL when observability is on.
+
 The MicroVM image is always built on `ARM_64` architecture. The base image is resolved to the latest `al2023` version at deploy time.
 
 ---
@@ -491,7 +493,7 @@ Prints the recent window of log events from the sandbox's CloudWatch log group `
 
 Observability is **on by default**. Every sandbox automatically gets a CloudWatch log group, an error metric filter, and a section in the service's CloudWatch dashboard (one dashboard per service). You do not need to add anything to `serverless.yml` to enable monitoring.
 
-When a dashboard is created, `serverless deploy` prints its console URL in the deploy summary as a `dashboard` line, so you can open it straight from the terminal.
+When a dashboard is created, `serverless deploy` prints its console URL in the deploy summary as a `dashboard` line — and `serverless info` shows the same line — so you can open it straight from the terminal.
 
 ### Log group
 
