@@ -135,7 +135,7 @@ function withCustomizations(role, roleCfg) {
  *   - s3:GetObject on the artifact bucket (to fetch the deployment package)
  *     When cfg.artifactBucket differs from ctx.bucket (s3:// passthrough path),
  *     the permission covers BOTH buckets so the role can read the artifact.
- *   - logs:CreateLogGroup / logs:CreateLogStream / logs:PutLogEvents on /aws/lambda-microvms/*
+ *   - logs:CreateLogGroup / logs:CreateLogStream / logs:PutLogEvents scoped to the sandbox log group
  *
  * @param {string} name - Sandbox runner name
  * @param {object} cfg  - Full sandbox configuration object (may contain cfg.iam.buildRole, cfg.artifactBucket)
@@ -207,7 +207,7 @@ export function generateBuildRole(name, cfg, ctx) {
  * Generate the execution-phase IAM role for a microVM sandbox runner.
  *
  * Permissions:
- *   - logs:CreateLogGroup / logs:CreateLogStream / logs:PutLogEvents on /aws/lambda-microvms/*
+ *   - logs:CreateLogGroup / logs:CreateLogStream / logs:PutLogEvents scoped to the sandbox log group
  *
  * @param {string} name - Sandbox runner name
  * @param {object} cfg  - Full sandbox configuration object (may contain cfg.iam.executionRole)

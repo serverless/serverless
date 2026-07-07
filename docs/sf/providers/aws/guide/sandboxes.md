@@ -55,11 +55,24 @@ sandboxes:
 **2. Create `./app/Dockerfile`** (path relative to `serverless.yml`):
 
 ```dockerfile
-FROM public.ecr.aws/docker/library/python:3.11-slim
+FROM public.ecr.aws/docker/library/node:22-slim
 WORKDIR /app
-COPY app.py .
+COPY server.mjs .
 EXPOSE 8080
-CMD ["python", "app.py"]
+CMD ["node", "server.mjs"]
+```
+
+And a minimal `./app/server.mjs` to answer requests on port 8080:
+
+```js
+import http from 'node:http'
+
+http
+  .createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'application/json' })
+    res.end(JSON.stringify({ ok: true, path: req.url }))
+  })
+  .listen(8080, '0.0.0.0')
 ```
 
 **3. Deploy:**
@@ -254,22 +267,22 @@ The Lambda runtime posts to:
 POST http://localhost:<port>/aws/lambda-microvms/runtime/v1/<hook-name>
 ```
 
-Your server must respond with HTTP 200 within the configured timeout. A non-200 response or timeout causes the lifecycle step to fail. When you omit a hook's `timeout`, the AWS platform default applies — and those defaults are tight: `validate`, `run`, `resume`, `suspend`, and `terminate` each default to just **1 second** (`ready` gets 60). So **respond 200 promptly and do any heavy work asynchronously**, or raise the `timeout` for hooks that legitimately need longer — a handler that runs the actual workload before replying will otherwise trip the timeout and fail the step. Acknowledge first, then process. A minimal Python implementation:
+Your server must respond with HTTP 200 within the configured timeout. A non-200 response or timeout causes the lifecycle step to fail. When you omit a hook's `timeout`, the AWS platform default applies — and those defaults are tight: `validate`, `run`, `resume`, `suspend`, and `terminate` each default to just **1 second** (`ready` gets 60). So **respond 200 promptly and do any heavy work asynchronously**, or raise the `timeout` for hooks that legitimately need longer — a handler that runs the actual workload before replying will otherwise trip the timeout and fail the step. Acknowledge first, then process. A minimal Node.js implementation:
 
-```python
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+```js
+import http from 'node:http'
 
-class HooksHandler(BaseHTTPRequestHandler):
-    def do_POST(self):
-        n = int(self.headers.get("Content-Length") or 0)
-        self.rfile.read(n)                     # drain body
-        self.send_response(200)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", "2")
-        self.end_headers()
-        self.wfile.write(b"{}")
-
-ThreadingHTTPServer(("0.0.0.0", 9000), HooksHandler).serve_forever()
+http
+  .createServer((req, res) => {
+    const hook = req.url.split('/').pop() // e.g. 'ready', 'run', 'suspend'
+    req.resume() // drain the request body
+    req.on('end', () => {
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end('{}') // ack immediately …
+      setImmediate(() => handleHook(hook)) // … then do the real work asynchronously
+    })
+  })
+  .listen(9000, '0.0.0.0')
 ```
 
 ---
@@ -291,11 +304,11 @@ sandboxes:
       protocol: ipv4 # 'ipv4' (default) or 'dualstack'
 ```
 
-| Property           | Type     | Default | Description                                            |
-| ------------------ | -------- | ------- | ------------------------------------------------------ |
-| `subnetIds`        | string[] | —       | List of subnet IDs for the network connector.          |
-| `securityGroupIds` | string[] | —       | List of security group IDs for the network connector.  |
-| `protocol`         | string   | `ipv4`  | IP protocol: `ipv4` or `dualstack` (case-insensitive). |
+| Property           | Type     | Default          | Description                                                          |
+| ------------------ | -------- | ---------------- | -------------------------------------------------------------------- |
+| `subnetIds`        | string[] | — **(required)** | List of subnet IDs for the network connector (at least one).         |
+| `securityGroupIds` | string[] | — **(required)** | List of security group IDs for the network connector (at least one). |
+| `protocol`         | string   | `ipv4`           | IP protocol: `ipv4` or `dualstack` (case-insensitive).               |
 
 When `vpc` is set, the framework creates an `AWS::Lambda::NetworkConnector` and an associated operator IAM role (see [IAM](#iam)). The connector ARN is exported as a CloudFormation stack output for use by the data-plane run path.
 
@@ -314,13 +327,13 @@ The framework creates two IAM roles per sandbox automatically:
 Permissions:
 
 - `s3:GetObject` on the deployment bucket (to fetch the artifact zip)
-- `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents` on `/aws/lambda-microvms/*`
+- `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents` scoped to the sandbox's own log group (`/aws/lambda-microvms/<image-name>`, or the custom `observability.logs.logGroup` when set)
 
 **Execution role** (`AWS::IAM::Role` — `<Name>ExecutionRole`)
 
 Permissions:
 
-- `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents` on `/aws/lambda-microvms/*`
+- `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents` scoped to the sandbox's own log group (same group as the build role)
 
 Both roles use a trust policy for `lambda.amazonaws.com` with an `aws:SourceAccount` condition to prevent confused-deputy attacks.
 
@@ -421,7 +434,7 @@ serverless invoke --sandbox <name> [--path <path>] [--method <method>] [--data '
 `--sandbox <name>` is required and identifies which sandbox to invoke (analogous to `--function` for Lambda invocations). The framework:
 
 1. Starts a fresh MicroVM instance using the sandbox's deployed image ARN and execution role.
-2. Verifies the instance is ready by sending an authenticated request with retry/backoff, rather than polling `get-microvm` for a `RUNNING` state — instance state is [eventually consistent](#eventual-consistency), so a `502` in the first seconds after launch is expected while the snapshot restores. Treat it as transient and retry rather than as a hard failure.
+2. Polls `get-microvm` until the instance reports `RUNNING` (failing fast if it lands in a terminal state, with the platform's `stateReason`).
 3. Mints a short-lived auth token for the target port.
 4. Sends the HTTP request through the AWS proxy.
 5. Prints the response body.
