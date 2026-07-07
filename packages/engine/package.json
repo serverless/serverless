@@ -44,7 +44,7 @@
     "@aws-sdk/client-wafv2": "3.1077.0",
     "@aws-sdk/signature-v4-crt": "3.1077.0",
     "@aws-sdk/signature-v4a": "3.1077.0",
-    "@aws-sdk/util-arn-parser": "3.972.20",
+    "@aws-sdk/util-arn-parser": "3.972.22",
     "@serverless/util": "*",
     "@serverlessinc/sf-core": "*",
     "@slack/web-api": "^7.15.2",
