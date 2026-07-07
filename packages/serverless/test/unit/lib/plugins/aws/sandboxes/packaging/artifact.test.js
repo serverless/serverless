@@ -92,8 +92,9 @@ describe('computeCodeArtifact', () => {
       },
     )
     // A cwd-relative './app' would silently zip the wrong/empty dir when the CLI
-    // runs from a different cwd (test harness, `-c path`, compose).
-    expect(seen[0]).toBe('/svc/root/app')
+    // runs from a different cwd (test harness, `-c path`, compose). Resolve the
+    // expected path the same way the impl does so this holds on Windows too.
+    expect(seen[0]).toBe(path.resolve('/svc/root', './app'))
   })
 
   test('throws a clear error when the artifact directory does not exist (no silent empty zip)', async () => {

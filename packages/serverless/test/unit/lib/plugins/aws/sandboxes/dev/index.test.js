@@ -1,6 +1,7 @@
 'use strict'
 
 import { jest } from '@jest/globals'
+import path from 'path'
 import SandboxesDevMode from '../../../../../../../lib/plugins/aws/sandboxes/dev/index.js'
 
 function make(options, sandboxes, { fileExists = () => true } = {}) {
@@ -89,7 +90,11 @@ test('resolveSandboxName throws when no sandboxes defined', () => {
 
 test('resolveArtifactDir resolves a local dir against serviceDir', () => {
   const d = make({ sandbox: 'api' }, { api: { artifact: './app' } })
-  expect(d.resolveArtifactDir({ artifact: './app' })).toBe('/svc/app')
+  // serviceDir is '/svc'; resolve the same way the impl does so this holds on
+  // Windows too (where path.resolve yields a drive-prefixed, backslash path).
+  expect(d.resolveArtifactDir({ artifact: './app' })).toBe(
+    path.resolve('/svc', './app'),
+  )
 })
 
 test('resolveArtifactDir throws SANDBOX_DEV_ARTIFACT_MISSING when artifact is missing', () => {
