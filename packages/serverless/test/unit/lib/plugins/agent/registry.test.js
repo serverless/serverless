@@ -26,6 +26,7 @@ const EXPECTED_AWS_SERVICES = [
   'cognito-idp',
   'iot',
   'cloudfront',
+  'lambda-microvms',
 ]
 
 // lambda-microvms is INDEX-ONLY (see registry/lambda-microvms.js): its two
@@ -33,10 +34,9 @@ const EXPECTED_AWS_SERVICES = [
 // engine client for it yet (SDK not published at this repo's pin). They are
 // deliberately excluded from the "every entry has the required fields"
 // dispatchable-shape checks below and asserted on separately.
-const INDEX_ONLY_CFN_TYPES = new Set([
-  'AWS::Lambda::MicrovmImage',
-  'AWS::Lambda::NetworkConnector',
-])
+// Only NetworkConnector is index-only (the SDK has no connector describe op).
+// MicrovmImage is now describable via GetMicrovmImage.
+const INDEX_ONLY_CFN_TYPES = new Set(['AWS::Lambda::NetworkConnector'])
 
 function dispatchableEntries() {
   return REGISTRY_ENTRIES.filter(
@@ -107,15 +107,24 @@ describe('registry entry shape', () => {
   })
 })
 
-describe('lambda-microvms — index-only invariant', () => {
-  test('MicrovmImage and NetworkConnector carry category sandboxes but no describe capability', () => {
-    for (const cfnType of INDEX_ONLY_CFN_TYPES) {
-      const entry = findByCfnType(cfnType)
-      expect(entry).toBeDefined()
-      expect(entry.category).toBe('sandboxes')
-      expect(entry.awsService).toBeNull()
-      expect(entry.calls).toEqual([])
-    }
+describe('lambda-microvms — MicrovmImage describable, NetworkConnector index-only', () => {
+  test('MicrovmImage is describable via GetMicrovmImage', () => {
+    const entry = findByCfnType('AWS::Lambda::MicrovmImage')
+    expect(entry).toBeDefined()
+    expect(entry.category).toBe('sandboxes')
+    expect(entry.awsService).toBe('lambda-microvms')
+    expect(entry.engineClient).toBe('lambda-microvms')
+    expect(entry.calls).toEqual([
+      { key: 'image', method: 'GetMicrovmImage', input: 'imageIdentifier' },
+    ])
+  })
+
+  test('NetworkConnector stays index-only (no describe op in the SDK)', () => {
+    const entry = findByCfnType('AWS::Lambda::NetworkConnector')
+    expect(entry).toBeDefined()
+    expect(entry.category).toBe('sandboxes')
+    expect(entry.awsService).toBeNull()
+    expect(entry.calls).toEqual([])
   })
 })
 
@@ -163,18 +172,18 @@ describe('findByAwsService', () => {
     expect(viaAlias.length).toBeGreaterThan(0)
   })
 
-  test('microvms/sandboxes/lambda-microvms all resolve to the SAME (empty) result -- index-only entries have awsService:null, so findByAwsService (an exact awsService match) can never surface them', () => {
-    // This is intentional, not a gap: lambda-microvms's entries are looked up
-    // via findByCategory('sandboxes') for the index instead (see the
-    // "lambda-microvms — index-only invariant" and findByCategory describe
-    // blocks) -- findByAwsService is the axis used for describe EXPANSION,
-    // which these entries must never participate in.
+  test('microvms/sandboxes/lambda-microvms all resolve to the describable MicrovmImage entry (NetworkConnector, awsService:null, never surfaces here)', () => {
     const viaMicrovms = findByAwsService('microvms')
     const viaSandboxes = findByAwsService('sandboxes')
     const canonical = findByAwsService('lambda-microvms')
-    expect(viaMicrovms).toEqual([])
-    expect(viaSandboxes).toEqual([])
-    expect(canonical).toEqual([])
+    // All three aliases resolve identically.
+    expect(viaMicrovms).toEqual(canonical)
+    expect(viaSandboxes).toEqual(canonical)
+    // Only MicrovmImage matches (findByAwsService is an exact awsService
+    // match, so the index-only NetworkConnector with awsService:null is
+    // excluded by construction).
+    expect(canonical.length).toBe(1)
+    expect(canonical[0].cfnType).toBe('AWS::Lambda::MicrovmImage')
   })
 
   test('alias map is a flat, one-line-per-alias structure', () => {
@@ -251,10 +260,16 @@ describe('findByCategory', () => {
     expect(cdnEntries.every((e) => e.awsService === 'cloudfront')).toBe(true)
   })
 
-  test('sandboxes category is index-only (awsService null)', () => {
+  test('sandboxes category has both entries; only MicrovmImage is describable', () => {
     const sandboxesEntries = findByCategory('sandboxes')
     expect(sandboxesEntries.length).toBe(2)
-    expect(sandboxesEntries.every((e) => e.awsService === null)).toBe(true)
+    const byType = Object.fromEntries(
+      sandboxesEntries.map((e) => [e.cfnType, e]),
+    )
+    expect(byType['AWS::Lambda::MicrovmImage'].awsService).toBe(
+      'lambda-microvms',
+    )
+    expect(byType['AWS::Lambda::NetworkConnector'].awsService).toBeNull()
   })
 
   test('returns an empty array for an unknown category', () => {

@@ -45,6 +45,7 @@ const FakeAwsCognitoClient = makeFakeEngineClientClass('cognito-idp')
 const FakeAwsIotClient = makeFakeEngineClientClass('iot')
 const FakeAwsKinesisClient = makeFakeEngineClientClass('kinesis')
 const FakeAwsCloudFrontClient = makeFakeEngineClientClass('cloudfront')
+const FakeAwsLambdaMicrovmsClient = makeFakeEngineClientClass('lambda-microvms')
 
 // AwsCloudWatchClient is unique: it wraps TWO proxy-wrapped SDK clients
 // (`this.logsClient` for @aws-sdk/client-cloudwatch-logs, `this.metricsClient`
@@ -139,6 +140,12 @@ jest.unstable_mockModule(
     AwsCloudFrontClient: FakeAwsCloudFrontClient,
   }),
 )
+jest.unstable_mockModule(
+  '../../../../../../engine/src/lib/aws/lambda-microvms.js',
+  () => ({
+    AwsLambdaMicrovmsClient: FakeAwsLambdaMicrovmsClient,
+  }),
+)
 
 // Fake SDK command modules -- each exported "Command" is just a marker class
 // so we can assert `new SdkModule.FooCommand(input)` was constructed with the
@@ -214,6 +221,9 @@ jest.unstable_mockModule('@aws-sdk/client-cloudwatch', () => ({
 jest.unstable_mockModule('@aws-sdk/client-cloudfront', () => ({
   GetDistributionCommand: makeCommandClass('GetDistributionCommand'),
   GetCachePolicyCommand: makeCommandClass('GetCachePolicyCommand'),
+}))
+jest.unstable_mockModule('@aws-sdk/client-lambda-microvms', () => ({
+  GetMicrovmImageCommand: makeCommandClass('GetMicrovmImageCommand'),
 }))
 
 const { createInvoker } =
@@ -296,6 +306,12 @@ describe('build-clients', () => {
         FakeAwsCloudFrontClient,
         'GetDistribution',
         'GetDistributionCommand',
+      ],
+      [
+        'lambda-microvms',
+        FakeAwsLambdaMicrovmsClient,
+        'GetMicrovmImage',
+        'GetMicrovmImageCommand',
       ],
     ])(
       'routes %s through its engine client and dispatches %s',
@@ -422,13 +438,20 @@ describe('build-clients', () => {
     })
   })
 
-  describe('lambda-microvms is index-only in v1 (no client, no dispatch)', () => {
-    test('invoke rejects for the lambda-microvms token because it is not registered', async () => {
+  describe('lambda-microvms dispatch (MicrovmImage describe)', () => {
+    test('invoke routes GetMicrovmImage through AwsLambdaMicrovmsClient', async () => {
+      mockSend.mockResolvedValueOnce({ imageArn: 'arn:...', $metadata: {} })
       const { invoke } = createInvoker({ region, credentials })
 
-      await expect(
-        invoke('lambda-microvms', 'GetMicrovmImage', { Name: 'x' }),
-      ).rejects.toThrow(/lambda-microvms/)
+      const result = await invoke('lambda-microvms', 'GetMicrovmImage', {
+        imageIdentifier: 'img-abc123',
+      })
+
+      expect(FakeAwsLambdaMicrovmsClient).toHaveBeenCalledTimes(1)
+      const sentCommand = mockSend.mock.calls[0][0]
+      expect(sentCommand.__command).toBe('GetMicrovmImageCommand')
+      expect(sentCommand.input).toEqual({ imageIdentifier: 'img-abc123' })
+      expect(result).toEqual({ imageArn: 'arn:...', $metadata: {} })
     })
   })
 

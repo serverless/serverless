@@ -40,6 +40,9 @@ jest.unstable_mockModule('@aws-sdk/client-iot', () => ({
 jest.unstable_mockModule('@aws-sdk/client-kinesis', () => ({
   KinesisClient: mockSdkClient('kinesis'),
 }))
+jest.unstable_mockModule('@aws-sdk/client-lambda-microvms', () => ({
+  LambdaMicrovmsClient: mockSdkClient('lambda-microvms'),
+}))
 
 const { addProxyToAwsClient } = await import('@serverless/util')
 const { ConfiguredRetryStrategy } = await import('@smithy/util-retry')
@@ -48,6 +51,8 @@ const { AwsSchedulerClient } = await import('../../src/lib/aws/scheduler.js')
 const { AwsCognitoClient } = await import('../../src/lib/aws/cognito.js')
 const { AwsIotClient } = await import('../../src/lib/aws/iot.js')
 const { AwsKinesisClient } = await import('../../src/lib/aws/kinesis.js')
+const { AwsLambdaMicrovmsClient } =
+  await import('../../src/lib/aws/lambda-microvms.js')
 
 const cases = [
   { name: 'AwsSnsClient', Ctor: AwsSnsClient, sdk: 'sns' },
@@ -55,6 +60,11 @@ const cases = [
   { name: 'AwsCognitoClient', Ctor: AwsCognitoClient, sdk: 'cognito' },
   { name: 'AwsIotClient', Ctor: AwsIotClient, sdk: 'iot' },
   { name: 'AwsKinesisClient', Ctor: AwsKinesisClient, sdk: 'kinesis' },
+  {
+    name: 'AwsLambdaMicrovmsClient',
+    Ctor: AwsLambdaMicrovmsClient,
+    sdk: 'lambda-microvms',
+  },
 ]
 
 describe('agent-inspect engine clients', () => {
@@ -99,5 +109,28 @@ describe('agent-inspect engine clients', () => {
     const backoff = ConfiguredRetryStrategy.mock.calls[0][1]
     expect(backoff(0)).toBe(100)
     expect(backoff(2)).toBe(100 + 2 * 5000)
+  })
+
+  describe('AwsLambdaMicrovmsClient endpoint override', () => {
+    const saved = process.env.AWS_ENDPOINT_URL_LAMBDA_MICROVMS
+    afterEach(() => {
+      if (saved === undefined)
+        delete process.env.AWS_ENDPOINT_URL_LAMBDA_MICROVMS
+      else process.env.AWS_ENDPOINT_URL_LAMBDA_MICROVMS = saved
+    })
+
+    test('passes endpoint when AWS_ENDPOINT_URL_LAMBDA_MICROVMS is set', () => {
+      process.env.AWS_ENDPOINT_URL_LAMBDA_MICROVMS = 'http://127.0.0.1:9911'
+      new AwsLambdaMicrovmsClient({ region: 'us-east-1' })
+      expect(sdkCtorCalls['lambda-microvms'].endpoint).toBe(
+        'http://127.0.0.1:9911',
+      )
+    })
+
+    test('omits endpoint when the env var is unset', () => {
+      delete process.env.AWS_ENDPOINT_URL_LAMBDA_MICROVMS
+      new AwsLambdaMicrovmsClient({ region: 'us-east-1' })
+      expect('endpoint' in sdkCtorCalls['lambda-microvms']).toBe(false)
+    })
   })
 })

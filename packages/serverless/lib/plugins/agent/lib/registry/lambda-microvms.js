@@ -1,46 +1,37 @@
 // Registry entries for the `lambda-microvms` AWS service (alias
 // `microvms`/`sandboxes`) -- the Sandboxes feature (PR #13663).
 //
-// INDEX-ONLY IN v1: the MicroVMs control plane is still in preview --
-// `@aws-sdk/client-lambda-microvms` is not published at this repo's pinned
-// AWS SDK version (3.1057.0; earliest published is 3.1079.0), and connector
-// describe support is not yet available -- so there is no engine client and
-// no SERVICE_MAP entry in build-clients.js for this service. These two
-// entries therefore carry `awsService: null` and `calls: []`:
-//   - `category: 'sandboxes'` still makes discover-resources.js's
-//     knownCategories() include 'sandboxes' (it's derived from
-//     REGISTRY_ENTRIES' categories regardless of awsService), so the
-//     `--sandboxes` index bucket exists and these resources are listed
-//     (category/status only, no describe) in the cheap index.
-//   - `awsService: null` is exactly what makes select.js's expansion gate
-//     (`Boolean(resource.awsService)`) exclude them -- neither `--sandboxes`
-//     nor `--aws-services lambda-microvms/microvms/sandboxes` can expand
-//     these resources, by construction of that shared gate (see
-//     select.js's axisSelected filter and discover-resources.js's toDescriptor,
-//     which both key off the registry's per-cfnType awsService lookup).
+// MicrovmImage is DESCRIBABLE: `@aws-sdk/client-lambda-microvms` provides
+// `GetMicrovmImage` (input `imageIdentifier`, an ARN or ID). The CFN
+// PhysicalResourceId of an `AWS::Lambda::MicrovmImage` is that identifier,
+// used verbatim as `imageIdentifier`.
 //
-// When @aws-sdk/client-lambda-microvms becomes available at the repo's SDK
-// pin: add an AwsLambdaMicrovmsClient (packages/engine/src/lib/aws/
-// lambda-microvms.js, honoring the AWS_ENDPOINT_URL_LAMBDA_MICROVMS endpoint
-// override), a SERVICE_MAP entry in build-clients.js, then flip these two
-// entries' `awsService` to `'lambda-microvms'` and add their `calls`
-// (`GetMicrovmImage`+`GetMicrovmImageVersion` for MicrovmImage;
-// `GetNetworkConnector` for NetworkConnector, confirming it exists in the
-// SDK first -- else NetworkConnector alone stays index-only).
+// NetworkConnector stays INDEX-ONLY: the microvms client exposes no
+// connector describe/get/list operation at all, so there is nothing to call
+// for `AWS::Lambda::NetworkConnector`. It carries `awsService: null` /
+// `calls: []`, so it still appears in the cheap index (its `sandboxes`
+// category keeps discover-resources.js's knownCategories() including
+// 'sandboxes') but the expansion gate in select.js (`Boolean(awsService)`)
+// excludes it -- neither `--sandboxes` nor `--aws-services microvms` can
+// expand it, by construction of that shared gate (see select.js's
+// axisSelected filter and discover-resources.js's toDescriptor).
 
 const microvmImageEntry = {
   cfnType: 'AWS::Lambda::MicrovmImage',
-  awsService: null,
+  awsService: 'lambda-microvms',
   category: 'sandboxes',
-  engineClient: null,
-  // PhysicalResourceId is the image identifier as-is (kept for the index's
-  // physicalId column; unused for describe since there are no calls).
+  engineClient: 'lambda-microvms',
+  // PhysicalResourceId is the image identifier (ARN or ID) -- passed as-is to
+  // GetMicrovmImage's `imageIdentifier`.
   identifier: (stackResource) => stackResource.PhysicalResourceId,
-  calls: [],
+  calls: [
+    { key: 'image', method: 'GetMicrovmImage', input: 'imageIdentifier' },
+  ],
 }
 
 const networkConnectorEntry = {
   cfnType: 'AWS::Lambda::NetworkConnector',
+  // Index-only: no describe operation exists in the SDK (see file header).
   awsService: null,
   category: 'sandboxes',
   engineClient: null,

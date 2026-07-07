@@ -165,7 +165,7 @@ Coarse, framework-shaped groupings. Combine as many as you like.
 | `--cdn`           | CloudFront distributions + cache policies                                                      |
 | `--identity`      | Cognito user pools (+ clients)                                                                 |
 | `--iot`           | IoT topic rules + provisioning templates                                                       |
-| `--sandboxes`     | Lambda MicroVM images + network connectors (Sandboxes, a preview feature)                      |
+| `--sandboxes`     | Lambda MicroVM images (Sandboxes); network connectors appear in the index only                 |
 | `--all`           | Every category above                                                                           |
 
 A resource's supporting infrastructure is categorized by its own type, not
@@ -184,16 +184,14 @@ serverless agent inspect --aws-services lambda,iam,s3
 Supported tokens: `lambda`, `iam`, `apigateway`, `apigatewayv2`, `sns`,
 `eventbridge` (alias `events`), `scheduler`, `s3`, `dynamodb`, `sqs`, `logs`,
 `elbv2` (alias `alb`), `cloudfront`, `cognito-idp` (alias `cognito`), `iot`,
-`kinesis`, `cloudwatch`.
+`kinesis`, `cloudwatch`, `lambda-microvms` (aliases `microvms`/`sandboxes`).
 
 An unknown token produces a structured error listing the supported service
 names — it never silently ignores a typo. Whitespace and trailing commas
 are trimmed, and tokens are matched case-insensitively.
 
-Sandboxes (Lambda MicroVMs) resources appear in the index and under
-`--sandboxes`, but are not describable in this preview, so
-`lambda-microvms` (and its aliases `microvms`/`sandboxes`) is not a valid
-`--aws-services` token.
+The `lambda-microvms` token expands MicroVM images only; network connectors
+have no describe operation and appear in the index only (see Notes below).
 
 ### `--name`
 
@@ -265,6 +263,7 @@ the command actually calls.
         "lambda:GetFunctionUrlConfig",
         "lambda:GetLayerVersion",
         "lambda:GetLayerVersionPolicy",
+        "lambda:GetMicrovmImage",
         "lambda:GetPolicy",
         "lambda:ListAliases",
         "lambda:ListEventSourceMappings",
@@ -423,11 +422,10 @@ Notes on this policy:
 - `sts:GetCallerIdentity` and `cloudformation:ListStackResources` are
   included because credential resolution and stack discovery run
   unconditionally, before any category or service is selected.
-- **Sandboxes (Lambda MicroVMs) resources currently show up in the index
-  only** — see Notes and limitations below — so no IAM actions for them are
-  listed here yet. When they become describable, their registry entries gain
-  a `calls` list and this policy gains the matching actions; nothing else
-  about the policy changes.
+- `lambda:GetMicrovmImage` describes Sandboxes MicroVM images
+  (`AWS::Lambda::MicrovmImage`). Network connectors have no describe
+  operation, so no action is needed for them — see Notes and limitations
+  below.
 - Tighten the `Resource` field to your account/stack's specific ARNs if you
   want a narrower policy than the wildcard shown here — `agent inspect`
   itself doesn't require account-wide access, this is simply the broadest
@@ -449,12 +447,13 @@ Notes on this policy:
   `aws lambda get-function` would return — treat `agent inspect` output
   with the same care you'd give any other AWS describe call's output, and
   don't pipe it somewhere that isn't trusted with your service's secrets.
-- **Sandboxes (Lambda MicroVMs) is a preview feature.** Its resources
-  (`AWS::Lambda::MicrovmImage`, `AWS::Lambda::NetworkConnector`) appear in
-  the index — logical ID, physical ID, type, status — but are not yet
-  expandable with `--sandboxes` or `--aws-services lambda-microvms`. Their
-  supporting resources (execution/build IAM roles, log groups, alarms,
-  dashboards) are still fully describable under `--iam` and
+- **Sandboxes (Lambda MicroVMs) is a preview feature.** MicroVM images
+  (`AWS::Lambda::MicrovmImage`) are describable via `--sandboxes` or
+  `--aws-services lambda-microvms`. Network connectors
+  (`AWS::Lambda::NetworkConnector`) have no describe operation in the AWS
+  SDK, so they appear in the index — logical ID, physical ID, type, status —
+  but are never expanded. Supporting resources (execution/build IAM roles,
+  log groups, alarms, dashboards) are describable under `--iam` and
   `--observability` as usual.
 - **CloudWatch log group lookup is prefix-based, not exact.** The
   underlying AWS API has no exact-name lookup for a single log group, only

@@ -27,11 +27,10 @@ function knownCategories() {
 /**
  * Every canonical --aws-services token the registry currently knows about
  * (aliases resolve to these, they aren't listed again themselves). Excludes
- * `null` -- index-only entries (e.g. lambda-microvms's MicrovmImage/
- * NetworkConnector, deferred pending SDK availability, see
- * registry/lambda-microvms.js) carry `awsService: null` since they have no
- * describe capability; they must never surface as a selectable/valid
- * --aws-services token.
+ * `null` -- index-only entries (e.g. AWS::Lambda::NetworkConnector, which has
+ * no describe op in the SDK, see registry/lambda-microvms.js) carry
+ * `awsService: null` since they have no describe capability; they must never
+ * surface as a selectable/valid --aws-services token.
  */
 function knownAwsServices() {
   return [...new Set(REGISTRY_ENTRIES.map((entry) => entry.awsService))].filter(

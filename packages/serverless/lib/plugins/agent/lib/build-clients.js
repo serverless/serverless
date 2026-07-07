@@ -100,6 +100,7 @@ import { AwsIotClient } from '@serverless/engine/src/lib/aws/iot.js'
 import { AwsKinesisClient } from '@serverless/engine/src/lib/aws/kinesis.js'
 import { AwsCloudWatchClient } from '@serverless/engine/src/lib/aws/cloudwatch.js'
 import { AwsCloudFrontClient } from '@serverless/engine/src/lib/aws/cloudfront.js'
+import { AwsLambdaMicrovmsClient } from '@serverless/engine/src/lib/aws/lambda-microvms.js'
 
 import * as LambdaSdk from '@aws-sdk/client-lambda'
 import * as IamSdk from '@aws-sdk/client-iam'
@@ -118,6 +119,7 @@ import * as KinesisSdk from '@aws-sdk/client-kinesis'
 import * as CloudWatchLogsSdk from '@aws-sdk/client-cloudwatch-logs'
 import * as CloudWatchSdk from '@aws-sdk/client-cloudwatch'
 import * as CloudFrontSdk from '@aws-sdk/client-cloudfront'
+import * as LambdaMicrovmsSdk from '@aws-sdk/client-lambda-microvms'
 
 // awsService token -> { EngineClientClass, sdkModule, clientProp }. Adding a
 // new service is one entry here -- no other change to this file's logic is
@@ -132,14 +134,12 @@ import * as CloudFrontSdk from '@aws-sdk/client-cloudfront'
 // CloudWatchSdk. `GetDashboardCommand` need not be a wrapper method on the
 // engine class -- generic dispatch constructs it from CloudWatchSdk.
 //
-// LAMBDA-MICROVMS (Sandboxes) IS INDEX-ONLY IN v1: its control-plane SDK
-// `@aws-sdk/client-lambda-microvms` is not published at this repo's pinned
-// AWS SDK version (3.1057.0; earliest published is 3.1079.0), so there is no
-// engine client and no SERVICE_MAP entry for it. The registry lists
-// `lambda-microvms` with no describe calls -- it appears in the cheap index
-// but cannot be expanded. When the SDK dep becomes available at the repo pin,
-// add an `AwsLambdaMicrovmsClient` (honoring AWS_ENDPOINT_URL_LAMBDA_MICROVMS
-// as an `endpoint` override) plus an entry here to light it up.
+// LAMBDA-MICROVMS (Sandboxes): only `AWS::Lambda::MicrovmImage` is
+// describable (via GetMicrovmImage). `AWS::Lambda::NetworkConnector` has no
+// describe operation in the SDK, so the registry marks it index-only
+// (awsService: null) and it never reaches this factory. AwsLambdaMicrovmsClient
+// honors AWS_ENDPOINT_URL_LAMBDA_MICROVMS internally (for the Sandboxes
+// emulator / dev mode); nothing region-special is needed here.
 const SERVICE_MAP = {
   lambda: {
     EngineClientClass: AwsLambdaClient,
@@ -209,6 +209,11 @@ const SERVICE_MAP = {
   kinesis: {
     EngineClientClass: AwsKinesisClient,
     sdkModule: KinesisSdk,
+    clientProp: 'client',
+  },
+  'lambda-microvms': {
+    EngineClientClass: AwsLambdaMicrovmsClient,
+    sdkModule: LambdaMicrovmsSdk,
     clientProp: 'client',
   },
   // Observability: both tokens reuse AwsCloudWatchClient's two sub-clients

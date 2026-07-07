@@ -502,19 +502,25 @@ describe('select', () => {
   })
 })
 
-describe('discover -> select: sandboxes is index-only (lambda-microvms deferred)', () => {
+describe('discover -> select: sandboxes MicrovmImage describable, NetworkConnector index-only', () => {
   // End-to-end through the REAL discoverResources (not a hand-built fixture):
-  // a deployed MicrovmImage must land in the index under `sandboxes`, but
-  // --sandboxes must never expand it (no describe capability -- see
-  // registry/lambda-microvms.js and select.js's Boolean(resource.awsService)
-  // expansion gate).
-  async function discoverWithMicrovmImage() {
+  // a deployed MicrovmImage lands in the index under `sandboxes` AND is
+  // expandable (GetMicrovmImage); a NetworkConnector lands in the index but
+  // is never expanded (no describe op -- see registry/lambda-microvms.js and
+  // select.js's Boolean(resource.awsService) expansion gate).
+  async function discoverWithMicrovmResources() {
     const listStackResources = async () => ({
       StackResourceSummaries: [
         {
           LogicalResourceId: 'MyMicrovmImage',
           PhysicalResourceId: 'img-abc123',
           ResourceType: 'AWS::Lambda::MicrovmImage',
+          ResourceStatus: 'CREATE_COMPLETE',
+        },
+        {
+          LogicalResourceId: 'MyNetworkConnector',
+          PhysicalResourceId: 'nc-xyz789',
+          ResourceType: 'AWS::Lambda::NetworkConnector',
           ResourceStatus: 'CREATE_COMPLETE',
         },
         {
@@ -531,38 +537,52 @@ describe('discover -> select: sandboxes is index-only (lambda-microvms deferred)
     })
   }
 
-  test('the MicrovmImage IS in the discovered index, tagged category sandboxes / awsService null', async () => {
-    const resources = await discoverWithMicrovmImage()
-    const microvmImage = resources.find((r) => r.logicalId === 'MyMicrovmImage')
-    expect(microvmImage).toBeDefined()
-    expect(microvmImage.category).toBe('sandboxes')
-    expect(microvmImage.awsService).toBeNull()
+  test('both sandbox resources are in the index; MicrovmImage describable, NetworkConnector not', async () => {
+    const resources = await discoverWithMicrovmResources()
+    const image = resources.find((r) => r.logicalId === 'MyMicrovmImage')
+    const connector = resources.find(
+      (r) => r.logicalId === 'MyNetworkConnector',
+    )
+    expect(image.category).toBe('sandboxes')
+    expect(image.awsService).toBe('lambda-microvms')
+    expect(connector.category).toBe('sandboxes')
+    expect(connector.awsService).toBeNull()
   })
 
-  test('--sandboxes does NOT expand the MicrovmImage (no awsService => not describable)', async () => {
-    const resources = await discoverWithMicrovmImage()
+  test('--sandboxes expands the MicrovmImage but not the NetworkConnector', async () => {
+    const resources = await discoverWithMicrovmResources()
     const { selected } = select({ resources, options: { sandboxes: true } })
+    expect(selected.find((r) => r.logicalId === 'MyMicrovmImage')).toBeDefined()
     expect(
-      selected.find((r) => r.logicalId === 'MyMicrovmImage'),
+      selected.find((r) => r.logicalId === 'MyNetworkConnector'),
     ).toBeUndefined()
   })
 
-  test('--all also does NOT expand the MicrovmImage', async () => {
-    const resources = await discoverWithMicrovmImage()
+  test('--all expands the MicrovmImage (and the sibling function) but not the NetworkConnector', async () => {
+    const resources = await discoverWithMicrovmResources()
     const { selected } = select({ resources, options: { all: true } })
-    expect(
-      selected.find((r) => r.logicalId === 'MyMicrovmImage'),
-    ).toBeUndefined()
-    // Sanity: --all DOES expand the sibling describable resource.
+    expect(selected.find((r) => r.logicalId === 'MyMicrovmImage')).toBeDefined()
     expect(
       selected.find((r) => r.logicalId === 'CreateOrderLambdaFunction'),
     ).toBeDefined()
+    expect(
+      selected.find((r) => r.logicalId === 'MyNetworkConnector'),
+    ).toBeUndefined()
   })
 
-  test('--aws-services lambda-microvms is rejected as unknown (not a dispatchable token)', async () => {
-    const resources = await discoverWithMicrovmImage()
-    expect(() =>
-      select({ resources, options: { awsServices: 'lambda-microvms' } }),
-    ).toThrow(ServerlessError)
+  test('--aws-services lambda-microvms (and microvms/sandboxes aliases) select the MicrovmImage', async () => {
+    const resources = await discoverWithMicrovmResources()
+    for (const token of ['lambda-microvms', 'microvms', 'sandboxes']) {
+      const { selected } = select({
+        resources,
+        options: { awsServices: token },
+      })
+      expect(
+        selected.find((r) => r.logicalId === 'MyMicrovmImage'),
+      ).toBeDefined()
+      expect(
+        selected.find((r) => r.logicalId === 'MyNetworkConnector'),
+      ).toBeUndefined()
+    }
   })
 })
