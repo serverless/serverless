@@ -33,13 +33,22 @@ await writeFile(
 const run = spawnSync(
   process.execPath,
   [path.resolve(packedCli), 'agent', 'skills', 'install'],
-  { cwd: svc, encoding: 'utf8' },
+  // timeout: a hung child must fail the build, not block it forever.
+  { cwd: svc, encoding: 'utf8', timeout: 120000 },
 )
 // Combine stdout + stderr: progress/notices (incl. "No skills are bundled")
 // are logged to stderr to keep stdout pure, so the assertions below must see
 // both streams.
 const output = `${run.stdout || ''}${run.stderr || ''}`
 process.stdout.write(output)
+// A spawn-level failure (bad packedCli path/ENOENT, timeout, maxBuffer
+// overflow) sets `run.error` and leaves `run.status` null — surface the real
+// cause instead of a misleading "exited null".
+if (run.error) {
+  throw new Error(
+    `packed CLI \`agent skills install\` failed to run: ${run.error.message}\n${output}`,
+  )
+}
 if (run.status !== 0) {
   throw new Error(
     `packed CLI \`agent skills install\` exited ${run.status}\n${output}`,
