@@ -188,7 +188,9 @@ const buildObservability = (cfgs) => {
   return Object.keys(out).length > 0 ? out : undefined
 }
 
-export const buildSandboxesAnalytics = (sandboxesConfig) => {
+// Pure: a `sandboxes` config map -> the analytics block, or undefined when
+// there is nothing to report. Total (never throws) on malformed input.
+const deriveSandboxesBlock = (sandboxesConfig) => {
   try {
     if (!isObj(sandboxesConfig)) return undefined
     const names = Object.keys(sandboxesConfig)
@@ -273,3 +275,25 @@ export const buildSandboxesAnalytics = (sandboxesConfig) => {
     return undefined
   }
 }
+
+/**
+ * Runner-facing entry: takes the full service config and returns a spreadable
+ * details fragment — `{ sandboxes: <block> }` when the service defines
+ * sandboxes, or `{}` otherwise. Mirrors deriveAnalysisEnrichment so it can be
+ * spread directly into the analysis event with no call-site guard.
+ *
+ * The `config?.sandboxes` read happens INSIDE this try/catch (not at the call
+ * site), so a hostile/throwing config getter degrades to `{}` rather than
+ * escaping into getAnalysisEventDetails (which would abort finalization and
+ * drop the billing usage event). Total — never throws.
+ */
+export const buildSandboxesAnalytics = (config) => {
+  try {
+    const block = deriveSandboxesBlock(config?.sandboxes)
+    return block ? { sandboxes: block } : {}
+  } catch {
+    return {}
+  }
+}
+
+export { deriveSandboxesBlock }

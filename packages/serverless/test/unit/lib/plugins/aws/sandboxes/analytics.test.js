@@ -1,18 +1,21 @@
-import { buildSandboxesAnalytics } from '../../../../../../lib/plugins/aws/sandboxes/analytics.js'
+import {
+  buildSandboxesAnalytics,
+  deriveSandboxesBlock,
+} from '../../../../../../lib/plugins/aws/sandboxes/analytics.js'
 import { resolveObservability } from '../../../../../../lib/plugins/aws/sandboxes/compilers/observability.js'
 
-describe('buildSandboxesAnalytics — envelope', () => {
+describe('deriveSandboxesBlock — envelope', () => {
   test('returns undefined for absent/empty/malformed top-level config', () => {
-    expect(buildSandboxesAnalytics(undefined)).toBeUndefined()
-    expect(buildSandboxesAnalytics(null)).toBeUndefined()
-    expect(buildSandboxesAnalytics({})).toBeUndefined()
-    expect(buildSandboxesAnalytics('nope')).toBeUndefined()
-    expect(buildSandboxesAnalytics(42)).toBeUndefined()
-    expect(buildSandboxesAnalytics([{ artifact: './x' }])).toBeUndefined()
+    expect(deriveSandboxesBlock(undefined)).toBeUndefined()
+    expect(deriveSandboxesBlock(null)).toBeUndefined()
+    expect(deriveSandboxesBlock({})).toBeUndefined()
+    expect(deriveSandboxesBlock('nope')).toBeUndefined()
+    expect(deriveSandboxesBlock(42)).toBeUndefined()
+    expect(deriveSandboxesBlock([{ artifact: './x' }])).toBeUndefined()
   })
 
   test('count reflects the number of defined sandboxes', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: { artifact: './app' },
       b: { artifact: 's3://bucket/key.zip' },
     })
@@ -20,9 +23,9 @@ describe('buildSandboxesAnalytics — envelope', () => {
   })
 })
 
-describe('buildSandboxesAnalytics — artifactTypes', () => {
+describe('deriveSandboxesBlock — artifactTypes', () => {
   test('classifies s3:// as s3 and everything else as source, sorted unique', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: { artifact: './app' },
       b: { artifact: 's3://bucket/key.zip' },
       c: { artifact: '/abs/dir' },
@@ -31,15 +34,15 @@ describe('buildSandboxesAnalytics — artifactTypes', () => {
   })
 
   test('omits artifactTypes when no sandbox has a string artifact (malformed)', () => {
-    const out = buildSandboxesAnalytics({ a: { artifact: 42 } })
+    const out = deriveSandboxesBlock({ a: { artifact: 42 } })
     expect(out.count).toBe(1)
     expect(out.artifactTypes).toBeUndefined()
   })
 })
 
-describe('buildSandboxesAnalytics — minimumMemory (explicit-only)', () => {
+describe('deriveSandboxesBlock — minimumMemory (explicit-only)', () => {
   test('reports only explicitly set values, sorted unique', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: { artifact: './a', minimumMemory: 8192 },
       b: { artifact: './b', minimumMemory: 2048 },
       c: { artifact: './c' }, // default by omission — contributes nothing
@@ -49,22 +52,22 @@ describe('buildSandboxesAnalytics — minimumMemory (explicit-only)', () => {
   })
 
   test('explicitly setting the default value (2048) IS reported', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: { artifact: './a', minimumMemory: 2048 },
     })
     expect(out.minimumMemory).toEqual([2048])
   })
 
   test('omits minimumMemory entirely when nobody sets it (omit-empty)', () => {
-    const out = buildSandboxesAnalytics({ a: { artifact: './a' } })
+    const out = deriveSandboxesBlock({ a: { artifact: './a' } })
     expect(out.minimumMemory).toBeUndefined()
     expect('minimumMemory' in out).toBe(false)
   })
 })
 
-describe('buildSandboxesAnalytics — never throws', () => {
+describe('deriveSandboxesBlock — never throws', () => {
   test('null sandbox entries and wrong-typed knobs degrade, never throw', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: null,
       b: 'string-sandbox',
       c: { artifact: './ok', minimumMemory: 'lots' },
@@ -75,9 +78,9 @@ describe('buildSandboxesAnalytics — never throws', () => {
   })
 })
 
-describe('buildSandboxesAnalytics — hooks', () => {
+describe('deriveSandboxesBlock — hooks', () => {
   test('reports adoption count, configured union, per-hook explicit timeouts', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: {
         artifact: './a',
         hooks: { ready: { timeout: 120 }, run: true, port: 9100 },
@@ -94,7 +97,7 @@ describe('buildSandboxesAnalytics — hooks', () => {
   })
 
   test('true-form hooks appear in configured but never in timeouts', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: { artifact: './a', hooks: { ready: true } },
     })
     expect(out.hooks.configured).toEqual(['ready'])
@@ -102,19 +105,19 @@ describe('buildSandboxesAnalytics — hooks', () => {
   })
 
   test('clamps timeout values above 3600', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: { artifact: './a', hooks: { ready: { timeout: 99999 } } },
     })
     expect(out.hooks.timeouts).toEqual({ ready: [3600] })
   })
 
   test('hooks block omitted entirely when no sandbox declares hooks', () => {
-    const out = buildSandboxesAnalytics({ a: { artifact: './a' } })
+    const out = deriveSandboxesBlock({ a: { artifact: './a' } })
     expect(out.hooks).toBeUndefined()
   })
 
   test('unknown hook names and malformed hook values are ignored', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: {
         artifact: './a',
         hooks: { evil: { timeout: 5 }, ready: 'yes', run: { timeout: 'soon' } },
@@ -125,7 +128,7 @@ describe('buildSandboxesAnalytics — hooks', () => {
   })
 
   test('empty-object hook form is configured but contributes no timeout', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: { artifact: './a', hooks: { ready: {} } },
     })
     expect(out.hooks.configured).toEqual(['ready'])
@@ -133,7 +136,7 @@ describe('buildSandboxesAnalytics — hooks', () => {
   })
 
   test('present-but-invalid timeouts are still rejected from configured', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: {
         artifact: './a',
         hooks: {
@@ -147,9 +150,9 @@ describe('buildSandboxesAnalytics — hooks', () => {
   })
 })
 
-describe('buildSandboxesAnalytics — iam', () => {
+describe('deriveSandboxesBlock — iam', () => {
   test('classifies ARN string and CFN intrinsic as existing, extension object as extended', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: { artifact: './a', iam: { executionRole: 'arn:aws:iam::123:role/x' } },
       b: {
         artifact: './b',
@@ -164,7 +167,7 @@ describe('buildSandboxesAnalytics — iam', () => {
   })
 
   test('buildRole and executionRole are independent; defaults omit the key', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: {
         artifact: './a',
         iam: { buildRole: { managedPolicies: ['arn:x'] } },
@@ -175,15 +178,13 @@ describe('buildSandboxesAnalytics — iam', () => {
   })
 
   test('iam omitted entirely when every sandbox uses generated roles', () => {
-    expect(
-      buildSandboxesAnalytics({ a: { artifact: './a' } }).iam,
-    ).toBeUndefined()
+    expect(deriveSandboxesBlock({ a: { artifact: './a' } }).iam).toBeUndefined()
   })
 })
 
-describe('buildSandboxesAnalytics — vpc / envVarCounts / osCapabilities / tags', () => {
+describe('deriveSandboxesBlock — vpc / envVarCounts / osCapabilities / tags', () => {
   test('vpc counts sandboxes with a vpc object', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: { artifact: './a', vpc: { subnetIds: ['s-1'] } },
       b: { artifact: './b' },
     })
@@ -191,7 +192,7 @@ describe('buildSandboxesAnalytics — vpc / envVarCounts / osCapabilities / tags
   })
 
   test('envVarCounts: one ascending entry per sandbox that declares vars — never names', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: { artifact: './a', environment: { X: '1', Y: '2', Z: '3' } },
       b: { artifact: './b', environment: { ONLY: 'v' } },
       c: { artifact: './c' },
@@ -201,7 +202,7 @@ describe('buildSandboxesAnalytics — vpc / envVarCounts / osCapabilities / tags
   })
 
   test('osCapabilities normalized to lowercase, sorted unique; tags counted', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: { artifact: './a', osCapabilities: ['ALL'], tags: { team: 'x' } },
       b: { artifact: './b', osCapabilities: ['all'] },
     })
@@ -210,30 +211,30 @@ describe('buildSandboxesAnalytics — vpc / envVarCounts / osCapabilities / tags
   })
 
   test('osCapabilities: out-of-enum values are dropped, not passed through', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: { artifact: './a', osCapabilities: ['all', 'ACME_INTERNAL_CAP'] },
     })
     expect(out.osCapabilities).toEqual(['all'])
   })
 
   test('osCapabilities: key omitted when only unknown values are present', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: { artifact: './a', osCapabilities: ['ACME_INTERNAL_CAP'] },
     })
     expect('osCapabilities' in out).toBe(false)
   })
 
   test('all five omitted on a bare sandbox (omit-empty)', () => {
-    const out = buildSandboxesAnalytics({ a: { artifact: './a' } })
+    const out = deriveSandboxesBlock({ a: { artifact: './a' } })
     for (const k of ['iam', 'vpc', 'envVarCounts', 'osCapabilities', 'tags']) {
       expect(k in out).toBe(false)
     }
   })
 })
 
-describe('buildSandboxesAnalytics — observability', () => {
+describe('deriveSandboxesBlock — observability', () => {
   test('absent and `true` count as defaults; false counts as disabled', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: { artifact: './a' },
       b: { artifact: './b', observability: true },
       c: { artifact: './c', observability: false },
@@ -242,7 +243,7 @@ describe('buildSandboxesAnalytics — observability', () => {
   })
 
   test('component opt-outs and alarms adoption are counted per sandbox', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: {
         artifact: './a',
         observability: {
@@ -265,7 +266,7 @@ describe('buildSandboxesAnalytics — observability', () => {
   })
 
   test('alarms without notify is NOT counted (mirrors the compiler)', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: { artifact: './a', observability: { alarms: { thresholds: {} } } },
     })
     // Nothing else in this raw config is reportable (thresholds is empty),
@@ -276,7 +277,7 @@ describe('buildSandboxesAnalytics — observability', () => {
   })
 
   test('customized: explicit retention values, logGroup/filters/thresholds presence counts', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: {
         artifact: './a',
         observability: {
@@ -299,7 +300,7 @@ describe('buildSandboxesAnalytics — observability', () => {
   })
 
   test('explicitly setting retention to the default 14 IS reported (explicit-only)', () => {
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: { artifact: './a', observability: { logs: { retentionDays: 14 } } },
     })
     expect(out.observability.customized.retentionDays).toEqual([14])
@@ -320,7 +321,7 @@ describe('anti-drift: analytics interpretation agrees with resolveObservability'
   ]
   test.each(grid.map((raw, i) => [i, raw]))('config #%s', (_, raw) => {
     const resolved = resolveObservability(raw)
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       a: { artifact: './a', observability: raw },
     })
     const o = out.observability ?? {}
@@ -344,7 +345,7 @@ describe('anti-drift: analytics interpretation agrees with resolveObservability'
 describe('privacy guard — no user-authored strings ever leak', () => {
   test('marker strings from every free-form knob are absent from the output', () => {
     const M = 'MARKER_SECRET'
-    const out = buildSandboxesAnalytics({
+    const out = deriveSandboxesBlock({
       [`sandbox-${M}`]: {
         artifact: `./path-${M}`,
         description: `desc ${M}`,
@@ -364,5 +365,46 @@ describe('privacy guard — no user-authored strings ever leak', () => {
       },
     })
     expect(JSON.stringify(out)).not.toContain(M)
+  })
+})
+
+describe('buildSandboxesAnalytics — runner entry (spreadable, reads config internally)', () => {
+  test('returns { sandboxes: block } when the service defines sandboxes', () => {
+    const out = buildSandboxesAnalytics({
+      service: 'svc',
+      sandboxes: { runner: { artifact: './app', minimumMemory: 8192 } },
+    })
+    expect(out).toEqual({
+      sandboxes: {
+        count: 1,
+        artifactTypes: ['source'],
+        minimumMemory: [8192],
+        observability: { defaults: 1 },
+      },
+    })
+  })
+
+  test('returns {} when the config defines no sandboxes (spreads to nothing)', () => {
+    expect(buildSandboxesAnalytics({ service: 'svc' })).toEqual({})
+    expect(buildSandboxesAnalytics({ service: 'svc', sandboxes: {} })).toEqual(
+      {},
+    )
+  })
+
+  test('returns {} for absent/malformed config', () => {
+    expect(buildSandboxesAnalytics(undefined)).toEqual({})
+    expect(buildSandboxesAnalytics(null)).toEqual({})
+    expect(buildSandboxesAnalytics('nope')).toEqual({})
+  })
+
+  test('swallows a throwing `sandboxes` getter (the guard the inline spread relies on)', () => {
+    const config = { service: 'svc' }
+    Object.defineProperty(config, 'sandboxes', {
+      enumerable: true,
+      get() {
+        throw new Error('boom')
+      },
+    })
+    expect(buildSandboxesAnalytics(config)).toEqual({})
   })
 })
