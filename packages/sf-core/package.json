@@ -47,7 +47,7 @@
     "jszip": "^3.10.1",
     "sha256-file": "^1.0.0",
     "shell-quote": "^1.8.4",
-    "tape": "^5.9.0",
+    "tape": "^5.10.2",
     "tape-promise": "^4.0.0"
   },
   "dependencies": {
