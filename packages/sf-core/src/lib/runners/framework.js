@@ -24,6 +24,7 @@ import {
   collectArtifactPaths,
   deriveAnalysisEnrichment,
 } from './framework-analytics.js'
+import { buildSandboxesAnalytics } from '@serverless/framework/lib/plugins/aws/sandboxes/analytics.js'
 import { Deployment } from '../platform/deployments.js'
 
 export class TraditionalRunner extends Runner {
@@ -254,6 +255,16 @@ export class TraditionalRunner extends Runner {
         serviceUniqueId: this.serviceUniqueId,
         analyticsMetrics: this.analyticsMetrics,
       }),
+    }
+
+    // Sandboxes config-shape block (only when the service defines sandboxes).
+    // buildSandboxesAnalytics is total (never throws); the guard is defense in
+    // depth — analytics must never break or slow the run.
+    try {
+      const sandboxes = buildSandboxesAnalytics(this.config?.sandboxes)
+      if (sandboxes) details.sandboxes = sandboxes
+    } catch {
+      /* never let analytics fail the command */
     }
 
     // plugins

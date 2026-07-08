@@ -2,6 +2,7 @@
 
 import { jest } from '@jest/globals'
 import ServerlessSandboxes from '../../../../../../lib/plugins/aws/sandboxes/index.js'
+import ServerlessError from '../../../../../../lib/serverless-error.js'
 
 function makeProvider(overrides = {}) {
   return {
@@ -40,7 +41,7 @@ const makeServerless = (sandboxes, providerOverride) => {
     configSchemaHandler: { defineTopLevelProperty: jest.fn() },
     addServiceOutputSection: jest.fn(),
     processedInput: { commands: ['deploy'] },
-    classes: { Error },
+    classes: { Error: ServerlessError },
   }
 }
 
@@ -96,7 +97,14 @@ describe('ServerlessSandboxes', () => {
   test('validate() throws when a sandbox is missing artifact', () => {
     const sls = makeServerless({ broken: { minimumMemory: 512 } })
     const p = new ServerlessSandboxes(sls, {}, { log: { debug() {} } })
-    expect(() => p.validate()).toThrow(/artifact/)
+    let thrown
+    try {
+      p.validate()
+    } catch (err) {
+      thrown = err
+    }
+    expect(thrown.message).toMatch(/artifact/)
+    expect(thrown.code).toBe('SANDBOXES_VALIDATION_ERROR')
   })
 
   test('validate() is a no-op when sandboxesConfig is null', () => {
@@ -287,6 +295,9 @@ describe('ServerlessSandboxes', () => {
       { fs: fakeFs },
     )
     await expect(p.packageArtifacts()).rejects.toThrow(/escapes the package/i)
+    await expect(p.packageArtifacts()).rejects.toMatchObject({
+      code: 'SANDBOXES_ARTIFACT_PATH_ESCAPE',
+    })
     const s3UploadCalls = provider.request.mock.calls.filter(
       ([svc, method]) => svc === 'S3' && method === 'upload',
     )

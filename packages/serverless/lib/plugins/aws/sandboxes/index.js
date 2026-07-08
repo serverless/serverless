@@ -90,7 +90,10 @@ class ServerlessSandboxes {
       throwError: (msg) => errors.push(msg),
     })
     if (errors.length > 0) {
-      throw new this.serverless.classes.Error(errors.join('\n'))
+      throw new this.serverless.classes.Error(
+        errors.join('\n'),
+        'SANDBOXES_VALIDATION_ERROR',
+      )
     }
   }
 
@@ -137,6 +140,7 @@ class ServerlessSandboxes {
         if (resolved !== root && !resolved.startsWith(root + path.sep)) {
           throw new this.serverless.classes.Error(
             `Refusing to upload sandbox artifact from '${file}': path escapes the package directory.`,
+            'SANDBOXES_ARTIFACT_PATH_ESCAPE',
           )
         }
         return uploadArtifact({
