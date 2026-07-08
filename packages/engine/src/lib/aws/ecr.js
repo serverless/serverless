@@ -50,12 +50,10 @@ export class AwsEcrClient {
       }
     } catch (error) {
       const name = error.name
-      if (
-        !(
-          error instanceof RepositoryNotFoundException ||
-          name === 'RepositoryNotFoundException'
-        )
-      ) {
+      if (!(
+        error instanceof RepositoryNotFoundException ||
+        name === 'RepositoryNotFoundException'
+      )) {
         throw new ServerlessError(error.message, 'AWS_ECR_REPOSITORY_NOT_FOUND')
       }
     }

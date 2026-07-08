@@ -3847,12 +3847,10 @@ Object.defineProperties(
           })
           repositoryUri = result.repositories[0].repositoryUri
         } catch (err) {
-          if (
-            !(
-              err.providerError &&
-              err.providerError.code === 'RepositoryNotFoundException'
-            )
-          ) {
+          if (!(
+            err.providerError &&
+            err.providerError.code === 'RepositoryNotFoundException'
+          )) {
             throw err
           }
           const result = await this.request('ECR', 'createRepository', {

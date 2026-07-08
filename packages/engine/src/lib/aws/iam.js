@@ -661,12 +661,10 @@ export class AwsIamClient {
             )
           } catch (detachError) {
             const detachName = detachError.name
-            if (
-              !(
-                detachError instanceof NoSuchEntityException ||
-                detachName === 'NoSuchEntityException'
-              )
-            ) {
+            if (!(
+              detachError instanceof NoSuchEntityException ||
+              detachName === 'NoSuchEntityException'
+            )) {
               logger.debug(`Error detaching policy: ${detachError}`)
             }
           }
@@ -767,12 +765,10 @@ export class AwsIamClient {
       }
     } catch (error) {
       const name = error.name
-      if (
-        !(
-          error instanceof NoSuchEntityException ||
-          name === 'NoSuchEntityException'
-        )
-      ) {
+      if (!(
+        error instanceof NoSuchEntityException ||
+        name === 'NoSuchEntityException'
+      )) {
         throw error
       }
 
@@ -1006,12 +1002,10 @@ export class AwsIamClient {
       return getRoleResponse.Role.Arn
     } catch (error) {
       const name = error.name
-      if (
-        !(
-          error instanceof NoSuchEntityException ||
-          name === 'NoSuchEntityException'
-        )
-      ) {
+      if (!(
+        error instanceof NoSuchEntityException ||
+        name === 'NoSuchEntityException'
+      )) {
         throw error
       }
 
@@ -1095,12 +1089,10 @@ export class AwsIamClient {
       return getRoleResponse.Role.Arn
     } catch (error) {
       const name = error.name
-      if (
-        !(
-          error instanceof NoSuchEntityException ||
-          name === 'NoSuchEntityException'
-        )
-      ) {
+      if (!(
+        error instanceof NoSuchEntityException ||
+        name === 'NoSuchEntityException'
+      )) {
         throw error
       }
     }

@@ -233,12 +233,10 @@ export class AwsAlbClient {
       // If the load balancer does not exist, AWS SDK throws LoadBalancerNotFoundException
       // We can safely ignore this exception and proceed to create a new load balancer
       const name = error.name
-      if (
-        !(
-          error instanceof LoadBalancerNotFoundException ||
-          name === 'LoadBalancerNotFoundException'
-        )
-      ) {
+      if (!(
+        error instanceof LoadBalancerNotFoundException ||
+        name === 'LoadBalancerNotFoundException'
+      )) {
         throw error
       }
     }
@@ -892,20 +890,18 @@ export class AwsAlbClient {
       // Identify rules matching our REDIRECT configuration.
       const matchingRules = updatedRules.filter((rule) => {
         // Check that the rule has the expected redirect configuration.
-        if (
-          !(
-            rule.Actions &&
-            rule.Actions.some(
-              (action) =>
-                action.Type === ActionTypeEnum.REDIRECT &&
-                action.RedirectConfig &&
-                action.RedirectConfig.Protocol === 'HTTPS' &&
-                action.RedirectConfig.Port === '443' &&
-                action.RedirectConfig.StatusCode ===
-                  RedirectActionStatusCodeEnum.HTTP_301,
-            )
+        if (!(
+          rule.Actions &&
+          rule.Actions.some(
+            (action) =>
+              action.Type === ActionTypeEnum.REDIRECT &&
+              action.RedirectConfig &&
+              action.RedirectConfig.Protocol === 'HTTPS' &&
+              action.RedirectConfig.Port === '443' &&
+              action.RedirectConfig.StatusCode ===
+                RedirectActionStatusCodeEnum.HTTP_301,
           )
-        ) {
+        )) {
           return false
         }
 
