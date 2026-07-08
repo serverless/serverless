@@ -581,7 +581,9 @@ describe('fatal errors (non-zero exit, single JSON error on stdout)', () => {
     expect(provider.request).not.toHaveBeenCalled()
   })
 
-  test('stack-not-deployed surfaces a structured error naming region/stage', async () => {
+  // A not-yet-deployed stack is NOT fatal: it's a legitimate state for an agent
+  // to observe, so inspect returns a clean "not-deployed" envelope and exits 0.
+  test('stack-not-deployed returns a graceful not-deployed envelope (exit 0), not an error', async () => {
     const requestImpl = jest.fn(async () => {
       const err = new Error('Stack with id orders-api-dev does not exist')
       err.code = 'ValidationError'
@@ -591,13 +593,17 @@ describe('fatal errors (non-zero exit, single JSON error on stdout)', () => {
     const { serverless } = buildHarness({ requestImpl })
     const instance = new AgentInspect(serverless, { functions: true })
 
-    await expect(instance.inspect()).rejects.toBeDefined()
+    await expect(instance.inspect()).resolves.toBeUndefined()
 
-    expect(mockWriteText).toHaveBeenCalledTimes(1)
-    const payload = JSON.parse(mockWriteText.mock.calls[0][0])
-    expect(payload.error).toBeDefined()
-    expect(payload.error.region).toBe('us-east-1')
-    expect(payload.error.stage).toBe('dev')
+    const payload = lastPayload()
+    expect(payload.error).toBeUndefined()
+    expect(payload.service).toBe('orders-api')
+    expect(payload.mode).toBe('not-deployed')
+    expect(payload.region).toBe('us-east-1')
+    expect(payload.stage).toBe('dev')
+    expect(payload.stackName).toBe('orders-api-dev')
+    expect(payload.hint).toMatch(/serverless deploy/i)
+    expect(payload.resources).toEqual({})
   })
 
   test('a bad --name emits a structured error and exits non-zero', async () => {
