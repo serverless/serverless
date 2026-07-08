@@ -40,7 +40,7 @@
     "appdirectory": "^0.1.0",
     "cross-env": "^10.1.0",
     "cross-spawn": "^7.0.6",
-    "date-fns": "^4.1.0",
+    "date-fns": "^4.4.0",
     "esbuild": "0.28.1",
     "glob": "^10.5.0",
     "jest": "^30.4.2",
