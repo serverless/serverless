@@ -3,7 +3,7 @@ import { pathToFileURL } from 'url'
 import { copyFile, readFile, rm, stat, writeFile } from 'fs/promises'
 import { createWriteStream, existsSync } from 'fs'
 import * as esbuild from 'esbuild'
-import archiver from 'archiver'
+import { ZipArchive } from 'archiver'
 import spawnExt from 'child-process-ext/spawn.js'
 import _ from 'lodash'
 import pLimit from 'p-limit'
@@ -763,7 +763,7 @@ class Esbuild {
             zipName,
           )
 
-          const zip = archiver.create('zip')
+          const zip = new ZipArchive()
           const output = createWriteStream(zipPath)
 
           const zipPromise = new Promise(async (resolve, reject) => {
@@ -893,7 +893,7 @@ class Esbuild {
       { cwd: this.serverless.serviceDir },
     )
 
-    const zip = archiver.create('zip')
+    const zip = new ZipArchive()
     const output = createWriteStream(zipPath)
     const addedFiles = new Set()
 

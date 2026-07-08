@@ -1,4 +1,4 @@
-import archiver from 'archiver'
+import { ZipArchive } from 'archiver'
 import os from 'os'
 import path from 'path'
 import crypto from 'crypto'
@@ -79,7 +79,7 @@ export default {
       return Promise.reject(error)
     }
 
-    const zip = archiver.create('zip')
+    const zip = new ZipArchive()
     // Create artifact in temp path and move it to the package path (if any) later
     const artifactFilePath = path.join(
       this.serverless.serviceDir,

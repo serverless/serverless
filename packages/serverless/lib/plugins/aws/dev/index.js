@@ -2,7 +2,7 @@ import fs from 'fs'
 import _ from 'lodash'
 import path from 'path'
 import util from 'util'
-import archiver from 'archiver'
+import { ZipArchive } from 'archiver'
 import iot from 'aws-iot-device-sdk'
 import chokidar from 'chokidar'
 import validate from '../lib/validate.js'
@@ -573,7 +573,7 @@ class AwsDev {
     }
 
     try {
-      const zip = archiver.create('zip')
+      const zip = new ZipArchive()
 
       // Create the directory structure if it doesn't exist
       fs.mkdirSync(path.dirname(zipFilePath), { recursive: true })
