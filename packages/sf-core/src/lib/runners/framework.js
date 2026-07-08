@@ -24,6 +24,7 @@ import {
   collectArtifactPaths,
   deriveAnalysisEnrichment,
 } from './framework-analytics.js'
+import { buildSandboxesAnalytics } from '@serverless/framework/lib/plugins/aws/sandboxes/analytics.js'
 import { Deployment } from '../platform/deployments.js'
 
 export class TraditionalRunner extends Runner {
@@ -254,6 +255,11 @@ export class TraditionalRunner extends Runner {
         serviceUniqueId: this.serviceUniqueId,
         analyticsMetrics: this.analyticsMetrics,
       }),
+      // Sandboxes config-shape block. buildSandboxesAnalytics reads
+      // config.sandboxes internally under its own guard and is total (never
+      // throws), so it spreads in like deriveAnalysisEnrichment: `{}` when the
+      // service defines no sandboxes, `{ sandboxes: <block> }` otherwise.
+      ...buildSandboxesAnalytics(this.config),
     }
 
     // plugins
