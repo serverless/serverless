@@ -47,7 +47,7 @@
     "@aws-sdk/util-arn-parser": "3.972.22",
     "@serverless/util": "*",
     "@serverlessinc/sf-core": "*",
-    "@slack/web-api": "^7.15.2",
+    "@slack/web-api": "^7.18.0",
     "@smithy/util-retry": "^4.5.4",
     "chokidar": "^4.0.3",
     "date-fns": "^4.4.0",
