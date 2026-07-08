@@ -351,6 +351,102 @@ test('run() starts the control-plane and prints the endpoint; SIGINT+SIGTERM shu
   expect(shutdown).toHaveBeenCalled()
 })
 
+test('honors a custom hooks.port: publishes it as a container port and passes it to the control plane', async () => {
+  let cmArgs
+  const startControlPlane = jest.fn(async () => ({
+    url: 'http://127.0.0.1:45010',
+    port: 45010,
+    server: {},
+    shutdown: async () => {},
+  }))
+  const signals = {}
+  const dev = new SandboxesDevMode(
+    {
+      service: {
+        service: 'svc',
+        sandboxes: {
+          echo: { artifact: './app', hooks: { port: 9100, run: true } },
+        },
+      },
+      serviceDir: '/tmp',
+      getProvider: () => ({}),
+    },
+    { sandbox: 'echo', 'assume-role': false },
+    {
+      log: { notice() {}, debug() {} },
+      progress: { notice() {}, remove() {} },
+    },
+    {
+      docker: { ensureIsRunning: async () => {}, buildImage: async () => {} },
+      fileExists: () => true,
+      onSignal: (sig, h) => {
+        signals[sig] = h
+      },
+      createWatcher: () => ({ on() {}, close: async () => {} }),
+      startControlPlane,
+      makeContainerManager: (args) => {
+        cmArgs = args
+        return { run: async () => ({ portMap: {}, stop: async () => {} }) }
+      },
+      makeRegistry: () => ({}),
+    },
+  )
+  const runP = dev.run()
+  await new Promise((r) => setImmediate(r))
+  // App port 8080 + the custom hook port, deduped.
+  expect(cmArgs.ports).toEqual([8080, 9100])
+  expect(startControlPlane).toHaveBeenCalledWith(
+    expect.objectContaining({ hookPort: 9100 }),
+  )
+  await signals.SIGTERM()
+  await runP
+})
+
+test('defaults the hook port to 9000 when hooks.port is not set', async () => {
+  let cmArgs
+  const startControlPlane = jest.fn(async () => ({
+    url: 'http://127.0.0.1:45011',
+    port: 45011,
+    server: {},
+    shutdown: async () => {},
+  }))
+  const signals = {}
+  const dev = new SandboxesDevMode(
+    {
+      service: { service: 'svc', sandboxes: { echo: { artifact: './app' } } },
+      serviceDir: '/tmp',
+      getProvider: () => ({}),
+    },
+    { sandbox: 'echo', 'assume-role': false },
+    {
+      log: { notice() {}, debug() {} },
+      progress: { notice() {}, remove() {} },
+    },
+    {
+      docker: { ensureIsRunning: async () => {}, buildImage: async () => {} },
+      fileExists: () => true,
+      onSignal: (sig, h) => {
+        signals[sig] = h
+      },
+      createWatcher: () => ({ on() {}, close: async () => {} }),
+      startControlPlane,
+      makeContainerManager: (args) => {
+        cmArgs = args
+        return { run: async () => ({ portMap: {}, stop: async () => {} }) }
+      },
+      makeRegistry: () => ({}),
+    },
+  )
+  const runP = dev.run()
+  await new Promise((r) => setImmediate(r))
+  expect(cmArgs.ports).toEqual([8080, 9000])
+  expect(startControlPlane).toHaveBeenCalledWith(
+    expect.objectContaining({ hookPort: 9000 }),
+  )
+  await signals.SIGTERM()
+  await runP
+})
+
 test('--port overrides the control-plane port', async () => {
   const startControlPlane = jest.fn(async () => ({
     url: 'http://127.0.0.1:7777',
