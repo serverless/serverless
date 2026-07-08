@@ -597,6 +597,7 @@ describe('fatal errors (non-zero exit, single JSON error on stdout)', () => {
 
     const payload = lastPayload()
     expect(payload.error).toBeUndefined()
+    expect(payload.service).toBe('orders-api')
     expect(payload.mode).toBe('not-deployed')
     expect(payload.region).toBe('us-east-1')
     expect(payload.stage).toBe('dev')

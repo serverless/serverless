@@ -144,6 +144,9 @@ class AgentInspect {
     this.provider = this.serverless.getProvider('aws')
     const region = this.options.region || this.provider.getRegion()
     const stage = this.provider.getStage()
+    // Declared out here (assigned once the provider is known to be AWS) so the
+    // catch can name the stack in a not-deployed result without re-deriving it.
+    let stackName
 
     try {
       // Guard: --format takes exactly two values. Validated up front so a typo
@@ -167,7 +170,7 @@ class AgentInspect {
         )
       }
 
-      const stackName = this.provider.naming.getStackName()
+      stackName = this.provider.naming.getStackName()
 
       // Discovery: one paginated listStackResources, recursing into nested
       // stacks. The lister is injected so discovery stays provider-agnostic.
@@ -219,16 +222,11 @@ class AgentInspect {
       // A not-yet-deployed stack is a legitimate state for an agent to observe,
       // not a failure. Return a clean "not-deployed" envelope (exit 0) with a
       // deploy hint instead of surfacing the raw CloudFormation ValidationError.
-      if (
-        /stack/i.test(error.message || '') &&
-        /does not exist/i.test(error.message || '')
-      ) {
-        let stackName
-        try {
-          stackName = this.provider.naming.getStackName()
-        } catch {
-          /* naming unavailable — omit */
-        }
+      // Match the canonical CloudFormation "stack does not exist" phrasing
+      // (anchored, not two loose word tests) so an unrelated error that merely
+      // mentions "stack" and "does not exist" stays fatal rather than being
+      // misread as not-deployed.
+      if (/Stack with id .+ does not exist/i.test(error.message || '')) {
         this.render({
           service: this.serverless.service.service,
           stage,
