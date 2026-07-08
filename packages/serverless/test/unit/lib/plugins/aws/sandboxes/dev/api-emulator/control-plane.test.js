@@ -606,8 +606,15 @@ test('CreateMicrovmAuthToken accepts the {allPorts: {}} and {range} spec shapes 
   }
 })
 
-test('RunMicrovm skips the hook-port readiness wait (and its warning) when hooks are disabled', async () => {
-  const waitForPort = jest.fn(async () => false) // would warn if it ran
+test('RunMicrovm waits for the application port even when hooks are disabled (but not the hook port)', async () => {
+  // Regression: a no-hooks sandbox must still gate RUNNING on the app port actually serving —
+  // otherwise an invoke races the container bind and the proxy returns 502. The hook port,
+  // which nothing binds without hooks, must NOT be waited on (it would only time out).
+  const probed = []
+  const waitForPort = jest.fn(async (_host, port) => {
+    probed.push(port)
+    return true
+  })
   const asides = []
   const { cp } = await harness({
     hooksEnabled: false,
@@ -620,8 +627,29 @@ test('RunMicrovm skips the hook-port readiness wait (and its warning) when hooks
     })
     expect(run.status).toBe(200)
     expect(run.json.state).toBe('RUNNING')
-    expect(waitForPort).not.toHaveBeenCalled()
-    expect(asides.join('\n')).not.toMatch(/not ready after/)
+    // App port 8080 → host 50080 IS probed; hook port 9000 → host 50090 is NOT.
+    expect(probed).toContain(50080)
+    expect(probed).not.toContain(50090)
+    expect(asides.join('\n')).not.toMatch(/hooks may not have been delivered/)
+  } finally {
+    await cp.shutdown()
+  }
+})
+
+test('RunMicrovm warns and still returns RUNNING when the app port never serves', async () => {
+  const asides = []
+  const { cp } = await harness({
+    hooksEnabled: false,
+    waitForPort: async () => false, // app port never becomes ready
+    logger: { aside: (l) => asides.push(l), notice() {}, debug() {} },
+  })
+  try {
+    const run = await req(cp.port, 'POST', '/microvms', {
+      imageIdentifier: 'arn:local',
+    })
+    // Non-fatal: launch proceeds (matches AWS best-effort readiness), but the user is warned.
+    expect(run.json.state).toBe('RUNNING')
+    expect(asides.join('\n')).toMatch(/app port 8080 not serving/)
   } finally {
     await cp.shutdown()
   }

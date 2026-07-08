@@ -251,6 +251,28 @@ export async function startControlPlane({
         // Stream this MicroVM's container logs to the dev terminal (prefixed per MicroVM).
         const stop = attachLogs(c.containerName, microvmId)
         if (typeof stop === 'function') logStops.set(microvmId, stop)
+        // Wait for the application port(s) to actually serve HTTP before this RunMicrovm
+        // response advertises the VM as RUNNING. Docker's published-port proxy accepts a TCP
+        // connect the instant the container starts — well before the in-VM server binds — so an
+        // invoke that races the bind reaches the proxy, fails to connect upstream, and gets a 502.
+        // Unlike the hook-port wait below this runs regardless of `hooksEnabled`: the application
+        // port is what serves invocations. The hook port (never a serving app port) is excluded —
+        // when hooks are enabled it has its own wait below; when disabled nothing ever binds it.
+        // HTTP-level probe (a bare TCP connect returns prematurely against docker-proxy).
+        const appPorts = Object.keys(inst.portMap)
+          .map(Number)
+          .filter((p) => p !== hookPort)
+        for (const appPort of appPorts) {
+          const appReady = await waitForPort(
+            '127.0.0.1',
+            inst.portMap[appPort],
+            readinessTimeoutMs,
+          )
+          if (!appReady)
+            logger.aside(
+              `⚠ ${short} app port ${appPort} not serving after ${Math.round(readinessTimeoutMs / 1000)}s — invokes may 502 until it binds`,
+            )
+        }
         // Let the container bind its hook server before delivering lifecycle hooks, so the
         // run-hook payload isn't POSTed to a not-yet-listening :9000 and lost. Best-effort + bounded.
         // The hook port is published on loopback regardless of which interface the control-plane
