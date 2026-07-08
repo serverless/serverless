@@ -216,6 +216,30 @@ class AgentInspect {
       })
       this.render(payload)
     } catch (error) {
+      // A not-yet-deployed stack is a legitimate state for an agent to observe,
+      // not a failure. Return a clean "not-deployed" envelope (exit 0) with a
+      // deploy hint instead of surfacing the raw CloudFormation ValidationError.
+      if (
+        /stack/i.test(error.message || '') &&
+        /does not exist/i.test(error.message || '')
+      ) {
+        let stackName
+        try {
+          stackName = this.provider.naming.getStackName()
+        } catch {
+          /* naming unavailable — omit */
+        }
+        this.render({
+          service: this.serverless.service.service,
+          stage,
+          region,
+          ...(stackName ? { stackName } : {}),
+          mode: 'not-deployed',
+          hint: `No deployed stack found for stage "${stage}" in ${region}. Run "serverless deploy" first, then re-run inspect.`,
+          resources: {},
+        })
+        return
+      }
       // Fatal: emit ONE structured JSON error object on stdout naming the
       // profile/region/stage that were used, then rethrow so the framework
       // maps it to a non-zero exit. Never silently try other profiles.
