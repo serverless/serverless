@@ -185,11 +185,18 @@ class SandboxesDevMode {
       imageArn: `arn:aws:lambda:local:000000000000:microvm-image:${this.serverless.service.service}-${name}`,
     })
     const self = this
+    // The app serves on 8080 (the `invoke --port` default); the hook server port is
+    // user-configurable via `hooks.port` (default 9000). Honor it for both the published
+    // container ports and the control plane's hook delivery, so a sandbox with a custom
+    // hook port has its hooks delivered in dev exactly as on AWS. Deduped in case the user
+    // points hooks at 8080.
+    const hookPort = Number(this.ctx.cfg.hooks?.port) || 9000
     const containerManager = await this.makeContainerManager({
       docker: this.docker,
       imageUri: this.ctx.imageUri,
       serviceName: this.serverless.service.service,
       sandboxName: name,
+      ports: Array.from(new Set([8080, hookPort])),
       get env() {
         return { ...(self.ctx.cfg.environment || {}), ...(self.credsEnv || {}) }
       },
@@ -219,6 +226,7 @@ class SandboxesDevMode {
         containerManager,
         fireHook,
         hooksEnabled: enabledHooks.size > 0,
+        hookPort,
         port: this.ctx.controlPlanePort,
         logger: this.logger,
         attachLogs: (containerName, microvmId) =>
