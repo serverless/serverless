@@ -4,7 +4,7 @@ import ServerlessError from '../../../../serverless-error.js'
 import crypto from 'crypto'
 import path from 'path'
 import fs from 'fs'
-import archiver from 'archiver'
+import { ZipArchive } from 'archiver'
 import { globbySync } from 'globby'
 import setS3UploadEncryptionOptions from '../../../../aws/set-s3-upload-encryption-options.js'
 
@@ -42,7 +42,7 @@ async function defaultZipDir(dirPath) {
   }
   return new Promise((resolve, reject) => {
     const chunks = []
-    const archive = archiver('zip', { zlib: { level: 9 } })
+    const archive = new ZipArchive({ zlib: { level: 9 } })
 
     archive.on('data', (chunk) => chunks.push(chunk))
     archive.on('end', () => resolve(Buffer.concat(chunks)))
