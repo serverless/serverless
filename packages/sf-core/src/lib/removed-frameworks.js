@@ -40,7 +40,7 @@ export const assertNoRemovedFrameworkConfig = async ({ workingDir }) => {
     const frameworkName = REMOVED_FRAMEWORKS[baseName]
     if (frameworkName) {
       throw new ServerlessError(
-        `Support for ${frameworkName} ("${fileName}") has been removed from the Serverless Framework CLI. To manage or remove existing deployments, use the last supporting version: "npx serverless@${LAST_SUPPORTED_VERSION} <command>".`,
+        `Support for ${frameworkName} ("${fileName}") has been removed from the Serverless Framework CLI. To manage or remove existing deployments, pin the last supporting version by setting 'frameworkVersion: "${LAST_SUPPORTED_VERSION}"' in "${fileName}". The CLI will then automatically download and run that version for this project.`,
         'FRAMEWORK_SUPPORT_REMOVED',
         { stack: false },
       )

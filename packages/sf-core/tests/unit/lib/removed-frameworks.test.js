@@ -32,12 +32,21 @@ describe('assertNoRemovedFrameworkConfig', () => {
     })
   })
 
-  test('mentions the pinned last supporting version', async () => {
+  test('guides users to pin the last supporting version via frameworkVersion', async () => {
     const dir = await makeDir(['serverless.containers.yml'])
     await expect(
       assertNoRemovedFrameworkConfig({ workingDir: dir }),
     ).rejects.toMatchObject({
-      message: expect.stringContaining('serverless@4.39.0'),
+      message: expect.stringContaining('frameworkVersion: "4.39.0"'),
+    })
+  })
+
+  test('references the actual config file in the pinning guidance', async () => {
+    const dir = await makeDir(['serverless.containers.yml'])
+    await expect(
+      assertNoRemovedFrameworkConfig({ workingDir: dir }),
+    ).rejects.toMatchObject({
+      message: expect.stringContaining('in "serverless.containers.yml"'),
     })
   })
 
