@@ -1,9 +1,8 @@
 {
   "name": "@serverless/engine",
   "version": "1.0.0",
-  "description": "Reusable engine logic for CLI and external consumers",
+  "description": "Shared AWS client wrappers used across the Serverless Framework CLI",
   "type": "module",
-  "main": "src/index.js",
   "scripts": {
     "lint": "eslint",
     "prettier": "prettier -c . --ignore-path ../../.prettierignore",
@@ -46,19 +45,12 @@
     "@aws-sdk/signature-v4a": "3.1077.0",
     "@aws-sdk/util-arn-parser": "3.972.22",
     "@serverless/util": "*",
-    "@serverlessinc/sf-core": "*",
-    "@slack/web-api": "^7.18.0",
     "@smithy/util-retry": "^4.5.4",
-    "chokidar": "^4.0.3",
     "date-fns": "^4.4.0",
-    "eventsource": "^3.0.7",
-    "lodash": "^4.18.1",
-    "p-limit": "^6.2.0",
-    "zod": "^4.4.3"
+    "lodash": "^4.18.1"
   },
   "devDependencies": {
     "jest": "^30.4.2",
-    "jest-mock-extended": "^4.0.1",
-    "js-yaml": "^4.1.1"
+    "jest-mock-extended": "^4.0.1"
   }
 }
