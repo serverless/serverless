@@ -789,6 +789,7 @@ class Esbuild {
                 `.${functionName}`,
                 '',
               )
+              const addedFiles = new Set()
 
               const packageJsonPath = path.join(
                 this.serverless.config.serviceDir,
@@ -799,6 +800,7 @@ class Esbuild {
 
               if (existsSync(packageJsonPath)) {
                 zip.file(packageJsonPath, { name: `package.json` })
+                addedFiles.add(packageJsonPath)
               }
 
               // Add lockfiles if they exist
@@ -817,6 +819,7 @@ class Esbuild {
                 )
                 if (existsSync(lockFilePath)) {
                   zip.file(lockFilePath, { name: destName })
+                  addedFiles.add(lockFilePath)
                 }
               }
 
@@ -828,11 +831,13 @@ class Esbuild {
               )
 
               zip.file(handlerZipPath, { name: `${handlerPath}.js` })
+              addedFiles.add(handlerZipPath)
 
               if (existsSync(`${handlerZipPath}.map`)) {
                 zip.file(`${handlerZipPath}.map`, {
                   name: `${handlerPath}.js.map`,
                 })
+                addedFiles.add(`${handlerZipPath}.map`)
               }
 
               zip.directory(
@@ -845,17 +850,23 @@ class Esbuild {
                 'node_modules',
               )
 
+              await this._addBuildFilesToZip(zip, addedFiles)
+
               await Promise.all(
                 includesToPackage.map(async (filePath) => {
                   const absolutePath = path.join(
                     this.serverless.config.serviceDir,
                     filePath,
                   )
+                  if (addedFiles.has(absolutePath)) {
+                    return
+                  }
                   const stats = await stat(absolutePath)
                   if (stats.isDirectory()) {
                     zip.directory(absolutePath, filePath)
                   } else {
                     zip.file(absolutePath, { name: filePath })
+                    addedFiles.add(absolutePath)
                   }
                 }),
               )
@@ -979,9 +990,14 @@ class Esbuild {
           'node_modules',
         )
 
+        await this._addBuildFilesToZip(zip, addedFiles)
+
         await Promise.all(
           packageIncludes.map(async (filePath) => {
             const absolutePath = path.join(this.serverless.serviceDir, filePath)
+            if (addedFiles.has(absolutePath)) {
+              return
+            }
             const stats = await stat(absolutePath)
             if (stats.isDirectory()) {
               zip.directory(absolutePath, filePath)
@@ -1001,6 +1017,37 @@ class Esbuild {
       await zipPromise
     } catch (err) {
       throw new ServerlessError(err.message, 'ESBULD_PACKAGE_ALL_ERROR')
+    }
+  }
+
+  async _addBuildFilesToZip(zip, addedFiles) {
+    const buildDir = path.join(
+      this.serverless.config.serviceDir,
+      '.serverless',
+      'build',
+    )
+
+    const buildFiles = await globby(['**/*'], {
+      cwd: buildDir,
+      dot: true,
+      onlyFiles: true,
+      ignore: [
+        'node_modules/**',
+        'package.json',
+        'package-lock.json',
+        'yarn.lock',
+        'pnpm-lock.yaml',
+      ],
+    })
+
+    for (const filePath of buildFiles) {
+      const absolutePath = path.join(buildDir, filePath)
+      if (addedFiles.has(absolutePath) || addedFiles.has(filePath)) {
+        continue
+      }
+      zip.file(absolutePath, { name: filePath })
+      addedFiles.add(absolutePath)
+      addedFiles.add(filePath)
     }
   }
 
