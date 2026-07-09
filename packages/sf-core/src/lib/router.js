@@ -19,8 +19,6 @@ import { CoreRunner } from './runners/core/core.js'
 import { CfnRunner } from './runners/cfn/cfn.js'
 import { TraditionalRunner } from './runners/framework.js'
 import { ComposeRunner } from './runners/compose/compose.js'
-import { ServerlessContainerFrameworkRunner } from './runners/scf.js'
-import { ServerlessAiFrameworkRunner } from './runners/sai.js'
 import {
   addCommonDeploymentData,
   saveDeployment,
@@ -28,14 +26,9 @@ import {
 import { variables } from './resolvers/index.js'
 import { logDeferredNotifications } from './runners/notification.js'
 import { autoUpdateAgentSkills } from './agent-skills/auto-update.js'
+import { assertNoRemovedFrameworkConfig } from './removed-frameworks.js'
 
-const runners = [
-  ComposeRunner,
-  CfnRunner,
-  ServerlessContainerFrameworkRunner,
-  ServerlessAiFrameworkRunner,
-  TraditionalRunner,
-]
+const runners = [ComposeRunner, CfnRunner, TraditionalRunner]
 
 /**
  * @typedef {Object} ComposeConfig
@@ -478,6 +471,9 @@ export const getRunner = async ({
   // if no runner is found and command cannot be handled by CoreRunner
   // throw an error
   if (!runnerDetails) {
+    await assertNoRemovedFrameworkConfig({
+      workingDir: compose?.workingDir ?? process.cwd(),
+    })
     throw new ServerlessError(
       'No configuration file found',
       ServerlessErrorCodes.general.CONFIG_FILE_NOT_FOUND,
