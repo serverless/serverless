@@ -11,6 +11,18 @@ const REMOVED_FRAMEWORKS = {
   'serverless.ai': 'Serverless AI Framework',
 }
 
+// Mirrors the config extensions recognized by the binary installer, so a
+// parked copy like "serverless.ai.backup" doesn't trigger the tombstone.
+const CONFIG_EXTENSIONS = new Set([
+  '.yml',
+  '.yaml',
+  '.js',
+  '.ts',
+  '.cjs',
+  '.mjs',
+  '.json',
+])
+
 const LAST_SUPPORTED_VERSION = '4.39.0'
 
 /**
@@ -36,7 +48,13 @@ export const assertNoRemovedFrameworkConfig = async ({ workingDir }) => {
   }
 
   for (const fileName of fileNames) {
-    const baseName = path.basename(fileName, path.extname(fileName))
+    const extension = path.extname(fileName)
+    if (!CONFIG_EXTENSIONS.has(extension)) {
+      continue
+    }
+    // extname() only strips the last segment, so "serverless.containers.yml"
+    // still yields the "serverless.containers" key used in the map above.
+    const baseName = path.basename(fileName, extension)
     const frameworkName = REMOVED_FRAMEWORKS[baseName]
     if (frameworkName) {
       throw new ServerlessError(

@@ -50,6 +50,16 @@ describe('assertNoRemovedFrameworkConfig', () => {
     })
   })
 
+  test('ignores parked copies with non-config extensions', async () => {
+    const dir = await makeDir([
+      'serverless.ai.backup',
+      'serverless.containers.old',
+    ])
+    await expect(
+      assertNoRemovedFrameworkConfig({ workingDir: dir }),
+    ).resolves.toBeUndefined()
+  })
+
   test('resolves for a traditional serverless.yml project', async () => {
     const dir = await makeDir(['serverless.yml'])
     await expect(
