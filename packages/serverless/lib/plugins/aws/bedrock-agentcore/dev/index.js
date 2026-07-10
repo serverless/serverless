@@ -518,7 +518,9 @@ export class AgentCoreDevMode {
       env,
       hostConfig: {
         PortBindings: {
-          '8080/tcp': [{ HostPort: String(this.#port) }],
+          // Bind to loopback so the published port is reachable only from this
+          // host. Without HostIp, Docker publishes on 0.0.0.0 (all interfaces).
+          '8080/tcp': [{ HostIp: '127.0.0.1', HostPort: String(this.#port) }],
         },
       },
       labels: {

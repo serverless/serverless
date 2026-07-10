@@ -788,12 +788,6 @@ export class AwsIamClient {
           new CreatePolicyCommand({
             PolicyName: policyName,
             PolicyDocument: JSON.stringify(customIamPolicy),
-            Tags: [
-              {
-                Key: 'scf:namespace',
-                Value: resourceNameBase,
-              },
-            ],
           }),
         )
 

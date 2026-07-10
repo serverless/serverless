@@ -1028,58 +1028,6 @@ class Logger {
   }
 
   /**
-   * Renders the Serverless Compose logo to the console.
-   */
-  logoServerlessContainerFramework() {
-    // Stop the spinner to not collide with prompt
-    renderer.spinner.stop()
-
-    const content = renderer.style.bold(
-      `${renderer.style.title('Serverless ')}${renderer.colors.red(
-        'ϟ',
-      )}${renderer.style.title(' Container Framework')}`,
-    )
-    writeStdErr({
-      level: 'notice',
-      messageTokens: [content],
-    })
-
-    // Restart the spinner if it was stopped
-    renderer.spinner.start()
-  }
-
-  /**
-   * Renders the Serverless AI Framework logo to the console.
-   */
-  logoServerlessAiFramework(devMode = false) {
-    // Stop the spinner to not collide with prompt
-    renderer.spinner.stop()
-
-    let content
-
-    if (devMode) {
-      content = renderer.style.bold(
-        `${renderer.style.title('Serverless AI Framework ')}${renderer.colors.red(
-          'ϟ',
-        )}${renderer.style.title(' Dev Mode')}`,
-      )
-    } else {
-      content = renderer.style.bold(
-        `${renderer.style.title('Serverless ')}${renderer.colors.red(
-          'ϟ',
-        )}${renderer.style.title(' AI Framework')}`,
-      )
-    }
-
-    writeStdErr({
-      level: 'notice',
-      messageTokens: [content],
-    })
-
-    renderer.spinner.start()
-  }
-
-  /**
    * Backward Compatibility Support
    * These methods are necessary to support backward compatibility.
    * DO NOT USE THESE METHODS. Use the methods above instead.

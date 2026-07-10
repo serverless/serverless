@@ -836,11 +836,11 @@ export function registerTools(server) {
   // Register the documentation tool
   server.tool(
     'docs',
-    "Access comprehensive, always up-to-date documentation for Serverless Framework (sf) and Serverless Container Framework (scf). This tool provides a tree-like view of all available documentation when no paths are specified, allows browsing directory contents, and retrieves full markdown content for specific documents including code examples and usage patterns. You can request multiple documents in a single call by providing an array of paths. For paths that don't exist, the tool suggests available alternatives in the nearest directory.",
+    "Access comprehensive, always up-to-date documentation for the Serverless Framework (sf). This tool provides a tree-like view of all available documentation when no paths are specified, allows browsing directory contents, and retrieves full markdown content for specific documents including code examples and usage patterns. You can request multiple documents in a single call by providing an array of paths. For paths that don't exist, the tool suggests available alternatives in the nearest directory.",
     {
       product: z
-        .enum(['sf', 'scf'])
-        .describe('Product to get documentation for. Must be one of: sf, scf'),
+        .enum(['sf'])
+        .describe('Product to get documentation for. Must be: sf'),
       paths: z
         .array(z.string())
         .optional()
