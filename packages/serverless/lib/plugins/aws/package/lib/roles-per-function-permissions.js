@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import resolveFileSystemType from '../../utils/resolve-file-system-type.js'
+import getStreamNameFromArn from '../../utils/get-stream-name-from-arn.js'
 
 function applyLogPermissions({
   functionObject,
@@ -83,11 +84,12 @@ function applyDurablePermissions({ functionObject, functionIamRole }) {
 }
 
 function applyStreamPermissions({
+  functionName,
   functionObject,
   policyStatements,
+  provider,
   throwError,
 }) {
-  const res = []
   if (!Array.isArray(functionObject.events) || !functionObject.events.length)
     return
   const dynamodbStreamStatement = {
@@ -110,24 +112,80 @@ function applyStreamPermissions({
     ],
     Resource: [],
   }
+  const kinesisStreamWithConsumerStatement = {
+    Effect: 'Allow',
+    Action: [
+      'kinesis:GetRecords',
+      'kinesis:GetShardIterator',
+      'kinesis:DescribeStreamSummary',
+      'kinesis:ListShards',
+    ],
+    Resource: [],
+  }
+  const kinesisConsumerStatement = {
+    Effect: 'Allow',
+    Action: ['kinesis:SubscribeToShard'],
+    Resource: [],
+  }
+  const onFailureSnsStatement = {
+    Effect: 'Allow',
+    Action: ['sns:Publish'],
+    Resource: [],
+  }
+  const onFailureSqsStatement = {
+    Effect: 'Allow',
+    Action: ['sqs:ListQueues', 'sqs:SendMessage'],
+    Resource: [],
+  }
   for (const event of functionObject.events) {
-    if (event.stream) {
-      const streamArn = event.stream.arn || event.stream
-      const streamType = event.stream.type || String(streamArn).split(':')[2]
-      switch (streamType) {
-        case 'dynamodb':
-          dynamodbStreamStatement.Resource.push(streamArn)
-          break
-        case 'kinesis':
-          kinesisStreamStatement.Resource.push(streamArn)
-          break
-        default:
-          if (typeof throwError === 'function') {
-            throwError(
-              `Unsupported stream type: ${streamType} for function: `,
-              functionObject,
+    if (!event.stream) continue
+    const streamArn = event.stream.arn || event.stream
+    const streamType = event.stream.type || String(streamArn).split(':')[2]
+    switch (streamType) {
+      case 'dynamodb':
+        dynamodbStreamStatement.Resource.push(streamArn)
+        break
+      case 'kinesis':
+        if (event.stream.consumer) {
+          kinesisStreamWithConsumerStatement.Resource.push(streamArn)
+          if (event.stream.consumer === true) {
+            const streamName = getStreamNameFromArn(streamArn)
+            const consumerName = provider.naming.getStreamConsumerName(
+              functionName,
+              streamName,
             )
+            kinesisConsumerStatement.Resource.push({
+              Ref: provider.naming.getStreamConsumerLogicalId(consumerName),
+            })
+          } else {
+            kinesisConsumerStatement.Resource.push(event.stream.consumer)
           }
+        } else {
+          kinesisStreamStatement.Resource.push(streamArn)
+        }
+        break
+      default:
+        if (typeof throwError === 'function') {
+          throwError(
+            `Unsupported stream type: ${streamType} for function: `,
+            functionObject,
+          )
+        }
+    }
+    if (event.stream.destinations) {
+      let onFailureDestinationArn
+      if (typeof event.stream.destinations.onFailure === 'object') {
+        onFailureDestinationArn = event.stream.destinations.onFailure.arn
+      } else {
+        onFailureDestinationArn = event.stream.destinations.onFailure
+      }
+      const destinationType =
+        event.stream.destinations.onFailure.type ||
+        onFailureDestinationArn.split(':')[2]
+      if (destinationType === 'sns') {
+        onFailureSnsStatement.Resource.push(onFailureDestinationArn)
+      } else {
+        onFailureSqsStatement.Resource.push(onFailureDestinationArn)
       }
     }
   }
@@ -136,6 +194,18 @@ function applyStreamPermissions({
   }
   if (kinesisStreamStatement.Resource.length) {
     policyStatements.push(kinesisStreamStatement)
+  }
+  if (kinesisStreamWithConsumerStatement.Resource.length) {
+    policyStatements.push(kinesisStreamWithConsumerStatement)
+  }
+  if (kinesisConsumerStatement.Resource.length) {
+    policyStatements.push(kinesisConsumerStatement)
+  }
+  if (onFailureSnsStatement.Resource.length) {
+    policyStatements.push(onFailureSnsStatement)
+  }
+  if (onFailureSqsStatement.Resource.length) {
+    policyStatements.push(onFailureSqsStatement)
   }
 }
 
@@ -455,6 +525,19 @@ function applyXrayPermissions({
   }
 }
 
+function applyKmsPermissions({ functionObject, policyStatements, serverless }) {
+  const configProvider = serverless.service.provider || {}
+  let kmsKeyArn
+  if (configProvider.kmsKeyArn) kmsKeyArn = configProvider.kmsKeyArn
+  if (functionObject.kmsKeyArn) kmsKeyArn = functionObject.kmsKeyArn
+  if (!kmsKeyArn || typeof kmsKeyArn !== 'string') return
+  policyStatements.push({
+    Effect: 'Allow',
+    Action: ['kms:Decrypt'],
+    Resource: [kmsKeyArn],
+  })
+}
+
 function applyFileSystemPermissions({ functionObject, policyStatements }) {
   const fileSystemConfig = functionObject.fileSystemConfig
   if (!fileSystemConfig || !fileSystemConfig.arn) return
@@ -582,7 +665,13 @@ export default function applyPerFunctionPermissions({
     configProvider: serverless.service.provider || {},
   })
   applyDurablePermissions({ functionObject, functionIamRole })
-  applyStreamPermissions({ functionObject, policyStatements, throwError })
+  applyStreamPermissions({
+    functionName,
+    functionObject,
+    policyStatements,
+    provider: provider || serverless.getProvider('aws'),
+    throwError,
+  })
   applySqsPermissions({ functionObject, policyStatements })
   applyOnErrorPermissions({ functionObject, policyStatements })
 
@@ -607,6 +696,7 @@ export default function applyPerFunctionPermissions({
     policyStatements,
     serverless,
   })
+  applyKmsPermissions({ functionObject, policyStatements, serverless })
   applyFileSystemPermissions({ functionObject, policyStatements })
   applyDestinationPermissions({
     functionObject,

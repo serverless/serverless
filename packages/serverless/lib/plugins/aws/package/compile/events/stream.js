@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import resolveLambdaTarget from '../../../utils/resolve-lambda-target.js'
+import getStreamNameFromArn from '../../../utils/get-stream-name-from-arn.js'
 import ServerlessError from '../../../../../serverless-error.js'
 
 class AwsCompileStreamEvents {
@@ -266,23 +267,7 @@ events:
             }
 
             const streamType = event.stream.type || EventSourceArn.split(':')[2]
-            const streamName = (function () {
-              if (EventSourceArn['Fn::GetAtt']) {
-                return EventSourceArn['Fn::GetAtt'][0]
-              } else if (EventSourceArn['Fn::ImportValue']) {
-                return EventSourceArn['Fn::ImportValue']
-              } else if (EventSourceArn.Ref) {
-                return EventSourceArn.Ref
-              } else if (EventSourceArn['Fn::Join']) {
-                // [0] is the used delimiter, [1] is the array with values
-                const name = EventSourceArn['Fn::Join'][1].slice(-1).pop()
-                if (name.split('/').length) {
-                  return name.split('/').pop()
-                }
-                return name
-              }
-              return EventSourceArn.split('/')[1]
-            })()
+            const streamName = getStreamNameFromArn(EventSourceArn)
 
             const streamLogicalId = this.provider.naming.getStreamLogicalId(
               functionName,
