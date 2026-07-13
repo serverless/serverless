@@ -299,5 +299,63 @@ describe('AwsCompileRabbitMQEvents', () => {
       const [, mapping] = eventSourceMappings[0]
       expect(mapping.DependsOn).toContain('IamRoleLambdaExecution')
     })
+
+    it('should not add rabbitmq statements to the global role for functions with per-function IAM config', () => {
+      const dedicatedArn =
+        'arn:aws:mq:us-east-1:0000:broker:DedicatedBroker:b-yyy-yyy'
+      const dedicatedSecretArn =
+        'arn:aws:secretsmanager:us-east-1:01234567890:secret:DedicatedBrokerSecret'
+
+      awsCompileRabbitMQEvents.serverless.service.functions = {
+        first: {
+          iam: { role: { statements: [] } },
+          events: [
+            {
+              rabbitmq: {
+                queue,
+                arn: dedicatedArn,
+                basicAuthArn: dedicatedSecretArn,
+              },
+            },
+          ],
+        },
+        second: {
+          events: [
+            {
+              rabbitmq: {
+                queue,
+                arn: brokerArn,
+                basicAuthArn,
+              },
+            },
+          ],
+        },
+      }
+
+      awsCompileRabbitMQEvents.compileRabbitMQEvents()
+
+      const resources =
+        awsCompileRabbitMQEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+
+      const eventSourceMappings = Object.entries(resources).filter(
+        ([, r]) => r.Type === 'AWS::Lambda::EventSourceMapping',
+      )
+      // both functions still get their EventSourceMapping resources
+      expect(eventSourceMappings).toHaveLength(2)
+
+      const statements =
+        resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument
+          .Statement
+      const allResources = statements.flatMap((s) => s.Resource || [])
+
+      // 'first' uses a dedicated per-function role: its broker/secret ARNs
+      // must not leak into the shared role's policy
+      expect(allResources).not.toContain(dedicatedArn)
+      expect(allResources).not.toContain(dedicatedSecretArn)
+      // 'second' has no per-function IAM config: it still shares the global role
+      expect(allResources).toContain(brokerArn)
+      expect(allResources).toContain(basicAuthArn)
+    })
   })
 })

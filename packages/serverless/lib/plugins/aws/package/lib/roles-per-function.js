@@ -3,23 +3,15 @@ import util from 'util'
 import path from 'path'
 import { log } from '@serverless/util'
 import applyPerFunctionPermissions from './roles-per-function-permissions.js'
+import usesDedicatedPerFunctionRole, {
+  hasExternalIamPerFunctionPlugin,
+} from './uses-dedicated-per-function-role.js'
 
 const PLUGIN_NAME = 'serverless-iam-roles-per-function'
 
 export default {
   handlePerFunctionRolesFinalizeHook() {
-    const pm = this.serverless && this.serverless.pluginManager
-    const plugins =
-      (pm && pm.getPlugins ? pm.getPlugins() : pm && pm.plugins) || []
-    const hasIamPerFunctionPlugin = plugins.some(
-      (p) =>
-        p &&
-        p.constructor &&
-        (p.constructor._serverlessExternalPluginName ===
-          'serverless-iam-roles-per-function' ||
-          p.constructor.name === 'ServerlessIamPerFunctionPlugin'),
-    )
-    if (!hasIamPerFunctionPlugin) {
+    if (!hasExternalIamPerFunctionPlugin(this.serverless)) {
       // Create per-function IAM roles after functions compiled, before finalize
       this.createRolesPerFunction()
     } else {
@@ -449,5 +441,40 @@ export default {
       }
     }
     this._setEventSourceMappings(functionToRoleMap)
+
+    const createdRoleNames = new Set(functionToRoleMap.values())
+    const predictedRoleNames = new Set()
+    for (const func of allFunctions) {
+      const functionObject = this.serverless.service.getFunction(func)
+      if (
+        usesDedicatedPerFunctionRole({
+          functionObject,
+          serverless: this.serverless,
+          awsProvider: this.provider,
+        })
+      ) {
+        const predictedRoleName =
+          this.provider.naming.getNormalizedFunctionName(func) +
+          this.provider.naming.getRoleLogicalId()
+        predictedRoleNames.add(predictedRoleName)
+        if (!createdRoleNames.has(predictedRoleName)) {
+          this._throwError(
+            `Function "${func}" was predicted to receive a dedicated IAM role but did not receive its dedicated IAM role during packaging. This is a bug in the Framework - please report it.`,
+          )
+        }
+      }
+    }
+
+    // Inverse check: catch roles created during packaging that no function
+    // was predicted to receive. Uses the same name computation as the
+    // forward check above, so predicted and created names line up exactly
+    // and this cannot false-positive on a config the forward check accepts.
+    for (const roleName of createdRoleNames) {
+      if (!predictedRoleNames.has(roleName)) {
+        this._throwError(
+          `A dedicated IAM role "${roleName}" was created during packaging for a function that was not predicted to receive one. This is a bug in the Framework - please report it.`,
+        )
+      }
+    }
   },
 }

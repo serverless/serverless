@@ -1,4 +1,5 @@
 import resolveLambdaTarget from '../../../utils/resolve-lambda-target.js'
+import usesDedicatedPerFunctionRole from '../../lib/uses-dedicated-per-function-role.js'
 import _ from 'lodash'
 
 class AwsCompileActiveMQEvents {
@@ -72,6 +73,11 @@ activemq:
       const functionObj = this.serverless.service.getFunction(functionName)
       const cfTemplate =
         this.serverless.service.provider.compiledCloudFormationTemplate
+      const skipGlobalRolePermissions = usesDedicatedPerFunctionRole({
+        functionObject: functionObj,
+        serverless: this.serverless,
+        awsProvider: this.provider,
+      })
 
       // It is required to add the following statement in order to be able to connect to ActiveMQ cluster
       const ec2Statement = {
@@ -171,7 +177,11 @@ activemq:
       })
 
       // https://docs.aws.amazon.com/lambda/latest/dg/with-mq.html#events-mq-permissions
-      if (cfTemplate.Resources.IamRoleLambdaExecution && hasMQEvent) {
+      if (
+        !skipGlobalRolePermissions &&
+        cfTemplate.Resources.IamRoleLambdaExecution &&
+        hasMQEvent
+      ) {
         const statement =
           cfTemplate.Resources.IamRoleLambdaExecution.Properties.Policies[0]
             .PolicyDocument.Statement

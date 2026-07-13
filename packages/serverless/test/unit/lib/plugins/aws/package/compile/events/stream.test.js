@@ -372,6 +372,53 @@ describe('AwsCompileStreamEvents', () => {
       expect(eventSourceMappings.length).toBe(2)
     })
 
+    it('should not add stream statements to the global role for functions with per-function IAM config', () => {
+      awsCompileStreamEvents.serverless.service.functions = {
+        first: {
+          iam: { role: { statements: [] } },
+          events: [
+            {
+              stream: 'arn:aws:dynamodb:region:account:table/foo/stream/1',
+            },
+          ],
+        },
+        second: {
+          events: [
+            {
+              stream: 'arn:aws:kinesis:region:account:stream/bar',
+            },
+          ],
+        },
+      }
+
+      awsCompileStreamEvents.compileStreamEvents()
+
+      const resources =
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+
+      const eventSourceMappings = Object.entries(resources).filter(
+        ([, resource]) => resource.Type === 'AWS::Lambda::EventSourceMapping',
+      )
+      // both functions still get their EventSourceMapping resources
+      expect(eventSourceMappings.length).toBe(2)
+
+      const statements =
+        resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument
+          .Statement
+      const allResources = statements.flatMap((s) => s.Resource || [])
+
+      // 'first' uses a dedicated per-function role: its stream ARN must not
+      // leak into the shared role's policy
+      expect(allResources).not.toContain(
+        'arn:aws:dynamodb:region:account:table/foo/stream/1',
+      )
+      // 'second' has no per-function IAM config: it still shares the global role
+      expect(allResources).toContain(
+        'arn:aws:kinesis:region:account:stream/bar',
+      )
+    })
+
     it('should support Fn::ImportValue for arn', () => {
       awsCompileStreamEvents.serverless.service.functions = {
         first: {

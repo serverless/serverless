@@ -1,6 +1,7 @@
 import getMskClusterNameToken from './get-msk-cluster-name-token.js'
 import resolveLambdaTarget from '../../../../utils/resolve-lambda-target.js'
 import ServerlessError from '../../../../../../serverless-error.js'
+import usesDedicatedPerFunctionRole from '../../../lib/uses-dedicated-per-function-role.js'
 import _ from 'lodash'
 
 class AwsCompileMSKEvents {
@@ -86,6 +87,11 @@ msk:
       const functionObj = this.serverless.service.getFunction(functionName)
       const cfTemplate =
         this.serverless.service.provider.compiledCloudFormationTemplate
+      const skipGlobalRolePermissions = usesDedicatedPerFunctionRole({
+        functionObject: functionObj,
+        serverless: this.serverless,
+        awsProvider: this.provider,
+      })
 
       // It is required to add the following statement in order to be able to connect to MSK cluster
       const ec2Statement = {
@@ -200,7 +206,10 @@ msk:
         }
       })
 
-      if (cfTemplate.Resources.IamRoleLambdaExecution) {
+      if (
+        !skipGlobalRolePermissions &&
+        cfTemplate.Resources.IamRoleLambdaExecution
+      ) {
         const statement =
           cfTemplate.Resources.IamRoleLambdaExecution.Properties.Policies[0]
             .PolicyDocument.Statement

@@ -1,5 +1,6 @@
 import ServerlessError from '../../../../../serverless-error.js'
 import resolveLambdaTarget from '../../../utils/resolve-lambda-target.js'
+import usesDedicatedPerFunctionRole from '../../lib/uses-dedicated-per-function-role.js'
 import _ from 'lodash'
 
 class AwsCompileKafkaEvents {
@@ -138,6 +139,11 @@ events:
       const functionObj = this.serverless.service.getFunction(functionName)
       const cfTemplate =
         this.serverless.service.provider.compiledCloudFormationTemplate
+      const skipGlobalRolePermissions = usesDedicatedPerFunctionRole({
+        functionObject: functionObj,
+        serverless: this.serverless,
+        awsProvider: this.provider,
+      })
 
       // Collect Kafka events with their index and iterate from end to start.
       // Rationale:
@@ -350,7 +356,11 @@ events:
       }
 
       // https://docs.aws.amazon.com/lambda/latest/dg/smaa-permissions.html
-      if (cfTemplate.Resources.IamRoleLambdaExecution && hasKafkaEvent) {
+      if (
+        !skipGlobalRolePermissions &&
+        cfTemplate.Resources.IamRoleLambdaExecution &&
+        hasKafkaEvent
+      ) {
         const statement =
           cfTemplate.Resources.IamRoleLambdaExecution.Properties.Policies[0]
             .PolicyDocument.Statement

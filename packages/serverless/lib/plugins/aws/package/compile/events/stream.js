@@ -2,6 +2,7 @@ import _ from 'lodash'
 import resolveLambdaTarget from '../../../utils/resolve-lambda-target.js'
 import getStreamNameFromArn from '../../../utils/get-stream-name-from-arn.js'
 import ServerlessError from '../../../../../serverless-error.js'
+import usesDedicatedPerFunctionRole from '../../lib/uses-dedicated-per-function-role.js'
 
 class AwsCompileStreamEvents {
   constructor(serverless) {
@@ -194,6 +195,11 @@ events:
   compileStreamEvents() {
     this.serverless.service.getAllFunctions().forEach((functionName) => {
       const functionObj = this.serverless.service.getFunction(functionName)
+      const skipGlobalRolePermissions = usesDedicatedPerFunctionRole({
+        functionObject: functionObj,
+        serverless: this.serverless,
+        awsProvider: this.provider,
+      })
 
       if (functionObj.events) {
         const dynamodbStreamStatement = {
@@ -440,6 +446,7 @@ events:
 
         // update the PolicyDocument statements (if default policy is used)
         if (
+          !skipGlobalRolePermissions &&
           this.serverless.service.provider.compiledCloudFormationTemplate
             .Resources.IamRoleLambdaExecution
         ) {

@@ -927,6 +927,161 @@ describe('applyPerFunctionPermissions - Stream Permissions', () => {
       Resource: ['arn:aws:sqs:us-east-1:123456789012:plain-queue'],
     })
   })
+
+  it('infers sns:Publish for stream onFailure object destination without a type', () => {
+    const functionObject = {
+      name: 'test-function',
+      events: [
+        {
+          stream: {
+            type: 'kinesis',
+            arn: 'arn:aws:kinesis:us-east-1:123456789012:stream/S',
+            destinations: {
+              onFailure: { arn: 'arn:aws:sns:us-east-1:123456789012:t' },
+            },
+          },
+        },
+      ],
+    }
+    applyPerFunctionPermissions({
+      functionName: 'myFunc',
+      functionObject,
+      functionIamRole,
+      policyStatements,
+      serverless,
+      provider,
+    })
+    const sns = policyStatements.find((s) =>
+      s.Action?.includes?.('sns:Publish'),
+    )
+    expect(sns).toEqual({
+      Effect: 'Allow',
+      Action: ['sns:Publish'],
+      Resource: ['arn:aws:sns:us-east-1:123456789012:t'],
+    })
+  })
+
+  it('infers sqs:ListQueues+SendMessage for stream onFailure object destination without a type', () => {
+    const functionObject = {
+      name: 'test-function',
+      events: [
+        {
+          stream: {
+            type: 'kinesis',
+            arn: 'arn:aws:kinesis:us-east-1:123456789012:stream/S',
+            destinations: {
+              onFailure: { arn: 'arn:aws:sqs:us-east-1:123456789012:q' },
+            },
+          },
+        },
+      ],
+    }
+    applyPerFunctionPermissions({
+      functionName: 'myFunc',
+      functionObject,
+      functionIamRole,
+      policyStatements,
+      serverless,
+      provider,
+    })
+    const sqs = policyStatements.find((s) =>
+      s.Action?.includes?.('sqs:SendMessage'),
+    )
+    expect(sqs).toEqual({
+      Effect: 'Allow',
+      Action: ['sqs:ListQueues', 'sqs:SendMessage'],
+      Resource: ['arn:aws:sqs:us-east-1:123456789012:q'],
+    })
+  })
+})
+
+describe('applyPerFunctionPermissions - VPC Permissions', () => {
+  let serverless
+  let provider
+  let policyStatements
+  let functionIamRole
+
+  beforeEach(() => {
+    provider = {
+      naming: {
+        getLogGroupName: jest.fn((name, { logGroupClass } = {}) => {
+          const suffix = logGroupClass === 'INFREQUENT_ACCESS' ? '-ia' : ''
+          return `/aws/lambda/${name}${suffix}`
+        }),
+      },
+      getLogGroupClass: jest.fn((fn) => fn?.logs?.logGroupClass ?? undefined),
+    }
+    serverless = {
+      service: {
+        provider: {},
+        getFunction: jest.fn((name) => ({
+          name: `test-service-dev-${name}`,
+        })),
+      },
+      getProvider: jest.fn(() => provider),
+    }
+    policyStatements = []
+    functionIamRole = {
+      Properties: {
+        ManagedPolicyArns: [],
+        AssumeRolePolicyDocument: {
+          Statement: [
+            {
+              Effect: 'Allow',
+              Principal: { Service: 'lambda.amazonaws.com' },
+              Action: 'sts:AssumeRole',
+            },
+          ],
+        },
+      },
+    }
+  })
+
+  it('adds the VPC managed policy ARN for a function with vpc config', () => {
+    const functionObject = {
+      name: 'test-function',
+      vpc: { securityGroupIds: ['sg-1'], subnetIds: ['subnet-1'] },
+    }
+
+    applyPerFunctionPermissions({
+      functionName: 'myFunc',
+      functionObject,
+      functionIamRole,
+      policyStatements,
+      serverless,
+      provider,
+      throwError: jest.fn(),
+    })
+
+    expect(functionIamRole.Properties.ManagedPolicyArns).toContainEqual({
+      'Fn::Join': [
+        '',
+        [
+          'arn:',
+          { Ref: 'AWS::Partition' },
+          ':iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole',
+        ],
+      ],
+    })
+  })
+
+  it('does not add the VPC managed policy for a function without vpc config', () => {
+    const functionObject = {
+      name: 'test-function',
+    }
+
+    applyPerFunctionPermissions({
+      functionName: 'myFunc',
+      functionObject,
+      functionIamRole,
+      policyStatements,
+      serverless,
+      provider,
+      throwError: jest.fn(),
+    })
+
+    expect(functionIamRole.Properties.ManagedPolicyArns).toEqual([])
+  })
 })
 
 describe('applyPerFunctionPermissions - KMS Permissions', () => {

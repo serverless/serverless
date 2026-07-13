@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import resolveLambdaTarget from '../../../utils/resolve-lambda-target.js'
+import usesDedicatedPerFunctionRole from '../../lib/uses-dedicated-per-function-role.js'
 
 class AwsCompileSQSEvents {
   constructor(serverless) {
@@ -83,6 +84,11 @@ events:
 
     this.serverless.service.getAllFunctions().forEach((functionName) => {
       const functionObj = this.serverless.service.getFunction(functionName)
+      const skipGlobalRolePermissions = usesDedicatedPerFunctionRole({
+        functionObject: functionObj,
+        serverless: this.serverless,
+        awsProvider: this.provider,
+      })
 
       if (functionObj.events) {
         functionObj.events.forEach((event) => {
@@ -165,8 +171,10 @@ events:
               }
             }
 
-            // add event source ARNs to PolicyDocument statements
-            sqsStatement.Resource.push(EventSourceArn)
+            if (!skipGlobalRolePermissions) {
+              // add event source ARNs to PolicyDocument statements
+              sqsStatement.Resource.push(EventSourceArn)
+            }
 
             const newSQSObject = {
               [queueLogicalId]: sqsTemplate,
