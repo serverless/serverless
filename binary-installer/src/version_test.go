@@ -348,6 +348,91 @@ func TestGetFrameworkVersion_PinnedCanary_NoNetwork(t *testing.T) {
 	}
 }
 
+func TestValidateCanaryVersion(t *testing.T) {
+	valid := []string{
+		"canary-1.2.3",
+		"canary-4.39.0-rc.1",
+		"canary-abc123def",
+		"canary-a_b.c-d",
+	}
+	for _, v := range valid {
+		if err := validateCanaryVersion(v); err != nil {
+			t.Errorf("expected %q to be accepted, got error: %v", v, err)
+		}
+	}
+
+	invalid := []string{
+		"canary-../../../../sentinel",
+		"canary-/etc",
+		"canary-..",
+		"canary-a/b",
+		`canary-..\..\windows`,
+		"canary-", // empty suffix
+		"canary",  // bare canary is handled elsewhere, not by this validator
+	}
+	for _, v := range invalid {
+		if err := validateCanaryVersion(v); err == nil {
+			t.Errorf("expected %q to be rejected, got nil error", v)
+		}
+	}
+}
+
+func TestGetFrameworkVersion_RejectsTraversingCanary(t *testing.T) {
+	badVersions := []string{
+		"canary-../../../../sentinel",
+		"canary-/etc",
+		"canary-..",
+		"canary-a/b",
+		`canary-..\..\windows`,
+	}
+	for _, v := range badVersions {
+		t.Run(v, func(t *testing.T) {
+			tempHome := t.TempDir()
+			t.Setenv("HOME", tempHome)
+
+			cfg := filepath.Join(tempHome, "serverless.yml")
+			if err := os.WriteFile(cfg, []byte("frameworkVersion: '"+v+"'\n"), 0o644); err != nil {
+				t.Fatal(err)
+			}
+
+			if _, err := GetFrameworkVersion(cfg, false); err == nil {
+				t.Fatalf("expected error for version %q, got nil", v)
+			}
+		})
+	}
+}
+
+func TestContainedReleasePath(t *testing.T) {
+	releasesDir := filepath.Join(t.TempDir(), ".serverless", "releases")
+
+	// Valid versions resolve to a path inside releasesDir.
+	for _, v := range []string{"4.1.0", "canary-1.2.3"} {
+		got, err := containedReleasePath(releasesDir, v)
+		if err != nil {
+			t.Errorf("expected %q to be contained, got error: %v", v, err)
+			continue
+		}
+		want := filepath.Join(releasesDir, v)
+		if got != want {
+			t.Errorf("version %q: want path %q, got %q", v, want, got)
+		}
+	}
+
+	// Traversing, nested, or absolute versions are rejected before any path is used.
+	for _, v := range []string{
+		"canary-../../../../sentinel",
+		"..",
+		"../escape",
+		"a/../../escape",
+		"a/b", // nested: only a direct child is allowed
+		"",    // empty resolves to releasesDir itself
+	} {
+		if _, err := containedReleasePath(releasesDir, v); err == nil {
+			t.Errorf("expected %q to be rejected, got nil error", v)
+		}
+	}
+}
+
 func TestGetMostRecentCanaryVersionWithBaseURL_Non200(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadGateway)
