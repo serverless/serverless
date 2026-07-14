@@ -1,0 +1,13 @@
+services:
+  db:
+    path: db
+  worker:
+    path: worker
+  middle:
+    path: middle
+    params:
+      workerTopicArn: ${worker.TopicArn}
+  api:
+    path: api
+    params:
+      middleArn: ${middle.PassedArn}

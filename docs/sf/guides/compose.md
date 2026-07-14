@@ -196,6 +196,24 @@ All Serverless Framework commands are supported **only via service-specific comm
 serverless service-a offline
 ```
 
+### Running a command on a subset of services
+
+`--service` also accepts a comma-separated list, to run a command on several named services at once:
+
+```bash
+serverless deploy --service=service-a,service-d
+```
+
+The command runs on **exactly** the services you name, ordered among themselves by their dependencies (`dependsOn` and `${service.output}` references) (so a dependency is deployed before the service that depends on it). Services you don't name are left untouched — they are neither deployed nor removed. Their outputs are still available for `${param:xxx}` resolution when a named service references them, so a subset can depend on services that are already deployed elsewhere.
+
+This is useful when different services in the project have different lifecycles — for example, deploying the application services to a personal or preview stage while leaving a shared, long-lived service in place:
+
+```bash
+serverless deploy --service=service-a,service-d --stage my-feature
+```
+
+The same list works with `remove`, `info`, `print`, and `package`.
+
 ### Service-specific commands when using parameters
 
 The `serverless service-a deploy` command is the equivalent of running `serverless deploy` in service-a's directory. Both can be used.

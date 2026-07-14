@@ -112,6 +112,22 @@ export class ComposeRunner extends Runner {
 }
 
 /**
+ * Parse the `--service` option: a service name or a comma-separated list.
+ *
+ * @param {unknown} value
+ * @returns {string[]}
+ */
+const parseServiceOption = (value) => {
+  if (!value) {
+    return []
+  }
+  return String(value)
+    .split(',')
+    .map((name) => name.trim())
+    .filter(Boolean)
+}
+
+/**
  * @typedef {Object} RunComposeOptions
  * @property {string} configFile
  * @property {string} configFileDirPath
@@ -174,8 +190,40 @@ const runCompose = async ({
         err.stack = undefined
         throw err
       }
+      const serviceNames = Object.keys(composeConfigFile?.services || {})
+      if (command.join(' ') === 'dev') {
+        // `dev` is a single-service, interactive session — teach the exact commands
+        const err = new ServerlessError(
+          `In a Compose project, "dev" runs on one service at a time. Start it for a specific service:\n${serviceNames
+            .map((name) => `  serverless ${name} dev`)
+            .join('\n')}`,
+          ServerlessErrorCodes.compose.COMPOSE_COMMAND_NOT_SUPPORTED,
+        )
+        err.stack = undefined
+        throw err
+      }
       const err = new ServerlessError(
-        `The command "${command.join(' ')}" is not currently supported by Compose.`,
+        `The command "${command.join(' ')}" is not currently supported at the project level by Compose. Project-wide commands: ${supportedComposeCommands.join(', ')}. To run it for a single service: serverless <service> ${command.join(' ')}.`,
+        ServerlessErrorCodes.compose.COMPOSE_COMMAND_NOT_SUPPORTED,
+      )
+      err.stack = undefined
+      throw err
+    }
+
+    const serviceOptionProvided = Boolean(options?.service)
+    const serviceNames = parseServiceOption(options?.service)
+    // The parsed list drives routing from here on. Drop the raw option so a
+    // malformed value can't leak to the runner and fail Framework schema
+    // validation downstream (executeSingleComponent/executeSubsetComponents
+    // delete it too; the whole-graph fallback below would not).
+    delete options.service
+
+    // A --service value that was provided but resolves to no usable names
+    // (e.g. `--service=,` or `--service=" "`) is a mistake, not a request to
+    // run the whole graph — fail clearly instead of silently fanning out.
+    if (serviceOptionProvided && serviceNames.length === 0) {
+      const err = new ServerlessError(
+        `No services were resolved from --service. Provide a comma-separated list of service names, e.g.: serverless ${command.join(' ')} --service=<service-a>,<service-b>.`,
         ServerlessErrorCodes.compose.COMPOSE_COMMAND_NOT_SUPPORTED,
       )
       err.stack = undefined
@@ -201,9 +249,9 @@ const runCompose = async ({
       getServiceState,
     }
 
-    if (options?.service) {
+    if (serviceNames.length === 1) {
       await composeService.executeSingleComponent({
-        serviceName: options.service,
+        serviceName: serviceNames[0],
         reverse: false,
         composeOrgName: orgName,
         command,
@@ -213,6 +261,20 @@ const runCompose = async ({
         state,
       })
     } else {
+      if (
+        serviceNames.length > 1 &&
+        !supportedComposeCommands.includes(command.join(' '))
+      ) {
+        // Subset runs support the project-wide commands only; interactive,
+        // single-service commands like `dev` cannot fan out over a list
+        const err = new ServerlessError(
+          `The command "${command.join(' ')}" runs on one service at a time and cannot be used with a service list. Run it for a single service, e.g.: serverless ${serviceNames[0]} ${command.join(' ')}.`,
+          ServerlessErrorCodes.compose.COMPOSE_COMMAND_NOT_SUPPORTED,
+        )
+        err.stack = undefined
+        throw err
+      }
+
       if (
         getGlobalRendererSettings().logLevel === 'notice' ||
         getGlobalRendererSettings().logLevel === 'info'
@@ -237,15 +299,28 @@ Docs: https://www.serverless.com/framework/docs/guides/compose
         )
       }
 
-      await composeService.executeComponentsGraph({
-        command,
-        reverse: false,
-        composeOrgName: orgName,
-        options,
-        resolverProviders: resolverManager.getResolverProviders(),
-        params: resolverManager.params,
-        state,
-      })
+      if (serviceNames.length > 1) {
+        await composeService.executeSubsetComponents({
+          serviceNames,
+          command,
+          reverse: false,
+          composeOrgName: orgName,
+          options,
+          resolverProviders: resolverManager.getResolverProviders(),
+          params: resolverManager.params,
+          state,
+        })
+      } else {
+        await composeService.executeComponentsGraph({
+          command,
+          reverse: false,
+          composeOrgName: orgName,
+          options,
+          resolverProviders: resolverManager.getResolverProviders(),
+          params: resolverManager.params,
+          state,
+        })
+      }
       composeService.printRunReport({ command })
     }
   } catch (err) {
@@ -259,4 +334,4 @@ Docs: https://www.serverless.com/framework/docs/guides/compose
   }
 }
 
-export { runCompose }
+export { runCompose, parseServiceOption }

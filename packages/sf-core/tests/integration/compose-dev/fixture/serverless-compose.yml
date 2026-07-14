@@ -1,0 +1,18 @@
+stages:
+  default:
+    params:
+      dataStage: ${env:COMPOSE_DEV_SHARED_STAGE}
+services:
+  shared:
+    path: shared
+  localdep:
+    path: localdep
+  api:
+    path: api
+    params:
+      localTopicArn: ${localdep.TopicArn}
+      # Default lets the compose config load during the bootstrap deploys of
+      # `shared`/`localdep` (Compose resolves every service's framework vars up
+      # front, before the shared stack exists). Once `shared` is deployed the
+      # aws:cf lookup wins, so `api dev` still receives the real shared-stage ARN.
+      sharedTopicArn: ${aws:cf:compose-devtest-shared-${param:dataStage}.TopicArn, 'pending'}

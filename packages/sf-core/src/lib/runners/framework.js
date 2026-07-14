@@ -197,7 +197,11 @@ export class TraditionalRunner extends Runner {
         })
 
       if (!stackId) {
-        throw new Error(`Stack ${stackName} does not exist`)
+        const error = new Error(`Stack ${stackName} does not exist`)
+        // Sentinel consumed by compose's get-state pass (compose/state.js) to
+        // distinguish "not deployed yet" from real failures.
+        error.code = 'STACK_DOES_NOT_EXIST'
+        throw error
       }
 
       this.serviceUniqueId = stackId
