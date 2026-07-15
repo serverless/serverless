@@ -7,6 +7,7 @@ import {
 } from '@aws-sdk/client-cloudformation'
 import { jest } from '@jest/globals'
 import { runSfCore } from '../../../utils/runSfCore'
+import { fetchWithRetry } from '../../../utils/testUtils'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const randomId = Math.floor(1000 + Math.random() * 9000).toString()
@@ -67,7 +68,7 @@ describe('SAM/CFN Projects - SAM Todo App', () => {
   })
 
   test('Ensure service runs as expected', async () => {
-    const createResponse = await fetch(endpoint, {
+    const createResponse = await fetchWithRetry(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -80,7 +81,7 @@ describe('SAM/CFN Projects - SAM Todo App', () => {
 
     expect(await createResponse.json()).toEqual({ id: 'foo', name: 'bar' })
 
-    const getResponse = await fetch(`${endpoint}/foo`, {
+    const getResponse = await fetchWithRetry(`${endpoint}/foo`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -89,7 +90,7 @@ describe('SAM/CFN Projects - SAM Todo App', () => {
 
     expect(await getResponse.json()).toEqual({ id: 'foo', name: 'bar' })
 
-    const listResponse = await fetch(endpoint, {
+    const listResponse = await fetchWithRetry(endpoint, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

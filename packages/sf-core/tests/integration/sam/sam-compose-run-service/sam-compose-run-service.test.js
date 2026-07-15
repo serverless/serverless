@@ -8,6 +8,7 @@ import {
 } from '@aws-sdk/client-cloudformation'
 import { jest } from '@jest/globals'
 import { getTestStageName, runSfCore } from '../../../utils/runSfCore'
+import { fetchWithRetry } from '../../../utils/testUtils'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const randomId = Math.floor(1000 + Math.random() * 9000).toString()
@@ -132,14 +133,14 @@ describe('SAM/CFN - Deploy only SAM service inside Compose', () => {
   })
 
   test('Ensure only SAM service was updated', async () => {
-    const samResponse = await await fetch(samEndpoint, {
+    const samResponse = await fetchWithRetry(samEndpoint, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
     })
 
-    const frameworkResponse = await await fetch(frameworkEndpoint, {
+    const frameworkResponse = await fetchWithRetry(frameworkEndpoint, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
