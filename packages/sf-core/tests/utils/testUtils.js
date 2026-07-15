@@ -19,6 +19,9 @@ export const fetchWithRetry = async (
       if (response.ok) {
         return response
       }
+      // Consume the body so undici releases the connection back to the pool;
+      // an unread body keeps the socket open until GC.
+      await response.arrayBuffer().catch(() => {})
       lastErr = new Error(`endpoint returned ${response.status}`)
     } catch (err) {
       lastErr = err
