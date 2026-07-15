@@ -6,9 +6,6 @@ import { log } from '@serverless/util'
 
 class Service {
   constructor(serverless, data) {
-    // #######################################################################
-    // ## KEEP SYNCHRONIZED WITH EQUIVALENT IN ~/lib/plugins/print/print.js ##
-    // #######################################################################
     this.serverless = serverless
 
     // Default properties
@@ -129,11 +126,17 @@ class Service {
       ymlVersion = null
     }
 
+    // `semver.coerce` returns null for ranges without a concrete version
+    // (e.g. "*"), which cannot mismatch any version
+    const coercedVersion = semver.coerce(version)
+    const coercedYmlVersion = semver.coerce(ymlVersion)
     if (
       ymlVersion &&
       version &&
       version !== ymlVersion &&
-      semver.coerce(version).major !== semver.coerce(ymlVersion).major
+      coercedVersion &&
+      coercedYmlVersion &&
+      coercedVersion.major !== coercedYmlVersion.major
     ) {
       const errorMessage = [
         `The Serverless version (${version}) does not satisfy the`,
