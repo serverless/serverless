@@ -8,6 +8,7 @@ import {
 } from '@aws-sdk/client-cloudformation'
 import { jest } from '@jest/globals'
 import { runSfCore } from '../../../utils/runSfCore'
+import { fetchWithRetry } from '../../../utils/testUtils'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const randomId = Math.floor(1000 + Math.random() * 9000).toString()
@@ -91,7 +92,7 @@ describe('SAM/CFN Projects - SAM Existing App', () => {
   })
 
   test('Ensure service runs as expected', async () => {
-    const getResponse = await await fetch(endpoint, {
+    const getResponse = await fetchWithRetry(endpoint, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
