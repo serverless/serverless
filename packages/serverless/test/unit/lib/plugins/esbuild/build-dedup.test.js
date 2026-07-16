@@ -214,6 +214,26 @@ describe('esbuild shared-handler build dedup', () => {
     expect([...plugin.serverless.builtFunctions]).toEqual(['getItems'])
   })
 
+  test('no buildable handler files resolves without throwing and does not build', async () => {
+    // Handler points at a file that doesn't exist on disk (e.g. missing file
+    // or a typo'd path), so `_extensionForFunction` returns undefined for
+    // every candidate and `buildGroups` ends up empty. Pre-fix, falling
+    // through to `pLimit(buildProperties.buildConcurrency ?? buildGroups.size)`
+    // with `buildConcurrency` unset computed `pLimit(0)`, which throws
+    // `TypeError: Expected concurrency to be a number from 1 and up` outside
+    // the try/catch (bypassing both ESBULD_BUILD_ERROR wrapping and the
+    // dev-mode swallow). This should be a clean no-op instead.
+    const serviceDir = makeServiceDir({})
+    const functions = {
+      missing: { handler: 'does/not/exist.handler' },
+    }
+    const plugin = makePlugin(serviceDir, functions)
+
+    await expect(plugin._build()).resolves.toBeUndefined()
+
+    expect(buildMock).not.toHaveBeenCalled()
+  })
+
   test('real esbuild: one shared .ts handler across 4 functions yields a single valid bundle', async () => {
     // Delegate the spy to the real bundler so we exercise the actual build.
     buildMock.mockImplementation((props) => realBuild(props))

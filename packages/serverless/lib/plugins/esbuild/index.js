@@ -670,6 +670,11 @@ class Esbuild {
       }
     }
 
+    if (buildGroups.size === 0) {
+      log.debug('No buildable handler files resolved for esbuild')
+      return
+    }
+
     // Determine the concurrency to use for building, by default framework will
     // attempt to build all unique handler files concurrently, but this can be
     // overridden by setting the buildConcurrency property.
