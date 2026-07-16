@@ -169,7 +169,17 @@ describe('installRequirementsForFile', () => {
     })
   })
 
-  it('(c) throws PYTHON_REQUIREMENTS_LAYER_REQUIREMENTS_FILE_INVALID when path is a directory', async () => {
+  it('(c) throws PYTHON_REQUIREMENTS_LAYER_REQUIREMENTS_FILE_INVALID when requirementsFile is missing or empty', async () => {
+    for (const bad of [undefined, '', null]) {
+      await expect(
+        installRequirementsForFile(bad, 'pydantic', makePluginInstance()),
+      ).rejects.toMatchObject({
+        code: 'PYTHON_REQUIREMENTS_LAYER_REQUIREMENTS_FILE_INVALID',
+      })
+    }
+  })
+
+  it('(d) throws PYTHON_REQUIREMENTS_LAYER_REQUIREMENTS_FILE_INVALID when path is a directory', async () => {
     fseMock.pathExistsSync.mockReturnValue(true)
     fseMock.statSync.mockReturnValue({ isFile: () => false })
 

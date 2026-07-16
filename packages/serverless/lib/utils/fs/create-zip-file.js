@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import archiver from 'archiver'
+import { ZipArchive } from 'archiver'
 import walkDirSync from './walk-dir-sync.js'
 
 async function createZipFile(srcDirPath, outputFilePath) {
@@ -11,7 +11,7 @@ async function createZipFile(srcDirPath, outputFilePath) {
 
   return new Promise((resolve, reject) => {
     const output = fs.createWriteStream(outputFilePath)
-    const archive = archiver('zip', {
+    const archive = new ZipArchive({
       zlib: { level: 9 },
     })
 

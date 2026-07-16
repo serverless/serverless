@@ -2,6 +2,7 @@ import esbuild from 'esbuild'
 import fs from 'fs'
 
 import { execSync } from 'child_process'
+import { readSkillsFromDir } from './src/lib/agent-skills/read-skills.js'
 
 const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf-8'))
 let version = pkg.version
@@ -9,6 +10,12 @@ let version = pkg.version
 if (process.env.IS_CANARY === 'true') {
   version = execSync('git rev-parse --short HEAD').toString().trim()
 }
+
+// Embed bundled Agent Skills at build time (same idiom as __SF_CORE_VERSION__).
+// Source runs fall back to reading skills/ live — see src/lib/agent-skills/manifest.js.
+const skillsManifest = await readSkillsFromDir(
+  new URL('../../skills/', import.meta.url),
+)
 
 await esbuild.build({
   platform: 'node',
@@ -34,5 +41,6 @@ await esbuild.build({
   },
   define: {
     __SF_CORE_VERSION__: JSON.stringify(version),
+    __SF_SKILLS_MANIFEST__: JSON.stringify(skillsManifest),
   },
 })

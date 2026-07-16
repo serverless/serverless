@@ -2,7 +2,7 @@
  * General Utilities
  */
 import path from 'path'
-import archiver from 'archiver'
+import { ZipArchive } from 'archiver'
 import { Writable } from 'stream'
 import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
 
@@ -48,7 +48,7 @@ export const zip = async (functions) => {
       },
     })
 
-    const archive = archiver('zip', { zlib: { level: 9 } })
+    const archive = new ZipArchive({ zlib: { level: 9 } })
 
     // Handle archive warnings
     archive.on('warning', (err) => {

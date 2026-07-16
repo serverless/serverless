@@ -63,15 +63,6 @@ cpPromises.push(
 )
 cpPromises.push(
   cp(
-    '../../engine/src/lib/devMode/containers',
-    '../../framework-dist/dist/containers',
-    {
-      recursive: true,
-    },
-  ),
-)
-cpPromises.push(
-  cp(
     '../../serverless/lib/plugins/aws/dev/shim.min.js',
     '../../framework-dist/lib/plugins/aws/dev/shim.min.js',
   ),

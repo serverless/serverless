@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"sort"
 	"strings"
@@ -180,6 +181,40 @@ func getVersion(frameworkVersion string, force bool) (*GetVersionResult, error) 
 	}, nil
 }
 
+// canaryVersionPattern matches the accepted pinned-canary version format: the
+// "canary-" prefix followed by one or more alphanumerics, dots, dashes, or
+// underscores.
+var canaryVersionPattern = regexp.MustCompile(`^canary-[A-Za-z0-9._-]+$`)
+
+// validateCanaryVersion returns an error for pinned-canary version strings that
+// are not in the expected format. The pattern confines the value to a single
+// path component (its character class excludes path separators), so a matching
+// value can never traverse. The explicit ".." check is defense-in-depth: it
+// rejects a "canary-.."-style name up front, though containedReleasePath would
+// keep it contained regardless.
+func validateCanaryVersion(version string) error {
+	if !canaryVersionPattern.MatchString(version) || strings.Contains(version, "..") {
+		return fmt.Errorf("invalid framework version %q", version)
+	}
+	return nil
+}
+
+// containedReleasePath joins version into releasesDir and returns the result
+// only when version resolves to a direct child of releasesDir (a single path
+// component). A version that resolves to releasesDir itself, to a parent, or to
+// any nested or outside location yields an error.
+func containedReleasePath(releasesDir, version string) (string, error) {
+	releasePath := filepath.Join(releasesDir, version)
+	rel, err := filepath.Rel(releasesDir, releasePath)
+	if err != nil ||
+		rel == "." ||
+		rel == ".." ||
+		strings.ContainsRune(rel, os.PathSeparator) {
+		return "", fmt.Errorf("invalid release path for version %q", version)
+	}
+	return releasePath, nil
+}
+
 func getMostRecentCanaryVersionWithBaseURL(base string) (string, error) {
 	body, err := fetchURL(fmt.Sprintf("%s/releases.json", base))
 	if err != nil {
@@ -229,6 +264,9 @@ func GetFrameworkVersion(filename string, shouldCheckForUpdates bool) (*Framewor
 				LatestVersion: FrameworkVersion(mostRecentVersion),
 			}
 		} else {
+			if err := validateCanaryVersion(version); err != nil {
+				return nil, err
+			}
 			releaseRecord = &ReleaseRecord{
 				Version:       FrameworkVersion(version),
 				ReleaseDate:   time.Now().Format(time.RFC3339),
@@ -301,7 +339,11 @@ func downloadFrameworkVersion(releaseRecord *ReleaseRecord, shouldCheckForUpdate
 		return "", fmt.Errorf("resolving home dir: %w", err)
 	}
 
-	releasePath := filepath.Join(homeDir, ".serverless", "releases", string(releaseRecord.Version))
+	releasesDir := filepath.Join(homeDir, ".serverless", "releases")
+	releasePath, err := containedReleasePath(releasesDir, string(releaseRecord.Version))
+	if err != nil {
+		return "", err
+	}
 
 	// This may always pull for the latest that matches user's requested version
 	useSpinner := !IsCIEnvironment()

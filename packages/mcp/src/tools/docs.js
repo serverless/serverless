@@ -5,7 +5,6 @@ import { fromRepoRoot } from '../utils/path-utils.js'
 // Base directories for documentation
 const docsBaseDirs = {
   sf: fromRepoRoot('docs/sf'),
-  scf: fromRepoRoot('docs/scf'),
 }
 
 function normalizeDocPath(product, docPath) {
@@ -56,13 +55,13 @@ async function listDirContents(dirPath) {
 
 /**
  * Reads markdown content from a file path
- * @param {string} product - The product (sf or scf)
+ * @param {string} product - The product (sf)
  * @param {string} docPath - Path to the document relative to the product base directory
  * @returns {Promise<string>} - Content of the markdown file
  */
 async function readMarkdownContent(product, docPath) {
   if (!docsBaseDirs[product]) {
-    throw new Error(`Invalid product: ${product}. Must be one of: sf, scf`)
+    throw new Error(`Invalid product: ${product}. Must be: sf`)
   }
 
   const normalizedPath = normalizeDocPath(product, docPath)
@@ -117,14 +116,14 @@ async function readMarkdownContent(product, docPath) {
 
 /**
  * Finds the nearest existing directory and lists its contents
- * @param {string} product - The product (sf or scf)
+ * @param {string} product - The product (sf)
  * @param {string} docPath - Path to look for
  * @param {string} availablePaths - String containing available paths
  * @returns {Promise<string>} - Formatted string with suggestions
  */
 async function findNearestDirectory(product, docPath, availablePaths) {
   if (!docsBaseDirs[product]) {
-    throw new Error(`Invalid product: ${product}. Must be one of: sf, scf`)
+    throw new Error(`Invalid product: ${product}. Must be: sf`)
   }
 
   const normalizedPath = normalizeDocPath(product, docPath)
@@ -186,7 +185,7 @@ async function findNearestDirectory(product, docPath, availablePaths) {
  * @param {string} basePath - Base path for the product
  * @param {string} relativePath - Current relative path being processed
  * @param {string} indent - Current indentation level for formatting
- * @param {string} prefix - Product prefix (sf/ or scf/)
+ * @param {string} prefix - Product prefix (sf/)
  * @returns {Promise<string>} - Formatted tree structure
  */
 async function buildDirectoryTree(
@@ -237,12 +236,12 @@ async function buildDirectoryTree(
 
 /**
  * Gets a listing of all available documentation paths in a tree structure
- * @returns {Promise<{sf: string, scf: string}>} - Available paths for each product
+ * @returns {Promise<{sf: string}>} - Available paths for each product
  */
 async function getAvailablePaths() {
   const result = {}
 
-  for (const product of ['sf', 'scf']) {
+  for (const product of ['sf']) {
     try {
       const tree = await buildDirectoryTree(
         docsBaseDirs[product],
@@ -272,7 +271,7 @@ async function getAvailablePaths() {
 /**
  * Main function to get documentation
  * @param {Object} args - Tool arguments
- * @param {string} args.product - Product (sf or scf)
+ * @param {string} args.product - Product (sf)
  * @param {string[]} [args.paths] - Paths to the documents
  * @returns {Promise<Object>} - Tool response
  */
@@ -283,12 +282,12 @@ export async function getDocs(args) {
 
     // Validate product
     const product = args.product?.toLowerCase()
-    if (!product || !['sf', 'scf'].includes(product)) {
+    if (!product || !['sf'].includes(product)) {
       return {
         content: [
           {
             type: 'text',
-            text: `Invalid product: ${product}. Must be one of: sf, scf\n\n${availablePaths.sf}\n\n${availablePaths.scf}`,
+            text: `Invalid product: ${product}. Must be: sf\n\n${availablePaths.sf}`,
           },
         ],
         isError: true,

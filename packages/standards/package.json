@@ -6,6 +6,6 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "eslint-config-prettier": "^10.1.8",
-    "globals": "^17.6.0"
+    "globals": "^17.7.0"
   }
 }

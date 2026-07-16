@@ -39,7 +39,7 @@ Serverless Framework CLI version 4 was released in May 2024. It's stable and now
 
 V.4 works out of the box for older projects built using Amazon Web Services with no migration steps required. Organizations making over $2 million/year may need to purchase a subscription based on the new terms (detailed below), but most developers will not.
 
-V.4 features significant improvements, integrating plug-ins into the core for better reliability, improving developer workflows, enhancing integrations with tools like Terraform and observability solutions, and larger innovations like the [Serverless Container Framework](https://www.serverless.com/containers/docs) and [Serverless MCP](https://www.serverless.com/framework/docs/guides/mcp). Serverless Framework CLI version 4's development velocity has surged, with weekly updates replacing the quarterly releases of the prior open-source model.
+V.4 features significant improvements, integrating plug-ins into the core for better reliability, improving developer workflows, enhancing integrations with tools like Terraform and observability solutions, and larger innovations like [Serverless MCP](https://www.serverless.com/framework/docs/guides/mcp). Serverless Framework CLI version 4's development velocity has surged, with weekly updates replacing the quarterly releases of the prior open-source model.
 
 Overall, V.4 delivers a stable, customer-centric experience, with powerful updates, built-in support, and a focus on your features and fixes for lasting dependability.
 
@@ -156,7 +156,7 @@ For more details, see the [License Keys guide](https://www.serverless.com/framew
 
 Version 4 discontinues support for cloud providers beyond AWS, marking a breaking change for users of non-AWS providers.
 
-Historically, we’ve supported multiple providers, but creating a consistent abstraction across their diverse serverless offerings proved difficult. As a result, AWS has become the primary choice for most of our users. Looking ahead, we’re investigating improved multi-cloud support through initiatives like the [Serverless Container Framework](https://www.serverless.com/containers/docs).
+Historically, we’ve supported multiple providers, but creating a consistent abstraction across their diverse serverless offerings proved difficult. As a result, AWS has become the primary choice for most of our users.
 
 ## Additional Notes
 

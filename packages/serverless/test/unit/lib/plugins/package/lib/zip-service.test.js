@@ -152,6 +152,107 @@ describe('zipService', () => {
     })
   })
 
+  describe('#excludeDevDependencies() - node dependency resolution', () => {
+    // Separator-agnostic so assertions hold on both POSIX ("node_modules/x/**")
+    // and Windows ("node_modules\\x\\**") glob output.
+    const isExcluded = (globs, name) =>
+      globs.some((glob) =>
+        new RegExp(`node_modules[\\\\/]${name}[\\\\/]`).test(glob),
+      )
+    let serviceDir
+
+    beforeEach(() => {
+      // `npm ls` reports realpaths; on macOS os.tmpdir() lives under the
+      // /var -> /private/var symlink, so resolve the service dir to its real
+      // path to match npm's output (real projects are not under such a link).
+      serviceDir = fs.realpathSync(tmpDirPath)
+      packagePlugin.serverless.serviceDir = serviceDir
+    })
+
+    function writePackageJson(dir, contents) {
+      fs.mkdirSync(dir, { recursive: true })
+      fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify(contents))
+    }
+
+    // Builds a real project whose node_modules contains one prod-only and one
+    // dev-only package so `npm ls` reports a deterministic tree.
+    function scaffoldProject({ declareMissingDep = false } = {}) {
+      writePackageJson(serviceDir, {
+        name: 'exclude-dev-deps-test',
+        version: '1.0.0',
+        dependencies: {
+          'prod-pkg': '1.0.0',
+          // A declared-but-not-installed dependency makes `npm ls` exit 1.
+          ...(declareMissingDep ? { 'missing-pkg': '1.0.0' } : {}),
+        },
+        devDependencies: { 'dev-pkg': '1.0.0' },
+      })
+      writePackageJson(path.join(serviceDir, 'node_modules', 'prod-pkg'), {
+        name: 'prod-pkg',
+        version: '1.0.0',
+      })
+      writePackageJson(path.join(serviceDir, 'node_modules', 'dev-pkg'), {
+        name: 'dev-pkg',
+        version: '1.0.0',
+      })
+    }
+
+    it('excludes dev-only dependencies and keeps prod dependencies', async () => {
+      scaffoldProject()
+
+      const updated = await packagePlugin.excludeDevDependencies(params)
+
+      expect(isExcluded(updated.exclude, 'dev-pkg')).toBe(true)
+      expect(isExcluded(updated.exclude, 'prod-pkg')).toBe(false)
+    })
+
+    it('still excludes dev-only dependencies when npm ls exits non-zero', async () => {
+      // `npm ls` exits 1 on a missing declared dependency but still prints a
+      // partial tree; that partial output must not be lost.
+      scaffoldProject({ declareMissingDep: true })
+
+      const updated = await packagePlugin.excludeDevDependencies(params)
+
+      expect(isExcluded(updated.exclude, 'dev-pkg')).toBe(true)
+      expect(isExcluded(updated.exclude, 'prod-pkg')).toBe(false)
+    })
+
+    it('does not execute shell metacharacters injected via the temp path', async () => {
+      if (os.platform() === 'win32') {
+        // POSIX-shell payload; temp-path handling is exercised on *nix.
+        return
+      }
+      // A project `.env` can set TMPDIR/TMP/TEMP before packaging and
+      // `os.tmpdir()` honors them, so os.tmpdir() may return an
+      // attacker-influenced value. Model that value carrying a shell breakout
+      // and prove the temp path can no longer execute commands.
+      const unique = `${Date.now()}-${Math.random().toString(36).slice(2)}`
+      const realTmp = fs.realpathSync(os.tmpdir())
+      const marker = path.join(realTmp, `sls-pwn-${unique}`)
+      const redirectJunk = path.join(realTmp, `sls-junk-${unique}`)
+      const maliciousTmp = `${redirectJunk}; touch ${marker} #`
+      const tmpdirSpy = jest.spyOn(os, 'tmpdir').mockReturnValue(maliciousTmp)
+
+      // A package.json is enough to reach the `npm ls` invocation.
+      writePackageJson(serviceDir, { name: 'pwn-test', version: '1.0.0' })
+
+      let markerCreated
+      try {
+        const updated = await packagePlugin.excludeDevDependencies(params)
+        // Capture the effect before cleanup so removal can't mask a breakout.
+        markerCreated = fs.existsSync(marker)
+        // Packaging still resolves gracefully.
+        expect(updated.zipFileName).toBe(params.zipFileName)
+      } finally {
+        tmpdirSpy.mockRestore()
+        fs.rmSync(marker, { force: true })
+        fs.rmSync(redirectJunk, { force: true })
+      }
+
+      expect(markerCreated).toBe(false)
+    })
+  })
+
   describe('#zip()', () => {
     const testDirectory = {
       '.': {

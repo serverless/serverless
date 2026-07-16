@@ -1049,6 +1049,13 @@ async function installRequirementsForFile(
   pluginInstance,
 ) {
   const { servicePath, options, serverless } = pluginInstance
+  if (typeof requirementsFile !== 'string' || requirementsFile === '') {
+    throw new ServerlessError(
+      `Python Requirements: layer "${layerName}" is missing a "requirementsFile".`,
+      'PYTHON_REQUIREMENTS_LAYER_REQUIREMENTS_FILE_INVALID',
+      { stack: false },
+    )
+  }
   const absRequirementsFile = path.isAbsolute(requirementsFile)
     ? requirementsFile
     : path.resolve(servicePath, requirementsFile)

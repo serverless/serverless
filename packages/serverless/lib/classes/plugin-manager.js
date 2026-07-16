@@ -21,6 +21,7 @@ import pluginRollback from '../plugins/rollback.js'
 import pluginPlugin from '../plugins/plugin/plugin.js'
 import pluginList from '../plugins/plugin/list.js'
 import pluginSearch from '../plugins/plugin/search.js'
+import pluginAgentInspect from '../plugins/agent/inspect.js'
 import pluginAwsProvider from '../plugins/aws/provider.js'
 import pluginAwsCommon from '../plugins/aws/common/index.js'
 import pluginAwsPackage from '../plugins/aws/package/index.js'
@@ -28,10 +29,12 @@ import pluginAwsDiff from '../plugins/aws/diff/index.js'
 import pluginAwsDeploy from '../plugins/aws/deploy/index.js'
 import pluginAwsInvoke from '../plugins/aws/invoke.js'
 import pluginAwsInvokeAgent from '../plugins/aws/invoke-agent.js'
+import pluginAwsInvokeSandbox from '../plugins/aws/invoke-sandbox.js'
 import pluginAwsDev from '../plugins/aws/dev/index.js'
 import pluginAwsInfo from '../plugins/aws/info/index.js'
 import pluginAwsLogs from '../plugins/aws/logs.js'
 import pluginAwsLogsAgent from '../plugins/aws/logs-agent.js'
+import pluginAwsLogsSandbox from '../plugins/aws/logs-sandbox.js'
 import pluginAwsMetrics from '../plugins/aws/metrics.js'
 import pluginAwsRemove from '../plugins/aws/remove/index.js'
 import pluginAwsRollback from '../plugins/aws/rollback.js'
@@ -72,6 +75,7 @@ import pluginAxiom from '../plugins/observability/axiom/index.js'
 import pluginPythonRequirements from '../plugins/python/index.js'
 import pluginAwsAppsync from '../plugins/aws/appsync/index.js'
 import pluginAwsBedrockAgentcore from '../plugins/aws/bedrock-agentcore/index.js'
+import pluginAwsSandboxes from '../plugins/aws/sandboxes/index.js'
 import pluginPrune from '../plugins/prune/index.js'
 import { createRequire } from 'module'
 
@@ -90,6 +94,7 @@ const internalPlugins = [
   pluginPlugin,
   pluginList,
   pluginSearch,
+  pluginAgentInspect,
   pluginAwsProvider,
   pluginAwsCommon,
   pluginAwsPackage,
@@ -97,10 +102,12 @@ const internalPlugins = [
   pluginAwsDeploy,
   pluginAwsInvoke,
   pluginAwsInvokeAgent,
+  pluginAwsInvokeSandbox,
   pluginAwsDev,
   pluginAwsInfo,
   pluginAwsLogs,
   pluginAwsLogsAgent,
+  pluginAwsLogsSandbox,
   pluginAwsMetrics,
   pluginAwsRemove,
   pluginAwsRollback,
@@ -141,6 +148,7 @@ const internalPlugins = [
   pluginPythonRequirements,
   pluginAwsAppsync,
   pluginAwsBedrockAgentcore,
+  pluginAwsSandboxes,
   pluginPrune,
 ]
 
@@ -270,6 +278,9 @@ class PluginManager {
     this.commands = {}
     this.aliases = {}
     this.hooks = {}
+    // Wall-clock duration (ms) spent in each lifecycle event's hooks,
+    // accumulated across invocations; keyed by lifecycle event name
+    this.lifecycleEventDurations = {}
     this.deprecatedEvents = {}
     // Track service-declared plugin names to coordinate bundled overrides per invocation
     this.servicePluginNames = new Set()
@@ -933,9 +944,16 @@ class PluginManager {
         lifecycleEventName,
         hooksData: { before, at, after },
       } of lifecycleEventsData) {
-        await this.runHooks(`before:${lifecycleEventName}`, before)
-        await this.runHooks(lifecycleEventName, at)
-        await this.runHooks(`after:${lifecycleEventName}`, after)
+        const lifecycleStart = Date.now()
+        try {
+          await this.runHooks(`before:${lifecycleEventName}`, before)
+          await this.runHooks(lifecycleEventName, at)
+          await this.runHooks(`after:${lifecycleEventName}`, after)
+        } finally {
+          this.lifecycleEventDurations[lifecycleEventName] =
+            (this.lifecycleEventDurations[lifecycleEventName] ?? 0) +
+            (Date.now() - lifecycleStart)
+        }
       }
     } catch (error) {
       if (error instanceof TerminateHookChain) {

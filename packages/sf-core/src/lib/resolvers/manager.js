@@ -887,13 +887,11 @@ export class ResolverManager {
     selectedProviders,
     selectedPaths,
   ) {
-    if (
-      !(
-        providerType === 'file' &&
-        resolverType === 'file' &&
-        /\.(js|cjs|mjs|ts)$/.test(key)
-      )
-    ) {
+    if (!(
+      providerType === 'file' &&
+      resolverType === 'file' &&
+      /\.(js|cjs|mjs|ts)$/.test(key)
+    )) {
       // Extract placeholders from the resolved value
       // and add them to the placeholders graph
       const newNodeIds = await collectFromObject(

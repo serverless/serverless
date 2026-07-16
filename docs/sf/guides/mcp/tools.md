@@ -82,9 +82,9 @@ The Serverless MCP Server provides a comprehensive set of tools for working with
    - Returns: Chronological history of stack events including resource creation, updates, and deletions
 
 5. `docs`
-   - Access comprehensive, always up-to-date documentation for Serverless Framework (sf) and Serverless Container Framework (scf) including code examples and usage patterns
+   - Access comprehensive, always up-to-date documentation for Serverless Framework (sf) including code examples and usage patterns
    - Inputs:
-     - `product` (string): Product to get documentation for. Must be one of: sf, scf
+     - `product` (string): Product to get documentation for. Must be: sf
      - `paths` (string[], optional): Array of document paths to retrieve multiple documents in a single request. Paths are relative to the product base directory. If not provided, lists all available documents.
    - Returns: Documentation content or directory listing, including markdown content of requested documents, tree-like structure of available documentation, suggestions for alternative paths when requested documents don't exist
 

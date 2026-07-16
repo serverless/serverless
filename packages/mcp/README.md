@@ -58,11 +58,11 @@ Provides a consolidated view of multiple cloud resources in a single request. Th
 
 #### `docs`
 
-Access comprehensive, always up-to-date documentation for Serverless Framework (sf) and Serverless Container Framework (scf). This tool provides a tree-like view of all available documentation when no paths are specified, allows browsing directory contents, and retrieves full markdown content for specific documents including code examples and usage patterns.
+Access comprehensive, always up-to-date documentation for Serverless Framework (sf). This tool provides a tree-like view of all available documentation when no paths are specified, allows browsing directory contents, and retrieves full markdown content for specific documents including code examples and usage patterns.
 
 **Inputs:**
 
-- `product` (enum): Product to get documentation for. Must be one of: sf, scf.
+- `product` (enum): Product to get documentation for. Must be: sf.
 - `paths` (optional string[]): Array of document paths to retrieve MULTIPLE documents in a single request. Paths are relative to the product base directory. If not provided, lists all available documents.
 
 **Returns:** Documentation content or directory listing, including:

@@ -1,0 +1,67 @@
+import path from 'path'
+import { readdir } from 'fs/promises'
+import { ServerlessError } from '@serverless/util'
+
+/**
+ * Frameworks that were removed from the CLI. Keyed by the config file
+ * basename (without extension) that used to select them.
+ */
+const REMOVED_FRAMEWORKS = {
+  'serverless.containers': 'Serverless Container Framework',
+  'serverless.ai': 'Serverless AI Framework',
+}
+
+// Mirrors the config extensions recognized by the binary installer, so a
+// parked copy like "serverless.ai.backup" doesn't trigger the tombstone.
+const CONFIG_EXTENSIONS = new Set([
+  '.yml',
+  '.yaml',
+  '.js',
+  '.ts',
+  '.cjs',
+  '.mjs',
+  '.json',
+])
+
+const LAST_SUPPORTED_VERSION = '4.39.0'
+
+/**
+ * Throws a clear error when the working directory contains a config file
+ * for a framework the CLI no longer supports, so users get guidance
+ * instead of a generic "No configuration file found".
+ *
+ * @param {Object} params
+ * @param {string} params.workingDir - Directory to inspect.
+ * @returns {Promise<void>}
+ * @throws {ServerlessError} FRAMEWORK_SUPPORT_REMOVED
+ */
+export const assertNoRemovedFrameworkConfig = async ({ workingDir }) => {
+  let fileNames
+  try {
+    fileNames = (await readdir(workingDir, { withFileTypes: true }))
+      .filter((dirent) => dirent.isFile())
+      .map((dirent) => dirent.name)
+  } catch {
+    // Unreadable/missing directory: let the caller's regular
+    // "No configuration file found" handling take over.
+    return
+  }
+
+  for (const fileName of fileNames) {
+    const extension = path.extname(fileName)
+    if (!CONFIG_EXTENSIONS.has(extension)) {
+      continue
+    }
+    // extname() only strips the last segment, so "serverless.containers.yml"
+    // still yields the "serverless.containers" key used in the map above.
+    const baseName = path.basename(fileName, extension)
+    const frameworkName = REMOVED_FRAMEWORKS[baseName]
+    if (frameworkName) {
+      throw new ServerlessError(
+        `Support for ${frameworkName} ("${fileName}") has been removed from the Serverless Framework CLI. To manage or remove existing deployments, pin the last supporting version by setting 'frameworkVersion: "${LAST_SUPPORTED_VERSION}"' in "${fileName}". The CLI will then automatically download and run that version for this project.`,
+        'FRAMEWORK_SUPPORT_REMOVED',
+        { stack: false },
+      )
+    }
+  }
+}

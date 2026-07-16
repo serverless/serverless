@@ -188,7 +188,7 @@ describe('AwsDev', () => {
       awsDev.options.mode = 'foo'
 
       expect(() => awsDev.validateModeOption()).toThrow(
-        'Option "--mode" must be one of: functions, agents.',
+        'Option "--mode" must be one of: functions, agents, sandboxes.',
       )
 
       try {

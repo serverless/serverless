@@ -3,7 +3,7 @@ import { pathToFileURL } from 'url'
 import { copyFile, readFile, rm, stat, writeFile } from 'fs/promises'
 import { createWriteStream, existsSync } from 'fs'
 import * as esbuild from 'esbuild'
-import archiver from 'archiver'
+import { ZipArchive } from 'archiver'
 import spawnExt from 'child-process-ext/spawn.js'
 import _ from 'lodash'
 import pLimit from 'p-limit'
@@ -15,6 +15,13 @@ import { log } from '@serverless/util'
 const nodeRuntimeRe = /nodejs(?<version>\d+).x/
 
 const logger = log.get('esbuild')
+
+// Pin every archive entry to a fixed date so that identical content always
+// produces a byte-for-byte identical zip. Without this, archiver stamps each
+// entry with the source file's mtime (esbuild rewrites its output on every
+// build), so the artifact hash changes on every deploy and check-for-changes
+// forces a needless redeploy of every function (issue #4240).
+const PINNED_ARTIFACT_DATE = new Date(0)
 
 class Esbuild {
   constructor(serverless, options) {
@@ -763,7 +770,7 @@ class Esbuild {
             zipName,
           )
 
-          const zip = archiver.create('zip')
+          const zip = new ZipArchive()
           const output = createWriteStream(zipPath)
 
           const zipPromise = new Promise(async (resolve, reject) => {
@@ -798,7 +805,10 @@ class Esbuild {
               )
 
               if (existsSync(packageJsonPath)) {
-                zip.file(packageJsonPath, { name: `package.json` })
+                zip.file(packageJsonPath, {
+                  name: `package.json`,
+                  date: PINNED_ARTIFACT_DATE,
+                })
               }
 
               // Add lockfiles if they exist
@@ -816,7 +826,10 @@ class Esbuild {
                   lockFile,
                 )
                 if (existsSync(lockFilePath)) {
-                  zip.file(lockFilePath, { name: destName })
+                  zip.file(lockFilePath, {
+                    name: destName,
+                    date: PINNED_ARTIFACT_DATE,
+                  })
                 }
               }
 
@@ -827,11 +840,15 @@ class Esbuild {
                 handlerPath + '.js',
               )
 
-              zip.file(handlerZipPath, { name: `${handlerPath}.js` })
+              zip.file(handlerZipPath, {
+                name: `${handlerPath}.js`,
+                date: PINNED_ARTIFACT_DATE,
+              })
 
               if (existsSync(`${handlerZipPath}.map`)) {
                 zip.file(`${handlerZipPath}.map`, {
                   name: `${handlerPath}.js.map`,
+                  date: PINNED_ARTIFACT_DATE,
                 })
               }
 
@@ -843,6 +860,7 @@ class Esbuild {
                   'node_modules',
                 ),
                 'node_modules',
+                { date: PINNED_ARTIFACT_DATE },
               )
 
               await Promise.all(
@@ -853,9 +871,14 @@ class Esbuild {
                   )
                   const stats = await stat(absolutePath)
                   if (stats.isDirectory()) {
-                    zip.directory(absolutePath, filePath)
+                    zip.directory(absolutePath, filePath, {
+                      date: PINNED_ARTIFACT_DATE,
+                    })
                   } else {
-                    zip.file(absolutePath, { name: filePath })
+                    zip.file(absolutePath, {
+                      name: filePath,
+                      date: PINNED_ARTIFACT_DATE,
+                    })
                   }
                 }),
               )
@@ -893,7 +916,7 @@ class Esbuild {
       { cwd: this.serverless.serviceDir },
     )
 
-    const zip = archiver.create('zip')
+    const zip = new ZipArchive()
     const output = createWriteStream(zipPath)
     const addedFiles = new Set()
 
@@ -921,7 +944,10 @@ class Esbuild {
           )
 
           if (existsSync(packageJsonPath) && !addedFiles.has(packageJsonPath)) {
-            zip.file(packageJsonPath, { name: `package.json` })
+            zip.file(packageJsonPath, {
+              name: `package.json`,
+              date: PINNED_ARTIFACT_DATE,
+            })
             addedFiles.add(packageJsonPath)
           }
 
@@ -940,7 +966,10 @@ class Esbuild {
               lockFile,
             )
             if (existsSync(lockFilePath) && !addedFiles.has(lockFilePath)) {
-              zip.file(lockFilePath, { name: destName })
+              zip.file(lockFilePath, {
+                name: destName,
+                date: PINNED_ARTIFACT_DATE,
+              })
               addedFiles.add(lockFilePath)
             }
           }
@@ -953,7 +982,10 @@ class Esbuild {
           )
 
           if (!addedFiles.has(handlerZipPath)) {
-            zip.file(handlerZipPath, { name: `${handlerPath}.js` })
+            zip.file(handlerZipPath, {
+              name: `${handlerPath}.js`,
+              date: PINNED_ARTIFACT_DATE,
+            })
             addedFiles.add(handlerZipPath)
           }
 
@@ -963,6 +995,7 @@ class Esbuild {
           ) {
             zip.file(`${handlerZipPath}.map`, {
               name: `${handlerPath}.js.map`,
+              date: PINNED_ARTIFACT_DATE,
             })
 
             addedFiles.add(`${handlerZipPath}.map`)
@@ -977,6 +1010,7 @@ class Esbuild {
             'node_modules',
           ),
           'node_modules',
+          { date: PINNED_ARTIFACT_DATE },
         )
 
         await Promise.all(
@@ -984,9 +1018,14 @@ class Esbuild {
             const absolutePath = path.join(this.serverless.serviceDir, filePath)
             const stats = await stat(absolutePath)
             if (stats.isDirectory()) {
-              zip.directory(absolutePath, filePath)
+              zip.directory(absolutePath, filePath, {
+                date: PINNED_ARTIFACT_DATE,
+              })
             } else if (!addedFiles.has(absolutePath)) {
-              zip.file(absolutePath, { name: filePath })
+              zip.file(absolutePath, {
+                name: filePath,
+                date: PINNED_ARTIFACT_DATE,
+              })
               addedFiles.add(absolutePath)
             }
           }),

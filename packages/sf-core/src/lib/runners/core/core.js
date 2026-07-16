@@ -9,6 +9,8 @@ import {
 import pluginInstall from './plugin-install.js'
 import path from 'path'
 import pluginUninstall from './plugin-uninstall.js'
+import agentSkillsInstall from './agent-skills-install.js'
+import { TraditionalRunner } from '../framework.js'
 import { Authentication } from '../../auth/index.js'
 import commandOnboarding from './onboarding.js'
 import commandSupport from './support.js'
@@ -18,6 +20,55 @@ import commandMcp from './mcp.js'
 import { getAwsCredentialProvider } from '../../../utils/index.js'
 import loginAws from './login-aws.js'
 import loginAwsSso from './login-aws-sso.js'
+
+/**
+ * Converts a dashed CLI option key to its yargs camel-case-expansion form,
+ * e.g. `aws-services` -> `awsServices`. No dash -> returned unchanged.
+ */
+function toCamelCase(key) {
+  return key.replace(/-([a-z])/g, (_, ch) => ch.toUpperCase())
+}
+
+/**
+ * Drops yargs's camelCase DUPLICATE option keys before delegating to the
+ * framework runner.
+ *
+ * Why this is needed (and why it belongs HERE, not in the shared parser):
+ * `agent inspect` is declared in CoreRunner's CLI schema so the router can
+ * parse/help it, but the command itself is a framework plugin, so it's handed
+ * off via delegateToFramework(). The schema round-trip that gets us here
+ * (router -> validateCliSchema -> a yargs parse in utils/cli/cli.js) uses
+ * yargs's DEFAULT `camel-case-expansion`, which mints a camelCase alias for
+ * every dashed option: `--aws-services x` yields BOTH `aws-services` AND
+ * `awsServices`. The framework's `ensure-supported-command` validates EVERY
+ * forwarded option key against the command schema (which keys the canonical
+ * DASHED form, `aws-services`), so the extra `awsServices` key trips
+ * "Unrecognized option". Native framework commands (deploy/info) never hit
+ * this because they don't go through CoreRunner's yargs round-trip.
+ *
+ * The conforming, least-invasive fix: forward only the canonical keys the
+ * framework expects by removing a camelCase key WHEN its dashed source key is
+ * also present (i.e. it is unambiguously a yargs expansion artifact, not a
+ * user-supplied distinct option). This touches only the delegation boundary --
+ * NOT the shared arg parser, yargs config, or ensure-supported-command.
+ */
+function stripCamelCaseDuplicateOptions(options) {
+  if (!options || typeof options !== 'object') return options
+  const dashedKeys = Object.keys(options).filter((key) => key.includes('-'))
+  if (dashedKeys.length === 0) return options
+  const camelDuplicates = new Set(
+    dashedKeys
+      .map((key) => toCamelCase(key))
+      .filter((camel) => Object.prototype.hasOwnProperty.call(options, camel)),
+  )
+  if (camelDuplicates.size === 0) return options
+  const forwarded = {}
+  for (const [key, value] of Object.entries(options)) {
+    if (camelDuplicates.has(key)) continue
+    forwarded[key] = value
+  }
+  return forwarded
+}
 
 class CoreRunner extends Runner {
   constructor({
@@ -202,6 +253,110 @@ class CoreRunner extends Runner {
         ],
       },
       {
+        command: 'agent',
+        description: 'Manage AI agent integrations for this service',
+        builder: [
+          {
+            command: 'skills',
+            description: 'Manage Serverless Framework Agent Skills',
+            builder: [
+              {
+                command: 'install',
+                description:
+                  'Install Agent Skills into this service directory (.claude/skills, .agents/skills). Idempotent: re-run to update.',
+                builder: [
+                  {
+                    options: {
+                      dir: {
+                        description:
+                          'Only write the given directories: "claude" (.claude/skills — Claude Code) or "agents" (.agents/skills — open Agent Skills standard: Codex, Cursor, ...)',
+                        type: 'string',
+                        array: true,
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            // Declared here so the router can parse/help `agent inspect` (and
+            // so `--name` becomes an array via yargs `array: true`), but the
+            // command itself is a framework plugin — `case 'agent':` delegates
+            // it to the framework runner. See packages/serverless/lib/plugins/agent/inspect.js.
+            command: 'inspect',
+            description:
+              'Inspect a deployed service: a cheap resource index, or the raw AWS state of selected resources',
+            builder: [
+              {
+                options: {
+                  functions: {
+                    description: 'Expand functions resources',
+                    type: 'boolean',
+                  },
+                  api: {
+                    description: 'Expand api resources',
+                    type: 'boolean',
+                  },
+                  events: {
+                    description: 'Expand events resources',
+                    type: 'boolean',
+                  },
+                  iam: {
+                    description: 'Expand iam resources',
+                    type: 'boolean',
+                  },
+                  storage: {
+                    description: 'Expand storage resources',
+                    type: 'boolean',
+                  },
+                  observability: {
+                    description: 'Expand observability resources',
+                    type: 'boolean',
+                  },
+                  cdn: {
+                    description: 'Expand cdn resources',
+                    type: 'boolean',
+                  },
+                  identity: {
+                    description: 'Expand identity resources',
+                    type: 'boolean',
+                  },
+                  iot: {
+                    description: 'Expand iot resources',
+                    type: 'boolean',
+                  },
+                  sandboxes: {
+                    description: 'Expand sandboxes resources',
+                    type: 'boolean',
+                  },
+                  all: {
+                    description: 'Expand every category',
+                    type: 'boolean',
+                  },
+                  'aws-services': {
+                    description:
+                      'Comma-separated AWS service tokens to expand (e.g. "lambda,iam,s3")',
+                    type: 'string',
+                  },
+                  name: {
+                    description:
+                      'Logical ID to scope to (repeatable; used alone auto-selects that resource)',
+                    type: 'string',
+                    array: true,
+                  },
+                  format: {
+                    description: 'Output format: "json" (default) or "yaml"',
+                    type: 'string',
+                    default: 'json',
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
         command: 'mcp',
         description: 'Run Serverless MCP Server',
         builder: [
@@ -227,6 +382,51 @@ class CoreRunner extends Runner {
 
   getCliSchema() {
     return CoreRunner.getCliSchema()
+  }
+
+  /**
+   * Hand a command off to the framework runner. Framework commands like
+   * deploy/info never reach CoreRunner — the router's runner selection picks
+   * TraditionalRunner for them directly, before any runner's `run()` executes.
+   * `agent` subcommands (e.g. `inspect`) can't take that path because they are
+   * declared in CoreRunner's CLI schema (so parsing/help know them and
+   * `--name` parses as an array), which makes the router select CoreRunner.
+   * This helper bridges the gap: it constructs the same TraditionalRunner the
+   * router would have selected, forwards the full runner context, and returns
+   * its result unchanged. (CoreRunner's own `default:` case just throws — it
+   * has no delegation of its own.)
+   *
+   * @returns {Promise<Object>} The framework runner's result.
+   */
+  async delegateToFramework() {
+    // CoreRunner never sets `this.stage` (the router resolves it via
+    // `resolverManager.resolveStage()` before constructing the runner — see
+    // getRunner() in ../../router.js — and CoreRunner's constructor doesn't
+    // forward `stage` to `super()`). Call the same resolver here so the
+    // delegated TraditionalRunner targets the same stage the router would
+    // have resolved (e.g. a non-default `provider.stage` with no `--stage`
+    // flag). `resolveStage()` is idempotent — it returns the already-cached
+    // value when called again on the same manager instance.
+    const stage = await this.resolverManager?.resolveStage()
+    const frameworkRunner = new TraditionalRunner({
+      versionFramework: this.versionFramework,
+      command: this.command,
+      options: stripCamelCaseDuplicateOptions(this.options),
+      config: this.config,
+      configFilePath: this.configFilePath,
+      stage,
+      resolverManager: this.resolverManager,
+      // Note: `this.compose` is always undefined here for the same reason
+      // `this.stage` was — CoreRunner's constructor above doesn't accept or
+      // forward `compose` to `super()`, even though the router passes it in
+      // and the base Runner class supports it. Unlike `stage`, there's no
+      // resolver/manager to re-derive `compose` from, so it isn't "trivially
+      // available" here; fixing it would mean changing CoreRunner's
+      // constructor signature, which is out of scope for this fix. Left as
+      // `this.compose` (i.e. undefined) to match current behavior.
+      compose: this.compose,
+    })
+    return frameworkRunner.run()
   }
 
   async run() {
@@ -370,6 +570,58 @@ class CoreRunner extends Runner {
             throw new Error('Plugin command not found')
         }
         break
+      }
+      case 'agent': {
+        // `agent skills install` is handled here by the CoreRunner. Every other
+        // `agent` subcommand (e.g. `inspect`) is a framework plugin command and
+        // is delegated to a TraditionalRunner via delegateToFramework() — see
+        // its docstring for why these commands reach CoreRunner at all when
+        // deploy/info never do. An unknown subcommand still gets the helpful
+        // skills hint. The subcommand check happens before the service-config
+        // guard (unlike 'plugin') so the hint shows even outside a service dir.
+        if (this.command[1] === 'skills') {
+          if (this.command[2] !== 'install') {
+            throw new Error(
+              'Unknown command. Did you mean "serverless agent skills install"?',
+            )
+          }
+          if (!this.config || !this.configFilePath) {
+            throw new ServerlessError(
+              'This command must run in a service directory (serverless.yml not found)',
+              ServerlessErrorCodes.general.CONFIG_FILE_NOT_FOUND,
+            )
+          }
+          await agentSkillsInstall({
+            configFilePath: this.configFilePath,
+            options: this.options,
+          })
+          break
+        }
+        if (this.command[1] === 'inspect') {
+          // At a Compose root the resolved config is serverless-compose.yml
+          // (the router still selects CoreRunner because `agent` lives in its
+          // CLI schema). Delegating would hand the compose file to the
+          // framework runner as a service config, which fails with a
+          // confusing '"service" property is missing' error. Compose fan-out
+          // is out of scope for inspect, so fail clearly instead.
+          if (
+            this.configFilePath &&
+            path.basename(
+              this.configFilePath,
+              path.extname(this.configFilePath),
+            ) === 'serverless-compose'
+          ) {
+            throw new ServerlessError(
+              '"serverless agent inspect" does not support Serverless Compose. Run it from one of your service directories instead.',
+              'AGENT_INSPECT_COMPOSE_NOT_SUPPORTED',
+              { stack: false },
+            )
+          }
+          return this.delegateToFramework()
+        }
+        throw new Error(
+          'Unknown command. Did you mean "serverless agent skills install"?',
+        )
       }
       case 'mcp': {
         try {

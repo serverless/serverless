@@ -11,6 +11,7 @@ import path from 'path'
 import spawnExt from 'child-process-ext/spawn.js'
 import ServerlessError from '../../serverless-error.js'
 import awsRequest from '../../aws/request.js'
+import v3Request from '../../aws/v3/request.js'
 import { cfValue } from '../../utils/aws-schema-get-cf-value.js'
 import reportDeprecatedProperties from '../../utils/report-deprecated-properties.js'
 import deepSortObjectByKey from '../../utils/deep-sort-object-by-key.js'
@@ -3322,7 +3323,9 @@ destinations:
         isS3TransferAccelerationEnabled: this.isS3TransferAccelerationEnabled(),
       },
     }
-    return (shouldCache ? awsRequest.memoized : awsRequest)(
+    const useV3 = _.get(requestOptions, 'sdkVersion') === 3
+    const requestFn = useV3 ? v3Request : awsRequest
+    return (shouldCache ? requestFn.memoized : requestFn)(
       serviceOptions,
       method,
       params,
@@ -3847,12 +3850,10 @@ Object.defineProperties(
           })
           repositoryUri = result.repositories[0].repositoryUri
         } catch (err) {
-          if (
-            !(
-              err.providerError &&
-              err.providerError.code === 'RepositoryNotFoundException'
-            )
-          ) {
+          if (!(
+            err.providerError &&
+            err.providerError.code === 'RepositoryNotFoundException'
+          )) {
             throw err
           }
           const result = await this.request('ECR', 'createRepository', {

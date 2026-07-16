@@ -431,9 +431,9 @@ provider:
   name: aws
   # declare one of the following...
   iam:
-    role: myDefaultRole                                                  # must validly reference a role defined in the service
-    role: arn:aws:iam::0123456789:role//my/default/path/roleInMyAccount  # must validly reference a role defined in your account
-    role:                                                                # must validly resolve to the ARN of a role you have the rights to use
+    role: myDefaultRole # must validly reference a role defined in the service
+    role: arn:aws:iam::0123456789:role//my/default/path/roleInMyAccount # must validly reference a role defined in your account
+    role: # must validly resolve to the ARN of a role you have the rights to use
       Fn::GetAtt:
         - myRole
         - Arn
@@ -476,20 +476,19 @@ resources:
                     - logs:TagResource
                   Resource:
                     - 'Fn::Join':
-                      - ':'
-                      -
-                        - 'arn:aws:logs'
-                        - Ref: 'AWS::Region'
-                        - Ref: 'AWS::AccountId'
-                        - 'log-group:/aws/lambda/*:*:*'
-                -  Effect: "Allow"
-                   Action:
-                     - "s3:PutObject"
-                   Resource:
-                     Fn::Join:
-                       - ""
-                       - - "arn:aws:s3:::"
-                         - "Ref" : "ServerlessDeploymentBucket"
+                        - ':'
+                        - - 'arn:aws:logs'
+                          - Ref: 'AWS::Region'
+                          - Ref: 'AWS::AccountId'
+                          - 'log-group:/aws/lambda/*:*:*'
+                - Effect: 'Allow'
+                  Action:
+                    - 's3:PutObject'
+                  Resource:
+                    Fn::Join:
+                      - ''
+                      - - 'arn:aws:s3:::'
+                        - 'Ref': 'ServerlessDeploymentBucket'
 ```
 
 ### Custom IAM Roles For Each Function

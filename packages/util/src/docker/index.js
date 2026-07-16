@@ -139,7 +139,6 @@ class DockerClient {
    * @param {string} [params.dockerFileString] - Optional Dockerfile content
    * @param {Object} [params.buildArgs={}] - Build arguments to pass to Docker
    * @param {string|Array<string>} [params.buildOptions=[]] - Additional Docker build flags (e.g. '--target production')
-   * @param {string|null} [params.aiFramework=null] - AI framework detected in the project
    * @param {string} [params.platform='linux/amd64'] - Target platform for the image (e.g. 'linux/amd64', 'linux/arm64')
    * @param {string} [params.builder] - Buildpacks builder image (default: gcr.io/buildpacks/builder, use 'heroku/builder:24' for ARM64)
    * @throws {ServerlessError} If the build fails
@@ -152,67 +151,10 @@ class DockerClient {
     dockerFileString = null,
     buildArgs = {},
     buildOptions = [],
-    aiFramework = null,
     platform = 'linux/amd64',
     builder = null,
   }) {
     try {
-      if (aiFramework === 'mastra') {
-        dockerFileString = `
-# Builder stage: compile TypeScript and build the application
-FROM node:lts-alpine AS builder
-
-# Set working directory
-WORKDIR /app
-
-# Copy dependency manifests for layer caching
-COPY package.json package-lock.json ./
-
-# Install all dependencies (including dev dependencies for build)
-RUN npm i
-
-# Copy configuration files
-COPY tsconfig.json ./
-
-# Copy source code
-COPY src/ ./src/
-
-# Build the application using mastra as specified in package.json
-RUN npx mastra build
-
-# Production stage: lightweight image with only necessary components
-FROM node:lts-alpine AS production
-
-# Set environment variables
-ENV NODE_ENV=production
-
-# Set working directory
-WORKDIR /app
-
-# Create a non-root user for security
-RUN addgroup -S appgroup && \
-    adduser -S -G appgroup appuser
-
-# Copy the built application from the builder stage
-COPY --from=builder /app/.mastra/output /app
-
-# Set ownership to non-root user
-RUN chown -R appuser:appgroup /app
-
-# Switch to non-root user
-USER appuser
-
-# Expose port if needed (uncomment and set the appropriate port)
-# EXPOSE 3000
-EXPOSE 8080
-
-# Command to run the application
-# The correct entry point based on the Mastra build output
-# node --import=./.mastra/output/instrumentation.mjs .mastra/output/index.mjs
-CMD ["node", "index.mjs"]
-        `
-        this.logger.debug('Building image using Mastra Dockerfile')
-      }
       // If dockerFileString is provided, use it to build the image
       if (dockerFileString) {
         this.logger.debug('Building image using Dockerfile from config')
