@@ -19,22 +19,16 @@ import { CoreRunner } from './runners/core/core.js'
 import { CfnRunner } from './runners/cfn/cfn.js'
 import { TraditionalRunner } from './runners/framework.js'
 import { ComposeRunner } from './runners/compose/compose.js'
-import { ServerlessContainerFrameworkRunner } from './runners/scf.js'
-import { ServerlessAiFrameworkRunner } from './runners/sai.js'
 import {
   addCommonDeploymentData,
   saveDeployment,
 } from './platform/deployments.js'
 import { variables } from './resolvers/index.js'
 import { logDeferredNotifications } from './runners/notification.js'
+import { autoUpdateAgentSkills } from './agent-skills/auto-update.js'
+import { assertNoRemovedFrameworkConfig } from './removed-frameworks.js'
 
-const runners = [
-  ComposeRunner,
-  CfnRunner,
-  ServerlessContainerFrameworkRunner,
-  ServerlessAiFrameworkRunner,
-  TraditionalRunner,
-]
+const runners = [ComposeRunner, CfnRunner, TraditionalRunner]
 
 /**
  * @typedef {Object} ComposeConfig
@@ -58,6 +52,7 @@ const runners = [
  * @returns {Promise<void>} - Resolves when routing is complete.
  */
 const route = async ({ command, options, versions, compose }) => {
+  const commandStartTime = Date.now()
   const logger = log.get('core:router')
   const progressMain = progress.get('main')
   progressMain.notice('Initializing')
@@ -131,11 +126,18 @@ const route = async ({ command, options, versions, compose }) => {
     )
   }
 
+  // Silently converge already-installed managed agent skills to the bundled
+  // set. Internally guarded (CI, `agent` command, no config) and never throws.
+  if (!runnerError) {
+    await autoUpdateAgentSkills({ command, configFilePath })
+  }
+
   try {
     await finalize({
       logger,
       versionFramework: versions?.serverless_framework,
       command,
+      commandStartTime,
       options,
       resolverManager,
       compose,
@@ -155,6 +157,7 @@ const route = async ({ command, options, versions, compose }) => {
     await handleFinalizationError({
       versionFramework: versions?.serverless_framework,
       command,
+      commandStartTime,
       options,
       configFilePath,
       resolverManager,
@@ -330,6 +333,7 @@ const createUsageEvent = ({
  * @param {string} params.orgId - Organization ID.
  * @param {string} params.versionFramework - Version of the Serverless Framework being used.
  * @param {string[]} params.command - The command executed as part of the Serverless action.
+ * @param {number} [params.commandStartTime] - Epoch ms timestamp of command start, used to compute commandDurationMs.
  * @param {string} params.configFileName - Name of the configuration file.
  * @param {boolean} params.isCompose - Indicates if this is within a Compose project.
  * @param {string[]} params.cliOptions - CLI options passed during execution.
@@ -346,6 +350,7 @@ const createAnalysisEvent = ({
   orgId,
   versionFramework,
   command,
+  commandStartTime,
   configFileName,
   isCompose,
   userId,
@@ -377,6 +382,10 @@ const createAnalysisEvent = ({
     configurationFileName: configFileName,
     resolvers: Array.from(new Set(resolvers)),
     ...runnerSpecificDetails,
+  }
+
+  if (typeof commandStartTime === 'number') {
+    analysisEvent.commandDurationMs = Date.now() - commandStartTime
   }
 
   if (error instanceof Error) {
@@ -462,6 +471,9 @@ export const getRunner = async ({
   // if no runner is found and command cannot be handled by CoreRunner
   // throw an error
   if (!runnerDetails) {
+    await assertNoRemovedFrameworkConfig({
+      workingDir: compose?.workingDir ?? process.cwd(),
+    })
     throw new ServerlessError(
       'No configuration file found',
       ServerlessErrorCodes.general.CONFIG_FILE_NOT_FOUND,
@@ -508,6 +520,7 @@ export const getRunner = async ({
  * @param logger
  * @param versionFramework
  * @param command
+ * @param commandStartTime
  * @param options
  * @param resolverManager
  * @param compose
@@ -525,6 +538,7 @@ const finalize = async ({
   logger,
   versionFramework,
   command,
+  commandStartTime,
   options,
   resolverManager,
   compose,
@@ -562,6 +576,7 @@ const finalize = async ({
       orgId,
       versionFramework,
       command,
+      commandStartTime,
       configFilePath,
       runner,
       compose,
@@ -619,6 +634,7 @@ const finalize = async ({
 const handleFinalizationError = async ({
   versionFramework,
   command,
+  commandStartTime,
   options,
   configFilePath,
   resolverManager,
@@ -635,6 +651,7 @@ const handleFinalizationError = async ({
       orgId: authenticatedData?.orgId,
       versionFramework,
       command,
+      commandStartTime,
       configFileName: configFilePath && path.basename(configFilePath),
       isCompose:
         runner.constructor.name === 'ComposeRunner' ||
@@ -715,6 +732,7 @@ async function sendAnalysisAndUsageEvent({
   orgId,
   versionFramework,
   command,
+  commandStartTime,
   configFilePath,
   runner,
   compose,
@@ -730,6 +748,7 @@ async function sendAnalysisAndUsageEvent({
     orgId,
     versionFramework,
     command,
+    commandStartTime,
     configFileName: configFilePath && path.basename(configFilePath),
     isCompose:
       runner.constructor.name === 'ComposeRunner' ||

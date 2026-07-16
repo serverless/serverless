@@ -1,4 +1,4 @@
-import archiver from 'archiver'
+import { ZipArchive } from 'archiver'
 import os from 'os'
 import path from 'path'
 import crypto from 'crypto'
@@ -79,7 +79,7 @@ export default {
       return Promise.reject(error)
     }
 
-    const zip = archiver.create('zip')
+    const zip = new ZipArchive()
     // Create artifact in temp path and move it to the package path (if any) later
     const artifactFilePath = path.join(
       this.serverless.serviceDir,
@@ -218,8 +218,12 @@ async function excludeNodeDevDependencies(serviceDir) {
           ['dev', 'prod'],
           (env) => {
             const depFile = env === 'dev' ? nodeDevDepFile : nodeProdDepFile
+            // Capture `npm ls` output and write it to `depFile` from Node
+            // rather than via a shell redirection, so the (potentially
+            // environment-derived) temp path never becomes part of the command
+            // string that a shell interprets.
             return execAsync(
-              `npm ls --${env}=true --parseable=true --long=false --silent --all >> ${depFile}`,
+              `npm ls --${env}=true --parseable=true --long=false --silent --all`,
               {
                 cwd: dirWithPackageJson,
                 // We are overriding `NODE_ENV` because when it is set to "production"
@@ -228,12 +232,23 @@ async function excludeNodeDevDependencies(serviceDir) {
                   ...process.env,
                   NODE_ENV: null,
                 },
+                // Output was previously streamed straight to disk and so was
+                // unbounded; keep a generous limit so large dependency trees
+                // are not truncated (which could drop required dependencies).
+                maxBuffer: 1024 * 1024 * 1024,
               },
-            ).catch((err) => {
-              log.debug(
-                `Failed to run npm ls to retrieve dependencies for exclusion. Error: ${err.message}`,
-              )
-            })
+            )
+              .then(({ stdout }) => fsp.appendFile(depFile, stdout))
+              .catch((err) => {
+                log.debug(
+                  `Failed to run npm ls to retrieve dependencies for exclusion. Error: ${err.message}`,
+                )
+                // `npm ls` exits non-zero on missing/invalid deps but still
+                // prints a partial tree on stdout; preserve it as the previous
+                // shell redirection did. Append unconditionally so the file
+                // exists even when there is no output.
+                return fsp.appendFile(depFile, err.stdout || '').catch(() => {})
+              })
           },
           { concurrency: os.cpus().length },
         )

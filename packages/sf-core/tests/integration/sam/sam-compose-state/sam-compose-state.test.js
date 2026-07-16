@@ -7,6 +7,7 @@ import {
 } from '@aws-sdk/client-cloudformation'
 import { jest } from '@jest/globals'
 import { getTestStageName, runSfCore } from '../../../utils/runSfCore'
+import { fetchWithRetry } from '../../../utils/testUtils'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const randomId = Math.floor(1000 + Math.random() * 9000).toString()
@@ -71,7 +72,7 @@ describe('SAM/CFN - SAM state within a Compose app', () => {
   })
 
   test('Ensure variables resolved correctly', async () => {
-    const getResponse = await fetch(endpoint, {
+    const getResponse = await fetchWithRetry(endpoint, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

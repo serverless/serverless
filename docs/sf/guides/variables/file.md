@@ -105,9 +105,7 @@ const serverlessConfiguration: AWS = {
   custom: {
     SECRETS: '${file(./scripts/secrets.ts):getSecrets}',
   },
-  functions: {
-    /* ... */
-  },
+  functions: {/* ... */},
 }
 
 export default serverlessConfiguration

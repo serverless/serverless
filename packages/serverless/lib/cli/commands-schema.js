@@ -243,7 +243,7 @@ commands.set('dev', {
     },
     mode: {
       usage:
-        'Dev mode type: "functions" (default) or "agents" (for AgentCore runtimes). Auto-detected if not specified.',
+        'Dev mode type: "functions" (default), "agents" (AgentCore runtimes), or "sandboxes" (AWS Lambda MicroVMs). Auto-detected if not specified.',
       shortcut: 'm',
       type: 'string',
     },
@@ -253,8 +253,19 @@ commands.set('dev', {
       shortcut: 'a',
       type: 'string',
     },
+    sandbox: {
+      type: 'string',
+      usage:
+        'The sandbox name to run in sandboxes dev mode (AWS Lambda MicroVMs)',
+    },
+    'assume-role': {
+      type: 'boolean',
+      usage:
+        'Run the sandbox dev container as its execution role (default). Use --no-assume-role to run with your ambient AWS credentials.',
+    },
     port: {
-      usage: 'Port to expose the agent container on (default: 8080)',
+      usage:
+        'Local dev-mode port: the AgentCore container (agents, default 8080), or the local MicroVMs API control-plane endpoint (sandboxes, default 9100)',
       shortcut: 'p',
       type: 'string',
     },
@@ -283,6 +294,18 @@ commands.set('invoke', {
       usage: 'The agent name (for AgentCore Runtime agents)',
       shortcut: 'a',
     },
+    sandbox: {
+      type: 'string',
+      usage: 'The sandbox name (for AWS Lambda MicroVMs)',
+    },
+    method: {
+      type: 'string',
+      usage: 'HTTP method for a sandbox invoke (default: GET)',
+    },
+    port: {
+      type: 'string',
+      usage: 'Sandbox container port to target (default: 8080)',
+    },
     'session-id': {
       type: 'string',
       usage:
@@ -296,7 +319,8 @@ commands.set('invoke', {
     },
     path: {
       type: 'string',
-      usage: 'Path to JSON or YAML file holding input data',
+      usage:
+        "For --function: path to a JSON/YAML input-data file. For --sandbox: the HTTP request path (default '/')",
       shortcut: 'p',
     },
     type: {
@@ -408,6 +432,10 @@ commands.set('logs', {
       usage: 'The agent name',
       shortcut: 'a',
     },
+    sandbox: {
+      type: 'string',
+      usage: 'The sandbox name (for AWS Lambda MicroVMs)',
+    },
     tail: {
       usage: 'Tail the log output',
       shortcut: 't',
@@ -468,6 +496,51 @@ commands.set('remove', {
     },
   },
   lifecycleEvents: ['remove'],
+  serviceDependencyMode: 'required',
+  hasAwsExtension: true,
+})
+
+const agentInspectOptions = {}
+for (const flag of [
+  'functions',
+  'api',
+  'events',
+  'iam',
+  'storage',
+  'observability',
+  'cdn',
+  'identity',
+  'iot',
+  'sandboxes',
+]) {
+  agentInspectOptions[flag] = {
+    type: 'boolean',
+    usage: `Expand ${flag} resources`,
+  }
+}
+commands.set('agent inspect', {
+  usage:
+    'Inspect a deployed service: a cheap resource index, or the raw AWS state of selected resources',
+  options: {
+    ...agentInspectOptions,
+    all: { type: 'boolean', usage: 'Expand every category' },
+    'aws-services': {
+      type: 'string',
+      usage:
+        'Comma-separated AWS service tokens to expand (e.g. "lambda,iam,s3")',
+    },
+    name: {
+      type: 'multiple',
+      usage:
+        'Logical ID to scope to (repeatable; used alone auto-selects that resource)',
+    },
+    format: {
+      type: 'string',
+      usage: 'Output format: "json" (default) or "yaml"',
+      default: 'json',
+    },
+  },
+  lifecycleEvents: ['inspect'],
   serviceDependencyMode: 'required',
   hasAwsExtension: true,
 })
