@@ -29,6 +29,19 @@ const stripHandlerExportSuffix = (functionHandler) => {
   return functionHandler.slice(0, functionHandler.lastIndexOf(exportName))
 }
 
+// Compare two arrays as sets (order- and duplicate-insensitive). Used to
+// detect whether functions sharing a handler file resolved to the same
+// esbuild `external` list.
+const areSameSet = (a, b) => {
+  const setA = new Set(a)
+  const setB = new Set(b)
+  if (setA.size !== setB.size) return false
+  for (const value of setA) {
+    if (!setB.has(value)) return false
+  }
+  return true
+}
+
 // Pin every archive entry to a fixed date so that identical content always
 // produces a byte-for-byte identical zip. Without this, archiver stamps each
 // entry with the source file's mtime (esbuild rewrites its output on every
@@ -606,9 +619,16 @@ class Esbuild {
       return
     }
 
-    const updatedFunctionsToBuild = {}
-
     const buildProperties = await this._buildProperties()
+
+    // Multiple functions can share a single handler file (e.g. one module
+    // exporting several handlers). Building each function separately would
+    // spawn concurrent esbuild.build() calls writing to the same outfile,
+    // racing on truncate+write and corrupting the output (#13716). Instead we
+    // group functions by their resolved absolute entry path and build each
+    // unique file once, applying the per-function side effects to every alias
+    // in the group afterwards.
+    const buildGroups = new Map()
 
     for (const [alias, functionObject] of Object.entries(functionsToBuild)) {
       const handlerPath = stripHandlerExportSuffix(
@@ -622,79 +642,118 @@ class Esbuild {
       const extension = await this._extensionForFunction(
         functionObject[handlerPropertyName],
       )
-      if (extension) {
-        // Enrich the functionObject with additional values we will need for building
-        updatedFunctionsToBuild[alias] = {
-          ...functionObject,
-          handlerPath: path.join(
-            this.serverless.config.serviceDir,
-            handlerPath + extension,
-          ),
-          extension,
-          esbuild: {
-            external,
-          },
-        }
+      if (!extension) {
+        continue
+      }
+
+      // `path.join` normalizes the entry path (e.g. `./src/x` vs `src/x`) so
+      // functions pointing at the same file land in the same group.
+      const entry = path.join(
+        this.serverless.config.serviceDir,
+        handlerPath + extension,
+      )
+
+      const existingGroup = buildGroups.get(entry)
+      if (existingGroup) {
+        existingGroup.aliases.push(alias)
+        existingGroup.externals.push(external)
+      } else {
+        buildGroups.set(entry, {
+          entry,
+          // Relative stripped handler path used to derive the outfile. All
+          // members of a group resolve to the same file, so any member's
+          // relative path is correct once `path.join`-normalized below.
+          handlerPath,
+          aliases: [alias],
+          externals: [external],
+        })
       }
     }
 
-    // Determine the concurrency to use for building functions, by default framework will attempt to build
-    // all functions concurrently, but this can be overridden by setting the buildConcurrency property.
-    const concurrency =
-      buildProperties.buildConcurrency ?? Object.keys(functionsToBuild).length
+    // Determine the concurrency to use for building, by default framework will
+    // attempt to build all unique handler files concurrently, but this can be
+    // overridden by setting the buildConcurrency property.
+    const concurrency = buildProperties.buildConcurrency ?? buildGroups.size
 
     const limit = pLimit(concurrency)
 
     try {
       await Promise.all(
-        Object.entries(updatedFunctionsToBuild).map(
-          ([alias, functionObject]) => {
-            return limit(async () => {
-              const handlerPath = stripHandlerExportSuffix(
-                functionObject[handlerPropertyName],
+        Array.from(buildGroups.values()).map((group) => {
+          return limit(async () => {
+            // Reconcile the group members' external lists. They only diverge
+            // when functions sharing a handler file straddle the node16/18
+            // boundary via per-function `runtime`. This matters solely when
+            // bundling: `bundle !== true` forces `external: []` below, so the
+            // lists are never consulted and no conflict is possible.
+            const externals = group.externals
+            let external = externals[0]
+            if (buildProperties.bundle === true) {
+              const referenceExternal = externals[0]
+              const hasConflict = externals.some(
+                (candidate) => !areSameSet(candidate, referenceExternal),
               )
-              const esbuildProps = {
-                ...buildProperties,
-                platform: 'node',
-                ...(buildProperties.bundle === true
-                  ? { external: functionObject.esbuild.external }
-                  : { external: [] }),
-                entryPoints: [functionObject.handlerPath],
-                outfile: path.join(
+              if (hasConflict) {
+                // Compare as (order-insensitive) sets and use the intersection
+                // so we never bundle a module that any function in the group
+                // needs left external. Filter the first member's array to keep
+                // a deterministic order.
+                external = referenceExternal.filter((dep) =>
+                  externals.every((other) => other.includes(dep)),
+                )
+                logger.warning(
+                  `Functions ${group.aliases.join(', ')} share the handler file "${group.entry}" but resolve to different esbuild "external" lists. ` +
+                    `Building the file once with the intersection of those lists: ${external.length > 0 ? external.join(', ') : '(empty)'}.`,
+                )
+              }
+            }
+
+            const esbuildProps = {
+              ...buildProperties,
+              platform: 'node',
+              ...(buildProperties.bundle === true
+                ? { external }
+                : { external: [] }),
+              entryPoints: [group.entry],
+              outfile: path.join(
+                this.serverless.config.serviceDir,
+                '.serverless',
+                'build',
+                group.handlerPath + '.js',
+              ),
+              logLevel: 'error',
+            }
+
+            // Remove the following properties from the esbuildProps as they are not valid esbuild properties
+            delete esbuildProps.exclude
+            delete esbuildProps.buildConcurrency
+            delete esbuildProps.configFile
+
+            const result = await esbuild.build(esbuildProps)
+
+            /**
+             * If the user has set the esbuild metafile option, we need to write the metafile to the build directory
+             * so that they analyze the build output, just like the esbuild CLI does.
+             */
+            if (result.metafile) {
+              await writeFile(
+                path.join(
                   this.serverless.config.serviceDir,
                   '.serverless',
                   'build',
-                  handlerPath + '.js',
+                  'meta.json',
                 ),
-                logLevel: 'error',
-              }
+                JSON.stringify(result.metafile, null, 2),
+              )
+            }
 
-              // Remove the following properties from the esbuildProps as they are not valid esbuild properties
-              delete esbuildProps.exclude
-              delete esbuildProps.buildConcurrency
-              delete esbuildProps.configFile
+            if (!this.serverless.builtFunctions) {
+              this.serverless.builtFunctions = new Set()
+            }
 
-              const result = await esbuild.build(esbuildProps)
-
-              /**
-               * If the user has set the esbuild metafile option, we need to write the metafile to the build directory
-               * so that they analyze the build output, just like the esbuild CLI does.
-               */
-              if (result.metafile) {
-                await writeFile(
-                  path.join(
-                    this.serverless.config.serviceDir,
-                    '.serverless',
-                    'build',
-                    'meta.json',
-                  ),
-                  JSON.stringify(result.metafile, null, 2),
-                )
-              }
-
-              if (!this.serverless.builtFunctions) {
-                this.serverless.builtFunctions = new Set()
-              }
+            // Apply the per-function side effects to every alias sharing this
+            // handler file, not just the one whose build we ran.
+            for (const alias of group.aliases) {
               this.serverless.builtFunctions.add(alias)
               if (
                 this.serverless.service.build?.esbuild?.sourcemap ===
@@ -715,9 +774,9 @@ class Esbuild {
                     '--enable-source-maps'
                 }
               }
-            })
-          },
-        ),
+            }
+          })
+        }),
       )
     } catch (err) {
       if (this.serverless.devmodeEnabled === true) {
