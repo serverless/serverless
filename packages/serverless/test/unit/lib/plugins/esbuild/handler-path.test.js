@@ -26,8 +26,11 @@ import path from 'path'
 const Esbuild = (await import('../../../../../lib/plugins/esbuild/index.js'))
   .default
 
+const createdServiceDirs = []
+
 function makeServiceDir() {
   const serviceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sls-esbuild-'))
+  createdServiceDirs.push(serviceDir)
   // Directory name mirrors the export name ("items.get"), so the buggy
   // first-occurrence replace strips the wrong ".get" from the handler string.
   const nestedDir = path.join(serviceDir, 'handlers', 'items.get')
@@ -52,6 +55,12 @@ const HANDLER = 'handlers/items.get/index.get'
 
 describe('esbuild handler export-suffix stripping', () => {
   jest.setTimeout(30_000)
+
+  afterEach(() => {
+    while (createdServiceDirs.length > 0) {
+      fs.rmSync(createdServiceDirs.pop(), { recursive: true, force: true })
+    }
+  })
 
   test('_extensionForFunction finds the file when a path segment collides with the export name', async () => {
     const serviceDir = makeServiceDir()

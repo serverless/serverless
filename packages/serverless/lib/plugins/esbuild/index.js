@@ -132,7 +132,7 @@ class Esbuild {
             // The packages config, this can be set to override the behavior of external
             packages: { type: 'string', enum: ['external'] },
             buildConcurrency: {
-              description: `Number of concurrent unique handler-file builds. Functions sharing a handler file are built once, and by default all unique handler files are built concurrently.`,
+              description: `Number of concurrent unique handler-file builds and per-function packaging operations. Functions sharing a handler file are built once, and by default all unique handler files are built concurrently.`,
               type: 'number',
             },
             // Whether to bundle or not. Default is true
