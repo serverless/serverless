@@ -16,6 +16,19 @@ const nodeRuntimeRe = /nodejs(?<version>\d+).x/
 
 const logger = log.get('esbuild')
 
+// Serverless `handler` strings are `path/to/file.exportName`. Strip only the
+// LAST `.exportName` occurrence (not the first) so that a path segment
+// earlier in the string that happens to collide with the export name (e.g. a
+// directory named after the handler, `items.get/index.get`) doesn't cause the
+// wrong file path to be derived. Mirrors the community serverless-esbuild
+// plugin's deliberate `lastIndexOf` approach: "replace only last instance to
+// allow the same name for file and handler".
+const stripHandlerExportSuffix = (functionHandler) => {
+  const exportName = path.extname(functionHandler) // '.get' for 'src/items.get'
+  if (!exportName) return functionHandler
+  return functionHandler.slice(0, functionHandler.lastIndexOf(exportName))
+}
+
 // Pin every archive entry to a fixed date so that identical content always
 // produces a byte-for-byte identical zip. Without this, archiver stamps each
 // entry with the source file's mtime (esbuild rewrites its output on every
@@ -225,8 +238,7 @@ class Esbuild {
         return true
       }
 
-      const functionName = path.extname(functionHandler).slice(1)
-      const handlerPath = functionHandler.replace(`.${functionName}`, '')
+      const handlerPath = stripHandlerExportSuffix(functionHandler)
       let parsedExtension = undefined
       for (const extension of [
         '.js',
@@ -332,8 +344,7 @@ class Esbuild {
 
   // This is all the possible extensions that the esbuild plugin can build for
   async _extensionForFunction(functionHandler) {
-    const functionName = path.extname(functionHandler).slice(1)
-    const handlerPath = functionHandler.replace(`.${functionName}`, '')
+    const handlerPath = stripHandlerExportSuffix(functionHandler)
     for (const extension of [
       '.js',
       '.ts',
@@ -600,12 +611,8 @@ class Esbuild {
     const buildProperties = await this._buildProperties()
 
     for (const [alias, functionObject] of Object.entries(functionsToBuild)) {
-      const functionName = path
-        .extname(functionObject[handlerPropertyName])
-        .slice(1)
-      const handlerPath = functionObject[handlerPropertyName].replace(
-        `.${functionName}`,
-        '',
+      const handlerPath = stripHandlerExportSuffix(
+        functionObject[handlerPropertyName],
       )
       const runtime =
         functionObject.runtime || this.serverless.service.provider.runtime
@@ -643,12 +650,8 @@ class Esbuild {
         Object.entries(updatedFunctionsToBuild).map(
           ([alias, functionObject]) => {
             return limit(async () => {
-              const functionName = path
-                .extname(functionObject[handlerPropertyName])
-                .slice(1)
-              const handlerPath = functionObject[handlerPropertyName].replace(
-                `.${functionName}`,
-                '',
+              const handlerPath = stripHandlerExportSuffix(
+                functionObject[handlerPropertyName],
               )
               const esbuildProps = {
                 ...buildProperties,
@@ -789,12 +792,8 @@ class Esbuild {
               )
 
               zip.pipe(output)
-              const functionName = path
-                .extname(functionObject[handlerPropertyName])
-                .slice(1)
-              const handlerPath = functionObject[handlerPropertyName].replace(
-                `.${functionName}`,
-                '',
+              const handlerPath = stripHandlerExportSuffix(
+                functionObject[handlerPropertyName],
               )
 
               const packageJsonPath = path.join(
@@ -928,12 +927,8 @@ class Esbuild {
         zip.pipe(output)
 
         for (const [, functionObject] of Object.entries(functions)) {
-          const functionName = path
-            .extname(functionObject[handlerPropertyName])
-            .slice(1)
-          const handlerPath = functionObject[handlerPropertyName].replace(
-            `.${functionName}`,
-            '',
+          const handlerPath = stripHandlerExportSuffix(
+            functionObject[handlerPropertyName],
           )
 
           const packageJsonPath = path.join(
