@@ -65,7 +65,9 @@ build:
       - '!@aws-sdk/client-bedrock-runtime'
 
     # By default Framework will attempt to build and package all functions concurrently.
-    # This property can bet set to a different number if you wish to limit the
+    # Each unique handler file is built only once, so functions that share a handler
+    # file (a module exporting several handlers) do not trigger duplicate builds.
+    # This property can be set to a different number if you wish to limit the
     # concurrency of those operations.
     buildConcurrency: 3
 
