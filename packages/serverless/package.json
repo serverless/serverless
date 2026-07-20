@@ -52,7 +52,7 @@
     "@serverlessinc/sf-core": "*",
     "@smithy/node-http-handler": "^4.9.1",
     "@smithy/util-retry": "^4.5.4",
-    "adm-zip": "^0.5.18",
+    "adm-zip": "^0.6.0",
     "ajv": "8.20.0",
     "ajv-errors": "^3.0.0",
     "ajv-formats": "3.0.1",
