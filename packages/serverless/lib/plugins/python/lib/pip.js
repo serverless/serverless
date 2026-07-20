@@ -26,11 +26,15 @@ function isSamBuildImage(image) {
 }
 
 function prependUvBootstrapCommands(pipCmds) {
-  pipCmds.unshift(['source', '~/.local/bin/env'])
+  // Recent SAM build images ship `uv` on the PATH, so only bootstrap it when
+  // it is missing. Install into /usr/local/bin (on the PATH in all image
+  // generations) rather than the installer's default ~/.local/bin, which
+  // requires sourcing a shell profile afterwards — a step that does not
+  // survive shell-quote escaping (`~` is escaped and never expands).
   pipCmds.unshift([
     '/bin/sh',
     '-c',
-    'curl -LsSf https://astral.sh/uv/install.sh | sh',
+    'command -v uv > /dev/null 2>&1 || curl -LsSf https://astral.sh/uv/install.sh | UV_UNMANAGED_INSTALL=/usr/local/bin sh',
   ])
 }
 

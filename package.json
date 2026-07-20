@@ -4,6 +4,19 @@
   "description": "",
   "main": "index.js",
   "type": "module",
+  "packageManager": "npm@12.0.1",
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "^24.15.0",
+      "onFail": "warn"
+    },
+    "packageManager": {
+      "name": "npm",
+      "version": ">=12.0.0",
+      "onFail": "warn"
+    }
+  },
   "scripts": {
     "lint": "eslint",
     "lint:fix": "eslint --fix",
@@ -37,5 +50,16 @@
     "aws-sdk": {
       "uuid": "^11.1.1"
     }
+  },
+  "allowScripts": {
+    "aws-crt": true,
+    "aws-sdk": true,
+    "cpu-features": true,
+    "es5-ext": true,
+    "esbuild": true,
+    "fsevents": true,
+    "protobufjs": true,
+    "ssh2": true,
+    "unrs-resolver": true
   }
 }

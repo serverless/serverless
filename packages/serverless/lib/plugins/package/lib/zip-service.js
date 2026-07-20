@@ -222,8 +222,13 @@ async function excludeNodeDevDependencies(serviceDir) {
             // rather than via a shell redirection, so the (potentially
             // environment-derived) temp path never becomes part of the command
             // string that a shell interprets.
+            // `--include=dev` / `--omit=dev` are the canonical flags across
+            // npm 7+, and npm documents the older spellings as their aliases
+            // (`dev` -> `--include=dev`, `production` -> `--omit=dev`).
+            // npm 12 errors on abbreviated flags, which rejects `--prod`
+            // (an abbreviation of `--production`).
             return execAsync(
-              `npm ls --${env}=true --parseable=true --long=false --silent --all`,
+              `npm ls --${env === 'dev' ? 'include=dev' : 'omit=dev'} --parseable=true --long=false --silent --all`,
               {
                 cwd: dirWithPackageJson,
                 // We are overriding `NODE_ENV` because when it is set to "production"
