@@ -28,7 +28,7 @@ jobs:
           cache: npm
 
       - name: 'Setup: Enable Corepack'
-        run: corepack enable
+        run: corepack enable npm
 
       - name: 'Install: Dependencies'
         run: npm ci
