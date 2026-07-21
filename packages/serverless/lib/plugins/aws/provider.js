@@ -341,6 +341,7 @@ class AwsProvider {
             anyOf: [
               { $ref: '#/definitions/awsArnString' },
               { $ref: '#/definitions/awsCfFunction' },
+              { $ref: '#/definitions/awsCfIf' },
             ],
           },
           awsArnString: {
