@@ -168,6 +168,9 @@ async function excludeNodeDevDependencies(serviceDir) {
     exclude: [],
   }
 
+  // `npm ls` invocations that produced no output at all, per listing kind.
+  const listingHardFailures = { dev: [], prod: [] }
+
   // the files where we'll write the dependencies into
   const tmpDir = os.tmpdir()
   const randHash = crypto.randomBytes(8).toString('hex')
@@ -248,6 +251,17 @@ async function excludeNodeDevDependencies(serviceDir) {
                 log.debug(
                   `Failed to run npm ls to retrieve dependencies for exclusion. Error: ${err.message}`,
                 )
+                // A failure without any stdout means no tree was produced at
+                // all (as opposed to the tolerated non-zero exits that still
+                // print a partial tree); record it for the guard below.
+                if (!err.stdout) {
+                  listingHardFailures[env].push(
+                    (err.stderr || err.message || '')
+                      .split(/[\r\n]+/)
+                      .map((l) => l.trim())
+                      .find(Boolean) || 'unknown error',
+                  )
+                }
                 // `npm ls` exits non-zero on missing/invalid deps but still
                 // prints a partial tree on stdout; preserve it as the previous
                 // shell redirection did. Append unconditionally so the file
@@ -277,8 +291,41 @@ async function excludeNodeDevDependencies(serviceDir) {
           }),
         )
         .then(async (devAndProDependencies) => {
-          const devDependencies = devAndProDependencies[0]
-          const prodDependencies = devAndProDependencies[1]
+          const devDependencies = devAndProDependencies[0] || []
+          const prodDependencies = devAndProDependencies[1] || []
+
+          // `npm ls --parseable` prints at least the project root on success
+          // and keeps a partial tree on stdout for ordinary listing errors
+          // (missing or invalid dependencies), so a listing without any
+          // output at all — whether it failed outright or reported success —
+          // means that dependency inventory is unusable. Excluding based on
+          // a dev listing without the matching production listing would
+          // remove production dependencies from the artifact, so stop
+          // packaging instead.
+          if (
+            (listingHardFailures.prod.length || !prodDependencies.length) &&
+            devDependencies.length
+          ) {
+            const reason =
+              listingHardFailures.prod[0] ||
+              'the command reported success but returned no dependency data'
+            throw new ServerlessError(
+              'Unable to determine production dependencies for dev-dependency exclusion' +
+                ` ("npm ls" produced no output: ${reason}).` +
+                ' Packaging was stopped because continuing could exclude production dependencies from the deployment artifact.' +
+                ' To package without dev-dependency exclusion, set "package.excludeDevDependencies: false".',
+              'DEV_DEPENDENCY_EXCLUSION_LISTING_FAILED',
+            )
+          }
+          if (!devDependencies.length) {
+            if (listingHardFailures.dev.length) {
+              log.warning(
+                'Skipping development dependency exclusion: unable to inventory dependencies' +
+                  ` ("npm ls" produced no output: ${listingHardFailures.dev[0]}).`,
+              )
+            }
+            return exAndIn
+          }
 
           // NOTE: the order for _.difference is important
           const dependencies = _.difference(devDependencies, prodDependencies)
@@ -353,13 +400,19 @@ async function excludeNodeDevDependencies(serviceDir) {
 
           return exAndIn
         })
-        .then(() => {
+        .finally(() => {
           // cleanup
-          unlinkSync(nodeDevDepFile)
-          unlinkSync(nodeProdDepFile)
-          return exAndIn
+          try {
+            unlinkSync(nodeDevDepFile)
+            unlinkSync(nodeProdDepFile)
+          } catch {
+            // temp files may not exist if listing failed early
+          }
         })
         .catch((err) => {
+          // Deliberate packaging errors must reach the user; only incidental
+          // bookkeeping failures are swallowed to keep exclusion best-effort.
+          if (err instanceof ServerlessError) throw err
           log.debug(`Failed to exclude dev dependencies. Error: ${err.message}`)
           return exAndIn
         })
