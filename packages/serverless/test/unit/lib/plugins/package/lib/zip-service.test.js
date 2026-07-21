@@ -43,6 +43,7 @@ const { default: Package } =
   await import('../../../../../../lib/plugins/package/package.js')
 const { default: Serverless } =
   await import('../../../../../../lib/serverless.js')
+const { log: mockedLog } = await import('@serverless/util')
 
 describe('zipService', () => {
   let tmpDirPath
@@ -217,6 +218,25 @@ describe('zipService', () => {
       expect(isExcluded(updated.exclude, 'prod-pkg')).toBe(false)
     })
 
+    it('handles services with only development dependencies', async () => {
+      // A production listing of such a project legitimately contains no
+      // packages (just the project root); this must exclude the dev
+      // dependencies and must not be treated as a listing failure.
+      writePackageJson(serviceDir, {
+        name: 'dev-only-test',
+        version: '1.0.0',
+        devDependencies: { 'dev-pkg': '1.0.0' },
+      })
+      writePackageJson(path.join(serviceDir, 'node_modules', 'dev-pkg'), {
+        name: 'dev-pkg',
+        version: '1.0.0',
+      })
+
+      const updated = await packagePlugin.excludeDevDependencies(params)
+
+      expect(isExcluded(updated.exclude, 'dev-pkg')).toBe(true)
+    })
+
     it('does not execute shell metacharacters injected via the temp path', async () => {
       if (os.platform() === 'win32') {
         // POSIX-shell payload; temp-path handling is exercised on *nix.
@@ -251,6 +271,102 @@ describe('zipService', () => {
 
       expect(markerCreated).toBe(false)
     })
+
+    // Shims `npm` via PATH so the two `npm ls` listings can be made to fail
+    // independently — a hard failure produces no stdout at all, unlike the
+    // tolerated non-zero exits that still print a partial tree.
+    function shimNpm({ failDev, failProd }) {
+      const shimDir = path.join(serviceDir, '.npm-shim')
+      fs.mkdirSync(shimDir, { recursive: true })
+      const tree = [
+        serviceDir,
+        path.join(serviceDir, 'node_modules', 'dev-pkg'),
+        path.join(serviceDir, 'node_modules', 'prod-pkg'),
+      ]
+      const prodTree = [
+        serviceDir,
+        path.join(serviceDir, 'node_modules', 'prod-pkg'),
+      ]
+      const script = [
+        '#!/bin/sh',
+        'case "$*" in',
+        `  *"--omit=dev"*) ${
+          failProd
+            ? 'echo "simulated npm failure" >&2; exit 1'
+            : `printf '%s\\n' ${prodTree.map((p) => `'${p}'`).join(' ')}`
+        } ;;`,
+        `  *) ${
+          failDev
+            ? 'echo "simulated npm failure" >&2; exit 1'
+            : `printf '%s\\n' ${tree.map((p) => `'${p}'`).join(' ')}`
+        } ;;`,
+        'esac',
+      ].join('\n')
+      const shimPath = path.join(shimDir, 'npm')
+      fs.writeFileSync(shimPath, script, { mode: 0o755 })
+      return shimDir
+    }
+
+    const itPosix = os.platform() === 'win32' ? it.skip : it
+
+    itPosix(
+      'stops packaging when the production dependency listing produces no output',
+      async () => {
+        scaffoldProject()
+        const shimDir = shimNpm({ failDev: false, failProd: true })
+        const originalPath = process.env.PATH
+        process.env.PATH = `${shimDir}${path.delimiter}${originalPath}`
+        try {
+          await expect(
+            packagePlugin.excludeDevDependencies(params),
+          ).rejects.toThrow(/production dependencies/)
+        } finally {
+          process.env.PATH = originalPath
+        }
+      },
+    )
+
+    itPosix(
+      'skips exclusion when no dependency listing is available',
+      async () => {
+        scaffoldProject()
+        const shimDir = shimNpm({ failDev: true, failProd: true })
+        const originalPath = process.env.PATH
+        process.env.PATH = `${shimDir}${path.delimiter}${originalPath}`
+        try {
+          const updated = await packagePlugin.excludeDevDependencies(params)
+          // Nothing is excluded; the artifact keeps all dependencies.
+          expect(isExcluded(updated.exclude, 'dev-pkg')).toBe(false)
+          expect(isExcluded(updated.exclude, 'prod-pkg')).toBe(false)
+        } finally {
+          process.env.PATH = originalPath
+        }
+      },
+    )
+
+    itPosix(
+      'warns and skips exclusion when only the development listing is unavailable',
+      async () => {
+        scaffoldProject()
+        const shimDir = shimNpm({ failDev: true, failProd: false })
+        const originalPath = process.env.PATH
+        process.env.PATH = `${shimDir}${path.delimiter}${originalPath}`
+        try {
+          const updated = await packagePlugin.excludeDevDependencies(params)
+          // Without the full listing there are no removal candidates; the
+          // artifact keeps all dependencies and the skip is surfaced.
+          expect(isExcluded(updated.exclude, 'dev-pkg')).toBe(false)
+          expect(isExcluded(updated.exclude, 'prod-pkg')).toBe(false)
+          expect(mockedLog.warning).toHaveBeenCalledWith(
+            expect.stringContaining(
+              'Skipping development dependency exclusion',
+            ),
+          )
+        } finally {
+          process.env.PATH = originalPath
+        }
+      },
+    )
   })
 
   describe('#zip()', () => {
