@@ -1,0 +1,16 @@
+service: compose-subset-middle
+provider:
+  name: aws
+  region: us-east-1
+resources:
+  Resources:
+    Topic:
+      Type: AWS::SNS::Topic
+    Param:
+      Type: AWS::SSM::Parameter
+      Properties:
+        Type: String
+        Value: ${param:workerTopicArn}
+  Outputs:
+    PassedArn:
+      Value: ${param:workerTopicArn}

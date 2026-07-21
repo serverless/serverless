@@ -319,16 +319,53 @@ class Compose {
 
                 if (isParamReference) {
                   const splitKey = value.split('.')
+                  const depService = splitKey[0]
+                  const outputKey = splitKey[1]
                   const stateValue =
-                    state?.localState?.[splitKey[0]]?.outputs?.[splitKey[1]]
-                  if (!stateValue) {
+                    state?.localState?.[depService]?.outputs?.[outputKey]
+                  // Use an explicit undefined check: a resolved output can be an
+                  // empty string, which must pass through rather than be treated
+                  // as missing.
+                  if (stateValue === undefined) {
                     if (command[0] === 'print') {
                       serviceParams[key] = 'NOT_AVAILABLE_IN_PRINT_COMMAND'
-                    } else if (command[0] === 'remove') {
+                    } else if (
+                      command[0] === 'remove' ||
+                      command[0] === 'get-state'
+                    ) {
+                      // get-state is the read pass that WARMS the state params
+                      // are resolved from — a missing dependency state here is
+                      // expected (not deployed yet), never a failure. Throwing
+                      // would poison the run report and exit code of an
+                      // otherwise-successful run; the real command's own pass
+                      // still fails loudly below if the param stays unresolved.
                       serviceParams[key] = ''
-                    } else {
+                    } else if (state?.localState?.[depService]) {
+                      // The dependency's state IS present, but the referenced output
+                      // key is missing — almost always a typo in the output name.
+                      // Do NOT advise (re)deploying an already-deployed service (I2).
+                      const availableOutputs = Object.keys(
+                        state.localState[depService].outputs || {},
+                      )
+                      const availableList =
+                        availableOutputs.length > 0
+                          ? availableOutputs.join(', ')
+                          : '(none)'
                       throw new ServerlessError(
-                        `Could not resolve the parameter '${key}'. Please ensure that it is correctly defined in the Compose configuration and that all dependent services are deployed. If the services are deployed, verify that their state is up to date by running 'deploy' or 'info' command on the Compose file.`,
+                        `Could not resolve the parameter '${key}': service '${depService}' has no output '${outputKey}'. Available outputs: ${availableList}. Check the output name in your reference.`,
+                        ServerlessErrorCodes.compose
+                          .COMPOSE_COULD_NOT_RESOLVE_PARAM,
+                        { stack: false },
+                      )
+                    } else {
+                      // Compose does not normalize the -s shortcut (that happens
+                      // per-service in the framework runner), so honor both here
+                      // or the suggested command would silently target the
+                      // default stage.
+                      const stage = options?.stage || options?.s
+                      const stageFlag = stage ? ` --stage ${stage}` : ''
+                      throw new ServerlessError(
+                        `Could not resolve the parameter '${key}': no deployed state found for service '${depService}'. Deploy it first with 'serverless deploy --service=${depService}${stageFlag}', then retry. If it is already deployed, refresh its state with 'serverless ${depService} info${stageFlag}'.`,
                         ServerlessErrorCodes.compose
                           .COMPOSE_COULD_NOT_RESOLVE_PARAM,
                         { stack: false },
@@ -466,6 +503,7 @@ class Compose {
       params,
       runnerFunction, // Pass the runner function along to the next recursive call
       state,
+      isMultipleComponents, // Propagate so a single-mode error still rethrows on later graph levels
     })
   }
 
@@ -595,6 +633,121 @@ class Compose {
       params,
       state,
       isMultipleComponents: false,
+    })
+  }
+
+  /**
+   * Execute a command on an exact subset of services (`--service=a,b`).
+   *
+   * Semantics — "exactly the named set": the command runs on precisely the
+   * named services, dependency-ordered among themselves. Dependencies that
+   * are NOT named are read (get-state) so `${param:}` references resolve,
+   * but they are never deployed or removed.
+   *
+   * @param {string[]} serviceNames
+   * @param {string[]} command
+   * @param {boolean} reverse
+   * @param {string} composeOrgName
+   * @param {Record<string, any>} options
+   * @param {Record<string, any>} resolverProviders
+   * @param {Record<string, any>} params
+   * @param {State} state
+   * @returns {Promise<void>}
+   */
+  async executeSubsetComponents({
+    serviceNames,
+    command,
+    reverse,
+    composeOrgName,
+    options,
+    resolverProviders,
+    params,
+    state,
+  }) {
+    const availableServices = this.graph.nodes()
+    for (const serviceName of serviceNames) {
+      if (!this.graph.hasNode(serviceName)) {
+        throw new ServerlessError(
+          `The service "${serviceName}" does not exist in the Compose configuration. Available services: ${availableServices.join(', ')}.`,
+          ServerlessErrorCodes.compose
+            .COMPOSE_GRAPH_SERVICE_DEPENDENCY_DOES_NOT_EXIST,
+          { stack: false },
+        )
+      }
+    }
+    // Delete the `service` option from the options object to pass through
+    // Framework schema validation (mirrors executeSingleComponent)
+    delete options.service
+
+    const named = new Set(serviceNames)
+    // Capture node data and intra-set edges BEFORE any graph pruning
+    const nodeData = new Map(
+      serviceNames.map((name) => [name, this.graph.node(name)]),
+    )
+    // Keep only direct edges between two named services. A dependency that runs
+    // THROUGH an unnamed (excluded) service has no in-run data path — the consumer
+    // reads the unnamed dep's frozen state via get-state, not the currently-running
+    // service — so there is no ordering to preserve and the two run in parallel.
+    const intraSetEdges = this.graph
+      .edges()
+      .filter((edge) => named.has(edge.v) && named.has(edge.w))
+
+    if (command[0] !== 'remove') {
+      // Get-state the FULL transitive closure of the named set — do NOT subtract
+      // named services. An unnamed dep can reference a NAMED service, so that named
+      // service must be in the read pass for the dep's `${param:}` to resolve (C1).
+      // Reading a named service's existing state is harmless: it is redeployed fresh
+      // in the real run, and the exact-set guarantee (never deploy/remove an unnamed
+      // service) is enforced by the rebuilt RUN graph below, not by pruning the read.
+      const depsToFetch = new Set()
+      for (const serviceName of serviceNames) {
+        for (const dep of this.getServiceDependencies(serviceName)) {
+          depsToFetch.add(dep)
+        }
+      }
+      const nodesToRemove = this.graph
+        .nodes()
+        .filter((node) => !depsToFetch.has(node))
+      for (const node of nodesToRemove) {
+        this.graph.removeNode(node)
+      }
+      // The get-state pass runs with isMultipleComponents defaulting to true, so a
+      // dependency that is not deployed yet does NOT abort the run: getServiceUniqueId
+      // throws `Stack ... does not exist` for an absent stack, and that read failure
+      // is tolerated here (the real run then teaches the correct "deploy it first"
+      // message). This matches executeSingleComponent's get-state pass — the sibling
+      // whose full-closure shape this method mirrors.
+      await this.executeComponentsGraph({
+        command: ['get-state'],
+        reverse,
+        composeOrgName,
+        options,
+        resolverProviders,
+        params,
+        runnerFunction: resolveConfigAndGetState,
+        state,
+      })
+    }
+
+    // Rebuild the graph with exactly the named services, keeping the edges
+    // among them so the run stays dependency-ordered
+    this.graph = new Graph()
+    for (const [name, data] of nodeData) {
+      this.graph.setNode(name, data)
+    }
+    for (const edge of intraSetEdges) {
+      this.graph.setEdge(edge.v, edge.w)
+    }
+
+    await this.executeComponentsGraph({
+      command,
+      reverse,
+      composeOrgName,
+      options,
+      resolverProviders,
+      params,
+      state,
+      isMultipleComponents: true,
     })
   }
 

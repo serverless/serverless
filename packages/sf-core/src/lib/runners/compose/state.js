@@ -28,7 +28,22 @@ export const resolveConfigAndGetState = async ({
     options,
     compose,
   })
-  const { serviceUniqueId } = await runner.getServiceUniqueId()
+  let serviceUniqueId
+  try {
+    ;({ serviceUniqueId } = await runner.getServiceUniqueId())
+  } catch (err) {
+    // A not-yet-deployed dependency has no stack — during a get-state pass
+    // getServiceUniqueId throws a STACK_DOES_NOT_EXIST-coded sentinel (see
+    // getServiceUniqueId in runners/framework.js). That is the expected
+    // "no state" case, not a failure, so treat it like empty state and return
+    // undefined. Re-throw anything else — throttling, auth, or an unrelated
+    // "does not exist" (S3 bucket, org) — so real errors are not swallowed.
+    if (err?.code === 'STACK_DOES_NOT_EXIST') {
+      logger.debug('No state found (stack does not exist)')
+      return
+    }
+    throw err
+  }
   logger.debug(
     `Fetching state for service: ${serviceUniqueId} of type ${runner.constructor.runnerType}`,
   )

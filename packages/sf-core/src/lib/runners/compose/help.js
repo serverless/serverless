@@ -27,6 +27,10 @@ const commands = [
     command: 'print',
     description: 'Print the configuration of all services',
   },
+  {
+    command: 'package',
+    description: 'Package all services',
+  },
 ]
 
 /**
@@ -71,6 +75,12 @@ export default async () => {
   log.aside('Global options')
   log.notice(formatLine('--stage', 'Stage of the service'))
   log.notice(formatLine('--region', 'Region of the service'))
+  log.notice(
+    formatLine(
+      '--service',
+      'Run on specific service(s), comma-separated (e.g. --service=api,worker)',
+    ),
+  )
   log.notice(formatLine('--verbose', 'Enable verbose logs'))
   log.notice(formatLine('--debug', 'Enable debug mode'))
   log.blankLine()
