@@ -1,6 +1,8 @@
 import _ from 'lodash'
 import resolveLambdaTarget from '../../../utils/resolve-lambda-target.js'
+import getStreamNameFromArn from '../../../utils/get-stream-name-from-arn.js'
 import ServerlessError from '../../../../../serverless-error.js'
+import usesDedicatedPerFunctionRole from '../../lib/uses-dedicated-per-function-role.js'
 
 class AwsCompileStreamEvents {
   constructor(serverless) {
@@ -193,6 +195,11 @@ events:
   compileStreamEvents() {
     this.serverless.service.getAllFunctions().forEach((functionName) => {
       const functionObj = this.serverless.service.getFunction(functionName)
+      const skipGlobalRolePermissions = usesDedicatedPerFunctionRole({
+        functionObject: functionObj,
+        serverless: this.serverless,
+        awsProvider: this.provider,
+      })
 
       if (functionObj.events) {
         const dynamodbStreamStatement = {
@@ -266,23 +273,7 @@ events:
             }
 
             const streamType = event.stream.type || EventSourceArn.split(':')[2]
-            const streamName = (function () {
-              if (EventSourceArn['Fn::GetAtt']) {
-                return EventSourceArn['Fn::GetAtt'][0]
-              } else if (EventSourceArn['Fn::ImportValue']) {
-                return EventSourceArn['Fn::ImportValue']
-              } else if (EventSourceArn.Ref) {
-                return EventSourceArn.Ref
-              } else if (EventSourceArn['Fn::Join']) {
-                // [0] is the used delimiter, [1] is the array with values
-                const name = EventSourceArn['Fn::Join'][1].slice(-1).pop()
-                if (name.split('/').length) {
-                  return name.split('/').pop()
-                }
-                return name
-              }
-              return EventSourceArn.split('/')[1]
-            })()
+            const streamName = getStreamNameFromArn(EventSourceArn)
 
             const streamLogicalId = this.provider.naming.getStreamLogicalId(
               functionName,
@@ -455,6 +446,7 @@ events:
 
         // update the PolicyDocument statements (if default policy is used)
         if (
+          !skipGlobalRolePermissions &&
           this.serverless.service.provider.compiledCloudFormationTemplate
             .Resources.IamRoleLambdaExecution
         ) {

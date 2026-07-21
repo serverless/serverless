@@ -358,5 +358,58 @@ describe('AwsCompileMSKEvents', () => {
 
       expect(statements.length).toBe(0)
     })
+
+    it('should not add MSK statements to the global role for functions with per-function IAM config', () => {
+      const dedicatedArn =
+        'arn:aws:kafka:us-east-1:111111111111:cluster/DedicatedCluster/b2b2b2b2b2b2b2b2b'
+
+      awsCompileMSKEvents.serverless.service.functions = {
+        first: {
+          name: 'first',
+          iam: { role: { statements: [] } },
+          events: [
+            {
+              msk: {
+                arn: dedicatedArn,
+                topic,
+              },
+            },
+          ],
+        },
+        second: {
+          name: 'second',
+          events: [
+            {
+              msk: {
+                arn: mskArn,
+                topic,
+              },
+            },
+          ],
+        },
+      }
+
+      awsCompileMSKEvents.compileMSKEvents()
+
+      const resources =
+        awsCompileMSKEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+
+      const eventSourceMappings = Object.entries(resources).filter(
+        ([, r]) => r.Type === 'AWS::Lambda::EventSourceMapping',
+      )
+      // both functions still get their EventSourceMapping resources
+      expect(eventSourceMappings.length).toBe(2)
+
+      const iamRole = resources.IamRoleLambdaExecution
+      const statements = iamRole.Properties.Policies[0].PolicyDocument.Statement
+      const allResources = statements.flatMap((s) => s.Resource || [])
+
+      // 'first' uses a dedicated per-function role: its MSK cluster ARN must
+      // not leak into the shared role's policy
+      expect(allResources).not.toContain(dedicatedArn)
+      // 'second' has no per-function IAM config: it still shares the global role
+      expect(allResources).toContain(mskArn)
+    })
   })
 })

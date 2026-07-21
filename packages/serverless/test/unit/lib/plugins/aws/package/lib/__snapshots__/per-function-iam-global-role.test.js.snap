@@ -1,0 +1,348 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`per-function IAM: composed global-role pipeline scenario 3: byte-identity — global role with no per-function IAM config matches recorded snapshot 1`] = `
+{
+  "Properties": {
+    "AssumeRolePolicyDocument": {
+      "Statement": [
+        {
+          "Action": [
+            "sts:AssumeRole",
+          ],
+          "Effect": "Allow",
+          "Principal": {
+            "Service": [
+              "lambda.amazonaws.com",
+            ],
+          },
+        },
+      ],
+      "Version": "2012-10-17",
+    },
+    "Path": "/",
+    "Policies": [
+      {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "logs:CreateLogStream",
+                "logs:CreateLogGroup",
+                "logs:TagResource",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Sub": "arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:/aws/lambda/my-service-dev*:*",
+                },
+              ],
+            },
+            {
+              "Action": [
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Sub": "arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:/aws/lambda/my-service-dev*:*:*",
+                },
+              ],
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+                "dynamodb:DescribeStream",
+                "dynamodb:ListStreams",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:123456789012:table/t1/stream/2024-01-01T00:00:00.000",
+              ],
+            },
+            {
+              "Action": [
+                "sqs:ReceiveMessage",
+                "sqs:DeleteMessage",
+                "sqs:GetQueueAttributes",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:sqs:us-east-1:123456789012:my-queue",
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": {
+          "Fn::Join": [
+            "-",
+            [
+              "my-service",
+              "dev",
+              "lambda",
+            ],
+          ],
+        },
+      },
+    ],
+    "RoleName": {
+      "Fn::Join": [
+        "-",
+        [
+          "my-service",
+          "dev",
+          {
+            "Ref": "AWS::Region",
+          },
+          "lambdaRole",
+        ],
+      ],
+    },
+  },
+  "Type": "AWS::IAM::Role",
+}
+`;
+
+exports[`per-function IAM: composed global-role pipeline scenario 6: mode perFunction — no global role, per-function roles carry stream grants, full template matches snapshot 1`] = `
+{
+  "OneEventSourceMappingDynamodbT1": {
+    "DependsOn": "OneIamRoleLambdaExecution",
+    "Properties": {
+      "BatchSize": 10,
+      "Enabled": true,
+      "EventSourceArn": "arn:aws:dynamodb:us-east-1:123456789012:table/t1/stream/2024-01-01T00:00:00.000",
+      "FunctionName": {
+        "Fn::GetAtt": [
+          "OneLambdaFunction",
+          "Arn",
+        ],
+      },
+      "ParallelizationFactor": undefined,
+      "StartingPosition": "TRIM_HORIZON",
+    },
+    "Type": "AWS::Lambda::EventSourceMapping",
+  },
+  "OneIamRoleLambdaExecution": {
+    "Properties": {
+      "AssumeRolePolicyDocument": {
+        "Statement": [
+          {
+            "Action": [
+              "sts:AssumeRole",
+            ],
+            "Effect": "Allow",
+            "Principal": {
+              "Service": [
+                "lambda.amazonaws.com",
+              ],
+            },
+          },
+        ],
+        "Version": "2012-10-17",
+      },
+      "ManagedPolicyArns": [],
+      "Path": "/",
+      "Policies": [
+        {
+          "PolicyDocument": {
+            "Statement": [
+              {
+                "Action": [
+                  "logs:CreateLogStream",
+                  "logs:CreateLogGroup",
+                  "logs:PutLogEvents",
+                ],
+                "Effect": "Allow",
+                "Resource": [
+                  {
+                    "Fn::Sub": "arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:/aws/lambda/undefined:*:*",
+                  },
+                ],
+              },
+              {
+                "Action": [
+                  "dynamodb:GetRecords",
+                  "dynamodb:GetShardIterator",
+                  "dynamodb:DescribeStream",
+                  "dynamodb:ListStreams",
+                ],
+                "Effect": "Allow",
+                "Resource": [
+                  "arn:aws:dynamodb:us-east-1:123456789012:table/t1/stream/2024-01-01T00:00:00.000",
+                ],
+              },
+            ],
+            "Version": "2012-10-17",
+          },
+          "PolicyName": {
+            "Fn::Join": [
+              "-",
+              [
+                "my-service",
+                "dev",
+                "lambda",
+              ],
+            ],
+          },
+        },
+      ],
+      "RoleName": {
+        "Fn::Join": [
+          "-",
+          [
+            "my-service",
+            "dev",
+            "one",
+            {
+              "Ref": "AWS::Region",
+            },
+            "lambdaRole",
+          ],
+        ],
+      },
+    },
+    "Type": "AWS::IAM::Role",
+  },
+  "OneLambdaFunction": {
+    "DependsOn": [
+      "OneIamRoleLambdaExecution",
+    ],
+    "Properties": {
+      "FunctionName": "one",
+      "Role": {
+        "Fn::GetAtt": [
+          "OneIamRoleLambdaExecution",
+          "Arn",
+        ],
+      },
+    },
+    "Type": "AWS::Lambda::Function",
+  },
+  "OneLogGroup": {
+    "Properties": {
+      "LogGroupName": "/aws/lambda/undefined",
+    },
+    "Type": "AWS::Logs::LogGroup",
+  },
+  "TwoEventSourceMappingDynamodbT2": {
+    "DependsOn": "TwoIamRoleLambdaExecution",
+    "Properties": {
+      "BatchSize": 10,
+      "Enabled": true,
+      "EventSourceArn": "arn:aws:dynamodb:us-east-1:123456789012:table/t2/stream/2024-01-01T00:00:00.000",
+      "FunctionName": {
+        "Fn::GetAtt": [
+          "TwoLambdaFunction",
+          "Arn",
+        ],
+      },
+      "ParallelizationFactor": undefined,
+      "StartingPosition": "TRIM_HORIZON",
+    },
+    "Type": "AWS::Lambda::EventSourceMapping",
+  },
+  "TwoIamRoleLambdaExecution": {
+    "Properties": {
+      "AssumeRolePolicyDocument": {
+        "Statement": [
+          {
+            "Action": [
+              "sts:AssumeRole",
+            ],
+            "Effect": "Allow",
+            "Principal": {
+              "Service": [
+                "lambda.amazonaws.com",
+              ],
+            },
+          },
+        ],
+        "Version": "2012-10-17",
+      },
+      "ManagedPolicyArns": [],
+      "Path": "/",
+      "Policies": [
+        {
+          "PolicyDocument": {
+            "Statement": [
+              {
+                "Action": [
+                  "logs:CreateLogStream",
+                  "logs:CreateLogGroup",
+                  "logs:PutLogEvents",
+                ],
+                "Effect": "Allow",
+                "Resource": [
+                  {
+                    "Fn::Sub": "arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:/aws/lambda/undefined:*:*",
+                  },
+                ],
+              },
+              {
+                "Action": [
+                  "dynamodb:GetRecords",
+                  "dynamodb:GetShardIterator",
+                  "dynamodb:DescribeStream",
+                  "dynamodb:ListStreams",
+                ],
+                "Effect": "Allow",
+                "Resource": [
+                  "arn:aws:dynamodb:us-east-1:123456789012:table/t2/stream/2024-01-01T00:00:00.000",
+                ],
+              },
+            ],
+            "Version": "2012-10-17",
+          },
+          "PolicyName": {
+            "Fn::Join": [
+              "-",
+              [
+                "my-service",
+                "dev",
+                "lambda",
+              ],
+            ],
+          },
+        },
+      ],
+      "RoleName": {
+        "Fn::Join": [
+          "-",
+          [
+            "my-service",
+            "dev",
+            "two",
+            {
+              "Ref": "AWS::Region",
+            },
+            "lambdaRole",
+          ],
+        ],
+      },
+    },
+    "Type": "AWS::IAM::Role",
+  },
+  "TwoLambdaFunction": {
+    "DependsOn": [
+      "TwoIamRoleLambdaExecution",
+    ],
+    "Properties": {
+      "FunctionName": "two",
+      "Role": {
+        "Fn::GetAtt": [
+          "TwoIamRoleLambdaExecution",
+          "Arn",
+        ],
+      },
+    },
+    "Type": "AWS::Lambda::Function",
+  },
+  "TwoLogGroup": {
+    "Properties": {
+      "LogGroupName": "/aws/lambda/undefined",
+    },
+    "Type": "AWS::Logs::LogGroup",
+  },
+}
+`;

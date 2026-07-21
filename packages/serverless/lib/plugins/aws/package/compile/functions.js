@@ -9,6 +9,7 @@ import parseS3URI from '../../utils/parse-s3-uri.js'
 import resolveFileSystemType from '../../utils/resolve-file-system-type.js'
 import { LOG_GROUP_CLASSES } from '../../lib/naming.js'
 import { log, ServerlessError } from '@serverless/util'
+import usesDedicatedPerFunctionRole from '../lib/uses-dedicated-per-function-role.js'
 
 const defaultCors = {
   allowedOrigins: ['*'],
@@ -184,6 +185,11 @@ class AwsCompileFunctions {
     const functionObject = this.serverless.service.getFunction(functionName)
     functionObject.package = functionObject.package || {}
     const enforceHashUpdate = this.options['enforce-hash-update']
+    const usesDedicatedRole = usesDedicatedPerFunctionRole({
+      functionObject,
+      serverless: this.serverless,
+      awsProvider: this.provider,
+    })
 
     if (!functionObject.handler && !functionObject.image) {
       throw new ServerlessError(
@@ -577,7 +583,7 @@ class AwsCompileFunctions {
         }
 
         // update the PolicyDocument statements (if default policy is used)
-        if (iamRoleLambdaExecution) {
+        if (iamRoleLambdaExecution && !usesDedicatedRole) {
           iamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement.push(
             {
               Effect: 'Allow',
@@ -606,7 +612,7 @@ class AwsCompileFunctions {
         // update the PolicyDocument statements (if default policy is used)
         const iamRoleLambdaExecution =
           cfTemplate.Resources.IamRoleLambdaExecution
-        if (iamRoleLambdaExecution) {
+        if (iamRoleLambdaExecution && !usesDedicatedRole) {
           iamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement =
             _.unionWith(
               iamRoleLambdaExecution.Properties.Policies[0].PolicyDocument
@@ -774,7 +780,7 @@ class AwsCompileFunctions {
       }
 
       // update the PolicyDocument statements (if default policy is used)
-      if (iamRoleLambdaExecution) {
+      if (iamRoleLambdaExecution && !usesDedicatedRole) {
         iamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement.push(
           stmt,
         )
@@ -1254,13 +1260,15 @@ class AwsCompileFunctions {
 
     if (destinations) {
       const executionRole = this.provider.getCustomExecutionRole(functionObject)
-      // Check if per-function IAM roles are enabled - in that case, permissions
-      // are handled by roles-per-function-permissions.js, not by the shared role
-      const iamRole = _.get(this.serverless.service, 'provider.iam.role', {})
-      const perFunctionIamRoleEnabled =
-        _.isObject(iamRole) && iamRole.mode === 'perFunction'
+      const usesDedicatedRole = usesDedicatedPerFunctionRole({
+        functionObject,
+        serverless: this.serverless,
+        awsProvider: this.provider,
+      })
+      // Permissions are handled by roles-per-function-permissions.js whenever
+      // the function ends up on a dedicated (or custom) role.
       const hasAccessPoliciesHandledExternally =
-        Boolean(executionRole) || perFunctionIamRoleEnabled
+        Boolean(executionRole) || usesDedicatedRole
 
       if (destinations.onSuccess) {
         destinationConfig.OnSuccess = {
@@ -1324,9 +1332,21 @@ class AwsCompileFunctions {
 
   // Memoized in a constructor
   ensureTargetExecutionPermission(destinationsProperty) {
-    const iamPolicyStatements =
+    const iamRoleLambdaExecution =
       this.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        .IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement
+        .IamRoleLambdaExecution
+
+    // The shared role does not exist when per-function IAM mode is enabled
+    // (or an external per-function IAM plugin is handling permissions on its
+    // own). In that case there is no shared policy to append to, so this is
+    // a no-op — mirroring the guards used elsewhere in this file (e.g. the
+    // tracing and durable-functions permission writers).
+    if (!iamRoleLambdaExecution) {
+      return
+    }
+
+    const iamPolicyStatements =
+      iamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement
 
     const action = (() => {
       if (typeof destinationsProperty === 'object') {

@@ -2,6 +2,7 @@ import _ from 'lodash'
 import path from 'path'
 import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
 import buildFunctionLogGroupResources from './function-log-groups.js'
+import usesDedicatedPerFunctionRole from './uses-dedicated-per-function-role.js'
 
 export default {
   mergeIamTemplates() {
@@ -127,9 +128,31 @@ export default {
         this.provider.naming.getRoleLogicalId()
       ].Properties.Policies[0].PolicyDocument.Statement
 
+    // Emits a Deny statement blocking logs:PutLogEvents for the given
+    // (canonically named, disableLogs) functions' log groups.
+    const emitDisableLogsDeny = (functionNames) => {
+      const arnOfDisableLogGroups = functionNames.map((functionName) => {
+        return {
+          'Fn::Sub':
+            'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+            `:log-group:${this.provider.naming.getLogGroupName(
+              functionName,
+            )}:*`,
+        }
+      })
+      this.mergeStatements([
+        {
+          Effect: 'Deny',
+          Action: 'logs:PutLogEvents',
+          Resource: arnOfDisableLogGroups,
+        },
+      ])
+    }
+
     let hasOneOrMoreCanonicallyNamedFunctions = false
     const disableLogsCanonicallyNamedFunctions = []
     const allowedLogGroups = []
+    let skippedDedicatedLogContributions = false
 
     // Ensure policies for functions with custom name resolution
     this.serverless.service.getAllFunctions().forEach((functionName) => {
@@ -153,24 +176,34 @@ export default {
       }
 
       if (!areLogsDisabled && !allowedLogGroups.includes(customLogGroupName)) {
-        const customFunctionNamelogGroupsPrefix =
-          customLogGroupName ??
-          this.provider.naming.getLogGroupName(resolvedFunctionName, {
-            logGroupClass: this.provider.getLogGroupClass(functionObject),
+        const skipGlobalRolePermissions = usesDedicatedPerFunctionRole({
+          functionObject,
+          serverless: this.serverless,
+          awsProvider: this.provider,
+        })
+
+        if (!skipGlobalRolePermissions) {
+          const customFunctionNamelogGroupsPrefix =
+            customLogGroupName ??
+            this.provider.naming.getLogGroupName(resolvedFunctionName, {
+              logGroupClass: this.provider.getLogGroupClass(functionObject),
+            })
+
+          policyDocumentStatements[0].Resource.push({
+            'Fn::Sub':
+              'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+              `:log-group:${customFunctionNamelogGroupsPrefix}:*`,
           })
 
-        policyDocumentStatements[0].Resource.push({
-          'Fn::Sub':
-            'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
-            `:log-group:${customFunctionNamelogGroupsPrefix}:*`,
-        })
-
-        policyDocumentStatements[1].Resource.push({
-          'Fn::Sub':
-            'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
-            `:log-group:${customFunctionNamelogGroupsPrefix}:*:*`,
-        })
-        allowedLogGroups.push(customFunctionNamelogGroupsPrefix)
+          policyDocumentStatements[1].Resource.push({
+            'Fn::Sub':
+              'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+              `:log-group:${customFunctionNamelogGroupsPrefix}:*:*`,
+          })
+          allowedLogGroups.push(customFunctionNamelogGroupsPrefix)
+        } else {
+          skippedDedicatedLogContributions = true
+        }
       }
     })
 
@@ -189,24 +222,33 @@ export default {
       })
       if (disableLogsCanonicallyNamedFunctions.length > 0) {
         // add deny rule for disabled logs function
-        const arnOfDisableLogGroups = disableLogsCanonicallyNamedFunctions.map(
-          (functionName) => {
-            return {
-              'Fn::Sub':
-                'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
-                `:log-group:${this.provider.naming.getLogGroupName(
-                  functionName,
-                )}:*`,
-            }
-          },
-        )
-        this.mergeStatements([
-          {
-            Effect: 'Deny',
-            Action: 'logs:PutLogEvents',
-            Resource: arnOfDisableLogGroups,
-          },
-        ])
+        emitDisableLogsDeny(disableLogsCanonicallyNamedFunctions)
+      }
+    }
+
+    if (
+      skippedDedicatedLogContributions &&
+      policyDocumentStatements[0].Resource.length === 0 &&
+      policyDocumentStatements[1].Resource.length === 0
+    ) {
+      // All log-contributing functions have dedicated roles; keep the shared
+      // role's log statements valid (IAM rejects empty Resource arrays).
+      policyDocumentStatements[0].Resource.push({
+        'Fn::Sub':
+          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+          `:log-group:${logGroupsPrefix}*:*`,
+      })
+      policyDocumentStatements[1].Resource.push({
+        'Fn::Sub':
+          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+          `:log-group:${logGroupsPrefix}*:*:*`,
+      })
+      if (disableLogsCanonicallyNamedFunctions.length > 0) {
+        // The wildcard Allow above covers every canonical log group,
+        // including those of disableLogs functions (their Deny was skipped
+        // above because hasOneOrMoreCanonicallyNamedFunctions was false).
+        // Emit the Deny here too, or disableLogs would be silently ignored.
+        emitDisableLogsDeny(disableLogsCanonicallyNamedFunctions)
       }
     }
 

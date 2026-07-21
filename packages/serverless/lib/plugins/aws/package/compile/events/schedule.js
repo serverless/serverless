@@ -1,5 +1,6 @@
 import ServerlessError from '../../../../../serverless-error.js'
 import resolveLambdaTarget from '../../../utils/resolve-lambda-target.js'
+import usesDedicatedPerFunctionRole from '../../lib/uses-dedicated-per-function-role.js'
 import { log, style } from '@serverless/util'
 
 const rateSyntax =
@@ -149,6 +150,11 @@ events:
 
     this.serverless.service.getAllFunctions().forEach((functionName) => {
       const functionObj = this.serverless.service.getFunction(functionName)
+      const skipGlobalRolePermissions = usesDedicatedPerFunctionRole({
+        functionObject: functionObj,
+        serverless: this.serverless,
+        awsProvider: this.provider,
+      })
       let scheduleNumberInFunction = 0
       let functionHasSchedulerEvent = false
 
@@ -351,7 +357,7 @@ events:
         })
       }
 
-      if (functionHasSchedulerEvent) {
+      if (functionHasSchedulerEvent && !skipGlobalRolePermissions) {
         const functionArnWithVars =
           'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}' +
           `:function:${functionObj.name}`
@@ -375,22 +381,27 @@ events:
           )}`,
         )
       } else {
-        const lambdaAssumeStatement =
-          resources.IamRoleLambdaExecution.Properties.AssumeRolePolicyDocument.Statement.find(
-            (statement) =>
-              statement.Principal.Service.includes('lambda.amazonaws.com'),
-          )
-        if (lambdaAssumeStatement) {
-          lambdaAssumeStatement.Principal.Service.push(
-            'scheduler.amazonaws.com',
-          )
-        }
-
         const policyDocumentStatements =
           resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument
             .Statement
 
-        policyDocumentStatements.push(schedulerStatement)
+        // Add the Scheduler trust principal and invoke statement together, only
+        // when at least one scheduler function uses the shared role. If every
+        // scheduler function has a dedicated role, the shared role gains neither —
+        // it should not trust a principal it grants nothing to.
+        if (schedulerStatement.Resource.length) {
+          const lambdaAssumeStatement =
+            resources.IamRoleLambdaExecution.Properties.AssumeRolePolicyDocument.Statement.find(
+              (statement) =>
+                statement.Principal.Service.includes('lambda.amazonaws.com'),
+            )
+          if (lambdaAssumeStatement) {
+            lambdaAssumeStatement.Principal.Service.push(
+              'scheduler.amazonaws.com',
+            )
+          }
+          policyDocumentStatements.push(schedulerStatement)
+        }
       }
     }
   }

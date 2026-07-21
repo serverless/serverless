@@ -750,6 +750,37 @@ describe('AwsCompileFunctions', () => {
       })
     })
 
+    it('should NOT add IAM permissions to the shared role when function uses a dedicated per-function role', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        trigger: {
+          handler: 'handler',
+          name: 'trigger',
+          iam: { role: { statements: [] } },
+          destinations: {
+            onFailure: { type: 'sqs', arn: 'arn:aws:sqs:us-east-1:123:queue' },
+          },
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      // EventInvokeConfig should still be created
+      expect(resources.TriggerLambdaEventInvokeConfig).toBeDefined()
+      expect(
+        resources.TriggerLambdaEventInvokeConfig.Properties.DestinationConfig
+          .OnFailure.Destination,
+      ).toBe('arn:aws:sqs:us-east-1:123:queue')
+      // Should NOT modify IamRoleLambdaExecution policies
+      const policy =
+        resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument
+          .Statement
+      const permission = policy.find((s) => s.Action === 'sqs:SendMessage')
+      expect(permission).toBeUndefined()
+    })
+
     it('should NOT add IAM permissions if custom role is used', async () => {
       awsCompileFunctions.serverless.service.functions = {
         trigger: {
@@ -817,6 +848,59 @@ describe('AwsCompileFunctions', () => {
         resources.TriggerLambdaEventInvokeConfig.Properties.DestinationConfig
           .OnFailure.Destination,
       ).toBe('arn:aws:lambda:us-east-1:123456789012:function:target')
+    })
+
+    it('should NOT throw when the external per-function IAM plugin is installed, perFunction mode is enabled, and IamRoleLambdaExecution is absent', async () => {
+      // Remove IamRoleLambdaExecution to simulate per-function IAM mode
+      // where the shared role does not exist
+      delete awsCompileFunctions.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution
+
+      // Set per-function IAM mode
+      awsCompileFunctions.serverless.service.provider.iam = {
+        role: { mode: 'perFunction' },
+      }
+
+      // Real AwsProvider#getCustomExecutionRole only treats `iam.role` as a
+      // custom execution role when it's an existing-role reference (string
+      // ARN or an object with an Fn::GetAtt/Ref-style key). A bare
+      // `{ mode: 'perFunction' }` config is not one, so it resolves to null
+      // here (the beforeEach mock is a simplified stand-in that would
+      // otherwise treat any truthy `iam.role` as a custom role).
+      provider.getCustomExecutionRole = jest.fn(() => null)
+
+      // Simulate the external serverless-iam-roles-per-function plugin being
+      // installed: usesDedicatedPerFunctionRole treats its presence as
+      // "permissions handled elsewhere" and returns false, so
+      // ensureTargetExecutionPermission runs even in perFunction mode.
+      awsCompileFunctions.serverless.pluginManager.getPlugins = jest.fn(() => [
+        { constructor: { name: 'ServerlessIamPerFunctionPlugin' } },
+      ])
+
+      awsCompileFunctions.serverless.service.functions = {
+        trigger: {
+          handler: 'handler',
+          name: 'trigger',
+          destinations: {
+            onFailure: 'arn:aws:sqs:us-east-1:123:queue',
+          },
+        },
+      }
+
+      // This should NOT throw a TypeError from dereferencing the
+      // (non-existent) IamRoleLambdaExecution resource.
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      // EventInvokeConfig should still be created
+      expect(resources.TriggerLambdaEventInvokeConfig).toBeDefined()
+      expect(
+        resources.TriggerLambdaEventInvokeConfig.Properties.DestinationConfig
+          .OnFailure.Destination,
+      ).toBe('arn:aws:sqs:us-east-1:123:queue')
+      expect(resources.IamRoleLambdaExecution).toBeUndefined()
     })
   })
 
@@ -932,6 +1016,49 @@ describe('AwsCompileFunctions', () => {
           resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument
             .Statement
         expect(policy).toContainEqual({
+          Effect: 'Allow',
+          Action: [
+            'elasticfilesystem:ClientMount',
+            'elasticfilesystem:ClientWrite',
+          ],
+          Resource: [
+            'arn:aws:elasticfilesystem:us-east-1:123:access-point/fsap-1',
+          ],
+        })
+      })
+
+      it('should not add EFS permissions to the shared role when function uses a dedicated per-function role', async () => {
+        awsCompileFunctions.serverless.service.functions = {
+          func: {
+            handler: 'handler',
+            name: 'func',
+            iam: { role: { statements: [] } },
+            vpc: { securityGroupIds: ['sg-1'], subnetIds: ['sub-1'] },
+            fileSystemConfig: {
+              localMountPath: '/mnt/efs',
+              arn: 'arn:aws:elasticfilesystem:us-east-1:123:access-point/fsap-1',
+            },
+          },
+        }
+
+        await awsCompileFunctions.compileFunctions()
+
+        const resources =
+          awsCompileFunctions.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+        const props = resources.FuncLambdaFunction.Properties
+
+        expect(props.FileSystemConfigs).toEqual([
+          {
+            Arn: 'arn:aws:elasticfilesystem:us-east-1:123:access-point/fsap-1',
+            LocalMountPath: '/mnt/efs',
+          },
+        ])
+
+        const policy =
+          resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument
+            .Statement
+        expect(policy).not.toContainEqual({
           Effect: 'Allow',
           Action: [
             'elasticfilesystem:ClientMount',
@@ -1322,6 +1449,37 @@ describe('AwsCompileFunctions', () => {
       })
     })
 
+    it('should not add onError permissions to the shared role when function uses a dedicated per-function role', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          iam: { role: { statements: [] } },
+          onError: 'arn:aws:sns:us-east-1:123:topic',
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      const props = resources.FuncLambdaFunction.Properties
+
+      expect(props.DeadLetterConfig).toEqual({
+        TargetArn: 'arn:aws:sns:us-east-1:123:topic',
+      })
+
+      const policy =
+        resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument
+          .Statement
+      expect(policy).not.toContainEqual({
+        Effect: 'Allow',
+        Action: ['sns:Publish'],
+        Resource: ['arn:aws:sns:us-east-1:123:topic'],
+      })
+    })
+
     it('should configure KMS Key ARN (function level) and IAM permissions', async () => {
       awsCompileFunctions.serverless.service.functions = {
         func: {
@@ -1344,6 +1502,35 @@ describe('AwsCompileFunctions', () => {
         resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument
           .Statement
       expect(policy).toContainEqual({
+        Effect: 'Allow',
+        Action: ['kms:Decrypt'],
+        Resource: ['arn:aws:kms:us-east-1:123:key'],
+      })
+    })
+
+    it('should not add KMS permissions to the shared role when function uses a dedicated per-function role', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          iam: { role: { statements: [] } },
+          kmsKeyArn: 'arn:aws:kms:us-east-1:123:key',
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      const props = resources.FuncLambdaFunction.Properties
+
+      expect(props.KmsKeyArn).toBe('arn:aws:kms:us-east-1:123:key')
+
+      const policy =
+        resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument
+          .Statement
+      expect(policy).not.toContainEqual({
         Effect: 'Allow',
         Action: ['kms:Decrypt'],
         Resource: ['arn:aws:kms:us-east-1:123:key'],

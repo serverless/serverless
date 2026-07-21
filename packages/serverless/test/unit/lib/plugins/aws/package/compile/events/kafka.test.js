@@ -602,5 +602,63 @@ describe('AwsCompileKafkaEvents', () => {
         URI: 'subnet:subnet-3',
       })
     })
+
+    it('should not add kafka statements to the global role for functions with per-function IAM config', () => {
+      const dedicatedSecretArn =
+        'arn:aws:secretsmanager:us-east-1:01234567890:secret:DedicatedSaslAuth'
+
+      awsCompileKafkaEvents.serverless.service.functions = {
+        first: {
+          iam: { role: { statements: [] } },
+          events: [
+            {
+              kafka: {
+                topic,
+                bootstrapServers,
+                accessConfigurations: {
+                  saslScram256Auth: [dedicatedSecretArn],
+                },
+              },
+            },
+          ],
+        },
+        second: {
+          events: [
+            {
+              kafka: {
+                topic,
+                bootstrapServers,
+                accessConfigurations: {
+                  saslScram256Auth: [saslScram256AuthArn],
+                },
+              },
+            },
+          ],
+        },
+      }
+
+      awsCompileKafkaEvents.compileKafkaEvents()
+
+      const resources =
+        awsCompileKafkaEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+
+      const eventSourceMappings = Object.entries(resources).filter(
+        ([, r]) => r.Type === 'AWS::Lambda::EventSourceMapping',
+      )
+      // both functions still get their EventSourceMapping resources
+      expect(eventSourceMappings).toHaveLength(2)
+
+      const statements =
+        resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument
+          .Statement
+      const allResources = statements.flatMap((s) => s.Resource || [])
+
+      // 'first' uses a dedicated per-function role: its secret ARN must not
+      // leak into the shared role's policy
+      expect(allResources).not.toContain(dedicatedSecretArn)
+      // 'second' has no per-function IAM config: it still shares the global role
+      expect(allResources).toContain(saslScram256AuthArn)
+    })
   })
 })

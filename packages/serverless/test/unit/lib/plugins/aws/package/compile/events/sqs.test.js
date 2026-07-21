@@ -373,6 +373,51 @@ describe('AwsCompileSQSEvents', () => {
       expect(eventSourceMappings.length).toBe(2)
     })
 
+    it('does not add queue ARNs of dedicated-role functions to the shared role', () => {
+      awsCompileSQSEvents.serverless.service.functions = {
+        first: {
+          iam: { role: { statements: [] } },
+          events: [
+            {
+              sqs: 'arn:aws:sqs:region:account:Queue1',
+            },
+          ],
+        },
+        second: {
+          events: [
+            {
+              sqs: 'arn:aws:sqs:region:account:Queue2',
+            },
+          ],
+        },
+      }
+
+      awsCompileSQSEvents.compileSQSEvents()
+
+      const resources =
+        awsCompileSQSEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+
+      const eventSourceMappings = Object.entries(resources).filter(
+        ([, resource]) => resource.Type === 'AWS::Lambda::EventSourceMapping',
+      )
+      expect(eventSourceMappings.length).toBe(2)
+
+      const statements =
+        resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument
+          .Statement
+      const sqsStatement = statements.find(
+        (s) => s.Action && s.Action.includes('sqs:ReceiveMessage'),
+      )
+
+      expect(sqsStatement.Resource).not.toContain(
+        'arn:aws:sqs:region:account:Queue1',
+      )
+      expect(sqsStatement.Resource).toContain(
+        'arn:aws:sqs:region:account:Queue2',
+      )
+    })
+
     it('should support filterPatterns', () => {
       awsCompileSQSEvents.serverless.service.functions = {
         first: {

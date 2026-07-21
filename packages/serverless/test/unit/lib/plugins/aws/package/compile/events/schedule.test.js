@@ -523,5 +523,131 @@ describe('AwsCompileScheduledEvents', () => {
 
       expect(scheduleResources.length).toBe(0)
     })
+
+    describe('per-function dedicated role guard', () => {
+      beforeEach(() => {
+        const resources =
+          awsCompileScheduledEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+
+        resources.SecondLambdaFunction = {
+          Type: 'AWS::Lambda::Function',
+          Properties: {
+            FunctionName: 'second',
+            Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
+          },
+        }
+
+        resources.IamRoleLambdaExecution = {
+          Properties: {
+            AssumeRolePolicyDocument: {
+              Statement: [
+                {
+                  Principal: { Service: ['lambda.amazonaws.com'] },
+                },
+              ],
+            },
+            Policies: [
+              {
+                PolicyDocument: {
+                  Statement: [],
+                },
+              },
+            ],
+          },
+        }
+      })
+
+      it('does not add scheduler invoke ARNs of dedicated-role functions to the shared role', () => {
+        awsCompileScheduledEvents.serverless.service.functions = {
+          first: {
+            name: 'first',
+            iam: { role: { statements: [] } },
+            events: [
+              {
+                schedule: {
+                  rate: ['rate(5 minutes)'],
+                  method: METHOD_SCHEDULER,
+                },
+              },
+            ],
+          },
+          second: {
+            name: 'second',
+            events: [
+              {
+                schedule: {
+                  rate: ['rate(5 minutes)'],
+                  method: METHOD_SCHEDULER,
+                },
+              },
+            ],
+          },
+        }
+
+        awsCompileScheduledEvents.compileScheduledEvents()
+
+        const resources =
+          awsCompileScheduledEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+
+        const statements =
+          resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument
+            .Statement
+        const schedulerStatement = statements.find(
+          (s) => s.Action && s.Action.includes('lambda:InvokeFunction'),
+        )
+
+        expect(schedulerStatement).toBeDefined()
+        const resourceStrings = JSON.stringify(schedulerStatement.Resource)
+        expect(resourceStrings).not.toContain(':function:first')
+        expect(resourceStrings).toContain(':function:second')
+      })
+
+      it('omits the scheduler statement entirely when all scheduler functions have dedicated roles', () => {
+        awsCompileScheduledEvents.serverless.service.functions = {
+          first: {
+            name: 'first',
+            iam: { role: { statements: [] } },
+            events: [
+              {
+                schedule: {
+                  rate: ['rate(5 minutes)'],
+                  method: METHOD_SCHEDULER,
+                },
+              },
+            ],
+          },
+        }
+
+        awsCompileScheduledEvents.compileScheduledEvents()
+
+        const resources =
+          awsCompileScheduledEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+
+        const statements =
+          resources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument
+            .Statement
+        const schedulerStatement = statements.find(
+          (s) => s.Action && s.Action.includes('lambda:InvokeFunction'),
+        )
+        expect(schedulerStatement).toBeUndefined()
+
+        // The lambda-assume statement is always present on the shared role...
+        const lambdaAssumeStatement =
+          resources.IamRoleLambdaExecution.Properties.AssumeRolePolicyDocument.Statement.find(
+            (s) => s.Principal.Service.includes('lambda.amazonaws.com'),
+          )
+        expect(lambdaAssumeStatement).toBeDefined()
+
+        // ...but since every scheduler function has a dedicated role, the shared
+        // role gains no invoke permissions, so it should not trust the Scheduler
+        // service principal either.
+        expect(lambdaAssumeStatement.Principal.Service).not.toContain(
+          'scheduler.amazonaws.com',
+        )
+      })
+    })
   })
 })

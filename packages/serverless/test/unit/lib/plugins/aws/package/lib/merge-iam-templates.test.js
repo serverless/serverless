@@ -547,4 +547,106 @@ describe('mergeIamTemplates - IAM role policy', () => {
       'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/totally-custom-name-ia:*`,
     })
   })
+
+  test('omits custom log group ARNs of dedicated-role functions from the shared role', () => {
+    const { ctx, resources } = buildContext({
+      functions: {
+        one: {
+          name: 'custom-one',
+          handler: 'h.h',
+          iam: { role: { statements: [] } },
+        },
+        two: { name: 'custom-two', handler: 'h.h' },
+      },
+    })
+
+    runMerge(ctx)
+
+    const statements = getRoleStatements(resources)
+    expect(statements[0].Resource).toContainEqual({
+      'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/custom-two:*`,
+    })
+    expect(statements[0].Resource).not.toContainEqual({
+      'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/custom-one:*`,
+    })
+    expect(statements[1].Resource).toContainEqual({
+      'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/custom-two:*:*`,
+    })
+    expect(statements[1].Resource).not.toContainEqual({
+      'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/custom-one:*:*`,
+    })
+  })
+
+  test('falls back to wildcard log resources when all custom-named functions are dedicated', () => {
+    const { ctx, resources } = buildContext({
+      functions: {
+        one: {
+          name: 'custom-one',
+          handler: 'h.h',
+          iam: { role: { statements: [] } },
+        },
+      },
+    })
+
+    runMerge(ctx)
+
+    const statements = getRoleStatements(resources)
+    expect(statements[0].Resource).toEqual([
+      {
+        'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/my-service-dev*:*`,
+      },
+    ])
+    expect(statements[1].Resource).toEqual([
+      {
+        'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/my-service-dev*:*:*`,
+      },
+    ])
+  })
+
+  // Regression: the wildcard fallback (all custom-named/custom-log-group
+  // functions are dedicated, so no per-function grants get added) must not
+  // silently re-enable disableLogs for a canonically-named function. The
+  // fallback's canonical wildcard Allow covers every canonical log group,
+  // including the disabled one's — so the Deny must still be emitted.
+  test('still emits a Deny for a disableLogs function when the wildcard fallback fires', () => {
+    const { ctx, resources } = buildContext({
+      functions: {
+        dedicated: {
+          name: 'custom-dedicated',
+          handler: 'h.h',
+          iam: { role: { statements: [] } },
+          logs: { logGroup: '/custom/x' },
+        },
+        quiet: {
+          name: 'my-service-dev-quiet',
+          handler: 'h.h',
+          disableLogs: true,
+        },
+      },
+    })
+
+    runMerge(ctx)
+
+    const statements = getRoleStatements(resources)
+    // Fallback fired: canonical wildcard pair present.
+    expect(statements[0].Resource).toEqual([
+      {
+        'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/my-service-dev*:*`,
+      },
+    ])
+    expect(statements[1].Resource).toEqual([
+      {
+        'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/my-service-dev*:*:*`,
+      },
+    ])
+    // Deny must still be present for the disableLogs function.
+    const denyStatement = statements.find((s) => s.Effect === 'Deny')
+    expect(denyStatement).toBeDefined()
+    expect(denyStatement.Action).toBe('logs:PutLogEvents')
+    expect(denyStatement.Resource).toEqual([
+      {
+        'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/my-service-dev-quiet:*`,
+      },
+    ])
+  })
 })
