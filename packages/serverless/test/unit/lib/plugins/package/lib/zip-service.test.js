@@ -43,6 +43,7 @@ const { default: Package } =
   await import('../../../../../../lib/plugins/package/package.js')
 const { default: Serverless } =
   await import('../../../../../../lib/serverless.js')
+const { log: mockedLog } = await import('@serverless/util')
 
 describe('zipService', () => {
   let tmpDirPath
@@ -337,6 +338,30 @@ describe('zipService', () => {
           // Nothing is excluded; the artifact keeps all dependencies.
           expect(isExcluded(updated.exclude, 'dev-pkg')).toBe(false)
           expect(isExcluded(updated.exclude, 'prod-pkg')).toBe(false)
+        } finally {
+          process.env.PATH = originalPath
+        }
+      },
+    )
+
+    itPosix(
+      'warns and skips exclusion when only the development listing is unavailable',
+      async () => {
+        scaffoldProject()
+        const shimDir = shimNpm({ failDev: true, failProd: false })
+        const originalPath = process.env.PATH
+        process.env.PATH = `${shimDir}${path.delimiter}${originalPath}`
+        try {
+          const updated = await packagePlugin.excludeDevDependencies(params)
+          // Without the full listing there are no removal candidates; the
+          // artifact keeps all dependencies and the skip is surfaced.
+          expect(isExcluded(updated.exclude, 'dev-pkg')).toBe(false)
+          expect(isExcluded(updated.exclude, 'prod-pkg')).toBe(false)
+          expect(mockedLog.warning).toHaveBeenCalledWith(
+            expect.stringContaining(
+              'Skipping development dependency exclusion',
+            ),
+          )
         } finally {
           process.env.PATH = originalPath
         }
