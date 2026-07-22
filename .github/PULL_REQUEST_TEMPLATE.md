@@ -12,7 +12,7 @@ https://github.com/serverless/serverless/blob/main/CONTRIBUTING.md#code-style
 <!--
 ⚠️⚠️ Ensure to cover changes with tests written according to test guidelines
 https://github.com/serverless/serverless/blob/main/TESTING.md
---
+-->
 
 <!-- ⚠️⚠️ Ensure that support for Node.js v18 is maintained. -->
 
@@ -25,7 +25,7 @@ https://github.com/serverless/serverless/blob/main/TESTING.md
 
 <!--
 ⚠️⚠️ If proposed change touches integration with AWS services, confirm integration tests pass:
-https://github.com/serverless/serverless/blob/main/test/TESTING.md#integration-tests
+https://github.com/serverless/serverless/blob/main/TESTING.md#integration-tests
 -->
 
 <!-- ⚠️⚠️ After your PR is submitted, review the final CI status and address eventual failure -->

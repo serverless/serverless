@@ -8,13 +8,15 @@ Unit tests run without external dependencies and are located in each package's t
 
 ## Integration Tests
 
-Integration tests require a predefined AWS, Serverless Dashboard, and Terraform Cloud setup. They run in CI only.
+Integration tests require a predefined AWS, Serverless Dashboard, and Terraform Cloud setup. They run automatically in CI on pull requests, and can also be run locally given the setup described below.
 
 ### Running All Integration Tests
 
 ```sh
 npm test -w @serverlessinc/sf-core
 ```
+
+Note: this excludes the `domains` suite, which runs only via `npm run test:domains -w @serverlessinc/sf-core`.
 
 ### Running Specific Test Suites
 
@@ -125,6 +127,13 @@ outputs:
 - `serverlesstestaccount` organization
 - `serverless-test-01` workspace
 
+## Other Test Suites
+
+- `npm test -w @serverless/engine` — engine unit tests
+- `npm test -w @serverless/mcp` — MCP server tests (not run by any CI workflow)
+- `npm run test:python -w @serverlessinc/sf-core` — Python plugin tests (tape-based, covered by the `CI: Python Requirements` workflow)
+- `npm run test:build -w @serverlessinc/sf-core` — packaging/distribution smoke test
+
 ## Troubleshooting
 
-For any issues, refer to the `tests/integration/` directory for test implementations and configurations.
+For any issues, refer to the `packages/sf-core/tests/integration/` directory for test implementations and configurations.

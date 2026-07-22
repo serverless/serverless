@@ -35,12 +35,17 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 <br/>
 
-**January 2026** – V.4 continues to feature significant updates. Review them all below. In January 2026 we released support for numerous new features like Managed Instances, Durable Functions, Built-in AppSync & Prune plugins, and built-in AWS Login & SSO support. As always, we are more excited about the serverless future than ever.
+**July 2026** – V.4 continues to feature significant updates. Review them all below. Recent releases added Sandboxes (isolated, ephemeral compute on AWS Lambda), native Amazon Bedrock AgentCore support, Managed Instances, Durable Functions, and built-in AWS Login & SSO. As always, we are more excited about the serverless future than ever.
 
 ## New Features In V.4
 
 Here's a list of everything that's new in V.4, so far:
 
+- **Sandboxes** – Deploy isolated, ephemeral compute environments on AWS Lambda — ideal for untrusted or per-session workloads such as AI agents and code execution. [More info here](https://www.serverless.com/framework/docs/providers/aws/guide/sandboxes).
+- **Amazon Bedrock AgentCore Support** – Define AI agents, memory, tools, gateways, browsers, and code interpreters directly in `serverless.yml` via the `ai` property, and manage them with the `serverless agent` commands. [More info here](https://www.serverless.com/framework/docs/providers/aws/guide/agents).
+- **AWS Login & SSO** – Set up AWS credentials via browser-based flows with [`serverless login aws`](https://www.serverless.com/framework/docs/providers/aws/cli-reference/login-aws) and [`serverless login aws sso`](https://www.serverless.com/framework/docs/providers/aws/cli-reference/login-aws-sso).
+- **Deployment Diffs** – Preview how a deployment will change your live AWS CloudFormation stack before deploying with [`serverless diff`](https://www.serverless.com/framework/docs/providers/aws/cli-reference/diff).
+- **Reconcile Command** – Keep usage records in sync with your AWS accounts when stacks are removed outside the CLI, via [`serverless reconcile`](https://www.serverless.com/framework/docs/providers/aws/cli-reference/reconcile).
 - **Managed instances** – Native support for EC2-backed Lambda execution to enable higher throughput, predictable capacity, and long-running workloads.
 - **Durable functions** – Built-in support for durable, stateful workflows and long-running orchestrations.
 - **Lambda tenant isolation mode:** Use tenant isolation mode to create distinct Lambda compute environments per tenant to help reduce noisy neighbor effects and isolate high-traffic customers more cleanly.
@@ -50,16 +55,15 @@ Here's a list of everything that's new in V.4, so far:
 - **Improved Custom Domain Support:** You no longer need an external plugin to automatically configure custom domains and SSL certificates for your APIs and more. It's now built into the [Serverless Framework CLI](https://www.serverless.com/framework/docs/providers/aws/guide/domains).
 - **Integration with Doppler:** You can now easily fetch Secrets from Doppler via [Serverless Framework Variables](https://www.serverless.com/framework/docs/guides/variables/doppler).
 - **Introducing [Serverless MCP](https://www.serverless.com/framework/docs/guides/mcp):** Built for Cursor, Windsurf, and other AI-powered IDEs, it auto-detects cloud resources from your code, fetching logs, state, and config from AWS, enabling you to debug serverless apps directly in your IDE — no AWS console visit needed! Supports Serverless Framework, Cloudformation, and more.
-- **Introducing the [Serverless Container Framework](https://github.com/serverless/containers):** One solution to deploy serverless workloads everywhere - This is a new YAML file that works with the Serverless Framework CLI that gives you one experience to easily deploy containers to AWS Lambda and AWS ECS Fargate and migrate between them w/ zero-downtime — all without re-architecting. We launched this as a way to reduce large Lambda bills and give folks flexibility, but it is rapidly become the greatest developer experience for containers on AWS. Support for Google Cloud Run, Azure and more are coming soon.
 - **Support for AWS SAM, AWS CloudFormation, & Traditional Serverless Framework Projects:** Now, you can use one tool to deploy all three of these IaC project files. [More info here](https://www.serverless.com/framework/docs/guides/sam)
 - **Native TypeScript Support:** You can now use `.ts` handlers in your AWS Lambda functions in `serverless.yml` and have them build automatically upon deploy. [ESBuild](https://esbuild.github.io/) is now included in the Framework which makes this possible. [More info here](https://www.serverless.com/framework/docs/providers/aws/guide/building).
-- **The AWS AI Stack:** V.4 is optimized for [the AWS AI Stack](https://github.com/serverless/aws-ai-stack). Deploy a full-stack, serverless, boilerplate for AI applications on AWS, featuring Bedrock LLMs like Claude 3.5 Sonnet and Llama3.1 and much more.
+- **The AWS AI Stack:** V.4 is optimized for [the AWS AI Stack](https://github.com/serverless/aws-ai-stack). Deploy a full-stack, serverless, boilerplate for AI applications on AWS, featuring LLMs via Amazon Bedrock and much more.
 - **New Dev Mode:** Run `serverless dev` to have events from your live architecture routed to your local code, enabling you to make fast changes without deployment. [More info here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/dev).
 - **Latest Runtime Support:** Support for Node.js 24 (`nodejs24.x`), Python 3.14 (`python3.14`), and Java 25 (`java25`) on AWS Lambda.
 - **Latest Region Support:** Support for all major regions, including the newly announced `ap-southeast-6` in New Zealand.
 - **New Stages Property:** Easily organize stage-specific config via `stages` and set `default` config to fallback to.
 - **Improved Compose Experience:** Serverless Compose now has a beautiful new CLI experience that better demonstrates what is being deployed.
-- **New Terraform & Vault Integrations:** Pull state outputs from several Terraform state storage solutions, and secrets from Vault. [Terraform Docs](https://www.serverless.com/framework/docs/guides/variables/terraform) [Vault Docs](https://www.serverless.com/framework/docs/guides/variables/vault)
+- **New Terraform & Vault Integrations:** Pull state outputs from several Terraform state storage solutions, and secrets from Vault. [Terraform Docs](https://www.serverless.com/framework/docs/guides/variables/hashicorp/terraform) [Vault Docs](https://www.serverless.com/framework/docs/guides/variables/hashicorp/vault)
 - **Support Command:** Send support requests to our team [directly from the CLI](https://www.serverless.com/framework/docs/providers/aws/cli-reference/support), which auto-include contextual info which you can review before sending.
 - **Debug Summary for AI:** When you run into a bug, you can run "serverless support --ai" to generate a concise report detailing your last bug with all necessary context, optimized for pasting into AI tools such as ChatGPT.
 - **Advanced Logging Controls for AWS Lambda:** Capture Logs in JSON, increased log granularity, and setting a custom Log Group. Here is the [AWS article](https://aws.amazon.com/blogs/compute/introducing-advanced-logging-controls-for-aws-lambda-functions/). Here is the [YAML implementation](https://github.com/serverless/serverless/blob/v4.0/docs/providers/aws/guide/serverless.yml.md#logs)
@@ -67,8 +71,8 @@ Here's a list of everything that's new in V.4, so far:
 - **AWS SSO:** Environment variables, especially ones set by AWS SSO, are prioritized. The Framework and Dashboard no longer interfere with these.
 - **Automatic Updates:** These happen by default now. Though, you will be able to control the level of updates you're open to.
 - **Improved Onboarding & Set-Up:** The `serverless` command has been re-written to be more helpful when setting up a new or existing project.
-- **Updated Custom Resource Handlers:** All custom resource handlers now use `nodejs20.x`.
-- **Deprecation Of Non-AWS Providers:** Deprecation of other cloud providers, in favor of handling this better in our upcoming Serverless Framework "Extensions".
+- **Updated Custom Resource Handlers:** All custom resource handlers now use a current Node.js runtime (`nodejs22.x`).
+- **Deprecation Of Non-AWS Providers:** Other cloud providers have been deprecated. V.4 focuses on delivering the best experience on AWS.
 
 ## Breaking Changes
 
@@ -82,7 +86,7 @@ If you stumble upon additional breaking changes, please create an issue. To lear
 
 ## License Changes in V.4
 
-Please note, the structure and licensing of the V.4 repository differ from the V.4 npm module. The npm module contains some proprietary licensed software, as V.4 transitions to a common SaaS product, [as previously announced](https://www.serverless.com/blog/serverless-framework-v4-a-new-model). The original Serverless Framework source code and more will continue to remain MIT license software, the repository will soon be restructured to clearly distinguish between proprietary and open-source components.
+Please note, the structure and licensing of the V.4 repository differ from the V.4 npm module. The npm module contains some proprietary licensed software, as V.4 transitions to a common SaaS product, [as previously announced](https://www.serverless.com/blog/serverless-framework-v4-a-new-model). The original Serverless Framework source code and more will continue to remain MIT license software, and the repository is structured to clearly distinguish between proprietary and open-source components — the MIT-licensed code carries its own `LICENSE` file in `packages/serverless`, while the repository root `LICENSE` covers the proprietary components.
 
 <br/>
 
@@ -120,7 +124,7 @@ Here's how to install the Serverless Framework, set up a project and deploy it t
 
 ## Install the Serverless Framework via NPM
 
-First, you must have the [Node.js runtime](https://nodejs.org) installed, version 18.20.3 or greater, then you can install the Serverless Framework via NPM.
+First, you must have the [Node.js runtime](https://nodejs.org) installed, version 18.17.0 or greater, then you can install the Serverless Framework via NPM.
 
 Open your CLI and run the command below to install the Serverless Framework globally.
 
@@ -183,18 +187,16 @@ Welcome to Serverless Framework V.4
 Create a new project by selecting a Template to generate scaffolding for a specific use-case.
 
 ? Select A Template: …
-❯ AWS / Node.js / Starter
-  AWS / Node.js / HTTP API
-  AWS / Node.js / Scheduled Task
-  AWS / Node.js / SQS Worker
+❯ AWS / Node.js / HTTP API
   AWS / Node.js / Express API
   AWS / Node.js / Express API with DynamoDB
-  AWS / Python / Starter
+  AWS / Node.js / Scheduled Task
+  AWS / Node.js / Simple Function
   AWS / Python / HTTP API
-  AWS / Python / Scheduled Task
-  AWS / Python / SQS Worker
   AWS / Python / Flask API
   AWS / Python / Flask API with DynamoDB
+  AWS / Python / Scheduled Task
+  AWS / Python / Simple Function
   (Scroll for more)
 ```
 
@@ -263,7 +265,7 @@ No valid AWS Credentials were found in your environment variables or on your mac
 
 We recommend creating an AWS IAM Role that's stored in the Serverless Framework Dashboard. We'll be supporting a lot of Provider Credentials in the near future, and the Dashboard is a great place to keep these centralized across your team, helping you stay organized, and securely eliminating the need to keep credentials on the machines of your teammates.
 
-If you are using AWS SSO, we recommend simply pasting your temporary SSO credentials within the terminal as environment variables.
+If you are using AWS SSO, you can run [`serverless login aws sso`](https://www.serverless.com/framework/docs/providers/aws/cli-reference/login-aws-sso) to sign in via your browser, or simply paste your temporary SSO credentials within the terminal as environment variables.
 
 To learn more about setting up your AWS Credentials, [read this guide](https://www.serverless.com/framework/docs/providers/aws/guide/credentials).
 
@@ -384,9 +386,9 @@ sls invoke local --function functionName --data '{"a":"bar"}'
 
 More details on the `invoke local` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke-local)
 
-Serverless Framework also has a great plugin that allows you to run a server locally and emulate AWS API Gateway. This is the `serverless-offline` command.
+Serverless Framework also has a great plugin that allows you to run a server locally and emulate AWS API Gateway. This is the `serverless-offline` plugin.
 
-More details on the **serverless-offline** plugins command can be found [here](https://github.com/dherault/serverless-offline).
+More details on the **serverless-offline** plugin can be found [here](https://github.com/dherault/serverless-offline).
 
 <br/>
 
@@ -396,24 +398,14 @@ A big benefit of Serverless Framework is within its [Plugin ecosystem](https://s
 
 Plugins extend or overwrite the Serverless Framework, giving it new use-cases or capabilites, and there are hundreds of them.
 
+Note that some formerly popular plugins are no longer needed — their functionality is now built into the framework, including Python requirements, custom domains, AppSync, Prune, and API Gateway Service Proxy.
+
 Some of the most common Plugins are:
 
 - **[Serverless Offline](https://github.com/dherault/serverless-offline)** - Emulate AWS Lambda and API Gateway locally when developing your Serverless project.
-- **[Serverless Domain Manager](https://github.com/amplify-education/serverless-domain-manager)** - Manage custom domains with AWS API Gateways.
 - **[Serverless Step Functions](https://github.com/serverless-operations/serverless-step-functions)** - Build AWS Step Functions architectures.
-- **[Serverless Python Requirements](https://github.com/serverless/serverless-python-requirements)** - Bundle dependencies from requirements.txt and make them available in your PYTHONPATH.
 
-<br/>
-
-## Remove Your Service
-
-If you want to delete your service, run `remove`. This will delete all the AWS resources created by your project and ensure that you don't incur any unexpected charges. It will also remove the service from Serverless Dashboard.
-
-```bash
-serverless remove
-```
-
-More details on the `remove` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/remove).
+You can add a plugin to your service with [`serverless plugin install --name pluginName`](https://www.serverless.com/framework/docs/providers/aws/cli-reference/plugin-install), which installs it via npm and registers it in your `serverless.yml`.
 
 <br/>
 
@@ -455,7 +447,7 @@ services:
       queueUrl: ${service-a.queueUrl}
 ```
 
-Currently, outputs to be inherited by another Service must be AWS Cloudformation Outputs.
+Outputs to be inherited by another Service are typically defined as AWS CloudFormation Outputs:
 
 ```yaml
 # service-a/serverless.yml

@@ -2,82 +2,40 @@
 
 ## Architecture and Workflow
 
-### Runners (CLI Logic)
+`bin/sf-core.js` boots the CLI and hands every invocation to the central Router, which selects and executes a Runner. This directory is the CLI shell: the deployment business logic lives in the packages it dispatches to (primarily `packages/serverless`).
 
-Location: `/src/lib/runners/`
+### Router (`router.js`)
 
-Runners handle all CLI interactions. They parse commands, manage user input (including help and status messages), show prompts (e.g. confirmations) and call the appropriate actions. The central router (`/src/lib/router.js`) dispatches commands to the correct Runner, which may then interact with the Engine or Frameworks for deployments, removals, or information retrieval.
+The Router is the central command dispatcher. It reads the service configuration (if any), validates the command against each Runner's CLI schema, and selects the Runner whose `configFileNames`/`shouldRun` match the invocation. It also owns the cross-cutting concerns wrapped around every command run: usage and analytics event publishing, deployment records (`platform/deployments.js`), deferred notifications, Agent Skills auto-update, and the tombstone error for removed frameworks (`removed-frameworks.js`).
 
-It is important to put all CLI logic and handling in the runners. Do not put CLI logic in the Engine or Frameworks. Those are designed to be client agnostic.
+### Runners (`runners/`)
 
-### Frameworks (Business Logic)
+Runners handle all CLI interaction for a family of commands — parsing input, prompts and progress, help output — and call into the code that does the actual work. Each extends the abstract `Runner` class (`runners/index.js`); the contract is documented in [runners/README.md](runners/README.md).
 
-Location: `/src/lib/frameworks/`
+- **`CoreRunner`** (`runners/core/`) — global, service-independent commands: `login aws` / `login aws sso`, the MCP server, plugin install/uninstall/management, onboarding, support, and Agent Skills install, among others.
+- **`TraditionalRunner`** (`runners/framework.js`) — the traditional Serverless Framework experience for `serverless.yml` services. It instantiates `Serverless` from `@serverless/framework` (`packages/serverless`) and bridges the CLI's resolver and build systems into it. Most user-facing deployment behavior lives in that package, not here.
+- **`ComposeRunner`** (`runners/compose/`) — multi-service orchestration for `serverless-compose.yml`.
+- **`CfnRunner`** (`runners/cfn/`) — deploy/remove/info/print for plain CloudFormation template projects.
 
-Frameworks contain the business logic for various deployment experiences. They work independently of the CLI, providing programmatic APIs that can be used by both CLI commands and other system components. Frameworks integrate with the Engine to perform complex tasks while hiding their internal complexities behind simple interfaces.
+Keep all CLI logic in the Runners. The packages they call (`@serverless/framework`, `@serverless/engine`) are client-agnostic and must stay free of CLI concerns.
 
-Frameworks are designed to be client agnostic. They should not know anything about the CLI or the Engine. They should only know about the deployment experience they are trying to achieve.
+### Supporting modules
 
-Frameworks can save and load state. The Engine does as well but only manipulates the `state.deployment` property. Frameworks must not save/overwrite that property if they choose to save state.
-
-### Engine (Deployment and State Management)
-
-Location: `/src/lib/engine/`
-
-The Engine is responsible for deploying infrastructure, removing services, and managing development mode (devMode). It reads configuration files, interacts with resources in cloud providers, and manages state to deploy and remove services.
-
-The Engine expects a `deployment` property in the root of the Framework configuration. If your Framework does not need deployment capabilities, don't include the `deployment` property and don't instantiate the Engine.
-
-Otherwise, all deployment capabilities must be centralized in the Engine, to optimize for reusability, consistency, testing, etc.
-
-The Engine is capable of different architectural patterns by relying on Deployment Types, declared in the `deployment.type` property of the Framework configuration. It relies on Deployment Types to provide the implementation for each of the Engine's capabilities (e.g. deployment, removal, etc.).
-
-Many schemas are defined in the Engine for State and Configuration. Those should be used whenever possible. Frameworks can incorporate Engine's scehmas for many common properties, keeping their configuration DRY and easier to maintain.
-
-### Deployment Types (Architectural Patterns)
-
-Location: `/src/lib/engine/deploymentTypes/`
-
-Deployment Types implement specific architectural patterns aimed at different cloud providers or deployment scenarios (e.g., an `awsApi` deployment type for an AWS API architecture). The Engine selects the appropriate Deployment Type based on what Framework configuration files have set in `deployment.type`, allowing new cloud architectures and providers to be integrated easily.
-
-Deployment Types should rely on external utilities to improve reusability and consistency. For example, using the `aws` folder utilities to interact with AWS services, or the `docker` folder utilities to interact with Docker services. When writing a Deployment Type, put anything you feel could be reused in other Deployment Types in other areas.
-
-### devMode (Local Development Experience)
-
-Location: `/src/lib/engine/devMode/`
-
-devMode provides a consistent local development experience for Deployment Types. It was designed separately from Deployment Types because many components are reusable (e.g. running containers locally, file watching, setting up a local proxy for API calls, etc.).
-
-While DevMode is agnostic to Deployment Types, it is designed to support patterns that Deployment Types require.
-
-### AWS Utilities
-
-Location: `/src/lib/aws/`
-
-AWS Abstractions provide modules that interact with AWS services, such as ACM, ALB, CloudFormation, ECS, IAM, Lambda, Route53, S3, SSM, and VPC. Both the Engine and Deployment Types use these abstractions to interact securely with AWS while abstracting the complexity of underlying SDK calls.
-
-### Router (Command Dispatching)
-
-Location: `/src/lib/router.js`
-
-The Router serves as the central command dispatcher. It maps CLI commands to the appropriate Runner or Engine actions, validates command schemas, and handles state finalization and event publishing. This component ensures smooth command processing and robust handling of user input.
-
----
+- **`resolvers/`** — the variable-resolution engine for `${...}` placeholders: resolver providers, registry, dependency graph, and validation.
+- **`auth/`** — AWS and AWS SSO login flows, credential and config writing.
+- **`agent-skills/`** — install, manifest, and auto-update engine for the Agent Skills shipped in the repo-root `skills/` directory.
+- **`observability/`** — observability integrations (dashboard, axiom).
+- **`platform/`** — deployment records sent to the Serverless Platform.
+- **`meta/`** — persisted CLI metadata.
+- **`removed-frameworks.js`** — raises a clear `FRAMEWORK_SUPPORT_REMOVED` error when the working directory contains config for a framework the CLI no longer ships (`serverless.containers.*`, `serverless.ai.*`).
 
 ## Extending the Codebase
 
-To add new features or support additional cloud providers, follow these guidelines:
+- **New CLI command on an existing experience:**
+  Add it to the appropriate Runner's CLI schema and implementation under `runners/`, following the patterns in [runners/README.md](runners/README.md).
 
-- **New Runner or CLI Command:**
-  Add or modify files in `/src/lib/runners/` following the established patterns for command parsing and interaction with the Router.
+- **New deployment behavior for `serverless.yml` services:**
+  Implement it in `packages/serverless` (provider, plugins, config schema) — this layer only routes to it and should not gain deployment logic.
 
-- **New Framework:**
-  Develop a new framework in `/src/lib/frameworks/` to encapsulate your business logic. Ensure the framework integrates smoothly with the Engine to support deployment operations.
-
-- **New Deployment Type:**
-  Implement a new deployment pattern in `/src/lib/engine/deploymentTypes/`, similar to the `awsApi` example. This will allow support for additional cloud architectures and providers.
-
-- **Custom devMode:**
-  If a tailored local development experience is needed, extend the generic devMode in `/src/lib/engine/devMode/` while reusing as much shared code as possible.
-
-By following these guidelines and leveraging the existing patterns, new experiences and deployment strategies can be rapidly introduced without impacting existing functionality.
+- **New top-level experience (new config file type):**
+  Add a Runner class implementing the required contract (`configFileNames`, `shouldRun`, `getCliSchema`, `run`, `getServiceUniqueId`) and register it in the runner list in `router.js`.
