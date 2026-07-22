@@ -98,6 +98,9 @@ updates:
       - dependency-name: 'https-proxy-agent'
         # https-proxy-agent v9 (and agent-base v9) drop support for Node.js 18
         versions: ['>= 9.0.0']
+      - dependency-name: 'graphql'
+        # graphql v17 drops support for Node.js 18 and 20
+        versions: ['>= 17.0.0']
 
   # Maintain Go dependencies
   - package-ecosystem: 'gomod'
