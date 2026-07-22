@@ -100,4 +100,12 @@ describe('aws naming', () => {
       expect(standardOfFnLogGroupIa).not.toBe(iaOfFn)
     })
   })
+
+  describe('#getLambdaLayerS3ObjectVersionOutputLogicalId()', () => {
+    it('should normalize the layer name and add the S3ObjectVersion suffix', () => {
+      expect(
+        naming.getLambdaLayerS3ObjectVersionOutputLogicalId('test'),
+      ).toEqual('TestLambdaLayerS3ObjectVersion')
+    })
+  })
 })

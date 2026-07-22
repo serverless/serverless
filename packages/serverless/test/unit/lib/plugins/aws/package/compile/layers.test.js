@@ -90,11 +90,16 @@ describe('AwsCompileLayers', () => {
           (name) =>
             `${name.charAt(0).toUpperCase() + name.slice(1)}LambdaLayerS3Key`,
         ),
+        getLambdaLayerS3ObjectVersionOutputLogicalId: jest.fn(
+          (name) =>
+            `${name.charAt(0).toUpperCase() + name.slice(1)}LambdaLayerS3ObjectVersion`,
+        ),
         getStackName: jest.fn(() => 'my-service-dev'),
       },
       serverless,
       resolveLayerArtifactName: jest.fn((name) => `${name}.zip`),
       request: jest.fn(),
+      isReferenceCodeStorageMode: jest.fn(() => false),
     }
 
     serverless.getProvider = jest.fn(() => awsProvider)
@@ -557,6 +562,110 @@ describe('AwsCompileLayers', () => {
       const resources =
         serverless.service.provider.compiledCloudFormationTemplate.Resources
       expect(Object.keys(resources).length).toBe(0)
+    })
+  })
+
+  describe('code storage mode', () => {
+    beforeEach(() => {
+      fsAsync.readFile.mockResolvedValue(Buffer.from('mock-layer-content'))
+      serverless.service.layers = {
+        test: {
+          path: 'layer',
+        },
+      }
+    })
+
+    it('sets Content.S3ObjectStorageMode and the S3ObjectVersion output in reference mode', async () => {
+      awsCompileLayers.provider.isReferenceCodeStorageMode = () => true
+      await awsCompileLayers.compileLayer('test')
+      const template =
+        awsCompileLayers.serverless.service.provider
+          .compiledCloudFormationTemplate
+      expect(
+        template.Resources.TestLambdaLayer.Properties.Content
+          .S3ObjectStorageMode,
+      ).toBe('REFERENCE')
+      expect(template.Outputs.TestLambdaLayerS3ObjectVersion).toBeDefined()
+    })
+
+    it('sets neither mode nor output in copy mode', async () => {
+      awsCompileLayers.provider.isReferenceCodeStorageMode = () => false
+      await awsCompileLayers.compileLayer('test')
+      const template =
+        awsCompileLayers.serverless.service.provider
+          .compiledCloudFormationTemplate
+      expect(
+        template.Resources.TestLambdaLayer.Properties.Content
+          .S3ObjectStorageMode,
+      ).toBeUndefined()
+      expect(template.Outputs.TestLambdaLayerS3ObjectVersion).toBeUndefined()
+    })
+
+    it('carries the previous S3ObjectVersion when reusing an unchanged layer', async () => {
+      awsCompileLayers.provider.isReferenceCodeStorageMode = () => true
+      await awsCompileLayers.compileLayer('test')
+      const template =
+        awsCompileLayers.serverless.service.provider
+          .compiledCloudFormationTemplate
+      const sha = template.Outputs.TestLambdaLayerHash.Value
+      awsCompileLayers.provider.request = jest.fn(async () => ({
+        Stacks: [
+          {
+            Outputs: [
+              { OutputKey: 'TestLambdaLayerHash', OutputValue: sha },
+              {
+                OutputKey: 'TestLambdaLayerS3Key',
+                OutputValue: 'old/dir/test.zip',
+              },
+              {
+                OutputKey: 'TestLambdaLayerS3ObjectVersion',
+                OutputValue: 'oldVersionId123',
+              },
+            ],
+          },
+        ],
+      }))
+      await awsCompileLayers.compareWithLastLayer('test')
+      expect(template.Resources.TestLambdaLayer.Properties.Content.S3Key).toBe(
+        'old/dir/test.zip',
+      )
+      expect(
+        template.Resources.TestLambdaLayer.Properties.Content.S3ObjectVersion,
+      ).toBe('oldVersionId123')
+      expect(template.Outputs.TestLambdaLayerS3ObjectVersion.Value).toBe(
+        'oldVersionId123',
+      )
+      expect(
+        awsCompileLayers.serverless.service.getLayer('test')
+          .artifactAlreadyUploaded,
+      ).toBe(true)
+    })
+
+    it('skips reuse when the previous deployment has no S3ObjectVersion output', async () => {
+      awsCompileLayers.provider.isReferenceCodeStorageMode = () => true
+      await awsCompileLayers.compileLayer('test')
+      const template =
+        awsCompileLayers.serverless.service.provider
+          .compiledCloudFormationTemplate
+      const sha = template.Outputs.TestLambdaLayerHash.Value
+      awsCompileLayers.provider.request = jest.fn(async () => ({
+        Stacks: [
+          {
+            Outputs: [
+              { OutputKey: 'TestLambdaLayerHash', OutputValue: sha },
+              {
+                OutputKey: 'TestLambdaLayerS3Key',
+                OutputValue: 'old/dir/test.zip',
+              },
+            ],
+          },
+        ],
+      }))
+      await awsCompileLayers.compareWithLastLayer('test')
+      expect(
+        awsCompileLayers.serverless.service.getLayer('test')
+          .artifactAlreadyUploaded,
+      ).toBeUndefined()
     })
   })
 })

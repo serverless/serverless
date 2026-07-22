@@ -519,6 +519,9 @@ class AwsCompileFunctions {
       functionResource.Properties.Code.S3Key = `${
         this.serverless.service.package.artifactDirectoryName
       }/${path.basename(artifactFilePath)}`
+      if (this.provider.isReferenceCodeStorageMode()) {
+        functionResource.Properties.Code.S3ObjectStorageMode = 'REFERENCE'
+      }
       functionResource.Properties.Runtime = functionObject.runtime
     } else {
       functionResource.Properties.Code.ImageUri = functionImageUri
@@ -902,6 +905,14 @@ class AwsCompileFunctions {
       // Include function and layer configuration details in the version id hash
       for (const layerConfig of layerConfigurations) {
         delete layerConfig.properties.Content.S3Key
+        // In reference mode the layer-reuse path (compareWithLastLayer) pins
+        // `Content.S3ObjectVersion` on the layer resource at compile time. That
+        // property is absent on the first deploy (fresh layer) and present on
+        // later deploys (reused layer) for identical code, which would otherwise
+        // churn the Lambda Version logical id and defeat no-change skips. Exclude
+        // it from the digest. `S3ObjectStorageMode` is intentionally NOT excluded
+        // so a genuine storage-mode change still rotates versions.
+        delete layerConfig.properties.Content.S3ObjectVersion
       }
 
       const functionProperties = _.cloneDeep(functionResource.Properties)

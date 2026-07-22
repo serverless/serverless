@@ -1,5 +1,6 @@
 import path from 'path'
 import _ from 'lodash'
+import { log } from '@serverless/util'
 import ServerlessError from '../../../../serverless-error.js'
 
 export default {
@@ -128,6 +129,52 @@ export default {
       }
 
       return
+    }
+
+    // Reference code storage with the legacy in-stack bucket: the bucket must
+    // be versioned (Lambda pins exact object versions), and the Lambda
+    // service principal needs read access via the bucket policy.
+    if (this.provider.isReferenceCodeStorageMode()) {
+      if (
+        !deploymentBucketObject ||
+        deploymentBucketObject.versioning !== true
+      ) {
+        throw new ServerlessError(
+          '"codeStorageMode: reference" with the in-stack deployment bucket requires "deploymentBucket.versioning: true".',
+          'REFERENCE_MODE_LEGACY_BUCKET_VERSIONING_REQUIRED',
+        )
+      }
+      const deploymentBucketPolicyLogicalId =
+        this.provider.naming.getDeploymentBucketPolicyLogicalId()
+      const policyResource =
+        this.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources[deploymentBucketPolicyLogicalId]
+      if (policyResource) {
+        policyResource.Properties.PolicyDocument.Statement.push({
+          Sid: 'ServerlessLambdaSelfManagedCodeAccess',
+          Effect: 'Allow',
+          Principal: { Service: 'lambda.amazonaws.com' },
+          Action: ['s3:GetObject', 's3:GetObjectVersion'],
+          Resource: {
+            'Fn::Join': [
+              '',
+              [
+                'arn:aws:s3:::',
+                { Ref: this.provider.naming.getDeploymentBucketLogicalId() },
+                '/*',
+              ],
+            ],
+          },
+          Condition: {
+            StringEquals: { 'aws:SourceAccount': { Ref: 'AWS::AccountId' } },
+          },
+        })
+      } else {
+        // skipPolicySetup removed the policy resource — the user owns it
+        log.warning(
+          '"codeStorageMode: reference" with "skipPolicySetup: true": make sure your deployment bucket policy grants the Lambda service principal s3:GetObject and s3:GetObjectVersion.',
+        )
+      }
     }
 
     if (isS3TransferAccelerationEnabled && isS3TransferAccelerationSupported) {

@@ -1696,6 +1696,13 @@ deploymentBucket:
 @default false`,
                       type: 'boolean',
                     },
+                    codeStorageMode: {
+                      description: `Lambda code storage mode for functions and layers deployed from this bucket.
+'copy' (default) uploads a copy of your code to Lambda-managed storage. 'reference' configures Lambda to run your code directly from the deployment bucket (self-managed S3 code storage): code no longer counts against the Lambda storage quota and deploys activate faster, but deployment artifacts become live infrastructure managed via the prune command.
+@default 'copy'
+@see https://docs.aws.amazon.com/lambda/latest/dg/configuration-self-managed-storage.html`,
+                      enum: ['copy', 'reference'],
+                    },
                     skipPolicySetup: {
                       description: `Skip automatic deployment bucket policy setup.`,
                       type: 'boolean',
@@ -3440,6 +3447,13 @@ destinations:
 
   getProfile() {
     return this.getProfileSourceValue()
+  }
+
+  isReferenceCodeStorageMode() {
+    return (
+      this.serverless.service.provider.deploymentBucketObject
+        ?.codeStorageMode === 'reference'
+    )
   }
 
   async getServerlessDeploymentBucketName() {

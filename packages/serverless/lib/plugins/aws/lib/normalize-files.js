@@ -33,6 +33,7 @@ export default {
       ) {
         const newVal = value
         newVal.Properties.Code.S3Key = ''
+        delete newVal.Properties.Code.S3ObjectVersion
       }
       if (
         value.Type &&
@@ -41,6 +42,7 @@ export default {
       ) {
         const newVal = value
         newVal.Properties.Content.S3Key = ''
+        delete newVal.Properties.Content.S3ObjectVersion
       }
     })
 

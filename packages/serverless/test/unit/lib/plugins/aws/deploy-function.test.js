@@ -73,6 +73,9 @@ describe('AwsDeployFunction', () => {
         return null
       }),
       getAccountInfo: jest.fn(),
+      isReferenceCodeStorageMode: jest.fn().mockReturnValue(false),
+      getServerlessDeploymentBucketName: jest.fn(),
+      getDeploymentPrefix: jest.fn(),
     })
 
     options = {
@@ -254,6 +257,8 @@ describe('AwsDeployFunction', () => {
           ZipFile: Buffer.from('zip file content'),
         },
       )
+      // Copy mode keeps the default v2 SDK path: no 4th options argument.
+      expect(updateFunctionCodeStub.mock.calls[0]).toHaveLength(3)
     })
 
     it('should deploy the function if the hashes are same but the "force" option is used', async () => {
@@ -273,6 +278,40 @@ describe('AwsDeployFunction', () => {
 
       expect(updateFunctionCodeStub).toHaveBeenCalledTimes(0)
       expect(readFileSyncStub).toHaveBeenCalledTimes(1)
+    })
+
+    describe('reference code storage mode', () => {
+      beforeEach(() => {
+        serverless.service.service = 'my-service'
+        awsDeployFunction.provider.isReferenceCodeStorageMode = jest
+          .fn()
+          .mockReturnValue(true)
+      })
+
+      it('updates the function inline like copy mode, without an S3 upload', async () => {
+        setLocalHash('local-hash-zip-file')
+
+        const requestSpy = awsDeployFunction.provider.request
+
+        await awsDeployFunction.deployFunction()
+
+        const uploadCall = requestSpy.mock.calls.find(
+          ([svc, m]) => svc === 'S3' && m === 'upload',
+        )
+        expect(uploadCall).toBeUndefined()
+
+        const updateCall = requestSpy.mock.calls.find(
+          ([svc, m]) => svc === 'Lambda' && m === 'updateFunctionCode',
+        )
+        expect(updateCall).toBeDefined()
+        expect(updateCall[2]).toEqual({
+          FunctionName: 'first',
+          ZipFile: Buffer.from('zip file content'),
+        })
+        expect(updateCall[2].S3ObjectStorageMode).toBeUndefined()
+        // No 4th options argument: the update stays on the default SDK path.
+        expect(updateCall).toHaveLength(3)
+      })
     })
   })
 

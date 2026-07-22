@@ -681,4 +681,45 @@ describe('AwsProvider', () => {
       expect(messages[0]).toContain('INFREQUENT_ACCESS')
     })
   })
+
+  describe('deploymentBucket.codeStorageMode schema', () => {
+    let schemaServerless
+
+    beforeEach(() => {
+      schemaServerless = new Serverless({ commands: [], options: {} })
+      schemaServerless.credentialProviders = {
+        aws: { getCredentials: jest.fn() },
+      }
+      schemaServerless.service.provider.name = 'aws'
+      new AwsProvider(schemaServerless, options)
+    })
+
+    const getCodeStorageModeSchema = () => {
+      const deploymentBucketSchema =
+        schemaServerless.configSchemaHandler.schema.properties.provider
+          .properties.deploymentBucket
+      const objectVariant = deploymentBucketSchema.anyOf.find(
+        (variant) => variant.properties && variant.properties.codeStorageMode,
+      )
+      expect(objectVariant).toBeDefined()
+      return objectVariant.properties.codeStorageMode
+    }
+
+    it('accepts "copy" and "reference"', async () => {
+      const Ajv = (await import('ajv')).default
+      const ajv = new Ajv({ allErrors: true, strict: false })
+      const validate = ajv.compile(getCodeStorageModeSchema())
+
+      expect(validate('copy')).toBe(true)
+      expect(validate('reference')).toBe(true)
+    })
+
+    it('rejects a value outside the enum', async () => {
+      const Ajv = (await import('ajv')).default
+      const ajv = new Ajv({ allErrors: true, strict: false })
+      const validate = ajv.compile(getCodeStorageModeSchema())
+
+      expect(validate('banana')).toBe(false)
+    })
+  })
 })

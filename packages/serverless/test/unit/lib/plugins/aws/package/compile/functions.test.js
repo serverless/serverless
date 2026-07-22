@@ -293,6 +293,46 @@ describe('AwsCompileFunctions', () => {
     })
   })
 
+  describe('code storage mode', () => {
+    it('sets Code.S3ObjectStorageMode to REFERENCE in reference mode', async () => {
+      awsCompileFunctions.provider.isReferenceCodeStorageMode = () => true
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'func.function.handler',
+          name: 'new-service-dev-func',
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      expect(
+        resources.FuncLambdaFunction.Properties.Code.S3ObjectStorageMode,
+      ).toBe('REFERENCE')
+    })
+
+    it('does not set Code.S3ObjectStorageMode in copy mode', async () => {
+      awsCompileFunctions.provider.isReferenceCodeStorageMode = () => false
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'func.function.handler',
+          name: 'new-service-dev-func',
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      expect(
+        resources.FuncLambdaFunction.Properties.Code.S3ObjectStorageMode,
+      ).toBeUndefined()
+    })
+  })
+
   describe('Managed Instances (Capacity Provider)', () => {
     it('should set CapacityProviderConfig when configured', async () => {
       awsCompileFunctions.serverless.service.functions = {

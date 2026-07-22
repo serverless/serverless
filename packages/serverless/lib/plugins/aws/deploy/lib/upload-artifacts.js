@@ -39,6 +39,18 @@ export default {
       progress.get('main').notice(`Uploading (0/${artifactFilePaths.length})`)
     }
 
+    if (this.provider.isReferenceCodeStorageMode()) {
+      // Reference mode: the compiled template must contain the uploaded
+      // artifacts' S3 object versions, so zips go first and the template
+      // (consumed by CloudFormation via TemplateURL) goes last.
+      const artifactVersionIds = await this.uploadFunctionsAndLayers()
+      await this.uploadCustomResources()
+      this.patchReferenceObjectVersions(artifactVersionIds)
+      await this.uploadCloudFormationFile()
+      await this.uploadStateFile()
+      return
+    }
+
     await this.uploadCloudFormationFile()
     await this.uploadStateFile()
     await this.uploadFunctionsAndLayers()
@@ -259,13 +271,17 @@ export default {
         return result
       },
     )
-    const uploadPromises = artifactFilePaths.map((filename) =>
-      limitedUpload({
+    const uploadPromises = artifactFilePaths.map(async (filename) => {
+      const result = await limitedUpload({
         filename,
         s3KeyDirname: this.serverless.service.package.artifactDirectoryName,
-      }),
+      })
+      return [path.basename(filename), result && result.VersionId]
+    })
+    const uploaded = await Promise.all(uploadPromises)
+    return Object.fromEntries(
+      uploaded.filter(([, versionId]) => versionId != null),
     )
-    await Promise.all(uploadPromises)
   },
 
   async uploadCustomResources() {
