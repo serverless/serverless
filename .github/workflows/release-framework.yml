@@ -62,8 +62,6 @@ jobs:
           node-version: 24.x
           check-latest: true
           cache: npm
-          registry-url: 'https://npm.pkg.github.com'
-          scope: '@serverlessinc'
       - name: 'Setup: Enable Corepack'
         run: corepack enable npm
       - name: 'Setup: AWS Credentials'
@@ -114,8 +112,6 @@ jobs:
           node-version: 24.x
           check-latest: true
           cache: npm
-          registry-url: 'https://npm.pkg.github.com'
-          scope: '@serverlessinc'
       - name: 'Setup: Enable Corepack'
         run: corepack enable npm
       - name: 'Install: Dependencies'
@@ -164,8 +160,6 @@ jobs:
           node-version: 24.x
           check-latest: true
           cache: npm
-          registry-url: 'https://npm.pkg.github.com'
-          scope: '@serverlessinc'
       - name: 'Setup: Enable Corepack'
         run: corepack enable npm
       - name: 'Setup: AWS Credentials'
