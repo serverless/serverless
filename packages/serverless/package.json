@@ -46,7 +46,7 @@
     "@aws-sdk/client-sts": "3.1081.0",
     "@aws-sdk/credential-providers": "3.1081.0",
     "@aws-sdk/lib-storage": "3.1081.0",
-    "@graphql-tools/merge": "^9.1.10",
+    "@graphql-tools/merge": "^9.2.2",
     "@iarna/toml": "^2.2.5",
     "@serverless/engine": "*",
     "@serverlessinc/sf-core": "*",
@@ -103,7 +103,7 @@
     "terminal-link": "^4.0.0",
     "timers-ext": "^0.1.8",
     "toml": "^3.0.0",
-    "tsx": "^4.23.0",
+    "tsx": "^4.23.1",
     "type": "^2.7.3",
     "uuid": "^13.0.2"
   },
