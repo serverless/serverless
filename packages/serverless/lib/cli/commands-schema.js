@@ -610,6 +610,13 @@ commands.set('prune', {
       required: false,
       type: 'boolean',
     },
+    includeArtifacts: {
+      usage:
+        'Boolean flag. Also mark deployment artifacts that no longer back any function or layer version.',
+      shortcut: 'a',
+      required: false,
+      type: 'boolean',
+    },
     dryRun: {
       usage:
         'Simulate pruning without executing delete actions. Deletion candidates are logged when used in conjunction with --verbose',

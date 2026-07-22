@@ -16,9 +16,11 @@ import uploadZipFile from '../lib/upload-zip-file.js'
 import createStack from './lib/create-stack.js'
 import cleanupS3Bucket from './lib/cleanup-s3-bucket.js'
 import uploadArtifacts from './lib/upload-artifacts.js'
+import patchReferenceObjectVersions from './lib/patch-reference-object-versions.js'
 import validateTemplate from './lib/validate-template.js'
 import updateStack from '../lib/update-stack.js'
 import ensureValidBucketExists from './lib/ensure-valid-bucket-exists.js'
+import ensureReferenceCodeStorage from './lib/ensure-reference-code-storage.js'
 import path from 'path'
 import { log, progress, style } from '@serverless/util'
 import memoize from 'memoizee'
@@ -45,7 +47,9 @@ class AwsDeploy {
       checkForChanges,
       cleanupS3Bucket,
       ensureValidBucketExists,
+      ensureReferenceCodeStorage,
       uploadArtifacts,
+      patchReferenceObjectVersions,
       validateTemplate,
       updateStack,
       monitorStack,
@@ -178,6 +182,7 @@ class AwsDeploy {
 
       'aws:deploy:deploy:checkForChanges': async () => {
         await this.ensureValidBucketExists()
+        await this.ensureReferenceCodeStoragePrereqs()
         await this.checkForChanges()
         if (this.serverless.service.provider.shouldNotDeploy) return
 

@@ -33,9 +33,10 @@ export default {
           this.getFunctionsEarliestLastModifiedDate(),
         ])
       })
-      .then(([objMetadata, lastModifiedDate]) =>
-        this.checkIfDeploymentIsNecessary(objMetadata, lastModifiedDate),
-      )
+      .then(([objMetadata, lastModifiedDate]) => {
+        this.warnOnReferenceModeSwitchBack()
+        return this.checkIfDeploymentIsNecessary(objMetadata, lastModifiedDate)
+      })
       .then(() => {
         if (this.serverless.service.provider.shouldNotDeploy) {
           return Promise.resolve()
@@ -128,6 +129,33 @@ export default {
     return Promise.all(
       objects.map(async (obj) => {
         try {
+          const isStateFile = obj.Key.endsWith(
+            `/${this.provider.naming.getServiceStateFileName()}`,
+          )
+          if (isStateFile) {
+            const result = await this.provider.request('S3', 'getObject', {
+              Bucket: this.bucketName,
+              Key: obj.Key,
+            })
+            try {
+              // AWS Node SDK v3 S3 GetObject returns a stream-like body
+              // exposing `transformToString()`; AWS Node SDK v2 (used by
+              // this request path today) returns a Buffer/string directly.
+              // Normalize to string before JSON.parse to support both.
+              const body = result.Body
+              const text =
+                body && typeof body.transformToString === 'function'
+                  ? await body.transformToString()
+                  : Buffer.isBuffer(body)
+                    ? body.toString()
+                    : String(body)
+              this.previousDeploymentState = JSON.parse(text)
+            } catch {
+              this.previousDeploymentState = null
+            }
+            result.Key = obj.Key
+            return result
+          }
           const result = await this.provider.request('S3', 'headObject', {
             Bucket: this.bucketName,
             Key: obj.Key,
@@ -147,6 +175,21 @@ export default {
           throw err
         }
       }),
+    )
+  },
+
+  warnOnReferenceModeSwitchBack() {
+    if (this.provider.isReferenceCodeStorageMode()) return
+    const previousMode =
+      this.previousDeploymentState?.service?.provider?.deploymentBucketObject
+        ?.codeStorageMode
+    if (previousMode !== 'reference') return
+    log.warning(
+      'This service previously deployed with "codeStorageMode: reference". ' +
+        'Older function versions may still run code directly from the deployment bucket, ' +
+        'and regular artifact cleanup is now active again. ' +
+        'Run "serverless prune" to retire old reference-mode versions, or restore "codeStorageMode: reference". ' +
+        'See the deployment bucket documentation for details.',
     )
   },
 
@@ -234,6 +277,34 @@ export default {
         }),
       ),
     )
+
+    // In reference mode a reused layer's zip is uploaded only once (to the
+    // deployment directory of the deploy that first produced it) and is never
+    // re-uploaded on subsequent deploys. Once the newest remote directory is one
+    // of those later, reuse-only deploys, it does not contain the layer zip — yet
+    // the local `.serverless/**.zip` glob still picks it up, so the local set
+    // carries one extra hash with no remote counterpart and the sorted-array
+    // comparison below can never match, permanently preventing no-change skips.
+    // Drop each reused layer's artifact (`artifactAlreadyUploaded === true`) from
+    // the local set, but only when its hash is genuinely absent from the remote
+    // set — when the newest remote directory still carries the layer zip (e.g. the
+    // baseline is the fresh-layer deploy), keeping it preserves a valid match.
+    // This only ever removes local-side entries whose reused byte-identical code
+    // is already deployed, so it can never cause a false skip: the remaining
+    // artifacts (template, state, service zips) still must hash-equal.
+    const remoteHashValues = new Set(remoteHashesMap.values())
+    for (const layerName of this.serverless.service.getAllLayers()) {
+      if (!this.serverless.service.getLayer(layerName).artifactAlreadyUploaded)
+        continue
+      const layerArtifactPath = path.resolve(
+        this.serverless.serviceDir,
+        this.provider.resolveLayerArtifactName(layerName),
+      )
+      const layerHash = localHashesMap.get(layerArtifactPath)
+      if (layerHash !== undefined && !remoteHashValues.has(layerHash)) {
+        localHashesMap.delete(layerArtifactPath)
+      }
+    }
 
     // If any objects were changed after the last time the function was updated
     // there could have been a failed deploy.

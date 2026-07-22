@@ -49,11 +49,19 @@ export default {
     if (this.serverless.service.provider.deploymentWithEmptyChangeSet) {
       log.info('Removing unnecessary service artifacts from S3')
       await this.cleanupArtifactsForEmptyChangeSet()
-    } else {
-      log.info('Removing old service artifacts from S3')
-      const objectsToRemove = await this.getObjectsToRemove()
-      await this.removeObjects(objectsToRemove)
+      return
     }
+    if (this.provider.isReferenceCodeStorageMode()) {
+      // Reference mode: deployment artifacts back live Lambda versions.
+      // Retirement is handled by "serverless prune --includeArtifacts".
+      log.info(
+        'Skipping deployment artifact cleanup (codeStorageMode: reference). Use "serverless prune --includeArtifacts" to retire old versions and their artifacts.',
+      )
+      return
+    }
+    log.info('Removing old service artifacts from S3')
+    const objectsToRemove = await this.getObjectsToRemove()
+    await this.removeObjects(objectsToRemove)
   },
 
   async cleanupArtifactsForEmptyChangeSet() {

@@ -119,6 +119,140 @@ This simplifies management and reduces the number of buckets needed for deployme
 and reduces the complexity of managing multiple deployment artifacts across different services and environments.
 To learn more about Compose, refer to the [Compose documentation](./compose).
 
+## Code Storage Mode (Self-Managed Lambda Code Storage)
+
+By default, Lambda copies your deployment package into Lambda-managed storage
+(`copy` mode). With self-managed S3 code storage, Lambda runs your functions
+and layers directly from the deployment bucket instead — your code no longer
+counts against the Lambda code storage quota, and deployments activate
+faster. See the
+[AWS documentation](https://docs.aws.amazon.com/lambda/latest/dg/configuration-self-managed-storage.html)
+for platform details.
+
+Enable it with a single setting:
+
+```yaml
+provider:
+  deploymentBucket:
+    codeStorageMode: reference # default: copy
+```
+
+The Framework handles the AWS requirements automatically:
+
+- Each deployment pins every function and layer to the exact S3 object
+  version that was uploaded, so later uploads to the same keys never
+  affect what runs.
+- On the Framework-managed deployment bucket, the required bucket policy
+  (Lambda service read access, scoped to your account) is added
+  automatically. The bucket is already versioned.
+- If your service uses the in-stack deployment bucket (see [Deploying an
+  Existing Service Without Compose](#2-deploying-an-existing-service-without-compose)
+  above), enable `deploymentBucket.versioning: true` — reference mode
+  requires a versioned bucket, and packaging reports an error if versioning
+  is not enabled. The Framework adds the required Lambda read access to the
+  bucket policy it already manages in your stack (with `skipPolicySetup`,
+  managing that statement is up to you).
+- If you bring your own bucket (`deploymentBucket.name`), versioning must be
+  enabled or the deployment stops with an error. The bucket policy is also
+  checked: if the bucket has no policy at all, the deployment stops with an
+  error that includes the exact statement to add; if a policy exists but
+  does not appear to grant the Lambda service read access, a warning with
+  that statement is printed instead. Either way, your bucket configuration
+  is never modified.
+- Rollbacks are reference-aware: `serverless rollback` and
+  `serverless rollback function` restore functions from their pinned S3
+  objects. `serverless deploy function` is a development-cycle command that
+  bypasses CloudFormation; it updates the function with Lambda-managed
+  storage, and the function returns to reference mode on the next
+  `serverless deploy` (see the note about out-of-band code updates below).
+
+### Artifact retention in reference mode
+
+In reference mode, deployment artifacts back your live Lambda versions, so
+the automatic post-deploy cleanup of old deployments is disabled —
+deployments are retained until you retire the versions that use them. With
+the default `versionFunctions: true`, each deployment publishes a new
+function version that keeps its artifact in use, so the deployment bucket
+listing and `serverless deploy list` grow over time until those versions are
+pruned. `prune` is the retention lever in reference mode.
+
+Retirement is handled by the `prune` command: it deletes old function and
+layer versions, and with `--includeArtifacts` it also marks deployment
+artifacts that no longer back any surviving version. Artifacts that still
+back a version — including versions kept for aliases or older versions still
+in use — are always retained. Use `--dryRun` to preview. The sweep is not
+limited to reference mode; it also runs in the default copy mode, which is
+useful for retiring artifact directories left behind by earlier reference-mode
+deployments after switching back.
+
+If you publish function versions or layers and have confirmed that versions
+beyond a certain age are no longer used (no aliases point at them, and no
+consumers invoke them by qualified ARN), you can automate retention:
+
+```yaml
+custom:
+  prune:
+    automatic: true
+    number: 10
+    includeLayers: true
+    includeArtifacts: true
+```
+
+On a versioned bucket — which the Framework-managed bucket always is, and
+which reference mode requires — the `--includeArtifacts` sweep only writes S3
+delete markers: it hides the matched artifacts and destroys nothing. (On an
+unversioned custom bucket, where the sweep can also run in copy mode, those
+deletions are permanent, matching how the automatic post-deploy cleanup
+behaves there.) Actual storage is reclaimed by an S3
+lifecycle rule that expires noncurrent object versions (for example,
+`NoncurrentVersionExpiration`, optionally with `ExpiredObjectDeleteMarker` to
+clean up the leftover markers afterward). This pairs safely with the sweep:
+a pinned artifact stays the current version of its key, so a
+noncurrent-version rule never touches an artifact that still backs a live
+version. See the
+[S3 lifecycle documentation](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html)
+for rule syntax.
+
+When reclaiming storage yourself, delete markers (what the sweep writes) are
+the safe operation; avoid hard-deleting individual object versions or
+overwriting existing objects under the deployment prefix. Removing the specific object version that a live function
+is pinned to does not fail right away — invocations can keep succeeding for a
+while, and the function still reports `Active` — but the function stops
+working, with no advance signal, once Lambda next refreshes the code from its
+source. Let the lifecycle rule reclaim noncurrent versions instead.
+
+### Switching back to copy mode
+
+If you remove `codeStorageMode: reference` (or set it to `copy`), new
+deployments return to Lambda-managed storage — but function versions
+published while reference mode was active continue to run their code
+directly from the deployment bucket, and the regular artifact cleanup
+becomes active again. Before switching back, retire old reference-mode
+versions with `serverless prune`, or keep them in mind when managing the
+bucket. The Framework prints a reminder on the next deploy after switching
+back — it reads the previous deployment's recorded storage mode to decide
+whether to show it. Because that reminder is produced during change
+detection, `serverless deploy --force` skips it.
+
+### Notes
+
+- Reference mode applies to zip-packaged functions and layers. Container
+  image functions continue to use Amazon ECR.
+- The Lambda console code editor is not available for reference-mode
+  functions (AWS limitation).
+- `serverless package` output is finalized during `serverless deploy`, when
+  the uploaded artifacts' S3 object versions are known.
+- `serverless deploy` always restates the storage mode. If a function's code
+  is updated without specifying the storage mode — for example
+  `aws lambda update-function-code`, a console upload, or
+  `serverless deploy function` — that function returns to Lambda-managed
+  storage, and the next `serverless deploy` restores reference mode. A deploy
+  that reports no changes does not run, so the mode switch persists until a
+  deploy actually runs (`serverless deploy --force` deploys unconditionally).
+- Service rollbacks are more dependable in reference mode: each deployment
+  pins its functions and layers to exact S3 object versions, so rolling back
+  to an earlier deployment restores exactly the code that deployment ran.
+
 ## Cleanup and Maintenance
 
 When a service is removed using the `serverless remove` command, the deployment artifacts stored in the Deployment Bucket are also cleaned up.

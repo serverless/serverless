@@ -36,15 +36,21 @@ custom:
     automatic: true # Prune after each deploy
     number: 3 # Keep 3 most recent versions
     includeLayers: true # Also prune layer versions
+    includeArtifacts: true # Also mark deployment artifacts no longer backed by any version
 ```
 
 ### Configuration Options
 
-| Option          | Type    | Default | Description                                         |
-| --------------- | ------- | ------- | --------------------------------------------------- |
-| `automatic`     | boolean | `false` | Enable automatic pruning after deploy               |
-| `number`        | integer | -       | Number of versions to keep (required for automatic) |
-| `includeLayers` | boolean | `false` | Include Lambda layers in pruning                    |
+| Option             | Type    | Default | Description                                                    |
+| ------------------ | ------- | ------- | -------------------------------------------------------------- |
+| `automatic`        | boolean | `false` | Enable automatic pruning after deploy                          |
+| `number`           | integer | -       | Number of versions to keep (required for automatic)            |
+| `includeLayers`    | boolean | `false` | Include Lambda layers in pruning                               |
+| `includeArtifacts` | boolean | `false` | Also mark deployment artifacts no longer backed by any version |
+
+`includeArtifacts` is most useful when using self-managed code storage, where deployment artifacts back live Lambda versions and are retained until pruned. The sweep works in any storage mode. In the default copy mode the automatic post-deploy cleanup already enforces the `maxPreviousDeploymentArtifacts` retention window, so a steady-state sweep usually finds nothing new; there it is mainly useful for retiring artifact directories left over from earlier reference-mode deployments after switching back to copy mode. See [Artifact retention in reference mode](../../../guides/deployment-bucket#artifact-retention-in-reference-mode) for the full retention story.
+
+The artifact sweep learns which functions and layers to protect from your local service configuration, so run `prune --includeArtifacts` with the same service configuration that produced those deployments. The sweep also honors `provider.deploymentBucket.maxPreviousDeploymentArtifacts` (default `5`) as an unconditional retention window: the newest N deployments are always kept, whether or not their artifacts are still pinned. In reference mode the deploy-time artifact cleanup does not run, so this retention window applies only during the sweep.
 
 ## Manual Pruning
 
@@ -65,11 +71,20 @@ serverless prune -n 3 -l myLayer
 
 # Prune functions and layers
 serverless prune -n 3 --includeLayers
+
+# Also mark unreferenced deployment artifacts (most useful in reference mode)
+serverless prune -n 3 --includeArtifacts
 ```
 
 ## Alias Protection
 
 Versions that are referenced by Lambda aliases will **never** be deleted, regardless of the `number` setting. This ensures stable deployments and traffic shifting configurations remain intact.
+
+## Layer Version Protection
+
+When pruning layers (`--includeLayers` or `-l`), a layer version that is still attached to an existing version of one of this service's own functions is retained even if it falls outside the `number` window. This protection is derived from your local service configuration, which is another reason to run `prune` with the same configuration that produced the deployments.
+
+Attachments from other services or accounts cannot be detected, so layer versions consumed only by functions outside this service remain your responsibility to manage.
 
 ## Dry Run Mode
 

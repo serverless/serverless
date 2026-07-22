@@ -319,6 +319,9 @@ provider:
     skipPolicySetup: true
     # Enable bucket versioning (default: false)
     versioning: true
+    # Use Lambda's self-managed S3 code storage instead of Lambda-managed storage (default: copy)
+    # See: https://www.serverless.com/framework/docs/guides/deployment-bucket#code-storage-mode-self-managed-lambda-code-storage
+    codeStorageMode: reference
     # Server-side encryption method
     serverSideEncryption: AES256
     # For server-side encryption

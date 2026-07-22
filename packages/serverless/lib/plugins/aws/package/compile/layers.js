@@ -40,6 +40,10 @@ class AwsCompileLayers {
     const s3FileName = path.basename(artifactFilePath)
     newLayer.Properties.Content.S3Key = `${s3Folder}/${s3FileName}`
 
+    if (this.provider.isReferenceCodeStorageMode()) {
+      newLayer.Properties.Content.S3ObjectStorageMode = 'REFERENCE'
+    }
+
     newLayer.Properties.LayerName = layerObject.name || layerName
     if (layerObject.description) {
       newLayer.Properties.Description = layerObject.description
@@ -119,13 +123,28 @@ class AwsCompileLayers {
       const newLayerS3KeyOutput = this.cfOutputLayerS3KeyTemplate()
       newLayerS3KeyOutput.Value = newLayer.Properties.Content.S3Key
 
+      const layerOutputs = {
+        [layerOutputLogicalId]: newLayerOutput,
+        [layerHashOutputLogicalId]: newLayerHashOutput,
+        [layerS3KeyOutputLogicalId]: newLayerS3KeyOutput,
+      }
+
+      if (this.provider.isReferenceCodeStorageMode()) {
+        const layerS3ObjectVersionOutputLogicalId =
+          this.provider.naming.getLambdaLayerS3ObjectVersionOutputLogicalId(
+            layerName,
+          )
+        layerOutputs[layerS3ObjectVersionOutputLogicalId] = {
+          Description: 'Current Lambda layer S3ObjectVersion',
+          // Placeholder — the real S3 object version is patched in during
+          // deploy, after the artifact upload returns its VersionId.
+          Value: 'S3ObjectVersion',
+        }
+      }
+
       _.merge(
         this.serverless.service.provider.compiledCloudFormationTemplate.Outputs,
-        {
-          [layerOutputLogicalId]: newLayerOutput,
-          [layerHashOutputLogicalId]: newLayerHashOutput,
-          [layerS3KeyOutputLogicalId]: newLayerS3KeyOutput,
-        },
+        layerOutputs,
       )
     })
   }
@@ -151,6 +170,21 @@ class AwsCompileLayers {
             return
           }
 
+          let lastS3ObjectVersion
+          if (this.provider.isReferenceCodeStorageMode()) {
+            const layerS3ObjectVersionOutputLogicalId =
+              this.provider.naming.getLambdaLayerS3ObjectVersionOutputLogicalId(
+                layerName,
+              )
+            lastS3ObjectVersion = data.Stacks[0].Outputs.find(
+              (output) =>
+                output.OutputKey === layerS3ObjectVersionOutputLogicalId,
+            )
+            // Previous deployment has no pinned object version (it predates
+            // reference mode) — re-upload instead of reusing.
+            if (!lastS3ObjectVersion) return
+          }
+
           const layerS3keyOutputLogicalId =
             this.provider.naming.getLambdaLayerS3KeyOutputLogicalId(layerName)
           const lastS3Key = data.Stacks[0].Outputs.find(
@@ -167,6 +201,19 @@ class AwsCompileLayers {
               `${layerLogicalId}${lastHash.OutputValue}`
             ]
           layerResource.Properties.Content.S3Key = lastS3Key.OutputValue
+
+          if (lastS3ObjectVersion) {
+            const layerS3ObjectVersionOutputLogicalId =
+              this.provider.naming.getLambdaLayerS3ObjectVersionOutputLogicalId(
+                layerName,
+              )
+            compiledCloudFormationTemplate.Outputs[
+              layerS3ObjectVersionOutputLogicalId
+            ].Value = lastS3ObjectVersion.OutputValue
+            layerResource.Properties.Content.S3ObjectVersion =
+              lastS3ObjectVersion.OutputValue
+          }
+
           const layerObject = this.serverless.service.getLayer(layerName)
           layerObject.artifactAlreadyUploaded = true
           log.info(`Layer ${layerName} is already uploaded.`)

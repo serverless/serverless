@@ -279,6 +279,9 @@ export default {
   getLambdaLayerS3KeyOutputLogicalId(layerName) {
     return `${this.getLambdaLayerLogicalId(layerName)}S3Key`
   },
+  getLambdaLayerS3ObjectVersionOutputLogicalId(layerName) {
+    return `${this.getLambdaLayerLogicalId(layerName)}S3ObjectVersion`
+  },
 
   // Websockets API
   getWebsocketsApiName() {

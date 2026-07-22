@@ -1,0 +1,26 @@
+service: smcs-reference-mode
+frameworkVersion: '*'
+
+provider:
+  name: aws
+  region: us-east-1
+  runtime: nodejs20.x
+  deploymentBucket:
+    codeStorageMode: reference
+    # Kept tight on purpose: the integration suite only performs a handful of
+    # deploys, so a small retention window ensures the "prune --includeArtifacts"
+    # test actually exercises the artifact sweep instead of the default window
+    # (5) simply excluding every directory from consideration.
+    maxPreviousDeploymentArtifacts: 1
+
+layers:
+  common:
+    path: layer
+    compatibleRuntimes:
+      - nodejs20.x
+
+functions:
+  hello:
+    handler: handler.hello
+    layers:
+      - { Ref: CommonLambdaLayer }

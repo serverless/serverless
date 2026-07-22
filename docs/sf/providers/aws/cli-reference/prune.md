@@ -27,8 +27,13 @@ serverless prune -n <number>
 - `--function` or `-f` Limit pruning to a specific function.
 - `--layer` or `-l` Limit pruning to a specific layer.
 - `--includeLayers` or `-i` Include layers in pruning.
+- `--includeArtifacts` or `-a` Also mark deployment artifacts that no longer back any function or layer version. Skipped on `--function`/`--layer` scoped runs.
 - `--dryRun` or `-d` Preview what would be deleted without deleting.
 - `--verbose` Enable detailed output.
+
+## Layer Version Protection
+
+When pruning layers, a layer version that is still attached to an existing version of one of this service's own functions is retained, even if it falls outside the retained `--number`. This is derived from your local service configuration. Attachments from other services or accounts cannot be detected and remain your responsibility to manage.
 
 ## Provided lifecycle events
 
@@ -65,3 +70,11 @@ serverless prune -n 3 --includeLayers
 ```bash
 serverless prune -n 3 -l myLayer
 ```
+
+### Also mark unreferenced deployment artifacts
+
+```bash
+serverless prune -n 3 --includeArtifacts
+```
+
+See [Artifact retention in reference mode](../../../guides/deployment-bucket#artifact-retention-in-reference-mode) for how this interacts with self-managed code storage.
