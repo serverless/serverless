@@ -47,7 +47,7 @@ The workflow triggers on pushes to `main` that touch `packages/sf-core/**`, `pac
   Builds the project and publishes a canary release (Git-SHA-versioned). Its final step detects a version bump by diffing `packages/sf-core/package.json` against the previous commit; if a new version is found, it tags the repository with `sf-core@{version}` and pushes the tag. Note: on `workflow_dispatch` runs the diff base (`github.event.before`) is empty, so manual runs cannot produce a tag or stable release.
 
 - **`release-stable`:**
-  Only runs when a new version was detected. Builds and uploads the production tarballs, updates release metadata (MongoDB and S3), and tags the repository with `sf-core-installer@{version}`.
+  Only runs when a new version was detected. Builds and uploads the production tarballs, updates release metadata (MongoDB and S3), and tags the repository with `sf-core-installer@{version}` (this tag is created inside `packages/sf-core/prepareReleaseTars.sh`, not in the workflow file — distinct from the `sf-core@{version}` tag created by `release-canary`).
 
 - **`release-npm`:**
   Publishes the installer package to npm after the stable release completes.

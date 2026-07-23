@@ -388,7 +388,7 @@ More details on the `invoke local` command can be found [here](https://www.serve
 
 Serverless Framework also has a great plugin that allows you to run a server locally and emulate AWS API Gateway. This is the `serverless-offline` plugin.
 
-More details on the **serverless-offline** plugin can be found [here](https://github.com/dherault/serverless-offline).
+More details can be found in the [serverless-offline documentation](https://github.com/dherault/serverless-offline).
 
 <br/>
 

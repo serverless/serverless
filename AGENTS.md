@@ -4,7 +4,7 @@ Monorepo for the **Serverless Framework** - a command-line tool for deploying se
 
 ## Repository Structure
 
-```
+```text
 ├── packages/
 │   ├── sf-core/                # CLI shell: entry point, command router, runners
 │   ├── serverless/             # Traditional framework: AWS provider, plugins, config schema
