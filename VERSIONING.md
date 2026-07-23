@@ -10,7 +10,7 @@ A release only containing backwards-compatible bug fixes. A bug fix in that sens
 
 #### Example of a Bug Fix
 
-In version 1.2.0 we deployed a new version for every function. In 1.3.0 we stopped doing that, then a bug-fix release would bump the version 1.3.1
+In version 4.39.0 we deployed a new version for every function. In 4.40.0 we stopped doing that, then a bug-fix release would bump the version to 4.40.1
 
 ### MINOR
 
@@ -18,7 +18,11 @@ If a release adds functionality in a backwards-compatible manner and contains ba
 
 #### Example of a new Feature
 
-In version 1.2.0 no profile option for the CLI existed and it should be introduced in the next release. Then the next version will be 1.3.0.
+In version 4.39.0 no profile option for the CLI existed and it should be introduced in the next release. Then the next version will be 4.40.0.
+
+### Release classification in practice
+
+Pull request titles follow the conventional commit format and PRs are squash-merged, so each commit on `main` carries its type: a release containing any `feat:` commit is a MINOR release; a release containing only `fix:`/`chore:` commits is a PATCH release. The version bump itself is set manually in the release PR (see [RELEASE_PROCESS.md](RELEASE_PROCESS.md)) — this document defines how to choose it.
 
 ### MAJOR
 
@@ -55,9 +59,9 @@ The Serverless Framework supports the major cloud providers Node.js runtime vers
 
 ### FAQ
 
-1. Is it okay to mark a feature as deprecated in version 1.4.0 and then remove it in 1.8.0
+1. Is it okay to mark a feature as deprecated in version 4.4.0 and then remove it in 4.8.0
 
-No, since this is a breaking change it should trigger a major version bump to 2.0.0
+No, since this is a breaking change it should trigger a major version bump to 5.0.0
 
 2. Can we change everything in a major version bump?
 

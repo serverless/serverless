@@ -35,19 +35,24 @@ The process is automated through GitHub Actions and consists of tagging, buildin
 
 ## Pipeline Jobs ([release-framework.yml](.github/workflows/release-framework.yml))
 
-The GitHub Actions configuration is structured into several jobs:
+The workflow triggers on pushes to `main` that touch `packages/sf-core/**`, `packages/serverless/**`, `packages/engine/**`, or `packages/mcp/**` (plus manual `workflow_dispatch`), and consists of five jobs:
 
-- **Integration Tests (`test-matrix`):**
+- **`test-engine`:**
+  Runs the engine package's unit tests.
+
+- **`test-matrix`:**
   Runs integration tests across multiple platforms (Linux, Windows, ARM) using a matrix strategy.
 
-- **Tag New Version:**
-  Tags the repository with the new version if changes are detected, then pushes the tag.
+- **`release-canary`:**
+  Builds the project and publishes a canary release (Git-SHA-versioned). Its final step detects a version bump by diffing `packages/sf-core/package.json` against the previous commit; if a new version is found, it tags the repository with `sf-core@{version}` and pushes the tag. Note: on `workflow_dispatch` runs the diff base (`github.event.before`) is empty, so manual runs cannot produce a tag or stable release.
 
-- **Publish New Version:**
-  Executes steps to install dependencies, build the project, prepare release tarballs (including copying additional files), upload artifacts, and update metadata in MongoDB.
+- **`release-stable`:**
+  Only runs when a new version was detected. Builds and uploads the production tarballs, updates release metadata (MongoDB and S3), and tags the repository with `sf-core-installer@{version}` (this tag is created inside `packages/sf-core/prepareReleaseTars.sh`, not in the workflow file — distinct from the `sf-core@{version}` tag created by `release-canary`).
 
-- **Build and Publish npm Package:**
-  Focuses on publishing the installer package to npm after the release has been prepared.
+- **`release-npm`:**
+  Publishes the installer package to npm after the stable release completes.
+
+> **Note:** The Go-based binary installer (the `curl` install script and launcher binaries) has its own, separate release pipeline: `.github/workflows/release-binary-installer.yml`, triggered manually via `workflow_dispatch`.
 
 ---
 
@@ -60,7 +65,9 @@ The GitHub Actions configuration is structured into several jobs:
   - `packages/sf-core/package.json`
 
 - **Procedure:**
-  Update the version in both files. Then, create a pull request (PR) with the title: `chore: release x.x.x` where `x.x.x` is the new version number.
+  Update the version in both files. Then, create a pull request (PR) with the title: `chore: release x.x.x` where `x.x.x` is the new version number. Choose the version bump per [VERSIONING.md](VERSIONING.md).
+
+> **Warning:** The pipeline's version detection reads **only** `packages/sf-core/package.json`, and `npm publish` publishes **whatever version is in** `packages/sf-core-installer/package.json` — nothing cross-checks the two. If you bump only the installer file, no release happens at all; if you bump only the sf-core file, npm publishes a stale installer version. Always bump both, in the same PR.
 
 ### 2. CI/CD Pipeline Execution
 
@@ -121,14 +128,15 @@ The GitHub Actions configuration is structured into several jobs:
     - Run `prepareReleaseTars.sh` without the `IS_CANARY` flag.
     - This script:
       - Uses the version from `package.json`.
-      - Updates the production `releases.json` and `versions.json` files.
+      - Updates the production `releases.json` (via `updateReleasesJson.cjs`).
       - Runs `prepareDistributionTarballs.js` to copy additional files required for the final archive.
         - **This step is critical because if file locations change, the release could break due to missing files.**
-      - Packs the distribution using `npm pack`.
+      - Packs the distribution via `scripts/pack-framework-dist.sh` (a direct `tar` archive with a `package/` path prefix — `npm pack` is not used).
       - Uploads tarballs to the production S3 bucket (`install.serverless.com`).
-      - Updates MongoDB metadata using the `RELEASES_MONGO_URI` secret.
-        - Inserts a new release record into the `releases` collection.
-        - Updates the `release-metadata` collection to add the new supported version.
+      - Updates release metadata via two scripts:
+        - `publish:release` (MongoDB, using the `RELEASES_MONGO_URI` secret): inserts a new record into the `releases` collection AND adds the version to the `release-metadata` collection's supported versions.
+        - `publish:release-metadata` (S3): adds the version to `versions.json` in the production bucket.
+      - Tags the repository with `sf-core-installer@{version}` and pushes the tag.
   - **CloudFront Invalidation:**
     - Create invalidations for the production CloudFront distribution (ID: `E3OEL4OJF1G5FG`).
     - Specifically invalidate `/releases.json` and `/versions.json` to ensure the latest version information is available.
@@ -146,11 +154,11 @@ The GitHub Actions configuration is structured into several jobs:
   - Check out the repository.
   - Set up Node.js 24.x with the npm registry URL.
   - **Preparation:**
-    - Copy the `README.md` from the serverless package to the installer package.
+    - Copy the repository root `README.md` to the installer package.
     - Install dependencies.
   - **Publishing:**
     - Publish the package to npm using the `npm publish` command.
-    - Use the `NPM_PUBLISH_TOKEN` secret for authentication.
+    - Authentication uses npm trusted publishing (OIDC, via the workflow's `id-token: write` permission) — no npm token secret is involved.
 
 - **Outcome:**
   - The npm package is published to the npm registry.
@@ -189,7 +197,7 @@ Canary releases are an important part of our deployment strategy, allowing us to
   - **Version Management** (`packages/sf-core/scripts/updateReleasesJson.cjs` and `prepareDistributionTarballs.js`):
     - Both scripts check for the `IS_CANARY` environment variable.
     - When in canary mode, they use the Git SHA instead of the version from `package.json`.
-    - The `releases.json` file is updated with the Git SHA as the version.
+    - `updateReleasesJson.cjs` updates `releases.json` with the Git SHA as the version; `prepareDistributionTarballs.js` rewrites the version in `framework-dist/package.json`.
 
 ### How to Use Canary Releases
 
@@ -232,7 +240,7 @@ The complete canary release process works as follows:
    - Updates `releases.json` with the Git SHA as the version.
    - Prepares distribution tarballs by copying necessary files to the `framework-dist` directory.
    - Updates the version in `framework-dist/package.json` to match the Git SHA.
-   - Runs `npm pack` to create the tarball.
+   - Creates the tarball via `scripts/pack-framework-dist.sh` (a direct `tar` archive with a `package/` path prefix).
    - Uploads the tarball to S3 as both `canary-{git-sha}.tgz` and `canary.tgz`.
    - Uploads the updated `releases.json` to the canary S3 bucket.
    - Creates a CloudFront invalidation to ensure the new files are immediately available.

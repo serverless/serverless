@@ -4,8 +4,8 @@ Welcome, and thanks in advance for your help!
 
 ## Prerequisites
 
-- **Node.js 24 or greater** is required for development
-- npm (comes with Node.js)
+- **Node.js 24** is required for development
+- **npm 12** — the repo pins it via the `packageManager` field; enable it with `corepack enable npm` (older npm versions can silently mis-write `package-lock.json` in this workspaces repo)
 
 ## Getting Started
 
@@ -14,7 +14,8 @@ Welcome, and thanks in advance for your help!
    ```bash
    git clone https://github.com/<your-username>/serverless.git
    cd serverless
-   npm install
+   corepack enable npm
+   npm ci
    ```
 
 2. Run the framework locally on a test project:
@@ -92,7 +93,9 @@ Unit tests run locally without external dependencies:
 
 ```bash
 npm run test:unit -w @serverlessinc/sf-core
-npm run test:unit -w serverless
+npm run test:unit -w @serverless/framework
+npm test -w @serverless/engine
+npm test -w @serverless/mcp
 ```
 
 ### Integration Tests
