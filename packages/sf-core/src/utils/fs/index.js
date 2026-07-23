@@ -277,6 +277,7 @@ const supportedExtensions = new Set([
  * Iterates through all supported extensions and returns the first match.
  * @param options.configFileName The name of the service configuration file (e.g. "serverless")
  * @param options.configFileDirPath The subdirectory to look for the service configuration file in. Useful in commands like the onboarding command.
+ * @param options.extensions Extensions to consider instead of all supported ones (e.g. only YAML/JSON for SAM templates)
  * @returns {Promise<string | null>} The path to the service configuration file
  */
 const getConfigFilePath = async (options) => {
@@ -288,7 +289,7 @@ const getConfigFilePath = async (options) => {
   if (!options.configFileDirPath) {
     throw new Error('"configFileDirPath" is required')
   }
-  for (const extension of supportedExtensions) {
+  for (const extension of options.extensions ?? supportedExtensions) {
     let eventualServiceConfigPath
     try {
       eventualServiceConfigPath = path.resolve(

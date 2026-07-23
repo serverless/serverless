@@ -34,6 +34,14 @@ export class CfnRunner extends Runner {
   }
 
   static configFileNames = ['samconfig', 'template']
+  // Mirrors what the AWS SAM CLI itself discovers: templates are
+  // YAML/JSON documents and samconfig is TOML/YAML. Files like
+  // "template.mjs" are application code, not templates, and must not
+  // make the CLI treat the directory as a SAM/CloudFormation project.
+  static configFileExtensions = {
+    samconfig: ['toml', 'yaml', 'yml'],
+    template: ['yaml', 'yml', 'json'],
+  }
   static runnerType = 'cfn'
 
   getAwsDeploymentCredentials
@@ -289,6 +297,7 @@ export class CfnRunner extends Runner {
         const specifiedTemplateFilePath = await getConfigFilePath({
           configFileDirPath: path.dirname(this.configFilePath),
           configFileName: template_file.split('.')[0], // because it is usually specified like this: template.yaml
+          extensions: CfnRunner.configFileExtensions.template,
         })
         if (!specifiedTemplateFilePath) {
           // samconfig file found, but the specified custom template file name does not exist
@@ -307,7 +316,18 @@ export class CfnRunner extends Runner {
         const defaultTemplateFilePath = await getConfigFilePath({
           configFileDirPath: path.dirname(this.configFilePath),
           configFileName: 'template',
+          extensions: CfnRunner.configFileExtensions.template,
         })
+        if (!defaultTemplateFilePath) {
+          const err = new ServerlessError(
+            `Could not find a template file next to "${path.basename(
+              this.configFilePath,
+            )}". Expected one of: template.yaml, template.yml, template.json`,
+            ServerlessErrorCodes.sam.TEMPLATE_FILE_NOT_FOUND,
+          )
+          err.stack = undefined
+          throw err
+        }
         await this.reloadConfig({ configFilePath: defaultTemplateFilePath })
         await this.resolveVariables()
         this.templateFile = this.config

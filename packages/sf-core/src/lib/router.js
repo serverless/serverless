@@ -250,9 +250,17 @@ const findRunnerForDefaultConfigName = async ({ logger, workingDir }) => {
     }
 
     for (const configFileName of RunnerClass.configFileNames) {
+      const allowedExtensions =
+        RunnerClass.configFileExtensions?.[configFileName]
       const matchedFile = files.find((file) => {
-        const fileNameWithoutExt = path.basename(file, path.extname(file))
-        return fileNameWithoutExt === configFileName
+        const extension = path.extname(file)
+        if (path.basename(file, extension) !== configFileName) {
+          return false
+        }
+        return (
+          !allowedExtensions ||
+          allowedExtensions.includes(extension.slice(1).toLowerCase())
+        )
       })
       if (!matchedFile) {
         continue
@@ -284,7 +292,11 @@ const findRunnerForDefaultConfigName = async ({ logger, workingDir }) => {
  * @param {Object} params.logger - A logger instance for logging debug information.
  * @returns {Promise<FindRunnerResult & { configFileRaw: string } | null>} A promise resolving to a `RunnerResult` object or `null` if no runner is found.
  */
-const findRunner = async ({ logger, options, workingDir = process.cwd() }) => {
+export const findRunner = async ({
+  logger,
+  options,
+  workingDir = process.cwd(),
+}) => {
   let result = await findRunnerForCustomConfigName({
     logger,
     options,
