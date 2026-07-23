@@ -74,6 +74,21 @@ build:
     # Enable or Disable minifying the built code. (Default: false)
     minify: false
 
+    # The file extension of the bundled handler files. (Default: '.js')
+    #
+    # Map '.js' to '.mjs' to emit ES module bundles that Lambda loads with the
+    # ESM loader without a "type": "module" package.json in the artifact, or
+    # to '.cjs' to make CommonJS loading explicit. Emitting '.mjs' requires
+    # `format: esm`; the bundled handler, its sourcemap, and the packaged file
+    # names all use the configured extension. Lambda resolves the handler file
+    # by extension automatically, so function `handler` values stay unchanged.
+    outExtension:
+      '.js': '.mjs'
+
+    # The output format of the bundled code. Defaults to 'cjs', or to 'esm' if
+    # the service's package.json declares "type": "module".
+    format: esm
+
     # Enable or configure sourcemaps, can be set to true or to an object with further configuration.
     sourcemap:
       # The sourcemap type to use, options are (inline, linked, or external)
