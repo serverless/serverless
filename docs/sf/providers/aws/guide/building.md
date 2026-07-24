@@ -102,6 +102,8 @@ build:
     metafile: true
 ```
 
+Dependencies that stay out of the bundle — packages listed in `external`, or all packages when `packages: external` is set — are installed into the `node_modules` directory of the deployment archive. Their versions are resolved from the service's `package.json`. In a [Serverless Compose](../../../guides/compose) project, the `package.json` next to `serverless-compose.yml` acts as a fallback, so services can share dependencies declared once at the project root: `external` packages not found in the service's `package.json` are resolved from it, and with `packages: external` it is used when the service declares no dependencies of its own.
+
 You may also configure esbuild with a JavaScript file, which is useful if you want to use esbuild plugins. Here's an example:
 
 ```yml

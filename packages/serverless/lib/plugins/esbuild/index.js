@@ -1241,6 +1241,15 @@ class Esbuild {
               composePackageJson.dependencies[key]
           }
         }
+      } else {
+        // packages: 'external' keeps the service's own dependencies — even an
+        // explicitly empty `dependencies: {}` — exactly as declared: configs
+        // that packaged successfully before must keep producing identical
+        // artifacts. The compose-root fallback applies only to a service with
+        // no dependencies declaration at all, which previously crashed here.
+        packageJsonNoDevDeps.dependencies = packageJson.dependencies
+          ? { ...packageJson.dependencies }
+          : { ...composePackageJson.dependencies }
       }
 
       for (const key of exclude) {
