@@ -137,6 +137,14 @@ class Esbuild {
             },
             // Whether to bundle or not. Default is true
             bundle: { type: 'boolean' },
+            outExtension: {
+              description: `Output file extension for the bundled handlers, e.g. { '.js': '.mjs' } to emit ES module bundles.
+@example { '.js': '.mjs' }`,
+              type: 'object',
+              properties: {
+                '.js': { type: 'string', enum: ['.js', '.cjs', '.mjs'] },
+              },
+            },
             // Whether to minify or not. Default is false
             minify: { type: 'boolean' },
             // If set to a boolean, true, then framework uses external sourcemaps and enables it on functions by default.
@@ -476,6 +484,45 @@ class Esbuild {
   }
 
   /**
+   * The extension of the bundled handler files, derived from esbuild's
+   * `outExtension` option. The plugin builds with `outfile` (not `outdir`),
+   * and esbuild ignores `outExtension` in outfile mode, so the mapping is
+   * applied here — to the outfile passed to esbuild and to the file names the
+   * packaging step zips — instead of by esbuild itself.
+   * @param {object} buildProperties - The merged esbuild build properties
+   * @returns {string} The configured output extension, defaulting to '.js'
+   */
+  _outputExtension(buildProperties) {
+    const extension = buildProperties.outExtension?.['.js'] ?? '.js'
+
+    if (!['.js', '.cjs', '.mjs'].includes(extension)) {
+      throw new ServerlessError(
+        `esbuild's "outExtension" maps ".js" to "${extension}", but only ".js", ".cjs" and ".mjs" are supported because the Lambda Node.js runtime cannot load handler files with other extensions`,
+        'ESBUILD_OUT_EXTENSION_UNSUPPORTED',
+      )
+    }
+
+    // Mirrors esbuild's own coherence rules: Lambda decides between the CJS
+    // and ESM loaders by file extension, so a mismatched pair produces a
+    // bundle that crashes at initialization. Fail at build time instead.
+    const isEsm = buildProperties.format === 'esm'
+    if (isEsm && extension === '.cjs') {
+      throw new ServerlessError(
+        'esbuild format "esm" cannot emit files with the ".cjs" extension. Remove the "outExtension" mapping or set the format to "cjs"',
+        'ESBUILD_OUT_EXTENSION_FORMAT_MISMATCH',
+      )
+    }
+    if (!isEsm && extension === '.mjs') {
+      throw new ServerlessError(
+        'Emitting ".mjs" files requires the esbuild format "esm". Set "format: esm" in the esbuild configuration or remove the "outExtension" mapping',
+        'ESBUILD_OUT_EXTENSION_FORMAT_MISMATCH',
+      )
+    }
+
+    return extension
+  }
+
+  /**
    * Determine which modules to mark as external (i.e. added to the generated package.json) and which modules to be excluded all together
    * @param {string} runtime - The provider.runtime or functionObject.runtime value used to determine which version of the AWS SDK to exclude
    * @returns
@@ -620,6 +667,7 @@ class Esbuild {
     }
 
     const buildProperties = await this._buildProperties()
+    const outputExtension = this._outputExtension(buildProperties)
 
     // Multiple functions can share a single handler file (e.g. one module
     // exporting several handlers). Building each function separately would
@@ -724,7 +772,7 @@ class Esbuild {
                 this.serverless.config.serviceDir,
                 '.serverless',
                 'build',
-                group.handlerPath + '.js',
+                group.handlerPath + outputExtension,
               ),
               logLevel: 'error',
             }
@@ -733,6 +781,8 @@ class Esbuild {
             delete esbuildProps.exclude
             delete esbuildProps.buildConcurrency
             delete esbuildProps.configFile
+            // Applied to the outfile above; esbuild ignores it in outfile mode
+            delete esbuildProps.outExtension
 
             const result = await esbuild.build(esbuildProps)
 
@@ -803,6 +853,7 @@ class Esbuild {
   async _package(handlerPropertyName = 'handler') {
     const functions = await this.functions(handlerPropertyName)
     const buildProperties = await this._buildProperties()
+    const outputExtension = this._outputExtension(buildProperties)
 
     if (Object.keys(functions).length === 0) {
       log.debug('No functions to package')
@@ -900,17 +951,17 @@ class Esbuild {
                 this.serverless.config.serviceDir,
                 '.serverless',
                 'build',
-                handlerPath + '.js',
+                handlerPath + outputExtension,
               )
 
               zip.file(handlerZipPath, {
-                name: `${handlerPath}.js`,
+                name: `${handlerPath}${outputExtension}`,
                 date: PINNED_ARTIFACT_DATE,
               })
 
               if (existsSync(`${handlerZipPath}.map`)) {
                 zip.file(`${handlerZipPath}.map`, {
-                  name: `${handlerPath}.js.map`,
+                  name: `${handlerPath}${outputExtension}.map`,
                   date: PINNED_ARTIFACT_DATE,
                 })
               }
@@ -965,6 +1016,8 @@ class Esbuild {
   }
 
   async _packageAll(functions, handlerPropertyName = 'handler') {
+    const buildProperties = await this._buildProperties()
+    const outputExtension = this._outputExtension(buildProperties)
     const zipName = `${this.serverless.service.service}.zip`
     const zipPath = path.join(
       this.serverless.config.serviceDir,
@@ -1037,12 +1090,12 @@ class Esbuild {
             this.serverless.config.serviceDir,
             '.serverless',
             'build',
-            handlerPath + '.js',
+            handlerPath + outputExtension,
           )
 
           if (!addedFiles.has(handlerZipPath)) {
             zip.file(handlerZipPath, {
-              name: `${handlerPath}.js`,
+              name: `${handlerPath}${outputExtension}`,
               date: PINNED_ARTIFACT_DATE,
             })
             addedFiles.add(handlerZipPath)
@@ -1053,7 +1106,7 @@ class Esbuild {
             !addedFiles.has(`${handlerZipPath}.map`)
           ) {
             zip.file(`${handlerZipPath}.map`, {
-              name: `${handlerPath}.js.map`,
+              name: `${handlerPath}${outputExtension}.map`,
               date: PINNED_ARTIFACT_DATE,
             })
 

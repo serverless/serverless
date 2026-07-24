@@ -1136,17 +1136,25 @@ class AwsInvokeLocal {
           error.code === 'MODULE_NOT_FOUND' ||
           error.code === 'ERR_MODULE_NOT_FOUND'
         ) {
-          // Attempt to import with `.js` extension
-          const pathToHandler = `${modulePath}.js`
-          try {
-            return await import(pathToHandler)
-          } catch (innerError) {
-            // Throw original error if still "MODULE_NOT_FOUND", as not finding module with `.js` might be confusing
-            if (innerError.code !== 'MODULE_NOT_FOUND') {
-              throw innerError
+          // Probe the extensions the Lambda Node.js runtime resolves; `.mjs`
+          // and `.cjs` also cover bundles emitted via esbuild's `outExtension`
+          for (const extension of ['.js', '.mjs', '.cjs']) {
+            try {
+              return await import(`${modulePath}${extension}`)
+            } catch (innerError) {
+              // Keep probing on "not found"; rethrow anything else (e.g. a
+              // handler that throws at initialization)
+              if (
+                innerError.code !== 'MODULE_NOT_FOUND' &&
+                innerError.code !== 'ERR_MODULE_NOT_FOUND'
+              ) {
+                throw innerError
+              }
             }
           }
         }
+        // Throw the original extensionless error, as surfacing a "not found"
+        // for one specific probed extension might be confusing
         throw error
       }
     }
