@@ -1188,6 +1188,13 @@ class Esbuild {
               composePackageJson.dependencies[key]
           }
         }
+      } else {
+        // packages: 'external' keeps the service's own dependencies; only a
+        // service that declares none (dependencies live at the compose root)
+        // falls back to the compose-root package.json
+        packageJsonNoDevDeps.dependencies = packageJson.dependencies
+          ? { ...packageJson.dependencies }
+          : { ...composePackageJson.dependencies }
       }
 
       for (const key of exclude) {
