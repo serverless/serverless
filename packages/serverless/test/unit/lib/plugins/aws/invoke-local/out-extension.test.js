@@ -17,7 +17,7 @@ import { execFile } from 'child_process'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import { fileURLToPath } from 'url'
+import { fileURLToPath, pathToFileURL } from 'url'
 import { promisify } from 'util'
 
 const execFileAsync = promisify(execFile)
@@ -26,13 +26,17 @@ const pluginPath = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '../../../../../../lib/plugins/aws/invoke-local/index.js',
 )
+// A `file://` URL, not a bare path: Node's ESM loader rejects a raw
+// drive-letter path (e.g. C:\...) as an import specifier on Windows.
+const pluginUrl = pathToFileURL(pluginPath).href
 
-// Driver executed by the child process: builds the minimal plugin context
-// invokeLocalNodeJs touches and invokes the handler at argv[2]/argv[3].
+// Driver executed by the child process. It receives the plugin URL and the
+// service dir + handler path as argv, builds the minimal plugin context
+// invokeLocalNodeJs touches, and invokes the handler. The dynamic import runs
+// inside the try so any startup failure prints a diagnostic instead of exiting
+// with empty stdout.
 const driverSource = `
-import AwsInvokeLocal from ${JSON.stringify(pluginPath)}
-
-const [serviceDir, handlerPath] = process.argv.slice(2)
+const [pluginUrl, serviceDir, handlerPath] = process.argv.slice(2)
 
 const context = {
   serverless: { serviceDir, service: { provider: {} } },
@@ -45,6 +49,7 @@ const context = {
 }
 
 try {
+  const { default: AwsInvokeLocal } = await import(pluginUrl)
   await AwsInvokeLocal.prototype.invokeLocalNodeJs.call(
     context,
     handlerPath,
@@ -74,7 +79,7 @@ async function invoke(serviceDir, handlerPath) {
   try {
     const { stdout } = await execFileAsync(
       process.execPath,
-      [path.join(serviceDir, 'driver.mjs'), serviceDir, handlerPath],
+      [path.join(serviceDir, 'driver.mjs'), pluginUrl, serviceDir, handlerPath],
       { env: { ...process.env, NODE_NO_WARNINGS: '1' } },
     )
     return stdout.trim()
