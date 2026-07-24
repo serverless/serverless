@@ -145,6 +145,32 @@ describe('esbuild _preparePackageJson', () => {
     expect(buildPackageJson.dependencies).toEqual({ zod: '^3.24.1' })
   })
 
+  test('compose service with an explicitly empty dependencies object keeps it with packages: "external" — the compose root is not consulted', async () => {
+    // Backward-compatibility contract: `dependencies: {}` packaged
+    // successfully before the compose-root fallback existed (producing empty
+    // node_modules), so it must keep producing an identical artifact. Only a
+    // service with no dependencies declaration at all uses the compose root.
+    const composeRoot = makeDir({
+      'serverless-compose.yml': 'services:\n  my-service:\n    path: service\n',
+      'package.json': JSON.stringify({
+        dependencies: { zod: '^3.24.1', lodash: '^4.17.21' },
+      }),
+      'service/package.json': JSON.stringify({
+        dependencies: {},
+      }),
+    })
+    const serviceDir = path.join(composeRoot, 'service')
+    const plugin = makePlugin(serviceDir, {
+      esbuild: { packages: 'external' },
+      isWithinCompose: true,
+    })
+
+    await plugin._preparePackageJson()
+
+    const buildPackageJson = readBuildPackageJson(serviceDir)
+    expect(buildPackageJson.dependencies).toEqual({})
+  })
+
   test('outside compose, packages: "external" keeps the service dependencies unchanged', async () => {
     const serviceDir = makeDir({
       'package.json': JSON.stringify({
