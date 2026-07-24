@@ -32,7 +32,6 @@ import {
   getRcNotificationLastShown,
   setRcNotificationLastShown,
 } from './fs/index.js'
-import { getConfigFileDetails } from './fs/config-file.js'
 import { downloadTemplate, parseRepoURL } from './https/index.js'
 
 // Export the combined object as default
@@ -68,5 +67,4 @@ export {
   setRcNotificationLastShown,
   downloadTemplate,
   parseRepoURL,
-  getConfigFileDetails,
 }
