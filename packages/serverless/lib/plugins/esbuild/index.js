@@ -730,6 +730,19 @@ class Esbuild {
 
     const limit = pLimit(concurrency)
 
+    // Whether to inject NODE_OPTIONS=--enable-source-maps. A yml `sourcemap`
+    // value decides when present (the object form via its `setNodeOptions`
+    // flag, false by default); otherwise the decision follows the effective
+    // merged setting so that `sourcemap: false` inside a `configFile`
+    // suppresses the env var just like its yml equivalent (#12997).
+    const ymlSourcemap = this.serverless.service.build?.esbuild?.sourcemap
+    const shouldSetNodeOptions =
+      typeof ymlSourcemap === 'object' && ymlSourcemap !== null
+        ? ymlSourcemap.setNodeOptions === true
+        : ymlSourcemap === undefined
+          ? Boolean(buildProperties.sourcemap)
+          : ymlSourcemap === true
+
     try {
       await Promise.all(
         Array.from(buildGroups.values()).map((group) => {
@@ -810,13 +823,7 @@ class Esbuild {
             // handler file, not just the one whose build we ran.
             for (const alias of group.aliases) {
               this.serverless.builtFunctions.add(alias)
-              if (
-                this.serverless.service.build?.esbuild?.sourcemap ===
-                  undefined ||
-                this.serverless.service.build?.esbuild?.sourcemap === true ||
-                this.serverless.service.build?.esbuild.sourcemap
-                  ?.setNodeOptions === true
-              ) {
+              if (shouldSetNodeOptions) {
                 const functionObject =
                   this.serverless.service.getFunction(alias)
                 if (functionObject.environment?.NODE_OPTIONS) {

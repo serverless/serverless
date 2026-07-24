@@ -115,6 +115,8 @@ build:
 
 The JavaScript file must export a function that returns an esbuild configuration object. For your convenience, the **serverless** instance is passed to that function.
 
+Options returned by the config file are merged with the `build.esbuild` options in `serverless.yml`, with `serverless.yml` taking precedence when both set the same option. For boolean `sourcemap` values, or when `sourcemap` is omitted from `serverless.yml`, the effective merged setting controls whether the `NODE_OPTIONS=--enable-source-maps` environment variable is added to your functions — for example, returning `sourcemap: false` from the config file disables both sourcemap generation and the environment variable. A `sourcemap` object in `serverless.yml` uses its `setNodeOptions` property instead.
+
 Here's an example of the `esbuild.config.js` file that uses the `esbuild-plugin-env` plugin:
 
 **ESM:**
