@@ -40,7 +40,6 @@
     "@aws-sdk/client-ssm": "3.1087.0",
     "@aws-sdk/client-sts": "3.1087.0",
     "@aws-sdk/client-wafv2": "3.1087.0",
-    "@aws-sdk/signature-v4-crt": "3.1087.0",
     "@aws-sdk/signature-v4a": "3.1082.0",
     "@aws-sdk/util-arn-parser": "3.972.28",
     "@serverless/util": "*",

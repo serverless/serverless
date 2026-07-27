@@ -69,7 +69,6 @@
     "@serverless/framework": "*",
     "@serverless/mcp": "*",
     "@serverless/util": "*",
-    "@smithy/util-retry": "^4.5.10",
     "adm-zip": "^0.6.0",
     "child-process-ext": "^3.0.2",
     "dotenv": "^17.3.1",
