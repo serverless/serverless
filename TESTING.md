@@ -131,7 +131,7 @@ outputs:
 
 - `npm test -w @serverless/engine` — engine unit tests
 - `npm test -w @serverless/mcp` — MCP server tests (not run by any CI workflow)
-- `npm run test:python -w @serverlessinc/sf-core` — Python plugin tests (tape-based, covered by the `CI: Python Requirements` workflow)
+- `npm run test:python -w @serverlessinc/sf-core` — Python plugin tests (covered by the `CI: Python Requirements` workflow)
 - `npm run test:build -w @serverlessinc/sf-core` — packaging/distribution smoke test
 
 ## Troubleshooting
