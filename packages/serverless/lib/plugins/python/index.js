@@ -124,6 +124,12 @@ class ServerlessPythonRequirements {
         options.layer = {}
       }
     }
+    if (
+      options.layers != null &&
+      (typeof options.layers !== 'object' || Array.isArray(options.layers))
+    ) {
+      delete options.layers
+    }
     return options
   }
 
@@ -206,6 +212,54 @@ class ServerlessPythonRequirements {
       })
     }
 
+    if (this.serverless.configSchemaHandler?.defineCustomProperties) {
+      this.serverless.configSchemaHandler.defineCustomProperties({
+        properties: {
+          pythonRequirements: {
+            type: 'object',
+            properties: {
+              layers: {
+                description: `Named Python requirement layers, each built from its own requirements file.
+@remarks Map key becomes the layer name; reference with Ref: <Name>LambdaLayer.`,
+                type: 'object',
+                additionalProperties: {
+                  type: 'object',
+                  properties: {
+                    requirementsFile: {
+                      description: `Path (relative to service root) to this layer's requirements.txt.`,
+                      type: 'string',
+                      minLength: 1,
+                    },
+                    name: { type: 'string', minLength: 1, maxLength: 140 },
+                    description: { type: 'string', maxLength: 256 },
+                    compatibleRuntimes: {
+                      type: 'array',
+                      items: { $ref: '#/definitions/awsLambdaRuntime' },
+                      maxItems: 15,
+                    },
+                    compatibleArchitectures: {
+                      type: 'array',
+                      items: { $ref: '#/definitions/awsLambdaArchitecture' },
+                      maxItems: 2,
+                    },
+                    licenseInfo: { type: 'string', maxLength: 512 },
+                    allowedAccounts: {
+                      type: 'array',
+                      items: { type: 'string' },
+                    },
+                    retain: { type: 'boolean' },
+                  },
+                  required: ['requirementsFile'],
+                  additionalProperties: false,
+                },
+              },
+            },
+            additionalProperties: true,
+          },
+        },
+      })
+    }
+
     if (v3Utils) {
       this.log = v3Utils.log
       this.progress = v3Utils.progress
@@ -277,8 +331,12 @@ class ServerlessPythonRequirements {
       const layerConfigured = Boolean(
         this.serverless.service.custom?.pythonRequirements?.layer,
       )
+      const layersConfigured = Boolean(
+        this.serverless.service.custom?.pythonRequirements?.layers,
+      )
       const hasPythonLayerOnly =
-        layerConfigured && providerRuntime?.startsWith('python')
+        (layerConfigured || layersConfigured) &&
+        providerRuntime?.startsWith('python')
 
       return hasPythonFunction || hasPythonAgent || hasPythonLayerOnly
     }

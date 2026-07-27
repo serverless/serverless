@@ -1,8 +1,10 @@
 import fse from 'fs-extra'
 import path from 'path'
 import JSZip from 'jszip'
+import { ServerlessError } from '@serverless/util'
 import { writeZip, addTree } from './zipTree.js'
 import { sha256Path, getRequirementsLayerPath } from './shared.js'
+import { installRequirementsForFile } from './pip.js'
 
 /**
  * Zip up requirements to be used as layer package.
@@ -48,7 +50,7 @@ async function zipRequirements() {
     if (process.platform === 'win32') {
       fse.copySync(zipCachePath, targetZipPath)
     } else {
-      fse.symlink(zipCachePath, targetZipPath, 'file')
+      await fse.symlink(zipCachePath, targetZipPath, 'file')
     }
   }
 }
@@ -77,11 +79,159 @@ async function createLayers() {
 }
 
 /**
+ * Validates a named layer name against reserved tokens and existing layers.
+ * @param {string} name
+ * @param {Object} existingLayers
+ */
+function validateLayerName(name, existingLayers) {
+  if (name === 'pythonRequirements') {
+    throw new ServerlessError(
+      `Python Requirements: layer name "pythonRequirements" is reserved for the single-layer feature. Choose a different name.`,
+      'PYTHON_REQUIREMENTS_LAYER_NAME_RESERVED',
+      { stack: false },
+    )
+  }
+  if (
+    existingLayers &&
+    Object.prototype.hasOwnProperty.call(existingLayers, name)
+  ) {
+    throw new ServerlessError(
+      `Python Requirements: layer name "${name}" collides with an already-declared layer. Use a unique name.`,
+      'PYTHON_REQUIREMENTS_LAYER_NAME_COLLISION',
+      { stack: false },
+    )
+  }
+}
+
+/**
+ * Zip up a named layer's installed packages under a python/ prefix.
+ * @param {string} name - layer name
+ * @param {string} installDir - directory containing installed packages
+ * @return {Promise}
+ */
+async function zipNamedLayerRequirements(name, installDir) {
+  const servicePath =
+    this.servicePath ||
+    this.serverless?.config?.servicePath ||
+    this.serverless?.serviceDir ||
+    process.cwd()
+  const requirementsDir = path.join(servicePath, '.serverless')
+  const layerDir = path.join(requirementsDir, `pythonRequirements-${name}`)
+  const requirementsTxtPath = path.join(layerDir, 'requirements.txt')
+  const targetZipPath = path.join(
+    requirementsDir,
+    `pythonRequirements-${name}.zip`,
+  )
+
+  // A missing or empty (zero-byte) requirements.txt means there are no
+  // dependencies to package, so emit a clean empty layer zip. pip.js returns
+  // the layer dir with a zero-byte requirements.txt when the resolved
+  // requirements are empty, so existence alone is not enough.
+  if (
+    !fse.existsSync(requirementsTxtPath) ||
+    fse.statSync(requirementsTxtPath).size === 0
+  ) {
+    const rootZip = new JSZip()
+    rootZip.folder('python')
+    await writeZip(rootZip, targetZipPath)
+    return
+  }
+
+  const reqChecksum = sha256Path(requirementsTxtPath)
+  const zipCachePath = getRequirementsLayerPath(
+    reqChecksum,
+    targetZipPath,
+    this.options,
+    this.serverless,
+  )
+
+  if (fse.existsSync(zipCachePath)) {
+    if (this.progress && this.log) {
+      this.log.info(
+        `Found cached Python Requirements Lambda Layer file for layer ${name}`,
+      )
+    } else {
+      this.serverless.cli.log(
+        `Found cached Python Requirements Lambda Layer file for layer ${name}`,
+      )
+    }
+  } else {
+    const rootZip = new JSZip()
+    const folder = rootZip.folder('python')
+    await addTree(folder, installDir)
+    await writeZip(rootZip, zipCachePath)
+  }
+
+  if (zipCachePath !== targetZipPath) {
+    if (process.platform === 'win32') {
+      fse.copySync(zipCachePath, targetZipPath)
+    } else {
+      await fse.symlink(zipCachePath, targetZipPath, 'file')
+    }
+  }
+}
+
+/**
+ * Install, zip, and register all named layers declared in options.layers.
+ * Uses a two-pass approach: pre-flight validation then build loop with deferred registration.
+ * @return {Promise}
+ */
+async function createNamedLayers() {
+  if (!this.serverless.service.layers) {
+    this.serverless.service.layers = {}
+  }
+  const existingLayers = this.serverless.service.layers
+  const entries = Object.entries(this.options.layers)
+
+  for (const [name] of entries) {
+    validateLayerName(name, existingLayers)
+  }
+
+  const accumulator = {}
+  for (const [name, cfg] of entries) {
+    const installDir = await installRequirementsForFile(
+      cfg.requirementsFile,
+      name,
+      this,
+    )
+    await zipNamedLayerRequirements.call(this, name, installDir)
+
+    const {
+      requirementsFile: _rf,
+      name: cfgName,
+      description,
+      compatibleRuntimes,
+      ...restOfUserProps
+    } = cfg
+
+    accumulator[name] = {
+      package: {
+        artifact: path.join('.serverless', `pythonRequirements-${name}.zip`),
+      },
+      name:
+        cfgName ||
+        `${this.serverless.service.service}-${this.serverless.providers.aws.getStage()}-${name}`,
+      description:
+        description ||
+        `Python requirements for layer ${name} generated by serverless-python-requirements.`,
+      compatibleRuntimes: compatibleRuntimes || [
+        this.serverless.service.provider.runtime,
+      ],
+      ...restOfUserProps,
+    }
+  }
+
+  Object.assign(this.serverless.service.layers, accumulator)
+}
+
+/**
  * Creates a layer from the installed requirements.
  * @return {Promise} the combined promise for requirements layer.
  */
 async function layerRequirements() {
-  if (!this.options.layer) return
+  const hasNamedLayers =
+    this.options.layers && typeof this.options.layers === 'object'
+  if (!this.options.layer && !hasNamedLayers) return
 
   let layerProgress
   if (this.progress && this.log) {
@@ -93,8 +243,13 @@ async function layerRequirements() {
   }
 
   try {
-    await zipRequirements.call(this)
-    await createLayers.call(this)
+    if (this.options.layer) {
+      await zipRequirements.call(this)
+      await createLayers.call(this)
+    }
+    if (hasNamedLayers) {
+      await createNamedLayers.call(this)
+    }
   } finally {
     layerProgress && layerProgress.remove()
   }

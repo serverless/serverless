@@ -315,6 +315,43 @@ test('layer-only service (no functions) still produces lambda layer', async (t) 
   t.end()
 })
 
+test('multiple named requirement layers each built from their own requirements file', async (t) => {
+  process.chdir('tests/layers_multi')
+  sls(['package'], { env: {} })
+  const cfn = JSON.parse(
+    await readFile(
+      '.serverless/cloudformation-template-update-stack.json',
+      'utf8',
+    ),
+  )
+  t.ok(
+    cfn.Resources?.PydanticLambdaLayer,
+    'PydanticLambdaLayer resource exists',
+  )
+  t.ok(cfn.Resources?.UlidLambdaLayer, 'UlidLambdaLayer resource exists')
+  t.ok(
+    cfn.Outputs?.PydanticLambdaLayerQualifiedArn,
+    'pydantic qualified ARN output exists',
+  )
+  t.ok(
+    cfn.Outputs?.UlidLambdaLayerQualifiedArn,
+    'ulid qualified ARN output exists',
+  )
+  const pydZip = await listZipFiles(
+    '.serverless/pythonRequirements-pydantic.zip',
+  )
+  t.true(
+    pydZip.some((p) => p.startsWith('python/pydantic')),
+    'pydantic packaged under python/',
+  )
+  const ulidZip = await listZipFiles('.serverless/pythonRequirements-ulid.zip')
+  t.true(
+    ulidZip.some((p) => p.startsWith('python/ulid')),
+    'ulid packaged under python/',
+  )
+  t.end()
+})
+
 test('py3.13 packages have the same hash', async (t) => {
   process.chdir('tests/base')
   sls(['package'], { env: {} })

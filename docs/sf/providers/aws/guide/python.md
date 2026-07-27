@@ -333,6 +333,40 @@ custom:
         - '*'
 ```
 
+### Multiple Layers
+
+To split dependencies across several Lambda layers — each built from its own
+requirements file — use the `layers` map. The map key is the layer name; each entry
+points at its own requirements file.
+
+```yaml
+custom:
+  pythonRequirements:
+    layers:
+      pydantic:
+        requirementsFile: requirements/pydantic.txt
+      web:
+        requirementsFile: requirements/web.txt
+        description: FastAPI + Pydantic runtime
+
+functions:
+  api:
+    handler: handler.api
+    layers:
+      - Ref: PydanticLambdaLayer
+      - Ref: WebLambdaLayer
+```
+
+Each layer is packaged independently under the `python/` path. Reference a layer
+from a function with `Ref: <Name>LambdaLayer` (e.g. a key `pydantic` becomes
+`Ref: PydanticLambdaLayer`). `name`, `description`, `compatibleRuntimes`, and the
+other standard layer properties may be set per entry; when omitted,
+`compatibleRuntimes` defaults to the provider runtime and `name` defaults to
+`${service}-${stage}-<name>`.
+
+`layers` is independent of `layer`: you may use either or both in the same service.
+The name `pythonRequirements` is reserved for the single `layer` feature.
+
 ## Omitting Packages
 
 You can omit a package from deployment with the `noDeploy` option. Note that
