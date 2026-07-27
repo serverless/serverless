@@ -1,4 +1,3 @@
-import Appdir from 'appdirectory'
 import { globSync } from 'glob'
 import path from 'path'
 import fse from 'fs-extra'
@@ -110,6 +109,37 @@ function getRequirementsLayerPath(hash, fallback, options, serverless) {
 }
 
 /**
+ * The default per-user cache directory. On macOS and Linux the paths match
+ * the historical defaults, so existing users' pip caches stay where they
+ * are; changing them would silently orphan those caches. On Windows the
+ * cache lives under the 'ServerlessFramework' vendor directory.
+ * @param  {string} platform
+ * @param  {Object} env
+ * @return {string}
+ */
+function getDefaultUserCachePath(
+  platform = process.platform,
+  env = process.env,
+) {
+  const appName = 'serverless-python-requirements'
+  if (platform === 'win32') {
+    return path.join(
+      env.LOCALAPPDATA || env.APPDATA,
+      'ServerlessFramework',
+      appName,
+      'Cache',
+    )
+  }
+  if (platform === 'darwin') {
+    return path.join(env.HOME, 'Library', 'Caches', appName)
+  }
+  if (env.XDG_CACHE_HOME) {
+    return path.join(env.XDG_CACHE_HOME, appName)
+  }
+  return path.join(env.HOME, '.cache', appName)
+}
+
+/**
  * The static cache path that will be used for this system + options, used if static cache is enabled
  * @param  {Object} options
  * @return {string}
@@ -121,11 +151,7 @@ function getUserCachePath(options) {
   }
 
   // Otherwise, find/use the python-ey appdirs cache location
-  const dirs = new Appdir({
-    appName: 'serverless-python-requirements',
-    appAuthor: 'UnitedIncome',
-  })
-  return dirs.userCache()
+  return getDefaultUserCachePath()
 }
 
 /**
@@ -141,6 +167,7 @@ export {
   checkForAndDeleteMaxCacheVersions,
   getRequirementsWorkingPath,
   getRequirementsLayerPath,
+  getDefaultUserCachePath,
   getUserCachePath,
   sha256Path,
 }

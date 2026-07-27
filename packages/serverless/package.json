@@ -56,7 +56,6 @@
     "ajv": "8.20.0",
     "ajv-errors": "^3.0.0",
     "ajv-formats": "3.0.1",
-    "appdirectory": "^0.1.0",
     "archiver": "^8.0.0",
     "aws-iot-device-sdk": "^2.2.16",
     "aws-sdk": "^2.1693.0",
