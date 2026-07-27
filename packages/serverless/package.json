@@ -97,7 +97,6 @@
     "promise-queue": "^2.2.5",
     "require-from-string": "^2.0.2",
     "semver": "^7.8.5",
-    "sha256-file": "^1.0.0",
     "shell-quote": "^1.8.4",
     "strip-ansi": "^7.2.0",
     "terminal-link": "^4.0.0",
