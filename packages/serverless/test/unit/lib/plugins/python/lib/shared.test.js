@@ -65,6 +65,14 @@ describe('getDefaultUserCachePath', () => {
     )
   })
 
+  it('resolves $XDG_CACHE_HOME/<appName> on linux without HOME', () => {
+    expect(
+      getDefaultUserCachePath('linux', {
+        XDG_CACHE_HOME: '/home/alice/.custom-cache',
+      }),
+    ).toEqual(path.join('/home/alice/.custom-cache', APP_NAME))
+  })
+
   it('defaults to the current platform and environment', () => {
     expect(getDefaultUserCachePath()).toEqual(
       getDefaultUserCachePath(process.platform, process.env),
@@ -81,5 +89,9 @@ describe('getUserCachePath', () => {
 
   it('uses the platform default cache path without cacheLocation', () => {
     expect(getUserCachePath({})).toEqual(getDefaultUserCachePath())
+  })
+
+  it('uses the platform default cache path when called without options', () => {
+    expect(getUserCachePath()).toEqual(getDefaultUserCachePath())
   })
 })
