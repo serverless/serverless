@@ -108,7 +108,7 @@ New integration tests must be self-cleaning (deploy → exercise → teardown, e
 ```bash
 npm test -w @serverless/mcp                          # mcp tests (NOT run by any CI workflow)
 npm test -w @serverless/engine                       # engine unit tests
-npm run test:python -w @serverlessinc/sf-core        # python plugin tests (tape-based, not Jest)
+npm run test:python -w @serverlessinc/sf-core        # python plugin tests
 npm run test:build -w @serverlessinc/sf-core         # packaging smoke + skills-packaging check (not in CI)
 cd binary-installer && go test ./... && make build-prod   # Go installer
 ```
