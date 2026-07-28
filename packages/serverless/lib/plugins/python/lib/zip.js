@@ -1,6 +1,6 @@
 import fse from 'fs-extra'
 import path from 'path'
-import uniqBy from 'lodash.uniqby'
+import uniqBy from 'lodash/uniqBy.js'
 import JSZip from 'jszip'
 import { addTree, writeZip } from './zipTree.js'
 import { fileURLToPath } from 'url'

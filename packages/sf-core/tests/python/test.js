@@ -1,11 +1,12 @@
 import crossSpawn from 'cross-spawn'
 import { globSync } from 'glob'
 import JSZip from 'jszip'
-import sha256File from 'sha256-file'
 import Appdir from 'appdirectory'
 
 import fsExtra from 'fs-extra'
 import shellQuote from 'shell-quote'
+import { createHash } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 import { dirname, join, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -48,7 +49,7 @@ function getUserCachePath(options) {
  * @return {string}
  */
 function sha256Path(fullpath) {
-  return sha256File(fullpath)
+  return createHash('sha256').update(readFileSync(fullpath)).digest('hex')
 }
 
 const initialWorkingDir = __dirname
@@ -136,9 +137,9 @@ const teardown = () => {
 // `npm run test:python -w @serverlessinc/sf-core -- -t "<pattern>"`
 const test = (desc, func, opts = {}) => {
   ;(opts.skip ? it.skip : it)(desc, async () => {
-    setup()
     let testError
     try {
+      setup()
       await func()
     } catch (err) {
       testError = err
@@ -292,9 +293,9 @@ test('layer-only service (no functions) still produces lambda layer', async () =
 test('py3.13 packages have the same hash', async () => {
   process.chdir('tests/base')
   sls(['package'], { env: {} })
-  const fileHash = sha256File('.serverless/sls-py-req-test.zip')
+  const fileHash = sha256Path('.serverless/sls-py-req-test.zip')
   sls(['package'], { env: {} })
-  expect(sha256File('.serverless/sls-py-req-test.zip')).toBe(fileHash) // packages have the same hash
+  expect(sha256Path('.serverless/sls-py-req-test.zip')).toBe(fileHash) // packages have the same hash
 })
 
 test('mixed runtimes - shared packaging (no individually)', async () => {
