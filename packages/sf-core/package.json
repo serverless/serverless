@@ -39,7 +39,6 @@
     "@aws-sdk/client-iot": "3.1087.0",
     "@aws-sdk/client-lambda": "3.1087.0",
     "@aws-sdk/client-sqs": "3.1087.0",
-    "appdirectory": "^0.1.0",
     "cross-env": "^10.1.0",
     "cross-spawn": "^7.0.6",
     "date-fns": "^4.4.0",

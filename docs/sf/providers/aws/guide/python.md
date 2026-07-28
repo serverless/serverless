@@ -370,7 +370,7 @@ custom:
 
 There are two additional options related to caching.
 You can specify where in your system to store the cache with the `cacheLocation` option.
-By default it will figure out automatically where based on your username and your OS to store the cache via the [appdirectory](https://www.npmjs.com/package/appdirectory) module.
+By default it will figure out automatically where to store the cache based on your OS: `~/Library/Caches/serverless-python-requirements` on macOS, `%LOCALAPPDATA%\ServerlessFramework\serverless-python-requirements\Cache` on Windows, and `$XDG_CACHE_HOME/serverless-python-requirements` (or `~/.cache/serverless-python-requirements`) on Linux.
 Additionally, you can specify how many max static caches to store with `staticCacheMaxVersions`, as a simple attempt to limit disk space usage for caching.
 This is DISABLED (set to 0) by default.
 Example:

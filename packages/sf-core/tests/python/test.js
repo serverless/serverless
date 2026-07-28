@@ -1,13 +1,13 @@
 import crossSpawn from 'cross-spawn'
 import { globSync } from 'glob'
 import JSZip from 'jszip'
-import Appdir from 'appdirectory'
+import { getUserCachePath } from '@serverless/framework/lib/plugins/python/lib/shared.js'
 
 import fsExtra from 'fs-extra'
 import shellQuote from 'shell-quote'
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
-import { dirname, join, resolve, sep } from 'node:path'
+import { dirname, join, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const {
@@ -23,25 +23,6 @@ const { quote } = shellQuote
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
-
-/**
- * The static cache path that will be used for this system + options, used if static cache is enabled
- * @param  {Object} options
- * @return {string}
- */
-function getUserCachePath(options) {
-  // If we've manually set the static cache location
-  if (options && options.cacheLocation) {
-    return resolve(options.cacheLocation)
-  }
-
-  // Otherwise, find/use the python-ey appdirs cache location
-  const dirs = new Appdir({
-    appName: 'serverless-python-requirements',
-    appAuthor: 'UnitedIncome',
-  })
-  return dirs.userCache()
-}
 
 /**
  * Helper to get the md5 a a file's contents to determine if a requirements has a static cache
