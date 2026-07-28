@@ -1,7 +1,8 @@
 import { globSync } from 'glob'
 import path from 'path'
 import fse from 'fs-extra'
-import sha256File from 'sha256-file'
+import { createHash } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 
 /**
  * This helper will check if we're using static cache and have max
@@ -160,7 +161,7 @@ function getUserCachePath(options) {
  * @return {string}
  */
 function sha256Path(fullpath) {
-  return sha256File(fullpath)
+  return createHash('sha256').update(readFileSync(fullpath)).digest('hex')
 }
 
 export {
