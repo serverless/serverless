@@ -1002,6 +1002,48 @@ describe('AwsCompileFunctions', () => {
       // Permission should NOT be created for AWS_IAM
       expect(resources.FuncLambdaFnUrlPermission).toBeUndefined()
     })
+
+    it('should normalize lowercase invokeMode to RESPONSE_STREAM', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          url: {
+            invokeMode: 'response_stream',
+          },
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      expect(resources.FuncLambdaFunctionUrl.Properties.InvokeMode).toBe(
+        'RESPONSE_STREAM',
+      )
+    })
+
+    it('should not set InvokeMode for lowercase buffered (the default)', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          url: {
+            invokeMode: 'buffered',
+          },
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      expect(
+        resources.FuncLambdaFunctionUrl.Properties.InvokeMode,
+      ).toBeUndefined()
+    })
   })
 
   describe('Configuration Properties', () => {

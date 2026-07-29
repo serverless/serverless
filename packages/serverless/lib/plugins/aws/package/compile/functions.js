@@ -1212,8 +1212,8 @@ class AwsCompileFunctions {
       }
     }
 
-    if (url.invokeMode === 'RESPONSE_STREAM') {
-      urlResource.Properties.InvokeMode = url.invokeMode
+    if (url.invokeMode && url.invokeMode.toUpperCase() === 'RESPONSE_STREAM') {
+      urlResource.Properties.InvokeMode = 'RESPONSE_STREAM'
     }
 
     const logicalId =
