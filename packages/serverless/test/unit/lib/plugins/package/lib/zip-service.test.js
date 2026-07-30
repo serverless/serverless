@@ -154,6 +154,10 @@ describe('zipService', () => {
   })
 
   describe('#excludeDevDependencies() - node dependency resolution', () => {
+    // Each test spawns real `npm ls` processes; on Windows CI a single npm
+    // spawn can take seconds, so the default 5s per-test timeout is too tight.
+    jest.setTimeout(60_000)
+
     // Separator-agnostic so assertions hold on both POSIX ("node_modules/x/**")
     // and Windows ("node_modules\\x\\**") glob output.
     const isExcluded = (globs, name) =>
