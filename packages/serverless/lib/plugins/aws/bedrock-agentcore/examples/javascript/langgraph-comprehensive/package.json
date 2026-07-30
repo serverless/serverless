@@ -13,7 +13,7 @@
     "@langchain/aws": "^1.2.5",
     "@langchain/core": "^1.1.28",
     "@langchain/mcp-adapters": "^1.1.2",
-    "@modelcontextprotocol/sdk": "^1.26.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "aws4fetch": "^1.0.20",
     "bedrock-agentcore": "^0.2.0",
     "langchain": "^1.2.27",
