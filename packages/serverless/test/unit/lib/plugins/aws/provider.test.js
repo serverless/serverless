@@ -3,6 +3,8 @@ import { createRequire } from 'module'
 import path from 'path'
 import os from 'os'
 import fs from 'fs/promises'
+import Ajv from 'ajv'
+import regexpKeyword from '../../../../../lib/classes/config-schema-handler/regexp-keyword.js'
 
 const require = createRequire(import.meta.url)
 
@@ -104,6 +106,44 @@ describe('AwsProvider', () => {
           newAwsProvider.serverless.service.provider.deploymentBucket,
         ).toBe('my.deployment.bucket')
       })
+    })
+  })
+
+  describe('function url config schema', () => {
+    let validate
+
+    beforeEach(() => {
+      // Schema registration is gated on provider.name === 'aws'
+      serverless.service.provider.name = 'aws'
+      new AwsProvider(serverless, options)
+      const urlSchema =
+        serverless.configSchemaHandler.schema.properties.functions
+          .patternProperties['^[a-zA-Z0-9-_]+$'].properties.url
+      // Mirror the runtime AJV configuration from
+      // lib/classes/config-schema-handler/resolve-ajv-validate.js
+      const ajv = new Ajv({
+        allErrors: true,
+        coerceTypes: 'array',
+        verbose: true,
+        strict: false,
+        strictRequired: false,
+      })
+      ajv.addKeyword(regexpKeyword)
+      validate = ajv.compile(urlSchema)
+    })
+
+    it.each([
+      'BUFFERED',
+      'RESPONSE_STREAM',
+      'buffered',
+      'response_stream',
+      'Response_Stream',
+    ])('accepts invokeMode value %s', (invokeMode) => {
+      expect(validate({ invokeMode })).toBe(true)
+    })
+
+    it('rejects an unknown invokeMode value', () => {
+      expect(validate({ invokeMode: 'STREAMING' })).toBe(false)
     })
   })
 

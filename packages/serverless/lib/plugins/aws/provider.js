@@ -2927,8 +2927,9 @@ destinations:
                     },
                     invokeMode: {
                       description: `Function URL invoke mode.`,
-                      type: 'string',
-                      enum: ['BUFFERED', 'RESPONSE_STREAM'],
+                      anyOf: ['BUFFERED', 'RESPONSE_STREAM'].map(
+                        caseInsensitive,
+                      ),
                     },
                   },
                   additionalProperties: false,
