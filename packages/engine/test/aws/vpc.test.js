@@ -1,7 +1,5 @@
 import { jest } from '@jest/globals'
-import { mock } from 'jest-mock-extended'
 import {
-  EC2Client,
   DescribeVpcsCommand,
   DescribeSubnetsCommand,
   DescribeSecurityGroupsCommand,
@@ -14,7 +12,7 @@ describe('AwsVpcClient', () => {
   let mockSdkClient
 
   beforeEach(() => {
-    mockSdkClient = mock(EC2Client)
+    mockSdkClient = { send: jest.fn() }
     awsVpcClient = new AwsVpcClient()
     awsVpcClient.client = mockSdkClient
   })
