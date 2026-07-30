@@ -1,7 +1,5 @@
 import { jest } from '@jest/globals'
-import { mock } from 'jest-mock-extended'
 import {
-  ElasticLoadBalancingV2Client,
   LoadBalancerNotFoundException,
   ResourceNotFoundException,
   DescribeLoadBalancersCommand,
@@ -25,7 +23,7 @@ import {
   AddListenerCertificatesCommand,
   RegisterTargetsCommand,
 } from '@aws-sdk/client-elastic-load-balancing-v2'
-import { WAFV2Client, AssociateWebACLCommand } from '@aws-sdk/client-wafv2'
+import { AssociateWebACLCommand } from '@aws-sdk/client-wafv2'
 import { ServerlessError } from '@serverless/util'
 import { AwsAlbClient } from '../../src/lib/aws/alb.js'
 
@@ -37,8 +35,8 @@ describe('AwsAlbClient', () => {
   jest.setTimeout(30000) // Increase timeout for all tests
 
   beforeEach(() => {
-    mockSdkClient = mock(ElasticLoadBalancingV2Client)
-    mockWafClient = mock(WAFV2Client)
+    mockSdkClient = { send: jest.fn() }
+    mockWafClient = { send: jest.fn() }
     awsAlbClient = new AwsAlbClient()
     awsAlbClient.client = mockSdkClient
     awsAlbClient.wafClient = mockWafClient

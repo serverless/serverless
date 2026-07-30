@@ -1,7 +1,5 @@
 import { jest } from '@jest/globals'
-import { mock } from 'jest-mock-extended'
 import {
-  ECSClient,
   DescribeClustersCommand,
   CreateClusterCommand,
   ServiceNotFoundException,
@@ -16,7 +14,7 @@ describe('AwsEcsClient', () => {
   jest.setTimeout(30000) // Increase timeout for all tests
 
   beforeEach(() => {
-    mockSdkClient = mock(ECSClient)
+    mockSdkClient = { send: jest.fn() }
     awsEcsClient = new AwsEcsClient()
     awsEcsClient.client = mockSdkClient
   })
