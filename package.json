@@ -45,13 +45,12 @@
     ]
   },
   "overrides": {
-    "help-me": "^5.0.0",
-    "fast-xml-parser": "^5.3.6",
+    "help-me@<5": "^5.0.0",
     "aws-sdk": {
       "uuid": "^11.1.1"
     },
     "babel-plugin-istanbul": {
-      "test-exclude": "^8.0.0"
+      "test-exclude@<8": "^8.0.0"
     }
   },
   "allowScripts": {
