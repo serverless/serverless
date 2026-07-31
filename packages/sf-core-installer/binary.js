@@ -5,8 +5,6 @@ const { existsSync, mkdirSync, rmSync, writeFileSync } = require('fs')
 const { join } = require('path')
 const { spawnSync } = require('child_process')
 
-const rimraf = require('rimraf')
-
 const error = (msg) => {
   console.error(msg)
   process.exit(1)
@@ -145,9 +143,14 @@ class Binary {
       return Promise.resolve()
     }
 
-    if (existsSync(this.installDirectory)) {
-      rimraf.sync(this.installDirectory)
-    }
+    // maxRetries/retryDelay cover transient EBUSY/EPERM on Windows, where
+    // antivirus or indexers can briefly hold locks on the old binaries
+    rmSync(this.installDirectory, {
+      recursive: true,
+      force: true,
+      maxRetries: 10,
+      retryDelay: 100,
+    })
 
     mkdirSync(this.installDirectory, { recursive: true })
 
