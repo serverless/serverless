@@ -69,7 +69,7 @@
     "ext": "^1.7.0",
     "fastest-levenshtein": "^1.0.16",
     "filesize": "^11.0.22",
-    "fs-extra": "^11.3.6",
+    "fs-extra": "^11.4.0",
     "get-stdin": "^9.0.0",
     "glob": "^13.0.6",
     "globby": "^14.1.0",
