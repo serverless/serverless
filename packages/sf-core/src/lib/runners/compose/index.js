@@ -329,6 +329,15 @@ class Compose {
                   if (stateValue === undefined) {
                     if (command[0] === 'print') {
                       serviceParams[key] = 'NOT_AVAILABLE_IN_PRINT_COMMAND'
+                    } else if (command[0] === 'package') {
+                      serviceParams[key] = 'NOT_AVAILABLE_AT_PACKAGE_TIME'
+                      // logger.warning() is invisible during multi-service runs:
+                      // the renderer then runs at the 'compose' log level (0) and
+                      // drops every level above it, so the warning must go
+                      // through writeCompose like the rest of the run output.
+                      this.logger.writeCompose(
+                        `${style.warning('[!]')} ${style.bold(alias)}: could not resolve the parameter '${key}': output '${outputKey}' of service '${depService}' is not available at package time. The packaged artifact will contain the placeholder 'NOT_AVAILABLE_AT_PACKAGE_TIME' and should not be deployed as-is. Deploy '${depService}' first (or check the output name), then package again.`,
+                      )
                     } else if (
                       command[0] === 'remove' ||
                       command[0] === 'get-state'
@@ -528,25 +537,29 @@ class Compose {
     } = runnerOutput || {}
 
     const serviceUniqueIdProvided = serviceUniqueId && runnerType
-
-    if (
-      serviceUniqueIdProvided &&
+    const hasOutputs =
       returnedState &&
-      command[0] !== 'get-state'
-    ) {
+      returnedState.outputs &&
+      Object.keys(returnedState.outputs).length > 0
+    const shouldUseStoredState =
+      !hasOutputs &&
+      (!returnedState || ['package', 'print'].includes(command[0]))
+    const currentState = shouldUseStoredState ? null : returnedState
+
+    if (serviceUniqueIdProvided && currentState && command[0] !== 'get-state') {
       await state?.putServiceState({
         serviceUniqueId,
         runnerType,
-        value: JSON.stringify(returnedState),
+        value: JSON.stringify(currentState),
       })
     }
 
     if (
       state?.localState &&
-      (returnedState || graph.predecessors(alias)?.length)
+      (currentState || graph.predecessors(alias)?.length)
     ) {
       state.localState[alias] =
-        returnedState ||
+        currentState ||
         (serviceUniqueIdProvided
           ? await state?.getServiceState({
               serviceUniqueId,
