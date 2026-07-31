@@ -45,7 +45,15 @@
     ]
   },
   "overrides": {
-    "glob@<11": "^13.0.6",
+    "@jest/reporters": {
+      "glob@<11": "^13.0.6"
+    },
+    "jest-config": {
+      "glob@<11": "^13.0.6"
+    },
+    "jest-runtime": {
+      "glob@<11": "^13.0.6"
+    },
     "help-me@<5": "^5.0.0",
     "aws-sdk": {
       "uuid": "^11.1.1"
