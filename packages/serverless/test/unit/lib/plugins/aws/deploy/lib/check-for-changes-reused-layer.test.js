@@ -112,6 +112,7 @@ describe('checkIfDeploymentIsNecessary reused-layer zip exclusion', () => {
         package: {},
         provider: { compiledCloudFormationTemplate: template },
         getAllLayers: () => ['common'],
+        getAllFunctions: () => [],
         getLayer: () => ({
           package: { artifact: commonZipPath },
           artifactAlreadyUploaded,

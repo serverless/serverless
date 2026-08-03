@@ -260,6 +260,21 @@ export default {
         ),
       )
     }
+    // Per-function `package.artifact` overrides may point at pre-built zips
+    // outside `.serverless/` (see #13770). Include them in the hash set so
+    // change detection catches code updates for individually-packaged
+    // services, mirroring the artifact resolution in `upload-artifacts.js`.
+    for (const funName of this.serverless.service.getAllFunctions()) {
+      const functionObject = this.serverless.service.getFunction(funName)
+      if (functionObject.image) continue
+      const functionArtifact =
+        functionObject.package && functionObject.package.artifact
+      if (functionArtifact) {
+        zipFiles.push(
+          path.resolve(this.serverless.serviceDir, functionArtifact),
+        )
+      }
+    }
     // resolve paths and ensure we only hash each unique file once.
     const zipFilePaths = Array.from(
       new Set(
