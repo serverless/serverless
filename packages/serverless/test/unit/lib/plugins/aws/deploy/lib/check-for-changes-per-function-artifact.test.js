@@ -86,12 +86,15 @@ describe('checkIfDeploymentIsNecessary with per-function artifacts', () => {
     },
   })
 
-  it('deploys when a per-function artifact outside .serverless changed', async () => {
+  it('deploys when a changed per-function artifact is missing from the remote deployment', async () => {
     const ctx = buildCtx({ functionArtifact: 'artifacts/lambda/fn.zip' })
     ctx.serverless.service.provider.shouldNotDeploy = false
 
-    // Remote matches the template/state but carries a *different* function zip
-    // hash, so the per-function artifact must be included to force a deploy.
+    // Remote carries only the template and state hashes — the newest
+    // deployment directory lacks the function zip (e.g. an interrupted
+    // upload). Without the per-function artifact in the local hash set both
+    // sides match and the deploy is silently skipped despite changed code
+    // (#13770).
     const templateHash = sha256(
       JSON.stringify(normalizeFiles.normalizeCloudFormationTemplate(template)),
     )
@@ -106,10 +109,6 @@ describe('checkIfDeploymentIsNecessary with per-function artifacts', () => {
       {
         Key: 'prefix/serverless-state.json',
         Metadata: { filesha256: stateHash },
-      },
-      {
-        Key: 'prefix/fn.zip',
-        Metadata: { filesha256: sha256(Buffer.from('stale function bytes')) },
       },
     ]
 
@@ -149,9 +148,13 @@ describe('checkIfDeploymentIsNecessary with per-function artifacts', () => {
     expect(ctx.serverless.service.provider.shouldNotDeploy).toBe(true)
   })
 
-  it('ignores image-based functions (no zip to hash)', async () => {
+  it('ignores image-based functions even when package.artifact is set', async () => {
+    // The artifact must be ignored because image-function zips are never
+    // uploaded (mirrors getFunctionArtifactFilePaths in upload-artifacts.js);
+    // hashing it locally would leave a hash with no remote counterpart and
+    // permanently prevent no-change skips.
     const ctx = buildCtx({
-      functionArtifact: null,
+      functionArtifact: 'artifacts/lambda/fn.zip',
       hasImageFunction: true,
     })
     ctx.serverless.service.provider.shouldNotDeploy = false
