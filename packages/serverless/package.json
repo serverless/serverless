@@ -113,7 +113,7 @@
     "cross-env": "^10.1.0",
     "hono": "^4.12.32",
     "jest": "^30.4.2",
-    "jose": "^6.2.4"
+    "jose": "^6.2.7"
   },
   "scripts": {
     "lint": "eslint",
