@@ -237,7 +237,10 @@ curl -sS "https://…/dev/.well-known/oauth-protected-resource/crm/mcp"
 ## Testing with Claude Code as the client
 
 Real-client verification catches what curl cannot, but Claude has its own
-mechanics worth knowing before reading its results:
+mechanics worth knowing before reading its results. (The complete worked
+walkthrough — discovery, browser login, elicitation — is the
+`oauth-custom-domain` example:
+`https://github.com/serverless/examples/tree/v4/mcp/oauth-custom-domain`.)
 
 - **Unauthenticated server**: `claude mcp add --transport http <name> <url>`,
   then `claude mcp list` — `✔ Connected` means the MCP handshake completed.

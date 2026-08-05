@@ -634,3 +634,9 @@ resources:
           - AttributeName: id
             KeyType: HASH
 ```
+
+---
+
+## Examples
+
+Runnable examples live in the [examples repository](https://github.com/serverless/examples/tree/v4/mcp), from a minimal public server to the full OAuth walkthroughs — including the [custom-domain tier](https://github.com/serverless/examples/tree/v4/mcp/oauth-custom-domain), which drives the Claude Code CLI through discovery, browser login, and an elicitation round trip against a deployed server.

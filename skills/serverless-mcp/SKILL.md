@@ -134,3 +134,6 @@ reach for `mcp` when AI clients speak MCP to your tools.
   module itself.
 - `references/troubleshooting.md` — read on any failure, symptom first.
 - `references/testing.md` — read when verifying a deployment.
+
+Deployable examples, minimal through OAuth behind a custom domain, live at
+`https://github.com/serverless/examples/tree/v4/mcp`.
