@@ -305,7 +305,7 @@ describe('MCP servers live integration', () => {
           // fail on a downstream era assertion instead of naming the actual
           // defect. Pin mode has no fallback — a discovery regression fails
           // here, as itself.
-          versionNegotiation: { pin: '2026-07-28' },
+          versionNegotiation: { mode: { pin: '2026-07-28' } },
         },
       )
       client.setRequestHandler('elicitation/create', async () => ({
@@ -332,7 +332,7 @@ describe('MCP servers live integration', () => {
         { name: 'sfc-mcp-interop-decline', version: '1.0.0' },
         {
           capabilities: { elicitation: { form: {} } },
-          versionNegotiation: { pin: '2026-07-28' },
+          versionNegotiation: { mode: { pin: '2026-07-28' } },
         },
       )
       decliner.setRequestHandler('elicitation/create', async () => ({

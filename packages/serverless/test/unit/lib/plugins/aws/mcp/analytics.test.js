@@ -128,11 +128,11 @@ describe('deriveMcpBlock — timeouts and memorySizes (explicit-only)', () => {
     expect(out.memorySizes).toEqual([1024])
   })
 
-  test('explicitly setting the default (120) IS reported', () => {
+  test('explicitly setting the default (60) IS reported', () => {
     const out = deriveMcpBlock({
-      servers: { a: { server: 'a.mjs', timeout: 120 } },
+      servers: { a: { server: 'a.mjs', timeout: 60 } },
     })
-    expect(out.timeouts).toEqual([120])
+    expect(out.timeouts).toEqual([60])
   })
 })
 
