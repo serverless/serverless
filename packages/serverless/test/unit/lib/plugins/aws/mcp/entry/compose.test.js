@@ -164,15 +164,21 @@ describe('mcp entry composition', () => {
 
   describe('resolveServerModulePath', () => {
     const exists = (present) => (candidate) => present.includes(candidate)
+    // Both the stubbed filesystem and the expectations are built with the
+    // same `path.resolve` the resolver uses, so the assertions hold on every
+    // runner: on Windows, resolving against '/var/task' yields a
+    // drive-qualified backslash path, and a POSIX string literal would never
+    // match it.
+    const at = (relative) => path.resolve('/var/task', relative)
 
     it('resolves against the task root', () => {
       expect(
         resolveServerModulePath({
           modulePath: 'src/crm.mjs',
           taskRoot: '/var/task',
-          exists: exists(['/var/task/src/crm.mjs']),
+          exists: exists([at('src/crm.mjs')]),
         }),
-      ).toBe('/var/task/src/crm.mjs')
+      ).toBe(at('src/crm.mjs'))
     })
 
     it('finds the built JavaScript sibling of a TypeScript source path', () => {
@@ -182,9 +188,9 @@ describe('mcp entry composition', () => {
         resolveServerModulePath({
           modulePath: 'src/crm.ts',
           taskRoot: '/var/task',
-          exists: exists(['/var/task/src/crm.js']),
+          exists: exists([at('src/crm.js')]),
         }),
-      ).toBe('/var/task/src/crm.js')
+      ).toBe(at('src/crm.js'))
     })
 
     it('prefers the configured path over a sibling', () => {
@@ -192,9 +198,9 @@ describe('mcp entry composition', () => {
         resolveServerModulePath({
           modulePath: 'src/crm.mjs',
           taskRoot: '/var/task',
-          exists: exists(['/var/task/src/crm.mjs', '/var/task/src/crm.js']),
+          exists: exists([at('src/crm.mjs'), at('src/crm.js')]),
         }),
-      ).toBe('/var/task/src/crm.mjs')
+      ).toBe(at('src/crm.mjs'))
     })
 
     it('skips a TypeScript source that also reached the artifact', () => {
@@ -207,9 +213,9 @@ describe('mcp entry composition', () => {
         resolveServerModulePath({
           modulePath: 'src/crm.ts',
           taskRoot: '/var/task',
-          exists: exists(['/var/task/src/crm.ts', '/var/task/src/crm.js']),
+          exists: exists([at('src/crm.ts'), at('src/crm.js')]),
         }),
-      ).toBe('/var/task/src/crm.js')
+      ).toBe(at('src/crm.js'))
     })
 
     it('probes .mjs ahead of .js', () => {
@@ -217,9 +223,9 @@ describe('mcp entry composition', () => {
         resolveServerModulePath({
           modulePath: 'src/crm.ts',
           taskRoot: '/var/task',
-          exists: exists(['/var/task/src/crm.js', '/var/task/src/crm.mjs']),
+          exists: exists([at('src/crm.js'), at('src/crm.mjs')]),
         }),
-      ).toBe('/var/task/src/crm.mjs')
+      ).toBe(at('src/crm.mjs'))
     })
 
     it('falls back to the working directory with no task root', () => {
@@ -246,8 +252,8 @@ describe('mcp entry composition', () => {
       }
       expect(error).toBeDefined()
       expect(error.message).toContain('src/crm.ts')
-      expect(error.message).toContain('/var/task/src/crm.js')
-      expect(error.message).toContain('/var/task/src/crm.mjs')
+      expect(error.message).toContain(at('src/crm.js'))
+      expect(error.message).toContain(at('src/crm.mjs'))
     })
   })
 
