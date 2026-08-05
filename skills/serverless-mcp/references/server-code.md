@@ -192,10 +192,13 @@ server.registerTool(
   'reindex',
   { description: 'Rebuild the search index' },
   async (_args, ctx) => {
+    // The token is an opaque string OR number the client chose — the SDK
+    // client uses its numeric message id, so 0 is a real value. Check
+    // presence, not truthiness.
     const progressToken = ctx.mcpReq._meta?.progressToken
     for (const [step, total] of batches()) {
       await processBatch(step)
-      if (progressToken) {
+      if (progressToken !== undefined) {
         await ctx.mcpReq.notify({
           method: 'notifications/progress',
           params: { progressToken, progress: step, total },

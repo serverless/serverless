@@ -8,7 +8,7 @@ import naming from '../../../../../../lib/plugins/aws/lib/naming.js'
 const base = { servers: { crm: { server: 'src/server.mjs' } } }
 
 describe('validateMcp', () => {
-  it('applies defaults: timeout 120, runtime nodejs24.x', () => {
+  it('applies defaults: timeout 60, runtime nodejs24.x', () => {
     const { servers } = validateMcp({
       mcp: base,
       functions: {},
@@ -19,7 +19,7 @@ describe('validateMcp', () => {
       expect.objectContaining({
         name: 'crm',
         server: 'src/server.mjs',
-        timeout: 120,
+        timeout: 60,
         runtime: 'nodejs24.x',
       }),
     ])
@@ -269,7 +269,7 @@ describe('validateMcp', () => {
       expect.objectContaining({
         name: 'crm',
         server: 'src/crm.mjs',
-        timeout: 120,
+        timeout: 60,
         runtime: 'nodejs22.x',
       }),
       expect.objectContaining({

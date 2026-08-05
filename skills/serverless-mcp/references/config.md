@@ -33,17 +33,17 @@ mcp:
       state: true # true | literal SSM or Secrets Manager ARN
 ```
 
-| Property          | Type              | Default          | Notes                                                                                                                                                      |
-| ----------------- | ----------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `server`          | string            | — **(required)** | Path to a module, relative to `serverless.yml`, whose default export is the result of `createMcpHandler()`.                                                |
-| `auth`            | object            | —                | Bearer-token enforcement plus the discovery route. `issuer` and `audiences` are both required whenever `auth` is present.                                  |
-| `auth.issuer`     | string            | — **(required)** | `https://` URL of an OpenID Connect provider. Its `/.well-known/openid-configuration` is read on first use and the JWKS cached for the container.          |
-| `auth.audiences`  | string[]          | — **(required)** | At least one accepted audience. For Amazon Cognito, these are app client IDs — see Audiences below.                                                        |
-| `auth.authorizer` | string            | —                | Name of one of your own authorizer functions, attached to the MCP route only. The discovery route never gets it.                                           |
-| `timeout`         | integer (seconds) | `120`            | Maximum tool duration, 1–900. Sets the function timeout **and** the streaming integration timeout together, so the two cannot drift.                       |
-| `memorySize`      | integer (MB)      | `1024`           | Falls back to `provider.memorySize` when that is set.                                                                                                      |
-| `environment`     | object            | `{}`             | Same shape as on a function, CloudFormation intrinsics included.                                                                                           |
-| `state`           | boolean \| string | —                | Elicitation signing key. `true` provisions one in the stack; a **literal** SSM parameter or Secrets Manager secret ARN brings your own. See `state` below. |
+| Property          | Type              | Default          | Notes                                                                                                                                                                                                                                                                              |
+| ----------------- | ----------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server`          | string            | — **(required)** | Path to a module, relative to `serverless.yml`, whose default export is the result of `createMcpHandler()`.                                                                                                                                                                        |
+| `auth`            | object            | —                | Bearer-token enforcement plus the discovery route. `issuer` and `audiences` are both required whenever `auth` is present.                                                                                                                                                          |
+| `auth.issuer`     | string            | — **(required)** | `https://` URL of an OpenID Connect provider. Its `/.well-known/openid-configuration` is read on first use and the JWKS cached for the container.                                                                                                                                  |
+| `auth.audiences`  | string[]          | — **(required)** | At least one accepted audience. For Amazon Cognito, these are app client IDs — see Audiences below.                                                                                                                                                                                |
+| `auth.authorizer` | string            | —                | Name of one of your own authorizer functions, attached to the MCP route only. The discovery route never gets it.                                                                                                                                                                   |
+| `timeout`         | integer (seconds) | `60`             | Maximum tool duration, 1–900. Sets the function timeout **and** the streaming integration timeout together, so the two cannot drift. The official SDK client also waits 60 s per request by default (configurable per call) — a longer tool needs the client's timeout raised too. |
+| `memorySize`      | integer (MB)      | `1024`           | Falls back to `provider.memorySize` when that is set.                                                                                                                                                                                                                              |
+| `environment`     | object            | `{}`             | Same shape as on a function, CloudFormation intrinsics included.                                                                                                                                                                                                                   |
+| `state`           | boolean \| string | —                | Elicitation signing key. `true` provisions one in the stack; a **literal** SSM parameter or Secrets Manager secret ARN brings your own. See `state` below.                                                                                                                         |
 
 Service-wide settings reach the synthesized function normally, so
 `provider.architecture`, `provider.memorySize`, tags and the like apply as they
@@ -226,9 +226,14 @@ With a role you bring (`provider.iam.role`, `provider.role`, or a role on the
 function) the Framework cannot modify it, so attach the statement yourself:
 
 ```yml
+# For `state: true` or a Secrets Manager ARN:
 - Effect: Allow
   Action: 'secretsmanager:GetSecretValue'
-  Resource: '<the state key ARN — the stack output, or your own ARN>'
+  Resource: '<the state secret ARN, from the stack output>'
+# For an SSM parameter ARN instead:
+- Effect: Allow
+  Action: 'ssm:GetParameter'
+  Resource: '<your parameter ARN>'
 ```
 
 Two things then cover a missing grant: after a deploy the Framework simulates

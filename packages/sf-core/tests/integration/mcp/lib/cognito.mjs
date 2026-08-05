@@ -3,8 +3,8 @@
  * `client_credentials` access tokens against its hosted-UI token endpoint.
  *
  * The prerequisite is `tests/integration/mcp-cognito-prerequisite/template.yml`,
- * deployed once per account with `aws cloudformation deploy` and documented in
- * TESTING.md. It writes eight SecureString parameters under a fixed prefix
+ * deployed once per account with `serverless deploy` from that directory (the
+ * CloudFormation runner picks the template up) and documented in TESTING.md. It writes eight SecureString parameters under a fixed prefix
  * (pool id, domain, region, both client ids/secrets, and the scope string); this
  * module discovers them at runtime so no ids are hardcoded — the SSM-read shape
  * mirrors the terraform-hcp-token precedent

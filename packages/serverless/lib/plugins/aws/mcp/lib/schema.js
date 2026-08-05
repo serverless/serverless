@@ -38,7 +38,7 @@ export default () => ({
           },
           timeout: {
             description: `Max tool duration in seconds; drives the function timeout and the streaming integration timeout together.
-@default 120`,
+@default 60`,
             type: 'integer',
             minimum: 1,
             maximum: 900,

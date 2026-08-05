@@ -2,7 +2,7 @@ import { ServerlessError } from '@serverless/util'
 
 const MINIMUM_NODE_MAJOR = 20
 const DEFAULT_RUNTIME = 'nodejs24.x'
-const DEFAULT_TIMEOUT = 120
+const DEFAULT_TIMEOUT = 60
 
 // Names that cannot be server names, each with why. The API Gateway resource
 // logical id normalization folds case, so the lookup below is case-insensitive.

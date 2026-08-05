@@ -782,7 +782,11 @@ describe('AwsMcp plugin', () => {
       serverless.service.mcp = twoServers
       const plugin = new AwsMcp(serverless, {})
       await plugin.hooks.initialize()
-      expect(() => plugin.hooks['after:deploy:deploy']()).not.toThrow()
+      // The hook is async — an `expect(fn).not.toThrow()` would only see a
+      // synchronous throw and let a rejection pass the test.
+      await expect(
+        plugin.hooks['after:deploy:deploy'](),
+      ).resolves.toBeUndefined()
     })
   })
 

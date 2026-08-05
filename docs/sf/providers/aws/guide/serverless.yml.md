@@ -1674,7 +1674,7 @@ mcp:
   servers:
     crm: # server name — function key and URL path segment
       server: src/server.mjs # module default-exporting the SDK handler
-      timeout: 120 # max tool duration in seconds (1–900, default 120)
+      timeout: 120 # max tool duration in seconds (1–900, default 60)
       memorySize: 1024
       environment:
         ORDERS_TABLE: !Ref OrdersTable

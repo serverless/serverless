@@ -1,6 +1,7 @@
 // Descriptors are pre-normalized to what the api-gateway compiler expects
-// downstream of its own event normalization: a slash-free lowercase `path`, a
-// lowercase `method`, and an uppercase `transferMode`.
+// downstream of its own event normalization: a `path` with no leading or
+// trailing slash (its segments keep the server name's own casing — URL paths
+// are case-sensitive), a lowercase `method`, and an uppercase `transferMode`.
 const streamingHttp = (path, method, timeout) => ({
   path,
   method,

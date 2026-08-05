@@ -96,6 +96,7 @@ const ENTRY_VARIABLES = [
   'SERVERLESS_MCP_STATE_KEY',
   'SERVERLESS_MCP_PUBLIC_BASE_URL',
   'LAMBDA_TASK_ROOT',
+  'AWS_REGION',
 ]
 
 describe('mcp entry', () => {

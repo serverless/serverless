@@ -19,7 +19,7 @@ npm test -w @serverlessinc/sf-core
 Note: this excludes two suites.
 
 - `domains` — runs only via `npm run test:domains -w @serverlessinc/sf-core`.
-- `mcp` (MCP Servers) — runs only via `npm run test:mcp -w @serverlessinc/sf-core`, which the path-filtered `CI: MCP Servers` workflow invokes when MCP-relevant paths change. It deploys real REST APIs and needs the Cognito prerequisite below, so it is kept off unrelated pull requests.
+- `mcp` (MCP Servers) — runs only via `npm run test:mcp -w @serverlessinc/sf-core`, which the path-filtered `CI: MCP Servers` workflow invokes when MCP-relevant paths change. It deploys real REST APIs, which is why it is kept off unrelated pull requests. Only its auth-chain suite (`mcp-auth.test.js`) needs the Cognito prerequisite below — without it that suite skips with a log while the rest still runs.
 
 ### Running Specific Test Suites
 

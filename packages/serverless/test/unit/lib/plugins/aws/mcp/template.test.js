@@ -183,7 +183,7 @@ describe('mcp compiled template', () => {
     ])
 
     const anyMethod = methodWith(template, 'ANY')
-    expect(anyMethod.Properties.Integration.TimeoutInMillis).toBe(120000)
+    expect(anyMethod.Properties.Integration.TimeoutInMillis).toBe(60000)
     expect(anyMethod.Properties.Integration.ResponseTransferMode).toBe('STREAM')
     // `response.transferMode: STREAM` on an AWS_PROXY integration is what
     // switches the integration URI onto Lambda's response-streaming invoke path.
@@ -201,7 +201,7 @@ describe('mcp compiled template', () => {
       name: 'acme-dev-crm',
       handler: 'src/server.default',
       runtime: 'nodejs24.x',
-      timeout: 120,
+      timeout: 60,
     })
     expect(
       serverless.service.functions.crm.environment.SERVERLESS_MCP_SERVER_MODULE,

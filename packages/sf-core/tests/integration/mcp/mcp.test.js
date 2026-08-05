@@ -300,7 +300,12 @@ describe('MCP servers live integration', () => {
         { name: 'sfc-mcp-interop-modern', version: '1.0.0' },
         {
           capabilities: { elicitation: { form: {} } },
-          versionNegotiation: { mode: 'auto' },
+          // Pinned rather than `mode: 'auto'`: auto silently falls back to
+          // legacy when `server/discover` breaks, and this test would then
+          // fail on a downstream era assertion instead of naming the actual
+          // defect. Pin mode has no fallback — a discovery regression fails
+          // here, as itself.
+          versionNegotiation: { pin: '2026-07-28' },
         },
       )
       client.setRequestHandler('elicitation/create', async () => ({
@@ -327,7 +332,7 @@ describe('MCP servers live integration', () => {
         { name: 'sfc-mcp-interop-decline', version: '1.0.0' },
         {
           capabilities: { elicitation: { form: {} } },
-          versionNegotiation: { mode: 'auto' },
+          versionNegotiation: { pin: '2026-07-28' },
         },
       )
       decliner.setRequestHandler('elicitation/create', async () => ({
