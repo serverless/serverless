@@ -9,7 +9,7 @@
     "prettier": "prettier -c . --ignore-path ../../.prettierignore",
     "prettier:fix": "prettier -w . --ignore-path ../../.prettierignore",
     "test:unit": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest \"tests/unit/.*\"",
-    "test": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest \"tests/integration/.*\" --testPathIgnorePatterns=tests/integration/domains",
+    "test": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest \"tests/integration/.*\" --testPathIgnorePatterns=/node_modules/ --testPathIgnorePatterns=tests/integration/domains --testPathIgnorePatterns=tests/integration/mcp/",
     "test:sam": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/sam/**",
     "test:simple:nodejs": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/simple-nodejs/**",
     "test:sandboxes": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/sandboxes/**",
@@ -25,10 +25,11 @@
     "test:state": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/state/**",
     "test:deployment-bucket": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/deployment-bucket/**",
     "test:license-key": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/license-key/**",
-    "test:binary": "cross-env BINARY_INTEGRATION_TESTS=true NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\"  NODE_NO_WARNINGS=1 jest \"tests/integration/.*\"",
+    "test:mcp": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/mcp/ --testPathIgnorePatterns=/node_modules/ --maxWorkers=2",
+    "test:binary": "cross-env BINARY_INTEGRATION_TESTS=true NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\"  NODE_NO_WARNINGS=1 jest \"tests/integration/.*\" --testPathIgnorePatterns=/node_modules/ --testPathIgnorePatterns=tests/integration/mcp/",
     "test:python": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/python/test.js",
     "build": "node esbuild.js",
-    "test:build": "cd ../.. && npm i && cd packages/serverless/lib/plugins/aws/dev && ../../../../../../node_modules/.bin/esbuild ./shim.js --bundle --platform=node --minify --outfile=./shim.min.js && cd ../../../../../sf-core && npm run build && cd scripts && node ./prepareDistributionTarballs.js && cd ../../framework-dist && bash ../sf-core/scripts/pack-framework-dist.sh && tar -xvzf serverlessinc-framework-alpha-$npm_package_version.tgz && node package/dist/sf-core.js && node ../sf-core/scripts/verify-skills-packaging.js package/dist/sf-core.js"
+    "test:build": "cd ../.. && npm i && npm run build:mcp:entry -w @serverless/framework && cd packages/serverless/lib/plugins/aws/dev && ../../../../../../node_modules/.bin/esbuild ./shim.js --bundle --platform=node --minify --outfile=./shim.min.js && cd ../../../../../sf-core && npm run build && cd scripts && rm -rf ../../framework-dist/lib && node ./prepareDistributionTarballs.js && cd ../../framework-dist && bash ../sf-core/scripts/pack-framework-dist.sh && rm -rf package && tar -xvzf serverlessinc-framework-alpha-$npm_package_version.tgz && node package/dist/sf-core.js && node ../sf-core/scripts/verify-skills-packaging.js package/dist/sf-core.js && node ../sf-core/scripts/verify-mcp-entry-packaging.js package"
   },
   "repository": {
     "type": "git",
@@ -39,6 +40,7 @@
     "@aws-sdk/client-iot": "3.1094.0",
     "@aws-sdk/client-lambda": "3.1094.0",
     "@aws-sdk/client-sqs": "3.1094.0",
+    "@modelcontextprotocol/client": "^2.0.0",
     "cross-env": "^10.1.0",
     "cross-spawn": "^7.0.6",
     "date-fns": "^4.4.0",

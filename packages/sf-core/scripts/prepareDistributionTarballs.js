@@ -6,6 +6,7 @@ import { glob } from 'glob'
 import os from 'os'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { entryPathFrom } from '../../serverless/lib/plugins/aws/mcp/lib/packaging.js'
 
 const { readFile, writeFile, cp, mkdir, chmod } = fsp
 
@@ -71,6 +72,19 @@ cpPromises.push(
   cp(
     '../../serverless/lib/plugins/aws/dev/local-lambda/runtime-wrappers/node.js',
     '../../framework-dist/lib/plugins/aws/dev/local-lambda/runtime-wrappers/node.js',
+  ),
+)
+// The prebuilt MCP Lambda entry, which the mcp plugin copies into the user's
+// artifact. Like the dev-mode shim it is a build product (`npm run
+// build:mcp:entry` in packages/serverless, run before this script), and the
+// bundled plugin reaches it through the source-tree layout — so the destination
+// is asked of `entryPathFrom` (the runtime authority) rather than written out
+// here, which is what keeps this copy and the runtime resolution from drifting.
+// The bundle lives in `<package>/dist`, hence that argument.
+cpPromises.push(
+  cp(
+    '../../serverless/lib/plugins/aws/mcp/entry/dist/entry.mjs',
+    entryPathFrom('../../framework-dist/dist'),
   ),
 )
 

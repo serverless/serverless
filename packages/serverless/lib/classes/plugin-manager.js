@@ -44,6 +44,7 @@ import pluginAwsPackageCompileFunctions from '../plugins/aws/package/compile/fun
 import pluginAwsPackageCompileCapacityProviders from '../plugins/aws/package/compile/capacity-providers.js'
 import pluginAwsPackageCompileEventsSchedule from '../plugins/aws/package/compile/events/schedule.js'
 import pluginAwsPackageCompileEventsS3 from '../plugins/aws/package/compile/events/s3/index.js'
+import pluginAwsMcp from '../plugins/aws/mcp/index.js'
 import pluginAwsPackageCompileEventsApiGateway from '../plugins/aws/package/compile/events/api-gateway/index.js'
 import pluginAwsPackageCompileEventsWebsockets from '../plugins/aws/package/compile/events/websockets/index.js'
 import pluginAwsPackageCompileEventsSns from '../plugins/aws/package/compile/events/sns.js'
@@ -117,6 +118,7 @@ const internalPlugins = [
   pluginAwsPackageCompileCapacityProviders,
   pluginAwsPackageCompileEventsSchedule,
   pluginAwsPackageCompileEventsS3,
+  pluginAwsMcp,
   pluginAwsPackageCompileEventsApiGateway,
   pluginAwsApiGatewayServiceProxy,
   pluginAwsPackageCompileEventsWebsockets,

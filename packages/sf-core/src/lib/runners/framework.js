@@ -25,6 +25,7 @@ import {
   deriveAnalysisEnrichment,
 } from './framework-analytics.js'
 import { buildSandboxesAnalytics } from '@serverless/framework/lib/plugins/aws/sandboxes/analytics.js'
+import { buildMcpAnalytics } from '@serverless/framework/lib/plugins/aws/mcp/analytics.js'
 import { Deployment } from '../platform/deployments.js'
 
 export class TraditionalRunner extends Runner {
@@ -264,6 +265,11 @@ export class TraditionalRunner extends Runner {
       // throws), so it spreads in like deriveAnalysisEnrichment: `{}` when the
       // service defines no sandboxes, `{ sandboxes: <block> }` otherwise.
       ...buildSandboxesAnalytics(this.config),
+      // MCP config-shape block, same contract as the sandboxes one:
+      // buildMcpAnalytics reads config.mcp/config.provider under its own
+      // guard and is total (never throws) — `{}` when the service defines no
+      // MCP servers, `{ mcp: <block> }` otherwise.
+      ...buildMcpAnalytics(this.config),
     }
 
     // plugins

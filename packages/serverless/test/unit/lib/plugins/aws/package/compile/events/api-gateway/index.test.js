@@ -10,7 +10,12 @@ jest.unstable_mockModule('@serverless/util', () => ({
   progress: { get: jest.fn() },
   style: { aside: jest.fn() },
   writeText: jest.fn(),
-  ServerlessError: class ServerlessError extends Error {},
+  ServerlessError: class ServerlessError extends Error {
+    constructor(message, code) {
+      super(message)
+      this.code = code
+    }
+  },
   ServerlessErrorCodes: { INVALID_CONFIG: 'INVALID_CONFIG' },
   addProxyToAwsClient: jest.fn((client) => client),
   stringToSafeColor: jest.fn((str) => str),
@@ -170,6 +175,283 @@ describe('AwsCompileApigEvents', () => {
       const validated = awsCompileApigEvents.validate()
       expect(validated.events[0].http.cors.origins).toEqual(['example.com'])
       expect(validated.events[0].http.cors.headers).toContain('X-Custom-Header')
+    })
+  })
+
+  describe('#registerExternalHttpEvents()', () => {
+    it('merges externally registered events into validate() output', () => {
+      awsCompileApigEvents.registerExternalHttpEvents([
+        {
+          functionName: 'crm',
+          http: {
+            path: 'crm/mcp',
+            method: 'any',
+            integration: 'AWS_PROXY',
+            timeoutInMillis: 120000,
+            response: { transferMode: 'STREAM' },
+          },
+        },
+      ])
+      serverless.service.functions = { crm: {} }
+      const validated = awsCompileApigEvents.validate()
+      expect(validated.events).toEqual([
+        expect.objectContaining({
+          functionName: 'crm',
+          http: expect.objectContaining({ path: 'crm/mcp', method: 'any' }),
+        }),
+      ])
+    })
+
+    it('rejects externally registered events naming a non-existent function', () => {
+      awsCompileApigEvents.registerExternalHttpEvents([
+        {
+          functionName: 'ghost',
+          http: {
+            path: 'g/mcp',
+            method: 'any',
+            integration: 'AWS_PROXY',
+          },
+        },
+      ])
+      serverless.service.functions = {}
+      expect(() => awsCompileApigEvents.validate()).toThrow(
+        expect.objectContaining({
+          code: 'API_GATEWAY_EXTERNAL_EVENT_UNKNOWN_FUNCTION',
+        }),
+      )
+    })
+
+    it('appends external events after function-derived events', () => {
+      awsCompileApigEvents.registerExternalHttpEvents([
+        {
+          functionName: 'crm',
+          http: {
+            path: 'crm/mcp',
+            method: 'any',
+            integration: 'AWS_PROXY',
+          },
+        },
+      ])
+      serverless.service.functions = {
+        first: {
+          events: [{ http: { method: 'POST', path: 'foo/bar', cors: true } }],
+        },
+        crm: {},
+      }
+
+      const validated = awsCompileApigEvents.validate()
+
+      expect(validated.events).toHaveLength(2)
+      expect(validated.events[0].http.path).toBe('foo/bar')
+      expect(validated.events[1].functionName).toBe('crm')
+      expect(Object.keys(validated.corsPreflight)).toEqual(['foo/bar'])
+    })
+
+    it('normalizes an external event authorizer into a compilable authorizer', () => {
+      awsCompileApigEvents.registerExternalHttpEvents([
+        {
+          functionName: 'crm',
+          http: {
+            path: 'crm/mcp',
+            method: 'any',
+            integration: 'AWS_PROXY',
+            authorizer: { name: 'myAuth' },
+          },
+        },
+      ])
+      serverless.service.functions = { crm: {}, myAuth: {} }
+
+      awsCompileApigEvents.validated = awsCompileApigEvents.validate()
+      awsCompileApigEvents.compileResources()
+      awsCompileApigEvents.compileMethods()
+      awsCompileApigEvents.compileAuthorizers()
+      awsCompileApigEvents.compilePermissions()
+
+      const resources =
+        awsCompileApigEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+
+      expect(resources.MyAuthApiGatewayAuthorizer).toBeDefined()
+      expect(resources.MyAuthApiGatewayAuthorizer.Type).toBe(
+        'AWS::ApiGateway::Authorizer',
+      )
+      expect(
+        resources.ApiGatewayMethodCrmMcpAny.Properties.AuthorizerId,
+      ).toEqual({ Ref: 'MyAuthApiGatewayAuthorizer' })
+      expect(resources.MyAuthLambdaPermissionApiGateway).toBeDefined()
+      expect(resources.MyAuthLambdaPermissionApiGateway.Type).toBe(
+        'AWS::Lambda::Permission',
+      )
+    })
+
+    it('rejects an external event colliding with a function-declared route', () => {
+      awsCompileApigEvents.registerExternalHttpEvents([
+        {
+          functionName: 'crm',
+          http: {
+            path: 'crm/mcp',
+            method: 'any',
+            integration: 'AWS_PROXY',
+          },
+        },
+      ])
+      serverless.service.functions = {
+        first: {
+          events: [{ http: { method: 'ANY', path: '/crm/mcp' } }],
+        },
+        crm: {},
+      }
+
+      expect(() => awsCompileApigEvents.validate()).toThrow(
+        expect.objectContaining({
+          code: 'API_GATEWAY_EXTERNAL_EVENT_ROUTE_COLLISION',
+        }),
+      )
+    })
+
+    it('rejects two external events sharing the same path and method', () => {
+      awsCompileApigEvents.registerExternalHttpEvents([
+        {
+          functionName: 'crm',
+          http: { path: 'crm/mcp', method: 'any', integration: 'AWS_PROXY' },
+        },
+        {
+          functionName: 'other',
+          http: { path: 'crm/mcp', method: 'any', integration: 'AWS_PROXY' },
+        },
+      ])
+      serverless.service.functions = { crm: {}, other: {} }
+
+      expect(() => awsCompileApigEvents.validate()).toThrow(
+        expect.objectContaining({
+          code: 'API_GATEWAY_EXTERNAL_EVENT_ROUTE_COLLISION',
+        }),
+      )
+    })
+
+    it('rejects an external event whose resource already carries a function-declared route with another method', () => {
+      awsCompileApigEvents.registerExternalHttpEvents([
+        {
+          functionName: 'crm',
+          http: { path: 'crm/mcp', method: 'any', integration: 'AWS_PROXY' },
+        },
+      ])
+      serverless.service.functions = {
+        first: {
+          events: [{ http: { method: 'GET', path: 'crm/mcp' } }],
+        },
+        crm: {},
+      }
+
+      expect(() => awsCompileApigEvents.validate()).toThrow(
+        expect.objectContaining({
+          code: 'API_GATEWAY_EXTERNAL_EVENT_ROUTE_COLLISION',
+        }),
+      )
+    })
+
+    it('rejects a function-declared POST that would shadow the contributed any method', () => {
+      awsCompileApigEvents.registerExternalHttpEvents([
+        {
+          functionName: 'crm',
+          http: { path: 'crm/mcp', method: 'any', integration: 'AWS_PROXY' },
+        },
+      ])
+      serverless.service.functions = {
+        first: {
+          events: [{ http: { method: 'POST', path: '/crm/mcp' } }],
+        },
+        crm: {},
+      }
+
+      expect(() => awsCompileApigEvents.validate()).toThrow(
+        expect.objectContaining({
+          code: 'API_GATEWAY_EXTERNAL_EVENT_ROUTE_COLLISION',
+          message: expect.stringContaining('POST /crm/mcp'),
+        }),
+      )
+    })
+
+    it('rejects two external events whose paths normalize to the same resource', () => {
+      awsCompileApigEvents.registerExternalHttpEvents([
+        {
+          functionName: 'foo_bar',
+          http: {
+            path: 'foo_bar/mcp',
+            method: 'any',
+            integration: 'AWS_PROXY',
+          },
+        },
+        {
+          functionName: 'foobar',
+          http: { path: 'foobar/mcp', method: 'any', integration: 'AWS_PROXY' },
+        },
+      ])
+      serverless.service.functions = { foo_bar: {}, foobar: {} }
+
+      expect(() => awsCompileApigEvents.validate()).toThrow(
+        expect.objectContaining({
+          code: 'API_GATEWAY_EXTERNAL_EVENT_ROUTE_COLLISION',
+          message: expect.stringContaining('foo_bar'),
+        }),
+      )
+    })
+
+    it('allows a function-declared route on a child resource of the contributed path', () => {
+      awsCompileApigEvents.registerExternalHttpEvents([
+        {
+          functionName: 'crm',
+          http: { path: 'crm/mcp', method: 'any', integration: 'AWS_PROXY' },
+        },
+      ])
+      serverless.service.functions = {
+        first: {
+          events: [{ http: { method: 'GET', path: 'crm/mcp/extra' } }],
+        },
+        crm: {},
+      }
+
+      expect(() => awsCompileApigEvents.validate()).not.toThrow()
+    })
+
+    // API Gateway's stage-name rule applies to the deployment stage, which
+    // contributed routes are served on just like declared ones - and a service
+    // whose only routes are contributed (an mcp-only service) never walks a
+    // function http event, where the rule used to be checked.
+    describe('stage name', () => {
+      const registerCrmRoute = () => {
+        awsCompileApigEvents.registerExternalHttpEvents([
+          {
+            functionName: 'crm',
+            http: { path: 'crm/mcp', method: 'any', integration: 'AWS_PROXY' },
+          },
+        ])
+        serverless.service.functions = { crm: {} }
+      }
+
+      it('rejects an invalid stage name for a contributed route', () => {
+        awsCompileApigEvents.provider.options.stage = 'feature/mcp'
+        registerCrmRoute()
+        expect(() => awsCompileApigEvents.validate()).toThrow(
+          expect.objectContaining({ code: 'API_GATEWAY_INVALID_STAGE_NAME' }),
+        )
+      })
+
+      it('accepts a valid stage name for a contributed route', () => {
+        awsCompileApigEvents.provider.options.stage = 'pre-prod_1'
+        registerCrmRoute()
+        expect(() => awsCompileApigEvents.validate()).not.toThrow()
+      })
+
+      it('still rejects an invalid stage name for a declared http event', () => {
+        awsCompileApigEvents.provider.options.stage = 'feature/mcp'
+        serverless.service.functions = {
+          first: { events: [{ http: { method: 'GET', path: 'foo/bar' } }] },
+        }
+        expect(() => awsCompileApigEvents.validate()).toThrow(
+          expect.objectContaining({ code: 'API_GATEWAY_INVALID_STAGE_NAME' }),
+        )
+      })
     })
   })
 

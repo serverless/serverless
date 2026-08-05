@@ -1,0 +1,225 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Predeployed prerequisite for the MCP property auth-chain integration suite
+  (packages/sf-core/tests/integration/mcp/mcp-auth.test.js). Provisions a Cognito
+  user pool configured for machine-to-machine (client_credentials) auth and
+  publishes its identifiers and client secrets to SSM SecureString parameters the
+  suite reads at runtime. Deploy ONCE per test account with `serverless deploy`
+  from this directory and leave standing — the suite discovers everything from
+  SSM, so no ids are hardcoded. See README.md for the deploy command and
+  TESTING.md for where this fits among the other integration-test prerequisites.
+
+Parameters:
+  SsmPrefix:
+    Type: String
+    Default: /mcp-integration-test/cognito
+    Description: >
+      Prefix under which the pool id, domain, region, both client ids/secrets and
+      the scope string are written as SecureString parameters. Must match the
+      DEFAULT_PREFIX in tests/integration/mcp/lib/cognito.mjs.
+  ResourceServerIdentifier:
+    Type: String
+    Default: mcp
+    Description: Resource server identifier; combines with ScopeName into the full scope string.
+  ScopeName:
+    Type: String
+    Default: invoke
+    Description: Custom scope name; the full scope requested by the suite is "<identifier>/<name>".
+
+Resources:
+  # Lite tier is sufficient: the aud-else-client_id verification rule means raw
+  # Cognito access tokens (which carry client_id, not aud) verify as-is, so no
+  # pre-token-generation trigger or token customization is needed.
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: mcp-integration-test
+      UserPoolTier: LITE
+
+  # The hosted-UI domain that also serves the /oauth2/token endpoint the suite
+  # mints M2M tokens against. Account-scoped in the name so it is globally unique.
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Sub mcp-integration-test-${AWS::AccountId}
+      UserPoolId: !Ref UserPool
+
+  # One custom scope, e.g. "mcp/invoke". Both app clients below are allowed it.
+  ResourceServer:
+    Type: AWS::Cognito::UserPoolResourceServer
+    Properties:
+      UserPoolId: !Ref UserPool
+      Identifier: !Ref ResourceServerIdentifier
+      Name: mcp
+      Scopes:
+        - ScopeName: !Ref ScopeName
+          ScopeDescription: Invoke the MCP server
+
+  # Client A: the authorized client. Its client_id is the audience the fixture is
+  # deployed with, so tokens it mints pass verification.
+  UserPoolClientA:
+    Type: AWS::Cognito::UserPoolClient
+    DependsOn: ResourceServer
+    Properties:
+      ClientName: mcp-integration-test-client-a
+      UserPoolId: !Ref UserPool
+      GenerateSecret: true
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+        - client_credentials
+      AllowedOAuthScopes:
+        - !Sub ${ResourceServerIdentifier}/${ScopeName}
+      SupportedIdentityProviders:
+        - COGNITO
+
+  # Client B: same issuer, same scope, different client_id. Exists only to mint
+  # the wrong-client token the suite expects a 401 for (client_id fallback path).
+  UserPoolClientB:
+    Type: AWS::Cognito::UserPoolClient
+    DependsOn: ResourceServer
+    Properties:
+      ClientName: mcp-integration-test-client-b
+      UserPoolId: !Ref UserPool
+      GenerateSecret: true
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+        - client_credentials
+      AllowedOAuthScopes:
+        - !Sub ${ResourceServerIdentifier}/${ScopeName}
+      SupportedIdentityProviders:
+        - COGNITO
+
+  # CloudFormation's AWS::SSM::Parameter resource cannot create SecureString
+  # parameters, so a tiny custom resource writes them (and removes them on stack
+  # delete). The client secrets travel through this Lambda's properties only —
+  # they are never emitted as plaintext stack Outputs.
+  SsmWriterRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: ssm-secureparams
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ssm:PutParameter
+                  - ssm:DeleteParameter
+                Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${SsmPrefix}/*
+              # Scoped to this function's own log group. The group is declared
+              # below rather than created on first invoke, so the function name
+              # is fixed here (derived from the stack name, which introduces no
+              # dependency cycle with the role) and `logs:CreateLogGroup` is not
+              # needed at all.
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}-ssm-writer:*
+
+  # Declared explicitly so the IAM statement above can name it, and so the logs
+  # are deleted with the stack instead of outliving it.
+  SsmWriterLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AWS::StackName}-ssm-writer
+      RetentionInDays: 7
+
+  SsmWriterFunction:
+    Type: AWS::Lambda::Function
+    DependsOn: SsmWriterLogGroup
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-ssm-writer
+      Runtime: python3.12
+      Handler: index.handler
+      Timeout: 60
+      Role: !GetAtt SsmWriterRole.Arn
+      Code:
+        ZipFile: |
+          import json, urllib.request, boto3
+
+          ssm = boto3.client('ssm')
+
+          def send(event, status, reason=''):
+              body = json.dumps({
+                  'Status': status,
+                  'Reason': reason or 'see CloudWatch logs',
+                  'PhysicalResourceId': event.get('PhysicalResourceId', event['LogicalResourceId']),
+                  'StackId': event['StackId'],
+                  'RequestId': event['RequestId'],
+                  'LogicalResourceId': event['LogicalResourceId'],
+                  'Data': {},
+              }).encode()
+              req = urllib.request.Request(
+                  event['ResponseURL'], data=body, method='PUT',
+                  headers={'content-type': '', 'content-length': str(len(body))})
+              urllib.request.urlopen(req)
+
+          def handler(event, context):
+              try:
+                  props = event['ResourceProperties']
+                  prefix = props['Prefix'].rstrip('/')
+                  params = props['Parameters']
+                  if event['RequestType'] == 'Delete':
+                      for name in params:
+                          try:
+                              ssm.delete_parameter(Name=f'{prefix}/{name}')
+                          except ssm.exceptions.ParameterNotFound:
+                              pass
+                  else:
+                      for name, value in params.items():
+                          ssm.put_parameter(Name=f'{prefix}/{name}', Value=value,
+                                            Type='SecureString', Overwrite=True)
+                  send(event, 'SUCCESS')
+              except Exception as error:
+                  send(event, 'FAILED', str(error))
+
+  SsmParams:
+    Type: Custom::SsmSecureParams
+    DependsOn:
+      - UserPoolClientA
+      - UserPoolClientB
+      - UserPoolDomain
+    Properties:
+      ServiceToken: !GetAtt SsmWriterFunction.Arn
+      Prefix: !Ref SsmPrefix
+      Parameters:
+        poolId: !Ref UserPool
+        domain: !Sub mcp-integration-test-${AWS::AccountId}
+        region: !Ref AWS::Region
+        clientAId: !Ref UserPoolClientA
+        clientASecret: !GetAtt UserPoolClientA.ClientSecret
+        clientBId: !Ref UserPoolClientB
+        clientBSecret: !GetAtt UserPoolClientB.ClientSecret
+        scope: !Sub ${ResourceServerIdentifier}/${ScopeName}
+
+Outputs:
+  # Non-secret discovery values, echoed for an admin to eyeball after deploy. The
+  # client secrets are deliberately NOT output here — they live only in the
+  # SecureString SSM parameters below.
+  UserPoolId:
+    Description: Cognito user pool id. The token-validation issuer is https://cognito-idp.<region>.amazonaws.com/<poolId>.
+    Value: !Ref UserPool
+  Domain:
+    Description: Domain prefix. Token endpoint is https://<domain>.auth.<region>.amazoncognito.com/oauth2/token.
+    Value: !Sub mcp-integration-test-${AWS::AccountId}
+  Region:
+    Value: !Ref AWS::Region
+  ClientAId:
+    Description: Authorized client id; also the audience the auth fixture is deployed with.
+    Value: !Ref UserPoolClientA
+  ClientBId:
+    Description: Wrong-client id, used to mint the negative-case token.
+    Value: !Ref UserPoolClientB
+  Scope:
+    Value: !Sub ${ResourceServerIdentifier}/${ScopeName}
+  SsmPrefix:
+    Description: Prefix the suite reads all of the above (plus both client secrets) from.
+    Value: !Ref SsmPrefix

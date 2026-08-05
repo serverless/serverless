@@ -105,16 +105,23 @@
     "uuid": "^13.0.2"
   },
   "devDependencies": {
+    "@aws-sdk/client-secrets-manager": "3.1096.0",
+    "@aws-sdk/client-ssm": "3.1092.0",
+    "@modelcontextprotocol/hono": "2.0.0",
+    "@modelcontextprotocol/server": "2.0.0",
     "@types/jest": "^30.0.0",
     "cross-env": "^10.1.0",
-    "jest": "^30.4.2"
+    "hono": "^4.12.32",
+    "jest": "^30.4.2",
+    "jose": "^6.2.4"
   },
   "scripts": {
     "lint": "eslint",
     "prettier": "prettier -c . --ignore-path ../../.prettierignore",
     "prettier:fix": "prettier -w . --ignore-path ../../.prettierignore",
-    "test:unit": "cross-env NODE_OPTIONS='--experimental-vm-modules' NODE_NO_WARNINGS=1 jest",
-    "build:devmode:shim": "esbuild lib/plugins/aws/dev/shim.js --bundle --platform=node --minify --outfile=lib/plugins/aws/dev/shim.min.js"
+    "test:unit": "cross-env NODE_OPTIONS='--experimental-vm-modules' NODE_NO_WARNINGS=1 jest --workerIdleMemoryLimit=1000MB",
+    "build:devmode:shim": "esbuild lib/plugins/aws/dev/shim.js --bundle --platform=node --minify --outfile=lib/plugins/aws/dev/shim.min.js",
+    "build:mcp:entry": "node scripts/build-mcp-entry.js"
   },
   "engines": {
     "node": ">=18.0"

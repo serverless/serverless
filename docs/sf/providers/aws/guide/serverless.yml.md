@@ -1659,6 +1659,32 @@ sandboxes:
     observability: true # log group + metrics + dashboard (on by default)
 ```
 
+## MCP Servers
+
+Host [Model Context Protocol servers](./mcp.md) written against the official MCP TypeScript SDK. The `mcp` top-level property defines one or more servers; each becomes a Lambda function served at `/<name>/mcp` on the service's API Gateway REST API, with response streaming and packaging handled by the Framework — plus bearer-token verification and OAuth protected-resource discovery when `auth` is configured, and a provisioned signing key when `state` is enabled. `serverless deploy` and `serverless info` print each server's URL, and `serverless logs -f <name>` works by bare server name. See the [complete documentation](./mcp.md) for all options.
+
+```yml
+# serverless.yml
+
+provider:
+  name: aws
+  endpointType: REGIONAL # raises the streaming idle bound (~30 s on the EDGE default → ~5 min)
+
+mcp:
+  servers:
+    crm: # server name — function key and URL path segment
+      server: src/server.mjs # module default-exporting the SDK handler
+      timeout: 120 # max tool duration in seconds (1–900, default 60)
+      memorySize: 1024
+      environment:
+        ORDERS_TABLE: !Ref OrdersTable
+      auth: # optional OIDC bearer-token enforcement
+        issuer: https://example.us.auth0.com
+        audiences:
+          - https://mcp.example.com
+      state: true # signing key for elicitation round trips
+```
+
 ## AI Agents
 
 Deploy AI agents to [AWS Bedrock AgentCore](./agents/README.md) alongside your Lambda functions. The `ai` property is the top-level container for all AgentCore resources: agents, tools, gateways, memory, browsers, and code interpreters. See [complete documentation](./agents/README.md) for more details.

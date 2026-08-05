@@ -1,0 +1,125 @@
+name: 'CI: MCP Servers'
+
+# The live MCP suite deploys real REST APIs and Lambda functions and depends on a
+# per-account Cognito prerequisite (TESTING.md), so it is excluded from the
+# default `npm test` fleet and runs here instead — only when something that can
+# affect it changes. GitHub Actions has no job-level path filter, so the filter
+# lives on this workflow's own triggers, the same way `CI: Python Requirements`
+# scopes the python suite.
+
+permissions:
+  id-token: write
+  contents: read
+
+# The two path lists are duplicated rather than shared through a YAML anchor:
+# GitHub Actions does not resolve anchors in workflow files. Keep them identical.
+#
+# Three entries are not MCP-named but gate this suite all the same:
+#   - `lib/classes/plugin-manager.js` is the mcp plugin's ONLY registration point,
+#     so a dropped import there would ship green with the filter blind to it;
+#   - the two `package.json` files hold `test:mcp` and `build:mcp:entry`, the two
+#     commands this workflow runs.
+on:
+  # Dispatch works from the default branch. From any OTHER branch it fails at
+  # `Setup: AWS Credentials`, not in a test: the deployment role's trust scope
+  # may not cover feature-branch refs, so the token a feature-branch dispatch
+  # presents can be rejected. Open the branch as a PR instead.
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/ci-mcp.yml'
+      - 'packages/serverless/lib/classes/plugin-manager.js'
+      - 'packages/serverless/lib/plugins/aws/mcp/**'
+      - 'packages/serverless/lib/plugins/aws/package/compile/events/api-gateway/**'
+      - 'packages/serverless/lib/plugins/esbuild/**'
+      - 'packages/serverless/package.json'
+      - 'packages/serverless/scripts/build-mcp-entry.js'
+      - 'packages/sf-core/package.json'
+      - 'packages/sf-core/tests/integration/mcp/**'
+      - 'packages/sf-core/tests/integration/mcp-cognito-prerequisite/**'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ci-mcp.yml'
+      - 'packages/serverless/lib/classes/plugin-manager.js'
+      - 'packages/serverless/lib/plugins/aws/mcp/**'
+      - 'packages/serverless/lib/plugins/aws/package/compile/events/api-gateway/**'
+      - 'packages/serverless/lib/plugins/esbuild/**'
+      - 'packages/serverless/package.json'
+      - 'packages/serverless/scripts/build-mcp-entry.js'
+      - 'packages/sf-core/package.json'
+      - 'packages/sf-core/tests/integration/mcp/**'
+      - 'packages/sf-core/tests/integration/mcp-cognito-prerequisite/**'
+
+jobs:
+  test-mcp:
+    name: 'Test: MCP Servers (${{ matrix.account }})'
+    if: ${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    # One leg per test account, each assuming that account's own
+    # GithubActionsDeploymentRole. The MCP suite is self-contained and identical
+    # in every account, so a second leg buys no extra coverage — the matrix is
+    # here for the fleet-wide goal: separate runners break the single-runner
+    # ceiling and API rate limits are isolated per account. That only pays off
+    # once the OTHER integration suites shard across the same accounts, and this
+    # workflow is the template for that.
+    #
+    # All three accounts are bootstrapped: each holds the OIDC provider, the
+    # deployment role, and the Cognito prerequisite the auth-chain suite needs —
+    # without that prerequisite a leg reports green over a suite that skipped.
+    # Every leg reads its role ARN from a repository variable — the same
+    # TEST<N>_ROLE_ARN convention the other workflows use for test-1 — so the
+    # list here is uniform and adding or retiring an account is one variable
+    # plus one line. An account whose variable is unset fails its leg at
+    # credential setup rather than skipping, so a leg and its variable are
+    # added or removed together.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - account: test-2
+            role: ${{ vars.TEST2_ROLE_ARN }}
+    defaults:
+      run:
+        working-directory: ./packages/sf-core
+    steps:
+      - name: 'Checkout Code'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Nothing after checkout needs git credentials, so the GITHUB_TOKEN
+          # stays out of .git/config — dependency lifecycle scripts and the
+          # live suite run without it in reach.
+          persist-credentials: false
+      - name: 'Setup: Node.js'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.x
+          check-latest: true
+          cache: npm
+      - name: 'Setup: Enable Corepack'
+        run: corepack enable npm
+      - name: 'Setup: AWS Credentials'
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        with:
+          role-to-assume: ${{ matrix.role }}
+          aws-region: us-east-1
+      - name: 'Install: Dependencies'
+        run: |
+          cd ../../
+          npm ci
+      # Required, not optional: packaging stages this bundle into the artifact, so
+      # a deploy fails outright without it. The dev-mode shim, the sf-core bundle
+      # and the global serverless@3 that `Test: Framework` builds are not used by
+      # this suite and are left out.
+      - name: 'Build: MCP Entry'
+        working-directory: ./packages/serverless
+        run: npm run build:mcp:entry
+      - name: 'Test: MCP Servers'
+        run: npm run test:mcp
+        env:
+          SERVERLESS_LICENSE_KEY_DEV: ${{ secrets.SERVERLESS_LICENSE_KEY_DEV }}
+          SERVERLESS_ACCESS_KEY_DEV: ${{ secrets.SERVERLESS_ACCESS_KEY_DEV }}
+          TEST_STAGE: pr-${{ github.event.pull_request.user.login }}
+          SLS_AWS_SDK: 3
+          AWS_MAX_ATTEMPTS: 7

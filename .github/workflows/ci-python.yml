@@ -45,7 +45,7 @@ jobs:
       - name: 'Setup: AWS Credentials'
         uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
         with:
-          role-to-assume: arn:aws:iam::762003938904:role/GithubActionsDeploymentRole
+          role-to-assume: ${{ vars.TEST1_ROLE_ARN }}
           aws-region: us-east-1
 
       - name: 'Setup: Python'
