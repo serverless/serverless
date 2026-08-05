@@ -1,0 +1,24 @@
+# The classic packaging mode: the server module is zipped verbatim and its
+# imports travel as `node_modules`, rather than being bundled into one file.
+# One server, with an auto-provisioned state key.
+service: sfc-mcp-classic
+frameworkVersion: '*'
+
+provider:
+  name: aws
+  # The MCP SDK v2 requires Node.js 20 or newer.
+  runtime: nodejs22.x
+  # An edge-optimized REST endpoint cuts an idle connection at 30s, measured
+  # from invoke rather than from the first byte, which kills a long tool call
+  # whether it streams or not. Regional has no such limit.
+  endpointType: REGIONAL
+
+build:
+  esbuild: false
+
+mcp:
+  servers:
+    crm:
+      server: src/server.mjs
+      state: true
+      timeout: 120

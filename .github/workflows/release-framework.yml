@@ -67,7 +67,7 @@ jobs:
       - name: 'Setup: AWS Credentials'
         uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
         with:
-          role-to-assume: arn:aws:iam::762003938904:role/GithubActionsDeploymentRole
+          role-to-assume: ${{ vars.TEST1_ROLE_ARN }}
           aws-region: us-east-1
       - name: 'Install: Dependencies'
         run: |
@@ -82,6 +82,9 @@ jobs:
         run: |
           cd ../serverless/lib/plugins/aws/dev
           ../../../../../../node_modules/.bin/esbuild ./shim.js --bundle --platform=node --minify --outfile=./shim.min.js
+      - name: 'Build: MCP Entry'
+        working-directory: ./packages/serverless
+        run: npm run build:mcp:entry
       - name: 'Build: Framework'
         run: npm run build
       - name: 'Install: Serverless v3'
@@ -122,6 +125,9 @@ jobs:
         run: |
           cd ../serverless/lib/plugins/aws/dev
           ../../../../../../node_modules/.bin/esbuild ./shim.js --bundle --platform=node --minify --outfile=./shim.min.js
+      - name: 'Build: MCP Entry'
+        working-directory: ./packages/serverless
+        run: npm run build:mcp:entry
       - name: 'Build: Framework'
         run: npm run build
       - name: 'Setup: AWS Credentials'
@@ -175,6 +181,9 @@ jobs:
         run: |
           cd ../serverless/lib/plugins/aws/dev
           ../../../../../../node_modules/.bin/esbuild ./shim.js --bundle --platform=node --minify --outfile=./shim.min.js
+      - name: 'Build: MCP Entry'
+        working-directory: ./packages/serverless
+        run: npm run build:mcp:entry
       - name: 'Build: Framework'
         run: npm run build
       - name: 'Release: Upload Tarballs'

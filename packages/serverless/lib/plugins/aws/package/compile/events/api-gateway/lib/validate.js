@@ -37,6 +37,29 @@ const DEFAULT_STATUS_CODES = {
   },
 }
 
+const VALID_API_GATEWAY_STAGE_NAME_PATTERN = /^[-_a-zA-Z0-9]+$/
+
+/**
+ * The stage name rule, for any service that ends up with an API Gateway stage.
+ *
+ * Shared rather than inlined at the one call site it used to have: the routes a
+ * service exposes can also be contributed internally (an mcp-only service
+ * declares no http event of its own), and those reach the same deployment stage
+ * - so both paths have to answer the same way, before CloudFormation does.
+ */
+const assertValidStageName = (stage) => {
+  if (VALID_API_GATEWAY_STAGE_NAME_PATTERN.test(stage)) return
+  throw new ServerlessError(
+    [
+      `Invalid stage name ${stage}:`,
+      'it should contains only [-_a-zA-Z0-9] for AWS provider if http event are present',
+      'according to API Gateway limitation.',
+    ].join(' '),
+    'API_GATEWAY_INVALID_STAGE_NAME',
+    { stack: false },
+  )
+}
+
 export default {
   validate() {
     const events = []
@@ -257,20 +280,7 @@ export default {
               }
             }
 
-            const provider = this.serverless.getProvider('aws')
-            const stage = provider.getStage()
-            const validAPIGatewayStageNamePattern = /^[-_a-zA-Z0-9]+$/
-            if (!validAPIGatewayStageNamePattern.test(stage)) {
-              throw new ServerlessError(
-                [
-                  `Invalid stage name ${stage}:`,
-                  'it should contains only [-_a-zA-Z0-9] for AWS provider if http event are present',
-                  'according to API Gateway limitation.',
-                ].join(' '),
-                'API_GATEWAY_INVALID_STAGE_NAME',
-                { stack: false },
-              )
-            }
+            assertValidStageName(this.serverless.getProvider('aws').getStage())
 
             events.push({
               functionName,
@@ -280,6 +290,94 @@ export default {
         })
       },
     )
+
+    if (this.externalHttpEvents) {
+      // A contributed route is served on the same deployment stage a declared
+      // one is, and a service whose ONLY routes are contributed never reaches
+      // the check above - an invalid stage would then be caught by
+      // CloudFormation, mid-deploy, as a stage-creation failure.
+      if (this.externalHttpEvents.length > 0) {
+        assertValidStageName(this.serverless.getProvider('aws').getStage())
+      }
+      const serviceFunctions = this.serverless.service.functions ?? {}
+      // Routes are identified downstream by their normalized logical ids, not by
+      // the raw method/path strings, so collisions are detected on those ids:
+      // two different raw paths ("foo_bar/mcp" and "foobar/mcp") normalize to the
+      // same ApiGatewayResource, and the later definition would silently
+      // overwrite the earlier one in the template.
+      // A contributed route also claims its resource exclusively: a concrete
+      // method on the same resource wins dispatch over the contributed "any"
+      // method, which would silently divert the mcp server's traffic.
+      const resourceIdOf = (http) =>
+        this.provider.naming.getResourceLogicalId(this.getHttpPath(http))
+      const routeOf = (http) =>
+        `${this.getHttpMethod(http).toUpperCase()} /${this.getHttpPath(http)}`
+      const declaredRoutesByResourceId = new Map()
+      for (const event of events) {
+        const resourceId = resourceIdOf(event.http)
+        const declared = declaredRoutesByResourceId.get(resourceId)
+        if (declared) {
+          declared.push(routeOf(event.http))
+        } else {
+          declaredRoutesByResourceId.set(resourceId, [routeOf(event.http)])
+        }
+      }
+      const contributedByResourceId = new Map()
+      for (const externalEvent of this.externalHttpEvents) {
+        if (!Object.hasOwn(serviceFunctions, externalEvent.functionName)) {
+          throw new ServerlessError(
+            `An internally contributed http event references the function "${externalEvent.functionName}", which is not defined in this service`,
+            'API_GATEWAY_EXTERNAL_EVENT_UNKNOWN_FUNCTION',
+            { stack: false },
+          )
+        }
+
+        const resourceId = resourceIdOf(externalEvent.http)
+        const contributedRoute = routeOf(externalEvent.http)
+        const declaredRoutes = declaredRoutesByResourceId.get(resourceId)
+        if (declaredRoutes) {
+          throw new ServerlessError(
+            `The route "${declaredRoutes[0]}" defined in this service uses the same API Gateway resource as "${contributedRoute}", which the mcp server "${externalEvent.functionName}" needs. Routes under an MCP server's path segment are reserved for that server. Rename the mcp server, or remove the conflicting http event.`,
+            'API_GATEWAY_EXTERNAL_EVENT_ROUTE_COLLISION',
+            { stack: false },
+          )
+        }
+
+        const contributedMethod = this.getHttpMethod(externalEvent.http)
+        const contributed = contributedByResourceId.get(resourceId)
+        const conflicting = contributed?.find(
+          (entry) =>
+            entry.method === contributedMethod ||
+            entry.method === 'any' ||
+            contributedMethod === 'any',
+        )
+        if (conflicting) {
+          throw new ServerlessError(
+            `The mcp servers "${conflicting.functionName}" and "${externalEvent.functionName}" both need the API Gateway resource behind "${contributedRoute}" (their paths resolve to the same resource). Rename one of the mcp servers.`,
+            'API_GATEWAY_EXTERNAL_EVENT_ROUTE_COLLISION',
+            { stack: false },
+          )
+        }
+        if (contributed) {
+          contributed.push({
+            method: contributedMethod,
+            functionName: externalEvent.functionName,
+          })
+        } else {
+          contributedByResourceId.set(resourceId, [
+            {
+              method: contributedMethod,
+              functionName: externalEvent.functionName,
+            },
+          ])
+        }
+
+        if (externalEvent.http.authorizer) {
+          externalEvent.http.authorizer = this.getAuthorizer(externalEvent.http)
+        }
+      }
+      events.push(...this.externalHttpEvents)
+    }
 
     return {
       events,

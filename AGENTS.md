@@ -91,13 +91,13 @@ Always invoke Jest via the npm scripts, not bare `jest` — the scripts set `--e
 Integration tests deploy real AWS stacks. They run in CI on non-draft PRs and can be run locally given AWS credentials plus the prerequisite resources described in [TESTING.md](TESTING.md).
 
 ```bash
-npm test -w @serverlessinc/sf-core              # integration suite (excludes domains)
+npm test -w @serverlessinc/sf-core              # integration suite (excludes domains and mcp)
 npm run test:<suite> -w @serverlessinc/sf-core  # targeted suite
 ```
 
-Targeted suites include: `simple:nodejs`, `simple:python`, `simple:compose`, `simple:dashboard`, `simple:resolvers`, `resolvers`, `esbuild`, `sam`, `sandboxes`, `state`, `deployment-bucket`, `license-key`, `domains`, `compose:dev`, `compose:subset`. Prefer the targeted suite covering the touched area. The `domains` suite is excluded from `npm test` and not run by any CI workflow — it only runs when invoked explicitly.
+Targeted suites include: `simple:nodejs`, `simple:python`, `simple:compose`, `simple:dashboard`, `simple:resolvers`, `resolvers`, `esbuild`, `sam`, `sandboxes`, `state`, `deployment-bucket`, `license-key`, `domains`, `mcp`, `compose:dev`, `compose:subset`. Prefer the targeted suite covering the touched area. Two suites are excluded from `npm test`: `domains` (not run by any CI workflow — only when invoked explicitly) and `mcp` (run by the path-filtered `CI: MCP Servers` workflow, and it needs the Cognito prerequisite from [TESTING.md](TESTING.md)). Any other new directory under `tests/integration/` joins `npm test` automatically, so an expensive new suite has to opt out the same way.
 
-Conventions: each suite pairs `<name>.test.js` with a sibling `fixture/` directory holding the service under test; reuse the shared helpers in `packages/sf-core/tests/utils/` (`runSfCore.js`, `testUtils.js` — e.g. `fetchWithRetry` for eventually-consistent endpoints) rather than hand-rolling CLI invocation. Fixtures must not list legacy bundler plugins (`serverless-esbuild`, `serverless-webpack`, `serverless-plugin-typescript`, `serverless-bundle`) — those throw `PLUGIN_TYPESCRIPT_CONFLICT` unless `build.esbuild: false` is set.
+Conventions: each suite pairs `<name>.test.js` with a sibling `fixture/` directory holding the service under test — **one fixture directory per test file**, since jest parallelizes test files with no worker cap and two files deploying from one directory would race over `.serverless/`, `node_modules/` and any staged artifact; reuse the shared helpers in `packages/sf-core/tests/utils/` (`runSfCore.js`, `testUtils.js` — e.g. `fetchWithRetry` for eventually-consistent endpoints) rather than hand-rolling CLI invocation. Fixtures must not list legacy bundler plugins (`serverless-esbuild`, `serverless-webpack`, `serverless-plugin-typescript`, `serverless-bundle`) — those throw `PLUGIN_TYPESCRIPT_CONFLICT` unless `build.esbuild: false` is set.
 
 Dev-mode tests need the gitignored shim built first: `npm run build:devmode:shim -w @serverless/framework` (CI does this as a separate step).
 
@@ -144,6 +144,7 @@ CI runs on pull requests targeting `main`, on Node.js 24.x:
 - **CI: Framework CLI** — Lint, Test: Engine, Test: Framework (unit + integration). Skipped entirely for docs-only changes (`paths-ignore: docs/**`) and for draft PRs.
 - **CI: Binary Installer** — Go build and tests; runs only when `binary-installer/**` changes
 - **CI: Python Requirements** — path-filtered (see Testing above)
+- **CI: MCP Servers** — the live `mcp` suite; path-filtered to the MCP plugin, the api-gateway and esbuild seams, and the MCP tests/fixtures. GitHub Actions has no job-level path filter, which is why this and the python suite each live in their own workflow file.
 
 The `release-*.yml` workflows run only on push to main or manual dispatch — they are never exercised by PR CI, so review changes to them with extra care. `release-framework.yml` is additionally path-filtered to `packages/{sf-core,serverless,engine,mcp}/**`: changes elsewhere (e.g. `packages/util`) never trigger a release build on their own.
 

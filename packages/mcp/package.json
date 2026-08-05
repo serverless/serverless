@@ -14,7 +14,7 @@
     "test:aws-errors-info:unit": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest tests/aws/aws-errors-info.test.js",
     "test:aws-errors-info:setup": "node tests/e2e/aws-errors-info-setup.js",
     "test:aws-errors-info:cleanup": "node tests/e2e/aws-errors-info-cleanup.js",
-    "test:unit": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest tests/ --testPathIgnorePatterns=tests/e2e",
+    "test:unit": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest tests/ --testPathIgnorePatterns=/node_modules/ --testPathIgnorePatterns=tests/e2e",
     "test:e2e": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest tests/e2e/",
     "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest tests/"
   },

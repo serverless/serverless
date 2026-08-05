@@ -21,6 +21,17 @@ node updateReleasesJson.cjs
 node prepareDistributionTarballs.js
 cd ../../framework-dist
 bash ../sf-core/scripts/pack-framework-dist.sh
+
+# Assert the packed tarball really carries the prebuilt MCP Lambda entry before
+# anything is uploaded: a path drift would ship a CLI where every MCP deploy
+# fails with MCP_ENTRY_BUNDLE_MISSING, and no PR CI runs this workflow.
+# `|| exit 1` because this script does not `set -e` — without it a failed check
+# would be printed and then the broken tarball uploaded anyway.
+verify_dir=$(mktemp -d)
+trap 'rm -rf "${verify_dir}"' EXIT
+tar -xzf ./serverlessinc-framework-alpha-${version}.tgz -C "${verify_dir}" || exit 1
+node ../sf-core/scripts/verify-mcp-entry-packaging.js "${verify_dir}/package" || exit 1
+
 if [ "$is_canary" = true ]; then
     aws s3 cp ./serverlessinc-framework-alpha-${version}.tgz s3://${s3_bucket}/archives/canary-${version}.tgz
     aws s3 cp ./serverlessinc-framework-alpha-${version}.tgz s3://${s3_bucket}/archives/canary.tgz

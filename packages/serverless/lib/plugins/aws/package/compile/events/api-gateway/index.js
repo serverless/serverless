@@ -401,6 +401,16 @@ http:
       },
     }
   }
+
+  // Internal seam: native plugins (mcp) contribute pre-normalized http route
+  // descriptors that compile exactly like function-declared http events.
+  //
+  // Call contract: accumulates without deduping, so callers register their
+  // descriptors exactly once per package run, and before `package:compileEvents`
+  // - the event where everything collected here is compiled.
+  registerExternalHttpEvents(events) {
+    this.externalHttpEvents = (this.externalHttpEvents || []).concat(events)
+  }
 }
 
 export default AwsCompileApigEvents

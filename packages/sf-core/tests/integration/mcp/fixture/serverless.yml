@@ -1,0 +1,34 @@
+# Two MCP servers off one module, packaged by esbuild. `crm` carries an
+# auto-provisioned state key and `docs` none, so a run also pins that one
+# server's key does not reach the other's environment.
+#
+# The suite selects a packaging mode with the `-c` option rather than by editing
+# this file; the sibling configs are the other modes.
+service: sfc-mcp
+frameworkVersion: '*'
+
+provider:
+  name: aws
+  # The MCP SDK v2 requires Node.js 20 or newer.
+  runtime: nodejs22.x
+  # An edge-optimized REST endpoint cuts an idle connection at 30s, measured
+  # from invoke rather than from the first byte, which kills a long tool call
+  # whether it streams or not. Regional has no such limit.
+  endpointType: REGIONAL
+
+# Asked for explicitly: the zero-config predicate bundles a Node function only
+# when its entry resolves to TypeScript, so a `.mjs` server takes the classic
+# path unless a `build` block covers it. The emitted format follows the service
+# package.json `type`, which is why this fixture declares `commonjs` while its
+# own sources stay ESM `.mjs`.
+build: esbuild
+
+mcp:
+  servers:
+    crm:
+      server: src/server.mjs
+      state: true
+      timeout: 120
+    docs:
+      server: src/server.mjs
+      timeout: 120

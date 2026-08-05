@@ -5,3 +5,4 @@ coverage
 npm-shrinkwrap.json
 packages/sf-core/tests/unit/resolvers/fixtures/invalid.yaml
 packages/sf-core/tests/unit/resolvers/fixtures/invalid.json
+packages/serverless/lib/plugins/aws/mcp/entry/dist
