@@ -92,6 +92,23 @@ export const validateMcp = ({ mcp, functions, providerRuntime, naming }) => {
       )
     }
     serversByNormalizedName.set(normalizedName, name)
+    // Under configValidationMode "warn" (the default) schema violations do not
+    // stop the run, so a server entry can arrive here in any shape. A user who
+    // wrote a `servers` block means to use MCP servers - a malformed entry
+    // gets a teaching error, never a TypeError.
+    if (
+      config === null ||
+      typeof config !== 'object' ||
+      Array.isArray(config) ||
+      typeof config.server !== 'string' ||
+      config.server === ''
+    ) {
+      throw new ServerlessError(
+        `MCP server "${name}" needs "server": the path of the module that default-exports the MCP handler. Set "mcp.servers.${name}.server" to that path (for example "src/server.mjs").`,
+        'MCP_SERVER_MODULE_REQUIRED',
+        { stack: false },
+      )
+    }
     if (
       config.state !== undefined &&
       typeof config.state !== 'boolean' &&

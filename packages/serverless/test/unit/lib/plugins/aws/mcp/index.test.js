@@ -153,6 +153,36 @@ describe('AwsMcp plugin', () => {
     ).not.toHaveBeenCalled()
   })
 
+  // Under the default configValidationMode ("warn") a schema violation does
+  // not stop the run, so a top-level `mcp` key of any shape reaches
+  // `initialize`. A block that does not carry a `servers` object is not this
+  // plugin's to interpret — before this plugin existed such a key drew only
+  // the unrecognized-property warning and the service deployed on, and that
+  // must stay true.
+  it.each([
+    ['a boolean', true],
+    ['a string', 'not ours'],
+    ['an array', [{ servers: {} }]],
+    ['an empty object', {}],
+    ['a foreign object', { transport: 'stdio', port: 3000 }],
+    ['servers as an array', { servers: [{ server: 'src/server.mjs' }] }],
+    ['servers as a string', { servers: 'src/server.mjs' }],
+  ])('stands down when the mcp block is %s', async (_label, mcp) => {
+    const serverless = makeServerless()
+    serverless.service.functions = { existing: { handler: 'src/api.handler' } }
+    serverless.configurationInput = { mcp }
+    const plugin = new AwsMcp(serverless, {})
+    await plugin.hooks.initialize()
+    await plugin.hooks['before:package:compileEvents']()
+    expect(plugin.validated).toBeUndefined()
+    expect(serverless.service.functions).toEqual({
+      existing: { handler: 'src/api.handler' },
+    })
+    expect(
+      apiGatewayPluginOf(serverless).registerExternalHttpEvents,
+    ).not.toHaveBeenCalled()
+  })
+
   // `getProvider('aws')` resolves to undefined under a non-aws provider, and
   // this plugin is not provider-scoped, so its `initialize` hook still runs -
   // reaching for `provider.getStage()` would fail with a bare TypeError.

@@ -26,6 +26,9 @@ import {
 import { synthesizeFunctions } from './lib/synthesize-functions.js'
 import { validateMcp } from './lib/validate.js'
 
+const isPlainObject = (v) =>
+  v !== null && typeof v === 'object' && !Array.isArray(v)
+
 class AwsMcp {
   constructor(serverless, options) {
     this.serverless = serverless
@@ -44,6 +47,16 @@ class AwsMcp {
       initialize: async () => {
         const mcp = this.getMcpConfig()
         if (!mcp) return
+        // A top-level `mcp` key is not necessarily ours to interpret: under
+        // the default configValidationMode ("warn") a service reaches this
+        // hook with a block of any shape - including a stray key some other
+        // tool owns, which before this plugin existed drew only the
+        // unrecognized-property warning and deployed on. Only a block
+        // carrying a `servers` object declares MCP servers; any other shape
+        // stays a schema-validation concern (warned or thrown per the
+        // service's configValidationMode) and the plugin stands down exactly
+        // as it does on a service with no `mcp` at all.
+        if (!isPlainObject(mcp) || !isPlainObject(mcp.servers)) return
         // Defense in depth: under a non-aws provider this plugin IS
         // provider-scoped (the AwsProvider instance lands on `this.provider`,
         // which the plugin manager reads for scoping), so its hooks are

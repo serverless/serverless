@@ -165,6 +165,28 @@ describe('validateMcp', () => {
     expect(servers.map((s) => s.name)).toEqual(['foo-bar', 'foo_bar', 'fooBar'])
   })
 
+  // Under configValidationMode "warn" (the default) schema violations do not
+  // stop the run, so entries of any shape reach validateMcp. A `servers`
+  // block signals intent to use MCP servers, so a malformed entry gets a
+  // teaching error rather than a TypeError.
+  it.each([
+    ['a number', 42],
+    ['null', null],
+    ['an array', ['src/server.mjs']],
+    ['an object without server', { timeout: 60 }],
+    ['a non-string server', { server: 42 }],
+    ['an empty server', { server: '' }],
+  ])('rejects a server entry that is %s', (_label, entry) => {
+    expect(() =>
+      validateMcp({
+        mcp: { servers: { crm: entry } },
+        functions: {},
+        providerRuntime: undefined,
+        naming,
+      }),
+    ).toThrow(expect.objectContaining({ code: 'MCP_SERVER_MODULE_REQUIRED' }))
+  })
+
   it('rejects the reserved server name "well-known"', () => {
     expect(() =>
       validateMcp({
