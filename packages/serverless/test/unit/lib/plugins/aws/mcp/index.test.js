@@ -65,53 +65,69 @@ afterAll(async () => {
   if (serviceDir) await rm(serviceDir, { recursive: true, force: true })
 })
 
-const makeServerless = () => ({
-  service: {
-    service: 'acme',
-    provider: {
-      name: 'aws',
-      compiledCloudFormationTemplate: { Resources: {}, Outputs: {} },
-    },
-    functions: {},
-    package: {},
-  },
-  // Both spellings: the esbuild plugin reads each in different places.
-  config: { serviceDir },
-  serviceDir,
-  configSchemaHandler: { defineTopLevelProperty: jest.fn() },
-  // The seam every plugin uses to contribute a section to the deploy/info
-  // summary, so the lines land in the right place (and out of `info --json`).
-  addServiceOutputSection: jest.fn(),
-  // Mirrors how the plugin discovers the api-gateway compiler: by scanning the
-  // loaded plugin instances for the `registerExternalHttpEvents` seam, and how
-  // it reads the stack outputs the info plugin gathered before the `after:`
-  // hooks run.
-  pluginManager: {
-    plugins: [
-      { registerExternalHttpEvents: jest.fn() },
-      {
-        gatheredData: {
-          info: { endpoints: [serviceEndpoint] },
-          outputs: [
-            { OutputKey: 'ServiceEndpoint', OutputValue: serviceEndpoint },
-          ],
-        },
+const makeServerless = () => {
+  const serverless = {
+    service: {
+      service: 'acme',
+      provider: {
+        name: 'aws',
+        compiledCloudFormationTemplate: { Resources: {}, Outputs: {} },
       },
-    ],
-  },
-  getProvider: jest.fn(() => ({
+      functions: {},
+      package: {},
+    },
+    // Both spellings: the esbuild plugin reads each in different places.
+    config: { serviceDir },
+    serviceDir,
+    configSchemaHandler: { defineTopLevelProperty: jest.fn() },
+    // The seam every plugin uses to contribute a section to the deploy/info
+    // summary, so the lines land in the right place (and out of `info --json`).
+    addServiceOutputSection: jest.fn(),
+    // Mirrors how the plugin discovers the api-gateway compiler: by scanning the
+    // loaded plugin instances for the `registerExternalHttpEvents` seam, and how
+    // it reads the stack outputs the info plugin gathered before the `after:`
+    // hooks run.
+    pluginManager: {
+      plugins: [
+        { registerExternalHttpEvents: jest.fn() },
+        {
+          gatheredData: {
+            info: { endpoints: [serviceEndpoint] },
+            outputs: [
+              { OutputKey: 'ServiceEndpoint', OutputValue: serviceEndpoint },
+            ],
+          },
+        },
+      ],
+    },
+  }
+  serverless.getProvider = jest.fn(() => ({
     getStage: () => 'dev',
+    // The stage the REST API is deployed to, which `provider.apiGateway.stage`
+    // renames independently of the config stage - resolved exactly the way the
+    // real provider resolves it, because the discovery document and the
+    // `ServiceEndpoint` output both hang off this one.
+    getApiGatewayStage: () =>
+      serverless.service.provider.apiGateway?.stage || 'dev',
     getRegion: () => 'us-east-1',
     // `getStackName` is the one naming method that reads back through the
     // provider, which this mock is not - the rest are pure.
     naming: { ...naming, getStackName: () => 'acme-dev' },
+    // The same resolution the real provider performs: an imported
+    // `provider.apiGateway.restApiId` if the service brought one, otherwise a
+    // `{Ref}` to the REST API this service creates.
+    getApiGatewayRestApiId: () =>
+      serverless.service.provider.apiGateway?.restApiId ?? {
+        Ref: naming.getRestApiLogicalId(),
+      },
     // Borrowed from the real provider rather than restated, so the BYO-role
     // detection under test cannot drift from the check the IAM merge uses.
     isExistingRoleProvided: AwsProvider.prototype.isExistingRoleProvided,
     // The AWS seam the deploy-time state permission check goes through.
     request: jest.fn(),
-  })),
-})
+  }))
+  return serverless
+}
 
 const apiGatewayPluginOf = (serverless) => serverless.pluginManager.plugins[0]
 
@@ -247,6 +263,195 @@ describe('AwsMcp plugin', () => {
     expect(Array.isArray(events)).toBe(true)
     expect(events[0].functionName).toBe('crm')
     expect(events[0].http.path).toBe('crm/mcp')
+  })
+
+  // The OAuth protected-resource routes ride the same registration as the MCP
+  // routes themselves, and what a client can do with them depends on the URL
+  // the document ends up advertising - which is what the reporting below is
+  // about.
+  describe('oauth discovery routes', () => {
+    const DISCOVERY_PATH = '.well-known/oauth-protected-resource/crm/mcp'
+    const issuer = 'https://acme.auth0.com'
+
+    const registeredBy = async (serverless) => {
+      const plugin = new AwsMcp(serverless, {})
+      await plugin.hooks.initialize()
+      await plugin.hooks['before:package:compileEvents']()
+      const { registerExternalHttpEvents } = apiGatewayPluginOf(serverless)
+      // One call per package run: the seam accumulates, and a second call
+      // would mean the MCP routes and the discovery routes were contributed as
+      // two separate batches.
+      expect(registerExternalHttpEvents).toHaveBeenCalledTimes(1)
+      return registerExternalHttpEvents.mock.calls[0][0]
+    }
+
+    beforeEach(() => {
+      log.warning.mockClear()
+      log.info.mockClear()
+    })
+
+    it('registers them together with the MCP routes in one call', async () => {
+      const serverless = makeServerless()
+      serverless.service.provider.domain = { name: 'mcp.acme.com' }
+      serverless.service.mcp = {
+        servers: {
+          crm: { server: 'src/crm.mjs', oauthDiscovery: { issuer } },
+        },
+      }
+      const events = await registeredBy(serverless)
+      expect(events.map(({ http }) => [http.method, http.path])).toEqual([
+        ['any', 'crm/mcp'],
+        ['get', DISCOVERY_PATH],
+        ['options', DISCOVERY_PATH],
+      ])
+    })
+
+    // `provider.apiGateway.stage` renames the stage the REST API is deployed to
+    // without touching the config stage, and the deployment's `ServiceEndpoint`
+    // output follows the rename (`api-gateway/lib/deployment.js`). A document
+    // built from the config stage would advertise a URL that 404s while the
+    // summary printed the working one.
+    it('builds the document on the API Gateway stage, and the summary agrees', async () => {
+      const serverless = makeServerless()
+      serverless.service.provider.apiGateway = { stage: 'v1' }
+      serverless.pluginManager.plugins[1].gatheredData.outputs = [
+        {
+          OutputKey: 'ServiceEndpoint',
+          OutputValue: 'https://abc123.execute-api.us-east-1.amazonaws.com/v1',
+        },
+      ]
+      serverless.service.mcp = {
+        servers: {
+          crm: { server: 'src/crm.mjs', oauthDiscovery: { issuer } },
+        },
+      }
+      const plugin = new AwsMcp(serverless, {})
+      await plugin.hooks.initialize()
+      await plugin.hooks['before:package:compileEvents']()
+      await plugin.hooks['after:deploy:deploy']()
+
+      const events =
+        apiGatewayPluginOf(serverless).registerExternalHttpEvents.mock
+          .calls[0][0]
+      const [template] = events.find(
+        ({ http }) => http.method === 'get' && http.path === DISCOVERY_PATH,
+      ).http.response.statusCodes[200].template['application/json']['Fn::Sub']
+      // Rendered the way CloudFormation renders it on deploy, so the document a
+      // client would actually read is what gets compared.
+      const { resource } = JSON.parse(
+        template
+          .replace('${RestApiId}', 'abc123')
+          .replace('${AWS::Region}', 'us-east-1')
+          .replace('${AWS::URLSuffix}', 'amazonaws.com'),
+      )
+      expect(resource).toBe(
+        'https://abc123.execute-api.us-east-1.amazonaws.com/v1/crm/mcp',
+      )
+      expect(serverless.addServiceOutputSection).toHaveBeenCalledWith(
+        'mcp',
+        `crm → ${resource}`,
+      )
+    })
+
+    it('registers only the MCP routes without oauthDiscovery', async () => {
+      const serverless = makeServerless()
+      serverless.service.mcp = {
+        servers: {
+          crm: { server: 'src/crm.mjs' },
+          docs: { server: 'src/docs.mjs' },
+        },
+      }
+      const events = await registeredBy(serverless)
+      expect(events.map(({ http }) => http.path)).toEqual([
+        'crm/mcp',
+        'docs/mcp',
+      ])
+    })
+
+    // The document is fetched by the client from the origin it is already
+    // talking to, and an interactive client only ever knows the origin its user
+    // typed in - so a document that can only be reached at the stage URL is a
+    // document that login never finds.
+    it('warns once per server that falls back to the stage URL', async () => {
+      const serverless = makeServerless()
+      serverless.service.mcp = {
+        servers: {
+          crm: { server: 'src/crm.mjs', oauthDiscovery: { issuer } },
+          docs: { server: 'src/docs.mjs', oauthDiscovery: { issuer } },
+        },
+      }
+      await registeredBy(serverless)
+      expect(log.warning).toHaveBeenCalledTimes(2)
+      for (const name of ['crm', 'docs']) {
+        expect(log.warning).toHaveBeenCalledWith(
+          `MCP server "${name}" advertises OAuth discovery at the stage URL, which interactive clients cannot discover. If clients reach this server through a custom domain, set "mcp.servers.${name}.oauthDiscovery.publicUrl" to it (or declare the domain under "provider.domain"); without a root-mapped custom domain, interactive login will not work.`,
+        )
+      }
+    })
+
+    it.each([
+      ['a custom domain', { domain: { name: 'mcp.acme.com' } }, { issuer }],
+      [
+        'an explicit publicUrl',
+        {},
+        { issuer, publicUrl: 'https://mcp.acme.com' },
+      ],
+    ])(
+      'stays quiet when the base URL comes from %s',
+      async (_label, provider, oauthDiscovery) => {
+        const serverless = makeServerless()
+        Object.assign(serverless.service.provider, provider)
+        serverless.service.mcp = {
+          servers: { crm: { server: 'src/crm.mjs', oauthDiscovery } },
+        }
+        await registeredBy(serverless)
+        expect(log.warning).not.toHaveBeenCalled()
+      },
+    )
+
+    it('says nothing about a server that publishes no discovery document', async () => {
+      const serverless = makeServerless()
+      serverless.service.mcp = { servers: { crm: { server: 'src/crm.mjs' } } }
+      await registeredBy(serverless)
+      expect(log.warning).not.toHaveBeenCalled()
+      expect(log.info).not.toHaveBeenCalled()
+    })
+
+    // Publishing discovery without an authorizer is a legitimate setup - the
+    // server module verifies the token itself - so this is a verbose-only note
+    // (`log.info` is the `--verbose` channel), never a warning.
+    it('notes on the verbose channel that discovery carries no authorizer', async () => {
+      const serverless = makeServerless()
+      serverless.service.provider.domain = { name: 'mcp.acme.com' }
+      serverless.service.mcp = {
+        servers: {
+          crm: { server: 'src/crm.mjs', oauthDiscovery: { issuer } },
+        },
+      }
+      await registeredBy(serverless)
+      expect(log.info).toHaveBeenCalledTimes(1)
+      expect(log.info).toHaveBeenCalledWith(
+        'MCP server "crm" publishes OAuth discovery but has no authorizer - enforcement is expected in the server module.',
+      )
+      expect(log.warning).not.toHaveBeenCalled()
+    })
+
+    it('does not note it for a server that has an authorizer', async () => {
+      const serverless = makeServerless()
+      serverless.service.provider.domain = { name: 'mcp.acme.com' }
+      serverless.service.functions = { auth: { handler: 'src/auth.handler' } }
+      serverless.service.mcp = {
+        servers: {
+          crm: {
+            server: 'src/crm.mjs',
+            authorizer: 'auth',
+            oauthDiscovery: { issuer },
+          },
+        },
+      }
+      await registeredBy(serverless)
+      expect(log.info).not.toHaveBeenCalled()
+    })
   })
 
   it('fails with a teaching error when the api gateway plugin is absent', async () => {
@@ -724,7 +929,7 @@ describe('AwsMcp plugin', () => {
     // A custom domain is the URL clients are given, and with
     // `disableDefaultEndpoint` the execute-api one does not answer at all - so
     // printing it would hand out an address that does not work. The derivation
-    // is the same one `SERVERLESS_MCP_PUBLIC_BASE_URL` uses.
+    // is the one the discovery documents are built from.
     it('prints the custom domain instead of the execute-api URL', async () => {
       const serverless = makeServerless()
       serverless.service.provider.domain = {
@@ -757,17 +962,19 @@ describe('AwsMcp plugin', () => {
 
     // The documented escape hatch for a service the Framework cannot derive an
     // origin for (a CloudFront distribution, two REST domains): the server names
-    // its own, and that is the URL it advertises to clients - so it has to be the
-    // URL the summary prints, per server rather than for the whole service.
-    it('prints a server-level SERVERLESS_MCP_PUBLIC_BASE_URL over the domain', async () => {
+    // its own, and that is the URL its discovery document advertises to clients -
+    // so it has to be the URL the summary prints, per server rather than for the
+    // whole service.
+    it('prints a server-level oauthDiscovery.publicUrl over the domain', async () => {
       const serverless = makeServerless()
       serverless.service.provider.domain = { name: 'api.acme.com' }
       serverless.service.mcp = {
         servers: {
           crm: {
             server: 'src/crm.mjs',
-            environment: {
-              SERVERLESS_MCP_PUBLIC_BASE_URL: 'https://mcp.acme.com',
+            oauthDiscovery: {
+              issuer: 'https://acme.auth0.com',
+              publicUrl: 'https://mcp.acme.com',
             },
           },
           docs: { server: 'src/docs.mjs' },
@@ -1434,8 +1641,12 @@ describe('AwsMcp plugin', () => {
       })
     })
 
+    // The entry no longer derives anything from a public base URL, so nothing
+    // hands it one: the value survives only as a `mcp.servers.<name>.environment`
+    // key a user writes for their own server module, and means nothing to the
+    // Framework - `oauthDiscovery.publicUrl` is what states an origin now.
     describe('custom domain public base URL', () => {
-      it('is set on every server function', async () => {
+      it('is not written onto a server function, even with a custom domain', async () => {
         const serverless = makeServerless()
         serverless.service.provider.domain = {
           name: 'api.acme.com',
@@ -1452,14 +1663,13 @@ describe('AwsMcp plugin', () => {
         await plugin.hooks['before:package:compileFunctions']()
         for (const name of ['crm', 'docs']) {
           expect(
-            serverless.service.functions[name].environment
-              .SERVERLESS_MCP_PUBLIC_BASE_URL,
-          ).toBe('https://api.acme.com/assistant')
+            serverless.service.functions[name].environment,
+          ).not.toHaveProperty('SERVERLESS_MCP_PUBLIC_BASE_URL')
         }
       })
 
-      // The derived value is a convenience; a value the user wrote for this
-      // server is a decision, and it is what the entry has to honor.
+      // A value the user wrote for this server is theirs, and packaging has
+      // never been what puts it there.
       it('does not overwrite a value the user set on the server', async () => {
         const serverless = makeServerless()
         serverless.service.provider.domain = { name: 'api.acme.com' }

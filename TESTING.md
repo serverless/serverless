@@ -19,7 +19,7 @@ npm test -w @serverlessinc/sf-core
 Note: this excludes two suites.
 
 - `domains` — runs only via `npm run test:domains -w @serverlessinc/sf-core`.
-- `mcp` (MCP Servers) — runs only via `npm run test:mcp -w @serverlessinc/sf-core`, which the path-filtered `CI: MCP Servers` workflow invokes when MCP-relevant paths change. It deploys real REST APIs, which is why it is kept off unrelated pull requests. Only its auth-chain suite (`mcp-auth.test.js`) needs the Cognito prerequisite below — without it that suite skips with a log while the rest still runs.
+- `mcp` (MCP Servers) — runs only via `npm run test:mcp -w @serverlessinc/sf-core`, which the path-filtered `CI: MCP Servers` workflow invokes when MCP-relevant paths change. It deploys real REST APIs, which is why it is kept off unrelated pull requests. Only its enforcement-and-discovery suite (`mcp-auth.test.js`) needs the Cognito prerequisite below — without it that suite skips with a log while the rest still runs.
 
 ### Running Specific Test Suites
 
@@ -106,13 +106,33 @@ The integration tests require specific AWS resources, including:
   - `ServerlessDeploymentBucketName`: `sfc-nodejs-resolvers-inte-serverlessdeploymentbuck-vky0nzemsvvr`
   - `Function1LambdaFunctionQualifiedArn`: `arn:aws:lambda:eu-west-1:762003938904:function:sfc-nodejs-resolvers-integration-test-function1:1`
 
-#### Cognito Prerequisite (MCP auth-chain suite)
+#### Cognito Prerequisite (MCP enforcement suite)
 
 ##### us-east-1
 
-The MCP servers' auth-chain suite (`tests/integration/mcp/mcp-auth.test.js`)
-verifies bearer-token enforcement against a real OIDC issuer. That issuer is a
-predeployed Cognito user pool defined by
+`tests/integration/mcp/mcp-auth.test.js` covers the two things the `mcp`
+property does about authentication — and it does not do authentication.
+Enforcement belongs to the user, so the suite deploys one server per way access
+to an MCP route can be controlled and asserts what the **gateway** does with
+each:
+
+- a **Cognito user pool authorizer** (`authorizer: { arn, scopes }`), driven
+  with a real access token minted from the prerequisite pool below — the reason
+  the prerequisite exists at all;
+- a **TOKEN** Lambda authorizer and a **REQUEST** Lambda authorizer, both
+  checking a per-run shared secret, pinning the exact `401` +
+  `{"message":"Unauthorized"}` API Gateway answers a refusal with;
+- a server with **no `authorizer` configured**, which also re-gates ordinary
+  streaming and the body-less `202` a JSON-RPC notification is answered with;
+- the **`oauthDiscovery`** document served from an API Gateway MOCK route:
+  its exact body, its CORS headers, and the property that matters —
+  it is readable by exactly the unauthenticated client the server route rejects.
+
+A rejected request is proved not to have reached the function, from CloudWatch
+rather than from the status code, which is what makes "the Framework verifies
+nothing" an observed fact.
+
+The pool is a predeployed Cognito user pool defined by
 `tests/integration/mcp-cognito-prerequisite/template.yml` — a **persistent,
 one-time, per-account** prerequisite. The framework deploys it directly: a
 directory holding a `template.yml` routes `serverless deploy` to the
@@ -127,15 +147,19 @@ It provisions a Lite-tier user pool, a domain, an `mcp` resource server with an
 `invoke` scope, and two `client_credentials` app clients, then publishes eight
 **SecureString** parameters under `/mcp-integration-test/cognito/` (`poolId`,
 `domain`, `region`, `clientAId`, `clientASecret`, `clientBId`, `clientBSecret`,
-`scope`). The suite discovers them at runtime (no ids hardcoded) and **skips
-with a clear message** when the prerequisite is genuinely absent — nothing or
-only some of the parameters under the prefix, or no credentials at all — so it
-never hard-fails an account that lacks it. Any other read failure (denied,
-throttled, expired credentials, network) **fails** instead of skipping: those are
-reads that should have worked, and a silent skip there would report the auth
-chain as covered when nothing ran. Cost is
-~$0.014/month even at 1,000 CI runs. See
-`tests/integration/mcp-cognito-prerequisite/README.md` for details and teardown.
+`scope`). The suite discovers them at runtime (no ids hardcoded), derives the
+pool ARN from `poolId` and the caller's own account, and deploys the fixture's
+Cognito-protected server with the `mcp/invoke` scope — which is what makes API
+Gateway validate the pool's **access** tokens rather than identity tokens.
+
+It **skips with a clear message** when the prerequisite is genuinely absent —
+nothing or only some of the parameters under the prefix, or no credentials at
+all — so it never hard-fails an account that lacks it. Any other read failure
+(denied, throttled, expired credentials, network) **fails** instead of skipping:
+those are reads that should have worked, and a silent skip there would report
+enforcement as covered when nothing ran. Cost is ~$0.014/month even at 1,000 CI
+runs. See `tests/integration/mcp-cognito-prerequisite/README.md` for details and
+teardown.
 
 The rest of the MCP suite (`tests/integration/mcp/mcp.test.js`) needs no
 prerequisite. Both files run from `npm run test:mcp`, each off its own fixture
@@ -188,7 +212,8 @@ both parts are per-account:
 2. **The prerequisites this file documents** — SSM parameters, secrets, buckets,
    tables, stacks and the Cognito user pool exist per account. A suite whose
    prerequisite is missing in the account it runs in either fails or, in the MCP
-   auth-chain suite's case, skips — reporting green over coverage that never ran.
+   enforcement suite's case, skips — reporting green over coverage that never
+   ran.
 
 `CI: MCP Servers` shows the shape: a one-leg matrix naming its account, with
 the role ARN in a repository variable. The suite is self-contained and behaves

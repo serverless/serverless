@@ -18,10 +18,9 @@ jest.unstable_mockModule(
   () => ({ resolveStateKey }),
 )
 
-// `awslambda` is the Lambda runtime's own global, which the entry's streaming
-// bridge (`entry/lib/pump.mjs`) calls through. A real Writable stands in for
-// the response stream, so the bridge's backpressure and disconnect handling
-// meet the same interface here as in the runtime.
+// `awslambda` is the Lambda runtime's own global, which Hono's streaming bridge
+// calls through. A real Writable stands in for the response stream, so the
+// bridge meets the same interface here as in the runtime.
 const fakeStream = () => {
   const chunks = []
   const stream = new Writable({
@@ -34,12 +33,19 @@ const fakeStream = () => {
   return stream
 }
 
-// `from()` writes nothing itself: it installs the hook that emits the prelude
-// from inside the first `write()`, so the metadata only reaches the wire if
-// something is written. Modelled that way here, `stream.metadata` is present
-// exactly when a real client would have seen a status line.
+// The runtime reads this mark off the function `streamifyResponse` is handed to
+// select streaming mode, so the double sets it the way the runtime does.
+const STREAMING = Symbol.for('aws.lambda.runtime.handler.streaming')
+
 globalThis.awslambda = {
-  streamifyResponse: (fn) => fn,
+  streamifyResponse: (fn) => {
+    fn[STREAMING] = 'response'
+    return fn
+  },
+  // `from()` writes nothing itself: it installs the hook that emits the prelude
+  // from inside the first `write()`, so the metadata only reaches the wire if
+  // something is written. Modelled that way here, `stream.metadata` is present
+  // exactly when a real client would have seen a status line.
   HttpResponseStream: {
     from: (stream, metadata) => {
       const write = stream.write.bind(stream)
@@ -66,6 +72,7 @@ const restEvent = ({
   path: requestPath = '/crm/mcp',
   method = 'POST',
   headers = {},
+  body,
 } = {}) => ({
   version: '1.0',
   httpMethod: method,
@@ -77,9 +84,10 @@ const restEvent = ({
     ...headers,
   },
   body:
-    method === 'POST'
+    body ??
+    (method === 'POST'
       ? JSON.stringify({ jsonrpc: '2.0', method: 'ping', id: 1 })
-      : null,
+      : null),
   isBase64Encoded: false,
   requestContext: {
     domainName: 'abc123.execute-api.us-east-1.amazonaws.com',
@@ -160,22 +168,79 @@ describe('mcp entry', () => {
     expect(response.body).toBe('handled')
   })
 
-  it('challenges an unauthenticated request when auth is configured', async () => {
+  // The exported handler wraps the bridge to correct the event first, and the
+  // runtime selects streaming mode from a mark on the function it is given —
+  // so the wrapper has to still carry it.
+  it('is registered with the runtime as a streaming handler', async () => {
+    const { handler } = await import(entryPath)
+
+    expect(handler[STREAMING]).toBe('response')
+  })
+
+  // Today's runtime sets that mark by plain assignment, which makes it
+  // enumerable; the wrapper copies property *descriptors* so it would survive a
+  // runtime that defined it any other way.
+  it('carries the mark over even when the runtime defines it non-enumerably', async () => {
+    const { streamifyResponse } = globalThis.awslambda
+    globalThis.awslambda.streamifyResponse = (fn) =>
+      Object.defineProperty(fn, STREAMING, {
+        value: 'response',
+        enumerable: false,
+      })
+    try {
+      const { handler } = await import(entryPath)
+
+      expect(handler[STREAMING]).toBe('response')
+    } finally {
+      globalThis.awslambda.streamifyResponse = streamifyResponse
+    }
+  })
+
+  // API Gateway will deliver a GET or HEAD carrying a body, and a `Request`
+  // cannot represent one: unless the event is corrected first, building it
+  // throws and the request fails before the user's server is reached.
+  // The response body is asserted only for GET: Hono answers a HEAD with the
+  // status and headers alone, as HTTP requires.
+  it.each([
+    ['GET', 'handled'],
+    ['HEAD', ''],
+  ])('serves a %s that carries a body', async (method, expectedBody) => {
+    const { handler } = await import(entryPath)
+
+    const response = await invoke(
+      handler,
+      restEvent({
+        method,
+        body: 'ignored',
+        headers: { 'Content-Length': '7' },
+      }),
+    )
+
+    expect(response.statusCode).toBe(202)
+    expect(response.body).toBe(expectedBody)
+  })
+
+  // A function deployed by an earlier release still carries these variables.
+  // Verifying tokens and serving discovery documents is the API's job now, so
+  // the entry passes every request straight to the user's server regardless.
+  it('serves the handler with the auth variables of an earlier release set', async () => {
     process.env.SERVERLESS_MCP_AUTH_ISSUER = 'https://issuer.example.com'
     process.env.SERVERLESS_MCP_AUTH_AUDIENCES = '["aud-one"]'
+    process.env.SERVERLESS_MCP_PUBLIC_BASE_URL =
+      'https://api.acme.com/assistant'
 
     const { handler } = await import(entryPath)
     const response = await invoke(handler, restEvent())
 
-    expect(response.statusCode).toBe(401)
-    expect(response.headers['www-authenticate']).toContain(
-      'resource_metadata="https://abc123.execute-api.us-east-1.amazonaws.com/dev/.well-known/oauth-protected-resource/crm/mcp"',
-    )
+    expect(response.statusCode).toBe(202)
+    expect(response.body).toBe('handled')
+    expect(response.headers['www-authenticate']).toBeUndefined()
   })
 
-  it('serves the metadata document over the same bridge', async () => {
+  // There is no metadata document to serve and no route reserved for one: the
+  // well-known path is the user's server's like any other.
+  it('routes a well-known discovery path to the user handler', async () => {
     process.env.SERVERLESS_MCP_AUTH_ISSUER = 'https://issuer.example.com'
-    process.env.SERVERLESS_MCP_AUTH_AUDIENCES = '["aud-one"]'
 
     const { handler } = await import(entryPath)
     const response = await invoke(
@@ -186,38 +251,7 @@ describe('mcp entry', () => {
       }),
     )
 
-    expect(response.statusCode).toBe(200)
-    expect(JSON.parse(response.body)).toEqual({
-      resource:
-        'https://abc123.execute-api.us-east-1.amazonaws.com/dev/crm/mcp',
-      authorization_servers: ['https://issuer.example.com'],
-      bearer_methods_supported: ['header'],
-    })
-  })
-
-  // Behind a REST custom domain the base-path mapping never reaches the
-  // function, so the deployment states the public URL instead.
-  it('advertises the public base URL when one is configured', async () => {
-    process.env.SERVERLESS_MCP_AUTH_ISSUER = 'https://issuer.example.com'
-    process.env.SERVERLESS_MCP_AUTH_AUDIENCES = '["aud-one"]'
-    process.env.SERVERLESS_MCP_PUBLIC_BASE_URL =
-      'https://api.acme.com/assistant'
-
-    const { handler } = await import(entryPath)
-    const challenge = await invoke(handler, restEvent())
-    expect(challenge.headers['www-authenticate']).toContain(
-      'resource_metadata="https://api.acme.com/assistant/.well-known/oauth-protected-resource/crm/mcp"',
-    )
-
-    const document = await invoke(
-      handler,
-      restEvent({
-        path: '/.well-known/oauth-protected-resource/crm/mcp',
-        method: 'GET',
-      }),
-    )
-    expect(JSON.parse(document.body).resource).toBe(
-      'https://api.acme.com/assistant/crm/mcp',
-    )
+    expect(response.statusCode).toBe(202)
+    expect(response.body).toBe('handled')
   })
 })

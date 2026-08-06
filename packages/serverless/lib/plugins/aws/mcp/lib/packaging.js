@@ -8,7 +8,7 @@ import {
   readFile,
   rm,
   rmdir,
-  stat,
+  lstat,
 } from 'fs/promises'
 import { existsSync } from 'fs'
 import path from 'path'
@@ -91,9 +91,21 @@ const isFrameworkEntry = async (stagedEntry, source) => {
 const assertStageable = async (stagedDir, source) => {
   let stats
   try {
-    stats = await stat(stagedDir)
+    // `lstat`, not `stat`: a symlink here must be judged as a symlink. Followed
+    // instead, the ownership check below would be answered by the TARGET - so a
+    // link to an empty directory elsewhere would read as "ours to use", and the
+    // staging write plus the removal afterwards would land outside the service
+    // directory.
+    stats = await lstat(stagedDir)
   } catch {
     return
+  }
+  if (stats.isSymbolicLink()) {
+    throw new ServerlessError(
+      `Packaging this service's MCP servers stages the MCP Lambda entry at "${stagedDirName}/${stagedEntryName}", but "${stagedDirName}" is a symlink. The Framework writes that path and removes it afterwards, so it only uses a real directory it owns. Move or rename the link.`,
+      'MCP_ENTRY_STAGING_PATH_TAKEN',
+      { stack: false },
+    )
   }
   // Dot-entries do not count: `.DS_Store` and friends are dropped in by tools
   // rather than authored, so treating them as user sources would strand a
@@ -297,18 +309,20 @@ const restCandidatesOf = (entry) => {
 
 /**
  * The public origin (plus base-path prefix) MCP clients reach this service on,
- * or undefined when the service is only reachable through the raw execute-api
- * URL, which the entry can read off the request itself.
+ * or undefined when no single custom domain fronts it - in which case the
+ * address is the stage URL, which the stack publishes as its `ServiceEndpoint`
+ * output.
  *
- * The base-path mapping of a REST custom domain is stripped before the function
- * is invoked, so it is the one prefix the entry cannot recover from the event -
- * hence this value, which overrides the entry's own derivation wholesale
- * (`../entry/lib/compose.mjs`, `clientFacingLocation`).
+ * Resolved here rather than at the request: the base-path mapping of a REST
+ * custom domain is stripped before the function is invoked, so it is the one
+ * prefix nothing downstream of the request could recover. This value is what
+ * the published OAuth discovery document and the deploy/info endpoint summary
+ * are both derived from (`./discovery-route.js`, `./endpoints.js`).
  *
  * Only a REST-facing domain qualifies: MCP servers are exposed through
  * the REST API, so a domain in front of an HTTP or websocket API says nothing
  * about their URL. Two REST domains leave the answer ambiguous, so nothing is
- * set and the request-derived value stands.
+ * resolved and each caller falls back to the service's stage URL.
  */
 export const publicBaseUrl = (provider) => {
   // Both keys accept a single entry as well as a list - the provider schema
@@ -331,7 +345,7 @@ export const publicBaseUrl = (provider) => {
         .map(({ name }) => name)
         .join(
           ', ',
-        )}), so SERVERLESS_MCP_PUBLIC_BASE_URL is left unset and each request's own host is used instead`,
+        )}), so no single public base URL can be resolved for them and the service's stage URL is used instead`,
     )
     return undefined
   }

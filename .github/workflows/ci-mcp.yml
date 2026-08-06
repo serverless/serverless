@@ -66,7 +66,7 @@ jobs:
     # workflow is the template for that.
     #
     # All three accounts are bootstrapped: each holds the OIDC provider, the
-    # deployment role, and the Cognito prerequisite the auth-chain suite needs —
+    # deployment role, and the Cognito prerequisite `mcp-auth.test.js` needs —
     # without that prerequisite a leg reports green over a suite that skipped.
     # Every leg reads its role ARN from a repository variable — the same
     # TEST<N>_ROLE_ARN convention the other workflows use for test-1 — so the

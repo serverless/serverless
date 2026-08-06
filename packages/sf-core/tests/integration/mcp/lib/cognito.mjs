@@ -11,15 +11,17 @@
  * (`resolvers/terraform/remote-output/terraform-remote-output.test.js`).
  *
  * Two hosts are involved and must not be conflated:
- *   - the ISSUER (token validation) is
- *     `https://cognito-idp.<region>.amazonaws.com/<poolId>` — where the entry's
- *     verifier fetches OIDC discovery + JWKS; this is `MCP_TEST_AUTH_ISSUER`.
+ *   - the ISSUER is `https://cognito-idp.<region>.amazonaws.com/<poolId>` — the
+ *     identifier the fixture publishes in `oauthDiscovery.issuer`, which is
+ *     where a client is told to log in. Nothing in this repository validates a
+ *     token against it: the API Gateway Cognito authorizer does that, from the
+ *     pool ARN, and the ARN is derived by the suite rather than published here.
  *   - the TOKEN ENDPOINT (minting) is
  *     `https://<domain>.auth.<region>.amazoncognito.com/oauth2/token`.
  *
- * Cognito access tokens carry `client_id`, not `aud`, so under the entry's
- * aud-else-client_id rule the audience the fixture verifies against is client
- * A's id (`MCP_TEST_AUTH_AUDIENCE`): A's tokens pass, B's tokens 401.
+ * Both clients mint tokens the deployed authorizer accepts — it is scoped to the
+ * pool and the `scope` below, not to one client — which is itself something the
+ * suite asserts.
  */
 import { SSMClient, GetParametersByPathCommand } from '@aws-sdk/client-ssm'
 
@@ -111,7 +113,7 @@ export const mintToken = async ({
  * exists to guarantee while never having run it.
  *
  * On success the returned object carries the raw values, the derived `issuer` /
- * `tokenEndpoint` / `audience`, and two zero-argument minters.
+ * `tokenEndpoint`, and two zero-argument minters.
  *
  * `ssm` is injectable so this skip/throw split is unit-testable with no network
  * and no live pool (`tests/unit/mcp/cognito.test.js`).
@@ -153,7 +155,6 @@ export const readCognitoPrerequisite = async ({
     ...values,
     issuer,
     tokenEndpoint,
-    audience: values.clientAId,
     mintClientA: mint(values.clientAId, values.clientASecret),
     mintClientB: mint(values.clientBId, values.clientBSecret),
   }

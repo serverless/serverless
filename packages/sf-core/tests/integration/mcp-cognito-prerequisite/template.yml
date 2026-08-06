@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Predeployed prerequisite for the MCP property auth-chain integration suite
+  Predeployed prerequisite for the MCP property's enforcement integration suite
   (packages/sf-core/tests/integration/mcp/mcp-auth.test.js). Provisions a Cognito
   user pool configured for machine-to-machine (client_credentials) auth and
   publishes its identifiers and client secrets to SSM SecureString parameters the
@@ -27,9 +27,10 @@ Parameters:
     Description: Custom scope name; the full scope requested by the suite is "<identifier>/<name>".
 
 Resources:
-  # Lite tier is sufficient: the aud-else-client_id verification rule means raw
-  # Cognito access tokens (which carry client_id, not aud) verify as-is, so no
-  # pre-token-generation trigger or token customization is needed.
+  # Lite tier is sufficient: the fixture's authorizer is configured with the
+  # custom scope below, which is what makes API Gateway validate this pool's raw
+  # access tokens, so no pre-token-generation trigger or token customization is
+  # needed.
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties:
@@ -55,8 +56,7 @@ Resources:
         - ScopeName: !Ref ScopeName
           ScopeDescription: Invoke the MCP server
 
-  # Client A: the authorized client. Its client_id is the audience the fixture is
-  # deployed with, so tokens it mints pass verification.
+  # Client A: the client the suite mints its working token from.
   UserPoolClientA:
     Type: AWS::Cognito::UserPoolClient
     DependsOn: ResourceServer
@@ -72,8 +72,9 @@ Resources:
       SupportedIdentityProviders:
         - COGNITO
 
-  # Client B: same issuer, same scope, different client_id. Exists only to mint
-  # the wrong-client token the suite expects a 401 for (client_id fallback path).
+  # Client B: same pool, same scope, different client_id. The suite asserts its
+  # token is ACCEPTED too - a Cognito authorizer is scoped to a pool and a scope,
+  # never to one client.
   UserPoolClientB:
     Type: AWS::Cognito::UserPoolClient
     DependsOn: ResourceServer
@@ -213,10 +214,10 @@ Outputs:
   Region:
     Value: !Ref AWS::Region
   ClientAId:
-    Description: Authorized client id; also the audience the auth fixture is deployed with.
+    Description: The client id the suite mints its working token from.
     Value: !Ref UserPoolClientA
   ClientBId:
-    Description: Wrong-client id, used to mint the negative-case token.
+    Description: Second client of the same pool; proves enforcement is pool-scoped, not client-scoped.
     Value: !Ref UserPoolClientB
   Scope:
     Value: !Sub ${ResourceServerIdentifier}/${ScopeName}

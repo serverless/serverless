@@ -1,10 +1,5 @@
 import { describe, it, expect } from '@jest/globals'
 import { synthesizeFunctions } from '../../../../../../lib/plugins/aws/mcp/lib/synthesize-functions.js'
-// The two halves of the audience contract, exercised together below: the entry
-// reads back what this module writes, so the encoding is only correct if a
-// round trip through it is lossless.
-import { readEntryEnv } from '../../../../../../lib/plugins/aws/mcp/entry/lib/compose.mjs'
-import { checkAudience } from '../../../../../../lib/plugins/aws/mcp/entry/lib/auth.mjs'
 
 const server = {
   name: 'crm',
@@ -12,10 +7,6 @@ const server = {
   timeout: 120,
   runtime: 'nodejs24.x',
   environment: { DB: 'orders' },
-  auth: {
-    issuer: 'https://acme.auth0.com',
-    audiences: ['https://mcp.acme.com', 'api://x'],
-  },
 }
 
 describe('synthesizeFunctions', () => {
@@ -55,49 +46,30 @@ describe('synthesizeFunctions', () => {
     expect(fns.crm.environment).toEqual({
       DB: 'orders',
       SERVERLESS_MCP_SERVER_MODULE: 'src/server.mjs',
-      SERVERLESS_MCP_AUTH_ISSUER: 'https://acme.auth0.com',
-      SERVERLESS_MCP_AUTH_AUDIENCES: '["https://mcp.acme.com","api://x"]',
     })
   })
 
-  // An audience is an opaque string the issuer decides, and the schema accepts
-  // any string - so a separator-carrying value has to survive the trip into the
-  // environment. A delimited list cannot carry it: the entry would read two
-  // audiences and accept tokens for values nobody configured.
-  describe('an audience that contains the list separator', () => {
-    const commaServer = {
-      ...server,
-      auth: { ...server.auth, audiences: ['api://foo,bar'] },
-    }
-
-    it('is carried as JSON rather than a delimited list', () => {
-      const fns = synthesizeFunctions({
-        servers: [commaServer],
-        serviceName: 'acme',
-        stage: 'dev',
-      })
-      expect(fns.crm.environment.SERVERLESS_MCP_AUTH_AUDIENCES).toBe(
-        '["api://foo,bar"]',
-      )
+  // Authorization is the API Gateway authorizer's and the server module's
+  // business now: nothing about the issuer or its audiences is handed to the
+  // entry, so a fully authorized server's environment is no different.
+  it('writes no auth environment for an authorized server publishing discovery', () => {
+    const fns = synthesizeFunctions({
+      servers: [
+        {
+          ...server,
+          authorizer: { name: 'jwt' },
+          oauthDiscovery: {
+            issuer: 'https://acme.auth0.com',
+            publicUrl: 'https://mcp.acme.com',
+          },
+        },
+      ],
+      serviceName: 'acme',
+      stage: 'dev',
     })
-
-    it('reaches the entry as one audience, matched whole', () => {
-      const fns = synthesizeFunctions({
-        servers: [commaServer],
-        serviceName: 'acme',
-        stage: 'dev',
-      })
-      const { auth } = readEntryEnv(fns.crm.environment)
-      expect(auth.audiences).toEqual(['api://foo,bar'])
-      expect(() =>
-        checkAudience({ aud: 'api://foo,bar' }, auth.audiences),
-      ).not.toThrow()
-      // The halves of the configured value are not audiences of their own.
-      for (const half of ['api://foo', 'bar']) {
-        expect(() => checkAudience({ aud: half }, auth.audiences)).toThrow(
-          /matches none/,
-        )
-      }
+    expect(fns.crm.environment).toEqual({
+      DB: 'orders',
+      SERVERLESS_MCP_SERVER_MODULE: 'src/server.mjs',
     })
   })
 
@@ -143,14 +115,5 @@ describe('synthesizeFunctions', () => {
     expect(fns.crm.environment.SERVERLESS_MCP_SERVER_MODULE).toBe(
       'src/server.mjs',
     )
-  })
-
-  it('omits auth env vars when auth is unset', () => {
-    const fns = synthesizeFunctions({
-      servers: [{ ...server, auth: undefined }],
-      serviceName: 'acme',
-      stage: 'dev',
-    })
-    expect(fns.crm.environment.SERVERLESS_MCP_AUTH_ISSUER).toBeUndefined()
   })
 })

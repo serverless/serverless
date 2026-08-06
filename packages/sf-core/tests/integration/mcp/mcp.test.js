@@ -8,7 +8,7 @@
  * serialized. Ordered `test()` steps deploy, exercise and tear down each variant
  * in turn; the esbuild stack is removed before the classic one is deployed,
  * because both would otherwise exist side by side in the same directory. The
- * auth-chain suite runs the same way off its own `./fixture-auth` directory, so
+ * enforcement suite runs the same way off its own `./fixture-auth` directory, so
  * the two files stay parallel-safe without a worker cap.
  *
  * The 14+ per-endpoint assertions come verbatim from the shared harness
@@ -114,22 +114,36 @@ const readStateKeyLen = async (functionName) => {
   const logs = new CloudWatchLogsClient({ region: REGION })
   const logGroupName = `/aws/lambda/${functionName}`
   // CloudWatch ingestion is eventually consistent with no delivery bound; a
-  // 120s budget was observed exhausted once on an otherwise-green run.
+  // 120s budget was observed exhausted once on an otherwise-green run, and 240s
+  // twice more after that.
   const deadline = Date.now() + 240000
-  while (Date.now() < deadline) {
-    try {
-      const { events } = await logs.send(
+  // Every attempt walks the WHOLE page set: with a filterPattern, a page can
+  // legitimately match nothing and still hand back a nextToken (the filter is
+  // applied per scanned page, not to the result set), so a single unpaginated
+  // call can miss a line that is already ingested - which reads as ingestion
+  // lag and burns the budget.
+  const scan = async () => {
+    let nextToken
+    do {
+      const page = await logs.send(
         new FilterLogEventsCommand({
           logGroupName,
           filterPattern: 'STATE_KEY_LEN',
+          nextToken,
         }),
       )
-      const line = (events ?? [])
-        .map((e) => e.message)
-        .reverse()
-        .find((m) => m.includes('STATE_KEY_LEN'))
-      const match = line?.match(/STATE_KEY_LEN\s+(\d+)/)
-      if (match) return Number(match[1])
+      for (const event of page.events ?? []) {
+        const match = event.message?.match(/STATE_KEY_LEN\s+(\d+)/)
+        if (match) return Number(match[1])
+      }
+      nextToken = page.nextToken
+    } while (nextToken)
+    return undefined
+  }
+  while (Date.now() < deadline) {
+    try {
+      const found = await scan()
+      if (found !== undefined) return found
     } catch (error) {
       if (!/ResourceNotFoundException/.test(error.name ?? '')) throw error
     }
@@ -378,7 +392,7 @@ describe('MCP servers live integration', () => {
   describe('package-time validation (no deploy)', () => {
     const badRuntime = path.join(fixtureDir, '_it-bad-runtime.yml')
     const collision = path.join(fixtureDir, '_it-collision.yml')
-    const badAuth = path.join(fixtureDir, '_it-bad-auth.yml')
+    const badDiscovery = path.join(fixtureDir, '_it-bad-discovery.yml')
 
     const pkg = (configFilePath, expectError) =>
       runSfCore({
@@ -430,9 +444,9 @@ describe('MCP servers live integration', () => {
         ].join('\n'),
       )
       await writeFile(
-        badAuth,
+        badDiscovery,
         [
-          'service: sfc-mcp-it-badauth',
+          'service: sfc-mcp-it-baddiscovery',
           "frameworkVersion: '*'",
           'provider:',
           '  name: aws',
@@ -442,8 +456,8 @@ describe('MCP servers live integration', () => {
           '  servers:',
           '    secured:',
           '      server: src/server.mjs',
-          '      auth:',
-          '        issuer: https://example.com',
+          '      oauthDiscovery:',
+          '        publicUrl: https://mcp.example.com',
           '',
         ].join('\n'),
       )
@@ -452,7 +466,9 @@ describe('MCP servers live integration', () => {
     afterAll(async () => {
       const { rm } = await import('fs/promises')
       await Promise.all(
-        [badRuntime, collision, badAuth].map((f) => rm(f, { force: true })),
+        [badRuntime, collision, badDiscovery].map((f) =>
+          rm(f, { force: true }),
+        ),
       )
     })
 
@@ -468,25 +484,14 @@ describe('MCP servers live integration', () => {
       })
     })
 
-    test('auth without audiences fails schema validation', async () => {
-      // The schema error is printed to the CLI output rather than thrown, so
-      // capture both streams and assert the message names the missing property.
-      let out = ''
-      const w = jest.spyOn(process.stdout, 'write').mockImplementation((c) => {
-        out += c
-        return true
+    // The third rejection this seam owns, alongside the two above: an
+    // `oauthDiscovery` block that would publish a document naming no
+    // authorization server. Schema validation only warns by default, so the
+    // teaching error is what has to stop the run.
+    test('oauthDiscovery without an issuer is rejected (MCP_OAUTH_DISCOVERY_ISSUER_REQUIRED)', async () => {
+      await expect(pkg(badDiscovery, true)).rejects.toMatchObject({
+        code: 'MCP_OAUTH_DISCOVERY_ISSUER_REQUIRED',
       })
-      const e = jest.spyOn(process.stderr, 'write').mockImplementation((c) => {
-        out += c
-        return true
-      })
-      try {
-        await pkg(badAuth, false)
-      } finally {
-        w.mockRestore()
-        e.mockRestore()
-      }
-      expect(out).toMatch(/must have required property 'audiences'/)
     })
   })
 })

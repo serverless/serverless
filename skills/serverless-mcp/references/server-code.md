@@ -190,7 +190,13 @@ notifying when it is absent:
 ```js
 server.registerTool(
   'reindex',
-  { description: 'Rebuild the search index' },
+  {
+    description: 'Rebuild the search index',
+    // Required even for a tool with no inputs: without `inputSchema` the SDK
+    // passes the context as the callback's ONLY argument, so an
+    // `(args, ctx)` callback reads `ctx` as undefined.
+    inputSchema: z.object({}),
+  },
   async (_args, ctx) => {
     // The token is an opaque string OR number the client chose — the SDK
     // client uses its numeric message id, so 0 is a real value. Check
@@ -212,15 +218,15 @@ server.registerTool(
 
 ## The request context, in short
 
-| Field                       | What it carries                                                                                                                     |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `ctx.mcpReq._meta`          | The request's `_meta`, including `progressToken`                                                                                    |
-| `ctx.mcpReq.notify`         | Send a notification tied to this request (progress, and anything else)                                                              |
-| `ctx.mcpReq.signal`         | `AbortSignal` for the request — observe it in any sleep or long loop so cancellation lands                                          |
-| `ctx.mcpReq.inputResponses` | Elicitation answers on a retried call; read them through `acceptedContent`                                                          |
-| `ctx.mcpReq.requestState`   | Accessor returning the verified sealed payload, or nothing                                                                          |
-| `ctx.mcpReq.envelope`       | The client's per-request envelope, including its declared capabilities                                                              |
-| `ctx.http.authInfo`         | The verified token identity when `auth` is configured — `clientId`, `scopes`, `expiresAt`, and the full claim set on `extra.claims` |
+| Field                       | What it carries                                                                                                                                   |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ctx.mcpReq._meta`          | The request's `_meta`, including `progressToken`                                                                                                  |
+| `ctx.mcpReq.notify`         | Send a notification tied to this request (progress, and anything else)                                                                            |
+| `ctx.mcpReq.signal`         | `AbortSignal` for the request — observe it in any sleep or long loop so cancellation lands                                                        |
+| `ctx.mcpReq.inputResponses` | Elicitation answers on a retried call; read them through `acceptedContent`                                                                        |
+| `ctx.mcpReq.requestState`   | Accessor returning the verified sealed payload, or nothing                                                                                        |
+| `ctx.mcpReq.envelope`       | The client's per-request envelope, including its declared capabilities                                                                            |
+| `ctx.http.authInfo`         | The `AuthInfo` your own in-module gate passed to `fetch` — the Framework never verifies tokens, so nothing populates this unless your module does |
 
 `ctx.mcpReq.log()` and `ctx.mcpReq.elicitInput()` are deprecated in this
 revision; use stderr/`console` logging and `inputRequired` respectively.

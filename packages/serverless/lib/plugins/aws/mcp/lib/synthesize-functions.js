@@ -14,20 +14,12 @@ export const synthesizeFunctions = ({ servers, serviceName, stage }) => {
   // that matters, `__proto__`; this is the defense behind it).
   const functions = Object.create(null)
   for (const s of servers) {
+    // The module path is all the entry is told: it is a transport, and
+    // authorization is the API Gateway authorizer's and the server module's
+    // business, so nothing about an issuer or its audiences is passed along.
     const environment = {
       ...s.environment,
       SERVERLESS_MCP_SERVER_MODULE: s.server,
-      ...(s.auth
-        ? {
-            SERVERLESS_MCP_AUTH_ISSUER: s.auth.issuer,
-            // JSON rather than a delimited list: an audience is an opaque
-            // string the issuer decides, and the schema accepts any string - so
-            // one carrying the separator would reach the entry as two audiences
-            // and let tokens for values nobody configured through. The entry
-            // parses this back in `../entry/lib/compose.mjs` (`readEntryEnv`).
-            SERVERLESS_MCP_AUTH_AUDIENCES: JSON.stringify(s.auth.audiences),
-          }
-        : {}),
     }
     functions[s.name] = {
       name: `${serviceName}-${stage}-${s.name}`,

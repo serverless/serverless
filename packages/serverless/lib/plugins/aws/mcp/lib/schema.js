@@ -18,22 +18,67 @@ export default () => ({
             description: `Path to a module whose default export exposes the MCP SDK handler's web-standard fetch.`,
             type: 'string',
           },
-          auth: {
-            description: `OIDC bearer-token enforcement plus the OAuth protected-resource discovery route.`,
+          authorizer: {
+            description: `Gateway-level access control for this server's MCP route: a user authorizer function name, an http-event-style authorizer object (request-type, Cognito user pool, existing authorizer id), or "aws_iam". Rejection happens before the function is invoked. The Framework never verifies tokens itself.`,
+            // The object branch mirrors the http event's `authorizerSchema`
+            // (aws/package/compile/events/api-gateway/index.js): the MCP route
+            // compiles into the same API Gateway authorizer, so a config valid
+            // on an http event has to stay valid here - intrinsics included,
+            // since a same-stack Cognito pool arrives as Ref/Fn::GetAtt.
+            anyOf: [
+              { type: 'string', minLength: 1 },
+              {
+                type: 'object',
+                properties: {
+                  arn: { $ref: '#/definitions/awsArn' },
+                  authorizerId: { $ref: '#/definitions/awsCfInstruction' },
+                  claims: { type: 'array', items: { type: 'string' } },
+                  identitySource: { type: 'string' },
+                  identityValidationExpression: { type: 'string' },
+                  managedExternally: { type: 'boolean' },
+                  name: { type: 'string' },
+                  resultTtlInSeconds: {
+                    type: 'integer',
+                    minimum: 0,
+                    maximum: 3600,
+                  },
+                  scopes: {
+                    type: 'array',
+                    items: {
+                      anyOf: [
+                        { type: 'string' },
+                        { $ref: '#/definitions/awsCfInstruction' },
+                      ],
+                    },
+                  },
+                  type: { type: 'string' },
+                },
+                additionalProperties: false,
+              },
+            ],
+          },
+          oauthDiscovery: {
+            description: `Publish this server's OAuth protected-resource metadata (RFC 9728) so interactive clients can discover where to log in. Advertisement only - enforcement is your "authorizer" or your module code.`,
             type: 'object',
             properties: {
-              issuer: { type: 'string', pattern: '^https://' },
-              audiences: {
-                type: 'array',
-                minItems: 1,
-                items: { type: 'string' },
+              issuer: {
+                description: `The authorization server that issues this server's tokens: its https issuer identifier, or a CloudFormation intrinsic resolving to one - a user pool created in this service's own "resources" has no literal URL until the stack is created.`,
+                // The same idiom the `awsArn` definition uses for a value that
+                // is either a constrained literal or an intrinsic: the pattern
+                // stays on the string branch, so a literal is held to it while
+                // a Ref / Fn::GetAtt / Fn::Sub is admitted whole.
+                anyOf: [
+                  { type: 'string', pattern: '^https://' },
+                  { $ref: '#/definitions/awsCfFunction' },
+                ],
               },
-              authorizer: {
-                description: `Name of a user-provided authorizer function, wired to the MCP route for rejection before invoke.`,
+              publicUrl: {
+                description: `The public URL clients use to reach this service - scheme, host, and any base path, everything before "/<name>/mcp". Set it when the domain is configured outside this service; otherwise it is derived from "provider.domain", falling back to the stage URL. Literal only: it names a front door that already exists, and the deploy prints it.`,
                 type: 'string',
+                pattern: '^https://',
               },
             },
-            required: ['issuer', 'audiences'],
+            required: ['issuer'],
             additionalProperties: false,
           },
           timeout: {
