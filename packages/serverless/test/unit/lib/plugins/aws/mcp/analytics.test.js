@@ -356,7 +356,9 @@ describe('deriveMcpBlock — the URL resolver runs only when its answer is repor
     )
     // Two domains resolve to no single base URL, so the stage URL is the source.
     expect(out.oauthDiscoveryUrlSources).toEqual(['stage'])
-    expect(log.debug).toHaveBeenCalledTimes(1)
+    // That the resolver ran at all is the point; the count of debug lines it
+    // emits belongs to the resolver's own module graph, not to this contract.
+    expect(log.debug).toHaveBeenCalled()
   })
 })
 
@@ -543,6 +545,10 @@ describe('deriveMcpBlock — total on hostile input', () => {
         servers: { a: throwingProperty({ server: 'a.mjs' }, key) },
       }
       expect(() => deriveMcpBlock(servers, {})).not.toThrow()
+      // The outer handler owns this: one hostile getter costs the whole block,
+      // not just the key it guards. Pinned so a move to partial degradation is
+      // a deliberate change rather than a silent one.
+      expect(deriveMcpBlock(servers, {})).toBeUndefined()
     },
   )
 

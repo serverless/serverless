@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import { isDeepStrictEqual } from 'node:util'
 import { ServerlessError } from '@serverless/util'
 // The same expression the api-gateway compiler and the analytics reader use to
 // recognize a Cognito pool ARN, so "is this a user pool" means one thing across
@@ -696,7 +696,7 @@ export const validateMcp = ({ mcp, functions, providerRuntime, naming }) => {
           describe: `MCP server "${name}"`,
           shape,
         })
-      } else if (!_.isEqual(previous.shape, shape)) {
+      } else if (!isDeepStrictEqual(previous.shape, shape)) {
         throw new ServerlessError(
           `MCP server "${name}" and ${previous.describe} set different authorizers whose names both compile to the CloudFormation logical id "${logicalId}": only one authorizer resource is created, so one of the two would be guarded by the other's authorizer. Rename one of them to a name that normalizes to a different logical id - the normalization folds case and punctuation - or make the two definitions identical, so that they really are one authorizer.`,
           'MCP_AUTHORIZER_NAME_COLLISION',

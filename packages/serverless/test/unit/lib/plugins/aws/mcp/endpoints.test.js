@@ -39,13 +39,16 @@ const publishedResourceOf = ({ servers, provider = {} }, name) => {
   }).descriptors.find(
     ({ functionName, http }) => functionName === name && http.method === 'get',
   ).http.response.statusCodes[200].template['application/json']
+  // `Fn::Sub` takes its short form when the variable map would be empty and its
+  // list form otherwise, so read the template text out of whichever arrived.
+  const subbed = template['Fn::Sub']
   const document =
     typeof template === 'string'
       ? template
       : Object.entries(DEPLOYED).reduce(
           (rendered, [variable, value]) =>
             rendered.replaceAll(`\${${variable}}`, value),
-          template['Fn::Sub'][0],
+          typeof subbed === 'string' ? subbed : subbed[0],
         )
   return JSON.parse(document).resource
 }

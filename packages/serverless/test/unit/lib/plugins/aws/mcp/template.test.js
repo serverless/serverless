@@ -818,7 +818,7 @@ describe('mcp compiled template', () => {
     })
   })
 
-  it('compiles a Ref issuer into the document variable map', async () => {
+  it('compiles an Fn::GetAtt issuer into the document variable map', async () => {
     const { template } = await compileService(
       {
         servers: {
