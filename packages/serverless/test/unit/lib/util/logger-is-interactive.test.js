@@ -134,6 +134,17 @@ test('override + zero-width stderr pty is NOT interactive even when stdout is us
   ).toBe(false)
 })
 
+test('override + stderr TTY with undefined columns is NOT interactive even when stdin/stdout are usable', () => {
+  expect(
+    computeIsInteractive({
+      stdin: tty(120),
+      stdout: tty(120),
+      stderr: { isTTY: true },
+      env: { SLS_INTERACTIVE_SETUP_ENABLE: '1' },
+    }),
+  ).toBe(false)
+})
+
 test('override + TTY with undefined columns is NOT interactive', () => {
   expect(
     computeIsInteractive({

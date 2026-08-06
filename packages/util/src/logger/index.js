@@ -59,6 +59,13 @@ function computeIsInteractive({
   return Boolean(hasUsableTty || env.SLS_INTERACTIVE_SETUP_ENABLE)
 }
 renderer.isInteractive = computeIsInteractive()
+// Whether progress may render as a spinner animation: the session must be interactive AND the
+// stream ora draws on (stderr) must be a terminal. When this is false, progress must take the
+// plain per-message path — a disabled ora instance never renders `.text` updates, so routing
+// progress through it would drop phases (and every spinner restart around a log write would
+// re-print the current one).
+const canAnimateProgress = () =>
+  renderer.isInteractive && Boolean(process.stderr.isTTY)
 // Log levels
 renderer.levels = {
   compose: 0, // This is for compose. It is the lowest log level to have full control over the CLI.
@@ -138,11 +145,7 @@ renderer.spinner = {
       renderer.spinner._spinner = ora({
         color: 'red',
         text: content,
-        // Animation additionally requires the stream ora renders to (stderr) to be
-        // a terminal — with stderr redirected (`2> err.log`) the session can stay
-        // interactive for prompts while ora degrades to one plain line per phase
-        // instead of writing a frame line every interval into the file.
-        isEnabled: renderer.isInteractive && Boolean(process.stderr.isTTY),
+        isEnabled: canAnimateProgress(),
       }).start()
     }
   },
@@ -528,7 +531,12 @@ class Progress {
    * Updates the progress state with a new message.
    */
   notice(message, { isComposeMessage = false } = {}) {
-    if (!renderer.isInteractive) {
+    if (!canAnimateProgress()) {
+      // 'info' is deliberate for compose messages too: Compose's aggregated
+      // progress line (re-noticed with a shrinking service list) only makes
+      // sense morphing in place inside the spinner. On the plain path the
+      // 'compose' log level filters it out, and non-animated compose runs
+      // report per-service completion lines via writeCompose instead.
       writeStdErr({ level: 'info', messageTokens: [message] })
       return
     }
@@ -546,7 +554,7 @@ class Progress {
    * Stops the renderer.spinner if there are no progress states.
    */
   remove() {
-    if (!renderer.isInteractive || renderer.logLevel === 'compose') {
+    if (!canAnimateProgress() || renderer.logLevel === 'compose') {
       return
     }
     if (renderer.state.progressTasks.has(this.namespace) === undefined) {
@@ -562,7 +570,7 @@ class Progress {
    * For example, you may want to save the message, alter it, and then restore it.
    */
   getState() {
-    if (!renderer.isInteractive) {
+    if (!canAnimateProgress()) {
       return
     }
     if (renderer.state.progressTasks.has(this.namespace) === undefined) {
