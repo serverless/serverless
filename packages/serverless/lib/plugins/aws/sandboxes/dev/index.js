@@ -92,6 +92,22 @@ class SandboxesDevMode {
     )
   }
 
+  // The sandbox image is built and run by the Docker daemon, whose CPU
+  // architecture may differ from the CLI host's (a Colima VM or remote
+  // DOCKER_HOST of another arch) — so ask the daemon what it runs natively,
+  // falling back to the host arch when it doesn't say. Arch comes back in
+  // GOARCH form ('arm64', 'amd64', …); the images we build are always Linux.
+  async resolveDockerPlatform() {
+    const fallback = process.arch === 'arm64' ? 'linux/arm64' : 'linux/amd64'
+    try {
+      const { Arch } =
+        (await this.docker.getDockerodeClient?.().version()) || {}
+      return Arch ? `linux/${Arch}` : fallback
+    } catch {
+      return fallback
+    }
+  }
+
   async run() {
     const name = this.resolveSandboxName()
     const cfg = this.getSandboxesConfig()[name]
@@ -100,13 +116,13 @@ class SandboxesDevMode {
     // default so the endpoint doesn't change between runs (unlike the per-instance proxy ports,
     // which are dynamic); override with --port. Defaults to 9100.
     const controlPlanePort = Number(this.options.port) || 9100
-    const platform = process.arch === 'arm64' ? 'linux/arm64' : 'linux/amd64'
     this.ctx = {
       name,
       cfg,
       contextPath,
       controlPlanePort,
-      platform,
+      // Resolved after the daemon check below — asking the daemon needs it up.
+      platform: null,
       imageUri: `serverless-sandbox-dev/${this.serverless.service.service}-${name}:latest`,
       containerName: `sls-sandbox-dev-${this.serverless.service.service}-${name}`,
     }
@@ -126,6 +142,7 @@ class SandboxesDevMode {
         { stack: false },
       )
     }
+    this.ctx.platform = await this.resolveDockerPlatform()
 
     // Header — the same "Dev ϟ Mode" banner functions Dev Mode prints, so the `serverless dev`
     // family reads as one product. A one-line description follows (grey). Optional-chained: test
