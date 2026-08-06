@@ -20,6 +20,9 @@
  *    user command.
  */
 
+import awsArnRegExs from '../utils/arn-regular-expressions.js'
+import { resolveBaseUrls } from './lib/discovery-route.js'
+
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v)
 
 const ENDPOINT_TYPES = ['EDGE', 'REGIONAL', 'PRIVATE']
@@ -71,6 +74,67 @@ export const classifyIssuer = (issuer) => {
 }
 
 /**
+ * Closed classification of a server's `authorizer`. What is reported is the
+ * kind of gate in front of the route - which is what decides documentation and
+ * verification priorities - never the user's authorizer name, ARN, or
+ * authorizer id.
+ *
+ * The Cognito test mirrors the api-gateway compiler's own detection
+ * (`../package/compile/events/api-gateway/lib/authorizers.js`): an explicit
+ * `COGNITO_USER_POOLS` type, or a literal `cognito-idp` ARN, which the compiler
+ * reads as a user pool whether or not the type says so. An intrinsic ARN hides
+ * the service, so it classifies as what the compiler would build from it - a
+ * TOKEN authorizer - rather than being guessed at.
+ */
+export const classifyAuthorizer = (authorizer) => {
+  if (typeof authorizer === 'string') {
+    if (authorizer.length === 0) return undefined
+    return authorizer.toLowerCase() === 'aws_iam' ? 'aws_iam' : 'function-token'
+  }
+  if (!isObj(authorizer)) return undefined
+  const type =
+    typeof authorizer.type === 'string'
+      ? authorizer.type.toLowerCase()
+      : undefined
+  if (type === 'aws_iam') return 'aws_iam'
+  if (
+    type === 'cognito_user_pools' ||
+    (typeof authorizer.arn === 'string' &&
+      awsArnRegExs.cognitoIdpArnExpr.test(authorizer.arn))
+  ) {
+    return 'cognito'
+  }
+  if (type === 'request') return 'function-request'
+  // TOKEN is the type the compiler defaults an unspecified authorizer to, so it
+  // is what an absent, custom, or `token` type reports here.
+  return 'function-token'
+}
+
+/**
+ * Which of the three base URLs each discovery-publishing server is advertised
+ * on: the user's `publicUrl` override, a custom domain in front of the REST
+ * API, or the stage URL.
+ *
+ * Derived through the deploy's own resolver (`./lib/discovery-route.js`) rather
+ * than re-deciding the chain here, so the reported source cannot drift from the
+ * URL that was actually published. Guarded on its own: a resolver throw costs
+ * this one key, not the whole block.
+ */
+const discoveryUrlSources = (discoveryServers, provider) => {
+  try {
+    return [
+      ...new Set(
+        [...resolveBaseUrls({ servers: discoveryServers, provider }).values()]
+          .map(({ source }) => source)
+          .filter(Boolean),
+      ),
+    ].sort()
+  } catch {
+    return []
+  }
+}
+
+/**
  * The effective endpoint type of the shared REST API: the provider value when
  * it is one of the known types (any case), the Framework's EDGE default when
  * unset. A value that is set but unrecognized reports nothing — that
@@ -96,24 +160,61 @@ export const deriveMcpBlock = (mcpConfig, provider) => {
     if (names.length === 0) return undefined
     // Malformed entries still count toward `count` (they exist in config) but
     // contribute nothing to knob derivation.
-    const cfgs = Object.values(servers).filter(isObj)
+    const entries = Object.entries(servers).filter(([, c]) => isObj(c))
+    const cfgs = entries.map(([, c]) => c)
 
     const block = { count: names.length }
 
-    const withAuth = cfgs.filter((c) => isObj(c.auth))
-    addIfPositive(block, 'auth', withAuth.length)
-    addIfPositive(
+    // Count and classes come from the same pass, so an authorizer that
+    // classifies as nothing is counted as nothing - the two can never disagree.
+    const authorizerTypes = cfgs
+      .map((c) => classifyAuthorizer(c.authorizer))
+      .filter(Boolean)
+    addIfPositive(block, 'authorizer', authorizerTypes.length)
+    addIfNonEmpty(
       block,
-      'authAuthorizer',
-      withAuth.filter((c) => typeof c.auth.authorizer === 'string').length,
+      'authorizerTypes',
+      [...new Set(authorizerTypes)].sort(),
     )
+
+    const withDiscovery = cfgs.filter((c) => isObj(c.oauthDiscovery))
+    addIfPositive(block, 'oauthDiscovery', withDiscovery.length)
+    const discoveryServers = entries
+      .filter(([, c]) => {
+        if (!isObj(c.oauthDiscovery)) return false
+        const { publicUrl } = c.oauthDiscovery
+        // A non-string override is not a URL the resolver could strip, and an
+        // empty one is not a URL the schema would have accepted; reading past
+        // either would file the server under a source nobody configured - so
+        // they contribute nothing instead.
+        return (
+          publicUrl === undefined ||
+          (typeof publicUrl === 'string' && publicUrl.length > 0)
+        )
+      })
+      .map(([name, c]) => ({ name, oauthDiscovery: c.oauthDiscovery }))
+
+    // Only resolve when there is a source to report. The resolver is deploy
+    // machinery - it walks the provider's custom domains and logs when more
+    // than one fronts the REST API - and this block is built on every command,
+    // so running it for a service publishing no discovery is work and debug
+    // noise spent on a key that would be omitted anyway.
+    if (discoveryServers.length > 0) {
+      addIfNonEmpty(
+        block,
+        'oauthDiscoveryUrlSources',
+        discoveryUrlSources(discoveryServers, provider),
+      )
+    }
 
     addIfNonEmpty(
       block,
       'issuerTypes',
       [
         ...new Set(
-          withAuth.map((c) => classifyIssuer(c.auth.issuer)).filter(Boolean),
+          withDiscovery
+            .map((c) => classifyIssuer(c.oauthDiscovery.issuer))
+            .filter(Boolean),
         ),
       ].sort(),
     )
@@ -145,8 +246,10 @@ export const deriveMcpBlock = (mcpConfig, provider) => {
     const endpointType = effectiveEndpointType(provider)
     if (endpointType) block.endpointType = endpointType
 
-    // `auth` without a root-mapped custom domain is the population exposed to
-    // the OAuth-discovery limitation, so domain presence rides along here.
+    // Whether a custom domain fronts the service at all, which is the shape of
+    // the address clients are given - reported for every service defining MCP
+    // servers, not only the ones publishing discovery (where the same fact
+    // shows up per-server as an `oauthDiscoveryUrlSources` entry).
     // Presence only — never the domain itself.
     if (
       typeof provider?.domain === 'string' ||

@@ -39,7 +39,9 @@ Revision 2026-07-28 is header-and-envelope shaped. Every request needs:
 
 - `content-type: application/json`
 - `accept: application/json, text/event-stream` — the same call answers with
-  plain JSON or SSE depending on whether progress was requested, so accept both
+  plain JSON or SSE depending on whether the server emits a notification while
+  handling it (requesting progress invites that, but the server decides), so
+  accept both
 - `mcp-method: <the method in the body>` — **required**, and it must agree with
   the body
 - `mcp-name: <the name or uri the method acts on>` — required for methods that
@@ -74,7 +76,11 @@ curl -sS -D- "$ENDPOINT" \
   }'
 ```
 
-A `tools/call`, with the extra header and a progress token so the answer streams:
+A `tools/call`, with the extra header and a progress token. The token invites
+progress but does not by itself change the framing: a tool that emits no
+notification still answers plain JSON, and the answer only arrives as SSE once
+the tool actually notifies (`add` below does not; `slow_report` in the
+examples does).
 
 ```bash
 curl -sS -N "$ENDPOINT" \
@@ -100,8 +106,9 @@ curl -sS -N "$ENDPOINT" \
 ```
 
 `-N` disables curl's buffering, which matters whenever you are judging _when_
-bytes arrive. On an `auth`-enabled server add `-H "authorization: Bearer $TOKEN"`;
-without a token, expect `401` and a challenge (see below).
+bytes arrive. On a server with an `authorizer` add
+`-H "authorization: Bearer $TOKEN"`; without a token, expect the bare `401`
+before the function is ever invoked (see below).
 
 For elicitation, the client has to declare the capability:
 `"io.modelcontextprotocol/clientCapabilities": { "elicitation": { "form": {} } }`.
@@ -209,44 +216,100 @@ aws logs filter-log-events \
 
 ## Auth, end to end
 
-Four observations cover the chain:
+Enforcement is yours — an `authorizer`, an in-module gate, or both — so the
+test follows whatever is configured. With a gateway `authorizer`, four
+observations cover the chain, and the first two come paired with the proof
+that matters: **the server's log group gains nothing**, because rejection
+happens before the invoke.
 
-1. no token → `401`, with the challenge in `x-amzn-remapped-www-authenticate`
-   (API Gateway REST renames the standard header) carrying
-   `resource_metadata="…/.well-known/oauth-protected-resource/<name>/mcp"` —
-   including the stage on a raw `execute-api` URL
-2. that metadata URL, fetched with no token → `200` and a JSON body whose
-   `authorization_servers` names your issuer
-3. a valid access token → the tool call succeeds
-4. a token from a different client of the same issuer → `401`
+1. no token → bare `401` `{"message":"Unauthorized"}` from API Gateway, and no
+   new entry in `serverless logs -f <name> --startTime 5m`. With
+   `authorizer: aws_iam` the shapes differ — an IAM-authorized method never
+   answers `401`: an unsigned request gets `403`
+   `{"message":"Missing Authentication Token"}`, and a signed-but-denied one
+   `403` "User: … is not authorized to perform: execute-api:Invoke …"
+2. a garbage token → `401` (or `403` "not authorized…" when a Lambda
+   authorizer answers a Deny); the Lambda authorizer's own log group gains
+   the entry instead of the server's
+3. a valid token → the tool call succeeds. For a Cognito-ARN authorizer that
+   means a real token from the pool: the **access token** when the authorizer
+   sets `scopes`, the **ID token** when it does not
+4. with `oauthDiscovery` set: the discovery URL, fetched with no token →
+   `200` and a JSON body whose `authorization_servers` names your issuer and
+   whose `resource` names the URL clients actually use
 
-Probe the challenge with the same well-formed `tools/list` request as above,
-minus the `authorization` header — send a real body, so what you observe is the
-bearer gate answering rather than a malformed request:
+Probe the rejection with the same well-formed `tools/list` request as above,
+minus the `authorization` header — send a real body, so what you observe is
+the authorizer answering rather than a malformed request:
 
 ```bash
 curl -sS -o /dev/null -D- "$ENDPOINT" \
   -H 'content-type: application/json' \
   -H 'accept: application/json, text/event-stream' \
   -H 'mcp-method: tools/list' \
-  -d "$TOOLS_LIST_BODY" | grep -i 'HTTP/\|www-authenticate'
+  -d "$TOOLS_LIST_BODY" | head -1
 
 curl -sS "https://…/dev/.well-known/oauth-protected-resource/crm/mcp"
 ```
 
+The discovery URL keeps its stage prefix on a raw `execute-api` origin and
+answers unauthenticated `GET` (plus `OPTIONS`) only — a `403` "Missing
+Authentication Token" there means the path or stage is wrong, or the server
+has no `oauthDiscovery`.
+
+With an **in-module gate** (`requireBearerAuth` in your module), the
+observations invert: a rejection does invoke the function — the log group
+gains an entry — and the `401` carries the spec's challenge, which API Gateway
+REST delivers renamed as `x-amzn-remapped-www-authenticate`. A valid token's
+identity reaches tools as `ctx.http.authInfo`; a scratch tool that echoes
+`ctx.http.authInfo?.clientId` proves the whole path in one call.
+
 ## Testing with Claude Code as the client
 
 Real-client verification catches what curl cannot, but Claude has its own
-mechanics worth knowing before reading its results. (The complete worked
-walkthrough — discovery, browser login, elicitation — is the
-`oauth-custom-domain` example:
-`https://github.com/serverless/examples/tree/v4/mcp/oauth-custom-domain`.)
+mechanics worth knowing before reading its results. (Complete worked
+walkthroughs — discovery, browser login, elicitation — live with the OAuth
+examples in the hub: `https://github.com/serverless/examples/tree/v4/mcp`.)
 
 - **Unauthenticated server**: `claude mcp add --transport http <name> <url>`,
   then `claude mcp list` — `✔ Connected` means the MCP handshake completed.
   A headless call proves the round trip:
   `claude -p "call the add tool with a=2 b=40" --allowedTools "mcp__<name>__add"`.
-- **Auth-enabled server against an issuer without Dynamic Client Registration**
+- **Token-gated server, no domain needed**: pass the token at registration —
+
+  ```bash
+  claude mcp add --transport http \
+    --header "Authorization: Bearer $TOKEN" -- <name> <url>
+  ```
+
+  The `--` is required after `--header` specifically: the flag is variadic and
+  otherwise swallows the name and URL positionals (`error: missing required
+argument 'name'`, nothing registered). Commands without `--header` need no
+  separator. The pasted header never refreshes, so calls start answering `401`
+  when the token expires — re-add with a fresh one.
+
+- **URL-only (Dynamic Client Registration)**: against an issuer that supports
+  DCR, `claude mcp add --transport http <name> <url>` with nothing else is the
+  whole registration — on the first authenticate the client reads the
+  published discovery document, registers itself at the issuer's
+  `registration_endpoint`, and runs authorization-code + PKCE on a callback
+  port it picks itself. Three things it needs: the root-mapped custom domain
+  (the discovery leg, as above); the issuer allowing registration and honoring
+  the RFC 8707 `resource` parameter; and the protected resource registered at
+  the issuer under the MCP endpoint's URL as its identifier, because a
+  URL-only client identifies the server by URL alone. When this path fails,
+  the client says almost nothing — a bare `SDK auth failed:` — so diagnose
+  issuer-side: POST a minimal registration to the issuer's
+  `registration_endpoint` with curl and read the real error
+  (`references/troubleshooting.md` has the probe; issuers advertise the
+  endpoint whether or not registration is enabled).
+- **Interactive login works through probing.** With an `authorizer` on the
+  route and `oauthDiscovery` published, Claude Code finds the document by
+  requesting the conventional well-known paths relative to the **origin
+  root** — it never reads a rejection's challenge headers — so a custom
+  domain mapped at the root is a prerequisite, and on the raw `execute-api`
+  URL the login dead-ends (see the troubleshooting row for the symptom).
+- **Against an issuer without Dynamic Client Registration**
   (Cognito, most enterprise IdPs): Claude demands DCR only when it has no
   client. Pre-register an authorization-code + PKCE client whose callback is
   `http://localhost:<port>/callback`, then

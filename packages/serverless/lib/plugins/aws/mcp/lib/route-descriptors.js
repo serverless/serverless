@@ -10,27 +10,37 @@ const streamingHttp = (path, method, timeout) => ({
   response: { transferMode: 'STREAM' },
 })
 
-export const buildRouteDescriptors = ({ servers }) => {
-  const events = []
-  for (const s of servers) {
-    const mcpRoute = streamingHttp(`${s.name}/mcp`, 'any', s.timeout)
-    if (s.auth?.authorizer) {
-      mcpRoute.authorizer = { name: s.auth.authorizer }
-    }
-    events.push({ functionName: s.name, http: mcpRoute })
+// The one authorizer API Gateway resolves without an authorizer resource of its
+// own, and therefore the one the http event spells as a bare string with no
+// name or arn behind it. Matched case-insensitively, exactly as the seam's
+// `getAuthorizer` matches it (api-gateway/lib/validate.js).
+const IAM_AUTHORIZER = 'aws_iam'
 
-    // The OAuth protected-resource metadata document must stay reachable
-    // without a token, so it never carries the authorizer.
-    if (s.auth) {
-      events.push({
-        functionName: s.name,
-        http: streamingHttp(
-          `.well-known/oauth-protected-resource/${s.name}/mcp`,
-          'get',
-          s.timeout,
-        ),
-      })
-    }
-  }
-  return events
+/**
+ * Turn the validated `authorizer` into what the api-gateway seam normalizes.
+ *
+ * Contributed events run through `getAuthorizer` just as declared http events
+ * do, so this only has to pick the spelling that means what the user wrote:
+ *
+ *  - `aws_iam` stays a bare string, which is how an http event carries it;
+ *  - any other string names an authorizer function and is wrapped, because the
+ *    seam reads a bare string carrying a colon as an authorizer ARN instead;
+ *  - an object is the seam's own authorizer shape already, and is handed over
+ *    untouched - it is the only thing entitled to interpret it.
+ */
+const authorizerFor = (authorizer) => {
+  if (authorizer === undefined) return undefined
+  if (typeof authorizer !== 'string') return authorizer
+  if (authorizer.toLowerCase() === IAM_AUTHORIZER) return authorizer
+  return { name: authorizer }
 }
+
+export const buildRouteDescriptors = ({ servers }) =>
+  servers.map((s) => {
+    const http = streamingHttp(`${s.name}/mcp`, 'any', s.timeout)
+    const authorizer = authorizerFor(s.authorizer)
+    if (authorizer !== undefined) {
+      http.authorizer = authorizer
+    }
+    return { functionName: s.name, http }
+  })

@@ -1,26 +1,29 @@
-# MCP auth-chain Cognito prerequisite
+# MCP enforcement-suite Cognito prerequisite
 
-A predeployed Cognito user pool that backs the MCP property's live auth-chain
-suite (`../mcp/mcp-auth.test.js`). It is a **persistent, per-account
+A predeployed Cognito user pool that backs the MCP property's live
+enforcement-and-discovery suite (`../mcp/mcp-auth.test.js`). It is a **persistent, per-account
 prerequisite**: deploy it once with plain CloudFormation and leave it standing —
 the suite discovers everything it needs from SSM at runtime, so no ids are
 hardcoded and the suite skips cleanly in any account that lacks it.
 
 ## What it provisions
 
-- A **Lite-tier** user pool (no token customization needed — the entry's
-  aud-else-client_id rule verifies raw Cognito access tokens, which carry
-  `client_id` and no `aud`, as-is).
+- A **Lite-tier** user pool (no token customization needed — the suite deploys
+  its Cognito-protected server with the `mcp/invoke` scope, which is what makes
+  API Gateway validate the pool's raw **access** tokens; with no scope
+  configured it would validate identity tokens instead, and this pool mints
+  none).
 - A **user pool domain** (`mcp-integration-test-<account-id>`), which serves the
   `/oauth2/token` endpoint the suite mints tokens against.
 - A **resource server** `mcp` with one custom scope `invoke` → full scope
   string `mcp/invoke`.
 - **Two** app clients, both `client_credentials` M2M clients with a generated
   secret and the `mcp/invoke` scope:
-  - **Client A** — the authorized client; its id is the audience the fixture is
-    deployed with, so its tokens pass verification.
-  - **Client B** — same issuer, different id; exists only to mint the
-    wrong-client token the suite expects a `401` for.
+  - **Client A** — the client the suite mints its working token from.
+  - **Client B** — same pool, same scope, different client id. The suite asserts
+    that its token is **accepted** too: an API Gateway Cognito authorizer is
+    scoped to a pool and a scope, never to one client, and pinning that stops a
+    reader from assuming the gateway narrows further than it does.
 
 It publishes eight **SecureString** SSM parameters under
 `/mcp-integration-test/cognito/` (`poolId`, `domain`, `region`, `clientAId`,
@@ -42,14 +45,14 @@ opted-out account.
 
 ## Two hosts, do not conflate
 
-- **Issuer** (token validation, `MCP_TEST_AUTH_ISSUER`):
-  `https://cognito-idp.<region>.amazonaws.com/<poolId>` — where the entry's
-  verifier fetches OIDC discovery + JWKS.
+- **Issuer**: `https://cognito-idp.<region>.amazonaws.com/<poolId>` — the
+  identifier the suite publishes in the fixture's `oauthDiscovery.issuer`, so a
+  client reading the protected-resource document is told where to log in.
 - **Token endpoint** (minting):
   `https://<domain>.auth.<region>.amazoncognito.com/oauth2/token`.
 
-`MCP_TEST_AUTH_AUDIENCE` is client A's id (Cognito access tokens have no `aud`;
-the entry falls back to `client_id`).
+The pool ARN the fixture's authorizer names is not published here: the suite
+derives it from `poolId`, `region` and the caller's own account id.
 
 ## Deploy (once per account)
 

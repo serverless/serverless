@@ -129,9 +129,6 @@ describe('readCognitoPrerequisite skips vs fails', () => {
       'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_ABC',
     )
     expect(prereq.tokenEndpoint).toBe(TOKEN_ENDPOINT)
-    // Cognito access tokens carry client_id rather than aud, so under the
-    // aud-else-client_id rule the audience is client A's id.
-    expect(prereq.audience).toBe('client-a')
     expect(typeof prereq.mintClientA).toBe('function')
     expect(typeof prereq.mintClientB).toBe('function')
   })

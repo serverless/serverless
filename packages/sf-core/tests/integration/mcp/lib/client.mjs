@@ -16,9 +16,15 @@
  *     and jest owns reporting and the process lifecycle.
  *   - a bearer branch was added (the script only knew SigV4): a configured
  *     token rides on every request, including the raw `GET`.
- *   - four checks were added for the `auth` and streaming behaviors a live
- *     suite has to pin down: `unauthenticated401`, `wrongClient401`,
- *     `antiBuffering` and `discoveryRootProbe403`.
+ *   - one check was added for a streaming behavior a live suite has to pin
+ *     down: `antiBuffering`.
+ *
+ * There are no authentication checks in this list, and there is nowhere for one
+ * to go: enforcement is the user's — an API Gateway authorizer, or the server
+ * module itself — so what a rejection looks like is a property of that choice,
+ * not of any deployment of this fixture. `bearerToken` therefore only means
+ * "ride this token on every request"; the suites that deploy an enforced server
+ * assert its rejections themselves (`../mcp-auth.test.js`).
  *
  * The 2026-07-28 client identity is inherited verbatim from the examples client
  * so requests stay byte-identical on the wire.
@@ -38,15 +44,6 @@ const PROTOCOL_VERSION = '2026-07-28'
 const CLIENT_INFO = { name: 'aws-mcp-servers-client', version: '1.0.0' }
 const CAPS_ELICIT = { elicitation: { form: {} } }
 const ACCEPT = 'application/json, text/event-stream'
-
-// API Gateway REST rewrites `WWW-Authenticate` on proxy responses and offers no
-// way to opt out, so the challenge our entry emits reaches the client under the
-// remapped name. A front door that does not remap (a future hosting) delivers
-// the spec's own name, which is strictly more correct — so either satisfies the
-// check, and the detail line reports which one arrived.
-const REMAPPED_CHALLENGE_HEADER = 'x-amzn-remapped-www-authenticate'
-const CHALLENGE_HEADERS = [REMAPPED_CHALLENGE_HEADER, 'www-authenticate']
-const METADATA_PATH_PREFIX = '/.well-known/oauth-protected-resource/'
 
 const meta = (capabilities = {}) => ({
   'io.modelcontextprotocol/protocolVersion': PROTOCOL_VERSION,
@@ -335,23 +332,17 @@ const rejectedWith = (json, code, service) =>
     json.error?.code === -32010 &&
     /\(4\d\d\)/.test(json.error?.message ?? ''))
 
-/** `resource_metadata="…"` out of a `WWW-Authenticate` challenge value. */
-const resourceMetadataUrl = (challenge) =>
-  challenge.match(/resource_metadata="([^"]+)"/)?.[1]
-
 /**
  * The ordered conformance checks for one deployment.
  *
  * Checks 1–12 always run. `longRunning` adds the two ~36s cases and the
- * anti-buffering assertion. `bearerToken` puts the client behind the bearer
- * gate and adds the unauthenticated negatives; `wrongClientToken` adds the
- * wrong-audience negative. Unauthenticated variants therefore skip all of
- * them, which is what keeps one list usable for every fixture config.
+ * anti-buffering assertion. `bearerToken` only rides a token on every request,
+ * so an enforced deployment can run the same list an open one does — the list
+ * asserts what the MCP server answers, never how a front door rejects.
  *
  * @param {object} config
  * @param {string} config.endpoint
  * @param {string} [config.bearerToken]      a token the deployment accepts
- * @param {string} [config.wrongClientToken] a token from another client of the same issuer
  * @param {boolean} [config.longRunning]
  * @param {'sigv4'} [config.auth]
  * @param {string} [config.service]
@@ -361,9 +352,9 @@ const resourceMetadataUrl = (challenge) =>
  *          whichever checks a config includes
  */
 export function createMcpChecks(config = {}) {
-  const { bearerToken, wrongClientToken, longRunning, service } = config
+  const { longRunning, service } = config
   const client = createMcpClient(config)
-  const { request, rawGet, url } = client
+  const { request, rawGet } = client
 
   // What a check measured, for a later check to assert on without repeating the
   // call. Scoped to one createMcpChecks() call, so parallel deployments never
@@ -776,88 +767,8 @@ export function createMcpChecks(config = {}) {
     )
   }
 
-  if (bearerToken) {
-    checks.push({
-      name: 'unauthenticated401',
-      title: 'an unauthenticated request is challenged (WWW-Authenticate)',
-      run: async () => {
-        const r = await request({ method: 'tools/list', token: null })
-        assert(r.status === 401, `HTTP ${r.status}`)
-        const headerName = CHALLENGE_HEADERS.find((h) => r.headers.get(h))
-        assert(
-          headerName,
-          `no ${CHALLENGE_HEADERS.join(' or ')} header on the 401 (API Gateway ` +
-            'REST remaps WWW-Authenticate, other front doors pass it through; ' +
-            `headers seen: ${[...r.headers.keys()].join(', ')})`,
-        )
-        const challenge = r.headers.get(headerName)
-        const metadata = resourceMetadataUrl(challenge)
-        assert(metadata, `no resource_metadata in challenge: ${challenge}`)
-        let parsed
-        try {
-          parsed = new URL(metadata)
-        } catch {
-          throw new Error(`resource_metadata is not a URL: ${metadata}`)
-        }
-        assert(
-          parsed.protocol === 'https:',
-          `resource_metadata is not https: ${metadata}`,
-        )
-        assert(
-          parsed.pathname.includes(METADATA_PATH_PREFIX),
-          `resource_metadata does not point at ${METADATA_PATH_PREFIX}: ${metadata}`,
-        )
-        return `401 + ${headerName} resource_metadata=${metadata}`
-      },
-    })
-    checks.push({
-      name: 'discoveryRootProbe403',
-      title:
-        'the RFC 9728 root probe does not resolve on a raw execute-api endpoint',
-      run: async () => {
-        // Clients probe the metadata document at the ORIGIN root:
-        // `/.well-known/oauth-protected-resource` + the resource path. On a raw
-        // execute-api URL that path sits above the stage, so API Gateway
-        // answers 403 before the function is reached. Documented, not desired:
-        // root-mapped custom domains are where the probe resolves. A 200 here
-        // means the platform limitation lifted and the docs need revisiting.
-        const res = await rawGet({
-          path: `${METADATA_PATH_PREFIX.replace(/\/$/, '')}${url.pathname}`,
-          token: null,
-          accept: 'application/json',
-        })
-        assert(
-          res.status !== 200,
-          `HTTP ${res.status} — the root probe resolved`,
-        )
-        assert(
-          res.status === 403,
-          `HTTP ${res.status} (expected the documented 403 from API Gateway)`,
-        )
-        return 'HTTP 403 (documented platform limitation)'
-      },
-    })
-    // Last, because it is the only check needing a second token: appending it
-    // here keeps every other check's number the same whether or not one was
-    // configured.
-    if (wrongClientToken) {
-      checks.push({
-        name: 'wrongClient401',
-        title: 'a token from another client of the same issuer is rejected',
-        run: async () => {
-          const r = await request({
-            method: 'tools/list',
-            token: wrongClientToken,
-          })
-          assert(r.status === 401, `HTTP ${r.status}`)
-          return 'HTTP 401'
-        },
-      })
-    }
-  }
-
-  // Numbered here, not in the literals: a config that omits the long or the
-  // auth checks would otherwise report a list with holes in it.
+  // Numbered here, not in the literals: a config that omits the long checks
+  // would otherwise report a list with holes in it.
   return checks.map((check, index) => ({
     ...check,
     title: `${index + 1}. ${check.title}`,

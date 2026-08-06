@@ -2,7 +2,7 @@
 // Builds the MCP Lambda entry ahead of time.
 //
 // The entry runs in the user's function but its dependencies (the MCP SDK,
-// Hono, jose, the two AWS SDK clients) are development dependencies of this
+// Hono, the two AWS SDK clients) are development dependencies of this
 // package alone, so it has to reach the artifact as one self-contained file —
 // hence `external: []`. Only the user's own server module stays outside the
 // bundle: the entry imports it through a computed path, which esbuild cannot
