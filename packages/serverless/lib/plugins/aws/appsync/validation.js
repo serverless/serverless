@@ -259,6 +259,17 @@ export const appSyncSchema = {
       required: [],
       errorMessage: 'must be a valid substitutions definition',
     },
+    appSyncS3Location: {
+      type: 'object',
+      description: 'S3 location of an AppSync mapping template.',
+      properties: {
+        bucket: { type: 'string' },
+        key: { type: 'string' },
+      },
+      required: ['bucket', 'key'],
+      additionalProperties: false,
+      errorMessage: 'must be an object with bucket and key',
+    },
     environment: {
       type: 'object',
       additionalProperties: {
@@ -290,6 +301,8 @@ export const appSyncSchema = {
         code: { type: 'string' },
         request: { type: 'string' },
         response: { type: 'string' },
+        requestS3Location: { $ref: '#/definitions/appSyncS3Location' },
+        responseS3Location: { $ref: '#/definitions/appSyncS3Location' },
         sync: { $ref: '#/definitions/syncConfig' },
         substitutions: { $ref: '#/definitions/substitutions' },
         caching: { $ref: '#/definitions/resolverCachingConfig' },
@@ -343,6 +356,8 @@ export const appSyncSchema = {
         description: { type: 'string' },
         request: { type: 'string' },
         response: { type: 'string' },
+        requestS3Location: { $ref: '#/definitions/appSyncS3Location' },
+        responseS3Location: { $ref: '#/definitions/appSyncS3Location' },
         sync: { $ref: '#/definitions/syncConfig' },
         maxBatchSize: { type: 'number', minimum: 1, maximum: 2000 },
         substitutions: { $ref: '#/definitions/substitutions' },
@@ -879,6 +894,36 @@ addFormats(ajv)
 
 const validator = ajv.compile(appSyncSchema)
 
+const flattenMerge = (input) => {
+  if (Array.isArray(input)) {
+    return Object.assign({}, ...input)
+  }
+  return input || {}
+}
+
+const notBoth = (cfg, ctx) => {
+  for (const side of ['request', 'response']) {
+    if (cfg[side] && cfg[`${side}S3Location`]) {
+      throw new AppSyncValidationError([
+        {
+          path: '',
+          message:
+            `${ctx}: '${side}' and '${side}S3Location' are mutually exclusive ` +
+            '(choose an inline template file or an S3 location, not both)',
+        },
+      ])
+    }
+  }
+  if (cfg.code && (cfg.requestS3Location || cfg.responseS3Location)) {
+    throw new AppSyncValidationError([
+      {
+        path: '',
+        message: `${ctx}: 'code' (JS) cannot be combined with an S3 mapping-template location (VTL only)`,
+      },
+    ])
+  }
+}
+
 export const validateConfig = (data) => {
   const isValid = validator(data)
   if (isValid === false && validator.errors) {
@@ -892,6 +937,27 @@ export const validateConfig = (data) => {
           }
         }),
     )
+  }
+
+  const resolversMap = flattenMerge(data.resolvers)
+  for (const [key, resolver] of Object.entries(resolversMap)) {
+    if (typeof resolver === 'object' && resolver !== null) {
+      notBoth(resolver, `resolver '${key}'`)
+      if (Array.isArray(resolver.functions)) {
+        for (const f of resolver.functions) {
+          if (typeof f === 'object' && f !== null) {
+            notBoth(f, `inline pipeline function in resolver '${key}'`)
+          }
+        }
+      }
+    }
+  }
+
+  const pipelineFunctionsMap = flattenMerge(data.pipelineFunctions)
+  for (const [name, func] of Object.entries(pipelineFunctionsMap)) {
+    if (typeof func === 'object' && func !== null) {
+      notBoth(func, `pipeline function '${name}'`)
+    }
   }
 
   return isValid

@@ -45,6 +45,8 @@ appSync:
 - `code`: The path of the JavaScript resolver handler file, relative to `serverless.yml`. If not specified, a [minimalistic default](#javascript-vs-vtl) is used.
 - `request`: The path to the VTL request mapping template file, relative to `serverless.yml`.
 - `response`: The path to the VTL response mapping template file, relative to `serverless.yml`.
+- `requestS3Location`: An S3 location `{ bucket, key }` for the VTL request mapping template. Mutually exclusive with `request` and `code` (VTL only). No file is read and no variable substitution is applied.
+- `responseS3Location`: An S3 location `{ bucket, key }` for the VTL response mapping template. Mutually exclusive with `response` and `code` (VTL only). No file is read and no variable substitution is applied.
 - `substitutions`: See [Variable Substitutions](substitutions.md). Deprecated: Use [environment variables](./general-config.md) instead.
 - `caching`: [See below](#Caching)
 - `sync`: [See SyncConfig](syncConfig.md)
@@ -54,6 +56,23 @@ appSync:
 When `code` is specified, the JavaScript runtime is used.
 
 When `request` and/or `response` are specified, the VTL runtime is used.
+
+When `requestS3Location` and/or `responseS3Location` are specified, the VTL runtime is used and the template is referenced by its S3 location instead of being read from disk. This is useful for large APIs that would otherwise exceed CloudFormation's template size limit. `request`/`requestS3Location` are mutually exclusive (same for `response`/`responseS3Location`). No variable substitution is applied to S3-located templates.
+
+```yaml
+appSync:
+  resolvers:
+    Query.user:
+      kind: UNIT
+      dataSource: myDataSource
+      requestS3Location:
+        bucket: my-templates-bucket
+        key: Query.user.request.vtl
+      responseS3Location:
+        bucket: my-templates-bucket
+        key: Query.user.response.vtl
+        version: abc123 # optional S3 object version
+```
 
 For [direct lambda](https://docs.aws.amazon.com/appsync/latest/devguide/direct-lambda-reference.html), set `kind` to `UNIT` and don't specify `request`, `response` or `code`. This only works with Lambda function data sources.
 
