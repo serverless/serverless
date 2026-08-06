@@ -36,19 +36,26 @@ renderer.colorSupportLevel =
 // ora's clear-line math `ceil(stringWidth / columns)` then divides by zero → `Infinity` lines to
 // clear → an unbounded clear loop that emits gigabytes of escape sequences. Note `columns ?? 80`
 // in ora does NOT guard this (0 is not nullish). So we treat a 0/undefined width as non-interactive
-// and fall back to the bounded plain-text path — exactly like a pipe. (`SLS_INTERACTIVE_SETUP_ENABLE`
-// remains an explicit override.)
+// and fall back to the bounded plain-text path — exactly like a pipe.
+//
+// A zero-width TTY vetoes interactivity on EVERY path, including the `SLS_INTERACTIVE_SETUP_ENABLE`
+// override: CircleCI allocates a zero-width pty for build steps, and an override that bypassed the
+// width guard force-enabled the spinner there and re-created the unbounded clear loop (GitHub
+// issue #13786). stderr is vetoed too because the spinner renders to stderr. Non-TTY streams are
+// NOT vetoed — the override keeps enabling interactive flows for scripted (piped) setups, and ora
+// skips its clear-line path entirely on non-TTY streams, so no flood is possible there.
 function computeIsInteractive({
   stdin = process.stdin,
   stdout = process.stdout,
+  stderr = process.stderr,
   env = process.env,
 } = {}) {
+  const isZeroWidthTty = (stream) =>
+    Boolean(stream.isTTY) &&
+    !(Number.isInteger(stream.columns) && stream.columns > 0)
+  if (isZeroWidthTty(stdout) || isZeroWidthTty(stderr)) return false
   const hasUsableTty =
-    Boolean(stdin.isTTY) &&
-    Boolean(stdout.isTTY) &&
-    typeof env.CI !== 'string' &&
-    Number.isInteger(stdout.columns) &&
-    stdout.columns > 0
+    Boolean(stdin.isTTY) && Boolean(stdout.isTTY) && typeof env.CI !== 'string'
   return Boolean(hasUsableTty || env.SLS_INTERACTIVE_SETUP_ENABLE)
 }
 renderer.isInteractive = computeIsInteractive()
@@ -131,7 +138,11 @@ renderer.spinner = {
       renderer.spinner._spinner = ora({
         color: 'red',
         text: content,
-        isEnabled: renderer.isInteractive,
+        // Animation additionally requires the stream ora renders to (stderr) to be
+        // a terminal — with stderr redirected (`2> err.log`) the session can stay
+        // interactive for prompts while ora degrades to one plain line per phase
+        // instead of writing a frame line every interval into the file.
+        isEnabled: renderer.isInteractive && Boolean(process.stderr.isTTY),
       }).start()
     }
   },
