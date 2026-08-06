@@ -560,6 +560,122 @@ test('run() builds the image before starting the control-plane', async () => {
   await p
 })
 
+// ---------------------------------------------------------------------------
+// Build platform: the image is built and run by the Docker daemon, whose CPU
+// architecture may differ from the CLI host's (e.g. an Intel Mac driving an
+// ARM Colima VM via DOCKER_HOST) — so the daemon's arch wins, with the host
+// arch as fallback when the daemon doesn't report one.
+// ---------------------------------------------------------------------------
+
+function makeForPlatform(docker) {
+  const signals = {}
+  const d = new SandboxesDevMode(
+    {
+      service: { service: 'svc', sandboxes: { api: { artifact: './app' } } },
+      serviceDir: '/svc',
+      getProvider: () => ({}),
+    },
+    { sandbox: 'api', 'assume-role': false },
+    {
+      log: { notice() {}, debug() {} },
+      progress: { notice() {}, remove() {} },
+    },
+    {
+      docker,
+      fileExists: () => true,
+      onSignal: (sig, h) => {
+        signals[sig] = h
+      },
+      createWatcher: () => ({ on() {}, close: async () => {} }),
+      startControlPlane: async () => ({
+        url: 'http://127.0.0.1:45020',
+        port: 45020,
+        server: {},
+        shutdown: async () => {},
+      }),
+      makeContainerManager: () => ({}),
+      makeRegistry: () => ({}),
+    },
+  )
+  return { d, signals }
+}
+
+const hostPlatform = process.arch === 'arm64' ? 'linux/arm64' : 'linux/amd64'
+const oppositeOfHost = process.arch === 'arm64' ? 'linux/amd64' : 'linux/arm64'
+
+test("run() builds for the Docker daemon's architecture, not the CLI host's", async () => {
+  const buildImage = jest.fn(async () => {})
+  // Daemon reports the arch OPPOSITE to the host — the daemon must win.
+  const { d, signals } = makeForPlatform({
+    ensureIsRunning: async () => {},
+    buildImage,
+    getDockerodeClient: () => ({
+      version: async () => ({
+        Arch: process.arch === 'arm64' ? 'amd64' : 'arm64',
+      }),
+    }),
+  })
+  const p = d.run()
+  await new Promise((r) => setImmediate(r))
+  expect(buildImage).toHaveBeenCalledWith(
+    expect.objectContaining({ platform: oppositeOfHost }),
+  )
+  await signals.SIGINT()
+  await p
+})
+
+test('run() falls back to the host architecture when the daemon reports none', async () => {
+  const buildImage = jest.fn(async () => {})
+  const { d, signals } = makeForPlatform({
+    ensureIsRunning: async () => {},
+    buildImage,
+    getDockerodeClient: () => ({ version: async () => ({}) }),
+  })
+  const p = d.run()
+  await new Promise((r) => setImmediate(r))
+  expect(buildImage).toHaveBeenCalledWith(
+    expect.objectContaining({ platform: hostPlatform }),
+  )
+  await signals.SIGINT()
+  await p
+})
+
+test('run() falls back to the host architecture when the daemon query fails or is unavailable', async () => {
+  // version() rejects (daemon reachable for ping but version call fails).
+  const buildImage = jest.fn(async () => {})
+  const { d, signals } = makeForPlatform({
+    ensureIsRunning: async () => {},
+    buildImage,
+    getDockerodeClient: () => ({
+      version: async () => {
+        throw new Error('version unavailable')
+      },
+    }),
+  })
+  const p = d.run()
+  await new Promise((r) => setImmediate(r))
+  expect(buildImage).toHaveBeenCalledWith(
+    expect.objectContaining({ platform: hostPlatform }),
+  )
+  await signals.SIGINT()
+  await p
+
+  // Test doubles without getDockerodeClient (the other tests in this file)
+  // must also get the fallback rather than a crash.
+  const buildImage2 = jest.fn(async () => {})
+  const { d: d2, signals: s2 } = makeForPlatform({
+    ensureIsRunning: async () => {},
+    buildImage: buildImage2,
+  })
+  const p2 = d2.run()
+  await new Promise((r) => setImmediate(r))
+  expect(buildImage2).toHaveBeenCalledWith(
+    expect.objectContaining({ platform: hostPlatform }),
+  )
+  await s2.SIGINT()
+  await p2
+})
+
 test('run() injects assumed-role creds into containerManager env by default', async () => {
   let capturedEnv
   const startControlPlane = jest.fn(async () => ({

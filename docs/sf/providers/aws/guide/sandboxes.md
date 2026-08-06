@@ -630,9 +630,11 @@ customizable with `--port`, so the address your code targets doesn't change betw
 port is already in use, `dev` exits with a clear error so you can pick another; run two sandboxes at
 once by giving each its own `--port`. Press Ctrl-C to stop.
 
-> **Note:** `dev` requires a local Docker daemon and a local `artifact` directory
-> containing a `Dockerfile`. A sandbox whose `artifact` is an `s3://` zip cannot be
-> run with `dev` — use a local directory for the dev loop.
+> **Note:** `dev` requires a Docker daemon and a local `artifact` directory
+> containing a `Dockerfile`. The image is built for the daemon's native CPU
+> architecture, so a daemon whose architecture differs from your machine's
+> (a VM or remote `DOCKER_HOST`) works too. A sandbox whose `artifact` is an
+> `s3://` zip cannot be run with `dev` — use a local directory for the dev loop.
 
 > The dev loop runs under the sandbox's real execution role (see [IAM
 > emulation](#iam-emulation) below). It does not reproduce the production
