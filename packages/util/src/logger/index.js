@@ -36,22 +36,36 @@ renderer.colorSupportLevel =
 // ora's clear-line math `ceil(stringWidth / columns)` then divides by zero → `Infinity` lines to
 // clear → an unbounded clear loop that emits gigabytes of escape sequences. Note `columns ?? 80`
 // in ora does NOT guard this (0 is not nullish). So we treat a 0/undefined width as non-interactive
-// and fall back to the bounded plain-text path — exactly like a pipe. (`SLS_INTERACTIVE_SETUP_ENABLE`
-// remains an explicit override.)
+// and fall back to the bounded plain-text path — exactly like a pipe.
+//
+// A zero-width TTY vetoes interactivity on EVERY path, including the `SLS_INTERACTIVE_SETUP_ENABLE`
+// override: CircleCI allocates a zero-width pty for build steps, and an override that bypassed the
+// width guard force-enabled the spinner there and re-created the unbounded clear loop (GitHub
+// issue #13786). stderr is vetoed too because the spinner renders to stderr. Non-TTY streams are
+// NOT vetoed — the override keeps enabling interactive flows for scripted (piped) setups, and ora
+// skips its clear-line path entirely on non-TTY streams, so no flood is possible there.
 function computeIsInteractive({
   stdin = process.stdin,
   stdout = process.stdout,
+  stderr = process.stderr,
   env = process.env,
 } = {}) {
+  const isZeroWidthTty = (stream) =>
+    Boolean(stream.isTTY) &&
+    !(Number.isInteger(stream.columns) && stream.columns > 0)
+  if (isZeroWidthTty(stdout) || isZeroWidthTty(stderr)) return false
   const hasUsableTty =
-    Boolean(stdin.isTTY) &&
-    Boolean(stdout.isTTY) &&
-    typeof env.CI !== 'string' &&
-    Number.isInteger(stdout.columns) &&
-    stdout.columns > 0
+    Boolean(stdin.isTTY) && Boolean(stdout.isTTY) && typeof env.CI !== 'string'
   return Boolean(hasUsableTty || env.SLS_INTERACTIVE_SETUP_ENABLE)
 }
 renderer.isInteractive = computeIsInteractive()
+// Whether progress may render as a spinner animation: the session must be interactive AND the
+// stream ora draws on (stderr) must be a terminal. When this is false, progress must take the
+// plain per-message path — a disabled ora instance never renders `.text` updates, so routing
+// progress through it would drop phases (and every spinner restart around a log write would
+// re-print the current one).
+const canAnimateProgress = () =>
+  renderer.isInteractive && Boolean(process.stderr.isTTY)
 // Log levels
 renderer.levels = {
   compose: 0, // This is for compose. It is the lowest log level to have full control over the CLI.
@@ -131,7 +145,7 @@ renderer.spinner = {
       renderer.spinner._spinner = ora({
         color: 'red',
         text: content,
-        isEnabled: renderer.isInteractive,
+        isEnabled: canAnimateProgress(),
       }).start()
     }
   },
@@ -517,7 +531,12 @@ class Progress {
    * Updates the progress state with a new message.
    */
   notice(message, { isComposeMessage = false } = {}) {
-    if (!renderer.isInteractive) {
+    if (!canAnimateProgress()) {
+      // 'info' is deliberate for compose messages too: Compose's aggregated
+      // progress line (re-noticed with a shrinking service list) only makes
+      // sense morphing in place inside the spinner. On the plain path the
+      // 'compose' log level filters it out, and non-animated compose runs
+      // report per-service completion lines via writeCompose instead.
       writeStdErr({ level: 'info', messageTokens: [message] })
       return
     }
@@ -535,7 +554,7 @@ class Progress {
    * Stops the renderer.spinner if there are no progress states.
    */
   remove() {
-    if (!renderer.isInteractive || renderer.logLevel === 'compose') {
+    if (!canAnimateProgress() || renderer.logLevel === 'compose') {
       return
     }
     if (renderer.state.progressTasks.has(this.namespace) === undefined) {
@@ -551,7 +570,7 @@ class Progress {
    * For example, you may want to save the message, alter it, and then restore it.
    */
   getState() {
-    if (!renderer.isInteractive) {
+    if (!canAnimateProgress()) {
       return
     }
     if (renderer.state.progressTasks.has(this.namespace) === undefined) {
