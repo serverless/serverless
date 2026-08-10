@@ -37,7 +37,7 @@ Get-AuthenticodeSignature .\serverless-windows-amd64 | Format-List Status, Signe
 
 or with the Windows SDK:
 
-```
+```text
 signtool verify /pa serverless-windows-amd64
 ```
 
