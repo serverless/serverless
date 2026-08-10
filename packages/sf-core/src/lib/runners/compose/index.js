@@ -18,6 +18,17 @@ const { Graph, alg } = graphlib
 const composeParamRegex = /(?<=\$\{)[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+(?=\})/
 
 /**
+ * The only commands whose returned state may be persisted to the state store.
+ * deploy/info gather real stack outputs (via the aws:info flow); remove's `{}`
+ * is an intentional clear. Every other command — package, print, logs, invoke,
+ * dev, deploy function, and anything added later — is read-only by
+ * construction: its returned state is discarded and `localState` falls back to
+ * the store when the service has dependents, so a fabricated empty state can
+ * never wipe deployed outputs.
+ */
+const STATE_WRITER_COMMANDS = ['deploy', 'info', 'remove']
+
+/**
  * @typedef {Object} State
  * @property {Record<string, any>} localState
  * @property {Function} putServiceState
@@ -528,25 +539,29 @@ class Compose {
     } = runnerOutput || {}
 
     const serviceUniqueIdProvided = serviceUniqueId && runnerType
+    const isStateAuthoritative = STATE_WRITER_COMMANDS.includes(
+      command.join(' '),
+    )
+    // get-state's returned state IS a store read: never re-persisted, but it
+    // must still populate localState (it is the warming pass).
+    const isGetState = command[0] === 'get-state'
+    const usableState =
+      isStateAuthoritative || isGetState ? returnedState : undefined
 
-    if (
-      serviceUniqueIdProvided &&
-      returnedState &&
-      command[0] !== 'get-state'
-    ) {
+    if (serviceUniqueIdProvided && isStateAuthoritative && usableState) {
       await state?.putServiceState({
         serviceUniqueId,
         runnerType,
-        value: JSON.stringify(returnedState),
+        value: JSON.stringify(usableState),
       })
     }
 
     if (
       state?.localState &&
-      (returnedState || graph.predecessors(alias)?.length)
+      (usableState || graph.predecessors(alias)?.length)
     ) {
       state.localState[alias] =
-        returnedState ||
+        usableState ||
         (serviceUniqueIdProvided
           ? await state?.getServiceState({
               serviceUniqueId,
