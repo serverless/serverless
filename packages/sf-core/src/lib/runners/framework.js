@@ -24,6 +24,7 @@ import {
   collectArtifactPaths,
   deriveAnalysisEnrichment,
 } from './framework-analytics.js'
+import { buildCommandState } from './state-utils.js'
 import { buildSandboxesAnalytics } from '@serverless/framework/lib/plugins/aws/sandboxes/analytics.js'
 import { buildMcpAnalytics } from '@serverless/framework/lib/plugins/aws/mcp/analytics.js'
 import { Deployment } from '../platform/deployments.js'
@@ -579,10 +580,10 @@ const runFramework = async ({
 
   await serverless.run()
 
-  state = serverless.stackOutputs ? { outputs: serverless.stackOutputs } : {}
-  if (fullCommand === 'remove') {
-    state = {}
-  }
+  state = buildCommandState({
+    stackOutputs: serverless.stackOutputs,
+    fullCommand,
+  })
 
   const analyticsMetrics = {}
   const lifecycleEventDurations =

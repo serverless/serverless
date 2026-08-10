@@ -134,6 +134,8 @@ Let's break down the example above into 3 steps:
        SERVICE_A_QUEUE_URL: ${param:queueUrl}
    ```
 
+With `serverless package` and `serverless print`, cross-service values are read from the state of the last deployment: `package` requires the referenced services to be deployed, while `print` displays `NOT_AVAILABLE_IN_PRINT_COMMAND` for values that do not exist yet.
+
 Cross-service variables are a great way to share API URLs, queue URLs, database table names, and more, without having to hardcode resource names or use SSM.
 
 ### Explicit dependencies

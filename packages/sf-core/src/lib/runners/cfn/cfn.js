@@ -205,7 +205,8 @@ export class CfnRunner extends Runner {
         break
       }
       case 'print':
-        state = await print({
+        // print renders to the terminal; its return value is not service state
+        await print({
           templateFile: this.templateFile,
           format: this.options.format || 'yaml',
         })
