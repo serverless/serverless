@@ -24,6 +24,14 @@ For environments that use private CAs or TLS-intercepting proxies, the installer
 
 These certificates are added to the system trust store used by the installer’s HTTP client.
 
+## Code Signing
+
+The Windows binary (`serverless-windows-amd64`) is Authenticode-signed with a `Serverless Inc` certificate issued through Azure Artifact Signing, with an RFC 3161 timestamp. Verify with `Get-AuthenticodeSignature` in PowerShell or `signtool verify /pa`. In managed environments, the signature allows allow-listing by publisher rule (WDAC/AppLocker) instead of by file hash.
+
+Note that the binaries at `installer-builds/` are overwritten in place on each launcher release, so pinned file hashes stop matching after each release. If your antivirus software flags a binary, check its Authenticode signature and report the false positive to your vendor (for Microsoft Defender: https://www.microsoft.com/en-us/wdsi/filesubmission).
+
+The release workflow (`.github/workflows/release-binary-installer.yml`) signs via GitHub OIDC (no stored credentials). It requires the repository secrets `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, and `AZURE_SUBSCRIPTION_ID`, and the repository variables `AZURE_TRUSTED_SIGNING_ENDPOINT`, `AZURE_TRUSTED_SIGNING_ACCOUNT`, and `AZURE_TRUSTED_SIGNING_CERT_PROFILE`.
+
 ## How the Binary Installer Works
 
 ### High-level flow

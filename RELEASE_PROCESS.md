@@ -52,7 +52,7 @@ The workflow triggers on pushes to `main` that touch `packages/sf-core/**`, `pac
 - **`release-npm`:**
   Publishes the installer package to npm after the stable release completes.
 
-> **Note:** The Go-based binary installer (the `curl` install script and launcher binaries) has its own, separate release pipeline: `.github/workflows/release-binary-installer.yml`, triggered manually via `workflow_dispatch`.
+> **Note:** The Go-based binary installer (the `curl` install script and launcher binaries) has its own, separate release pipeline: `.github/workflows/release-binary-installer.yml`, triggered manually via `workflow_dispatch`. That pipeline Authenticode-signs the Windows binary via Azure Artifact Signing (GitHub OIDC, no stored credentials) — see `binary-installer/README.md` → "Code Signing" for the required secrets/variables and verification instructions.
 
 ---
 
