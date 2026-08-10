@@ -7,7 +7,14 @@ import {
   jest,
 } from '@jest/globals'
 import { existsSync } from 'node:fs'
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import {
+  mkdir,
+  mkdtemp,
+  readFile,
+  rm,
+  symlink,
+  writeFile,
+} from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
@@ -147,6 +154,22 @@ describe('staging the prebuilt entry', () => {
       code: 'MCP_ENTRY_STAGING_PATH_TAKEN',
       message: expect.stringContaining('serverless-mcp'),
     })
+  })
+
+  // Judged by following the link, an empty target directory would read as
+  // "ours to use" - and both the staging write and the removal afterwards
+  // would then land outside the service directory.
+  it('refuses to stage over a symlink at the staging path', async () => {
+    const target = path.join(serviceDir, 'elsewhere')
+    await mkdir(target)
+    await symlink(target, path.join(serviceDir, 'serverless-mcp'), 'dir')
+    await expect(
+      stageEntry({ serviceDir, servicePackage: {}, source }),
+    ).rejects.toMatchObject({
+      code: 'MCP_ENTRY_STAGING_PATH_TAKEN',
+      message: expect.stringContaining('symlink'),
+    })
+    expect(existsSync(path.join(target, 'entry.mjs'))).toBe(false)
   })
 
   // Editors, macOS and archive tools drop dot-files into any directory; they

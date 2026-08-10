@@ -5,8 +5,8 @@ One service, two selectable configs (`-c`), driven exclusively by `mcp.test.js`:
 - `serverless.yml` — esbuild bundling, two servers (`crm` with `state: true`, `docs` stateless)
 - `serverless-classic.yml` — `build.esbuild: false`, single stateful server
 
-The auth-chain variant lives in the sibling `../fixture-auth/` directory, not
-here, because two test files cannot share one fixture directory — see
+The enforcement-and-discovery variant lives in the sibling `../fixture-auth/`
+directory, not here, because two test files cannot share one fixture directory — see
 "One suite per fixture directory" below and `../fixture-auth/README.md`.
 
 Constraints for suites using this fixture:

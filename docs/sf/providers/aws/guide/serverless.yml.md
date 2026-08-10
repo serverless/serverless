@@ -1661,7 +1661,7 @@ sandboxes:
 
 ## MCP Servers
 
-Host [Model Context Protocol servers](./mcp.md) written against the official MCP TypeScript SDK. The `mcp` top-level property defines one or more servers; each becomes a Lambda function served at `/<name>/mcp` on the service's API Gateway REST API, with response streaming and packaging handled by the Framework — plus bearer-token verification and OAuth protected-resource discovery when `auth` is configured, and a provisioned signing key when `state` is enabled. `serverless deploy` and `serverless info` print each server's URL, and `serverless logs -f <name>` works by bare server name. See the [complete documentation](./mcp.md) for all options.
+Host [Model Context Protocol servers](./mcp.md) written against the official MCP TypeScript SDK. The `mcp` top-level property defines one or more servers; each becomes a Lambda function served at `/<name>/mcp` on the service's API Gateway REST API, with response streaming and packaging handled by the Framework — plus an API Gateway authorizer on the route when `authorizer` is set, the OAuth protected-resource discovery document when `oauthDiscovery` is set, and a provisioned signing key when `state` is enabled. `serverless deploy` and `serverless info` print each server's URL, and `serverless logs -f <name>` works by bare server name. See the [complete documentation](./mcp.md) for all options.
 
 ```yml
 # serverless.yml
@@ -1678,10 +1678,12 @@ mcp:
       memorySize: 1024
       environment:
         ORDERS_TABLE: !Ref OrdersTable
-      auth: # optional OIDC bearer-token enforcement
+      authorizer: verifyToken # rejects before invoke — string | http-event-style object | aws_iam
+      oauthDiscovery: # publishes RFC 9728 discovery metadata (advertisement only)
+        # The issuing authorization server: a literal https URL, or a
+        # CloudFormation intrinsic when the issuer is created by this stack
+        # (e.g. !Sub 'https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}')
         issuer: https://example.us.auth0.com
-        audiences:
-          - https://mcp.example.com
       state: true # signing key for elicitation round trips
 ```
 

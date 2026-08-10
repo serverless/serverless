@@ -25,8 +25,8 @@ const environmentWithoutMcpVariables = () =>
   )
 
 // The entry is built ahead of time and the resulting single file is all the
-// artifact carries: the user's project never installs the MCP SDK, Hono, jose
-// or the AWS SDK clients the entry uses. That makes "self-contained" a property
+// artifact carries: the user's project never installs the MCP SDK, Hono or the
+// AWS SDK clients the entry uses. That makes "self-contained" a property
 // the build has to be checked for, not one the source can express — a stray
 // dependency would only surface as ERR_MODULE_NOT_FOUND in a deployed function.
 describe('mcp entry build', () => {

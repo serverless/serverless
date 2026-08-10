@@ -118,10 +118,10 @@ const fullyValidMcp = {
     docs: { server: 'src/docs.mjs' },
     'support-bot_2': {
       server: 'src/support.mjs',
-      auth: {
+      authorizer: 'myAuthorizer',
+      oauthDiscovery: {
         issuer: 'https://example.auth0.com/',
-        audiences: ['https://mcp.example.com'],
-        authorizer: 'myAuthorizer',
+        publicUrl: 'https://mcp.example.com',
       },
       timeout: 300,
       memorySize: 1024,
@@ -130,6 +130,10 @@ const fullyValidMcp = {
     },
   },
 }
+
+const withServerConfig = (config) => ({
+  servers: { docs: { server: 'src/docs.mjs', ...config } },
+})
 
 describe('mcp schema (real config-schema-handler)', () => {
   it('accepts a fully populated mcp block', async () => {
@@ -161,62 +165,203 @@ describe('mcp schema (real config-schema-handler)', () => {
     )
   })
 
-  it('rejects `auth` without `audiences`', async () => {
-    const message = await validateMcp({
-      servers: {
-        docs: {
-          server: 'src/docs.mjs',
-          auth: { issuer: 'https://example.auth0.com/' },
-        },
+  it.each([
+    ['a user authorizer function name', 'myAuthorizer'],
+    ['the `aws_iam` shorthand', 'aws_iam'],
+  ])('accepts a string `authorizer` naming %s', async (_label, authorizer) => {
+    expect(await validateMcp(withServerConfig({ authorizer }))).toBeNull()
+  })
+
+  it.each([
+    ['a request-type authorizer function', { name: 'myAuthorizer' }],
+    [
+      'a fully specified request-type authorizer',
+      {
+        name: 'myAuthorizer',
+        type: 'request',
+        identitySource: 'method.request.header.Authorization',
+        identityValidationExpression: '^Bearer .+$',
+        resultTtlInSeconds: 300,
       },
-    })
+    ],
+    [
+      'a Cognito user pool with scopes',
+      {
+        arn: 'arn:aws:cognito-idp:us-east-1:123456789012:userpool/us-east-1_ab1',
+        scopes: ['profile', 'openid'],
+      },
+    ],
+    [
+      'a Cognito user pool declared in this same stack',
+      {
+        arn: { 'Fn::GetAtt': ['Pool', 'Arn'] },
+        scopes: ['profile', { Ref: 'ExtraScope' }],
+      },
+    ],
+    ['an existing authorizer id', { authorizerId: 'abc123' }],
+    ['an authorizer id from an intrinsic', { authorizerId: { Ref: 'MyAuth' } }],
+    [
+      'a Cognito authorizer managed outside this service',
+      { name: 'shared', claims: ['email'], managedExternally: true },
+    ],
+  ])('accepts an object `authorizer` for %s', async (_label, authorizer) => {
+    expect(await validateMcp(withServerConfig({ authorizer }))).toBeNull()
+  })
+
+  // The string branch carries `minLength`, so an empty string cannot slip
+  // through as "no authorizer" - `authorizer` is simply omitted for that.
+  it('rejects an empty string `authorizer`', async () => {
+    const message = await validateMcp(withServerConfig({ authorizer: '' }))
     expect(message).toContain(
-      `at 'mcp.servers.docs.auth': must have required property 'audiences'`,
+      `at 'mcp.servers.docs.authorizer': must NOT have fewer than 1 characters`,
     )
   })
 
-  it('rejects `auth` without `issuer`', async () => {
-    const message = await validateMcp({
-      servers: {
-        docs: {
-          server: 'src/docs.mjs',
-          auth: { audiences: ['https://mcp.example.com'] },
-        },
-      },
-    })
+  // `awsArn` widens `arn` to intrinsics, but its string form still has to look
+  // like an ARN.
+  it('rejects a non-ARN string `authorizer.arn`', async () => {
+    const message = await validateMcp(
+      withServerConfig({ authorizer: { arn: 'not-an-arn' } }),
+    )
     expect(message).toContain(
-      `at 'mcp.servers.docs.auth': must have required property 'issuer'`,
+      `at 'mcp.servers.docs.authorizer.arn': unsupported string format`,
     )
   })
 
-  it('rejects an empty `auth.audiences` array', async () => {
-    const message = await validateMcp({
-      servers: {
-        docs: {
-          server: 'src/docs.mjs',
-          auth: { issuer: 'https://example.auth0.com/', audiences: [] },
-        },
-      },
-    })
+  it('rejects an unknown key inside an object `authorizer`', async () => {
+    const message = await validateMcp(
+      withServerConfig({ authorizer: { name: 'myAuthorizer', issuer: 'x' } }),
+    )
     expect(message).toContain(
-      `at 'mcp.servers.docs.auth.audiences': must NOT have fewer than 1 items`,
+      `at 'mcp.servers.docs.authorizer': unrecognized property 'issuer'`,
     )
   })
 
-  it('rejects a non-https `auth.issuer`', async () => {
-    const message = await validateMcp({
-      servers: {
-        docs: {
-          server: 'src/docs.mjs',
-          auth: {
-            issuer: 'http://example.auth0.com/',
-            audiences: ['https://mcp.example.com'],
-          },
-        },
-      },
-    })
+  it('rejects an out-of-range `authorizer.resultTtlInSeconds`', async () => {
+    const message = await validateMcp(
+      withServerConfig({ authorizer: { name: 'a', resultTtlInSeconds: 3601 } }),
+    )
     expect(message).toContain(
-      `at 'mcp.servers.docs.auth.issuer': must match pattern "^https://"`,
+      `at 'mcp.servers.docs.authorizer.resultTtlInSeconds': must be <= 3600`,
+    )
+  })
+
+  it.each([
+    ['without `publicUrl`', { issuer: 'https://example.auth0.com/' }],
+    [
+      'with `publicUrl`',
+      {
+        issuer: 'https://example.auth0.com/',
+        publicUrl: 'https://mcp.example.com',
+      },
+    ],
+  ])('accepts `oauthDiscovery` %s', async (_label, oauthDiscovery) => {
+    expect(await validateMcp(withServerConfig({ oauthDiscovery }))).toBeNull()
+  })
+
+  // A same-stack authorization server - a Cognito pool created in this
+  // service's own `resources:` - has no literal URL at package time, so the
+  // issuer accepts the intrinsics that name one.
+  it.each([
+    [
+      'an Fn::Sub',
+      {
+        'Fn::Sub':
+          'https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}',
+      },
+    ],
+    ['a Ref', { Ref: 'IssuerParameter' }],
+    ['an Fn::GetAtt', { 'Fn::GetAtt': ['UserPool', 'ProviderURL'] }],
+    ['an Fn::ImportValue', { 'Fn::ImportValue': 'shared-issuer' }],
+  ])(
+    'accepts an `oauthDiscovery.issuer` that is %s',
+    async (_label, issuer) => {
+      expect(
+        await validateMcp(withServerConfig({ oauthDiscovery: { issuer } })),
+      ).toBeNull()
+    },
+  )
+
+  // `publicUrl` is the external front door and is printed in the endpoint
+  // summary, so it stays literal even though the issuer beside it does not.
+  it('rejects an intrinsic `oauthDiscovery.publicUrl`', async () => {
+    const message = await validateMcp(
+      withServerConfig({
+        oauthDiscovery: {
+          issuer: 'https://example.auth0.com/',
+          publicUrl: { Ref: 'DomainName' },
+        },
+      }),
+    )
+    expect(message).toContain(`at 'mcp.servers.docs.oauthDiscovery.publicUrl'`)
+  })
+
+  it('rejects `oauthDiscovery` without `issuer`', async () => {
+    const message = await validateMcp(
+      withServerConfig({
+        oauthDiscovery: { publicUrl: 'https://mcp.example.com' },
+      }),
+    )
+    expect(message).toContain(
+      `at 'mcp.servers.docs.oauthDiscovery': must have required property 'issuer'`,
+    )
+  })
+
+  it('rejects a non-https `oauthDiscovery.publicUrl`', async () => {
+    const message = await validateMcp(
+      withServerConfig({
+        oauthDiscovery: {
+          issuer: 'https://example.auth0.com/',
+          publicUrl: 'http://example.auth0.com/',
+        },
+      }),
+    )
+    expect(message).toContain(
+      `at 'mcp.servers.docs.oauthDiscovery.publicUrl': must match pattern "^https://"`,
+    )
+  })
+
+  // The issuer accepts an intrinsic beside the literal, so a non-https literal
+  // fails the whole `anyOf` rather than one pattern - which the handler
+  // reports the way it reports every other union, as an unsupported format
+  // (the same message a bad `authorizer.arn` gets). `validate.js` is what
+  // spells out the fix.
+  it('rejects a non-https `oauthDiscovery.issuer`', async () => {
+    const message = await validateMcp(
+      withServerConfig({
+        oauthDiscovery: { issuer: 'http://example.auth0.com/' },
+      }),
+    )
+    expect(message).toContain(`at 'mcp.servers.docs.oauthDiscovery.issuer':`)
+  })
+
+  it('rejects an unknown key inside `oauthDiscovery`', async () => {
+    const message = await validateMcp(
+      withServerConfig({
+        oauthDiscovery: {
+          issuer: 'https://example.auth0.com/',
+          audiences: ['https://mcp.example.com'],
+        },
+      }),
+    )
+    expect(message).toContain(
+      `at 'mcp.servers.docs.oauthDiscovery': unrecognized property 'audiences'`,
+    )
+  })
+
+  // The hosted `auth` block is gone, not renamed: a service still carrying one
+  // has to be told, rather than have it silently ignored.
+  it('rejects the former `auth` block', async () => {
+    const message = await validateMcp(
+      withServerConfig({
+        auth: {
+          issuer: 'https://example.auth0.com/',
+          audiences: ['https://mcp.example.com'],
+        },
+      }),
+    )
+    expect(message).toContain(
+      `at 'mcp.servers.docs': unrecognized property 'auth'`,
     )
   })
 
@@ -244,24 +389,6 @@ describe('mcp schema (real config-schema-handler)', () => {
     })
     expect(message).toContain(
       `at 'mcp.servers.docs': unrecognized property 'nope'`,
-    )
-  })
-
-  it('rejects an unknown key inside `auth`', async () => {
-    const message = await validateMcp({
-      servers: {
-        docs: {
-          server: 'src/docs.mjs',
-          auth: {
-            issuer: 'https://example.auth0.com/',
-            audiences: ['https://mcp.example.com'],
-            scopes: ['read'],
-          },
-        },
-      },
-    })
-    expect(message).toContain(
-      `at 'mcp.servers.docs.auth': unrecognized property 'scopes'`,
     )
   })
 
@@ -366,7 +493,12 @@ describe('mcp schema factory', () => {
     const serverOf = (schema) => schema.properties.servers.additionalProperties
     const [a, b] = [mcpSchema(), mcpSchema()]
     expect(serverOf(a)).not.toBe(serverOf(b))
-    expect(serverOf(a).properties.auth).not.toBe(serverOf(b).properties.auth)
+    expect(serverOf(a).properties.oauthDiscovery).not.toBe(
+      serverOf(b).properties.oauthDiscovery,
+    )
+    expect(serverOf(a).properties.authorizer.anyOf).not.toBe(
+      serverOf(b).properties.authorizer.anyOf,
+    )
     expect(serverOf(a).properties.state.anyOf).not.toBe(
       serverOf(b).properties.state.anyOf,
     )

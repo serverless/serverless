@@ -3,9 +3,9 @@ name: serverless-mcp
 description: >-
   Host Model Context Protocol (MCP) servers on AWS with the Serverless
   Framework's built-in MCP support — an official-SDK server module deployed
-  to AWS Lambda behind a streaming API Gateway REST endpoint, with OAuth bearer
-  auth, protected-resource discovery, packaging and elicitation state handled
-  for you. Use whenever the user wants to deploy, host, secure or debug an MCP
+  to AWS Lambda behind a streaming API Gateway REST endpoint, with gateway
+  access control, OAuth protected-resource discovery, packaging and elicitation
+  state handled for you. Use whenever the user wants to deploy, host, secure or debug an MCP
   server on AWS or Lambda, writes or edits an `mcp:` block in serverless.yml,
   exposes tools, resources or prompts to Claude or another AI client over HTTP,
   or hits an `MCP_*` configuration error (MCP_UNSUPPORTED_NODE_RUNTIME,
@@ -56,8 +56,12 @@ mcp:
   with your `http` functions and their custom domain
 - response streaming end to end, including the integration timeout that has to
   move together with the function timeout
-- with `auth`: bearer-token verification, the spec's `401` + `WWW-Authenticate`
-  flow, and the unauthenticated RFC 9728 protected-resource metadata route
+- with `authorizer`: your access control — a Lambda authorizer, a Cognito user
+  pool, or IAM — wired to the MCP route, so rejected requests never invoke the
+  server
+- with `oauthDiscovery`: the RFC 9728 protected-resource metadata document,
+  served by API Gateway itself with no Lambda behind it — advertisement, never
+  enforcement
 - packaging: your module, built the way the service builds anything, plus a
   prebuilt entry staged into the artifact that bridges Lambda's streaming
   runtime to the SDK handler's `fetch`
@@ -71,7 +75,8 @@ work with no special casing.
 ## The loop
 
 Define the success signal first — a `tools/list` that returns your tool names,
-a `tools/call` that returns the right answer, a `401` carrying the metadata URL.
+a `tools/call` that returns the right answer, a `401` that never invoked the
+function.
 "The YAML looks right" and "the deploy printed an endpoint" are not success
 signals: the endpoint exists before the protocol works.
 
@@ -110,6 +115,13 @@ strips `devDependencies` from the artifact.
 the push-style `elicitInput()`. Details and the rest of the post-training-cutoff
 surface are in `references/server-code.md`.
 
+**Enforcement is yours; discovery is advertisement.** The Framework never
+verifies tokens. `authorizer` rejects at the gateway before the invoke, your
+module's own gate (the SDK's `requireBearerAuth`) carries the spec's semantics
+— scopes, challenges, `ctx.http.authInfo` — and `oauthDiscovery` only tells
+clients where to log in: advertise only what your enforcement honors. The two
+keys are independent; with neither, the endpoint is public and nothing warns.
+
 **Evidence, not vibes.** Never call a server working from reading the config.
 Trust an observed JSON-RPC result, a status code, or a log line.
 
@@ -118,7 +130,7 @@ the packaging integration stands down and warns; deploy normally to exercise a
 server.
 
 **Don't hand-wire what the Framework wires.** Your own `http` event, streaming
-handler or bearer-auth layer around an `mcp` server duplicates work already
+handler or discovery route around an `mcp` server duplicates work already
 done — and an `http` event on an MCP route's path is rejected outright.
 Per-server `vpc`, `layers`, `provisionedConcurrency` and `role` are not
 configurable in this release.

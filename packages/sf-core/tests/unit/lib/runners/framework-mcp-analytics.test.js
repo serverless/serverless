@@ -23,9 +23,9 @@ test('attaches mcp block when config defines MCP servers', () => {
         crm: {
           server: 'src/crm.mjs',
           state: true,
-          auth: {
+          authorizer: 'aws_iam',
+          oauthDiscovery: {
             issuer: 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_x',
-            audiences: ['client-id'],
           },
         },
       },
@@ -33,7 +33,10 @@ test('attaches mcp block when config defines MCP servers', () => {
   })
   expect(details.mcp).toEqual({
     count: 1,
-    auth: 1,
+    authorizer: 1,
+    authorizerTypes: ['aws_iam'],
+    oauthDiscovery: 1,
+    oauthDiscoveryUrlSources: ['stage'],
     issuerTypes: ['cognito'],
     state: { true: 1 },
     endpointType: 'REGIONAL',

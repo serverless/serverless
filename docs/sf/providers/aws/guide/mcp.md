@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework - MCP Servers
-description: How to host Model Context Protocol (MCP) servers on AWS Lambda with the Serverless Framework — streaming endpoints, OAuth, and packaging handled for you
+description: How to host Model Context Protocol (MCP) servers on AWS Lambda with the Serverless Framework — streaming endpoints, authorizers, OAuth discovery, and packaging handled for you
 short_title: MCP Servers
 keywords:
   [
@@ -28,7 +28,8 @@ You write one module: a standard SDK server, with no Lambda concepts and no Serv
 
 - the HTTPS endpoint and its route, on the same REST API as the rest of your service
 - response streaming, wired end to end — including the integration timeout that has to move with the function timeout
-- when `auth` is configured: bearer-token verification and the spec's `401` + `WWW-Authenticate` flow, plus the OAuth protected-resource discovery document
+- when `authorizer` is set: your access control — a Lambda authorizer, a Cognito user pool, or IAM — wired to the MCP route, so rejected requests never invoke the server
+- when `oauthDiscovery` is set: the OAuth protected-resource discovery document (RFC 9728), served by API Gateway itself with no Lambda behind it
 - packaging: your module is built and zipped alongside a prebuilt Lambda entry that bridges Lambda's streaming runtime to the SDK's web-standard `fetch` handler
 - when `state` is enabled: the signing key for elicitation round trips, provisioned in your stack
 
@@ -38,9 +39,10 @@ Each server becomes a normal function in your service model, so `serverless logs
 
 ## Quick Start
 
-**1. Install the SDK:**
+**1. Install the SDK** — in a fresh directory, initialize the package first:
 
 ```bash
+npm init -y
 npm install @modelcontextprotocol/server zod
 ```
 
@@ -173,11 +175,10 @@ mcp:
       server: src/server.mjs
 
       # optional
-      auth:
-        issuer: https://example.us.auth0.com
-        audiences:
-          - https://mcp.example.com
-        authorizer: myAuthorizer
+      authorizer: verifyToken       # string | http-event-style object | aws_iam
+      oauthDiscovery:
+        issuer: https://example.us.auth0.com # or a CloudFormation intrinsic
+        publicUrl: https://mcp.example.com # literal only
       timeout: 120                  # seconds, 1–900
       memorySize: 1024              # MB, 128–10240
       environment:
@@ -185,17 +186,17 @@ mcp:
       state: true                   # true | literal SSM or Secrets Manager ARN
 ```
 
-| Property          | Type              | Default          | Description                                                                                                                                                                                                                                                                                                                              |
-| ----------------- | ----------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `server`          | string            | — **(required)** | Path to a module, relative to `serverless.yml`, whose default export is the result of `createMcpHandler()`.                                                                                                                                                                                                                              |
-| `auth`            | object            | —                | OIDC bearer-token enforcement plus the OAuth protected-resource discovery route. `issuer` and `audiences` are both required when `auth` is set. See [Authentication](#authentication).                                                                                                                                                   |
-| `auth.issuer`     | string            | — **(required)** | `https://` URL of any OpenID Connect provider. Its JWKS is discovered on first use and cached for the container.                                                                                                                                                                                                                         |
-| `auth.audiences`  | string[]          | — **(required)** | Accepted audience values, at least one. For Amazon Cognito issuers, list your app client IDs. See [Audiences](#audiences).                                                                                                                                                                                                               |
-| `auth.authorizer` | string            | —                | Name of one of your own authorizer functions, wired to the MCP route so unauthorized requests are rejected before the server is invoked. The discovery route stays unauthenticated. See [Rejecting before invoke](#rejecting-before-invoke).                                                                                             |
-| `timeout`         | integer (seconds) | `60`             | Maximum tool duration, 1–900. Sets the function timeout **and** the streaming integration timeout together, so the two cannot drift apart. The official MCP SDK client also waits 60 seconds per request by default (configurable per call) — a tool that legitimately runs longer needs the client's timeout raised alongside this one. |
-| `memorySize`      | integer (MB)      | `1024`           | Function memory, 128–10240. Falls back to `provider.memorySize` when set.                                                                                                                                                                                                                                                                |
-| `environment`     | object            | `{}`             | Environment variables for the function, same shape as on a function — CloudFormation intrinsics included.                                                                                                                                                                                                                                |
-| `state`           | boolean \| string | —                | Signing key for elicitation round trips. `true` provisions one in your stack; a literal SSM parameter or Secrets Manager secret ARN brings your own. See [Elicitation state](#elicitation-state).                                                                                                                                        |
+| Property                   | Type                | Default          | Description                                                                                                                                                                                                                                                                                                                                                                                    |
+| -------------------------- | ------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server`                   | string              | — **(required)** | Path to a module, relative to `serverless.yml`, whose default export is the result of `createMcpHandler()`.                                                                                                                                                                                                                                                                                    |
+| `authorizer`               | string \| object    | —                | Access control on the MCP route, enforced by API Gateway before the server is invoked. A string names one of your own authorizer functions; an object takes the same shape as an `http` event's `authorizer` (Cognito user pools and existing authorizers included); `aws_iam` requires SigV4-signed callers. See [Authentication](#authentication).                                           |
+| `oauthDiscovery`           | object              | —                | Publishes this server's OAuth protected-resource metadata document (RFC 9728) so clients can discover where to log in. Advertisement only — it enforces nothing. See [OAuth discovery](#oauth-discovery).                                                                                                                                                                                      |
+| `oauthDiscovery.issuer`    | string \| intrinsic | — **(required)** | `https://` URL of the authorization server that issues this server's tokens, published as the document's `authorization_servers` entry — either the literal URL, or a CloudFormation intrinsic resolving to it when the authorization server is created by this same stack. See [An issuer created by the same stack](#an-issuer-created-by-the-same-stack).                                   |
+| `oauthDiscovery.publicUrl` | string              | —                | The public `https://` URL clients reach this service on — scheme, host, and any base path, everything before `/<name>/mcp`. Always a literal URL, with no query string. Set it when the domain is configured outside this service; otherwise it is derived from [`provider.domain`](./domains.md), falling back to the stage URL. See [Where the document points](#where-the-document-points). |
+| `timeout`                  | integer (seconds)   | `60`             | Maximum tool duration, 1–900. Sets the function timeout **and** the streaming integration timeout together, so the two cannot drift apart. The official MCP SDK client also waits 60 seconds per request by default (configurable per call) — a tool that legitimately runs longer needs the client's timeout raised alongside this one.                                                       |
+| `memorySize`               | integer (MB)        | `1024`           | Function memory, 128–10240. Falls back to `provider.memorySize` when set.                                                                                                                                                                                                                                                                                                                      |
+| `environment`              | object              | `{}`             | Environment variables for the function, same shape as on a function — CloudFormation intrinsics included.                                                                                                                                                                                                                                                                                      |
+| `state`                    | boolean \| string   | —                | Signing key for elicitation round trips. `true` provisions one in your stack; a literal SSM parameter or Secrets Manager secret ARN brings your own. See [Elicitation state](#elicitation-state).                                                                                                                                                                                              |
 
 The function behind each server is an ordinary function in the service model, so service-wide provider settings apply to it as they do to your own functions — `provider.architecture`, `provider.vpc`, `provider.layers` — and its permissions are shaped through `provider.iam`: extend the generated role with `provider.iam.role.statements`, give every function its own role with `provider.iam.role.mode: perFunction`, or bring your own role ([with one grant to add when `state` is set](#permissions-with-a-role-you-bring)).
 
@@ -228,7 +229,13 @@ Either way, **a tool that runs longer than ~300 seconds has to emit progress** t
 ```js
 server.registerTool(
   'reindex',
-  { description: 'Rebuild the search index' },
+  {
+    description: 'Rebuild the search index',
+    // Required even for a tool with no inputs: without `inputSchema` the SDK
+    // passes the context as the callback's ONLY argument, so an
+    // `(args, ctx)` callback reads `ctx` as undefined.
+    inputSchema: z.object({}),
+  },
   async (_args, ctx) => {
     // The token is an opaque string OR number the client chose — the SDK
     // client uses its numeric message id, so 0 is a real value. Check
@@ -254,49 +261,155 @@ Progress also makes the client's experience better long before the idle bound ma
 
 ## Authentication
 
-Add `auth` and the server enforces OAuth 2.1 bearer tokens the way the MCP specification describes: a request without a valid token gets a `401` carrying a `WWW-Authenticate` challenge that points at this server's protected-resource metadata, and the metadata document names your authorization server.
+**The Framework never verifies tokens.** Enforcement is yours, and two independent per-server keys carry it:
+
+- **`authorizer`** — access control, enforced by API Gateway in front of the function. Same shapes as an `http` event's `authorizer`.
+- **`oauthDiscovery`** — advertisement, so clients can find your authorization server and log in. It enforces nothing. See [OAuth discovery](#oauth-discovery).
+
+Any combination is valid: an authorizer with no discovery (machine-to-machine callers that already hold tokens), discovery with no authorizer (your module verifies tokens itself), both, or neither. When neither is set, the endpoint is public, exactly like an `http` event with no authorizer. Nothing warns about it, so treat an unauthenticated MCP server the way you would treat an unauthenticated HTTP API: only for tools whose whole surface is safe for anonymous callers.
+
+There are three ways to enforce, and they compose.
+
+### Rejecting at the gateway
+
+`authorizer` wires your access control to the MCP route, so API Gateway rejects unauthorized requests before the server is invoked — the server function never runs for a rejected request. What rejection itself costs depends on the shape: Cognito user pools and `aws_iam` are validated by API Gateway itself, with no invocation anywhere, while a Lambda authorizer (the string form and most object forms) is its own invocation — far cheaper than running the server, but not zero, and cached with a caveat: the per-token cache under `resultTtlInSeconds` (300 seconds by default) holds returned policy documents, so accepted callers ride it, while an authorizer that rejects by throwing — the style that answers `401` — returns nothing to cache and is re-invoked for every rejected request. (Returning an explicit Deny policy caches too, but API Gateway answers it with `403` instead of the `401` that starts a client's OAuth flow.) Requests that omit the identity source are rejected without invoking even the authorizer. A string names one of your own authorizer functions:
+
+```yml
+functions:
+  verifyToken:
+    handler: src/authorizer.handler
+
+mcp:
+  servers:
+    crm:
+      server: src/server.mjs
+      authorizer: verifyToken
+```
+
+A string compiles as a **`TOKEN` authorizer**, the same default an `http` event's `authorizer: <name>` gets. A `TOKEN` authorizer receives only the `Authorization` header's value, as `event.authorizationToken` — there is no `event.headers`, so an authorizer function written against the full request event finds nothing where it looks and rejects every call. If your function reads headers, ask for the request event with `type: request`:
 
 ```yml
 mcp:
   servers:
     crm:
       server: src/server.mjs
-      auth:
-        issuer: https://example.us.auth0.com
-        audiences:
-          - https://mcp.example.com
+      authorizer:
+        name: verifyToken
+        type: request
+        identitySource: method.request.header.Authorization
 ```
 
-Verification happens in the function, before your module's handler runs: the token is checked against the issuer's JWKS (discovered on first use and cached for the container), and the verified identity reaches your tools as `ctx.http.authInfo` with no code changes. `audiences` is required alongside `issuer` — verifying only the issuer would accept any token that issuer ever minted, for any application.
+The object form accepts everything an `http` event's `authorizer` object does — `name`, `arn`, `authorizerId`, `type`, `identitySource`, `identityValidationExpression`, `resultTtlInSeconds`, `scopes`, `managedExternally` — and compiles through the same machinery, so the [API Gateway event documentation](../events/apigateway.md#http-endpoints-with-custom-authorizers) applies verbatim. The one exception is `claims`, which only does anything under API Gateway's `lambda` integration — an integration MCP routes never compile, since they are always the streaming proxy. With a literal Cognito ARN the combination is rejected at package time; with a same-stack `Fn::GetAtt` ARN it is accepted and silently does nothing. Leave it out. Three more shapes are rejected at validation time with `MCP_AUTHORIZER_INVALID`, each with the fix in the message: an `authorizerId` without a `type` beside it (API Gateway requires both to attach an existing authorizer); an object naming none of `name`, `arn`, or `authorizerId` — unless its `type` is `aws_iam`, which needs no identifier; and a **string** authorizer that carries a colon — a string always names a function, so an ARN goes in the object form's `arn`, with a `name` of your own beside a Cognito pool ARN. `type` is matched case-insensitively (`request`, `REQUEST`, and `Request` are all the `REQUEST` type), and the canonical spelling API Gateway expects is written into the template for you — with one contradiction refused: `type: aws_iam` beside an `authorizerId`, because IAM authorization has API Gateway check the caller itself, with no authorizer resource for the id to attach.
 
-Setting `auth` and doing your own token checks inside `server.mjs` are alternatives. Pick one.
+An `arn` written as a CloudFormation intrinsic — a pool or function created by this same stack — needs a `name` beside it: the authorizer's CloudFormation name is otherwise derived from the ARN, and there is no ARN to read until the stack is created. And authorizer names share one CloudFormation namespace across the whole REST API: two servers may share one authorizer by writing the same definition, but two _different_ authorizers — on two servers, or on a server and one of your `http` events — whose names compile to the same logical id are rejected with `MCP_AUTHORIZER_NAME_COLLISION`, because only one authorizer resource would be created and one of the two routes would silently be guarded by the other's.
 
-When `auth` is not set, the endpoint is public, exactly like an `http` event with no authorizer. Nothing warns about it, so treat an unauthenticated MCP server the way you would treat an unauthenticated HTTP API: only for tools whose whole surface is safe for anonymous callers.
-
-### Audiences
-
-The audience rule is the same one AWS's managed JWT authorizers use:
-
-- if the token carries an `aud` claim, it must match one of `audiences` — `aud` is authoritative and never bypassed
-- only when a token has no `aud` at all is its `client_id` claim matched against `audiences` instead
-
-That fallback exists because **Amazon Cognito access tokens carry `client_id` and no `aud`**. For a Cognito issuer, list your **app client IDs** in `audiences`:
+**A Cognito user pool needs no authorizer function at all** — point `arn` at the pool and API Gateway validates the JWT itself:
 
 ```yml
-auth:
-  issuer: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_ab12cd34e
-  audiences:
-    - 1example23client45id67890
+mcp:
+  servers:
+    crm:
+      server: src/server.mjs
+      authorizer:
+        name: crmPool
+        arn: arn:aws:cognito-idp:us-east-1:123456789012:userpool/us-east-1_ab12cd34e
+        scopes:
+          - crm/read
 ```
 
-Two Cognito notes:
+The `name` is required beside a literal pool ARN — it becomes the authorizer's CloudFormation name, and the one derived from a pool ARN otherwise is not a valid identifier, so leaving it off is rejected at validation time with `MCP_AUTHORIZER_INVALID`. With `scopes`, callers send a Cognito **access token** whose `scope` claim covers them; without `scopes`, API Gateway validates the ID token instead. Acceptance is scoped to the pool and the scopes, never to a client: a token from any app client of the same pool carrying a listed scope is accepted, so per-client access control needs distinct scopes (or distinct pools). A pool created in the same service's `resources` is referenced the way an `http` event references it — `name` plus `type: COGNITO_USER_POOLS`, with the `arn` as a `Fn::GetAtt` — and its issuer URL, equally nonexistent before the deploy, is written as an intrinsic too when pairing with `oauthDiscovery`: see [An issuer created by the same stack](#an-issuer-created-by-the-same-stack). One thing to know when pairing Cognito with `oauthDiscovery`: Cognito has no dynamic client registration, so it fits pre-registered clients and machine-to-machine callers well — the full discover-then-register client flow needs a provider that supports registration (Auth0, Okta, Entra ID, and similar).
 
-- **Send the access token, not the ID token.** Cognito signs both with the same keys and the same issuer, and an ID token's `aud` _is_ the app client id — so the audience rule alone cannot tell them apart. A token that declares itself something other than an access token (`token_use`) is rejected.
-- **Cognito has no dynamic client registration.** It fits pre-registered clients and machine-to-machine callers well; the full discover-then-register client flow needs a provider that supports registration (Auth0, Okta, Entra ID, and similar).
+`authorizer: aws_iam` requires callers to SigV4-sign every request with AWS credentials. That is a coherent choice for infrastructure calling infrastructure — but it is not OAuth, and no interactive client can log in against it, so do not pair it with `oauthDiscovery`: advertise only what your enforcement honors.
 
-### Discovery
+Whatever the authorizer rejects gets API Gateway's own bare `401` or `403`, not the MCP specification's challenge. That is enough for the official SDK client, which starts its OAuth flow on any bare `401` — see [what clients do with it](#what-clients-do-with-it).
 
-With `auth` set, the Framework also provisions an unauthenticated route serving the RFC 9728 protected-resource metadata document:
+### Verifying in your module
+
+To verify tokens where the spec's semantics live — per-scope `403`s, `WWW-Authenticate` challenges, the verified identity available to your tools — gate the handler inside your module with the SDK's own `requireBearerAuth`, and default-export the gated `fetch`:
+
+```js
+// src/server.mjs
+import {
+  createMcpHandler,
+  McpServer,
+  OAuthError,
+  OAuthErrorCode,
+  requireBearerAuth,
+} from '@modelcontextprotocol/server'
+
+const handler = createMcpHandler(() => {
+  const server = new McpServer({ name: 'crm', version: '1.0.0' })
+  // ...register tools...
+  return server
+})
+
+const gate = requireBearerAuth({
+  // Your verification: check the token against your issuer (JWKS, introspection,
+  // your library of choice) and return the SDK's AuthInfo shape. Populate
+  // `expiresAt` — the gate rejects tokens without one.
+  verifier: {
+    async verifyAccessToken(token) {
+      try {
+        const { clientId, scopes, expiresAt } = await yourVerification(token)
+        return { token, clientId, scopes, expiresAt }
+      } catch {
+        // A failed verification must be thrown as the SDK's OAuthError: that
+        // is what the gate turns into the spec's `401` challenge — any other
+        // throw is answered as a `500 server_error` instead. This catch is
+        // total, so an issuer outage is also blamed on the token; a production
+        // verifier may prefer to let infrastructure failures surface as
+        // server errors.
+        throw new OAuthError(
+          OAuthErrorCode.InvalidToken,
+          'Token verification failed',
+        )
+      }
+    },
+  },
+  requiredScopes: ['crm/read'],
+  // The URL of the Framework-served discovery document, carried on the
+  // challenge. This front door renames the header in transit — see the
+  // delivery note below the example.
+  resourceMetadataUrl:
+    'https://mcp.example.com/.well-known/oauth-protected-resource/crm/mcp',
+})
+
+export default {
+  async fetch(request, options) {
+    const auth = await gate(request)
+    if (auth instanceof Response) return auth
+    return handler.fetch(request, { ...options, authInfo: auth })
+  },
+}
+```
+
+The default export still satisfies the module contract — an object exposing a web-standard `fetch` — so nothing about deployment changes. The gate answers rejected requests with the spec's `401` + `WWW-Authenticate` (or `403 insufficient_scope` when `requiredScopes` are missing), and on success the verified identity reaches your tools as `ctx.http.authInfo`. Forward the second `fetch` argument as shown: it carries the pre-parsed request body.
+
+One delivery note for this front door: REST API Gateway renames the challenge header in transit, so clients receive it as `x-amzn-remapped-www-authenticate` (AWS-documented, not configurable). A client that reads only `WWW-Authenticate` learns nothing from it — what carries clients into the login flow here is the `401` itself, which the official SDK client answers by probing the well-known discovery paths.
+
+The trade-off against a gateway authorizer is cost: every rejection here runs the full server function, where a gateway rejection stops at the authorizer — or, with Cognito or `aws_iam`, costs no invocation at all.
+
+### Combining both
+
+The two layers answer different needs, so the strongest setup uses both: a gateway authorizer that checks the token is present and plausibly valid — cheap rejection of floods before the server ever runs — and the in-module gate for the judgement that needs the spec's semantics: scopes, challenges, and `ctx.http.authInfo` for per-caller behavior inside tools.
+
+One boundary to know when combining them: API Gateway does forward a `request`-type authorizer's context into the function's event, but the Framework's entry never hands it to your module — your handler receives only the HTTP request itself. Identity your tools consume comes from the in-module gate's `ctx.http.authInfo`, not from the authorizer.
+
+---
+
+## OAuth discovery
+
+Enforcement rejects the requests you don't want; discovery is how the clients you do want find their way in. `oauthDiscovery` publishes this server's RFC 9728 protected-resource metadata document — the standard answer to "where do I log in?":
+
+```yml
+mcp:
+  servers:
+    crm:
+      server: src/server.mjs
+      authorizer: verifyToken
+      oauthDiscovery:
+        issuer: https://example.us.auth0.com
+```
 
 ```
 GET /.well-known/oauth-protected-resource/<name>/mcp
@@ -310,16 +423,55 @@ GET /.well-known/oauth-protected-resource/<name>/mcp
 }
 ```
 
-The document is built from the incoming request, so it is correct on whichever hostname the client used. Without `auth`, no discovery route is created at all — metadata with no authorization server behind it would only mislead clients.
+The route is served by **API Gateway itself** — a static response fixed at deploy time, with no Lambda behind it, so unauthenticated discovery probes never invoke anything, never cold-start anything, and cost nothing per request. It answers `GET`, plus the `OPTIONS` preflight a browser-based client sends (the SDK client puts `mcp-protocol-version` on metadata fetches, which triggers one), with `Access-Control-Allow-Origin: *` on both. Other methods get API Gateway's default `403` — without CORS headers, so a browser client that mistakenly `POST`s here sees an opaque CORS error rather than the status.
 
-**Auto-discovery does not work on the default endpoint** — for two independent reasons, one per class of client:
+The route deliberately never gets the server's `authorizer` — a client has to be able to read where to get a token before it has one. And discovery is advertisement, not enforcement: publishing this document does not protect the server. The coherence contract is yours — **advertise only what your enforcement honors**. `oauthDiscovery` without any `authorizer` is a legitimate setup ([your module enforcing tokens](#verifying-in-your-module) is invisible to the Framework), so it deploys without complaint; `serverless deploy --verbose` notes it as a reminder.
 
-- **Clients that probe by convention** — Claude Code is one — request `/.well-known/oauth-protected-resource/…` and its siblings relative to the **origin root**, and never read the `401` challenge at all. On a raw `execute-api` URL the metadata document sits under the stage prefix (`/<stage>/.well-known/…`), where no conventional probe looks. When every probe misses, such a client can quietly fall back to treating the server's own origin as the authorization server and open `<origin>/authorize` — a URL nothing serves — so the symptom is a sign-in page that never loads, not a clear error.
-- **Clients that follow the challenge** — the official SDK client is one — read the metadata URL out of `WWW-Authenticate`, and API Gateway REST renames that header to `x-amzn-Remapped-WWW-Authenticate` on proxy responses. That behavior is AWS-documented and not configurable, so the pointer never reaches them.
+Without `oauthDiscovery`, no discovery route exists at all — metadata with no authorization server behind it would only mislead clients.
 
-Two ways to get a client connected:
+### An issuer created by the same stack
 
-- **Put a custom domain in front, mapped at the root.** With [`provider.domain`](./domains.md) and no `basePath`, the stage prefix disappears and the metadata route sits at the domain root — exactly where the conventional probes look, which also covers challenge-following clients, since they probe the same paths when the header yields nothing:
+When the authorization server is a resource of this same service — a Cognito user pool declared under `resources` is the common case — its issuer URL does not exist until the stack is created, so there is no literal to write. Set `issuer` to a CloudFormation intrinsic instead, and the document is rendered with the real value at deploy time:
+
+```yml
+mcp:
+  servers:
+    crm:
+      server: src/server.mjs
+      authorizer:
+        name: crmPool
+        type: COGNITO_USER_POOLS
+        arn: !GetAtt UserPool.Arn
+      oauthDiscovery:
+        issuer: !Sub 'https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
+```
+
+One deploy publishes the finished document — no placeholder, and no second deploy to fill it in. `Ref`, `Fn::GetAtt`, `Fn::ImportValue`, `Fn::Join`, `Fn::Sub`, `Fn::Base64`, and `Fn::ToJsonString` are the accepted intrinsics.
+
+Validation covers what can be seen before CloudFormation resolves anything. An `Fn::Sub` written as a template string keeps the literal-issuer checks on its literal text: it must begin with `https://`, and no `$` or `#` may survive outside a `${...}` placeholder — including CloudFormation's `${!Literal}` escape, which renders as the literal text `${Literal}` and is rejected for the `$` it would put in the published document. Every other accepted shape — `Ref`, `Fn::GetAtt`, the `Fn::Sub` list form's variables, and the rest — resolves to a value only your stack can know, so it is passed through as written. Two consequences of those rules: an `Fn::Sub` whose entire template is one placeholder (`!Sub ${IssuerUrl}`) has no literal text to pass the `https://` check — when the whole URL comes from a single parameter, output, or resource attribute, name it directly with `Ref` or `Fn::GetAtt` instead; and a list-form `Fn::Sub` may not declare a variable named `RestApiId`, which the document's own rendering uses for this service's REST API id (`MCP_OAUTH_DISCOVERY_ISSUER_VARIABLE_COLLISION`).
+
+`publicUrl` stays a literal URL either way: it names the public front door already in place in front of this service — configured somewhere else by definition, never a resource this stack creates — and the deploy prints it in the endpoint summary, where an unresolved intrinsic has nothing to render it. It also carries no query string, because the server's route is appended to it: `https://mcp.acme.com/base?tenant=acme` would publish `…/base?tenant=acme/crm/mcp`, an address that reaches nothing.
+
+### Where the document points
+
+The document's `resource` is this server's own public URL, so the Framework has to know what that is. It resolves one base URL per server — and the deploy summary prints the endpoint from the same resolution, so the URL you see is the URL the document advertises:
+
+1. **`oauthDiscovery.publicUrl`**, when set — an `https://` URL, for a service fronted by something the Framework cannot see from your configuration: a CloudFront distribution, a domain managed in another service, or two REST domains (where it cannot pick one).
+2. **[`provider.domain`](./domains.md)** (or a single REST-facing entry under `provider.domains`), when exactly one custom domain fronts the service's REST API — including its `basePath`, since that prefix is stripped before requests reach the API and nothing downstream could recover it.
+3. **The stage URL** (`https://<api-id>.execute-api.<region>.amazonaws.com/<stage>` — the host suffix follows the AWS partition, so GovCloud and China regions get their own), as the fallback — with a warning, printed whenever the service is packaged or deployed, because a document living there cannot carry an interactive login (below). The warning names both ways out and repeats until one is taken.
+
+The document is rendered at deploy time from that answer, not from the incoming request — so once a domain fronts the service, point every client at the domain: a spec-conformant client that reaches the server on the old `execute-api` URL sees a `resource` naming a different origin than the one it called, and refuses the server.
+
+### What clients do with it
+
+With an `authorizer` on the MCP route and `oauthDiscovery` published, both classes of interactive client get from a rejected first request to a login:
+
+- **Clients that probe by convention** — Claude Code is one — request `/.well-known/oauth-protected-resource/…` and its siblings relative to the **origin root**, and never read response headers for a pointer.
+- **Clients built on the official SDK** start their OAuth flow on any bare `401` — API Gateway's authorizer rejection is enough, no `WWW-Authenticate` needed — and then probe the well-known paths, path-aware with a root fallback.
+
+Both sets of probes look under the origin root, which is what makes the endpoint's shape decisive:
+
+- **On a custom domain mapped at the root** — [`provider.domain`](./domains.md) with no `basePath` — the metadata route sits exactly where every probe looks, and interactive login works for both classes. A non-root `basePath` moves the document off the root again, so the root probe no longer finds it.
 
   ```yml
   provider:
@@ -327,51 +479,9 @@ Two ways to get a client connected:
     domain: mcp.example.com
   ```
 
-  A non-root `basePath` moves the document off the root again, so the root probe no longer finds it.
+- **On the raw `execute-api` URL, no client can discover.** The stage name is the URL's first path segment, so the document sits at `/<stage>/.well-known/…` — a place no conventional probe looks, and structurally not the origin-root layout RFC 9728 describes. A client whose probes all miss can quietly fall back to treating the server's own origin as the authorization server and open `<origin>/authorize` — a URL nothing serves — so the symptom is a sign-in page that never loads, not a clear error.
 
-- **Configure the client with the metadata URL**, for clients that accept one directly. The URL is the one shown above, including the stage: `https://<api-id>.execute-api.<region>.amazonaws.com/<stage>/.well-known/oauth-protected-resource/<name>/mcp`. Claude Code takes no such setting — for it, the custom domain is the way.
-
-When a custom domain fronts the service, the Framework tells the deployed server its public origin, so the URLs it advertises match the one clients use. From then on the domain is the endpoint: every advertised URL — including the metadata document's `resource` value — names the domain, so a client pointed at the old `execute-api` URL sees a `resource` that does not match the URL it called and, if it validates that (spec-conformant clients do), refuses the server. Point all clients at the domain once one is configured. If your service sits behind something the Framework cannot see — a CloudFront distribution, or two REST domains — set that origin yourself:
-
-```yml
-mcp:
-  servers:
-    crm:
-      server: src/server.mjs
-      environment:
-        SERVERLESS_MCP_PUBLIC_BASE_URL: https://mcp.example.com
-      auth:
-        issuer: https://example.us.auth0.com
-        audiences:
-          - https://mcp.example.com
-```
-
-### Rejecting before invoke
-
-In-function verification means an unauthenticated flood still costs invocations. `auth.authorizer` names one of your own authorizer functions and wires it to the MCP route, so API Gateway rejects those requests before the server is invoked:
-
-```yml
-provider:
-  name: aws
-
-functions:
-  myAuthorizer:
-    handler: src/authorizer.handler
-
-mcp:
-  servers:
-    crm:
-      server: src/server.mjs
-      auth:
-        issuer: https://example.us.auth0.com
-        audiences:
-          - https://mcp.example.com
-        authorizer: myAuthorizer
-```
-
-The discovery route deliberately does **not** get the authorizer — a client has to be able to read the metadata document before it has a token, which is easy to overlook when wiring this by hand.
-
-Two things about the function you name. It is wired as a **`TOKEN` authorizer**, the same default an `http` event's `authorizer: <name>` gets, so it receives the header's value as `event.authorizationToken` and has no `event.headers`. And whatever it rejects never reaches the server, so those callers get API Gateway's own bare `401` instead of the spec's challenge: the more the authorizer verifies, the fewer clients can discover your authorization server from a rejected request. Verifying only that a bearer token is present and well-formed keeps the flood protection and leaves the judgement — and the challenge — to the server.
+Two setups need no discovery at all: machine-to-machine callers that are issued tokens out of band, and clients that accept a metadata URL directly in their configuration — for those, the document is reachable at the full URL, stage prefix included: `https://<api-id>.execute-api.<region>.amazonaws.com/<stage>/.well-known/oauth-protected-resource/<name>/mcp`. Claude Code takes no such setting; for it, the root-mapped custom domain is the way.
 
 ---
 
@@ -546,7 +656,7 @@ Packaging stages that entry into a `serverless-mcp/` directory inside your servi
 
 A prebuilt `package.artifact` is not supported for MCP servers in this release (`MCP_PREBUILT_ARTIFACT_UNSUPPORTED`): such an artifact is uploaded exactly as it is, so the entry never reaches it. Remove the artifact setting, or move the MCP server into its own service.
 
-The `SERVERLESS_MCP_*` environment variables (`SERVERLESS_MCP_SERVER_MODULE`, `SERVERLESS_MCP_AUTH_ISSUER`, `SERVERLESS_MCP_AUTH_AUDIENCES`, `SERVERLESS_MCP_STATE_KEY_REF`, `SERVERLESS_MCP_PUBLIC_BASE_URL`) are how configuration reaches the deployed function — a configuration change is a CloudFormation environment update, not a new artifact. The `MCP_` prefix is left to the SDK.
+The `SERVERLESS_MCP_*` environment variables (`SERVERLESS_MCP_SERVER_MODULE`, `SERVERLESS_MCP_STATE_KEY_REF`) are how configuration reaches the deployed function — a configuration change is a CloudFormation environment update, not a new artifact. The `MCP_` prefix is left to the SDK.
 
 ---
 
@@ -570,7 +680,8 @@ The `SERVERLESS_MCP_*` environment variables (`SERVERLESS_MCP_SERVER_MODULE`, `S
 
 - **Long quiet tools need a regional endpoint.** Edge-optimized endpoints end a stream that has been quiet for roughly 30 seconds; set `provider.endpointType: REGIONAL`, which raises the bound to roughly 5 minutes. See [Endpoint type and long-running tools](#endpoint-type-and-long-running-tools).
 - **Tools longer than ~300 seconds must emit progress** to stay inside that idle bound, regardless of `timeout`.
-- **Automatic OAuth discovery needs a custom domain mapped at the root.** On the default endpoint the metadata document sits under the stage prefix, where clients that probe conventional well-known paths (Claude Code among them) never look — and API Gateway REST renames `WWW-Authenticate` on proxy responses, so clients that would follow the challenge instead never see the pointer. Clients that accept a metadata URL directly work without a domain; Claude Code takes no such setting. See [Discovery](#discovery).
+- **The Framework never verifies tokens.** Enforcement is your `authorizer` or your module's own gate; `oauthDiscovery` is advertisement only, and nothing validates that the two agree — advertise only what your enforcement honors. See [Authentication](#authentication).
+- **Interactive OAuth login needs a custom domain mapped at the root.** On the default endpoint the discovery document sits under the stage prefix, where no client's conventional well-known probes look. Clients that accept a metadata URL directly work without a domain; Claude Code takes no such setting. See [OAuth discovery](#oauth-discovery).
 - **A client disconnect does not stop a running tool.** Requests reaching Lambda through API Gateway REST do not carry the disconnect through, so a tool keeps running — and billing — after the caller has gone. `timeout` is the cost ceiling; set it to the longest tool you actually have rather than to the 900-second maximum.
 - **Elicitation, sampling, and roots need a 2026-07-28 client, which is opt-in for official-SDK clients.** Clients on older protocol revisions are served per-request: tools, streaming, and progress all work, but a tool that asks the client for something mid-call — user input, a model completion, workspace roots — fails for them. See [Elicitation state](#elicitation-state) for the client-side `versionNegotiation` option.
 - **Resource subscriptions do not deliver updates on this hosting.** A `subscriptions/listen` stream is held by one function instance and fed by an in-process event bus, so a change published while serving a call on any other instance never reaches it — and the stream ends at `timeout` regardless. Streaming responses and progress notifications, which travel inside the request being answered, are unaffected.
@@ -600,7 +711,7 @@ build:
     bundle: true # single-file artifact per server
 
 functions:
-  myAuthorizer:
+  verifyToken:
     handler: src/authorizer.handler
 
 mcp:
@@ -609,11 +720,12 @@ mcp:
       server: src/crm.mjs
       timeout: 300
       memorySize: 2048
-      auth:
+      authorizer:
+        name: verifyToken
+        type: request
+        identitySource: method.request.header.Authorization
+      oauthDiscovery:
         issuer: https://example.us.auth0.com
-        audiences:
-          - https://mcp.example.com
-        authorizer: myAuthorizer
       environment:
         ORDERS_TABLE: !Ref OrdersTable
       state: true
@@ -639,4 +751,4 @@ resources:
 
 ## Examples
 
-Runnable examples live in the [examples repository](https://github.com/serverless/examples/tree/v4/mcp), from a minimal public server to the full OAuth walkthroughs — including the [custom-domain tier](https://github.com/serverless/examples/tree/v4/mcp/oauth-custom-domain), which drives the Claude Code CLI through discovery, browser login, and an elicitation round trip against a deployed server.
+Runnable examples live in the [examples repository](https://github.com/serverless/examples/tree/v4/mcp), from a minimal public server to full OAuth walkthroughs — one per enforcement recipe, including driving the Claude Code CLI through discovery and browser login against a deployed server.

@@ -5,10 +5,13 @@ import {
 
 // The harness itself is exercised live by tests/integration/mcp/*. What is
 // unit-testable — and what this file covers — is the pure branch logic layered
-// on top of the vendored client: bearer-header injection, the SSE frame
-// parser, which checks a given variant runs, the negative checks' handling of
-// the challenge header under either name, and the long-stream timing verdicts —
+// on top of the vendored client: bearer-header injection, the SSE frame parser,
+// which checks a given variant runs, and the long-stream timing verdicts —
 // replayed against a scripted clock, so the ~36s cases cost milliseconds here.
+//
+// There is nothing here about rejections: enforcement is the user's, so how a
+// request is refused belongs to the deployment that configured the refusal
+// (`../../integration/mcp/mcp-auth.test.js`), not to this list.
 
 const ENDPOINT =
   'https://abc123.execute-api.us-east-1.amazonaws.com/dev/crm/mcp'
@@ -355,38 +358,10 @@ describe('createMcpChecks gating', () => {
     ])
   })
 
-  test('a bearer token adds the auth negatives', () => {
+  test('a bearer token adds no checks — it only rides on the requests', () => {
     const checks = createMcpChecks({ endpoint: ENDPOINT, bearerToken: 'tok-a' })
 
-    expect(checks.map((c) => c.name).slice(12)).toEqual([
-      'unauthenticated401',
-      'discoveryRootProbe403',
-    ])
-  })
-
-  test('a second token adds the wrong-client negative, last', () => {
-    const checks = createMcpChecks({
-      endpoint: ENDPOINT,
-      bearerToken: 'tok-a',
-      wrongClientToken: 'tok-b',
-    })
-
-    expect(checks.map((c) => c.name).slice(12)).toEqual([
-      'unauthenticated401',
-      'discoveryRootProbe403',
-      'wrongClient401',
-    ])
-  })
-
-  test('a wrong-client token alone adds nothing — the negatives need the bearer gate', () => {
-    const checks = createMcpChecks({
-      endpoint: ENDPOINT,
-      wrongClientToken: 'tok-b',
-    })
-
     expect(checks).toHaveLength(12)
-    expect(checks.map((c) => c.name)).not.toContain('wrongClient401')
-    expect(checks.map((c) => c.name)).not.toContain('unauthenticated401')
   })
 
   test('titles are numbered in insertion order, gapless, for every config combo', () => {
@@ -394,13 +369,7 @@ describe('createMcpChecks gating', () => {
       { endpoint: ENDPOINT },
       { endpoint: ENDPOINT, longRunning: true },
       { endpoint: ENDPOINT, bearerToken: 'tok-a' },
-      { endpoint: ENDPOINT, bearerToken: 'tok-a', wrongClientToken: 'tok-b' },
-      {
-        endpoint: ENDPOINT,
-        bearerToken: 'tok-a',
-        wrongClientToken: 'tok-b',
-        longRunning: true,
-      },
+      { endpoint: ENDPOINT, bearerToken: 'tok-a', longRunning: true },
     ]
 
     for (const config of combos) {
@@ -415,7 +384,6 @@ describe('createMcpChecks gating', () => {
     const checks = createMcpChecks({
       endpoint: ENDPOINT,
       bearerToken: 'tok-a',
-      wrongClientToken: 'tok-b',
       longRunning: true,
     })
 
@@ -424,144 +392,6 @@ describe('createMcpChecks gating', () => {
       expect(typeof check.title).toBe('string')
       expect(typeof check.run).toBe('function')
     }
-  })
-})
-
-describe('the unauthenticated401 check', () => {
-  const challenge = (metadataUrl) => `Bearer resource_metadata="${metadataUrl}"`
-  const metadataUrl =
-    'https://abc123.execute-api.us-east-1.amazonaws.com/dev/.well-known/oauth-protected-resource/crm/mcp'
-
-  const run = async (responseFactory) => {
-    stubFetch(responseFactory)
-    const checks = createMcpChecks({ endpoint: ENDPOINT, bearerToken: 'tok-a' })
-    return findCheck(checks, 'unauthenticated401').run()
-  }
-
-  test('accepts the remapped header under any casing and sends no token', async () => {
-    const detail = await run(() =>
-      jsonResponse(
-        { message: 'Unauthorized' },
-        {
-          status: 401,
-          headers: {
-            'X-Amzn-Remapped-WWW-Authenticate': challenge(metadataUrl),
-          },
-        },
-      ),
-    )
-
-    expect(calls[0].headers.authorization).toBeUndefined()
-    expect(detail).toContain('401')
-  })
-
-  test('accepts the standard header name a non-remapping front door would send', async () => {
-    const detail = await run(() =>
-      jsonResponse(
-        { message: 'Unauthorized' },
-        {
-          status: 401,
-          headers: { 'WWW-Authenticate': challenge(metadataUrl) },
-        },
-      ),
-    )
-
-    expect(detail).toContain('www-authenticate')
-    expect(detail).not.toContain('remapped')
-  })
-
-  test('fails when the request is not rejected', async () => {
-    await expect(run(() => jsonResponse({ result: {} }))).rejects.toThrow(
-      /HTTP 200/,
-    )
-  })
-
-  test('fails, naming the remapped header, when no challenge arrives', async () => {
-    await expect(
-      run(() => jsonResponse({ message: 'Unauthorized' }, { status: 401 })),
-    ).rejects.toThrow(/x-amzn-remapped-www-authenticate/i)
-  })
-
-  test('fails when resource_metadata is missing from the challenge', async () => {
-    await expect(
-      run(() =>
-        jsonResponse(
-          {},
-          {
-            status: 401,
-            headers: { 'x-amzn-remapped-www-authenticate': 'Bearer' },
-          },
-        ),
-      ),
-    ).rejects.toThrow(/resource_metadata/)
-  })
-
-  test('fails when resource_metadata is not an https URL', async () => {
-    await expect(
-      run(() =>
-        jsonResponse(
-          {},
-          {
-            status: 401,
-            headers: {
-              'x-amzn-remapped-www-authenticate': challenge(
-                'http://insecure.example.com/.well-known/oauth-protected-resource/crm/mcp',
-              ),
-            },
-          },
-        ),
-      ),
-    ).rejects.toThrow(/https/)
-  })
-
-  test('fails when resource_metadata does not point at the well-known path', async () => {
-    await expect(
-      run(() =>
-        jsonResponse(
-          {},
-          {
-            status: 401,
-            headers: {
-              'x-amzn-remapped-www-authenticate': challenge(
-                'https://abc123.execute-api.us-east-1.amazonaws.com/dev/crm/mcp',
-              ),
-            },
-          },
-        ),
-      ),
-    ).rejects.toThrow(/well-known/)
-  })
-})
-
-describe('the discoveryRootProbe403 check', () => {
-  const run = async (responseFactory) => {
-    stubFetch(responseFactory)
-    const checks = createMcpChecks({ endpoint: ENDPOINT, bearerToken: 'tok-a' })
-    return findCheck(checks, 'discoveryRootProbe403').run()
-  }
-
-  test('probes the origin-root well-known form and passes on 403', async () => {
-    await run(() => jsonResponse({ message: 'Forbidden' }, { status: 403 }))
-
-    expect(calls[0].url).toBe(
-      'https://abc123.execute-api.us-east-1.amazonaws.com/.well-known/oauth-protected-resource/dev/crm/mcp',
-    )
-    expect(calls[0].headers.authorization).toBeUndefined()
-  })
-
-  test('fails when the probe unexpectedly succeeds', async () => {
-    await expect(run(() => jsonResponse({ resource: 'x' }))).rejects.toThrow(
-      /HTTP 200/,
-    )
-  })
-
-  // The check exists to be loud the day the platform limitation lifts: a 200
-  // means root-probe discovery works and the docs claiming it does not are
-  // stale. A message that only said "expected 403" would read as a regression.
-  test('says the root probe resolved, not merely that 403 was expected', async () => {
-    await expect(run(() => jsonResponse({ resource: 'x' }))).rejects.toThrow(
-      /the root probe resolved/,
-    )
   })
 })
 
@@ -600,29 +430,5 @@ describe('the antiBuffering check', () => {
 
     expect(calls).toHaveLength(1)
     expect(detail).toContain('+800ms')
-  })
-})
-
-describe('the wrongClient401 check', () => {
-  const run = async (responseFactory) => {
-    stubFetch(responseFactory)
-    const checks = createMcpChecks({
-      endpoint: ENDPOINT,
-      bearerToken: 'tok-a',
-      wrongClientToken: 'tok-b',
-    })
-    return findCheck(checks, 'wrongClient401').run()
-  }
-
-  test('sends the second token and passes on 401', async () => {
-    await run(() => jsonResponse({}, { status: 401 }))
-
-    expect(calls[0].headers.authorization).toBe('Bearer tok-b')
-  })
-
-  test('fails when the wrong client is accepted', async () => {
-    await expect(run(() => jsonResponse({ result: {} }))).rejects.toThrow(
-      /HTTP 200/,
-    )
   })
 })

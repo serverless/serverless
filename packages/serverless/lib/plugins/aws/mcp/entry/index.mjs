@@ -8,15 +8,14 @@
 // Everything here is cold-start wiring; the decisions it composes live in
 // `./lib/`, where they can be tested without a cold start.
 import { pathToFileURL } from 'node:url'
-import { createTokenVerifier } from './lib/auth.mjs'
+import { streamHandle } from 'hono/aws-lambda'
 import {
-  asOAuthTokenVerifier,
   buildApp,
   readEntryEnv,
   resolveServerModulePath,
 } from './lib/compose.mjs'
+import { withoutBodyOnBodylessMethod } from './lib/event.mjs'
 import { resolveFetchHandler } from './lib/interop.mjs'
-import { streamHandler } from './lib/pump.mjs'
 
 const config = readEntryEnv(process.env)
 
@@ -50,17 +49,20 @@ const mcpHandler = resolveFetchHandler(
   { serverModulePath: config.serverModulePath },
 )
 
-// `./lib/pump.mjs` rather than Hono's own `streamHandle`: the app is still a
-// Hono app and still does the routing, but the Lambda bridge under it has to
-// honor backpressure and cancel the handler when the client hangs up, and
-// Hono's does neither. See that module for the specifics.
-export const handler = streamHandler(
-  buildApp({
-    mcpHandler,
-    verifier: config.auth
-      ? asOAuthTokenVerifier(createTokenVerifier(config.auth))
-      : undefined,
-    issuer: config.auth?.issuer,
-    publicBaseUrl: config.publicBaseUrl,
-  }),
+// Hono's own Lambda bridge. A custom one lived here for a while, to add
+// write-backpressure and client-disconnect cancellation; both were measured
+// against a deployed function and found inert, because API Gateway terminates
+// the connection and propagates neither a slow reader nor a hang-up to the
+// invocation. What is left is one event-shape correction Hono does not make,
+// applied to the event before the bridge builds a `Request` from it.
+const streamed = streamHandle(buildApp({ mcpHandler }))
+
+// `streamifyResponse` marks the function it is given with the symbol the
+// runtime reads to select streaming mode, so the wrapper has to carry that mark
+// over — and by descriptor rather than by assignment, so a mark the runtime
+// defines as non-enumerable is copied too.
+export const handler = Object.defineProperties(
+  (event, responseStream, context) =>
+    streamed(withoutBodyOnBodylessMethod(event), responseStream, context),
+  Object.getOwnPropertyDescriptors(streamed),
 )

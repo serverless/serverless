@@ -1,11 +1,14 @@
 import { log, ServerlessError } from '@serverless/util'
+import {
+  buildDiscoveryDescriptors,
+  resolveBaseUrls,
+} from './lib/discovery-route.js'
 import { formatMcpEndpoints, serviceEndpointOf } from './lib/endpoints.js'
 import {
   artifactModulePath,
   assertNoPrebuiltArtifact,
   mcpEntryHandler,
   mcpEntrySourcePath,
-  publicBaseUrl,
   stageEntry,
   unstageEntry,
   warnPartiallyBundledServers,
@@ -133,9 +136,31 @@ class AwsMcp {
             { stack: false },
           )
         }
-        apiGatewayPlugin.registerExternalHttpEvents(
-          buildRouteDescriptors({ servers: this.validated.servers }),
-        )
+        // Built before anything is registered: this is the step that can
+        // refuse a configuration (a value Velocity would rewrite), and a
+        // refusal must not leave half a service's routes contributed.
+        const { descriptors, sources } = buildDiscoveryDescriptors({
+          servers: this.validated.servers,
+          provider: this.serverless.service.provider,
+          // The stage the REST API is deployed to, which is not the config
+          // stage when `provider.apiGateway.stage` renames it. The deployment's
+          // own `ServiceEndpoint` output is built from this same resolution
+          // (`../package/compile/events/api-gateway/lib/deployment.js`), so a
+          // document built from `getStage()` would advertise a URL that answers
+          // nothing while the summary printed the one that works.
+          stage: this.provider.getApiGatewayStage(),
+          // What the api-gateway compiler resolves the REST API to, so an
+          // imported `provider.apiGateway.restApiId` flows through unchanged.
+          restApiId: this.provider.getApiGatewayRestApiId(),
+        })
+        // One call, not two: the seam accumulates what it is handed, and the
+        // MCP routes and the discovery routes are one contribution from one
+        // plugin on one packaging run.
+        apiGatewayPlugin.registerExternalHttpEvents([
+          ...buildRouteDescriptors({ servers: this.validated.servers }),
+          ...descriptors,
+        ])
+        this.reportDiscoveryExposure(sources)
         compileStateResources({
           servers: this.validated.servers,
           template:
@@ -184,6 +209,44 @@ class AwsMcp {
 
   serviceDir() {
     return this.serverless.config?.serviceDir ?? this.serverless.serviceDir
+  }
+
+  /**
+   * Say what each published discovery document will and will not do for
+   * clients, from the map the builder reports - which holds an entry for
+   * exactly the servers it published a document for, so nothing here has to
+   * re-decide which servers those were.
+   *
+   * A document reached at the stage URL is a warning rather than an error,
+   * because it is not useless: a client configured with the execute-api URL by
+   * hand finds it there, and a programmatic client that already holds a token
+   * never needs it. What it cannot do is carry an interactive login, since a
+   * browser-driven client only ever probes the origin its user typed in - so
+   * the line names both ways out.
+   *
+   * Discovery without an authorizer is not a defect at all: the server module
+   * is free to verify the token itself, which is the setup the Framework
+   * assumes now that it verifies nothing. It is a `--verbose` note (`log.info`
+   * is that channel; `log.notice` and above print by default) so a deploy that
+   * meant it is not nagged.
+   */
+  reportDiscoveryExposure(sources) {
+    for (const server of this.validated.servers) {
+      // Membership in the map is the filter: a server the builder skipped has
+      // no entry, and the servers are walked only to reach their `authorizer`.
+      const entry = sources.get(server.name)
+      if (entry === undefined) continue
+      if (entry.source === 'stage') {
+        log.warning(
+          `MCP server "${server.name}" advertises OAuth discovery at the stage URL, which interactive clients cannot discover. If clients reach this server through a custom domain, set "mcp.servers.${server.name}.oauthDiscovery.publicUrl" to it (or declare the domain under "provider.domain"); without a root-mapped custom domain, interactive login will not work.`,
+        )
+      }
+      if (server.authorizer === undefined) {
+        log.info(
+          `MCP server "${server.name}" publishes OAuth discovery but has no authorizer - enforcement is expected in the server module.`,
+        )
+      }
+    }
   }
 
   /**
@@ -306,7 +369,6 @@ class AwsMcp {
       return
     }
     const { bundled, outputExtension } = await this.esbuildBuildState()
-    const baseUrl = publicBaseUrl(this.serverless.service.provider)
     const unbundledServers = []
     for (const server of this.validated.servers) {
       if (onlyFunction !== undefined && server.name !== onlyFunction) continue
@@ -325,24 +387,6 @@ class AwsMcp {
           handler: functionObject.handler,
           outputExtension: isBundled ? outputExtension : undefined,
         })
-      // Set only for a custom domain, and then it is absolute: the entry stops
-      // deriving the resource identifier from the request. That couples the two
-      // - a client reaching the same server through the raw execute-api URL is
-      // told to authenticate against the custom-domain resource and rejects the
-      // mismatch. Serving one public URL is the point of configuring a domain;
-      // `provider.apiGateway.disableDefaultEndpoint` is how a service closes
-      // the other door, and it stays the user's decision.
-      //
-      // A value the user put in this server's own `environment` wins: the
-      // derived one is a convenience for the common case, and overwriting it
-      // would make the documented override unusable (a service fronted by two
-      // REST domains, or one behind CloudFront, has to name its own URL).
-      if (
-        baseUrl !== undefined &&
-        !('SERVERLESS_MCP_PUBLIC_BASE_URL' in functionObject.environment)
-      ) {
-        functionObject.environment.SERVERLESS_MCP_PUBLIC_BASE_URL = baseUrl
-      }
       functionObject.handler = mcpEntryHandler
     }
     if (unbundledServers.length === 0) return
@@ -433,10 +477,16 @@ class AwsMcp {
     const lines = formatMcpEndpoints({
       servers: this.validated.servers,
       serviceEndpoint: serviceEndpointOf(outputs),
-      // The same derivation the entry is handed as
-      // SERVERLESS_MCP_PUBLIC_BASE_URL, so the printed URL and the one the
-      // deployed server advertises cannot disagree.
-      publicBaseUrl: publicBaseUrl(this.serverless.service.provider),
+      // The resolution the discovery documents are built from, so the URL
+      // printed here and the URL a document advertises are the same string by
+      // construction. Resolved rather than carried over from packaging: `info`
+      // never packages anything, and this needs no REST API id - a server
+      // reached at the stage URL has no resolved URL to print and falls back to
+      // the stack output.
+      baseUrls: resolveBaseUrls({
+        servers: this.validated.servers,
+        provider: this.serverless.service.provider,
+      }),
     })
     if (lines.length === 0) {
       log.debug(
