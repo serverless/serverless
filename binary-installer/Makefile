@@ -3,6 +3,7 @@ VERSION=$(shell git describe --tags --always --dirty)
 PLATFORMS=darwin linux windows
 ARCHITECTURES=amd64 arm64
 LDFLAGS=-ldflags="-s -w"
+BUILD_FLAGS=-trimpath $(LDFLAGS)
 
 .PHONY: all clean build-all build-prod build-canary test
 
@@ -22,7 +23,7 @@ build-prod:
 			fi; \
 			echo "Building $$platform/$$arch..."; \
 			mkdir -p dist/prod; \
-			CGO_ENABLED=0 GOOS=$$platform GOARCH=$$arch go build $(LDFLAGS) -o dist/prod/$(BINARY_NAME)-$$platform-$$arch .; \
+			CGO_ENABLED=0 GOOS=$$platform GOARCH=$$arch go build $(BUILD_FLAGS) -o dist/prod/$(BINARY_NAME)-$$platform-$$arch .; \
 		done; \
 	done
 
@@ -35,7 +36,7 @@ build-canary:
 			fi; \
 			echo "Building $$platform/$$arch..."; \
 			mkdir -p dist/canary; \
-			CGO_ENABLED=0 GOOS=$$platform GOARCH=$$arch go build $(LDFLAGS) -tags=canary -o dist/canary/$(BINARY_NAME)-$$platform-$$arch .; \
+			CGO_ENABLED=0 GOOS=$$platform GOARCH=$$arch go build $(BUILD_FLAGS) -tags=canary -o dist/canary/$(BINARY_NAME)-$$platform-$$arch .; \
 		done; \
 	done
 
