@@ -71,6 +71,20 @@ const appendFileEntry = async (zip, sourcePath, name) => {
   zip.file(sourcePath, { name, date: PINNED_ARTIFACT_DATE, stats })
 }
 
+// The file-vs-directory probe for a package-pattern include (stat, following
+// symlinks, as the include pipeline always has) with the same failure
+// contract as appendFileEntry.
+const statIncludeEntry = async (absolutePath) => {
+  try {
+    return await stat(absolutePath)
+  } catch (error) {
+    throw new ServerlessError(
+      `Cannot read file ${absolutePath} due to: ${error.message}`,
+      'CANNOT_READ_FILE',
+    )
+  }
+}
+
 class Esbuild {
   constructor(serverless, options) {
     this.serverless = serverless
@@ -1003,7 +1017,7 @@ class Esbuild {
                     this.serverless.config.serviceDir,
                     filePath,
                   )
-                  const stats = await stat(absolutePath)
+                  const stats = await statIncludeEntry(absolutePath)
                   if (stats.isDirectory()) {
                     // Expand the directory ourselves (sorted) instead of
                     // zip.directory(): concurrent directory walks feed the
@@ -1176,7 +1190,7 @@ class Esbuild {
 
           for (const filePath of packageIncludes) {
             const absolutePath = path.join(this.serverless.serviceDir, filePath)
-            const stats = await stat(absolutePath)
+            const stats = await statIncludeEntry(absolutePath)
             if (stats.isDirectory()) {
               // Expand the directory ourselves (sorted) instead of
               // zip.directory(): concurrent directory walks feed the archive

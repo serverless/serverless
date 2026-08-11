@@ -82,6 +82,7 @@ describe('esbuild packaging with a vanished file', () => {
     const plugin = makePlugin(serviceDir)
 
     await expect(plugin._packageAll(functions)).rejects.toMatchObject({
+      code: 'CANNOT_READ_FILE',
       message: expect.stringMatching(/vanished\.txt/),
     })
   })
@@ -94,6 +95,7 @@ describe('esbuild packaging with a vanished file', () => {
     plugin._buildProperties = async () => ({})
 
     await expect(plugin._package()).rejects.toMatchObject({
+      code: 'CANNOT_READ_FILE',
       message: expect.stringMatching(/vanished\.txt/),
     })
   })
