@@ -1007,9 +1007,17 @@ class Esbuild {
                   if (stats.isDirectory()) {
                     // Expand the directory ourselves (sorted) instead of
                     // zip.directory(): concurrent directory walks feed the
-                    // archive in racy, nondeterministic order.
+                    // archive in racy, nondeterministic order. The options
+                    // reproduce zip.directory's walk exactly — directory
+                    // entries included, symlinks kept as symlinks, nothing
+                    // followed.
                     const children = (
-                      await globby('**', { cwd: absolutePath, dot: true })
+                      await globby('**', {
+                        cwd: absolutePath,
+                        dot: true,
+                        onlyFiles: false,
+                        followSymbolicLinks: false,
+                      })
                     ).sort()
                     for (const child of children) {
                       await appendFileEntry(
@@ -1172,9 +1180,16 @@ class Esbuild {
             if (stats.isDirectory()) {
               // Expand the directory ourselves (sorted) instead of
               // zip.directory(): concurrent directory walks feed the archive
-              // in racy, nondeterministic order.
+              // in racy, nondeterministic order. The options reproduce
+              // zip.directory's walk exactly — directory entries included,
+              // symlinks kept as symlinks, nothing followed.
               const children = (
-                await globby('**', { cwd: absolutePath, dot: true })
+                await globby('**', {
+                  cwd: absolutePath,
+                  dot: true,
+                  onlyFiles: false,
+                  followSymbolicLinks: false,
+                })
               ).sort()
               for (const child of children) {
                 await appendFileEntry(
