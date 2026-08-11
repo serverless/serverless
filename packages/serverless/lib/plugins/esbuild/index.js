@@ -1,6 +1,6 @@
 import path from 'path'
 import { pathToFileURL } from 'url'
-import { copyFile, readFile, rm, stat, writeFile } from 'fs/promises'
+import { copyFile, lstat, readFile, rm, stat, writeFile } from 'fs/promises'
 import { createWriteStream, existsSync } from 'fs'
 import * as esbuild from 'esbuild'
 import { ZipArchive } from 'archiver'
@@ -48,6 +48,24 @@ const areSameSet = (a, b) => {
 // build), so the artifact hash changes on every deploy and check-for-changes
 // forces a needless redeploy of every function (issue #4240).
 const PINNED_ARTIFACT_DATE = new Date(0)
+
+// A pinned date alone doesn't make the zip reproducible: archiver resolves
+// `zip.file()` calls without `stats` through an internal stat queue with
+// concurrency 4, so entries land in the archive in lstat-completion order,
+// which races between runs and changes the whole-zip bytes (and therefore the
+// sha256 used by check-for-changes). Pre-fetching the stats makes archiver
+// enqueue the entry synchronously, so entries appear strictly in call order.
+// A failed lstat is skipped, matching archiver's own stat-queue behavior for
+// unreadable files.
+const appendFileEntry = async (zip, sourcePath, name) => {
+  let stats
+  try {
+    stats = await lstat(sourcePath)
+  } catch {
+    return
+  }
+  zip.file(sourcePath, { name, date: PINNED_ARTIFACT_DATE, stats })
+}
 
 class Esbuild {
   constructor(serverless, options) {
@@ -908,10 +926,12 @@ class Esbuild {
                 { cwd: this.serverless.serviceDir },
               )
 
+              // Sorted so the archive entry order doesn't depend on glob
+              // traversal order, which is filesystem-dependent.
               const includesToPackage = _.union(
                 packageIncludes,
                 functionIncludes,
-              )
+              ).sort()
 
               zip.pipe(output)
               const handlerPath = stripHandlerExportSuffix(
@@ -926,10 +946,7 @@ class Esbuild {
               )
 
               if (existsSync(packageJsonPath)) {
-                zip.file(packageJsonPath, {
-                  name: `package.json`,
-                  date: PINNED_ARTIFACT_DATE,
-                })
+                await appendFileEntry(zip, packageJsonPath, 'package.json')
               }
 
               // Add lockfiles if they exist
@@ -947,10 +964,7 @@ class Esbuild {
                   lockFile,
                 )
                 if (existsSync(lockFilePath)) {
-                  zip.file(lockFilePath, {
-                    name: destName,
-                    date: PINNED_ARTIFACT_DATE,
-                  })
+                  await appendFileEntry(zip, lockFilePath, destName)
                 }
               }
 
@@ -961,18 +975,49 @@ class Esbuild {
                 handlerPath + outputExtension,
               )
 
-              zip.file(handlerZipPath, {
-                name: `${handlerPath}${outputExtension}`,
-                date: PINNED_ARTIFACT_DATE,
-              })
+              await appendFileEntry(
+                zip,
+                handlerZipPath,
+                `${handlerPath}${outputExtension}`,
+              )
 
               if (existsSync(`${handlerZipPath}.map`)) {
-                zip.file(`${handlerZipPath}.map`, {
-                  name: `${handlerPath}${outputExtension}.map`,
-                  date: PINNED_ARTIFACT_DATE,
-                })
+                await appendFileEntry(
+                  zip,
+                  `${handlerZipPath}.map`,
+                  `${handlerPath}${outputExtension}.map`,
+                )
               }
 
+              for (const filePath of includesToPackage) {
+                const absolutePath = path.join(
+                  this.serverless.config.serviceDir,
+                  filePath,
+                )
+                const stats = await stat(absolutePath)
+                if (stats.isDirectory()) {
+                  // Expand the directory ourselves (sorted) instead of
+                  // zip.directory(): concurrent directory walks feed the
+                  // archive in racy, nondeterministic order.
+                  const children = (
+                    await globby('**', { cwd: absolutePath, dot: true })
+                  ).sort()
+                  for (const child of children) {
+                    await appendFileEntry(
+                      zip,
+                      path.join(absolutePath, child),
+                      `${filePath}/${child}`,
+                    )
+                  }
+                } else {
+                  await appendFileEntry(zip, absolutePath, filePath)
+                }
+              }
+
+              // The node_modules walk is async and feeds the archive as it
+              // discovers files. Keeping it as the last append (after every
+              // file entry is already enqueued) keeps the entry order
+              // deterministic.
               zip.directory(
                 path.join(
                   this.serverless.config.serviceDir,
@@ -982,26 +1027,6 @@ class Esbuild {
                 ),
                 'node_modules',
                 { date: PINNED_ARTIFACT_DATE },
-              )
-
-              await Promise.all(
-                includesToPackage.map(async (filePath) => {
-                  const absolutePath = path.join(
-                    this.serverless.config.serviceDir,
-                    filePath,
-                  )
-                  const stats = await stat(absolutePath)
-                  if (stats.isDirectory()) {
-                    zip.directory(absolutePath, filePath, {
-                      date: PINNED_ARTIFACT_DATE,
-                    })
-                  } else {
-                    zip.file(absolutePath, {
-                      name: filePath,
-                      date: PINNED_ARTIFACT_DATE,
-                    })
-                  }
-                }),
               )
 
               await zip.finalize()
@@ -1034,10 +1059,13 @@ class Esbuild {
 
     await this.serverless.pluginManager.spawn('esbuild-package')
 
-    const packageIncludes = await globby(
-      this.serverless.service.package.patterns ?? [],
-      { cwd: this.serverless.serviceDir },
-    )
+    // Sorted so the archive entry order doesn't depend on glob traversal
+    // order, which is filesystem-dependent.
+    const packageIncludes = (
+      await globby(this.serverless.service.package.patterns ?? [], {
+        cwd: this.serverless.serviceDir,
+      })
+    ).sort()
 
     const zip = new ZipArchive()
     const output = createWriteStream(zipPath)
@@ -1063,10 +1091,7 @@ class Esbuild {
           )
 
           if (existsSync(packageJsonPath) && !addedFiles.has(packageJsonPath)) {
-            zip.file(packageJsonPath, {
-              name: `package.json`,
-              date: PINNED_ARTIFACT_DATE,
-            })
+            await appendFileEntry(zip, packageJsonPath, 'package.json')
             addedFiles.add(packageJsonPath)
           }
 
@@ -1085,10 +1110,7 @@ class Esbuild {
               lockFile,
             )
             if (existsSync(lockFilePath) && !addedFiles.has(lockFilePath)) {
-              zip.file(lockFilePath, {
-                name: destName,
-                date: PINNED_ARTIFACT_DATE,
-              })
+              await appendFileEntry(zip, lockFilePath, destName)
               addedFiles.add(lockFilePath)
             }
           }
@@ -1101,10 +1123,11 @@ class Esbuild {
           )
 
           if (!addedFiles.has(handlerZipPath)) {
-            zip.file(handlerZipPath, {
-              name: `${handlerPath}${outputExtension}`,
-              date: PINNED_ARTIFACT_DATE,
-            })
+            await appendFileEntry(
+              zip,
+              handlerZipPath,
+              `${handlerPath}${outputExtension}`,
+            )
             addedFiles.add(handlerZipPath)
           }
 
@@ -1112,15 +1135,42 @@ class Esbuild {
             existsSync(`${handlerZipPath}.map`) &&
             !addedFiles.has(`${handlerZipPath}.map`)
           ) {
-            zip.file(`${handlerZipPath}.map`, {
-              name: `${handlerPath}${outputExtension}.map`,
-              date: PINNED_ARTIFACT_DATE,
-            })
+            await appendFileEntry(
+              zip,
+              `${handlerZipPath}.map`,
+              `${handlerPath}${outputExtension}.map`,
+            )
 
             addedFiles.add(`${handlerZipPath}.map`)
           }
         }
 
+        for (const filePath of packageIncludes) {
+          const absolutePath = path.join(this.serverless.serviceDir, filePath)
+          const stats = await stat(absolutePath)
+          if (stats.isDirectory()) {
+            // Expand the directory ourselves (sorted) instead of
+            // zip.directory(): concurrent directory walks feed the archive
+            // in racy, nondeterministic order.
+            const children = (
+              await globby('**', { cwd: absolutePath, dot: true })
+            ).sort()
+            for (const child of children) {
+              await appendFileEntry(
+                zip,
+                path.join(absolutePath, child),
+                `${filePath}/${child}`,
+              )
+            }
+          } else if (!addedFiles.has(absolutePath)) {
+            await appendFileEntry(zip, absolutePath, filePath)
+            addedFiles.add(absolutePath)
+          }
+        }
+
+        // The node_modules walk is async and feeds the archive as it
+        // discovers files. Keeping it as the last append (after every file
+        // entry is already enqueued) keeps the entry order deterministic.
         zip.directory(
           path.join(
             this.serverless.config.serviceDir,
@@ -1130,24 +1180,6 @@ class Esbuild {
           ),
           'node_modules',
           { date: PINNED_ARTIFACT_DATE },
-        )
-
-        await Promise.all(
-          packageIncludes.map(async (filePath) => {
-            const absolutePath = path.join(this.serverless.serviceDir, filePath)
-            const stats = await stat(absolutePath)
-            if (stats.isDirectory()) {
-              zip.directory(absolutePath, filePath, {
-                date: PINNED_ARTIFACT_DATE,
-              })
-            } else if (!addedFiles.has(absolutePath)) {
-              zip.file(absolutePath, {
-                name: filePath,
-                date: PINNED_ARTIFACT_DATE,
-              })
-              addedFiles.add(absolutePath)
-            }
-          }),
         )
 
         await zip.finalize()
