@@ -55,14 +55,18 @@ const PINNED_ARTIFACT_DATE = new Date(0)
 // which races between runs and changes the whole-zip bytes (and therefore the
 // sha256 used by check-for-changes). Pre-fetching the stats makes archiver
 // enqueue the entry synchronously, so entries appear strictly in call order.
-// A failed lstat is skipped, matching archiver's own stat-queue behavior for
-// unreadable files.
+// An unreadable file fails packaging (same contract as the classic packaging
+// path) — archiver's own stat queue would silently drop the entry and ship an
+// incomplete artifact.
 const appendFileEntry = async (zip, sourcePath, name) => {
   let stats
   try {
     stats = await lstat(sourcePath)
-  } catch {
-    return
+  } catch (error) {
+    throw new ServerlessError(
+      `Cannot read file ${sourcePath} due to: ${error.message}`,
+      'CANNOT_READ_FILE',
+    )
   }
   zip.file(sourcePath, { name, date: PINNED_ARTIFACT_DATE, stats })
 }
@@ -919,119 +923,127 @@ class Esbuild {
           const zipPromise = new Promise(async (resolve, reject) => {
             output.on('close', () => resolve(zipPath))
             output.on('error', (err) => reject(err))
+            zip.on('error', (err) => reject(err))
 
+            // Failures anywhere in the append sequence must reject the
+            // archive promise — an escaped rejection in this listener would
+            // otherwise leave the promise pending forever.
             output.on('open', async () => {
-              const functionIncludes = await globby(
-                functionObject.package?.patterns ?? [],
-                { cwd: this.serverless.serviceDir },
-              )
+              try {
+                const functionIncludes = await globby(
+                  functionObject.package?.patterns ?? [],
+                  { cwd: this.serverless.serviceDir },
+                )
 
-              // Sorted so the archive entry order doesn't depend on glob
-              // traversal order, which is filesystem-dependent.
-              const includesToPackage = _.union(
-                packageIncludes,
-                functionIncludes,
-              ).sort()
+                // Sorted so the archive entry order doesn't depend on glob
+                // traversal order, which is filesystem-dependent.
+                const includesToPackage = _.union(
+                  packageIncludes,
+                  functionIncludes,
+                ).sort()
 
-              zip.pipe(output)
-              const handlerPath = stripHandlerExportSuffix(
-                functionObject[handlerPropertyName],
-              )
+                zip.pipe(output)
+                const handlerPath = stripHandlerExportSuffix(
+                  functionObject[handlerPropertyName],
+                )
 
-              const packageJsonPath = path.join(
-                this.serverless.config.serviceDir,
-                '.serverless',
-                'build',
-                'package.json',
-              )
-
-              if (existsSync(packageJsonPath)) {
-                await appendFileEntry(zip, packageJsonPath, 'package.json')
-              }
-
-              // Add lockfiles if they exist
-              const lockFiles = {
-                'package-lock.json': 'package-lock.json',
-                'yarn.lock': 'yarn.lock',
-                'pnpm-lock.yaml': 'pnpm-lock.yaml',
-              }
-
-              for (const [lockFile, destName] of Object.entries(lockFiles)) {
-                const lockFilePath = path.join(
+                const packageJsonPath = path.join(
                   this.serverless.config.serviceDir,
                   '.serverless',
                   'build',
-                  lockFile,
+                  'package.json',
                 )
-                if (existsSync(lockFilePath)) {
-                  await appendFileEntry(zip, lockFilePath, destName)
+
+                if (existsSync(packageJsonPath)) {
+                  await appendFileEntry(zip, packageJsonPath, 'package.json')
                 }
-              }
 
-              const handlerZipPath = path.join(
-                this.serverless.config.serviceDir,
-                '.serverless',
-                'build',
-                handlerPath + outputExtension,
-              )
+                // Add lockfiles if they exist
+                const lockFiles = {
+                  'package-lock.json': 'package-lock.json',
+                  'yarn.lock': 'yarn.lock',
+                  'pnpm-lock.yaml': 'pnpm-lock.yaml',
+                }
 
-              await appendFileEntry(
-                zip,
-                handlerZipPath,
-                `${handlerPath}${outputExtension}`,
-              )
+                for (const [lockFile, destName] of Object.entries(lockFiles)) {
+                  const lockFilePath = path.join(
+                    this.serverless.config.serviceDir,
+                    '.serverless',
+                    'build',
+                    lockFile,
+                  )
+                  if (existsSync(lockFilePath)) {
+                    await appendFileEntry(zip, lockFilePath, destName)
+                  }
+                }
 
-              if (existsSync(`${handlerZipPath}.map`)) {
+                const handlerZipPath = path.join(
+                  this.serverless.config.serviceDir,
+                  '.serverless',
+                  'build',
+                  handlerPath + outputExtension,
+                )
+
                 await appendFileEntry(
                   zip,
-                  `${handlerZipPath}.map`,
-                  `${handlerPath}${outputExtension}.map`,
+                  handlerZipPath,
+                  `${handlerPath}${outputExtension}`,
                 )
-              }
 
-              for (const filePath of includesToPackage) {
-                const absolutePath = path.join(
-                  this.serverless.config.serviceDir,
-                  filePath,
-                )
-                const stats = await stat(absolutePath)
-                if (stats.isDirectory()) {
-                  // Expand the directory ourselves (sorted) instead of
-                  // zip.directory(): concurrent directory walks feed the
-                  // archive in racy, nondeterministic order.
-                  const children = (
-                    await globby('**', { cwd: absolutePath, dot: true })
-                  ).sort()
-                  for (const child of children) {
-                    await appendFileEntry(
-                      zip,
-                      path.join(absolutePath, child),
-                      `${filePath}/${child}`,
-                    )
-                  }
-                } else {
-                  await appendFileEntry(zip, absolutePath, filePath)
+                if (existsSync(`${handlerZipPath}.map`)) {
+                  await appendFileEntry(
+                    zip,
+                    `${handlerZipPath}.map`,
+                    `${handlerPath}${outputExtension}.map`,
+                  )
                 }
-              }
 
-              // The node_modules walk is async and feeds the archive as it
-              // discovers files. Keeping it as the last append (after every
-              // file entry is already enqueued) keeps the entry order
-              // deterministic.
-              zip.directory(
-                path.join(
-                  this.serverless.config.serviceDir,
-                  '.serverless',
-                  'build',
+                for (const filePath of includesToPackage) {
+                  const absolutePath = path.join(
+                    this.serverless.config.serviceDir,
+                    filePath,
+                  )
+                  const stats = await stat(absolutePath)
+                  if (stats.isDirectory()) {
+                    // Expand the directory ourselves (sorted) instead of
+                    // zip.directory(): concurrent directory walks feed the
+                    // archive in racy, nondeterministic order.
+                    const children = (
+                      await globby('**', { cwd: absolutePath, dot: true })
+                    ).sort()
+                    for (const child of children) {
+                      await appendFileEntry(
+                        zip,
+                        path.join(absolutePath, child),
+                        `${filePath}/${child}`,
+                      )
+                    }
+                  } else {
+                    await appendFileEntry(zip, absolutePath, filePath)
+                  }
+                }
+
+                // The node_modules walk is async and feeds the archive as it
+                // discovers files. Keeping it as the last append (after every
+                // file entry is already enqueued) keeps the entry order
+                // deterministic.
+                zip.directory(
+                  path.join(
+                    this.serverless.config.serviceDir,
+                    '.serverless',
+                    'build',
+                    'node_modules',
+                  ),
                   'node_modules',
-                ),
-                'node_modules',
-                { date: PINNED_ARTIFACT_DATE },
-              )
+                  { date: PINNED_ARTIFACT_DATE },
+                )
 
-              await zip.finalize()
-              functionObject.package = {
-                artifact: zipPath,
+                await zip.finalize()
+                functionObject.package = {
+                  artifact: zipPath,
+                }
+              } catch (err) {
+                reject(err)
               }
             })
           })
@@ -1043,6 +1055,7 @@ class Esbuild {
     try {
       await Promise.all(zipPromises)
     } catch (err) {
+      if (err instanceof ServerlessError) throw err
       throw new ServerlessError(err.message, 'ESBULD_PACKAGE_ERROR')
     }
   }
@@ -1074,122 +1087,134 @@ class Esbuild {
     const zipPromise = new Promise(async (resolve, reject) => {
       output.on('close', () => resolve(zipPath))
       output.on('error', (err) => reject(err))
+      zip.on('error', (err) => reject(err))
 
+      // Failures anywhere in the append sequence must reject the archive
+      // promise — an escaped rejection in this listener would otherwise
+      // leave the promise pending forever.
       output.on('open', async () => {
-        zip.pipe(output)
+        try {
+          zip.pipe(output)
 
-        for (const [, functionObject] of Object.entries(functions)) {
-          const handlerPath = stripHandlerExportSuffix(
-            functionObject[handlerPropertyName],
-          )
+          for (const [, functionObject] of Object.entries(functions)) {
+            const handlerPath = stripHandlerExportSuffix(
+              functionObject[handlerPropertyName],
+            )
 
-          const packageJsonPath = path.join(
-            this.serverless.config.serviceDir,
-            '.serverless',
-            'build',
-            'package.json',
-          )
-
-          if (existsSync(packageJsonPath) && !addedFiles.has(packageJsonPath)) {
-            await appendFileEntry(zip, packageJsonPath, 'package.json')
-            addedFiles.add(packageJsonPath)
-          }
-
-          // Add lockfiles if they exist
-          const lockFiles = {
-            'package-lock.json': 'package-lock.json',
-            'yarn.lock': 'yarn.lock',
-            'pnpm-lock.yaml': 'pnpm-lock.yaml',
-          }
-
-          for (const [lockFile, destName] of Object.entries(lockFiles)) {
-            const lockFilePath = path.join(
+            const packageJsonPath = path.join(
               this.serverless.config.serviceDir,
               '.serverless',
               'build',
-              lockFile,
+              'package.json',
             )
-            if (existsSync(lockFilePath) && !addedFiles.has(lockFilePath)) {
-              await appendFileEntry(zip, lockFilePath, destName)
-              addedFiles.add(lockFilePath)
+
+            if (
+              existsSync(packageJsonPath) &&
+              !addedFiles.has(packageJsonPath)
+            ) {
+              await appendFileEntry(zip, packageJsonPath, 'package.json')
+              addedFiles.add(packageJsonPath)
             }
-          }
 
-          const handlerZipPath = path.join(
-            this.serverless.config.serviceDir,
-            '.serverless',
-            'build',
-            handlerPath + outputExtension,
-          )
+            // Add lockfiles if they exist
+            const lockFiles = {
+              'package-lock.json': 'package-lock.json',
+              'yarn.lock': 'yarn.lock',
+              'pnpm-lock.yaml': 'pnpm-lock.yaml',
+            }
 
-          if (!addedFiles.has(handlerZipPath)) {
-            await appendFileEntry(
-              zip,
-              handlerZipPath,
-              `${handlerPath}${outputExtension}`,
+            for (const [lockFile, destName] of Object.entries(lockFiles)) {
+              const lockFilePath = path.join(
+                this.serverless.config.serviceDir,
+                '.serverless',
+                'build',
+                lockFile,
+              )
+              if (existsSync(lockFilePath) && !addedFiles.has(lockFilePath)) {
+                await appendFileEntry(zip, lockFilePath, destName)
+                addedFiles.add(lockFilePath)
+              }
+            }
+
+            const handlerZipPath = path.join(
+              this.serverless.config.serviceDir,
+              '.serverless',
+              'build',
+              handlerPath + outputExtension,
             )
-            addedFiles.add(handlerZipPath)
-          }
 
-          if (
-            existsSync(`${handlerZipPath}.map`) &&
-            !addedFiles.has(`${handlerZipPath}.map`)
-          ) {
-            await appendFileEntry(
-              zip,
-              `${handlerZipPath}.map`,
-              `${handlerPath}${outputExtension}.map`,
-            )
-
-            addedFiles.add(`${handlerZipPath}.map`)
-          }
-        }
-
-        for (const filePath of packageIncludes) {
-          const absolutePath = path.join(this.serverless.serviceDir, filePath)
-          const stats = await stat(absolutePath)
-          if (stats.isDirectory()) {
-            // Expand the directory ourselves (sorted) instead of
-            // zip.directory(): concurrent directory walks feed the archive
-            // in racy, nondeterministic order.
-            const children = (
-              await globby('**', { cwd: absolutePath, dot: true })
-            ).sort()
-            for (const child of children) {
+            if (!addedFiles.has(handlerZipPath)) {
               await appendFileEntry(
                 zip,
-                path.join(absolutePath, child),
-                `${filePath}/${child}`,
+                handlerZipPath,
+                `${handlerPath}${outputExtension}`,
               )
+              addedFiles.add(handlerZipPath)
             }
-          } else if (!addedFiles.has(absolutePath)) {
-            await appendFileEntry(zip, absolutePath, filePath)
-            addedFiles.add(absolutePath)
+
+            if (
+              existsSync(`${handlerZipPath}.map`) &&
+              !addedFiles.has(`${handlerZipPath}.map`)
+            ) {
+              await appendFileEntry(
+                zip,
+                `${handlerZipPath}.map`,
+                `${handlerPath}${outputExtension}.map`,
+              )
+
+              addedFiles.add(`${handlerZipPath}.map`)
+            }
           }
-        }
 
-        // The node_modules walk is async and feeds the archive as it
-        // discovers files. Keeping it as the last append (after every file
-        // entry is already enqueued) keeps the entry order deterministic.
-        zip.directory(
-          path.join(
-            this.serverless.config.serviceDir,
-            '.serverless',
-            'build',
+          for (const filePath of packageIncludes) {
+            const absolutePath = path.join(this.serverless.serviceDir, filePath)
+            const stats = await stat(absolutePath)
+            if (stats.isDirectory()) {
+              // Expand the directory ourselves (sorted) instead of
+              // zip.directory(): concurrent directory walks feed the archive
+              // in racy, nondeterministic order.
+              const children = (
+                await globby('**', { cwd: absolutePath, dot: true })
+              ).sort()
+              for (const child of children) {
+                await appendFileEntry(
+                  zip,
+                  path.join(absolutePath, child),
+                  `${filePath}/${child}`,
+                )
+              }
+            } else if (!addedFiles.has(absolutePath)) {
+              await appendFileEntry(zip, absolutePath, filePath)
+              addedFiles.add(absolutePath)
+            }
+          }
+
+          // The node_modules walk is async and feeds the archive as it
+          // discovers files. Keeping it as the last append (after every file
+          // entry is already enqueued) keeps the entry order deterministic.
+          zip.directory(
+            path.join(
+              this.serverless.config.serviceDir,
+              '.serverless',
+              'build',
+              'node_modules',
+            ),
             'node_modules',
-          ),
-          'node_modules',
-          { date: PINNED_ARTIFACT_DATE },
-        )
+            { date: PINNED_ARTIFACT_DATE },
+          )
 
-        await zip.finalize()
-        this.serverless.service.package.artifact = zipPath
+          await zip.finalize()
+          this.serverless.service.package.artifact = zipPath
+        } catch (err) {
+          reject(err)
+        }
       })
     })
 
     try {
       await zipPromise
     } catch (err) {
+      if (err instanceof ServerlessError) throw err
       throw new ServerlessError(err.message, 'ESBULD_PACKAGE_ALL_ERROR')
     }
   }
