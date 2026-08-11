@@ -71,6 +71,32 @@ const appendFileEntry = async (zip, sourcePath, name) => {
   zip.file(sourcePath, { name, date: PINNED_ARTIFACT_DATE, stats })
 }
 
+// Deterministic replacement for zip.directory(): expand the tree ourselves
+// and append sequentially in sorted order. zip.directory()'s async walk
+// feeds the archive in readdir order, which differs per filesystem/volume
+// (e.g. ext4 hashes directory entries with a per-filesystem seed), so the
+// same unchanged service hashed differently between machines — a laptop
+// deploy followed by a CI deploy saw phantom diffs. The globby options
+// reproduce zip.directory's walk entry-for-entry: directory entries included
+// (empty ones too), symlinks kept as symlinks, nothing followed.
+const appendDirectoryEntries = async (zip, dirPath, destPath) => {
+  const entries = (
+    await globby('**', {
+      cwd: dirPath,
+      dot: true,
+      onlyFiles: false,
+      followSymbolicLinks: false,
+    })
+  ).sort()
+  for (const entry of entries) {
+    await appendFileEntry(
+      zip,
+      path.join(dirPath, entry),
+      `${destPath}/${entry}`,
+    )
+  }
+}
+
 // The file-vs-directory probe for a package-pattern include (stat, following
 // symlinks, as the include pipeline always has) with the same failure
 // contract as appendFileEntry.
@@ -1019,37 +1045,14 @@ class Esbuild {
                   )
                   const stats = await statIncludeEntry(absolutePath)
                   if (stats.isDirectory()) {
-                    // Expand the directory ourselves (sorted) instead of
-                    // zip.directory(): concurrent directory walks feed the
-                    // archive in racy, nondeterministic order. The options
-                    // reproduce zip.directory's walk exactly — directory
-                    // entries included, symlinks kept as symlinks, nothing
-                    // followed.
-                    const children = (
-                      await globby('**', {
-                        cwd: absolutePath,
-                        dot: true,
-                        onlyFiles: false,
-                        followSymbolicLinks: false,
-                      })
-                    ).sort()
-                    for (const child of children) {
-                      await appendFileEntry(
-                        zip,
-                        path.join(absolutePath, child),
-                        `${filePath}/${child}`,
-                      )
-                    }
+                    await appendDirectoryEntries(zip, absolutePath, filePath)
                   } else {
                     await appendFileEntry(zip, absolutePath, filePath)
                   }
                 }
 
-                // The node_modules walk is async and feeds the archive as it
-                // discovers files. Keeping it as the last append (after every
-                // file entry is already enqueued) keeps the entry order
-                // deterministic.
-                zip.directory(
+                await appendDirectoryEntries(
+                  zip,
                   path.join(
                     this.serverless.config.serviceDir,
                     '.serverless',
@@ -1057,7 +1060,6 @@ class Esbuild {
                     'node_modules',
                   ),
                   'node_modules',
-                  { date: PINNED_ARTIFACT_DATE },
                 )
 
                 await zip.finalize()
@@ -1192,36 +1194,15 @@ class Esbuild {
             const absolutePath = path.join(this.serverless.serviceDir, filePath)
             const stats = await statIncludeEntry(absolutePath)
             if (stats.isDirectory()) {
-              // Expand the directory ourselves (sorted) instead of
-              // zip.directory(): concurrent directory walks feed the archive
-              // in racy, nondeterministic order. The options reproduce
-              // zip.directory's walk exactly — directory entries included,
-              // symlinks kept as symlinks, nothing followed.
-              const children = (
-                await globby('**', {
-                  cwd: absolutePath,
-                  dot: true,
-                  onlyFiles: false,
-                  followSymbolicLinks: false,
-                })
-              ).sort()
-              for (const child of children) {
-                await appendFileEntry(
-                  zip,
-                  path.join(absolutePath, child),
-                  `${filePath}/${child}`,
-                )
-              }
+              await appendDirectoryEntries(zip, absolutePath, filePath)
             } else if (!addedFiles.has(absolutePath)) {
               await appendFileEntry(zip, absolutePath, filePath)
               addedFiles.add(absolutePath)
             }
           }
 
-          // The node_modules walk is async and feeds the archive as it
-          // discovers files. Keeping it as the last append (after every file
-          // entry is already enqueued) keeps the entry order deterministic.
-          zip.directory(
+          await appendDirectoryEntries(
+            zip,
             path.join(
               this.serverless.config.serviceDir,
               '.serverless',
@@ -1229,7 +1210,6 @@ class Esbuild {
               'node_modules',
             ),
             'node_modules',
-            { date: PINNED_ARTIFACT_DATE },
           )
 
           await zip.finalize()

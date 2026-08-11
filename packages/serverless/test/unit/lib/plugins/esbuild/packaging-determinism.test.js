@@ -96,13 +96,18 @@ describe('esbuild packaging determinism', () => {
   function makeRacyServiceDir() {
     const serviceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sls-esbuild-'))
     const buildDir = path.join(serviceDir, '.serverless', 'build')
-    fs.mkdirSync(path.join(buildDir, 'node_modules', 'dep'), {
-      recursive: true,
-    })
-    fs.writeFileSync(
-      path.join(buildDir, 'node_modules', 'dep', 'index.js'),
-      'module.exports = 1\n',
-    )
+    // Several packages with nested files so node_modules ordering itself is
+    // exercised, not just the position of a single entry.
+    for (const dep of ['dep-a', 'dep-b', 'dep-c']) {
+      const depDir = path.join(buildDir, 'node_modules', dep)
+      fs.mkdirSync(path.join(depDir, 'lib'), { recursive: true })
+      fs.writeFileSync(path.join(depDir, 'package.json'), `{"name":"${dep}"}\n`)
+      fs.writeFileSync(path.join(depDir, 'index.js'), 'module.exports = 1\n')
+      fs.writeFileSync(
+        path.join(depDir, 'lib', 'util.js'),
+        'module.exports = 2\n',
+      )
+    }
     fs.writeFileSync(path.join(buildDir, 'package.json'), '{"name":"svc"}\n')
     fs.writeFileSync(path.join(buildDir, 'package-lock.json'), '{}\n')
     fs.writeFileSync(path.join(buildDir, 'yarn.lock'), '# lock\n')
