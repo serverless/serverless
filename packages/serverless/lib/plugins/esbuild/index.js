@@ -9,6 +9,12 @@ import _ from 'lodash'
 import pLimit from 'p-limit'
 import { globby } from 'globby'
 import micromatch from 'micromatch'
+import {
+  compilePatterns,
+  isPathIncluded,
+  isDirIncluded,
+  filterPaths,
+} from '../../utils/package-patterns.js'
 import ServerlessError from '../../serverless-error.js'
 import { log } from '@serverless/util'
 
@@ -49,26 +55,35 @@ const areSameSet = (a, b) => {
 // forces a needless redeploy of every function (issue #4240).
 const PINNED_ARTIFACT_DATE = new Date(0)
 
-// A pinned date alone doesn't make the zip reproducible: archiver resolves
-// `zip.file()` calls without `stats` through an internal stat queue with
-// concurrency 4, so entries land in the archive in lstat-completion order,
-// which races between runs and changes the whole-zip bytes (and therefore the
-// sha256 used by check-for-changes). Pre-fetching the stats makes archiver
-// enqueue the entry synchronously, so entries appear strictly in call order.
-// An unreadable file fails packaging (same contract as the classic packaging
-// path) — archiver's own stat queue would silently drop the entry and ship an
-// incomplete artifact.
-const appendFileEntry = async (zip, sourcePath, name) => {
-  let stats
+// lstat (not stat) so that a symlink becomes a symlink entry, which is what
+// this path has always produced. An unreadable file fails packaging (same
+// contract as the classic packaging path) — archiver's own stat queue would
+// silently drop the entry and ship an incomplete artifact.
+const lstatEntry = async (sourcePath) => {
   try {
-    stats = await lstat(sourcePath)
+    return await lstat(sourcePath)
   } catch (error) {
     throw new ServerlessError(
       `Cannot read file ${sourcePath} due to: ${error.message}`,
       'CANNOT_READ_FILE',
     )
   }
-  zip.file(sourcePath, { name, date: PINNED_ARTIFACT_DATE, stats })
+}
+
+// A pinned date alone doesn't make the zip reproducible: archiver resolves
+// `zip.file()` calls without `stats` through an internal stat queue with
+// concurrency 4, so entries land in the archive in lstat-completion order,
+// which races between runs and changes the whole-zip bytes (and therefore the
+// sha256 used by check-for-changes). Pre-fetching the stats makes archiver
+// enqueue the entry synchronously, so entries appear strictly in call order.
+// `stats` may be supplied by a caller that already had to look them up, so
+// that the entry is never lstat'ed twice.
+const appendFileEntry = async (zip, sourcePath, name, stats) => {
+  zip.file(sourcePath, {
+    name,
+    date: PINNED_ARTIFACT_DATE,
+    stats: stats ?? (await lstatEntry(sourcePath)),
+  })
 }
 
 // Deterministic replacement for zip.directory(): expand the tree ourselves
@@ -79,7 +94,12 @@ const appendFileEntry = async (zip, sourcePath, name) => {
 // deploy followed by a CI deploy saw phantom diffs. The globby options
 // reproduce zip.directory's walk entry-for-entry: directory entries included
 // (empty ones too), symlinks kept as symlinks, nothing followed.
-const appendDirectoryEntries = async (zip, dirPath, destPath) => {
+//
+// `filter(entry, stats)` — optional — decides per entry whether it is
+// appended; `entry` is the walk-relative posix path and `stats` are its
+// (already fetched) lstat results, so the caller can tell directories from
+// files. Filtering happens after the sort, so it can never reorder anything.
+const appendDirectoryEntries = async (zip, dirPath, destPath, filter) => {
   const entries = (
     await globby('**', {
       cwd: dirPath,
@@ -89,11 +109,10 @@ const appendDirectoryEntries = async (zip, dirPath, destPath) => {
     })
   ).sort()
   for (const entry of entries) {
-    await appendFileEntry(
-      zip,
-      path.join(dirPath, entry),
-      `${destPath}/${entry}`,
-    )
+    const sourcePath = path.join(dirPath, entry)
+    const stats = await lstatEntry(sourcePath)
+    if (filter && !filter(entry, stats)) continue
+    await appendFileEntry(zip, sourcePath, `${destPath}/${entry}`, stats)
   }
 }
 
@@ -116,6 +135,9 @@ class Esbuild {
     this.serverless = serverless
     this.options = options || {}
     this._functions = undefined
+    // Set once the `packages: external` / empty-node_modules warning has been
+    // emitted, so that it is reported per invocation rather than per function.
+    this._nodeModulesExclusionWarned = false
 
     this._buildProperties = _.memoize(this._buildProperties.bind(this))
     this._readPackageJson = _.memoize(this._readPackageJson.bind(this))
@@ -957,6 +979,38 @@ class Esbuild {
             zipName,
           )
 
+          // Service- and function-level patterns merge in that order so that
+          // a function can re-include (or further exclude) what the service
+          // level decided; `last match wins` then falls out of the ordering.
+          const compiledPatterns = compilePatterns([
+            ...(this.serverless.service.package?.patterns ?? []),
+            ...(functionObject.package?.patterns ?? []),
+          ])
+          let excludedEntryCount = 0
+          // Scoped to the node_modules walk: only this counter can attest that
+          // the patterns removed dependencies, which is what the
+          // `packages: external` warning claims.
+          let excludedNodeModulesEntryCount = 0
+          let includedNodeModulesFileCount = 0
+          const nodeModulesEntryFilter = (entry, stats) => {
+            // `entry` is relative to the walked directory, so it has to be
+            // re-prefixed to match patterns written against the zip root.
+            const entryZipPath = `node_modules/${entry}`
+            const isDirectory = stats.isDirectory()
+            const included = isDirectory
+              ? isDirIncluded(compiledPatterns, entryZipPath)
+              : isPathIncluded(compiledPatterns, entryZipPath)
+            if (!included) {
+              excludedEntryCount += 1
+              excludedNodeModulesEntryCount += 1
+              return false
+            }
+            if (!isDirectory) {
+              includedNodeModulesFileCount += 1
+            }
+            return true
+          }
+
           const zip = new ZipArchive()
           const output = createWriteStream(zipPath)
 
@@ -977,10 +1031,16 @@ class Esbuild {
 
                 // Sorted so the archive entry order doesn't depend on glob
                 // traversal order, which is filesystem-dependent.
-                const includesToPackage = _.union(
+                const unionedIncludes = _.union(
                   packageIncludes,
                   functionIncludes,
                 ).sort()
+                const includesToPackage = filterPaths(
+                  compiledPatterns,
+                  unionedIncludes,
+                )
+                excludedEntryCount +=
+                  unionedIncludes.length - includesToPackage.length
 
                 zip.pipe(output)
                 const handlerPath = stripHandlerExportSuffix(
@@ -1045,6 +1105,10 @@ class Esbuild {
                   )
                   const stats = await statIncludeEntry(absolutePath)
                   if (stats.isDirectory()) {
+                    // No pattern predicate on purpose: the patterns already
+                    // selected this include, and pattern resolution (globby with
+                    // its onlyFiles default) never yields a directory, so this
+                    // branch is defensive rather than reachable from config.
                     await appendDirectoryEntries(zip, absolutePath, filePath)
                   } else {
                     await appendFileEntry(zip, absolutePath, filePath)
@@ -1060,6 +1124,7 @@ class Esbuild {
                     'node_modules',
                   ),
                   'node_modules',
+                  nodeModulesEntryFilter,
                 )
 
                 await zip.finalize()
@@ -1072,6 +1137,16 @@ class Esbuild {
             })
           })
           await zipPromise
+          // Counters are only final once the output stream closed.
+          this._reportPatternFiltering({
+            zipName,
+            subject: functionAlias,
+            compiledPatterns,
+            excludedEntryCount,
+            excludedNodeModulesEntryCount,
+            includedNodeModulesFileCount,
+            buildProperties,
+          })
         })
       },
     )
@@ -1103,6 +1178,40 @@ class Esbuild {
         cwd: this.serverless.serviceDir,
       })
     ).sort()
+
+    // Only service-level patterns apply here: a single shared zip has no
+    // per-function view to narrow, so function-level patterns are ignored
+    // without `individually` — same as classic packaging.
+    const compiledPatterns = compilePatterns(
+      this.serverless.service.package.patterns ?? [],
+    )
+    let excludedEntryCount = 0
+    // Scoped to the node_modules walk: only this counter can attest that the
+    // patterns removed dependencies, which is what the `packages: external`
+    // warning claims.
+    let excludedNodeModulesEntryCount = 0
+    let includedNodeModulesFileCount = 0
+    const nodeModulesEntryFilter = (entry, stats) => {
+      // `entry` is relative to the walked directory, so it has to be
+      // re-prefixed to match patterns written against the zip root.
+      const entryZipPath = `node_modules/${entry}`
+      const isDirectory = stats.isDirectory()
+      const included = isDirectory
+        ? isDirIncluded(compiledPatterns, entryZipPath)
+        : isPathIncluded(compiledPatterns, entryZipPath)
+      if (!included) {
+        excludedEntryCount += 1
+        excludedNodeModulesEntryCount += 1
+        return false
+      }
+      if (!isDirectory) {
+        includedNodeModulesFileCount += 1
+      }
+      return true
+    }
+
+    const includesToPackage = filterPaths(compiledPatterns, packageIncludes)
+    excludedEntryCount += packageIncludes.length - includesToPackage.length
 
     const zip = new ZipArchive()
     const output = createWriteStream(zipPath)
@@ -1190,10 +1299,14 @@ class Esbuild {
             }
           }
 
-          for (const filePath of packageIncludes) {
+          for (const filePath of includesToPackage) {
             const absolutePath = path.join(this.serverless.serviceDir, filePath)
             const stats = await statIncludeEntry(absolutePath)
             if (stats.isDirectory()) {
+              // No pattern predicate on purpose: the patterns already selected
+              // this include, and pattern resolution (globby with its onlyFiles
+              // default) never yields a directory, so this branch is defensive
+              // rather than reachable from config.
               await appendDirectoryEntries(zip, absolutePath, filePath)
             } else if (!addedFiles.has(absolutePath)) {
               await appendFileEntry(zip, absolutePath, filePath)
@@ -1210,6 +1323,7 @@ class Esbuild {
               'node_modules',
             ),
             'node_modules',
+            nodeModulesEntryFilter,
           )
 
           await zip.finalize()
@@ -1225,6 +1339,75 @@ class Esbuild {
     } catch (err) {
       if (err instanceof ServerlessError) throw err
       throw new ServerlessError(err.message, 'ESBULD_PACKAGE_ALL_ERROR')
+    }
+
+    // Counters are only final once the output stream closed.
+    this._reportPatternFiltering({
+      zipName,
+      subject: zipName,
+      compiledPatterns,
+      excludedEntryCount,
+      excludedNodeModulesEntryCount,
+      includedNodeModulesFileCount,
+      buildProperties,
+    })
+  }
+
+  /**
+   * Report what `package.patterns` did to one artifact: an info line naming the
+   * artifact when anything was excluded, an unconditional debug trace of the
+   * patterns and the counters, and a once-per-invocation warning when the
+   * patterns leave no dependencies behind for `packages: external`.
+   *
+   * Call this only after the artifact's zip promise settled — the counters are
+   * incremented from the node_modules entry filter and are not final before
+   * then.
+   *
+   * @param {object} params
+   * @param {string} params.zipName - Artifact file name, e.g. `my-service-fn1.zip`.
+   * @param {string} params.subject - What the debug trace is about: the function
+   *   alias when packaging individually, the service zip name otherwise.
+   * @param {Array<object>} params.compiledPatterns - Compiled ordered patterns.
+   * @param {number} params.excludedEntryCount - Entries the patterns removed.
+   * @param {number} params.excludedNodeModulesEntryCount - Of those, entries
+   *   removed from the node_modules walk rather than from additive includes.
+   * @param {number} params.includedNodeModulesFileCount - node_modules files kept.
+   * @param {object} params.buildProperties - The merged esbuild build properties.
+   */
+  _reportPatternFiltering({
+    zipName,
+    subject,
+    compiledPatterns,
+    excludedEntryCount,
+    excludedNodeModulesEntryCount,
+    includedNodeModulesFileCount,
+    buildProperties,
+  }) {
+    if (excludedEntryCount > 0) {
+      logger.info(
+        `Excluded ${excludedEntryCount} entries from ${zipName} via package.patterns`,
+      )
+    }
+    logger.debug(
+      `package.patterns for ${subject}: ${JSON.stringify(
+        compiledPatterns,
+      )} (excluded ${excludedEntryCount}, node_modules entries excluded ${excludedNodeModulesEntryCount}, node_modules files kept ${includedNodeModulesFileCount})`,
+    )
+    // Scoped to the node_modules walk on purpose: excluding only additive
+    // includes says nothing about dependencies, and warning there would make a
+    // false claim. This cannot miss a real case -- if node_modules held
+    // anything that the patterns stripped, the entry filter ran and counted it.
+    if (
+      includedNodeModulesFileCount === 0 &&
+      excludedNodeModulesEntryCount > 0 &&
+      buildProperties.packages === 'external' &&
+      !this._nodeModulesExclusionWarned
+    ) {
+      this._nodeModulesExclusionWarned = true
+      logger.warning(
+        'package.patterns exclude everything under node_modules, but "packages: external" requires dependencies in the artifact. ' +
+          'If dependencies are provided another way (e.g. a Lambda layer) or this exclusion predates build.esbuild, review or remove these patterns.',
+      )
     }
   }
 
