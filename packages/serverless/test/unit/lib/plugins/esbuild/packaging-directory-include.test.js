@@ -59,6 +59,10 @@ function makeServiceDir() {
       path.join(assetsDir, 'file.txt'),
       path.join(assetsDir, 'link-to-file'),
     )
+    fs.symlinkSync(
+      path.join(assetsDir, 'sub'),
+      path.join(assetsDir, 'link-to-sub'),
+    )
     fs.symlinkSync('/nonexistent-target', path.join(assetsDir, 'broken-link'))
     symlinksCreated = true
   } catch {
@@ -105,6 +109,12 @@ describe('esbuild packaging with a directory include', () => {
       // Symlinks are stored as entries (broken ones too), not followed.
       expect(names).toContain('assets/link-to-file')
       expect(names).toContain('assets/broken-link')
+      // A symlinked directory is stored as a symlink entry; its target's
+      // contents are not walked through the link.
+      expect(names).toContain('assets/link-to-sub')
+      expect(names.filter((n) => n.startsWith('assets/link-to-sub/'))).toEqual(
+        [],
+      )
     }
   })
 })
