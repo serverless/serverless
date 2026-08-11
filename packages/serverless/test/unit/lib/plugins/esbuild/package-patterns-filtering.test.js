@@ -26,11 +26,27 @@ jest.unstable_mockModule('fs/promises', () => {
 const Esbuild = (await import('../../../../../lib/plugins/esbuild/index.js'))
   .default
 
+// Every fixture directory is tracked and removed after the suite: this file
+// creates dozens of them, each holding a node_modules tree and zip artifacts.
+const createdServiceDirs = []
+
+afterAll(() => {
+  for (const dir of createdServiceDirs) {
+    fs.rmSync(dir, { recursive: true, force: true })
+  }
+})
+
+function makeFixtureDir() {
+  const serviceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sls-esbuild-pat-'))
+  createdServiceDirs.push(serviceDir)
+  return serviceDir
+}
+
 // `emptyNodeModules` builds the same fixture with an existing but empty
 // node_modules directory: the shape of a service that bundles everything, where
 // the entry filter never runs at all.
 function makeServiceDir({ emptyNodeModules = false } = {}) {
-  const serviceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sls-esbuild-pat-'))
+  const serviceDir = makeFixtureDir()
   const buildDir = path.join(serviceDir, '.serverless', 'build')
   const write = (rel, content = 'x\n') => {
     fs.mkdirSync(path.dirname(path.join(buildDir, rel)), { recursive: true })
@@ -589,14 +605,14 @@ describe('esbuild patterns observability', () => {
 // order and the whole-zip sha256, the same way packaging-determinism.test.js
 // pins the unfiltered path.
 describe('esbuild patterns determinism', () => {
-  jest.setTimeout(60_000)
+  // The 6-run tests below carry a per-test 60s timeout (third argument):
+  // jest.setTimeout is file-global no matter where it is called, so a
+  // describe-scoped call here would be overridden by later calls in the file.
 
   // Many small files across several packages, so an ordering leak in the
   // filtered walk shows up reliably rather than by luck.
   function makeRacyServiceDir() {
-    const serviceDir = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'sls-esbuild-pat-'),
-    )
+    const serviceDir = makeFixtureDir()
     const buildDir = path.join(serviceDir, '.serverless', 'build')
     for (const dep of ['dep-a', 'dep-b', 'dep-c', 'keep']) {
       const depDir = path.join(buildDir, 'node_modules', dep)
@@ -680,7 +696,7 @@ describe('esbuild patterns determinism', () => {
           !name.startsWith('node_modules/keep'),
       ),
     ).toEqual([])
-  })
+  }, 60_000)
 
   test('_packageAll stays byte-identical across 6 runs with filtering active', async () => {
     const { serviceDir, racyFunctions } = makeRacyServiceDir()
@@ -714,7 +730,7 @@ describe('esbuild patterns determinism', () => {
           !name.startsWith('node_modules/keep'),
       ),
     ).toEqual([])
-  })
+  }, 60_000)
 })
 
 // package.patterns must not become a way to route around an unreadable file.

@@ -130,6 +130,39 @@ const statIncludeEntry = async (absolutePath) => {
   }
 }
 
+// Builds the per-artifact node_modules entry filter and its counters. One
+// shared factory for both packaging paths, so the twin filters cannot drift.
+// The `excludedNodeModulesEntryCount` counter is scoped to the node_modules
+// walk: only it can attest that the patterns removed dependencies, which is
+// what the `packages: external` warning claims. `excludedEntryCount` also
+// absorbs filtered additive includes at the call sites.
+const createNodeModulesEntryFilter = (compiledPatterns) => {
+  const counters = {
+    excludedEntryCount: 0,
+    excludedNodeModulesEntryCount: 0,
+    includedNodeModulesFileCount: 0,
+  }
+  const filter = (entry, stats) => {
+    // `entry` is relative to the walked directory, so it has to be
+    // re-prefixed to match patterns written against the zip root.
+    const entryZipPath = `node_modules/${entry}`
+    const isDirectory = stats.isDirectory()
+    const included = isDirectory
+      ? isDirIncluded(compiledPatterns, entryZipPath)
+      : isPathIncluded(compiledPatterns, entryZipPath)
+    if (!included) {
+      counters.excludedEntryCount += 1
+      counters.excludedNodeModulesEntryCount += 1
+      return false
+    }
+    if (!isDirectory) {
+      counters.includedNodeModulesFileCount += 1
+    }
+    return true
+  }
+  return { filter, counters }
+}
+
 class Esbuild {
   constructor(serverless, options) {
     this.serverless = serverless
@@ -986,30 +1019,8 @@ class Esbuild {
             ...(this.serverless.service.package?.patterns ?? []),
             ...(functionObject.package?.patterns ?? []),
           ])
-          let excludedEntryCount = 0
-          // Scoped to the node_modules walk: only this counter can attest that
-          // the patterns removed dependencies, which is what the
-          // `packages: external` warning claims.
-          let excludedNodeModulesEntryCount = 0
-          let includedNodeModulesFileCount = 0
-          const nodeModulesEntryFilter = (entry, stats) => {
-            // `entry` is relative to the walked directory, so it has to be
-            // re-prefixed to match patterns written against the zip root.
-            const entryZipPath = `node_modules/${entry}`
-            const isDirectory = stats.isDirectory()
-            const included = isDirectory
-              ? isDirIncluded(compiledPatterns, entryZipPath)
-              : isPathIncluded(compiledPatterns, entryZipPath)
-            if (!included) {
-              excludedEntryCount += 1
-              excludedNodeModulesEntryCount += 1
-              return false
-            }
-            if (!isDirectory) {
-              includedNodeModulesFileCount += 1
-            }
-            return true
-          }
+          const { filter: nodeModulesEntryFilter, counters: patternCounters } =
+            createNodeModulesEntryFilter(compiledPatterns)
 
           const zip = new ZipArchive()
           const output = createWriteStream(zipPath)
@@ -1031,15 +1042,14 @@ class Esbuild {
 
                 // Sorted so the archive entry order doesn't depend on glob
                 // traversal order, which is filesystem-dependent.
-                const unionedIncludes = _.union(
-                  packageIncludes,
-                  functionIncludes,
-                ).sort()
+                const unionedIncludes = [
+                  ...new Set([...packageIncludes, ...functionIncludes]),
+                ].sort()
                 const includesToPackage = filterPaths(
                   compiledPatterns,
                   unionedIncludes,
                 )
-                excludedEntryCount +=
+                patternCounters.excludedEntryCount +=
                   unionedIncludes.length - includesToPackage.length
 
                 zip.pipe(output)
@@ -1142,9 +1152,7 @@ class Esbuild {
             zipName,
             subject: functionAlias,
             compiledPatterns,
-            excludedEntryCount,
-            excludedNodeModulesEntryCount,
-            includedNodeModulesFileCount,
+            ...patternCounters,
             buildProperties,
           })
         })
@@ -1185,33 +1193,12 @@ class Esbuild {
     const compiledPatterns = compilePatterns(
       this.serverless.service.package.patterns ?? [],
     )
-    let excludedEntryCount = 0
-    // Scoped to the node_modules walk: only this counter can attest that the
-    // patterns removed dependencies, which is what the `packages: external`
-    // warning claims.
-    let excludedNodeModulesEntryCount = 0
-    let includedNodeModulesFileCount = 0
-    const nodeModulesEntryFilter = (entry, stats) => {
-      // `entry` is relative to the walked directory, so it has to be
-      // re-prefixed to match patterns written against the zip root.
-      const entryZipPath = `node_modules/${entry}`
-      const isDirectory = stats.isDirectory()
-      const included = isDirectory
-        ? isDirIncluded(compiledPatterns, entryZipPath)
-        : isPathIncluded(compiledPatterns, entryZipPath)
-      if (!included) {
-        excludedEntryCount += 1
-        excludedNodeModulesEntryCount += 1
-        return false
-      }
-      if (!isDirectory) {
-        includedNodeModulesFileCount += 1
-      }
-      return true
-    }
+    const { filter: nodeModulesEntryFilter, counters: patternCounters } =
+      createNodeModulesEntryFilter(compiledPatterns)
 
     const includesToPackage = filterPaths(compiledPatterns, packageIncludes)
-    excludedEntryCount += packageIncludes.length - includesToPackage.length
+    patternCounters.excludedEntryCount +=
+      packageIncludes.length - includesToPackage.length
 
     const zip = new ZipArchive()
     const output = createWriteStream(zipPath)
@@ -1346,9 +1333,7 @@ class Esbuild {
       zipName,
       subject: zipName,
       compiledPatterns,
-      excludedEntryCount,
-      excludedNodeModulesEntryCount,
-      includedNodeModulesFileCount,
+      ...patternCounters,
       buildProperties,
     })
   }
