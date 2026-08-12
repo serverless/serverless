@@ -149,6 +149,10 @@ module.exports = (serverless) => {
 }
 ```
 
+### Packaging Patterns
+
+`package.patterns` controls which files are packaged into esbuild artifacts: the patterns filter the artifact's `node_modules` content and select any additional files to include. The compiled handler bundle, the sourcemap when one is emitted, and the `package.json` and lockfile are always packaged. Function-level patterns apply when `package.individually` is enabled and are merged after the service-level patterns. See [Packaging](./packaging.md) for pattern syntax and merging rules.
+
 ## Plugin Conflicts
 
 Please note, plugins that build your code will not work unless you opt out of the default build experience. Some of the plugins affected are:
