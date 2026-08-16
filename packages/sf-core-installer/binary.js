@@ -133,7 +133,7 @@ class Binary {
     }
   }
 
-  install(suppressLogs = false) {
+  install(suppressLogs = false, bestEffort = false) {
     if (this.exists()) {
       if (!suppressLogs) {
         console.error(
@@ -189,8 +189,18 @@ class Binary {
         }
       })
       .catch((e) => {
-        error(`Error fetching release: ${e.message}`)
         this.removeBinary()
+        if (bestEffort) {
+          // Don't fail `npm install` when the binary can't be downloaded
+          // (e.g. behind a corporate proxy/firewall). It will be fetched
+          // automatically on first use in run().
+          console.error(
+            `Warning: could not download ${this.name}: ${e.message}. ` +
+              `It will be downloaded automatically on first use.`,
+          )
+          return
+        }
+        error(`Error fetching release: ${e.message}`)
       })
   }
 
@@ -263,7 +273,9 @@ const getBinary = () => {
 
 const install = async () => {
   const binary = getBinary()
-  return binary.install(true) // Suppresses logs from binary-install
+  // Best-effort: a failed download must not abort `npm install`. The binary is
+  // fetched lazily on first use in run() if it isn't present here.
+  return binary.install(true, true) // Suppresses logs from binary-install
 }
 
 const run = async () => {
