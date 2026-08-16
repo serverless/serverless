@@ -127,4 +127,67 @@ describe('Basic', () => {
       })
     })
   })
+
+  describe('S3 Location', () => {
+    it('should accept a valid requestS3Location on a pipeline function', () => {
+      expect(
+        validateConfig({
+          ...basicConfig,
+          pipelineFunctions: {
+            function1: {
+              dataSource: 'ds1',
+              requestS3Location: { bucket: 'my-bucket', key: 'request.vtl' },
+              responseS3Location: { bucket: 'my-bucket', key: 'response.vtl' },
+            },
+          },
+        }),
+      ).toBe(true)
+    })
+
+    it('should throw when request and requestS3Location are both set on a pipeline function', () => {
+      expect(() => {
+        validateConfig({
+          ...basicConfig,
+          pipelineFunctions: {
+            function1: {
+              dataSource: 'ds1',
+              request: 'request.vtl',
+              requestS3Location: { bucket: 'my-bucket', key: 'request.vtl' },
+            },
+          },
+        })
+      }).toThrow('mutually exclusive')
+    })
+
+    it('should throw when code and responseS3Location are combined on a pipeline function', () => {
+      expect(() => {
+        validateConfig({
+          ...basicConfig,
+          pipelineFunctions: {
+            function1: {
+              dataSource: 'ds1',
+              code: 'function.js',
+              responseS3Location: { bucket: 'my-bucket', key: 'response.vtl' },
+            },
+          },
+        })
+      }).toThrow(
+        "'code' (JS) cannot be combined with an S3 mapping-template location",
+      )
+    })
+
+    it('should throw when requestS3Location is missing key on a pipeline function', () => {
+      expect(() => {
+        validateConfig({
+          ...basicConfig,
+          pipelineFunctions: {
+            function1: {
+              dataSource: 'ds1',
+              requestS3Location: { bucket: 'my-bucket' },
+            },
+          },
+        })
+      }).toThrow()
+    })
+  })
 })
