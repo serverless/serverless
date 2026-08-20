@@ -189,7 +189,7 @@ async function addCustomResourceToService(
       FunctionName: absoluteFunctionName,
       Handler,
       MemorySize: 1024,
-      Runtime: 'nodejs22.x',
+      Runtime: 'nodejs24.x',
       Timeout: 180,
     },
     DependsOn: [],
