@@ -127,6 +127,7 @@ const sandboxConfigSchema = {
       properties: {
         buildRole: roleCustomization,
         executionRole: roleCustomization,
+        operatorRole: roleCustomization,
       },
     },
     observability: {

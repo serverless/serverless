@@ -279,11 +279,12 @@ export function generateExecutionRole(name, cfg, ctx) {
  *   - ec2:CreateTags with ec2:ManagedResourceOperator StringEquals condition
  *
  * @param {string} name - Sandbox runner name
+ * @param {object} cfg  - Full sandbox configuration object (may contain cfg.iam.operatorRole)
  * @param {object} ctx  - Deployment context: { serviceName, stage, region }
  * @returns {object} CloudFormation AWS::IAM::Role resource object
  */
-export function generateOperatorRole(name, ctx) {
-  return {
+export function generateOperatorRole(name, cfg, ctx) {
+  const role = {
     Type: 'AWS::IAM::Role',
     Properties: {
       AssumeRolePolicyDocument: {
@@ -345,4 +346,5 @@ export function generateOperatorRole(name, ctx) {
       ],
     },
   }
+  return withCustomizations(role, cfg.iam && cfg.iam.operatorRole)
 }

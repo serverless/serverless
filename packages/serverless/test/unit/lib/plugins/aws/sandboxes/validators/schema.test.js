@@ -157,7 +157,7 @@ describe('defineSandboxesSchema', () => {
     expect(iam.additionalProperties).toBe(false)
     expect(iam.properties.buildRole).toBeDefined()
     expect(iam.properties.executionRole).toBeDefined()
-    expect(iam.properties.operatorRole).toBeUndefined() // operator role is not user-customizable
+    expect(iam.properties.operatorRole).toBeDefined()
     // role value: an ARN string OR { statements, managedPolicies }
     const rv = iam.properties.executionRole
     expect(rv.anyOf.some((b) => b.type === 'string')).toBe(true)

@@ -277,7 +277,7 @@ export async function orchestrate({
     }
 
     if (cfg.vpc) {
-      const operatorRoleResource = generateOperatorRole(name, ctx)
+      const operatorRoleResource = generateOperatorRole(name, cfg, ctx)
       template.Resources[operatorRoleLogicalId] = operatorRoleResource
 
       const connectorCtx = {
