@@ -81,15 +81,16 @@ function getEnvironment(context) {
 }
 
 function handlerWrapper(handler, PhysicalResourceId) {
-  return async (event, context, callback) => {
+  // The nodejs24.x runtime rejects three-argument (callback-style) handlers
+  // with Runtime.CallbackHandlerDeprecated, so this must stay a two-argument
+  // async handler.
+  return async (event, context) => {
     // extend the `event` object to include the PhysicalResourceId
     event = Object.assign({}, event, { PhysicalResourceId })
-    return Promise.resolve(handler(event, context, callback))
-      .then(
-        (result) => response(event, context, 'SUCCESS', result),
-        (error) => response(event, context, 'FAILED', {}, error),
-      )
-      .then((result) => callback(null, result), callback)
+    return Promise.resolve(handler(event, context)).then(
+      (result) => response(event, context, 'SUCCESS', result),
+      (error) => response(event, context, 'FAILED', {}, error),
+    )
   }
 }
 
