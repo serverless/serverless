@@ -150,7 +150,7 @@ describe('defineSandboxesSchema', () => {
     expect(port.maximum).toBe(65535)
   })
 
-  test('per-sandbox schema iam is constrained to buildRole/executionRole', () => {
+  test('per-sandbox schema iam is constrained to buildRole/executionRole/operatorRole', () => {
     defineSandboxesSchema(mockServerless)
     const s = capturedSandboxesSchema.additionalProperties
     const iam = s.properties.iam

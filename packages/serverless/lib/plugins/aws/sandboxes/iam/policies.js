@@ -10,7 +10,7 @@ import { getResourceName } from '../utils/naming.js'
  *   - a CloudFormation intrinsic  (Ref / Fn::GetAtt / Fn::ImportValue / Fn::Sub)
  * Returns true in all other cases (undefined → use defaults, plain object → customization).
  *
- * @param {string|object|undefined} roleCfg - Value of iam.buildRole / iam.executionRole
+ * @param {string|object|undefined} roleCfg - Value of iam.buildRole / iam.executionRole / iam.operatorRole
  * @returns {boolean}
  */
 export function shouldGenerateRole(roleCfg) {
@@ -85,7 +85,7 @@ function lambdaTrustPolicy() {
  *   permissionsBoundary – ARN set as PermissionsBoundary
  *
  * @param {object} role - Generated CloudFormation IAM::Role resource object
- * @param {object|undefined} roleCfg - iam.buildRole / iam.executionRole customization object
+ * @param {object|undefined} roleCfg - iam.buildRole / iam.executionRole / iam.operatorRole customization object
  * @returns {object} The mutated role
  */
 function withCustomizations(role, roleCfg) {

@@ -320,7 +320,7 @@ When `vpc` is set, the framework creates an `AWS::Lambda::NetworkConnector` and 
 
 ### Auto-generated roles
 
-The framework creates two IAM roles per sandbox automatically:
+The framework creates two IAM roles per sandbox automatically — plus a third when `vpc` is set:
 
 **Build role** (`AWS::IAM::Role` — `<Name>ImageBuildRole`)
 
@@ -337,6 +337,13 @@ Permissions:
 
 Both roles use a trust policy for `lambda.amazonaws.com` with an `aws:SourceAccount` condition to prevent confused-deputy attacks.
 
+**Connector operator role** (`AWS::IAM::Role` — `<Name>ConnectorOperatorRole`, only when `vpc` is set)
+
+Assumed by the `network-connectors.lambda.amazonaws.com` service to manage the network interfaces the [VPC connector](#networking--vpc) places in your subnets. Permissions:
+
+- `ec2:CreateNetworkInterface` on the deploying account's network-interface, subnet, and security-group ARNs
+- `ec2:CreateTags` on network-interface ARNs, conditioned on the connector service being the managing operator
+
 > **Extending the build role for non-default setups.** The generated build role grants `s3:GetObject` on the deployment bucket plus CloudWatch Logs — enough for the default Serverless deployment bucket (SSE-S3) and public or managed base images. Two setups need extra permissions, which you add via [`iam.buildRole.statements`](#customizing-auto-generated-roles):
 >
 > - **Deployment bucket encrypted with a customer-managed KMS key** → add `kms:Decrypt` (and `kms:DescribeKey`) on the key, otherwise the build fails fetching the artifact with `AccessDenied`.
@@ -344,7 +351,7 @@ Both roles use a trust policy for `lambda.amazonaws.com` with an `aws:SourceAcco
 
 ### Customizing auto-generated roles
 
-Pass an `iam.buildRole` or `iam.executionRole` customization object to extend the generated role without replacing it:
+Pass an `iam.buildRole`, `iam.executionRole`, or `iam.operatorRole` customization object to extend the generated role without replacing it:
 
 ```yml
 sandboxes:
@@ -375,6 +382,27 @@ Supported customization keys:
 | `managedPolicies`     | array  | Managed policy ARNs attached to the role.                       |
 | `permissionsBoundary` | string | ARN of a permissions boundary policy.                           |
 
+> **Shared VPCs (AWS RAM).** The generated operator role scopes `ec2:CreateNetworkInterface` to subnet ARNs in the deploying account. Subnets shared into your account keep the owner account's ARN, so the connector cannot create network interfaces in them. Append a statement covering exactly the shared subnets you use:
+>
+> ```yml
+> sandboxes:
+>   api:
+>     artifact: ./app
+>     vpc:
+>       subnetIds: [subnet-0123456789abcdef0]
+>       securityGroupIds: [sg-0123456789abcdef0]
+>     iam:
+>       operatorRole:
+>         statements:
+>           - Effect: Allow
+>             Action: ec2:CreateNetworkInterface
+>             Resource: arn:aws:ec2:us-east-1:111122223333:subnet/subnet-0123456789abcdef0
+>             # 111122223333 = the VPC owner's account ID; grant the specific
+>             # subnets from vpc.subnetIds rather than subnet/*
+> ```
+>
+> Keep operator-role grants tightly scoped: unlike the build and execution roles, this role's trust policy cannot carry an `aws:SourceAccount` condition, so anything granted here should be the minimum the connector needs.
+
 ### Providing an external role
 
 To skip role generation entirely and supply your own role, pass an ARN string or a CloudFormation intrinsic:
@@ -389,7 +417,7 @@ sandboxes:
         Fn::ImportValue: SharedExecutionRoleArn
 ```
 
-Supported forms: ARN string, `Ref`, `Fn::GetAtt`, `Fn::ImportValue`, `Fn::Sub`. When an external role is provided, no `AWS::IAM::Role` resource is created for that role.
+Supported forms: ARN string, `Ref`, `Fn::GetAtt`, `Fn::ImportValue`, `Fn::Sub`. When an external role is provided, no `AWS::IAM::Role` resource is created for that role. The same forms work for `iam.operatorRole`; an external operator role must trust `network-connectors.lambda.amazonaws.com`. Do not add an `aws:SourceAccount` condition to that trust policy — the network-connectors service does not present it, and role assumption fails at deploy time with `unable to assume the provided NetworkConnectorOperatorRole`. Note that `iam.operatorRole` (in any form) has effect only when `vpc` is set — without `vpc` there is no connector and no operator role.
 
 ---
 
@@ -405,7 +433,7 @@ For each sandbox, `serverless deploy` creates the following CloudFormation resou
 | `<Name>ImageBuildRole`        | `AWS::IAM::Role`                | Unless `iam.buildRole` is an external ref                                         |
 | `<Name>ExecutionRole`         | `AWS::IAM::Role`                | Unless `iam.executionRole` is an external ref                                     |
 | `<Name>Connector`             | `AWS::Lambda::NetworkConnector` | Only when `vpc` is set                                                            |
-| `<Name>ConnectorOperatorRole` | `AWS::IAM::Role`                | Only when `vpc` is set                                                            |
+| `<Name>ConnectorOperatorRole` | `AWS::IAM::Role`                | Only when `vpc` is set, unless `iam.operatorRole` is an external ref              |
 | `<Name>LogGroup`              | `AWS::Logs::LogGroup`           | Always                                                                            |
 | `<Name><Filter>MetricFilter`  | `AWS::Logs::MetricFilter`       | One per `observability.metrics.filters` entry (default `errors`)                  |
 | `<Name><Filter>Alarm`         | `AWS::CloudWatch::Alarm`        | One per filter, only when `observability.alarms.notify` is set                    |

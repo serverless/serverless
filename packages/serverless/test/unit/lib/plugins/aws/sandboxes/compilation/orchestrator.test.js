@@ -362,6 +362,133 @@ describe('orchestrate', () => {
     })
   })
 
+  describe('operator role customization (vpc)', () => {
+    const vpc = {
+      subnetIds: ['subnet-aaa'],
+      securityGroupIds: ['sg-111'],
+    }
+
+    async function orchestrateWithOperatorRole(operatorRole) {
+      const template = makeTemplate()
+      await orchestrate({
+        sandboxesConfig: {
+          runner: {
+            artifact: 's3://b/k.zip',
+            vpc,
+            iam: { operatorRole },
+          },
+        },
+        ctx: makeCtx(),
+        template,
+        provider: makeProvider(),
+        serverless: {},
+        log: { debug: jest.fn() },
+        _zipDir: stubZipDir,
+      })
+      return template
+    }
+
+    test('does not generate an operator role when an ARN string is provided', async () => {
+      const arn = 'arn:aws:iam::123456789012:role/my-operator-role'
+      const template = await orchestrateWithOperatorRole(arn)
+      expect(template.Resources).not.toHaveProperty(
+        'RunnerConnectorOperatorRole',
+      )
+      expect(template.Resources.RunnerConnector.Properties.OperatorRole).toBe(
+        arn,
+      )
+    })
+
+    test('does not generate an operator role when a CFN intrinsic is provided', async () => {
+      const intrinsic = { 'Fn::ImportValue': 'SharedOperatorRoleArn' }
+      const template = await orchestrateWithOperatorRole(intrinsic)
+      expect(template.Resources).not.toHaveProperty(
+        'RunnerConnectorOperatorRole',
+      )
+      expect(
+        template.Resources.RunnerConnector.Properties.OperatorRole,
+      ).toEqual(intrinsic)
+    })
+
+    test('iam.operatorRole without vpc is ignored: no connector, no operator role, no error', async () => {
+      const template = makeTemplate()
+      await orchestrate({
+        sandboxesConfig: {
+          runner: {
+            artifact: 's3://b/k.zip',
+            iam: {
+              operatorRole: 'arn:aws:iam::123456789012:role/my-operator-role',
+            },
+          },
+        },
+        ctx: makeCtx(),
+        template,
+        provider: makeProvider(),
+        serverless: {},
+        log: { debug: jest.fn() },
+        _zipDir: stubZipDir,
+      })
+      expect(template.Resources).not.toHaveProperty('RunnerConnector')
+      expect(template.Resources).not.toHaveProperty(
+        'RunnerConnectorOperatorRole',
+      )
+    })
+
+    test('same-stack transition generated -> external keeps connector identity, only rewires the role', async () => {
+      const generated = await orchestrateWithOperatorRole({
+        statements: [
+          { Effect: 'Allow', Action: ['ec2:CreateTags'], Resource: '*' },
+        ],
+      })
+      const external = await orchestrateWithOperatorRole(
+        'arn:aws:iam::123456789012:role/my-operator-role',
+      )
+      // The connector keeps its logical ID and physical Name across the
+      // transition (an update, not a replacement)...
+      expect(generated.Resources.RunnerConnector.Properties.Name).toBeDefined()
+      expect(external.Resources.RunnerConnector.Properties.Name).toEqual(
+        generated.Resources.RunnerConnector.Properties.Name,
+      )
+      // ...the generated role resource disappears, and only the OperatorRole
+      // property changes.
+      expect(generated.Resources).toHaveProperty('RunnerConnectorOperatorRole')
+      expect(external.Resources).not.toHaveProperty(
+        'RunnerConnectorOperatorRole',
+      )
+      const strip = (c) => {
+        const { OperatorRole, ...rest } = c.Properties
+        return rest
+      }
+      expect(strip(external.Resources.RunnerConnector)).toEqual(
+        strip(generated.Resources.RunnerConnector),
+      )
+    })
+
+    test('customization object: custom statement appended, base statements retained, connector wired to generated role', async () => {
+      const template = await orchestrateWithOperatorRole({
+        statements: [
+          {
+            Effect: 'Allow',
+            Action: ['ec2:CreateNetworkInterface'],
+            Resource: 'arn:aws:ec2:us-east-1:999999999999:subnet/*',
+          },
+        ],
+      })
+      const role = template.Resources.RunnerConnectorOperatorRole
+      expect(role).toBeDefined()
+      const stmts = role.Properties.Policies[0].PolicyDocument.Statement
+      // Custom statement is appended after the generated ones (union, not
+      // replacement) — the base CreateNetworkInterface/CreateTags grants stay.
+      expect(stmts.length).toBeGreaterThan(1)
+      expect(stmts.at(-1).Resource).toBe(
+        'arn:aws:ec2:us-east-1:999999999999:subnet/*',
+      )
+      expect(
+        template.Resources.RunnerConnector.Properties.OperatorRole,
+      ).toEqual({ 'Fn::GetAtt': ['RunnerConnectorOperatorRole', 'Arn'] })
+    })
+  })
+
   describe('multiple sandboxes', () => {
     test('both sandboxes get their own resources', async () => {
       const template = makeTemplate()

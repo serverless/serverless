@@ -477,7 +477,7 @@ describe('generateOperatorRole', () => {
     )
   })
 
-  test('applies custom statements even when logging is disabled (creates the policy holder)', () => {
+  test('appends custom statements to the network-connector policy, keeping base statements', () => {
     const cfg = {
       iam: {
         operatorRole: {
@@ -485,25 +485,26 @@ describe('generateOperatorRole', () => {
             {
               Effect: 'Allow',
               Action: ['ec2:CreateNetworkInterface'],
-              Resource: '*',
+              Resource: 'arn:aws:ec2:us-east-1:999999999999:subnet/*',
             },
           ],
         },
       },
     }
-    const role = generateOperatorRole('runner', cfg, {
-      ...ctx,
-      loggingDisabled: true,
-    })
+    const role = generateOperatorRole('runner', cfg, operatorCtx)
     const stmts = role.Properties.Policies[0].PolicyDocument.Statement
-    expect(
-      stmts.some((s) => s.Action.includes('ec2:CreateNetworkInterface')),
-    ).toBe(true)
-    console.log('stmts', stmts)
-    expect(stmts.some((s) => s.Resource === '*')).toBe(true)
+    // Appended last, after the generated CreateNetworkInterface/CreateTags
+    // statements — customization is additive, never a replacement.
+    expect(stmts.at(-1).Resource).toBe(
+      'arn:aws:ec2:us-east-1:999999999999:subnet/*',
+    )
+    const actions = stmts.flatMap((s) => [s.Action].flat())
+    expect(actions).toEqual(
+      expect.arrayContaining(['ec2:CreateNetworkInterface', 'ec2:CreateTags']),
+    )
   })
 
-  test('merges managedPolicies from cfg.iam.operatorRole', () => {
+  test('attaches managedPolicies from cfg.iam.operatorRole', () => {
     const cfg = {
       iam: {
         operatorRole: {
@@ -511,7 +512,7 @@ describe('generateOperatorRole', () => {
         },
       },
     }
-    const role = generateOperatorRole('runner', cfg, ctx)
+    const role = generateOperatorRole('runner', cfg, operatorCtx)
     expect(role.Properties.ManagedPolicyArns).toContain(
       'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess',
     )
@@ -525,9 +526,25 @@ describe('generateOperatorRole', () => {
         },
       },
     }
-    const role = generateOperatorRole('runner', cfg, ctx)
+    const role = generateOperatorRole('runner', cfg, operatorCtx)
     expect(role.Properties.PermissionsBoundary).toBe(
       'arn:aws:iam::123456789012:policy/exec-boundary',
     )
+  })
+
+  test('ARN string and CFN intrinsic are not treated as customization objects', () => {
+    const asString = generateOperatorRole(
+      'runner',
+      { iam: { operatorRole: 'arn:aws:iam::123456789012:role/x' } },
+      operatorCtx,
+    )
+    const asIntrinsic = generateOperatorRole(
+      'runner',
+      { iam: { operatorRole: { 'Fn::ImportValue': 'X' } } },
+      operatorCtx,
+    )
+    const plain = generateOperatorRole('runner', {}, operatorCtx)
+    expect(asString).toEqual(plain)
+    expect(asIntrinsic).toEqual(plain)
   })
 })

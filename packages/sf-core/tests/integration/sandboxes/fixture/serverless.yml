@@ -9,7 +9,7 @@ provider:
 sandboxes:
   echo:
     artifact: ./app
-    memory: 2048
+    minimumMemory: 2048
     environment:
       GREETING: hi
     hooks:

@@ -90,7 +90,7 @@ const buildHooks = (cfgs) => {
   return out
 }
 
-const IAM_ROLES = ['buildRole', 'executionRole']
+const IAM_ROLES = ['buildRole', 'executionRole', 'operatorRole']
 
 // 'existing' = user supplies a role (ARN string or CFN intrinsic — generation
 // skipped); 'extended' = generated role extended with statements /

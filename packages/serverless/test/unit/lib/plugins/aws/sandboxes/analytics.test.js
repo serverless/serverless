@@ -177,6 +177,17 @@ describe('deriveSandboxesBlock — iam', () => {
     expect(out.iam).toEqual({ buildRole: ['extended'] })
   })
 
+  test('operatorRole is classified like the other roles', () => {
+    const out = deriveSandboxesBlock({
+      a: { artifact: './a', iam: { operatorRole: 'arn:aws:iam::123:role/x' } },
+      b: {
+        artifact: './b',
+        iam: { operatorRole: { statements: [{ Effect: 'Allow' }] } },
+      },
+    })
+    expect(out.iam).toEqual({ operatorRole: ['existing', 'extended'] })
+  })
+
   test('iam omitted entirely when every sandbox uses generated roles', () => {
     expect(deriveSandboxesBlock({ a: { artifact: './a' } }).iam).toBeUndefined()
   })
