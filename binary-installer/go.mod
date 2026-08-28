@@ -1,12 +1,12 @@
 module sf-core
 
-go 1.26.5
+go 1.27.0
 
 require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/briandowns/spinner v1.23.2
 	github.com/fatih/color v1.19.0
-	golang.org/x/mod v0.38.0
+	golang.org/x/mod v0.40.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
