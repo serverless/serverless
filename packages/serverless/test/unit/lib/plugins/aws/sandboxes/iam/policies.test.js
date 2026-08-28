@@ -389,12 +389,12 @@ const operatorCtx = {
 
 describe('generateOperatorRole', () => {
   test('returns AWS::IAM::Role type', () => {
-    const role = generateOperatorRole('runner', operatorCtx)
+    const role = generateOperatorRole('runner', {}, operatorCtx)
     expect(role.Type).toBe('AWS::IAM::Role')
   })
 
   test('trust principal is network-connectors.lambda.amazonaws.com', () => {
-    const role = generateOperatorRole('runner', operatorCtx)
+    const role = generateOperatorRole('runner', {}, operatorCtx)
     const stmt = role.Properties.AssumeRolePolicyDocument.Statement[0]
     expect(stmt.Principal.Service).toBe(
       'network-connectors.lambda.amazonaws.com',
@@ -408,13 +408,13 @@ describe('generateOperatorRole', () => {
     // network-connectors.lambda.amazonaws.com service does not present
     // SourceAccount; adding the condition makes the connector deploy fail with
     // "unable to assume the provided NetworkConnectorOperatorRole".
-    const role = generateOperatorRole('runner', operatorCtx)
+    const role = generateOperatorRole('runner', {}, operatorCtx)
     const stmt = role.Properties.AssumeRolePolicyDocument.Statement[0]
     expect(stmt.Condition).toBeUndefined()
   })
 
   test('has ec2:CreateNetworkInterface permission', () => {
-    const role = generateOperatorRole('runner', operatorCtx)
+    const role = generateOperatorRole('runner', {}, operatorCtx)
     const stmts = role.Properties.Policies[0].PolicyDocument.Statement
     const stmt = stmts.find((s) =>
       [s.Action].flat().includes('ec2:CreateNetworkInterface'),
@@ -424,7 +424,7 @@ describe('generateOperatorRole', () => {
   })
 
   test('ec2:CreateNetworkInterface resources cover network-interface, subnet, security-group', () => {
-    const role = generateOperatorRole('runner', operatorCtx)
+    const role = generateOperatorRole('runner', {}, operatorCtx)
     const stmts = role.Properties.Policies[0].PolicyDocument.Statement
     const stmt = stmts.find((s) =>
       [s.Action].flat().includes('ec2:CreateNetworkInterface'),
@@ -442,7 +442,7 @@ describe('generateOperatorRole', () => {
   })
 
   test('has ec2:CreateTags permission', () => {
-    const role = generateOperatorRole('runner', operatorCtx)
+    const role = generateOperatorRole('runner', {}, operatorCtx)
     const stmts = role.Properties.Policies[0].PolicyDocument.Statement
     const stmt = stmts.find((s) => [s.Action].flat().includes('ec2:CreateTags'))
     expect(stmt).toBeDefined()
@@ -450,7 +450,7 @@ describe('generateOperatorRole', () => {
   })
 
   test('ec2:CreateTags has ec2:ManagedResourceOperator StringEquals condition', () => {
-    const role = generateOperatorRole('runner', operatorCtx)
+    const role = generateOperatorRole('runner', {}, operatorCtx)
     const stmts = role.Properties.Policies[0].PolicyDocument.Statement
     const stmt = stmts.find((s) => [s.Action].flat().includes('ec2:CreateTags'))
     expect(stmt.Condition.StringEquals['ec2:ManagedResourceOperator']).toBe(
@@ -459,7 +459,7 @@ describe('generateOperatorRole', () => {
   })
 
   test('ec2:CreateTags is scoped to network-interface ARNs, not "*"', () => {
-    const role = generateOperatorRole('runner', operatorCtx)
+    const role = generateOperatorRole('runner', {}, operatorCtx)
     const stmts = role.Properties.Policies[0].PolicyDocument.Statement
     const stmt = stmts.find((s) => [s.Action].flat().includes('ec2:CreateTags'))
     expect(stmt.Resource).not.toBe('*')
@@ -467,7 +467,7 @@ describe('generateOperatorRole', () => {
   })
 
   test('flatMap of all actions contains both ec2:CreateNetworkInterface and ec2:CreateTags', () => {
-    const role = generateOperatorRole('runner', operatorCtx)
+    const role = generateOperatorRole('runner', {}, operatorCtx)
     const actions =
       role.Properties.Policies[0].PolicyDocument.Statement.flatMap((s) =>
         [s.Action].flat(),
@@ -475,5 +475,76 @@ describe('generateOperatorRole', () => {
     expect(actions).toEqual(
       expect.arrayContaining(['ec2:CreateNetworkInterface', 'ec2:CreateTags']),
     )
+  })
+
+  test('appends custom statements to the network-connector policy, keeping base statements', () => {
+    const cfg = {
+      iam: {
+        operatorRole: {
+          statements: [
+            {
+              Effect: 'Allow',
+              Action: ['ec2:CreateNetworkInterface'],
+              Resource: 'arn:aws:ec2:us-east-1:999999999999:subnet/*',
+            },
+          ],
+        },
+      },
+    }
+    const role = generateOperatorRole('runner', cfg, operatorCtx)
+    const stmts = role.Properties.Policies[0].PolicyDocument.Statement
+    // Appended last, after the generated CreateNetworkInterface/CreateTags
+    // statements — customization is additive, never a replacement.
+    expect(stmts.at(-1).Resource).toBe(
+      'arn:aws:ec2:us-east-1:999999999999:subnet/*',
+    )
+    const actions = stmts.flatMap((s) => [s.Action].flat())
+    expect(actions).toEqual(
+      expect.arrayContaining(['ec2:CreateNetworkInterface', 'ec2:CreateTags']),
+    )
+  })
+
+  test('attaches managedPolicies from cfg.iam.operatorRole', () => {
+    const cfg = {
+      iam: {
+        operatorRole: {
+          managedPolicies: ['arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'],
+        },
+      },
+    }
+    const role = generateOperatorRole('runner', cfg, operatorCtx)
+    expect(role.Properties.ManagedPolicyArns).toContain(
+      'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess',
+    )
+  })
+
+  test('sets permissionsBoundary from cfg.iam.operatorRole', () => {
+    const cfg = {
+      iam: {
+        operatorRole: {
+          permissionsBoundary: 'arn:aws:iam::123456789012:policy/exec-boundary',
+        },
+      },
+    }
+    const role = generateOperatorRole('runner', cfg, operatorCtx)
+    expect(role.Properties.PermissionsBoundary).toBe(
+      'arn:aws:iam::123456789012:policy/exec-boundary',
+    )
+  })
+
+  test('ARN string and CFN intrinsic are not treated as customization objects', () => {
+    const asString = generateOperatorRole(
+      'runner',
+      { iam: { operatorRole: 'arn:aws:iam::123456789012:role/x' } },
+      operatorCtx,
+    )
+    const asIntrinsic = generateOperatorRole(
+      'runner',
+      { iam: { operatorRole: { 'Fn::ImportValue': 'X' } } },
+      operatorCtx,
+    )
+    const plain = generateOperatorRole('runner', {}, operatorCtx)
+    expect(asString).toEqual(plain)
+    expect(asIntrinsic).toEqual(plain)
   })
 })

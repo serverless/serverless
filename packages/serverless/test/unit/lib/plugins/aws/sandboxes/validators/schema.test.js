@@ -150,14 +150,14 @@ describe('defineSandboxesSchema', () => {
     expect(port.maximum).toBe(65535)
   })
 
-  test('per-sandbox schema iam is constrained to buildRole/executionRole', () => {
+  test('per-sandbox schema iam is constrained to buildRole/executionRole/operatorRole', () => {
     defineSandboxesSchema(mockServerless)
     const s = capturedSandboxesSchema.additionalProperties
     const iam = s.properties.iam
     expect(iam.additionalProperties).toBe(false)
     expect(iam.properties.buildRole).toBeDefined()
     expect(iam.properties.executionRole).toBeDefined()
-    expect(iam.properties.operatorRole).toBeUndefined() // operator role is not user-customizable
+    expect(iam.properties.operatorRole).toBeDefined()
     // role value: an ARN string OR { statements, managedPolicies }
     const rv = iam.properties.executionRole
     expect(rv.anyOf.some((b) => b.type === 'string')).toBe(true)

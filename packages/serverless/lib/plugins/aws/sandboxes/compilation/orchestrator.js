@@ -181,6 +181,7 @@ export async function orchestrate({
     // ── IAM roles ────────────────────────────────────────────────────────────
     const buildRoleCfg = cfg.iam?.buildRole
     const execRoleCfg = cfg.iam?.executionRole
+    const operatorRoleCfg = cfg.iam?.operatorRole
 
     const buildRoleLogicalId = getLogicalId(name, 'ImageBuildRole')
     const execRoleLogicalId = getLogicalId(name, 'ExecutionRole')
@@ -277,12 +278,17 @@ export async function orchestrate({
     }
 
     if (cfg.vpc) {
-      const operatorRoleResource = generateOperatorRole(name, ctx)
-      template.Resources[operatorRoleLogicalId] = operatorRoleResource
+      if (shouldGenerateRole(operatorRoleCfg)) {
+        template.Resources[operatorRoleLogicalId] = generateOperatorRole(
+          name,
+          cfg,
+          ctx,
+        )
+      }
 
       const connectorCtx = {
         ...ctx,
-        operatorRoleArn: { 'Fn::GetAtt': [operatorRoleLogicalId, 'Arn'] },
+        operatorRoleArn: resolveRole(operatorRoleCfg, operatorRoleLogicalId),
       }
       const connectorResource = compileNetworkConnector(
         name,
