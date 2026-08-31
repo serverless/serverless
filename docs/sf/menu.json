@@ -144,7 +144,6 @@
     "remove": "providers/aws/cli-reference/remove",
     "rollback": "providers/aws/cli-reference/rollback",
     "rollback function": "providers/aws/cli-reference/rollback-function",
-    "support": "providers/aws/cli-reference/support",
     "usage": "providers/aws/cli-reference/usage"
   },
   "Dashboard": {

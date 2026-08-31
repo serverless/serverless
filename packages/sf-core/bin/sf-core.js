@@ -54,7 +54,6 @@ export const errorHandler = (error) => {
   if (error.stack) {
     log.aside('For help, try the following:')
     log.aside('  • Run the command again with the "--debug" option')
-    log.aside('  • Run "serverless support"')
     log.aside('  • Review the docs: https://www.serverless.com/framework/docs/')
     log.blankLine()
   }

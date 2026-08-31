@@ -1,19 +1,18 @@
 name: 🐛 Bug Report
-description: Create a Bug Report. If you're using V.4, get priority support directly from our team using the "serverless support" command, the Dashboard or email us at support AT serverless.com
+description: Create a Bug Report. If you're using V.4 and on a Serverless Subscription, get priority support directly from our team by emailing us at support AT serverless.com
 body:
   - type: textarea
     attributes:
       label: Issue description
       description: |
-        Describe your issue here. If you are using V.4 and on a Serverless Subscription, you can get support directly from our team using the "serverless support" command.
+        Describe your issue here. If you are using V.4 and on a Serverless Subscription, you can get support directly from our team by emailing us at support AT serverless.com.
     validations:
       required: true
   - type: textarea
     attributes:
       label: Context
       description: |
-        If you're using V.4, please run "serverless support --summary" and paste the report in here, if anything is provided.
-        If you're not using V.4, please include your serverless.yml, version, and anything else relevant to your issue.
+        Please include your Serverless Framework version, your serverless.yml (with any secrets redacted), the full command you ran, and the complete error output (re-run with the --debug flag for a stack trace).
         If not applicable, fill with "N/A"
     validations:
       required: false
