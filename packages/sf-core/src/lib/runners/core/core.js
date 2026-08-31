@@ -13,7 +13,6 @@ import agentSkillsInstall from './agent-skills-install.js'
 import { TraditionalRunner } from '../framework.js'
 import { Authentication } from '../../auth/index.js'
 import commandOnboarding from './onboarding.js'
-import commandSupport from './support.js'
 import commandUsage from './usage.js'
 import commandReconcile from './reconcile.js'
 import commandMcp from './mcp.js'
@@ -155,41 +154,6 @@ class CoreRunner extends Runner {
         command: 'logout',
         description: 'Log out the current user',
         options: {},
-      },
-      {
-        command: 'support',
-        description:
-          'Generate a report for AI debugging, github issue, or open a support ticket',
-        builder: [
-          {
-            options: {
-              summary: {
-                description:
-                  'Create a summary report for sharing with your team, etc.',
-                type: 'boolean',
-              },
-              ai: {
-                description:
-                  'Create a summary report optimized for AI debugging.',
-                type: 'boolean',
-              },
-              github: {
-                description:
-                  'Produce a summary report optimized for pasting into a Github Issue',
-                type: 'boolean',
-              },
-              all: {
-                description:
-                  'Produce a comprehensive report with all available data.',
-                type: 'boolean',
-              },
-              support: {
-                description: 'Get help from the Serverless support team.',
-                type: 'boolean',
-              },
-            },
-          },
-        ],
       },
       {
         command: 'usage',
@@ -463,20 +427,6 @@ class CoreRunner extends Runner {
           versionFramework: this.versionFramework,
         }).unAuthenticate()
         logger.success('You successfully logged out.')
-        break
-      }
-      case 'support': {
-        /**
-         * User must be authenticated before proceeding with the support command
-         */
-        p.notice('Authenticating with Serverless and checking license')
-        const auth = await this.resolveVariablesAndAuthenticate()
-        p.remove()
-        await commandSupport({
-          auth,
-          options: this.options,
-          versionFramework: this.versionFramework,
-        })
         break
       }
       case 'usage': {

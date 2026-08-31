@@ -228,8 +228,8 @@ class Runner {
 
   /**
    * Retrieve metadata to save in meta.json file.
-   * Implement this method if the Runner needs to save additional metadata for
-   * the support command.
+   * Implement this method if the Runner needs to save additional metadata
+   * about the last command run.
    *
    * Optional.
    *

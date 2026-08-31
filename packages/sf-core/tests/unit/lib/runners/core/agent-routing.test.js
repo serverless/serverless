@@ -104,12 +104,6 @@ jest.unstable_mockModule(
   () => ({ default: jest.fn() }),
 )
 jest.unstable_mockModule(
-  '../../../../../src/lib/runners/core/support.js',
-  () => ({
-    default: jest.fn(),
-  }),
-)
-jest.unstable_mockModule(
   '../../../../../src/lib/runners/core/usage.js',
   () => ({
     default: jest.fn(),

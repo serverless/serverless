@@ -64,8 +64,6 @@ Here's a list of everything that's new in V.4, so far:
 - **New Stages Property:** Easily organize stage-specific config via `stages` and set `default` config to fallback to.
 - **Improved Compose Experience:** Serverless Compose now has a beautiful new CLI experience that better demonstrates what is being deployed.
 - **New Terraform & Vault Integrations:** Pull state outputs from several Terraform state storage solutions, and secrets from Vault. [Terraform Docs](https://www.serverless.com/framework/docs/guides/variables/hashicorp/terraform) [Vault Docs](https://www.serverless.com/framework/docs/guides/variables/hashicorp/vault)
-- **Support Command:** Send support requests to our team [directly from the CLI](https://www.serverless.com/framework/docs/providers/aws/cli-reference/support), which auto-include contextual info which you can review before sending.
-- **Debug Summary for AI:** When you run into a bug, you can run "serverless support --ai" to generate a concise report detailing your last bug with all necessary context, optimized for pasting into AI tools such as ChatGPT.
 - **Advanced Logging Controls for AWS Lambda:** Capture Logs in JSON, increased log granularity, and setting a custom Log Group. Here is the [AWS article](https://aws.amazon.com/blogs/compute/introducing-advanced-logging-controls-for-aws-lambda-functions/). Here is the [YAML implementation](https://github.com/serverless/serverless/blob/v4.0/docs/providers/aws/guide/serverless.yml.md#logs)
 - **Axiom Integration:** Integrate with [Axiom's observability solution](https://www.serverless.com/framework/docs/guides/observability/axiom) for a powerful logging, metrics and traces experience, at 3X less than AWS cloudwatch.
 - **AWS SSO:** Environment variables, especially ones set by AWS SSO, are prioritized. The Framework and Dashboard no longer interfere with these.
@@ -477,24 +475,6 @@ provider:
 ```
 
 More details on Serverless Framework Compose can be found [here](https://www.serverless.com/framework/docs/guides/compose).
-
-<br/>
-
-## Support Command
-
-In Serverless Framework V.4, we've introduced the `serverless support` command, a standout feature that lets you generate issue reports, or directly connect with our support team. It automatically includes relevant context and omits sensitive details like secrets and account information, which you can check before submission. This streamlined process ensures your issues are quickly and securely addressed.
-
-To use this feature, after an error or any command, run:
-
-```bash
-sls support
-```
-
-After each command, whether it succeeded or not, the context is saved within your current working directory in the `.serverless` folder.
-
-To open a new support ticket, run the `sls support` command and select `Get priority support...`. Optionally you'll be able to review and edit the generated report. Opening support tickets is only available to users who sign up for a Subscription.
-
-You can also generate reports without submitting a new support ticket. This is useful for sharing context with others, opening Github issues, or using it with an AI prompt like ChatGPT. To do this, run the `sls support` command and select `Create a summary report...`, or `Create a comprehensive report..`. You can skip the prompt by running `sls support --summary` or `sls support --all`. This is especially useful for capturing the report into the clipboard (e.g. `sls support --summary | pbcopy`).
 
 <br/>
 
