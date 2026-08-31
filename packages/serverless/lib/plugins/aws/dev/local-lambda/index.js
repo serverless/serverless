@@ -295,6 +295,7 @@ const SUPPORTED_NODE_RUNTIMES = [
   'nodejs20.x',
   'nodejs22.x',
   'nodejs24.x',
+  'nodejs26.x',
 ]
 
 const runtimeWrappers = [
