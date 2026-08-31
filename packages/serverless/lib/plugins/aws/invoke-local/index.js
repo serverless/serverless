@@ -385,6 +385,7 @@ class AwsInvokeLocal {
         'python3.12',
         'python3.13',
         'python3.14',
+        'python3.15',
       ].includes(runtime)
     ) {
       const handlerComponents = handler.split(/\./)
@@ -399,7 +400,18 @@ class AwsInvokeLocal {
       )
     }
 
-    if (['java8', 'java11', 'java17', 'java21', 'java25'].includes(runtime)) {
+    if (
+      [
+        'java8',
+        'java8.al2023',
+        'java11',
+        'java11.al2023',
+        'java17',
+        'java17.al2023',
+        'java21',
+        'java25',
+      ].includes(runtime)
+    ) {
       const className = handler.split('::')[0]
       const handlerName = handler.split('::')[1] || 'handleRequest'
       const artifact =
