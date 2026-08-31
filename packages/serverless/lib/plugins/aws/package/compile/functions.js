@@ -475,17 +475,23 @@ class AwsCompileFunctions {
       // Note: This validation happens after runtime resolution so it works correctly
       // when runtime is specified at provider level
       if (functionObject.durableConfig) {
-        // Pattern matching for Node.js 22+ (nodejs22.x, nodejs23.x, ... nodejs99.x)
-        // and Python 3.13+ (python3.13, python3.14, ... python3.99)
+        // Pattern matching for Node.js 22+ (nodejs22.x, nodejs23.x, ... nodejs99.x),
+        // Python 3.13+ (python3.13, python3.14, ... python3.99),
+        // Java 17+ (java17, java21, ... java99, incl. the .al2023 variants of 17+),
+        // and .NET 8+ (dotnet8, dotnet9, ... dotnet99)
         const nodejsPattern = /^nodejs(2[2-9]|[3-9][0-9])\.x$/
         const pythonPattern = /^python3\.(1[3-9]|[2-9][0-9])$/
+        const javaPattern = /^java(1[7-9]|[2-9][0-9])(\.al2023)?$/
+        const dotnetPattern = /^dotnet([89]|[1-9][0-9])$/
         const isValidRuntime =
           nodejsPattern.test(functionObject.runtime) ||
-          pythonPattern.test(functionObject.runtime)
+          pythonPattern.test(functionObject.runtime) ||
+          javaPattern.test(functionObject.runtime) ||
+          dotnetPattern.test(functionObject.runtime)
 
         if (!isValidRuntime) {
           throw new ServerlessError(
-            'Durable Functions are only supported for Node.js 22+ and Python 3.13+ runtimes.',
+            'Durable Functions are only supported for Node.js 22+, Python 3.13+, Java 17+, and .NET 8+ runtimes.',
             'LAMBDA_DURABLE_FUNCTION_INVALID_RUNTIME',
             { stack: false },
           )

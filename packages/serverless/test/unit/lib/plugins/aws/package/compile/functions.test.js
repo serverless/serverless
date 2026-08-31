@@ -428,22 +428,60 @@ describe('AwsCompileFunctions', () => {
       })
     })
 
-    it('should throw error for invalid runtime', async () => {
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'handler',
-          name: 'func',
-          runtime: 'nodejs14.x', // Invalid for durable
-          durableConfig: {
-            executionTimeout: 100,
+    it.each(['nodejs14.x', 'python3.12', 'java11', 'java8.al2023', 'dotnet6'])(
+      'should throw error for unsupported runtime %s',
+      async (runtime) => {
+        awsCompileFunctions.serverless.service.functions = {
+          func: {
+            handler: 'handler',
+            name: 'func',
+            runtime,
+            durableConfig: {
+              executionTimeout: 100,
+            },
           },
-        },
-      }
+        }
 
-      await expect(awsCompileFunctions.compileFunctions()).rejects.toThrow(
-        /Durable Functions are only supported for Node.js 22\+ and Python 3.13\+ runtimes/,
-      )
-    })
+        await expect(awsCompileFunctions.compileFunctions()).rejects.toThrow(
+          /Durable Functions are only supported for Node\.js 22\+, Python 3\.13\+, Java 17\+, and \.NET 8\+ runtimes/,
+        )
+      },
+    )
+
+    it.each([
+      'java17',
+      'java21',
+      'java25',
+      'java17.al2023',
+      'dotnet8',
+      'dotnet10',
+    ])(
+      'should configure DurableConfig for supported runtime %s',
+      async (runtime) => {
+        awsCompileFunctions.serverless.service.functions = {
+          func: {
+            handler: 'handler',
+            name: 'func',
+            runtime,
+            durableConfig: {
+              executionTimeout: 100,
+            },
+          },
+        }
+        const resources =
+          awsCompileFunctions.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+        resources.IamRoleLambdaExecution = {
+          Properties: { ManagedPolicyArns: [] },
+        }
+
+        await awsCompileFunctions.compileFunctions()
+
+        expect(resources.FuncLambdaFunction.Properties.DurableConfig).toEqual({
+          ExecutionTimeout: 100,
+        })
+      },
+    )
 
     describe('Alias', () => {
       it('should create AWS::Lambda::Alias named "durable" when durableConfig is set', async () => {
