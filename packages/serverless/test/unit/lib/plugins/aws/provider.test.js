@@ -470,6 +470,52 @@ describe('AwsProvider', () => {
       })
     })
 
+    describe('#isS3TransferAccelerationSupported()', () => {
+      const providerForRegion = (region) => {
+        const newOptions = { ...options, region }
+        return new AwsProvider(serverless, newOptions)
+      }
+
+      it('should return true for standard regions', () => {
+        expect(
+          providerForRegion('us-east-1').isS3TransferAccelerationSupported(),
+        ).toBe(true)
+        expect(
+          providerForRegion('us-west-2').isS3TransferAccelerationSupported(),
+        ).toBe(true)
+        expect(
+          providerForRegion('eu-central-1').isS3TransferAccelerationSupported(),
+        ).toBe(true)
+      })
+
+      it('should not depend on region casing', () => {
+        expect(
+          providerForRegion('US-WEST-2').isS3TransferAccelerationSupported(),
+        ).toBe(true)
+      })
+
+      it('should return false for GovCloud, China, and ISO regions', () => {
+        expect(
+          providerForRegion(
+            'us-gov-west-1',
+          ).isS3TransferAccelerationSupported(),
+        ).toBe(false)
+        expect(
+          providerForRegion('cn-north-1').isS3TransferAccelerationSupported(),
+        ).toBe(false)
+        expect(
+          providerForRegion(
+            'us-iso-east-1',
+          ).isS3TransferAccelerationSupported(),
+        ).toBe(false)
+        expect(
+          providerForRegion(
+            'us-isob-east-1',
+          ).isS3TransferAccelerationSupported(),
+        ).toBe(false)
+      })
+    })
+
     describe('#disableTransferAccelerationForCurrentDeploy()', () => {
       it('should remove the corresponding option for the current deploy', () => {
         awsProvider.options['aws-s3-accelerate'] = true

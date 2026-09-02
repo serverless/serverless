@@ -13,6 +13,8 @@
  *     externalStack:
  *       nameSuffix: Alerts
  */
+import getS3EndpointForRegion from '../utils/get-s3-endpoint-for-region.js'
+
 class ExternalStack {
   constructor(serverless, options) {
     this.serverless = serverless
@@ -352,17 +354,6 @@ class ExternalStack {
   }
 
   // From Serverless
-  getS3EndpointForRegion(region) {
-    const strRegion = region.toLowerCase()
-    // look for govcloud - currently s3-us-gov-west-1.amazonaws.com
-    if (strRegion.match(/us-gov/)) return `s3-${strRegion}.amazonaws.com`
-    // look for china - currently s3.cn-north-1.amazonaws.com.cn
-    if (strRegion.match(/cn-/)) return `s3.${strRegion}.amazonaws.com.cn`
-    // default s3 endpoint for other regions
-    return 's3.amazonaws.com'
-  }
-
-  // From Serverless
   uploadCloudFormationTemplate(compiledCloudFormationTemplate) {
     this.serverless.cli.log('Uploading external alerts template to S3...')
 
@@ -391,9 +382,7 @@ class ExternalStack {
       })
       .then(() => {
         // Return the template URL
-        const s3Endpoint = this.getS3EndpointForRegion(
-          this.provider.getRegion(),
-        )
+        const s3Endpoint = getS3EndpointForRegion(this.provider.getRegion())
         const templateUrl = `https://${s3Endpoint}/${params.Bucket}/${this.serverless.service.package.artifactDirectoryName}/${compiledTemplateFileName}`
         return templateUrl
       })

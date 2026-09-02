@@ -3371,10 +3371,12 @@ destinations:
   // This function will be used to block the addition of transfer acceleration options
   // to the cloudformation template for regions where acceleration is not supported (ie, govcloud)
   isS3TransferAccelerationSupported() {
-    // Only enable s3 transfer acceleration for standard regions (non govcloud/china)
-    // since those regions do not yet support it
-    const endpoint = getS3EndpointForRegion(this.getRegion())
-    return endpoint === 's3.amazonaws.com'
+    // S3 Transfer Acceleration is not offered in the GovCloud, China and ISO
+    // partitions — exactly the regions the endpoint helper special-cases — so a
+    // regional-form endpoint identifies a standard-partition region
+    const region = this.getRegion().toLowerCase()
+    const endpoint = getS3EndpointForRegion(region)
+    return endpoint === `s3.${region}.amazonaws.com`
   }
 
   isS3TransferAccelerationEnabled() {
