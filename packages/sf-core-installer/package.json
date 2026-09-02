@@ -3,11 +3,17 @@
   "version": "4.41.1",
   "description": "",
   "main": "index.js",
+  "files": [
+    "binary.js",
+    "postInstall.js",
+    "run.js"
+  ],
   "scripts": {
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "prettier": "prettier -c . --ignore-path ../../.prettierignore",
     "prettier:fix": "prettier -w . --ignore-path ../../.prettierignore",
+    "test": "node --test \"tests/*.test.js\"",
     "postinstall": "node ./postInstall.js"
   },
   "keywords": [],

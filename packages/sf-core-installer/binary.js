@@ -10,6 +10,42 @@ const error = (msg) => {
   process.exit(1)
 }
 
+// fetch() reports every network-level failure as a bare "fetch failed" and
+// hides the actual reason (DNS, TLS, connection refused) in the `cause`
+// chain, so the chain has to be included for failures to be diagnosable
+// from install logs.
+const describeNode = (e) => {
+  if (!(e instanceof Error)) return String(e)
+  const message = e.message || e.name
+  return e.code ? `${message} (${e.code})` : message
+}
+
+const describeError = (err) => {
+  if (!(err instanceof Error)) return String(err)
+  const parts = []
+  // A cyclic cause chain would otherwise hang the process — worse than exiting
+  const seen = new Set()
+  let node = err
+  while (node !== undefined && node !== null && !seen.has(node)) {
+    seen.add(node)
+    parts.push(describeNode(node))
+    if (Array.isArray(node.errors) && node.errors.length > 0) {
+      parts.push(node.errors.map(describeNode).join(', '))
+    }
+    node = node instanceof Error ? node.cause : undefined
+  }
+  return parts.join(': ')
+}
+
+// spawnSync reports a signal-terminated child as `status: null`; passing
+// that to process.exit() would report success. Use the shell convention of
+// 128 + signal number instead.
+const childExitCode = ({ status, signal }) => {
+  if (status !== null) return status
+  const signalNumber = os.constants.signals[signal]
+  return signalNumber ? 128 + signalNumber : 1
+}
+
 const formatHostName = (hostname) => hostname.replace(/^\.*/, '.').toLowerCase()
 
 const parseNoProxyZone = (zone) => {
@@ -22,7 +58,11 @@ const parseNoProxyZone = (zone) => {
 }
 
 const shouldBypassProxy = (requestURL) => {
-  const noProxy = process.env.NO_PROXY || process.env.no_proxy || ''
+  const noProxy =
+    process.env.NO_PROXY ||
+    process.env.no_proxy ||
+    process.env.npm_config_noproxy ||
+    ''
   if (noProxy === '*') return true
   if (noProxy === '') return false
 
@@ -30,8 +70,10 @@ const shouldBypassProxy = (requestURL) => {
     requestURL.port || (requestURL.protocol === 'https:' ? '443' : '80')
   const hostname = formatHostName(requestURL.hostname)
 
+  // npm exports array-form `noproxy[]=` entries newline-joined
   return noProxy
-    .split(',')
+    .split(/[,\n]/)
+    .filter((zone) => zone.trim() !== '')
     .map(parseNoProxyZone)
     .some((noProxyZone) => {
       const isMatchedAt = hostname.indexOf(noProxyZone.hostname)
@@ -45,16 +87,33 @@ const shouldBypassProxy = (requestURL) => {
     })
 }
 
+// npm applies the proxy settings from .npmrc to its own downloads but does
+// not translate them into HTTP(S)_PROXY for lifecycle scripts — they reach
+// this script only as npm_config_* variables, so those serve as fallbacks
+// when no proxy environment variables are set. Scheme mapping mirrors npm's
+// own (npm-registry-fetch: `httpsProxy || proxy`): `https-proxy` is preferred
+// for https requests and `proxy` is the fallback for both schemes.
 const getProxyUrl = (url) => {
   const requestURL = new URL(url)
 
   if (shouldBypassProxy(requestURL)) return null
 
   if (requestURL.protocol === 'http:') {
-    return process.env.HTTP_PROXY || process.env.http_proxy || null
+    return (
+      process.env.HTTP_PROXY ||
+      process.env.http_proxy ||
+      process.env.npm_config_proxy ||
+      null
+    )
   }
   if (requestURL.protocol === 'https:') {
-    return process.env.HTTPS_PROXY || process.env.https_proxy || null
+    return (
+      process.env.HTTPS_PROXY ||
+      process.env.https_proxy ||
+      process.env.npm_config_https_proxy ||
+      process.env.npm_config_proxy ||
+      null
+    )
   }
   return null
 }
@@ -103,7 +162,7 @@ class Binary {
       })
       errorMsg +=
         '\n\nCorrect usage: new Binary("my-binary", "https://example.com/binary/download.tar.gz", "v1.0.0")'
-      error(errorMsg)
+      throw new Error(errorMsg)
     }
     this.url = url
     this.name = name
@@ -133,14 +192,17 @@ class Binary {
     }
   }
 
-  install(suppressLogs = false) {
+  // Downloads the binary. Rejects on any failure — how a failure is handled
+  // (warn vs abort) is decided by the entrypoints (postInstall.js, run.js),
+  // never here.
+  async install(suppressLogs = false) {
     if (this.exists()) {
       if (!suppressLogs) {
         console.error(
           `${this.name} is already installed, skipping installation.`,
         )
       }
-      return Promise.resolve()
+      return
     }
 
     // maxRetries/retryDelay cover transient EBUSY/EPERM on Windows, where
@@ -158,40 +220,34 @@ class Binary {
       console.error(`Downloading release from ${this.url}`)
     }
 
-    process.on('SIGINT', () => {
-      error('Could not download Serverless')
+    const abort = () => {
       this.removeBinary()
-    })
+      error('Serverless Framework binary download was interrupted')
+    }
+    process.on('SIGINT', abort)
+    process.on('SIGTERM', abort)
 
-    process.on('SIGTERM', () => {
-      error('Could not download Serverless')
+    try {
+      const proxyUrl = getProxyUrl(this.url)
+      const fetchOptions = proxyUrl
+        ? { dispatcher: new ProxyAgent(proxyUrl) }
+        : {}
+      const res = await fetch(this.url, fetchOptions)
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`)
+      }
+      const buffer = await res.arrayBuffer()
+      writeFileSync(this.binaryPath, Buffer.from(buffer), { mode: 0o755 })
+      if (!suppressLogs) {
+        console.error(`${this.name} has been installed!`)
+      }
+    } catch (e) {
       this.removeBinary()
-    })
-
-    const proxyUrl = getProxyUrl(this.url)
-    const fetchOptions = proxyUrl
-      ? { dispatcher: new ProxyAgent(proxyUrl) }
-      : {}
-
-    return fetch(this.url, fetchOptions)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}: ${res.statusText}`)
-        }
-        return res.arrayBuffer()
-      })
-      .then((buffer) => {
-        writeFileSync(this.binaryPath, Buffer.from(buffer), { mode: 0o755 })
-      })
-      .then(() => {
-        if (!suppressLogs) {
-          console.error(`${this.name} has been installed!`)
-        }
-      })
-      .catch((e) => {
-        error(`Error fetching release: ${e.message}`)
-        this.removeBinary()
-      })
+      throw e
+    } finally {
+      process.removeListener('SIGINT', abort)
+      process.removeListener('SIGTERM', abort)
+    }
   }
 
   run() {
@@ -214,11 +270,12 @@ class Binary {
           error(result.error)
         }
 
-        process.exit(result.status)
+        process.exit(childExitCode(result))
       })
       .catch((e) => {
-        error(e.message)
-        process.exit(1)
+        error(
+          `Could not download the Serverless Framework binary: ${describeError(e)}`,
+        )
       })
   }
 }
@@ -240,11 +297,10 @@ const getBinaryName = () => {
   let architecture = os.arch()
 
   if (architecture !== 'arm64' && architecture !== 'x64') {
-    console.error(`Architecture ${architecture} is not supported.`)
-    process.exit(1)
-  } else if (architecture === 'arm64' && osType === 'windows') {
-    console.error(`Platform ${osType} - ${architecture} is not supported.`)
-    process.exit(1)
+    throw new Error(`Architecture ${architecture} is not supported.`)
+  }
+  if (architecture === 'arm64' && osType === 'windows') {
+    throw new Error(`Platform ${osType} - ${architecture} is not supported.`)
   }
 
   if (architecture === 'x64') {
@@ -275,4 +331,8 @@ module.exports = {
   install,
   run,
   getBinary,
+  Binary,
+  childExitCode,
+  describeError,
+  getProxyUrl,
 }
