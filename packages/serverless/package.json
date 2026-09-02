@@ -19,7 +19,7 @@
   ],
   "main": "lib/serverless.js",
   "dependencies": {
-    "@aws-cdk/cloudformation-diff": "^2.187.3",
+    "@aws-cdk/cloudformation-diff": "^2.187.4",
     "@aws-sdk/client-acm": "3.1118.0",
     "@aws-sdk/client-api-gateway": "3.1118.0",
     "@aws-sdk/client-apigatewayv2": "3.1118.0",
@@ -88,7 +88,7 @@
     "object-hash": "^3.0.0",
     "open": "^10.2.0",
     "p-limit": "^6.2.0",
-    "p-map": "^7.0.6",
+    "p-map": "^7.0.7",
     "p-map-series": "^3.0.0",
     "p-reduce": "^3.0.0",
     "p-try": "^3.0.0",
@@ -100,7 +100,7 @@
     "terminal-link": "^4.0.0",
     "timers-ext": "^0.1.8",
     "toml": "^3.0.0",
-    "tsx": "^4.23.12",
+    "tsx": "^4.23.13",
     "type": "^2.7.3",
     "uuid": "^13.0.2"
   },
