@@ -37,14 +37,16 @@ const describeError = (err) => {
   return parts.join(': ')
 }
 
-// spawnSync reports a signal-terminated child as `status: null`; passing
-// that to process.exit() would report success. Use the shell convention of
-// 128 + signal number instead.
-const childExitCode = ({ status, signal }) => {
-  if (status !== null) return status
+// Shell convention for a process ended by a signal: 128 + signal number
+const signalExitCode = (signal) => {
   const signalNumber = os.constants.signals[signal]
   return signalNumber ? 128 + signalNumber : 1
 }
+
+// spawnSync reports a signal-terminated child as `status: null`; passing
+// that to process.exit() would report success.
+const childExitCode = ({ status, signal }) =>
+  status !== null ? status : signalExitCode(signal)
 
 const formatHostName = (hostname) => hostname.replace(/^\.*/, '.').toLowerCase()
 
@@ -223,7 +225,7 @@ class Binary {
     const abort = (signal) => {
       this.removeBinary()
       console.error('Serverless Framework binary download was interrupted')
-      process.exit(childExitCode({ status: null, signal }))
+      process.exit(signalExitCode(signal))
     }
     process.on('SIGINT', abort)
     process.on('SIGTERM', abort)
