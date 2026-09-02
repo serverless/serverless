@@ -220,9 +220,10 @@ class Binary {
       console.error(`Downloading release from ${this.url}`)
     }
 
-    const abort = () => {
+    const abort = (signal) => {
       this.removeBinary()
-      error('Serverless Framework binary download was interrupted')
+      console.error('Serverless Framework binary download was interrupted')
+      process.exit(childExitCode({ status: null, signal }))
     }
     process.on('SIGINT', abort)
     process.on('SIGTERM', abort)

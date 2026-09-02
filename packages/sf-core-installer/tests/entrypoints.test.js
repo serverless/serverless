@@ -1,6 +1,6 @@
 const { test, describe, before, after } = require('node:test')
 const assert = require('node:assert/strict')
-const { spawnSync } = require('node:child_process')
+const { spawn, spawnSync } = require('node:child_process')
 const os = require('node:os')
 const fs = require('node:fs')
 const path = require('node:path')
@@ -124,6 +124,51 @@ new Binary('fake', 'https://example.com/x', '0.0.0', { installDirectory: ${JSON.
       // Previously status null became process.exit(null) === success.
       const result = runWithFakeBinary('kill -9 $$')
       assert.equal(result.status, 128 + 9)
+    })
+  },
+)
+
+describe(
+  'Binary.install — interrupted download',
+  { skip: process.platform === 'win32' },
+  () => {
+    // Starts a download that never completes (fetch is stubbed to hang), then
+    // signals the process; the exit status must follow the 128 + signal
+    // convention rather than a generic 1.
+    const interruptDownload = (signal) =>
+      new Promise((resolve, reject) => {
+        const dir = fs.mkdtempSync(path.join(workDir, 'interrupt-'))
+        const runner = path.join(dir, 'runner.js')
+        fs.writeFileSync(
+          runner,
+          `const { Binary } = require('../binary')
+// The marker is emitted from inside fetch(), i.e. after install() has
+// registered its signal handlers — printing earlier races the kill. A bare
+// pending Promise would not keep the event loop alive (the process would
+// exit 0 by itself), so hold a timer like a real socket would.
+globalThis.fetch = () => {
+  process.stdout.write('downloading\\n')
+  setTimeout(() => {}, 60000)
+  return new Promise(() => {})
+}
+new Binary('fake', 'https://example.com/x', '0.0.0', { installDirectory: ${JSON.stringify(path.join(dir, 'bin'))} })
+  .install(true)
+  .then(() => process.exit(0), () => process.exit(1))`,
+        )
+        const child = spawn(process.execPath, [runner], { cwd: workDir })
+        child.stdout.once('data', () => child.kill(signal))
+        child.on('error', reject)
+        child.on('close', (code, sig) => resolve({ code, sig }))
+      })
+
+    test('SIGTERM during the download exits 143', async () => {
+      const { code } = await interruptDownload('SIGTERM')
+      assert.equal(code, 128 + 15)
+    })
+
+    test('SIGINT during the download exits 130', async () => {
+      const { code } = await interruptDownload('SIGINT')
+      assert.equal(code, 128 + 2)
     })
   },
 )
