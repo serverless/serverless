@@ -116,6 +116,43 @@ functions:
           maximumConcurrency: 250
 ```
 
+## Provisioned mode
+
+[Provisioned mode](https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-scaling.html) gives the event source mapping a dedicated pool of event pollers with minimum and maximum bounds, for faster scaling and higher throughput than the default on-demand polling. Configure it with `provisionedPollers`:
+
+```yml
+functions:
+  compute:
+    handler: handler.compute
+    events:
+      - sqs:
+          arn: arn:aws:sqs:region:XXXXXX:myQueue
+          provisionedPollers:
+            min: 2 # optional, 2-200, AWS default 2
+            max: 500 # optional, 2-10000, AWS default 200
+```
+
+Provisioned mode incurs additional AWS charges per event poller — the `min` value is an always-on cost. See [AWS Lambda pricing](https://aws.amazon.com/lambda/pricing/).
+
+`provisionedPollers` and `maximumConcurrency` are mutually exclusive scaling modes — setting both fails validation at package time. In provisioned mode, control concurrency through `max` (each SQS event poller drives up to 10 concurrent invocations).
+
+**Disabling provisioned mode:** removing `provisionedPollers` from your configuration does **not** disable it — provisioned mode stays active on the deployed event source mapping, so the pollers (and their cost) remain. The same applies to `rollback` to an older deployment. To actually disable it, deploy once with:
+
+```yml
+provisionedPollers: false
+```
+
+`false` clears provisioned mode on an existing mapping. It cannot be used on a mapping that is being created for the first time — for new mappings, simply omit the key.
+
+**Switching back to `maximumConcurrency`:** set both keys for one deploy — `false` clears provisioned mode while the concurrency limit applies — then optionally remove the `false` line:
+
+```yml
+- sqs:
+    arn: arn:aws:sqs:region:XXXXXX:myQueue
+    maximumConcurrency: 250
+    provisionedPollers: false
+```
+
 ## IAM Permissions
 
 The Serverless Framework will automatically configure the most minimal set of IAM permissions for you. However you can still add additional permissions if you need to. Read the official [AWS documentation](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-configure-lambda-function-trigger.html) for more information about IAM Permissions for SQS events.

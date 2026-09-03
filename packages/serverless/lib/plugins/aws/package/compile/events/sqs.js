@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import ServerlessError from '../../../../../serverless-error.js'
 import resolveLambdaTarget from '../../../utils/resolve-lambda-target.js'
 import usesDedicatedPerFunctionRole from '../../lib/uses-dedicated-per-function-role.js'
 
@@ -62,6 +63,36 @@ events:
               type: 'integer',
               minimum: 2,
               maximum: 1000,
+            },
+            provisionedPollers: {
+              description: `Provisioned mode for the event source mapping — dedicated event pollers with min/max bounds. Mutually exclusive with maximumConcurrency. Set to false to disable provisioned mode on an existing mapping.
+@see https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-scaling.html
+@example
+provisionedPollers:
+  min: 2
+  max: 500`,
+              anyOf: [
+                { const: false },
+                {
+                  type: 'object',
+                  properties: {
+                    min: {
+                      description: `Minimum number of provisioned event pollers (2-200). AWS default: 2.`,
+                      type: 'integer',
+                      minimum: 2,
+                      maximum: 200,
+                    },
+                    max: {
+                      description: `Maximum number of provisioned event pollers (2-10000). AWS default: 200.`,
+                      type: 'integer',
+                      minimum: 2,
+                      maximum: 10000,
+                    },
+                  },
+                  minProperties: 1,
+                  additionalProperties: false,
+                },
+              ],
             },
           },
           required: ['arn'],
@@ -169,6 +200,38 @@ events:
               sqsTemplate.Properties.ScalingConfig = {
                 MaximumConcurrency: event.sqs.maximumConcurrency,
               }
+            }
+
+            const provisionedPollers = event.sqs.provisionedPollers
+            if (provisionedPollers && typeof provisionedPollers === 'object') {
+              if (event.sqs.maximumConcurrency) {
+                throw new ServerlessError(
+                  `The "sqs" event of function "${functionName}" cannot set both "maximumConcurrency" and "provisionedPollers". They are mutually exclusive scaling modes: in provisioned mode, control concurrency with "provisionedPollers.max" instead.`,
+                  'SQS_EVENT_SCALING_MODE_CONFLICT',
+                )
+              }
+              if (
+                provisionedPollers.min != null &&
+                provisionedPollers.max != null &&
+                provisionedPollers.min > provisionedPollers.max
+              ) {
+                throw new ServerlessError(
+                  `The "sqs" event of function "${functionName}" has "provisionedPollers.min" (${provisionedPollers.min}) greater than "max" (${provisionedPollers.max}).`,
+                  'EVENT_PROVISIONED_POLLERS_INVALID',
+                )
+              }
+              sqsTemplate.Properties.ProvisionedPollerConfig = {
+                ...(provisionedPollers.min != null && {
+                  MinimumPollers: provisionedPollers.min,
+                }),
+                ...(provisionedPollers.max != null && {
+                  MaximumPollers: provisionedPollers.max,
+                }),
+              }
+            } else if (provisionedPollers === false) {
+              // Update-time clear ({} disables provisioned mode). On a brand-new
+              // mapping AWS rejects {} at create — documented; users remove the line.
+              sqsTemplate.Properties.ProvisionedPollerConfig = {}
             }
 
             if (!skipGlobalRolePermissions) {

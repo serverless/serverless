@@ -147,3 +147,27 @@ functions:
 ## IAM Permissions
 
 The Serverless Framework will automatically configure the most minimal set of IAM permissions for you. However you can still add additional permissions if you need to. Read the official [AWS documentation](https://docs.aws.amazon.com/lambda/latest/dg/with-msk.html) for more information about IAM Permissions for MSK events.
+
+## Provisioned mode
+
+[Provisioned mode](https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventsourcemapping.html#invocation-eventsourcemapping-provisioned-mode) gives the event source mapping a dedicated pool of event pollers with minimum and maximum bounds, for consistent low-latency processing. Configure it with `provisionedPollers`:
+
+```yml
+functions:
+  compute:
+    handler: handler.compute
+    events:
+      - msk:
+          arn: arn:aws:kafka:region:XXXXXX:cluster/MyCluster/xxxx-xxxxx-xxxx
+          topic: mytopic
+          provisionedPollers:
+            min: 1 # optional, 1-200, AWS default 1
+            max: 100 # optional, 1-2000, AWS default 200
+            group: shared-capacity # optional poller group name
+```
+
+Provisioned mode incurs additional AWS charges per event poller — the `min` value is an always-on cost. See [AWS Lambda pricing](https://aws.amazon.com/lambda/pricing/).
+
+`group` (letters, digits, hyphens and underscores, up to 128 characters) groups up to 100 event source mappings within the event source's VPC to share Event Poller Unit capacity, reducing provisioned-mode cost; the aggregate `max` across a group cannot exceed 2,000.
+
+**Disabling provisioned mode:** removing `provisionedPollers` from your configuration does **not** disable it — provisioned mode stays active on the deployed event source mapping, so the pollers (and their cost) remain. The same applies to `rollback` to an older deployment. To actually disable it, deploy once with `provisionedPollers: false`. `false` clears provisioned mode on an existing mapping; it cannot be used on a mapping that is being created for the first time — for new mappings, simply omit the key.
