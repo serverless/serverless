@@ -256,7 +256,7 @@ provisionedPollers:
               ...(provisionedPollers.max != null && {
                 MaximumPollers: provisionedPollers.max,
               }),
-              ...(provisionedPollers.group != null && {
+              ...(provisionedPollers.group && {
                 PollerGroupName: provisionedPollers.group,
               }),
             }

@@ -221,4 +221,6 @@ Provisioned mode incurs additional AWS charges per event poller — the `min` va
 
 `group` (letters, digits, hyphens and underscores, up to 128 characters) groups up to 100 event source mappings within the event source's VPC to share Event Poller Unit capacity, reducing provisioned-mode cost; the aggregate `max` across a group cannot exceed 2,000.
 
+Deleting the `group` line removes the mapping from its poller group on the next deploy; its own `min` and `max` are unaffected.
+
 **Disabling provisioned mode:** removing `provisionedPollers` from your configuration does **not** disable it — provisioned mode stays active on the deployed event source mapping, so the pollers (and their cost) remain. The same applies to `rollback` to an older deployment. To actually disable it, deploy once with `provisionedPollers: false`. `false` clears provisioned mode on an existing mapping; it cannot be used on a mapping that is being created for the first time — for new mappings, simply omit the key.

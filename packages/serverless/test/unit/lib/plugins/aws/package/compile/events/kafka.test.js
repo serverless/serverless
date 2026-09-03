@@ -707,6 +707,16 @@ describe('AwsCompileKafkaEvents', () => {
       expect(esm.Properties.ProvisionedPollerConfig).toBeUndefined()
     })
 
+    it('never emits an empty poller group name', () => {
+      const esm = compileWithKafkaEvent({
+        provisionedPollers: { min: 1, max: 100, group: '' },
+      })
+      expect(esm.Properties.ProvisionedPollerConfig).toEqual({
+        MinimumPollers: 1,
+        MaximumPollers: 100,
+      })
+    })
+
     it('throws when min > max', () => {
       expect(() =>
         compileWithKafkaEvent({ provisionedPollers: { min: 100, max: 5 } }),
