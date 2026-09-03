@@ -412,4 +412,61 @@ describe('AwsCompileMSKEvents', () => {
       expect(allResources).toContain(mskArn)
     })
   })
+
+  describe('provisionedPollers', () => {
+    const baseMskEvent = {
+      arn: 'arn:aws:kafka:us-east-1:111111111111:cluster/my-cluster/abc-123',
+      topic: 'my-topic',
+    }
+
+    const compileWithMskEvent = (extra) => {
+      awsCompileMSKEvents.serverless.service.functions = {
+        first: { events: [{ msk: { ...baseMskEvent, ...extra } }] },
+      }
+      awsCompileMSKEvents.compileMSKEvents()
+      const resources =
+        awsCompileMSKEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      return Object.values(resources).find(
+        (r) => r.Type === 'AWS::Lambda::EventSourceMapping',
+      )
+    }
+
+    it('maps min/max/group to ProvisionedPollerConfig', () => {
+      const esm = compileWithMskEvent({
+        provisionedPollers: { min: 1, max: 100, group: 'shared-epu' },
+      })
+      expect(esm.Properties.ProvisionedPollerConfig).toEqual({
+        MinimumPollers: 1,
+        MaximumPollers: 100,
+        PollerGroupName: 'shared-epu',
+      })
+    })
+
+    it('compiles false to an empty ProvisionedPollerConfig', () => {
+      const esm = compileWithMskEvent({ provisionedPollers: false })
+      expect(esm.Properties.ProvisionedPollerConfig).toEqual({})
+    })
+
+    it('emits nothing when the key is absent', () => {
+      const esm = compileWithMskEvent({})
+      expect(esm.Properties.ProvisionedPollerConfig).toBeUndefined()
+    })
+
+    it('never emits an empty poller group name', () => {
+      const esm = compileWithMskEvent({
+        provisionedPollers: { min: 1, max: 100, group: '' },
+      })
+      expect(esm.Properties.ProvisionedPollerConfig).toEqual({
+        MinimumPollers: 1,
+        MaximumPollers: 100,
+      })
+    })
+
+    it('throws when min > max', () => {
+      expect(() =>
+        compileWithMskEvent({ provisionedPollers: { min: 100, max: 5 } }),
+      ).toThrow(/greater than "max"/)
+    })
+  })
 })

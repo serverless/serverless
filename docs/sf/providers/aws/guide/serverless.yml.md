@@ -1231,6 +1231,14 @@ functions:
           functionResponseType: ReportBatchItemFailures
           filterPatterns:
             - a: [1, 2]
+          # Optional, must be in 2-1000 range. Mutually exclusive with provisionedPollers
+          maximumConcurrency: 250
+          # Optional, provisioned mode: dedicated event pollers (additional cost). Set to false to disable on an existing mapping
+          provisionedPollers:
+            # Optional, must be in 2-200 range
+            min: 2
+            # Optional, must be in 2-10000 range
+            max: 500
 ```
 
 ### Streams
@@ -1286,6 +1294,14 @@ functions:
           filterPatterns:
             - value:
                 a: [1, 2]
+          # Optional, provisioned mode: dedicated event pollers (additional cost). Set to false to disable on an existing mapping
+          provisionedPollers:
+            # Optional, must be in 1-200 range
+            min: 1
+            # Optional, must be in 1-2000 range
+            max: 100
+            # Optional, poller group name (letters, digits, hyphens, underscores) shared by up to 100 mappings in the same VPC
+            group: shared-capacity
 ```
 
 ### ActiveMQ
@@ -1352,6 +1368,14 @@ functions:
           # Optional, specifies event pattern content filtering
           filterPatterns:
             - eventName: INSERT
+          # Optional, provisioned mode: dedicated event pollers (additional cost). Set to false to disable on an existing mapping
+          provisionedPollers:
+            # Optional, must be in 1-200 range
+            min: 1
+            # Optional, must be in 1-2000 range
+            max: 100
+            # Optional, poller group name (letters, digits, hyphens, underscores) shared by up to 100 mappings in the same VPC
+            group: shared-capacity
 ```
 
 ### RabbitMQ

@@ -661,4 +661,66 @@ describe('AwsCompileKafkaEvents', () => {
       expect(allResources).toContain(saslScram256AuthArn)
     })
   })
+
+  describe('provisionedPollers', () => {
+    const baseKafkaEvent = {
+      accessConfigurations: {
+        saslScram512Auth: [
+          'arn:aws:secretsmanager:us-east-1:111111111111:secret:name',
+        ],
+      },
+      bootstrapServers: ['broker1.example.com:9092'],
+      topic: 'my-topic',
+    }
+
+    const compileWithKafkaEvent = (extra) => {
+      awsCompileKafkaEvents.serverless.service.functions = {
+        first: { events: [{ kafka: { ...baseKafkaEvent, ...extra } }] },
+      }
+      awsCompileKafkaEvents.compileKafkaEvents()
+      const resources =
+        awsCompileKafkaEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      return Object.values(resources).find(
+        (r) => r.Type === 'AWS::Lambda::EventSourceMapping',
+      )
+    }
+
+    it('maps min/max/group to ProvisionedPollerConfig', () => {
+      const esm = compileWithKafkaEvent({
+        provisionedPollers: { min: 1, max: 100, group: 'shared-epu' },
+      })
+      expect(esm.Properties.ProvisionedPollerConfig).toEqual({
+        MinimumPollers: 1,
+        MaximumPollers: 100,
+        PollerGroupName: 'shared-epu',
+      })
+    })
+
+    it('compiles false to an empty ProvisionedPollerConfig', () => {
+      const esm = compileWithKafkaEvent({ provisionedPollers: false })
+      expect(esm.Properties.ProvisionedPollerConfig).toEqual({})
+    })
+
+    it('emits nothing when the key is absent', () => {
+      const esm = compileWithKafkaEvent({})
+      expect(esm.Properties.ProvisionedPollerConfig).toBeUndefined()
+    })
+
+    it('never emits an empty poller group name', () => {
+      const esm = compileWithKafkaEvent({
+        provisionedPollers: { min: 1, max: 100, group: '' },
+      })
+      expect(esm.Properties.ProvisionedPollerConfig).toEqual({
+        MinimumPollers: 1,
+        MaximumPollers: 100,
+      })
+    })
+
+    it('throws when min > max', () => {
+      expect(() =>
+        compileWithKafkaEvent({ provisionedPollers: { min: 100, max: 5 } }),
+      ).toThrow(/greater than "max"/)
+    })
+  })
 })

@@ -128,6 +128,43 @@ events:
           pattern: '[a-zA-Z0-9-/*:_+=.@-]*',
         },
         filterPatterns: { $ref: '#/definitions/filterPatterns' },
+        provisionedPollers: {
+          description: `Provisioned mode for the event source mapping — dedicated event pollers with min/max bounds and optional poller group. Set to false to disable provisioned mode on an existing mapping.
+@see https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventsourcemapping.html#invocation-eventsourcemapping-provisioned-mode
+@example
+provisionedPollers:
+  min: 1
+  max: 100`,
+          anyOf: [
+            { const: false },
+            {
+              type: 'object',
+              properties: {
+                min: {
+                  description: `Minimum number of provisioned event pollers (1-200). AWS default: 1.`,
+                  type: 'integer',
+                  minimum: 1,
+                  maximum: 200,
+                },
+                max: {
+                  description: `Maximum number of provisioned event pollers (1-2000). AWS default: 200.`,
+                  type: 'integer',
+                  minimum: 1,
+                  maximum: 2000,
+                },
+                group: {
+                  description: `Provisioned poller group name — groups up to 100 event source mappings in the event source's VPC to share Event Poller Unit capacity. Letters, digits, hyphens and underscores only.`,
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 128,
+                  pattern: '^[a-zA-Z0-9_-]+$',
+                },
+              },
+              minProperties: 1,
+              additionalProperties: false,
+            },
+          ],
+        },
       },
       additionalProperties: false,
       required: ['accessConfigurations', 'bootstrapServers', 'topic'],
@@ -350,6 +387,33 @@ events:
               Pattern: JSON.stringify(pattern),
             })),
           }
+        }
+
+        const provisionedPollers = event.kafka.provisionedPollers
+        if (provisionedPollers && typeof provisionedPollers === 'object') {
+          if (
+            provisionedPollers.min != null &&
+            provisionedPollers.max != null &&
+            provisionedPollers.min > provisionedPollers.max
+          ) {
+            throw new ServerlessError(
+              `The "kafka" event of function "${functionName}" has "provisionedPollers.min" (${provisionedPollers.min}) greater than "max" (${provisionedPollers.max}).`,
+              'EVENT_PROVISIONED_POLLERS_INVALID',
+            )
+          }
+          kafkaResource.Properties.ProvisionedPollerConfig = {
+            ...(provisionedPollers.min != null && {
+              MinimumPollers: provisionedPollers.min,
+            }),
+            ...(provisionedPollers.max != null && {
+              MaximumPollers: provisionedPollers.max,
+            }),
+            ...(provisionedPollers.group && {
+              PollerGroupName: provisionedPollers.group,
+            }),
+          }
+        } else if (provisionedPollers === false) {
+          kafkaResource.Properties.ProvisionedPollerConfig = {}
         }
 
         cfTemplate.Resources[kafkaEventLogicalId] = kafkaResource

@@ -27,6 +27,7 @@ import {
 import { buildCommandState } from './state-utils.js'
 import { buildSandboxesAnalytics } from '@serverless/framework/lib/plugins/aws/sandboxes/analytics.js'
 import { buildMcpAnalytics } from '@serverless/framework/lib/plugins/aws/mcp/analytics.js'
+import { buildProvisionedPollersAnalytics } from '@serverless/framework/lib/plugins/aws/package/compile/events/lib/provisioned-pollers-analytics.js'
 import { Deployment } from '../platform/deployments.js'
 
 export class TraditionalRunner extends Runner {
@@ -271,6 +272,10 @@ export class TraditionalRunner extends Runner {
       // guard and is total (never throws) — `{}` when the service defines no
       // MCP servers, `{ mcp: <block> }` otherwise.
       ...buildMcpAnalytics(this.config),
+      // Provisioned-mode (provisionedPollers) config-shape block, same
+      // contract as the sandboxes/mcp ones: total (never throws), `{}` when
+      // no event uses the key, `{ provisionedPollers: <block> }` otherwise.
+      ...buildProvisionedPollersAnalytics(this.config),
     }
 
     // plugins

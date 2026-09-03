@@ -512,5 +512,87 @@ describe('AwsCompileSQSEvents', () => {
 
       expect(() => awsCompileSQSEvents.compileSQSEvents()).not.toThrow()
     })
+
+    describe('provisionedPollers', () => {
+      const compileWithSqsEvent = (sqsEvent) => {
+        awsCompileSQSEvents.serverless.service.functions = {
+          first: { events: [{ sqs: sqsEvent }] },
+        }
+        awsCompileSQSEvents.compileSQSEvents()
+        const resources =
+          awsCompileSQSEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+        return Object.values(resources).find(
+          (r) => r.Type === 'AWS::Lambda::EventSourceMapping',
+        )
+      }
+
+      it('maps min/max to ProvisionedPollerConfig', () => {
+        const esm = compileWithSqsEvent({
+          arn: 'arn:aws:sqs:region:account:MyQueue',
+          provisionedPollers: { min: 5, max: 500 },
+        })
+        expect(esm.Properties.ProvisionedPollerConfig).toEqual({
+          MinimumPollers: 5,
+          MaximumPollers: 500,
+        })
+        expect(esm.Properties.ScalingConfig).toBeUndefined()
+      })
+
+      it('supports partial config (only max)', () => {
+        const esm = compileWithSqsEvent({
+          arn: 'arn:aws:sqs:region:account:MyQueue',
+          provisionedPollers: { max: 300 },
+        })
+        expect(esm.Properties.ProvisionedPollerConfig).toEqual({
+          MaximumPollers: 300,
+        })
+      })
+
+      it('compiles false to an empty ProvisionedPollerConfig (disable)', () => {
+        const esm = compileWithSqsEvent({
+          arn: 'arn:aws:sqs:region:account:MyQueue',
+          provisionedPollers: false,
+        })
+        expect(esm.Properties.ProvisionedPollerConfig).toEqual({})
+      })
+
+      it('allows false together with maximumConcurrency (mode-switch recipe)', () => {
+        const esm = compileWithSqsEvent({
+          arn: 'arn:aws:sqs:region:account:MyQueue',
+          maximumConcurrency: 50,
+          provisionedPollers: false,
+        })
+        expect(esm.Properties.ScalingConfig).toEqual({ MaximumConcurrency: 50 })
+        expect(esm.Properties.ProvisionedPollerConfig).toEqual({})
+      })
+
+      it('emits neither property when the key is absent', () => {
+        const esm = compileWithSqsEvent({
+          arn: 'arn:aws:sqs:region:account:MyQueue',
+        })
+        expect(esm.Properties.ProvisionedPollerConfig).toBeUndefined()
+        expect(esm.Properties.ScalingConfig).toBeUndefined()
+      })
+
+      it('throws when object form is combined with maximumConcurrency', () => {
+        expect(() =>
+          compileWithSqsEvent({
+            arn: 'arn:aws:sqs:region:account:MyQueue',
+            maximumConcurrency: 50,
+            provisionedPollers: { min: 2, max: 10 },
+          }),
+        ).toThrow(/mutually exclusive scaling modes/)
+      })
+
+      it('throws when min > max', () => {
+        expect(() =>
+          compileWithSqsEvent({
+            arn: 'arn:aws:sqs:region:account:MyQueue',
+            provisionedPollers: { min: 50, max: 10 },
+          }),
+        ).toThrow(/greater than "max"/)
+      })
+    })
   })
 })
