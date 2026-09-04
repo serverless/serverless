@@ -359,6 +359,29 @@ describe('Configuration Read', () => {
       expect(error.message).not.toMatch(/call stack/i)
     })
 
+    it('should keep safe integers and reject integers beyond Number.MAX_SAFE_INTEGER', async () => {
+      // Values between 2^53 and 2^63 are valid TOML but cannot be represented losslessly
+      // as a JavaScript number; the reader surfaces them as a parse error rather than rounding.
+      configurationPath = path.join(tmpDir, 'serverless.toml')
+      await fs.writeFile(
+        configurationPath,
+        'service = "test-toml"\nsafe = 9007199254740991\n',
+      )
+      expect(await readConfiguration(configurationPath)).toEqual({
+        service: 'test-toml',
+        safe: 9007199254740991,
+      })
+
+      await fs.writeFile(
+        configurationPath,
+        'service = "test-toml"\nunsafe = 9007199254740992\n',
+      )
+      await expect(readConfiguration(configurationPath)).rejects.toHaveProperty(
+        'code',
+        'CONFIGURATION_PARSE_ERROR',
+      )
+    })
+
     it('should reject integers outside the 64-bit range instead of silently rounding them', async () => {
       configurationPath = path.join(tmpDir, 'serverless.toml')
       await fs.writeFile(
