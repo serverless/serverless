@@ -184,7 +184,11 @@ describe('Compose service-provider graph params (${service:...} + ${shared:...})
     expect(sharedTopicArn).toMatch(/^arn:aws:sns:/)
     expect(sharedTopicArn).toContain('svcprovider-orders-db')
     // ${service:worker.JobsQueueUrl} -> a real SQS queue URL at THIS stage.
-    expect(jobsQueueUrl).toMatch(/^https:\/\/sqs\..*amazonaws\.com\//)
+    // Anchored hostname: `sqs.<region>.amazonaws.com/<account id>/…`, so
+    // `amazonaws.com` cannot match anywhere else in the URL.
+    expect(jobsQueueUrl).toMatch(
+      /^https:\/\/sqs\.[a-z0-9-]+\.amazonaws\.com\/\d{12}\//,
+    )
     expect(jobsQueueUrl).toContain(`svcprovider-worker-${sharedStage}`)
     // orders-db's own `${param:ordersDataSet}` resolved from the compose file on
     // the normal dispatch path — the control for the pinned read below.
