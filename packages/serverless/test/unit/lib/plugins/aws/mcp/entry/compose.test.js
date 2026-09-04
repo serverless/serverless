@@ -6,7 +6,13 @@ const composeModulePath =
   '../../../../../../../lib/plugins/aws/mcp/entry/lib/compose.mjs'
 
 const composeModule = await import(composeModulePath)
-const { readEntryEnv, resolveServerModulePath, buildApp } = composeModule
+const {
+  readEntryEnv,
+  resolveServerModulePath,
+  buildApp,
+  buildBufferedHandler,
+  bufferedIsContentTypeBinary,
+} = composeModule
 
 // A REST API (payload v1) event as API Gateway delivers it: `path` is the
 // stage-less resource path and `requestContext.path` carries the stage prefix.
@@ -35,7 +41,9 @@ describe('mcp entry composition', () => {
   // not this function's to perform. Nothing may reintroduce them here.
   it('exports nothing but the environment, module and app composition', () => {
     expect(Object.keys(composeModule).sort()).toEqual([
+      'bufferedIsContentTypeBinary',
       'buildApp',
+      'buildBufferedHandler',
       'readEntryEnv',
       'resolveServerModulePath',
     ])
@@ -154,6 +162,19 @@ describe('mcp entry composition', () => {
           modulePath: 'src/crm.ts',
           taskRoot: '/var/task',
           exists: exists([at('src/crm.ts'), at('src/crm.js')]),
+        }),
+      ).toBe(at('src/crm.js'))
+    })
+
+    // The rewrite packaging (and dev mode) performs names the emitted file
+    // outright; a leftover from an earlier build with another extension must
+    // not outrank it - an explicit path is never a probe.
+    it('takes an explicit .js path over a stale .mjs sibling', () => {
+      expect(
+        resolveServerModulePath({
+          modulePath: 'src/crm.js',
+          taskRoot: '/var/task',
+          exists: exists([at('src/crm.mjs'), at('src/crm.js')]),
         }),
       ).toBe(at('src/crm.js'))
     })
@@ -381,6 +402,97 @@ describe('mcp entry composition', () => {
       const response = await post(app)
       expect(response.status).toBe(202)
       expect(response.headers.get('www-authenticate')).toBeNull()
+    })
+  })
+
+  describe('buildBufferedHandler', () => {
+    // Minimal fetch-handler double: echoes an SSE body, like a real MCP
+    // response.
+    const mcpHandler = {
+      fetch: async () =>
+        new Response('event: message\ndata: {"ok":true}\n\n', {
+          status: 200,
+          headers: { 'content-type': 'text/event-stream' },
+        }),
+    }
+    const v1Event = {
+      httpMethod: 'POST',
+      path: '/crm/mcp',
+      headers: { 'content-type': 'application/json', Host: 'example.com' },
+      requestContext: {
+        httpMethod: 'POST',
+        path: '/dev/crm/mcp',
+        stage: 'dev',
+        domainName: 'example.com',
+      },
+      body: '{"jsonrpc":"2.0","id":1,"method":"tools/list"}',
+      isBase64Encoded: false,
+    }
+
+    it('returns a buffered proxy envelope with the SSE body kept textual', async () => {
+      const bufferedHandler = buildBufferedHandler({
+        app: buildApp({ mcpHandler }),
+      })
+      const result = await bufferedHandler(v1Event, {})
+      expect(result.statusCode).toBe(200)
+      // No multiValueHeaders on the inbound event → hono answers with `headers`.
+      expect(result.headers['content-type']).toBe('text/event-stream')
+      expect(result.isBase64Encoded).toBe(false)
+      expect(result.body).toContain('data: {"ok":true}')
+    })
+
+    it('drops the body from a GET before the adapter sees it', async () => {
+      const seen = []
+      const probeHandler = {
+        fetch: async (request) => {
+          seen.push(request.method)
+          return new Response('{}', {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          })
+        },
+      }
+      const bufferedHandler = buildBufferedHandler({
+        app: buildApp({ mcpHandler: probeHandler }),
+      })
+      const result = await bufferedHandler(
+        {
+          ...v1Event,
+          httpMethod: 'GET',
+          // No JSON content type on this one: the app's body middleware would
+          // then try to parse the (now absent) body and answer 400 "Invalid
+          // JSON" of its own, which is not the failure under test here.
+          headers: { Host: 'example.com' },
+          requestContext: { ...v1Event.requestContext, httpMethod: 'GET' },
+        },
+        {},
+      )
+      // undici would have thrown "Request with GET/HEAD method cannot have
+      // body" before reaching the app if the sanitizer had not run — hono's
+      // adapter catches that as a 400 and never calls `app.fetch`, so the
+      // handler seeing the request is what proves the sanitizer ran.
+      expect(result.statusCode).toBe(200)
+      expect(seen).toEqual(['GET'])
+    })
+  })
+
+  describe('bufferedIsContentTypeBinary', () => {
+    it('keeps event-stream textual and defers everything else to hono', () => {
+      expect(bufferedIsContentTypeBinary('text/event-stream')).toBe(false)
+      expect(bufferedIsContentTypeBinary('image/png')).toBe(true)
+      // Hono's own classifier already reads a parameterised JSON type as
+      // textual, and that verdict is left alone.
+      expect(
+        bufferedIsContentTypeBinary('application/json; charset=utf-8'),
+      ).toBe(false)
+    })
+
+    // Hono calls this only behind its own `contentType &&` guard, so an absent
+    // type never reaches it today. A caller outside that guard must still not
+    // crash the probe, and the verdict it then gets is hono's own for an absent
+    // type — binary — not something this wrapper invents.
+    it('answers for an absent content type instead of throwing', () => {
+      expect(bufferedIsContentTypeBinary(undefined)).toBe(true)
     })
   })
 })

@@ -14,11 +14,14 @@ permissions:
 # The two path lists are duplicated rather than shared through a YAML anchor:
 # GitHub Actions does not resolve anchors in workflow files. Keep them identical.
 #
-# Three entries are not MCP-named but gate this suite all the same:
+# Four entries are not MCP-named but gate this suite all the same:
 #   - `lib/classes/plugin-manager.js` is the mcp plugin's ONLY registration point,
 #     so a dropped import there would ship green with the filter blind to it;
-#   - the two `package.json` files hold `test:mcp` and `build:mcp:entry`, the two
-#     commands this workflow runs.
+#   - `lib/plugins/aws/dev/**` is what `mcp-dev.test.js` exercises: dev mode
+#     serves MCP servers off the developer's machine, so the dev plugin and its
+#     shim are as much under test here as the mcp plugin itself;
+#   - the two `package.json` files hold `test:mcp`, `build:mcp:entry` and
+#     `build:devmode:shim`, the three commands this workflow runs.
 on:
   # Dispatch works from the default branch. From any OTHER branch it fails at
   # `Setup: AWS Credentials`, not in a test: the deployment role's trust scope
@@ -30,6 +33,7 @@ on:
     paths:
       - '.github/workflows/ci-mcp.yml'
       - 'packages/serverless/lib/classes/plugin-manager.js'
+      - 'packages/serverless/lib/plugins/aws/dev/**'
       - 'packages/serverless/lib/plugins/aws/mcp/**'
       - 'packages/serverless/lib/plugins/aws/package/compile/events/api-gateway/**'
       - 'packages/serverless/lib/plugins/esbuild/**'
@@ -43,6 +47,7 @@ on:
     paths:
       - '.github/workflows/ci-mcp.yml'
       - 'packages/serverless/lib/classes/plugin-manager.js'
+      - 'packages/serverless/lib/plugins/aws/dev/**'
       - 'packages/serverless/lib/plugins/aws/mcp/**'
       - 'packages/serverless/lib/plugins/aws/package/compile/events/api-gateway/**'
       - 'packages/serverless/lib/plugins/esbuild/**'
@@ -108,13 +113,18 @@ jobs:
         run: |
           cd ../../
           npm ci
-      # Required, not optional: packaging stages this bundle into the artifact, so
-      # a deploy fails outright without it. The dev-mode shim, the sf-core bundle
-      # and the global serverless@3 that `Test: Framework` builds are not used by
-      # this suite and are left out.
+      # Both are required, not optional. Packaging stages the MCP entry into the
+      # artifact, so a deploy fails outright without it; `mcp-dev.test.js` runs a
+      # `serverless dev` session, which copies the dev-mode shim into the
+      # deployed function and aborts at startup when it is missing. The sf-core
+      # bundle and the global serverless@3 that `Test: Framework` builds are not
+      # used by this suite and are left out.
       - name: 'Build: MCP Entry'
         working-directory: ./packages/serverless
         run: npm run build:mcp:entry
+      - name: 'Build: Dev Mode Shim'
+        working-directory: ./packages/serverless
+        run: npm run build:devmode:shim
       - name: 'Test: MCP Servers'
         run: npm run test:mcp
         env:

@@ -454,9 +454,8 @@ The URL path (always `/<name>/mcp`), a per-server domain (use
 provider-level equivalents apply — `provider.vpc`, `provider.layers`, and the
 whole `provider.iam` surface, `role.statements` and `role.mode: perFunction`
 included), tool schemas in YAML, and any Framework runtime API inside the
-module. Three more behaviors worth knowing: a client
+module. Two more behaviors worth knowing: a client
 disconnect does not stop a running tool on this front door (`timeout` is the
-cost ceiling — set it to the longest tool you actually have, not to 900),
+cost ceiling — set it to the longest tool you actually have, not to 900), and
 resource subscriptions never deliver updates here (the listen stream sits on
-one function instance with an in-process event bus, and ends at `timeout`),
-and Dev Mode does not serve MCP servers in this release.
+one function instance with an in-process event bus, and ends at `timeout`).

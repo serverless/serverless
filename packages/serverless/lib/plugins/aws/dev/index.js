@@ -13,6 +13,14 @@ import {
   stringToSafeColor,
 } from '@serverless/util'
 import LocalLambda from './local-lambda/index.js'
+import { artifactModulePath, mcpEntrySourcePath } from '../mcp/lib/packaging.js'
+import { esbuildBuildState } from '../mcp/lib/esbuild-build-state.js'
+import { shouldWarnEdgeFirstByteBudget } from '../mcp/lib/endpoint-type.js'
+import {
+  describeMcpRequest,
+  describeMcpResponse,
+  formatDuration,
+} from './mcp-log.js'
 import { fileURLToPath } from 'url'
 import { isDashboardObservabilityEnabled } from '../../observability/dashboard/index.js'
 
@@ -629,7 +637,7 @@ class AwsDev {
   /**
    * Updates the serverless service configuration with dev mode config needed for the shim to work. Specifically:
    *   1. Update all AWS Lambda functions' IAM roles to allow all IoT actions.
-   *   2. Update all AWS Lambad function's handler to 'index.handler' as set in the shim
+   *   2. Update all AWS Lambda functions' handler to the matching shim entry point ('index.streamHandler' for MCP servers, 'index.handler' otherwise)
    *   3. Update all AWS Lambda functions' runtime to match the local Node.js runtime when supported by AWS Lambda
    *   4. Update all AWS Lambda functions' environment variables to include the IoT endpoint and a function identifier.
    *
@@ -750,7 +758,11 @@ class AwsDev {
       // For build plugins we need to make the original handler path available in the functionConfig
       functionConfig.originalHandler = functionConfig.handler
 
-      functionConfig.handler = 'index.handler'
+      // MCP routes compile as streaming integrations, which reject a buffered
+      // handler outright — those functions get the shim's streamified door.
+      functionConfig.handler = this.isMcpFunction(functionName)
+        ? 'index.streamHandler'
+        : 'index.handler'
       functionConfig.runtime = runtimeForShim
 
       functionConfig.environment = functionConfig.environment || {}
@@ -1060,11 +1072,25 @@ class AwsDev {
        * We also need the handler to know which file to import and which function to call
        * We also set the environment and context to be passed to the function
        */
+      // An MCP module default-exports a web fetch handler, not a Lambda
+      // handler - the local run goes through the same prebuilt entry the
+      // production artifact ships, via its buffered export, with the
+      // environment adjusted for a run on this machine (`localMcpEnvironment`).
+      const mcpServer = this.isMcpFunction(functionName)
       const localLambda = new LocalLambda({
         serviceAbsolutePath,
         handler: functionConfig.handler,
+        ...(mcpServer && {
+          handlerFileAbsolutePath: mcpEntrySourcePath,
+          handlerName: 'bufferedHandler',
+        }),
         runtime,
-        environment,
+        environment: await this.localMcpEnvironment({
+          functionName,
+          functionConfig,
+          environment,
+          serviceAbsolutePath,
+        }),
         invocationColorFn,
       })
 
@@ -1091,6 +1117,20 @@ class AwsDev {
         log.blankLine()
         log.warning(
           `Local invocation of function "${functionName}" took ${executionTimeInMs}ms, which exceeds the configured timeout of ${timeoutInMs}ms. Consider increasing the timeout, or optimizing your function.`,
+        )
+        log.blankLine()
+      }
+
+      if (
+        mcpServer &&
+        shouldWarnEdgeFirstByteBudget({
+          provider: this.serverless.service.provider,
+          executionTimeInMs,
+        })
+      ) {
+        log.blankLine()
+        log.warning(
+          `Local execution of MCP server "${functionName}" took ${Math.round(executionTimeInMs / 1000)}s. On an edge-optimized endpoint, responses that stay silent longer than ~29 seconds are dropped by CloudFront before they reach the client - keep dev-mode tool calls under that budget, deploy with "serverless deploy" to test long-running tools, or, if this service owns its REST API, set "provider.endpointType: REGIONAL", where the bound is the server's own timeout instead.`,
         )
         log.blankLine()
       }
@@ -1127,6 +1167,7 @@ class AwsDev {
         response.response,
         this.options.detailed,
         invocationColorFn,
+        { executionTimeInMs },
       )
 
       // Publish the result back to the function
@@ -1325,6 +1366,27 @@ class AwsDev {
           logger.aside(endpointsLog)
         }
       }
+
+      // Registered by the mcp plugin on "after:deploy:deploy": a bare string
+      // for a single server, an array for several.
+      //
+      // A DIFFERENT map from the two blocks above, and not interchangeable with
+      // them: `serviceOutputs` is written directly, by the info plugin's own
+      // display steps (`../info/display.js`), while `addServiceOutputSection` -
+      // the only API a plugin has for contributing a section - always lands in
+      // `servicePluginOutputs` (`../../../serverless.js`). Reading the former
+      // for this section finds nothing, on a run where the rest of the summary
+      // prints normally.
+      //
+      // Rendered the way `deploy` and `info` render the same section
+      // (`lib/cli/write-service-outputs.js`): the section name as the label, a
+      // lone server inline, several as an indented block.
+      const mcp = this.serverless.servicePluginOutputs?.get('mcp')
+      if (typeof mcp === 'string' && mcp) {
+        logger.aside(`mcp: ${mcp}`)
+      } else if (Array.isArray(mcp) && mcp.length > 0) {
+        logger.aside(['mcp:', ...mcp.map((line) => `  ${line}`)].join('\n'))
+      }
     } catch (e) {
       // Fail silently except for debug
       logger.debug(`Failed to log functions and endpoints: ${e.message}`)
@@ -1397,10 +1459,84 @@ class AwsDev {
       const subject = event.Records[0].Sns.Subject
       const messageId = event.Records[0].Sns.MessageId
 
-      eventLog = `── aws:sqs:${topicName}:${subject || messageId}`
+      eventLog = `── aws:sns:${topicName}:${subject || messageId}`
     }
 
     return eventLog
+  }
+
+  /**
+   * The environment the local child of an MCP server runs with; a plain
+   * function's environment is returned as it arrived.
+   *
+   * Two forwarded values must not survive the trip from Lambda:
+   *
+   * - LAMBDA_TASK_ROOT says /var/task, and locally "where the code lives" is
+   *   `serviceAbsolutePath` - the esbuild build dir when the function was
+   *   built, the service dir otherwise.
+   * - SERVERLESS_MCP_SERVER_MODULE holds the configured `server:` path,
+   *   because dev mode never packages and so never ran the rewrite that points
+   *   it at the file the bundler emitted (`../mcp/index.js`,
+   *   `repointFunctions`). Left as is, the entry falls back to probing for a
+   *   sibling with a runtime extension - and the build dir is never cleaned,
+   *   so a leftover from an earlier build (a `.mjs` from before an
+   *   `outExtension` change, next to today's `.js`) wins the probe and the
+   *   session serves stale code while every log line looks healthy. The same
+   *   `artifactModulePath` packaging uses names the emitted file here, from
+   *   `originalHandler` - the value the build plugins work from, set by
+   *   `update()` and left in place by `restore()` - with `handler` as the
+   *   fallback for a function `update()` never touched, and the extension the
+   *   bundler reports. Classic mode keeps the configured path: the source
+   *   file is the runtime file there.
+   */
+  async localMcpEnvironment({
+    functionName,
+    functionConfig,
+    environment,
+    serviceAbsolutePath,
+  }) {
+    const server = this.mcpServers().get(functionName)
+    if (!server) return environment
+    const local = { ...environment, LAMBDA_TASK_ROOT: serviceAbsolutePath }
+    if (!this.serverless.builtFunctions?.has(functionName)) return local
+    const { outputExtension } = await esbuildBuildState({
+      plugins: this.serverless.pluginManager?.plugins ?? [],
+    })
+    if (outputExtension === undefined) return local
+    local.SERVERLESS_MCP_SERVER_MODULE = artifactModulePath({
+      sourcePath: server.server,
+      handler: functionConfig.originalHandler ?? functionConfig.handler,
+      outputExtension,
+    })
+    return local
+  }
+
+  /**
+   * The MCP servers the mcp plugin validated, by function name: the registry
+   * its `initialize` hook builds (`../mcp/index.js`) before any dev step runs.
+   *
+   * Read from the plugin instance rather than from a marker on the function
+   * config, because a config key is a public surface: a plain function that
+   * happens to carry one (a custom plugin's metadata, an unknown property
+   * kept under `configValidationMode: warn`) must not be rerouted through the
+   * MCP entry. The plugin is located by the shape of that registry, the same
+   * way the bundler is found for `esbuildBuildState`; without it there are no
+   * MCP servers. Total: never throws.
+   */
+  mcpServers() {
+    try {
+      const servers = this.serverless.pluginManager?.plugins?.find((plugin) =>
+        Array.isArray(plugin.validated?.servers),
+      )?.validated.servers
+      return new Map((servers ?? []).map((server) => [server.name, server]))
+    } catch {
+      return new Map()
+    }
+  }
+
+  /** Whether the function is one of the mcp plugin's validated servers. */
+  isMcpFunction(functionName) {
+    return this.mcpServers().has(functionName)
   }
 
   /**
@@ -1413,7 +1549,14 @@ class AwsDev {
    */
   logFunctionEvent(functionName, event, isVerbose, invocationColorFn) {
     try {
-      const eventLog = this.getEventLog(event)
+      // Every MCP request is a POST to the same `/<server>/mcp` path, so the
+      // API Gateway label cannot tell one call from the next; the JSON-RPC
+      // method in the body can. Falls back to the generic label when the body
+      // does not describe an MCP call.
+      const mcpCall = this.isMcpFunction(functionName)
+        ? describeMcpRequest(event)
+        : null
+      const eventLog = mcpCall ? `── mcp ${mcpCall}` : this.getEventLog(event)
 
       logger.aside(`${invocationColorFn('→')} λ ${functionName} ${eventLog}`)
 
@@ -1438,12 +1581,29 @@ class AwsDev {
    * @param {*} isVerbose
    * @param {*} invocationColorFn
    */
-  logFunctionResponse(functionName, response, isVerbose, invocationColorFn) {
+  logFunctionResponse(
+    functionName,
+    response,
+    isVerbose,
+    invocationColorFn,
+    { executionTimeInMs } = {},
+  ) {
     try {
       let responseLog = `${invocationColorFn('←')} λ ${functionName}`
 
       if (response && response.statusCode) {
         responseLog += ` (${response.statusCode})`
+      }
+
+      // For an MCP server the local run time is the latency the client feels
+      // (a subprocess per request), and a JSON-RPC error rides inside a 200 -
+      // both invisible in the status code alone.
+      if (this.isMcpFunction(functionName)) {
+        if (typeof executionTimeInMs === 'number') {
+          responseLog += ` ${formatDuration(executionTimeInMs)}`
+        }
+        const rpcError = describeMcpResponse(response)
+        if (rpcError) responseLog += ` ── ${rpcError}`
       }
 
       logger.aside(responseLog)

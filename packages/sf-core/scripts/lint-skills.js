@@ -1,7 +1,8 @@
 /**
  * CI lint for /skills: enforces the frontmatter contract (via strict
- * readSkillsFromDir) and the anti-stale-version rule — content changed
- * while metadata.version stayed the same fails the build.
+ * readSkillsFromDir) and the anti-stale rules — content that no longer matches
+ * its manifest baseline fails the build, whether metadata.version stayed the
+ * same (bump it) or was bumped without regenerating the manifest (--update).
  * Usage: node packages/sf-core/scripts/lint-skills.js [--update]
  */
 import { readFile, writeFile } from 'fs/promises'
@@ -44,6 +45,20 @@ export const lintSkills = async ({
     if (prev && prev.hash !== hash && prev.version === skill.version) {
       errors.push(
         `Skill "${skill.name}": content changed but metadata.version is still "${skill.version}" — bump metadata.version and rerun with --update`,
+      )
+    }
+    // A mismatch under a bumped version means the committed baseline was never
+    // regenerated. Left passing it would also disarm the check above for the
+    // next editor, whose unbumped edit would compare against the older version.
+    // Only outside --update, which is the remedy for this state.
+    if (
+      prev &&
+      prev.hash !== hash &&
+      prev.version !== skill.version &&
+      !update
+    ) {
+      errors.push(
+        `Skill "${skill.name}": manifest baseline is stale for version ${skill.version} — run \`node packages/sf-core/scripts/lint-skills.js --update\` and commit skills/manifest.json`,
       )
     }
     if (prev && skill.version < prev.version) {

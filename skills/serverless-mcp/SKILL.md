@@ -15,7 +15,7 @@ description: >-
   endpoint.
 metadata:
   managed-by: serverless-framework
-  version: 1
+  version: 2
   author: Serverless Inc.
 ---
 
@@ -125,9 +125,25 @@ keys are independent; with neither, the endpoint is public and nothing warns.
 **Evidence, not vibes.** Never call a server working from reading the config.
 Trust an observed JSON-RPC result, a status code, or a log line.
 
-**Dev Mode does not serve MCP servers in this release.** Under `serverless dev`
-the packaging integration stands down and warns; deploy normally to exercise a
-server.
+**Dev Mode serves MCP servers.** Under `serverless dev`, requests hit the
+deployed endpoint, the function relays each invocation to your machine, and
+your local module runs behind the same entry production uses — edits apply on
+the next request, no redeploy. Access control stays in force (authorized
+requests are served locally, unauthorized ones are still rejected at the
+gateway), discovery stays served, and `state`-backed elicitation works end to
+end.
+Results are buffered: progress arrives together at the end of the call,
+requests or results over ~125 KB fail (as for all Dev Mode functions), and on
+the default edge-optimized endpoint a call that produces nothing for roughly 30
+seconds is dropped with a `504` — the session warns there. On `REGIONAL` a dev
+call runs past that instead, up to the server's own `timeout`, and no warning
+is printed. Each request runs the
+module fresh (~a few hundred ms). The session lists each server under `mcp:`
+and logs every request by JSON-RPC method and target — `→ λ crm ── mcp
+tools/call get_weather`, then `← λ crm (200) 640ms`, with any JSON-RPC error
+inside a `200` called out on that line. Deploy normally to test incremental
+streaming and long tools; `serverless deploy` after the session restores normal
+serving.
 
 **Don't hand-wire what the Framework wires.** Your own `http` event, streaming
 handler or discovery route around an `mcp` server duplicates work already

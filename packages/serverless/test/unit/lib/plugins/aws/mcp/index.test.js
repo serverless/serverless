@@ -1616,18 +1616,19 @@ describe('AwsMcp plugin', () => {
         ).toBe('src/server.mjs')
       })
 
-      // Standing down silently deploys a function that cannot serve MCP, so the
-      // stand-down is said out loud - once, not once per hook.
-      it('says once that MCP servers are unsupported here', async () => {
+      // Dev serves MCP itself, so standing down is the correct outcome rather
+      // than a shortfall - nothing is warned about.
+      it('stands down without a warning', async () => {
         const serverless = makeDevServerless()
         const plugin = makePlugin(serverless)
         await plugin.hooks.initialize()
         await plugin.hooks['before:package:createDeploymentArtifacts']()
         await plugin.hooks['before:package:compileFunctions']()
-        expect(log.warning).toHaveBeenCalledTimes(1)
-        expect(log.warning).toHaveBeenCalledWith(
-          expect.stringContaining('Dev Mode'),
+        expect(existsSync(stagedEntry())).toBe(false)
+        expect(serverless.service.functions.crm.handler).toBe(
+          'src/server.default',
         )
+        expect(log.warning).not.toHaveBeenCalled()
       })
 
       it('says nothing without an mcp block', async () => {
