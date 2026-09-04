@@ -1,0 +1,10 @@
+org: serverlesstestaccount
+service: compose-refs-b
+
+functions:
+  hello:
+    handler: handler.hello
+    environment:
+      apiUrl: ${param:apiUrl}
+      dbUrl: ${param:dbUrl}
+      nested: ${param:nested}

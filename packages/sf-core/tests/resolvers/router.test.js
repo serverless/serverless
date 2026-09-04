@@ -92,7 +92,9 @@ describe('resolve variables and parameters', () => {
 
     providerRegistry.register('example', ExampleResolverProvider)
 
-    const originalStderr = { write: process.stderr.write }
+    // Bind, or the pass-through below throws when stderr is redirected to a
+    // file (a SyncWriteStream reads its state off `this`).
+    const originalStderr = { write: process.stderr.write.bind(process.stderr) }
     const chunks = []
     jest.spyOn(process.stderr, 'write').mockImplementation((...args) => {
       for (const arg of args) {
@@ -414,6 +416,11 @@ describe('resolve variables and parameters', () => {
       await runComposeTest({
         configFileDirPath: path.join(dirPath, 'combined'),
         options: { stage: 'sit' },
+      })
+    })
+    it('service references resolve through the variable system (print renders the placeholder without state)', async () => {
+      await runComposeTest({
+        configFileDirPath: path.join(dirPath, 'service-references'),
       })
     })
   })

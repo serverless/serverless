@@ -1,0 +1,34 @@
+org: serverlesstestaccount
+app: resolvers-integration-test
+service: resolvers-compose-service-refs
+stages:
+  default:
+    params:
+      dataStage: dev
+      producer: service-a
+    resolvers:
+      shared:
+        type: service
+        stage: dev
+services:
+  service-a:
+    path: service-a
+    component: serverless-framework
+  service-b:
+    path: service-b
+    params:
+      apiUrl: NOT_AVAILABLE_IN_PRINT_COMMAND
+      dbUrl: postgres://NOT_AVAILABLE_IN_PRINT_COMMAND:5432/orders
+      nested: NOT_AVAILABLE_IN_PRINT_COMMAND
+    component: serverless-framework
+    parsedParams:
+      apiUrl: NOT_AVAILABLE_IN_PRINT_COMMAND
+      dbUrl: postgres://NOT_AVAILABLE_IN_PRINT_COMMAND:5432/orders
+      nested: NOT_AVAILABLE_IN_PRINT_COMMAND
+  service-c:
+    path: service-c
+    params:
+      apiUrl: ${service-a.apiUrl}
+    component: serverless-framework
+    parsedParams:
+      apiUrl: NOT_AVAILABLE_IN_PRINT_COMMAND

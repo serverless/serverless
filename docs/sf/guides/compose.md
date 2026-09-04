@@ -89,7 +89,8 @@ Results: 2 services succeeded, 0 failed, 0 skipped, 2 total    Time: 38s
 ### Service dependencies and variables
 
 Service variables let us order deployments and inject outputs from one service
-into another. This is possible via the `${service.output}` syntax. For example:
+into another. This is possible via the `service` resolver, using the
+`${service:<service-name>.<OutputKey>}` syntax. For example:
 
 ```yaml
 services:
@@ -99,14 +100,14 @@ services:
   service-b:
     path: service-b
     params:
-      queueUrl: ${service-a.queueUrl}
+      queueUrl: ${service:service-a.QueueUrl}
 ```
 
 Let's break down the example above into 3 steps:
 
-1. `${service-a.queueUrl}` will resolve to the `queueUrl` output of the `service-a` service.
+1. `${service:service-a.QueueUrl}` will resolve to the `QueueUrl` output of the `service-a` service.
 
-   The outputs of a Serverless Framework service are resolved from its **CloudFormation outputs**. Here is how we can expose the `queueUrl` output in the `service-a/serverless.yml` config:
+   The outputs of a Serverless Framework service are resolved from its **CloudFormation outputs**. Here is how we can expose the `QueueUrl` output in the `service-a/serverless.yml` config:
 
    ```yaml
    # service-a/serverless.yml
@@ -118,7 +119,7 @@ Let's break down the example above into 3 steps:
          Type: AWS::SQS::Queue
          # ...
      Outputs:
-       queueUrl:
+       QueueUrl:
          Value: !Ref MyQueue
    ```
 
@@ -134,9 +135,102 @@ Let's break down the example above into 3 steps:
        SERVICE_A_QUEUE_URL: ${param:queueUrl}
    ```
 
-With `serverless package` and `serverless print`, cross-service values are read from the state of the last deployment: `package` requires the referenced services to be deployed, while `print` displays `NOT_AVAILABLE_IN_PRINT_COMMAND` for values that do not exist yet.
+With `serverless package` and `serverless print`, cross-service values are read from the state of the last deployment: `package` requires the referenced services to be deployed, while `print` displays `NOT_AVAILABLE_IN_PRINT_COMMAND` for values that do not exist yet (a failure to read the state — credentials, network — still fails `print` like any other command).
 
 Cross-service variables are a great way to share API URLs, queue URLs, database table names, and more, without having to hardcode resource names or use SSM.
+
+The service name is the key of the service under `services` in the compose file, used as declared — dots, hyphens, underscores and other characters included (the output key is the name of the CloudFormation output, which never contains a dot, so the last dot separates the two). The only characters a referenced service name cannot contain are the variable syntax's own delimiters: `:`, `,`, `}` and quotes. The service name cannot itself come from another service reference — it must be known before the services are ordered.
+
+The shorter `${service-a.QueueUrl}` form (without the `service:` prefix) is also supported for service names made of letters, digits, and hyphens. New configuration is best written with the `${service:...}` form shown above. A single value cannot mix the two forms — write every reference in it with `${service:...}`; a mixed value is rejected before any service is deployed.
+
+#### Building larger values
+
+A service reference can be part of a larger string, so a connection URL can be assembled directly in the compose parameter:
+
+```yaml
+# serverless-compose.yml
+services:
+  orders-db:
+    path: orders-db
+
+  api:
+    path: api
+    params:
+      databaseUrl: postgres://${service:orders-db.Host}:5432/orders
+```
+
+Service references nest like any other variable: other variables can appear inside the reference (`${service:${opt:db}.Host}`), and a reference can sit inside another variable (`${env:${service:orders-db.EnvName}}`). In `print`, a reference nested inside another variable receives `NOT_AVAILABLE_IN_PRINT_COMMAND` when its state is not available, so the enclosing variable may not resolve; give it a fallback (`${env:${service:orders-db.EnvName}, 'n/a'}`) if `print` must succeed before the first deploy.
+
+A service reference accepts a fallback like any other variable: `${service:orders-db.Host, 'localhost'}` uses `localhost` when `orders-db` has no deployed state yet or has no `Host` output (in `print`, an unavailable reference still renders `NOT_AVAILABLE_IN_PRINT_COMMAND` rather than the fallback). The fallback does not change deploy ordering — `orders-db` still deploys before the service that references it. Referencing a service that is not in the compose file, or writing a reference that is not of the form `<service-name>.<OutputKey>`, is an error even when a fallback is declared.
+
+### Referencing a service deployed to a different stage
+
+By default, `${service:<service-name>.<OutputKey>}` reads the target service's outputs **at the stage of the current run**, and deploys that service first. This is ideal when all of your services share a single lifecycle.
+
+Stateful services — databases, queues, topics — often have a different lifecycle: they are deployed once to a shared, long-lived stage, while the stateless application services around them are deployed to per-developer personal stages. A **named `service` resolver instance** lets an application service read a shared service's outputs from a fixed stage.
+
+A `service` resolver instance is declared under `stages.<stage>.resolvers.<name>`:
+
+```yaml
+# serverless-compose.yml
+stages:
+  default:
+    params:
+      dataStage: dev
+    resolvers:
+      shared:
+        type: service
+        stage: ${param:dataStage}
+  prod:
+    params:
+      dataStage: prod
+
+services:
+  orders-db:
+    path: orders-db
+
+  api:
+    path: api
+    params:
+      ordersTopicArn: ${shared:orders-db.TopicArn}
+```
+
+- `shared` is a `service` resolver instance pinned to the stage held in `dataStage`. `${shared:orders-db.TopicArn}` reads the `TopicArn` output of `orders-db` **as deployed to that stage**.
+- The pinned `stage` is optional — omit it to read from the current run's stage (the same behavior as the built-in `${service:...}` form). It accepts a fixed string or a variable such as `${param:...}` or `${opt:...}` — not a service reference, because the stage decides deploy ordering and must be known before the services are ordered. Here `${param:dataStage}` makes `dev` runs read `orders-db@dev` and `prod` runs read `orders-db@prod`.
+- Reading pinned outputs requires the target service to have been deployed to that stage through the Framework; the values come from the shared [State](./state) store.
+
+Consumer services stay ordinary `${param:...}` readers — they don't need to know which stage the value came from:
+
+```yaml
+# api/serverless.yml
+provider:
+  environment:
+    ORDERS_TOPIC_ARN: ${param:ordersTopicArn}
+```
+
+#### Deploy ordering across stages
+
+A `service` reference adds a deploy-ordering edge **only when the stage it reads is the stage of the current run.** This is what lets a single compose file serve two workflows:
+
+- **Bootstrap the whole graph** — `serverless deploy --stage dev`. Here `dataStage` is also `dev`, so `${shared:...}` resolves to the run stage: `orders-db` is deployed before `api` automatically, with no `dependsOn` needed.
+- **Deploy app services to a personal stage** — `serverless deploy --service=api --stage alice`. `dataStage` is still `dev`, so the reference points at a different stage: `orders-db` is **not** deployed. Its `dev` outputs are read and injected into `api`, so the shared data service stays untouched while each developer iterates on the app in their own stage.
+
+The built-in `${service:...}` form always reads the run stage, so it always deploys the referenced service first — as in the [Service dependencies and variables](#service-dependencies-and-variables) example above.
+
+#### Configuration reference
+
+| Option  | Required |  Type  | Default           | Description                                                     |
+| ------- | :------: | :----: | ----------------- | --------------------------------------------------------------- |
+| `type`  |   Yes    | String |                   | Must be `service`.                                              |
+| `stage` |    No    | String | Current run stage | The stage whose outputs are read. A fixed string or a variable. |
+
+The `service` resolver is available in `serverless-compose.yml` only. Declaring a `type: service` resolver in a service's own `serverless.yml` is rejected. To reference the outputs of a CloudFormation stack **outside** your Compose project, use the [`aws:cf` resolver](variables/aws/cf-stack.md).
+
+#### Command behavior and errors
+
+- `serverless print` shows the resolved value of a `service` reference when the referenced service is deployed at the stage the reference reads, and renders `NOT_AVAILABLE_IN_PRINT_COMMAND` otherwise. Values come from the state of the last deployment, and `print` never fails on a reference it cannot resolve — it is designed to work on projects that have not been deployed yet.
+- `serverless remove` never needs these values.
+- Errors point straight at the fix: an unknown service name lists the valid names; a missing output lists the outputs the service does expose; and when a pinned stage has not been deployed, the message names that stage. Outside `print`, an unresolvable reference fails the run rather than being silently substituted.
 
 ### Explicit dependencies
 
@@ -206,7 +300,7 @@ serverless service-a offline
 serverless deploy --service=service-a,service-d
 ```
 
-The command runs on **exactly** the services you name, ordered among themselves by their dependencies (`dependsOn` and `${service.output}` references) (so a dependency is deployed before the service that depends on it). Services you don't name are left untouched — they are neither deployed nor removed. Their outputs are still available for `${param:xxx}` resolution when a named service references them, so a subset can depend on services that are already deployed elsewhere.
+The command runs on **exactly** the services you name, ordered among themselves by their dependencies (`dependsOn` and `${service:...}` references) (so a dependency is deployed before the service that depends on it). Services you don't name are left untouched — they are neither deployed nor removed. Their outputs are still available for `${param:xxx}` resolution when a named service references them, so a subset can depend on services that are already deployed elsewhere.
 
 This is useful when different services in the project have different lifecycles — for example, deploying the application services to a personal or preview stage while leaving a shared, long-lived service in place:
 
@@ -215,6 +309,8 @@ serverless deploy --service=service-a,service-d --stage my-feature
 ```
 
 The same list works with `remove`, `info`, `print`, and `package`.
+
+When the shared service lives in a fixed stage rather than the one you're deploying to, pin the reference with a named `service` resolver instead — see [Referencing a service deployed to a different stage](#referencing-a-service-deployed-to-a-different-stage).
 
 ### Service-specific commands when using parameters
 
@@ -250,6 +346,8 @@ For more information about shared State, please refer to [the State documentatio
 All Variable Resolvers are supported in `serverless-compose.yml`. For example, you can use SSM Parameters, Secrets Manager, or custom variables.
 
 For more information, see the [Variable Resolvers documentation](variables).
+
+In addition, `serverless-compose.yml` provides the `service` resolver for wiring outputs between the services in your project — see [Service dependencies and variables](#service-dependencies-and-variables).
 
 ## Stage-specific configuration
 

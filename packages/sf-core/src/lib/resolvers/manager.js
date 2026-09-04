@@ -28,6 +28,65 @@ export const DEFAULT_AWS_CREDENTIAL_RESOLVER = 'default-aws-credential-resolver'
 const STATE_RESOLVER = 'default-state-resolver'
 
 /**
+ * Whether a registry provider type is compose-only (the `service` provider and
+ * anything else marked `composeOnly`). Unknown types are not compose-only.
+ *
+ * @param {string} [type] - A registry provider type name.
+ * @returns {boolean}
+ */
+const isComposeOnlyType = (type) =>
+  Boolean(type && providerRegistry.get(type)?.composeOnly)
+
+/**
+ * Whether a placeholder-graph node label is a placeholder (a value position in
+ * the configuration) rather than a provider or dedicated-resolver node, which
+ * are dependencies OF a placeholder and hold no config value themselves.
+ *
+ * @param {Object} [nodeLabel] - A node label from the placeholders graph.
+ * @returns {boolean}
+ */
+const isPlaceholderNode = (nodeLabel) =>
+  Boolean(nodeLabel) &&
+  !nodeLabel.provider &&
+  !nodeLabel.dedicatedResolverConfig &&
+  Array.isArray(nodeLabel.path)
+
+/**
+ * Whether a placeholder resolves through one of `wantedProviders` — as its own
+ * provider or as any of its fallbacks (`${opt:x, service:db.Host}` counts).
+ *
+ * @param {Object} nodeLabel - A placeholder node label.
+ * @param {Set<string>} wantedProviders - Provider names to match.
+ * @returns {boolean}
+ */
+const placeholderUsesProvider = (nodeLabel, wantedProviders) =>
+  Boolean(
+    nodeLabel.fallbacks?.some((fallback) =>
+      wantedProviders.has(fallback?.providerName),
+    ),
+  )
+
+/**
+ * Whether a resolution failure means "this source has no value for you" — in
+ * which case a variable's next declared fallback should be tried — rather than
+ * "something is wrong", which must surface immediately.
+ *
+ * Providers normally report an absent value by returning null. A provider that
+ * has something to teach about the absence (what is missing, how to create it)
+ * throws `RESOLVER_VALUE_NOT_FOUND` with that text instead, and the fallback
+ * loop treats the two alike; when no fallback remains the error is rethrown
+ * unchanged, so the text is what the user sees. Anything else (a bad key
+ * shape, a credentials or network failure, an unknown resolver) still fails
+ * the run on the spot, fallbacks or not.
+ *
+ * @param {unknown} error - The error a resolver threw.
+ * @returns {boolean}
+ */
+const isRecoverableResolutionError = (error) =>
+  error instanceof ServerlessError &&
+  error.code === ServerlessErrorCodes.resolvers.RESOLVER_VALUE_NOT_FOUND
+
+/**
  * The ResolverManager class is responsible for managing the resolvers for each provider.
  * It loads placeholders, resolvers, and dashboard data, and resolves and replaces placeholders in the service configuration file.
  */
@@ -45,6 +104,13 @@ export class ResolverManager {
 
   processingState = {}
 
+  // Provider names the up-front `resolveConfigFile` pass selected. A later
+  // path-scoped pass (`resolveUnderPath`) re-selects them alongside the
+  // providers it enables, so a token that ENCLOSES a deferred reference — e.g.
+  // `${opt:${service:db.OptionName}}` — resolves fully once its inner
+  // reference does, instead of being left as a half-resolved literal.
+  #upFrontSelectedProviders = []
+
   /**
    * Create a new ResolverManager.
    *
@@ -58,6 +124,9 @@ export class ResolverManager {
    * @param {DashboardData} dashboard - The dashboard data.
    * @param {boolean} print - Whether to print the replacements.
    * @param versionFramework - The version of the framework.
+   * @param {Object} [scope] - Manager scope flags.
+   * @param {boolean} [scope.isComposeConfigFile] - Whether this manager resolves
+   * a compose file. Compose-only provider types are available only when true.
    */
   constructor(
     logger,
@@ -69,8 +138,10 @@ export class ResolverManager {
     dashboard,
     print,
     versionFramework,
+    { isComposeConfigFile = false } = {},
   ) {
     this.print = print
+    this.isComposeConfigFile = isComposeConfigFile
     if (!this.print) {
       logger.debug = () => {}
     }
@@ -94,7 +165,69 @@ export class ResolverManager {
   }
 
   getResolverProviders() {
-    return this.resolverProviders
+    // Compose-only providers must never be inherited by child managers, so
+    // strip them from the set handed to callers (child dispatch, state store).
+    return Object.fromEntries(
+      Object.entries(this.resolverProviders).filter(
+        ([, provider]) => !provider?.instance?.constructor?.composeOnly,
+      ),
+    )
+  }
+
+  /**
+   * Single point of truth for the compose-only scope rule: a `composeOnly`
+   * provider type is only available inside a compose-file manager. Takes a
+   * resolved provider class (each call site resolves it from a registry type
+   * name or a config-declared instance's `type`).
+   */
+  #isProviderAvailableHere(Provider) {
+    return !Provider?.composeOnly || this.isComposeConfigFile
+  }
+
+  /**
+   * Effective resolver instance declarations for this run: for every instance
+   * name declared in `stages.<this.stage>.resolvers` or
+   * `stages.default.resolvers`, the WHOLE resolver block from the FIRST stage in
+   * `[this.stage, 'default']` that declares it — the exact block selection
+   * `loadProvider` performs. Fields are never merged across blocks: an
+   * active-stage redeclaration fully shadows the `default` one.
+   *
+   * The single lookup behind every resolver-block question: the service-typed
+   * classification ones — is an instance service-typed, which stage does it
+   * pin, does it shadow a built-in type name — plus availability gating
+   * (`#configuredResolverProviderClass`) and provider construction
+   * (`#addResolverProvider`). So those answers cannot drift from each other or
+   * from how the resolver is actually loaded.
+   * Blocks for other stages are deliberately ignored: they cannot apply
+   * to this run, and `pruneUnusedStages` removes them anyway — except `default`,
+   * which always survives and is therefore always considered here.
+   *
+   * @returns {Map<string, Object>} instance name -> its effective resolver block
+   */
+  #effectiveResolverConfigs() {
+    const configs = new Map()
+    for (const stageName of [this.stage, 'default']) {
+      const resolvers = this.serviceConfigFile?.stages?.[stageName]?.resolvers
+      if (!resolvers || typeof resolvers !== 'object') {
+        continue
+      }
+      for (const [name, resolverConfig] of Object.entries(resolvers)) {
+        if (!configs.has(name)) {
+          configs.set(name, resolverConfig)
+        }
+      }
+    }
+    return configs
+  }
+
+  /**
+   * The provider class backing a config-declared resolver instance, resolved
+   * via the instance's declared `type` (not its name — an instance may be named
+   * after an unrelated registry type). Returns undefined if the type is unknown.
+   */
+  #configuredResolverProviderClass(resolverName) {
+    const type = this.#effectiveResolverConfigs().get(resolverName)?.type
+    return type ? providerRegistry.get(type) : undefined
   }
 
   async loadDashboardData(authenticatedData) {
@@ -339,14 +472,271 @@ export class ResolverManager {
       }))
   }
 
+  /**
+   * Config-declared resolver instance names whose EFFECTIVE `type` is a
+   * compose-only (service) provider type. Effective means the block selected by
+   * `#effectiveResolverConfigs` — the same `[stage, 'default']` precedence
+   * `loadProvider` applies — so an instance the active stage redeclares with a
+   * non-service type is correctly NOT service-typed here, and its tokens are
+   * therefore not deferred. Does not include the built-in `service` type name
+   * itself — the up-front deferral adds that separately.
+   *
+   * The compose-file manager defers these past its up-front `resolveConfigFile`
+   * pass — a later dispatch-time pass resolves them once dependencies are
+   * deployed. Public because that dispatch-time pass, which lives in the
+   * compose runner, reuses it.
+   *
+   * @returns {string[]} Instance names of a compose-only type.
+   */
+  getServiceTypedInstanceNames() {
+    const names = []
+    for (const [name, resolverConfig] of this.#effectiveResolverConfigs()) {
+      if (isComposeOnlyType(resolverConfig?.type)) {
+        names.push(name)
+      }
+    }
+    return names
+  }
+
+  /**
+   * Effective stage of each declared service-typed resolver instance, for
+   * compose deploy-edge ordering. Reads `stage:` from the same effective block
+   * `getServiceTypedInstanceNames` classifies by (`#effectiveResolverConfigs`),
+   * so the two answers are identical by construction. Crucially this is not a
+   * per-field fallback: if the current-stage block redeclares the instance
+   * without a `stage:`, the pinned `stage:` from the default block is NOT
+   * inherited (the instance is unpinned = same-stage), matching how the resolver
+   * itself would be loaded.
+   *
+   * The value is left `undefined` when the selected block pins no stage; the
+   * compose edge scan then falls back to the run stage, so an unpinned instance
+   * orders like the built-in `service` (same stage).
+   *
+   * Public because compose edge scanning threads this into setDependencies.
+   *
+   * @returns {Record<string, string|undefined>} instance name -> effective stage
+   */
+  getServiceTypedInstanceStages() {
+    const stages = {}
+    for (const [name, resolverConfig] of this.#effectiveResolverConfigs()) {
+      if (isComposeOnlyType(resolverConfig?.type)) {
+        stages[name] = resolverConfig.stage
+      }
+    }
+    return stages
+  }
+
+  /**
+   * The distinct keys directly under `pathPrefix` whose unresolved placeholders
+   * use one of `providerNames` — as the placeholder's provider or as one of its
+   * fallbacks.
+   *
+   * Answered from the parsed placeholder graph, not from the values. A
+   * placeholder nested inside another variable is its own node at the same
+   * config path as the one that contains it, so `${opt:${service:db.Name}}`
+   * is found through its inner node directly; nothing needs to be walked.
+   * Only unresolved placeholders are in the graph — the engine removes a node
+   * once it resolves — so a key whose reference an earlier pass already
+   * resolved is not reported. Keys whose value holds no placeholder at all (a
+   * literal, a number) have no node and are absent. Provider and
+   * dedicated-resolver nodes are skipped: they are dependencies of a
+   * placeholder, not part of any value.
+   *
+   * @param {Object} params
+   * @param {string[]} params.pathPrefix - Config path whose immediate children
+   *   are the keys to report.
+   * @param {string[]} params.providerNames - Provider names that qualify a key.
+   * @returns {string[]} The qualifying keys, each once.
+   */
+  getPlaceholderKeysUsingProviders({ pathPrefix, providerNames }) {
+    const wantedProviders = new Set(providerNames)
+    if (wantedProviders.size === 0) {
+      return []
+    }
+    const graph = this.placeholdersGraph
+
+    const keys = new Set()
+    for (const nodeId of graph.nodes()) {
+      const nodeLabel = graph.node(nodeId)
+      if (!isPlaceholderNode(nodeLabel)) {
+        continue
+      }
+      const key = nodeLabel.path[pathPrefix.length]
+      if (
+        key === undefined ||
+        keys.has(key) ||
+        !pathPrefix.every((part, index) => part === nodeLabel.path[index])
+      ) {
+        continue
+      }
+      if (placeholderUsesProvider(nodeLabel, wantedProviders)) {
+        keys.add(key)
+      }
+    }
+    return [...keys]
+  }
+
+  /**
+   * Every reference to one of `providerNames` under `pathPrefix`, one entry per
+   * fallback of each still-unresolved placeholder, as
+   * `{ path, original, providerName, resolverType, key }` (`resolverType` is
+   * the optional middle segment of `${provider:resolver:key}`, undefined for
+   * the two-segment form).
+   *
+   * This is the graph's answer to "what does this part of the configuration
+   * reference", for callers that used to re-parse the config text: text cannot
+   * see a reference that carries a fallback (`${x:a.b, 'c'}`) or sits in
+   * fallback position (`${opt:a, x:b.c}`), and it still shows the unresolved
+   * form of a reference whose inner variable has since resolved. `key` is the
+   * fallback's key as the graph holds it now — resolved inner variables are
+   * already substituted; a still-deferred inner reference is left in place
+   * (and reported as its own entry, since it is its own node).
+   *
+   * @param {Object} params
+   * @param {string[]} params.pathPrefix - Config path to look under.
+   * @param {string[]} params.providerNames - Provider names that qualify a
+   *   fallback.
+   * @returns {Array<{path: string[], original: string, providerName: string, resolverType: string|undefined, key: string}>}
+   *   The references, in graph order.
+   */
+  getPlaceholderReferences({ pathPrefix, providerNames }) {
+    const wantedProviders = new Set(providerNames)
+    if (wantedProviders.size === 0) {
+      return []
+    }
+    const references = []
+    for (const nodeId of this.placeholdersGraph.nodes()) {
+      const nodeLabel = this.placeholdersGraph.node(nodeId)
+      if (
+        !isPlaceholderNode(nodeLabel) ||
+        nodeLabel.resolved !== undefined ||
+        !pathPrefix.every((part, index) => part === nodeLabel.path[index])
+      ) {
+        continue
+      }
+      for (const fallback of nodeLabel.fallbacks ?? []) {
+        if (wantedProviders.has(fallback?.providerName)) {
+          references.push({
+            path: nodeLabel.path,
+            original: nodeLabel.original,
+            providerName: fallback.providerName,
+            resolverType: fallback.resolverType,
+            key: fallback.key,
+          })
+        }
+      }
+    }
+    return references
+  }
+
+  /**
+   * Every placeholder still unresolved after a resolution pass whose provider —
+   * or one of its fallbacks — is in `providerNames`, as `{ original, path }`.
+   *
+   * A provider excluded from a pass leaves its tokens as literals in the
+   * configuration. The caller that excluded it knows which of those locations a
+   * later pass of its own will reach; everywhere else the literal is what ships,
+   * so this query is how that caller finds the ones to report. Resolved
+   * placeholders are not returned — the engine removes a node once it resolves.
+   *
+   * @param {Object} params
+   * @param {string[]} params.providerNames - Provider names to look for.
+   * @returns {Array<{original: string, path: string[]}>} The unresolved
+   *   placeholders, in graph order.
+   */
+  getUnresolvedPlaceholders({ providerNames }) {
+    const wantedProviders = new Set(providerNames)
+    if (wantedProviders.size === 0) {
+      return []
+    }
+    const unresolved = []
+    for (const nodeId of this.placeholdersGraph.nodes()) {
+      const nodeLabel = this.placeholdersGraph.node(nodeId)
+      if (
+        !isPlaceholderNode(nodeLabel) ||
+        nodeLabel.resolved !== undefined ||
+        !placeholderUsesProvider(nodeLabel, wantedProviders)
+      ) {
+        continue
+      }
+      unresolved.push({ original: nodeLabel.original, path: nodeLabel.path })
+    }
+    return unresolved
+  }
+
+  /**
+   * One resolution pass scoped to a single config path, with the provider
+   * selection the up-front `resolveConfigFile` pass used plus `extraProviders`.
+   *
+   * Including the up-front selection matters for nesting: a node is only
+   * resolved when its own provider AND every provider it depends on is
+   * selected, so a token that ENCLOSES a reference to one of `extraProviders`
+   * — `${opt:${service:db.OptionName}}` — is only eligible when `opt` is
+   * selected too.
+   *
+   * @param {Object} params
+   * @param {string[]} params.pathPrefix - The only config path to resolve under.
+   * @param {string[]} [params.extraProviders=[]] - Provider names to add to the
+   *   up-front selection for this pass.
+   * @returns {Promise<void>}
+   */
+  async resolveUnderPath({ pathPrefix, extraProviders = [] }) {
+    return this.resolveAndReplacePlaceholdersInConfig({
+      selectedProviders: [
+        ...new Set([...this.#upFrontSelectedProviders, ...extraProviders]),
+      ],
+      selectedPaths: [pathPrefix],
+    })
+  }
+
   async resolveConfigFile({ printResolvedVariables }) {
+    // In the compose-file manager the up-front pass must leave service-provider
+    // tokens (`${service:...}` and `${shared:...}`-style named instances)
+    // untouched so a later dispatch-time pass can resolve them once
+    // dependencies are deployed. Excluding these names from the selected
+    // providers leaves their tokens as literals. This is purely an up-front
+    // *selection* concern — availability gating (`#isProviderAvailableHere`)
+    // is unchanged, so the provider remains usable in the dispatch-time pass.
+    const effectiveResolvers = this.#effectiveResolverConfigs()
+    const deferredNames = this.isComposeConfigFile
+      ? new Set([
+          ...Object.keys(providerRegistry.providers).filter(
+            (type) =>
+              isComposeOnlyType(type) &&
+              // A user instance named after a compose-only registry type
+              // shadows the built-in for loading and for availability gating
+              // (both go by DECLARED type). Deferral must agree: when the
+              // effective declaration of that name is NOT compose-only, the
+              // name belongs to an ordinary resolver and its tokens must
+              // resolve in this up-front pass. (A declaration that IS
+              // compose-only stays deferred — it comes back via
+              // getServiceTypedInstanceNames below.)
+              !(
+                effectiveResolvers.has(type) &&
+                !isComposeOnlyType(effectiveResolvers.get(type)?.type)
+              ),
+          ),
+          ...this.getServiceTypedInstanceNames(),
+        ])
+      : new Set()
+
     const providersWithoutPlugins = [
-      ...getProviderNamesFromConfigFile(this.serviceConfigFile, this.stage),
-      ...Object.keys(providerRegistry.providers),
+      ...getProviderNamesFromConfigFile(
+        this.serviceConfigFile,
+        this.stage,
+      ).filter((name) =>
+        this.#isProviderAvailableHere(
+          this.#configuredResolverProviderClass(name),
+        ),
+      ),
+      ...Object.keys(providerRegistry.providers).filter((type) =>
+        this.#isProviderAvailableHere(providerRegistry.get(type)),
+      ),
       ...(this.composeResolverProviders
         ? Object.keys(this.composeResolverProviders)
         : []),
-    ]
+    ].filter((name) => !deferredNames.has(name))
+    this.#upFrontSelectedProviders = providersWithoutPlugins
 
     await this.resolveParams(providersWithoutPlugins)
 
@@ -436,6 +826,29 @@ export class ResolverManager {
     try {
       return await resolver(key, params)
     } catch (error) {
+      // Two kinds of error already name the key and the fix, so they surface
+      // as-is: wrapping them would repeat the key and bury the teaching text.
+      //  - RESOLVER_VALUE_NOT_FOUND: the generic "no value here" a provider
+      //    throws instead of returning null when it has something to teach
+      //    about the absence (see `resolve()`, where it also lets a declared
+      //    fallback apply).
+      //  - COMPOSE_COULD_NOT_RESOLVE_PARAM: the service provider's fatal
+      //    misuse errors (malformed reference, reference outside a compose
+      //    file, unknown alias). They keep a Compose code because the misuse
+      //    is Compose-specific; this pass-through is the one place the
+      //    manager still names it. The general rule — surface every
+      //    ServerlessError unwrapped, envelope only unexpected errors — would
+      //    also unwrap the credential and `--param` errors below, a
+      //    user-visible message change kept out of this change.
+      if (
+        error instanceof ServerlessError &&
+        (error.code ===
+          ServerlessErrorCodes.resolvers.RESOLVER_VALUE_NOT_FOUND ||
+          error.code ===
+            ServerlessErrorCodes.compose.COMPOSE_COULD_NOT_RESOLVE_PARAM)
+      ) {
+        throw error
+      }
       throw new ServerlessError(
         `Failed to resolve variable '${key}' with resolver '${type}' and provider '${providerName}': ${error}`,
         ServerlessErrorCodes.resolvers.RESOLVER_RESOLVE_VARIABLE_ERROR,
@@ -631,24 +1044,26 @@ export class ResolverManager {
   #addResolverProvider = (nodeName) => {
     const isNotAddedYet = !this.resolverProviders[nodeName]
     const isInheritedFromCompose = this.composeResolverProviders[nodeName]
-    const isCustomResolver =
-      _.get(
-        this.serviceConfigFile,
-        `stages.${this.stage}.resolvers.${nodeName}`,
-      ) || _.get(this.serviceConfigFile, `stages.default.resolvers.${nodeName}`)
-    const isDefaultResolver = !!providerRegistry.get(nodeName)
+    // Both questions below — is this name declared, and with what block — come
+    // from the one whole-block `[stage, 'default']` selection every other
+    // resolver-block question goes through, so construction cannot drift from
+    // classification or from how `loadProvider` picks the block.
+    const effectiveResolvers = this.#effectiveResolverConfigs()
+    const isCustomResolver = effectiveResolvers.has(nodeName)
+    // A built-in of this name only competes with an inherited instance where
+    // that built-in is available: a child service must keep the compose file's
+    // own `service`-named instance, since the compose-only built-in does not
+    // exist for it.
+    const DefaultProvider = providerRegistry.get(nodeName)
+    const isDefaultResolver =
+      !!DefaultProvider && this.#isProviderAvailableHere(DefaultProvider)
     const shouldBeOverwritten =
       isInheritedFromCompose && (isCustomResolver || isDefaultResolver)
 
     if (isNotAddedYet || shouldBeOverwritten) {
-      const dedicatedResolverConfig = _.get(
-        this.serviceConfigFile,
-        `stages.${this.stage}.resolvers.${nodeName}`,
-      ) ??
-        _.get(
-          this.serviceConfigFile,
-          `stages.default.resolvers.${nodeName}`,
-        ) ?? { type: nodeName }
+      const dedicatedResolverConfig = effectiveResolvers.get(nodeName) ?? {
+        type: nodeName,
+      }
       const resolverProvider = createResolverProvider(
         dedicatedResolverConfig,
         this.serviceConfigFile,
@@ -790,7 +1205,8 @@ export class ResolverManager {
 
   resolve = async (nodeLabel) => {
     const { path, original, fallbacks, parent } = nodeLabel
-    for (const fallback of fallbacks) {
+    for (const [fallbackIndex, fallback] of fallbacks.entries()) {
+      const hasAnotherFallback = fallbackIndex < fallbacks.length - 1
       if (fallback?.literalValue !== undefined) {
         return {
           path,
@@ -813,14 +1229,30 @@ export class ResolverManager {
       const providerType = provider?.instance?.constructor?.type
       if (providerType) this.providersUsed.add(providerType)
       const { resolver, type } = this.getResolver(provider, resolverType, key)
-      const resolvedValue = await this.#resolveKey(
-        providerName,
-        provider,
-        resolver,
-        type,
-        key,
-        params,
-      )
+      let resolvedValue
+      try {
+        resolvedValue = await this.#resolveKey(
+          providerName,
+          provider,
+          resolver,
+          type,
+          key,
+          params,
+        )
+      } catch (error) {
+        // A provider that reports "no value here" by THROWING would otherwise
+        // deny the variable its declared fallbacks, unlike one that returns
+        // null (`${aws:cf:...}` does, so `${aws:cf:stack.Out, 'x'}` falls
+        // back). Give the remaining fallbacks their turn; with none left the
+        // provider's own error is what the user sees, unchanged.
+        if (!hasAnotherFallback || !isRecoverableResolutionError(error)) {
+          throw error
+        }
+        this.logger.debug(
+          `provider '${providerType}', resolver '${type}' could not resolve '${key}' (${error.message}) - skipping to next fallback.`,
+        )
+        continue
+      }
       if (resolvedValue != null) {
         return {
           path,

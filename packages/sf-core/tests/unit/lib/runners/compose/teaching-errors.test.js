@@ -60,6 +60,7 @@ describe('compose teaching errors', () => {
         },
       },
       versions: {},
+      runStage: 'alice',
     })
     const originalExitCode = process.exitCode
     const runnerFunction = jest.fn(async () => ({}))
@@ -99,6 +100,7 @@ describe('compose teaching errors', () => {
         },
       },
       versions: {},
+      runStage: 'alice',
     })
     // Stub runner so the worker "runs" without producing state; api's param
     // lookup against empty localState must then throw the teaching message.
@@ -133,6 +135,7 @@ describe('compose teaching errors', () => {
         },
       },
       versions: {},
+      runStage: 'alice',
     })
     // worker "runs" and reports a DIFFERENT output key, so localState.worker ends
     // up present with outputs { RightKey } before api's param lookup runs.
@@ -177,6 +180,7 @@ describe('compose teaching errors', () => {
         },
       },
       versions: {},
+      runStage: 'dev',
     })
     const runnerFunction = jest.fn(async () => ({}))
     await compose.executeComponentsGraph({

@@ -1,0 +1,14 @@
+org: serverlesstestaccount
+service: compose-refs-c
+functions:
+  hello:
+    handler: handler.hello
+    environment:
+      apiUrl: NOT_AVAILABLE_IN_PRINT_COMMAND
+    events: []
+    name: compose-refs-c-dev-hello
+provider:
+  name: aws
+  stage: dev
+  region: us-east-1
+  versionFunctions: true

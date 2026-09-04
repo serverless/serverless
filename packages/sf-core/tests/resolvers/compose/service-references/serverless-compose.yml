@@ -1,0 +1,27 @@
+org: ${env:ORG}
+app: resolvers-integration-test
+service: resolvers-compose-service-refs
+
+stages:
+  default:
+    params:
+      dataStage: dev
+      producer: service-a
+    resolvers:
+      shared:
+        type: service
+        stage: ${param:dataStage}
+
+services:
+  service-a:
+    path: service-a
+  service-b:
+    path: service-b
+    params:
+      apiUrl: ${service:service-a.apiUrl}
+      dbUrl: postgres://${shared:service-a.dbHost}:5432/orders
+      nested: ${service:${param:producer}.apiUrl}
+  service-c:
+    path: service-c
+    params:
+      apiUrl: ${service-a.apiUrl}

@@ -1,0 +1,26 @@
+stages:
+  default:
+    params:
+      # The live suite sets SVCPROVIDER_SHARED_STAGE to a per-run stage so
+      # concurrent runs never share stacks; run by hand it defaults to `dev`.
+      dataStage: ${env:SVCPROVIDER_SHARED_STAGE, 'dev'}
+      # Consumed by orders-db's own serverless.yml, so a pinned cross-stage read
+      # of orders-db must resolve it too.
+      ordersDataSet: orders
+    resolvers:
+      shared:
+        type: service
+        # The pinned stage is param-driven: the up-front resolveConfigFile pass
+        # (ComposeRunner.run -> resolveVariables) resolves this before the graph
+        # edge scan and dispatch resolution read it.
+        stage: ${param:dataStage}
+services:
+  orders-db:
+    path: orders-db
+  worker:
+    path: worker
+  api:
+    path: api
+    params:
+      jobsQueueUrl: ${service:worker.JobsQueueUrl}
+      ordersTopicArn: ${shared:orders-db.TopicArn}

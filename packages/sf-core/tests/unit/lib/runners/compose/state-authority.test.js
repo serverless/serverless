@@ -67,6 +67,7 @@ const buildCompose = () =>
     servicePath: '/tmp/project',
     configuration: TWO_SERVICES,
     versions: { serverless_framework: '4.0.0' },
+    runStage: 'dev',
   })
 
 const mockState = () => ({
@@ -463,6 +464,7 @@ describe('cross-service param resolution by command', () => {
         },
       },
       versions: { serverless_framework: '4.0.0' },
+      runStage: 'dev',
     })
     const received = {}
     const state = mockState()

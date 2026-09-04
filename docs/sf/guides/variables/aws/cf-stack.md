@@ -20,6 +20,8 @@ keywords:
 
 # Configuration options
 
+The `cf` resolver reads outputs from any CloudFormation stack in your account. To share outputs between services that live in the same [Compose](../../compose.md) project, use the [`service` resolver](../../compose.md#service-dependencies-and-variables) instead — it references services by name and can read a service deployed to a different stage. Reach for `cf` when the stack you need is outside your Compose project.
+
 | Option   | Required |  Type  |              Default               | Description |
 | -------- | :------: | :----: | :--------------------------------: | :---------- |
 | `region` |    No    | String | Inherited from parent AWS resolver | AWS region  |

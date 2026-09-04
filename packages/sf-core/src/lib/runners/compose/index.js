@@ -11,6 +11,10 @@ import {
   style,
 } from '@serverless/util'
 import { resolveConfigAndGetState } from './state.js'
+import {
+  resolveServiceParams,
+  serviceReferencesByAlias,
+} from './service-params.js'
 import _ from 'lodash'
 
 const { Graph, alg } = graphlib
@@ -92,10 +96,41 @@ const getAllComponents = async (configuration) => {
 /**
  * Takes the already parsed object of compose components and ensures that
  * all dependencies are correctly set for services.
+ *
+ * Two kinds of reference create a deploy-ordering edge:
+ *  - Dot form `${alias.Key}` — found by the text scan below, byte-identical to
+ *    its original behavior incl. the unknown-service typo error. Colon tokens
+ *    (`${param:...}`, `${env:...}`, `${service:...}`, …) are never graph
+ *    references for the scan: it has no view of the variable grammar (a
+ *    fallback list, a nested variable), so it must not guess at them.
+ *  - Service references — the built-in `${service:alias.Key}` and named
+ *    `${<instance>:alias.Key}` of a service-typed resolver instance — supplied
+ *    in `serviceReferences` from the resolver manager's placeholder graph, which
+ *    sees every reference the variable grammar allows. An unknown alias is a
+ *    typo and fails here, before any service runs. A reference adds an edge only
+ *    when its effective stage equals the run stage: the built-in is same-stage
+ *    by definition; a named instance uses its pinned `stage:`, or the run stage
+ *    when it pins none. A pinned cross-stage reference is read-only — it reads
+ *    already-deployed state and must NOT create ordering.
+ *
  * @param {AllComponents} allComponents
+ * @param {Object} [context]
+ * @param {string} [context.runStage] - The stage of the current run.
+ * @param {Record<string, string|undefined>} [context.instanceStages] - Map of
+ *   declared service-typed instance name to its effective (pinned) stage. A
+ *   present key with an `undefined` value means the instance pins no stage and
+ *   therefore falls back to the run stage.
+ * @param {Map<string, Array<{original: string, providerName: string, referencedAlias: string|null}>>} [context.serviceReferences]
+ *   Service references per consuming alias (see `serviceReferencesByAlias`).
+ *   `referencedAlias` is `null` when the alias is produced by a still-deferred
+ *   inner reference — it cannot be named yet, so it adds no edge (the inner
+ *   reference is its own entry).
  * @return {AllComponents}
  */
-const setDependencies = (allComponents) => {
+const setDependencies = (
+  allComponents,
+  { runStage, instanceStages = {}, serviceReferences = new Map() } = {},
+) => {
   const regex = /\${(\w*:?[\w\d.-]+)}/g
 
   for (const alias of Object.keys(allComponents)) {
@@ -104,9 +139,11 @@ const setDependencies = (allComponents) => {
         const matches = typeof value === 'string' ? value.match(regex) : null
         if (matches) {
           for (const match of matches) {
-            const referencedComponent = match
-              .substring(2, match.length - 1)
-              .split('.')[0]
+            const inner = match.substring(2, match.length - 1)
+            if (inner.includes(':')) {
+              continue
+            }
+            const referencedComponent = inner.split('.')[0]
 
             if (!allComponents[referencedComponent]) {
               throw new ServerlessError(
@@ -125,6 +162,82 @@ const setDependencies = (allComponents) => {
       },
       new Set(),
     )
+
+    for (const {
+      original,
+      providerName,
+      resolverType,
+      referencedAlias,
+      deferred,
+      paramKey,
+    } of serviceReferences.get(alias) ?? []) {
+      // A service reference is `${<name>:<service>.<Output>}` — no resolver
+      // segment. One arrives only when the service name contains ':', which
+      // the variable grammar splits on before any provider sees the token
+      // (`${service:orders:v2.Host}` → resolver `orders`, key `v2.Host`). The
+      // grammar's delimiters cannot appear in a referenced service name; say
+      // so instead of reporting an unknown service.
+      if (resolverType) {
+        throw new ServerlessError(
+          `'${original}' in service "${alias}" has a resolver segment '${resolverType}', which a service reference does not take. A referenced service name cannot contain ':', ',', '}' or quotes — rename the service, or reference it without those characters.`,
+          ServerlessErrorCodes.compose.COMPOSE_CONFIGURATION_INVALID,
+          { stack: false },
+        )
+      }
+      // The dot form replaces a param's WHOLE value with one output; a service
+      // reference resolves in place. In one value they cannot both be honored
+      // (the result would be a half-resolved literal), so the mix is a
+      // configuration error, caught before any service runs.
+      const rawValue =
+        paramKey === null
+          ? undefined
+          : allComponents[alias].inputs.params?.[paramKey]
+      const dotFormMatch =
+        typeof rawValue === 'string' ? rawValue.match(composeParamRegex) : null
+      if (dotFormMatch) {
+        throw new ServerlessError(
+          `Parameter '${paramKey}' of service "${alias}" mixes the '\${${dotFormMatch[0]}}' form with a service reference. Write every reference in the value as '\${service:<service>.<Output>}' (here: '\${service:${dotFormMatch[0]}}').`,
+          ServerlessErrorCodes.compose.COMPOSE_CONFIGURATION_INVALID,
+          { stack: false },
+        )
+      }
+      // A service name that is still a variable when the deploy order is
+      // decided — another service reference, or a variable that did not
+      // resolve up front — could never be ordered; refuse it rather than
+      // silently skip the edge.
+      if (deferred) {
+        throw new ServerlessError(
+          `The service name in '${original}' (service "${alias}") is itself a variable that could not be resolved before the services were ordered (for example another service reference). Write the service name literally, or take it from a variable that resolves up front, such as '\${param:...}'.`,
+          ServerlessErrorCodes.compose.COMPOSE_CONFIGURATION_INVALID,
+          { stack: false },
+        )
+      }
+      if (referencedAlias === null) {
+        throw new ServerlessError(
+          `'${original}' in service "${alias}" is not a service reference of the shape '<service>.<Output>' (for example 'orders-db.QueueUrl').`,
+          ServerlessErrorCodes.compose.COMPOSE_CONFIGURATION_INVALID,
+          { stack: false },
+        )
+      }
+      if (!allComponents[referencedAlias]) {
+        const availableServices = Object.keys(allComponents)
+        const availableList =
+          availableServices.length > 0 ? availableServices.join(', ') : '(none)'
+        throw new ServerlessError(
+          `The service "${referencedAlias}" does not exist. It is referenced by "${alias}" in expression "${original}". Available services: ${availableList}.`,
+          ServerlessErrorCodes.compose
+            .COMPOSE_GRAPH_SERVICE_DEPENDENCY_DOES_NOT_EXIST,
+          { stack: false },
+        )
+      }
+      const effectiveStage =
+        providerName === 'service'
+          ? runStage
+          : (instanceStages[providerName] ?? runStage)
+      if (effectiveStage === runStage) {
+        dependencies.add(referencedAlias)
+      }
+    }
 
     if (typeof allComponents[alias].inputs.dependsOn === 'string') {
       const explicitDependency = allComponents[alias].inputs.dependsOn
@@ -217,21 +330,71 @@ const validateGraph = (graph) => {
 
 /**
  *
- * @param {{ servicePath: string, configuration: Record<string, any>, versions: Record<string, any> }}
+ * @param {{ servicePath: string, configuration: Record<string, any>, versions: Record<string, any>, resolverManager?: import('../../resolvers/manager.js').ResolverManager, runStage?: string, instanceStages?: Record<string, string|undefined> }}
  * @returns {Promise<Compose>}
  */
-const parseComposeGraph = async ({ servicePath, configuration, versions }) => {
+const parseComposeGraph = async ({
+  servicePath,
+  configuration,
+  versions,
+  resolverManager,
+  runStage,
+  instanceStages,
+}) => {
   const allComponents = await getAllComponents(configuration)
 
-  const componentsWithDependencies = setDependencies(allComponents)
+  // Service references come from the manager's placeholder graph; without a
+  // manager (test harnesses) only dot-form references create edges, just as the
+  // dispatch-time service pass is skipped without one.
+  // A named instance's `stage:` must be known here: it decides whether a
+  // reference orders the deploy. The up-front pass resolves every ordinary
+  // variable in it; only a service reference survives, and that cannot be
+  // honored (the ordering it should influence is being decided right now).
+  for (const [instanceName, stage] of Object.entries(instanceStages ?? {})) {
+    if (typeof stage === 'string' && stage.includes('${')) {
+      throw new ServerlessError(
+        `The 'stage' of resolver '${instanceName}' is '${stage}', which could not be resolved before the services were ordered. Use a fixed stage name or a variable that resolves up front, such as '\${param:...}' or '\${opt:...}' — not a service reference.`,
+        ServerlessErrorCodes.compose.COMPOSE_CONFIGURATION_INVALID,
+        { stack: false },
+      )
+    }
+  }
+
+  const serviceReferences = resolverManager
+    ? serviceReferencesByAlias({ manager: resolverManager })
+    : new Map()
+
+  const componentsWithDependencies = setDependencies(allComponents, {
+    runStage,
+    instanceStages,
+    serviceReferences,
+  })
 
   const graph = createGraph(componentsWithDependencies)
+
+  // Which param keys of each service hold a service reference, decided once
+  // here. Read later by the pinned cross-stage lookup, which must not depend
+  // on whether that service's own dispatch pass has already run (and pruned
+  // its nodes from the live placeholder graph).
+  const serviceReferenceKeysByAlias = new Map(
+    [...serviceReferences].map(([alias, references]) => [
+      alias,
+      new Set(
+        references
+          .map(({ paramKey }) => paramKey)
+          .filter((paramKey) => paramKey !== null),
+      ),
+    ]),
+  )
 
   return new Compose({
     components: componentsWithDependencies,
     graph,
     versions,
     servicePath,
+    resolverManager,
+    runStage,
+    serviceReferenceKeysByAlias,
   })
 }
 
@@ -242,13 +405,35 @@ class Compose {
    * @property {import('@dagrejs/graphlib').Graph} graph
    * @property {Record<string, any>} versions
    * @property {string} servicePath
+   * @property {import('../../resolvers/manager.js').ResolverManager} [resolverManager]
+   * @property {string} [runStage] - The stage of this run, as resolved by the
+   *   compose-file resolver manager. The same value that selects
+   *   `stages.<stage>` params, and the one the deploy-edge scan used.
    */
-  constructor({ components, graph, versions, servicePath }) {
+  constructor({
+    components,
+    graph,
+    versions,
+    servicePath,
+    resolverManager,
+    runStage,
+    serviceReferenceKeysByAlias = new Map(),
+  }) {
     this.components = components
+    /** @type {Map<string, Set<string>>} alias → param keys holding a service reference */
+    this.serviceReferenceKeysByAlias = serviceReferenceKeysByAlias
     this.graph = graph
     this.logger = log.get('core:compose')
     this.versions = versions
     this.servicePath = servicePath
+    // The compose-file resolver manager. Used at dispatch time to resolve each
+    // service's deferred `${service:...}`/`${shared:...}` params (see
+    // ./service-params.js). Single-flight cache for pinned cross-stage
+    // get-state fetches, keyed `${alias}::${effectiveStage}` so it never
+    // collides with the run-stage localState entry.
+    this.resolverManager = resolverManager
+    this.runStage = runStage
+    this.pinnedStateCache = new Map()
     /* @typedef {Set<string>} */
     this.successfulRuns = new Set()
     /* @typedef {Record<string, Error[]>} */
@@ -314,6 +499,77 @@ class Compose {
       )
     }
 
+    // Dispatch-time wiring for service-provider graph references
+    // (`${service:...}`/`${shared:...}`). Shared across all nodes at this graph
+    // level so the pinned single-flight cache dedupes fetches project-wide.
+    const runStage = this.runStage
+    const aliases = Object.keys(this.components)
+    // Reuse the same filtered options for the pinned cross-stage get-state as
+    // the real per-service run (c/config select the compose file, not a service).
+    const { c: _c, config: _config, ...filteredOptionsForDeps } = options
+    // remove/get-state → '' (checked in the dispatch pass BEFORE any token
+    // resolution, so the fetch below is unreachable in those modes).
+    //
+    // print is NOT short-circuited: it resolves for real, and the provider falls
+    // back to the NOT_AVAILABLE_IN_PRINT_COMMAND sentinel when a reference
+    // cannot resolve — the same semantics as the dot form below, which reads the
+    // last deployed state.
+    const shortCircuitValue = (cmd) => {
+      if (cmd?.[0] === 'remove' || cmd?.[0] === 'get-state') {
+        return ''
+      }
+      return undefined
+    }
+    // Where a dependency's outputs come from at resolution time:
+    //  - same-stage (effectiveStage === runStage): this run's localState,
+    //    populated by the dependency's own deploy/get-state (zero fetches).
+    //  - pinned (effectiveStage !== runStage): a lazy get-state at the pinned
+    //    stage, memoized per (alias, effectiveStage) as the in-flight PROMISE so
+    //    concurrent consumers share one fetch and never collide with localState.
+    const getOutputs = async (depAlias, effectiveStage) => {
+      if (effectiveStage === runStage) {
+        return state?.localState?.[depAlias]?.outputs
+      }
+      const cacheKey = `${depAlias}::${effectiveStage}`
+      if (!this.pinnedStateCache.has(cacheKey)) {
+        this.pinnedStateCache.set(
+          cacheKey,
+          (async () => {
+            const depComponent = this.components[depAlias]
+            const pinned = await resolveConfigAndGetState({
+              command: ['get-state'],
+              options: { ...filteredOptionsForDeps, stage: effectiveStage },
+              compose: {
+                workingDir: path.join(
+                  this.servicePath,
+                  depComponent.inputs.path,
+                ),
+                // The pinned dependency resolves its OWN serverless.yml, which
+                // may consume `${param:...}` supplied by the compose file — so
+                // it needs the same params a normal dispatch of it would get,
+                // not an empty set (which makes them unresolvable and aborts
+                // the run).
+                params: this.resolvePinnedDependencyParams({
+                  depAlias,
+                  params,
+                  state,
+                }),
+                serviceParams: depComponent.inputs.parsedParams || {},
+                resolverProviders,
+                isWithinCompose: true,
+                orgName: composeOrgName,
+                serviceName: depAlias,
+              },
+              state,
+            })
+            return pinned?.state ?? null
+          })(),
+        )
+      }
+      const pinnedState = await this.pinnedStateCache.get(cacheKey)
+      return pinnedState?.outputs
+    }
+
     for (const alias of nodes) {
       const data = this.graph.node(alias)
 
@@ -321,10 +577,39 @@ class Compose {
         (async () => {
           try {
             const serviceParams = { ...params }
+
+            // Resolve this service's deferred service-provider params
+            // (`${service:...}`/`${shared:...}`) BEFORE the dot-form loop.
+            // Only service-typed keys are returned;
+            // they are merged over serviceParams after the (byte-identical)
+            // dot-form loop so the two resolution paths coexist.
+            let resolvedServiceParams = {}
+            if (this.resolverManager) {
+              resolvedServiceParams = await resolveServiceParams({
+                manager: this.resolverManager,
+                alias,
+                composeContext: {
+                  runStage,
+                  aliases,
+                  command,
+                  getOutputs,
+                  shortCircuitValue,
+                },
+              })
+            }
+
             if (data.inputs.parsedParams) {
               for (const [key, value] of Object.entries(
                 data.inputs.parsedParams,
               )) {
+                // A key the service pass resolved is done: its value is the
+                // pass's result (which may no longer be a string — an unquoted
+                // literal fallback parses to a number or boolean), and the
+                // dot-form loop below must not re-read it.
+                if (Object.hasOwn(resolvedServiceParams, key)) {
+                  serviceParams[key] = resolvedServiceParams[key]
+                  continue
+                }
                 const isParamReference =
                   data.inputs.params[key].match(composeParamRegex)
 
@@ -516,6 +801,71 @@ class Compose {
       state,
       isMultipleComponents, // Propagate so a single-mode error still rethrows on later graph levels
     })
+  }
+
+  /**
+   * The Compose params a pinned (cross-stage) dependency's own configuration
+   * resolves `${param:...}` against.
+   *
+   * A pinned read targets a different STAGE of the same project, not a different
+   * param set: the run's resolved compose params are project-level inputs and
+   * apply unchanged. The dependency's own `services.<alias>.params` are layered
+   * on top, exactly as a normal dispatch of that service would receive them —
+   * with one deliberate boundary. Two kinds of entry are omitted rather than
+   * forwarded:
+   *  - a service-typed token (`${service:...}`/`${<instance>:...}`): resolving it
+   *    needs dispatch-time Compose state and could recurse back into this very
+   *    pinned read, so a pinned dependency's configuration must not depend on
+   *    one;
+   *  - a dot-form reference whose dependency output is not in this run's local
+   *    state yet: there is no value to supply, so nothing is invented for it.
+   *
+   * Omitting is not silent. If the pinned dependency's own configuration
+   * actually consumes an omitted param, the pinned read itself fails with
+   * MISSING_VARIABLE_RESULT naming that param — the honest outcome, since the
+   * value genuinely is not knowable at that point. A possible future refinement
+   * for the second case only: substitute `''` the way the dot-form loop already
+   * does for `get-state`, so a pinned read degrades like every other read pass
+   * instead of failing. Deliberately not done here — it trades a clear error for
+   * a silent empty value and needs its own decision.
+   *
+   * @param {{ depAlias: string, params: Record<string, any>, state: State }}
+   * @returns {Record<string, any>}
+   */
+  resolvePinnedDependencyParams({ depAlias, params, state }) {
+    const resolved = { ...params }
+    const depInputs = this.components[depAlias]?.inputs
+    const depParams = depInputs?.params
+    const depParsedParams = depInputs?.parsedParams
+    if (!depParams || !depParsedParams) {
+      return resolved
+    }
+    // Param keys of this dependency that carry a service reference, decided at
+    // graph build (see `parseComposeGraph`) so the answer is the same whether
+    // or not the dependency's own dispatch pass has already run. Empty without
+    // a manager: the dot-form path has no service references to skip.
+    const serviceReferenceKeys =
+      this.serviceReferenceKeysByAlias.get(depAlias) ?? new Set()
+    for (const [key, parsedValue] of Object.entries(depParsedParams)) {
+      const rawValue = depParams[key]
+      if (typeof rawValue !== 'string') {
+        resolved[key] = parsedValue
+        continue
+      }
+      if (serviceReferenceKeys.has(key)) {
+        continue
+      }
+      if (rawValue.match(composeParamRegex)) {
+        const [depService, outputKey] = parsedValue.split('.')
+        const stateValue = state?.localState?.[depService]?.outputs?.[outputKey]
+        if (stateValue !== undefined) {
+          resolved[key] = stateValue
+        }
+        continue
+      }
+      resolved[key] = parsedValue
+    }
+    return resolved
   }
 
   /**
