@@ -10,6 +10,7 @@ import {
   setGlobalRendererSettings,
 } from '@serverless/util'
 import renderComposeHelp from './help.js'
+import { warnAboutUnreachableServiceReferences } from './service-params.js'
 import frameworkCommandsSchema from '@serverless/framework/lib/cli/commands-schema.js'
 import { Runner } from '../index.js'
 import path from 'path'
@@ -23,6 +24,10 @@ const supportedComposeCommands = [
 ]
 
 export class ComposeRunner extends Runner {
+  // Marks the compose-file manager so compose-only provider types (e.g. the
+  // `service` resolver) are available and valid only during compose resolution.
+  static isComposeConfigFile = true
+
   constructor({
     config,
     command,
@@ -66,6 +71,15 @@ export class ComposeRunner extends Runner {
 
     // Resolve the variables in the template file
     await this.resolveVariables()
+
+    // Service references outside `services.<alias>.params` are literals nothing
+    // will resolve. Reported here — after the up-front pass, before the
+    // renderer switches to compose output below — so the warning is visible in
+    // a multi-service run.
+    warnAboutUnreachableServiceReferences({
+      manager: this.resolverManager,
+      logger,
+    })
 
     // Get the AWS deployment credentials
     await this.getAwsCredentialProvider()
@@ -230,10 +244,19 @@ const runCompose = async ({
       throw err
     }
 
+    // Config-driven deploy-edge ordering for service-provider references. The
+    // run stage and the resolved `{instance: effectiveStage}` map let the graph
+    // scan create an edge for a same-stage service reference but skip a pinned
+    // cross-stage one (a read-only reference, no ordering).
+    const runStage = resolverManager.stage
+    const instanceStages = resolverManager.getServiceTypedInstanceStages()
     const composeService = await parseComposeGraph({
       servicePath: composeDirPath,
       configuration: composeConfigFile,
       versions,
+      resolverManager,
+      runStage,
+      instanceStages,
     })
 
     const { putServiceState, getServiceState } = await resolveStateStore({

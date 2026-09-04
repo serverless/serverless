@@ -160,6 +160,11 @@ export function createResolverFunc(
       params,
     })
     cache.set(cacheKey, result)
+    // A rejection is not a value: a typed not-found error may be survived by a
+    // declared fallback, and the same key can be resolvable later in the run
+    // (the referenced state appears). Keep only settled values in the cache;
+    // the caller awaiting `result` still sees the error.
+    Promise.resolve(result).catch(() => cache.delete(cacheKey))
     return result
   }
 }

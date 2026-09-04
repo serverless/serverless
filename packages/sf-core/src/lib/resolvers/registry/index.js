@@ -11,6 +11,7 @@ import { StrToBool } from '../providers/str-to-bool/str-to-bool.js'
 import { Output } from '../providers/output/output.js'
 import { Terraform } from '../providers/terraform/terraform.js'
 import { Doppler } from '../providers/doppler/doppler.js'
+import { Service } from '../providers/service/service.js'
 
 class ProviderRegistry {
   constructor() {
@@ -28,6 +29,7 @@ class ProviderRegistry {
       [Output.type]: Output,
       [Terraform.type]: Terraform,
       [Doppler.type]: Doppler,
+      [Service.type]: Service,
     }
   }
 

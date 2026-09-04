@@ -55,6 +55,8 @@ you can reference the default `s3` Resolver provided by the `aws` Provider using
 (it will use the AWS provider which provides the credentials for the deployment),
 or `${customProviderName:s3:myBucket/myKey}` if you define customized Provider configuration.
 
+One Provider is specific to [Serverless Compose](../compose.md#service-dependencies-and-variables): the `service` type reads the outputs of another service in the same compose project (`${service:<service>.<Output>}`), and a named instance of it can pin the stage those outputs are read from. It is declared under `stages.<stage>.resolvers` like any other, but only in `serverless-compose.yml`; a service's own `serverless.yml` receives the values through `${param:...}`.
+
 ### Examples
 
 #### Default Resolvers
@@ -117,6 +119,7 @@ functions:
 - [Git](./git)
 - [AWS](./aws)
 - [HashiCorp](./hashicorp)
+- [Serverless Compose service outputs](../compose.md#service-dependencies-and-variables) — `${service:<service>.<Output>}` reads another service's outputs, optionally from a [different stage](../compose.md#referencing-a-service-deployed-to-a-different-stage); available in `serverless-compose.yml` only
 
 ## Recursively reference properties
 

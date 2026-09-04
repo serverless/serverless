@@ -72,6 +72,13 @@ export { Runner }
  * - getDeploymentEventDetails
  */
 class Runner {
+  // Whether this runner resolves a compose file. Read at the createResolverManager
+  // call site to scope compose-only provider types; overridden by ComposeRunner.
+  static isComposeConfigFile = false
+
+  // Config path prefixes (`'*'` matches any single segment) where this runner
+  // resolves the providers it defers past the up-front pass. Read at the
+  // createResolverManager call site; a runner that defers nothing needs none.
   command
   options
   config
@@ -411,6 +418,7 @@ class Runner {
         loadAllResolvers: this.constructor.name === 'ComposeRunner',
         print: this.command?.[0] === 'print' && !!this.options?.debug,
         versionFramework: this.versionFramework,
+        isComposeConfigFile: this.constructor.isComposeConfigFile,
       })) || {}
     this.resolverManager = resolverManager
     this.stage = stage

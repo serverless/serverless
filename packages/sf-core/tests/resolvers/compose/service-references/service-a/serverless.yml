@@ -1,0 +1,13 @@
+org: serverlesstestaccount
+service: compose-refs-a
+
+functions:
+  hello:
+    handler: handler.hello
+
+resources:
+  Outputs:
+    apiUrl:
+      Value: url
+    dbHost:
+      Value: db.internal

@@ -1,0 +1,23 @@
+service: svcprovider-orders-db
+provider:
+  name: aws
+  region: us-east-1
+resources:
+  Resources:
+    Topic:
+      Type: AWS::SNS::Topic
+    # This service's own configuration consumes a compose-file param. A pinned
+    # cross-stage read of this service resolves this very configuration at the
+    # pinned stage, so that read must be handed the run's Compose params — with
+    # an empty param set the reference is unresolvable and the whole Compose run
+    # aborts.
+    DataSetParam:
+      Type: AWS::SSM::Parameter
+      Properties:
+        Type: String
+        Value: ${param:ordersDataSet}
+  Outputs:
+    TopicArn:
+      Value: !Ref Topic
+    ResolvedDataSet:
+      Value: ${param:ordersDataSet}

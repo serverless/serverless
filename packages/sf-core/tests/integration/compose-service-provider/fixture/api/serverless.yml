@@ -1,0 +1,21 @@
+service: svcprovider-api
+provider:
+  name: aws
+  region: us-east-1
+resources:
+  Resources:
+    JobsQueueUrlParam:
+      Type: AWS::SSM::Parameter
+      Properties:
+        Type: String
+        Value: ${param:jobsQueueUrl}
+    OrdersTopicArnParam:
+      Type: AWS::SSM::Parameter
+      Properties:
+        Type: String
+        Value: ${param:ordersTopicArn}
+  Outputs:
+    ResolvedJobsQueueUrl:
+      Value: ${param:jobsQueueUrl}
+    ResolvedOrdersTopicArn:
+      Value: ${param:ordersTopicArn}

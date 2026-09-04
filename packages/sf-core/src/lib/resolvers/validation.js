@@ -16,7 +16,10 @@ export const ensureNoParamsAndStagesTogether = (config) => {
   }
 }
 
-export const validateCustomResolverConfigs = (config) => {
+export const validateCustomResolverConfigs = (
+  config,
+  { isComposeConfigFile = false } = {},
+) => {
   for (const stageName in config?.stages) {
     const stageConfig = config?.stages[stageName]
     for (const resolverName in stageConfig?.resolvers) {
@@ -31,6 +34,14 @@ export const validateCustomResolverConfigs = (config) => {
       if (!Provider) {
         throw new ServerlessError(
           `Resolver provider ${resolverConfig.type} is not supported`,
+          ServerlessErrorCodes.resolvers.RESOLVER_PROVIDER_NOT_SUPPORTED,
+        )
+      }
+      // Compose-only provider types (e.g. `service`) are valid only inside a
+      // compose file; reject them in a regular serverless.yml.
+      if (Provider.composeOnly && !isComposeConfigFile) {
+        throw new ServerlessError(
+          `Resolver "${resolverName}" of type "${resolverConfig.type}" in stage "${stageName}" is only available in Serverless Compose (serverless-compose.yml), not in serverless.yml.`,
           ServerlessErrorCodes.resolvers.RESOLVER_PROVIDER_NOT_SUPPORTED,
         )
       }

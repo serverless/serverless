@@ -1,0 +1,8 @@
+org: serverlesstestaccount
+service: compose-refs-c
+
+functions:
+  hello:
+    handler: handler.hello
+    environment:
+      apiUrl: ${param:apiUrl}

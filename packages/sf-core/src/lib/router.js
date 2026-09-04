@@ -504,6 +504,13 @@ export const getRunner = async ({
       existingResolverProviders: compose?.resolverProviders,
       existingParams: compose?.params,
       loadAllResolvers: RunnerClass.name === 'ComposeRunner',
+      // Compose-only resolver providers (e.g. the `service` type) are valid only
+      // when the config being resolved IS a compose file. The runner class knows
+      // this (ComposeRunner.isComposeConfigFile === true); without forwarding it,
+      // this up-front manager validates a serverless-compose.yml as if it were a
+      // regular serverless.yml and rejects its compose-only resolvers before the
+      // ComposeRunner's own manager (which sets the flag) ever runs.
+      isComposeConfigFile: RunnerClass.isComposeConfigFile,
       print: command?.[0] === 'print' && !!options?.debug,
       versionFramework: versions?.serverless_framework,
     })) || {}

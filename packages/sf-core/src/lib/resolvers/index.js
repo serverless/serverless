@@ -101,6 +101,7 @@ const createResolverManager = async ({
   loadAllResolvers,
   print,
   versionFramework,
+  isComposeConfigFile = false,
 }) => {
   const logger = log.get('core:resolver:manager')
 
@@ -111,7 +112,7 @@ const createResolverManager = async ({
   // Ensure that params and stages are not used together
   ensureNoParamsAndStagesTogether(serviceConfigFile)
   // Validate custom resolver configurations
-  validateCustomResolverConfigs(serviceConfigFile)
+  validateCustomResolverConfigs(serviceConfigFile, { isComposeConfigFile })
   // Ensure there is no duplicate resolver names
   validateResolversUniqueness(serviceConfigFile)
 
@@ -125,6 +126,7 @@ const createResolverManager = async ({
     undefined,
     print,
     versionFramework,
+    { isComposeConfigFile },
   )
 
   // Load all placeholders and providers from the service configuration file

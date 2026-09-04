@@ -1,0 +1,16 @@
+org: serverlesstestaccount
+service: compose-refs-b
+functions:
+  hello:
+    handler: handler.hello
+    environment:
+      apiUrl: NOT_AVAILABLE_IN_PRINT_COMMAND
+      dbUrl: postgres://NOT_AVAILABLE_IN_PRINT_COMMAND:5432/orders
+      nested: NOT_AVAILABLE_IN_PRINT_COMMAND
+    events: []
+    name: compose-refs-b-dev-hello
+provider:
+  name: aws
+  stage: dev
+  region: us-east-1
+  versionFunctions: true

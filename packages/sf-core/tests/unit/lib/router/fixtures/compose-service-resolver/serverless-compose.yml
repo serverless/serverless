@@ -1,0 +1,9 @@
+stages:
+  default:
+    resolvers:
+      shared:
+        type: service
+        stage: dev
+services:
+  orders-db:
+    path: orders-db

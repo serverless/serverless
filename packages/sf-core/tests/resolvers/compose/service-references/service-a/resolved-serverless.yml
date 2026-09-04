@@ -1,0 +1,18 @@
+org: serverlesstestaccount
+service: compose-refs-a
+functions:
+  hello:
+    handler: handler.hello
+    events: []
+    name: compose-refs-a-dev-hello
+resources:
+  Outputs:
+    apiUrl:
+      Value: url
+    dbHost:
+      Value: db.internal
+provider:
+  name: aws
+  stage: dev
+  region: us-east-1
+  versionFunctions: true
