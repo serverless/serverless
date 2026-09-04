@@ -22,10 +22,9 @@
 
 import awsArnRegExs from '../utils/arn-regular-expressions.js'
 import { resolveBaseUrls } from './lib/discovery-route.js'
+import { effectiveEndpointType } from './lib/endpoint-type.js'
 
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v)
-
-const ENDPOINT_TYPES = ['EDGE', 'REGIONAL', 'PRIVATE']
 
 const sortedUniqueNumbers = (values) =>
   [...new Set(values)].sort((a, b) => a - b)
@@ -132,21 +131,6 @@ const discoveryUrlSources = (discoveryServers, provider) => {
   } catch {
     return []
   }
-}
-
-/**
- * The effective endpoint type of the shared REST API: the provider value when
- * it is one of the known types (any case), the Framework's EDGE default when
- * unset. A value that is set but unrecognized reports nothing — that
- * configuration fails validation elsewhere, and guessing here would file it
- * under a type nobody chose.
- */
-const effectiveEndpointType = (provider) => {
-  const raw = provider?.endpointType
-  if (raw === undefined || raw === null) return 'EDGE'
-  if (typeof raw !== 'string') return undefined
-  const up = raw.toUpperCase()
-  return ENDPOINT_TYPES.includes(up) ? up : undefined
 }
 
 // Pure: the top-level `mcp` config plus the provider block -> the analytics

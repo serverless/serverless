@@ -338,12 +338,11 @@ describeAuth('MCP servers live integration — enforcement and discovery', () =>
       MCP_TEST_SECRET: secret,
     }
     // `install`, not `ci`: the fixture is committed without a full lockfile
-    // tree, matching the esbuild-fixture precedent.
-    await new Promise((resolve, reject) => {
-      const p = spawnExt('npm', ['install'], { cwd: fixtureDir })
-      p.child.on('error', reject)
-      p.child.on('close', resolve)
-    })
+    // tree, matching the esbuild-fixture precedent. Awaited directly: the
+    // promise rejects on a non-zero exit or a spawn error, so a failed install
+    // fails this hook before anything deploys. Inherited stdio keeps npm's own
+    // output in the log, where a failing run needs it.
+    await spawnExt('npm', ['install'], { cwd: fixtureDir, stdio: 'inherit' })
   }, 600000)
 
   afterEach(() => jest.restoreAllMocks())

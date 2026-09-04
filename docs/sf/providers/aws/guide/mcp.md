@@ -662,17 +662,36 @@ The `SERVERLESS_MCP_*` environment variables (`SERVERLESS_MCP_SERVER_MODULE`, `S
 
 ## CLI behavior
 
-| Command              | Behavior                                                                                              |
-| -------------------- | ----------------------------------------------------------------------------------------------------- |
-| `deploy`             | Prints one endpoint line per server, plus the domain summary when `provider.domain` is set            |
-| `info`               | Prints the same endpoint lines — where to look up URLs later                                          |
-| `logs -f <name>`     | The server's own CloudWatch logs, by bare server name                                                 |
-| `invoke -f <name>`   | Reaches the function directly; use an MCP client against the endpoint to exercise the server          |
-| `print`              | Shows your configuration as written; the synthesized function never appears                           |
-| `package`            | Fully supported — entry staging and the build both happen at package time                             |
-| `deploy function -f` | Updates the server's code. See the environment note under [Limitations](#limitations-in-this-release) |
-| `remove`             | Deletes everything, including the provisioned state secret. Re-deploying afterwards is safe           |
-| `rollback`           | Rolls the stack back normally; every MCP resource is in-stack                                         |
+| Command              | Behavior                                                                                                       |
+| -------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `deploy`             | Prints one endpoint line per server, plus the domain summary when `provider.domain` is set                     |
+| `info`               | Prints the same endpoint lines — where to look up URLs later                                                   |
+| `logs -f <name>`     | The server's own CloudWatch logs, by bare server name                                                          |
+| `invoke -f <name>`   | Reaches the function directly; use an MCP client against the endpoint to exercise the server                   |
+| `print`              | Shows your configuration as written; the synthesized function never appears                                    |
+| `package`            | Fully supported — entry staging and the build both happen at package time                                      |
+| `dev`                | Serves servers through the module on your machine — edits apply on the next request. See [Dev Mode](#dev-mode) |
+| `deploy function -f` | Updates the server's code. See the environment note under [Limitations](#limitations-in-this-release)          |
+| `remove`             | Deletes everything, including the provisioned state secret. Re-deploying afterwards is safe                    |
+| `rollback`           | Rolls the stack back normally; every MCP resource is in-stack                                                  |
+
+---
+
+## Dev Mode
+
+[`serverless dev`](../cli-reference/dev.md) serves MCP servers. Requests hit the real deployed endpoint; the deployed function relays each invocation to your machine, where your local server module runs behind the same entry production uses. Edits to your code — TypeScript or JavaScript — apply on the next request, with no redeploy. The session banner lists each server's endpoint URL under `mcp:`, each request is logged by its JSON-RPC method and target (`→ λ crm ── mcp tools/call get_weather`) with the local run time on the reply line, and running `serverless deploy` after the session restores normal serving. The [`serverless dev` reference](../cli-reference/dev.md#mcp-servers) shows the session output.
+
+Everything in front of the function keeps behaving the way it does deployed:
+
+- **Access control stays in force.** An `authorizer` still rejects unauthorized requests at the gateway — an `aws_iam` server answers unsigned requests with `403` before anything runs — while authorized requests are served locally like any other; a Lambda authorizer runs through the same dev session as any other function. OAuth discovery documents remain served by API Gateway.
+- **`state` keys work during a session.** The key is fetched from Secrets Manager or SSM by the locally running entry, using the function's own execution-role credentials, so elicitation round trips — sealed request state included — work end to end.
+
+Two behaviors differ from a deployed server:
+
+- **Results are delivered buffered.** The response body is assembled fully and delivered at once — valid Streamable HTTP — so progress notifications arrive together at the end of the call rather than as the work happens. Deploy normally to test incremental streaming.
+- **Both Dev Mode limits apply per call.** Requests or results larger than roughly 125 KB fail with an error explaining the limit, as for all Dev Mode functions. And because nothing is written until the call finishes, progress cannot reset the idle clock described under [Endpoint type and long-running tools](#endpoint-type-and-long-running-tools): on the default edge-optimized endpoint, a call that has produced nothing for roughly 30 seconds is dropped downstream with a `504`, and the session prints a warning when a local run exceeds that budget. On `provider.endpointType: REGIONAL` there is no such budget and no warning — a dev-session tool call runs past 30 seconds up to the server's own `timeout`, 60 seconds by default. The ceiling itself is not dev-specific — a deployed streaming response that stays silent that long hits the same bound — but buffering means a dev session cannot write its way past it. Deploy normally to test long-running tools.
+
+**Latency.** Each request runs your module fresh — a subprocess per invocation, plus a state-key fetch per request when `state` is configured — typically a few hundred milliseconds of overhead on top of the tool's own work.
 
 ---
 
@@ -685,7 +704,7 @@ The `SERVERLESS_MCP_*` environment variables (`SERVERLESS_MCP_SERVER_MODULE`, `S
 - **A client disconnect does not stop a running tool.** Requests reaching Lambda through API Gateway REST do not carry the disconnect through, so a tool keeps running — and billing — after the caller has gone. `timeout` is the cost ceiling; set it to the longest tool you actually have rather than to the 900-second maximum.
 - **Elicitation, sampling, and roots need a 2026-07-28 client, which is opt-in for official-SDK clients.** Clients on older protocol revisions are served per-request: tools, streaming, and progress all work, but a tool that asks the client for something mid-call — user input, a model completion, workspace roots — fails for them. See [Elicitation state](#elicitation-state) for the client-side `versionNegotiation` option.
 - **Resource subscriptions do not deliver updates on this hosting.** A `subscriptions/listen` stream is held by one function instance and fed by an in-process event bus, so a change published while serving a call on any other instance never reaches it — and the stream ends at `timeout` regardless. Streaming responses and progress notifications, which travel inside the request being answered, are unaffected.
-- **Dev Mode does not serve MCP servers in this release.** Under `serverless dev` the packaging integration stands down and warns; deploy with `serverless deploy` to exercise a server.
+- **Dev Mode delivers results buffered.** Under `serverless dev`, progress notifications arrive together at the end of the call, on the default edge-optimized endpoint the whole call has to answer within roughly 30 seconds (on a regional endpoint, within the server's `timeout`), and requests or results larger than roughly 125 KB fail — deploy normally to test incremental streaming, long-running tools, or large payloads. See [Dev Mode](#dev-mode).
 - **`deploy function` does not update environment variables for a server whose environment holds a CloudFormation reference.** The Lambda configuration update skips the whole environment when it sees one — which covers both how `state` passes the key and any `!Ref` or `!GetAtt` value in your own `environment:` block — so changes to `environment:` need a full `serverless deploy`. The Framework warns when this applies.
 - **A bring-your-own state key must be a literal ARN.** A CloudFormation intrinsic is rejected with `MCP_INVALID_STATE_ARN`, because the ARN's service is what decides which read action the execution role is granted.
 - **Switching `state: true` to your own ARN deletes the provisioned key immediately**, with no recovery window — see [What `state: true` provisions](#what-state-true-provisions).

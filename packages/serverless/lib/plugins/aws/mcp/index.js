@@ -4,6 +4,7 @@ import {
   resolveBaseUrls,
 } from './lib/discovery-route.js'
 import { formatMcpEndpoints, serviceEndpointOf } from './lib/endpoints.js'
+import { esbuildBuildState } from './lib/esbuild-build-state.js'
 import {
   artifactModulePath,
   assertNoPrebuiltArtifact,
@@ -180,31 +181,15 @@ class AwsMcp {
   }
 
   /**
-   * Dev mode owns the artifact and the handler of every Node function it
-   * redirects (`../dev/index.js` sets `handler = 'index.handler'` after moving
-   * the user's own to `originalHandler`), and it builds that artifact itself.
-   * Staging into it and swapping the handler would both be overwritten or
-   * clobbering, so the whole packaging integration stands down.
+   * Dev mode owns the artifact and the handler of every function it redirects
+   * (`../dev/index.js` deploys its shim zip and selects the shim handler), so
+   * the packaging integration stands down - staging or swapping here would be
+   * clobbered. Serving MCP requests under dev is the dev plugin's job: it
+   * deploys the streamified shim door for these functions and runs the
+   * prebuilt entry's buffered door locally.
    */
   isDevMode() {
     return this.serverless.devmodeEnabled === true
-  }
-
-  /**
-   * Say out loud, once per run, that the packaging integration stood down.
-   *
-   * Standing down is not the same as doing nothing visible: dev mode still
-   * deploys the synthesized functions, pointing at the user's module with no
-   * entry in front of it, so the deployed endpoint answers nothing an MCP
-   * client understands. Without this line that failure is only discoverable by
-   * calling the endpoint.
-   */
-  warnDevModeUnsupported() {
-    if (this._devModeWarned) return
-    this._devModeWarned = true
-    log.warning(
-      'MCP servers are not supported in Dev Mode in this release - requests to the deployed endpoint will fail. Deploy normally with "serverless deploy" to exercise them.',
-    )
   }
 
   serviceDir() {
@@ -276,10 +261,7 @@ class AwsMcp {
    */
   async stageEntry(onlyFunction) {
     if (!this.validated) return
-    if (this.isDevMode()) {
-      this.warnDevModeUnsupported()
-      return
-    }
+    if (this.isDevMode()) return
     const serverFunctions = this.packagedServerFunctions(onlyFunction)
     if (serverFunctions.length === 0) return
     const service = this.serverless.service
@@ -364,10 +346,7 @@ class AwsMcp {
    */
   async repointFunctions(onlyFunction) {
     if (!this.validated) return
-    if (this.isDevMode()) {
-      this.warnDevModeUnsupported()
-      return
-    }
+    if (this.isDevMode()) return
     const { bundled, outputExtension } = await this.esbuildBuildState()
     const unbundledServers = []
     for (const server of this.validated.servers) {
@@ -412,40 +391,13 @@ class AwsMcp {
 
   /**
    * Which server functions the esbuild plugin bundled, and the extension it
-   * emitted them with.
-   *
-   * Both reads are of the plugin's own memoized state, computed by its build
-   * hook earlier in this same command - which matters: computing
-   * `functions()` here instead would freeze the build set against the handlers
-   * this method is about to rewrite. `_outputExtension` is asked rather than
-   * reimplemented because it is what decides the emitted file name, including
-   * the `outExtension` override and its format cross-checks.
-   *
-   * The plugin is located by those two members rather than by name, matching how
-   * the api-gateway compiler is found above; without it (a bundler plugin
-   * replaced, a stripped plugin list) nothing is bundled and the configured
-   * source paths stand, which is the classic-mode answer.
+   * emitted them with - see `./lib/esbuild-build-state.js`, shared with the
+   * dev plugin so a dev session names the module file the way packaging does.
    */
   async esbuildBuildState() {
-    const esbuildPlugin = this.serverless.pluginManager.plugins.find(
-      (plugin) =>
-        typeof plugin._outputExtension === 'function' &&
-        typeof plugin.functions === 'function',
-    )
-    const bundled = esbuildPlugin
-      ? new Set(Object.keys(await esbuildPlugin.functions()))
-      : new Set()
-    // `_outputExtension` validates as well as maps, and throws on a combination
-    // esbuild refuses to emit - so it is only asked when something was actually
-    // bundled. A service that bundles nothing must not start failing here over a
-    // build property that never reached esbuild.
-    if (bundled.size === 0) return { bundled, outputExtension: undefined }
-    return {
-      bundled,
-      outputExtension: esbuildPlugin._outputExtension(
-        await esbuildPlugin._buildProperties(),
-      ),
-    }
+    return esbuildBuildState({
+      plugins: this.serverless.pluginManager.plugins,
+    })
   }
 
   /**

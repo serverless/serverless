@@ -22,6 +22,8 @@ if (__dirname.endsWith('dist')) {
  * @param {string} config.runtime - The AWS Lambda runtime.
  * @param {Object} [config.environment={}] - An object representing environment variables to set for the local lambda instance in addition to the current process environment.
  * @param {string} config.serviceAbsolutePath - The absolute path to the service directory.
+ * @param {string} [config.handlerFileAbsolutePath] - The absolute path of the file to import, instead of one resolved from the service directory.
+ * @param {string} [config.handlerName] - The exported function to call, instead of the name parsed out of the handler string.
  *
  * @property {string} handler - The AWS Lambda handler.
  * @property {string} runtime - The AWS Lambda runtime.
@@ -55,6 +57,10 @@ class LocalLambda {
     }
 
     this.handler = config.handler
+    // Explicit handler location, for callers that invoke a known module (the
+    // MCP entry) rather than a file resolved from the service dir.
+    this.handlerFileAbsolutePath = config.handlerFileAbsolutePath
+    this.handlerName = config.handlerName
     this.runtime = config.runtime
     this.environment = {
       ...process.env,
@@ -85,6 +91,8 @@ class LocalLambda {
    * console.log(handlerFileAbsolutePath); // Outputs: "/path/to/service/handler.js"
    */
   async getHandlerFileAbsolutePath() {
+    if (this.handlerFileAbsolutePath) return this.handlerFileAbsolutePath
+
     // Extract the handler file name without the extension.
     const handlerFileName = this.handler.split('.')[0]
 
@@ -157,7 +165,7 @@ class LocalLambda {
     const handlerFileAbsolutePath = await this.getHandlerFileAbsolutePath()
 
     // extract the handler name from the handler string
-    const handlerName = this.handler.split('.')[1]
+    const handlerName = this.handlerName ?? this.handler.split('.')[1]
 
     // find the runtime wrapper that supports the handler file extension
     const runtimeWrapper = runtimeWrappers.find((runtimeWrapper) =>

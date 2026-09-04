@@ -4,6 +4,8 @@
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { createMcpHonoApp } from '@modelcontextprotocol/hono'
+import { defaultIsContentTypeBinary, handle } from 'hono/aws-lambda'
+import { withoutBodyOnBodylessMethod } from './event.mjs'
 
 /**
  * The entry's whole environment contract, read in one place.
@@ -157,4 +159,36 @@ export const buildApp = ({ mcpHandler }) => {
     }
   })
   return app
+}
+
+/**
+ * SSE stays textual through the buffered path: hono's default classifies
+ * `text/event-stream` as binary, and base64 inflates the body ~33% against the
+ * dev tunnel's 125 KB MQTT cap — the scarcest budget in that path. SSE is
+ * UTF-8 by construction, so text transport is lossless.
+ *
+ * Hono calls this only behind its own `contentType &&` guard, so today the
+ * argument is always a string. The `??` is for a caller outside that guard —
+ * a future hono, or anything else that hands the probe an absent type — which
+ * must not crash on `.startsWith`. Only our own call needs that shield: hono's
+ * classifier is handed the value unchanged, since it answers for its own input
+ * (it reads an absent type as binary, the same verdict it would reach with no
+ * wrapper here).
+ */
+export const bufferedIsContentTypeBinary = (contentType) =>
+  !(contentType ?? '').startsWith('text/event-stream') &&
+  defaultIsContentTypeBinary(contentType)
+
+/**
+ * The buffered door into the same app the streaming handler serves. Dev mode
+ * invokes this export on the user's machine; production never calls it. The
+ * same bodyless-method sanitization applies — the adapter underneath builds
+ * the identical `Request` either way.
+ */
+export const buildBufferedHandler = ({ app }) => {
+  const buffered = handle(app, {
+    isContentTypeBinary: bufferedIsContentTypeBinary,
+  })
+  return (event, context) =>
+    buffered(withoutBodyOnBodylessMethod(event), context)
 }

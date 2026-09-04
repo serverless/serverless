@@ -1,7 +1,7 @@
 {
   "serverless-mcp": {
-    "version": 1,
-    "hash": "6740dff61b9a73008b51d4145ba63c0721d4f402f844967bb628354507e8da42"
+    "version": 2,
+    "hash": "73f4c6b922e110634a4f9744a7382065a7c6f520532ad217fb1bbae3339d761b"
   },
   "serverless-sandboxes": {
     "version": 1,

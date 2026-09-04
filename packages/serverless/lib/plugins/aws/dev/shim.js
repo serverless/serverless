@@ -4,6 +4,7 @@
  */
 
 import iot from 'aws-iot-device-sdk'
+import { toStreamedResponse } from './shim-response.js'
 
 // List of env vars that should not be sent to the local machine
 const envVarsToIgnore = ['PATH', 'NODE_PATH', 'LD_LIBRARY_PATH', 'PWD', 'SHLVL']
@@ -330,3 +331,29 @@ export const handler = async (event, context) => {
   // return the response to the Lambda caller
   return response
 }
+
+/* global awslambda */
+
+/**
+ * The streaming door over the same tunnel round trip. MCP routes compile as
+ * API Gateway REST streaming integrations, which 502 any response that does
+ * not write the HttpResponseStream prelude (live-verified) — so MCP functions
+ * are deployed pointing here instead of at `handler`. Errors are rethrown:
+ * the platform answers 502, exactly like a buffered dev function's error.
+ *
+ * `awslambda` is the runtime-injected global of managed Node runtimes; the
+ * guard keeps this module importable anywhere else (bundler, tests).
+ */
+export const streamHandler =
+  typeof awslambda === 'undefined'
+    ? undefined
+    : awslambda.streamifyResponse(async (event, responseStream, context) => {
+        const result = await handler(event, context)
+        const { metadata, body } = toStreamedResponse(result)
+        const stream = awslambda.HttpResponseStream.from(
+          responseStream,
+          metadata,
+        )
+        stream.write(body)
+        stream.end()
+      })
