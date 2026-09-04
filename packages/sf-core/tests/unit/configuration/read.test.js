@@ -200,4 +200,198 @@ describe('Configuration Read', () => {
       'INVALID_CONFIGURATION_STRUCTURE',
     )
   })
+
+  describe('TOML', () => {
+    it('should read "serverless.toml"', async () => {
+      configurationPath = path.join(tmpDir, 'serverless.toml')
+      await fs.writeFile(
+        configurationPath,
+        [
+          'service = "test-toml"',
+          'frameworkVersion = "4"',
+          '',
+          '[provider]',
+          'name = "aws"',
+          'runtime = "nodejs22.x"',
+          'memorySize = 512',
+          '',
+          '[functions.hello]',
+          'handler = "handler.hello"',
+          'events = [{ httpApi = "GET /hello" }]',
+          '',
+          '[functions.hello.environment]',
+          'STAGE = "dev"',
+          '',
+          '[[functions.hello.layers]]',
+          'Ref = "MyLayer"',
+        ].join('\n'),
+      )
+      expect(await readConfiguration(configurationPath)).toEqual({
+        service: 'test-toml',
+        frameworkVersion: '4',
+        provider: { name: 'aws', runtime: 'nodejs22.x', memorySize: 512 },
+        functions: {
+          hello: {
+            handler: 'handler.hello',
+            events: [{ httpApi: 'GET /hello' }],
+            environment: { STAGE: 'dev' },
+            layers: [{ Ref: 'MyLayer' }],
+          },
+        },
+      })
+    })
+
+    it('should map every TOML value type the way the rest of the reader expects', async () => {
+      // Contract for the TOML -> JSON normalization users' configurations rely on.
+      configurationPath = path.join(tmpDir, 'serverless.toml')
+      await fs.writeFile(
+        configurationPath,
+        [
+          'service = "test-toml-types"',
+          'basic = "tab\\there \\u00e9"',
+          "literal = 'C:\\path\\raw'",
+          'multiline = """',
+          'first',
+          'second"""',
+          'integer = 42',
+          'negative = -7',
+          'underscored = 1_000',
+          'hex = 0xff',
+          'float = 3.5',
+          'exponent = 1e3',
+          'boolean = true',
+          'offsetDateTime = 1979-05-27T07:32:00Z',
+          'offsetDateTimeWithZone = 1979-05-27T00:32:00-07:00',
+          'localDateTime = 1979-05-27T07:32:00',
+          'localDate = 1979-05-27',
+          'localTime = 07:32:00',
+          'array = [1, 2, 3]',
+          'mixedArray = ["a", 1, true]',
+          'nestedArray = [[1, 2], ["x"]]',
+          'inline = { a = 1, b = "two" }',
+          'dotted.key.path = "dotted"',
+          '"quoted key" = 1',
+          '',
+          '[table]',
+          'x = 1',
+          '',
+          '[[arrayOfTables]]',
+          'n = 1',
+          '',
+          '[[arrayOfTables]]',
+          'n = 2',
+        ].join('\n'),
+      )
+      expect(await readConfiguration(configurationPath)).toEqual({
+        service: 'test-toml-types',
+        basic: 'tab\there é',
+        literal: 'C:\\path\\raw',
+        multiline: 'first\nsecond',
+        integer: 42,
+        negative: -7,
+        underscored: 1000,
+        hex: 255,
+        float: 3.5,
+        exponent: 1000,
+        boolean: true,
+        offsetDateTime: '1979-05-27T07:32:00.000Z',
+        offsetDateTimeWithZone: '1979-05-27T07:32:00.000Z',
+        localDateTime: '1979-05-27T07:32:00',
+        localDate: '1979-05-27',
+        localTime: '07:32:00',
+        array: [1, 2, 3],
+        mixedArray: ['a', 1, true],
+        nestedArray: [[1, 2], ['x']],
+        inline: { a: 1, b: 'two' },
+        dotted: { key: { path: 'dotted' } },
+        'quoted key': 1,
+        table: { x: 1 },
+        arrayOfTables: [{ n: 1 }, { n: 2 }],
+      })
+    })
+
+    it('should reject TOML syntax error', async () => {
+      configurationPath = path.join(tmpDir, 'serverless.toml')
+      await fs.writeFile(
+        configurationPath,
+        'service = "x"\n[provider\nname = "aws"\n',
+      )
+      await expect(readConfiguration(configurationPath)).rejects.toHaveProperty(
+        'code',
+        'CONFIGURATION_PARSE_ERROR',
+      )
+    })
+
+    it('should not pollute Object.prototype through a table path routed via a scalar', async () => {
+      // Regression guard for GHSA-v5mp-jgw5-2x6j
+      configurationPath = path.join(tmpDir, 'serverless.toml')
+      await fs.writeFile(
+        configurationPath,
+        [
+          'service = "test-toml"',
+          '[a.b]',
+          'y = 1',
+          '[a.b.y.__proto__.__proto__]',
+          'polluted = "yes"',
+        ].join('\n'),
+      )
+      try {
+        await expect(
+          readConfiguration(configurationPath),
+        ).rejects.toHaveProperty('code', 'CONFIGURATION_PARSE_ERROR')
+        expect({}).not.toHaveProperty('polluted')
+        expect(Object.prototype).not.toHaveProperty('polluted')
+      } finally {
+        delete Object.prototype.polluted
+      }
+    })
+
+    it('should reject deeply nested TOML values with a parse error instead of overflowing the stack', async () => {
+      // Regression guard for GHSA-82x6-q7mm-w9cf
+      configurationPath = path.join(tmpDir, 'serverless.toml')
+      const depth = 20000
+      await fs.writeFile(
+        configurationPath,
+        `service = "test-toml"\nnested = ${'['.repeat(depth)}${']'.repeat(depth)}\n`,
+      )
+      const error = await readConfiguration(configurationPath).catch((e) => e)
+      expect(error).toHaveProperty('code', 'CONFIGURATION_PARSE_ERROR')
+      expect(error.message).not.toMatch(/call stack/i)
+    })
+
+    it('should keep safe integers and reject integers beyond Number.MAX_SAFE_INTEGER', async () => {
+      // Values between 2^53 and 2^63 are valid TOML but cannot be represented losslessly
+      // as a JavaScript number; the reader surfaces them as a parse error rather than rounding.
+      configurationPath = path.join(tmpDir, 'serverless.toml')
+      await fs.writeFile(
+        configurationPath,
+        'service = "test-toml"\nsafe = 9007199254740991\n',
+      )
+      expect(await readConfiguration(configurationPath)).toEqual({
+        service: 'test-toml',
+        safe: 9007199254740991,
+      })
+
+      await fs.writeFile(
+        configurationPath,
+        'service = "test-toml"\nunsafe = 9007199254740992\n',
+      )
+      await expect(readConfiguration(configurationPath)).rejects.toHaveProperty(
+        'code',
+        'CONFIGURATION_PARSE_ERROR',
+      )
+    })
+
+    it('should reject integers outside the 64-bit range instead of silently rounding them', async () => {
+      configurationPath = path.join(tmpDir, 'serverless.toml')
+      await fs.writeFile(
+        configurationPath,
+        'service = "test-toml"\nbig = 99999999999999999999\n',
+      )
+      await expect(readConfiguration(configurationPath)).rejects.toHaveProperty(
+        'code',
+        'CONFIGURATION_PARSE_ERROR',
+      )
+    })
+  })
 })
