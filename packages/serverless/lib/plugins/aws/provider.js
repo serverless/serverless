@@ -583,7 +583,7 @@ class AwsProvider {
               'nodejs14.x',
               'nodejs16.x',
               'nodejs18.x',
-              'nodejs22.x',
+              'nodejs20.x',
               'nodejs22.x',
               'nodejs24.x',
               'provided',

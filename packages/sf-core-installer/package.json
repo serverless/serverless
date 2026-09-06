@@ -1,7 +1,7 @@
 {
-  "name": "serverless",
+  "name": "@serverlessinc/sf-core-installer",
   "version": "4.31.1",
-  "description": "",
+  "description": "Serverless Framework with Node.js 22.x support",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -12,8 +12,8 @@
     "postinstall": "node ./postInstall.js"
   },
   "prettier": "@serverlessinc/standards",
-  "keywords": [],
-  "author": "Serverless Inc.",
+  "keywords": ["serverless", "lambda", "aws", "nodejs22"],
+  "author": "Darren Mackintosh",
   "license": "",
   "repository": {
     "type": "git",
