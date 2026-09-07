@@ -525,7 +525,7 @@ The same message appears when the function's own initialization code throws, so 
 
 ### How invocations reach the snapshot
 
-SnapStart applies only to published versions, never to `$LATEST`. On every deploy of a function with `snapStart: true`, the Framework publishes a version and points an alias named `snapstart` at it, and every event source configured on the function invokes that alias. Invoking the unqualified function name — for example `serverless invoke -f api` or a direct `Invoke` call without a qualifier — runs a regular cold start. To exercise the snapshot by hand, invoke the `snapstart` alias or the version number.
+SnapStart applies only to published versions, never to `$LATEST`. Whenever a deploy changes the function's code, image or configuration, the Framework publishes a new version and points an alias named `snapstart` at it; a deploy that changes nothing keeps the current version. Every event source configured on the function invokes that alias. Invoking the unqualified function name — for example `serverless invoke -f api` or a direct `Invoke` call without a qualifier — runs a regular cold start. To exercise the snapshot by hand, invoke the `snapstart` alias or the version number.
 
 ### Limitations
 
@@ -533,7 +533,7 @@ AWS does not support SnapStart together with provisioned concurrency, Amazon EFS
 
 ### Cost of retained versions
 
-For every runtime except the Java managed runtimes, AWS charges for caching each published version's snapshot for as long as that version exists, plus a charge per restore; see [Lambda pricing](https://aws.amazon.com/lambda/pricing/). With the default `versionFunctions: true`, the Framework keeps the previous version in place when it deploys a new one, so every deploy of a SnapStart function adds another billed snapshot. Set `provider.versionFunctions: false` to have the superseded version deleted on deploy. Deletion starts with the deploy after the one that applies the change, and versions retained before the change stay until you delete them, for example with `aws lambda delete-function --function-name <name>:<version>`. See [Versioning Deployed Functions](#versioning-deployed-functions).
+For every runtime except the Java managed runtimes, AWS charges for caching each published version's snapshot for as long as that version exists, plus a charge per restore; see [Lambda pricing](https://aws.amazon.com/lambda/pricing/). With the default `versionFunctions: true`, the Framework keeps the previous version in place when it publishes a new one, so each deploy that changes a SnapStart function retains another billed snapshot. Set `provider.versionFunctions: false` to have the superseded version deleted on deploy. Deletion starts with the deploy after the one that applies the change, and versions retained before the change stay until you delete them, for example with `aws lambda delete-function --function-name <name>:<version>`. See [Versioning Deployed Functions](#versioning-deployed-functions).
 
 ### Examples
 
