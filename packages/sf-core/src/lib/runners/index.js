@@ -11,6 +11,7 @@ import readConfig from '@serverless/framework/lib/configuration/read.js'
 import path from 'path'
 import { variables } from '../resolvers/index.js'
 import { ResolverManager } from '../resolvers/manager.js'
+import { logAwsResolverSummary } from '../resolvers/providers/aws/clients.js'
 import {
   sanitizeNotifications,
   handleAndMaybeThrowNotifications,
@@ -389,6 +390,7 @@ class Runner {
     await this.resolverManager.resolveConfigFile({
       printResolvedVariables,
     })
+    logAwsResolverSummary(log.get('core:resolver:aws'))
     p.remove()
   }
 

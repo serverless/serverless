@@ -1,0 +1,18 @@
+service: cfmany-f2
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  region: us-east-1
+  runtime: nodejs22.x
+  environment:
+    # Read after svc-1's deploy finished, so it must be the marker svc-1 just
+    # wrote — not the value the compose-level pre-read cached before it ran.
+    MARKER: ${cf:cfmany-f1-${sls:stage}.Marker}
+    # The same stale pre-read svc-1 saw, kept next to MARKER so a failure shows
+    # which of the two the resolver returned.
+    WARM: ${param:warm, 'unset'}
+
+functions:
+  hello:
+    handler: handler.hello

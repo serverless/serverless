@@ -50,6 +50,10 @@ jest.unstable_mockModule('../../../../../src/lib/resolvers/manager.js', () => ({
   ResolverManager: class ResolverManager {},
 }))
 jest.unstable_mockModule(
+  '../../../../../src/lib/resolvers/providers/aws/clients.js',
+  () => ({ logAwsResolverSummary: jest.fn() }),
+)
+jest.unstable_mockModule(
   '../../../../../src/lib/runners/notification.js',
   () => ({
     sanitizeNotifications: jest.fn(() => []),

@@ -11,6 +11,7 @@ import {
   style,
 } from '@serverless/util'
 import { resolveConfigAndGetState } from './state.js'
+import { variables } from '../../resolvers/index.js'
 import {
   resolveServiceParams,
   serviceReferencesByAlias,
@@ -31,6 +32,16 @@ const composeParamRegex = /(?<=\$\{)[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+(?=\})/
  * never wipe deployed outputs.
  */
 const STATE_WRITER_COMMANDS = ['deploy', 'info', 'remove']
+/**
+ * The commands that change deployed infrastructure, and therefore invalidate
+ * whatever a resolver provider cached about it.
+ *
+ * Narrower than STATE_WRITER_COMMANDS on purpose: `info` writes state but
+ * mutates nothing, so nothing a later service reads can have changed.
+ * `rollback` does mutate stacks, but it is only reachable as a single-service
+ * passthrough, where no later service resolves anything in this process.
+ */
+const STACK_MUTATING_COMMANDS = ['deploy', 'remove']
 
 /**
  * @typedef {Object} State
@@ -754,6 +765,16 @@ class Compose {
             // Throw error to stop execution on the graph, and handle the rejection below
             throw err
           } finally {
+            if (STACK_MUTATING_COMMANDS.includes(command.join(' '))) {
+              // This run may have changed stacks that a later service reads
+              // through `${cf:}`; make the providers forget their cached reads
+              // so those services re-fetch. De-duplication then costs one call
+              // per stack per completed mutating service run instead of one per
+              // process. A failed run invalidates too: a rollback changes
+              // outputs just as a successful deployment does.
+              variables.invalidateProviderCaches()
+            }
+
             nodesToRun.delete(alias)
             if (nodesToRun.size > 0 && command[0] !== 'get-state') {
               progressMain.notice(

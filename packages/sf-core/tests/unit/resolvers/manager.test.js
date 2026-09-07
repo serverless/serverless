@@ -18,9 +18,11 @@ const mockLogger = {
 
 jest.unstable_mockModule('@serverless/util', () => ({
   ServerlessError: class ServerlessError extends Error {
-    constructor(message, code) {
+    constructor(message, code, options = {}) {
       super(message)
       this.code = code
+      this.originalMessage = options.originalMessage
+      this.originalName = options.originalName
     }
   },
   ServerlessErrorCodes: {
@@ -28,6 +30,12 @@ jest.unstable_mockModule('@serverless/util', () => ({
       RESOLVER_NOT_FOUND: 'RESOLVER_NOT_FOUND',
       RESOLVER_RESOLVE_VARIABLE_ERROR: 'RESOLVER_RESOLVE_VARIABLE_ERROR',
       RESOLVER_CYCLIC_REFERENCE: 'RESOLVER_CYCLIC_REFERENCE',
+      RESOLVER_AWS_RATE_EXCEEDED: 'RESOLVER_AWS_RATE_EXCEEDED',
+      RESOLVER_INVALID_CF_ADDRESS: 'RESOLVER_INVALID_CF_ADDRESS',
+      RESOLVER_VALUE_NOT_FOUND: 'RESOLVER_VALUE_NOT_FOUND',
+    },
+    compose: {
+      COMPOSE_COULD_NOT_RESOLVE_PARAM: 'COMPOSE_COULD_NOT_RESOLVE_PARAM',
     },
   },
   log: { get: jest.fn(() => mockLogger) },
@@ -931,6 +939,114 @@ describe('ResolverManager', () => {
       await manager.resolveAndReplacePlaceholdersInConfig()
 
       expect(manager.serviceConfigFile.prop).toBe('${unclosed')
+    })
+  })
+
+  describe('resolver error pass-through', () => {
+    let manager
+    const node = {
+      path: ['provider', 'environment', 'V1'],
+      original: '${cf:stack-a.OutA}',
+      fallbacks: [
+        {
+          providerName: 'default-aws-credential-resolver',
+          resolverType: 'cf',
+          key: 'stack-a.OutA',
+        },
+      ],
+    }
+    const registerProvider = (name, cfResolver) => {
+      manager.addResolverProvider(name, {
+        instance: { constructor: { type: 'aws', defaultResolver: 'ssm' } },
+        resolvers: { cf: cfResolver },
+        writers: {},
+      })
+    }
+    const registerCfProvider = (thrower) =>
+      registerProvider('default-aws-credential-resolver', async () => thrower())
+
+    beforeEach(() => {
+      manager = new ResolverManager(
+        mockLogger,
+        { service: 'my-service' },
+        '/path/to/config',
+        { stage: 'dev' },
+        null,
+        null,
+        null,
+        false,
+        '4.0.0',
+      )
+    })
+
+    test('a named AWS provider routes its cf resolver to the same provider-level function', async () => {
+      const cf = jest.fn(async (key) => `resolved:${key}`)
+      registerProvider('awsAcc', cf)
+
+      const result = await manager.resolve({
+        path: ['functions', 'hello', 'description'],
+        original: '${awsAcc:cf:stack-a.OutA}',
+        fallbacks: [
+          { providerName: 'awsAcc', resolverType: 'cf', key: 'stack-a.OutA' },
+        ],
+      })
+
+      expect(cf).toHaveBeenCalledWith('stack-a.OutA', undefined)
+      expect(result).toMatchObject({
+        resolvedValue: 'resolved:stack-a.OutA',
+        providerName: 'awsAcc',
+        providerType: 'aws',
+        resolverType: 'cf',
+        key: 'stack-a.OutA',
+      })
+    })
+
+    test('RESOLVER_AWS_RATE_EXCEEDED keeps its code and gains the placeholder and path', async () => {
+      const { ServerlessError } = await import('@serverless/util')
+      registerCfProvider(() => {
+        throw new ServerlessError(
+          'AWS CloudFormation rejected DescribeStacks with "Throttling: Rate exceeded" after 10 attempts (58 s).',
+          'RESOLVER_AWS_RATE_EXCEEDED',
+          { originalMessage: 'Rate exceeded', originalName: 'Throttling' },
+        )
+      })
+
+      // originalMessage and originalName are what the analysis event reports for
+      // this error, so the re-thrown copy has to carry them forward.
+      await expect(manager.resolve(node)).rejects.toMatchObject({
+        code: 'RESOLVER_AWS_RATE_EXCEEDED',
+        message:
+          "Cannot resolve '${cf:stack-a.OutA}' at 'provider.environment.V1': AWS CloudFormation rejected DescribeStacks with \"Throttling: Rate exceeded\" after 10 attempts (58 s).",
+        originalMessage: 'Rate exceeded',
+        originalName: 'Throttling',
+      })
+    })
+
+    test('RESOLVER_INVALID_CF_ADDRESS passes through unchanged', async () => {
+      const { ServerlessError } = await import('@serverless/util')
+      const invalid = new ServerlessError(
+        "Invalid CloudFormation variable '${cf:stack-a}': expected '<stackName>.<outputKey>'.",
+        'RESOLVER_INVALID_CF_ADDRESS',
+      )
+      registerCfProvider(() => {
+        throw invalid
+      })
+
+      await expect(manager.resolve(node)).rejects.toBe(invalid)
+    })
+
+    test('other resolver errors keep the generic wrap', async () => {
+      registerCfProvider(() => {
+        const denied = new Error('Access Denied')
+        denied.name = 'AccessDeniedException'
+        throw denied
+      })
+
+      await expect(manager.resolve(node)).rejects.toMatchObject({
+        code: 'RESOLVER_RESOLVE_VARIABLE_ERROR',
+        message:
+          "Failed to resolve variable 'stack-a.OutA' with resolver 'cf' and provider 'default-aws-credential-resolver': AccessDeniedException: Access Denied",
+      })
     })
   })
 })

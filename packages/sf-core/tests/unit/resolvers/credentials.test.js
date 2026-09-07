@@ -77,4 +77,25 @@ describe('getAwsCredentials', () => {
     })
     expect(result).toBe(mfaCode)
   })
+
+  it('should forward the SDK provider options to the credential chain', async () => {
+    const mockCredentialProvider = jest.fn().mockResolvedValue({
+      accessKeyId: 'test',
+      secretAccessKey: 'test',
+    })
+    mockFromNodeProviderChain.mockReturnValue(mockCredentialProvider)
+
+    const credentialProvider = await getAwsCredentials({
+      logger,
+      dashboard: null,
+      config: { profile: 'x' },
+      isDefaultConfig: false,
+    })
+
+    const providerOptions = { callerClientConfig: { region: 'eu-west-1' } }
+    await credentialProvider(providerOptions)
+
+    expect(mockCredentialProvider).toHaveBeenCalledTimes(1)
+    expect(mockCredentialProvider.mock.calls[0][0]).toBe(providerOptions)
+  })
 })

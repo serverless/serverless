@@ -2,10 +2,9 @@ import {
   GetObjectCommand,
   NoSuchKey,
   PutObjectCommand,
-  S3Client,
   ServerSideEncryption,
 } from '@aws-sdk/client-s3'
-import { addProxyToAwsClient } from '@serverless/util'
+import { sendAwsRequest } from './clients.js'
 
 export const resolveVariableFromS3 = async (
   logger,
@@ -15,13 +14,6 @@ export const resolveVariableFromS3 = async (
   resolutionDetails,
   key,
 ) => {
-  const client = addProxyToAwsClient(
-    new S3Client({
-      credentials,
-      region,
-      followRegionRedirects: true,
-    }),
-  )
   let resolvedDetails = { ...resolutionDetails } // Clone resolutionDetails
   if (!resolvedDetails?.bucketName && !resolvedDetails?.objectKey) {
     if (key.startsWith('arn:aws:s3:::')) {
@@ -65,7 +57,14 @@ export const resolveVariableFromS3 = async (
   })
   const response = await (async () => {
     try {
-      return await client.send(command)
+      return await sendAwsRequest({
+        service: 's3',
+        credentials,
+        region,
+        logger,
+        command,
+        target: `${resolvedDetails?.bucketName}/${resolvedDetails?.objectKey}`,
+      })
     } catch (error) {
       const name = error.name
       if (error instanceof NoSuchKey || name === 'NoSuchKey') {
@@ -93,19 +92,13 @@ export const resolveVariableFromS3 = async (
 }
 
 export const storeDataInS3 = async (
+  logger,
   credentials,
   region,
   resolutionDetails,
   key,
   value,
 ) => {
-  const client = addProxyToAwsClient(
-    new S3Client({
-      credentials,
-      region,
-      followRegionRedirects: true,
-    }),
-  )
   let resolvedDetails = { ...resolutionDetails } // Clone resolutionDetails
   if (!resolvedDetails?.bucketName && !resolvedDetails?.objectKey) {
     if (key.startsWith('arn:aws:s3:::')) {
@@ -154,7 +147,14 @@ export const storeDataInS3 = async (
     Body: value,
     ServerSideEncryption: resolutionDetails?.serverSideEncryption || undefined,
   })
-  await client.send(command)
+  await sendAwsRequest({
+    service: 's3',
+    credentials,
+    region,
+    logger,
+    command,
+    target: `${resolvedDetails?.bucketName}/${resolvedDetails?.objectKey}`,
+  })
 }
 
 const isValidServerSideEncryption = (value) => {

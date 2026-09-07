@@ -1,0 +1,18 @@
+service: cfmany-c2
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  region: us-east-1
+  runtime: nodejs22.x
+  environment:
+    A1: ${cf:cfmany-src-a-${sls:stage}.OutA}
+    A2: ${cf:cfmany-src-a-${sls:stage}.OutB}
+    A3: ${cf:cfmany-src-a-${sls:stage}.OutC}
+    B1: ${cf:cfmany-src-b-${sls:stage}.OutA}
+    B2: ${cf:cfmany-src-b-${sls:stage}.OutB}
+    B3: ${cf:cfmany-src-b-${sls:stage}.OutC}
+
+functions:
+  hello:
+    handler: handler.hello

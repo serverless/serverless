@@ -113,4 +113,12 @@ export class AbstractProvider {
   static validateConfig(providerConfig) {
     throw new Error('The "validateConfig" method must be implemented')
   }
+
+  /**
+   * Optional hook, called by the runners when something in this process may
+   * have changed the world the provider reads from (a service deploy/remove).
+   * Providers that cache reads must forget them; the default is a no-op,
+   * because a provider that reads nothing cacheable has nothing to forget.
+   */
+  static invalidateCaches() {}
 }

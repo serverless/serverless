@@ -2,16 +2,25 @@ import { AbstractProvider } from '../index.js'
 import { resolveVariableFromSsm } from './ssm.js'
 import { resolveVariableFromS3, storeDataInS3 } from './s3.js'
 import { resolveVariableFromCloudFormation } from './cf.js'
-import { GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts'
+import { GetCallerIdentityCommand } from '@aws-sdk/client-sts'
 import { partition } from '@aws-sdk/core/client'
-import { addProxyToAwsClient } from '@serverless/util'
 import { getAwsCredentials } from './credentials.js'
 import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
+import { invalidateAwsResponseCache, sendAwsRequest } from './clients.js'
 
 export class Aws extends AbstractProvider {
   static type = 'aws'
   static resolvers = ['ssm', 's3', 'cf']
   static defaultResolver = 'ssm'
+
+  /**
+   * The `${cf:}` reads are the memoized ones that can go stale — a run that
+   * changed a stack changes that stack's outputs — so a runner that just
+   * mutated infrastructure must make this provider forget them.
+   */
+  static invalidateCaches() {
+    invalidateAwsResponseCache()
+  }
 
   static validateConfig(config) {
     if (config?.profile && typeof config.profile !== 'string') {
@@ -69,6 +78,7 @@ export class Aws extends AbstractProvider {
 
     if (resolverType === 's3') {
       return await storeDataInS3(
+        this.logger,
         this.credentials,
         region,
         resolutionDetails,
@@ -91,7 +101,7 @@ export class Aws extends AbstractProvider {
 
     try {
       if (key === 'accountId') {
-        return resolveAccountId(this.credentials, region)
+        return await resolveAccountId(this.logger, this.credentials, region)
       }
 
       if (key === 'region') {
@@ -103,7 +113,7 @@ export class Aws extends AbstractProvider {
       }
 
       if (resolverType === 'ssm') {
-        return resolveVariableFromSsm(
+        return await resolveVariableFromSsm(
           this.logger,
           this.credentials,
           region,
@@ -112,7 +122,7 @@ export class Aws extends AbstractProvider {
         )
       }
       if (resolverType === 's3') {
-        return resolveVariableFromS3(
+        return await resolveVariableFromS3(
           this.logger,
           this.credentials,
           this.config,
@@ -122,7 +132,7 @@ export class Aws extends AbstractProvider {
         )
       }
       if (resolverType === 'cf') {
-        return resolveVariableFromCloudFormation(
+        return await resolveVariableFromCloudFormation(
           this.logger,
           this.credentials,
           this.config,
@@ -131,10 +141,12 @@ export class Aws extends AbstractProvider {
         )
       }
     } catch (error) {
-      let err
-      if (error.name === 'ExpiredToken') {
+      if (
+        error.name === 'ExpiredToken' ||
+        error.name === 'ExpiredTokenException'
+      ) {
         const errorMessage = `AWS credentials appear to have expired. This is likely due to the use of temporary credentials (e.g. AWS SSO, AWS IAM STS). Original error from AWS: "${error.message}"`
-        err = Object.assign(
+        throw Object.assign(
           new ServerlessError(
             errorMessage,
             ServerlessErrorCodes.general.AWS_CREDENTIALS_MISSING,
@@ -149,7 +161,8 @@ export class Aws extends AbstractProvider {
           },
         )
       }
-      throw err
+      // Every other failure keeps today's shape: the manager wraps it.
+      throw error
     }
     throw new Error(`Resolver ${resolverType} is not supported`)
   }
@@ -174,18 +187,26 @@ export class Aws extends AbstractProvider {
   }
 }
 
-const resolveAccountId = async (credentials, region) => {
-  const sts = addProxyToAwsClient(new STSClient({ credentials, region }))
+const resolveAccountId = async (logger, credentials, region) => {
   try {
-    const { Account: accountId } = await sts.send(
-      new GetCallerIdentityCommand({}),
-    )
+    const { Account: accountId } = await sendAwsRequest({
+      service: 'sts',
+      credentials,
+      region,
+      logger,
+      command: new GetCallerIdentityCommand({}),
+      target: 'caller-identity',
+      cache: true,
+    })
     return accountId
   } catch (error) {
     if (error instanceof ServerlessError) {
       throw error
     }
-    if (error.name === 'ExpiredToken') {
+    if (
+      error.name === 'ExpiredToken' ||
+      error.name === 'ExpiredTokenException'
+    ) {
       throw new ServerlessError(
         `AWS credentials appear to have expired. This is likely due to the use of temporary credentials (e.g. AWS SSO, AWS IAM STS). Original error from AWS: "${error.message}"`,
         'AWS_CREDENTIALS_EXPIRED',

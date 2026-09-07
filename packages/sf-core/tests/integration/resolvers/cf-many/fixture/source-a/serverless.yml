@@ -1,0 +1,18 @@
+service: cfmany-src-a
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  region: us-east-1
+
+resources:
+  Resources:
+    Placeholder:
+      Type: AWS::CloudFormation::WaitConditionHandle
+  Outputs:
+    OutA:
+      Value: a-one
+    OutB:
+      Value: a-two
+    OutC:
+      Value: a-three

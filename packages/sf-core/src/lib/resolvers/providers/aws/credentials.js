@@ -52,9 +52,9 @@ export const getAwsCredentials = async ({
   })
 
   // Wrap the provider with error handling to provide user-friendly error messages
-  return async () => {
+  return async (options) => {
     try {
-      return await baseProvider()
+      return await baseProvider(options)
     } catch (error) {
       // If AWS Credentials are missing, throw a more helpful error message
       if (

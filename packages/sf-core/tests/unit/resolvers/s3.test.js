@@ -1,47 +1,16 @@
 import { jest } from '@jest/globals'
+import { NoSuchKey } from '@aws-sdk/client-s3'
 
-// Mock the AWS SDK S3 client
-const mockSend = jest.fn()
+// Mock the shared AWS request layer
+const mockSendAwsRequest = jest.fn()
 
-jest.unstable_mockModule('@aws-sdk/client-s3', () => ({
-  S3Client: jest.fn().mockImplementation(() => ({
-    send: mockSend,
-  })),
-  GetObjectCommand: jest
-    .fn()
-    .mockImplementation((params) => ({ ...params, _type: 'GetObjectCommand' })),
-  PutObjectCommand: jest
-    .fn()
-    .mockImplementation((params) => ({ ...params, _type: 'PutObjectCommand' })),
-  NoSuchKey: class NoSuchKey extends Error {
-    constructor(message) {
-      super(message)
-      this.name = 'NoSuchKey'
-    }
-  },
-  ServerSideEncryption: {
-    AES256: 'AES256',
-    aws_kms: 'aws:kms',
-  },
-}))
-
-// Mock the proxy utility
-jest.unstable_mockModule('@serverless/util', () => ({
-  addProxyToAwsClient: jest.fn((client) => client),
-  ServerlessError: class ServerlessError extends Error {
-    constructor(message, code, options) {
-      super(message)
-      this.code = code
-      this.options = options
-    }
-  },
-  ServerlessErrorCodes: {
-    general: { AWS_CREDENTIALS_MISSING: 'AWS_CREDENTIALS_MISSING' },
-  },
-}))
+jest.unstable_mockModule(
+  '../../../src/lib/resolvers/providers/aws/clients.js',
+  () => ({ sendAwsRequest: mockSendAwsRequest }),
+)
 
 // Import after mocking
-const { resolveVariableFromS3 } =
+const { resolveVariableFromS3, storeDataInS3 } =
   await import('../../../src/lib/resolvers/providers/aws/s3.js')
 
 describe('S3 Resolver', () => {
@@ -49,7 +18,7 @@ describe('S3 Resolver', () => {
 
   beforeEach(() => {
     mockLogger = { debug: jest.fn() }
-    mockSend.mockReset()
+    mockSendAwsRequest.mockReset()
   })
 
   afterEach(() => {
@@ -74,7 +43,7 @@ describe('S3 Resolver', () => {
 
     describe('simple bucket/key format', () => {
       test('resolves existing S3 object', async () => {
-        mockSend.mockResolvedValue({
+        mockSendAwsRequest.mockResolvedValue({
           Body: createMockStream('file-content'),
         })
 
@@ -88,12 +57,24 @@ describe('S3 Resolver', () => {
         )
 
         expect(result).toBe('file-content')
+        const request = mockSendAwsRequest.mock.calls[0][0]
+        expect(request).toMatchObject({
+          service: 's3',
+          region: 'us-east-1',
+          target: 'my-bucket/path/to/file.txt',
+          logger: mockLogger,
+        })
+        expect(request.cache).toBeUndefined()
+        expect(request.command.input).toEqual({
+          Bucket: 'my-bucket',
+          Key: 'path/to/file.txt',
+        })
       })
 
       test('returns null for non-existent key (NoSuchKey)', async () => {
-        const noSuchKeyError = new Error('The specified key does not exist.')
-        noSuchKeyError.name = 'NoSuchKey'
-        mockSend.mockRejectedValue(noSuchKeyError)
+        mockSendAwsRequest.mockRejectedValue(
+          new NoSuchKey({ message: 'no such key', $metadata: {} }),
+        )
 
         const result = await resolveVariableFromS3(
           mockLogger,
@@ -115,7 +96,7 @@ describe('S3 Resolver', () => {
           'The specified bucket does not exist.',
         )
         noSuchBucketError.name = 'NoSuchBucket'
-        mockSend.mockRejectedValue(noSuchBucketError)
+        mockSendAwsRequest.mockRejectedValue(noSuchBucketError)
 
         await expect(
           resolveVariableFromS3(
@@ -132,7 +113,7 @@ describe('S3 Resolver', () => {
 
     describe('S3 URL format (s3://)', () => {
       test('resolves S3 URL format', async () => {
-        mockSend.mockResolvedValue({
+        mockSendAwsRequest.mockResolvedValue({
           Body: createMockStream('s3-url-content'),
         })
 
@@ -146,12 +127,16 @@ describe('S3 Resolver', () => {
         )
 
         expect(result).toBe('s3-url-content')
+        expect(mockSendAwsRequest.mock.calls[0][0].command.input).toEqual({
+          Bucket: 'my-bucket',
+          Key: 'path/to/file.txt',
+        })
       })
     })
 
     describe('ARN format', () => {
       test('resolves S3 ARN format', async () => {
-        mockSend.mockResolvedValue({
+        mockSendAwsRequest.mockResolvedValue({
           Body: createMockStream('arn-content'),
         })
 
@@ -165,12 +150,16 @@ describe('S3 Resolver', () => {
         )
 
         expect(result).toBe('arn-content')
+        expect(mockSendAwsRequest.mock.calls[0][0].command.input).toEqual({
+          Bucket: 'my-bucket',
+          Key: 'path/to/file.txt',
+        })
       })
     })
 
     describe('pre-resolved details', () => {
       test('uses resolutionDetails when bucketName and objectKey provided', async () => {
-        mockSend.mockResolvedValue({
+        mockSendAwsRequest.mockResolvedValue({
           Body: createMockStream('pre-resolved-content'),
         })
 
@@ -184,6 +173,12 @@ describe('S3 Resolver', () => {
         )
 
         expect(result).toBe('pre-resolved-content')
+        const request = mockSendAwsRequest.mock.calls[0][0]
+        expect(request.target).toBe('explicit-bucket/explicit-key')
+        expect(request.command.input).toEqual({
+          Bucket: 'explicit-bucket',
+          Key: 'explicit-key',
+        })
       })
     })
 
@@ -195,7 +190,7 @@ describe('S3 Resolver', () => {
        */
       test('sends request with empty key for address without separator', async () => {
         // Key 'invalid' has no '/' so objectKey becomes empty string
-        mockSend.mockResolvedValue({
+        mockSendAwsRequest.mockResolvedValue({
           Body: createMockStream('unexpected-content'),
         })
 
@@ -210,8 +205,54 @@ describe('S3 Resolver', () => {
 
         // Documents that the SDK is called with empty Key
 
-        expect(mockSend).toHaveBeenCalled()
+        expect(mockSendAwsRequest).toHaveBeenCalled()
       })
+    })
+  })
+
+  describe('storeDataInS3', () => {
+    test('writes the object through the shared request layer', async () => {
+      mockSendAwsRequest.mockResolvedValue({})
+
+      await storeDataInS3(
+        mockLogger,
+        { accessKeyId: 'test', secretAccessKey: 'test' },
+        'us-east-1',
+        { serverSideEncryption: 'AES256' },
+        'my-bucket/path/to/file.txt',
+        'file-content',
+      )
+
+      const request = mockSendAwsRequest.mock.calls[0][0]
+      expect(request).toMatchObject({
+        service: 's3',
+        region: 'us-east-1',
+        target: 'my-bucket/path/to/file.txt',
+        logger: mockLogger,
+      })
+      expect(request.cache).toBeUndefined()
+      expect(request.command.input).toEqual({
+        Bucket: 'my-bucket',
+        Key: 'path/to/file.txt',
+        Body: 'file-content',
+        ServerSideEncryption: 'AES256',
+      })
+    })
+
+    test('throws for an invalid ServerSideEncryption value', async () => {
+      await expect(
+        storeDataInS3(
+          mockLogger,
+          { accessKeyId: 'test', secretAccessKey: 'test' },
+          'us-east-1',
+          { serverSideEncryption: 'not-a-cipher' },
+          'my-bucket/path/to/file.txt',
+          'file-content',
+        ),
+      ).rejects.toThrow(
+        'Invalid ServerSideEncryption value of s3 resolver: not-a-cipher',
+      )
+      expect(mockSendAwsRequest).not.toHaveBeenCalled()
     })
   })
 })

@@ -1,28 +1,13 @@
 import { jest } from '@jest/globals'
+import { ParameterNotFound } from '@aws-sdk/client-ssm'
 
-// Mock the AWS SDK SSM client
-const mockSend = jest.fn()
+// Mock the shared AWS request layer
+const mockSendAwsRequest = jest.fn()
 
-jest.unstable_mockModule('@aws-sdk/client-ssm', () => ({
-  SSMClient: jest.fn().mockImplementation(() => ({
-    send: mockSend,
-  })),
-  GetParameterCommand: jest.fn().mockImplementation((params) => ({
-    ...params,
-    _type: 'GetParameterCommand',
-  })),
-  ParameterNotFound: class ParameterNotFound extends Error {
-    constructor(message) {
-      super(message)
-      this.name = 'ParameterNotFound'
-    }
-  },
-}))
-
-// Mock the proxy utility
-jest.unstable_mockModule('@serverless/util', () => ({
-  addProxyToAwsClient: jest.fn((client) => client),
-}))
+jest.unstable_mockModule(
+  '../../../src/lib/resolvers/providers/aws/clients.js',
+  () => ({ sendAwsRequest: mockSendAwsRequest }),
+)
 
 // Import after mocking
 const { resolveVariableFromSsm } =
@@ -33,17 +18,39 @@ describe('SSM Resolver', () => {
 
   beforeEach(() => {
     mockLogger = { debug: jest.fn() }
-    mockSend.mockReset()
+    mockSendAwsRequest.mockReset()
   })
 
   afterEach(() => {
     jest.restoreAllMocks()
   })
 
+  test('sends every lookup uncached with the parameter name as target', async () => {
+    mockSendAwsRequest.mockResolvedValue({
+      Parameter: { Type: 'String', Value: 'v' },
+    })
+    await resolveVariableFromSsm(
+      mockLogger,
+      { accessKeyId: 'a', secretAccessKey: 'b' },
+      'us-east-1',
+      '/p',
+      {},
+    )
+    const request = mockSendAwsRequest.mock.calls[0][0]
+    expect(request).toMatchObject({
+      service: 'ssm',
+      region: 'us-east-1',
+      target: '/p',
+      logger: mockLogger,
+    })
+    expect(request.cache).toBeUndefined()
+    expect(request.command.input).toEqual({ Name: '/p', WithDecryption: true })
+  })
+
   describe('resolveVariableFromSsm', () => {
     describe('String parameter type', () => {
       test('resolves String parameter', async () => {
-        mockSend.mockResolvedValue({
+        mockSendAwsRequest.mockResolvedValue({
           Parameter: { Type: 'String', Value: 'my-value' },
         })
 
@@ -61,7 +68,7 @@ describe('SSM Resolver', () => {
 
     describe('StringList parameter type', () => {
       test('resolves StringList parameter as array', async () => {
-        mockSend.mockResolvedValue({
+        mockSendAwsRequest.mockResolvedValue({
           Parameter: { Type: 'StringList', Value: 'one,two,three' },
         })
 
@@ -77,7 +84,7 @@ describe('SSM Resolver', () => {
       })
 
       test('resolves StringList parameter as raw string with raw option', async () => {
-        mockSend.mockResolvedValue({
+        mockSendAwsRequest.mockResolvedValue({
           Parameter: { Type: 'StringList', Value: 'one,two,three' },
         })
 
@@ -95,7 +102,7 @@ describe('SSM Resolver', () => {
 
     describe('SecureString parameter type', () => {
       test('resolves SecureString JSON as parsed object', async () => {
-        mockSend.mockResolvedValue({
+        mockSendAwsRequest.mockResolvedValue({
           Parameter: { Type: 'SecureString', Value: '{"key":"value"}' },
         })
 
@@ -111,7 +118,7 @@ describe('SSM Resolver', () => {
       })
 
       test('resolves SecureString non-JSON as plain string', async () => {
-        mockSend.mockResolvedValue({
+        mockSendAwsRequest.mockResolvedValue({
           Parameter: { Type: 'SecureString', Value: 'plain-secret-value' },
         })
 
@@ -127,7 +134,7 @@ describe('SSM Resolver', () => {
       })
 
       test('resolves SecureString as raw with raw option', async () => {
-        mockSend.mockResolvedValue({
+        mockSendAwsRequest.mockResolvedValue({
           Parameter: { Type: 'SecureString', Value: '{"key":"value"}' },
         })
 
@@ -144,7 +151,7 @@ describe('SSM Resolver', () => {
       })
 
       test('resolves SecureString invalid JSON as plain string', async () => {
-        mockSend.mockResolvedValue({
+        mockSendAwsRequest.mockResolvedValue({
           Parameter: { Type: 'SecureString', Value: '{invalid-json' },
         })
 
@@ -163,7 +170,7 @@ describe('SSM Resolver', () => {
 
     describe('noDecrypt option', () => {
       test('passes WithDecryption: false when noDecrypt is set', async () => {
-        mockSend.mockResolvedValue({
+        mockSendAwsRequest.mockResolvedValue({
           Parameter: { Type: 'SecureString', Value: 'ENCRYPTED' },
         })
 
@@ -175,16 +182,21 @@ describe('SSM Resolver', () => {
           { rawOrDecrypt: 'noDecrypt' },
         )
 
-        // Verify the command was called with WithDecryption: false
-        const { GetParameterCommand } = await import('@aws-sdk/client-ssm')
-        expect(GetParameterCommand).toHaveBeenCalledWith({
+        // Verify the command was built with WithDecryption: false
+        const request = mockSendAwsRequest.mock.calls[0][0]
+        expect(request).toMatchObject({
+          service: 'ssm',
+          region: 'us-east-1',
+          target: '/secret/param',
+        })
+        expect(request.command.input).toEqual({
           Name: '/secret/param',
           WithDecryption: false,
         })
       })
 
       test('returns encrypted value with noDecrypt option', async () => {
-        mockSend.mockResolvedValue({
+        mockSendAwsRequest.mockResolvedValue({
           Parameter: { Type: 'SecureString', Value: 'ENCRYPTED_VALUE' },
         })
 
@@ -202,9 +214,9 @@ describe('SSM Resolver', () => {
 
     describe('missing parameter handling', () => {
       test('returns null for non-existent parameter (ParameterNotFound)', async () => {
-        const notFoundError = new Error('Parameter not found')
-        notFoundError.name = 'ParameterNotFound'
-        mockSend.mockRejectedValue(notFoundError)
+        mockSendAwsRequest.mockRejectedValue(
+          new ParameterNotFound({ message: 'not found', $metadata: {} }),
+        )
 
         const result = await resolveVariableFromSsm(
           mockLogger,
@@ -225,7 +237,7 @@ describe('SSM Resolver', () => {
       test('throws error for non-ParameterNotFound AWS errors', async () => {
         const awsError = new Error('Access Denied')
         awsError.name = 'AccessDeniedException'
-        mockSend.mockRejectedValue(awsError)
+        mockSendAwsRequest.mockRejectedValue(awsError)
 
         await expect(
           resolveVariableFromSsm(
@@ -239,7 +251,7 @@ describe('SSM Resolver', () => {
       })
 
       test('throws error for unexpected parameter type', async () => {
-        mockSend.mockResolvedValue({
+        mockSendAwsRequest.mockResolvedValue({
           Parameter: { Type: 'UnknownType', Value: 'value' },
         })
 
@@ -257,7 +269,7 @@ describe('SSM Resolver', () => {
 
     describe('Secrets Manager reference', () => {
       test('resolves Secrets Manager reference path', async () => {
-        mockSend.mockResolvedValue({
+        mockSendAwsRequest.mockResolvedValue({
           Parameter: {
             Type: 'SecureString',
             Value: '{"username":"admin","password":"secret123"}',

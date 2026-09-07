@@ -1,9 +1,5 @@
-import {
-  GetParameterCommand,
-  ParameterNotFound,
-  SSMClient,
-} from '@aws-sdk/client-ssm'
-import { addProxyToAwsClient } from '@serverless/util'
+import { GetParameterCommand, ParameterNotFound } from '@aws-sdk/client-ssm'
+import { sendAwsRequest } from './clients.js'
 
 export const resolveVariableFromSsm = async (
   logger,
@@ -14,19 +10,19 @@ export const resolveVariableFromSsm = async (
 ) => {
   const shouldReturnRawValue = resolutionDetails?.rawOrDecrypt === 'raw'
   const shouldSkipDecryption = resolutionDetails?.rawOrDecrypt === 'noDecrypt'
-  const client = addProxyToAwsClient(
-    new SSMClient({
-      credentials,
-      region,
-    }),
-  )
-  const command = new GetParameterCommand({
-    Name: key,
-    WithDecryption: !shouldSkipDecryption,
-  })
   const result = await (async () => {
     try {
-      return await client.send(command)
+      return await sendAwsRequest({
+        service: 'ssm',
+        credentials,
+        region,
+        logger,
+        command: new GetParameterCommand({
+          Name: key,
+          WithDecryption: !shouldSkipDecryption,
+        }),
+        target: key,
+      })
     } catch (error) {
       const name = error.name
       if (error instanceof ParameterNotFound || name === 'ParameterNotFound') {
