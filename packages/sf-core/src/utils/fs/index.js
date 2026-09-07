@@ -296,7 +296,8 @@ const getConfigFilePath = async (options) => {
         options.configFileDirPath || process.cwd(),
         `${options.configFileName}.${extension}`,
       )
-      if (await fsp.stat(eventualServiceConfigPath)) {
+      const stats = await fsp.stat(eventualServiceConfigPath)
+      if (stats.isFile()) {
         return eventualServiceConfigPath
       }
     } catch (err) {

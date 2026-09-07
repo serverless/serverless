@@ -1,4 +1,4 @@
-import { mkdtemp, writeFile } from 'fs/promises'
+import { mkdir, mkdtemp, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import path from 'path'
 import { getConfigFilePath } from '../../../../src/utils/index.js'
@@ -19,6 +19,16 @@ describe('getConfigFilePath', () => {
       configFileDirPath: dir,
     })
     expect(result).toBe(path.join(dir, 'serverless.yml'))
+  })
+
+  test('ignores directories matching a supported config file name', async () => {
+    const dir = await makeDir(['serverless.yaml'])
+    await mkdir(path.join(dir, 'serverless.yml'))
+    const result = await getConfigFilePath({
+      configFileName: 'serverless',
+      configFileDirPath: dir,
+    })
+    expect(result).toBe(path.join(dir, 'serverless.yaml'))
   })
 
   describe('with the "extensions" option', () => {
