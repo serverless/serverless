@@ -288,17 +288,21 @@ export class TraditionalRunner extends Runner {
       details.plugins = this.config.plugins
     }
 
-    // runtimes
-    const functionRuntimes = Object.entries(this.config?.functions || {})
-      .map(([, functionObject]) => {
-        if (functionObject.runtime) {
-          return functionObject.runtime
-        }
-        return undefined
-      })
-      .filter((runtime) => runtime !== undefined)
-    if (functionRuntimes.length > 0) {
-      details.runtimes = Array.from(new Set(functionRuntimes))
+    // runtimes — explicit per-function runtimes, plus the value "image" for
+    // container-image functions (which do not set `runtime`). Total: a throw
+    // while reading a function must not abort the analysis event.
+    try {
+      const functionRuntimes = Object.values(this.config?.functions || {})
+        .map((functionObject) => {
+          if (functionObject?.image) return 'image'
+          return functionObject?.runtime || undefined
+        })
+        .filter((runtime) => runtime !== undefined)
+      if (functionRuntimes.length > 0) {
+        details.runtimes = Array.from(new Set(functionRuntimes))
+      }
+    } catch {
+      // leave `runtimes` unset
     }
 
     return details

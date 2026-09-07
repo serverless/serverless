@@ -488,19 +488,56 @@ Finally, `auto` and `onFunctionUpdate` can be set as the `mode` property as well
 
 ## SnapStart
 
-[Lambda SnapStart](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html) for Java can improve startup performance for latency-sensitive applications.
+[Lambda SnapStart](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html) reduces cold-start latency: when a function version is published, Lambda runs the initialization code once, takes a snapshot of the initialized execution environment, and later restores new environments from that snapshot instead of initializing again.
 
-To enable SnapStart for your lambda function you can add the `snapStart` object property in the function configuration which can be put to true and will result in the value `PublishedVersions` for this function.
+Enable it per function with `snapStart: true`. It works for functions deployed as `.zip` packages and for functions deployed as container images.
 
 ```yaml
 functions:
-  hello:
-    ...
-    runtime: java11
+  api:
+    handler: com.example.Handler
+    runtime: java21
+    snapStart: true
+  inference:
+    image: inference
     snapStart: true
 ```
 
-**Note:** Lambda SnapStart only supports the Java 11, Java 17 and Java 21 runtimes and does not support provisioned concurrency, the arm64 architecture, the Lambda Extensions API, Amazon Elastic File System (Amazon EFS), AWS X-Ray, or ephemeral storage greater than 512 MB.
+### Supported runtimes and images
+
+AWS supports SnapStart for Java 11 and later, Python 3.12 and later, and .NET 8 and later, both as managed runtimes and as the corresponding AWS base images for container images. Functions on those need nothing beyond `snapStart: true`.
+
+A container image built on any other base — the AWS base images for Node.js, Ruby or `provided.al2023`, or a custom base image — must declare that it is safe to snapshot, either by adding this label in its Dockerfile:
+
+```dockerfile
+LABEL com.amazonaws.lambda.feature.snapstart="Allow"
+```
+
+or by implementing the [SnapStart runtime hooks](https://docs.aws.amazon.com/lambda/latest/dg/snapstart-runtime-hooks-custom.html). Before adding the label, make sure the code does not create state during initialization that must be unique per environment, such as random seeds, unique IDs or cached credentials; see [Handling uniqueness](https://docs.aws.amazon.com/lambda/latest/dg/snapstart-uniqueness.html).
+
+If an image has neither the label nor the hooks, publishing the function version fails during deployment and the deploy output includes:
+
+```text
+Resource of type 'AWS::Lambda::Version' with identifier '...' did not stabilize. Status Reason is An error occurred during function initialization.
+```
+
+The same message appears when the function's own initialization code throws, so check the function's CloudWatch logs as well. On a first deployment the failed stack is rolled back together with its log group; to read the initialization logs in that case, deploy once without `snapStart`.
+
+### How invocations reach the snapshot
+
+SnapStart applies only to published versions, never to `$LATEST`. On every deploy of a function with `snapStart: true`, the Framework publishes a version and points an alias named `snapstart` at it, and every event source configured on the function invokes that alias. Invoking the unqualified function name — for example `serverless invoke -f api` or a direct `Invoke` call without a qualifier — runs a regular cold start. To exercise the snapshot by hand, invoke the `snapstart` alias or the version number.
+
+### Limitations
+
+AWS does not support SnapStart together with provisioned concurrency, Amazon EFS file systems, S3 Files, or ephemeral storage larger than 512 MB. The Framework rejects `snapStart` combined with `provisionedConcurrency`, or with `ephemeralStorageSize` above 512, when packaging the service; the remaining combinations are rejected by AWS during deployment. SnapStart is not available in every AWS Region; see the [AWS SnapStart documentation](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html) for the current list.
+
+### Cost of retained versions
+
+For every runtime except the Java managed runtimes, AWS charges for caching each published version's snapshot for as long as that version exists, plus a charge per restore; see [Lambda pricing](https://aws.amazon.com/lambda/pricing/). With the default `versionFunctions: true`, the Framework keeps the previous version in place when it deploys a new one, so every deploy of a SnapStart function adds another billed snapshot. Set `provider.versionFunctions: false` to have the superseded version deleted on deploy. Deletion starts with the deploy after the one that applies the change, and versions retained before the change stay until you delete them, for example with `aws lambda delete-function --function-name <name>:<version>`. See [Versioning Deployed Functions](#versioning-deployed-functions).
+
+### Examples
+
+- [Container image with SnapStart (Node.js)](https://github.com/serverless/examples/tree/v4/aws-node-container-snapstart)
 
 ## Recursive Loop Detection
 
@@ -770,6 +807,8 @@ The Infrequent Access class supports a reduced subset of CloudWatch Logs feature
 By default, the framework creates function versions for every deploy. This behavior is optional, and can be turned off in cases where you don't invoke past versions by their qualifier. If you would like to do this, you can invoke your functions as `arn:aws:lambda:....:function/myFunc:3` to invoke version 3 for example.
 
 Versions are not cleaned up by serverless, so make sure you use a plugin or other tool to prune sufficiently old versions. The framework can't clean up versions because it doesn't have information about whether older versions are invoked or not. This feature adds to the number of total stack outputs and resources because a function version is a separate resource from the function it refers to.
+
+For functions with `snapStart` enabled, every retained version also keeps a cached snapshot that AWS bills for outside the Java managed runtimes; see [Cost of retained versions](#cost-of-retained-versions).
 
 To turn off function versioning, set the provider-level option `versionFunctions`.
 

@@ -203,6 +203,21 @@ class AwsCompileFunctions {
         'FUNCTION_BOTH_HANDLER_AND_IMAGE_DEFINED_ERROR',
       )
     }
+
+    if (functionObject.provisionedConcurrency && functionObject.snapStart) {
+      throw new ServerlessError(
+        `Functions with enabled SnapStart does not support provisioned concurrency. Please remove at least one of the settings on function "${functionName}".`,
+        'FUNCTION_BOTH_PROVISIONED_CONCURRENCY_AND_SNAPSTART_ENABLED_ERROR',
+      )
+    }
+
+    if (functionObject.snapStart && functionObject.ephemeralStorageSize > 512) {
+      throw new ServerlessError(
+        `Functions with enabled SnapStart do not support ephemeral storage greater than 512 MB. Please lower "ephemeralStorageSize" or remove "snapStart" on function "${functionName}".`,
+        'FUNCTION_SNAPSTART_EPHEMERAL_STORAGE_TOO_LARGE_ERROR',
+      )
+    }
+
     const effectiveLogGroupClass =
       this.provider.getLogGroupClass(functionObject)
     if (
@@ -990,13 +1005,6 @@ class AwsCompileFunctions {
       Object.assign(cfTemplate.Outputs, {
         [functionVersionOutputLogicalId]: newVersionOutput,
       })
-
-      if (functionObject.provisionedConcurrency && functionObject.snapStart) {
-        throw new ServerlessError(
-          `Functions with enabled SnapStart does not support provisioned concurrency. Please remove at least one of the settings on function "${functionName}".`,
-          'FUNCTION_BOTH_PROVISIONED_CONCURRENCY_AND_SNAPSTART_ENABLED_ERROR',
-        )
-      }
 
       if (functionObject.provisionedConcurrency) {
         if (!shouldVersionFunction) delete versionResource.DeletionPolicy
