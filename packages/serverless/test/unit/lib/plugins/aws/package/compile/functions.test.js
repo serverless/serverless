@@ -2062,6 +2062,134 @@ describe('AwsCompileFunctions', () => {
         /SnapStart.*provisioned concurrency/i,
       )
     })
+
+    it('should throw error when SnapStart is combined with ephemeralStorageSize above 512 MB', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          snapStart: true,
+          ephemeralStorageSize: 1024,
+        },
+      }
+
+      await expect(awsCompileFunctions.compileFunctions()).rejects.toThrow(
+        /SnapStart.*ephemeral storage greater than 512 MB/i,
+      )
+    })
+
+    it('should reject an invalid SnapStart configuration before resolving the container image', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          image: 'repoimage',
+          name: 'func',
+          snapStart: true,
+          ephemeralStorageSize: 1024,
+        },
+      }
+
+      await expect(awsCompileFunctions.compileFunctions()).rejects.toThrow(
+        /SnapStart.*ephemeral storage greater than 512 MB/i,
+      )
+      expect(
+        awsCompileFunctions.provider.resolveImageUriAndSha,
+      ).not.toHaveBeenCalled()
+    })
+
+    it('should accept SnapStart with the default 512 MB ephemeral storage', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          snapStart: true,
+          ephemeralStorageSize: 512,
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const props =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FuncLambdaFunction
+          .Properties
+      expect(props.SnapStart).toEqual({ ApplyOn: 'PublishedVersions' })
+      expect(props.EphemeralStorage).toEqual({ Size: 512 })
+    })
+
+    it('should enable SnapStart on a container-image function and publish a version from the image digest', async () => {
+      awsCompileFunctions.provider.resolveImageUriAndSha.mockResolvedValue({
+        functionImageUri:
+          '000000000000.dkr.ecr.us-east-1.amazonaws.com/repo@sha256:abc',
+        functionImageSha: 'sha256:abc',
+      })
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          image: 'repoimage',
+          name: 'func',
+          snapStart: true,
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      const props = resources.FuncLambdaFunction.Properties
+
+      expect(props.PackageType).toBe('Image')
+      expect(props.Runtime).toBeUndefined()
+      expect(props.SnapStart).toEqual({ ApplyOn: 'PublishedVersions' })
+
+      const versionLogicalId = Object.keys(resources).find(
+        (id) => resources[id].Type === 'AWS::Lambda::Version',
+      )
+      expect(versionLogicalId).toBeDefined()
+      expect(resources[versionLogicalId].Properties.CodeSha256).toBe(
+        'sha256:abc',
+      )
+
+      expect(resources.FuncSnapStartAlias.Type).toBe('AWS::Lambda::Alias')
+      expect(resources.FuncSnapStartAlias.Properties.Name).toBe('snapstart')
+      expect(resources.FuncSnapStartAlias.Properties.FunctionVersion).toEqual({
+        'Fn::GetAtt': [versionLogicalId, 'Version'],
+      })
+    })
+
+    it('should retain superseded versions by default (DeletionPolicy Retain)', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: { handler: 'handler', name: 'func', snapStart: true },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      const versionLogicalId = Object.keys(resources).find(
+        (id) => resources[id].Type === 'AWS::Lambda::Version',
+      )
+      expect(resources[versionLogicalId].DeletionPolicy).toBe('Retain')
+    })
+
+    it('should not retain superseded versions when versionFunctions is false', async () => {
+      awsCompileFunctions.serverless.service.provider.versionFunctions = false
+      awsCompileFunctions.serverless.service.functions = {
+        func: { handler: 'handler', name: 'func', snapStart: true },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      const versionLogicalId = Object.keys(resources).find(
+        (id) => resources[id].Type === 'AWS::Lambda::Version',
+      )
+      expect(versionLogicalId).toBeDefined()
+      expect(resources[versionLogicalId].DeletionPolicy).toBeUndefined()
+      expect(resources.FuncSnapStartAlias).toBeDefined()
+    })
   })
 
   describe('Disable Logs', () => {

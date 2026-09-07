@@ -2738,8 +2738,9 @@ destinations:
               $ref: '#/definitions/awsKmsArn',
             },
             snapStart: {
-              description: `Enable Lambda SnapStart.
-@since v4`,
+              description: `Enable Lambda SnapStart. Supported for Java 11+, Python 3.12+ and .NET 8+ runtimes and for container images; publishes a version and a "snapstart" alias that event sources invoke.
+@since v4
+@see https://www.serverless.com/framework/docs/providers/aws/guide/functions#snapstart`,
               type: 'boolean',
             },
             layers: {

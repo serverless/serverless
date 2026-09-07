@@ -919,7 +919,7 @@ functions:
     onError: arn:aws:sns:us-east-1:XXXXXX:sns-topic
     # KMS key ARN to use for encryption for this function
     kmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
-    # Defines if you want to make use of SnapStart, this feature can only be used in combination with a Java runtime. Configuring this property will result in either None or PublishedVersions for the Lambda function
+    # Enable Lambda SnapStart (Java 11+, Python 3.12+, .NET 8+ runtimes, and container images). Publishes a version and a "snapstart" alias that event sources invoke
     snapStart: true
     # allow or terminate recursive invocation loops between supported AWS services (default: terminate). Case-insensitive.
     recursiveLoop: allow
