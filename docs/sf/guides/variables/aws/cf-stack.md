@@ -72,7 +72,7 @@ functions:
 
 # Requests and rate limits
 
-The Framework resolves all variables concurrently before a command runs. Every `${cf:}` reference reads a CloudFormation stack with the `DescribeStacks` API, and the Framework makes that call once per stack: a service that references twenty outputs of the same stack makes one call, and services deployed together with Serverless Framework Compose share that call when they resolve with the same credentials, while a service that assumes a role or signs in through SSO on its own receives its own temporary credentials and makes its own call per stack.
+The Framework resolves all variables concurrently before a command runs. Every `${cf:}` reference reads a CloudFormation stack with the `DescribeStacks` API, and the Framework makes that call once per stack: a service that references twenty outputs of the same stack makes one call, and services deployed together with Serverless Framework Compose share that call when they resolve with the same credentials, while a service that assumes a role or signs in through SSO on its own receives its own temporary credentials and makes its own call per stack. In a Compose run, a stack that one service deployed or removed is read again by the services that run after it, so they see its new outputs.
 
 CloudFormation applies a rate limit per AWS account and region to `DescribeStacks`. When a call is throttled, the Framework retries it with the AWS SDK's standard exponential backoff, up to 10 attempts by default. Run with `--verbose` to see each retry as it happens. If the retries are exhausted, the command fails with the `RESOLVER_AWS_RATE_EXCEEDED` error, which names the API, the number of attempts, and how many stacks the run referenced.
 
