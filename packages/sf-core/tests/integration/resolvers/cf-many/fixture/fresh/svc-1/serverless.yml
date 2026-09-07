@@ -1,0 +1,20 @@
+service: cfmany-f1
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  region: us-east-1
+  runtime: nodejs22.x
+  environment:
+    # The compose-level pre-read, as svc-1 saw it: 'none' on the first deploy
+    # (no stack yet), then the marker the PREVIOUS deploy left behind.
+    WARM: ${param:warm, 'unset'}
+
+functions:
+  hello:
+    handler: handler.hello
+
+resources:
+  Outputs:
+    Marker:
+      Value: ${param:marker, 'one'}

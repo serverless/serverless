@@ -104,6 +104,16 @@ functions:
     description: ${awsAccount1:noDecryptSsm:/path/to/param}
 ```
 
+# Requests and rate limits
+
+Every `${ssm:}` reference reads one parameter with the `GetParameter` API. The Framework resolves all variables concurrently before a command runs, so a service with many parameters makes many calls at once.
+
+Parameter Store applies a throughput limit per AWS account and region. When a call is throttled, the Framework retries it with the AWS SDK's standard exponential backoff, up to 10 attempts by default. Run with `--verbose` to see each retry as it happens. If the retries are exhausted, the command fails with the `RESOLVER_AWS_RATE_EXCEEDED` error, which names the API, the number of attempts, and how many parameters the run referenced.
+
+The retry settings are the standard AWS SDK settings and follow the same precedence as in every AWS SDK and the AWS CLI: the `AWS_MAX_ATTEMPTS` and `AWS_RETRY_MODE` environment variables, then the `max_attempts` and `retry_mode` keys in `~/.aws/config`. The Framework default of 10 attempts applies only when none of them is set. See [Retry behavior in the AWS SDKs and Tools Reference Guide](https://docs.aws.amazon.com/sdkref/latest/guide/feature-retry-behavior.html).
+
+If deployments in the same account and region regularly hit the limit, you can raise it by enabling [Parameter Store's higher throughput setting](https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-throughput.html) for that account and region.
+
 # Classic (Pre-Resolvers) Format
 
 You can reference SSM Parameters as the source of your variables with the `ssm:/path/to/param` syntax.

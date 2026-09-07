@@ -45,6 +45,13 @@ jest.unstable_mockModule('../../../../../src/lib/router.js', () => ({
   getRunner: jest.fn(),
   route: jest.fn(),
 }))
+// This suite drives updateLocalState directly and deliberately keeps the module
+// graph small; stubbing the resolvers entry point keeps the whole AWS SDK (which
+// the real one pulls in through the provider registry) out of it.
+jest.unstable_mockModule('../../../../../src/lib/resolvers/index.js', () => ({
+  printResult: jest.fn(),
+  variables: { invalidateProviderCaches: jest.fn() },
+}))
 jest.unstable_mockModule('../../../../../src/utils/index.js', () => ({
   getHumanFriendlyTime: jest.fn(),
 }))

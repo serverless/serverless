@@ -16,7 +16,7 @@ custom:
   myArnWithColonAndDoubleQuotes: ${opt:arn, "mongodb+srv//user:asdadasda@mongodb.net/dbname"}
   selfReference: ${self:custom.nonExisting, self:custom.myRegion}
   ssmValue: ${ssm:nonExisting, 'default-ssm-value'}
-  cfValue: ${cf:nonExisting, cf:sfc-nodejs-resolvers-integration-test.nonExisting, 'default-cf-value'}
+  cfValue: ${cf:nonExisting.SomeOutput, cf:sfc-nodejs-resolvers-integration-test.nonExisting, 'default-cf-value'}
   s3Value: ${s3:resolvers-integration-test/nonExisting, 'default-s3-value'}
 
 functions:

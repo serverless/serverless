@@ -20,6 +20,8 @@ keywords:
 - [AWS SSM Parameter Store & Secrets Manager](ssm)
 - [AWS CloudFormation Outputs](cf-stack)
 
+All AWS resolvers share the same request behavior: variables are resolved concurrently, throttled requests are retried with the AWS SDK's standard exponential backoff (10 attempts by default, configurable with the standard `AWS_MAX_ATTEMPTS` and `AWS_RETRY_MODE` settings), and `${cf:}` references are read once per stack. See "Requests and rate limits" on the [CloudFormation Outputs](cf-stack#requests-and-rate-limits) and [SSM](ssm#requests-and-rate-limits) pages.
+
 # Configuration options
 
 | Option            | Required |  Type   |  Default  | Description                                                          |

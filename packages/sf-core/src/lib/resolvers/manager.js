@@ -87,6 +87,33 @@ const isRecoverableResolutionError = (error) =>
   error.code === ServerlessErrorCodes.resolvers.RESOLVER_VALUE_NOT_FOUND
 
 /**
+ * Resolver errors that already name the key and the fix, so `#resolveKey`
+ * surfaces them as-is: wrapping them in the generic "Failed to resolve
+ * variable" envelope would repeat the key and bury the teaching text.
+ *  - RESOLVER_VALUE_NOT_FOUND: the generic "no value here" a provider throws
+ *    instead of returning null when it has something to teach about the
+ *    absence (see `resolve()`, where it also lets a declared fallback apply).
+ *  - COMPOSE_COULD_NOT_RESOLVE_PARAM: the service provider's fatal misuse
+ *    errors (malformed reference, reference outside a compose file, unknown
+ *    alias). They keep a Compose code because the misuse is Compose-specific;
+ *    this pass-through is the one place the manager still names it.
+ *  - RESOLVER_AWS_RATE_EXCEEDED: the AWS resolvers' retries ran out; the
+ *    message names the API, the attempts and the remediations, and
+ *    `resolve()` prefixes it with the placeholder and its path.
+ *  - RESOLVER_INVALID_CF_ADDRESS: a `${cf:}` address without an output key,
+ *    rejected before any request is made.
+ * The general rule — surface every ServerlessError unwrapped, envelope only
+ * unexpected errors — would also unwrap the credential and `--param` errors
+ * below, a user-visible message change kept out of these changes.
+ */
+const PASS_THROUGH_RESOLVER_ERROR_CODES = new Set([
+  ServerlessErrorCodes.resolvers.RESOLVER_VALUE_NOT_FOUND,
+  ServerlessErrorCodes.compose.COMPOSE_COULD_NOT_RESOLVE_PARAM,
+  ServerlessErrorCodes.resolvers.RESOLVER_AWS_RATE_EXCEEDED,
+  ServerlessErrorCodes.resolvers.RESOLVER_INVALID_CF_ADDRESS,
+])
+
+/**
  * The ResolverManager class is responsible for managing the resolvers for each provider.
  * It loads placeholders, resolvers, and dashboard data, and resolves and replaces placeholders in the service configuration file.
  */
@@ -826,26 +853,11 @@ export class ResolverManager {
     try {
       return await resolver(key, params)
     } catch (error) {
-      // Two kinds of error already name the key and the fix, so they surface
-      // as-is: wrapping them would repeat the key and bury the teaching text.
-      //  - RESOLVER_VALUE_NOT_FOUND: the generic "no value here" a provider
-      //    throws instead of returning null when it has something to teach
-      //    about the absence (see `resolve()`, where it also lets a declared
-      //    fallback apply).
-      //  - COMPOSE_COULD_NOT_RESOLVE_PARAM: the service provider's fatal
-      //    misuse errors (malformed reference, reference outside a compose
-      //    file, unknown alias). They keep a Compose code because the misuse
-      //    is Compose-specific; this pass-through is the one place the
-      //    manager still names it. The general rule — surface every
-      //    ServerlessError unwrapped, envelope only unexpected errors — would
-      //    also unwrap the credential and `--param` errors below, a
-      //    user-visible message change kept out of this change.
+      // See PASS_THROUGH_RESOLVER_ERROR_CODES: these already carry the key
+      // and the fix, so they surface unwrapped.
       if (
         error instanceof ServerlessError &&
-        (error.code ===
-          ServerlessErrorCodes.resolvers.RESOLVER_VALUE_NOT_FOUND ||
-          error.code ===
-            ServerlessErrorCodes.compose.COMPOSE_COULD_NOT_RESOLVE_PARAM)
+        PASS_THROUGH_RESOLVER_ERROR_CODES.has(error.code)
       ) {
         throw error
       }
@@ -1240,6 +1252,23 @@ export class ResolverManager {
           params,
         )
       } catch (error) {
+        if (
+          error.code ===
+          ServerlessErrorCodes.resolvers.RESOLVER_AWS_RATE_EXCEEDED
+        ) {
+          throw Object.assign(
+            new ServerlessError(
+              `Cannot resolve '${original}' at '${path?.join('.')}': ${error.message}`,
+              error.code,
+              {
+                originalMessage: error.originalMessage,
+                originalName: error.originalName,
+                stack: false,
+              },
+            ),
+            { providerError: error.providerError },
+          )
+        }
         // A provider that reports "no value here" by THROWING would otherwise
         // deny the variable its declared fallbacks, unlike one that returns
         // null (`${aws:cf:...}` does, so `${aws:cf:stack.Out, 'x'}` falls

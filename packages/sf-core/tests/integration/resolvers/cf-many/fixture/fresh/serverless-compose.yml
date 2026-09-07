@@ -1,0 +1,17 @@
+# Freshness scenario for the AWS resolvers' response cache.
+#
+# `warm` reads svc-1's own `Marker` output BEFORE svc-1 runs, which is what puts
+# that stack in the process-wide response cache. svc-1 then deploys a new Marker
+# and svc-2 — ordered after it by `dependsOn` — reads the same output. The read
+# must return what svc-1 just wrote, not the warmed value.
+stages:
+  default:
+    params:
+      warm: ${cf:cfmany-f1-${sls:stage}.Marker, 'none'}
+
+services:
+  svc-1:
+    path: svc-1
+  svc-2:
+    path: svc-2
+    dependsOn: svc-1

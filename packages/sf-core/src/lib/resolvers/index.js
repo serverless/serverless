@@ -5,6 +5,7 @@ import {
 } from './validation.js'
 import { loadEnvFiles } from './env.js'
 import { ResolverManager } from './manager.js'
+import { providerRegistry } from './registry/index.js'
 import { table } from 'table'
 import { log } from '@serverless/util'
 
@@ -171,6 +172,22 @@ const createResolverManager = async ({
   return { manager, stage }
 }
 
+/**
+ * Tell every registered provider to forget what it cached.
+ *
+ * The runners call this when something in this process may have changed the
+ * world the providers read from — a Compose service `deploy` or `remove` that
+ * finished before a later service resolves its own variables. Providers own
+ * the knowledge of what is cacheable, so this layer only fans the signal out;
+ * a provider without the hook is skipped.
+ */
+const invalidateProviderCaches = () => {
+  for (const Provider of Object.values(providerRegistry.providers)) {
+    Provider.invalidateCaches?.()
+  }
+}
+
 export const variables = {
   createResolverManager,
+  invalidateProviderCaches,
 }

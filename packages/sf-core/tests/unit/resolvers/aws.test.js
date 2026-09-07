@@ -5,7 +5,8 @@ const mockResolveVariableFromSsm = jest.fn()
 const mockResolveVariableFromS3 = jest.fn()
 const mockResolveVariableFromCloudFormation = jest.fn()
 const mockGetAwsCredentials = jest.fn()
-const mockStsSend = jest.fn()
+const mockSendAwsRequest = jest.fn()
+const mockInvalidateAwsResponseCache = jest.fn()
 
 // Mock SSM module
 jest.unstable_mockModule(
@@ -40,13 +41,13 @@ jest.unstable_mockModule(
   }),
 )
 
-// Mock STS
-jest.unstable_mockModule('@aws-sdk/client-sts', () => ({
-  STSClient: jest.fn().mockImplementation(() => ({
-    send: mockStsSend,
-  })),
-  GetCallerIdentityCommand: jest.fn(),
-}))
+jest.unstable_mockModule(
+  '../../../src/lib/resolvers/providers/aws/clients.js',
+  () => ({
+    sendAwsRequest: mockSendAwsRequest,
+    invalidateAwsResponseCache: mockInvalidateAwsResponseCache,
+  }),
+)
 
 // Mock utilities
 jest.unstable_mockModule('@serverless/util', () => ({
@@ -75,7 +76,7 @@ describe('Aws Resolver', () => {
     mockResolveVariableFromS3.mockReset()
     mockResolveVariableFromCloudFormation.mockReset()
     mockGetAwsCredentials.mockReset()
-    mockStsSend.mockReset()
+    mockSendAwsRequest.mockReset()
   })
 
   afterEach(() => {
@@ -333,9 +334,98 @@ describe('Aws Resolver', () => {
     })
   })
 
+  describe('error translation', () => {
+    const makeResolver = () => {
+      const resolver = new Aws({
+        logger: mockLogger,
+        providerConfig: {},
+        serviceConfigFile: {},
+        configFileDirPath: '/tmp',
+        options: {},
+        stage: 'dev',
+        dashboard: null,
+        composeParams: null,
+        resolveVariableFunc: jest.fn(),
+        resolveConfigurationPropertyFunc: jest.fn(),
+      })
+      resolver.credentials = { accessKeyId: 'test', secretAccessKey: 'test' }
+      return resolver
+    }
+
+    test.each(['ExpiredToken', 'ExpiredTokenException'])(
+      'translates %s from a resolver into the friendly credentials message',
+      async (name) => {
+        const expired = new Error(
+          'The security token included in the request is expired',
+        )
+        expired.name = name
+        mockResolveVariableFromSsm.mockRejectedValue(expired)
+
+        const error = await makeResolver()
+          .resolveVariable({
+            resolverType: 'ssm',
+            resolutionDetails: {},
+            key: '/p',
+          })
+          .catch((e) => e)
+
+        expect(error.code).toBe('AWS_CREDENTIALS_MISSING')
+        expect(error.message).toBe(
+          'AWS credentials appear to have expired. This is likely due to the use of temporary credentials (e.g. AWS SSO, AWS IAM STS). Original error from AWS: "The security token included in the request is expired"',
+        )
+        expect(error.providerError).toBe(expired)
+      },
+    )
+
+    test('rethrows every other resolver error as the same object', async () => {
+      const denied = new Error('Access Denied')
+      denied.name = 'AccessDeniedException'
+      mockResolveVariableFromCloudFormation.mockRejectedValue(denied)
+
+      await expect(
+        makeResolver().resolveVariable({
+          resolverType: 'cf',
+          resolutionDetails: {},
+          key: 'stack.Out',
+        }),
+      ).rejects.toBe(denied)
+    })
+
+    test('returns resolved values unchanged', async () => {
+      mockResolveVariableFromS3.mockResolvedValue('file content')
+
+      await expect(
+        makeResolver().resolveVariable({
+          resolverType: 's3',
+          resolutionDetails: {},
+          key: 'bucket/key',
+        }),
+      ).resolves.toBe('file content')
+    })
+
+    test('translates ExpiredTokenException from STS when resolving accountId', async () => {
+      const expired = new Error(
+        'The security token included in the request is expired',
+      )
+      expired.name = 'ExpiredTokenException'
+      mockSendAwsRequest.mockRejectedValue(expired)
+
+      const error = await makeResolver()
+        .resolveVariable({
+          resolverType: 'ssm',
+          resolutionDetails: {},
+          key: 'accountId',
+        })
+        .catch((e) => e)
+
+      expect(error.code).toBe('AWS_CREDENTIALS_EXPIRED')
+      expect(error.message).toContain('AWS credentials appear to have expired.')
+    })
+  })
+
   describe('special keys', () => {
     test('resolves accountId', async () => {
-      mockStsSend.mockResolvedValue({ Account: '123456789012' })
+      mockSendAwsRequest.mockResolvedValue({ Account: '123456789012' })
 
       const resolver = new Aws({
         logger: mockLogger,
@@ -358,6 +448,15 @@ describe('Aws Resolver', () => {
       })
 
       expect(result).toBe('123456789012')
+      const request = mockSendAwsRequest.mock.calls[0][0]
+      expect(request).toMatchObject({
+        service: 'sts',
+        region: 'us-east-1',
+        target: 'caller-identity',
+        cache: true,
+        logger: mockLogger,
+      })
+      expect(request.command.input).toEqual({})
     })
 
     test('resolves region', async () => {
