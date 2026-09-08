@@ -77,7 +77,14 @@ describe('esbuild outExtension support', () => {
 
   beforeEach(() => {
     buildMock.mockReset()
-    buildMock.mockResolvedValue({})
+    // A successful esbuild call writes its outfile, and the plugin now records
+    // only artifacts that are actually on disk, so a mock that resolves
+    // without writing anything would misrepresent success.
+    buildMock.mockImplementation(async ({ outfile }) => {
+      fs.mkdirSync(path.dirname(outfile), { recursive: true })
+      fs.writeFileSync(outfile, '// built by the esbuild mock\n')
+      return {}
+    })
   })
 
   afterEach(() => {
@@ -298,6 +305,28 @@ describe('esbuild packaging with outExtension', () => {
     expect(entries).toContain('handler.mjs')
     expect(entries).toContain('handler.mjs.map')
     expect(entries).not.toContain('handler.js')
+  })
+
+  test('the handler assertion accepts an outExtension-renamed outfile', async () => {
+    // The post-zip check compares `builtArtifacts` against the names actually
+    // appended. Both sides have to agree on the renamed extension, or an
+    // otherwise correct `.mjs` artifact would be rejected as handler-less.
+    const serviceDir = makeBuiltServiceDir('.mjs')
+    const plugin = makePackagingPlugin(serviceDir, {
+      esbuildConfig: { format: 'esm', outExtension: { '.js': '.mjs' } },
+      individually: true,
+    })
+    plugin.builtArtifacts = new Map([
+      ['hello', { outfile: 'handler.mjs', mapfile: 'handler.mjs.map' }],
+    ])
+
+    await expect(plugin._package()).resolves.toBeUndefined()
+
+    expect(
+      await zipEntryNames(
+        path.join(serviceDir, '.serverless', 'my-service-hello.zip'),
+      ),
+    ).toContain('handler.mjs')
   })
 
   test('without outExtension packaging still zips .js names', async () => {

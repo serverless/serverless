@@ -35,7 +35,7 @@ const SERVERLESS_CONFIG_EXTENSIONS = [
  * and excludes those. If the value already carries an extension, it is used
  * verbatim.
  */
-function resolveServerlessConfigFileExcludes(serverless) {
+export function resolveServerlessConfigFileExcludes(serverless) {
   const base = serverless.configurationFilename
   if (!base) return []
 
