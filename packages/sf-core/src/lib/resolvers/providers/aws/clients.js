@@ -17,7 +17,8 @@ import {
 
 /**
  * Shared AWS SDK plumbing for the variable resolvers (`${cf:}`, `${ssm:}`,
- * `${s3:}`, `${aws:accountId}`).
+ * `${s3:}`, `${aws:accountId}`, and the Terraform resolver's `backend: s3`
+ * state reads).
  *
  * Every call gets its own SDK client (each client owns its retry budget, so a
  * burst of calls never shares one 500-token budget), but all clients share one
@@ -66,6 +67,18 @@ const SERVICES = {
     variable: '${s3:}',
     learnMore: RETRY_GUIDE_URL,
   },
+  terraform: {
+    Client: S3Client,
+    clientOptions: { followRegionRedirects: true },
+    label: 'terraform',
+    name: 'Amazon S3',
+    targetNoun: 'state files',
+    variable: '${terraform:outputs:}',
+    learnMore: RETRY_GUIDE_URL,
+    // The Terraform resolver memoizes the parsed state above this layer, so the
+    // request count here is the number of memo misses, not of placeholders.
+    summaryPlaceholders: false,
+  },
   sts: {
     Client: STSClient,
     label: 'aws:accountId',
@@ -98,7 +111,11 @@ const principalCache = new WeakMap()
  * rate-exceeded message sums the throttled region's scopes.
  */
 const counters = new Map()
-let summaryDirty = false
+/**
+ * `${service}:${api}` → the last line the debug summary printed for it, so an
+ * API whose numbers have not moved is not printed again.
+ */
+const lastPrintedLines = new Map()
 
 const getSharedHandler = () => {
   if (handlerOverride) return handlerOverride
@@ -111,7 +128,7 @@ const getSharedHandler = () => {
 /**
  * Build a new SDK client for one request.
  * @param {Object} params
- * @param {'cloudformation'|'ssm'|'s3'|'sts'} params.service
+ * @param {'cloudformation'|'ssm'|'s3'|'sts'|'terraform'} params.service
  * @param {Object|Function} params.credentials - static credentials or an SDK credential provider
  * @param {string} params.region
  */
@@ -215,7 +232,6 @@ const observeRetries = (client, { logger, api, counter, maxAttempts }) => {
         const isThrottled = errorInfo.errorType === 'THROTTLING'
         if (isThrottled) {
           counter.throttledAttempts += 1
-          summaryDirty = true
           if (failedAttempt < maxAttempts) {
             const { error } = errorInfo
             logger.info(
@@ -300,7 +316,7 @@ const toRateExceededError = (
  * Send one SDK command through a fresh client.
  *
  * @param {Object} params
- * @param {'cloudformation'|'ssm'|'s3'|'sts'} params.service
+ * @param {'cloudformation'|'ssm'|'s3'|'sts'|'terraform'} params.service
  * @param {Object|Function} params.credentials
  * @param {string} params.region
  * @param {{info: Function, debug: Function}} params.logger - the resolver's logger
@@ -337,7 +353,6 @@ export const sendAwsRequest = async ({
   const counter = counterFor(service, api, scope, region)
   counter.placeholders += 1
   counter.targets.add(target)
-  summaryDirty = true
 
   const send = async () => {
     const maxAttempts = await client.config.maxAttempts()
@@ -384,11 +399,15 @@ export const sendAwsRequest = async ({
  * regions counts as two stacks, while three Compose services reading the same
  * two stacks — each with its own temporary credentials, and so its own access
  * key id for the one account — still count as two.
- * Prints nothing when no request was recorded since the previous summary.
+ *
+ * A service whose `SERVICES` row sets `summaryPlaceholders: false` leaves the
+ * placeholder figure off its line; the counters still record it.
+ *
+ * A line prints when it first exists and again only when its numbers change, so
+ * a summary taken after another service's work does not repeat what is already
+ * on screen; the last line printed for a service is always its final total.
  */
 export const logAwsResolverSummary = (logger) => {
-  if (!summaryDirty) return
-  summaryDirty = false
   /** `${service}:${api}` → that API's totals across every scope, first seen first. */
   const totals = new Map()
   for (const counter of counters.values()) {
@@ -410,11 +429,16 @@ export const logAwsResolverSummary = (logger) => {
     total.throttledAttempts += counter.throttledAttempts
     totals.set(key, total)
   }
-  for (const total of totals.values()) {
+  for (const [key, total] of totals) {
     const definition = SERVICES[total.service]
-    logger.debug(
-      `${definition.label}: ${total.placeholders} placeholders, ${total.targets.size} ${definition.targetNoun}, ${total.calls} ${total.api} calls, ${total.throttledAttempts} throttled attempts`,
-    )
+    const placeholders =
+      definition.summaryPlaceholders === false
+        ? ''
+        : `${total.placeholders} placeholders, `
+    const line = `${definition.label}: ${placeholders}${total.targets.size} ${definition.targetNoun}, ${total.calls} ${total.api} calls, ${total.throttledAttempts} throttled attempts`
+    if (lastPrintedLines.get(key) === line) continue
+    logger.debug(line)
+    lastPrintedLines.set(key, line)
   }
 }
 
@@ -451,5 +475,5 @@ export const resetAwsResolverState = ({ requestHandler = null } = {}) => {
   handlerOverride = requestHandler
   responseCache.clear()
   counters.clear()
-  summaryDirty = false
+  lastPrintedLines.clear()
 }

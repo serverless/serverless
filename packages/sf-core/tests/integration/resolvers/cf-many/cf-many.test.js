@@ -155,12 +155,15 @@ describe('Serverless Framework Service - Resolvers - cf per-stack de-duplication
     await run(configPath, ['deploy'], { region: undefined })
 
     const cfLines = summaryLines().filter((line) => line.startsWith('cf: '))
-    expect(cfLines.length).toBeGreaterThanOrEqual(2)
-    // The count stays at 2 because `svc-1` and `svc-2` declare no `dependsOn`:
-    // they resolve together at dispatch, before either deploy finishes and
-    // invalidates the resolver cache. Give that fixture an ordering and the
-    // second service re-reads both stacks, which moves this number — a change
-    // in the count then, not a flake.
+    expect(cfLines.length).toBeGreaterThanOrEqual(1)
+    // The stack count stays at 2 because `svc-1` and `svc-2` declare no
+    // `dependsOn`: they resolve together at dispatch, before either deploy
+    // finishes and invalidates the resolver cache. Give that fixture an
+    // ordering and the second service re-reads both stacks, which moves that
+    // number — a change in the count then, not a flake. The summary prints a
+    // line only when its numbers moved since the last print, so two services
+    // resolving concurrently may produce one `cf:` line or two; the last line
+    // is the cumulative total.
     for (const line of cfLines) {
       expect(line).toMatch(
         /^cf: \d+ placeholders, 2 stacks, 2 DescribeStacks calls, \d+ throttled attempts$/,

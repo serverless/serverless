@@ -1,0 +1,7 @@
+org: serverlesstestaccount
+
+services:
+  svc-1:
+    path: svc-1
+  svc-2:
+    path: svc-2

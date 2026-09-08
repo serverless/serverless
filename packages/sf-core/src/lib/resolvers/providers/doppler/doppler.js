@@ -1,4 +1,4 @@
-import { AbstractProvider } from '../index.js'
+import { AbstractProvider, unrecognizedKeysMessage } from '../index.js'
 import { z } from 'zod'
 import DopplerSDK from '@dopplerhq/node-sdk'
 
@@ -9,16 +9,20 @@ export class Doppler extends AbstractProvider {
 
   static validateConfig(providerConfig) {
     const baseSchema = z
-      .object({
-        type: z.literal('doppler'),
-        token: z.string().optional(),
-        project: z.string().optional(),
-        config: z.string().optional(),
-      })
-      .strict({
-        message:
-          "Only 'token', 'project', and 'config' are allowed in the Doppler configuration",
-      })
+      .object(
+        {
+          type: z.literal('doppler'),
+          token: z.string().optional(),
+          project: z.string().optional(),
+          config: z.string().optional(),
+        },
+        {
+          error: unrecognizedKeysMessage(
+            "Only 'token', 'project', and 'config' are allowed in the Doppler configuration",
+          ),
+        },
+      )
+      .strict()
 
     try {
       baseSchema.parse(providerConfig)
