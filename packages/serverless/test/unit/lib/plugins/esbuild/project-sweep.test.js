@@ -517,13 +517,15 @@ describe('nearestPackageJsonType', () => {
   })
 
   it('never walks above the service directory', () => {
-    // The parent of a temp dir is the OS temp dir, which may well hold a
-    // package.json belonging to something else entirely.
-    const dir = makeTreeWithContents({ 'a.ts': '' })
-    fs.writeFileSync(
-      path.join(path.dirname(dir), 'package.json'),
-      '{"type":"module"}',
-    )
+    // The parent of a service dir may well hold a package.json belonging to
+    // something else entirely. The parent here is a directory this suite owns
+    // and deletes: writing into the OS temp dir itself would leave a
+    // `"type": "module"` marker behind for every other process using it.
+    const root = makeTreeWithContents({
+      'package.json': '{"type":"module"}',
+      'svc/a.ts': '',
+    })
+    const dir = path.join(root, 'svc')
     expect(nearestPackageJsonType(dir, 'a.ts')).toBe('commonjs')
   })
 

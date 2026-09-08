@@ -2075,11 +2075,12 @@ describe('_readArchiveEntryNames', () => {
     // The archive silently loses the handler while the intended entry list
     // still names it — what an archiver-side drop looks like from the outside.
     const writeArchive = plugin._writeArchive.bind(plugin)
-    plugin._writeArchive = ({ zipPath, entries, patterns }) =>
+    plugin._writeArchive = (args) =>
       writeArchive({
-        zipPath,
-        entries: entries.filter((entry) => entry.zipPath !== 'src/handler.js'),
-        patterns,
+        ...args,
+        entries: args.entries.filter(
+          (entry) => entry.zipPath !== 'src/handler.js',
+        ),
       })
 
     await expect(plugin._packageAll(fns)).rejects.toMatchObject({
