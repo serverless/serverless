@@ -2,7 +2,7 @@ import path from 'path'
 import url from 'url'
 import { jest } from '@jest/globals'
 import { LambdaClient, GetFunctionCommand } from '@aws-sdk/client-lambda'
-import { setGlobalRendererSettings } from '@serverless/util'
+import { log, setGlobalRendererSettings } from '@serverless/util'
 import { getTestStageName, runSfCore } from '../../../../utils/runSfCore'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
@@ -29,16 +29,13 @@ describe('Terraform Resolvers - S3 Output - one fetch per state across Compose s
   const originalEnv = process.env
   const stage = getTestStageName()
   let deployed = false
-  let stderr = []
 
-  // The resolvers' debug summary is the only observable request count; the CLI
-  // logger writes it to stderr under the `core:resolver:aws` namespace.
-  const summaryLines = () =>
-    stderr
-      .join('')
-      .split('\n')
-      .filter((line) => line.includes('core:resolver:aws:'))
-      .map((line) => line.replace(/.*core:resolver:aws:\s*/, '').trim())
+  // The resolvers' debug summary is the only observable request count. The
+  // runner writes it through the `core:resolver:aws` namespace logger, and
+  // `Logger.get` hands out one cached instance per namespace, so spying on
+  // this instance's `debug` captures the summary as the bare message — no
+  // prefix, and without turning debug output on for every other namespace.
+  const summaryLogger = log.get('core:resolver:aws')
 
   beforeAll(() => {
     setGlobalRendererSettings({ isInteractive: false })
@@ -73,17 +70,12 @@ describe('Terraform Resolvers - S3 Output - one fetch per state across Compose s
   })
 
   test('Deploy: two services reading two outputs each cost one GetObject', async () => {
-    stderr = []
-    jest.spyOn(process.stderr, 'write').mockImplementation((chunk) => {
-      stderr.push(String(chunk))
-      return true
-    })
+    const debugSpy = jest.spyOn(summaryLogger, 'debug')
 
     await runSfCore({
       coreParams: {
         options: { stage, c: composeConfigPath },
         command: ['deploy'],
-        debug: true,
       },
       jest,
     })
@@ -105,9 +97,9 @@ describe('Terraform Resolvers - S3 Output - one fetch per state across Compose s
      * The `Validate` test below is what proves the four references resolved,
      * and to the same state, so it is not redundant with this one.
      */
-    const terraformLines = summaryLines().filter((line) =>
-      line.startsWith('terraform:'),
-    )
+    const terraformLines = debugSpy.mock.calls
+      .map(([line]) => String(line))
+      .filter((line) => line.startsWith('terraform:'))
     expect(terraformLines).toHaveLength(1)
     expect(terraformLines[0]).toMatch(
       /^terraform: 1 state files, 1 GetObject calls, \d+ throttled attempts$/,

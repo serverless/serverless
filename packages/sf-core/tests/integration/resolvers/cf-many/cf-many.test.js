@@ -1,6 +1,6 @@
 import path from 'path'
 import url from 'url'
-import { setGlobalRendererSettings } from '@serverless/util'
+import { log, setGlobalRendererSettings } from '@serverless/util'
 import { LambdaClient, GetFunctionCommand } from '@aws-sdk/client-lambda'
 import { jest } from '@jest/globals'
 import { getTestStageName, runSfCore } from '../../../utils/runSfCore.js'
@@ -25,20 +25,22 @@ describe('Serverless Framework Service - Resolvers - cf per-stack de-duplication
   const deployed = new Set()
   let stderr = []
   let stdout = []
+  let summarySpy = null
 
   const summaryLines = () =>
-    stderr
-      .join('')
-      .split('\n')
-      .filter((line) => line.includes('core:resolver:aws:'))
-      .map((line) => line.replace(/.*core:resolver:aws:\s*/, '').trim())
+    summarySpy ? summarySpy.mock.calls.map(([line]) => String(line)) : []
 
-  // The CLI logger writes to stderr; `print` writes the resolved config to
-  // stdout. Capture both so the assertions do not depend on which one the
-  // renderer picks for a given line.
+  // The resolvers' debug summary is read straight off the `core:resolver:aws`
+  // namespace logger: `Logger.get` hands out one cached instance per namespace,
+  // so a spy on the instance the runner uses sees every summary as the bare
+  // message, without turning debug output on for every other namespace.
+  // The CLI logger otherwise writes to stderr, and `print` writes the resolved
+  // config to stdout; capture both so the `print` assertions do not depend on
+  // which one the renderer picks for a given line.
   const captureOutput = () => {
     stderr = []
     stdout = []
+    summarySpy = jest.spyOn(log.get('core:resolver:aws'), 'debug')
     jest.spyOn(process.stderr, 'write').mockImplementation((chunk) => {
       stderr.push(String(chunk))
       return true
@@ -77,7 +79,7 @@ describe('Serverless Framework Service - Resolvers - cf per-stack de-duplication
       if (value === undefined) delete options[key]
     }
     return runSfCore({
-      coreParams: { options, command, debug: true },
+      coreParams: { options, command },
       jest,
       expectError,
     })
