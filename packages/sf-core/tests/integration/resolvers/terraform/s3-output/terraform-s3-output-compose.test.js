@@ -28,6 +28,7 @@ describe('Terraform Resolvers - S3 Output - one fetch per state across Compose s
   const lambdaClient = new LambdaClient({ region: 'us-east-1' })
   const originalEnv = process.env
   const stage = getTestStageName()
+  let deployed = false
   let stderr = []
 
   // The resolvers' debug summary is the only observable request count; the CLI
@@ -49,8 +50,22 @@ describe('Terraform Resolvers - S3 Output - one fetch per state across Compose s
     }
   })
 
-  afterAll(() => {
-    process.env = originalEnv
+  afterAll(async () => {
+    // The `Remove` test below is the asserted teardown path; this is only the
+    // safety net for a run where a test failed before it could remove them.
+    try {
+      if (deployed) {
+        await runSfCore({
+          coreParams: {
+            options: { stage, c: composeConfigPath },
+            command: ['remove'],
+          },
+          jest,
+        })
+      }
+    } finally {
+      process.env = originalEnv
+    }
   })
 
   afterEach(() => {
@@ -72,6 +87,7 @@ describe('Terraform Resolvers - S3 Output - one fetch per state across Compose s
       },
       jest,
     })
+    deployed = true
 
     /**
      * The memo sits in front of the shared request layer, so `1 GetObject
@@ -125,5 +141,6 @@ describe('Terraform Resolvers - S3 Output - one fetch per state across Compose s
       },
       jest,
     })
+    deployed = false
   })
 })

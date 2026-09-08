@@ -75,9 +75,9 @@ The resolver reads the state file with the AWS credentials from the AWS SDK's de
 
 The `bucket` and `key` properties match the values in the terraform backend configuration in the Terraform configuration file.
 
-## Configuring the `remote` or `cloud` Backend
+## Configuring the `remote` Backend
 
-To use this resolver, you must declare the resolver with `type: terraform` and `backend: remote` under `stages.<stage>.resolvers.<key>` in the `serverless.yml`.
+To use this resolver, you must declare the resolver with `type: terraform` and `backend: remote` under `stages.<stage>.resolvers.<key>` in the `serverless.yml`. A Terraform configuration that uses the `cloud {}` block is read with `backend: remote` as well.
 
 ```yaml
 stages:
