@@ -194,6 +194,32 @@ describe('esbuild outExtension support', () => {
     expect(buildMock).not.toHaveBeenCalled()
   })
 
+  test("a CommonJS subtree under an ESM root names its file when '.mjs' cannot apply", async () => {
+    // `format: esm` on a `"type": "module"` root is the derived default, so
+    // nested package.json subtrees keep deciding their own module system. The
+    // mapping then fails on the first CommonJS file — and "set format: esm",
+    // which the user already did, must not be the advice.
+    const serviceDir = makeServiceDir({
+      'package.json': '{"type":"module"}\n',
+      ...handlerFiles,
+      'sub/package.json': '{"type":"commonjs"}\n',
+      'sub/util.ts': 'export const one = 1\n',
+    })
+    const plugin = makePlugin(serviceDir, functions, {
+      esbuildConfig: {
+        bundle: false,
+        format: 'esm',
+        outExtension: { '.js': '.mjs' },
+      },
+    })
+
+    await expect(plugin._build()).rejects.toThrow(
+      /"sub\/util\.ts" compiles as CommonJS because its nearest package\.json/,
+    )
+    await expect(plugin._build()).rejects.not.toThrow(/Set "format: esm"/)
+    expect(buildMock).not.toHaveBeenCalled()
+  })
+
   test('an unsupported extension value fails fast', async () => {
     const serviceDir = makeServiceDir(handlerFiles)
     const plugin = makePlugin(serviceDir, functions, {

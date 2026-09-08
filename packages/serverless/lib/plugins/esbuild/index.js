@@ -366,6 +366,8 @@ class Esbuild {
     // Set once the `packages: external` / empty-node_modules warning has been
     // emitted, so that it is reported per invocation rather than per function.
     this._nodeModulesExclusionWarned = false
+    // Same shape for the legacy `package.include` / `package.exclude` notice.
+    this._legacyPackageKeysWarned = false
 
     // Captured once at construction so the reset target stays stable: `invoke
     // local` and `offline` repoint the live service path AT this directory
@@ -839,7 +841,11 @@ class Esbuild {
    *   from the nearest package.json rather than service-wide.
    * @returns {string} The configured output extension, defaulting to '.js'
    */
-  _outputExtension(buildProperties, format = buildProperties.format) {
+  _outputExtension(
+    buildProperties,
+    format = buildProperties.format,
+    derivedForFile = null,
+  ) {
     const extension = buildProperties.outExtension?.['.js'] ?? '.js'
 
     if (!['.js', '.cjs', '.mjs'].includes(extension)) {
@@ -860,8 +866,15 @@ class Esbuild {
       )
     }
     if (!isEsm && extension === '.mjs') {
+      // `derivedForFile` names a file whose format came from its nearest
+      // package.json rather than from the configuration: the service root is
+      // ESM (or the mapping would have failed up front), so "set format: esm"
+      // is not the fix here — a nested `package.json` decided this subtree is
+      // CommonJS, and a `.mjs` name would make Lambda load it as ESM anyway.
       throw new ServerlessError(
-        'Emitting ".mjs" files requires the esbuild format "esm". Set "format: esm" in the esbuild configuration or remove the "outExtension" mapping',
+        derivedForFile
+          ? `Emitting ".mjs" files requires the ES module format, but "${derivedForFile}" compiles as CommonJS because its nearest package.json does not declare "type": "module". Declare "type": "module" in that package.json, exclude those files from the build, or remove the "outExtension" mapping`
+          : 'Emitting ".mjs" files requires the esbuild format "esm". Set "format: esm" in the esbuild configuration or remove the "outExtension" mapping',
         'ESBUILD_OUT_EXTENSION_FORMAT_MISMATCH',
       )
     }
@@ -1021,6 +1034,7 @@ class Esbuild {
     }
 
     const buildProperties = await this._buildProperties()
+    this._warnOnLegacyPackageKeys(functionsToBuild)
 
     // Without bundling, a handler's `import`s stay in the emitted file and are
     // resolved by Node at runtime, so the artifact has to carry the whole
@@ -1030,9 +1044,10 @@ class Esbuild {
     if (buildProperties.bundle === false) {
       // Dev mode (the only caller passing `originalHandler`) keeps the
       // last-good outputs, exactly as on the bundling path. The reset belongs
-      // HERE, in `_build`: `before:esbuild-package` fires after it and is the
-      // plugin injection point whose outputs the zip must include, so a reset
-      // in `_package` would wipe plugin-injected files (see `_resetBuildDir`).
+      // HERE, in `_build`: `before:esbuild-package:package` fires after it and
+      // is the plugin injection point whose outputs the zip must include, so a
+      // reset in `_package` would wipe plugin-injected files (see
+      // `_resetBuildDir`).
       if (handlerPropertyName !== 'originalHandler') {
         await this._resetBuildDir()
       }
@@ -1390,27 +1405,13 @@ class Esbuild {
     const swept = await sweepProjectFiles({
       serviceDir,
       additionalIgnores: this._packageDirectoryIgnores(),
-      // `package.include` is the other half of the legacy pre-`patterns` pair
-      // (see `package.exclude` below). Classic merges it ahead of `patterns`
-      // (`getIncludes`: include first, patterns after), so a patterns negation
-      // still gets the last word over an include.
-      patterns: [
-        ...(service.package?.include ?? []),
-        ...(service.package?.patterns ?? []),
-      ],
+      patterns: service.package?.patterns ?? [],
       configFileNames: resolveServerlessConfigFileExcludes(this.serverless),
       layerPaths,
       localPluginPath:
         this.serverless.pluginManager?.parsePluginsObject?.(service.plugins)
           ?.localPath ?? null,
-      additionalExclusions: [
-        ...CLASSIC_DEFAULT_EXCLUDES,
-        // `package.exclude` is the pre-`patterns` spelling. Classic still
-        // merges it into its exclude list, so a service that never migrated
-        // has to keep excluding the same files here.
-        ...(service.package?.exclude ?? []),
-        DOTENV_EXCLUDE,
-      ],
+      additionalExclusions: [...CLASSIC_DEFAULT_EXCLUDES, DOTENV_EXCLUDE],
     })
 
     const handlerFiles = [...handlerFileByAlias.values()]
@@ -1466,7 +1467,11 @@ class Esbuild {
             : 'cjs')
         // `outExtension` is a `.js`-class setting: the other classes carry a
         // module system in their name and renaming their output discards it.
-        outputExtension = this._outputExtension(buildProperties, format)
+        outputExtension = this._outputExtension(
+          buildProperties,
+          format,
+          explicitFormat ? null : file,
+        )
       }
 
       // Keyed by SOURCE class, not by the extension it ends up with: with
@@ -2072,6 +2077,49 @@ class Esbuild {
    *
    * @returns {string[]} zero or one POSIX glob, service-relative
    */
+  /**
+   * Warn, once per process, when the pre-`patterns` keys are configured.
+   *
+   * The esbuild build reads `package.patterns` only -- at the service level
+   * and, under `package.individually`, per function. `package.include` and
+   * `package.exclude` are the legacy pair classic packaging still honors, so
+   * a service that never migrated them validates fine and then silently gets
+   * a different artifact than its configuration describes: an `exclude` that
+   * removes nothing, an `include` that adds nothing. Naming the keys is the
+   * cheapest way to make that visible; honoring them would activate entries
+   * the build has always ignored, which is its own surprise.
+   *
+   * @param {Record<string, object>} functionsToBuild functions this build covers
+   */
+  _warnOnLegacyPackageKeys(functionsToBuild) {
+    if (this._legacyPackageKeysWarned) return
+    const legacyKeysOf = (packageConfig) =>
+      ['include', 'exclude'].filter(
+        (key) =>
+          Array.isArray(packageConfig?.[key]) && packageConfig[key].length > 0,
+      )
+    const quoted = (keys) => keys.map((key) => `"package.${key}"`).join(' and ')
+
+    const where = []
+    const serviceKeys = legacyKeysOf(this.serverless.service.package)
+    if (serviceKeys.length > 0) {
+      where.push(`the service-level ${quoted(serviceKeys)}`)
+    }
+    for (const [alias, functionObject] of Object.entries(functionsToBuild)) {
+      const functionKeys = legacyKeysOf(functionObject.package)
+      if (functionKeys.length > 0) {
+        where.push(`${quoted(functionKeys)} on function "${alias}"`)
+      }
+    }
+    if (where.length === 0) return
+
+    this._legacyPackageKeysWarned = true
+    logger.warning(
+      `The esbuild build applies "package.patterns" only; ${where.join('; ')} ${where.length === 1 && !where[0].includes(' and ') ? 'is' : 'are'} ignored. ` +
+        'Move these entries to "package.patterns", prefixing excludes with "!".',
+    )
+  }
+
   _packageDirectoryIgnores() {
     const configured =
       this.options.package || this.serverless.service.package?.path
@@ -3106,10 +3154,11 @@ class Esbuild {
    * every deploy is a measured multi-second regression.
    *
    * The wipe MUST stay in `_build`, before `spawn('esbuild-package')` runs.
-   * `before:esbuild-package` is the supported injection point for plugins that
-   * add files to the build directory, and the zip has to include what they
-   * wrote -- moving the reset into `_package` would delete those files right
-   * before packaging.
+   * `before:esbuild-package:package` (the spawned command's `package`
+   * lifecycle event; a bare `before:esbuild-package` hook never fires) is the
+   * supported injection point for plugins that add files to the build
+   * directory, and the zip has to include what they wrote -- moving the reset
+   * into `_package` would delete those files right before packaging.
    */
   async _resetBuildDir() {
     const preserved = new Set([

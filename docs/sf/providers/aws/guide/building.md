@@ -232,7 +232,7 @@ build:
     tsconfig: ./tsconfig.build.json
 ```
 
-When `tsconfig` is not set, the build reads `tsconfig.json` from the service directory, if present. Auto-discovery looks only there — it never walks up into parent directories, so a monorepo root config cannot take over a service's build. If an auto-discovered config cannot be resolved (for example, an `extends` target that is not installed), the build warns and compiles every TypeScript file in the package instead.
+When `tsconfig` is not set, the build reads `tsconfig.json` from the service directory, if present. Auto-discovery looks only there — it never walks up into parent directories, so a monorepo root config cannot take over a service's build. If an auto-discovered config cannot be resolved (for example, an `extends` target that is not installed), the build warns and compiles every TypeScript file in the package instead. A config named explicitly in `tsconfig` must resolve: the build fails if it cannot be read.
 
 A dedicated `tsconfig.build.json` keeps tests out of the artifact while your editor keeps type-checking them through the regular `tsconfig.json`:
 
@@ -256,7 +256,7 @@ package:
     - '!**/*.md'
 ```
 
-The classic default exclusions apply — the service configuration file, layer source directories, local plugin directories (`plugins.localPath` and `.serverless_plugins/`), and the development artifacts `.gitignore`, `.DS_Store`, `npm-debug.log`, and `yarn-*.log` — and because the last match wins, patterns can re-include them: `patterns: ['serverless.yml']` ships the config file. The legacy `package.include` and `package.exclude` keys are honored the way classic packaging honors them: includes are applied ahead of `patterns`, excludes join the default exclusions. Patterns can also filter the contents of `node_modules`, per function when set under a function's `package.patterns`.
+The classic default exclusions apply — the service configuration file, layer source directories, local plugin directories (`plugins.localPath` and `.serverless_plugins/`), and the development artifacts `.gitignore`, `.DS_Store`, `npm-debug.log`, and `yarn-*.log` — and because the last match wins, patterns can re-include them: `patterns: ['serverless.yml']` ships the config file. The legacy `package.include` and `package.exclude` keys are not applied by the esbuild build, in either bundle mode; a warning names them when they are present. Move includes to `package.patterns` as they are, and excludes with a leading `!`. Patterns can also filter the contents of `node_modules`, per function when set under a function's `package.patterns`.
 
 Files whose name starts with `.env` (`.env`, `.env.production`, but also `.envrc`) are excluded by default at any depth, whatever `useDotenv` is set to — stricter than classic packaging, which drops them only at the service root and only when `useDotenv` is enabled. The Framework reads these files at deploy time, so the values your function needs are already environment variables by the time it runs, and shipping the file itself puts secrets in the artifact. Like every default exclusion, a positive pattern that matches an env file re-includes it: `patterns: ['.env']` ships that file deliberately, but a broad glob such as `config/**` or `**` also matches any env file beneath it. Review globs with that in mind, or follow them with a negation such as `!**/.env*`.
 

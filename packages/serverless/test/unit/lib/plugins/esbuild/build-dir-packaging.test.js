@@ -654,6 +654,27 @@ describe('_packageAll build-dir sweep', () => {
     )
   })
 
+  it('does not let the legacy package.include add files on the pattern-copy path', async () => {
+    // The esbuild build reads `package.patterns` only, on every path patterns
+    // take; `_build` warns about the legacy keys, packaging just ignores them.
+    const { serviceDir } = seedBuildDir(
+      {
+        'src/handler.js': 'export const hello = () => {}\n',
+        'package.json': '{"name":"svc"}\n',
+      },
+      { 'lib/node_modules/inner/index.js': 'module.exports = "inner"\n' },
+    )
+    const serverless = makeServerless(serviceDir, fns)
+    serverless.service.package.include = ['lib/node_modules/**']
+    const plugin = new Esbuild(serverless, {})
+
+    await plugin._packageAll(fns)
+
+    expect(centralDirectoryNames(serviceArtifact(serviceDir))).not.toContain(
+      'lib/node_modules/inner/index.js',
+    )
+  })
+
   it('re-includes only the pattern-claimed files under an excluded root, not the install residue beside them', async () => {
     // `.yarn/cache` is what a Yarn Berry install leaves in the build directory;
     // `.yarn/releases/yarn.cjs` is a file the service deliberately ships. The

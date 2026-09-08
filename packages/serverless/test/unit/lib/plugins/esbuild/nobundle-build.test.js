@@ -1143,110 +1143,89 @@ describe('_build with bundle:false honors classic file selection', () => {
     expect(built).toContain('serverless.yml')
   })
 
-  it('honors the legacy package.exclude and lets patterns re-include from it', async () => {
-    const files = {
-      'package.json': '{"name":"svc"}',
-      'src/handler.ts': 'export const hello = async () => ({})\n',
-      'secrets/keys.txt': 'shh\n',
-      'secrets/keep.txt': 'fine\n',
+  it('ignores the legacy package.include and package.exclude keys and says so once', async () => {
+    // The esbuild build reads `package.patterns` only. The legacy pair is still
+    // schema-valid and still honored by classic packaging, so a service that
+    // never migrated must hear that its excludes remove nothing and its
+    // includes add nothing here -- once per process, dev mode rebuilds through
+    // the same instance.
+    const warnSpy = jest
+      .spyOn(esbuildLogger, 'warning')
+      .mockImplementation(() => {})
+    try {
+      const serviceDir = makeServiceDir({
+        'package.json': '{"name":"svc"}',
+        'src/handler.ts': 'export const hello = async () => ({})\n',
+        'src/other.ts': 'export const hello = async () => ({})\n',
+        'secrets/keys.txt': 'shh\n',
+        'lib/node_modules/inner/index.js': 'module.exports = "inner"\n',
+      })
+      const plugin = makePlugin(
+        serviceDir,
+        {
+          hello: { handler: 'src/handler.hello' },
+          other: {
+            handler: 'src/other.hello',
+            package: { include: ['lib/**'] },
+          },
+        },
+        {
+          packageConfig: {
+            exclude: ['secrets/**'],
+            include: ['lib/node_modules/**'],
+          },
+        },
+      )
+
+      await plugin._build()
+
+      const built = listBuild(serviceDir)
+      expect(built).toContain('secrets/keys.txt')
+      expect(built).not.toContain('lib/node_modules/inner/index.js')
+
+      expect(warnSpy).toHaveBeenCalledTimes(1)
+      const [message] = warnSpy.mock.calls[0]
+      expect(message).toContain('"package.patterns" only')
+      expect(message).toContain(
+        'the service-level "package.include" and "package.exclude"',
+      )
+      expect(message).toContain('"package.include" on function "other"')
+      expect(message).toContain('prefixing excludes with "!"')
+
+      await plugin._build()
+      expect(warnSpy).toHaveBeenCalledTimes(1)
+    } finally {
+      warnSpy.mockRestore()
     }
-
-    const excluded = makeServiceDir(files)
-    await makePlugin(excluded, functions, {
-      packageConfig: { exclude: ['secrets/**'] },
-    })._build()
-    const built = listBuild(excluded)
-    expect(built).not.toContain('secrets/keys.txt')
-    expect(built).not.toContain('secrets/keep.txt')
-
-    // `exclude` rides in ahead of `patterns`, so last-match-wins still applies.
-    const reincluded = makeServiceDir(files)
-    await makePlugin(reincluded, functions, {
-      packageConfig: {
-        exclude: ['secrets/**'],
-        patterns: ['secrets/keep.txt'],
-      },
-    })._build()
-    const reincludedBuild = listBuild(reincluded)
-    expect(reincludedBuild).toContain('secrets/keep.txt')
-    expect(reincludedBuild).not.toContain('secrets/keys.txt')
   })
 
-  it('inverts a !-prefixed legacy package.exclude entry into a re-include, classic-style', async () => {
-    const serviceDir = makeServiceDir({
-      'package.json': '{"name":"svc"}',
-      'src/handler.ts': 'export const hello = async () => ({})\n',
-      'tmp/keep.js': 'module.exports = 1\n',
-      'tmp/other.js': 'module.exports = 2\n',
-      'assets/logo.txt': 'logo\n',
-    })
-    await makePlugin(serviceDir, functions, {
-      packageConfig: { exclude: ['tmp/**', '!tmp/keep.js'] },
-    })._build()
+  it('says nothing about legacy package keys when only patterns are configured', async () => {
+    const warnSpy = jest
+      .spyOn(esbuildLogger, 'warning')
+      .mockImplementation(() => {})
+    try {
+      const serviceDir = makeServiceDir({
+        'package.json': '{"name":"svc"}',
+        'src/handler.ts': 'export const hello = async () => ({})\n',
+        'secrets/keys.txt': 'shh\n',
+      })
+      await makePlugin(
+        serviceDir,
+        { hello: { handler: 'src/handler.hello' } },
+        {
+          packageConfig: {
+            patterns: ['!secrets/**'],
+            include: [],
+            exclude: [],
+          },
+        },
+      )._build()
 
-    const built = listBuild(serviceDir)
-    expect(built).toContain('tmp/keep.js')
-    expect(built).not.toContain('tmp/other.js')
-    // The exclude pair touches nothing outside tmp/.
-    expect(built).toContain('assets/logo.txt')
-    expect(built).toContain('src/handler.js')
-  })
-
-  it('keeps the project intact when package.exclude carries only a !-prefixed entry', async () => {
-    // A re-include of a file nothing excluded is a no-op in classic. A blanket
-    // `!${glob}` wrap turned it into `!!keep.js` -- a negation whose micromatch
-    // pattern matches everything EXCEPT keep.js -- and emptied the sweep.
-    const serviceDir = makeServiceDir({
-      'package.json': '{"name":"svc"}',
-      'src/handler.ts': 'export const hello = async () => ({})\n',
-      'keep.js': 'module.exports = 1\n',
-      'src/util.js': 'module.exports = 2\n',
-      'README.md': '# svc\n',
-    })
-    await makePlugin(serviceDir, functions, {
-      packageConfig: { exclude: ['!keep.js'] },
-    })._build()
-
-    expect(listBuild(serviceDir)).toEqual(
-      expect.arrayContaining([
-        'README.md',
-        'keep.js',
-        'src/handler.js',
-        'src/util.js',
-      ]),
-    )
-  })
-
-  it('honors the legacy package.include, after excludes and before patterns', async () => {
-    const files = {
-      'package.json': '{"name":"svc"}',
-      'src/handler.ts': 'export const hello = async () => ({})\n',
-      'lib/keep.js': 'module.exports = 1\n',
-      'lib/other.js': 'module.exports = 2\n',
+      expect(listBuild(serviceDir)).not.toContain('secrets/keys.txt')
+      expect(warnSpy).not.toHaveBeenCalled()
+    } finally {
+      warnSpy.mockRestore()
     }
-
-    // The idiomatic legacy pair: exclude broad, re-include narrow.
-    const reincluded = makeServiceDir(files)
-    await makePlugin(reincluded, functions, {
-      packageConfig: { exclude: ['lib/**'], include: ['lib/keep.js'] },
-    })._build()
-    const reincludedBuild = listBuild(reincluded)
-    expect(reincludedBuild).toContain('lib/keep.js')
-    expect(reincludedBuild).not.toContain('lib/other.js')
-
-    // Classic appends `include` before `patterns`, so a patterns negation
-    // still gets the last word over an include.
-    const patternsWin = makeServiceDir(files)
-    await makePlugin(patternsWin, functions, {
-      packageConfig: {
-        exclude: ['lib/**'],
-        include: ['lib/**'],
-        patterns: ['!lib/other.js'],
-      },
-    })._build()
-    const patternsWinBuild = listBuild(patternsWin)
-    expect(patternsWinBuild).toContain('lib/keep.js')
-    expect(patternsWinBuild).not.toContain('lib/other.js')
   })
 
   it('builds the handler even when the patterns would have excluded it', async () => {
