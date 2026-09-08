@@ -1,8 +1,14 @@
 /**
  * Jest tests for AWS Lambda Info Tool
  *
- * This test file directly tests the getLambdaInfo function, mocking the AwsLambdaClient
- * to avoid making actual AWS API calls during testing.
+ * These tests exercise getLambdaInfo directly. The only AWS clients reachable
+ * from this code path are AwsLambdaClient (function details) and
+ * AwsCloudWatchClient (metrics, log group validation and the Insights pattern
+ * query used for the error-log summary); both engine modules are mocked with the
+ * same specifiers the sources import, so no test in this file can perform a
+ * network call. The other resource-info modules re-exported by
+ * src/lib/aws/resource-info.js only construct their clients inside functions
+ * that the Lambda tool never calls.
  */
 
 import { beforeEach, describe, expect, jest, test } from '@jest/globals'
@@ -10,25 +16,30 @@ import { beforeEach, describe, expect, jest, test } from '@jest/globals'
 // Create mock functions
 const mockGetLambdaFunctionDetails = jest.fn()
 const mockGetMetricData = jest.fn()
-const mockGetErrorLogs = jest.fn()
+const mockDescribeLogGroups = jest.fn()
+const mockExecutePatternAnalyticsQuery = jest.fn()
 
 // Mock the AWS Lambda client
-await jest.unstable_mockModule('../../../engine/src/lib/aws/lambda.js', () => {
-  return {
-    AwsLambdaClient: jest.fn(() => ({
-      getLambdaFunctionDetails: mockGetLambdaFunctionDetails,
-    })),
-  }
-})
+await jest.unstable_mockModule(
+  '@serverless/engine/src/lib/aws/lambda.js',
+  () => {
+    return {
+      AwsLambdaClient: jest.fn(() => ({
+        getLambdaFunctionDetails: mockGetLambdaFunctionDetails,
+      })),
+    }
+  },
+)
 
 // Mock the AWS CloudWatch client
 await jest.unstable_mockModule(
-  '../../../engine/src/lib/aws/cloudwatch.js',
+  '@serverless/engine/src/lib/aws/cloudwatch.js',
   () => {
     return {
       AwsCloudWatchClient: jest.fn(() => ({
         getMetricData: mockGetMetricData,
-        getErrorLogs: mockGetErrorLogs,
+        describeLogGroups: mockDescribeLogGroups,
+        executePatternAnalyticsQuery: mockExecutePatternAnalyticsQuery,
       })),
     }
   },
@@ -37,6 +48,22 @@ await jest.unstable_mockModule(
 // Import the function after mocking dependencies
 const { getLambdaInfo } = await import('../../src/tools/aws/lambda-info.js')
 
+const START_TIME = '2023-01-01T00:00:00Z'
+const END_TIME = '2023-01-01T03:00:00Z'
+const START_TIME_MS = Date.parse(START_TIME)
+const END_TIME_MS = Date.parse(END_TIME)
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
+
+const successfulFunctionDetails = (functionName = 'my-function') => ({
+  status: 'success',
+  function: {
+    Configuration: {
+      FunctionName: functionName,
+      Runtime: 'nodejs18.x',
+    },
+  },
+})
+
 describe('AWS Lambda Info Tool', () => {
   beforeEach(() => {
     // Clear all mocks before each test
@@ -44,7 +71,17 @@ describe('AWS Lambda Info Tool', () => {
 
     // Reset mock implementations
     mockGetMetricData.mockReset()
-    mockGetErrorLogs.mockReset()
+    mockDescribeLogGroups.mockReset()
+    mockExecutePatternAnalyticsQuery.mockReset()
+
+    // Every log group the tool derives exists and is small enough (1 KiB) that
+    // the extended-timeframe cost confirmation is skipped.
+    mockDescribeLogGroups.mockImplementation(
+      async ({ logGroupNamePrefix }) => ({
+        logGroups: [{ logGroupName: logGroupNamePrefix, storedBytes: 1024 }],
+      }),
+    )
+    mockExecutePatternAnalyticsQuery.mockResolvedValue({ events: [] })
   })
 
   test('should validate input and return error for empty function names', async () => {
@@ -122,6 +159,8 @@ describe('AWS Lambda Info Tool', () => {
 
     const result = await getLambdaInfo({
       functionNames: ['my-function'],
+      startTime: START_TIME,
+      endTime: END_TIME,
     })
 
     expect(result).toBeDefined()
@@ -130,21 +169,17 @@ describe('AWS Lambda Info Tool', () => {
     const parsedJson = JSON.parse(result.content[0].text)
     expect(parsedJson).toHaveLength(1)
     expect(parsedJson[0].functionName).toBe('my-function')
+    expect(parsedJson[0].type).toBe('lambda')
     expect(parsedJson[0].status).toBe('success')
+    expect(parsedJson[0].policy).toEqual(mockFunctionDetails.policy)
+    expect(parsedJson[0].eventSourceMappings).toEqual(
+      mockFunctionDetails.eventSourceMappings,
+    )
     expect(mockGetLambdaFunctionDetails).toHaveBeenCalledWith('my-function')
   })
 
   test('should handle multiple Lambda functions', async () => {
-    const mockFunction1 = {
-      status: 'success',
-      function: {
-        Configuration: {
-          FunctionName: 'function-1',
-          Runtime: 'nodejs18.x',
-        },
-      },
-    }
-
+    const mockFunction1 = successfulFunctionDetails('function-1')
     const mockFunction2 = {
       status: 'success',
       function: {
@@ -161,6 +196,8 @@ describe('AWS Lambda Info Tool', () => {
 
     const result = await getLambdaInfo({
       functionNames: ['function-1', 'function-2'],
+      startTime: START_TIME,
+      endTime: END_TIME,
     })
 
     expect(result).toBeDefined()
@@ -182,6 +219,8 @@ describe('AWS Lambda Info Tool', () => {
 
     const result = await getLambdaInfo({
       functionNames: ['non-existent-function'],
+      startTime: START_TIME,
+      endTime: END_TIME,
     })
 
     expect(result).toBeDefined()
@@ -198,16 +237,6 @@ describe('AWS Lambda Info Tool', () => {
   })
 
   test('should fetch CloudWatch metrics when time range is provided', async () => {
-    const mockFunctionDetails = {
-      status: 'success',
-      function: {
-        Configuration: {
-          FunctionName: 'my-function',
-          Runtime: 'nodejs18.x',
-        },
-      },
-    }
-
     const mockMetrics = {
       'my-function': {
         Invocations: {
@@ -247,13 +276,13 @@ describe('AWS Lambda Info Tool', () => {
       },
     }
 
-    mockGetLambdaFunctionDetails.mockResolvedValue(mockFunctionDetails)
+    mockGetLambdaFunctionDetails.mockResolvedValue(successfulFunctionDetails())
     mockGetMetricData.mockResolvedValue(mockMetrics)
 
     const result = await getLambdaInfo({
       functionNames: ['my-function'],
-      startTime: '2023-01-01T00:00:00Z',
-      endTime: '2023-01-01T03:00:00Z',
+      startTime: START_TIME,
+      endTime: END_TIME,
       period: 3600,
     })
 
@@ -264,40 +293,28 @@ describe('AWS Lambda Info Tool', () => {
     const parsedJson = JSON.parse(result.content[0].text)
     expect(parsedJson).toHaveLength(1)
     expect(parsedJson[0].functionName).toBe('my-function')
-    expect(parsedJson[0].metrics).toBeDefined()
-    expect(parsedJson[0].metrics.Invocations).toBeDefined()
-    expect(parsedJson[0].metrics.Errors).toBeDefined()
-    expect(parsedJson[0].metrics.Duration).toBeDefined()
-    expect(parsedJson[0].metrics.Duration.Average).toBeDefined()
-    expect(parsedJson[0].metrics.Duration.Maximum).toBeDefined()
+    expect(parsedJson[0].metrics).toEqual(mockMetrics['my-function'])
 
     expect(mockGetLambdaFunctionDetails).toHaveBeenCalledWith('my-function')
+
+    // The ISO strings are parsed to epoch milliseconds and the requested period
+    // is passed through unchanged.
     expect(mockGetMetricData).toHaveBeenCalledWith({
       functionNames: ['my-function'],
-      startTime: expect.any(Number),
-      endTime: expect.any(Number),
+      startTime: START_TIME_MS,
+      endTime: END_TIME_MS,
       period: 3600,
     })
   })
 
   test('should handle errors when fetching CloudWatch metrics', async () => {
-    const mockFunctionDetails = {
-      status: 'success',
-      function: {
-        Configuration: {
-          FunctionName: 'my-function',
-          Runtime: 'nodejs18.x',
-        },
-      },
-    }
-
-    mockGetLambdaFunctionDetails.mockResolvedValue(mockFunctionDetails)
+    mockGetLambdaFunctionDetails.mockResolvedValue(successfulFunctionDetails())
     mockGetMetricData.mockRejectedValue(new Error('Metrics not available'))
 
     const result = await getLambdaInfo({
       functionNames: ['my-function'],
-      startTime: '2023-01-01T00:00:00Z',
-      endTime: '2023-01-01T03:00:00Z',
+      startTime: START_TIME,
+      endTime: END_TIME,
     })
 
     expect(result).toBeDefined()
@@ -306,24 +323,13 @@ describe('AWS Lambda Info Tool', () => {
     const parsedJson = JSON.parse(result.content[0].text)
     expect(parsedJson).toHaveLength(1)
     expect(parsedJson[0].functionName).toBe('my-function')
-    expect(parsedJson[0].metrics).toBeDefined()
-    expect(parsedJson[0].metrics.error).toBe('Metrics not available')
+    expect(parsedJson[0].metrics).toEqual({ error: 'Metrics not available' })
 
     expect(mockGetLambdaFunctionDetails).toHaveBeenCalledWith('my-function')
     expect(mockGetMetricData).toHaveBeenCalled()
   })
 
   test('should handle function names with aliases when fetching metrics', async () => {
-    const mockFunctionDetails = {
-      status: 'success',
-      function: {
-        Configuration: {
-          FunctionName: 'my-function:prod',
-          Runtime: 'nodejs18.x',
-        },
-      },
-    }
-
     const mockMetrics = {
       'my-function': {
         Invocations: {
@@ -333,12 +339,14 @@ describe('AWS Lambda Info Tool', () => {
       },
     }
 
-    mockGetLambdaFunctionDetails.mockResolvedValue(mockFunctionDetails)
+    mockGetLambdaFunctionDetails.mockResolvedValue(
+      successfulFunctionDetails('my-function:prod'),
+    )
     mockGetMetricData.mockResolvedValue(mockMetrics)
 
     const result = await getLambdaInfo({
       functionNames: ['my-function:prod'],
-      startTime: '2023-01-01T00:00:00Z',
+      startTime: START_TIME,
       endTime: '2023-01-01T01:00:00Z',
     })
 
@@ -346,116 +354,174 @@ describe('AWS Lambda Info Tool', () => {
 
     const parsedJson = JSON.parse(result.content[0].text)
     expect(parsedJson[0].functionName).toBe('my-function:prod')
-    expect(parsedJson[0].metrics).toBeDefined()
+    expect(parsedJson[0].metrics).toEqual(mockMetrics['my-function'])
 
     // Verify that the function name was properly extracted for metrics
     expect(mockGetMetricData).toHaveBeenCalledWith({
       functionNames: ['my-function'],
-      startTime: expect.any(Number),
-      endTime: expect.any(Number),
+      startTime: START_TIME_MS,
+      endTime: Date.parse('2023-01-01T01:00:00Z'),
       period: 3600,
     })
+
+    // The alias is stripped for the log group name too
+    expect(
+      mockExecutePatternAnalyticsQuery.mock.calls[0][0].logGroupIdentifiers,
+    ).toEqual(['/aws/lambda/my-function'])
   })
 
-  test('should fetch error logs with specified time range', async () => {
-    const mockFunctionDetails = {
-      status: 'success',
-      function: {
-        Configuration: {
-          FunctionName: 'my-function',
-          Runtime: 'nodejs18.x',
+  test('should summarise error log patterns for the specified time range', async () => {
+    mockGetLambdaFunctionDetails.mockResolvedValue(successfulFunctionDetails())
+    mockGetMetricData.mockResolvedValue({})
+    mockExecutePatternAnalyticsQuery.mockResolvedValue({
+      events: [
+        {
+          pattern: 'Error: Connection timed out after <*>ms',
+          count: 2,
+          examples: ['Error: Connection timed out after 5000ms'],
+          patternId: 'aa11bb22cc33dd44ee55ff6677889900',
+          severityLabel: 'ERROR',
         },
-      },
-    }
-
-    const mockErrorLogs = {
-      'my-function': {
-        totalErrors: 3,
-        errorGroups: [
-          {
-            pattern: 'Error: Connection timed out',
-            count: 2,
-            sample: 'Error: Connection timed out after 5000ms',
-            timestamps: ['2023-01-01T02:00:00Z', '2023-01-01T01:30:00Z'],
-          },
-          {
-            pattern: 'TypeError: Cannot read property of undefined',
-            count: 1,
-            sample: "TypeError: Cannot read property 'id' of undefined",
-            timestamps: ['2023-01-01T01:00:00Z'],
-          },
-        ],
-      },
-    }
-
-    mockGetLambdaFunctionDetails.mockResolvedValue(mockFunctionDetails)
-    mockGetErrorLogs.mockResolvedValue(mockErrorLogs)
+        {
+          pattern: "TypeError: Cannot read property 'id' of undefined",
+          count: 1,
+          examples: ["TypeError: Cannot read property 'id' of undefined"],
+          patternId: '00998877665544ee33dd22cc11bbaa00',
+          severityLabel: 'ERROR',
+        },
+      ],
+    })
 
     const result = await getLambdaInfo({
       functionNames: ['my-function'],
-      startTime: '2023-01-01T00:00:00Z',
-      endTime: '2023-01-01T03:00:00Z',
+      startTime: START_TIME,
+      endTime: END_TIME,
     })
 
     expect(result).toBeDefined()
 
     const parsedJson = JSON.parse(result.content[0].text)
     expect(parsedJson[0].functionName).toBe('my-function')
-    expect(parsedJson[0].errorLogs).toBeDefined()
-    expect(parsedJson[0].errorLogs.totalErrors).toBe(3)
-    expect(parsedJson[0].errorLogs.errorGroups).toHaveLength(2)
-    expect(parsedJson[0].errorLogs.errorGroups[0].count).toBe(2)
 
-    // Verify that the error logs were fetched with the correct parameters
-    expect(mockGetErrorLogs).toHaveBeenCalledWith({
+    // Error logs are produced by the CloudWatch Logs Insights pattern analysis
+    // (src/lib/aws/errors-info-patterns.js), not by a per-function log fetch.
+    const errorLogs = parsedJson[0].errorLogs
+    expect(errorLogs.patterns).toHaveLength(2)
+    expect(errorLogs.patterns[0].count).toBe(2)
+    expect(errorLogs.patterns[0].pattern).toBe(
+      'Error: Connection timed out after <*>ms',
+    )
+    expect(errorLogs.summary.totalErrors).toBe(3)
+    expect(errorLogs.summary.uniqueErrorGroups).toBe(2)
+    expect(errorLogs.summary.logGroups).toEqual(['/aws/lambda/my-function'])
+    expect(errorLogs.timeframeLimited).toBe(false)
+    expect(errorLogs.agentNote).toBeUndefined()
+
+    // The default log group of the function is validated and then queried over
+    // the requested window. maxResults (100) is over-fetched 3x for grouping.
+    expect(mockDescribeLogGroups).toHaveBeenCalledWith({
+      logGroupNamePrefix: '/aws/lambda/my-function',
+      limit: 1,
+    })
+    expect(mockExecutePatternAnalyticsQuery).toHaveBeenCalledWith({
+      logGroupIdentifiers: ['/aws/lambda/my-function'],
+      startTime: new Date(START_TIME_MS),
+      endTime: new Date(END_TIME_MS),
+      limit: 300,
+    })
+  })
+
+  test('should use the log group from the function LoggingConfig when configured', async () => {
+    mockGetLambdaFunctionDetails.mockResolvedValue({
+      status: 'success',
+      function: {
+        Configuration: {
+          FunctionName: 'my-function',
+          Runtime: 'nodejs18.x',
+          LoggingConfig: {
+            LogGroup: '/custom/log/group',
+          },
+        },
+      },
+    })
+    mockGetMetricData.mockResolvedValue({})
+
+    await getLambdaInfo({
       functionNames: ['my-function'],
-      startTime: expect.any(Number),
-      endTime: expect.any(Number),
-      limit: 100,
+      startTime: START_TIME,
+      endTime: END_TIME,
+    })
+
+    expect(mockDescribeLogGroups).toHaveBeenCalledWith({
+      logGroupNamePrefix: '/custom/log/group',
+      limit: 1,
+    })
+    expect(
+      mockExecutePatternAnalyticsQuery.mock.calls[0][0].logGroupIdentifiers,
+    ).toEqual(['/custom/log/group'])
+  })
+
+  test('should limit error log analysis to the last 7 days of a longer window', async () => {
+    const longStartTime = '2023-01-01T00:00:00Z'
+    const longEndTime = '2023-01-31T00:00:00Z'
+
+    mockGetLambdaFunctionDetails.mockResolvedValue(successfulFunctionDetails())
+    mockGetMetricData.mockResolvedValue({})
+
+    const result = await getLambdaInfo({
+      functionNames: ['my-function'],
+      startTime: longStartTime,
+      endTime: longEndTime,
+    })
+
+    const errorLogs = JSON.parse(result.content[0].text)[0].errorLogs
+    expect(errorLogs.timeframeLimited).toBe(true)
+    expect(errorLogs.agentNote).toContain(
+      'limited to the last 7 days (ending at 2023-01-31T00:00:00.000Z)',
+    )
+
+    // Metrics still cover the full window, only the pattern query is shortened
+    expect(mockGetMetricData.mock.calls[0][0].startTime).toBe(
+      Date.parse(longStartTime),
+    )
+    expect(mockExecutePatternAnalyticsQuery).toHaveBeenCalledWith({
+      logGroupIdentifiers: ['/aws/lambda/my-function'],
+      startTime: new Date(Date.parse(longEndTime) - SEVEN_DAYS_MS),
+      endTime: new Date(Date.parse(longEndTime)),
+      limit: 300,
     })
   })
 
   test('should handle errors when fetching error logs', async () => {
-    const mockFunctionDetails = {
-      status: 'success',
-      function: {
-        Configuration: {
-          FunctionName: 'my-function',
-          Runtime: 'nodejs18.x',
-        },
-      },
-    }
-
-    mockGetLambdaFunctionDetails.mockResolvedValue(mockFunctionDetails)
-    mockGetErrorLogs.mockRejectedValue(new Error('Log group not found'))
+    mockGetLambdaFunctionDetails.mockResolvedValue(successfulFunctionDetails())
+    mockGetMetricData.mockResolvedValue({})
+    mockExecutePatternAnalyticsQuery.mockRejectedValue(
+      new Error('Log group not found'),
+    )
 
     const result = await getLambdaInfo({
       functionNames: ['my-function'],
-      startTime: '2023-01-01T00:00:00Z',
-      endTime: '2023-01-01T03:00:00Z',
+      startTime: START_TIME,
+      endTime: END_TIME,
     })
 
     expect(result).toBeDefined()
 
     const parsedJson = JSON.parse(result.content[0].text)
     expect(parsedJson[0].functionName).toBe('my-function')
-    expect(parsedJson[0].errorLogs).toBeDefined()
-    expect(parsedJson[0].errorLogs.error).toBe('Log group not found')
 
-    expect(mockGetErrorLogs).toHaveBeenCalled()
+    // getErrorsInfoWithPatterns handles the failure itself and reports it in the
+    // summary, so the Lambda tool returns an empty pattern list. The underlying
+    // error message is not propagated to errorLogs.
+    const errorLogs = parsedJson[0].errorLogs
+    expect(errorLogs.patterns).toEqual([])
+    expect(errorLogs.summary.totalErrors).toBe(0)
+    expect(errorLogs.summary.nextSteps).toBe(
+      'Error occurred. No pattern analysis available.',
+    )
   })
 
   test('should use default time range when not specified', async () => {
-    const mockFunctionDetails = {
-      status: 'success',
-      function: {
-        Configuration: {
-          FunctionName: 'my-function',
-          Runtime: 'nodejs18.x',
-        },
-      },
-    }
-
     const mockMetrics = {
       'my-function': {
         Invocations: {
@@ -465,23 +531,8 @@ describe('AWS Lambda Info Tool', () => {
       },
     }
 
-    const mockErrorLogs = {
-      'my-function': {
-        totalErrors: 1,
-        errorGroups: [
-          {
-            pattern: 'Error: Connection timed out',
-            count: 1,
-            sample: 'Error: Connection timed out after 5000ms',
-            timestamps: ['2023-01-01T00:00:00Z'],
-          },
-        ],
-      },
-    }
-
-    mockGetLambdaFunctionDetails.mockResolvedValue(mockFunctionDetails)
+    mockGetLambdaFunctionDetails.mockResolvedValue(successfulFunctionDetails())
     mockGetMetricData.mockResolvedValue(mockMetrics)
-    mockGetErrorLogs.mockResolvedValue(mockErrorLogs)
 
     const result = await getLambdaInfo({
       functionNames: ['my-function'],
@@ -491,22 +542,21 @@ describe('AWS Lambda Info Tool', () => {
 
     const parsedJson = JSON.parse(result.content[0].text)
     expect(parsedJson[0].functionName).toBe('my-function')
-    expect(parsedJson[0].metrics).toBeDefined()
+    expect(parsedJson[0].metrics).toEqual(mockMetrics['my-function'])
     expect(parsedJson[0].errorLogs).toBeDefined()
 
-    // Verify that the default time range was used (24 hours)
+    // With no timestamps, getLambdaResourceInfo falls back to "the last 24
+    // hours". The period is NOT the documented 3600 default: with both bounds
+    // undefined, validateTimeParameters
+    // (src/lib/parameter-validator.js:85-86) leaves them undefined and
+    // calculateOptimalPeriod falls through to its widest bucket (1209600 = 2
+    // weeks). Unreachable through the aws-lambda-info tool, whose schema always
+    // supplies startTime, endTime and period.
     expect(mockGetMetricData).toHaveBeenCalledWith({
       functionNames: ['my-function'],
       startTime: expect.any(Number),
       endTime: expect.any(Number),
-      period: 3600,
-    })
-
-    expect(mockGetErrorLogs).toHaveBeenCalledWith({
-      functionNames: ['my-function'],
-      startTime: expect.any(Number),
-      endTime: expect.any(Number),
-      limit: 100,
+      period: 1209600,
     })
 
     // Verify the time range is approximately 24 hours
@@ -518,5 +568,13 @@ describe('AWS Lambda Info Tool', () => {
     // Allow for a small margin of error in the test due to execution time
     expect(timeDiff).toBeGreaterThanOrEqual(oneDayInMs - 1000)
     expect(timeDiff).toBeLessThanOrEqual(oneDayInMs + 1000)
+
+    // The error log analysis uses the same default window
+    expect(mockExecutePatternAnalyticsQuery).toHaveBeenCalledWith({
+      logGroupIdentifiers: ['/aws/lambda/my-function'],
+      startTime: expect.any(Date),
+      endTime: expect.any(Date),
+      limit: 300,
+    })
   })
 })

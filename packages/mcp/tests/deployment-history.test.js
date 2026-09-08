@@ -5,7 +5,14 @@
  * to avoid making actual AWS API calls during testing.
  */
 
-import { jest, expect, describe, test, beforeEach } from '@jest/globals'
+import {
+  jest,
+  expect,
+  describe,
+  test,
+  beforeEach,
+  afterEach,
+} from '@jest/globals'
 
 // Create mock functions
 const mockDescribeStackEvents = jest.fn()
@@ -27,11 +34,31 @@ const { getDeploymentHistory } =
   await import('../src/tools/deployment-history.js')
 const { AwsCloudformationService } =
   await import('@serverless/engine/src/lib/aws/cloudformation.js')
+const { formatDate } = await import('../src/utils/date-utils.js')
+
+/**
+ * The tool derives the window start from the end date with
+ * `start.setDate(start.getDate() - 7)`; expectations are derived the same way
+ * from the same input so the assertion holds in any local time zone.
+ */
+const sevenDaysBefore = (end) => {
+  const start = new Date(end)
+  start.setDate(start.getDate() - 7)
+  return start
+}
 
 describe('Deployment History Tool', () => {
+  let consoleErrorSpy
+
   beforeEach(() => {
     // Clear all mocks before each test
     jest.clearAllMocks()
+    // The error path logs through console.error; keep the suite output clean
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore()
   })
 
   test('should handle successful stack events retrieval', async () => {
@@ -65,11 +92,13 @@ describe('Deployment History Tool', () => {
       totalEvents: mockEvents.length,
     })
 
+    const endDate = '2023-01-03T00:00:00Z'
     const result = await getDeploymentHistory({
       serviceName: 'my-service-dev',
       serviceType: 'serverless-framework',
       region: 'us-east-1',
       profile: 'default',
+      endDate,
     })
 
     // Verify CloudFormation service was initialized with correct config
@@ -78,20 +107,98 @@ describe('Deployment History Tool', () => {
       profile: 'default',
     })
 
-    // Verify result structure
+    // Verify result structure: a single text entry carrying the JSON payload
     expect(result).toHaveProperty('content')
-    expect(result.content).toHaveLength(2)
+    expect(result.content).toHaveLength(1)
     expect(result.content[0].type).toBe('text')
-    expect(result.content[1].type).toBe('text')
+    expect(result.isError).toBeUndefined()
 
     // Parse the JSON string to verify data
-    const jsonData = JSON.parse(result.content[1].text)
+    const jsonData = JSON.parse(result.content[0].text)
     expect(jsonData.service).toBe('my-service-dev')
     expect(jsonData.serviceType).toBe('serverless-framework')
     expect(jsonData.region).toBe('us-east-1')
-    expect(jsonData).toHaveProperty('timeRange')
-    expect(jsonData).toHaveProperty('eventsByDay')
+    expect(jsonData.timeRange).toEqual({
+      start: formatDate(sevenDaysBefore(new Date(endDate))),
+      end: formatDate(new Date(endDate)),
+    })
     expect(jsonData.totalEvents).toBe(2)
+    // Events are grouped by the UTC date part of the formatted timestamp
+    expect(jsonData.eventsByDay).toEqual({
+      '2023-01-02': [
+        {
+          timestamp: '2023-01-02 10:00:00',
+          logicalId: 'MyLambdaFunction',
+          resourceType: 'AWS::Lambda::Function',
+          status: 'CREATE_COMPLETE',
+          statusReason: null,
+          physicalId: 'my-lambda-function',
+        },
+      ],
+      '2023-01-01': [
+        {
+          timestamp: '2023-01-01 09:00:00',
+          logicalId: 'MyS3Bucket',
+          resourceType: 'AWS::S3::Bucket',
+          status: 'UPDATE_COMPLETE',
+          statusReason: 'Resource update initiated',
+          physicalId: 'my-bucket',
+        },
+      ],
+    })
+  })
+
+  test('should default region and omit AWS config when region and profile are not given', async () => {
+    mockDescribeStackEvents.mockResolvedValue({ events: [] })
+
+    const result = await getDeploymentHistory({
+      serviceName: 'my-stack',
+      serviceType: 'cloudformation',
+    })
+
+    expect(AwsCloudformationService).toHaveBeenCalledWith({})
+
+    const jsonData = JSON.parse(result.content[0].text)
+    expect(jsonData.region).toBe('default')
+    expect(jsonData.eventsByDay).toEqual({})
+    expect(jsonData.totalEvents).toBe(0)
+  })
+
+  test('should tolerate a response without an events array', async () => {
+    mockDescribeStackEvents.mockResolvedValue(undefined)
+
+    const result = await getDeploymentHistory({
+      serviceName: 'my-stack',
+      serviceType: 'cloudformation',
+    })
+
+    expect(result.isError).toBeUndefined()
+    const jsonData = JSON.parse(result.content[0].text)
+    expect(jsonData.totalEvents).toBe(0)
+    expect(jsonData.eventsByDay).toEqual({})
+  })
+
+  test('should fall back to placeholders for incomplete events', async () => {
+    mockDescribeStackEvents.mockResolvedValue({
+      events: [{ Timestamp: new Date('2023-01-02T10:00:00Z') }],
+    })
+
+    const result = await getDeploymentHistory({
+      serviceName: 'my-stack',
+      serviceType: 'cloudformation',
+    })
+
+    const jsonData = JSON.parse(result.content[0].text)
+    expect(jsonData.eventsByDay['2023-01-02']).toEqual([
+      {
+        timestamp: '2023-01-02 10:00:00',
+        logicalId: 'Unknown',
+        resourceType: 'Unknown',
+        status: 'Unknown',
+        statusReason: null,
+        physicalId: null,
+      },
+    ])
   })
 
   test('should handle error during stack events retrieval', async () => {
@@ -106,85 +213,108 @@ describe('Deployment History Tool', () => {
       profile: 'default',
     })
 
-    // Verify error handling
+    // Verify error handling: a single text entry plus the isError flag
     expect(result).toHaveProperty('content')
-    expect(result.content).toHaveLength(3)
+    expect(result.content).toHaveLength(1)
     expect(result.content[0].type).toBe('text')
-    expect(result.content[0].text).toContain(
-      'Error retrieving deployment history',
+    expect(result.isError).toBe(true)
+    expect(result.content[0].text).toBe(
+      'Error retrieving deployment history: Stack does not exist',
     )
-    expect(result.content[0].text).toContain('Stack does not exist')
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Deployment History Tool Error: Stack does not exist',
+    )
   })
 
-  test('should filter events by date range', async () => {
-    // Create events spanning multiple days
-    const now = new Date()
-    const yesterday = new Date(now)
-    yesterday.setDate(yesterday.getDate() - 1)
-    const twoDaysAgo = new Date(now)
-    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2)
-    const tenDaysAgo = new Date(now)
-    tenDaysAgo.setDate(tenDaysAgo.getDate() - 10)
+  test('should map AWS credential errors to the guidance message', async () => {
+    mockDescribeStackEvents.mockRejectedValue(
+      new Error('ExpiredToken: the security token has expired'),
+    )
 
-    const mockEvents = [
-      {
-        StackId:
-          'arn:aws:cloudformation:us-east-1:123456789012:stack/my-stack/abc123',
-        Timestamp: now,
-        LogicalResourceId: 'Resource1',
-        ResourceType: 'AWS::Lambda::Function',
-        ResourceStatus: 'UPDATE_COMPLETE',
-        PhysicalResourceId: 'resource-1',
-      },
-      {
-        StackId:
-          'arn:aws:cloudformation:us-east-1:123456789012:stack/my-stack/abc123',
-        Timestamp: yesterday,
-        LogicalResourceId: 'Resource2',
-        ResourceType: 'AWS::S3::Bucket',
-        ResourceStatus: 'CREATE_COMPLETE',
-        PhysicalResourceId: 'resource-2',
-      },
-      {
-        StackId:
-          'arn:aws:cloudformation:us-east-1:123456789012:stack/my-stack/abc123',
-        Timestamp: twoDaysAgo,
-        LogicalResourceId: 'Resource3',
-        ResourceType: 'AWS::DynamoDB::Table',
-        ResourceStatus: 'CREATE_COMPLETE',
-        PhysicalResourceId: 'resource-3',
-      },
-      {
-        StackId:
-          'arn:aws:cloudformation:us-east-1:123456789012:stack/my-stack/abc123',
-        Timestamp: tenDaysAgo,
-        LogicalResourceId: 'Resource4',
-        ResourceType: 'AWS::IAM::Role',
-        ResourceStatus: 'CREATE_COMPLETE',
-        PhysicalResourceId: 'resource-4',
-      },
-    ]
-
-    // Set up the mock to return events
-    mockDescribeStackEvents.mockResolvedValue({
-      events: mockEvents,
-      totalEvents: mockEvents.length,
+    const result = await getDeploymentHistory({
+      serviceName: 'my-service-dev',
+      serviceType: 'serverless-framework',
+      profile: 'my-profile',
     })
 
-    // Set endDate to 3 days ago, which should include only the first 3 events
-    const threeWeeksAgo = new Date(now)
-    threeWeeksAgo.setDate(threeWeeksAgo.getDate() - 3)
+    expect(result.isError).toBe(true)
+    expect(result.content[0].text).toContain(
+      'This is an AWS credentials error.',
+    )
+    expect(result.content[0].text).toContain('Your credentials have expired.')
+    expect(result.content[0].text).toContain("Profile used: 'my-profile'.")
+  })
+
+  test('should query the seven days preceding the requested end date', async () => {
+    mockDescribeStackEvents.mockResolvedValue({ events: [] })
+
+    const endDate = '2023-01-10T12:00:00Z'
+    const result = await getDeploymentHistory({
+      serviceName: 'my-service-dev',
+      serviceType: 'serverless-framework',
+      region: 'us-east-1',
+      profile: 'default',
+      endDate,
+    })
+
+    const expectedEnd = new Date(endDate)
+    const expectedStart = sevenDaysBefore(expectedEnd)
+
+    // Date filtering is delegated to the CloudFormation service, which is
+    // asked only for completed deployments inside the derived window.
+    expect(mockDescribeStackEvents).toHaveBeenCalledWith({
+      stackName: 'my-service-dev',
+      startDate: expectedStart,
+      endDate: expectedEnd,
+      onlyCompletedDeployments: true,
+    })
+
+    const jsonData = JSON.parse(result.content[0].text)
+    expect(jsonData.timeRange).toEqual({
+      start: formatDate(expectedStart),
+      end: formatDate(expectedEnd),
+    })
+  })
+
+  test('should report every event returned by the service', async () => {
+    // The tool does not re-filter by date: whatever the CloudFormation
+    // service returns for the window is formatted and counted, including the
+    // last event, which lies before the derived seven-day window start
+    // (2023-01-03T12:00:00Z).
+    const timestamps = [
+      new Date('2023-01-09T10:00:00Z'),
+      new Date('2023-01-08T10:00:00Z'),
+      new Date('2023-01-07T10:00:00Z'),
+      new Date('2023-01-07T09:00:00Z'),
+      new Date('2023-01-02T10:00:00Z'),
+    ]
+    mockDescribeStackEvents.mockResolvedValue({
+      events: timestamps.map((Timestamp, index) => ({
+        Timestamp,
+        LogicalResourceId: `Resource${index + 1}`,
+        ResourceType: 'AWS::Lambda::Function',
+        ResourceStatus: 'UPDATE_COMPLETE',
+        PhysicalResourceId: `resource-${index + 1}`,
+      })),
+    })
 
     const result = await getDeploymentHistory({
       serviceName: 'my-service-dev',
       serviceType: 'serverless-framework',
       region: 'us-east-1',
       profile: 'default',
-      endDate: threeWeeksAgo.toISOString(),
+      endDate: '2023-01-10T12:00:00Z',
     })
 
-    // Parse the JSON string to verify data
-    const jsonData = JSON.parse(result.content[1].text)
-    expect(jsonData.totalEvents).toBe(4) // Should include all events since we're using onlyCompletedDeployments
+    const jsonData = JSON.parse(result.content[0].text)
+    expect(jsonData.totalEvents).toBe(5)
+    expect(Object.keys(jsonData.eventsByDay)).toEqual([
+      '2023-01-09',
+      '2023-01-08',
+      '2023-01-07',
+      '2023-01-02',
+    ])
+    expect(jsonData.eventsByDay['2023-01-07']).toHaveLength(2)
+    expect(jsonData.eventsByDay['2023-01-02']).toHaveLength(1)
   })
 })

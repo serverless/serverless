@@ -59,11 +59,10 @@ The Serverless MCP Server provides a comprehensive set of tools for working with
 3. `service-summary`
    - Provides a comprehensive summary of your entire serverless service in a single API call
    - Inputs:
-     - `serviceType` (string): Cloud service provider ('aws', 'gcp', 'azure')
+     - `cloudProvider` (string): Cloud provider of the resources to analyze. Currently only "aws" is supported.
      - `resources` (array, optional): Array of resource objects with id and type. Not required if serviceWideAnalysis is true.
      - `serviceWideAnalysis` (boolean, optional): Set to true to automatically fetch and analyze ALL resources in the service
      - `serviceName` (string, optional): Required if serviceWideAnalysis is true. For Serverless Framework, use "serviceName-stageName" format. For CloudFormation, use the exact stack name.
-     - `cloudProvider` (string, optional): Required if serviceWideAnalysis is true. Specifies the cloud service provider ("aws")
      - `startTime` (string, optional): Start time for metrics and logs (ISO date or timestamp)
      - `endTime` (string, optional): End time for metrics and logs (ISO date or timestamp)
      - `period` (number, optional): Period for metrics in seconds (min 60, must be a multiple of 60, default 3600)

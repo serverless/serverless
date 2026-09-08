@@ -127,6 +127,9 @@ jobs:
       - name: 'Test: Unit (serverless)'
         working-directory: ./packages/serverless
         run: npm run test:unit
+      - name: 'Test: Unit (mcp)'
+        working-directory: ./packages/mcp
+        run: npm run test:unit
       - name: 'Build: Minify Shim'
         run: |
           cd ../serverless/lib/plugins/aws/dev

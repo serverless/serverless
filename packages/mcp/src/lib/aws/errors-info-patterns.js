@@ -386,13 +386,17 @@ async function fetchLambdaLogGroups(functionName, awsConfig) {
     // Get function configuration
     const functionDetails =
       await lambdaClient.getLambdaFunctionDetails(functionName)
+    // getLambdaFunctionDetails returns { status, function, policy, ... } with
+    // the GetFunction response under `function`, so the configuration lives
+    // at function.Configuration (same shape lambda-resource-info.js reads).
+    const configuration = functionDetails?.function?.Configuration
 
-    if (functionDetails && functionDetails.Configuration) {
+    if (configuration) {
       // Check if logging configuration is available
-      if (functionDetails.Configuration.LoggingConfig) {
+      if (configuration.LoggingConfig) {
         // Extract log group from LoggingConfig if available (newer Lambda versions)
-        if (functionDetails.Configuration.LoggingConfig.LogGroup) {
-          logGroups.push(functionDetails.Configuration.LoggingConfig.LogGroup)
+        if (configuration.LoggingConfig.LogGroup) {
+          logGroups.push(configuration.LoggingConfig.LogGroup)
         }
       }
 

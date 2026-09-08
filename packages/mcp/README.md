@@ -43,11 +43,10 @@ Provides a consolidated view of multiple cloud resources in a single request. Th
 
 **Inputs:**
 
-- `serviceType` (enum): Cloud provider ("aws", "gcp", "azure")
+- `cloudProvider` (enum): Cloud provider of the resources to analyze. Currently only "aws" is supported.
 - `resources` (optional object[]): Resources to analyze with their types and IDs. Not required if serviceWideAnalysis is true.
 - `serviceWideAnalysis` (optional boolean): Set to true to automatically fetch and analyze ALL resources in the specified service.
 - `serviceName` (optional string): Required if serviceWideAnalysis is true. For Serverless Framework, use "serviceName-stageName" format (e.g., "my-service-dev"). For CloudFormation, use the exact stack name.
-- `cloudProvider` (optional enum): Required if serviceWideAnalysis is true. Specifies the cloud service provider ("aws").
 - `startTime` (optional string): Start time for metrics. Can be an ISO date string or timestamp in milliseconds.
 - `endTime` (optional string): End time for metrics. Can be an ISO date string or timestamp in milliseconds.
 - `period` (optional number): Period for metrics in seconds
