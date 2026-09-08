@@ -118,10 +118,13 @@ describe('REST API Gateway Info Tool', () => {
       },
     })
 
+    const startTime = '2023-01-01T00:00:00Z'
+    const endTime = '2023-01-01T03:00:00Z'
+
     const result = await getRestApiGatewayInfo({
       apiIds: [apiId],
-      startTime: '2023-01-01T00:00:00Z',
-      endTime: '2023-01-01T03:00:00Z',
+      startTime,
+      endTime,
     })
 
     expect(result.isError).toBeUndefined()
@@ -134,14 +137,22 @@ describe('REST API Gateway Info Tool', () => {
     expect(jsonContent[0]).toHaveProperty('resourceId', apiId)
     expect(jsonContent[0]).toHaveProperty('type', 'restapigateway')
 
-    // Verify the resource info function was called with the correct parameters
-    expect(mockGetRestApiGatewayResourceInfo).toHaveBeenCalledWith(
-      expect.objectContaining({
-        resourceId: apiId,
-        startTime: '2023-01-01T00:00:00Z',
-        endTime: '2023-01-01T03:00:00Z',
-      }),
-    )
+    // Verify the resource info function was called with the correct
+    // parameters. The tool normalizes the time range through
+    // validateAndAdjustParameters before delegating, so the resource-info
+    // layer receives epoch milliseconds plus a derived CloudWatch period,
+    // not the raw ISO strings.
+    expect(mockGetRestApiGatewayResourceInfo).toHaveBeenCalledWith({
+      resourceId: apiId,
+      startTime: Date.parse(startTime),
+      endTime: Date.parse(endTime),
+      // No period was requested: the 3-hour window at the default 3600s
+      // granularity yields 3 data points, far below the 300-point cap, so
+      // calculateOptimalPeriod keeps the 1-hour default.
+      period: 3600,
+      region: undefined,
+      profile: undefined,
+    })
   })
 
   test('should handle errors for individual APIs', async () => {

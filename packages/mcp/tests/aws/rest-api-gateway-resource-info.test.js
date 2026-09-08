@@ -252,8 +252,12 @@ describe('REST API Gateway Resource Info', () => {
     })
   })
 
-  test('should get list of all APIs when resourceId is not provided', async () => {
-    // Mock REST API Gateway client to return a list of APIs
+  test('should return an error when resourceId is not provided', async () => {
+    // An API ID is required: getRestApiGatewayResourceInfo short-circuits on a
+    // missing resourceId, matching its callers (the aws-rest-api-gateway-info
+    // tool requires at least one API ID in its schema and guards on an empty
+    // array). Listing every API is therefore not part of the contract, and no
+    // REST API Gateway request is issued.
     mockGetRestApis.mockResolvedValue([
       {
         id: 'api1',
@@ -261,40 +265,31 @@ describe('REST API Gateway Resource Info', () => {
         description: 'First test API',
         createdDate: new Date('2023-01-01T00:00:00Z'),
       },
-      {
-        id: 'api2',
-        name: 'API 2',
-        description: 'Second test API',
-        createdDate: new Date('2023-01-02T00:00:00Z'),
-      },
     ])
 
     const result = await getRestApiGatewayResourceInfo({})
 
-    // Verify the result contains a list of APIs
     expect(result).toEqual({
-      resourceId: 'all',
+      resourceId: undefined,
       type: 'restapigateway',
-      apis: expect.arrayContaining([
-        expect.objectContaining({
-          id: 'api1',
-          name: 'API 1',
-        }),
-        expect.objectContaining({
-          id: 'api2',
-          name: 'API 2',
-        }),
-      ]),
+      status: 'error',
+      error: 'Please provide a REST API Gateway API ID',
     })
 
-    // Verify REST API Gateway client calls
-    expect(mockGetRestApis).toHaveBeenCalled()
+    expect(mockGetRestApis).not.toHaveBeenCalled()
   })
 
   test('should handle errors when fetching REST API Gateway metrics', async () => {
     const apiId = 'abc123'
+    const apiName = 'Test API'
+    const startTime = '2023-01-01T00:00:00Z'
+    const endTime = '2023-01-01T03:00:00Z'
 
-    // Mock API Gateway client responses
+    // Mock API Gateway client responses. getRestApi must be re-stubbed here:
+    // jest.clearAllMocks() clears recorded calls but keeps implementations, so
+    // otherwise the rejection from the "API does not exist" test above leaks in
+    // and the API-not-found branch is taken before any metrics are fetched.
+    mockGetRestApi.mockResolvedValue({ id: apiId, name: apiName })
     mockGetStages.mockResolvedValue([{ stageName: 'dev' }])
     mockGetResources.mockResolvedValue([])
     mockGetDeployments.mockResolvedValue([])
@@ -304,21 +299,37 @@ describe('REST API Gateway Resource Info', () => {
 
     // Mock metrics to throw an error
     mockGetApiGatewayMetricData.mockRejectedValue(
-      new Error('Failed to fetch metrics'),
+      new Error('CloudWatch unavailable'),
     )
 
     const result = await getRestApiGatewayResourceInfo({
       resourceId: apiId,
-      startTime: '2023-01-01T00:00:00Z',
-      endTime: '2023-01-01T03:00:00Z',
+      startTime,
+      endTime,
     })
 
-    // Verify the result contains error information for metrics
-    expect(result).toEqual({
+    // A metrics failure is reported inside the result rather than failing the
+    // whole lookup, so the API details are still returned.
+    expect(result).toMatchObject({
       resourceId: apiId,
       type: 'restapigateway',
-      error: expect.stringContaining('API not found'),
-      status: 'error',
+      id: apiId,
+      name: apiName,
+      metrics: {
+        error: 'Failed to fetch metrics: CloudWatch unavailable',
+      },
+    })
+    expect(result.status).toBeUndefined()
+
+    // The metrics request itself is made with the caller's time range: this
+    // layer forwards the values it was given (here, ISO strings) unchanged.
+    expect(mockGetApiGatewayMetricData).toHaveBeenCalledWith({
+      apiNames: [apiName],
+      stageNames: ['dev'],
+      startTime,
+      endTime,
+      // No period was requested, so the resource-info default is used.
+      period: 3600,
     })
   })
 })
