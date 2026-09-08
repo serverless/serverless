@@ -9,6 +9,19 @@
  */
 
 /**
+ * zod 4's `.strict()` takes no message, so the "only these keys are allowed"
+ * text has to be attached as the object schema's `error` for the
+ * `unrecognized_keys` issue. Field errors keep zod's own messages.
+ *
+ * @param {string} message - The allowed-keys text for this schema.
+ * @returns {Function} An error map for `z.object`'s second argument.
+ */
+export const unrecognizedKeysMessage = (message) => (issue) =>
+  issue.code === 'unrecognized_keys'
+    ? `${message} (unrecognized: ${issue.keys.map((key) => `'${key}'`).join(', ')})`
+    : undefined
+
+/**
  * AbstractProvider is a base class for all providers.
  * It provides common properties and methods that all providers can use.
  */

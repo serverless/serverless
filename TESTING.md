@@ -81,6 +81,7 @@ The integration tests require specific AWS resources, including:
   - Versioning enabled
 - `terraform-s3-resolver-test-bucket`
   - Versioning enabled
+  - Holds the state written by `packages/sf-core/tests/integration/resolvers/terraform/s3-output/terraform-setup/main.tf` at key `terraform-s3-resolver-test-state/tfstate` (`terraform init && terraform apply` in that directory); the suite expects the outputs `key-1-id` and `key-2-id`
 - `resolvers-integration-test`
   - File: `test.txt`
   - Content: `file content`

@@ -17,17 +17,17 @@ It is a popular use case to use Terraform and Serverless Framework in conjunctio
 
 In this case, it is helpful to access the Terraform State Outputs from within your serverless.yml file so at deployment time it can look up details about the shared infrastructure, like the RDS connection string, or SQS Queue ARN.
 
-The Terraform Variable Resolver supports getting the Terraform State Outputs `s3`, `remote`,`cloud`, or `http` backend.
+The Terraform Variable Resolver supports reading Terraform state outputs from the `s3`, `remote` (including HCP Terraform, formerly Terraform Cloud), and `http` backends.
 
 ## Getting Terraform Outputs from Remote Backends
 
-Terraform supports using a remote backend to store the state of the infrastructure. The state can be stored in a number of support remote backends like AWS S3, Terraform HCP, or HTTP.
+Terraform supports using a remote backend to store the state of the infrastructure. The state can be stored in a number of support remote backends like AWS S3, HCP Terraform, or HTTP.
 
-The Terraform output variable resolver in Serverless Framework V.4 only supports the S3, Remote, and HTTP backends, therefore one of these four options must be used.
+The Terraform output variable resolver in Serverless Framework V.4 only supports the S3, Remote, and HTTP backends, therefore one of these three backends must be used.
 
 In all the examples we'll assume a Terraform configuration that creates a DynamoDB table and outputs the ARN of the table in the `users_table_arn` output.
 
-```
+```hcl
 # Configures the Terraform backend to store state in an S3 bucket
 terraform {
   # cloud {} - compatible with remote backend
@@ -69,15 +69,15 @@ In the `terraform` resolver supports the following configuration if the `backend
 
 - `bucket` - The name of the S3 bucket where the Terraform State Outputs are stored.
 - `key` - The key of the Terraform State Outputs file in the S3 bucket.
-- `region` - (optional) - The region of the S3 bucket where the Terraform State Outputs are stored. This is optional and if not provided the default region will be used.
+- `region` - (optional) - The region of the S3 bucket where the Terraform State Outputs are stored. If not provided, the region comes from the AWS SDK's default settings (the `AWS_REGION` environment variable or the `region` of the active AWS profile). The resolver does not use `provider.region`; if no region can be found, the resolver fails with `Region is missing`.
 
-The resolver uses the current AWS account credentials, the same ones being used for the deployment, so the S3 bucket containing the state must reside in that account. Support for pointing to a secondary AWS account is coming soon.
+The resolver reads the state file with the AWS credentials from the AWS SDK's default credential chain: environment variables, the `AWS_PROFILE` environment variable, or the default profile in `~/.aws`. It does not use `provider.profile`, an `aws` resolver's `profile`, or Serverless Dashboard provider credentials, so the identity that reads the state bucket can differ from the identity that deploys the service. Make sure the default credentials can read the bucket, or export the deployment profile as `AWS_PROFILE` for the run.
 
 The `bucket` and `key` properties match the values in the terraform backend configuration in the Terraform configuration file.
 
-## Configuring the `remote` or `cloud` Backend
+## Configuring the `remote` Backend
 
-To use this resolver, you must declare the resolver with `type: terraform` and `backend: remote` under `stages.<stage>.resolvers.<key>` in the `serverless.yml`.
+To use this resolver, you must declare the resolver with `type: terraform` and `backend: remote` under `stages.<stage>.resolvers.<key>` in the `serverless.yml`. A Terraform configuration that uses the `cloud {}` block is read with `backend: remote` as well.
 
 ```yaml
 stages:
@@ -115,13 +115,23 @@ stages:
         backend: http
 ```
 
-In the `terraform` resolver supports the following configuration if the `backend` is `remote`:
+In the `terraform` resolver supports the following configuration if the `backend` is `http`:
 
 - `address` - (optional) The HTTP address of the Terraform http backend where the Terraform State Outputs are stored.
 - `username` - (optional) The username to use to access the Terraform State Outputs.
 - `password` - (optional) The password to use to access the Terraform State Outputs.
 
 While, `address`, `username`, and `password` are optional, you must provide an address either via the `address` configuration or the `TF_HTTP_ADDRESS` environment variable.
+
+## Requests and rate limits
+
+The Framework resolves all variables concurrently before a command runs, and reads each Terraform state once per run: a service that references twenty outputs of the same state reads it once, and services deployed together with Serverless Framework Compose share that read when they run in the same command. This applies to every backend (`s3`, `remote`, `http`).
+
+For the `s3` backend, a request that Amazon S3 throttles is retried with the AWS SDK's standard exponential backoff, up to 10 attempts by default. Run with `--verbose` to see each retry, and with `--debug` to see a summary of the requests made (`terraform: … state files, … GetObject calls`). If the retries are exhausted, the command fails with the `RESOLVER_AWS_RATE_EXCEEDED` error, which names the API, the number of attempts, and how many state files the run referenced. The retry settings follow the same precedence as in every AWS SDK and the AWS CLI: the `AWS_MAX_ATTEMPTS` and `AWS_RETRY_MODE` environment variables, then the `max_attempts` and `retry_mode` keys in `~/.aws/config`; the Framework default applies only when none of them is set. See [Retry behavior in the AWS SDKs and Tools Reference Guide](https://docs.aws.amazon.com/sdkref/latest/guide/feature-retry-behavior.html).
+
+A download that is interrupted by the network fails the command with `Error fetching Terraform outputs from S3: Error: aborted`; rerun the command. Because each state is read once per resolution pass rather than once per referenced output, such a failure can occur at most once per state file per pass.
+
+During `serverless dev`, the state read at startup is kept for the whole session. Restart the session after `terraform apply` to pick up new outputs.
 
 ## Resolvers in Serverless Framework V.4
 

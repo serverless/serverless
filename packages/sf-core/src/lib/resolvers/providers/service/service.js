@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
-import { AbstractProvider } from '../index.js'
+import { AbstractProvider, unrecognizedKeysMessage } from '../index.js'
 
 /**
  * The service name of a `<service>.<Output>` reference key, or `null` when the
@@ -62,16 +62,20 @@ export class Service extends AbstractProvider {
 
   static validateConfig(providerConfig) {
     const schema = z
-      .object({
-        type: z.literal('service'),
-        stage: z
-          .string({ message: "The 'stage' property must be a string" })
-          .optional(),
-      })
-      .strict({
-        message:
-          "Only 'type' and 'stage' are allowed in the service resolver configuration",
-      })
+      .object(
+        {
+          type: z.literal('service'),
+          stage: z
+            .string({ message: "The 'stage' property must be a string" })
+            .optional(),
+        },
+        {
+          error: unrecognizedKeysMessage(
+            "Only 'type' and 'stage' are allowed in the service resolver configuration",
+          ),
+        },
+      )
+      .strict()
 
     try {
       schema.parse(providerConfig)

@@ -1,6 +1,7 @@
 import { Readable } from 'node:stream'
 import { jest } from '@jest/globals'
 import { DescribeStacksCommand } from '@aws-sdk/client-cloudformation'
+import { GetObjectCommand } from '@aws-sdk/client-s3'
 import { GetParameterCommand } from '@aws-sdk/client-ssm'
 import { HttpResponse } from '@smithy/core/protocols'
 
@@ -58,6 +59,14 @@ const ok = (body, contentType = 'text/xml') => ({
 const throttled = () => ({
   status: 400,
   body: cfnErrorXml('Throttling', 'Rate exceeded'),
+})
+/** Amazon S3's own throttling response, as the Terraform state read sees it. */
+const s3Throttled = () => ({
+  status: 503,
+  body:
+    '<?xml version="1.0" encoding="UTF-8"?><Error><Code>SlowDown</Code>' +
+    '<Message>Please reduce your request rate.</Message>' +
+    '<RequestId>req-3</RequestId><HostId>host-3</HostId></Error>',
 })
 const validationError = () => ({
   status: 400,
@@ -216,6 +225,28 @@ describe('sendAwsRequest', () => {
     logAwsResolverSummary(logger)
     expect(logger.debug).toHaveBeenCalledWith(
       'cf: 3 placeholders, 1 stacks, 2 DescribeStacks calls, 0 throttled attempts',
+    )
+  })
+
+  test('terraform requests are reported under their own label and nouns', async () => {
+    resetAwsResolverState({
+      requestHandler: fakeHandler([ok('{"outputs":{}}', 'application/json')]),
+    })
+    const output = await sendAwsRequest({
+      service: 'terraform',
+      credentials,
+      region,
+      logger,
+      command: new GetObjectCommand({
+        Bucket: 'state-bucket',
+        Key: 'prod/network.tfstate',
+      }),
+      target: 'state-bucket/prod/network.tfstate',
+    })
+    expect(await output.Body.transformToString()).toBe('{"outputs":{}}')
+    logAwsResolverSummary(logger)
+    expect(logger.debug).toHaveBeenCalledWith(
+      'terraform: 1 state files, 1 GetObject calls, 0 throttled attempts',
     )
   })
 
@@ -404,6 +435,28 @@ describe('sendAwsRequest', () => {
     )
   })
 
+  test('exhausted throttling on a Terraform state read names state files and the terraform variable', async () => {
+    process.env.AWS_MAX_ATTEMPTS = '2'
+    const handler = fakeHandler([s3Throttled()])
+    resetAwsResolverState({ requestHandler: handler })
+    const error = await sendAwsRequest({
+      service: 'terraform',
+      credentials,
+      region,
+      logger,
+      command: new GetObjectCommand({
+        Bucket: 'state-bucket',
+        Key: 'prod/network.tfstate',
+      }),
+      target: 'state-bucket/prod/network.tfstate',
+    }).catch((e) => e)
+    expect(handler.handle).toHaveBeenCalledTimes(2)
+    expect(error.code).toBe('RESOLVER_AWS_RATE_EXCEEDED')
+    expect(error.message).toContain(
+      'This run needed 1 GetObject calls for 1 state files referenced by ${terraform:outputs:} variables.',
+    )
+  })
+
   test('the debug summary reports placeholders, distinct targets, calls and throttled attempts once', async () => {
     process.env.AWS_MAX_ATTEMPTS = '3'
     const handler = fakeHandler([
@@ -424,6 +477,70 @@ describe('sendAwsRequest', () => {
     logger.debug.mockClear()
     logAwsResolverSummary(logger)
     expect(logger.debug).not.toHaveBeenCalled()
+  })
+
+  test('an unchanged service is not reprinted by a later summary', async () => {
+    const handler = fakeHandler([
+      ok(describeStacksXml('stack-a', [['OutA', 'a-one']])),
+      ok(ssmParameterJson('/p', 'v'), 'application/x-amz-json-1.1'),
+      ok(describeStacksXml('stack-b', [['OutB', 'b-one']])),
+    ])
+    resetAwsResolverState({ requestHandler: handler })
+    const linesStartingWith = (prefix) =>
+      logger.debug.mock.calls
+        .map(([line]) => line)
+        .filter((line) => line.startsWith(prefix))
+
+    await describeStack()
+    logAwsResolverSummary(logger)
+    expect(linesStartingWith('cf:')).toEqual([
+      'cf: 1 placeholders, 1 stacks, 1 DescribeStacks calls, 0 throttled attempts',
+    ])
+
+    // Another service resolving something prints its own line only: the
+    // CloudFormation numbers did not move, so that line is not repeated.
+    await sendAwsRequest({
+      service: 'ssm',
+      credentials,
+      region,
+      logger,
+      command: new GetParameterCommand({ Name: '/p' }),
+      target: '/p',
+      cache: true,
+    })
+    logAwsResolverSummary(logger)
+    expect(linesStartingWith('ssm:')).toEqual([
+      'ssm: 1 placeholders, 1 parameters, 1 GetParameter calls, 0 throttled attempts',
+    ])
+    expect(linesStartingWith('cf:')).toHaveLength(1)
+    expect(logger.debug).toHaveBeenCalledTimes(2)
+
+    // Reading a second stack moves the CloudFormation numbers, so its line
+    // prints again - with the new totals.
+    await describeStack({
+      command: new DescribeStacksCommand({ StackName: 'stack-b' }),
+      target: 'stack-b',
+    })
+    logAwsResolverSummary(logger)
+    expect(linesStartingWith('cf:')).toEqual([
+      'cf: 1 placeholders, 1 stacks, 1 DescribeStacks calls, 0 throttled attempts',
+      'cf: 2 placeholders, 2 stacks, 2 DescribeStacks calls, 0 throttled attempts',
+    ])
+    expect(linesStartingWith('ssm:')).toHaveLength(1)
+  })
+
+  test('a summary with nothing new prints nothing', async () => {
+    const handler = fakeHandler([
+      ok(describeStacksXml('stack-a', [['OutA', 'a-one']])),
+    ])
+    resetAwsResolverState({ requestHandler: handler })
+    await describeStack()
+    logAwsResolverSummary(logger)
+    expect(logger.debug).toHaveBeenCalledTimes(1)
+
+    logAwsResolverSummary(logger)
+    logAwsResolverSummary(logger)
+    expect(logger.debug).toHaveBeenCalledTimes(1)
   })
 
   test('the debug summary counts one stack read with two credentials as one stack', async () => {

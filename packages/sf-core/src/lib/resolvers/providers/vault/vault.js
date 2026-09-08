@@ -1,4 +1,4 @@
-import { AbstractProvider } from '../index.js'
+import { AbstractProvider, unrecognizedKeysMessage } from '../index.js'
 import _ from 'lodash'
 import { z } from 'zod'
 import * as fsPath from 'path'
@@ -10,17 +10,21 @@ export class Vault extends AbstractProvider {
 
   static validateConfig(providerConfig) {
     const baseSchema = z
-      .object({
-        type: z.literal('vault'),
-        token: z.string().optional(),
-        address: z.string().optional(),
-        version: z.string().optional(),
-        path: z.string().optional(),
-      })
-      .strict({
-        message:
-          "Only 'token', 'address', 'version', and 'path' are allowed in the Vault configuration",
-      })
+      .object(
+        {
+          type: z.literal('vault'),
+          token: z.string().optional(),
+          address: z.string().optional(),
+          version: z.string().optional(),
+          path: z.string().optional(),
+        },
+        {
+          error: unrecognizedKeysMessage(
+            "Only 'token', 'address', 'version', and 'path' are allowed in the Vault configuration",
+          ),
+        },
+      )
+      .strict()
 
     try {
       baseSchema.parse(providerConfig)

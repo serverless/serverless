@@ -20,3 +20,7 @@ resource "random_id" "resource_id" {
 output "key-1-id" {
   value = "key-1-value-${random_id.resource_id.hex}"
 }
+
+output "key-2-id" {
+  value = "key-2-value-${random_id.resource_id.hex}"
+}
