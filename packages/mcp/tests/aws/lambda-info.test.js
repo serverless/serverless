@@ -511,9 +511,8 @@ describe('AWS Lambda Info Tool', () => {
     expect(parsedJson[0].functionName).toBe('my-function')
 
     // getErrorsInfoWithPatterns handles the failure itself and reports it in the
-    // summary, so the Lambda tool returns an empty pattern list. NOTE: the
-    // underlying error message is not propagated to errorLogs today - see
-    // .reports/cluster-logs.md.
+    // summary, so the Lambda tool returns an empty pattern list. The underlying
+    // error message is not propagated to errorLogs.
     const errorLogs = parsedJson[0].errorLogs
     expect(errorLogs.patterns).toEqual([])
     expect(errorLogs.summary.totalErrors).toBe(0)
@@ -552,7 +551,7 @@ describe('AWS Lambda Info Tool', () => {
     // (src/lib/parameter-validator.js:85-86) leaves them undefined and
     // calculateOptimalPeriod falls through to its widest bucket (1209600 = 2
     // weeks). Unreachable through the aws-lambda-info tool, whose schema always
-    // supplies startTime, endTime and period - see .reports/cluster-logs.md.
+    // supplies startTime, endTime and period.
     expect(mockGetMetricData).toHaveBeenCalledWith({
       functionNames: ['my-function'],
       startTime: expect.any(Number),

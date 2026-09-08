@@ -332,13 +332,10 @@ describe('AWS Errors Info with Pattern Analytics', () => {
     // every logging resource in the stack: the default log group of each Lambda
     // function plus the REST API access log group.
     //
-    // KNOWN SOURCE DEFECT (see .reports/cluster-logs.md): the Lambda log groups
-    // are missing today because fetchLambdaLogGroups in
-    // src/lib/aws/errors-info-patterns.js:390 tests
-    // `functionDetails.Configuration` while the engine client returns
-    // `{ function: { Configuration } }` (compare
-    // src/lib/aws/lambda-resource-info.js:103), so the branch never runs and the
-    // function returns an empty list.
+    // fetchLambdaLogGroups reads the configuration from the engine's
+    // `{ function: { Configuration } }` response shape, the same way
+    // lambda-resource-info.js does; with no LoggingConfig set it falls back to
+    // the default /aws/lambda/<name> group for each function.
     expect(
       [
         ...mockExecutePatternAnalyticsQuery.mock.calls[0][0]

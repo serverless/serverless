@@ -74,12 +74,10 @@ describe('getServiceSummary', () => {
     )
   })
 
-  // The registered tool contract (src/tools-definition.js) declares
-  // `serviceType` as the required provider enum and `cloudProvider` as
-  // optional, while the implementation reads only `cloudProvider`. This test
-  // pins what a schema-conformant call actually gets today; it is expected to
-  // change when that divergence is resolved.
-  it('should still require cloudProvider when only the registered serviceType is provided', async () => {
+  it('should ignore unknown provider fields and still require cloudProvider', async () => {
+    // `serviceType` is not part of this tool's contract (in the other tools it
+    // names the infrastructure kind, not the provider); only cloudProvider
+    // selects the resource handlers, and the guard fires before any of them run.
     const result = await getServiceSummary({
       serviceType: 'aws',
       resources: [{ id: 'test', type: 'lambda' }],

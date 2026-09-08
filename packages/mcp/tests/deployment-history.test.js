@@ -278,12 +278,15 @@ describe('Deployment History Tool', () => {
 
   test('should report every event returned by the service', async () => {
     // The tool does not re-filter by date: whatever the CloudFormation
-    // service returns for the window is formatted and counted.
+    // service returns for the window is formatted and counted, including the
+    // last event, which lies before the derived seven-day window start
+    // (2023-01-03T12:00:00Z).
     const timestamps = [
       new Date('2023-01-09T10:00:00Z'),
       new Date('2023-01-08T10:00:00Z'),
       new Date('2023-01-07T10:00:00Z'),
       new Date('2023-01-07T09:00:00Z'),
+      new Date('2023-01-02T10:00:00Z'),
     ]
     mockDescribeStackEvents.mockResolvedValue({
       events: timestamps.map((Timestamp, index) => ({
@@ -304,12 +307,14 @@ describe('Deployment History Tool', () => {
     })
 
     const jsonData = JSON.parse(result.content[0].text)
-    expect(jsonData.totalEvents).toBe(4)
+    expect(jsonData.totalEvents).toBe(5)
     expect(Object.keys(jsonData.eventsByDay)).toEqual([
       '2023-01-09',
       '2023-01-08',
       '2023-01-07',
+      '2023-01-02',
     ])
     expect(jsonData.eventsByDay['2023-01-07']).toHaveLength(2)
+    expect(jsonData.eventsByDay['2023-01-02']).toHaveLength(1)
   })
 })
