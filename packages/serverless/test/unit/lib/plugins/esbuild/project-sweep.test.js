@@ -90,7 +90,7 @@ describe('sweepProjectFiles', () => {
     )
   })
 
-  it('drops declaration files at any depth, Yarn PnP runtime files and the local plugin path', async () => {
+  it('drops declaration files at any depth, package-manager internals and the local plugin path', async () => {
     const dir = makeTree([
       'index.js',
       'types.d.ts',
@@ -103,6 +103,8 @@ describe('sweepProjectFiles', () => {
       '.yarn/.install-state.gz',
       '.pnp.cjs',
       '.pnp.loader.mjs',
+      'pnpm-workspace.yaml',
+      'pnpm-workspace.yml',
       'my-plugins/plugin.js',
       'my-plugins/.eslintrc.json',
     ])

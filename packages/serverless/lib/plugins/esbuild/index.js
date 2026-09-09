@@ -112,7 +112,8 @@ const BUILD_DIR_EXCLUDED_ROOT_ENTRIES = new Set([
   '.pnp.loader.mjs',
   // Copied in by `_preparePackageJson` so that a pnpm install run inside the
   // build directory puts node_modules there. It is the install's scaffolding,
-  // not the function's, and no earlier release packaged it.
+  // not the function's, and no earlier release packaged it; the sweep keeps
+  // the project's own copy out by default for the same reason.
   'pnpm-workspace.yaml',
   'pnpm-workspace.yml',
 ])

@@ -69,6 +69,8 @@ By default, serverless will exclude the following patterns:
 
 and the serverless configuration file being used (i.e. `serverless.yml`). In addition, if `useDotenv` is set, all files satisfying pattern `.env*` will be excluded as well.
 
+Node.js functions built by the built-in esbuild build (TypeScript handlers, or a `build.esbuild` configuration that enables it) apply patterns on top of the build output: patterns add files to the artifact and filter its `node_modules`, and with `bundle: false` they also select which project files are compiled and copied. The legacy `package.include` and `package.exclude` keys are not applied there. See [Packaging Patterns](./building.md#packaging-patterns) in the build guide.
+
 ### Examples
 
 Exclude all node_modules but then re-include a specific modules (in this case node-fetch) using `exclude` exclusively

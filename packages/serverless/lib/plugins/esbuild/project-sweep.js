@@ -232,6 +232,12 @@ export async function sweepProjectFiles({
     '.yarn/**',
     '.pnp.cjs',
     '.pnp.loader.mjs',
+    // pnpm's workspace manifest describes the developer's monorepo layout, not
+    // the function; `_preparePackageJson` copies it into the build directory
+    // for the install, and the artifact walk skips that copy for the same
+    // reason.
+    'pnpm-workspace.yaml',
+    'pnpm-workspace.yml',
     // Caller-supplied, and last so a caller can never be shadowed by a rule
     // above -- they still precede `patterns`, so user patterns keep the final
     // word.
