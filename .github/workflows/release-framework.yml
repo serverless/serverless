@@ -65,7 +65,7 @@ jobs:
       - name: 'Setup: Enable Corepack'
         run: corepack enable npm
       - name: 'Setup: AWS Credentials'
-        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
         with:
           role-to-assume: ${{ vars.TEST1_ROLE_ARN }}
           aws-region: us-east-1
@@ -131,7 +131,7 @@ jobs:
       - name: 'Build: Framework'
         run: npm run build
       - name: 'Setup: AWS Credentials'
-        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
         with:
           role-to-assume: arn:aws:iam::377024778620:role/GithubActionsPublicServerlessRepoAccessRole
           aws-region: us-east-1
@@ -169,7 +169,7 @@ jobs:
       - name: 'Setup: Enable Corepack'
         run: corepack enable npm
       - name: 'Setup: AWS Credentials'
-        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
         with:
           role-to-assume: arn:aws:iam::802587217904:role/GithubActionsPublicServerlessRepoAccessRole
           aws-region: us-east-1
