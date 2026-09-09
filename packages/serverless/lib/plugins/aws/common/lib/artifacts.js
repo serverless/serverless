@@ -45,65 +45,65 @@ function resolvePackagePath(packagePath, serviceDir) {
   return resolvedPackagePath
 }
 
+/**
+ * The package directory the user asked for, validated and absolute, or null
+ * when there is nothing to move: no service directory, no explicit
+ * `--package` / `package.path`, or a path ending in ".serverless", which
+ * designates the default location. The validation runs before that shortcut
+ * so an ancestor directory that happens to be named ".serverless" is still
+ * refused rather than silently skipped.
+ */
+function requestedPackagePath(plugin) {
+  const { serviceDir } = plugin.serverless
+  const requested =
+    plugin.options.package || plugin.serverless.service.package.path
+  if (!serviceDir || !requested) return null
+  const resolvedPackagePath = resolvePackagePath(requested, serviceDir)
+  if (requested.endsWith('.serverless')) return null
+  return resolvedPackagePath
+}
+
 export default {
   async moveArtifactsToPackage() {
-    const packagePath =
-      this.options.package ||
-      this.serverless.service.package.path ||
-      path.join(this.serverless.serviceDir || '.', '.serverless')
+    const resolvedPackagePath = requestedPackagePath(this)
+    if (!resolvedPackagePath) return
 
-    // Only move the artifacts if it was requested by the user
-    if (this.serverless.serviceDir && !packagePath.endsWith('.serverless')) {
-      const resolvedPackagePath = resolvePackagePath(
-        packagePath,
-        this.serverless.serviceDir,
-      )
-      const serverlessTmpDirPath = path.join(
-        this.serverless.serviceDir,
-        '.serverless',
-      )
+    const serverlessTmpDirPath = path.join(
+      this.serverless.serviceDir,
+      '.serverless',
+    )
 
-      if (this.serverless.utils.dirExistsSync(serverlessTmpDirPath)) {
-        if (this.serverless.utils.dirExistsSync(resolvedPackagePath)) {
-          fse.removeSync(resolvedPackagePath)
-        }
-        this.serverless.utils.writeFileDir(resolvedPackagePath)
-        this.serverless.utils.copyDirContentsSync(
-          serverlessTmpDirPath,
-          resolvedPackagePath,
-        )
-        fse.removeSync(serverlessTmpDirPath)
+    if (this.serverless.utils.dirExistsSync(serverlessTmpDirPath)) {
+      if (this.serverless.utils.dirExistsSync(resolvedPackagePath)) {
+        fse.removeSync(resolvedPackagePath)
       }
+      this.serverless.utils.writeFileDir(resolvedPackagePath)
+      this.serverless.utils.copyDirContentsSync(
+        serverlessTmpDirPath,
+        resolvedPackagePath,
+      )
+      fse.removeSync(serverlessTmpDirPath)
     }
   },
 
   async moveArtifactsToTemp() {
-    const packagePath =
-      this.options.package ||
-      this.serverless.service.package.path ||
-      path.join(this.serverless.serviceDir || '.', '.serverless')
+    const resolvedPackagePath = requestedPackagePath(this)
+    if (!resolvedPackagePath) return
 
-    // Only move the artifacts if it was requested by the user
-    if (this.serverless.serviceDir && !packagePath.endsWith('.serverless')) {
-      const resolvedPackagePath = resolvePackagePath(
-        packagePath,
-        this.serverless.serviceDir,
-      )
-      const serverlessTmpDirPath = path.join(
-        this.serverless.serviceDir,
-        '.serverless',
-      )
+    const serverlessTmpDirPath = path.join(
+      this.serverless.serviceDir,
+      '.serverless',
+    )
 
-      if (this.serverless.utils.dirExistsSync(resolvedPackagePath)) {
-        if (this.serverless.utils.dirExistsSync(serverlessTmpDirPath)) {
-          fse.removeSync(serverlessTmpDirPath)
-        }
-        this.serverless.utils.writeFileDir(serverlessTmpDirPath)
-        this.serverless.utils.copyDirContentsSync(
-          resolvedPackagePath,
-          serverlessTmpDirPath,
-        )
+    if (this.serverless.utils.dirExistsSync(resolvedPackagePath)) {
+      if (this.serverless.utils.dirExistsSync(serverlessTmpDirPath)) {
+        fse.removeSync(serverlessTmpDirPath)
       }
+      this.serverless.utils.writeFileDir(serverlessTmpDirPath)
+      this.serverless.utils.copyDirContentsSync(
+        resolvedPackagePath,
+        serverlessTmpDirPath,
+      )
     }
   },
 }

@@ -177,6 +177,23 @@ describe('aws common artifacts', () => {
       expectServiceIntact()
     })
 
+    it('refuses an ancestor directory that is itself named ".serverless"', async () => {
+      // A path ending in ".serverless" is treated as the default location and
+      // skips the move. That shortcut must not skip the safety check.
+      const ancestor = path.join(rootDir, '.serverless')
+      const nestedService = path.join(ancestor, 'service')
+      await fsp.mkdir(path.join(nestedService, '.serverless'), {
+        recursive: true,
+      })
+      await fsp.writeFile(path.join(nestedService, 'handler.js'), '')
+      const plugin = createPlugin(ancestor)
+      plugin.serverless.serviceDir = nestedService
+      await expect(plugin.moveArtifactsToPackage()).rejects.toMatchObject({
+        code: 'PACKAGE_PATH_CONTAINS_SERVICE',
+      })
+      expect(fs.existsSync(path.join(nestedService, 'handler.js'))).toBe(true)
+    })
+
     it('refuses the service directory reached through a symlink', async () => {
       const link = path.join(rootDir, 'service-link')
       await fsp.symlink(serviceDir, link, 'dir')
@@ -194,6 +211,33 @@ describe('aws common artifacts', () => {
       const plugin = createPlugin(packageDir)
       await plugin.moveArtifactsToPackage()
       expect(fs.existsSync(path.join(packageDir, 'service.zip'))).toBe(true)
+    })
+  })
+
+  describe('paths ending in ".serverless" (the default location)', () => {
+    it('does nothing for the service\'s own ".serverless" directory', async () => {
+      const plugin = createPlugin('.serverless')
+      await expect(plugin.moveArtifactsToPackage()).resolves.toBeUndefined()
+      await expect(plugin.moveArtifactsToTemp()).resolves.toBeUndefined()
+      expectServiceIntact()
+    })
+
+    it('does nothing for a sibling directory named ".serverless"', async () => {
+      const packageDir = path.join(rootDir, 'other', '.serverless')
+      await fsp.mkdir(packageDir, { recursive: true })
+      await fsp.writeFile(path.join(packageDir, 'prebuilt.zip'), 'zip')
+      const plugin = createPlugin(packageDir)
+      await expect(plugin.moveArtifactsToPackage()).resolves.toBeUndefined()
+      await expect(plugin.moveArtifactsToTemp()).resolves.toBeUndefined()
+      expectServiceIntact()
+      expect(fs.existsSync(path.join(packageDir, 'prebuilt.zip'))).toBe(true)
+    })
+
+    it('does nothing when no package path is configured', async () => {
+      const plugin = createPlugin(undefined)
+      await expect(plugin.moveArtifactsToPackage()).resolves.toBeUndefined()
+      await expect(plugin.moveArtifactsToTemp()).resolves.toBeUndefined()
+      expectServiceIntact()
     })
   })
 
