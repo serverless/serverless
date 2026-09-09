@@ -162,7 +162,10 @@ export const createClient = ({ service, credentials, region }) => {
   return client
 }
 
-const apiNameOf = (command) => command.constructor.name.replace(/Command$/, '')
+// The bundled build renames duplicate class names with a numeric suffix
+// (`DescribeStacksCommand7`), so strip the suffix along with `Command`.
+const apiNameOf = (command) =>
+  command.constructor.name.replace(/Command\d*$/, '')
 
 const counterFor = (service, api, scope, region) => {
   const key = `${service}:${api}:${scope}`
