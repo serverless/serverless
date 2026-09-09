@@ -95,7 +95,7 @@ Unit tests run locally without external dependencies:
 npm run test:unit -w @serverlessinc/sf-core
 npm run test:unit -w @serverless/framework
 npm test -w @serverless/engine
-npm test -w @serverless/mcp
+npm run test:unit -w @serverless/mcp
 ```
 
 ### Integration Tests

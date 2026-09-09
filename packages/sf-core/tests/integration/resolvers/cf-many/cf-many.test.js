@@ -1,6 +1,6 @@
 import path from 'path'
 import url from 'url'
-import { setGlobalRendererSettings } from '@serverless/util'
+import { log, setGlobalRendererSettings } from '@serverless/util'
 import { LambdaClient, GetFunctionCommand } from '@aws-sdk/client-lambda'
 import { jest } from '@jest/globals'
 import { getTestStageName, runSfCore } from '../../../utils/runSfCore.js'
@@ -25,20 +25,22 @@ describe('Serverless Framework Service - Resolvers - cf per-stack de-duplication
   const deployed = new Set()
   let stderr = []
   let stdout = []
+  let summarySpy = null
 
   const summaryLines = () =>
-    stderr
-      .join('')
-      .split('\n')
-      .filter((line) => line.includes('core:resolver:aws:'))
-      .map((line) => line.replace(/.*core:resolver:aws:\s*/, '').trim())
+    summarySpy ? summarySpy.mock.calls.map(([line]) => String(line)) : []
 
-  // The CLI logger writes to stderr; `print` writes the resolved config to
-  // stdout. Capture both so the assertions do not depend on which one the
-  // renderer picks for a given line.
+  // The resolvers' debug summary is read straight off the `core:resolver:aws`
+  // namespace logger: `Logger.get` hands out one cached instance per namespace,
+  // so a spy on the instance the runner uses sees every summary as the bare
+  // message, without turning debug output on for every other namespace.
+  // The CLI logger otherwise writes to stderr, and `print` writes the resolved
+  // config to stdout; capture both so the `print` assertions do not depend on
+  // which one the renderer picks for a given line.
   const captureOutput = () => {
     stderr = []
     stdout = []
+    summarySpy = jest.spyOn(log.get('core:resolver:aws'), 'debug')
     jest.spyOn(process.stderr, 'write').mockImplementation((chunk) => {
       stderr.push(String(chunk))
       return true
@@ -77,7 +79,7 @@ describe('Serverless Framework Service - Resolvers - cf per-stack de-duplication
       if (value === undefined) delete options[key]
     }
     return runSfCore({
-      coreParams: { options, command, debug: true },
+      coreParams: { options, command },
       jest,
       expectError,
     })
@@ -155,12 +157,15 @@ describe('Serverless Framework Service - Resolvers - cf per-stack de-duplication
     await run(configPath, ['deploy'], { region: undefined })
 
     const cfLines = summaryLines().filter((line) => line.startsWith('cf: '))
-    expect(cfLines.length).toBeGreaterThanOrEqual(2)
-    // The count stays at 2 because `svc-1` and `svc-2` declare no `dependsOn`:
-    // they resolve together at dispatch, before either deploy finishes and
-    // invalidates the resolver cache. Give that fixture an ordering and the
-    // second service re-reads both stacks, which moves this number — a change
-    // in the count then, not a flake.
+    expect(cfLines.length).toBeGreaterThanOrEqual(1)
+    // The stack count stays at 2 because `svc-1` and `svc-2` declare no
+    // `dependsOn`: they resolve together at dispatch, before either deploy
+    // finishes and invalidates the resolver cache. Give that fixture an
+    // ordering and the second service re-reads both stacks, which moves that
+    // number — a change in the count then, not a flake. The summary prints a
+    // line only when its numbers moved since the last print, so two services
+    // resolving concurrently may produce one `cf:` line or two; the last line
+    // is the cumulative total.
     for (const line of cfLines) {
       expect(line).toMatch(
         /^cf: \d+ placeholders, 2 stacks, 2 DescribeStacks calls, \d+ throttled attempts$/,

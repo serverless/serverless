@@ -469,10 +469,10 @@ export function registerTools(server) {
     "Provides a consolidated view of multiple cloud resources in a single request. This tool is the FASTEST and MOST EFFICIENT way to get a complete overview of your entire serverless application in a single tool call. BEFORE USING THIS TOOL: Use the list-projects tool to identify all serverless projects in the workspace. If multiple projects are found, confirm with the user which project to use.\n\nUSE THIS TOOL WHEN:\n(1) You need a quick overview of an entire service\n(2) You need to analyze interactions between different resource types\n(3) You want to reduce the number of API calls for efficiency\n(4) You need a holistic view of a serverless application's components\n\nKEY FEATURES:\n• Service-wide analysis: Set serviceWideAnalysis=true to automatically fetch and analyze ALL resources in a service\n• Parallel processing: All resource information is fetched simultaneously for maximum efficiency\n• Comprehensive data: Returns the same detailed information as individual resource-specific tools\n\nSUPPORTED AWS RESOURCE TYPES:\n• lambda - AWS Lambda functions\n• iam - AWS IAM roles and policies\n• sqs - Amazon SQS queues\n• s3 - Amazon S3 buckets\n• restapigateway - AWS REST API Gateway\n• httpapigateway - AWS HTTP API Gateway\n• dynamodb - Amazon DynamoDB tables\n\nThis tool is MUCH MORE EFFICIENT than making individual calls to resource-specific tools. Use it as your first step when investigating service-wide issues or getting a complete picture of your application.\n\n" +
       AWS_CREDENTIALS_ERROR_HANDLING,
     {
-      serviceType: z
-        .enum(['aws', 'gcp', 'azure'])
+      cloudProvider: z
+        .enum(['aws'])
         .describe(
-          'The cloud service provider to use. Currently, only "aws" is fully supported.',
+          'Cloud provider of the resources to analyze. Currently only "aws" is supported.',
         ),
       resources: z
         .array(
@@ -498,19 +498,13 @@ export function registerTools(server) {
         .optional()
         .default(false)
         .describe(
-          'Set to true to automatically fetch and analyze ALL resources in the specified service. When true, serviceName and serviceType must be provided.',
+          'Set to true to automatically fetch and analyze ALL resources in the specified service. When true, serviceName must be provided.',
         ),
       serviceName: z
         .string()
         .optional()
         .describe(
           'Required if serviceWideAnalysis is true. For Serverless Framework, use "serviceName-stageName" format (e.g., "my-service-dev"). For CloudFormation, use the exact stack name.',
-        ),
-      cloudProvider: z
-        .enum(['aws'])
-        .optional()
-        .describe(
-          'Required if serviceWideAnalysis is true. Specifies the cloud service provider.',
         ),
       startTime: z
         .string()

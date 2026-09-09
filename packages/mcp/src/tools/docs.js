@@ -14,14 +14,51 @@ function normalizeDocPath(product, docPath) {
     : docPath
 }
 
-function resolvePathInBase(baseDir, relativePath) {
-  const resolvedPath = path.resolve(baseDir, relativePath)
-  const relativeToBase = path.relative(baseDir, resolvedPath)
-  const isWithinBase =
+function isWithin(baseDir, targetPath) {
+  const relativeToBase = path.relative(baseDir, targetPath)
+  return (
     relativeToBase === '' ||
     (!relativeToBase.startsWith('..') && !path.isAbsolute(relativeToBase))
+  )
+}
 
-  return { resolvedPath, isWithinBase }
+/**
+ * Resolves a requested doc path against its base directory and checks that it
+ * stays inside it, twice: lexically (rejects `..` and absolute escapes without
+ * touching the filesystem) and then on the real filesystem (rejects links
+ * whose target lies outside the base). The base is resolved too, so a docs
+ * directory that is itself reached through a link keeps working.
+ * @param {string} baseDir - Documentation base directory
+ * @param {string} relativePath - Requested path, relative to the base
+ * @returns {Promise<{resolvedPath: string, isWithinBase: boolean, exists: boolean}>}
+ *   isWithinBase=false → invalid path; isWithinBase=true, exists=false → not
+ *   found; both true → resolvedPath is the real path, safe to stat and read
+ */
+export async function resolveDocPath(baseDir, relativePath) {
+  const lexicalPath = path.resolve(baseDir, relativePath)
+  if (!isWithin(baseDir, lexicalPath)) {
+    return { resolvedPath: lexicalPath, isWithinBase: false, exists: false }
+  }
+
+  let realBase
+  let realTarget
+  try {
+    ;[realBase, realTarget] = await Promise.all([
+      fs.realpath(baseDir),
+      fs.realpath(lexicalPath),
+    ])
+  } catch (error) {
+    if (error.code === 'ENOENT' || error.code === 'ENOTDIR') {
+      return { resolvedPath: lexicalPath, isWithinBase: true, exists: false }
+    }
+    throw error
+  }
+
+  return {
+    resolvedPath: realTarget,
+    isWithinBase: isWithin(realBase, realTarget),
+    exists: true,
+  }
 }
 
 /**
@@ -65,13 +102,21 @@ async function readMarkdownContent(product, docPath) {
   }
 
   const normalizedPath = normalizeDocPath(product, docPath)
-  const { resolvedPath: fullPath, isWithinBase } = resolvePathInBase(
-    docsBaseDirs[product],
-    normalizedPath,
-  )
+  let resolved
+  try {
+    resolved = await resolveDocPath(docsBaseDirs[product], normalizedPath)
+  } catch {
+    // Any other filesystem failure (permissions, link loops) is reported the
+    // same way a missing path always has been.
+    throw new Error(`Path not found: ${product}/${docPath}`)
+  }
+  const { resolvedPath: fullPath, isWithinBase, exists } = resolved
 
   if (!isWithinBase) {
     throw new Error(`Invalid path: ${product}/${docPath}`)
+  }
+  if (!exists) {
+    throw new Error(`Path not found: ${product}/${docPath}`)
   }
 
   try {
@@ -127,12 +172,12 @@ async function findNearestDirectory(product, docPath, availablePaths) {
   }
 
   const normalizedPath = normalizeDocPath(product, docPath)
-  const { isWithinBase } = resolvePathInBase(
-    docsBaseDirs[product],
-    normalizedPath,
-  )
-
-  if (!isWithinBase) {
+  if (
+    !isWithin(
+      docsBaseDirs[product],
+      path.resolve(docsBaseDirs[product], normalizedPath),
+    )
+  ) {
     throw new Error(`Invalid path: ${product}/${docPath}`)
   }
 
@@ -142,10 +187,13 @@ async function findNearestDirectory(product, docPath, availablePaths) {
   while (parts.length > 0) {
     const testPath = parts.join('/')
     try {
-      const { resolvedPath: fullPath, isWithinBase: testWithinBase } =
-        resolvePathInBase(docsBaseDirs[product], testPath)
+      const {
+        resolvedPath: fullPath,
+        isWithinBase: testWithinBase,
+        exists,
+      } = await resolveDocPath(docsBaseDirs[product], testPath)
 
-      if (!testWithinBase) {
+      if (!testWithinBase || !exists) {
         parts.pop()
         continue
       }

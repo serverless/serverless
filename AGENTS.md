@@ -79,7 +79,8 @@ Gotchas:
 ```bash
 npm run test:unit -w @serverlessinc/sf-core     # jest over packages/sf-core/tests/unit/
 npm run test:unit -w @serverless/framework      # jest over packages/serverless/test/unit/
-npm test                                        # both unit suites
+npm run test:unit -w @serverless/mcp            # jest over packages/mcp/tests/ (excluding tests/e2e/)
+npm test                                        # all three unit suites
 ```
 
 Note the inconsistent directory naming: `tests/` in sf-core, `test/` in serverless — easy to misplace new tests.

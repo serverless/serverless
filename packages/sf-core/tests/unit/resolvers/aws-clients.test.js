@@ -92,6 +92,17 @@ describe('AWS resolver client factory', () => {
     expect(s3.config.followRegionRedirects).toBe(true)
   })
 
+  test('builds an S3 client that follows region redirects for the terraform service', async () => {
+    const client = createClient({
+      service: 'terraform',
+      credentials,
+      region: 'eu-west-1',
+    })
+    expect(client).toBeInstanceOf(S3Client)
+    expect(client.config.followRegionRedirects).toBe(true)
+    expect(await client.config.region()).toBe('eu-west-1')
+  })
+
   test('every client shares one keep-alive request handler with a 500-socket pool', async () => {
     const a = createClient({ service: 'cloudformation', credentials, region })
     const b = createClient({ service: 'ssm', credentials, region })

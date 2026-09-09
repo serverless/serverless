@@ -22,7 +22,7 @@
     "lint:fix": "eslint --fix",
     "prettier": "prettier -c .",
     "prettier:fix": "prettier -w .",
-    "test": "npm run test:unit -w @serverlessinc/sf-core -w @serverless/framework",
+    "test": "npm run test:unit -w @serverlessinc/sf-core -w @serverless/framework -w @serverless/mcp",
     "setup-dev-mode": "bash setup-dev-for-dev-mode.sh",
     "prepare": "husky"
   },

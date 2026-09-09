@@ -101,10 +101,13 @@ describe('AWS SQS Info Tool', () => {
       },
     })
 
+    const startTime = '2023-01-01T00:00:00Z'
+    const endTime = '2023-01-01T03:00:00Z'
+
     const result = await getSqsInfo({
       queueNames: [queueUrl],
-      startTime: '2023-01-01T00:00:00Z',
-      endTime: '2023-01-01T03:00:00Z',
+      startTime,
+      endTime,
     })
 
     expect(result.isError).toBeUndefined()
@@ -115,13 +118,20 @@ describe('AWS SQS Info Tool', () => {
     expect(resultData[0].attributes).toBeDefined()
     expect(resultData[0].metrics).toBeDefined()
 
-    expect(mockGetSqsResourceInfo).toHaveBeenCalledWith(
-      expect.objectContaining({
-        resourceId: queueUrl,
-        startTime: '2023-01-01T00:00:00Z',
-        endTime: '2023-01-01T03:00:00Z',
-      }),
-    )
+    // The tool normalizes the time range through validateAndAdjustParameters
+    // before delegating, so the resource-info layer receives epoch
+    // milliseconds plus a derived CloudWatch period, not the raw ISO strings.
+    expect(mockGetSqsResourceInfo).toHaveBeenCalledWith({
+      resourceId: queueUrl,
+      startTime: Date.parse(startTime),
+      endTime: Date.parse(endTime),
+      // No period was requested: the 3-hour window at the default 3600s
+      // granularity yields 3 data points, far below the 300-point cap, so
+      // calculateOptimalPeriod keeps the 1-hour default.
+      period: 3600,
+      region: undefined,
+      profile: undefined,
+    })
   })
 
   test('should get queue details for a queue name', async () => {

@@ -36,7 +36,7 @@ export const resourceTypeHandlers = {
  * @param {Array<Object>} [params.resources] - Array of resource objects with id and type properties
  * @param {boolean} [params.serviceWideAnalysis] - Boolean flag to analyze all resources for a service
  * @param {string} [params.serviceName] - Required if serviceWideAnalysis is true
- * @param {string} [params.cloudProvider] - The cloud service provider (aws, gcp, azure). Required if serviceWideAnalysis is true
+ * @param {string} params.cloudProvider - The cloud provider of the resources (currently only aws)
  * @param {string} [params.startTime] - Optional start time for metrics and logs (ISO string or timestamp)
  * @param {string} [params.endTime] - Optional end time for metrics and logs (ISO string or timestamp)
  * @param {number} [params.period] - Optional period for metrics in seconds (minimum 60, default 3600)
