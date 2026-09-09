@@ -90,9 +90,10 @@ describe('sweepProjectFiles', () => {
     )
   })
 
-  it('drops declaration files at any depth, package-manager internals and the local plugin path', async () => {
+  it('drops declaration files at any depth, package-manager internals and configuration, and the local plugin path', async () => {
     const dir = makeTree([
       'index.js',
+      '.nvmrc',
       'types.d.ts',
       'src/nested/types.d.ts',
       'src/nested/types.d.mts',
@@ -105,6 +106,11 @@ describe('sweepProjectFiles', () => {
       '.pnp.loader.mjs',
       'pnpm-workspace.yaml',
       'pnpm-workspace.yml',
+      // Registry credentials live here; excluded at any depth.
+      '.npmrc',
+      '.yarnrc',
+      '.yarnrc.yml',
+      'packages/lib/.npmrc',
       'my-plugins/plugin.js',
       'my-plugins/.eslintrc.json',
     ])
@@ -117,7 +123,8 @@ describe('sweepProjectFiles', () => {
       localPluginPath: 'my-plugins',
     })
 
-    expect(files).toEqual(['index.js'])
+    // Other dotfiles are ordinary project files and ship.
+    expect(files).toEqual(['.nvmrc', 'index.js'])
   })
 
   it('never sweeps the build output or the git directory', async () => {

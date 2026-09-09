@@ -238,6 +238,13 @@ export async function sweepProjectFiles({
     // reason.
     'pnpm-workspace.yaml',
     'pnpm-workspace.yml',
+    // Package-manager configuration is where registry credentials live
+    // (`_authToken` lines, `npmAuthToken`), and nothing reads it at runtime.
+    // Any depth: a nested package's copy is the same hazard. Classic packaging
+    // ships these; that parity is not worth a leaked token.
+    '**/.npmrc',
+    '**/.yarnrc',
+    '**/.yarnrc.yml',
     // Caller-supplied, and last so a caller can never be shadowed by a rule
     // above -- they still precede `patterns`, so user patterns keep the final
     // word.

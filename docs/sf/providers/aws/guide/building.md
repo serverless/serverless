@@ -230,8 +230,9 @@ README.md
 - The service configuration file, layer source directories, and local plugin directories (`plugins.localPath` and `.serverless_plugins/`).
 - `.gitignore`, `.DS_Store`, `npm-debug.log` and `yarn-*.log`.
 - Package-manager internals: `.yarn/**`, `.pnp.cjs`, `.pnp.loader.mjs`, `pnpm-workspace.yaml` and `pnpm-workspace.yml`.
+- Package-manager configuration, at any depth: `.npmrc`, `.yarnrc` and `.yarnrc.yml`. These files can hold registry credentials, and nothing reads them at runtime.
 
-**Everything else ships**, including other dotfiles (`.npmrc`, `.nvmrc`) and the output directories of other tools. Exclude those with `package.patterns` negations, for example `'!.npmrc'` if it holds a registry token.
+**Everything else ships**, including other dotfiles (`.nvmrc`, `.prettierrc`) and the output directories of other tools. Exclude those with `package.patterns` negations.
 
 #### Dependencies
 
@@ -313,7 +314,7 @@ package:
     - '!**/*.md'
 ```
 
-Env files deserve a closer look. Every file whose name starts with `.env` (`.env`, `.env.production`, but also `.envrc`) is excluded by default at any depth, whatever `useDotenv` is set to — stricter than classic packaging, which drops them only at the service root and only when `useDotenv` is set. The Framework loads `.env` and `.env.<stage>` from the service directory automatically (see [Dotenv files](./serverless.yml.md#dotenv-files)) so that `${env:VAR}` references in `serverless.yml` resolve on your machine at deploy time; a function receives only the variables declared under `environment` (its own or `provider.environment`). Shipping the file itself does not make its values available to the function — it only puts secrets in the artifact. Like every default exclusion, a positive pattern that matches an env file re-includes it: `patterns: ['.env']` ships that file deliberately, but a broad glob such as `config/**` or `**` also matches any env file beneath it. Review globs with that in mind, or follow them with a negation such as `'!**/.env*'`. Only `.env*` files get this treatment: other dotfiles such as `.npmrc` ship like any other project file.
+Env files deserve a closer look. Every file whose name starts with `.env` (`.env`, `.env.production`, but also `.envrc`) is excluded by default at any depth, whatever `useDotenv` is set to — stricter than classic packaging, which drops them only at the service root and only when `useDotenv` is set. The Framework loads `.env` and `.env.<stage>` from the service directory automatically (see [Dotenv files](./serverless.yml.md#dotenv-files)) so that `${env:VAR}` references in `serverless.yml` resolve on your machine at deploy time; a function receives only the variables declared under `environment` (its own or `provider.environment`). Shipping the file itself does not make its values available to the function — it only puts secrets in the artifact. Like every default exclusion, a positive pattern that matches an env file re-includes it: `patterns: ['.env']` ships that file deliberately, but a broad glob such as `config/**` or `**` also matches any env file beneath it. Review globs with that in mind, or follow them with a negation such as `'!**/.env*'`. Package-manager configuration files (`.npmrc`, `.yarnrc`, `.yarnrc.yml`) are excluded on the same terms, since they are where registry tokens live; every other dotfile ships like any other project file.
 
 Positive patterns ship the files they match as they are. A pattern such as `src/**` therefore packages the TypeScript sources next to their compiled output; the sources are inert at runtime, but they add to the artifact and travel with it.
 

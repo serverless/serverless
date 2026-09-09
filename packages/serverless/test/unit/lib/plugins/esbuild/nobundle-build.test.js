@@ -927,7 +927,7 @@ describe('_build with bundle:false honors classic file selection', () => {
     '.env': 'SECRET=1\n',
     '.env.production': 'SECRET=2\n',
     'src/.env': 'SECRET=3\n',
-    '.npmrc': 'registry=https://registry.npmjs.org/\n',
+    '.nvmrc': '24\n',
   }
 
   it.each([
@@ -947,7 +947,7 @@ describe('_build with bundle:false honors classic file selection', () => {
     expect(built).not.toContain('.env.production')
     expect(built).not.toContain('src/.env')
     // Scoped to env files: no other dotfile was swept up with them.
-    expect(built).toContain('.npmrc')
+    expect(built).toContain('.nvmrc')
     expect(built).toContain('src/handler.js')
 
     // And the artifact that actually deploys agrees with the build directory.
@@ -955,7 +955,63 @@ describe('_build with bundle:false honors classic file selection', () => {
     expect(packaged).not.toContain('.env')
     expect(packaged).not.toContain('.env.production')
     expect(packaged).not.toContain('src/.env')
+    expect(packaged).toContain('.nvmrc')
+  })
+
+  // Package-manager configuration is the other place credentials sit in a
+  // project tree (`//registry.npmjs.org/:_authToken=...`, `npmAuthToken`).
+  // Nothing reads it at runtime, so unlike classic packaging the sweep drops
+  // it at any depth. Other dotfiles are ordinary project files and ship.
+  const packageManagerConfigFiles = {
+    'package.json': '{"name":"svc"}',
+    'src/handler.ts': 'export const hello = async () => ({})\n',
+    '.npmrc': '//registry.npmjs.org/:_authToken=npm_secret\n',
+    '.yarnrc': 'registry "https://registry.yarnpkg.com"\n',
+    '.yarnrc.yml': 'npmAuthToken: secret\n',
+    'packages/lib/.npmrc': 'registry=https://registry.npmjs.org/\n',
+    '.nvmrc': '24\n',
+  }
+
+  it('never packages package-manager configuration files', async () => {
+    const serviceDir = makeServiceDir(packageManagerConfigFiles)
+    const plugin = makePlugin(serviceDir, functions)
+
+    await plugin._build()
+
+    const built = listBuild(serviceDir)
+    expect(built).not.toContain('.npmrc')
+    expect(built).not.toContain('.yarnrc')
+    expect(built).not.toContain('.yarnrc.yml')
+    expect(built).not.toContain('packages/lib/.npmrc')
+    expect(built).toContain('.nvmrc')
+    expect(built).toContain('src/handler.js')
+
+    const packaged = await packagedNames(plugin, serviceDir)
+    expect(packaged).not.toContain('.npmrc')
+    expect(packaged).not.toContain('.yarnrc')
+    expect(packaged).not.toContain('.yarnrc.yml')
+    expect(packaged).not.toContain('packages/lib/.npmrc')
+    expect(packaged).toContain('.nvmrc')
+  })
+
+  it('re-includes a package-manager configuration file named by a positive pattern', async () => {
+    const serviceDir = makeServiceDir(packageManagerConfigFiles)
+    const plugin = makePlugin(serviceDir, functions, {
+      packageConfig: { patterns: ['.npmrc'] },
+    })
+
+    await plugin._build()
+
+    const built = listBuild(serviceDir)
+    expect(built).toContain('.npmrc')
+    // Only the one that was asked for.
+    expect(built).not.toContain('.yarnrc.yml')
+    expect(built).not.toContain('packages/lib/.npmrc')
+
+    const packaged = await packagedNames(plugin, serviceDir)
     expect(packaged).toContain('.npmrc')
+    expect(packaged).not.toContain('.yarnrc.yml')
+    expect(packaged).not.toContain('packages/lib/.npmrc')
   })
 
   it('re-includes an env file named by an explicit positive pattern', async () => {
