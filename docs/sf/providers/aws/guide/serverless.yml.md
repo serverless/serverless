@@ -980,7 +980,9 @@ functions:
         - handler.js
         - '!.git/**'
         - '!.travis.yml'
-      # Explicitly set the package artifact to deploy (overrides native packaging behavior)
+      # Explicitly set the package artifact to deploy (overrides native packaging behavior).
+      # Takes effect only with `package.individually: true` at the service level;
+      # otherwise every function is deployed from the service-level artifact.
       artifact: path/to/my-artifact.zip
       # Package this function as an individual artifact (default: false)
       individually: true

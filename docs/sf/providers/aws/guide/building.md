@@ -170,7 +170,7 @@ The build reads `package.patterns` only. The legacy `package.include` and `packa
 
 With bundling (the default), the artifact holds what the build produced — the compiled handler bundle, its sourcemap, and the generated `package.json` with the lockfile beside it — plus the files patterns add and the parts of `node_modules` the patterns leave in place. The handler bundle always ships: packaging fails rather than producing an artifact without it. Service-level negations act on the files patterns add and on `node_modules`; they do not remove build outputs. To leave sourcemaps out of the whole service, set `sourcemap: false`.
 
-Under `package.individually`, a function-level negation also filters build outputs in that function's archive: `'!**/*.map'` drops its sourcemaps, `'!vendor/**'` drops files a plugin emitted there. The generated `package.json` and lockfile always ship. A negation that matches the function's own handler file — `'!src/**'` on a function whose handler lives under `src/` — fails packaging with `ESBUILD_HANDLER_MISSING_FROM_ARTIFACT`. If the intent was to keep source files out of the artifact, no pattern is needed: a bundled artifact contains no sources.
+Under `package.individually`, a function-level negation also filters build outputs in that function's archive: `'!**/*.map'` drops its sourcemaps, `'!vendor/**'` drops files a plugin emitted there. The generated `package.json` and lockfile always ship. A negation that matches the function's own handler file — `'!src/**'` on a function whose handler lives under `src/` — fails packaging with an error naming the function and the file it could not find, `The handler files for "api" (src/api.js) are missing from the deployment artifact …`; `--debug` reports the same failure under the code `ESBUILD_HANDLER_MISSING_FROM_ARTIFACT`. If the intent was to keep source files out of the artifact, no pattern is needed: a bundled artifact contains no sources.
 
 A positive pattern naming `node_modules/...` ships those files from your service directory: a vendored or patched dependency the generated `package.json` does not declare, and which the install into the artifact therefore never produces. Where such a file and an installed one share a path, the pattern's copy is what ships. A broad positive pattern such as `'**'` therefore also selects your local `node_modules`, devDependencies included, and ships it in place of the installed tree — follow it with `'!node_modules/**'`, or name the directories you mean.
 
@@ -202,6 +202,27 @@ src/types.d.ts
 assets/banner.txt
 README.md
 ```
+
+with this `serverless.yml`:
+
+```yaml
+service: banner-api
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+
+build:
+  esbuild:
+    bundle: false
+    packages: external
+
+functions:
+  hello:
+    handler: src/handler.hello
+```
+
+The handler path is the source file's path without its extension, followed by the name of the exported function, and it resolves to the emitted JavaScript: `src/handler.ts` exporting `hello` is `src/handler.hello`, which Lambda loads from `src/handler.js` in the artifact.
 
 With `bundle: false` and `packages: external` the deployment archive contains:
 
@@ -303,6 +324,8 @@ A dedicated `tsconfig.build.json` keeps tests out of the artifact while your edi
 
 The tsconfig only narrows what compiles: it cannot add files the package excludes, it selects TypeScript only (`.jsx` files always compile), and handler files always compile even when the config omits them. Unlike `tsc`, the build does not follow imports: a TypeScript file outside `files` and `include` is not compiled even when a compiled file imports it, and the artifact will lack it. Make sure `include` covers every source the deployed code reaches — or keep the editor's `tsconfig.json` as it is and point `tsconfig` at a build config that only excludes what should not ship.
 
+A config that leaves out a helper the handler imports is not reported at build time: the artifact packages cleanly without the helper, and the function fails on its first invocation with `Cannot find module`. List what an artifact actually holds with `unzip -Z1 .serverless/<service>.zip`.
+
 #### Excluding Files with `package.patterns`
 
 Under `bundle: false`, [`package.patterns`](./packaging.md) also decides which project files enter the build, with classic semantics: patterns apply in order and the last match wins, so negations narrow what ships and a later positive pattern re-includes a default exclusion (`patterns: ['serverless.yml']` ships the configuration file). Negations select project files; they do not remove build outputs such as sourcemaps — set `sourcemap: false`, or use a function-level negation under `package.individually`.
@@ -364,6 +387,7 @@ A function's negations apply to build outputs as well as project files, so `'!**
 - esbuild compiles TypeScript but does not type-check it. Keep `tsc --noEmit` in your CI pipeline.
 - esbuild does not support `emitDecoratorMetadata`: decorators compile, but the metadata is silently omitted. Services that depend on it should precompile with `tsc` and remove `build.esbuild`.
 - The import diagnostics scan compiled output only; copied JavaScript files are not scanned. Extensionless ES module imports are warned about, not rewritten.
+- Top-level `await` requires ES module output. In a file that compiles to CommonJS — one whose nearest `package.json` carries no `"type": "module"` — the build stops with esbuild's error, naming the file and the expression: `Top-level await is currently not supported with the "cjs" output format`. Add `"type": "module"` to that `package.json`, or write the file as `.mts`.
 
 ## Plugin Conflicts
 

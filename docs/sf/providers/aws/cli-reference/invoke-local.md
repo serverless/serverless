@@ -145,6 +145,8 @@ In the above example, `EXT_TABLE_NAME` and `REF_TABLE_NAME` will be resolved to 
 
 ### Limitations
 
+Without `--docker`, a Node.js or Python function runs under the interpreter installed on your machine (`node`, `python3`), not the version named by its `runtime` — a function declared `runtime: python3.13` executes on whatever `python3` resolves to locally, and the difference is not reported. Pass `--docker` to run the function on the declared runtime.
+
 Use of the `--docker` flag and runtimes other than NodeJs, Python, Java, & Ruby depend on having
 [Docker](https://www.docker.com/) installed. On MacOS & Windows, install
 [Docker Desktop](https://www.docker.com/products/docker-desktop); On Linux install

@@ -149,6 +149,11 @@ A service reference can be part of a larger string, so a connection URL can be a
 
 ```yaml
 # serverless-compose.yml
+stages:
+  default:
+    params:
+      dbName: orders-db
+
 services:
   orders-db:
     path: orders-db
@@ -159,7 +164,7 @@ services:
       databaseUrl: postgres://${service:orders-db.Host}:5432/orders
 ```
 
-Service references nest like any other variable: other variables can appear inside the reference (`${service:${opt:db}.Host}`), and a reference can sit inside another variable (`${env:${service:orders-db.EnvName}}`). In `print`, a reference nested inside another variable receives `NOT_AVAILABLE_IN_PRINT_COMMAND` when its state is not available, so the enclosing variable may not resolve; give it a fallback (`${env:${service:orders-db.EnvName}, 'n/a'}`) if `print` must succeed before the first deploy.
+Service references nest like any other variable: other variables can appear inside the reference (`${service:${param:dbName}.Host}`, using the parameter declared above), and a reference can sit inside another variable (`${env:${service:orders-db.EnvName}}`). In `print`, a reference nested inside another variable receives `NOT_AVAILABLE_IN_PRINT_COMMAND` when its state is not available, so the enclosing variable may not resolve; give it a fallback (`${env:${service:orders-db.EnvName}, 'n/a'}`) if `print` must succeed before the first deploy.
 
 A service reference accepts a fallback like any other variable: `${service:orders-db.Host, 'localhost'}` uses `localhost` when `orders-db` has no deployed state yet or has no `Host` output (in `print`, an unavailable reference still renders `NOT_AVAILABLE_IN_PRINT_COMMAND` rather than the fallback). The fallback does not change deploy ordering — `orders-db` still deploys before the service that references it. Referencing a service that is not in the compose file, or writing a reference that is not of the form `<service-name>.<OutputKey>`, is an error even when a fallback is declared.
 
