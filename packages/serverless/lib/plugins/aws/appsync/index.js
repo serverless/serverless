@@ -347,16 +347,26 @@ class ServerlessAppsyncPlugin {
       })
     })
 
-    const { apiKeys } = await this.provider.request('AppSync', 'listApiKeys', {
-      apiId: apiId,
-    })
+    let nextToken
+    do {
+      const params = { apiId }
+      if (nextToken) params.nextToken = nextToken
 
-    apiKeys?.forEach((apiKey) => {
-      this.gatheredData.apiKeys.push({
-        value: apiKey.id || 'unknown key',
-        description: apiKey.description,
+      const response = await this.provider.request(
+        'AppSync',
+        'listApiKeys',
+        params,
+      )
+
+      response.apiKeys?.forEach((apiKey) => {
+        this.gatheredData.apiKeys.push({
+          value: apiKey.id || 'unknown key',
+          description: apiKey.description,
+        })
       })
-    })
+
+      nextToken = response.nextToken
+    } while (nextToken)
   }
 
   async getIntrospection() {
