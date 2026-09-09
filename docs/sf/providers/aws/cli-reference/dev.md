@@ -66,15 +66,17 @@ mcp: crm → https://abc123.execute-api.us-east-1.amazonaws.com/dev/crm/mcp
 ← λ crm (200) 1.2s
 → λ crm ── mcp tools/call get_weather
 ← λ crm (200) 640ms
-→ λ crm ── mcp tools/call get_weather
-← λ crm (200) 380ms ── error -32602: Invalid params
+→ λ crm ── mcp tools/call noSuchTool
+← λ crm (200) 158ms ── error -32602: Tool noSuchTool not found
 ```
+
+Only JSON-RPC-level errors get that callout. A failure inside a tool — arguments its input schema rejects, for example — is an MCP tool result carrying `isError: true` inside a `200` response, so it is logged as a plain `(200)` line and the reason appears in the result the client receives.
 
 Anything your server logs appears between the two lines. `--detailed` additionally prints the complete API Gateway event and response envelope for every request.
 
 Access control stays in force during a session: an `authorizer` still rejects unauthorized requests at the gateway before anything reaches your machine, and authorized requests are served locally like any other (a Lambda authorizer runs through the session too). OAuth discovery documents remain served by API Gateway, and `state` keys are fetched by the locally running entry using the function's own execution-role credentials, so elicitation round trips work end to end. Each request runs your module fresh, which typically adds a few hundred milliseconds.
 
-Results are delivered buffered: the response body is assembled fully and delivered at once, so progress notifications arrive together at the end of the call. As for all Dev Mode functions, requests or results larger than roughly 125 KB fail with an error explaining the limit — and on the default edge-optimized endpoint, a call that has produced nothing for roughly 30 seconds is dropped downstream with a `504` (the session prints a warning when a local run exceeds that budget). On `provider.endpointType: REGIONAL` that budget does not apply and no warning is printed — a dev-session tool call runs up to the server's own `timeout`, 60 seconds by default. Deploy normally to test incremental streaming, long-running tools, or large payloads; running `serverless deploy` after the session restores normal serving. See the [Dev Mode section of the MCP guide](../guide/mcp.md#dev-mode) for the full behavior.
+Results are delivered buffered: the response body is assembled fully and delivered at once, so progress notifications arrive together at the end of the call. As for all Dev Mode functions, requests or results larger than roughly 125 KB fail with an error explaining the limit; that explanation is printed in the `serverless dev` terminal, while the MCP client receives an HTTP `502` with no detail — and on the default edge-optimized endpoint, a call that has produced nothing for roughly 30 seconds is dropped downstream with a `504` (the session prints a warning when a local run exceeds that budget). On `provider.endpointType: REGIONAL` that budget does not apply and no warning is printed — a dev-session tool call runs up to the server's own `timeout`, 60 seconds by default. Deploy normally to test incremental streaming, long-running tools, or large payloads; running `serverless deploy` after the session restores normal serving. See the [Dev Mode section of the MCP guide](../guide/mcp.md#dev-mode) for the full behavior.
 
 ## Supported runtimes
 

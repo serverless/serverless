@@ -136,6 +136,10 @@ Provisioned mode incurs additional AWS charges per event poller — the `min` va
 
 `provisionedPollers` and `maximumConcurrency` are mutually exclusive scaling modes — setting both fails validation at package time. In provisioned mode, control concurrency through `max` (each SQS event poller drives up to 10 concurrent invocations).
 
+Poller groups (`group`) are available for `kafka` and `msk` event sources only.
+
+Both cross-field rules — `provisionedPollers` together with `maximumConcurrency`, and a `min` above `max` — fail at packaging time whatever `configValidationMode` is set to. A `min` or `max` outside the bounds above is a schema violation, so it follows `configValidationMode`: under the default `warn` it is reported as a warning and deployed as written, for AWS to reject; `error` stops packaging; `off` deploys it silently.
+
 **Disabling provisioned mode:** removing `provisionedPollers` from your configuration does **not** disable it — provisioned mode stays active on the deployed event source mapping, so the pollers (and their cost) remain. The same applies to `rollback` to an older deployment. To actually disable it, deploy once with:
 
 ```yml
