@@ -61,6 +61,8 @@ functions:
     tracing: PassThrough # optional, overwrite, can be 'Active' or 'PassThrough'
 ```
 
+`provider.runtime` sets the runtime for every function in the service, and a function's own `runtime` overrides it for that function. Every current [AWS Lambda managed runtime identifier](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html) is accepted, including the Amazon Linux 2023 Java runtimes `java8.al2023`, `java11.al2023` and `java17.al2023`, which are the migration path off the Amazon Linux 2 Java runtimes. Identifiers AWS has released in public preview — `nodejs26.x` and `python3.15` at the time of writing — are accepted too, but AWS support and SLAs do not cover them until AWS makes them generally available.
+
 The `handler` property points to the file and module containing the code you want to run in your function.
 
 ```javascript
@@ -522,6 +524,24 @@ Resource of type 'AWS::Lambda::Version' with identifier '...' did not stabilize.
 ```
 
 The same message appears when the function's own initialization code throws, so check the function's CloudWatch logs as well. On a first deployment the failed stack is rolled back together with its log group; to read the initialization logs in that case, deploy once without `snapStart`.
+
+A complete container-image service declares the image under [`provider.ecr.images`](#referencing-container-image-as-a-target) and references it by that key from the function:
+
+```yaml
+provider:
+  name: aws
+  ecr:
+    images:
+      app:
+        path: ./ # Docker build context holding the Dockerfile
+
+functions:
+  hello:
+    image: app
+    snapStart: true
+```
+
+The image has to be built for the architecture the function runs on (`architecture`, `x86_64` unless set). Docker builds for the machine's own architecture, so an image built on an arm64 machine matches `architecture: arm64`; to deploy it as `x86_64` from such a machine, set `platform: linux/amd64` on the image entry.
 
 ### How invocations reach the snapshot
 
