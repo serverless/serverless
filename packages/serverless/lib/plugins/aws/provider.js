@@ -2828,9 +2828,16 @@ destinations:
               $ref: '#/definitions/awsLambdaRuntime',
             },
             build: {
-              description: `Function-level build strategy.
-@since v4`,
-              type: 'string',
+              description: `Function-level build strategy, or \`false\` to exclude this function from building.
+@since v4
+@example build: false`,
+              // The `false` branch comes first and uses `const` (value
+              // equality, no coercion): the schema is compiled with ajv's
+              // `coerceTypes: 'array'`, so a leading `type: 'string'` branch
+              // would rewrite the boolean to the string "false" before the
+              // plugin ever sees it, and the strict-equality opt-out check
+              // would miss it.
+              anyOf: [{ const: false }, { type: 'string' }],
             },
             runtimeManagement: {
               description: `Function-level runtime management mode.`,

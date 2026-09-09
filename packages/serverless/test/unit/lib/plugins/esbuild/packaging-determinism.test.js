@@ -206,3 +206,77 @@ describe('esbuild packaging determinism', () => {
     }
   })
 })
+
+/**
+ * Packaging now ships the whole build directory instead of a handpicked list
+ * of files. For the overwhelmingly common service — `bundle: true`, no
+ * patterns — the build directory holds exactly what that list named, so the
+ * artifact must come out with the same contents it always had.
+ */
+describe('bundle: true artifact contents are unchanged', () => {
+  jest.setTimeout(30_000)
+
+  // The exact shape a bundling build leaves behind: the pruned package.json,
+  // the lockfile copied beside it, one bundle per handler with its sourcemap,
+  // and the dependencies installed from that package.json.
+  function makeBundledBuildDir() {
+    const serviceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sls-esbuild-'))
+    const buildDir = path.join(serviceDir, '.serverless', 'build')
+    fs.mkdirSync(path.join(buildDir, 'node_modules', 'dep'), {
+      recursive: true,
+    })
+    fs.writeFileSync(
+      path.join(buildDir, 'node_modules', 'dep', 'index.js'),
+      'module.exports = 1\n',
+    )
+    fs.writeFileSync(path.join(buildDir, 'package.json'), '{"name":"svc"}\n')
+    fs.writeFileSync(path.join(buildDir, 'package-lock.json'), '{}\n')
+    fs.writeFileSync(
+      path.join(buildDir, 'handler.js'),
+      'export const hello = async () => ({ statusCode: 200 })\n',
+    )
+    fs.writeFileSync(path.join(buildDir, 'handler.js.map'), '{}\n')
+    return serviceDir
+  }
+
+  test('_packageAll ships exactly the files the handpicked list named, sorted', async () => {
+    const serviceDir = makeBundledBuildDir()
+    const plugin = makePlugin(serviceDir)
+    plugin.builtArtifacts = new Map([
+      ['hello', { outfile: 'handler.js', mapfile: 'handler.js.map' }],
+    ])
+
+    await plugin._packageAll(functions)
+
+    const zip = await JsZip.loadAsync(
+      fs.readFileSync(path.join(serviceDir, '.serverless', 'my-service.zip')),
+    )
+    const names = Object.keys(zip.files)
+    const fromBuildDir = names.filter((n) => !n.startsWith('node_modules'))
+    expect(fromBuildDir).toEqual([
+      'handler.js',
+      'handler.js.map',
+      'package-lock.json',
+      'package.json',
+    ])
+    expect(names).toContain('node_modules/dep/index.js')
+  })
+
+  test('rebuilding identical content produces byte-identical archives', async () => {
+    const hash = async () => {
+      const serviceDir = makeBundledBuildDir()
+      const plugin = makePlugin(serviceDir)
+      await plugin._packageAll(functions)
+      return crypto
+        .createHash('sha256')
+        .update(
+          fs.readFileSync(
+            path.join(serviceDir, '.serverless', 'my-service.zip'),
+          ),
+        )
+        .digest('hex')
+    }
+
+    expect(await hash()).toBe(await hash())
+  })
+})

@@ -77,7 +77,14 @@ describe('esbuild outExtension support', () => {
 
   beforeEach(() => {
     buildMock.mockReset()
-    buildMock.mockResolvedValue({})
+    // A successful esbuild call writes its outfile, and the plugin now records
+    // only artifacts that are actually on disk, so a mock that resolves
+    // without writing anything would misrepresent success.
+    buildMock.mockImplementation(async ({ outfile }) => {
+      fs.mkdirSync(path.dirname(outfile), { recursive: true })
+      fs.writeFileSync(outfile, '// built by the esbuild mock\n')
+      return {}
+    })
   })
 
   afterEach(() => {
@@ -184,6 +191,32 @@ describe('esbuild outExtension support', () => {
     })
 
     await expect(plugin._build()).rejects.toThrow(/\.mjs/)
+    expect(buildMock).not.toHaveBeenCalled()
+  })
+
+  test("a CommonJS subtree under an ESM root names its file when '.mjs' cannot apply", async () => {
+    // `format: esm` on a `"type": "module"` root is the derived default, so
+    // nested package.json subtrees keep deciding their own module system. The
+    // mapping then fails on the first CommonJS file — and "set format: esm",
+    // which the user already did, must not be the advice.
+    const serviceDir = makeServiceDir({
+      'package.json': '{"type":"module"}\n',
+      ...handlerFiles,
+      'sub/package.json': '{"type":"commonjs"}\n',
+      'sub/util.ts': 'export const one = 1\n',
+    })
+    const plugin = makePlugin(serviceDir, functions, {
+      esbuildConfig: {
+        bundle: false,
+        format: 'esm',
+        outExtension: { '.js': '.mjs' },
+      },
+    })
+
+    await expect(plugin._build()).rejects.toThrow(
+      /"sub\/util\.ts" compiles as CommonJS because its nearest package\.json/,
+    )
+    await expect(plugin._build()).rejects.not.toThrow(/Set "format: esm"/)
     expect(buildMock).not.toHaveBeenCalled()
   })
 
@@ -298,6 +331,28 @@ describe('esbuild packaging with outExtension', () => {
     expect(entries).toContain('handler.mjs')
     expect(entries).toContain('handler.mjs.map')
     expect(entries).not.toContain('handler.js')
+  })
+
+  test('the handler assertion accepts an outExtension-renamed outfile', async () => {
+    // The post-zip check compares `builtArtifacts` against the names actually
+    // appended. Both sides have to agree on the renamed extension, or an
+    // otherwise correct `.mjs` artifact would be rejected as handler-less.
+    const serviceDir = makeBuiltServiceDir('.mjs')
+    const plugin = makePackagingPlugin(serviceDir, {
+      esbuildConfig: { format: 'esm', outExtension: { '.js': '.mjs' } },
+      individually: true,
+    })
+    plugin.builtArtifacts = new Map([
+      ['hello', { outfile: 'handler.mjs', mapfile: 'handler.mjs.map' }],
+    ])
+
+    await expect(plugin._package()).resolves.toBeUndefined()
+
+    expect(
+      await zipEntryNames(
+        path.join(serviceDir, '.serverless', 'my-service-hello.zip'),
+      ),
+    ).toContain('handler.mjs')
   })
 
   test('without outExtension packaging still zips .js names', async () => {

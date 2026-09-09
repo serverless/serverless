@@ -71,6 +71,7 @@
     "filesize": "^11.0.22",
     "fs-extra": "^11.4.0",
     "get-stdin": "^9.0.0",
+    "get-tsconfig": "^4.14.1",
     "glob": "^13.0.6",
     "globby": "^14.1.0",
     "graphql": "^16.14.2",

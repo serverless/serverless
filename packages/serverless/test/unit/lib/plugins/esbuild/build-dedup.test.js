@@ -82,7 +82,14 @@ describe('esbuild shared-handler build dedup', () => {
 
   beforeEach(() => {
     buildMock.mockReset()
-    buildMock.mockResolvedValue({})
+    // A successful esbuild call writes its outfile, and the plugin now records
+    // only artifacts that are actually on disk, so a mock that resolves
+    // without writing anything would misrepresent success.
+    buildMock.mockImplementation(async ({ outfile }) => {
+      fs.mkdirSync(path.dirname(outfile), { recursive: true })
+      fs.writeFileSync(outfile, '// built by the esbuild mock\n')
+      return {}
+    })
   })
 
   afterEach(() => {
@@ -214,7 +221,7 @@ describe('esbuild shared-handler build dedup', () => {
     expect([...plugin.serverless.builtFunctions]).toEqual(['getItems'])
   })
 
-  test('no buildable handler files resolves without throwing and does not build', async () => {
+  test('no buildable handler files fails with a diagnosable error and does not build', async () => {
     // Handler points at a file that doesn't exist on disk (e.g. missing file
     // or a typo'd path), so `_extensionForFunction` returns undefined for
     // every candidate and `buildGroups` ends up empty. Pre-fix, falling
@@ -222,14 +229,22 @@ describe('esbuild shared-handler build dedup', () => {
     // with `buildConcurrency` unset computed `pLimit(0)`, which throws
     // `TypeError: Expected concurrency to be a number from 1 and up` outside
     // the try/catch (bypassing both ESBULD_BUILD_ERROR wrapping and the
-    // dev-mode swallow). This should be a clean no-op instead.
+    // dev-mode swallow).
+    //
+    // It must still not reach `pLimit`/`esbuild.build`, but the outcome is no
+    // longer a silent no-op: skipping the function shipped a zip with no
+    // handler in it (#12970), so the empty-group case now raises the same
+    // named error as a build that leaves a function unbuilt.
     const serviceDir = makeServiceDir({})
     const functions = {
       missing: { handler: 'does/not/exist.handler' },
     }
     const plugin = makePlugin(serviceDir, functions)
 
-    await expect(plugin._build()).resolves.toBeUndefined()
+    await expect(plugin._build()).rejects.toMatchObject({
+      name: 'ServerlessError',
+      code: 'ESBUILD_HANDLER_NOT_BUILT',
+    })
 
     expect(buildMock).not.toHaveBeenCalled()
   })
