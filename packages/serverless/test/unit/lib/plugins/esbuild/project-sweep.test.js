@@ -814,9 +814,8 @@ describe('applyTsconfigCompileFilter', () => {
       // Nothing is dropped: an unreadable config the user never pointed us at
       // must not be able to strip files out of the artifact.
       expect(result.compile).toEqual(['src/a.ts', 'scripts/seed.ts'])
-      expect(result.warning).toContain(
-        path.join(dir, 'tsconfig.json').replace(/\\/g, '/'),
-      )
+      // This warning names the anchor the sweep built itself, in native form.
+      expect(result.warning).toContain(path.join(dir, 'tsconfig.json'))
       expect(result.warning).toContain('@tsconfig/node20')
       expect(result.warning).toContain('build.esbuild.tsconfig')
     })

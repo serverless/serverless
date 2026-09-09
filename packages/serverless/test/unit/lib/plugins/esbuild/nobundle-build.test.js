@@ -21,6 +21,7 @@ import { execFileSync, spawnSync } from 'child_process'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
+import { pathToFileURL } from 'url'
 import JsZip from 'jszip'
 import { log } from '@serverless/util'
 
@@ -111,7 +112,7 @@ const readIn = (serviceDir, rel) =>
  * extension or format produces, and it produces it at invocation time.
  */
 function loadBuiltHandler(serviceDir, rel, exportName) {
-  const target = path.join(buildDirOf(serviceDir), rel)
+  const target = pathToFileURL(path.join(buildDirOf(serviceDir), rel)).href
   const script =
     `import(${JSON.stringify(target)})` +
     `.then((m) => (m.${exportName} ?? m.default?.${exportName})())` +
