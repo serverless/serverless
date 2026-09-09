@@ -98,4 +98,50 @@ describe('getAwsCredentials', () => {
     expect(mockCredentialProvider).toHaveBeenCalledTimes(1)
     expect(mockCredentialProvider.mock.calls[0][0]).toBe(providerOptions)
   })
+
+  it('adds the credential-setup hint when the implicit default resolver is used', async () => {
+    const providerError = Object.assign(
+      new Error('Could not load credentials from any providers'),
+      { name: 'CredentialsProviderError' },
+    )
+    mockFromNodeProviderChain.mockReturnValue(
+      jest.fn().mockRejectedValue(providerError),
+    )
+
+    const credentialProvider = await getAwsCredentials({
+      logger,
+      dashboard,
+      config,
+      isDefaultConfig: true,
+    })
+
+    await expect(credentialProvider()).rejects.toMatchObject({
+      code: 'AWS_CREDENTIALS_MISSING',
+      message:
+        'AWS credentials missing or invalid. Run "serverless" to set up AWS credentials, or learn more in our docs: https://slss.io/aws-creds-setup. Original error from AWS: Could not load credentials from any providers',
+    })
+  })
+
+  it('omits the credential-setup hint when the resolver is explicitly configured', async () => {
+    const providerError = Object.assign(
+      new Error('Could not load credentials from any providers'),
+      { name: 'CredentialsProviderError' },
+    )
+    mockFromNodeProviderChain.mockReturnValue(
+      jest.fn().mockRejectedValue(providerError),
+    )
+
+    const credentialProvider = await getAwsCredentials({
+      logger,
+      dashboard,
+      config: { profile: 'does-not-exist' },
+      isDefaultConfig: false,
+    })
+
+    await expect(credentialProvider()).rejects.toMatchObject({
+      code: 'AWS_CREDENTIALS_MISSING',
+      message:
+        'AWS credentials missing or invalid. Original error from AWS: Could not load credentials from any providers',
+    })
+  })
 })

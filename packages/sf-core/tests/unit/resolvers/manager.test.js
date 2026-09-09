@@ -70,6 +70,8 @@ jest.unstable_mockModule(
 // Import after mocking
 const { ResolverManager } =
   await import('../../../src/lib/resolvers/manager.js')
+const { createResolverProvider } =
+  await import('../../../src/lib/resolvers/providers.js')
 
 describe('ResolverManager', () => {
   let manager
@@ -286,6 +288,56 @@ describe('ResolverManager', () => {
       expect(manager.credentialResolverName).toBe(
         'default-aws-credential-resolver',
       )
+    })
+  })
+
+  describe('addDefaultAwsCredentialResolver', () => {
+    const build = (serviceConfig, options = {}) => {
+      manager = new ResolverManager(
+        mockLogger,
+        serviceConfig,
+        '/path/to/config',
+        options,
+        null,
+        null,
+        null,
+        false,
+        '4.0.0',
+      )
+      manager.setCredentialResolver()
+      manager.addDefaultAwsCredentialResolver()
+      return createResolverProvider.mock.calls.at(-1)[0]
+    }
+
+    test('passes a type-only config when no profile is configured', () => {
+      const config = build({ provider: {} })
+
+      expect(config).toEqual({ type: 'aws' })
+      expect(config).not.toHaveProperty('profile')
+    })
+
+    test('passes provider.profile when the service configures one', () => {
+      expect(build({ provider: { profile: 'svc-profile' } })).toEqual({
+        type: 'aws',
+        profile: 'svc-profile',
+      })
+    })
+
+    test('prefers --aws-profile over provider.profile', () => {
+      expect(
+        build(
+          { provider: { profile: 'svc-profile' } },
+          { 'aws-profile': 'cli-profile' },
+        ),
+      ).toEqual({ type: 'aws', profile: 'cli-profile' })
+    })
+
+    test('registers the provider under the default resolver name', () => {
+      build({ provider: {} })
+
+      expect(
+        manager.resolverProviders['default-aws-credential-resolver'],
+      ).toBeDefined()
     })
   })
 
