@@ -389,15 +389,17 @@ export class ResolverManager {
   addDefaultAwsCredentialResolver() {
     // If the default AWS credential resolver is used, add it to the resolver providers
     if (this.credentialResolverName === DEFAULT_AWS_CREDENTIAL_RESOLVER) {
+      const profile =
+        this.options?.['aws-profile'] ||
+        this.serviceConfigFile?.provider?.profile
+      // Only set `profile` when one was actually configured. The AWS provider
+      // treats a type-only config as "nothing set up", which is what enables the
+      // credential-setup hint when no credentials can be found; an explicit
+      // `profile: undefined` key would make it look configured.
       this.addResolverProvider(
         DEFAULT_AWS_CREDENTIAL_RESOLVER,
         createResolverProvider(
-          {
-            type: 'aws',
-            profile:
-              this.options?.['aws-profile'] ||
-              this.serviceConfigFile?.provider?.profile,
-          },
+          { type: 'aws', ...(profile ? { profile } : {}) },
           this.serviceConfigFile,
           this.configFileDirPath,
           this.options,

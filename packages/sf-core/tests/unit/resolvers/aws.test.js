@@ -528,6 +528,48 @@ describe('Aws Resolver', () => {
     })
   })
 
+  describe('isDefaultConfig', () => {
+    const build = (providerConfig) =>
+      new Aws({
+        logger: mockLogger,
+        providerConfig,
+        serviceConfigFile: {},
+        configFileDirPath: '/tmp',
+        options: {},
+        stage: 'dev',
+        dashboard: null,
+        composeParams: null,
+        resolveVariableFunc: jest.fn(),
+        resolveConfigurationPropertyFunc: jest.fn(),
+      })
+
+    test('is true when the config carries nothing but the type', () => {
+      expect(build({ type: 'aws' }).isDefaultConfig).toBe(true)
+    })
+
+    test('is true for an empty config', () => {
+      expect(build({}).isDefaultConfig).toBe(true)
+    })
+
+    test('is false when a profile is configured', () => {
+      expect(build({ type: 'aws', profile: 'x' }).isDefaultConfig).toBe(false)
+    })
+
+    test('is false when any other option is configured', () => {
+      expect(build({ type: 'aws', region: 'eu-west-1' }).isDefaultConfig).toBe(
+        false,
+      )
+    })
+
+    test('hands isDefaultConfig to getAwsCredentials', async () => {
+      mockGetAwsCredentials.mockResolvedValue(() => ({}))
+      await build({ type: 'aws' }).resolveCredentials()
+      expect(mockGetAwsCredentials).toHaveBeenCalledWith(
+        expect.objectContaining({ isDefaultConfig: true }),
+      )
+    })
+  })
+
   describe('static properties', () => {
     test('has correct type', () => {
       expect(Aws.type).toBe('aws')
