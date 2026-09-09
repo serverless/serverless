@@ -250,6 +250,24 @@ describe('sendAwsRequest', () => {
     )
   })
 
+  test('the API name drops the numeric suffix the bundler appends to duplicate class names', async () => {
+    // esbuild emits the SDK's command classes as e.g. `DescribeStacksCommand7`
+    // in the release bundle; the API must still read `DescribeStacks`.
+    class DescribeStacksCommand7 extends DescribeStacksCommand {}
+    resetAwsResolverState({
+      requestHandler: fakeHandler([
+        ok(describeStacksXml('stack-a', [['OutA', 'a-one']])),
+      ]),
+    })
+    await describeStack({
+      command: new DescribeStacksCommand7({ StackName: 'stack-a' }),
+    })
+    logAwsResolverSummary(logger)
+    expect(logger.debug).toHaveBeenCalledWith(
+      'cf: 1 placeholders, 1 stacks, 1 DescribeStacks calls, 0 throttled attempts',
+    )
+  })
+
   test('a request that fails after an invalidation does not evict the entry cached since', async () => {
     const handler = handlerHoldingFirstRequest()
     resetAwsResolverState({ requestHandler: handler })
