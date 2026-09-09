@@ -130,17 +130,25 @@ describe('aws common artifacts', () => {
       expect(fs.existsSync(path.join(serviceDir, 'handler.js'))).toBe(true)
     })
 
-    it('resolves a relative package path against the service directory, not the cwd', async () => {
+    it('resolves a relative package path from the cwd, like the filesystem operations do', async () => {
       // With `--config sub/serverless.yml` (or Compose) the cwd is not the
-      // service directory. The guard and the filesystem operations must agree
-      // on what a relative path means, or the guard protects the wrong path.
+      // service directory. Relative paths keep their long-standing meaning
+      // (relative to the cwd) so existing output locations do not move.
       process.chdir(rootDir)
-      const plugin = createPlugin('service')
+      const plugin = createPlugin('out')
       await plugin.moveArtifactsToPackage()
       expectServiceIntact({ artifactsMoved: true })
-      expect(
-        fs.existsSync(path.join(serviceDir, 'service', 'service.zip')),
-      ).toBe(true)
+      expect(fs.existsSync(path.join(rootDir, 'out', 'service.zip'))).toBe(true)
+      expect(fs.existsSync(path.join(serviceDir, 'out'))).toBe(false)
+    })
+
+    it('refuses a relative path that names the service directory from another cwd', async () => {
+      process.chdir(rootDir)
+      const plugin = createPlugin('service')
+      await expect(plugin.moveArtifactsToPackage()).rejects.toMatchObject({
+        code: 'PACKAGE_PATH_CONTAINS_SERVICE',
+      })
+      expectServiceIntact()
     })
 
     it('refuses an ancestor even when an intermediate directory name starts with ".."', async () => {

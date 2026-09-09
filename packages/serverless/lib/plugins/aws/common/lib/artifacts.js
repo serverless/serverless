@@ -15,16 +15,16 @@ function canonicalize(absolutePath) {
 }
 
 /**
- * Resolve the user-supplied package path against the service directory and
- * refuse it when it is the service directory itself or one of its ancestors.
- * The package directory is replaced wholesale when artifacts are moved into
- * it, so for those paths "replace the package directory" would delete the
- * user's project. Returns the absolute package path to use for all
- * filesystem operations, so the check and the operations agree on which
- * directory is meant regardless of the process cwd.
+ * Resolve the user-supplied package path (relative paths are relative to the
+ * process cwd, as they always were for these moves) and refuse it when it is
+ * the service directory itself or one of its ancestors. The package directory
+ * is replaced wholesale when artifacts are moved into it, so for those paths
+ * "replace the package directory" would delete the user's project. Returns
+ * the absolute package path to use for all filesystem operations, so the
+ * check and the operations always refer to the same directory.
  */
 function resolvePackagePath(packagePath, serviceDir) {
-  const resolvedPackagePath = path.resolve(serviceDir, packagePath)
+  const resolvedPackagePath = path.resolve(packagePath)
   // Where the service directory lies, seen from the package directory. It is
   // empty when both are the same directory and a downward path (no leading
   // ".." segment) when the package directory is an ancestor of the service.

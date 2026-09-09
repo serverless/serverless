@@ -24,7 +24,7 @@ serverless package
 - `--stage` or `-s` The stage in your service that you want to deploy to.
 - `--region` or `-r` The region in that stage that you want to deploy to.
 - `--aws-profile` The AWS profile you want to use.
-- `--package` or `-p` path to the custom packaging directory you want. Relative paths are resolved from the service directory. The directory is replaced with the packaged output, so it cannot be the service directory itself or a directory that contains it.
+- `--package` or `-p` path to the custom packaging directory you want. The directory is replaced with the packaged output, so it cannot be the service directory itself or a directory that contains it.
 
 ## Examples
 
