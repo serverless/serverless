@@ -272,35 +272,6 @@ describe('sweepProjectFiles', () => {
 
     expect(files).toEqual(['src/app.js'])
   })
-
-  it('inverts a !-prefixed additionalExclusion into a re-include, classic-style', async () => {
-    const dir = makeTree(['tmp/keep.js', 'tmp/other.js', 'src/app.js'])
-
-    const files = await sweepProjectFiles({
-      serviceDir: dir,
-      // Classic's exclude list supports `!` re-include spellings by inverting
-      // them (package-service.js resolveFilePathsFromPatterns); the sweep has
-      // to do the same rather than blanket-negating every entry.
-      additionalExclusions: ['tmp/**', '!tmp/keep.js'],
-    })
-
-    expect(files.sort()).toEqual(['src/app.js', 'tmp/keep.js'])
-  })
-
-  it('treats a lone !-prefixed additionalExclusion as a no-op, not a sweep inversion', async () => {
-    const dir = makeTree(['keep.js', 'src/util.js', 'README.md'])
-
-    const files = await sweepProjectFiles({
-      serviceDir: dir,
-      // Blanket-wrapping this entry produced `!!keep.js` -- a negation whose
-      // micromatch pattern matches everything EXCEPT keep.js -- and emptied
-      // the whole sweep. Classic treats it as a re-include of a file nothing
-      // excluded: a no-op.
-      additionalExclusions: ['!keep.js'],
-    })
-
-    expect(files.sort()).toEqual(['README.md', 'keep.js', 'src/util.js'])
-  })
 })
 
 describe('splitCompileAndCopy', () => {

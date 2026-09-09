@@ -169,9 +169,10 @@ export function nearestPackageJsonType(
  * @param {string[]} [options.layerPaths] layer source directories, service-relative
  * @param {string|null} [options.localPluginPath] `plugins.localPath`, service-relative
  * @param {string[]} [options.additionalExclusions] further globs to negate ahead
- *   of the user patterns -- classic's `defaultExcludes` and the `useDotenv`
- *   `.env*` rule, which are decided from the serverless instance and so cannot
- *   be hard-coded here
+ *   of the user patterns -- classic's `defaultExcludes` and the `.env*` rule,
+ *   which are decided from the serverless instance and so cannot be hard-coded
+ *   here. Plain globs only: every entry is negated, so a `!`-prefixed entry
+ *   would double-negate and match everything but that path
  * @param {string[]} [options.additionalIgnores] further globs that are never
  *   swept and that no pattern can re-include -- the `--package` directory,
  *   which holds the previous run's artifact and build directory the same way
@@ -254,19 +255,8 @@ export async function sweepProjectFiles({
   // against the full list once, rather than matching every file against every
   // pattern. On a 50k-file service that is the difference between ~840ms and
   // ~110ms.
-  //
-  // An exclusion already carrying a `!` prefix is inverted into a re-include
-  // rather than negated again, exactly as classic does with its exclude list
-  // (`resolveFilePathsFromPatterns`). Double negation is not a no-op here:
-  // `!!keep.js` compiles to the negated micromatch pattern `!keep.js`, which
-  // matches every path EXCEPT `keep.js` and would empty the whole sweep.
   return filterPaths(
-    compilePatterns([
-      ...exclusionGlobs.map((glob) =>
-        glob.startsWith('!') ? glob.slice(1) : `!${glob}`,
-      ),
-      ...patterns,
-    ]),
+    compilePatterns([...exclusionGlobs.map((glob) => `!${glob}`), ...patterns]),
     all,
   )
 }
