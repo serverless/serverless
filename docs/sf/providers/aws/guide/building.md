@@ -324,7 +324,7 @@ A dedicated `tsconfig.build.json` keeps tests out of the artifact while your edi
 
 The tsconfig only narrows what compiles: it cannot add files the package excludes, it selects TypeScript only (`.jsx` files always compile), and handler files always compile even when the config omits them. Unlike `tsc`, the build does not follow imports: a TypeScript file outside `files` and `include` is not compiled even when a compiled file imports it, and the artifact will lack it. Make sure `include` covers every source the deployed code reaches — or keep the editor's `tsconfig.json` as it is and point `tsconfig` at a build config that only excludes what should not ship.
 
-A config that leaves out a helper the handler imports is not reported at build time: the artifact packages cleanly without the helper, and the function fails on its first invocation with `Cannot find module`. List what an artifact actually holds with `unzip -Z1 .serverless/<service>.zip`.
+A config that leaves out a helper the handler imports may not be reported at build time: the import check flags specifier shapes (extensionless ES module imports, imports naming a `.ts` source), not files missing from the artifact, so a `./util.js` import or a CommonJS `require('./util')` of an omitted helper packages cleanly and the function fails on its first invocation with `Cannot find module`. List what an artifact actually holds with `unzip -Z1 .serverless/<service>.zip`.
 
 #### Excluding Files with `package.patterns`
 

@@ -981,8 +981,8 @@ functions:
         - '!.git/**'
         - '!.travis.yml'
       # Explicitly set the package artifact to deploy (overrides native packaging behavior).
-      # Takes effect only with `package.individually: true` at the service level;
-      # otherwise every function is deployed from the service-level artifact.
+      # Packaging uses it as-is; deploying it requires `individually: true` here or at the
+      # service level — without that, deploy looks for the service-level artifact and fails.
       artifact: path/to/my-artifact.zip
       # Package this function as an individual artifact (default: false)
       individually: true
