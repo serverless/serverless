@@ -1,0 +1,23 @@
+# Snyk (https://snyk.io) policy file
+version: v1.25.0
+ignore:
+  SNYK-JS-UUID-16133035:
+    - '*':
+        reason: >-
+          The vulnerability is an out-of-range write into a caller-provided
+          `buf` passed to uuid v3/v5/v6 (or v4 with a buffer argument). This
+          codebase only calls `v4()` with no arguments, so no external buffer is
+          ever handed to uuid. The fixed major (uuid@14) drops Node.js 18, which
+          the shipped CLI must keep supporting (see .github/dependabot.yml).
+        expires: 2027-03-10T00:00:00.000Z
+  SNYK-JS-ADMZIP-19276676:
+    - '*':
+        reason: >-
+          No fixed version exists. adm-zip is only used by `invoke local` to
+          extract the user's own packaged artifact / layer zips and Lambda layer
+          content fetched from the user's own AWS account into the project's
+          `.serverless/` directory. The symlink attack requires an attacker to
+          both plant a symlink in that destination and control the archive,
+          which already implies control of the developer's machine or AWS
+          account.
+        expires: 2027-03-10T00:00:00.000Z

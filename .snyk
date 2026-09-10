@@ -1,0 +1,9 @@
+# Snyk (https://snyk.io) policy file
+version: v1.25.0
+# Snyk Code: unit-test suites and the MCP smoke-test client contain dummy
+# credentials and plain-http calls to local servers by design.
+exclude:
+  code:
+    - packages/*/test/**
+    - packages/*/tests/**
+    - packages/mcp/src/test.js
