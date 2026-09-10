@@ -152,6 +152,11 @@ describe('resolve variables and parameters', () => {
         'Cyclic reference found: ${self:custom.name1} -> ${self:custom.name3} -> ${self:custom.name2}',
       )
     })
+    it('parameter that resolves to itself', async () => {
+      await expect(runTest(path.join(dirPath, 'param-cycle'))).rejects.toThrow(
+        "Cyclic reference found: ${param:WAF_NAME, ''} -> ${param:WAF_NAME, ''} at 'stages.default.params.WAF_NAME'",
+      )
+    })
   })
 
   describe('env', () => {

@@ -1,0 +1,5 @@
+base: from-file
+derived: ${file(cfg.yml):base}-derived
+viaParam: ${param:chainC}
+nested:
+  deep: ${file(cfg.yml):base}/${self:custom.plain}

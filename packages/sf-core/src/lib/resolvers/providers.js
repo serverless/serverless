@@ -147,6 +147,13 @@ export function createResolverFunc(
   resolverName,
   resolverConfig = null,
 ) {
+  // Per-run memoization by key and params. Besides de-duplicating reads, this
+  // is load-bearing for cycle detection: `ResolverManager`'s
+  // `#throwIfExpansionRepeats` treats a placeholder text that recurs while a
+  // value is being expanded as a proven loop, because the repeated evaluation
+  // is served from here and cannot answer differently. If entries can ever be
+  // evicted mid-run, a repeated placeholder may legitimately resolve
+  // differently and that check needs re-examining.
   const cache = new Map()
   return async (key, params) => {
     const cacheKey = `${key}#${JSON.stringify(params)}`
