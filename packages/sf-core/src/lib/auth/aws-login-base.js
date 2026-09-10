@@ -200,7 +200,12 @@ export class AwsLoginBase {
           const error = url.searchParams.get('error')
 
           if (error) {
-            const sanitizedError = this.sanitizeHtml(error)
+            // OAuth error values are plain ASCII codes (RFC 6749 §4.1.2.1);
+            // anything else is not reflected into the page.
+            const errorCode = /^[\w .:-]{1,200}$/.test(error)
+              ? error
+              : 'unknown_error'
+            const sanitizedError = this.sanitizeHtml(errorCode)
             res.writeHead(400, { 'Content-Type': 'text/html' })
             res.end(
               this.generateHtmlPage(

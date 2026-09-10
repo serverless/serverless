@@ -406,7 +406,9 @@ const filenameFromPath = (res) => path.basename(new URL(res.url).pathname)
  */
 const getExtFromMime = (res) => {
   const header = res.headers.get('content-type')
-  return header ? header.split('/')[1] : null
+  const subtype = header ? header.split('/')[1]?.split(';')[0].trim() : ''
+  // The subtype is appended to a file name, so only accept token characters.
+  return subtype && /^[\w+-]+(?:\.[\w+-]+)*$/.test(subtype) ? subtype : null
 }
 
 /**
@@ -420,8 +422,11 @@ const getFilename = async (res, data) => {
 
   if (contentDisposition) {
     const matches = contentDisposition.match(/filename="(.+)"/)
-    if (matches?.[1]) {
-      return matches[1]
+    // Only the basename is trusted from the remote header, so a crafted
+    // Content-Disposition cannot place the download outside the output dir.
+    const filename = matches?.[1] ? path.basename(matches[1]) : ''
+    if (filename && filename !== '.' && filename !== '..') {
+      return filename
     }
   }
 
