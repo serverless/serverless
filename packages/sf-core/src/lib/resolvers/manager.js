@@ -26,6 +26,9 @@ const { Graph } = graphlib
 
 export const DEFAULT_AWS_CREDENTIAL_RESOLVER = 'default-aws-credential-resolver'
 const STATE_RESOLVER = 'default-state-resolver'
+// Backstop for dynamic expansion chains that keep producing new placeholder
+// text without ever repeating exactly. Real configs nest a handful of levels.
+const MAX_DYNAMIC_EXPANSION_DEPTH = 50
 
 /**
  * Whether a registry provider type is compose-only (the `service` provider and
@@ -1158,6 +1161,7 @@ export class ResolverManager {
     selectedProviders,
     selectedPaths,
   ) {
+    this.#throwIfExpansionRepeats(nodeLabel)
     const {
       path,
       original,
@@ -1366,6 +1370,7 @@ export class ResolverManager {
       )
 
       if (newNodeIds.length > 0) {
+        this.#recordExpansionLineage(nodeLabel, newNodeIds, path)
         throwIfCyclesFound(this.placeholdersGraph)
       }
 
@@ -1397,6 +1402,65 @@ export class ResolverManager {
       return addedNodeIds
     }
     return []
+  }
+
+  /**
+   * Guard the dynamic-expansion path against non-terminating chains.
+   *
+   * A resolved value that contains placeholders spawns NEW graph nodes (fresh
+   * ids, no edge back to the node that produced them — that node is removed
+   * from the graph once handled), so `throwIfCyclesFound`, which works on
+   * edges, cannot see a chain such as `${param:X}` → "${param:X}" → … Each
+   * spawned node therefore carries the `original` texts of the chain that led
+   * to it. A spawned node whose text already appears in that chain would be
+   * handed the same input as before and produce the same value again, so it
+   * is reported as a cyclic reference instead of being expanded forever.
+   *
+   * @param {NodeLabel} nodeLabel - The node whose resolved value spawned the new nodes.
+   * @param {string[]} newNodeIds - Ids of the spawned nodes (in `placeholdersGraph`).
+   * @param {string[]} path - Config path the chain lives at (for the message).
+   */
+  #recordExpansionLineage(nodeLabel, newNodeIds, path) {
+    const lineage = [...(nodeLabel.lineage ?? []), nodeLabel.original]
+    if (lineage.length > MAX_DYNAMIC_EXPANSION_DEPTH) {
+      throw new ServerlessError(
+        `Variable expansion exceeded ${MAX_DYNAMIC_EXPANSION_DEPTH} nested levels at '${path?.join('.')}': ... -> ${lineage.slice(-3).join(' -> ')}`,
+        ServerlessErrorCodes.resolvers.RESOLVER_CYCLIC_REFERENCE,
+      )
+    }
+    for (const id of newNodeIds) {
+      const label = this.placeholdersGraph.node(id)
+      if (label) label.lineage = lineage
+    }
+  }
+
+  /**
+   * Fail a spawned node whose (fully substituted) text already occurred in
+   * the chain that spawned it. Runs when the node is about to resolve, i.e.
+   * after its own nested placeholders have been substituted into `original`,
+   * so the comparison is between like forms: the chain entries were recorded
+   * at their resolution time in the same substituted form.
+   *
+   * A repeat proves a loop, not merely suggests one, because
+   * `createResolverFunc` (providers.js) memoizes every resolver result per
+   * key and params for the whole run: the second evaluation of identical text
+   * is served from that cache and cannot answer differently — this holds for
+   * `param` and `self`, which read the live config, and for `${file(x.js)}`
+   * function exports alike. If that memoization ever allows mid-run eviction,
+   * this reasoning needs to be revisited.
+   *
+   * @param {NodeLabel} nodeLabel - The node about to be resolved.
+   */
+  #throwIfExpansionRepeats(nodeLabel) {
+    const { lineage, original, path } = nodeLabel
+    if (!lineage?.length) return
+    const repeatIndex = lineage.indexOf(original)
+    if (repeatIndex === -1) return
+    const chain = [...lineage.slice(repeatIndex), original]
+    throw new ServerlessError(
+      `Cyclic reference found: ${chain.join(' -> ')} at '${path?.join('.')}'`,
+      ServerlessErrorCodes.resolvers.RESOLVER_CYCLIC_REFERENCE,
+    )
   }
 
   /**

@@ -1,0 +1,13 @@
+org: serverlesstestaccount
+service: resolvers-validate-param-cycle
+
+# A parameter defined in serverless.yml shadows a Dashboard parameter of the
+# same name, so this value refers to itself.
+stages:
+  default:
+    params:
+      WAF_NAME: ${param:WAF_NAME, ''}
+
+functions:
+  hello:
+    handler: handler.hello
