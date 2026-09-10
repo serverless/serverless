@@ -79,18 +79,29 @@ describe('cycles that appear during value expansion', () => {
     )
   })
 
-  test('two parameters that reference each other fail with the chain named', async () => {
+  test('two parameters that reference each other fail with the alternating chain named', async () => {
     const config = {
       stages: { default: { params: { A: '${param:B}', B: '${param:A}' } } },
-      custom: { a: '${param:A}' },
     }
 
-    await expect(resolveConfig(config)).rejects.toEqual(
-      cyclic(
-        `${PARAM('[AB]')} -> ${PARAM('[AB]')} -> ${PARAM('[AB]')}`,
-        'stages.default.params.[AB]',
-      ),
+    // Both definitions expand concurrently and whichever reaches the repeat
+    // first reports it, so either consistent chain/path pair is correct — but
+    // the chain must alternate and be reported at the definition it started
+    // from. A self-cycle shape (A -> A -> A) must not satisfy this test.
+    const error = await resolveConfig(config).then(
+      () => {
+        throw new Error('expected resolution to fail')
+      },
+      (e) => e,
     )
+
+    expect(error.code).toBe(
+      ServerlessErrorCodes.resolvers.RESOLVER_CYCLIC_REFERENCE,
+    )
+    expect([
+      "Cyclic reference found: ${param:B} -> ${param:A} -> ${param:B} at 'stages.default.params.A'",
+      "Cyclic reference found: ${param:A} -> ${param:B} -> ${param:A} at 'stages.default.params.B'",
+    ]).toContain(error.message)
   })
 
   test('a self-reference through a nested key is compared in substituted form', async () => {
