@@ -39,6 +39,9 @@ if (metadata === null) {
 }
 
 const version = process.argv[2]
+if (typeof version !== 'string' || version === '') {
+  throw new Error('Missing release version argument')
+}
 await releaseCollection.insertOne({
   version,
   installable: true,
@@ -50,7 +53,7 @@ await releaseCollection.insertOne({
 
 await releaseMetadataCollection.updateOne(
   { _id: metadata._id },
-  { $push: { supportedVersions: process.argv[2] } },
+  { $push: { supportedVersions: version } },
 )
 
 await mongo.close()

@@ -25,6 +25,7 @@ export async function startSseServer({ port = 3001, sendAnalytics } = {}) {
   // replicate its wiring here (json body parsing + Host-header validation
   // for DNS-rebinding protection) with a 4mb limit instead.
   const app = express()
+  app.disable('x-powered-by')
   app.use(express.json({ limit: MAX_MESSAGE_SIZE }))
   app.use(hostHeaderValidation(['localhost', LOOPBACK_HOST, '[::1]']))
 
