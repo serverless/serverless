@@ -7,3 +7,12 @@
 
 # Snyk Security Extension - AI Rules (auto-generated)
 .agent/rules/snyk_rules.md
+
+# Local AI-agent tooling directories
+.claude/
+.superpowers/
+.cursor/
+.codex/
+
+# Terraform working directories left behind by the Terraform resolver integration tests
+**/.terraform/
