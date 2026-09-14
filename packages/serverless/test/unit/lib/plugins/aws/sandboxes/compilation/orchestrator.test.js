@@ -171,6 +171,24 @@ describe('orchestrate', () => {
       expect(uri).toHaveProperty('Fn::Sub')
       const [, vars] = uri['Fn::Sub']
       expect(vars.B).toEqual({ Ref: 'ServerlessDeploymentBucket' })
+
+      // The build role must grant s3:GetObject on the SAME in-stack bucket via
+      // the same Ref — never a string-interpolated "undefined" (GH-13872).
+      const buildPolicy =
+        template.Resources.RunnerImageBuildRole.Properties.Policies[0]
+          .PolicyDocument.Statement
+      const s3Stmt = buildPolicy.find((s) =>
+        (Array.isArray(s.Action) ? s.Action : [s.Action]).includes(
+          's3:GetObject',
+        ),
+      )
+      expect(s3Stmt.Resource).toEqual({
+        'Fn::Sub': [
+          'arn:${AWS::Partition}:s3:::${B}/*',
+          { B: { Ref: 'ServerlessDeploymentBucket' } },
+        ],
+      })
+      expect(JSON.stringify(template)).not.toContain('undefined')
     })
 
     test('CodeArtifact.Uri uses the resolved service.package.deploymentBucket name (global/external bucket case — no ServerlessDeploymentBucket resource exists)', async () => {

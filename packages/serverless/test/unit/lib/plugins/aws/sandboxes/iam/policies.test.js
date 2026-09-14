@@ -158,6 +158,42 @@ describe('generateBuildRole', () => {
     expect(s3Stmt.Resource['Fn::Sub']).toContain('my-artifact-bucket')
   })
 
+  test('s3:GetObject references the in-stack bucket via Ref when the bucket is a CFN intrinsic (no resolved name)', () => {
+    // In-stack ServerlessDeploymentBucket: the name is unknown at package time,
+    // so the orchestrator passes the same Ref it uses for CodeArtifact.Uri.
+    const inStackCtx = { ...ctx, bucket: { Ref: 'ServerlessDeploymentBucket' } }
+    const role = generateBuildRole('runner', {}, inStackCtx)
+    const stmts = role.Properties.Policies[0].PolicyDocument.Statement
+    const s3Stmt = stmts.find((s) => s.Action.includes('s3:GetObject'))
+    expect(s3Stmt.Resource).toEqual({
+      'Fn::Sub': [
+        'arn:${AWS::Partition}:s3:::${B}/*',
+        { B: { Ref: 'ServerlessDeploymentBucket' } },
+      ],
+    })
+    expect(JSON.stringify(s3Stmt.Resource)).not.toContain('undefined')
+  })
+
+  test('s3:GetObject covers the in-stack bucket (Ref) AND a separate s3:// artifact bucket', () => {
+    const inStackCtx = { ...ctx, bucket: { Ref: 'ServerlessDeploymentBucket' } }
+    const role = generateBuildRole(
+      'runner',
+      { artifactBucket: 'other-bucket' },
+      inStackCtx,
+    )
+    const stmts = role.Properties.Policies[0].PolicyDocument.Statement
+    const s3Stmt = stmts.find((s) => s.Action.includes('s3:GetObject'))
+    expect(s3Stmt.Resource).toEqual([
+      {
+        'Fn::Sub': [
+          'arn:${AWS::Partition}:s3:::${B}/*',
+          { B: { Ref: 'ServerlessDeploymentBucket' } },
+        ],
+      },
+      { 'Fn::Sub': 'arn:${AWS::Partition}:s3:::other-bucket/*' },
+    ])
+  })
+
   test('has CloudWatch Logs permissions on /aws/lambda-microvms/*', () => {
     const role = generateBuildRole('runner', {}, ctx)
     const stmts = role.Properties.Policies[0].PolicyDocument.Statement
