@@ -59,24 +59,31 @@ function applySandboxTags(resources, logicalIds, tags) {
 }
 
 /**
- * Build the CFN value for CodeArtifact.Uri for a local-dir sandbox.
+ * Resolve how compiled resources must reference the deployment bucket.
  *
  * When the user specifies a local directory, we don't know the deployment
  * bucket name at compile time (it may be a CFN-managed resource named
  * `ServerlessDeploymentBucket`).  We mirror the pattern used for Lambda
- * functions: if `provider.deploymentBucket` is a pre-configured name use it
+ * functions: if the framework resolved a concrete bucket name use it
  * directly; otherwise emit a `{ Ref: 'ServerlessDeploymentBucket' }` intrinsic
- * so CloudFormation resolves it at deploy time.
+ * so CloudFormation resolves it at deploy time. Every consumer (CodeArtifact
+ * URI, IAM role policies) must use this same value so they agree on the bucket.
  *
- * @param {string|undefined} configuredBucket - ctx.deploymentBucket (may be undefined)
- * @param {string}           key              - The content-addressed S3 key
- * @returns CFN intrinsic or literal string suitable for CodeArtifact.Uri
+ * @param {string|undefined} resolvedBucket - Bucket name when known (may be undefined)
+ * @returns {string|object} bucket name, or the in-stack bucket `Ref` intrinsic
  */
-function buildBucketRefUri(configuredBucket, key) {
-  const bucketRef = configuredBucket
-    ? configuredBucket
-    : { Ref: 'ServerlessDeploymentBucket' }
+function resolveBucketRef(resolvedBucket) {
+  return resolvedBucket ? resolvedBucket : { Ref: 'ServerlessDeploymentBucket' }
+}
 
+/**
+ * Build the CFN value for CodeArtifact.Uri for a local-dir sandbox.
+ *
+ * @param {string|object} bucketRef - Value from `resolveBucketRef`
+ * @param {string}        key       - The content-addressed S3 key
+ * @returns CFN intrinsic suitable for CodeArtifact.Uri
+ */
+function buildBucketRefUri(bucketRef, key) {
   return { 'Fn::Sub': ['s3://${B}/' + key, { B: bucketRef }] }
 }
 
@@ -170,8 +177,11 @@ export async function orchestrate({
     // the `Ref` for the legacy in-stack bucket where the resource still exists.
     const resolvedBucket =
       serverless?.service?.package?.deploymentBucket || bucket
+    // Single source of truth for the bucket: the CodeArtifact URI and the IAM
+    // roles below must all reference the same bucket (name or in-stack Ref).
+    const bucketRef = resolveBucketRef(resolvedBucket)
     const codeArtifactUri =
-      uri !== undefined ? uri : buildBucketRefUri(resolvedBucket, key)
+      uri !== undefined ? uri : buildBucketRefUri(bucketRef, key)
 
     // Cache the pending upload so the deploy hook can perform it.
     if (key !== undefined && zipBuffer !== undefined) {
@@ -264,14 +274,14 @@ export async function orchestrate({
       template.Resources[buildRoleLogicalId] = generateBuildRole(
         name,
         { ...cfg, artifactBucket },
-        { ...ctx, bucket: resolvedBucket, logGroupName },
+        { ...ctx, bucket: bucketRef, logGroupName },
       )
     }
 
     if (shouldGenerateRole(execRoleCfg)) {
       template.Resources[execRoleLogicalId] = generateExecutionRole(name, cfg, {
         ...ctx,
-        bucket: resolvedBucket,
+        bucket: bucketRef,
         loggingDisabled,
         logGroupName,
       })

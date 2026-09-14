@@ -129,6 +129,23 @@ function withCustomizations(role, roleCfg) {
 }
 
 /**
+ * Build an `arn:<partition>:s3:::<bucket>/*` resource for an IAM statement.
+ *
+ * @param {string|object} bucket - Bucket name, or a CloudFormation intrinsic
+ *   (e.g. `{ Ref: 'ServerlessDeploymentBucket' }`) when the name is not known
+ *   at package time.
+ * @returns {object} `Fn::Sub` intrinsic resolving to the bucket's objects ARN
+ */
+function bucketObjectsArn(bucket) {
+  if (typeof bucket === 'string') {
+    return { 'Fn::Sub': `arn:\${AWS::Partition}:s3:::${bucket}/*` }
+  }
+  return {
+    'Fn::Sub': ['arn:${AWS::Partition}:s3:::${B}/*', { B: bucket }],
+  }
+}
+
+/**
  * Generate the build-phase IAM role for a microVM sandbox runner.
  *
  * Permissions:
@@ -140,6 +157,8 @@ function withCustomizations(role, roleCfg) {
  * @param {string} name - Sandbox runner name
  * @param {object} cfg  - Full sandbox configuration object (may contain cfg.iam.buildRole, cfg.artifactBucket)
  * @param {object} ctx  - Deployment context: { serviceName, stage, region, bucket }
+ *   where `bucket` is the resolved deployment bucket name, or a CloudFormation
+ *   intrinsic (`{ Ref: 'ServerlessDeploymentBucket' }`) for the in-stack bucket
  * @returns {object} CloudFormation AWS::IAM::Role resource object
  */
 export function generateBuildRole(name, cfg, ctx) {
@@ -150,16 +169,18 @@ export function generateBuildRole(name, cfg, ctx) {
     `/aws/lambda-microvms/${getResourceName(ctx.serviceName, name, ctx.stage)}`
   // Build the s3:GetObject resource(s).  When the artifact lives in a separate
   // bucket (s3:// passthrough path), we must also grant access to that bucket.
-  const deployBucketArn = `arn:\${AWS::Partition}:s3:::${ctx.bucket}/*`
+  //
+  // ctx.bucket is either the resolved bucket name (string) or a CloudFormation
+  // intrinsic such as { Ref: 'ServerlessDeploymentBucket' } when the bucket is
+  // created by the stack and its name is unknown at package time. Interpolating
+  // an intrinsic into the ARN string would yield a bogus resource, so route it
+  // through an Fn::Sub substitution variable instead.
+  const deployBucketArn = bucketObjectsArn(ctx.bucket)
   let s3Resource
   if (cfg.artifactBucket && cfg.artifactBucket !== ctx.bucket) {
-    const artifactBucketArn = `arn:\${AWS::Partition}:s3:::${cfg.artifactBucket}/*`
-    s3Resource = [
-      { 'Fn::Sub': deployBucketArn },
-      { 'Fn::Sub': artifactBucketArn },
-    ]
+    s3Resource = [deployBucketArn, bucketObjectsArn(cfg.artifactBucket)]
   } else {
-    s3Resource = { 'Fn::Sub': deployBucketArn }
+    s3Resource = deployBucketArn
   }
 
   const role = {
