@@ -148,6 +148,28 @@ describe('esbuild packaging with a directory include', () => {
     }
   })
 
+  test('resolves patterns in a git worktree, where `.git` is a file', async () => {
+    // `git worktree add` (and submodules) leave a `.git` FILE holding a
+    // `gitdir:` pointer. The `.git/**` hard-ignore must still apply without
+    // being `stat`ed as a directory candidate (ENOTDIR), and the bare-directory
+    // expansion below must keep working alongside it. The literal `.git`
+    // pattern would select the file if the hard-ignore ever stopped covering
+    // it, which is what makes the `.git` assertion below a real check.
+    const { serviceDir } = makeServiceDir()
+    fs.writeFileSync(
+      path.join(serviceDir, '.git'),
+      'gitdir: /elsewhere/.git/worktrees/x\n',
+    )
+    const plugin = makePlugin(serviceDir, ['assets', '**/*.txt', '.git'])
+
+    const zip = await packagedEntries(serviceDir, plugin)
+    const names = Object.values(zip.files).map((entry) => entry.name)
+
+    expect(names).toContain('assets/file.txt')
+    expect(names).toContain('assets/sub/a.txt')
+    expect(names).not.toContain('.git')
+  })
+
   test('a bare directory name ships the whole tree it names', async () => {
     // globby expands a pattern that resolves to a directory into the files
     // beneath it, and those files are what the include selected — the ordered

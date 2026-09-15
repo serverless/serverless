@@ -142,6 +142,21 @@ describe('sweepProjectFiles', () => {
     expect(files).toEqual(['index.js'])
   })
 
+  it('sweeps a git worktree, where `.git` is a file rather than a directory', async () => {
+    // `git worktree add` (and submodules) leave a `.git` FILE holding a
+    // `gitdir:` pointer. The `.git/**` ignore must still apply -- and must not
+    // be `stat`ed as a directory candidate, which fails with ENOTDIR.
+    const dir = makeTree(['index.js', 'src/handler.js'])
+    fs.writeFileSync(
+      path.join(dir, '.git'),
+      'gitdir: /elsewhere/.git/worktrees/x\n',
+    )
+
+    const files = await sweepProjectFiles({ serviceDir: dir })
+
+    expect(files).toEqual(['index.js', 'src/handler.js'])
+  })
+
   it('hard-ignores caller-supplied directories: no positive pattern re-includes them', async () => {
     // `--package <dir>` inside the service directory is the caller's case: it
     // receives the previous run's artifact and build directory, so sweeping it
