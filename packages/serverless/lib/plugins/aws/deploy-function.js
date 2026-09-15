@@ -240,6 +240,42 @@ class AwsDeployFunction {
     await callWithRetry()
   }
 
+  /**
+   * Environment.Variables of this function in the deployed stack template, as
+   * uploaded (intrinsics unresolved). Returns `{}` when the deployed function
+   * has no environment, and `null` when the template cannot be read or does
+   * not contain the function, so the caller can treat references as changed.
+   */
+  async getDeployedEnvironmentVariables() {
+    const logicalId = this.provider.naming.getLambdaLogicalId(
+      this.options.function,
+    )
+    try {
+      const { TemplateBody } = await this.provider.request(
+        'CloudFormation',
+        'getTemplate',
+        {
+          StackName: this.provider.naming.getStackName(),
+          TemplateStage: 'Original',
+        },
+      )
+      const template =
+        typeof TemplateBody === 'string'
+          ? JSON.parse(TemplateBody)
+          : TemplateBody
+      const resource = template?.Resources?.[logicalId]
+      if (!resource) {
+        throw new Error(`${logicalId} is not in the deployed template`)
+      }
+      return resource.Properties?.Environment?.Variables || {}
+    } catch (err) {
+      this.logger.debug(
+        `Could not read the environment of function "${this.options.function}" from the deployed template; treating its CloudFormation references as changed: ${err.message}`,
+      )
+      return null
+    }
+  }
+
   async updateFunctionConfiguration() {
     const functionObj = this.options.functionObj
     const providerObj = this.serverless.service.provider
@@ -407,9 +443,12 @@ class AwsDeployFunction {
     ) {
       // updateFunctionConfiguration takes literal strings only, so an
       // environment holding a CloudFormation reference cannot be applied here.
-      // Warn only when a change would actually be lost: a reference key's
-      // deployed value is its resolved form and cannot be compared, but every
-      // literal key can, and so can keys that only exist on one side.
+      // Warn only when a change would actually be lost. Literal keys are
+      // compared against the Lambda configuration. A reference key's deployed
+      // configuration value is its resolved form, so the reference expression
+      // is compared against the deployed stack template instead — the same
+      // unresolved object the last deploy uploaded. Keys that exist on only
+      // one side count as a change too.
       const localVariables = params.Environment.Variables
       const remoteVariables = remoteFunctionConfiguration.Environment.Variables
       const remoteKeys = Object.keys(remoteVariables).filter(
@@ -419,10 +458,13 @@ class AwsDeployFunction {
             consoleEnvironmentVariableNames.includes(key)
           ),
       )
+      const deployedTemplateVariables =
+        await this.getDeployedEnvironmentVariables()
       const hasPendingEnvironmentChange =
         Object.entries(localVariables).some(([key, value]) =>
           _.isObject(value)
-            ? !(key in remoteVariables)
+            ? deployedTemplateVariables === null ||
+              !_.isEqual(value, deployedTemplateVariables[key])
             : String(value) !== remoteVariables[key],
         ) || remoteKeys.some((key) => !(key in localVariables))
       delete params.Environment
