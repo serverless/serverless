@@ -6,6 +6,12 @@ import path from 'path'
 import JsZip from 'jszip'
 import { log } from '@serverless/util'
 
+// Every zip entry is stamped with new Date(0), which the archive clamps to the
+// DOS date minimum (1980-01-01 00:00:00). jszip decodes that timestamp as UTC,
+// so compare the instant itself rather than local-time getters, which read the
+// previous year west of UTC.
+const PINNED_ENTRY_TIME = Date.UTC(1980, 0, 1)
+
 // Only this one file name is made unreadable; every other path goes to the real
 // filesystem, so the rest of the suite is unaffected by the mock.
 const UNREADABLE_ENTRY = 'unreadable.js'
@@ -389,7 +395,7 @@ describe('esbuild packaging honors package.patterns (individually)', () => {
       ),
     )
     for (const entry of Object.values(zip.files)) {
-      expect(entry.date.getFullYear()).toBe(1980)
+      expect(entry.date.getTime()).toBe(PINNED_ENTRY_TIME)
     }
   })
 })

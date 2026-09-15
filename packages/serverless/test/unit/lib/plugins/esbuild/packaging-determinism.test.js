@@ -32,13 +32,17 @@ import JsZip from 'jszip'
 const Esbuild = (await import('../../../../../lib/plugins/esbuild/index.js'))
   .default
 
-const PINNED_EPOCH_YEAR = 1980 // new Date(0) clamped to the DOS date minimum
+// new Date(0) clamped to the DOS date minimum (1980-01-01 00:00:00). The zip
+// format stores that timestamp without a timezone and jszip decodes it as UTC,
+// so compare the instant itself rather than local-time getters, which read the
+// previous year west of UTC.
+const PINNED_ENTRY_TIME = Date.UTC(1980, 0, 1)
 
-async function entryYears(artifactPath) {
+async function entryTimes(artifactPath) {
   const zip = await JsZip.loadAsync(fs.readFileSync(artifactPath))
   return Object.values(zip.files).map((entry) => ({
     name: entry.name,
-    year: entry.date.getFullYear(),
+    time: entry.date.getTime(),
   }))
 }
 
@@ -82,12 +86,12 @@ describe('esbuild packaging determinism', () => {
 
     await plugin._packageAll(functions)
 
-    const entries = await entryYears(
+    const entries = await entryTimes(
       path.join(serviceDir, '.serverless', 'my-service.zip'),
     )
     expect(entries.length).toBeGreaterThan(0)
     for (const entry of entries) {
-      expect(entry.year).toBe(PINNED_EPOCH_YEAR)
+      expect(entry.time).toBe(PINNED_ENTRY_TIME)
     }
   })
 
@@ -197,12 +201,12 @@ describe('esbuild packaging determinism', () => {
 
     await plugin._package()
 
-    const entries = await entryYears(
+    const entries = await entryTimes(
       path.join(serviceDir, '.serverless', 'my-service-hello.zip'),
     )
     expect(entries.length).toBeGreaterThan(0)
     for (const entry of entries) {
-      expect(entry.year).toBe(PINNED_EPOCH_YEAR)
+      expect(entry.time).toBe(PINNED_ENTRY_TIME)
     }
   })
 })

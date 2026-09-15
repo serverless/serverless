@@ -29,6 +29,12 @@ const Esbuild = (await import('../../../../../lib/plugins/esbuild/index.js'))
 // plugin holds — spying here intercepts its calls.
 const esbuildLogger = log.get('esbuild')
 
+// Every zip entry is stamped with new Date(0), which the archive clamps to the
+// DOS date minimum (1980-01-01 00:00:00). jszip decodes that timestamp as UTC,
+// so compare the instant itself rather than local-time getters, which read the
+// previous year west of UTC.
+const PINNED_ENTRY_TIME = Date.UTC(1980, 0, 1)
+
 const createdServiceDirs = []
 
 afterAll(() => {
@@ -910,7 +916,9 @@ describe('_packageAll build-dir sweep', () => {
     await plugin._packageAll(fns)
 
     const entries = await zipEntries(serviceArtifact(serviceDir))
-    expect(entries['node_modules/keep/index.js'].date.getFullYear()).toBe(1980)
+    expect(entries['node_modules/keep/index.js'].date.getTime()).toBe(
+      PINNED_ENTRY_TIME,
+    )
   })
 
   it('fails loudly when a built handler is missing from the artifact', async () => {
