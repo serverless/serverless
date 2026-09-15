@@ -193,6 +193,12 @@ export async function sweepProjectFiles({
     dot: true,
     followSymbolicLinks: true,
     onlyFiles: true,
+    // The only positive pattern is `**`, so globby's directory expansion has
+    // nothing to do here -- and left on, it also `stat`s every `ignore` entry
+    // as a candidate directory. `.git/**` then hits a `.git` that is a FILE
+    // (git worktrees, submodules) and the sweep dies with ENOTDIR instead of
+    // skipping it.
+    expandDirectories: false,
     // Dependencies are installed into the build directory separately, the build
     // directory itself must never sweep itself back in, and `.git` is never
     // part of a deployment artifact. globby evaluates these against the path it

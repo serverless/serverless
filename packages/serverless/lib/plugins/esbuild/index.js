@@ -153,6 +153,29 @@ const BUILD_METAFILE_RE = /^meta\.(?:[^/]*\.)?json$/
 // a vendored or patched dependency silently produced an artifact without it.
 const PATTERN_RESOLVE_IGNORE = ['.serverless/**', '.git/**']
 
+// globby's own directory expansion (`assets` -> `assets/**`), applied to the
+// positive patterns only. globby runs the same expansion over its `ignore`
+// entries and `stat`s each one literally, so `.git/**` fails with ENOTDIR when
+// `.git` is a FILE (git worktrees, submodules). Expanding here and calling
+// globby with `expandDirectories: false` keeps the bare-directory contract for
+// patterns and leaves the ignore list out of the filesystem entirely. A
+// pattern that cannot be `stat`ed (a glob, a missing path, a file segment in
+// the middle) is passed through unchanged. globby does the same for a missing
+// path but rethrows any other stat error (ENOTDIR, EACCES); a probe that only
+// decides whether to append `/**` must never abort packaging, so passing
+// everything through is the point of this helper.
+const expandDirectoryPatterns = (patterns, cwd) =>
+  Promise.all(
+    patterns.map(async (pattern) => {
+      try {
+        const stats = await stat(path.resolve(cwd, pattern))
+        return stats.isDirectory() ? path.posix.join(pattern, '**') : pattern
+      } catch {
+        return pattern
+      }
+    }),
+  )
+
 // A pattern match that lands on the installed dependency tree at the artifact
 // root. Only the root tree is the install; a nested `packages/x/node_modules/y`
 // is just another project file and is copied like any other.
@@ -2029,9 +2052,10 @@ class Esbuild {
    * The glob has already done the selecting, so the ordered pass runs with
    * everything it returned INCLUDED and only ever retracts. Starting from
    * excluded instead would re-test each path against the literal patterns and
-   * silently drop whatever the glob expanded rather than matched: globby
-   * resolves a bare directory (`patterns: ['assets']`) to the files beneath it,
-   * and `assets/logo.png` does not match the literal `assets`. That dropped the
+   * silently drop whatever the glob expanded rather than matched: the directory
+   * expansion (`expandDirectoryPatterns`) resolves a bare directory
+   * (`patterns: ['assets']`) to the files beneath it, and `assets/logo.png`
+   * does not match the literal `assets`. That dropped the
    * whole tree such a pattern is meant to ship — and counted every file as an
    * exclusion, so the artifact also reported entries it had never been asked to
    * remove.
@@ -2049,12 +2073,17 @@ class Esbuild {
     )
     if (positives.length === 0) return { matches: [], excludedCount: 0 }
 
-    const globbed = await globby(positives, {
-      cwd: this.serverless.config.serviceDir,
-      dot: true,
-      onlyFiles: true,
-      ignore: [...PATTERN_RESOLVE_IGNORE, ...this._packageDirectoryIgnores()],
-    })
+    const serviceDir = this.serverless.config.serviceDir
+    const globbed = await globby(
+      await expandDirectoryPatterns(positives, serviceDir),
+      {
+        cwd: serviceDir,
+        dot: true,
+        onlyFiles: true,
+        expandDirectories: false,
+        ignore: [...PATTERN_RESOLVE_IGNORE, ...this._packageDirectoryIgnores()],
+      },
+    )
     const matches = filterPaths(compilePatterns(patterns), globbed, true)
     return { matches, excludedCount: globbed.length - matches.length }
   }
