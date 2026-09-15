@@ -111,3 +111,25 @@ test('Logging: CloudWatch by default, Disabled when loggingDisabled', () => {
     CloudWatch: { LogGroup: '/my-org/sbx/runner' },
   })
 })
+test('passes CloudFormation intrinsics in environment through untouched; scalars become strings', () => {
+  const r = compileImage(
+    'web',
+    {
+      environment: {
+        PLAIN: 'value',
+        NUM: 8080,
+        REF: { Ref: 'Table' },
+        GETATT: { 'Fn::GetAtt': ['KB', 'KnowledgeBaseId'] },
+        SUB: { 'Fn::Sub': '${AWS::Region}-x' },
+      },
+    },
+    ctx,
+  )
+  expect(r.Properties.EnvironmentVariables).toEqual([
+    { Key: 'PLAIN', Value: 'value' },
+    { Key: 'NUM', Value: '8080' },
+    { Key: 'REF', Value: { Ref: 'Table' } },
+    { Key: 'GETATT', Value: { 'Fn::GetAtt': ['KB', 'KnowledgeBaseId'] } },
+    { Key: 'SUB', Value: { 'Fn::Sub': '${AWS::Region}-x' } },
+  ])
+})

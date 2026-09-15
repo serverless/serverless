@@ -209,6 +209,21 @@ describe('Serverless Framework Service - Sandboxes', () => {
     expect(versionInfo.resources.length).toBeGreaterThan(0)
     expect(versionInfo.resources[0].minimumMemoryInMiB).toBe(2048)
     expect(versionInfo.baseImageVersion).toBeDefined()
+
+    // 2f. Environment: the inherited provider variable and the resolved !Ref
+    // both reach the image; nothing was stringified into "[object Object]".
+    // GetMicrovmImageVersion returns the environment as a flat string→string
+    // map of already-resolved values, so the CloudFormation reference shows up
+    // as the physical id of the resource it points at.
+    const param = StackResources?.find(
+      (r) => r.LogicalResourceId === 'EchoParam',
+    )
+    expect(param?.PhysicalResourceId).toBeDefined()
+    const env = versionInfo.environmentVariables || {}
+    expect(env.FROM_PROVIDER).toBe('inherited')
+    expect(env.GREETING).toBe('hi')
+    expect(env.PARAM_NAME).toBe(param.PhysicalResourceId)
+    expect(JSON.stringify(versionInfo)).not.toContain('[object Object]')
   })
 
   // ── 3. Observability ────────────────────────────────────────────────────────

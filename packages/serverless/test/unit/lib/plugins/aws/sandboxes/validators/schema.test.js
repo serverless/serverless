@@ -55,13 +55,12 @@ describe('defineSandboxesSchema', () => {
     ])
   })
 
-  test('per-sandbox schema environment is object with string values', () => {
+  test('per-sandbox schema environment reuses the Lambda environment definition (intrinsics allowed)', () => {
     defineSandboxesSchema(mockServerless)
     const sandboxSchema = capturedSandboxesSchema.additionalProperties
-    expect(sandboxSchema.properties.environment.type).toBe('object')
-    expect(sandboxSchema.properties.environment.additionalProperties.type).toBe(
-      'string',
-    )
+    expect(sandboxSchema.properties.environment).toEqual({
+      $ref: '#/definitions/awsLambdaEnvironment',
+    })
   })
 
   test('per-sandbox schema osCapabilities is array with case-insensitive items', () => {
@@ -77,13 +76,19 @@ describe('defineSandboxesSchema', () => {
     })
   })
 
-  test('per-sandbox schema vpc is object with subnetIds and securityGroupIds', () => {
+  test('per-sandbox schema vpc ids are arrays of strings or CloudFormation intrinsics', () => {
     defineSandboxesSchema(mockServerless)
     const sandboxSchema = capturedSandboxesSchema.additionalProperties
     const vpcSchema = sandboxSchema.properties.vpc
     expect(vpcSchema.type).toBe('object')
-    expect(vpcSchema.properties.subnetIds.type).toBe('array')
-    expect(vpcSchema.properties.securityGroupIds.type).toBe('array')
+    expect(vpcSchema.properties.subnetIds).toEqual({
+      type: 'array',
+      items: { $ref: '#/definitions/awsCfInstruction' },
+    })
+    expect(vpcSchema.properties.securityGroupIds).toEqual({
+      type: 'array',
+      items: { $ref: '#/definitions/awsCfInstruction' },
+    })
   })
 
   test('per-sandbox schema has additionalProperties false', () => {

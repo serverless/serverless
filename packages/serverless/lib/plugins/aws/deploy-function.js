@@ -390,12 +390,47 @@ class AwsDeployFunction {
         functionObj.environment,
       )
     }
+    // Environment variables the Serverless Console SDK layer manages on the
+    // deployed function; they are never in serverless.yml, so they must not
+    // count as a local change.
+    const consoleEnvironmentVariableNames = [
+      'AWS_LAMBDA_EXEC_WRAPPER',
+      'SLS_ORG_ID',
+      'SLS_DEV_MODE_ORG_ID',
+      'SLS_DEV_TOKEN',
+      'SERVERLESS_PLATFORM_STAGE',
+    ]
     if (
       Object.values(params.Environment.Variables).some((value) =>
         _.isObject(value),
       )
     ) {
+      // updateFunctionConfiguration takes literal strings only, so an
+      // environment holding a CloudFormation reference cannot be applied here.
+      // Warn only when a change would actually be lost: a reference key's
+      // deployed value is its resolved form and cannot be compared, but every
+      // literal key can, and so can keys that only exist on one side.
+      const localVariables = params.Environment.Variables
+      const remoteVariables = remoteFunctionConfiguration.Environment.Variables
+      const remoteKeys = Object.keys(remoteVariables).filter(
+        (key) =>
+          !(
+            hasServerlessConsoleLayers &&
+            consoleEnvironmentVariableNames.includes(key)
+          ),
+      )
+      const hasPendingEnvironmentChange =
+        Object.entries(localVariables).some(([key, value]) =>
+          _.isObject(value)
+            ? !(key in remoteVariables)
+            : String(value) !== remoteVariables[key],
+        ) || remoteKeys.some((key) => !(key in localVariables))
       delete params.Environment
+      if (hasPendingEnvironmentChange) {
+        this.logger.warning(
+          `Environment variables of function "${this.options.function}" were not updated by "deploy function": one of its environment values is a CloudFormation reference (such as !Ref or !GetAtt), and the Lambda configuration update skips the whole environment when it sees one. The deployed environment stays as it is; run a full "serverless deploy" to apply environment changes.`,
+        )
+      }
     } else {
       Object.keys(params.Environment.Variables).forEach((key) => {
         // taken from the bash man pages
@@ -417,13 +452,6 @@ class AwsDeployFunction {
     // If we detected remotely managed layers, we need to add the environment variables
     // that are managed by the Serverless Console to the update call so they do not get removed.
     if (params.Environment && hasServerlessConsoleLayers) {
-      const consoleEnvironmentVariableNames = [
-        'AWS_LAMBDA_EXEC_WRAPPER',
-        'SLS_ORG_ID',
-        'SLS_DEV_MODE_ORG_ID',
-        'SLS_DEV_TOKEN',
-        'SERVERLESS_PLATFORM_STAGE',
-      ]
       const remoteVariables = remoteFunctionConfiguration.Environment.Variables
       const localVariables = params.Environment.Variables
       for (const variableName of consoleEnvironmentVariableNames) {

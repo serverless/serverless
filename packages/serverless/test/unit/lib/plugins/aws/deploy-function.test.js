@@ -91,6 +91,7 @@ describe('AwsDeployFunction', () => {
         success: jest.fn(),
         aside: jest.fn(),
         info: jest.fn(),
+        warning: jest.fn(),
       },
       style: {
         aside: jest.fn((text) => text),
@@ -506,6 +507,110 @@ describe('AwsDeployFunction', () => {
           },
         }),
       )
+    })
+
+    it('skips the environment update and warns when a value is a CloudFormation reference', async () => {
+      awsDeployFunction.setRemoteConfig({
+        Environment: { Variables: { EXISTING: 'val' } },
+      })
+      awsDeployFunction.options.function = 'first'
+      awsDeployFunction.options.functionObj = {
+        name: 'first',
+        environment: { EXISTING: 'new-val', TABLE: { Ref: 'Table' } },
+      }
+      const warning = awsDeployFunction.logger.warning
+
+      await awsDeployFunction.updateFunctionConfiguration()
+
+      const call = updateFunctionConfigurationStub.mock.calls.at(-1)?.[0]
+      expect(call === undefined || call.Environment === undefined).toBe(true)
+      expect(warning).toHaveBeenCalledTimes(1)
+      expect(warning.mock.calls[0][0]).toMatch(
+        /Environment variables of function "first" were not updated by "deploy function"/,
+      )
+    })
+
+    it('stays quiet when only CloudFormation-referenced keys differ from remote', async () => {
+      // The reference cannot be compared (remote holds its resolved value), and
+      // every literal matches remote — nothing the user changed is being lost.
+      awsDeployFunction.setRemoteConfig({
+        Environment: { Variables: { EXISTING: 'val', TABLE: 'my-table' } },
+      })
+      awsDeployFunction.options.function = 'first'
+      awsDeployFunction.options.functionObj = {
+        name: 'first',
+        environment: { EXISTING: 'val', TABLE: { Ref: 'Table' } },
+      }
+      const warning = awsDeployFunction.logger.warning
+
+      await awsDeployFunction.updateFunctionConfiguration()
+
+      const call = updateFunctionConfigurationStub.mock.calls.at(-1)?.[0]
+      expect(call === undefined || call.Environment === undefined).toBe(true)
+      expect(warning).not.toHaveBeenCalled()
+    })
+
+    it('warns when a CloudFormation-referenced key is not deployed yet', async () => {
+      awsDeployFunction.setRemoteConfig({
+        Environment: { Variables: { EXISTING: 'val' } },
+      })
+      awsDeployFunction.options.function = 'first'
+      awsDeployFunction.options.functionObj = {
+        name: 'first',
+        environment: { EXISTING: 'val', TABLE: { Ref: 'Table' } },
+      }
+      const warning = awsDeployFunction.logger.warning
+
+      await awsDeployFunction.updateFunctionConfiguration()
+
+      expect(warning).toHaveBeenCalledTimes(1)
+      expect(warning.mock.calls[0][0]).toMatch(
+        /Environment variables of function "first" were not updated by "deploy function"/,
+      )
+    })
+
+    it('warns when a deployed key was removed locally and a CloudFormation reference is present', async () => {
+      awsDeployFunction.setRemoteConfig({
+        Environment: {
+          Variables: { EXISTING: 'val', REMOVED: 'gone', TABLE: 'my-table' },
+        },
+      })
+      awsDeployFunction.options.function = 'first'
+      awsDeployFunction.options.functionObj = {
+        name: 'first',
+        environment: { EXISTING: 'val', TABLE: { Ref: 'Table' } },
+      }
+      const warning = awsDeployFunction.logger.warning
+
+      await awsDeployFunction.updateFunctionConfiguration()
+
+      expect(warning).toHaveBeenCalledTimes(1)
+    })
+
+    it('ignores Serverless Console variables when deciding whether to warn about a CloudFormation reference', async () => {
+      awsDeployFunction.setRemoteConfig({
+        Layers: [
+          { Arn: 'arn:aws:lambda:us-east-1:177335420605:layer:sls-sdk-node:1' },
+        ],
+        Environment: {
+          Variables: {
+            AWS_LAMBDA_EXEC_WRAPPER: '/opt/serverless_wrapper',
+            SLS_ORG_ID: 'org-123',
+            USER_VAR: 'val',
+            TABLE: 'my-table',
+          },
+        },
+      })
+      awsDeployFunction.options.function = 'first'
+      awsDeployFunction.options.functionObj = {
+        name: 'first',
+        environment: { USER_VAR: 'val', TABLE: { Ref: 'Table' } },
+      }
+      const warning = awsDeployFunction.logger.warning
+
+      await awsDeployFunction.updateFunctionConfiguration()
+
+      expect(warning).not.toHaveBeenCalled()
     })
 
     it('should preserve Serverless Console environment variables if layers are present', async () => {

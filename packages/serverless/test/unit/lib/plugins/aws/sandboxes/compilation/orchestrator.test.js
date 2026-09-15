@@ -640,4 +640,77 @@ describe('orchestrate', () => {
       expect(t2.Resources.RunnerImage.Properties.Tags).toBeUndefined()
     })
   })
+
+  describe('provider.environment inheritance', () => {
+    test('merges provider.environment under the sandbox environment, sandbox keys win', async () => {
+      const template = makeTemplate()
+      await orchestrate({
+        sandboxesConfig: {
+          runner: {
+            artifact: './app',
+            environment: { SHARED: 'from-sandbox', OWN: { Ref: 'Table' } },
+          },
+        },
+        ctx: makeCtx(),
+        template,
+        provider: makeProvider(),
+        serverless: {
+          service: {
+            provider: {
+              environment: { SHARED: 'from-provider', GLOBAL: 'g' },
+            },
+          },
+        },
+        log: { debug: jest.fn() },
+        _zipDir: stubZipDir,
+      })
+      const image = Object.values(template.Resources).find(
+        (r) => r.Type === 'AWS::Lambda::MicrovmImage',
+      )
+      expect(image.Properties.EnvironmentVariables).toEqual(
+        expect.arrayContaining([
+          { Key: 'GLOBAL', Value: 'g' },
+          { Key: 'SHARED', Value: 'from-sandbox' },
+          { Key: 'OWN', Value: { Ref: 'Table' } },
+        ]),
+      )
+      expect(image.Properties.EnvironmentVariables).toHaveLength(3)
+    })
+
+    test('a sandbox without its own environment still receives provider.environment', async () => {
+      const template = makeTemplate()
+      await orchestrate({
+        sandboxesConfig: { runner: { artifact: './app' } },
+        ctx: makeCtx(),
+        template,
+        provider: makeProvider(),
+        serverless: { service: { provider: { environment: { GLOBAL: 'g' } } } },
+        log: { debug: jest.fn() },
+        _zipDir: stubZipDir,
+      })
+      const image = Object.values(template.Resources).find(
+        (r) => r.Type === 'AWS::Lambda::MicrovmImage',
+      )
+      expect(image.Properties.EnvironmentVariables).toEqual([
+        { Key: 'GLOBAL', Value: 'g' },
+      ])
+    })
+
+    test('no provider.environment and no sandbox environment → empty list (serverless without service tolerated)', async () => {
+      const template = makeTemplate()
+      await orchestrate({
+        sandboxesConfig: { runner: { artifact: './app' } },
+        ctx: makeCtx(),
+        template,
+        provider: makeProvider(),
+        serverless: {},
+        log: { debug: jest.fn() },
+        _zipDir: stubZipDir,
+      })
+      const image = Object.values(template.Resources).find(
+        (r) => r.Type === 'AWS::Lambda::MicrovmImage',
+      )
+      expect(image.Properties.EnvironmentVariables).toEqual([])
+    })
+  })
 })

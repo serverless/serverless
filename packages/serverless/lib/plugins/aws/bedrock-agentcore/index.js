@@ -120,6 +120,9 @@ class ServerlessBedrockAgentCore {
       artifactDirectoryName: service.package?.artifactDirectoryName,
       // Custom deployment bucket (string if specified, undefined if auto-generated)
       deploymentBucket: service.package?.deploymentBucket,
+      // Service-wide environment defaults; the runtime compiler merges them
+      // under each agent's own `environment` (agent keys win), like functions.
+      providerEnvironment: service.provider?.environment || {},
     }
   }
 

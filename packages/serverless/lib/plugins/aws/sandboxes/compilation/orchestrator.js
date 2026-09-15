@@ -245,7 +245,12 @@ export async function orchestrate({
     }
 
     const imageLogicalId = getLogicalId(name, 'Image')
-    const imageResource = compileImage(name, cfg, imageCtx)
+    // `provider.environment` is the service-wide default layer for every
+    // resource that runs user code — functions, MCP servers, agents — and
+    // sandboxes follow the same precedence: provider first, sandbox keys win.
+    const providerEnvironment = serverless?.service?.provider?.environment || {}
+    const environment = { ...providerEnvironment, ...(cfg.environment || {}) }
+    const imageResource = compileImage(name, { ...cfg, environment }, imageCtx)
 
     // Owned log group + monitoring resources (metric filters / alarms /
     // dashboard) exist only when logging is enabled — they read from the group.

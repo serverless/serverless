@@ -343,6 +343,8 @@ ai:
         API_ENDPOINT: https://api.example.com
 ```
 
+Values may be literal strings or CloudFormation references (`!Ref`, `!GetAtt`, `!ImportValue`, …), resolved at deploy time. Variables set under `provider.environment` are inherited by every agent; an agent's own key overrides the provider-level value. [`serverless dev`](./dev.md) runs with the same merged environment.
+
 **Best practices:**
 
 - Use [inference profile IDs](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles-support.html) (e.g., `us.anthropic.claude-...`) for on-demand Bedrock models

@@ -674,7 +674,7 @@ functions:
       TABLE_NAME: tableName
 ```
 
-Or if you want to apply environment variable configuration to all functions in your service, you can add the configuration to the higher level `provider` object. Environment variables configured at the function level are merged with those at the provider level, so your function with specific environment variables will also have access to the environment variables defined at the provider level. If an environment variable with the same key is defined at both the function and provider levels, the function-specific value overrides the provider-level default value. For example:
+Or if you want to apply environment variable configuration to all functions in your service, you can add the configuration to the higher level `provider` object. Environment variables configured at the function level are merged with those at the provider level, so your function with specific environment variables will also have access to the environment variables defined at the provider level. If an environment variable with the same key is defined at both the function and provider levels, the function-specific value overrides the provider-level default value. The same provider-level defaults are inherited by [MCP servers](./mcp.md), [agents](./agents/README.md) and [sandboxes](./sandboxes.md). For example:
 
 ```yml
 # serverless.yml

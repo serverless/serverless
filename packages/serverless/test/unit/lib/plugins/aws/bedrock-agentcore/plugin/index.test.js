@@ -67,6 +67,14 @@ describe('ServerlessBedrockAgentCore', () => {
       expect(context.region).toBe('us-east-1')
       expect(context.accountId).toBe('${AWS::AccountId}')
     })
+
+    test('exposes provider.environment as providerEnvironment ({} when unset)', () => {
+      expect(pluginInstance.getContext().providerEnvironment).toEqual({})
+      mockServerless.service.provider.environment = { A: '1' }
+      expect(pluginInstance.getContext().providerEnvironment).toEqual({
+        A: '1',
+      })
+    })
   })
 
   describe('getAiConfig', () => {
@@ -586,6 +594,52 @@ describe('ServerlessBedrockAgentCore', () => {
       expect(template.Resources).toHaveProperty('MyAgentRuntime')
       expect(template.Resources).toHaveProperty('MyAgentRuntimeRole')
       expect(template.Outputs).toHaveProperty('MyAgentRuntimeArn')
+    })
+
+    test('runtime inherits provider.environment; agent keys override; injected keys still win', () => {
+      mockServerless.service.provider.environment = {
+        SHARED: 'from-provider',
+        GLOBAL: { Ref: 'Table' },
+        // A provider-supplied value for an injected key must lose to injection
+        BEDROCK_AGENTCORE_MEMORY_ID: 'user-attempt',
+      }
+      mockServerless.service.ai = {
+        memory: { myMemory: { expiration: 90 } },
+        agents: {
+          myAgent: {
+            artifact: { image: 'test:latest' },
+            environment: { SHARED: 'from-agent' },
+            memory: 'myMemory',
+          },
+        },
+      }
+
+      pluginInstance.compileAgentCoreResources()
+
+      const env =
+        mockServerless.service.provider.compiledCloudFormationTemplate.Resources
+          .MyAgentRuntime.Properties.EnvironmentVariables
+      expect(env).toEqual({
+        SHARED: 'from-agent',
+        GLOBAL: { Ref: 'Table' },
+        BEDROCK_AGENTCORE_MEMORY_ID: {
+          'Fn::GetAtt': ['MyMemoryMemory', 'MemoryId'],
+        },
+      })
+    })
+
+    test('runtime without its own environment receives provider.environment', () => {
+      mockServerless.service.provider.environment = { GLOBAL: 'g' }
+      mockServerless.service.ai = {
+        agents: { myAgent: { artifact: { image: 'test:latest' } } },
+      }
+
+      pluginInstance.compileAgentCoreResources()
+
+      expect(
+        mockServerless.service.provider.compiledCloudFormationTemplate.Resources
+          .MyAgentRuntime.Properties.EnvironmentVariables,
+      ).toEqual({ GLOBAL: 'g' })
     })
 
     test('compiles shared memory resources from ai.memory', () => {

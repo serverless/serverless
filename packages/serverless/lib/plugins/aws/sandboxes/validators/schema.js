@@ -92,7 +92,9 @@ const sandboxConfigSchema = {
     artifact: { type: 'string' },
     minimumMemory: { enum: [512, 1024, 2048, 4096, 8192] },
     description: { type: 'string' },
-    environment: { type: 'object', additionalProperties: { type: 'string' } },
+    // Same contract as `functions[].environment`: strings or CloudFormation
+    // intrinsics (Ref / Fn::GetAtt / Fn::ImportValue / Fn::Sub / Fn::If / Fn::Select).
+    environment: { $ref: '#/definitions/awsLambdaEnvironment' },
     osCapabilities: {
       type: 'array',
       items: { anyOf: ['all'].map(caseInsensitive) },
@@ -116,8 +118,16 @@ const sandboxConfigSchema = {
       type: 'object',
       additionalProperties: false,
       properties: {
-        subnetIds: { type: 'array', items: { type: 'string' } },
-        securityGroupIds: { type: 'array', items: { type: 'string' } },
+        // Ids may be literal strings or CloudFormation intrinsics; the network
+        // connector compiler passes them through unchanged.
+        subnetIds: {
+          type: 'array',
+          items: { $ref: '#/definitions/awsCfInstruction' },
+        },
+        securityGroupIds: {
+          type: 'array',
+          items: { $ref: '#/definitions/awsCfInstruction' },
+        },
         protocol: { anyOf: ['ipv4', 'dualstack'].map(caseInsensitive) },
       },
     },

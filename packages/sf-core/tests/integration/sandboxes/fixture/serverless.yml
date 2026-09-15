@@ -5,6 +5,8 @@ frameworkVersion: '4'
 provider:
   name: aws
   region: us-east-1
+  environment:
+    FROM_PROVIDER: inherited
 
 sandboxes:
   echo:
@@ -12,6 +14,7 @@ sandboxes:
     minimumMemory: 2048
     environment:
       GREETING: hi
+      PARAM_NAME: !Ref EchoParam
     hooks:
       ready: true
       run: true
@@ -20,3 +23,11 @@ sandboxes:
     observability:
       logs:
         retentionDays: 7
+
+resources:
+  Resources:
+    EchoParam:
+      Type: AWS::SSM::Parameter
+      Properties:
+        Type: String
+        Value: gh-13876

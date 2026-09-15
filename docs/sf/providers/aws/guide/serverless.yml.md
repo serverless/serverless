@@ -1682,6 +1682,7 @@ sandboxes:
     minimumMemory: 2048
     environment:
       KEY: value
+      TABLE_NAME: !Ref UsersTable # strings or CloudFormation references; provider.environment is inherited
     observability: true # log group + metrics + dashboard (on by default)
 ```
 
@@ -1803,7 +1804,7 @@ ai:
       protocol: http # http | mcp | a2a
 
       # Environment variables injected into the agent container
-      environment:
+      environment: # strings or CloudFormation references; provider.environment is inherited
         MODEL_ID: anthropic.claude-3-5-sonnet-20241022-v2:0
         LOG_LEVEL: info
 

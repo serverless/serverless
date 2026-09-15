@@ -99,7 +99,6 @@ class AwsMcp {
       // registration order.
       'before:package:createDeploymentArtifacts': () => this.stageEntry(),
       'before:deploy:function:packageFunction': async () => {
-        this.warnDeployFunctionSkipsEnvironment()
         await this.stageEntry(this.options.function)
       },
       // The window for the handler swap opens the moment esbuild's packaging
@@ -113,7 +112,6 @@ class AwsMcp {
       // one event later, in `updateFunctionConfiguration`
       // (`../deploy-function.js`), and only for the function it targets.
       'after:deploy:function:packageFunction': async () => {
-        this.warnDeployFunctionSkipsEnvironment()
         await this.repointFunctions(this.options.function)
       },
       // The staged file outlives the artifact it went into, so it is cleaned up
@@ -285,40 +283,6 @@ class AwsMcp {
     // Set after the copy, not before it: cleanup removes the staged file, and it
     // may only do that once this run is known to have written it.
     this._entryStaged = true
-  }
-
-  /**
-   * Say that `deploy function` will not update this server's environment.
-   *
-   * `updateFunctionConfiguration` drops the WHOLE environment update when any
-   * value is a non-string object (`../deploy-function.js`: `params.Environment`
-   * is deleted when `Object.values(...).some(_.isObject)`), and `state: true`
-   * puts a `{Ref}` to the provisioned key there. The code is then updated and
-   * the environment silently is not, so a changed `environment:` block appears
-   * deployed while the function keeps running with the old values.
-   *
-   * Warned rather than worked around: resolving the `{Ref}` here would mean
-   * looking the key up in the deployed stack, and the values the command does
-   * apply are correct - it is only the environment that needs a full deploy.
-   */
-  warnDeployFunctionSkipsEnvironment() {
-    if (!this.validated) return
-    if (this.isDevMode()) return
-    if (this._deployFunctionEnvWarned) return
-    const target = this.options.function
-    if (!this.validated.servers.some((server) => server.name === target)) return
-    const environment =
-      this.serverless.service.functions[target]?.environment ?? {}
-    const hasIntrinsic = Object.values(environment).some(
-      (value) =>
-        value !== null &&
-        (typeof value === 'object' || typeof value === 'function'),
-    )
-    if (!hasIntrinsic) return
-    this._deployFunctionEnvWarned = true
-    log.warning(
-      `Environment variables are not updated by "deploy function" for the MCP server "${target}": one of its environment values is a CloudFormation reference - which is how "state: true" passes the state key - and the Lambda configuration update skips the whole environment when it sees one, so the deployed environment stays as it is. Run a full "serverless deploy" to apply environment changes.`,
-    )
   }
 
   /**

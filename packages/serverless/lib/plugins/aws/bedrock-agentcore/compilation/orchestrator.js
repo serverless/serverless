@@ -596,6 +596,12 @@ export function compileRuntimeResources(
   // format expected by the compiler (entryPoint, runtime in artifact)
   const resolvedConfig = {
     ...config,
+    // Inherit service-wide provider.environment; the agent's own keys win,
+    // matching functions and dev mode.
+    environment: {
+      ...(context.providerEnvironment || {}),
+      ...(config.environment || {}),
+    },
     artifact: {
       ...config.artifact,
       // If we have a resolved container image, set it
