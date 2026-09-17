@@ -91,6 +91,25 @@ describe('validateSandboxes', () => {
       ),
     ).not.toThrow()
   })
+  test('vpc ids given as an object that is not a list expression → error', () => {
+    for (const bad of [
+      {},
+      { Ref: 'SubnetList' },
+      { 'Fn::Split': [], extra: 1 },
+    ]) {
+      expect(() =>
+        validateSandboxes(
+          {
+            a: {
+              artifact: './x',
+              vpc: { subnetIds: bad, securityGroupIds: ['sg-111'] },
+            },
+          },
+          { throwError: err() },
+        ),
+      ).toThrow(/subnetId/i)
+    }
+  })
   test('vpc subnetIds given as a plain string → error', () => {
     expect(() =>
       validateSandboxes(
