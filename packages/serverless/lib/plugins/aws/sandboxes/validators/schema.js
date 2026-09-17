@@ -118,15 +118,16 @@ const sandboxConfigSchema = {
       type: 'object',
       additionalProperties: false,
       properties: {
-        // Ids may be literal strings or CloudFormation intrinsics; the network
-        // connector compiler passes them through unchanged.
+        // Same value shapes and item limits as a function's `vpc` (1–16
+        // subnets, up to 5 security groups, matching the network connector):
+        // a list of ids or references, or one expression that yields the list
+        // (`Fn::Split`, `Fn::FindInMap`). The connector compiler passes the
+        // value through unchanged.
         subnetIds: {
-          type: 'array',
-          items: { $ref: '#/definitions/awsCfInstruction' },
+          $ref: '#/definitions/awsLambdaVpcConfig/properties/subnetIds',
         },
         securityGroupIds: {
-          type: 'array',
-          items: { $ref: '#/definitions/awsCfInstruction' },
+          $ref: '#/definitions/awsLambdaVpcConfig/properties/securityGroupIds',
         },
         protocol: { anyOf: ['ipv4', 'dualstack'].map(caseInsensitive) },
       },

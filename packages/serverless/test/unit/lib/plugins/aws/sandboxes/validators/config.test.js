@@ -71,6 +71,39 @@ describe('validateSandboxes', () => {
       ),
     ).toThrow(/securityGroup/i)
   })
+  test('vpc ids given as a whole-list CloudFormation expression → ok', () => {
+    expect(() =>
+      validateSandboxes(
+        {
+          a: {
+            artifact: './x',
+            vpc: {
+              subnetIds: {
+                'Fn::Split': [',', { 'Fn::ImportValue': 'net-subnets' }],
+              },
+              securityGroupIds: {
+                'Fn::FindInMap': ['Groups', { Ref: 'AWS::Region' }, 'sg'],
+              },
+            },
+          },
+        },
+        { throwError: err() },
+      ),
+    ).not.toThrow()
+  })
+  test('vpc subnetIds given as a plain string → error', () => {
+    expect(() =>
+      validateSandboxes(
+        {
+          a: {
+            artifact: './x',
+            vpc: { subnetIds: 'subnet-aaa', securityGroupIds: ['sg-111'] },
+          },
+        },
+        { throwError: err() },
+      ),
+    ).toThrow(/subnetId/i)
+  })
   test('vpc with both subnetIds and securityGroupIds → ok', () => {
     expect(() =>
       validateSandboxes(

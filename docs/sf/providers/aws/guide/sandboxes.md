@@ -320,11 +320,11 @@ sandboxes:
       protocol: ipv4 # 'ipv4' (default) or 'dualstack'
 ```
 
-| Property           | Type     | Default          | Description                                                                                                                                                |
-| ------------------ | -------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `subnetIds`        | string[] | — **(required)** | List of subnet IDs for the network connector (at least one). Each entry is a literal id or a CloudFormation reference (`!Ref`, `!ImportValue`, …).         |
-| `securityGroupIds` | string[] | — **(required)** | List of security group IDs for the network connector (at least one). Each entry is a literal id or a CloudFormation reference (`!Ref`, `!ImportValue`, …). |
-| `protocol`         | string   | `ipv4`           | IP protocol: `ipv4` or `dualstack` (case-insensitive).                                                                                                     |
+| Property           | Type     | Default          | Description                                                                                                                                                                                                                                                       |
+| ------------------ | -------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `subnetIds`        | string[] | — **(required)** | Subnet IDs for the network connector, 1 to 16. Same value shapes as a function's `vpc.subnetIds`: a list whose entries are literal ids or CloudFormation references (`!Ref`, `!ImportValue`, …), or one expression that yields the list (`!Split`, `!FindInMap`). |
+| `securityGroupIds` | string[] | — **(required)** | Security group IDs for the network connector, 1 to 5. Same value shapes as a function's `vpc.securityGroupIds`: a list of literal ids or CloudFormation references, or one expression that yields the list (`!Split`, `!FindInMap`).                              |
+| `protocol`         | string   | `ipv4`           | IP protocol: `ipv4` or `dualstack` (case-insensitive).                                                                                                                                                                                                            |
 
 When `vpc` is set, the framework creates an `AWS::Lambda::NetworkConnector` and an associated operator IAM role (see [IAM](#iam)). The connector ARN is exported as a CloudFormation stack output for use by the data-plane run path.
 

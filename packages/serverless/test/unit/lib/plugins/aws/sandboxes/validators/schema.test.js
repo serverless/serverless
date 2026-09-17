@@ -76,18 +76,16 @@ describe('defineSandboxesSchema', () => {
     })
   })
 
-  test('per-sandbox schema vpc ids are arrays of strings or CloudFormation intrinsics', () => {
+  test('per-sandbox schema vpc ids reuse the Lambda vpc definitions (lists or whole-list expressions)', () => {
     defineSandboxesSchema(mockServerless)
     const sandboxSchema = capturedSandboxesSchema.additionalProperties
     const vpcSchema = sandboxSchema.properties.vpc
     expect(vpcSchema.type).toBe('object')
     expect(vpcSchema.properties.subnetIds).toEqual({
-      type: 'array',
-      items: { $ref: '#/definitions/awsCfInstruction' },
+      $ref: '#/definitions/awsLambdaVpcConfig/properties/subnetIds',
     })
     expect(vpcSchema.properties.securityGroupIds).toEqual({
-      type: 'array',
-      items: { $ref: '#/definitions/awsCfInstruction' },
+      $ref: '#/definitions/awsLambdaVpcConfig/properties/securityGroupIds',
     })
   })
 

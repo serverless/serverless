@@ -2,6 +2,16 @@
 
 const MEMORY = [512, 1024, 2048, 4096, 8192]
 
+/**
+ * True for a non-empty literal list, or for a single CloudFormation expression
+ * that yields the list at deploy time (`Fn::Split`, `Fn::FindInMap`), whose
+ * length cannot be known here.
+ */
+function hasListValue(value) {
+  if (Array.isArray(value)) return value.length > 0
+  return value !== null && typeof value === 'object'
+}
+
 export function validateSandboxes(sandboxesConfig, { throwError }) {
   for (const [name, c] of Object.entries(sandboxesConfig || {})) {
     if (!c || !c.artifact) {
@@ -28,14 +38,11 @@ export function validateSandboxes(sandboxesConfig, { throwError }) {
       continue
     }
     if (c.vpc) {
-      if (!Array.isArray(c.vpc.subnetIds) || c.vpc.subnetIds.length === 0) {
+      if (!hasListValue(c.vpc.subnetIds)) {
         throwError(`sandboxes.${name}.vpc requires at least one subnetId`)
         continue
       }
-      if (
-        !Array.isArray(c.vpc.securityGroupIds) ||
-        c.vpc.securityGroupIds.length === 0
-      ) {
+      if (!hasListValue(c.vpc.securityGroupIds)) {
         throwError(
           `sandboxes.${name}.vpc requires at least one securityGroupId`,
         )
