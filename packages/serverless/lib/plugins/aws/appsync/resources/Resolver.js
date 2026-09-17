@@ -14,6 +14,15 @@ export function response(ctx) {
 }
 `
 
+export const resolveS3Location = (location) => {
+  if (!location.bucket || !location.key) {
+    throw new Error('S3 mapping-template location requires both bucket and key')
+  }
+  // CloudFormation's RequestMappingTemplateS3Location /
+  // ResponseMappingTemplateS3Location properties are plain S3 URI strings.
+  return `s3://${location.bucket}/${location.key}`
+}
+
 export class Resolver {
   constructor(api, config) {
     this.api = api
@@ -21,13 +30,28 @@ export class Resolver {
   }
 
   compile() {
+    if (
+      'code' in this.config &&
+      ('requestS3Location' in this.config ||
+        'responseS3Location' in this.config)
+    ) {
+      throw new this.api.plugin.serverless.classes.Error(
+        `Resolver '${this.config.type}.${this.config.field}': ` +
+          "'code' (JS) cannot be combined with an S3 mapping-template location (VTL only)",
+      )
+    }
+
     let Properties = {
       ApiId: this.api.getApiId(),
       TypeName: this.config.type,
       FieldName: this.config.field,
     }
 
-    const isVTLResolver = 'request' in this.config || 'response' in this.config
+    const isVTLResolver =
+      'request' in this.config ||
+      'response' in this.config ||
+      'requestS3Location' in this.config ||
+      'responseS3Location' in this.config
     const isJsResolver =
       'code' in this.config || (!isVTLResolver && this.config.kind !== 'UNIT')
 
@@ -43,14 +67,38 @@ export class Resolver {
         RuntimeVersion: '1.0.0',
       }
     } else if (isVTLResolver) {
-      const requestMappingTemplates = this.resolveMappingTemplate('request')
-      if (requestMappingTemplates) {
-        Properties.RequestMappingTemplate = requestMappingTemplates
+      if (this.config.requestS3Location) {
+        if (this.config.request) {
+          throw new this.api.plugin.serverless.classes.Error(
+            `Resolver '${this.config.type}.${this.config.field}': ` +
+              "'request' and 'requestS3Location' are mutually exclusive",
+          )
+        }
+        Properties.RequestMappingTemplateS3Location = resolveS3Location(
+          this.config.requestS3Location,
+        )
+      } else {
+        const requestMappingTemplates = this.resolveMappingTemplate('request')
+        if (requestMappingTemplates) {
+          Properties.RequestMappingTemplate = requestMappingTemplates
+        }
       }
 
-      const responseMappingTemplate = this.resolveMappingTemplate('response')
-      if (responseMappingTemplate) {
-        Properties.ResponseMappingTemplate = responseMappingTemplate
+      if (this.config.responseS3Location) {
+        if (this.config.response) {
+          throw new this.api.plugin.serverless.classes.Error(
+            `Resolver '${this.config.type}.${this.config.field}': ` +
+              "'response' and 'responseS3Location' are mutually exclusive",
+          )
+        }
+        Properties.ResponseMappingTemplateS3Location = resolveS3Location(
+          this.config.responseS3Location,
+        )
+      } else {
+        const responseMappingTemplate = this.resolveMappingTemplate('response')
+        if (responseMappingTemplate) {
+          Properties.ResponseMappingTemplate = responseMappingTemplate
+        }
       }
     }
 
