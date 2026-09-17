@@ -2,6 +2,20 @@
 
 const MEMORY = [512, 1024, 2048, 4096, 8192]
 
+/**
+ * True for a non-empty literal list, or for an object shaped like a single
+ * CloudFormation intrinsic (`Ref` or one `Fn::*` key). Which intrinsics yield
+ * a list is CloudFormation's call at deploy time — this check only keeps
+ * values that can never be valid (a stray object, a plain string) from
+ * reaching the template under `configValidationMode: warn`.
+ */
+function hasListValue(value) {
+  if (Array.isArray(value)) return value.length > 0
+  if (value === null || typeof value !== 'object') return false
+  const keys = Object.keys(value)
+  return keys.length === 1 && (keys[0] === 'Ref' || keys[0].startsWith('Fn::'))
+}
+
 export function validateSandboxes(sandboxesConfig, { throwError }) {
   for (const [name, c] of Object.entries(sandboxesConfig || {})) {
     if (!c || !c.artifact) {
@@ -28,14 +42,11 @@ export function validateSandboxes(sandboxesConfig, { throwError }) {
       continue
     }
     if (c.vpc) {
-      if (!Array.isArray(c.vpc.subnetIds) || c.vpc.subnetIds.length === 0) {
+      if (!hasListValue(c.vpc.subnetIds)) {
         throwError(`sandboxes.${name}.vpc requires at least one subnetId`)
         continue
       }
-      if (
-        !Array.isArray(c.vpc.securityGroupIds) ||
-        c.vpc.securityGroupIds.length === 0
-      ) {
+      if (!hasListValue(c.vpc.securityGroupIds)) {
         throwError(
           `sandboxes.${name}.vpc requires at least one securityGroupId`,
         )

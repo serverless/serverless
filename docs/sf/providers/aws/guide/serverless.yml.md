@@ -1682,7 +1682,12 @@ sandboxes:
     minimumMemory: 2048
     environment:
       KEY: value
+      TABLE_NAME: !Ref UsersTable # strings or CloudFormation references; provider.environment is inherited
     observability: true # log group + metrics + dashboard (on by default)
+    vpc: # optional; routes outbound traffic through your VPC (same value shapes as a function's vpc)
+      subnetIds: !Split [',', !ImportValue network-private-subnets] # 1–16 ids, or one expression yielding the list
+      securityGroupIds:
+        - sg-12345678 # 1–5 ids or references
 ```
 
 ## MCP Servers
@@ -1803,7 +1808,7 @@ ai:
       protocol: http # http | mcp | a2a
 
       # Environment variables injected into the agent container
-      environment:
+      environment: # strings or CloudFormation references; provider.environment is inherited
         MODEL_ID: anthropic.claude-3-5-sonnet-20241022-v2:0
         LOG_LEVEL: info
 

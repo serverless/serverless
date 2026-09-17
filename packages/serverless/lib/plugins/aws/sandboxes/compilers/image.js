@@ -66,8 +66,15 @@ export function compileImage(name, cfg, ctx) {
         String(c).toUpperCase(),
       ),
       Hooks: compileHooks(cfg.hooks),
+      // Object values are CloudFormation intrinsics (Ref / Fn::GetAtt / …):
+      // CloudFormation resolves them at deploy time, so they go into the
+      // template untouched — stringifying one yields "[object Object]".
       EnvironmentVariables: Object.entries(cfg.environment || {}).map(
-        ([Key, Value]) => ({ Key, Value: String(Value) }),
+        ([Key, Value]) => ({
+          Key,
+          Value:
+            Value !== null && typeof Value === 'object' ? Value : String(Value),
+        }),
       ),
       // Tags are applied centrally by the orchestrator to every taggable
       // resource the sandbox creates (not just the image).

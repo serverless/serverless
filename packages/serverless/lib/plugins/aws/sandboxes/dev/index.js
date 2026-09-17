@@ -108,6 +108,47 @@ class SandboxesDevMode {
     }
   }
 
+  /**
+   * The environment the local container runs with: `provider.environment`
+   * under the sandbox's own `environment` (same precedence as on AWS), with
+   * CloudFormation intrinsics resolved from the deployed stack — a `Ref` or
+   * `Fn::ImportValue` through the AWS API, an `Fn::GetAtt` from the stack's
+   * Outputs. Values that cannot be resolved (stack not deployed yet) are
+   * dropped with a warning instead of reaching Docker as "[object Object]".
+   */
+  async resolveEnvironment(cfg) {
+    const providerEnvironment =
+      this.serverless.service?.provider?.environment || {}
+    const environment = { ...providerEnvironment, ...(cfg.environment || {}) }
+    const hasIntrinsic = Object.values(environment).some(
+      (v) => v !== null && typeof v === 'object',
+    )
+    if (!hasIntrinsic) return environment
+    const provider = this.serverless.getProvider('aws')
+    let stackOutputs = []
+    if (typeof provider?.request === 'function' && provider.naming) {
+      try {
+        const { Stacks } = await provider.request(
+          'CloudFormation',
+          'describeStacks',
+          { StackName: provider.naming.getStackName() },
+        )
+        stackOutputs = Stacks?.[0]?.Outputs || []
+      } catch (err) {
+        // Stack not deployed yet, or the read itself failed (throttling,
+        // missing permission, expired credentials) — either way GetAtt values
+        // stay unresolved and are dropped below, so surface the reason.
+        this.logger.debug?.(
+          `Could not read stack outputs for GetAtt resolution: ${err.message}`,
+        )
+      }
+    }
+    const { default: resolveCfEnvVars } =
+      await import('../../utils/resolve-cf-env-vars.js')
+    await resolveCfEnvVars(provider, environment, stackOutputs)
+    return environment
+  }
+
   async run() {
     const name = this.resolveSandboxName()
     const cfg = this.getSandboxesConfig()[name]
@@ -143,6 +184,12 @@ class SandboxesDevMode {
       )
     }
     this.ctx.platform = await this.resolveDockerPlatform()
+
+    // Match the deploy path: the sandbox inherits `provider.environment` and
+    // its CloudFormation references are resolved to real values before the
+    // container is started. Resolved after the daemon check above so a missing
+    // Docker daemon still fails first.
+    this.ctx.environment = await this.resolveEnvironment(cfg)
 
     // Header — the same "Dev ϟ Mode" banner functions Dev Mode prints, so the `serverless dev`
     // family reads as one product. A one-line description follows (grey). Optional-chained: test
@@ -215,7 +262,10 @@ class SandboxesDevMode {
       sandboxName: name,
       ports: Array.from(new Set([8080, hookPort])),
       get env() {
-        return { ...(self.ctx.cfg.environment || {}), ...(self.credsEnv || {}) }
+        return {
+          ...(self.ctx.environment || {}),
+          ...(self.credsEnv || {}),
+        }
       },
     })
     // Lifecycle hooks: fire only those declared in the sandbox config; `ready` auto-enables

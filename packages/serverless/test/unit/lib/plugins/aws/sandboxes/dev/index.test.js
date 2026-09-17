@@ -972,3 +972,260 @@ test('passes the debounce + ignoreInitial options to the watcher', () => {
     }),
   )
 })
+
+test('run() merges provider.environment under the sandbox environment and resolves intrinsics from the deployed stack', async () => {
+  let capturedEnv
+  const startControlPlane = jest.fn(async () => ({
+    url: 'http://127.0.0.1:45005',
+    port: 45005,
+    server: {},
+    shutdown: async () => {},
+  }))
+  const signals = {}
+  const fakeIam = {
+    setUp: jest.fn(async () => ({
+      AWS_ACCESS_KEY_ID: 'AK',
+      AWS_SECRET_ACCESS_KEY: 'SK',
+      AWS_SESSION_TOKEN: 'ST',
+      AWS_REGION: 'us-east-1',
+    })),
+    credentialsExpiring: () => false,
+    refresh: jest.fn(async () => null),
+    cleanUp: jest.fn(async () => {}),
+  }
+  const request = jest.fn(async (service, method) => {
+    if (service === 'CloudFormation' && method === 'describeStacks') {
+      return {
+        Stacks: [
+          {
+            Outputs: [
+              { OutputKey: 'TableName', OutputValue: 'resolved-table' },
+            ],
+          },
+        ],
+      }
+    }
+    if (service === 'CloudFormation' && method === 'listStackResources') {
+      return {
+        StackResourceSummaries: [
+          { LogicalResourceId: 'Bucket', PhysicalResourceId: 'my-bucket-123' },
+        ],
+      }
+    }
+    throw new Error(`unexpected ${service}.${method}`)
+  })
+  const d = new SandboxesDevMode(
+    {
+      serviceDir: '/svc',
+      service: {
+        service: 'svc',
+        provider: { environment: { SHARED: 'from-provider', GLOBAL: 'g' } },
+        sandboxes: {
+          api: {
+            artifact: './app',
+            environment: {
+              SHARED: 'from-sandbox',
+              BUCKET: { Ref: 'Bucket' },
+              TABLE: { 'Fn::GetAtt': ['Table', 'Name'] },
+            },
+          },
+        },
+      },
+      configurationInput: {},
+      classes: { Error },
+      getProvider: () => ({
+        request,
+        naming: { getStackName: () => 'svc-dev' },
+        getStage: () => 'dev',
+        getRegion: () => 'us-east-1',
+      }),
+    },
+    { sandbox: 'api' },
+    {
+      log: { notice() {}, error() {}, debug() {}, warning() {} },
+      progress: { notice() {}, remove() {} },
+    },
+    {
+      docker: { ensureIsRunning: async () => {}, buildImage: async () => {} },
+      fileExists: () => true,
+      onSignal: (s, h) => {
+        signals[s] = h
+      },
+      createWatcher: () => ({ on() {}, close: async () => {} }),
+      createIamEmulation: () => fakeIam,
+      startControlPlane,
+      makeContainerManager: (args) => {
+        capturedEnv = args.env
+        return {}
+      },
+      makeRegistry: () => ({}),
+    },
+  )
+  const p = d.run()
+  await new Promise((r) => setImmediate(r))
+  expect(capturedEnv).toBeDefined()
+  // provider.environment is inherited …
+  expect(capturedEnv.GLOBAL).toBe('g')
+  // … but the sandbox's own key wins on a collision.
+  expect(capturedEnv.SHARED).toBe('from-sandbox')
+  // Ref resolves through the CloudFormation API, Fn::GetAtt from stack Outputs.
+  expect(capturedEnv.BUCKET).toBe('my-bucket-123')
+  expect(capturedEnv.TABLE).toBe('resolved-table')
+  // Creds still layer on top of the resolved environment.
+  expect(capturedEnv.AWS_ACCESS_KEY_ID).toBe('AK')
+  expect(request).toHaveBeenCalledWith('CloudFormation', 'describeStacks', {
+    StackName: 'svc-dev',
+  })
+  await signals.SIGINT()
+  await p
+})
+
+test('run() drops an Fn::GetAtt with no matching stack output instead of passing an object to Docker', async () => {
+  let capturedEnv
+  const startControlPlane = jest.fn(async () => ({
+    url: 'http://127.0.0.1:45006',
+    port: 45006,
+    server: {},
+    shutdown: async () => {},
+  }))
+  const signals = {}
+  const fakeIam = {
+    setUp: jest.fn(async () => ({
+      AWS_ACCESS_KEY_ID: 'AK',
+      AWS_SECRET_ACCESS_KEY: 'SK',
+      AWS_SESSION_TOKEN: 'ST',
+      AWS_REGION: 'us-east-1',
+    })),
+    credentialsExpiring: () => false,
+    refresh: jest.fn(async () => null),
+    cleanUp: jest.fn(async () => {}),
+  }
+  const request = jest.fn(async (service, method) => {
+    if (service === 'CloudFormation' && method === 'describeStacks') {
+      return {
+        Stacks: [
+          {
+            Outputs: [
+              { OutputKey: 'OtherThing', OutputValue: 'not-the-table' },
+            ],
+          },
+        ],
+      }
+    }
+    throw new Error(`unexpected ${service}.${method}`)
+  })
+  const d = new SandboxesDevMode(
+    {
+      serviceDir: '/svc',
+      service: {
+        service: 'svc',
+        provider: { environment: { GLOBAL: 'g' } },
+        sandboxes: {
+          api: {
+            artifact: './app',
+            environment: { TABLE: { 'Fn::GetAtt': ['Table', 'Name'] } },
+          },
+        },
+      },
+      configurationInput: {},
+      classes: { Error },
+      getProvider: () => ({
+        request,
+        naming: { getStackName: () => 'svc-dev' },
+        getStage: () => 'dev',
+        getRegion: () => 'us-east-1',
+      }),
+    },
+    { sandbox: 'api' },
+    {
+      log: { notice() {}, error() {}, debug() {}, warning() {} },
+      progress: { notice() {}, remove() {} },
+    },
+    {
+      docker: { ensureIsRunning: async () => {}, buildImage: async () => {} },
+      fileExists: () => true,
+      onSignal: (s, h) => {
+        signals[s] = h
+      },
+      createWatcher: () => ({ on() {}, close: async () => {} }),
+      createIamEmulation: () => fakeIam,
+      startControlPlane,
+      makeContainerManager: (args) => {
+        capturedEnv = args.env
+        return {}
+      },
+      makeRegistry: () => ({}),
+    },
+  )
+  const p = d.run()
+  await new Promise((r) => setImmediate(r))
+  expect(capturedEnv).toBeDefined()
+  expect(capturedEnv.TABLE).toBeUndefined()
+  expect(capturedEnv.GLOBAL).toBe('g')
+  await signals.SIGINT()
+  await p
+})
+
+test('run() tolerates a provider that cannot describe the stack (no request) and still merges provider.environment', async () => {
+  let capturedEnv
+  const startControlPlane = jest.fn(async () => ({
+    url: 'http://127.0.0.1:45007',
+    port: 45007,
+    server: {},
+    shutdown: async () => {},
+  }))
+  const signals = {}
+  const fakeIam = {
+    setUp: jest.fn(async () => ({
+      AWS_ACCESS_KEY_ID: 'AK',
+      AWS_SECRET_ACCESS_KEY: 'SK',
+      AWS_SESSION_TOKEN: 'ST',
+      AWS_REGION: 'us-east-1',
+    })),
+    credentialsExpiring: () => false,
+    refresh: jest.fn(async () => null),
+    cleanUp: jest.fn(async () => {}),
+  }
+  const d = new SandboxesDevMode(
+    {
+      serviceDir: '/svc',
+      service: {
+        service: 'svc',
+        provider: { environment: { GLOBAL: 'g' } },
+        sandboxes: {
+          api: { artifact: './app', environment: { OWN: 'x' } },
+        },
+      },
+      configurationInput: {},
+      classes: { Error },
+      getProvider: () => ({}),
+    },
+    { sandbox: 'api' },
+    {
+      log: { notice() {}, error() {}, debug() {}, warning() {} },
+      progress: { notice() {}, remove() {} },
+    },
+    {
+      docker: { ensureIsRunning: async () => {}, buildImage: async () => {} },
+      fileExists: () => true,
+      onSignal: (s, h) => {
+        signals[s] = h
+      },
+      createWatcher: () => ({ on() {}, close: async () => {} }),
+      createIamEmulation: () => fakeIam,
+      startControlPlane,
+      makeContainerManager: (args) => {
+        capturedEnv = args.env
+        return {}
+      },
+      makeRegistry: () => ({}),
+    },
+  )
+  const p = d.run()
+  await new Promise((r) => setImmediate(r))
+  expect(capturedEnv).toBeDefined()
+  expect(capturedEnv.GLOBAL).toBe('g')
+  expect(capturedEnv.OWN).toBe('x')
+  await signals.SIGINT()
+  await p
+})

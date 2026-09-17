@@ -60,6 +60,10 @@ describe('AwsDeployFunction', () => {
       request: jest.fn(),
       naming: {
         getFunctionArtifactName: jest.fn().mockReturnValue('first.zip'),
+        getStackName: jest.fn().mockReturnValue('svc-dev'),
+        getLambdaLogicalId: jest.fn(
+          (name) => `${name[0].toUpperCase()}${name.slice(1)}LambdaFunction`,
+        ),
       },
       resolveImageUriAndSha: jest.fn(),
       getCustomExecutionRole: jest.fn((functionObject) => {
@@ -91,6 +95,7 @@ describe('AwsDeployFunction', () => {
         success: jest.fn(),
         aside: jest.fn(),
         info: jest.fn(),
+        warning: jest.fn(),
       },
       style: {
         aside: jest.fn((text) => text),
@@ -317,10 +322,14 @@ describe('AwsDeployFunction', () => {
 
   describe('#updateFunctionConfiguration()', () => {
     let updateFunctionConfigurationStub
+    // Environment.Variables of FirstLambdaFunction in the deployed template;
+    // undefined = the template cannot be read (getTemplate rejects).
+    let deployedTemplateVariables
 
     beforeEach(() => {
       // Mock the request method to capture updateFunctionConfiguration calls
       updateFunctionConfigurationStub = jest.fn()
+      deployedTemplateVariables = undefined
       awsDeployFunction.provider.request = jest.fn(
         (service, method, params) => {
           if (method === 'updateFunctionConfiguration') {
@@ -334,6 +343,23 @@ describe('AwsDeployFunction', () => {
                 State: 'Active',
                 LastUpdateStatus: 'Successful',
               },
+            })
+          }
+          if (method === 'getTemplate') {
+            if (deployedTemplateVariables === undefined) {
+              return Promise.reject(new Error('Stack svc-dev does not exist'))
+            }
+            return Promise.resolve({
+              TemplateBody: JSON.stringify({
+                Resources: {
+                  FirstLambdaFunction: {
+                    Type: 'AWS::Lambda::Function',
+                    Properties: {
+                      Environment: { Variables: deployedTemplateVariables },
+                    },
+                  },
+                },
+              }),
             })
           }
           // Default resolve for check changes
@@ -505,6 +531,165 @@ describe('AwsDeployFunction', () => {
             },
           },
         }),
+      )
+    })
+
+    it('skips the environment update and warns when a value is a CloudFormation reference', async () => {
+      awsDeployFunction.setRemoteConfig({
+        Environment: { Variables: { EXISTING: 'val' } },
+      })
+      awsDeployFunction.options.function = 'first'
+      awsDeployFunction.options.functionObj = {
+        name: 'first',
+        environment: { EXISTING: 'new-val', TABLE: { Ref: 'Table' } },
+      }
+      const warning = awsDeployFunction.logger.warning
+
+      await awsDeployFunction.updateFunctionConfiguration()
+
+      const call = updateFunctionConfigurationStub.mock.calls.at(-1)?.[0]
+      expect(call === undefined || call.Environment === undefined).toBe(true)
+      expect(warning).toHaveBeenCalledTimes(1)
+      expect(warning.mock.calls[0][0]).toMatch(
+        /Environment variables of function "first" were not updated by "deploy function"/,
+      )
+    })
+
+    it('stays quiet when the CloudFormation reference matches the deployed template and literals match remote', async () => {
+      // The Lambda configuration holds the reference's resolved value, so it is
+      // compared as an expression against the deployed template instead.
+      awsDeployFunction.setRemoteConfig({
+        Environment: { Variables: { EXISTING: 'val', TABLE: 'my-table' } },
+      })
+      deployedTemplateVariables = { EXISTING: 'val', TABLE: { Ref: 'Table' } }
+      awsDeployFunction.options.function = 'first'
+      awsDeployFunction.options.functionObj = {
+        name: 'first',
+        environment: { EXISTING: 'val', TABLE: { Ref: 'Table' } },
+      }
+      const warning = awsDeployFunction.logger.warning
+
+      await awsDeployFunction.updateFunctionConfiguration()
+
+      const call = updateFunctionConfigurationStub.mock.calls.at(-1)?.[0]
+      expect(call === undefined || call.Environment === undefined).toBe(true)
+      expect(warning).not.toHaveBeenCalled()
+    })
+
+    it('warns when a CloudFormation-referenced key is not deployed yet', async () => {
+      awsDeployFunction.setRemoteConfig({
+        Environment: { Variables: { EXISTING: 'val' } },
+      })
+      deployedTemplateVariables = { EXISTING: 'val' }
+      awsDeployFunction.options.function = 'first'
+      awsDeployFunction.options.functionObj = {
+        name: 'first',
+        environment: { EXISTING: 'val', TABLE: { Ref: 'Table' } },
+      }
+      const warning = awsDeployFunction.logger.warning
+
+      await awsDeployFunction.updateFunctionConfiguration()
+
+      expect(warning).toHaveBeenCalledTimes(1)
+      expect(warning.mock.calls[0][0]).toMatch(
+        /Environment variables of function "first" were not updated by "deploy function"/,
+      )
+    })
+
+    it('warns when a deployed key was removed locally and a CloudFormation reference is present', async () => {
+      awsDeployFunction.setRemoteConfig({
+        Environment: {
+          Variables: { EXISTING: 'val', REMOVED: 'gone', TABLE: 'my-table' },
+        },
+      })
+      deployedTemplateVariables = {
+        EXISTING: 'val',
+        REMOVED: 'gone',
+        TABLE: { Ref: 'Table' },
+      }
+      awsDeployFunction.options.function = 'first'
+      awsDeployFunction.options.functionObj = {
+        name: 'first',
+        environment: { EXISTING: 'val', TABLE: { Ref: 'Table' } },
+      }
+      const warning = awsDeployFunction.logger.warning
+
+      await awsDeployFunction.updateFunctionConfiguration()
+
+      expect(warning).toHaveBeenCalledTimes(1)
+    })
+
+    it('ignores Serverless Console variables when deciding whether to warn about a CloudFormation reference', async () => {
+      awsDeployFunction.setRemoteConfig({
+        Layers: [
+          { Arn: 'arn:aws:lambda:us-east-1:177335420605:layer:sls-sdk-node:1' },
+        ],
+        Environment: {
+          Variables: {
+            AWS_LAMBDA_EXEC_WRAPPER: '/opt/serverless_wrapper',
+            SLS_ORG_ID: 'org-123',
+            USER_VAR: 'val',
+            TABLE: 'my-table',
+          },
+        },
+      })
+      deployedTemplateVariables = { USER_VAR: 'val', TABLE: { Ref: 'Table' } }
+      awsDeployFunction.options.function = 'first'
+      awsDeployFunction.options.functionObj = {
+        name: 'first',
+        environment: { USER_VAR: 'val', TABLE: { Ref: 'Table' } },
+      }
+      const warning = awsDeployFunction.logger.warning
+
+      await awsDeployFunction.updateFunctionConfiguration()
+
+      expect(warning).not.toHaveBeenCalled()
+    })
+
+    it('warns when a CloudFormation reference points at a different resource than the deployed template', async () => {
+      awsDeployFunction.setRemoteConfig({
+        Environment: { Variables: { EXISTING: 'val', TABLE: 'old-table' } },
+      })
+      deployedTemplateVariables = {
+        EXISTING: 'val',
+        TABLE: { Ref: 'OldTable' },
+      }
+      awsDeployFunction.options.function = 'first'
+      awsDeployFunction.options.functionObj = {
+        name: 'first',
+        environment: { EXISTING: 'val', TABLE: { Ref: 'NewTable' } },
+      }
+      const warning = awsDeployFunction.logger.warning
+
+      await awsDeployFunction.updateFunctionConfiguration()
+
+      const call = updateFunctionConfigurationStub.mock.calls.at(-1)?.[0]
+      expect(call === undefined || call.Environment === undefined).toBe(true)
+      expect(warning).toHaveBeenCalledTimes(1)
+      expect(warning.mock.calls[0][0]).toMatch(
+        /Environment variables of function "first" were not updated by "deploy function"/,
+      )
+    })
+
+    it('warns conservatively when the deployed template cannot be read', async () => {
+      awsDeployFunction.setRemoteConfig({
+        Environment: { Variables: { EXISTING: 'val', TABLE: 'my-table' } },
+      })
+      deployedTemplateVariables = undefined
+      awsDeployFunction.options.function = 'first'
+      awsDeployFunction.options.functionObj = {
+        name: 'first',
+        environment: { EXISTING: 'val', TABLE: { Ref: 'Table' } },
+      }
+      const warning = awsDeployFunction.logger.warning
+
+      await awsDeployFunction.updateFunctionConfiguration()
+
+      expect(warning).toHaveBeenCalledTimes(1)
+      expect(awsDeployFunction.logger.debug).toHaveBeenCalledWith(
+        expect.stringMatching(
+          /deployed template.*Stack svc-dev does not exist/,
+        ),
       )
     })
 
