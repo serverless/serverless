@@ -91,12 +91,27 @@ describe('validateSandboxes', () => {
       ),
     ).not.toThrow()
   })
-  test('vpc ids given as an object that is not a list expression → error', () => {
-    for (const bad of [
-      {},
-      { Ref: 'SubnetList' },
-      { 'Fn::Split': [], extra: 1 },
+  test('vpc ids given as any single CloudFormation intrinsic → ok (CloudFormation decides)', () => {
+    for (const ok of [
+      { Ref: 'SubnetListParam' },
+      { 'Fn::If': ['IsProd', ['subnet-a'], ['subnet-b']] },
+      { 'Fn::GetAtt': ['Network', 'SubnetIds'] },
     ]) {
+      expect(() =>
+        validateSandboxes(
+          {
+            a: {
+              artifact: './x',
+              vpc: { subnetIds: ok, securityGroupIds: ['sg-111'] },
+            },
+          },
+          { throwError: err() },
+        ),
+      ).not.toThrow()
+    }
+  })
+  test('vpc ids given as an object that is not an intrinsic → error', () => {
+    for (const bad of [{}, { subnet: 'a' }, { 'Fn::Split': [], extra: 1 }]) {
       expect(() =>
         validateSandboxes(
           {

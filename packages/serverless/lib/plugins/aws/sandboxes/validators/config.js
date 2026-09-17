@@ -2,20 +2,18 @@
 
 const MEMORY = [512, 1024, 2048, 4096, 8192]
 
-// The whole-list CloudFormation expressions the schema accepts for vpc ids
-// (same as a function's `vpc`); their length is known only at deploy time.
-const LIST_EXPRESSION_KEYS = ['Fn::Split', 'Fn::FindInMap']
-
 /**
- * True for a non-empty literal list, or for a single `Fn::Split` /
- * `Fn::FindInMap` expression. Any other object is rejected here so that a
- * `configValidationMode: warn` run still fails before CloudFormation does.
+ * True for a non-empty literal list, or for an object shaped like a single
+ * CloudFormation intrinsic (`Ref` or one `Fn::*` key). Which intrinsics yield
+ * a list is CloudFormation's call at deploy time — this check only keeps
+ * values that can never be valid (a stray object, a plain string) from
+ * reaching the template under `configValidationMode: warn`.
  */
 function hasListValue(value) {
   if (Array.isArray(value)) return value.length > 0
   if (value === null || typeof value !== 'object') return false
   const keys = Object.keys(value)
-  return keys.length === 1 && LIST_EXPRESSION_KEYS.includes(keys[0])
+  return keys.length === 1 && (keys[0] === 'Ref' || keys[0].startsWith('Fn::'))
 }
 
 export function validateSandboxes(sandboxesConfig, { throwError }) {
