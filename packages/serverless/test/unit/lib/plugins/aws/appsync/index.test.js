@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals'
 import * as given from './given.js'
 
 const plugin = given.plugin()
@@ -77,5 +78,39 @@ describe('variable', () => {
         },
       }
     `)
+  })
+})
+
+describe('gatherData', () => {
+  it('paginates API keys', async () => {
+    const appsyncPlugin = given.plugin()
+    appsyncPlugin.getApiIdFromStack = jest.fn().mockResolvedValue('api-id')
+    appsyncPlugin.provider.request = jest
+      .fn()
+      .mockResolvedValueOnce({ graphqlApi: {} })
+      .mockResolvedValueOnce({
+        apiKeys: [{ id: 'key-1' }],
+        nextToken: 'page-2',
+      })
+      .mockResolvedValueOnce({ apiKeys: [{ id: 'key-2' }] })
+
+    await appsyncPlugin.gatherData()
+
+    expect(appsyncPlugin.gatheredData.apiKeys).toEqual([
+      { value: 'key-1', description: undefined },
+      { value: 'key-2', description: undefined },
+    ])
+    expect(appsyncPlugin.provider.request).toHaveBeenNthCalledWith(
+      2,
+      'AppSync',
+      'listApiKeys',
+      { apiId: 'api-id' },
+    )
+    expect(appsyncPlugin.provider.request).toHaveBeenNthCalledWith(
+      3,
+      'AppSync',
+      'listApiKeys',
+      { apiId: 'api-id', nextToken: 'page-2' },
+    )
   })
 })
