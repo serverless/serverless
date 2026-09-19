@@ -10,13 +10,23 @@ import ast
 import operator
 
 
+MAX_EXPONENT = 10_000
+
+
+def _safe_pow(base, exp):
+    """Safely compute exponentiation with upper-bound limit to prevent DoS."""
+    if isinstance(exp, (int, float)) and exp > MAX_EXPONENT:
+        raise ValueError(f"Exponent exceeds maximum allowed limit ({MAX_EXPONENT}): {exp}")
+    return pow(base, exp)
+
+
 # Supported operators for safe evaluation
 OPERATORS = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
     ast.Mult: operator.mul,
     ast.Div: operator.truediv,
-    ast.Pow: operator.pow,
+    ast.Pow: _safe_pow,
     ast.Mod: operator.mod,
     ast.USub: operator.neg,
     ast.UAdd: operator.pos,
@@ -34,7 +44,7 @@ FUNCTIONS = {
     'floor': math.floor,
     'ceil': math.ceil,
     'round': round,
-    'pow': pow,
+    'pow': _safe_pow,
 }
 
 # Supported constants
