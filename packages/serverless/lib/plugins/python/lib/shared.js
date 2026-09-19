@@ -164,11 +164,41 @@ function sha256Path(fullpath) {
   return createHash('sha256').update(readFileSync(fullpath)).digest('hex')
 }
 
+/**
+ * pip compiles every dependency to a .pyc at install time. By default a .pyc is
+ * only valid while it records its source's exact mtime, and the packaged zip pins
+ * every entry to a fixed date (so unchanged code is not redeployed), which makes
+ * every shipped .pyc stale on arrival: Lambda recompiles all of them on each cold
+ * start, and its read-only filesystem can never keep the result.
+ *
+ * When SOURCE_DATE_EPOCH is set, py_compile writes hash-based .pyc files instead
+ * (PEP 552, checked-hash). Those stay valid whatever the timestamps say, and a
+ * source that does not match its .pyc is still recompiled, never run stale.
+ * Only the presence of the variable matters to Python. The value is the zip
+ * format's earliest date (1980-01-01), the lowest that every build tool reading
+ * the variable can represent.
+ *
+ * Needs Python 3.7 or later, which is every runtime Lambda still supports. Older
+ * Pythons ignore the variable and compile exactly as they did before.
+ */
+const DEFAULT_SOURCE_DATE_EPOCH = '315532800'
+
+/**
+ * The SOURCE_DATE_EPOCH the dependency install should run with: the user's own,
+ * if they have set one, so reproducible-build setups keep their value
+ * @param  {Object} env
+ * @return {string}
+ */
+function getSourceDateEpoch(env = process.env) {
+  return env.SOURCE_DATE_EPOCH || DEFAULT_SOURCE_DATE_EPOCH
+}
+
 export {
   checkForAndDeleteMaxCacheVersions,
   getRequirementsWorkingPath,
   getRequirementsLayerPath,
   getDefaultUserCachePath,
   getUserCachePath,
+  getSourceDateEpoch,
   sha256Path,
 }

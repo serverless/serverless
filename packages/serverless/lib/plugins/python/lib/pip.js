@@ -12,6 +12,7 @@ import tomlParse from '@iarna/toml/parse-string.js'
 import {
   checkForAndDeleteMaxCacheVersions,
   getRequirementsWorkingPath,
+  getSourceDateEpoch,
   getUserCachePath,
   sha256Path,
 } from './shared.js'
@@ -411,6 +412,10 @@ async function installRequirements(targetFolder, pluginInstance, funcOptions) {
         pipCmd.push('--cache-dir', dockerDownloadCacheDir)
       }
 
+      // Have pip write bytecode that is still valid once packaged (see
+      // getSourceDateEpoch). Before dockerEnv, so a value set there wins
+      dockerCmd.push('-e', `SOURCE_DATE_EPOCH=${getSourceDateEpoch()}`)
+
       if (options.dockerEnv) {
         // Add environment variables to docker run cmd
         options.dockerEnv.forEach(function (item) {
@@ -507,7 +512,10 @@ async function installRequirements(targetFolder, pluginInstance, funcOptions) {
         serverless.cli.log(`Running: ${rendered}`)
       }
       try {
-        await spawn(cmd, args)
+        // The same for an install that runs outside docker (see getSourceDateEpoch)
+        await spawn(cmd, args, {
+          env: { ...process.env, SOURCE_DATE_EPOCH: getSourceDateEpoch() },
+        })
       } catch (e) {
         const stderr = (e.stderrBuffer && e.stderrBuffer.toString()) || ''
         const stdout = (e.stdoutBuffer && e.stdoutBuffer.toString()) || ''
