@@ -1,7 +1,7 @@
 import { describe, it, expect } from '@jest/globals'
 import path from 'path'
 
-const { getUserCachePath, getDefaultUserCachePath } =
+const { getUserCachePath, getDefaultUserCachePath, getSourceDateEpoch } =
   await import('../../../../../../lib/plugins/python/lib/shared.js')
 
 const APP_NAME = 'serverless-python-requirements'
@@ -93,5 +93,32 @@ describe('getUserCachePath', () => {
 
   it('uses the platform default cache path when called without options', () => {
     expect(getUserCachePath()).toEqual(getDefaultUserCachePath())
+  })
+})
+
+describe('getSourceDateEpoch', () => {
+  // The dependency install runs with SOURCE_DATE_EPOCH set so that pip writes
+  // hash-based .pyc files (PEP 552). Timestamp-based ones are stale as soon as
+  // the zip pins its entry dates, and are recompiled on every cold start.
+
+  it('defaults to the earliest date a zip entry can carry', () => {
+    expect(getSourceDateEpoch({})).toEqual('315532800')
+    expect(new Date(315532800 * 1000).toISOString()).toEqual(
+      '1980-01-01T00:00:00.000Z',
+    )
+  })
+
+  it('keeps a value the user has already set', () => {
+    expect(getSourceDateEpoch({ SOURCE_DATE_EPOCH: '1700000000' })).toEqual(
+      '1700000000',
+    )
+  })
+
+  it('treats an empty value as unset, as Python does', () => {
+    expect(getSourceDateEpoch({ SOURCE_DATE_EPOCH: '' })).toEqual('315532800')
+  })
+
+  it('defaults to the current environment', () => {
+    expect(getSourceDateEpoch()).toEqual(getSourceDateEpoch(process.env))
   })
 })
