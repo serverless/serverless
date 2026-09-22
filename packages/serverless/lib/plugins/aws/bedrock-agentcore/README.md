@@ -671,34 +671,37 @@ AWS Bedrock AgentCore is available in select regions. Check AWS documentation fo
 
 ## Examples
 
-See the [examples directory](./examples/) for complete working examples:
+Complete, deployable examples live in the [serverless/examples repository](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore):
 
 **Python:**
 
-- [langgraph-basic-docker](./examples/python/langgraph-basic-docker/) - Minimal LangGraph agent with Docker
-- [langgraph-basic-code](./examples/python/langgraph-basic-code/) - LangGraph agent with code deployment
-- [langgraph-gateway](./examples/python/langgraph-gateway/) - LangGraph agent with custom Lambda tools via Gateway
-- [langgraph-multi-gateway](./examples/python/langgraph-multi-gateway/) - Multiple gateways with different authorization
-- [langgraph-memory](./examples/python/langgraph-memory/) - LangGraph agent with conversation persistence
-- [langgraph-browser](./examples/python/langgraph-browser/) - LangGraph agent with browser automation
-- [langgraph-browser-custom](./examples/python/langgraph-browser-custom/) - Custom browser with session recording
-- [langgraph-code-interpreter](./examples/python/langgraph-code-interpreter/) - LangGraph agent with code execution
-- [langgraph-code-interpreter-custom](./examples/python/langgraph-code-interpreter-custom/) - Custom code interpreter with public network
-- [strands-browser](./examples/python/strands-browser/) - Strands Agents with browser automation
+- [langgraph-basic-docker](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-basic-docker) - Minimal LangGraph agent with Docker
+- [langgraph-basic-code](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-basic-code) - LangGraph agent with code deployment
+- [langgraph-gateway](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-gateway) - LangGraph agent with custom Lambda tools via Gateway
+- [langgraph-multi-gateway](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-multi-gateway) - Multiple gateways with different authorization
+- [langgraph-memory](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-memory) - LangGraph agent with conversation persistence
+- [langgraph-browser](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-browser) - LangGraph agent with browser automation
+- [langgraph-browser-custom](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-browser-custom) - Custom browser with session recording
+- [langgraph-code-interpreter](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-code-interpreter) - LangGraph agent with code execution
+- [langgraph-code-interpreter-custom](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-code-interpreter-custom) - Custom code interpreter with public network
+- [strands-browser](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/strands-browser) - Strands Agents with browser automation
 
 **JavaScript:**
 
-- [langgraph-basic](./examples/javascript/langgraph-basic/) - LangGraph JS agent (no Dockerfile)
-- [langgraph-basic-dockerfile](./examples/javascript/langgraph-basic-dockerfile/) - Minimal LangGraph JS agent with Dockerfile
-- [langgraph-browser](./examples/javascript/langgraph-browser/) - LangGraph JS agent with browser automation
-- [langgraph-browser-custom](./examples/javascript/langgraph-browser-custom/) - Custom browser with session recording
-- [langgraph-code-interpreter](./examples/javascript/langgraph-code-interpreter/) - LangGraph JS agent with code execution
-- [langgraph-code-interpreter-custom](./examples/javascript/langgraph-code-interpreter-custom/) - Custom code interpreter with public network
-- [langgraph-gateway](./examples/javascript/langgraph-gateway/) - LangGraph JS agent with Lambda tools via Gateway
-- [langgraph-memory](./examples/javascript/langgraph-memory/) - LangGraph JS agent with conversation persistence
-- [langgraph-multi-gateway](./examples/javascript/langgraph-multi-gateway/) - Multiple gateways with different authorization
-- [mcp-server](./examples/javascript/mcp-server/) - JavaScript MCP server
-- [strands-browser](./examples/javascript/strands-browser/) - Strands Agents JS with browser automation
+- [langgraph-basic](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-basic) - LangGraph JS agent (no Dockerfile)
+- [langgraph-basic-dockerfile](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-basic-dockerfile) - Minimal LangGraph JS agent with Dockerfile
+- [langgraph-browser](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-browser) - LangGraph JS agent with browser automation
+- [langgraph-browser-custom](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-browser-custom) - Custom browser with session recording
+- [langgraph-code-interpreter](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-code-interpreter) - LangGraph JS agent with code execution
+- [langgraph-code-interpreter-custom](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-code-interpreter-custom) - Custom code interpreter with public network
+- [langgraph-gateway](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-gateway) - LangGraph JS agent with Lambda tools via Gateway
+- [langgraph-comprehensive](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-comprehensive) - Gateway tools, direct MCP, browser, code interpreter and memory in one agent
+- [langgraph-memory](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-memory) - LangGraph JS agent with conversation persistence
+- [langgraph-multi-gateway](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-multi-gateway) - Multiple gateways with different authorization
+- [mcp-server](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/mcp-server) - JavaScript MCP server
+- [mcp-server-lambda-tools](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/mcp-server-lambda-tools) - MCP server whose tools are plain Lambda functions, no MCP SDK in your code
+- [langgraph-streaming](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-streaming) - LangGraph JS agent with streaming responses
+- [strands-browser](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/strands-browser) - Strands Agents JS with browser automation
 
 ## Related Resources
 

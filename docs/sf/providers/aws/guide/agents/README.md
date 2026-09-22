@@ -102,8 +102,8 @@ The Framework automatically builds a Docker image from your source code, pushes 
 
 **See full examples:**
 
-- JavaScript: [Auto-build](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-basic) · [Dockerfile](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-basic-dockerfile)
-- Python: [Docker deployment](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-basic-docker) · [Code deployment](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-basic-code)
+- JavaScript: [Auto-build](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-basic) · [Dockerfile](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-basic-dockerfile)
+- Python: [Docker deployment](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-basic-docker) · [Code deployment](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-basic-code)
 
 ## What the Framework Manages
 
@@ -331,48 +331,48 @@ serverless info
 
 LangGraph with simple tools:
 
-- JavaScript: [Auto-build](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-basic) · [Dockerfile](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-basic-dockerfile)
-- Python: [Docker](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-basic-docker) · [Code deployment](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-basic-code)
+- JavaScript: [Auto-build](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-basic) · [Dockerfile](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-basic-dockerfile)
+- Python: [Docker](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-basic-docker) · [Code deployment](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-basic-code)
 
 ### Streaming
 
 Real-time token streaming via SSE:
 
-- JavaScript: [LangGraph Streaming](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-streaming)
+- JavaScript: [LangGraph Streaming](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-streaming)
 
 ### Memory
 
 Conversation persistence across invocations:
 
-- JavaScript: [LangGraph Memory](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-memory)
-- Python: [LangGraph Memory](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-memory)
+- JavaScript: [LangGraph Memory](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-memory)
+- Python: [LangGraph Memory](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-memory)
 
 ### Gateway (Custom Tools)
 
 Connect Lambda functions and APIs as agent tools:
 
-- JavaScript: [LangGraph Gateway](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-gateway) · [Multi-Gateway](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-multi-gateway)
-- Python: [LangGraph Gateway](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-gateway) · [Multi-Gateway](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-multi-gateway)
+- JavaScript: [LangGraph Gateway](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-gateway) · [Multi-Gateway](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-multi-gateway)
+- Python: [LangGraph Gateway](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-gateway) · [Multi-Gateway](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-multi-gateway)
 
 ### Browser
 
 Web automation and content extraction:
 
-- JavaScript: [LangGraph Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-browser) · [Custom Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-browser-custom) · [Strands Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/strands-browser)
-- Python: [LangGraph Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-browser) · [Custom Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-browser-custom) · [Strands Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/strands-browser)
+- JavaScript: [LangGraph Browser](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-browser) · [Custom Browser](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-browser-custom) · [Strands Browser](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/strands-browser)
+- Python: [LangGraph Browser](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-browser) · [Custom Browser](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-browser-custom) · [Strands Browser](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/strands-browser)
 
 ### Code Interpreter
 
 Secure Python code execution:
 
-- JavaScript: [LangGraph Code Interpreter](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-code-interpreter) · [Custom Code Interpreter](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-code-interpreter-custom)
-- Python: [LangGraph Code Interpreter](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-code-interpreter) · [Custom Code Interpreter](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-code-interpreter-custom)
+- JavaScript: [LangGraph Code Interpreter](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-code-interpreter) · [Custom Code Interpreter](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-code-interpreter-custom)
+- Python: [LangGraph Code Interpreter](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-code-interpreter) · [Custom Code Interpreter](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-code-interpreter-custom)
 
 ### MCP Server
 
 Deploy an MCP server as an AgentCore runtime:
 
-- JavaScript: [MCP Server](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/mcp-server)
+- JavaScript: [MCP Server](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/mcp-server)
 
 ## Next Steps
 

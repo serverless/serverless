@@ -395,11 +395,11 @@ ai:
 
 **JavaScript:**
 
-- [LangGraph with Memory](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-memory) - LangGraph agent with conversation persistence
+- [LangGraph with Memory](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-memory) - LangGraph agent with conversation persistence
 
 **Python:**
 
-- [LangGraph with Memory](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-memory) - LangGraph agent with conversation persistence
+- [LangGraph with Memory](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-memory) - LangGraph agent with conversation persistence
 
 ## Next Steps
 

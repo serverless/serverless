@@ -568,16 +568,16 @@ ai:
 
 **JavaScript:**
 
-- [LangGraph Docker](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-basic-dockerfile) - LangGraph with Docker deployment
-- [LangGraph Basic](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-basic) - LangGraph with buildpack deployment
-- [LangGraph Memory](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-memory) - LangGraph with conversation persistence
-- [LangGraph Streaming](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-streaming) - LangGraph with streaming responses
+- [LangGraph Docker](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-basic-dockerfile) - LangGraph with Docker deployment
+- [LangGraph Basic](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-basic) - LangGraph with buildpack deployment
+- [LangGraph Memory](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-memory) - LangGraph with conversation persistence
+- [LangGraph Streaming](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-streaming) - LangGraph with streaming responses
 
 **Python:**
 
-- [LangGraph Docker](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-basic-docker) - LangGraph with Docker deployment
-- [LangGraph Code](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-basic-code) - LangGraph with code deployment
-- [LangGraph Memory](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-memory) - LangGraph with conversation persistence
+- [LangGraph Docker](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-basic-docker) - LangGraph with Docker deployment
+- [LangGraph Code](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-basic-code) - LangGraph with code deployment
+- [LangGraph Memory](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-memory) - LangGraph with conversation persistence
 
 ## Next Steps
 

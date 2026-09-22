@@ -406,15 +406,15 @@ ai:
 
 **JavaScript:**
 
-- [LangGraph Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-browser) - LangGraph with PlaywrightBrowser toolkit
-- [LangGraph Browser Custom](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/langgraph-browser-custom) - Custom browser with session recording
-- [Strands Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/javascript/strands-browser) - Strands Agents with BrowserTools
+- [LangGraph Browser](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-browser) - LangGraph with PlaywrightBrowser toolkit
+- [LangGraph Browser Custom](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-browser-custom) - Custom browser with session recording
+- [Strands Browser](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/strands-browser) - Strands Agents with BrowserTools
 
 **Python:**
 
-- [LangGraph Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-browser) - LangChain/LangGraph with browser toolkit
-- [LangGraph Browser Custom](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/langgraph-browser-custom) - Custom browser with session recording
-- [Strands Browser](https://github.com/serverless/serverless/tree/main/packages/serverless/lib/plugins/aws/bedrock-agentcore/examples/python/strands-browser) - Strands Agents with AgentCoreBrowser
+- [LangGraph Browser](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-browser) - LangChain/LangGraph with browser toolkit
+- [LangGraph Browser Custom](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-browser-custom) - Custom browser with session recording
+- [Strands Browser](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/strands-browser) - Strands Agents with AgentCoreBrowser
 
 ## Next Steps
 
