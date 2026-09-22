@@ -106,6 +106,20 @@ custom:
       - https_proxy
 ```
 
+## Bytecode
+
+Dependencies are installed with `SOURCE_DATE_EPOCH` set, which makes pip write hash-based
+`.pyc` files ([PEP 552](https://peps.python.org/pep-0552/)). The default, timestamp-based
+`.pyc` files cannot survive packaging: every entry in the zip is given a fixed date so that
+unchanged code is not redeployed, so Python finds each one stale and recompiles every
+dependency on every cold start. Hash-based files stay valid, and a source file that does not
+match its `.pyc` is still recompiled, so stale code is never run. This needs Python 3.7 or later;
+older versions ignore the variable and behave as before.
+
+If you already set `SOURCE_DATE_EPOCH`, in your shell or in `dockerEnv`, your value is used.
+Requirements cached by an earlier version keep their old bytecode until `requirements.txt`
+changes or the cache is cleared with `serverless requirements cleanCache`.
+
 ## Pipenv support
 
 Requires `pipenv` in version `2022-04-08` or higher.
