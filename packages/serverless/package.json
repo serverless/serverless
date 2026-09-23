@@ -112,8 +112,8 @@
     "@modelcontextprotocol/server": "2.0.0",
     "@types/jest": "^30.0.0",
     "cross-env": "^10.1.0",
-    "hono": "^4.13.7",
-    "jest": "^30.5.1"
+    "hono": "^4.13.8",
+    "jest": "^30.5.2"
   },
   "scripts": {
     "lint": "eslint",

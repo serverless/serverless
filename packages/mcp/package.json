@@ -28,6 +28,6 @@
   "devDependencies": {
     "@aws-sdk/client-cloudwatch-logs": "3.1132.0",
     "eventsource": "^3.0.7",
-    "jest": "^30.5.1"
+    "jest": "^30.5.2"
   }
 }
