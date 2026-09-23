@@ -34,7 +34,7 @@ appSync:
   name: my-api
   substitutions: # global substitutions
     postsTable: !Ref Posts
-    region: ${AWS::Region}
+    region: !Ref AWS::Region
     foo: bar
 
   resolvers:
