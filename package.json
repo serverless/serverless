@@ -36,8 +36,8 @@
   "devDependencies": {
     "eslint": "^10.10.0",
     "husky": "^9.1.7",
-    "lint-staged": "^17.5.0",
-    "prettier": "^3.9.6"
+    "lint-staged": "^17.5.1",
+    "prettier": "^3.9.8"
   },
   "lint-staged": {
     "*.{js,ts,tsx,jsx}": [
