@@ -76,7 +76,6 @@
     "globby": "^14.1.0",
     "graphql": "^16.14.2",
     "https-proxy-agent": "^8.0.0",
-    "is-docker": "^3.0.0",
     "is-wsl": "^3.1.1",
     "joi": "^17.13.6",
     "js-yaml": "^4.3.2",
