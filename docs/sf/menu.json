@@ -95,6 +95,7 @@
       "Data Sources": "providers/aws/guide/appsync/dataSources",
       "Resolvers": "providers/aws/guide/appsync/resolvers",
       "Pipeline Functions": "providers/aws/guide/appsync/pipeline-functions",
+      "Substitutions": "providers/aws/guide/appsync/substitutions",
       "Caching": "providers/aws/guide/appsync/caching",
       "Delta Sync": "providers/aws/guide/appsync/syncConfig",
       "Custom Domain": "providers/aws/guide/appsync/custom-domain",
