@@ -171,7 +171,7 @@ you are looking at first: check whether the server's log group gained an entry.
 
 **Cause:** Clients probe the well-known paths relative to the **origin root**, and on the default endpoint the document sits under the stage prefix where no probe lands; on a full miss a client can fall back to treating the server's origin as the authorization server, hence the dead sign-in page. (Official-SDK clients start their flow on the bare `401` — no challenge header needed — and then probe the same paths)
 
-**Fix:** Put a custom domain in front mapped at the **root** — the stage prefix disappears and the root probes land (a non-root `basePath` moves the document off the root again). A client that accepts a metadata URL directly can be pointed at the stage-aware URL without a domain; Claude Code has offered no such setting
+**Fix:** Put a custom domain in front mapped at the **root** — the stage prefix disappears and the root probes land (a non-root `basePath` moves the document off the root again). A client that accepts a metadata URL directly can be pointed at the stage-aware URL without a domain. Claude Code can't take the protected-resource URL, but `oauth.authServerMetadataUrl` in `.mcp.json` points it at the authorization server's metadata directly (for example the issuer's `/.well-known/openid-configuration`), which bypasses the discovery that fails here
 
 ### The discovery document still shows the old `issuer` or URL after a deploy that changed it
 
@@ -189,7 +189,7 @@ you are looking at first: check whether the server's log group gained an entry.
 
 **Cause:** The client-side surface is silent by design: whatever the issuer actually answered (registration refused, a disabled endpoint, a policy failure after login) is not relayed
 
-**Fix:** Ask the issuer directly. For a URL-only (DCR) connect, `curl -s -X POST <registration_endpoint> -H 'Content-Type: application/json' -d '{"client_name":"probe","redirect_uris":["http://localhost:8976/callback"]}'` (the endpoint from the issuer's own metadata) returns the issuer's real error — and issuers advertise a `registration_endpoint` whether or not registration is enabled, so the probe, not the metadata, is the test
+**Fix:** Ask the issuer directly. For a URL-only (DCR) connect, `curl -s -X POST <registration_endpoint> -H 'Content-Type: application/json' -d '{"client_name":"probe","application_type":"native","redirect_uris":["http://localhost:8976/callback"]}'` (the endpoint from the issuer's own metadata) returns the issuer's real error — and issuers advertise a `registration_endpoint` whether or not registration is enabled, so the probe, not the metadata, is the test
 
 ## Configuration errors
 
