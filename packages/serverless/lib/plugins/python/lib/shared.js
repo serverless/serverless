@@ -75,6 +75,7 @@ function installSettingsHash(options, serverless) {
     options.dockerFile,
     options.pipCmdExtraArgs,
     options.slim,
+    options.strip,
     options.slimPatterns,
     options.slimPatternsAppendDefaults,
     options.vendor,

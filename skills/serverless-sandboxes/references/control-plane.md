@@ -134,8 +134,9 @@ The MicroVM instance launched by `RunMicrovm` runs your worker artifact. In
 every pattern, implement the `run` hook the same way: the platform holds
 all inbound endpoint traffic until this hook responds `200`, and delivers
 the launch's `runHookPayload` in the hook's request body — read the
-per-instance data out of it there, acknowledge quickly (return `200`
-immediately), and do the actual work asynchronously after responding.
+per-instance data out of it there and finish any setup the work needs, return
+`200` within the hook's timeout, then start the work itself, which can run far
+longer than any hook timeout.
 
 What happens _after_ the work differs. Pick a pattern by asking: **will
 this instance be needed again, and is its in-memory/disk state worth

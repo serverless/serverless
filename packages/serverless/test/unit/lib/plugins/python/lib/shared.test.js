@@ -143,6 +143,10 @@ describe('static cache names follow the install settings', () => {
       service: { provider: { runtime: 'python3.12', architecture: 'arm64' } },
     }
     expect(working(base, otherRuntime)).not.toBe(working(base))
+    // With slim, strip decides whether the .so files are stripped.
+    expect(working({ ...base, slim: true, strip: false })).not.toBe(
+      working({ ...base, slim: true }),
+    )
   })
 
   it('stays the same for settings that do not change the install', () => {

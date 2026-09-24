@@ -143,8 +143,9 @@ property unset so the AWS default applies, and those defaults are tight:
 `terminate` each default to **1s**. Set an explicit `timeout` for any hook
 that needs longer (build hooks accept 1–3600s, runtime hooks 1–60s).
 
-What each hook receives and must answer — a fast `200`, or `503` from `ready`
-to be retried — is the hooks contract in `references/platform.md`.
+What each hook receives and must answer — a `200` once its work is done,
+within its timeout, or `503` from `ready` or `validate` to be asked again — is
+the hooks contract in `references/platform.md`.
 
 ## VPC
 

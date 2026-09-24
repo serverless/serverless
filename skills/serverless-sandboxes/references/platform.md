@@ -94,7 +94,8 @@ your artifact, before any instance boots from it:
   image build outright. Respond `503` to mean "not ready yet, keep trying" —
   the platform retries until the hook's own timeout elapses.
 - **`validate`** — runs after `ready` succeeds, against a fresh VM booted
-  from the not-yet-finalized image. Use it for correctness checks and
+  from the not-yet-finalized image; `503` means still validating, asked
+  again. Use it for correctness checks and
   snapshot-profiling work (warming caches, exercising code paths you want
   captured in the snapshot) before the image is sealed.
 
@@ -111,8 +112,14 @@ moves through its lifecycle:
 - **`suspend`** — runs as the instance transitions into `SUSPENDED`.
 - **`terminate`** — runs as the instance transitions into `TERMINATED`.
 
-Answer every hook with a fast `200` and do heavy work after responding; the
-timeouts and their tight defaults are in `references/config.md` (Hooks).
+Do each hook's work before answering; the platform waits for the answer.
+Traffic reaches the instance only after `run` returns `200`, it stays suspended
+until `resume` returns, and it suspends or terminates once `suspend` or
+`terminate` returns. A non-2xx answer from `run` terminates the instance. The
+runtime hooks default to a 1 s timeout: give a hook that needs longer an
+explicit `timeout`, up to 60 s (`references/config.md`, Hooks). The build hooks
+`ready` and `validate` may answer `503` to mean "not yet"; the platform asks
+again until the hook's timeout.
 
 **`runHookPayload` (≤16 KB) is the only per-instance data channel.** Baked-in
 `environment` variables (see `references/config.md`) are fixed at build time
@@ -159,7 +166,8 @@ on error rates alone to detect a bandwidth-constrained instance.
 
 The `x-aws-proxy-*` header namespace is reserved for the proxy itself: any
 such header you send is stripped before the request reaches your instance.
-`X-aws-proxy-force-h2: true` forces HTTP/2 to a plaintext HTTP/1.1 upstream.
+`X-aws-proxy-force-h2: true` makes the proxy use HTTP/2 to an application that
+serves plain HTTP; the application must accept HTTP/2 without TLS (h2c).
 
 `get-microvm` state is eventually consistent — don't poll it to decide when
 an instance is ready. Instead, attempt an authenticated request against the

@@ -412,7 +412,7 @@ First, a download cache that will cache downloads that pip needs to compile the 
 And second, a what we call "static caching" which caches output of pip after compiling everything for your requirements file.
 Since generally `requirements.txt` files rarely change, you will often see large amounts of speed improvements when enabling the static cache feature.
 These caches will be shared between all your projects if no custom `cacheLocation` is specified (see below).
-A static cache entry belongs to one requirements file and one set of the settings that change what gets installed (`pythonBin`, the runtime, `installer`, `dockerizePip`, `dockerImage`, `dockerFile`, `pipCmdExtraArgs`, `slim`, `slimPatterns`, `slimPatternsAppendDefaults` and `vendor`) and one architecture: changing any of them installs the requirements again.
+A static cache entry belongs to one requirements file and one set of the settings that change what gets installed (`pythonBin`, the runtime, `installer`, `dockerizePip`, `dockerImage`, `dockerFile`, `pipCmdExtraArgs`, `slim`, `strip`, `slimPatterns`, `slimPatternsAppendDefaults` and `vendor`) and one architecture: changing any of them installs the requirements again.
 
 _**Please note:** This has replaced the previously recommended usage of "--cache-dir" in the pipCmdExtraArgs_
 
