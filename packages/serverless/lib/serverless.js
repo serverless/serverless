@@ -73,6 +73,9 @@ class Serverless {
     this.compose = {
       serviceParams: compose.serviceParams || {},
       isWithinCompose: compose.isWithinCompose || false,
+      // The service's key in serverless-compose.yml, for commands a user
+      // runs from the Compose root (`--service=<key>`).
+      serviceName: compose.serviceName || null,
     }
     /**
      * Validate Service path and filename input

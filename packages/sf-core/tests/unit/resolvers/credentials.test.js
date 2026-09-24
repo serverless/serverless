@@ -99,49 +99,98 @@ describe('getAwsCredentials', () => {
     expect(mockCredentialProvider.mock.calls[0][0]).toBe(providerOptions)
   })
 
-  it('adds the credential-setup hint when the implicit default resolver is used', async () => {
-    const providerError = Object.assign(
-      new Error('Could not load credentials from any providers'),
-      { name: 'CredentialsProviderError' },
-    )
-    mockFromNodeProviderChain.mockReturnValue(
-      jest.fn().mockRejectedValue(providerError),
-    )
-
-    const credentialProvider = await getAwsCredentials({
-      logger,
-      dashboard,
+  // No credentials could be loaded: the message names what the command looked
+  // for and how to set it up, in the words `serverless agent setup` uses.
+  describe('when no credentials can be loaded', () => {
+    const missing = async ({
       config,
-      isDefaultConfig: true,
+      isDefaultConfig,
+      resolverName,
+      env,
+      awsMessage = 'Could not load credentials from any providers',
+    }) => {
+      mockFromNodeProviderChain.mockReturnValue(
+        jest.fn().mockRejectedValue(
+          Object.assign(new Error(awsMessage), {
+            name: 'CredentialsProviderError',
+          }),
+        ),
+      )
+      const credentialProvider = await getAwsCredentials({
+        logger,
+        dashboard,
+        config,
+        isDefaultConfig,
+        resolverName,
+        env,
+      })
+      return credentialProvider().catch((error) => error)
+    }
+    const AWS_SAYS =
+      ' Original error from AWS: Could not load credentials from any providers'
+
+    it('nothing configured: how to set credentials up, plus the docs link', async () => {
+      const error = await missing({ config, isDefaultConfig: true, env: {} })
+      expect(error.code).toBe('AWS_CREDENTIALS_MISSING')
+      expect(error.message).toBe(
+        'AWS credentials missing or invalid: not found. To fix it, set AWS_PROFILE or AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY, or run "serverless login aws" in an interactive terminal. Learn more: https://slss.io/aws-creds-setup.' +
+          AWS_SAYS,
+      )
+      expect(error.originalMessage).toBe(
+        'Could not load credentials from any providers',
+      )
     })
 
-    await expect(credentialProvider()).rejects.toMatchObject({
-      code: 'AWS_CREDENTIALS_MISSING',
-      message:
-        'AWS credentials missing or invalid. Run "serverless" to set up AWS credentials, or learn more in our docs: https://slss.io/aws-creds-setup. Original error from AWS: Could not load credentials from any providers',
-    })
-  })
-
-  it('omits the credential-setup hint when the resolver is explicitly configured', async () => {
-    const providerError = Object.assign(
-      new Error('Could not load credentials from any providers'),
-      { name: 'CredentialsProviderError' },
-    )
-    mockFromNodeProviderChain.mockReturnValue(
-      jest.fn().mockRejectedValue(providerError),
-    )
-
-    const credentialProvider = await getAwsCredentials({
-      logger,
-      dashboard,
-      config: { profile: 'does-not-exist' },
-      isDefaultConfig: false,
+    it('a profile the command names: that profile and how to create it', async () => {
+      const error = await missing({
+        config: { profile: 'does-not-exist' },
+        isDefaultConfig: false,
+        env: {},
+      })
+      expect(error.message).toBe(
+        'AWS credentials missing or invalid: profile "does-not-exist" has no usable credentials. To fix it, create it with "serverless login aws --aws-profile does-not-exist" in an interactive terminal, or name another profile in provider.profile or with --aws-profile.' +
+          AWS_SAYS,
+      )
     })
 
-    await expect(credentialProvider()).rejects.toMatchObject({
-      code: 'AWS_CREDENTIALS_MISSING',
-      message:
-        'AWS credentials missing or invalid. Original error from AWS: Could not load credentials from any providers',
+    it('AWS_PROFILE from the environment is named the same way', async () => {
+      const error = await missing({
+        config,
+        isDefaultConfig: true,
+        env: { AWS_PROFILE: 'work' },
+      })
+      expect(error.message).toContain(
+        'profile "work" has no usable credentials',
+      )
+    })
+
+    it('an aws resolver in serverless.yml: the resolver, its profile, and no --aws-profile advice', async () => {
+      const error = await missing({
+        config: { type: 'aws', profile: 'staging-account' },
+        isDefaultConfig: false,
+        resolverName: 'aws-account',
+        env: {},
+      })
+      expect(error.message).toBe(
+        'AWS credentials missing or invalid: resolver "aws-account" uses profile "staging-account", which has no usable credentials. To fix it, create it with "serverless login aws --aws-profile staging-account" in an interactive terminal, or change the profile of resolver "aws-account" in serverless.yml.' +
+          AWS_SAYS,
+      )
+    })
+
+    it('an expired SSO session: the profile to sign in again, not "no usable credentials"', async () => {
+      const awsMessage =
+        "Token is expired. To refresh this SSO session run 'aws sso login' with the corresponding profile."
+      const error = await missing({
+        config: { type: 'aws', profile: 'staging-account' },
+        isDefaultConfig: false,
+        resolverName: 'aws-account',
+        env: {},
+        awsMessage,
+      })
+      expect(error.message).toBe(
+        'AWS credentials missing or invalid: the SSO session of profile "staging-account", which resolver "aws-account" uses, has expired. To fix it, sign in again with "serverless login aws sso --aws-profile staging-account" in an interactive terminal.' +
+          ` Original error from AWS: ${awsMessage}`,
+      )
     })
   })
 })

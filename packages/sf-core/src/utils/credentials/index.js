@@ -18,6 +18,9 @@ const getAwsCredentialProvider = async ({
   providerAwsSessionToken = null,
   resolversManager = null,
   ignoreCache = false,
+  serviceConfigFile,
+  options,
+  resolverConfig,
 }) => {
   const logger = log.get(
     'core:utils:credentials:aws:get-aws-credential-identity-provider',
@@ -31,6 +34,9 @@ const getAwsCredentialProvider = async ({
     sessionToken: providerAwsSessionToken,
     resolversManager,
     ignoreCache,
+    serviceConfigFile,
+    options,
+    resolverConfig,
   })
 
   const region = awsResolver.resolveRegion()
@@ -114,6 +120,9 @@ const getAwsCredentialResolver = async ({
   sessionToken,
   resolversManager,
   ignoreCache = false,
+  serviceConfigFile,
+  options,
+  resolverConfig,
 }) => {
   // If credential resolver is already initialized, return it
   if (
@@ -135,8 +144,15 @@ const getAwsCredentialResolver = async ({
   }
   return new Aws({
     logger: logger || log.get('core:utils:credentials:aws'),
-    providerConfig: { profile: providerProfile, ignoreCache },
+    // A config-declared aws resolver's block (profile, keys, region) when
+    // the caller has one: the same config the resolver manager builds that
+    // resolver's instance from.
+    providerConfig: resolverConfig
+      ? { ...resolverConfig, ignoreCache }
+      : { profile: providerProfile, ignoreCache },
     dashboard,
+    serviceConfigFile,
+    options,
   })
 }
 

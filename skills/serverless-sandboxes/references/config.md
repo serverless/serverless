@@ -1,5 +1,15 @@
 # The `sandboxes` config surface
 
+## Contents
+
+- Properties
+- Minimal config
+- Full-surface example
+- Hooks
+- VPC
+- Observability
+- IAM
+
 Each entry under the top-level `sandboxes:` block describes one sandbox by
 name. The schema is strict — `additionalProperties: false` at both the
 per-sandbox level and inside every nested object (`hooks`, `vpc`, `iam`,
@@ -17,9 +27,9 @@ over by analogy; check this table first.
 | Property         | Type                   | Required | Default                                             | Notes                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | ---------------- | ---------------------- | -------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `artifact`       | string                 | yes      | —                                                   | Local directory containing a `Dockerfile`, or an `s3://` zip URI. Any other URI form (e.g. an ECR reference) is rejected — Lambda MicroVMs does not support container-registry artifacts.                                                                                                                                                                                                                                       |
-| `minimumMemory`  | enum                   | no       | `2048`                                              | One of `512 \| 1024 \| 2048 \| 4096 \| 8192` (MiB). vCPU count is memory-in-GB ÷ 2. Architecture is fixed at ARM64/Graviton. Instances may burst up to 4× their baseline vCPU. Disk scales with the tier: 8 GB disk at ≤2 GB memory, 16 GB disk at 4 GB memory, 32 GB disk at 8 GB memory. Changing this value produces a new image build — the framework builds one image per size, not a single image reconfigured at launch. |
+| `minimumMemory`  | enum                   | no       | `2048`                                              | One of `512 \| 1024 \| 2048 \| 4096 \| 8192` (MiB). vCPU count is memory-in-GB ÷ 2. Architecture is fixed at ARM64/Graviton. Instances may burst up to 4× their baseline vCPU. Disk scales with the tier: 8 GB disk at ≤2 GB memory, 16 GB disk at 4 GB memory, 32 GB disk at 8 GB memory. Changing this value produces a new image build — the Framework builds one image per size, not a single image reconfigured at launch. |
 | `description`    | string                 | no       | `"<service> <name> sandbox (Serverless Framework)"` | Free-text image description.                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `environment`    | object (string values) | no       | `{}`                                                | Environment variables baked into the image at build time. Identical for every instance booted from that image — there is no per-instance environment override; instance-specific data goes through the `run` hook payload instead.                                                                                                                                                                                              |
+| `environment`    | object (string values) | no       | `{}`                                                | Environment variables baked into the image at build time — see the note below the table.                                                                                                                                                                                                                                                                                                                                        |
 | `osCapabilities` | array                  | no       | —                                                   | Additional Linux OS capabilities granted to the instance. Allowed value: `all` (case-insensitive). Advanced setting.                                                                                                                                                                                                                                                                                                            |
 | `tags`           | object (string values) | no       | `{}`                                                | Applied to the sandbox's taggable resources.                                                                                                                                                                                                                                                                                                                                                                                    |
 | `hooks`          | object                 | no       | —                                                   | See `## Hooks` below.                                                                                                                                                                                                                                                                                                                                                                                                           |
@@ -127,19 +137,15 @@ will boot instances from that image.
 
 Each hook's value is either `true` (enable it and let AWS apply its platform
 default timeout) or an object with an explicit `{ timeout: <seconds> }`. The
-framework sets no default of its own — an omitted `timeout` leaves the
+Framework sets no default of its own — an omitted `timeout` leaves the
 property unset so the AWS default applies, and those defaults are tight:
 `ready` defaults to **60s**, while `validate`, `run`, `resume`, `suspend`, and
 `terminate` each default to **1s**. Set an explicit `timeout` for any hook
 that needs longer (build hooks accept 1–3600s, runtime hooks 1–60s).
 
-Handler contract: answer the hook's HTTP call with a fast `200` and do any
-heavy work asynchronously after responding — don't block the response on
-long-running setup. With the 1s default on `validate` and the runtime hooks, a
-handler that does real work before replying will trip the timeout unless you
-raise it. The `ready` hook is the one exception to fast-200: it may respond
-`503` to mean "not ready yet, retry me" and the platform will keep retrying
-until the hook's timeout elapses.
+What each hook receives and must answer — a `200` once its work is done,
+within its timeout, or `503` from `ready` or `validate` to be asked again — is
+the hooks contract in `references/platform.md`.
 
 ## VPC
 
@@ -156,8 +162,8 @@ once `vpc` is set (enforced at validation).
 Pick subnets by **AZ ID** (e.g. `use1-az3`), not by availability-zone name —
 AZ names are account-specific aliases and don't reliably map to the same
 underlying AZ ID across accounts. Some AZs do not support MicroVMs, and AWS
-does not publish a list of which ones — `use1-az3` in `us-east-1` is a
-known example of an unsupported AZ ID. If a deploy fails with a
+does not publish a list of which ones — `use1-az3` in `us-east-1` is one
+observed example of an unsupported AZ ID. If a deploy fails with a
 capacity or placement error tied to a subnet, see `references/troubleshooting.md`
 for the full diagnostic flow.
 
@@ -193,20 +199,32 @@ To customize instead of disabling, use the nested object form:
 - `dashboard.enabled` — turn the per-service dashboard off without touching
   logs or metrics.
 
+For the alarm defaults, the accepted `retentionDays` values, and what the
+dashboard costs, read `serverless agent docs providers/aws/guide/sandboxes`
+(Observability).
+
 ## IAM
 
-`iam.executionRole` and `iam.buildRole` each accept one of three forms:
+`iam.executionRole`, `iam.buildRole`, and `iam.operatorRole` each accept one
+of three forms. `iam.operatorRole` is the role of the network connector, so it
+has an effect only when `vpc` is set. The usual reason to extend it is subnets
+shared from another account through AWS RAM, which need a statement allowing
+`ec2:CreateNetworkInterface` on those subnet ARNs. An existing operator role
+must trust `network-connectors.lambda.amazonaws.com`, without an
+`aws:SourceAccount` condition.
 
 1. **Customization object** — `{ statements: [...], managedPolicies: [...], permissionsBoundary: "..." }` — extends the generated role.
 2. **Existing role ARN string** — an existing IAM role ARN (`arn:aws:iam::111122223333:role/...`) — skips generation and uses that role as-is.
 3. **CloudFormation intrinsic** — `{ Ref: "..." }`, `{ Fn::GetAtt: [...] }`, `{ Fn::ImportValue: "..." }`, or `{ Fn::Sub: "..." }` — resolves to an existing role ARN and skips generation.
 
 When using the customization object form, `statements` and `managedPolicies`
-are merged into the least-privilege execution/build role the framework
+are merged into the least-privilege execution/build role the Framework
 generates — they extend it, they don't replace it. Add only the specific
 per-sandbox statements your instance code needs (e.g. access to one bucket
-or table); never point `executionRole` at a broad, pre-existing role as a
-shortcut.
+or table). Prefer this over pointing `executionRole` at an existing role; an
+existing role should already be scoped to what the instance needs. For what each generated role grants, and when the build role needs
+more (a KMS-encrypted deployment bucket, a private ECR base image), read
+`serverless agent docs providers/aws/guide/sandboxes` (IAM).
 
 Example using an existing role:
 

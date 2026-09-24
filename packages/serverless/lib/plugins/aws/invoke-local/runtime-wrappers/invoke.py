@@ -81,14 +81,16 @@ if __name__ == '__main__':
     handler = getattr(module, args.handler_name)
 
     input = json.load(sys.stdin)
+    # stdin carried the event; hand the handler the terminal instead (debuggers
+    # read from it). Without a controlling terminal (agents, CI) there is none
+    # to open, and the handler keeps the spent stdin.
     if sys.platform != 'win32':
         try:
             if sys.platform != 'darwin':
                 subprocess.check_call('tty', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            sys.stdin = open('/dev/tty')
         except (OSError, subprocess.CalledProcessError):
             pass
-        else:
-            sys.stdin = open('/dev/tty')
 
     context = FakeLambdaContext(**input.get('context', {}))
     result = handler(input['event'], context)

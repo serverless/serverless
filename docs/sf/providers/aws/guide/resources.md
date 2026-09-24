@@ -43,9 +43,7 @@ resources: # CloudFormation template syntax
         KeySchema:
           - AttributeName: email
             KeyType: HASH
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
+        BillingMode: PAY_PER_REQUEST
 ```
 
 You can attach any kind of resource to your CloudFormation stack. You can add `Resources`, `Outputs`. You can also use [Serverless Variables](../../../guides//variables/env-vars.md) for sensitive data or reusable configuration in your resources templates.

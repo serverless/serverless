@@ -62,6 +62,7 @@ const { shouldWarnEdgeFirstByteBudget } =
 function buildPlugin({ functions = {}, mcpServers = [], plugins = [] }) {
   const provider = {
     getStage: () => 'dev',
+    getRegion: () => 'us-east-1',
     request: async () => ({ endpointAddress: 'x' }),
   }
 

@@ -2,9 +2,10 @@
 
 ## Contents
 
-- The property table (all keys, defaults)
+- Properties (all keys, defaults)
 - Names, paths and discovery
 - Endpoint type
+- Runtime
 - Authentication (`authorizer` shapes, Cognito, `aws_iam`)
 - OAuth discovery (`oauthDiscovery`, a same-stack issuer, the URL chain, the stage-URL warning)
 - `state` (what `true` provisions, BYO ARN, permissions)
@@ -17,6 +18,8 @@ Servers live under `mcp.servers.<name>`. The schema is strict —
 `oauthDiscovery` block included — so an unrecognized key is a validation error,
 not a warning. There is no passthrough block: options are named, and grow on
 demand.
+
+## Properties
 
 ```yml
 mcp:
@@ -77,9 +80,17 @@ do to your own functions.
 
 All MCP servers in a service share one `AWS::ApiGateway::RestApi` with each
 other and with your `http` functions — one API, one stage, one custom domain
-from `provider.domain`
-(`https://www.serverless.com/framework/docs/providers/aws/guide/domains`). There
-is no per-server `domain` key, because the domain belongs to the API.
+from `provider.domain`. There is no per-server `domain` key, because the
+domain belongs to the API. For the domain's string and object forms,
+`basePath` mappings, and multiple domains, read
+`serverless agent docs providers/aws/guide/domains`.
+
+On a service whose other endpoints are `httpApi` events, adding `mcp` creates
+that REST API next to the existing HTTP API: two APIs, two hostnames. `deploy`
+and `info` list the MCP servers under `mcp:` and the HTTP API routes under
+`endpoints:`. Tell the user when you add the first server to such a service.
+Custom domains then take one `provider.domain` entry per API (`apiType: rest`
+for the MCP servers, `apiType: http` for the rest).
 
 Which of those URLs the discovery document advertises — and the deploy/info
 endpoint summary prints — is resolved per server; see "Where the document
@@ -87,22 +98,16 @@ points" under OAuth discovery below.
 
 ## Endpoint type
 
-`provider.endpointType` is API-wide, shared with the rest of the service, so
-`mcp` neither changes nor validates it. The Framework default is `EDGE`, and an
-edge-optimized endpoint ends a response stream that has been quiet for roughly
-30 seconds, counted from the invoke — the gap between writes is what matters, so
-a 45-second tool writing every 5 seconds completes while a 35-second silent
-stretch does not. `REGIONAL` raises the bound to roughly 5 minutes — reach for
-it when tools work in silence longer than the default allows:
+The idle bound is the endpoint type's (SKILL.md, "Know the endpoint's idle
+bound"). On the default `EDGE` endpoint, a 45-second tool writing every 5
+seconds completes while a 35-second silent stretch does not. For tools that
+work in silence longer than that:
 
 ```yml
 provider:
   name: aws
   endpointType: REGIONAL
 ```
-
-Beyond roughly 300 seconds, progress notifications are the only thing keeping a
-call inside the idle bound, whatever `timeout` says.
 
 ## Runtime
 
@@ -128,7 +133,9 @@ tokens), discovery alone (your module verifies tokens itself), both, or neither
 — with neither, the endpoint is public, exactly like an `http` event with no
 authorizer, and nothing warns about it.
 
-Three enforcement recipes, and they compose:
+Three enforcement recipes, and they compose. Start with the gateway
+`authorizer`; add the in-module gate when tools need scopes, challenges, or the
+caller's identity:
 
 1. **Reject at the gateway** — `authorizer`, below. Rejected requests never
    invoke the server. What the authorizer rejects gets API Gateway's own bare
@@ -173,23 +180,34 @@ The object form accepts everything an `http` event's `authorizer` object does �
 `managedExternally` — and compiles through the same machinery. `type` is
 matched case-insensitively against `token`, `request`, `cognito_user_pools`,
 `aws_iam`, `custom`, and the canonical spelling API Gateway expects is written
-into the template for you. Five rules the validator enforces as
-`MCP_AUTHORIZER_INVALID`: an object must name at least one of `name`, `arn` or
-`authorizerId` — unless its `type` is `aws_iam`, which needs no identifier;
-a bare `authorizerId` needs a `type` beside it, because API Gateway
-requires both to attach an existing authorizer; a **string** authorizer
-carrying a colon is refused — a string always names a function, so an ARN goes
-in the object form's `arn`, with a `name` of your own beside a Cognito pool
-ARN; an `arn` written as a CloudFormation intrinsic (a same-stack pool or
-function) needs a `name` beside it, because the authorizer's CloudFormation
-name is otherwise derived from an ARN that does not exist until the stack is
-created; and `type: aws_iam` beside an `authorizerId` is a contradiction — IAM
-has API Gateway check the caller itself, with no authorizer resource for the
-id to attach. The one key that does nothing
+into the template for you. The validator enforces these as
+`MCP_AUTHORIZER_INVALID`:
+
+- an object must name at least one of `name`, `arn` or `authorizerId` —
+  unless its `type` is `aws_iam`, which needs no identifier;
+- `type` must be one of the types above;
+- a bare `authorizerId` needs a `type` beside it, because API Gateway requires
+  both to attach an existing authorizer;
+- a **string** authorizer carrying a colon is refused — a string always names
+  a function, so an ARN goes in the object form's `arn`;
+- a literal Cognito user pool `arn` needs a `name` of your own beside it: the
+  name derived from the pool id would start with a digit, which is not a valid
+  CloudFormation logical id;
+- an `arn` written as a CloudFormation intrinsic (a same-stack pool or
+  function) needs a `name` beside it, because the authorizer's CloudFormation
+  name is otherwise derived from an ARN that does not exist until the stack is
+  created;
+- `type: aws_iam` beside an `authorizerId` is a contradiction — IAM has API
+  Gateway check the caller itself, with no authorizer resource for the id to
+  attach.
+
+The one key that has no effect
 here is `claims`: it only works under API Gateway's `lambda` integration, which
 MCP routes never compile — with a literal Cognito ARN the combination is
 rejected at package time; with a same-stack `Fn::GetAtt` ARN it is accepted and
-silently inert. Leave it out.
+has no effect. Leave it out. For what each of those fields does, read
+`serverless agent docs providers/aws/events/apigateway` (HTTP Endpoints with
+Custom Authorizers).
 
 **A Cognito user pool needs no authorizer function at all** — point `arn` at
 the pool and API Gateway validates the JWT itself:
@@ -343,10 +361,10 @@ module-level code sees it; it never sits in plaintext function configuration.
 
 **`state: true`** provisions an `AWS::SecretsManager::Secret` with a generated
 44-character value in the stack — created, rolled back and deleted with it — and
-exports its ARN as the `<NormalizedName>McpStateSecretArn` stack output. Cost is
-about $0.40 per month per state-enabled server **per stage** (each stage is its
-own stack, and so its own secret), plus $0.05 per 10,000 reads; the server reads
-it once per cold start. Secrets Manager is used because it is the only way to
+exports its ARN as the `<NormalizedName>McpStateSecretArn` stack output. It
+bills as one Secrets Manager secret per state-enabled server **per stage** (each
+stage is its own stack, and so its own secret), plus reads — see AWS Secrets
+Manager pricing; the server reads it once per cold start. Secrets Manager is used because it is the only way to
 have CloudFormation generate a random secret without a custom resource, and that
 generation is what buys the full stack lifecycle.
 
@@ -373,7 +391,8 @@ hence `MCP_INVALID_STATE_ARN` for an intrinsic or for any other service.
 With the execution role the Framework generates, the read grant is attached for
 you, scoped to that one key. Under `provider.iam.role.mode: perFunction` each
 grant goes onto its own server's role, so no other function gets a key it has no
-business reading.
+business reading. For choosing between the generated role, per-function roles,
+or a role you bring, read `serverless agent docs providers/aws/guide/iam`.
 
 With a role you bring (`provider.iam.role`, `provider.role`, or a role on the
 function) the Framework cannot modify it, so attach the statement yourself:
@@ -409,7 +428,7 @@ prebuilt entry. The same relative path is used in both modes.
 - **Single-file bundle** — opt in with a `build.esbuild` block, or write the
   server in TypeScript, which is bundled by default.
 
-Two things to keep in mind:
+Three things to keep in mind:
 
 - **Keep the SDK and zod in `dependencies`.** Classic packaging strips
   `devDependencies`, and the deployed server then fails with
@@ -420,6 +439,12 @@ Two things to keep in mind:
   (bundled by default) alongside a JavaScript one (not bundled unless asked)
   leaves the second out of the artifact. Give them all a TypeScript entry, or
   set `build.esbuild` so it covers all of them.
+- **The service's other functions carry the SDK too.** Without
+  `package.individually`, every function deploys the same artifact, so adding
+  a server puts the SDK and zod into all of them (a small JavaScript function
+  went from under 1 KB to 4.4 MB). To give each function only what it
+  imports, set `package.individually: true` together with a `build.esbuild`
+  block; the other function then shrinks back to about 1 KB.
 
 Packaging stages the entry into a `serverless-mcp/` directory inside the service
 directory and removes it when the run ends, so that path is reserved. A prebuilt

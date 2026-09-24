@@ -30,9 +30,23 @@ yet, `serverless agent skills install` reports
 `No skills are bundled with this CLI version.` and installs nothing — the rest
 of this guide applies once you're on a version that bundles skills.
 
+## Recommended: one-command setup
+
+```bash
+serverless agent setup
+```
+
+[`agent setup`](../providers/aws/cli-reference/agent-setup.md) installs the
+user-level `serverless-framework` skill (works in every project), installs the
+project skills when run inside a service directory, and reports whether your
+environment is ready — authentication, AWS credentials, and service presence —
+with a fix for anything missing. The command below installs the same skills
+without the environment report.
+
 ## Install
 
-Run in your service directory (where `serverless.yml` lives):
+Run in your service directory (where `serverless.yml` lives) to install the
+project skills there; anywhere else it installs only the user-level skill:
 
     serverless agent skills install
 
@@ -51,7 +65,8 @@ creates both. To choose explicitly:
     serverless agent skills install --dir claude --dir agents
 
 `--dir` is repeatable and also accepts a comma-separated list
-(`--dir claude,agents`).
+(`--dir claude,agents`). It applies to the user-level skill in your home
+directory too.
 
 We recommend committing the installed skills so your whole team's agents (and
 newly onboarded teammates) benefit.
@@ -67,6 +82,20 @@ silently upgraded (a one-line notice is printed). Notes:
 - Auto-update is skipped in CI environments.
 - New skills added in newer CLI versions are installed into directories that
   already contain Framework-managed skills.
+
+## Reading a skill without installing it
+
+Every bundled skill can be printed on demand, so an agent working in a
+project where the skills are not installed still has the same knowledge one
+command away:
+
+    serverless agent skills list
+    serverless agent skills read serverless-sandboxes
+    serverless agent skills read serverless-sandboxes references/config.md
+
+The same idea applies to the documentation:
+[`serverless agent docs`](../providers/aws/cli-reference/agent-docs.md) prints
+the page index or any page that ships with the installed CLI.
 
 ## Customizing a skill
 

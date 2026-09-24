@@ -1,4 +1,25 @@
-import { toStreamedResponse } from '../../../../../../lib/plugins/aws/dev/shim-response.js'
+import {
+  disconnectedMessage,
+  toStreamedResponse,
+} from '../../../../../../lib/plugins/aws/dev/shim-response.js'
+
+describe('disconnectedMessage', () => {
+  test('names the restore command the dev session passed to the function', () => {
+    const message = disconnectedMessage(
+      'serverless deploy --service=api --stage alex --region us-east-1',
+    )
+    expect(message).toMatch(/^Dev Mode Disconnected: /)
+    expect(message).toContain(
+      '`serverless deploy --service=api --stage alex --region us-east-1` to remove',
+    )
+  })
+
+  test('falls back to plain `serverless deploy` for functions instrumented before the command was passed', () => {
+    expect(disconnectedMessage(undefined)).toContain(
+      '`serverless deploy` to remove',
+    )
+  })
+})
 
 describe('toStreamedResponse', () => {
   test('flattens headers and passes a textual body through', () => {

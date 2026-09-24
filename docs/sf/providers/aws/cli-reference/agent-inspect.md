@@ -231,16 +231,19 @@ when a category flag would single one of them out — select by category or
   parsed into objects instead of left as URL-encoded strings).
 - **Exit code 0** on success, including when individual resources failed to
   describe — those show up as `{ "error": "..." }` in their slot rather
-  than aborting the run. Partial data is a successful inspect.
+  than aborting the run. Partial data is a successful inspect. A stack that
+  hasn't been deployed is also exit 0: the result has `"mode": "not-deployed"`
+  and a `hint` with the deploy command.
 - **Non-zero exit** only for fatal problems. Errors the command itself
   detects — an unknown `--aws-services` token, an unknown `--name`, a
-  `--name` on a non-describable type, an unknown `--format`, a non-AWS
-  provider, or a stack that hasn't been deployed — emit a single structured
-  JSON error object on stdout before the non-zero exit. Errors caught by
-  the CLI's general validation before the command runs — an unknown flag,
-  or running from a Serverless Compose root instead of a service
-  directory — also exit non-zero, but print a human-readable message on
-  stderr with nothing on stdout.
+  `--name` on a non-describable type, an unknown `--format`, or a non-AWS
+  provider — emit a single structured JSON error object on stdout before the
+  non-zero exit. Errors caught by the CLI's general validation before the
+  command runs — an unknown flag, or `serverless agent inspect` at a
+  Serverless Compose root — also exit non-zero, but print a human-readable
+  message on stderr with nothing on stdout. In a Compose project, inspect one
+  service from the root with `serverless <service> agent inspect`, or run it
+  in the service's directory.
 - **Deterministic ordering:** categories appear in a fixed order and
   resources are sorted by logical ID, so output is byte-stable across runs
   against unchanged infrastructure — useful if you want to diff or cache

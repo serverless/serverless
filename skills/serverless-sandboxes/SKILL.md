@@ -1,7 +1,7 @@
 ---
 name: serverless-sandboxes
 description: >-
-  Build, run, and operate isolated or ephemeral compute on AWS with the
+  Builds, runs, and operates isolated or ephemeral compute on AWS with the
   Serverless Framework `sandboxes` feature (AWS Lambda MicroVMs). Use whenever
   the user wants to execute untrusted or AI-generated code, run per-session,
   per-agent, or per-tenant isolated workloads, build a code-execution backend,
@@ -11,7 +11,7 @@ description: >-
   Framework" nor "sandbox" but describes an isolated AWS execution environment.
 metadata:
   managed-by: serverless-framework
-  version: 1
+  version: '2'
   author: Serverless Inc.
 ---
 
@@ -29,7 +29,8 @@ the `run` hook payload; secrets are fetched at runtime through the execution
 role, never baked into the image; randomness is freshly generated after
 launch (in the `run` hook, or per-call from a CSPRNG), not carried over from
 build time. Instances are not reached directly — they sit behind an authenticated,
-proxied HTTPS endpoint that the framework prints for you. Billing follows
+proxied HTTPS endpoint returned by `RunMicrovm` (the dev session prints it for
+local instances). Billing follows
 state: you pay compute while an instance is RUNNING, and only snapshot-storage
 rates while it is SUSPENDED.
 
@@ -76,7 +77,7 @@ YAML. Only trust an observed HTTP response, invoke result, or log line.
 **Don't guess property names by analogy with `functions`.** The `sandboxes`
 schema is its own shape and rejects unknown keys outright — a property that
 exists on `functions` will not silently work here. Check
-`references/config.md` before adding or renaming any key.
+[references/config.md](references/config.md) before adding or renaming any key.
 
 **Idle is not the same as CPU-idle.** The idle timer only resets on inbound
 traffic to the endpoint; a process that is busy computing but receiving no
@@ -89,14 +90,29 @@ it relies on its own process exit to terminate immediately, or on
 content triggers a new image build; deploying with no artifact change is
 skipped as a no-op.
 
-**Auth failures are not retry loops.** If a command fails on framework
-authentication, propose that the user run `serverless login` interactively.
-If it fails on AWS credentials, propose `serverless login aws` or
-`serverless login aws sso`. Never loop retrying a failed auth call yourself.
+**Auth failures are not retry loops.** Never loop on a failed sign-in or AWS
+credentials error; the `serverless-framework` skill (`references/cli.md`)
+says how to get the user signed in.
 
 **Cost discipline.** Suspended snapshots and old image versions still bill
 storage even when nothing is running. Run `serverless remove` on scratch or
 throwaway deployments once you're done verifying.
+
+## Gotchas
+
+- Runtime hooks and `validate` default to a **1-second** timeout: give any
+  hook that does real work an explicit `timeout` ([references/config.md](references/config.md),
+  Hooks).
+- A `502` from the endpoint in the first seconds after launch is normal while
+  the snapshot restores: retry with backoff instead of polling `get-microvm`,
+  whose state is eventually consistent ([references/platform.md](references/platform.md)).
+- Not every Availability Zone supports MicroVMs: pick subnets by AZ ID and
+  move one if a deploy fails on placement ([references/config.md](references/config.md), VPC).
+- `serverless dev --sandbox` needs a local artifact directory; `s3://`
+  artifacts do not run in dev ([references/dev-mode.md](references/dev-mode.md)).
+- A background `dev` may not stop with `kill $!`, because the pid can be a
+  wrapper: stop it with the steps in [references/dev-mode.md](references/dev-mode.md), "Stopping the
+  dev process".
 
 ## Sandboxes or functions?
 
@@ -109,13 +125,15 @@ cycle.
 
 ## References
 
-- `references/config.md` — read when writing or changing the `sandboxes`
+- [references/config.md](references/config.md) — read when writing or changing the `sandboxes`
   block in `serverless.yml`.
-- `references/dev-mode.md` — read when doing local development or driving
+- [references/dev-mode.md](references/dev-mode.md) — read when doing local development or driving
   the sandbox emulator.
-- `references/commands.md` — read for any CLI operation against sandboxes.
-- `references/platform.md` — read for lifecycle, idle policy, endpoint and
-  auth behavior, quotas, or pricing questions.
-- `references/control-plane.md` — read when launching MicroVMs from your own
+- [references/commands.md](references/commands.md) — read for any CLI operation against sandboxes.
+- [references/platform.md](references/platform.md) — read for lifecycle, the hooks contract, idle
+  policy, endpoint and auth behavior, quotas, or pricing questions.
+- [references/control-plane.md](references/control-plane.md) — read when launching MicroVMs from your own
   code rather than the CLI.
-- `references/troubleshooting.md` — read on any failure.
+- [references/troubleshooting.md](references/troubleshooting.md) — read on any failure.
+- `serverless agent docs providers/aws/guide/sandboxes` — the full reference
+  for the `sandboxes` block, for anything these files do not cover.

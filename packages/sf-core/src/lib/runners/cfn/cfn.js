@@ -212,7 +212,11 @@ export class CfnRunner extends Runner {
         })
         break
       default:
-        throw new Error('Command not found')
+        throw new ServerlessError(
+          `Serverless command "${this.command.join(' ')}" not found. Run "serverless help" for a list of all available commands.`,
+          ServerlessErrorCodes.general.UNRECOGNIZED_CLI_COMMAND,
+          { stack: false },
+        )
     }
     this.serviceUniqueId = serviceUniqueId
     return { authenticatedData, state, serviceUniqueId }

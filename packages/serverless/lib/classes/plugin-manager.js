@@ -1,6 +1,10 @@
 import path from 'path'
 import _ from 'lodash'
-import { getPluginWriters, log } from '@serverless/util'
+import {
+  getPluginWriters,
+  log,
+  ServerlessError as StacklessError,
+} from '@serverless/util'
 import { require as tsxRequire } from 'tsx/cjs/api'
 import ServerlessError from '../serverless-error.js'
 import renderCommandHelp from '../cli/render-help/command.js'
@@ -325,7 +329,10 @@ class PluginManager {
       this.serverless.service.build?.esbuild !== false
     ) {
       const errorMessage = `Serverless now includes ESBuild and supports Typescript out-of-the-box. But this conflicts with the plugin '${pluginName}'.\nYou can either remove this plugin and try Serverless's ESBuild support builtin, or you can set 'build.esbuild' to false in your 'serverless.yml'.\nFor more information go to, https://slss.io/buildoptions`
-      throw new ServerlessError(errorMessage, 'PLUGIN_TYPESCRIPT_CONFLICT')
+      // A config error with its fix in the message: no stack trace
+      throw new StacklessError(errorMessage, 'PLUGIN_TYPESCRIPT_CONFLICT', {
+        stack: false,
+      })
     }
 
     const bundledPluginDefinition = findBundledPluginByName(pluginName)

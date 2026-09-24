@@ -45,8 +45,25 @@ export default {
 
     if (info.endpoints && info.endpoints.length) {
       info.endpoints.forEach((endpoint) => {
-        // if the endpoint is of type http(s)
-        if (endpoint.startsWith('https://')) {
+        if (this.httpApiEndpoints?.has(endpoint)) {
+          // an HTTP API: its routes come from the httpApi events
+          const { httpApiEventsPlugin } = this.serverless
+          httpApiEventsPlugin.resolveConfiguration()
+
+          for (const functionData of Object.values(
+            this.serverless.service.functions,
+          )) {
+            for (const event of functionData.events) {
+              if (!event.httpApi) continue
+              outputSectionItems.push(
+                `${event.resolvedMethod} - ${endpoint}${
+                  event.resolvedPath || ''
+                }`,
+              )
+            }
+          }
+        } else if (endpoint.startsWith('https://')) {
+          // a REST API: its routes come from the http events
           Object.values(this.serverless.service.functions).forEach(
             (functionObject) => {
               functionObject.events.forEach((event) => {
@@ -73,23 +90,6 @@ export default {
               })
             },
           )
-        } else if (endpoint.startsWith('httpApi: ')) {
-          endpoint = endpoint.slice('httpApi: '.length)
-          const { httpApiEventsPlugin } = this.serverless
-          httpApiEventsPlugin.resolveConfiguration()
-
-          for (const functionData of Object.values(
-            this.serverless.service.functions,
-          )) {
-            for (const event of functionData.events) {
-              if (!event.httpApi) continue
-              outputSectionItems.push(
-                `${event.resolvedMethod} - ${endpoint}${
-                  event.resolvedPath || ''
-                }`,
-              )
-            }
-          }
         } else {
           // if the endpoint is not of type http(s) (e.g. wss) we just display
           outputSectionItems.push(endpoint)

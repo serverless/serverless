@@ -30,11 +30,20 @@ await writeFile(
   path.join(svc, 'serverless.yml'),
   'service: skills-verify\nprovider:\n  name: aws\n',
 )
+// User-scope skills install into the home dir, so give the child a throwaway
+// one — both so the assertions below have a known place to look and so the
+// build never writes into the real developer/CI home.
+const fakeHome = await mkdtemp(path.join(tmpdir(), 'skills-verify-home-'))
 const run = spawnSync(
   process.execPath,
   [path.resolve(packedCli), 'agent', 'skills', 'install'],
   // timeout: a hung child must fail the build, not block it forever.
-  { cwd: svc, encoding: 'utf8', timeout: 120000 },
+  {
+    cwd: svc,
+    encoding: 'utf8',
+    timeout: 120000,
+    env: { ...process.env, HOME: fakeHome, USERPROFILE: fakeHome },
+  },
 )
 // Combine stdout + stderr: progress/notices (incl. "No skills are bundled")
 // are logged to stderr to keep stdout pure, so the assertions below must see
@@ -93,8 +102,12 @@ if (expected.length === 0) {
   )
 } else {
   for (const skill of expected) {
+    // Scope decides the root: user-scope skills (the gateway) install into the
+    // home dirs and must stay out of the service dir; project skills the
+    // other way round.
+    const root = skill.scope === 'user' ? fakeHome : svc
     const installed = path.join(
-      svc,
+      root,
       '.claude',
       'skills',
       skill.name,
@@ -102,8 +115,24 @@ if (expected.length === 0) {
     )
     if (!(await exists(installed))) {
       throw new Error(
-        `packed CLI did not install bundled skill "${skill.name}" (${installed} missing) — embed likely broken`,
+        `packed CLI did not install bundled ${skill.scope}-scope skill "${skill.name}" (${installed} missing) — embed likely broken`,
       )
+    }
+    // Each scope must stay out of the other's root.
+    for (const leaked of ['.claude', '.agents'].map((d) =>
+      path.join(
+        skill.scope === 'user' ? svc : fakeHome,
+        d,
+        'skills',
+        skill.name,
+        'SKILL.md',
+      ),
+    )) {
+      if (await exists(leaked)) {
+        throw new Error(
+          `packed CLI installed ${skill.scope}-scope skill "${skill.name}" outside its scope (${leaked})`,
+        )
+      }
     }
   }
   console.log(

@@ -23,10 +23,15 @@ jest.unstable_mockModule('@serverless/util', () => ({
       this.code = code
       this.originalMessage = options.originalMessage
       this.originalName = options.originalName
+      this.options = options
     }
   },
+  // Mirrors the real shape in @serverless/util: resolver codes live under
+  // `resolvers`, so a code read from the wrong group fails here too.
   ServerlessErrorCodes: {
+    general: {},
     resolvers: {
+      RESOLVER_INVALID_CONFIG: 'RESOLVER_INVALID_CONFIG',
       RESOLVER_NOT_FOUND: 'RESOLVER_NOT_FOUND',
       RESOLVER_RESOLVE_VARIABLE_ERROR: 'RESOLVER_RESOLVE_VARIABLE_ERROR',
       RESOLVER_CYCLIC_REFERENCE: 'RESOLVER_CYCLIC_REFERENCE',
@@ -216,6 +221,108 @@ describe('ResolverManager', () => {
     })
   })
 
+  describe('getCredentialResolverConfig', () => {
+    const makeManager = (serviceConfig, options = {}) => {
+      const m = new ResolverManager(
+        mockLogger,
+        serviceConfig,
+        '/path/to/config',
+        options,
+        null,
+        null,
+        null,
+        false,
+        '4.0.0',
+      )
+      m.stage = options.stage ?? 'dev'
+      m.setCredentialResolver()
+      return m
+    }
+
+    test('names the resolver deploy uses and its effective block (stage over default)', () => {
+      const m = makeManager({
+        provider: { resolver: 'accountA' },
+        stages: {
+          default: {
+            resolvers: { accountA: { type: 'aws', profile: 'from-default' } },
+          },
+          dev: {
+            resolvers: { accountA: { type: 'aws', profile: 'from-dev' } },
+          },
+        },
+      })
+      expect(m.getCredentialResolverConfig()).toEqual({
+        name: 'accountA',
+        config: { type: 'aws', profile: 'from-dev' },
+      })
+    })
+
+    test('the only aws resolver is the one deploy uses', () => {
+      const m = makeManager({
+        stages: {
+          default: {
+            resolvers: {
+              onlyOne: { type: 'aws', profile: 'p', region: 'eu-west-1' },
+            },
+          },
+        },
+      })
+      expect(m.getCredentialResolverConfig()).toEqual({
+        name: 'onlyOne',
+        config: { type: 'aws', profile: 'p', region: 'eu-west-1' },
+      })
+    })
+
+    test('undefined when deploy falls back to the default chain', () => {
+      expect(
+        makeManager({
+          provider: { profile: 'p' },
+        }).getCredentialResolverConfig(),
+      ).toBeUndefined()
+      expect(makeManager({}).getCredentialResolverConfig()).toBeUndefined()
+    })
+  })
+
+  describe('addDefaultAwsCredentialResolver profile', () => {
+    const defaultResolverConfig = (serviceConfig, options) => {
+      const m = new ResolverManager(
+        mockLogger,
+        serviceConfig,
+        '/path/to/config',
+        options,
+        null,
+        null,
+        null,
+        false,
+        '4.0.0',
+      )
+      m.credentialResolverName = 'default-aws-credential-resolver'
+      createResolverProvider.mockClear()
+      m.addDefaultAwsCredentialResolver()
+      return createResolverProvider.mock.calls.at(-1)[0]
+    }
+
+    test('uses the shared profile rule: --aws-profile, else provider.profile', () => {
+      expect(
+        defaultResolverConfig(
+          { provider: { profile: 'yml' } },
+          { 'aws-profile': 'cli' },
+        ),
+      ).toEqual({ type: 'aws', profile: 'cli' })
+      expect(
+        defaultResolverConfig({ provider: { profile: 'yml' } }, {}),
+      ).toEqual({ type: 'aws', profile: 'yml' })
+      // An empty --aws-profile names nothing, as before.
+      expect(
+        defaultResolverConfig(
+          { provider: { profile: 'yml' } },
+          { 'aws-profile': '' },
+        ),
+      ).toEqual({ type: 'aws', profile: 'yml' })
+      expect(defaultResolverConfig({}, {})).toEqual({ type: 'aws' })
+    })
+  })
+
   describe('setCredentialResolver', () => {
     test('throws when both profile and resolver are set', () => {
       const serviceConfig = {
@@ -239,6 +346,9 @@ describe('ResolverManager', () => {
 
       expect(() => manager.setCredentialResolver()).toThrow(
         /profile and provider.resolver cannot be set at the same time/,
+      )
+      expect(() => manager.setCredentialResolver()).toThrow(
+        expect.objectContaining({ code: 'RESOLVER_INVALID_CONFIG' }),
       )
     })
 
@@ -288,6 +398,101 @@ describe('ResolverManager', () => {
       expect(manager.credentialResolverName).toBe(
         'default-aws-credential-resolver',
       )
+    })
+  })
+
+  // Which aws resolver supplies deployment credentials when provider.resolver
+  // and provider.profile are unset. A name declared in both stages.default and
+  // the current stage is one resolver (the stage block overrides the default
+  // one); two different names still need provider.resolver.
+  describe('setCredentialResolver: counting aws resolvers', () => {
+    const select = (stages, stage) => {
+      manager = new ResolverManager(
+        mockLogger,
+        { provider: {}, stages },
+        '/path/to/config',
+        stage ? { stage } : {},
+        null,
+        null,
+        null,
+        false,
+        '4.0.0',
+      )
+      manager.setCredentialResolver()
+      return manager.credentialResolverName
+    }
+    const aws = (profile) => ({ type: 'aws', profile })
+
+    test('a name in both stages.default and the stage is one resolver', () => {
+      expect(
+        select(
+          {
+            default: { resolvers: { account: aws('dev') } },
+            staging: { resolvers: { account: aws('staging') } },
+          },
+          'staging',
+        ),
+      ).toBe('account')
+    })
+
+    test('a stage literally named "default" does not count its resolver twice', () => {
+      expect(
+        select({ default: { resolvers: { account: aws('dev') } } }, 'default'),
+      ).toBe('account')
+    })
+
+    test('two different names across the blocks still require provider.resolver', () => {
+      expect(() =>
+        select(
+          {
+            default: { resolvers: { devAccount: aws('dev') } },
+            staging: { resolvers: { stagingAccount: aws('staging') } },
+          },
+          'staging',
+        ),
+      ).toThrow(/Multiple resolvers with type "aws" found/)
+    })
+
+    test('the multiple-resolvers error is a stackless user error', () => {
+      let caught
+      try {
+        select(
+          {
+            default: {
+              resolvers: { one: aws('a'), two: aws('b') },
+            },
+          },
+          'dev',
+        )
+      } catch (error) {
+        caught = error
+      }
+      expect(caught.code).toBe('RESOLVER_INVALID_CONFIG')
+      expect(caught.options.stack).toBe(false)
+    })
+
+    test('a stage that redefines the name with another type keeps the name selected, as before', () => {
+      expect(
+        select(
+          {
+            default: { resolvers: { account: aws('dev') } },
+            staging: { resolvers: { account: { type: 'terraform' } } },
+          },
+          'staging',
+        ),
+      ).toBe('account')
+    })
+
+    test('aws resolvers of other stages are not counted', () => {
+      expect(
+        select(
+          {
+            default: { resolvers: { account: aws('dev') } },
+            prod: { resolvers: { prodAccount: aws('prod') } },
+          },
+          'staging',
+        ),
+      ).toBe('account')
     })
   })
 

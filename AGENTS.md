@@ -136,7 +136,7 @@ Any content change to a skill requires bumping its `metadata.version` and regene
 node packages/sf-core/scripts/lint-skills.js --update
 ```
 
-Commit `skills/manifest.json` alongside. Aux files are never deleted from user installs — add or rename files instead of repurposing an existing filename. See `skills/README.md` for the full contract.
+Commit `skills/manifest.json` alongside. Aux files are never deleted from user installs — add or rename files instead of repurposing an existing filename. See `skills/README.md` for the full contract. Bundled skills can be printed without installing via `serverless agent skills list` / `serverless agent skills read <name>`; the packaged docs via `serverless agent docs` (runners in `packages/sf-core/src/lib/runners/core/agent-docs.js` and `agent-skills-read.js`).
 
 ## CI Pipeline
 

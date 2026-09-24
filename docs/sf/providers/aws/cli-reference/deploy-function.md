@@ -33,9 +33,13 @@ serverless deploy function -f functionName
 **Note:** This command **now** deploys both function configuration and code by
 default. Just as before, this puts your function in an inconsistent state that
 is out of sync with your CloudFormation stack. Use this for faster development
-cycles and not production deployments. With `codeStorageMode: reference`, this
-command updates the function using Lambda-managed storage; the next
-`serverless deploy` restores reference mode.
+cycles and not production deployments. A later `serverless deploy` does not
+undo a configuration change made this way: CloudFormation changes only what
+differs from the template it deployed last, and when nothing else changed,
+the deploy is skipped. To put the function back, run
+`serverless deploy function` again from the configuration you want. With
+`codeStorageMode: reference`, this command updates the function using
+Lambda-managed storage; the next `serverless deploy` restores reference mode.
 
 ## Options
 
