@@ -148,7 +148,6 @@ the specified/deployed function.
   "resource": "/",
   "path": "/",
   "httpMethod": "GET"
-  //  etc. //
 }
 ```
 

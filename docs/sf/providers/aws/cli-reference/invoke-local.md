@@ -95,7 +95,6 @@ Example `data.json`:
   "resource": "/",
   "path": "/",
   "httpMethod": "GET"
-  //  etc. //
 }
 ```
 
