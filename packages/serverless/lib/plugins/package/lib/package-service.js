@@ -7,6 +7,7 @@ import micromatch from 'micromatch'
 import ServerlessError from '../../../serverless-error.js'
 import parseS3URI from '../../aws/utils/parse-s3-uri.js'
 import { log } from '@serverless/util'
+import { AGENT_SKILL_EXCLUDES } from './agent-skill-excludes.js'
 
 /**
  * Configuration file extensions the framework knows how to parse.
@@ -62,6 +63,7 @@ export default {
     'yarn-*.log',
     '.serverless/**',
     '.serverless_plugins/**',
+    ...AGENT_SKILL_EXCLUDES,
   ],
 
   getIncludes(include) {

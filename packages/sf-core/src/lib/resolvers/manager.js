@@ -21,6 +21,7 @@ import {
 } from '@serverless/util'
 import { providerRegistry } from './registry/index.js'
 import { printResult } from './index.js'
+import { resolveServiceAwsProfile } from './providers/aws/credential-source.js'
 
 const { Graph } = graphlib
 
@@ -353,8 +354,10 @@ export class ResolverManager {
       this.serviceConfigFile?.provider?.profile &&
       this.serviceConfigFile?.provider?.resolver
     ) {
-      throw new Error(
+      throw new ServerlessError(
         'The provider.profile and provider.resolver cannot be set at the same time',
+        ServerlessErrorCodes.resolvers.RESOLVER_INVALID_CONFIG,
+        { stack: false },
       )
     }
     let credentialResolverName
@@ -365,22 +368,31 @@ export class ResolverManager {
       !this.serviceConfigFile?.provider?.profile &&
       !this.serviceConfigFile?.provider?.resolver
     ) {
-      const awsProviders = [
-        ...this.getAwsProviders('default'),
-        ...this.getAwsProviders(this.stage),
+      // One name declared in both `stages.default` and the current stage is
+      // one resolver: the stage block overrides the default one (see
+      // #effectiveResolverConfigs), so it is counted once.
+      const awsProviderNames = [
+        ...new Set(
+          [
+            ...this.getAwsProviders('default'),
+            ...this.getAwsProviders(this.stage),
+          ].map(({ name }) => name),
+        ),
       ]
 
       // If there are multiple resolvers with type "aws" and none of them is
       // provided in the provider.resolver key, throw an error
-      if (awsProviders.length > 1) {
-        throw new Error(
+      if (awsProviderNames.length > 1) {
+        throw new ServerlessError(
           'Multiple resolvers with type "aws" found. Please specify the credential provider to use for deployment in the provider.resolver key.',
+          ServerlessErrorCodes.resolvers.RESOLVER_INVALID_CONFIG,
+          { stack: false },
         )
       }
 
       // If there is only one resolver with type "aws", use it
-      if (awsProviders.length === 1) {
-        credentialResolverName = awsProviders[0].name
+      if (awsProviderNames.length === 1) {
+        credentialResolverName = awsProviderNames[0]
       }
     }
     if (!credentialResolverName) {
@@ -389,12 +401,34 @@ export class ResolverManager {
     this.credentialResolverName = credentialResolverName
   }
 
+  /**
+   * The config-declared aws resolver deploy takes its credentials from
+   * (`provider.resolver`, or the only `type: aws` resolver), with its
+   * effective block for this stage. Undefined when deploy falls back to the
+   * default credential chain. Call after `setCredentialResolver`.
+   *
+   * @returns {{ name: string, config: Object } | undefined}
+   */
+  getCredentialResolverConfig() {
+    if (
+      !this.credentialResolverName ||
+      this.credentialResolverName === DEFAULT_AWS_CREDENTIAL_RESOLVER
+    ) {
+      return undefined
+    }
+    const config = this.#effectiveResolverConfigs().get(
+      this.credentialResolverName,
+    )
+    return config ? { name: this.credentialResolverName, config } : undefined
+  }
+
   addDefaultAwsCredentialResolver() {
     // If the default AWS credential resolver is used, add it to the resolver providers
     if (this.credentialResolverName === DEFAULT_AWS_CREDENTIAL_RESOLVER) {
-      const profile =
-        this.options?.['aws-profile'] ||
-        this.serviceConfigFile?.provider?.profile
+      const profile = resolveServiceAwsProfile({
+        options: this.options,
+        config: this.serviceConfigFile,
+      })
       // Only set `profile` when one was actually configured. The AWS provider
       // treats a type-only config as "nothing set up", which is what enables the
       // credential-setup hint when no credentials can be found; an explicit
@@ -1098,6 +1132,11 @@ export class ResolverManager {
         `adding resolver provider ${nodeName} with config`,
         dedicatedResolverConfig,
       )
+      // A resolver declared in serverless.yml knows its own name, so its
+      // errors can say which entry they come from.
+      if (isCustomResolver && resolverProvider?.instance) {
+        resolverProvider.instance.resolverName = nodeName
+      }
       this.addResolverProvider(nodeName, resolverProvider)
       return resolverProvider
     }

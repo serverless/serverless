@@ -1,7 +1,10 @@
 import { mkdtemp, mkdir, writeFile, rm } from 'fs/promises'
 import { tmpdir } from 'os'
 import path from 'path'
-import { resolveTargetDirs } from '../../../../src/lib/agent-skills/resolve-targets.js'
+import {
+  resolveTargetDirs,
+  resolveUserTargetDirs,
+} from '../../../../src/lib/agent-skills/resolve-targets.js'
 
 const MANAGED = `---
 name: sls-test
@@ -69,4 +72,38 @@ it('auto mode: only managed-presence dirs; nothing → empty (never bootstraps)'
 it('deleted-dir choice sticks across re-install (managed in one dir only)', async () => {
   await seedManaged(claude()) // user deleted .agents copy earlier
   expect(await resolve('install')).toEqual([claude()])
+})
+
+describe('resolveUserTargetDirs', () => {
+  const userClaude = () => path.join(home, '.claude', 'skills')
+  const userAgents = () => path.join(home, '.agents', 'skills')
+
+  it('maps ~/.claude to the claude dir and ~/.cursor to the agents dir', async () => {
+    await mkdir(path.join(home, '.claude'))
+    await mkdir(path.join(home, '.cursor'))
+    const dirs = await resolveUserTargetDirs({ homeDir: home })
+    expect(dirs.sort()).toEqual([userClaude(), userAgents()].sort())
+  })
+  it('maps ~/.codex and ~/.cursor to the agents dir only, deduped', async () => {
+    await mkdir(path.join(home, '.codex'))
+    await mkdir(path.join(home, '.cursor'))
+    expect(await resolveUserTargetDirs({ homeDir: home })).toEqual([
+      userAgents(),
+    ])
+  })
+  it('falls back to both dirs when no markers exist', async () => {
+    const dirs = await resolveUserTargetDirs({ homeDir: home })
+    expect(dirs).toHaveLength(2)
+    expect(dirs.sort()).toEqual([userClaude(), userAgents()].sort())
+  })
+  it('writes only the --dir targets, whatever the home markers say', async () => {
+    await mkdir(path.join(home, '.claude'))
+    await mkdir(path.join(home, '.agents'))
+    expect(
+      await resolveUserTargetDirs({ homeDir: home, dirFlags: ['claude'] }),
+    ).toEqual([userClaude()])
+    expect(
+      await resolveUserTargetDirs({ homeDir: home, dirFlags: ['agents'] }),
+    ).toEqual([userAgents()])
+  })
 })

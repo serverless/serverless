@@ -10,8 +10,8 @@
 - The request context, in short
 - Nothing Lambda-shaped belongs here
 
-The module is plain MCP SDK code — but the SDK's current major (`v2`, serving
-protocol revision 2026-07-28) moved several things that older examples and
+The module is plain MCP SDK code — but the SDK's `v2` major (protocol
+revision 2026-07-28) moved several things that older examples and
 recalled snippets still use. This file is the list of what to write instead.
 
 Install the runtime dependencies in the service, as `dependencies`:
@@ -20,10 +20,7 @@ Install the runtime dependencies in the service, as `dependencies`:
 npm install @modelcontextprotocol/server zod
 ```
 
-Requirements the module itself carries: **Node.js 20+** and **zod 4.2 or
-newer**. On zod 3, `tools/list` returns tools whose input schemas are empty while
-`tools/call` keeps working — a client sees the tools and cannot fill in their
-arguments.
+The module needs **Node.js 20+** and **zod 4.2 or newer** (SKILL.md, Rules).
 
 ## The default export is `createMcpHandler()`'s return value
 
@@ -234,6 +231,6 @@ revision; use stderr/`console` logging and `inputRequired` respectively.
 ## Nothing Lambda-shaped belongs here
 
 No handler signature, no `event`/`context`, no streaming helpers, no
-`awslambda.*`, no framework imports. The module answers a `Request` and returns a
+`awslambda.*`, no Framework imports. The module answers a `Request` and returns a
 `Response`; the same file runs under `node --watch` behind any web server, which
 is the fastest way to iterate on tool logic before deploying.

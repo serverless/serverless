@@ -39,6 +39,10 @@ serverless dev
 
 **Note:** While it is possible, we do not recommend activating a development session in your `prod` stage.
 
+## Running a session in the background
+
+Scripts and coding agents often run `serverless dev` without a terminal. The session then prints each phase on its own line: the deploy of the stage with Dev Mode instrumentation, which takes a minute or so, then `Connecting…` and `✔ Connected`. Stop it with Ctrl+C, or, when it runs in the background, with `SIGTERM` to the Framework's Node process; either way it prints the command that restores the stage. The npm package and the standalone install run the CLI in a child Node process, so the pid you started can be the launcher's: find the session with `pgrep -f 'sf-core\.js( [^ -][^ ]*)? dev( |$)'` and stop it with `kill <pid>`.
+
 ## Sandboxes (Lambda MicroVMs)
 
 For [sandboxes](../guide/sandboxes.md), `serverless dev --sandbox <name>` runs the sandbox **locally as a Docker container** — a different mechanism from the Lambda IoT-Core session described above. It builds the sandbox's `Dockerfile` and starts a local, SDK-compatible AWS Lambda MicroVMs control-plane that launches instances as Docker containers on demand, streams their logs, and hot-reloads on file changes.
@@ -90,19 +94,23 @@ Results are delivered buffered: the response body is assembled fully and deliver
 
 To establish a secure connection between your AWS Lambda functions and your local machine, we initiate a WebSocket connection through AWS IoT Core. Each AWS account is equipped with a unique, secure IoT Core endpoint available for immediate use, eliminating the need for deploying any additional infrastructure—unlike WebSocket solutions that rely on AWS API Gateway. Thus, when you execute sls dev, the CLI incorporates a shim into all your lambda functions, routing all events via this WebSocket connection to your local machine. To facilitate this, we must also update the permissions for all lambda functions to access AWS IoT Core by adding the following IAM statement:
 
-```
-Effect: 'Allow',
-Action: ['iot:*'],
+```yaml
+Effect: 'Allow'
+Action: ['iot:*']
 Resource: '*'
 ```
 
+The statement goes onto the role each function runs with: the service's shared role, and the role of any function that has its own (`functions.<name>.iam.role`, or every function under `provider.iam.role.mode: perFunction`).
+
 Subsequently, we deploy your service similarly to executing sls deploy, albeit without your service code and with modified configurations. The CLI then maintains a long-running session, awaiting invocation events.
 
-To finalize development and save your changes, you must exit the development session and perform a standard `sls deploy`.
+To finalize development and save your changes, exit the development session and deploy the same stage again. The session prints the exact command, with its stage and region, plus `--service` when the service is part of a Compose project, for example `serverless deploy --stage alex --region us-east-1`. Until you run it, the functions answer with a "Dev Mode Disconnected" error that names the same command.
 
 ## Environment
 
 When a development session is active, it's set up to listen for invocation events from your functions. Upon receiving such an event, the CLI creates a new child process that closely replicates the environment of the Lambda function that was invoked. This replication includes the same environment variables, IAM permissions, context, and the event itself. The child process then executes your handlers with this comprehensive dataset, outputs all your function logs directly to the local terminal, and sends the response back to Lambda, along with any errors that might have occurred.
+
+Each invocation runs in a new child process, so nothing kept in memory outside the handler (module-level variables, caches, open connections) carries over from one invocation to the next. A deployed function can keep that state between invocations that reach the same warm instance, but never across instances, so code that must share state between requests needs a store such as a DynamoDB table.
 
 ### Examples
 

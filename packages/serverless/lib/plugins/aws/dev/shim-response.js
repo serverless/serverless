@@ -44,3 +44,11 @@ export const toStreamedResponse = (result) => {
       : Buffer.from(String(envelope.body ?? ''), 'utf8'),
   }
 }
+
+/**
+ * What an instrumented function answers once the dev session is gone. The
+ * session passes its restore command (SLS_RESTORE_COMMAND); functions
+ * instrumented by an older CLI have none, so the plain command stands in.
+ */
+export const disconnectedMessage = (restoreCommand) =>
+  `Dev Mode Disconnected: This AWS Lambda function is instrumented with Serverless Framework's Dev Mode but the Dev Mode session is no longer active. Run \`serverless dev\` to reconnect, or \`${restoreCommand || 'serverless deploy'}\` to remove Dev Mode's instrumentation and restore the original code.`

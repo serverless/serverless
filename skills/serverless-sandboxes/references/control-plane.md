@@ -1,8 +1,17 @@
 # Launching MicroVMs from your own code
 
+## Contents
+
+- When to use this vs. `invoke --sandbox`
+- Launcher call shape
+- Caller IAM
+- Worker patterns
+- Operational notes
+- Full example
+
 This page covers the **control-plane pattern**: your own code (a Lambda, a
 container, a CI job) reacting to an event by launching a MicroVM instance
-directly against the AWS SDK, rather than through the framework CLI.
+directly against the AWS SDK, rather than through the Framework CLI.
 
 ## When to use this vs. `invoke --sandbox`
 
@@ -68,10 +77,8 @@ Field by field:
   the `<Name>ExecutionRoleArn` stack output.
 - **`idlePolicy`** — all three fields (`maxIdleDurationSeconds`,
   `suspendedDurationSeconds`, `autoResumeEnabled`) — same contract as the
-  sandbox-level idle policy. See `references/platform.md` for the full
-  state machine; for a launcher-called instance, note that idle is driven
-  entirely by inbound traffic at the instance's endpoint, not by whatever
-  the worker is doing internally.
+  sandbox-level idle policy; idle counts inbound endpoint traffic only
+  (`references/platform.md`, Lifecycle).
 - **`maximumDurationInSeconds`** — hard ceiling on total `RUNNING` +
   `SUSPENDED` time, independent of the idle policy. Set it to bound a
   worker that might otherwise run forever on a stuck job.
@@ -80,19 +87,13 @@ Field by field:
   `arn:aws:lambda:<region>:aws:network-connector:aws-network-connector:<NAME>`
   (e.g. `HTTP_INGRESS`, `INTERNET_EGRESS`). Attach only what the worker
   needs — an HTTP-only ingress connector is tighter than an all-ports one.
-- **`runHookPayload`** — a JSON string, capped at 16 KB, and it is **the
-  only per-instance data channel**. Baked-in `environment` variables (see
-  `references/config.md`) are fixed at image build time and identical
-  across every instance of that image version — there is no per-launch
-  environment override. Anything that must differ instance-to-instance (a
-  session ID, a tenant identifier, a one-time token) has to travel through
-  this payload and be read out of the `run` hook's request body on the
-  worker side. See `references/platform.md` for the hooks contract in
-  full.
+- **`runHookPayload`** — a JSON string, capped at 16 KB: the only
+  per-instance data channel, read out of the `run` hook's request body
+  (`references/platform.md`, Hooks contract).
 - **`clientToken`** — supply one. It is the idempotency key for the launch
   call: without it, a duplicate delivery of the triggering event (a retried
   webhook, a re-delivered queue message) calls `RunMicrovm` twice and
-  launches two VMs for what should be one logical event. Derive it
+  launches two instances for what should be one logical event. Derive it
   deterministically from the event (e.g. the session or message ID) so
   retries collapse onto the same launch.
 
@@ -151,10 +152,9 @@ state again:
 2. **Exit the process.** A process exit terminates the instance
    immediately, regardless of idle policy.
 
-Don't lean on the idle policy here — it cuts both ways for an
-outbound-only worker. The idle timer only sees _inbound_ endpoint traffic,
-so it never fires on its own **and** it can fire against you: an instance
-busy with outbound work still looks idle and is suspended mid-work once
+Don't lean on the idle policy here: idle counts inbound traffic only
+(`references/platform.md`, Lifecycle), so for an outbound-only worker the
+timer runs from launch whatever work it does, and suspends it mid-work once
 `maxIdleDurationSeconds` elapses. Omit `idlePolicy` from the launch call
 to turn automatic suspension off entirely, or set
 `maxIdleDurationSeconds` above the longest unit of work.
@@ -211,7 +211,7 @@ that the instance terminates regardless of activity.
 ## Operational notes
 
 - **`RunMicrovm` quota** — 5 TPS by default (see `references/platform.md`
-  for the full quota table). A launcher fed by a bursty event source
+  for the full quota list). A launcher fed by a bursty event source
   (webhook floods, batch queue drains) should queue launches client-side or
   request a quota increase rather than assume every call succeeds inline.
 - **Transient `NotStabilized`** — a `RunMicrovm` call can fail transiently

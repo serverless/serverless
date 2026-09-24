@@ -70,4 +70,32 @@ describe('readSkillsFromDir', () => {
       /name.*wrong-name/i,
     )
   })
+
+  it('defaults scope to project when absent', async () => {
+    await mkdir(path.join(dir, 'serverless-config'))
+    await writeFile(path.join(dir, 'serverless-config', 'SKILL.md'), SKILL_MD)
+    const skills = await readSkillsFromDir(dir)
+    expect(skills[0].scope).toBe('project')
+  })
+
+  it('surfaces metadata.scope user', async () => {
+    await mkdir(path.join(dir, 'serverless-config'))
+    await writeFile(
+      path.join(dir, 'serverless-config', 'SKILL.md'),
+      SKILL_MD.replace('  version: "3"', '  version: "3"\n  scope: user'),
+    )
+    const skills = await readSkillsFromDir(dir)
+    expect(skills[0].scope).toBe('user')
+  })
+
+  it('strict mode rejects invalid scope values', async () => {
+    await mkdir(path.join(dir, 'serverless-config'))
+    await writeFile(
+      path.join(dir, 'serverless-config', 'SKILL.md'),
+      SKILL_MD.replace('  version: "3"', '  version: "3"\n  scope: global'),
+    )
+    await expect(readSkillsFromDir(dir, { strict: true })).rejects.toThrow(
+      /scope/,
+    )
+  })
 })

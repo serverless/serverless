@@ -137,6 +137,8 @@ Every server is served at **`/<name>/mcp`**, including the only server in a serv
 
 All MCP servers in a service share one `AWS::ApiGateway::RestApi` with each other and with your `http` functions — one API, one stage, one custom domain. Custom domains come from [`provider.domain`](./domains.md); there is no per-server `domain` key, because the domain belongs to the shared API rather than to one server.
 
+A service whose other endpoints are `httpApi` events keeps its HTTP API: adding `mcp` gives it a second API, the REST API above, with its own hostname. `serverless deploy` and `serverless info` list the MCP servers under `mcp:` and the HTTP API routes under `endpoints:`. For custom domains, list one domain per API in `provider.domain`, with `apiType: rest` for the MCP servers and `apiType: http` for the rest (see [Multiple Domains](./domains.md#multiple-domains)).
+
 The route compiles as a single `ANY` method, so the SDK itself answers non-POST verbs with spec-correct error bodies.
 
 Two servers in one service:

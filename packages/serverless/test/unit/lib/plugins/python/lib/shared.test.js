@@ -1,8 +1,14 @@
 import { describe, it, expect } from '@jest/globals'
 import path from 'path'
 
-const { getUserCachePath, getDefaultUserCachePath, getSourceDateEpoch } =
-  await import('../../../../../../lib/plugins/python/lib/shared.js')
+const {
+  getUserCachePath,
+  getDefaultUserCachePath,
+  getRequirementsLayerPath,
+  getRequirementsWorkingPath,
+  installSettingsHash,
+  getSourceDateEpoch,
+} = await import('../../../../../../lib/plugins/python/lib/shared.js')
 
 const APP_NAME = 'serverless-python-requirements'
 const APP_AUTHOR = 'ServerlessFramework'
@@ -93,6 +99,67 @@ describe('getUserCachePath', () => {
 
   it('uses the platform default cache path when called without options', () => {
     expect(getUserCachePath()).toEqual(getDefaultUserCachePath())
+  })
+})
+
+// The static cache is keyed on the requirements checksum and on the settings
+// that change what an install produces, so switching to Docker or to Linux
+// wheels installs afresh instead of reusing an install made another way.
+describe('static cache names follow the install settings', () => {
+  const serverless = {
+    service: { provider: { runtime: 'python3.13', architecture: 'arm64' } },
+  }
+  const base = {
+    useStaticCache: true,
+    cacheLocation: '/cache',
+    pythonBin: 'python3.13',
+    pipCmdExtraArgs: [],
+  }
+  const working = (options, sls = serverless) =>
+    getRequirementsWorkingPath('reqsha', '/svc', options, sls)
+
+  it('keeps the checksum-first name, with the settings hash and architecture', () => {
+    expect(working(base)).toBe(
+      path.join(
+        path.resolve('/cache'),
+        `reqsha_${installSettingsHash(base, serverless)}_arm64_slspyc`,
+      ),
+    )
+  })
+
+  it('changes with the settings that change the install', () => {
+    for (const change of [
+      { pipCmdExtraArgs: ['--platform=manylinux2014_aarch64'] },
+      { dockerizePip: true },
+      { dockerImage: 'custom:latest' },
+      { pythonBin: 'python3' },
+      { installer: 'uv' },
+      { slim: true },
+      { vendor: './vendor' },
+    ]) {
+      expect(working({ ...base, ...change })).not.toBe(working(base))
+    }
+    const otherRuntime = {
+      service: { provider: { runtime: 'python3.12', architecture: 'arm64' } },
+    }
+    expect(working(base, otherRuntime)).not.toBe(working(base))
+  })
+
+  it('stays the same for settings that do not change the install', () => {
+    expect(working({ ...base, zip: true, layer: {} })).toBe(working(base))
+  })
+
+  it('the layer archive cache follows the same settings', () => {
+    const layer = (options) =>
+      getRequirementsLayerPath('reqsha', '/fallback.zip', options, serverless)
+    expect(layer(base)).toMatch(/reqsha_[0-9a-f]{12}_arm64_slspyc\.zip$/)
+    expect(layer({ ...base, dockerizePip: true })).not.toBe(layer(base))
+  })
+
+  it('without the static cache the paths do not change', () => {
+    expect(working({ ...base, useStaticCache: false })).toBe(
+      path.join('/svc', 'requirements'),
+    )
   })
 })
 

@@ -66,6 +66,10 @@ By default, serverless will exclude the following patterns:
 - yarn-\*.log
 - .serverless/\*\*
 - .serverless_plugins/\*\*
+- .claude/skills/serverless-\*/\*\* and .agents/skills/serverless-\*/\*\* (the
+  Agent Skills that [`serverless agent setup`](../cli-reference/agent-setup.md)
+  installs for your coding agent; other skills in those directories are
+  packaged as usual)
 
 and the serverless configuration file being used (i.e. `serverless.yml`). In addition, if `useDotenv` is set, all files satisfying pattern `.env*` will be excluded as well.
 

@@ -150,16 +150,41 @@ async function pipAcceptsSystem(pythonBin, pluginInstance) {
     )
   } catch (e) {
     if (
-      e.stderrBuffer &&
-      e.stderrBuffer.toString().includes('command not found')
+      e.code === 'ENOENT' ||
+      (e.stderrBuffer &&
+        e.stderrBuffer.toString().includes('command not found'))
     ) {
       throw new ServerlessError(
-        `${pythonBin} not found! Install it according to the poetry docs.`,
+        pythonNotFoundMessage(pythonBin),
         'PYTHON_REQUIREMENTS_PYTHON_NOT_FOUND',
         { stack: false },
       )
     }
     throw e
+  }
+}
+
+// The interpreter defaults to the one named after provider.runtime
+// (python3.13 for python3.13), which is often installed only as `python3`.
+function pythonNotFoundMessage(pythonBin) {
+  return `"${pythonBin}" was not found. Python requirements are installed with the interpreter named after the runtime unless custom.pythonRequirements.pythonBin names another; install ${pythonBin}, or set pythonBin to the interpreter you have (for example "python3"), which must be the runtime's Python version.`
+}
+
+// Each item is one pip argument (or an option and its value, split on the
+// first space). A YAML item like `- --only-binary=:all:` parses as a map
+// because of the trailing colon; say so instead of failing inside pip's
+// command construction.
+function assertPipCmdExtraArgs(extraArgs) {
+  if (extraArgs === undefined || extraArgs === null) return
+  if (
+    !Array.isArray(extraArgs) ||
+    extraArgs.some((arg) => typeof arg !== 'string')
+  ) {
+    throw new ServerlessError(
+      'custom.pythonRequirements.pipCmdExtraArgs must be a list of strings. Quote items that contain a colon, for example - "--only-binary=:all:".',
+      'PYTHON_REQUIREMENTS_INVALID_PIP_CMD_EXTRA_ARGS',
+      { stack: false },
+    )
   }
 }
 
@@ -202,6 +227,7 @@ async function installRequirements(targetFolder, pluginInstance, funcOptions) {
       : [options.pythonBin, '-m', 'pip', 'install']
 
     const extraArgs = options.pipCmdExtraArgs
+    assertPipCmdExtraArgs(extraArgs)
     if (Array.isArray(extraArgs) && extraArgs.length > 0) {
       extraArgs.forEach((cmd) => {
         const parts = cmd.split(/\s+/, 2)
@@ -520,15 +546,14 @@ async function installRequirements(targetFolder, pluginInstance, funcOptions) {
         const stderr = (e.stderrBuffer && e.stderrBuffer.toString()) || ''
         const stdout = (e.stdoutBuffer && e.stdoutBuffer.toString()) || ''
         const mentionsCommandNotFound =
+          e.code === 'ENOENT' ||
           stderr.includes('command not found') ||
           stdout.includes('command not found')
         if (cmd !== 'docker' && mentionsCommandNotFound) {
-          const advice =
-            cmd.indexOf('python') > -1
-              ? 'Try the pythonBin option'
-              : 'Please install it'
           throw new ServerlessError(
-            `${cmd} not found! ${advice}`,
+            cmd.indexOf('python') > -1
+              ? pythonNotFoundMessage(cmd)
+              : `${cmd} not found! Please install it`,
             'PYTHON_REQUIREMENTS_COMMAND_NOT_FOUND',
             { stack: false },
           )
@@ -1047,4 +1072,4 @@ async function installAllRequirements() {
   }
 }
 
-export { installAllRequirements }
+export { assertPipCmdExtraArgs, installAllRequirements, pipAcceptsSystem }

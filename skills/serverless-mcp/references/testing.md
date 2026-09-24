@@ -29,9 +29,9 @@ serverless info --stage dev 2>&1 | grep -A5 '^mcp:'
 
 That `mcp:` section is where the endpoints are. One server renders inline
 (`mcp: crm → https://…/dev/crm/mcp`); two or more render as an indented block, so
-match both shapes if you parse it. If the CLI fails on authentication, propose
-that the user run `serverless login` (or `serverless login aws sso`) themselves
-rather than retrying in a loop.
+match both shapes if you parse it. If the CLI fails on sign-in or AWS
+credentials, do not retry in a loop: the `serverless-framework` skill
+(`references/cli.md`) says how to get the user signed in.
 
 ## The minimal round trip
 
@@ -47,8 +47,9 @@ Revision 2026-07-28 is header-and-envelope shaped. Every request needs:
 - `mcp-name: <the name or uri the method acts on>` — required for methods that
   have one: `tools/call` (`params.name`), `resources/read` (`params.uri`),
   `prompts/get` (`params.name`)
-- `mcp-protocol-version: 2026-07-28` — optional when the body carries the
-  envelope, but must agree with it
+- `mcp-protocol-version: 2026-07-28` — **required** alongside the envelope,
+  and it must agree with it: the SDK rejects a request whose envelope names a
+  version while this header is absent
 - a `params._meta` **envelope** carrying
   `io.modelcontextprotocol/protocolVersion` and
   `io.modelcontextprotocol/clientCapabilities` (both required), plus
@@ -118,10 +119,10 @@ and, if the server minted one, `params.requestState` echoed back verbatim.
 
 ## Two negatives worth checking
 
-| Code     | Meaning                                                                                                                                                        | Provoke it by                                             |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `-32020` | Headers and body disagree — a mismatched or absent `mcp-method`, a mismatched `mcp-name`, or a header protocol version that contradicts the envelope. HTTP 400 | Sending `mcp-method: tools/list` with a `tools/call` body |
-| `-32021` | A tool asked for input the client never said it could provide                                                                                                  | Calling an eliciting tool with `clientCapabilities: {}`   |
+| Code     | Meaning                                                                                                                                                                     | Provoke it by                                             |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `-32020` | Headers and body disagree — a mismatched or absent `mcp-method`, a mismatched `mcp-name`, or a header protocol version that is absent or contradicts the envelope. HTTP 400 | Sending `mcp-method: tools/list` with a `tools/call` body |
+| `-32021` | A tool asked for input the client never said it could provide                                                                                                               | Calling an eliciting tool with `clientCapabilities: {}`   |
 
 Both come from the SDK inside your function, so seeing them is also proof that
 requests are reaching it intact.
@@ -151,8 +152,8 @@ the rest at the end, something buffered the whole response.
 
 Headless, the Inspector runs in CLI mode off a config file. Two things the
 config decides: which server, and the protocol revision — absent a
-`protocolEra`, the Inspector negotiates an older revision (`2025-11-25`), so
-opting into `modern` is what exercises the current (2026-07-28) surface:
+`protocolEra`, Inspector 2.7.0 negotiates an older revision (`2025-11-25`), so
+opting into `modern` is what exercises the 2026-07-28 surface:
 
 ```json
 {
@@ -167,9 +168,9 @@ opting into `modern` is what exercises the current (2026-07-28) surface:
 ```
 
 ```bash
-npx @modelcontextprotocol/inspector --cli \
+npx @modelcontextprotocol/inspector@2.7.0 --cli \
   --config mcp.json --server crm --method tools/list
-npx @modelcontextprotocol/inspector --cli \
+npx @modelcontextprotocol/inspector@2.7.0 --cli \
   --config mcp.json --server crm \
   --method tools/call --tool-name add --tool-arg a=2 --tool-arg b=40
 ```
@@ -179,7 +180,8 @@ user for input fails there with "client capabilities do not declare the
 required capability" — that is the Inspector's mode, not the deployment.
 Exercise elicitation from the browser UI (run without `--cli`, set the
 connection's **Protocol Era** to Modern) or with the SDK client's modern
-opt-in (`references/server-code.md`). The Inspector is the quickest way to
+opt-in (`references/troubleshooting.md`, the entry for a tool that asks the
+client for something). The Inspector is the quickest way to
 sanity-check schemas a client will render; it is not a substitute for the
 timing checks above.
 
@@ -294,7 +296,7 @@ argument 'name'`, nothing registered). Commands without `--header` need no
   published discovery document, registers itself at the issuer's
   `registration_endpoint`, and runs authorization-code + PKCE on a callback
   port it picks itself. Three things it needs: the root-mapped custom domain
-  (the discovery leg, as above); the issuer allowing registration and honoring
+  (the discovery leg, below); the issuer allowing registration and honoring
   the RFC 8707 `resource` parameter; and the protected resource registered at
   the issuer under the MCP endpoint's URL as its identifier, because a
   URL-only client identifies the server by URL alone. When this path fails,
@@ -308,7 +310,7 @@ argument 'name'`, nothing registered). Commands without `--header` need no
   requesting the conventional well-known paths relative to the **origin
   root** — it never reads a rejection's challenge headers — so a custom
   domain mapped at the root is a prerequisite, and on the raw `execute-api`
-  URL the login dead-ends (see the troubleshooting row for the symptom).
+  URL the login dead-ends (`references/troubleshooting.md` has the symptom).
 - **Against an issuer without Dynamic Client Registration**
   (Cognito, most enterprise IdPs): Claude demands DCR only when it has no
   client. Pre-register an authorization-code + PKCE client whose callback is
@@ -318,13 +320,9 @@ argument 'name'`, nothing registered). Commands without `--header` need no
   no DCR needed. A root-mapped custom domain remains a prerequisite for the
   discovery leg.
 - **Elicitation through Claude** requires its client to speak the 2026-07-28
-  revision. Claude Code ships that support behind a staged, feature-flag-gated
-  rollout that currently defaults to its v1 client and legacy negotiation; the
-  env vars `MCP_SDK_GENERATION=v2 MCP_PROTOCOL_NEGOTIATION=auto` are the
-  overrides for those gates. They are real shipping switches, live-verified
-  end to end (full elicitation + sealed state with a human confirming in the
-  CLI) — but absent from the public env-var reference, so expect them to stop
-  being necessary once the rollout completes rather than to be documented.
+  revision and declare the capability. When the client does not, an eliciting
+  tool fails with `-32021` (see the negatives above); exercise elicitation
+  with the MCP Inspector's Modern era or the SDK client instead.
 - **The model cannot see host-brokered UI.** Elicitation confirmation prompts
   and progress notifications render in the CLI directly; they never enter the
   model's context. An agent-run test that concludes "nobody was asked" or "no

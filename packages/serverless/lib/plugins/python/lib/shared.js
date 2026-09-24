@@ -55,6 +55,37 @@ function checkForAndDeleteMaxCacheVersions({ serverless, options, log }) {
 }
 
 /**
+ * A short hash of the settings that change what an install of a given
+ * requirements.txt produces: the interpreter and runtime, where and how pip
+ * runs and with which extra arguments, and what is stripped from or added to
+ * the result. Every static cache name includes it, so changing one of them
+ * installs afresh instead of reusing an install made another way (for
+ * example macOS wheels cached before switching to Docker or to Linux wheels).
+ * @param  {Object} options
+ * @param  {Object} serverless
+ * @return {string}
+ */
+function installSettingsHash(options, serverless) {
+  const settings = [
+    options.pythonBin,
+    serverless?.service?.provider?.runtime,
+    options.installer,
+    options.dockerizePip,
+    options.dockerImage,
+    options.dockerFile,
+    options.pipCmdExtraArgs,
+    options.slim,
+    options.slimPatterns,
+    options.slimPatternsAppendDefaults,
+    options.vendor,
+  ]
+  return createHash('sha256')
+    .update(JSON.stringify(settings))
+    .digest('hex')
+    .slice(0, 12)
+}
+
+/**
  * The working path that all requirements will be compiled into
  * @param  {string} subfolder
  * @param  {string} requirementsTxtDirectory
@@ -78,7 +109,7 @@ function getRequirementsWorkingPath(
         architectureOverride ||
         serverless.service.provider.architecture ||
         'x86_64'
-      subfolder = `${subfolder}_${architecture}_slspyc`
+      subfolder = `${subfolder}_${installSettingsHash(options, serverless)}_${architecture}_slspyc`
     }
     // If we have max number of cache items...
 
@@ -101,7 +132,7 @@ function getRequirementsLayerPath(hash, fallback, options, serverless) {
   // If we want to use the static cache
   if (hash && options && options.useStaticCache) {
     const architecture = serverless.service.provider.architecture || 'x86_64'
-    hash = `${hash}_${architecture}_slspyc.zip`
+    hash = `${hash}_${installSettingsHash(options, serverless)}_${architecture}_slspyc.zip`
     return path.join(getUserCachePath(options), hash)
   }
 
@@ -199,6 +230,7 @@ export {
   getRequirementsLayerPath,
   getDefaultUserCachePath,
   getUserCachePath,
+  installSettingsHash,
   getSourceDateEpoch,
   sha256Path,
 }

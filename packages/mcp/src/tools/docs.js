@@ -14,11 +14,16 @@ function normalizeDocPath(product, docPath) {
     : docPath
 }
 
+// Only a leading ".." SEGMENT leaves baseDir. A bare startsWith('..') also
+// rejects ordinary siblings whose name merely begins with two dots -- notably
+// "..md", the first candidate a caller tries for the root path ".".
 function isWithin(baseDir, targetPath) {
   const relativeToBase = path.relative(baseDir, targetPath)
   return (
     relativeToBase === '' ||
-    (!relativeToBase.startsWith('..') && !path.isAbsolute(relativeToBase))
+    (relativeToBase !== '..' &&
+      !relativeToBase.startsWith('..' + path.sep) &&
+      !path.isAbsolute(relativeToBase))
   )
 }
 

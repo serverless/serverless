@@ -602,8 +602,49 @@ describe('fatal errors (non-zero exit, single JSON error on stdout)', () => {
     expect(payload.region).toBe('us-east-1')
     expect(payload.stage).toBe('dev')
     expect(payload.stackName).toBe('orders-api-dev')
-    expect(payload.hint).toMatch(/serverless deploy/i)
+    expect(payload.hint).toBe(
+      'No deployed stack found for stage "dev" in us-east-1. Run "serverless deploy --stage dev --region us-east-1" first, then re-run inspect.',
+    )
     expect(payload.resources).toEqual({})
+  })
+
+  // Following the hint from a non-default target must deploy that target,
+  // not the default stage and region.
+  test('the not-deployed hint names the stage and region that were inspected', async () => {
+    const requestImpl = jest.fn(async () => {
+      const err = new Error('Stack with id orders-api-feature does not exist')
+      err.code = 'ValidationError'
+      err.providerError = { code: 'ValidationError' }
+      throw err
+    })
+    const { serverless } = buildHarness({
+      requestImpl,
+      stage: 'feature',
+      region: 'eu-west-1',
+    })
+    await new AgentInspect(serverless, { functions: true }).inspect()
+
+    expect(lastPayload().hint).toBe(
+      'No deployed stack found for stage "feature" in eu-west-1. Run "serverless deploy --stage feature --region eu-west-1" first, then re-run inspect.',
+    )
+  })
+
+  // Run for one Compose service (`serverless api agent inspect`), a plain
+  // deploy from the root would deploy every service: the hint names this one.
+  test('in a Compose project the not-deployed hint deploys this service only', async () => {
+    const requestImpl = jest.fn(async () => {
+      const err = new Error('Stack with id orders-api-dev does not exist')
+      err.code = 'ValidationError'
+      err.providerError = { code: 'ValidationError' }
+      throw err
+    })
+    const { serverless } = buildHarness({ requestImpl })
+    serverless.compose = { isWithinCompose: true, serviceName: 'api' }
+    await new AgentInspect(serverless, { functions: true }).inspect()
+
+    expect(lastPayload().hint).toBe(
+      'No deployed stack found for stage "dev" in us-east-1. Run "serverless deploy --service=api --stage dev --region us-east-1" first, then re-run inspect.',
+    )
   })
 
   test('a bad --name emits a structured error and exits non-zero', async () => {

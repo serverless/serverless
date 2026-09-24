@@ -121,8 +121,11 @@
   },
   "CLI Reference": {
     "Overview": "providers/aws/cli-reference",
+    "agent docs": "providers/aws/cli-reference/agent-docs",
     "agent inspect": "providers/aws/cli-reference/agent-inspect",
+    "agent setup": "providers/aws/cli-reference/agent-setup",
     "agent skills install": "providers/aws/cli-reference/agent-skills-install",
+    "agent skills list / read": "providers/aws/cli-reference/agent-skills-read",
     "deploy": "providers/aws/cli-reference/deploy",
     "deploy function": "providers/aws/cli-reference/deploy-function",
     "deploy list": "providers/aws/cli-reference/deploy-list",

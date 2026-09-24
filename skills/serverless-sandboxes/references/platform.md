@@ -1,9 +1,19 @@
 # The AWS Lambda MicroVMs platform
 
+## Contents
+
+- Lifecycle
+- Hooks contract
+- Data plane
+- Build model
+- Quotas & limits
+- Pricing model
+- Regions
+
 Sandboxes run on AWS Lambda MicroVMs — Firecracker-based microVMs managed by
 a dedicated control plane (`aws lambda-microvms`) that sits alongside the
 regular Lambda control plane. This page documents that underlying platform's
-contracts and limits: facts about the AWS service itself, not the framework
+contracts and limits: facts about the AWS service itself, not the Framework
 schema. See `references/config.md` for the `sandboxes:` block, and
 `references/control-plane.md` for launching instances from your own code.
 
@@ -73,7 +83,7 @@ one that has already reached `TERMINATED`.
 ## Hooks contract
 
 Your artifact serves hooks as plain HTTP endpoints on the port it listens
-on (the configured hooks port, default `9000` — see `config.md`): the platform calls
+on (the configured hooks port, default `9000` — see `references/config.md`): the platform calls
 `POST /aws/lambda-microvms/runtime/v1/<hook>` and expects a fast response.
 There are five hooks split across two lifecycle groups.
 
@@ -82,14 +92,11 @@ your artifact, before any instance boots from it:
 
 - **`ready`** — the build gate. A non-2xx response, or a timeout, fails the
   image build outright. Respond `503` to mean "not ready yet, keep trying" —
-  the platform retries until the hook's own timeout elapses. Timeout range
-  **1–3600 seconds**, AWS default **60**.
+  the platform retries until the hook's own timeout elapses.
 - **`validate`** — runs after `ready` succeeds, against a fresh VM booted
   from the not-yet-finalized image. Use it for correctness checks and
   snapshot-profiling work (warming caches, exercising code paths you want
-  captured in the snapshot) before the image is sealed. Timeout range
-  **1–3600 seconds**, but the AWS default is only **1 second** — set an
-  explicit `validate` timeout for any real validation work.
+  captured in the snapshot) before the image is sealed.
 
 **Runtime (per-instance) hooks** — run against a specific instance as it
 moves through its lifecycle:
@@ -104,9 +111,8 @@ moves through its lifecycle:
 - **`suspend`** — runs as the instance transitions into `SUSPENDED`.
 - **`terminate`** — runs as the instance transitions into `TERMINATED`.
 
-All runtime hooks share a timeout range of **1–60 seconds** and default to
-**1 second** when you don't set one — tight enough that any runtime hook doing
-real work should declare an explicit `timeout`.
+Answer every hook with a fast `200` and do heavy work after responding; the
+timeouts and their tight defaults are in `references/config.md` (Hooks).
 
 **`runHookPayload` (≤16 KB) is the only per-instance data channel.** Baked-in
 `environment` variables (see `references/config.md`) are fixed at build time
@@ -153,8 +159,7 @@ on error rates alone to detect a bandwidth-constrained instance.
 
 The `x-aws-proxy-*` header namespace is reserved for the proxy itself: any
 such header you send is stripped before the request reaches your instance.
-Send `X-aws-proxy-force-h2: true` to force HTTP/2 to a plaintext HTTP/1.1
-upstream.
+`X-aws-proxy-force-h2: true` forces HTTP/2 to a plaintext HTTP/1.1 upstream.
 
 `get-microvm` state is eventually consistent — don't poll it to decide when
 an instance is ready. Instead, attempt an authenticated request against the
@@ -202,12 +207,9 @@ Container base images:
 - Default: `public.ecr.aws/lambda/microvms:al2023-minimal`.
 - AWS-managed alternative: `arn:aws:lambda:<region>:aws:microvm-image:al2023-1`.
 
-Managed base image versions move through a deprecation lifecycle:
-`AVAILABLE → DEPRECATED (60 days) → EXPIRING (30 days) → EXPIRED`. Once
-`EXPIRED`, the version can no longer be used to build new images. AWS also
-releases new managed base-image versions periodically, independent of that
-deprecation clock — redeploying rebuilds against whatever is current, so
-redeploying periodically is enough to keep your images up to date.
+Managed base-image versions are deprecated and eventually expire, after which
+they can no longer build new images. Redeploying rebuilds against the current
+version, so redeploying periodically keeps your images up to date.
 
 Rebuild trigger: **any** change to the artifact content — the zip or the
 Dockerfile build context, even a change that produces byte-identical output
@@ -223,64 +225,49 @@ survives a resume.
 
 ## Quotas & limits
 
-| Quota                               | Default                                                                                          |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------ |
-| Account memory pool                 | 400 GB (1,024 GB in `us-east-1`, `us-east-2`, `us-west-2`, `ap-northeast-1`); burstable up to 4× |
-| MicroVM images per account          | 100                                                                                              |
-| Versions per image                  | 50                                                                                               |
-| `RunMicrovm` TPS                    | 5/s                                                                                              |
-| `ResumeMicrovm` TPS                 | 5/s                                                                                              |
-| `SuspendMicrovm` TPS                | 2/s                                                                                              |
-| `TerminateMicrovm` TPS              | 10/s                                                                                             |
-| `GetMicrovm` TPS                    | 100/s                                                                                            |
-| `CreateMicrovmAuthToken` TPS        | 50/s                                                                                             |
-| Per-instance RPS                    | 40–160, scaling with instance size                                                               |
-| Per-instance concurrent connections | 8–128, scaling with instance size                                                                |
+Their defaults shape a design. These are adjustable Service Quotas; the
+Service Quotas console shows your account's values:
 
-Service Quotas entries for MicroVMs:
+- Control-plane rates: `RunMicrovm` and `ResumeMicrovm` 5/s,
+  `SuspendMicrovm` 2/s, `TerminateMicrovm` 10/s, `GetMicrovm` 100/s,
+  `CreateMicrovmAuthToken` 50/s, `CreateMicrovmShellAuthToken` 5/s.
+  Launching many instances at once needs backoff.
+- 100 images per account, 50 versions per image, and 5 concurrent image
+  builds (10 in `us-east-1`, `us-east-2`, `us-west-2`, and `ap-northeast-1`).
+- An account-wide memory pool: 400 GB, or 1,024 GB in `us-east-1`,
+  `us-east-2`, `us-west-2`, and `ap-northeast-1`, burstable up to 4×. It may
+  not appear in `list-service-quotas`; the Service Quotas console or AWS
+  Support confirms your ceiling.
 
-- `Rate of RunMicrovm API requests` = 5
-- `Rate of ResumeMicrovm API requests` = 5
-- `Rate of SuspendMicrovm API requests` = 2
-- `Rate of TerminateMicrovm API requests` = 10
-- `Rate of GetMicrovm API requests` = 100
-- `Rate of CreateMicrovmAuthToken API requests` = 50
-- `Number of MicroVM images` = 100, `Versions per MicroVM Image` = 50
-- `RPS per 4 vCPU MicroVm` = 40, `RPS per 16 vCPU MicroVm` = 160
-- `Concurrent connections per {1,2,4,8,16} vCPU MicroVM` = 8, 16, 32, 64, 128
-- `Max Execution Duration of a MicroVM (in Hours)` = 8
+These are fixed limits that cannot be raised:
 
-The account memory pool may not appear as a named entry in `list-service-quotas`;
-to confirm your account's current ceiling, check the Service Quotas console or ask AWS Support.
+- Per instance, scaling with size: 40 requests per second at 4 vCPU and 160
+  at 16 vCPU, and 8, 16, 32, 64, or 128 concurrent connections at 1, 2, 4,
+  8, or 16 vCPU. A `429` from the endpoint is this cap.
+- At most 8 hours per instance (`maximumDurationInSeconds`).
 
-All of these are standard Service Quotas entries and adjustable through the
-Service Quotas console or `aws service-quotas request-service-quota-increase`.
+In the Service Quotas console they are named `Rate of RunMicrovm API requests`
+(and the same for `ResumeMicrovm`, `SuspendMicrovm`, `TerminateMicrovm`,
+`GetMicrovm` and `CreateMicrovmAuthToken`), `Number of MicroVM images`,
+`Versions per MicroVM Image`, `RPS per 4 vCPU MicroVm`,
+`RPS per 16 vCPU MicroVm`, `Concurrent connections per {1,2,4,8,16} vCPU MicroVM`,
+and `Max Execution Duration of a MicroVM (in Hours)`. Raise the adjustable
+ones there or with `aws service-quotas request-service-quota-increase`; the
+per-instance caps and the 8-hour limit are listed there too but cannot be
+raised.
 
 ## Pricing model
 
-Sandboxes bill by MicroVM instance state, mirroring the lifecycle above:
-
-- **RUNNING** — per-second charge for the provisioned vCPU and memory.
-  Active use above the instance's baseline vCPU (bursting, up to 4×) is
-  billed additionally for the burst portion.
-- **SUSPENDED** — no compute charge; billed only for snapshot storage.
-- **Suspend / resume transitions** — each snapshot write (on suspend) and
-  snapshot read (on resume) carries its own fee, independent of the
-  RUNNING/SUSPENDED state charges.
-
-This is the billing model, not a price list — rates vary by region and
-change over time. See
-[aws.amazon.com/lambda/pricing](https://aws.amazon.com/lambda/pricing/) for
-current figures.
+Billing follows instance state: a per-second charge for vCPU and memory while
+an instance is RUNNING (bursting above its baseline vCPU is billed extra),
+only snapshot storage while it is SUSPENDED, and a fee for each suspend and
+each resume. For rates, see
+[aws.amazon.com/lambda/pricing](https://aws.amazon.com/lambda/pricing/).
 
 ## Regions
 
-At launch, AWS Lambda MicroVMs is available in: `us-east-1`, `us-east-2`,
-`us-west-2`, `ap-northeast-1`, `eu-west-1`.
+AWS Lambda MicroVMs runs in a subset of AWS regions; check its regional
+availability before choosing one.
 
-Availability is not uniform within a region — not every Availability Zone in
-a supported region supports MicroVMs, and AWS does not publish a list of
-which AZs do. Pick subnets by **AZ ID** (e.g. `use1-az3`), not by
-AZ name, and be ready to move a subnet to a different AZ ID if a deploy
-fails on a capacity or placement error — see `references/troubleshooting.md`
-for the diagnostic flow.
+Not every Availability Zone in a supported region supports MicroVMs; choose
+subnets as `references/config.md` (VPC) describes.

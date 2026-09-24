@@ -1,5 +1,9 @@
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers'
 import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
+import {
+  describeMissingAwsCredentials,
+  isExpiredSsoSession,
+} from './credential-source.js'
 
 /**
  * Retrieves AWS credentials.
@@ -8,6 +12,8 @@ import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
  * @param {Object} dashboard - The dashboard object containing AWS credentials.
  * @param {Object} config - The configuration object for the AWS provider.
  * @param {boolean} isDefaultConfig - Whether the configuration is the default configuration.
+ * @param {string} [resolverName] - The aws resolver in serverless.yml this configuration comes from, if any.
+ * @param {Object} [env] - The environment the AWS SDK reads.
  * @returns {Promise} A promise that resolves to the AWS credentials.
  */
 export const getAwsCredentials = async ({
@@ -15,6 +21,8 @@ export const getAwsCredentials = async ({
   dashboard,
   config,
   isDefaultConfig,
+  resolverName,
+  env = process.env,
 }) => {
   // If the Dashboard Provider is available and
   // it's not explicitly disabled in the resolver configuration and
@@ -61,7 +69,14 @@ export const getAwsCredentials = async ({
         error.name === 'CredentialsProviderError' ||
         error.message?.includes('Could not load credentials from any providers')
       ) {
-        const errorMessage = `AWS credentials missing or invalid.${isDefaultConfig ? ' Run "serverless" to set up AWS credentials, or learn more in our docs: https://slss.io/aws-creds-setup.' : ''} Original error from AWS: ${error.message}`
+        // Name what the command looked for -- the resolver's or the
+        // command's profile, else AWS_PROFILE -- and how to set it up.
+        const { problem, fix } = describeMissingAwsCredentials({
+          profile: config?.profile || env.AWS_PROFILE,
+          resolver: resolverName,
+          ssoExpired: isExpiredSsoSession(error.message),
+        })
+        const errorMessage = `AWS credentials missing or invalid: ${problem}. To fix it, ${fix}.${isDefaultConfig ? ' Learn more: https://slss.io/aws-creds-setup.' : ''} Original error from AWS: ${error.message}`
         throw Object.assign(
           new ServerlessError(
             errorMessage,

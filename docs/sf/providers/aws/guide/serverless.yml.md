@@ -267,7 +267,7 @@ Some AWS Lambda function settings can be defined for all functions inside the `p
 
 provider:
   # AWS Lambda runtime for all AWS Lambda functions within the Service. Optional.
-  runtime: nodejs20.x
+  runtime: nodejs24.x
   # Set how Lambda controls all functions runtime. AWS default is auto; this can either be 'auto' or 'onFunctionUpdate'. For 'manual', see example in hello function below (syntax for both is identical. Optional.
   runtimeManagement: auto
   # Default memory size for functions. Optional. (default: 1024MB).
@@ -857,7 +857,7 @@ functions:
     # Container image to use. Cannot be used with 'handler'.
     # Can be the URI of an image in ECR, or the name of an image defined in 'provider.ecr.images'
     image: baseimage
-    runtime: nodejs14.x
+    runtime: nodejs24.x
     runtimeManagement:
       mode: manual # syntax required for manual, mode property also supports 'auto' or 'onFunctionUpdate' (see provider.runtimeManagement)
       arn: <aws runtime arn> # required when mode is manual

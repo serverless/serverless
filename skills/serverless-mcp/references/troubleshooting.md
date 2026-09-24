@@ -1,34 +1,116 @@
 # Troubleshooting
 
+## Contents
+
+- The endpoint answers, but not the way it should
+- Cold-start failures (read them in the function's logs)
+- Auth and discovery
+- Configuration errors
+- Deploy-time and CLI surprises
+
 Find the symptom, apply the fix, then re-verify against real evidence — a
 JSON-RPC result, a status code, a log line. See `references/testing.md` for how
 to get that evidence.
 
 ## The endpoint answers, but not the way it should
 
-| Symptom                                                                                                                                                                      | Cause                                                                                                                                                                                                                                                                                                       | Fix                                                                                                                                                                                                                                                                                                               |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `504` at roughly 30 s on a tool that writes nothing while it works, while short calls succeed                                                                                | The endpoint is edge-optimized (the Framework default), which ends a stream quiet for ~30 s counted from the invoke                                                                                                                                                                                         | Set `provider.endpointType: REGIONAL` and redeploy. Raising `timeout` does not help — it is the gap between writes that is bounded                                                                                                                                                                                |
-| A stream dies at roughly 5 minutes on a regional endpoint                                                                                                                    | The regional idle bound, reached because the tool went quiet                                                                                                                                                                                                                                                | Emit progress notifications from the tool — each one resets the idle clock (`references/server-code.md`)                                                                                                                                                                                                          |
-| `tools/list` returns the tools with empty input schemas, while `tools/call` works                                                                                            | zod 3 in the service; the SDK's schema conversion needs zod 4.2+                                                                                                                                                                                                                                            | `npm install zod@^4.2` and redeploy                                                                                                                                                                                                                                                                               |
-| Every progress event arrives at the end, in one flush, instead of as the work happens                                                                                        | Something in the chain buffered the response — a hand-wired route without `response.transferMode: STREAM`, or a proxy in front                                                                                                                                                                              | Let the Framework own the route — on a hand-wired streaming function, every route needs `STREAM`, including any metadata one                                                                                                                                                                                      |
-| A tool that asks the client for something (elicitation, sampling, roots) errors with "did not declare the required capability" or "cannot receive server-to-client requests" | The client negotiated a protocol revision older than 2026-07-28 — the official SDK client's default; per-request serving cannot send the client wire requests, and the in-band `input_required` flow (which carries `elicitation/create`, `sampling/createMessage` and `roots/list` alike) is 2026-era only | Opt the client into the modern revision: `new Client(info, { capabilities: { elicitation: { form: {} } }, versionNegotiation: { mode: 'auto' } })`, with the matching handlers registered. Plain tools, streaming and progress all work without it — only tools that ask the client for something need the opt-in |
-| A client that worked against the `execute-api` URL refuses the server after a custom domain was added                                                                        | With `provider.domain` set, every advertised URL — including the metadata document's `resource` — names the domain; a spec-conformant client called via the old URL rejects the mismatch                                                                                                                    | Point clients at the domain. The `execute-api` URL stops being an interchangeable alias the moment a domain fronts the service                                                                                                                                                                                    |
-| `tools/call` answers an `isError` result: "Cannot read properties of undefined (reading 'mcpReq')"                                                                           | The tool was registered without `inputSchema` but its callback takes `(args, ctx)` — with no schema the SDK passes the context as the callback's ONLY argument, so `ctx` is undefined                                                                                                                       | Add `inputSchema` to the registration (`z.object({})` for a tool with no inputs), or take the context as the single parameter                                                                                                                                                                                     |
-| A `GET` on the endpoint returns `405`                                                                                                                                        | Expected — the SDK answers non-POST verbs with the spec's error                                                                                                                                                                                                                                             | Nothing to fix                                                                                                                                                                                                                                                                                                    |
-| The tool keeps running (and billing) after the client hangs up                                                                                                               | Client disconnects do not propagate through this front door                                                                                                                                                                                                                                                 | `timeout` is the cost ceiling; set it to the longest tool you actually have. Observe `ctx.mcpReq.signal` so cancellation lands wherever it does arrive                                                                                                                                                            |
+### `504` at roughly 30 s on a tool that writes nothing while it works, while short calls succeed
+
+**Cause:** The endpoint is edge-optimized (the Framework default), which ends a stream quiet for ~30 s counted from the invoke
+
+**Fix:** Set `provider.endpointType: REGIONAL` and redeploy. Raising `timeout` does not help — it is the gap between writes that is bounded
+
+### A stream dies at roughly 5 minutes on a regional endpoint
+
+**Cause:** The regional idle bound, reached because the tool went quiet
+
+**Fix:** Emit progress notifications from the tool — each one resets the idle clock (`references/server-code.md`)
+
+### `tools/list` returns the tools with empty input schemas, while `tools/call` works
+
+**Cause:** zod 3 in the service; the SDK's schema conversion needs zod 4.2+
+
+**Fix:** `npm install zod@^4.2` and redeploy
+
+### Every progress event arrives at the end, in one flush, instead of as the work happens
+
+**Cause:** Something in the chain buffered the response — a hand-wired route without `response.transferMode: STREAM`, or a proxy in front
+
+**Fix:** Let the Framework own the route — on a hand-wired streaming function, every route needs `STREAM`, including any metadata one
+
+### A tool that asks the client for something (elicitation, sampling, roots) errors with "did not declare the required capability" or "cannot receive server-to-client requests"
+
+**Cause:** The client negotiated a protocol revision older than 2026-07-28 — the official SDK client's default; per-request serving answers each request on its own, so server-to-client requests travel in-band, and the `input_required` flow (which carries `elicitation/create`, `sampling/createMessage` and `roots/list` alike) is 2026-era only
+
+**Fix:** Opt the client into the modern revision: `new Client(info, { capabilities: { elicitation: { form: {} } }, versionNegotiation: { mode: 'auto' } })`, with the matching handlers registered. Plain tools, streaming and progress all work without it — only tools that ask the client for something need the opt-in
+
+### A client that worked against the `execute-api` URL refuses the server after a custom domain was added
+
+**Cause:** With `provider.domain` set, every advertised URL — including the metadata document's `resource` — names the domain; a spec-conformant client called via the old URL rejects the mismatch
+
+**Fix:** Point clients at the domain. The `execute-api` URL stops being an interchangeable alias the moment a domain fronts the service
+
+### `tools/call` answers an `isError` result: "Cannot read properties of undefined (reading 'mcpReq')"
+
+**Cause:** The tool was registered without `inputSchema` but its callback takes `(args, ctx)` — with no schema the SDK passes the context as the callback's ONLY argument, so `ctx` is undefined
+
+**Fix:** Add `inputSchema` to the registration (`z.object({})` for a tool with no inputs), or take the context as the single parameter
+
+### A `GET` on the endpoint returns `405`
+
+**Cause:** Expected — the SDK answers non-POST verbs with the spec's error
+
+**Fix:** Nothing to fix
+
+### The tool keeps running (and billing) after the client hangs up
+
+**Cause:** Client disconnects do not propagate through this front door
+
+**Fix:** `timeout` is the cost ceiling; set it to the longest tool you actually have. Observe `ctx.mcpReq.signal` so cancellation lands wherever it does arrive
 
 ## Cold-start failures (read them in the function's logs)
 
-| Symptom                                                                       | Cause                                                                                                    | Fix                                                                                                                      |
-| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| An error naming the `server:` property and `createMcpHandler()`               | The module's default export does not expose a web-standard `fetch`                                       | `export default createMcpHandler(() => { … })` — not the `McpServer`, not a named export                                 |
-| `ERR_MODULE_NOT_FOUND` for `@modelcontextprotocol/server` or `zod`            | Classic packaging strips `devDependencies`, or a mixed service left this server out of the bundle        | Move them to `dependencies` (or set `package.excludeDevDependencies: false`); give every server the same build treatment |
-| `The MCP server module "…" is not in the deployed package`                    | The `server:` path is wrong, or packaging excluded the file                                              | Fix the path, or the `package.patterns` that dropped it                                                                  |
-| `AccessDenied` reading the state key, naming an action and an ARN             | The execution role you brought has no read grant — the Framework cannot modify a role it does not create | Attach the statement the message quotes to that role's policy                                                            |
-| The same message, but AWS's text mentions KMS                                 | The key is encrypted with a customer-managed KMS key                                                     | Also grant `kms:Decrypt` on that key, and allow the role in the key's own policy                                         |
-| `SERVERLESS_MCP_STATE_KEY_REF is empty` / the state key holds no string value | The reference points at nothing readable, or at a binary secret                                          | A state key must be a plain-text secret or a String/SecureString parameter                                               |
-| An error saying `SERVERLESS_MCP_SERVER_MODULE` is not set                     | The function was not deployed as an MCP server                                                           | Deploy through `mcp:`; if this followed a `serverless dev` session, redeploy with `serverless deploy`                    |
+### An error naming the `server:` property and `createMcpHandler()`
+
+**Cause:** The module's default export does not expose a web-standard `fetch`
+
+**Fix:** `export default createMcpHandler(() => { … })` — not the `McpServer`, not a named export
+
+### `ERR_MODULE_NOT_FOUND` for `@modelcontextprotocol/server` or `zod`
+
+**Cause:** Classic packaging strips `devDependencies`, or a mixed service left this server out of the bundle
+
+**Fix:** Move them to `dependencies` (or set `package.excludeDevDependencies: false`); give every server the same build treatment
+
+### `The MCP server module "…" is not in the deployed package`
+
+**Cause:** The `server:` path is wrong, or packaging excluded the file
+
+**Fix:** Fix the path, or the `package.patterns` that dropped it
+
+### `AccessDenied` reading the state key, naming an action and an ARN
+
+**Cause:** The execution role you brought has no read grant — the Framework leaves roles it didn't create unchanged
+
+**Fix:** Attach the statement the message quotes to that role's policy
+
+### The same message, but AWS's text mentions KMS
+
+**Cause:** The key is encrypted with a customer-managed KMS key
+
+**Fix:** Also grant `kms:Decrypt` on that key, and allow the role in the key's own policy
+
+### `SERVERLESS_MCP_STATE_KEY_REF is empty` / the state key holds no string value
+
+**Cause:** The reference points at nothing readable, or at a binary secret
+
+**Fix:** A state key must be a plain-text secret or a String/SecureString parameter
+
+### An error saying `SERVERLESS_MCP_SERVER_MODULE` is not set
+
+**Cause:** The function was not deployed as an MCP server
+
+**Fix:** Deploy through `mcp:`; if this followed a `serverless dev` session, redeploy with `serverless deploy`
 
 ## Auth and discovery
 
@@ -37,20 +119,77 @@ API Gateway's (bare shape, rejection before the invoke) or your own module's
 (the spec's shape, after an invoke) — never the entry's. Establish which one
 you are looking at first: check whether the server's log group gained an entry.
 
-| Symptom                                                                                                                                    | Cause                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Fix                                                                                                                                                                                                                                                                                                                                                                                                      |
-| ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Bare `401` `{"message":"Unauthorized"}`, and neither the server's nor the authorizer's log group gains anything                            | API Gateway rejected before invoking anything: the request omitted the authorizer's identity source (the `Authorization` header by default), or a Cognito user-pool authorizer judged the token invalid itself                                                                                                                                                                                                                                                                                                                                                                 | Expected for tokenless callers — that is the design working. If valid callers get it too, check that the client sends the header the `identitySource` names                                                                                                                                                                                                                                              |
-| Every caller gets `401` — valid tokens included — and the authorizer's own logs show it rejecting or erroring                              | The string form compiles a **`TOKEN` authorizer**, which receives only `event.authorizationToken` and has no `event.headers`; a function written against the full request event finds nothing where it looks                                                                                                                                                                                                                                                                                                                                                                   | Use the object form with `type: request` and `identitySource: method.request.header.Authorization`, or read `event.authorizationToken`                                                                                                                                                                                                                                                                   |
-| `403` with "User is not authorized to access this resource" (API Gateway's `ACCESS_DENIED` response)                                       | The **Lambda authorizer** ran and returned a Deny policy — this row is not the `aws_iam` shape (the two rows below are)                                                                                                                                                                                                                                                                                                                                                                                                                                                        | That is the authorizer's verdict — check its policy logic. Verdicts are cached for `resultTtlInSeconds` (default 300 s), so a fixed authorizer can keep answering the old verdict for that long                                                                                                                                                                                                          |
-| `403` `{"message":"Missing Authentication Token"}` on the MCP route of an `authorizer: aws_iam` server                                     | The request was not SigV4-signed. An IAM-authorized method never answers `401`: unsigned requests get this `403` — byte-identical to the route-miss discovery `403` below, so disambiguate by which route (and which path) was hit                                                                                                                                                                                                                                                                                                                                             | SigV4-sign the request with AWS credentials; a caller that cannot sign needs a different `authorizer` shape                                                                                                                                                                                                                                                                                              |
-| `403` with "User: arn:… is not authorized to perform: execute-api:Invoke on resource: …"                                                   | The request was signed, but the caller's IAM identity lacks `execute-api:Invoke` on this route. The verdict is IAM policy evaluation, per request — no authorizer resource exists and no `resultTtlInSeconds` cache is involved                                                                                                                                                                                                                                                                                                                                                | Grant the calling identity `execute-api:Invoke` on the API's stage/route ARN                                                                                                                                                                                                                                                                                                                             |
-| `GET` on the discovery URL answers `403` — `{"message":"Missing Authentication Token"}` or `{"message":"Forbidden"}`                       | Despite the text, neither is about authentication — both are path misses. `Missing Authentication Token` means the request reached an API but no route matched: on `execute-api` the path or stage is wrong, on a custom domain the path matched a base-path mapping but the API behind it has no such route, or this server has no `oauthDiscovery`, so the route was never provisioned. `Forbidden` is a custom-domain path that no base-path mapping matched at all — the request never reached any API. The status never disambiguates — the body and the requested URL do | Check the URL — the stage prefix is part of it on a raw `execute-api` origin, and a domain's `basePath` is part of it on a custom domain — and that `mcp.servers.<name>.oauthDiscovery` is set                                                                                                                                                                                                           |
-| A browser client `POST`s to the discovery URL and reports an opaque CORS failure                                                           | The route serves only `GET` and `OPTIONS`; other methods get API Gateway's default `403` without CORS headers, which a browser can only report as a CORS error                                                                                                                                                                                                                                                                                                                                                                                                                 | Fetch the document with `GET`                                                                                                                                                                                                                                                                                                                                                                            |
-| A package or deploy warns that discovery is advertised at the stage URL                                                                    | No `oauthDiscovery.publicUrl` and no single REST-facing custom domain, so the document's URL resolution fell back to the stage URL — where no client's conventional root-relative probes look, so interactive login will not work                                                                                                                                                                                                                                                                                                                                              | Set `mcp.servers.<name>.oauthDiscovery.publicUrl` to the URL clients actually use, or declare the domain under `provider.domain`. The warning repeats on every package and deploy until one is done                                                                                                                                                                                                      |
-| OAuth discovery fails against the default `execute-api` URL — Claude Code ends up on a `<origin>/authorize` sign-in page that never loads  | Clients probe the well-known paths relative to the **origin root**, and on the default endpoint the document sits under the stage prefix where no probe lands; on a full miss a client can fall back to treating the server's origin as the authorization server, hence the dead sign-in page. (Official-SDK clients start their flow on the bare `401` — no challenge header needed — and then probe the same paths)                                                                                                                                                          | Put a custom domain in front mapped at the **root** — the stage prefix disappears and the root probes land (a non-root `basePath` moves the document off the root again). A client that accepts a metadata URL directly can be pointed at the stage-aware URL without a domain; Claude Code has no such setting                                                                                          |
-| The discovery document still shows the old `issuer` or URL after a deploy that changed it                                                  | The endpoint keeps serving the old body for a while after the stack update completes — roughly 50–70 seconds through CloudFront on an edge-optimized endpoint (the Framework default), and 60–90 seconds even on a regional one, where the control plane already shows the new document while the endpoint still answers with the old                                                                                                                                                                                                                                          | Wait up to two minutes and fetch again before debugging further                                                                                                                                                                                                                                                                                                                                          |
-| An unauthenticated flood is costing invocations                                                                                            | No `authorizer` on the route — every request reaches the function, and an in-module gate rejects only after paying for the invoke                                                                                                                                                                                                                                                                                                                                                                                                                                              | Set `authorizer`: Cognito user pools and `aws_iam` reject with no invocation anywhere; a Lambda authorizer rejects tokenless requests without even being invoked (the identity source is missing) and costs its own — far cheaper — invoke for bad tokens, uncached when it rejects by throwing `401`. Discovery stays open either way                                                                   |
-| An interactive OAuth connect fails with a bare client-side message and no detail — Claude Code reports `SDK auth failed:` and nothing else | The client-side surface is silent by design: whatever the issuer actually answered (registration refused, a disabled endpoint, a policy failure after login) is not relayed                                                                                                                                                                                                                                                                                                                                                                                                    | Ask the issuer directly. For a URL-only (DCR) connect, `curl -s -X POST <registration_endpoint>` (from the issuer's own metadata) with a minimal `{"client_name":"probe","redirect_uris":["http://localhost:8976/callback"]}` body returns the issuer's real error — and issuers advertise a `registration_endpoint` whether or not registration is enabled, so the probe, not the metadata, is the test |
+### Bare `401` `{"message":"Unauthorized"}`, and neither the server's nor the authorizer's log group gains anything
+
+**Cause:** API Gateway rejected before invoking anything: the request omitted the authorizer's identity source (the `Authorization` header by default), or a Cognito user-pool authorizer judged the token invalid itself
+
+**Fix:** Expected for tokenless callers — that is the design working. If valid callers get it too, check that the client sends the header the `identitySource` names
+
+### Every caller gets `401` — valid tokens included — and the authorizer's own logs show it rejecting or erroring
+
+**Cause:** The string form compiles a **`TOKEN` authorizer**, which receives only `event.authorizationToken` and has no `event.headers`; a function written against the full request event finds nothing where it looks
+
+**Fix:** Use the object form with `type: request` and `identitySource: method.request.header.Authorization`, or read `event.authorizationToken`
+
+### `403` with "User is not authorized to access this resource" (API Gateway's `ACCESS_DENIED` response)
+
+**Cause:** The **Lambda authorizer** ran and returned a Deny policy — this is not the `aws_iam` shape (the next two entries are)
+
+**Fix:** That is the authorizer's verdict — check its policy logic. Verdicts are cached for `resultTtlInSeconds` (default 300 s), so a fixed authorizer can keep answering the old verdict for that long
+
+### `403` `{"message":"Missing Authentication Token"}` on the MCP route of an `authorizer: aws_iam` server
+
+**Cause:** The request was not SigV4-signed. An IAM-authorized method never answers `401`: unsigned requests get this `403` — byte-identical to the route-miss discovery `403` below, so disambiguate by which route (and which path) was hit
+
+**Fix:** SigV4-sign the request with AWS credentials; a caller that cannot sign needs a different `authorizer` shape
+
+### `403` with "User: arn:… is not authorized to perform: execute-api:Invoke on resource: …"
+
+**Cause:** The request was signed, but the caller's IAM identity lacks `execute-api:Invoke` on this route. The verdict is IAM policy evaluation, per request — no authorizer resource exists and no `resultTtlInSeconds` cache is involved
+
+**Fix:** Grant the calling identity `execute-api:Invoke` on the API's stage/route ARN
+
+### `GET` on the discovery URL answers `403` — `{"message":"Missing Authentication Token"}` or `{"message":"Forbidden"}`
+
+**Cause:** Despite the text, neither is about authentication — both are path misses. `Missing Authentication Token` means the request reached an API but no route matched: on `execute-api` the path or stage is wrong, on a custom domain the path matched a base-path mapping but the API behind it has no such route, or this server has no `oauthDiscovery`, so the route was never provisioned. `Forbidden` is a custom-domain path that no base-path mapping matched at all — the request never reached any API. The status never disambiguates — the body and the requested URL do
+
+**Fix:** Check the URL — the stage prefix is part of it on a raw `execute-api` origin, and a domain's `basePath` is part of it on a custom domain — and that `mcp.servers.<name>.oauthDiscovery` is set
+
+### A browser client `POST`s to the discovery URL and reports an opaque CORS failure
+
+**Cause:** The route serves only `GET` and `OPTIONS`; other methods get API Gateway's default `403` without CORS headers, which a browser can only report as a CORS error
+
+**Fix:** Fetch the document with `GET`
+
+### A package or deploy warns that discovery is advertised at the stage URL
+
+**Cause:** No `oauthDiscovery.publicUrl` and no single REST-facing custom domain, so the document's URL resolution fell back to the stage URL — where no client's conventional root-relative probes look, so interactive login will not work
+
+**Fix:** Set `mcp.servers.<name>.oauthDiscovery.publicUrl` to the URL clients actually use, or declare the domain under `provider.domain`. The warning repeats on every package and deploy until one is done
+
+### OAuth discovery fails against the default `execute-api` URL — Claude Code ends up on a `<origin>/authorize` sign-in page that never loads
+
+**Cause:** Clients probe the well-known paths relative to the **origin root**, and on the default endpoint the document sits under the stage prefix where no probe lands; on a full miss a client can fall back to treating the server's origin as the authorization server, hence the dead sign-in page. (Official-SDK clients start their flow on the bare `401` — no challenge header needed — and then probe the same paths)
+
+**Fix:** Put a custom domain in front mapped at the **root** — the stage prefix disappears and the root probes land (a non-root `basePath` moves the document off the root again). A client that accepts a metadata URL directly can be pointed at the stage-aware URL without a domain; Claude Code has offered no such setting
+
+### The discovery document still shows the old `issuer` or URL after a deploy that changed it
+
+**Cause:** The endpoint keeps serving the old body for a while after the stack update completes — roughly 50–70 seconds through CloudFront on an edge-optimized endpoint (the Framework default), and 60–90 seconds even on a regional one, where the control plane already shows the new document while the endpoint still answers with the old
+
+**Fix:** Wait up to two minutes and fetch again before debugging further
+
+### An unauthenticated flood is costing invocations
+
+**Cause:** No `authorizer` on the route — every request reaches the function, and an in-module gate rejects only after paying for the invoke
+
+**Fix:** Set `authorizer`: Cognito user pools and `aws_iam` reject with no invocation anywhere; a Lambda authorizer rejects tokenless requests without even being invoked (the identity source is missing) and costs its own — far cheaper — invoke for bad tokens, uncached when it rejects by throwing `401`. Discovery stays open either way
+
+### An interactive OAuth connect fails with a bare client-side message and no detail — Claude Code reports `SDK auth failed:` and nothing else
+
+**Cause:** The client-side surface is silent by design: whatever the issuer actually answered (registration refused, a disabled endpoint, a policy failure after login) is not relayed
+
+**Fix:** Ask the issuer directly. For a URL-only (DCR) connect, `curl -s -X POST <registration_endpoint> -H 'Content-Type: application/json' -d '{"client_name":"probe","redirect_uris":["http://localhost:8976/callback"]}'` (the endpoint from the issuer's own metadata) returns the issuer's real error — and issuers advertise a `registration_endpoint` whether or not registration is enabled, so the probe, not the metadata, is the test
 
 ## Configuration errors
 
@@ -63,34 +202,148 @@ server name); `MCP_OAUTH_DISCOVERY_ISSUER_VARIABLE_COLLISION` likewise
 surfaces when the template compiles — `package` still catches both. You do not
 need a deploy to find out.
 
-| Code                                            | Cause                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Fix                                                                                                                                                                                      |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MCP_AWS_PROVIDER_REQUIRED`                     | An `mcp` block in a service whose `provider.name` is not `aws`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Switch the provider to `aws`, or remove the block                                                                                                                                        |
-| `MCP_UNSUPPORTED_NODE_RUNTIME`                  | `provider.runtime` pins a Node.js runtime below 20                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Set `nodejs20.x` or newer, or remove it and take the default `nodejs24.x`                                                                                                                |
-| `MCP_RESERVED_SERVER_NAME`                      | A server named `well-known` (it would collide with the discovery path) or `__proto__`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Rename the server                                                                                                                                                                        |
-| `MCP_FUNCTION_NAME_COLLISION`                   | A server name normalizes to the same CloudFormation logical ID as one of your functions, or as another server                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Rename one of them — normalization folds case and strips `_`, so `foo_bar` and `foobar` collide                                                                                          |
-| `MCP_INVALID_STATE_ARN`                         | `state` is a CloudFormation intrinsic, or an ARN that is neither an SSM parameter nor a Secrets Manager secret                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Write the ARN out in full, or use `state: true`                                                                                                                                          |
-| `MCP_AUTHORIZER_INVALID`                        | `authorizer` is blank, neither a string nor an object, sets an unknown `type`, names none of `name`/`arn`/`authorizerId` (and is not `type: aws_iam`, the one type needing no identifier), sets `authorizerId` without the `type` API Gateway requires beside it, is a string carrying a colon (a string always names a function — ARNs go in the object form), sets an intrinsic `arn` with no `name` beside it (the CloudFormation name is otherwise derived from an ARN that does not exist yet), or pairs `type: aws_iam` with an `authorizerId` (IAM attaches no authorizer resource, so the id would be silently ignored) | Name an authorizer function, `aws_iam`, or an http-event-style object with an identifier; give a bare `authorizerId` its `type`, an ARN the object form, and an intrinsic `arn` a `name` |
-| `MCP_AUTHORIZER_NAME_COLLISION`                 | Two _different_ authorizers — on two servers, or on a server and an `http` event — whose names compile to the same CloudFormation logical id; only one authorizer resource would be created, so one route would silently be guarded by the other's authorizer                                                                                                                                                                                                                                                                                                                                                                   | Rename one to a name that normalizes to a different logical id, or make the two definitions identical so they really are one authorizer                                                  |
-| `MCP_OAUTH_DISCOVERY_ISSUER_REQUIRED`           | `oauthDiscovery` is present without an `issuer` — or `issuer` is an object that is not one of the accepted CloudFormation intrinsics (`Ref`, `Fn::GetAtt`, `Fn::ImportValue`, `Fn::Sub`, `Fn::Join`, `Fn::Base64`, `Fn::ToJsonString`; a misspelled or unadmitted `Fn::` key lands here too)                                                                                                                                                                                                                                                                                                                                    | Set `oauthDiscovery.issuer` to the authorization server's https URL or to an accepted intrinsic resolving to it, or remove the block                                                     |
-| `MCP_OAUTH_DISCOVERY_ISSUER_NOT_HTTPS`          | `issuer` is not an https URL with a host — or contains `$`/`#`, which the document's Velocity template would rewrite. For an `Fn::Sub` issuer the literal text outside `${...}` placeholders is what is checked, so an `Fn::Sub` that is entirely one placeholder fails the prefix check                                                                                                                                                                                                                                                                                                                                        | Write the plain, full https URL the provider publishes; write the scheme out around an `Fn::Sub`'s substitutions, or name a whole-URL value directly with `Ref`/`Fn::GetAtt`             |
-| `MCP_OAUTH_DISCOVERY_PUBLIC_URL_NOT_HTTPS`      | The same two checks, failed by `publicUrl` — or a `publicUrl` that is a CloudFormation intrinsic (it names a front door outside this stack, and the deploy prints it) or carries a query string (the server's route is appended to it, so a query mid-URL addresses nothing)                                                                                                                                                                                                                                                                                                                                                    | Write the plain https base URL clients use — everything before `/<name>/mcp`, no query                                                                                                   |
-| `MCP_OAUTH_DISCOVERY_VTL_UNSAFE_VALUE`          | A `$` or `#` would reach the discovery document, where Velocity treats both as live syntax: from an `Fn::Sub` issuer's literal text — the `${!Literal}` escape included, since it renders as literal `${...}` text (raised at validation) — or from a value the schema cannot see: the custom domain, the stage name, or the server name (raised when the template compiles, so `package` catches it)                                                                                                                                                                                                                           | Remove the character from the value the message names                                                                                                                                    |
-| `MCP_OAUTH_DISCOVERY_ISSUER_VARIABLE_COLLISION` | A list-form `Fn::Sub` issuer declares a variable named `RestApiId`, which the discovery document's own rendering uses for this service's REST API id                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Rename the variable in the `Fn::Sub`'s variable map                                                                                                                                      |
-| `MCP_SERVER_MODULE_REQUIRED`                    | A server entry has no usable `server:` path — the entry is not an object, or `server` is missing or empty                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Set `mcp.servers.<name>.server` to the module path                                                                                                                                       |
-| `MCP_ENTRY_STAGING_PATH_TAKEN`                  | A `serverless-mcp/` directory in the service holds files the Framework does not own                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Move or rename it — packaging stages the entry there and removes it afterwards                                                                                                           |
-| `MCP_PREBUILT_ARTIFACT_UNSUPPORTED`             | `package.artifact` is set: such an artifact is uploaded verbatim, so the entry never reaches it                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Drop the artifact setting, or move the MCP server into its own service                                                                                                                   |
-| `MCP_ENTRY_BUNDLE_MISSING`                      | The prebuilt entry is absent. From a released CLI this is a bug worth reporting; in a source checkout it is a build product                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Run `npm run build:mcp:entry` in `packages/serverless`                                                                                                                                   |
-| `MCP_API_GATEWAY_PLUGIN_NOT_FOUND`              | Internal — the API Gateway compiler was not found                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Report it                                                                                                                                                                                |
-| `API_GATEWAY_EXTERNAL_EVENT_ROUTE_COLLISION`    | One of your `http` events sits on the same API Gateway resource as an MCP route; a concrete method there would win dispatch over the route's `ANY` and divert JSON-RPC traffic                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Move your event. Child paths (`/crm/mcp/extra`) are fine                                                                                                                                 |
+### `MCP_AWS_PROVIDER_REQUIRED`
+
+**Cause:** An `mcp` block in a service whose `provider.name` is not `aws`
+
+**Fix:** Switch the provider to `aws`, or remove the block
+
+### `MCP_UNSUPPORTED_NODE_RUNTIME`
+
+**Cause:** `provider.runtime` pins a Node.js runtime below 20
+
+**Fix:** Set `nodejs20.x` or newer, or remove it and take the default `nodejs24.x`
+
+### `MCP_RESERVED_SERVER_NAME`
+
+**Cause:** A server named `well-known` (it would collide with the discovery path) or `__proto__`
+
+**Fix:** Rename the server
+
+### `MCP_FUNCTION_NAME_COLLISION`
+
+**Cause:** A server name normalizes to the same CloudFormation logical ID as one of your functions, or as another server
+
+**Fix:** Rename one of them — normalization folds case and strips `_`, so `foo_bar` and `foobar` collide
+
+### `MCP_INVALID_STATE_ARN`
+
+**Cause:** `state` is a CloudFormation intrinsic, or an ARN that is neither an SSM parameter nor a Secrets Manager secret
+
+**Fix:** Write the ARN out in full, or use `state: true`
+
+### `MCP_AUTHORIZER_INVALID`
+
+**Cause:** `authorizer` is blank or neither a string nor an object, or breaks one of the rules listed in `references/config.md` (`authorizer` shapes); the message names which
+
+**Fix:** Name an authorizer function, `aws_iam`, or an http-event-style object with an identifier; give a bare `authorizerId` its `type`, an ARN the object form, and a Cognito pool or intrinsic `arn` a `name`
+
+### `MCP_AUTHORIZER_NAME_COLLISION`
+
+**Cause:** Two _different_ authorizers — on two servers, or on a server and an `http` event — whose names compile to the same CloudFormation logical id; only one authorizer resource would be created, so one route would silently be guarded by the other's authorizer
+
+**Fix:** Rename one to a name that normalizes to a different logical id, or make the two definitions identical so they really are one authorizer
+
+### `MCP_OAUTH_DISCOVERY_ISSUER_REQUIRED`
+
+**Cause:** `oauthDiscovery` is present without an `issuer` — or `issuer` is an object that is not one of the accepted CloudFormation intrinsics (`Ref`, `Fn::GetAtt`, `Fn::ImportValue`, `Fn::Sub`, `Fn::Join`, `Fn::Base64`, `Fn::ToJsonString`; a misspelled or unadmitted `Fn::` key lands here too)
+
+**Fix:** Set `oauthDiscovery.issuer` to the authorization server's https URL or to an accepted intrinsic resolving to it, or remove the block
+
+### `MCP_OAUTH_DISCOVERY_ISSUER_NOT_HTTPS`
+
+**Cause:** `issuer` is not an https URL with a host — or contains `$`/`#`, which the document's Velocity template would rewrite. For an `Fn::Sub` issuer the literal text outside `${...}` placeholders is what is checked, so an `Fn::Sub` that is entirely one placeholder fails the prefix check
+
+**Fix:** Write the plain, full https URL the provider publishes; write the scheme out around an `Fn::Sub`'s substitutions, or name a whole-URL value directly with `Ref`/`Fn::GetAtt`
+
+### `MCP_OAUTH_DISCOVERY_PUBLIC_URL_NOT_HTTPS`
+
+**Cause:** The same two checks, failed by `publicUrl` — or a `publicUrl` that is a CloudFormation intrinsic (it names a front door outside this stack, and the deploy prints it) or carries a query string (the server's route is appended to it, so a query mid-URL addresses nothing)
+
+**Fix:** Write the plain https base URL clients use — everything before `/<name>/mcp`, no query
+
+### `MCP_OAUTH_DISCOVERY_VTL_UNSAFE_VALUE`
+
+**Cause:** A `$` or `#` would reach the discovery document, where Velocity treats both as live syntax: from an `Fn::Sub` issuer's literal text — the `${!Literal}` escape included, since it renders as literal `${...}` text (raised at validation) — or from a value the schema cannot see: the custom domain, the stage name, or the server name (raised when the template compiles, so `package` catches it)
+
+**Fix:** Remove the character from the value the message names
+
+### `MCP_OAUTH_DISCOVERY_ISSUER_VARIABLE_COLLISION`
+
+**Cause:** A list-form `Fn::Sub` issuer declares a variable named `RestApiId`, which the discovery document's own rendering uses for this service's REST API id
+
+**Fix:** Rename the variable in the `Fn::Sub`'s variable map
+
+### `MCP_SERVER_MODULE_REQUIRED`
+
+**Cause:** A server entry has no usable `server:` path — the entry is not an object, or `server` is missing or empty
+
+**Fix:** Set `mcp.servers.<name>.server` to the module path
+
+### `MCP_ENTRY_STAGING_PATH_TAKEN`
+
+**Cause:** A `serverless-mcp/` directory in the service holds files the Framework does not own
+
+**Fix:** Move or rename it — packaging stages the entry there and removes it afterwards
+
+### `MCP_PREBUILT_ARTIFACT_UNSUPPORTED`
+
+**Cause:** `package.artifact` is set: such an artifact is uploaded verbatim, so the entry never reaches it
+
+**Fix:** Drop the artifact setting, or move the MCP server into its own service
+
+### `MCP_ENTRY_BUNDLE_MISSING`
+
+**Cause:** The prebuilt entry is absent from the CLI installation
+
+**Fix:** Reinstall the CLI; if it persists on a released version, report it
+
+### `MCP_API_GATEWAY_PLUGIN_NOT_FOUND`
+
+**Cause:** Internal — the API Gateway compiler was not found
+
+**Fix:** Report it
+
+### `API_GATEWAY_EXTERNAL_EVENT_ROUTE_COLLISION`
+
+**Cause:** One of your `http` events sits on the same API Gateway resource as an MCP route; a concrete method there would win dispatch over the route's `ANY` and divert JSON-RPC traffic
+
+**Fix:** Move your event. Child paths (`/crm/mcp/extra`) are fine
 
 ## Deploy-time and CLI surprises
 
-| Symptom                                                                                                                                                                                   | Cause                                                                                                                                                                                            | Fix                                                                                                                                                                                         |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Under `serverless dev`, progress arrives only at the end of the call — or, on an edge-optimized endpoint, a quiet tool gets `504` at roughly 30 s and the session prints a budget warning | Dev Mode delivers results buffered: the body is assembled fully and sent at once (valid Streamable HTTP), so nothing is written until the call finishes and progress cannot reset the idle clock | Expected. Deploy with `serverless deploy` to test incremental streaming and long-running tools. On `REGIONAL` the same quiet call answers through the session, up to the server's `timeout` |
-| A tool call in a dev session fails naming the 125 KB Dev Mode limit                                                                                                                       | Requests and results are relayed through the dev session, which bounds both at roughly 125 KB — as for every Dev Mode function                                                                   | Deploy normally to exercise large payloads                                                                                                                                                  |
-| `deploy function -f <name>` updated the code but not the environment                                                                                                                      | The Lambda configuration update skips the whole environment when any value is a CloudFormation reference — which is how `state` passes the key                                                   | Run a full `serverless deploy` for environment changes                                                                                                                                      |
-| A warning that the execution role cannot read the state key, right after a deploy                                                                                                         | The post-deploy simulation got a definite deny                                                                                                                                                   | Attach the statement the warning quotes                                                                                                                                                     |
-| No warning, yet the server fails on the key at runtime                                                                                                                                    | The simulation could not get a verdict (for instance, the deploying credentials may not call `iam:SimulatePrincipalPolicy`) and stays silent rather than guessing                                | Read the cold-start error; it names the action and the ARN                                                                                                                                  |
-| No endpoint lines in the deploy or `info` summary                                                                                                                                         | No custom domain, and no `ServiceEndpoint` output was gathered (a stack that does not exist yet, or a failed lookup)                                                                             | Re-run `serverless info` once the stack is up; `--verbose` shows the debug line                                                                                                             |
+### Under `serverless dev`, progress arrives only at the end of the call — or, on an edge-optimized endpoint, a quiet tool gets `504` at roughly 30 s and the session prints a budget warning
+
+**Cause:** Dev Mode delivers results buffered: the body is assembled fully and sent at once (valid Streamable HTTP), so nothing is written until the call finishes and progress cannot reset the idle clock
+
+**Fix:** Expected. Deploy with `serverless deploy` to test incremental streaming and long-running tools. On `REGIONAL` the same quiet call answers through the session, up to the server's `timeout`
+
+### A tool call in a dev session fails naming the 125 KB Dev Mode limit
+
+**Cause:** Requests and results are relayed through the dev session, which bounds both at roughly 125 KB — as for every Dev Mode function
+
+**Fix:** Deploy normally to exercise large payloads
+
+### `deploy function -f <name>` updated the code but not the environment
+
+**Cause:** The Lambda configuration update skips the whole environment when any value is a CloudFormation reference — which is how `state` passes the key
+
+**Fix:** Run a full `serverless deploy` for environment changes
+
+### A warning that the execution role cannot read the state key, right after a deploy
+
+**Cause:** The post-deploy simulation got a definite deny
+
+**Fix:** Attach the statement the warning quotes
+
+### No warning, yet the server fails on the key at runtime
+
+**Cause:** The simulation could not get a verdict (for instance, the deploying credentials may not call `iam:SimulatePrincipalPolicy`) and stays silent rather than guessing
+
+**Fix:** Read the cold-start error; it names the action and the ARN
+
+### No endpoint lines in the deploy or `info` summary
+
+**Cause:** No custom domain, and no `ServiceEndpoint` output was gathered (a stack that does not exist yet, or a failed lookup)
+
+**Fix:** Re-run `serverless info` once the stack is up; `--verbose` shows the debug line

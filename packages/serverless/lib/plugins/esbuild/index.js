@@ -22,6 +22,7 @@ import micromatch from 'micromatch'
 import ServerlessError from '../../serverless-error.js'
 import { log } from '@serverless/util'
 import { resolveServerlessConfigFileExcludes } from '../package/lib/package-service.js'
+import { AGENT_SKILL_EXCLUDES } from '../package/lib/agent-skill-excludes.js'
 import {
   compilePatterns,
   filterPaths,
@@ -64,6 +65,7 @@ const CLASSIC_DEFAULT_EXCLUDES = [
   '.DS_Store',
   'npm-debug.log',
   'yarn-*.log',
+  ...AGENT_SKILL_EXCLUDES,
 ]
 
 // Env files never reach an artifact. This is deliberately stricter than

@@ -106,6 +106,32 @@ custom:
       - https_proxy
 ```
 
+### Linux wheels without Docker
+
+When every dependency publishes Linux wheels, pip can download them on macOS
+or Windows without Docker. Name the Lambda platforms (both manylinux tags, so
+pip takes either kind of wheel) and the runtime's Python version:
+
+```yaml
+provider:
+  runtime: python3.14
+  architecture: x86_64
+custom:
+  pythonRequirements:
+    pipCmdExtraArgs:
+      - '--platform=manylinux2014_x86_64' # manylinux2014_aarch64 for arm64
+      - '--platform=manylinux_2_28_x86_64' # manylinux_2_28_aarch64 for arm64
+      - '--python-version=3.14' # the runtime's version
+      - '--only-binary=:all:'
+```
+
+`--python-version` matters when the local interpreter is a different version
+than the runtime: without it, pip picks wheels for the local version, which
+Lambda cannot load. With `--only-binary=:all:`, a package that ships only a
+source distribution fails the install instead of being built for the local
+machine; use `dockerizePip` for those. Quote the items, since
+`--only-binary=:all:` unquoted parses as a YAML map.
+
 ## Bytecode
 
 Dependencies are installed with `SOURCE_DATE_EPOCH` set, which makes pip write hash-based
@@ -347,6 +373,22 @@ custom:
         - '*'
 ```
 
+## Keeping local environments out of the package
+
+The requirements are installed into the package itself, so a virtual
+environment in the service directory (`.venv/`, `venv/`) is not needed in
+Lambda. It is packaged like any other file unless you exclude it, adding the
+local machine's builds to every function. Python's local caches
+(`.pytest_cache/`, `__pycache__/`) are packaged the same way:
+
+```yaml
+package:
+  patterns:
+    - '!.venv/**'
+    - '!.pytest_cache/**'
+    - '!**/__pycache__/**'
+```
+
 ## Omitting Packages
 
 You can omit a package from deployment with the `noDeploy` option. Note that
@@ -370,6 +412,7 @@ First, a download cache that will cache downloads that pip needs to compile the 
 And second, a what we call "static caching" which caches output of pip after compiling everything for your requirements file.
 Since generally `requirements.txt` files rarely change, you will often see large amounts of speed improvements when enabling the static cache feature.
 These caches will be shared between all your projects if no custom `cacheLocation` is specified (see below).
+A static cache entry belongs to one requirements file and one set of the settings that change what gets installed (`pythonBin`, the runtime, `installer`, `dockerizePip`, `dockerImage`, `dockerFile`, `pipCmdExtraArgs`, `slim`, `slimPatterns`, `slimPatternsAppendDefaults` and `vendor`) and one architecture: changing any of them installs the requirements again.
 
 _**Please note:** This has replaced the previously recommended usage of "--cache-dir" in the pipCmdExtraArgs_
 
@@ -478,9 +521,14 @@ Quick notes on the config file:
 
 ### Customize Python executable
 
-Sometimes your Python executable isn't available on your `$PATH` as `python2.7`
-or `python3.6` (for example, windows or using pyenv).
-To support this, the Framework has the following option:
+By default, requirements are installed with the interpreter named after the
+runtime: `python3.14` for `runtime: python3.14`, with no fallback to `python3`
+even when that is the same version. When it isn't on your `$PATH`
+under that name (for example, windows, pyenv, or a Homebrew install that
+provides only `python3`), the install fails with an error naming the missing
+interpreter. Set `pythonBin` to the one you have. It should be the runtime's
+Python version, or add `--python-version` as shown in
+[Linux wheels without Docker](#linux-wheels-without-docker):
 
 ```yaml
 custom:

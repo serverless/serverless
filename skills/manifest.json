@@ -1,10 +1,18 @@
 {
+  "serverless-framework": {
+    "version": 1,
+    "hash": "b7df582352901dd9210f305f78c67f8d95b6e90008dc0961b01fb186fb378c77"
+  },
   "serverless-mcp": {
-    "version": 2,
-    "hash": "73f4c6b922e110634a4f9744a7382065a7c6f520532ad217fb1bbae3339d761b"
+    "version": 3,
+    "hash": "c62b84ce4790de66b606a643dbecdafd103b130630480016feda2e2d0e6e01f3"
   },
   "serverless-sandboxes": {
+    "version": 2,
+    "hash": "3c91d1f7e6351827f9e6bd0d570ffa94e8c01c1efb2dca2d1517829aeaa80828"
+  },
+  "serverless-upgrade": {
     "version": 1,
-    "hash": "f4771bfa41a73fb52fe266f129409019c2633045ee8b443efb29967ade35b492"
+    "hash": "aa99305574e515f511592e2a22248f27925c5f90e0b8743feac73c2f3f9723b2"
   }
 }
