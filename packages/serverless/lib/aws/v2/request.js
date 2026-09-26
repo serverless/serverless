@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import memoize from 'memoizee'
-import PromiseQueue from 'promise-queue'
+import pLimit from 'p-limit'
 import sdk from './sdk.js'
 import ServerlessError from '../../serverless-error.js'
 import { log } from '@serverless/util'
@@ -66,8 +66,10 @@ const timeout = process.env.AWS_CLIENT_TIMEOUT || process.env.aws_client_timeout
 if (timeout) {
   sdk.config.httpOptions.timeout = parseInt(timeout, 10)
 }
-PromiseQueue.configure(Promise)
-const requestQueue = new PromiseQueue(2, Infinity)
+const requestLimit = pLimit(2)
+const requestQueue = {
+  add: (fn) => requestLimit(fn),
+}
 
 const MAX_RETRIES = (() => {
   const userValue = Number(process.env.SLS_AWS_REQUEST_MAX_RETRIES)
