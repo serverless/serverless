@@ -2,15 +2,13 @@ import _ from 'lodash'
 import fsp from 'fs/promises'
 import path from 'path'
 import crypto from 'crypto'
-import promiseLimit from 'ext/promise/limit.js'
+import pLimit from 'p-limit'
 import { filesize } from 'filesize'
 import normalizeFiles from '../../lib/normalize-files.js'
 import getLambdaLayerArtifactPath from '../../utils/get-lambda-layer-artifact-path.js'
 import ServerlessError from '../../../../serverless-error.js'
 import setS3UploadEncryptionOptions from '../../../../aws/set-s3-upload-encryption-options.js'
 import { log, progress } from '@serverless/util'
-
-const limit = promiseLimit.bind(Promise)
 
 const MAX_CONCURRENT_ARTIFACTS_UPLOADS =
   Number(process.env.SLS_MAX_CONCURRENT_ARTIFACTS_UPLOADS) || 3
@@ -238,9 +236,9 @@ export default {
     const shouldReportDetailedProgress = artifactFilePaths.length > 1
     let alreadyUploadedCount = 0
 
-    const limitedUpload = limit(
-      MAX_CONCURRENT_ARTIFACTS_UPLOADS,
-      async ({ filename, s3KeyDirname }) => {
+    const uploadLimit = pLimit(MAX_CONCURRENT_ARTIFACTS_UPLOADS)
+    const limitedUpload = ({ filename, s3KeyDirname }) =>
+      uploadLimit(async () => {
         const stats = await this.getFileStats(filename)
         const fileName = path.basename(filename)
         log.info(
@@ -269,8 +267,7 @@ export default {
           progress.get(`upload:${fileName}`).remove()
         }
         return result
-      },
-    )
+      })
     const uploadPromises = artifactFilePaths.map(async (filename) => {
       const result = await limitedUpload({
         filename,
