@@ -441,13 +441,17 @@ export default {
         arn = authorizer.arn
         if (typeof authorizer.name === 'string') {
           name = authorizer.name
-        } else if (
-          authorizer.type &&
-          authorizer.type.toUpperCase() === 'COGNITO_USER_POOLS' &&
-          _.isObject(authorizer.arn)
-        ) {
+        } else if (_.isObject(arn)) {
+          // A CloudFormation intrinsic has no parseable ARN at compile time, so
+          // `name` has to be provided explicitly. Falling through to the ARN
+          // parser below would throw an opaque
+          // `functionArn.split is not a function` TypeError instead.
+          // See https://github.com/serverless/serverless/issues/3212
           throw new ServerlessError(
-            'Please provide an authorizer name for authorizers of type COGNITO_USER_POOLS',
+            authorizer.type &&
+              authorizer.type.toUpperCase() === 'COGNITO_USER_POOLS'
+              ? 'Please provide an authorizer name for authorizers of type COGNITO_USER_POOLS'
+              : 'Please provide an authorizer name for authorizers configured with a CloudFormation intrinsic "arn"',
             'API_GATEWAY_MISSING_AUTHORIZER_NAME',
             { stack: false },
           )
