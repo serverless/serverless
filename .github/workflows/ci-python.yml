@@ -83,4 +83,6 @@ jobs:
           SERVERLESS_LICENSE_KEY: ${{ secrets.SERVERLESS_LICENSE_KEY_DEV }}
           SLS_AWS_SDK: 3
           SERVERLESS_PLATFORM_STAGE: dev
-          TEST_STAGE: pr-${{ github.event.pull_request.user.login }}
+          # GitHub App logins are `name[bot]`. Brackets are not valid in a
+          # CloudFormation stack name, which is what TEST_STAGE becomes.
+          TEST_STAGE: "pr-${{ replace(replace(github.event.pull_request.user.login, '[', ''), ']', '') }}"

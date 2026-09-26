@@ -143,7 +143,9 @@ jobs:
         env:
           SERVERLESS_LICENSE_KEY_DEV: ${{ secrets.SERVERLESS_LICENSE_KEY_DEV }}
           SERVERLESS_ACCESS_KEY_DEV: ${{ secrets.SERVERLESS_ACCESS_KEY_DEV }}
-          TEST_STAGE: pr-${{ github.event.pull_request.user.login }}
+          # GitHub App logins are `name[bot]`. Brackets are not valid in a
+          # CloudFormation stack name, which is what TEST_STAGE becomes.
+          TEST_STAGE: "pr-${{ replace(replace(github.event.pull_request.user.login, '[', ''), ']', '') }}"
           SLS_AWS_SDK: 3
           AWS_MAX_ATTEMPTS: 7
       - name: 'Test: Resolvers'
@@ -151,5 +153,5 @@ jobs:
         env:
           SERVERLESS_LICENSE_KEY_DEV: ${{ secrets.SERVERLESS_LICENSE_KEY_DEV }}
           SERVERLESS_ACCESS_KEY_DEV: ${{ secrets.SERVERLESS_ACCESS_KEY_DEV }}
-          TEST_STAGE: pr-${{ github.event.pull_request.user.login }}
+          TEST_STAGE: "pr-${{ replace(replace(github.event.pull_request.user.login, '[', ''), ']', '') }}"
           AWS_MAX_ATTEMPTS: 7
