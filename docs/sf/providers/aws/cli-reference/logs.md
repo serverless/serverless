@@ -64,7 +64,7 @@ This command returns as many log events as can fit in 1MB (up to 10,000 log even
 20130208T08           # Short date and time, hours only
 ```
 
-- `--filter` You can specify a filter string to filter the log output. This is useful if you want to to get the `error` logs for example.
+- `--filter` You can specify a filter string to filter the log output. This is useful if you want to get the `error` logs for example.
 - `--tail` or `-t` You can optionally tail the logs and keep listening for new logs in your terminal session by passing this option.
 - `--interval` or `-i` If you choose to tail the output, you can control the interval at which the framework polls the logs with this option. The default is `1000`ms.
 
