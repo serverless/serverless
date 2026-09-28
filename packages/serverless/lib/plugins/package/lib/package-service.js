@@ -426,16 +426,24 @@ export default {
   async resolveFilePathsLayer(layerName) {
     const layerObject = this.serverless.service.getLayer(layerName)
     const layerPackageConfig = layerObject.package || {}
+    const params = {
+      exclude: this.getExcludes(layerPackageConfig.exclude, false),
+      include: this.getIncludes([
+        ...(layerPackageConfig.include || []),
+        ...(layerPackageConfig.patterns || []),
+      ]),
+      contextName: `layer "${layerName}"`,
+    }
+
+    // Dev dependency globs are relative to the service directory, while layer
+    // files are matched relative to the layer path. Applied to any other
+    // directory, they would exclude same-named packages of the layer itself.
+    const isServiceDirLayer =
+      path.resolve(this.serverless.serviceDir, layerObject.path) ===
+      path.resolve(this.serverless.serviceDir)
 
     return this.resolveFilePathsFromPatterns(
-      await this.excludeDevDependencies({
-        exclude: this.getExcludes(layerPackageConfig.exclude, false),
-        include: this.getIncludes([
-          ...(layerPackageConfig.include || []),
-          ...(layerPackageConfig.patterns || []),
-        ]),
-        contextName: `layer "${layerName}"`,
-      }),
+      isServiceDirLayer ? await this.excludeDevDependencies(params) : params,
       layerObject.path,
     )
   },
