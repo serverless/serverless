@@ -8,7 +8,7 @@ import {
   CreateTokenCommand,
 } from '@aws-sdk/client-sso-oidc'
 import configWriter from './aws-config-writer.js'
-import { AwsLoginBase } from './aws-login-base.js'
+import { AwsLoginBase, writeOwnerOnlyFile } from './aws-login-base.js'
 import { log, progress, ServerlessError } from '@serverless/util'
 
 const AUTH_GRANT_TYPES = ['authorization_code', 'refresh_token']
@@ -422,8 +422,7 @@ export class AwsSsoLogin extends AwsLoginBase {
       grantTypes: registration.grantTypes,
     }
 
-    fs.writeFileSync(cacheFile, JSON.stringify(data, null, 2))
-    fs.chmodSync(cacheFile, 0o600)
+    writeOwnerOnlyFile(cacheFile, JSON.stringify(data, null, 2))
   }
 
   /**
@@ -452,8 +451,7 @@ export class AwsSsoLogin extends AwsLoginBase {
       data.refreshToken = token.refreshToken
     }
 
-    fs.writeFileSync(cacheFile, JSON.stringify(data, null, 2))
-    fs.chmodSync(cacheFile, 0o600)
+    writeOwnerOnlyFile(cacheFile, JSON.stringify(data, null, 2))
   }
 
   /**
