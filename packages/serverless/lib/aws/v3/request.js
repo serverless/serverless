@@ -31,7 +31,7 @@ async function awsRequest(service, method, ...args) {
     service = { name: service }
   }
   const persistentRequest = createPersistentRequest(MAX_RETRIES, log, wait)
-  const request = await requestQueue.add(() =>
+  const request = await requestQueue(() =>
     persistentRequest(async () => {
       const requestId = ++requestCounter
       awsLog.debug(

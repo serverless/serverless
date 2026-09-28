@@ -66,10 +66,7 @@ const timeout = process.env.AWS_CLIENT_TIMEOUT || process.env.aws_client_timeout
 if (timeout) {
   sdk.config.httpOptions.timeout = parseInt(timeout, 10)
 }
-const requestLimit = pLimit(2)
-const requestQueue = {
-  add: (fn) => requestLimit(fn),
-}
+const requestQueue = pLimit(2)
 
 const MAX_RETRIES = (() => {
   const userValue = Number(process.env.SLS_AWS_REQUEST_MAX_RETRIES)
@@ -169,7 +166,7 @@ async function awsRequest(service, method, ...args) {
       throw e
     }
   }
-  const request = await requestQueue.add(() =>
+  const request = await requestQueue(() =>
     persistentRequest(async () => {
       const requestId = ++requestCounter
       const awsService = getServiceInstance(service, method)
