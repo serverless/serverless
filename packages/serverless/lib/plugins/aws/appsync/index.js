@@ -349,7 +349,8 @@ class ServerlessAppsyncPlugin {
 
     let nextToken
     do {
-      const params = { apiId }
+      // The default page size is 10; 25 is the maximum ListApiKeys accepts
+      const params = { apiId, maxResults: 25 }
       if (nextToken) params.nextToken = nextToken
 
       const response = await this.provider.request(

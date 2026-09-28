@@ -104,13 +104,13 @@ describe('gatherData', () => {
       2,
       'AppSync',
       'listApiKeys',
-      { apiId: 'api-id' },
+      { apiId: 'api-id', maxResults: 25 },
     )
     expect(appsyncPlugin.provider.request).toHaveBeenNthCalledWith(
       3,
       'AppSync',
       'listApiKeys',
-      { apiId: 'api-id', nextToken: 'page-2' },
+      { apiId: 'api-id', maxResults: 25, nextToken: 'page-2' },
     )
   })
 })
