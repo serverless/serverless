@@ -1,3 +1,4 @@
+import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import crypto from 'crypto'
@@ -309,4 +310,19 @@ export class AwsLoginBase {
   }
 }
 
-export { LOGIN_TIMEOUT_MS, HTML_ESCAPES }
+/**
+ * Write a credential cache file readable only by its owner. The mode passed to
+ * open applies to a newly created file; fchmod also restricts a file that
+ * already exists with wider permissions, before any content is written to it.
+ */
+function writeOwnerOnlyFile(filePath, content) {
+  const fd = fs.openSync(filePath, 'w', 0o600)
+  try {
+    fs.fchmodSync(fd, 0o600)
+    fs.writeFileSync(fd, content)
+  } finally {
+    fs.closeSync(fd)
+  }
+}
+
+export { LOGIN_TIMEOUT_MS, HTML_ESCAPES, writeOwnerOnlyFile }

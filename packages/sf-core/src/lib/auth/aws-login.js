@@ -10,6 +10,7 @@ import {
   AwsLoginBase,
   LOGIN_TIMEOUT_MS,
   HTML_ESCAPES,
+  writeOwnerOnlyFile,
 } from './aws-login-base.js'
 import { log, progress, ServerlessError } from '@serverless/util'
 
@@ -573,8 +574,7 @@ export class AwsLogin extends AwsLoginBase {
       .replace(/\.\d+Z$/, 'Z')
     formattedToken.accessToken.expiresAt = expiresAt
 
-    fs.writeFileSync(cacheFile, JSON.stringify(formattedToken, null, 2))
-    fs.chmodSync(cacheFile, 0o600)
+    writeOwnerOnlyFile(cacheFile, JSON.stringify(formattedToken, null, 2))
   }
 
   updateConfig(profile, sessionId, region) {
