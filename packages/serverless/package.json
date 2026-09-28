@@ -105,11 +105,11 @@
   "devDependencies": {
     "@aws-sdk/client-secrets-manager": "3.1136.0",
     "@aws-sdk/client-ssm": "3.1136.0",
-    "@modelcontextprotocol/hono": "2.0.0",
+    "@modelcontextprotocol/hono": "2.0.1",
     "@modelcontextprotocol/server": "2.0.0",
     "@types/jest": "^30.0.0",
     "cross-env": "^10.1.0",
-    "hono": "^4.13.8",
+    "hono": "^4.13.9",
     "jest": "^30.5.2"
   },
   "scripts": {
