@@ -4,23 +4,7 @@ import os from 'os'
 import url from 'url'
 import path from 'path'
 
-export const getTestStageName = () => {
-  const randomId = Math.floor(1000 + Math.random() * 9000).toString()
-
-  if (process.env.TEST_STAGE && process.env.TEST_STAGE !== '') {
-    return `${process.env.TEST_STAGE?.substring(0, 10)}t${randomId}`
-      .toLocaleLowerCase()
-      .replace('_', '-')
-      .replace('--', '-')
-  }
-
-  return randomId
-    .toLocaleLowerCase()
-    .replace('_', '-')
-    .replace('--', '-')
-    .replace('[', '')
-    .replace(']', '')
-}
+export { getTestStageName } from './testStageName.js'
 
 /**
  * Runs Serverless Core via the code or the binary,
