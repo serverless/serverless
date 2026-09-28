@@ -48,7 +48,7 @@
     "esbuild": "0.28.2",
     "glob": "^13.0.6",
     "jest": "^30.5.2",
-    "jszip": "^3.10.1",
+    "jszip": "^3.10.2",
     "shell-quote": "^1.8.4"
   },
   "dependencies": {
@@ -73,7 +73,7 @@
     "adm-zip": "^0.6.0",
     "child-process-ext": "^3.0.2",
     "dotenv": "^17.3.1",
-    "fs-extra": "^11.4.0",
+    "fs-extra": "^11.4.1",
     "graceful-fs": "^4.2.11",
     "https-proxy-agent": "^8.0.0",
     "js-yaml": "^4.3.2",
@@ -83,7 +83,7 @@
     "simple-git": "^3.36.0",
     "table": "^6.9.0",
     "traverse": "^0.6.11",
-    "tsx": "^4.23.13",
+    "tsx": "^4.23.15",
     "type": "^2.7.3",
     "ws": "^8.21.3",
     "yaml-ast-parser": "^0.0.43",
