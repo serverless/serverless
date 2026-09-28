@@ -108,7 +108,7 @@ layers:
 
 Keep in mind that all patterns (even when inherited from the service config) are resolved against the layer's `path` and not the service `path`.
 
-A layer is packaged from its `path` as it is on disk: the service's [development dependency exclusion](./packaging.md#development-dependencies) does not apply to it.
+A layer is packaged from its `path` as it is on disk: the service's [development dependency exclusion](./packaging.md#development-dependencies) does not apply to it, unless the layer's `path` is the service directory itself.
 
 You can also specify a prebuilt archive to create your layer. When you do this, you do not need to specify the `path` element of your layer.
 
