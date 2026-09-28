@@ -33,6 +33,8 @@ The Serverless Framework provides multiple methods to connect to AWS. However, t
 - [Using Resolvers to Specify Deployment Credentials](#using-resolvers-to-specify-deployment-credentials)
   - [Defining Resolvers](#defining-resolvers)
   - [Using Multiple Resolvers](#using-multiple-resolvers)
+  - [Which credentials a deploy uses](#which-credentials-a-deploy-uses)
+  - [Overriding a resolver's profile](#overriding-a-resolvers-profile)
   - [Using Serverless Dashboard Providers with Resolvers](#using-serverless-dashboard-providers-with-resolvers)
 - [Using Serverless Dashboard Providers with IAM Role](#using-serverless-dashboard-providers-with-iam-role)
 - [Production Configuration](#production-configuration)
@@ -175,6 +177,38 @@ In this example:
 - The `project-specific-account` Resolver is used for deployment credentials, as specified by the `provider.resolver` property, while you can still reference variables within your functions using this Resolver.
 
 **Note:** You can't use both `provider.resolver` and `provider.profile` at the same time.
+
+### Which credentials a deploy uses
+
+A deploy takes its AWS credentials from the first of these that applies:
+
+1. The `aws` resolver named by `provider.resolver`, or, when `provider.profile` is not set, the service's only `type: aws` resolver, with a stage's block overriding a same-named one in `stages.default`.
+2. `--aws-profile` on the command line.
+3. `provider.profile` in `serverless.yml`.
+4. The standard AWS credential provider chain: `AWS_PROFILE`, `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, then the shared config files.
+
+When a resolver supplies the credentials, `--aws-profile` is ignored. Run `serverless agent setup --stage <stage>` to see which source a deploy to that stage would use, and whether AWS accepts it.
+
+### Overriding a resolver's profile
+
+To let one person or one run use another profile without editing the resolver, give its `profile` a variable with the team's default. A parameter keeps the default next to the stage and takes a one-off override on the command line:
+
+```yaml
+stages:
+  staging:
+    params:
+      awsProfile: staging-account
+    resolvers:
+      aws-account:
+        type: aws
+        profile: ${param:awsProfile}
+```
+
+```bash
+serverless deploy --stage staging --param "awsProfile=my-staging"
+```
+
+For an override that stays on one machine, use an environment variable instead: `profile: ${env:STAGING_AWS_PROFILE, 'staging-account'}`.
 
 ### Using Serverless Dashboard Providers with Resolvers
 

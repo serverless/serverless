@@ -12,7 +12,11 @@ import {
   progress,
   ServerlessError,
   ServerlessErrorCodes,
+  writeText,
 } from '@serverless/util'
+import { Authentication } from '../auth/index.js'
+import { detectServerlessAuth } from './core/agent-env-report.js'
+import { resolveServiceAwsProfile } from '../resolvers/providers/aws/credential-source.js'
 import { providerRegistry } from '../resolvers/registry/index.js'
 import { convertPluginToResolverProvider } from '../resolvers/providers.js'
 import { Runner } from './index.js'
@@ -70,6 +74,73 @@ export class TraditionalRunner extends Runner {
   compiledCloudFormationTemplate
   coreCloudFormationTemplate
   getAwsDeploymentCredentials
+
+  /**
+   * Help for a built-in command, answered before sign-in, so someone who has
+   * not signed in yet (often an agent) can still read what a command does.
+   *
+   * It is rendered from the Framework's static command schema and returns
+   * before anything the product does: no variable resolution, no plugin
+   * loading, nothing written to disk. The only call out is the one sign-in
+   * check detection cannot make locally: a License Key in SSM, looked up the
+   * way authenticate() looks it up (same AWS credential chain, no timeout).
+   * Everything else keeps the usual path, and the gate with it:
+   * - a signed-in user (or an env key) gets today's help, which includes the
+   *   commands and options the service's plugins add;
+   * - a command the static schema does not know -- a plugin command or a
+   *   typo -- goes through the runner, so plugin code never runs signed out;
+   * - without --help/-h (or the `help` command) nothing here applies.
+   *
+   * Returns true when help was printed.
+   */
+  async renderHelpBeforeAuth({
+    detectAuth = detectServerlessAuth,
+    findSsmLicenseKey = () =>
+      new Authentication({
+        versionFramework: this.versionFramework,
+      }).fetchLicenseKeyFromSSM({
+        logger: log.get('core:help'),
+        options: this.options,
+        resolverManager: this.resolverManager,
+      }),
+  } = {}) {
+    const { command, options } = this
+    const helpFlag = Boolean(options.help || options.h)
+    const commandName = command.join(' ')
+    const general = command[0] === 'help' || (!command[0] && helpFlag)
+    const builtInCommand =
+      !general &&
+      helpFlag &&
+      Boolean(command[0]) &&
+      frameworkCommandsSchema.has(commandName)
+    if (!general && !builtInCommand) return false
+    if ((await detectAuth({ config: this.config })).state !== 'none') {
+      return false
+    }
+    // The one sign-in detection cannot see: a License Key in SSM. With one,
+    // the normal help runs, with the plugins' commands.
+    if (await findSsmLicenseKey()) return false
+
+    progress.get('main').remove()
+    if (general) {
+      renderGeneralHelp({
+        loadedPlugins: new Set(),
+        commandsSchema: frameworkCommandsSchema,
+        version: this.versionFramework,
+      })
+      if (hasPlugins(this.config)) {
+        writeText(
+          'Commands and options added by this service\'s plugins are listed once you sign in ("serverless login").',
+        )
+      }
+    } else {
+      renderCommandHelp({
+        commandName,
+        commandsSchema: frameworkCommandsSchema,
+      })
+    }
+    return true
+  }
 
   async run() {
     const logger = log.get('traditional')
@@ -131,6 +202,7 @@ export class TraditionalRunner extends Runner {
       resolversManager: this.resolverManager,
       composeServiceParams: this.compose?.serviceParams,
       isWithinCompose: this.compose?.isWithinCompose,
+      composeServiceName: this.compose?.serviceName,
       composeOrgName: this.compose?.orgName,
     })
 
@@ -157,8 +229,10 @@ export class TraditionalRunner extends Runner {
 
   async getAwsCredentialProvider() {
     const { region, resolveCredentials } = await getAwsCredentialProvider({
-      awsProfile:
-        this.options?.['aws-profile'] ?? this.config?.provider?.profile,
+      awsProfile: resolveServiceAwsProfile({
+        options: this.options,
+        config: this.config,
+      }),
       providerAwsAccessKeyId:
         this.authenticatedData?.dashboard?.serviceProvider?.accessKeyId,
       providerAwsSecretAccessKey:
@@ -372,6 +446,7 @@ const runFramework = async ({
   serviceProviderAwsRegion,
   composeServiceParams,
   isWithinCompose,
+  composeServiceName,
   composeOrgName,
   command,
   accessKeyV1,
@@ -527,6 +602,7 @@ const runFramework = async ({
     compose: {
       serviceParams: composeServiceParams,
       isWithinCompose,
+      serviceName: composeServiceName,
     },
     instanceId: await resolversManager.resolveVariableOnce('sls:instanceId'),
   })
@@ -645,6 +721,12 @@ const runFramework = async ({
       serverless.service?.provider?.coreCloudFormationTemplate,
     analyticsMetrics,
   }
+}
+
+const hasPlugins = (config) => {
+  const plugins = config?.plugins
+  const modules = Array.isArray(plugins) ? plugins : plugins?.modules
+  return Array.isArray(modules) && modules.length > 0
 }
 
 /**

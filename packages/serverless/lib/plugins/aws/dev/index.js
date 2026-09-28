@@ -23,6 +23,8 @@ import {
 } from './mcp-log.js'
 import { fileURLToPath } from 'url'
 import { isDashboardObservabilityEnabled } from '../../observability/dashboard/index.js'
+import usesDedicatedPerFunctionRole from '../package/lib/uses-dedicated-per-function-role.js'
+import { deployCommand } from '../lib/deploy-command.js'
 
 const logger = log.get('sls:dev')
 
@@ -454,10 +456,8 @@ class AwsDev {
     )
     logger.blankLine()
     logger.aside(
-      `Run "serverless deploy" after a Dev Mode session to restore original code.`,
+      `Run "${this.restoreCommand()}" after a Dev Mode session to restore original code.`,
     )
-
-    mainProgress.notice('Connecting')
 
     // TODO: This should be applied more selectively
     // usePolling is enabled because chokidar v4 removed fsevents support,
@@ -473,6 +473,11 @@ class AwsDev {
       })
 
     this.validateRegion()
+
+    this.phase(
+      mainProgress,
+      `Deploying stage "${this.provider.getStage()}" with Dev Mode instrumentation`,
+    )
 
     await this.update()
 
@@ -497,9 +502,28 @@ class AwsDev {
 
     await this.restore()
 
+    this.phase(mainProgress, 'Connecting')
+
     await this.connect()
 
     await this.watch()
+  }
+
+  /**
+   * The current phase of starting a session. A terminal shows it on the
+   * spinner. Without one, progress falls back to `info` lines, which the
+   * default log level hides, so the deploy and the connect would pass in
+   * silence and look like a hang: the phase is logged as a notice instead.
+   *
+   * @param {object} mainProgress
+   * @param {string} message
+   */
+  phase(mainProgress, message) {
+    if (logger.isInteractive() && process.stderr.isTTY) {
+      mainProgress.notice(message)
+    } else {
+      logger.notice(`${message}…`)
+    }
   }
 
   /**
@@ -668,11 +692,12 @@ class AwsDev {
     // Makes sure we don't overwrite existing IAM configurations
     const iamRoleStatements = [...oldIamRoleStatements, ...newIamRoleStatements]
 
-    iamRoleStatements.push({
+    const iotStatement = () => ({
       Effect: 'Allow',
       Action: ['iot:*'],
       Resource: '*',
     })
+    iamRoleStatements.push(iotStatement())
 
     _.set(
       this.serverless.service.provider,
@@ -684,6 +709,7 @@ class AwsDev {
     const iotEndpoint = await this.getIotEndpoint()
     const serviceName = this.serverless.service.getServiceName()
     const stageName = this.serverless.getProvider('aws').getStage()
+    const restoreCommand = this.restoreCommand()
     const localRuntimeVersion = process.version.split('.')[0].replace('v', '')
     const localRuntime = `nodejs${localRuntimeVersion}.x`
     const runtimeForShim = AWS_LAMBDA_SUPPORTED_NODE_RUNTIMES.includes(
@@ -772,21 +798,34 @@ class AwsDev {
       functionConfig.environment.SLS_SERVICE = serviceName
       functionConfig.environment.SLS_STAGE = stageName
       functionConfig.environment.SLS_FUNCTION = functionName
+      // The shim names this command when the session is gone (shim-response.js).
+      functionConfig.environment.SLS_RESTORE_COMMAND = restoreCommand
 
-      // Make sure dev mode also supports the "serverless-iam-roles-per-function" plugin:
-      // https://github.com/functionalone/serverless-iam-roles-per-function
-      // Issue Ref: https://github.com/serverless/serverless/issues/12619
+      // A function with its own role does not see the shared role's grant, so
+      // the relay permission goes onto the statements that role is built from:
+      // `iam.role.statements` when set (it takes precedence), otherwise
+      // `iamRoleStatements`. A role with only managed policies, or one that
+      // per-function mode creates, gets a statement list of its own.
       if (
-        functionConfig.iamRoleStatements &&
-        Array.isArray(functionConfig.iamRoleStatements)
-      ) {
-        const functionIamRoleStatements = functionConfig.iamRoleStatements
-
-        functionIamRoleStatements.push({
-          Effect: 'Allow',
-          Action: ['iot:*'],
-          Resource: '*',
+        usesDedicatedPerFunctionRole({
+          functionObject: functionConfig,
+          serverless: this.serverless,
+          awsProvider: this.provider,
         })
+      ) {
+        if (Array.isArray(_.get(functionConfig, 'iam.role.statements'))) {
+          functionConfig.iam.role.statements.push(iotStatement())
+        } else if (Array.isArray(functionConfig.iamRoleStatements)) {
+          functionConfig.iamRoleStatements.push(iotStatement())
+        } else {
+          _.set(functionConfig, 'iam.role.statements', [iotStatement()])
+        }
+      } else if (Array.isArray(functionConfig.iamRoleStatements)) {
+        // The "serverless-iam-roles-per-function" plugin builds its roles
+        // from `iamRoleStatements`:
+        // https://github.com/functionalone/serverless-iam-roles-per-function
+        // Issue Ref: https://github.com/serverless/serverless/issues/12619
+        functionConfig.iamRoleStatements.push(iotStatement())
       }
     })
 
@@ -814,6 +853,21 @@ class AwsDev {
    * @async
    * @returns {Promise<void>} A promise that resolves once all configurations have been successfully restored.
    */
+  /**
+   * The deploy that restores the stage after a session: the session's stage,
+   * region and, within Compose, service. A plain `serverless deploy` would
+   * deploy the default stage (from a Compose root, every service) and leave
+   * this stage instrumented.
+   *
+   * @returns {string}
+   */
+  restoreCommand() {
+    return deployCommand({
+      serverless: this.serverless,
+      provider: this.provider,
+    })
+  }
+
   async restore() {
     logger.debug(
       'Restoring service configuration to its original state in memory',
@@ -835,6 +889,13 @@ class AwsDev {
       functionConfig.handler = handler
       functionConfig.environment = environment
       functionConfig.runtime = this.provider.getRuntime(runtime)
+      for (const key of ['iam', 'iamRoleStatements']) {
+        if (key in originalFunctionConfig) {
+          functionConfig[key] = originalFunctionConfig[key]
+        } else {
+          delete functionConfig[key]
+        }
+      }
     })
   }
 
@@ -982,7 +1043,7 @@ class AwsDev {
         }, 1000)
       }
 
-      logger.success(`Connected (Ctrl+C to cancel)`)
+      logger.success(`Connected (Ctrl+C or SIGTERM to stop)`)
       mainProgress.remove()
     })
 
@@ -1181,13 +1242,23 @@ class AwsDev {
     })
 
     /**
-     * Exit the process when the user presses Ctrl+C
+     * End the session on Ctrl+C, or on SIGTERM (`kill <pid>`, how a background
+     * session is usually stopped): both get the restore reminder.
      */
-    process.on('SIGINT', async () => {
+    let exiting = false
+    const onExit = async () => {
+      if (exiting) return
+      exiting = true
       mainProgress.remove()
       logger.blankLine()
 
-      if (this.options['on-exit'] === 'remove') {
+      if (this.options['on-exit'] === 'remove' && !logger.isInteractive()) {
+        // Nobody can answer the confirm prompt, and waiting on it would keep
+        // the process alive until it is killed.
+        logger.warning(
+          `Removal skipped: there is no terminal to confirm it. Run "${this.restoreCommand()}" to restore your original code and remove Dev Mode's instrumentation — your functions will not work until you do!\nAlternatively, run "serverless remove" to tear down the service.`,
+        )
+      } else if (this.options['on-exit'] === 'remove') {
         const serviceName = this.serverless.service.getServiceName()
         const stage = this.provider.getStage()
         const region = this.provider.getRegion()
@@ -1208,7 +1279,7 @@ class AwsDev {
           } else {
             logger.blankLine()
             logger.warning(
-              `Removal skipped. Run "serverless deploy" to restore your original code and remove Dev Mode's instrumentation — your functions will not work until you do!\nAlternatively, run "serverless remove" to tear down the service.`,
+              `Removal skipped. Run "${this.restoreCommand()}" to restore your original code and remove Dev Mode's instrumentation — your functions will not work until you do!\nAlternatively, run "serverless remove" to tear down the service.`,
             )
           }
         } catch (error) {
@@ -1222,13 +1293,15 @@ class AwsDev {
       } else {
         logger.blankLine()
         logger.warning(
-          `Don't forget to run "serverless deploy" immediately upon closing Dev Mode to restore your original code and remove Dev Mode's instrumentation or your functions will not work!`,
+          `Don't forget to run "${this.restoreCommand()}" immediately upon closing Dev Mode to restore your original code and remove Dev Mode's instrumentation or your functions will not work!`,
         )
       }
 
       logger.blankLine()
       process.exit(0)
-    })
+    }
+    process.on('SIGINT', onExit)
+    process.on('SIGTERM', onExit)
   }
 
   async watch() {

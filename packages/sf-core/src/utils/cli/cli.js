@@ -76,7 +76,13 @@ const validateCliSchema = async ({ schema, command, options, versions }) => {
   }
 }
 
-const commandExist = ({ command, schema }) => {
+// yargs positional syntax inside a command string: " <name>", " [name]",
+// " [name..]". Everything after the first positional token is positional.
+const POSITIONALS = /\s+[<[][^\]>]+[\]>].*$/
+
+// The schema's literal words for `command`, without positionals: ['agent',
+// 'docs'] for "agent docs a/b c". null when the schema has no such command.
+const matchCommand = ({ command, schema }) => {
   const commandString = command.join(' ') // Combine the command parts into a single string
 
   // Recursive helper function to check commands
@@ -85,24 +91,46 @@ const commandExist = ({ command, schema }) => {
       const fullCommand = baseCommand
         ? `${baseCommand} ${item.command}`.trim()
         : item.command
+      // The literal words of the command, without any declared positionals.
+      const words = fullCommand.replace(POSITIONALS, '')
+      const declaresPositionals = words !== fullCommand
 
-      if (fullCommand === commandString) {
-        return true // Exact match found
+      if (words === commandString) {
+        return words.split(' ') // Exact match found
+      }
+
+      // A command that declares positionals also owns any trailing tokens:
+      // "agent docs a/b c" is `agent docs` with two positionals. yargs
+      // enforces required positionals later (validateCliSchema); surplus
+      // tokens are not validated -- this pre-check only decides that
+      // CoreRunner owns the command.
+      if (declaresPositionals && commandString.startsWith(`${words} `)) {
+        return words.split(' ')
       }
 
       // Check nested commands if they exist
       if (item.builder) {
-        const nestedCheck = checkCommand(item.builder, fullCommand)
+        // Subcommands nest under the literal words only.
+        const nestedCheck = checkCommand(item.builder, words)
         if (nestedCheck) {
-          return true
+          return nestedCheck
         }
       }
     }
-    return false // Command not found
+    return null // Command not found
   }
 
   return checkCommand(schema)
 }
+
+const commandExist = ({ command, schema }) =>
+  matchCommand({ command, schema }) !== null
+
+// The command without the positionals its schema declares, so usage reports
+// name the command (`agent-docs`), not the page or skill it was given.
+// Commands the schema doesn't declare come back unchanged.
+const commandWithoutPositionals = ({ command, schema }) =>
+  (command && schema && matchCommand({ command, schema })) || command
 
 /**
  * Get "command" and "options" from argv
@@ -130,4 +158,9 @@ const extractCommandsAndOptions = (argv) => {
   return { command, options }
 }
 
-export { validateCliSchema, commandExist, extractCommandsAndOptions }
+export {
+  validateCliSchema,
+  commandExist,
+  commandWithoutPositionals,
+  extractCommandsAndOptions,
+}

@@ -1,5 +1,15 @@
 # CLI commands for sandboxes
 
+## Contents
+
+- `serverless deploy`
+- `serverless invoke --sandbox <name> [--method GET --path /]`
+- `serverless logs --sandbox <name> [--startTime 30m]`
+- `serverless dev --sandbox <name>`
+- `serverless deploy list` / `serverless rollback --timestamp <ts>`
+- `serverless remove`
+- `serverless info --json`
+
 Two command surfaces apply to a sandbox: the Serverless Framework CLI
 (deploy, invoke, logs, dev, rollback, remove) and the AWS CLI against the
 Lambda MicroVMs and Lambda control planes (`aws lambda-microvms`,
@@ -10,9 +20,7 @@ Lambda MicroVMs and Lambda control planes (`aws lambda-microvms`,
 ### `serverless deploy`
 
 Builds the sandbox's image in the cloud — this is a real Firecracker
-snapshot build and takes minutes, not seconds. Let it run; the in-cloud
-build continues even if you kill the CLI — retrying can't speed it up and
-may collide with the in-progress stack update.
+snapshot build and takes minutes, not seconds (SKILL.md, "Deploy").
 
 The deploy summary — and `serverless info` — list the service's sandboxes
 under a `sandboxes:` section (name → deployed image name; the image name is
@@ -57,7 +65,7 @@ instance. Use `--method` (default `GET`) and `--path` (default `/`) to
 shape the request; pass `--data` for a body on non-`GET` methods. `--port`
 selects which container port to call (default `8080`).
 
-The framework launches this one-shot instance with an injected idle policy
+The Framework launches this one-shot instance with an injected idle policy
 (`maxIdleDurationSeconds: 60`, `suspendedDurationSeconds: 0`,
 `autoResumeEnabled: false`), so even if the CLI is interrupted mid-invoke
 the instance self-terminates about a minute later — nothing to configure,
@@ -77,7 +85,10 @@ no `--tail`/follow mode for sandbox logs: passing `--tail` is accepted but
 ignored with a warning, and the command always prints the resolved window
 and exits rather than streaming.
 
-The log group also receives the in-cloud image-build transcript alongside your application's runtime stdout and stderr, so build output (e.g., Docker BuildKit stages) may appear interleaved with your container's request logs — match on your application's own log lines when judging behavior.
+The log group also receives the in-cloud image-build transcript alongside
+your application's runtime stdout and stderr, so build output (e.g., Docker
+BuildKit stages) may appear interleaved with your container's request logs —
+match on your application's own log lines when judging behavior.
 
 ### `serverless dev --sandbox <name>`
 
@@ -93,7 +104,7 @@ serverless rollback --timestamp <ts>
 ```
 
 Both work for sandboxes with no special casing — they use the same
-deployment-history mechanism as the rest of the framework. Because
+deployment-history mechanism as the rest of the Framework. Because
 artifacts are content-addressed, old images are not deleted as new ones are
 deployed; they accumulate and remain available to roll back to until
 `serverless remove` tears down the stack.
@@ -191,7 +202,7 @@ expiration short (≤60 min).
 ### `aws lambda-core create-network-connector`
 
 Creates an `AWS::Lambda::NetworkConnector` for VPC egress independently of
-a `serverless deploy` (the framework creates one automatically when a
+a `serverless deploy` (the Framework creates one automatically when a
 sandbox's `vpc` block is set — see `references/config.md`). The operator
 role that calls this needs the `AWSLambdaNetworkConnectorOperatorPolicy`
 managed policy attached.

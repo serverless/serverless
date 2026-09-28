@@ -1,6 +1,31 @@
 import resolveCfImportValue from '../utils/resolve-cf-import-value.js'
 import ServerlessError from '../../../serverless-error.js'
+import { deployCommand } from '../lib/deploy-command.js'
 import { getLogicalId, pascalCase } from '../bedrock-agentcore/utils/naming.js'
+
+/**
+ * `serverless info` on a stage that was never deployed is the normal state
+ * right after a project is created. CloudFormation answers the lookup with
+ * "Stack with id <name> does not exist"; say that the service is not deployed
+ * there and how to deploy it, in one line without a stack trace. Returns
+ * undefined for any other error, which the caller rethrows unchanged.
+ *
+ * In a Compose project the suggested deploy names this service only (see
+ * deployCommand).
+ */
+const notDeployedError = (plugin, error) => {
+  if (!/^Stack with id \S+ does not exist$/.test(error?.message ?? '')) {
+    return undefined
+  }
+  const stage = plugin.provider.getStage()
+  const region = plugin.provider.getRegion()
+  const notDeployed = new ServerlessError(
+    `Service "${plugin.serverless.service.service}" is not deployed to stage "${stage}" in ${region}. Deploy it with "${deployCommand(plugin)}".`,
+    'STACK_NOT_FOUND',
+  )
+  notDeployed.stack = undefined
+  return notDeployed
+}
 
 export default {
   async getStackInfo() {
@@ -21,6 +46,10 @@ export default {
       },
       outputs: [],
     }
+    // The endpoint URLs that belong to an HTTP API. Display lists their
+    // routes differently from a REST API's, and the URLs look alike. Kept off
+    // gatheredData, which `info --json` prints as is.
+    this.httpApiEndpoints = new Set()
 
     const stackName = this.provider.naming.getStackName()
 
@@ -28,9 +57,14 @@ export default {
     const sdkRequests = [
       this.provider
         .request('CloudFormation', 'describeStacks', { StackName: stackName })
-        .then((result) => {
-          if (result) stackData.outputs = result.Stacks[0].Outputs
-        }),
+        .then(
+          (result) => {
+            if (result) stackData.outputs = result.Stacks[0].Outputs
+          },
+          (error) => {
+            throw notDeployedError(this, error) ?? error
+          },
+        ),
     ]
     const httpApiId =
       this.serverless.service.provider.httpApi &&
@@ -167,10 +201,9 @@ export default {
         outputs
           .filter((x) => x.OutputKey.match(serviceEndpointOutputRegex))
           .forEach((x) => {
+            this.gatheredData.info.endpoints.push(x.OutputValue)
             if (x.OutputKey === 'HttpApiUrl') {
-              this.gatheredData.info.endpoints.push(`httpApi: ${x.OutputValue}`)
-            } else {
-              this.gatheredData.info.endpoints.push(x.OutputValue)
+              this.httpApiEndpoints.add(x.OutputValue)
             }
             if (
               this.serverless.service.deployment &&
@@ -182,9 +215,8 @@ export default {
           })
       }
       if (stackData.externalHttpApiEndpoint) {
-        this.gatheredData.info.endpoints.push(
-          `httpApi: ${stackData.externalHttpApiEndpoint}`,
-        )
+        this.gatheredData.info.endpoints.push(stackData.externalHttpApiEndpoint)
+        this.httpApiEndpoints.add(stackData.externalHttpApiEndpoint)
       }
 
       return Promise.resolve()

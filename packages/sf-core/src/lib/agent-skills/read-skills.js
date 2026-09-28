@@ -40,7 +40,7 @@ const readFilesRecursively = async (dir, base = dir, out = {}) => {
 }
 
 /**
- * @returns {Promise<Array<{name: string, version: number, files: Record<string,string>}>>}
+ * @returns {Promise<Array<{name: string, version: number, scope: 'user'|'project', files: Record<string,string>}>>}
  */
 export const readSkillsFromDir = async (dirPath, { strict = false } = {}) => {
   const dir = dirPath instanceof URL ? fileURLToPath(dirPath) : String(dirPath)
@@ -79,10 +79,18 @@ export const readSkillsFromDir = async (dirPath, { strict = false } = {}) => {
         throw new Error(
           `Skill "${entry.name}": metadata.version must be an integer string`,
         )
+      if (
+        fm.metadata?.scope !== undefined &&
+        !['user', 'project'].includes(fm.metadata.scope)
+      )
+        throw new Error(
+          `Skill "${entry.name}": metadata.scope must be "user" or "project"`,
+        )
     }
     skills.push({
       name: entry.name,
       version: parseInt(fm?.metadata?.version, 10) || 0,
+      scope: fm?.metadata?.scope === 'user' ? 'user' : 'project',
       files,
     })
   }

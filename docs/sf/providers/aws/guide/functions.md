@@ -63,6 +63,8 @@ functions:
 
 `provider.runtime` sets the runtime for every function in the service, and a function's own `runtime` overrides it for that function. Every current [AWS Lambda managed runtime identifier](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html) is accepted, including the Amazon Linux 2023 Java runtimes `java8.al2023`, `java11.al2023` and `java17.al2023`, which are the migration path off the Amazon Linux 2 Java runtimes. Identifiers AWS has released in public preview — `nodejs26.x` and `python3.15` at the time of writing — are accepted too, but AWS support and SLAs do not cover them until AWS makes them generally available.
 
+When a function uses a runtime AWS has already deprecated, `package` and `deploy` print a warning naming the functions, the deprecation date, and the dates Lambda stops allowing new functions and updates on that runtime, with a link to the current list of supported runtimes. The warning also covers functions that get the default runtime because neither the function nor `provider` sets one.
+
 The `handler` property points to the file and module containing the code you want to run in your function.
 
 ```javascript

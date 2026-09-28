@@ -57,6 +57,8 @@ jest.unstable_mockModule('@serverless/util', () => ({
       super(message)
       this.code = code
       this.options = options
+      // Mirrors @serverless/util's ServerlessError.
+      this.originalMessage = options?.originalMessage
     }
   },
   ServerlessErrorCodes: {
@@ -420,6 +422,83 @@ describe('Aws Resolver', () => {
 
       expect(error.code).toBe('AWS_CREDENTIALS_EXPIRED')
       expect(error.message).toContain('AWS credentials appear to have expired.')
+    })
+
+    test('a rejected account ID lookup names the credential source and the fix', async () => {
+      const invalid = new Error(
+        'The security token included in the request is invalid.',
+      )
+      invalid.name = 'InvalidClientTokenId'
+      invalid.$metadata = { httpStatusCode: 403 }
+      mockSendAwsRequest.mockRejectedValue(invalid)
+      const env = process.env
+      process.env = {
+        ...env,
+        AWS_ACCESS_KEY_ID: 'a',
+        AWS_SECRET_ACCESS_KEY: 'b',
+        AWS_PROFILE: '',
+      }
+      let error
+      try {
+        error = await makeResolver()
+          .resolveVariable({
+            resolverType: 'ssm',
+            resolutionDetails: {},
+            key: 'accountId',
+          })
+          .catch((e) => e)
+      } finally {
+        process.env = env
+      }
+
+      expect(error.code).toBe('AWS_ACCOUNT_ID_RESOLUTION_FAILED')
+      expect(error.message).toBe(
+        'Failed to resolve AWS account ID: The security token included in the request is invalid. The credentials come from AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY in the environment, which take priority over any profile: replace them, or unset them to use a profile.',
+      )
+      // The agent setup report quotes AWS's own words from here.
+      expect(error.originalMessage).toBe(
+        'The security token included in the request is invalid.',
+      )
+      expect(error.credentialsRejected).toBe(true)
+    })
+
+    test('a lookup that never reaches AWS reports the network error without credential advice', async () => {
+      const refused = Object.assign(
+        new Error('connect ECONNREFUSED 127.0.0.1:9'),
+        { code: 'ECONNREFUSED' },
+      )
+      mockSendAwsRequest.mockRejectedValue(refused)
+      const error = await makeResolver()
+        .resolveVariable({
+          resolverType: 'ssm',
+          resolutionDetails: {},
+          key: 'accountId',
+        })
+        .catch((e) => e)
+      expect(error.code).toBe('AWS_ACCOUNT_ID_RESOLUTION_FAILED')
+      expect(error.message).toBe(
+        'Failed to resolve AWS account ID: connect ECONNREFUSED 127.0.0.1:9',
+      )
+      expect(error.credentialsRejected).toBe(false)
+    })
+
+    test('the account ID error reads as sentences even when AWS omits the period', async () => {
+      mockSendAwsRequest.mockRejectedValue(
+        Object.assign(new Error('Access denied'), {
+          name: 'AccessDenied',
+          $metadata: { httpStatusCode: 403 },
+        }),
+      )
+      const error = await makeResolver()
+        .resolveVariable({
+          resolverType: 'ssm',
+          resolutionDetails: {},
+          key: 'accountId',
+        })
+        .catch((e) => e)
+      expect(error.message).toMatch(
+        /^Failed to resolve AWS account ID: Access denied\. The credentials come from /,
+      )
     })
   })
 

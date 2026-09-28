@@ -60,7 +60,7 @@ The release workflow (`.github/workflows/release-binary-installer.yml`) signs vi
    - Reads `frameworkVersion` from the service config (supports YAML, JSON, and generic JS/TS via regex).
    - Resolves the framework release to use:
      - Canary channel (`frameworkVersion: canary` or `canary-<commit-short-sha>`): fetches the latest/specified canary release metadata from the install host.
-     - Stable channel: fetches the versions index and picks the best matching supported version (exact or semver range).
+     - Stable channel: fetches the versions index and picks the best matching supported version (exact or semver range). When nothing matches, it exits 1 with a message built from the pin and the index: for a pin older than every supported release, how to keep it (a project-local `devDependencies` install, which step 1 runs) or upgrade; otherwise, the available range and the newest release.
    - Installs the selected framework release under `~/.serverless/releases/<version>` by downloading an archive and running `npm install` in the extracted `package/` folder.
 4. Node checks and execution:
    - Verifies `node` and `npm` exist and Node.js is >= 18.

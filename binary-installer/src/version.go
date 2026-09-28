@@ -172,6 +172,14 @@ func getVersion(frameworkVersion string, force bool) (*GetVersionResult, error) 
 	// Find the closest match from supported versions based on the constraint
 	matchedVersion, err := findClosestMatch(versionsFile.SupportedVersions, frameworkVersion)
 	if err != nil {
+		// A valid constraint that no supported release satisfies gets its own
+		// error type, so the caller can say what to do about the pin.
+		if _, constraintErr := semver.NewConstraint(frameworkVersion); constraintErr == nil {
+			return nil, &noMatchingVersionError{
+				constraint: frameworkVersion,
+				supported:  versionsFile.SupportedVersions,
+			}
+		}
 		return nil, fmt.Errorf("no matching version found for constraint %s: %w", frameworkVersion, err)
 	}
 
@@ -278,7 +286,7 @@ func GetFrameworkVersion(filename string, shouldCheckForUpdates bool) (*Framewor
 	} else {
 		matchedVersion, err := getVersion(version, shouldCheckForUpdates)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "No version found for %s\n", version)
+			fmt.Fprintln(os.Stderr, describeVersionResolutionError(version, filename, err))
 			os.Exit(1)
 		}
 		shouldPrintAutoUpdateWarning = matchedVersion.shouldPrintAutoUpdateWarning
@@ -303,6 +311,72 @@ func GetFrameworkVersion(filename string, shouldCheckForUpdates bool) (*Framewor
 		ReleasePath:   releasePath,
 		LatestVersion: &releaseRecord.LatestVersion,
 	}, nil
+}
+
+// noMatchingVersionError: the service pins a valid frameworkVersion that no
+// supported release satisfies.
+type noMatchingVersionError struct {
+	constraint string
+	supported  []string
+}
+
+func (e *noMatchingVersionError) Error() string {
+	return fmt.Sprintf("no supported release matches frameworkVersion %q", e.constraint)
+}
+
+var leadingVersion = regexp.MustCompile(`\d+(\.\d+){0,2}`)
+
+// shellSafeSpec matches package specs a shell passes through unchanged.
+var shellSafeSpec = regexp.MustCompile(`^[A-Za-z0-9@._^~+-]+$`)
+
+// npmPackageSpec renders serverless@<constraint> so it can be copied into a
+// shell: a range such as ">=2 <4" is single-quoted, since < and > redirect.
+func npmPackageSpec(constraint string) string {
+	spec := "serverless@" + constraint
+	if shellSafeSpec.MatchString(spec) {
+		return spec
+	}
+	return "'" + strings.ReplaceAll(spec, "'", `'\''`) + "'"
+}
+
+// describeVersionResolutionError explains why frameworkVersion could not be
+// resolved and what to do. Every version it names comes from the pin or from
+// the versions index, so the text stays true as releases are added. A pin
+// older than every supported release is the one case a project-local install
+// helps: runLocalVersionIfAvailable runs a project's own older copy.
+func describeVersionResolutionError(constraint, configFile string, err error) string {
+	file := filepath.Base(configFile)
+	var noMatch *noMatchingVersionError
+	if !errors.As(err, &noMatch) {
+		return fmt.Sprintf("Could not resolve frameworkVersion %q in %s: %v", constraint, file, err)
+	}
+	var releases semver.Collection
+	for _, v := range noMatch.supported {
+		if sv, parseErr := semver.NewVersion(v); parseErr == nil {
+			releases = append(releases, sv)
+		}
+	}
+	if len(releases) == 0 {
+		return fmt.Sprintf("No release matches frameworkVersion %q in %s.", constraint, file)
+	}
+	sort.Sort(releases)
+	oldest, newest := releases[0], releases[len(releases)-1]
+	upgrade := fmt.Sprintf(
+		"To use the newest release, change frameworkVersion to a range that includes %s (for example %q).",
+		newest.Original(), fmt.Sprint(newest.Major()),
+	)
+	if pinned, parseErr := semver.NewVersion(leadingVersion.FindString(constraint)); parseErr == nil && pinned.LessThan(oldest) {
+		return fmt.Sprintf(
+			"frameworkVersion %q in %s is older than any release this CLI can install (%s to %s).\n"+
+				"To keep using it, add it to the project with \"npm install --save-dev %s\"; this CLI then runs the project's copy.\n"+
+				"%s Then run \"serverless agent skills read serverless-upgrade\" here: that Agent Skill walks through the rest of the upgrade.",
+			constraint, file, oldest.Original(), newest.Original(), npmPackageSpec(constraint), upgrade,
+		)
+	}
+	return fmt.Sprintf(
+		"No release matches frameworkVersion %q in %s (releases available: %s to %s). %s",
+		constraint, file, oldest.Original(), newest.Original(), upgrade,
+	)
 }
 
 func findClosestMatch(versions []string, constraint string) (string, error) {

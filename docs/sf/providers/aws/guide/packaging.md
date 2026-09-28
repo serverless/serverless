@@ -66,6 +66,10 @@ By default, serverless will exclude the following patterns:
 - yarn-\*.log
 - .serverless/\*\*
 - .serverless_plugins/\*\*
+- .claude/skills/serverless-\*/\*\* and .agents/skills/serverless-\*/\*\* (the
+  Agent Skills that [`serverless agent setup`](../cli-reference/agent-setup.md)
+  installs for your coding agent; other skills in those directories are
+  packaged as usual)
 
 and the serverless configuration file being used (i.e. `serverless.yml`). In addition, if `useDotenv` is set, all files satisfying pattern `.env*` will be excluded as well.
 
@@ -208,6 +212,8 @@ functions:
 Serverless will auto-detect and exclude development dependencies based on the runtime your service is using.
 
 This ensures that only the production relevant packages and modules are included in your zip file. Doing this drastically reduces the overall size of the deployment package which will be uploaded to the cloud provider.
+
+Layers are the exception: a layer is packaged from its `path` as it is on disk, unless that `path` is the service directory itself (see [AWS Lambda Layers](./layers.md#configuration)).
 
 You can opt-out of automatic dev dependency exclusion by setting the `excludeDevDependencies` package config to `false`:
 

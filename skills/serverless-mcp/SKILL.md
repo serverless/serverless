@@ -1,11 +1,10 @@
 ---
 name: serverless-mcp
 description: >-
-  Host Model Context Protocol (MCP) servers on AWS with the Serverless
-  Framework's built-in MCP support — an official-SDK server module deployed
-  to AWS Lambda behind a streaming API Gateway REST endpoint, with gateway
-  access control, OAuth protected-resource discovery, packaging and elicitation
-  state handled for you. Use whenever the user wants to deploy, host, secure or debug an MCP
+  Hosts Model Context Protocol (MCP) servers on AWS Lambda with the Serverless
+  Framework's built-in MCP support: an official-SDK server module, with the
+  streaming endpoint, access control, OAuth discovery and packaging handled for
+  you. Use whenever the user wants to deploy, host, secure or debug an MCP
   server on AWS or Lambda, writes or edits an `mcp:` block in serverless.yml,
   exposes tools, resources or prompts to Claude or another AI client over HTTP,
   or hits an `MCP_*` configuration error (MCP_UNSUPPORTED_NODE_RUNTIME,
@@ -15,7 +14,7 @@ description: >-
   endpoint.
 metadata:
   managed-by: serverless-framework
-  version: 2
+  version: '3'
   author: Serverless Inc.
 ---
 
@@ -87,7 +86,7 @@ round trip → clean up scratch stacks
 
 Deploy prints one line per server (`mcp: crm → https://…/dev/crm/mcp`), and
 `serverless info` prints the same lines later. Verify against that URL with a
-real MCP round trip — `references/testing.md` has a copy-paste `curl` and the
+real MCP round trip — [references/testing.md](references/testing.md) has a copy-paste `curl` and the
 headless rules. Then `serverless remove` anything you stood up to try something.
 
 ## Rules
@@ -110,10 +109,10 @@ zod 3 the tools appear in `tools/list` with empty input schemas while
 Keep `@modelcontextprotocol/server` and `zod` in `dependencies` — packaging
 strips `devDependencies` from the artifact.
 
-**Write the current (2026-07-28) SDK idioms.** Elicitation is
+**Write the 2026-07-28 revision's SDK idioms.** Elicitation is
 `inputRequired({ inputRequests })` plus `acceptedContent(...)` on the retry, not
-the push-style `elicitInput()`. Details and the rest of the post-training-cutoff
-surface are in `references/server-code.md`.
+the push-style `elicitInput()`. Details, and the rest of the SDK v2 surface that
+older examples predate, are in [references/server-code.md](references/server-code.md).
 
 **Enforcement is yours; discovery is advertisement.** The Framework never
 verifies tokens. `authorizer` rejects at the gateway before the invoke, your
@@ -125,43 +124,50 @@ keys are independent; with neither, the endpoint is public and nothing warns.
 **Evidence, not vibes.** Never call a server working from reading the config.
 Trust an observed JSON-RPC result, a status code, or a log line.
 
-**Dev Mode serves MCP servers.** Under `serverless dev`, requests hit the
-deployed endpoint, the function relays each invocation to your machine, and
-your local module runs behind the same entry production uses — edits apply on
-the next request, no redeploy. Access control stays in force (authorized
-requests are served locally, unauthorized ones are still rejected at the
-gateway), discovery stays served, and `state`-backed elicitation works end to
-end.
-Results are buffered: progress arrives together at the end of the call,
-requests or results over ~125 KB fail (as for all Dev Mode functions), and on
-the default edge-optimized endpoint a call that produces nothing for roughly 30
-seconds is dropped with a `504` — the session warns there. On `REGIONAL` a dev
-call runs past that instead, up to the server's own `timeout`, and no warning
-is printed. Each request runs the
-module fresh (~a few hundred ms). The session lists each server under `mcp:`
-and logs every request by JSON-RPC method and target — `→ λ crm ── mcp
-tools/call get_weather`, then `← λ crm (200) 640ms`, with any JSON-RPC error
-inside a `200` called out on that line. Deploy normally to test incremental
-streaming and long tools; `serverless deploy` after the session restores normal
-serving.
+**Dev Mode serves MCP servers.** Under `serverless dev` your local module
+answers the deployed endpoint, with access control and discovery still in
+force. Results are buffered and each request runs the module fresh, so test
+streaming and long tools on a normal deploy, and run `serverless deploy` after
+the session: [references/dev-mode.md](references/dev-mode.md).
 
 **Don't hand-wire what the Framework wires.** Your own `http` event, streaming
 handler or discovery route around an `mcp` server duplicates work already
 done — and an `http` event on an MCP route's path is rejected outright.
 Per-server `vpc`, `layers`, `provisionedConcurrency` and `role` are not
-configurable in this release.
+configurable; the provider-level settings apply to MCP servers.
 
 Use plain `functions` with `http` events for ordinary request/response APIs —
 reach for `mcp` when AI clients speak MCP to your tools.
 
+## Gotchas
+
+- A tool registered without `inputSchema` receives the context as its only
+  argument, so an `(args, ctx)` callback reads `ctx` as undefined: give every
+  tool one, `z.object({})` for no inputs ([references/server-code.md](references/server-code.md)).
+- An elicitation handler must check for a declined answer before asking
+  again, or the client re-prompts forever ([references/server-code.md](references/server-code.md)).
+- A string `authorizer` compiles as a `TOKEN` authorizer, which gets only
+  `event.authorizationToken` and no headers; use the object form with
+  `type: request` when the function reads headers ([references/config.md](references/config.md)).
+- Adding the first server to a service whose endpoints are `httpApi` events
+  creates a second API and hostname: tell the user ([references/config.md](references/config.md)).
+- Requests need the `mcp-protocol-version` and `mcp-method` headers, plus
+  `mcp-name` on `tools/call`, `resources/read` and `prompts/get`, alongside
+  the `_meta` envelope ([references/testing.md](references/testing.md)).
+- `claude mcp add … --header "…"` needs `--` before the name and URL
+  ([references/testing.md](references/testing.md)).
+
 ## References
 
-- `references/config.md` — read when writing or changing the `mcp` block, or
+- [references/config.md](references/config.md) — read when writing or changing the `mcp` block, or
   when choosing between `state: true` and a key of your own.
-- `references/server-code.md` — read when writing or reviewing the server
+- [references/server-code.md](references/server-code.md) — read when writing or reviewing the server
   module itself.
-- `references/troubleshooting.md` — read on any failure, symptom first.
-- `references/testing.md` — read when verifying a deployment.
+- [references/troubleshooting.md](references/troubleshooting.md) — read on any failure, symptom first.
+- [references/testing.md](references/testing.md) — read when verifying a deployment.
+- [references/dev-mode.md](references/dev-mode.md) — read when developing a server under `serverless dev`.
+- `serverless agent docs providers/aws/guide/mcp` — the full reference for the
+  `mcp` block, for anything these files do not cover.
 
 Deployable examples, minimal through OAuth behind a custom domain, live at
 `https://github.com/serverless/examples/tree/v4/mcp`.

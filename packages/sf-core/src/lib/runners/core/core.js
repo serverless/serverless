@@ -4,21 +4,27 @@ import {
   progress,
   ServerlessError,
   ServerlessErrorCodes,
+  getGlobalRendererSettings,
   setGlobalRendererSettings,
 } from '@serverless/util'
 import pluginInstall from './plugin-install.js'
 import path from 'path'
 import pluginUninstall from './plugin-uninstall.js'
 import agentSkillsInstall from './agent-skills-install.js'
+import agentSetup from './agent-setup.js'
+import agentDocs from './agent-docs.js'
+import { agentSkillsList, agentSkillsRead } from './agent-skills-read.js'
 import { TraditionalRunner } from '../framework.js'
 import { Authentication } from '../../auth/index.js'
 import commandOnboarding from './onboarding.js'
 import commandUsage from './usage.js'
 import commandReconcile from './reconcile.js'
 import commandMcp from './mcp.js'
+import { detectServerlessAuth } from './agent-env-report.js'
 import { getAwsCredentialProvider } from '../../../utils/index.js'
 import loginAws from './login-aws.js'
 import loginAwsSso from './login-aws-sso.js'
+import loginNonInteractive from './login-noninteractive.js'
 
 /**
  * Converts a dashed CLI option key to its yargs camel-case-expansion form,
@@ -77,6 +83,7 @@ class CoreRunner extends Runner {
     options,
     versionFramework,
     resolverManager,
+    compose,
   }) {
     super({
       config,
@@ -85,6 +92,7 @@ class CoreRunner extends Runner {
       options,
       versionFramework,
       resolverManager,
+      compose,
     })
   }
 
@@ -147,8 +155,17 @@ class CoreRunner extends Runner {
               },
             ],
           },
+          {
+            options: {
+              org: {
+                description:
+                  'Make this org the default (switches an existing session without signing in again)',
+                type: 'string',
+                global: false,
+              },
+            },
+          },
         ],
-        options: {},
       },
       {
         command: 'logout',
@@ -218,8 +235,49 @@ class CoreRunner extends Runner {
       },
       {
         command: 'agent',
-        description: 'Manage AI agent integrations for this service',
+        description:
+          'Commands for AI coding agents: setup, documentation, skills, and service inspection',
         builder: [
+          {
+            command: 'setup',
+            description:
+              'Set up AI agent integrations: install Agent Skills and report environment status',
+            builder: [
+              {
+                options: {
+                  // Same definition as `agent skills install` below: both feed
+                  // the same target resolver; `setup` also applies the flag to
+                  // the user-level skills.
+                  dir: {
+                    description:
+                      'Only write the given directories: "claude" (.claude/skills — Claude Code) or "agents" (.agents/skills — open Agent Skills standard: Codex, Cursor, ...)',
+                    type: 'string',
+                    array: true,
+                  },
+                  // The AWS check uses the profile a deploy would: this flag,
+                  // else provider.profile in serverless.yml.
+                  'aws-profile': {
+                    description:
+                      'AWS profile to check, as with deploy (default: provider.profile in serverless.yml, then AWS_PROFILE; an aws resolver in serverless.yml supplies its own)',
+                    type: 'string',
+                  },
+                  // Stages can name their own aws resolver or profile, so the
+                  // check can target the stage a deploy will use.
+                  stage: {
+                    description:
+                      'Stage whose AWS credentials to check, as with deploy (default: provider.stage in serverless.yml, then "dev")',
+                    type: 'string',
+                    alias: 's',
+                  },
+                },
+              },
+            ],
+          },
+          {
+            command: 'docs [paths..]',
+            description:
+              'Print Serverless Framework documentation: the page index, or the given pages (paths from the index)',
+          },
           {
             command: 'skills',
             description: 'Manage Serverless Framework Agent Skills',
@@ -227,7 +285,7 @@ class CoreRunner extends Runner {
               {
                 command: 'install',
                 description:
-                  'Install Agent Skills into this service directory (.claude/skills, .agents/skills). Idempotent: re-run to update.',
+                  'Install the Agent Skills into this service directory (.claude/skills, .agents/skills) and the serverless-framework skill into your home directory. Idempotent: re-run to update.',
                 builder: [
                   {
                     options: {
@@ -238,6 +296,37 @@ class CoreRunner extends Runner {
                         array: true,
                       },
                     },
+                  },
+                ],
+              },
+              {
+                command: 'list',
+                description:
+                  'List the Agent Skills bundled with this CLI version',
+              },
+              {
+                // [name] rather than <name>: a missing name reaches the
+                // command, whose error lists the bundled skills; yargs would
+                // stop with a generic "Not enough non-option arguments".
+                command: 'read [name] [file]',
+                description:
+                  'Print a bundled Agent Skill by name (its SKILL.md, or one of its files) without installing it; "serverless agent skills list" names them',
+                builder: [
+                  {
+                    positional: [
+                      'name',
+                      { describe: 'Skill to print (required)', type: 'string' },
+                    ],
+                  },
+                  {
+                    positional: [
+                      'file',
+                      {
+                        describe:
+                          'A file of the skill, e.g. references/config.md (default: SKILL.md)',
+                        type: 'string',
+                      },
+                    ],
                   },
                 ],
               },
@@ -349,6 +438,110 @@ class CoreRunner extends Runner {
   }
 
   /**
+   * `agent setup`, `agent docs` and `agent skills`: run here, with no sign-in.
+   */
+  async runLocalAgentCommand() {
+    if (this.command[1] === 'setup') {
+      // Deliberately NO service-config guard: `agent setup` is the
+      // bootstrap mode. Outside a service directory it still installs the
+      // user-scope gateway skill and reports that no serverless.yml was
+      // found — that report is the command's whole point on a fresh
+      // machine.
+      await agentSetup({
+        configFilePath: this.configFilePath,
+        config: this.config,
+        resolverManager: this.resolverManager,
+        options: this.options,
+      })
+      return
+    }
+    if (this.command[1] === 'docs') {
+      // Read-only, unauthenticated, works anywhere: no config guard. The
+      // docs ship with the CLI, so this is the one `agent` command that
+      // never touches the network or a service directory.
+      await agentDocs({
+        paths: this.options.paths,
+      })
+      return
+    }
+    if (this.command[1] === 'skills') {
+      const sub = this.command[2]
+      // `list` and `read` print bundled content — like `docs`, they are
+      // read-only and deliberately run without a config guard. Only
+      // `install`, which writes into a service directory, keeps it.
+      if (sub === undefined || sub === 'list') {
+        await agentSkillsList({})
+        return
+      }
+      if (sub === 'read') {
+        await agentSkillsRead({
+          name: this.options.name,
+          file: this.options.file,
+        })
+        return
+      }
+      if (sub !== 'install') {
+        throw new ServerlessError(
+          `Serverless command "${this.command.join(' ')}" not found. Did you mean "serverless agent skills install", "serverless agent skills list" or "serverless agent skills read <name>"?`,
+          ServerlessErrorCodes.general.UNRECOGNIZED_CLI_COMMAND,
+          { stack: false },
+        )
+      }
+      // Outside a service it installs the user-level skills only.
+      await agentSkillsInstall({
+        configFilePath: this.configFilePath,
+        options: this.options,
+      })
+      return
+    }
+    throw new ServerlessError(
+      `Serverless command "${this.command.join(' ')}" not found. Did you mean "serverless agent setup", "serverless agent docs" or "serverless agent skills"?`,
+      ServerlessErrorCodes.general.UNRECOGNIZED_CLI_COMMAND,
+      { stack: false },
+    )
+  }
+
+  /**
+   * The agent commands need no sign-in, so they skip the one every other
+   * command makes, and with it the analysis event, which is sent with the
+   * user's access key. When a session or an access key is already there, sign
+   * in quietly after the command so the run is counted like any other: no
+   * prompt and no notifications. Normally that is one request (the access
+   * key's client data), which the command waits for. Nothing is attempted
+   * otherwise: without a session or key,
+   * authenticate() would look for a license key in SSM, and license-key runs
+   * send no analysis events.
+   */
+  async authenticateForAnalytics({
+    detectAuth = detectServerlessAuth,
+    createAuthentication = (options) => new Authentication(options),
+  } = {}) {
+    // Nobody asked to sign in: with prompts off, a sign-in that finds nothing
+    // fails here instead of opening the sign-in menu after the command.
+    const { isInteractive } = getGlobalRendererSettings()
+    try {
+      const { state } = await detectAuth({ config: this.config })
+      if (state !== 'rc-user' && state !== 'env-access') return
+      setGlobalRendererSettings({ isInteractive: false })
+      const authenticatedData = await createAuthentication({
+        versionFramework: this.versionFramework,
+      }).authenticate(
+        this.config,
+        this.options,
+        this.resolverManager,
+        this.compose?.orgName,
+      )
+      if (authenticatedData) this.authenticatedData = authenticatedData
+    } catch (error) {
+      log
+        .get('core-runner')
+        .debug(`Skipping the analysis event sign-in: ${error.message}`)
+    } finally {
+      setGlobalRendererSettings({ isInteractive })
+    }
+  }
+
+  /**
    * Hand a command off to the framework runner. Framework commands like
    * deploy/info never reach CoreRunner — the router's runner selection picks
    * TraditionalRunner for them directly, before any runner's `run()` executes.
@@ -380,14 +573,9 @@ class CoreRunner extends Runner {
       configFilePath: this.configFilePath,
       stage,
       resolverManager: this.resolverManager,
-      // Note: `this.compose` is always undefined here for the same reason
-      // `this.stage` was — CoreRunner's constructor above doesn't accept or
-      // forward `compose` to `super()`, even though the router passes it in
-      // and the base Runner class supports it. Unlike `stage`, there's no
-      // resolver/manager to re-derive `compose` from, so it isn't "trivially
-      // available" here; fixing it would mean changing CoreRunner's
-      // constructor signature, which is out of scope for this fix. Left as
-      // `this.compose` (i.e. undefined) to match current behavior.
+      // Set when Compose dispatched this command to one service
+      // (`serverless <service> agent inspect`): the framework run then knows
+      // it is inside Compose, and under which service key.
       compose: this.compose,
     })
     return frameworkRunner.run()
@@ -413,12 +601,28 @@ class CoreRunner extends Runner {
           } else {
             await loginAws(this.options)
           }
-        } else {
-          if (logger.isInteractive()) {
-            logger.logo()
-            logger.aside('Welcome to Serverless Framework V.4')
-          }
+        } else if (logger.isInteractive() && !this.options.org) {
+          logger.logo()
+          logger.aside('Welcome to Serverless Framework V.4')
           await this.authenticate()
+        } else {
+          // No one at the keyboard (an AI agent, a script), or --org given:
+          // report or switch an existing session, or print the sign-in URL
+          // and wait for the browser. Neither path prompts.
+          await loginNonInteractive({
+            versionFramework: this.versionFramework,
+            org: this.options.org,
+            config: this.config,
+            verifySignIn: () =>
+              new Authentication({
+                versionFramework: this.versionFramework,
+              }).authenticate(
+                this.config,
+                this.options,
+                this.resolverManager,
+                this.compose?.orgName,
+              ),
+          })
         }
         break
       }
@@ -522,38 +726,22 @@ class CoreRunner extends Runner {
         break
       }
       case 'agent': {
-        // `agent skills install` is handled here by the CoreRunner. Every other
-        // `agent` subcommand (e.g. `inspect`) is a framework plugin command and
-        // is delegated to a TraditionalRunner via delegateToFramework() — see
-        // its docstring for why these commands reach CoreRunner at all when
-        // deploy/info never do. An unknown subcommand still gets the helpful
-        // skills hint. The subcommand check happens before the service-config
-        // guard (unlike 'plugin') so the hint shows even outside a service dir.
-        if (this.command[1] === 'skills') {
-          if (this.command[2] !== 'install') {
-            throw new Error(
-              'Unknown command. Did you mean "serverless agent skills install"?',
-            )
-          }
-          if (!this.config || !this.configFilePath) {
-            throw new ServerlessError(
-              'This command must run in a service directory (serverless.yml not found)',
-              ServerlessErrorCodes.general.CONFIG_FILE_NOT_FOUND,
-            )
-          }
-          await agentSkillsInstall({
-            configFilePath: this.configFilePath,
-            options: this.options,
-          })
-          break
-        }
+        // `agent setup`, `agent docs` and the `agent skills` subcommands are
+        // handled here by the CoreRunner. Every other `agent` subcommand
+        // (e.g. `inspect`) is a framework plugin command and is delegated to a
+        // TraditionalRunner via delegateToFramework() — see its docstring for
+        // why these commands reach CoreRunner at all when deploy/info never
+        // do. An unknown subcommand still gets a helpful hint. The subcommand
+        // check happens before the service-config guard (unlike 'plugin') so
+        // the hint shows even outside a service dir.
         if (this.command[1] === 'inspect') {
           // At a Compose root the resolved config is serverless-compose.yml
           // (the router still selects CoreRunner because `agent` lives in its
           // CLI schema). Delegating would hand the compose file to the
           // framework runner as a service config, which fails with a
-          // confusing '"service" property is missing' error. Compose fan-out
-          // is out of scope for inspect, so fail clearly instead.
+          // confusing '"service" property is missing' error. Inspect covers
+          // one service; Compose's per-service form, `serverless <service>
+          // agent inspect`, reaches it from here, so name that.
           if (
             this.configFilePath &&
             path.basename(
@@ -561,17 +749,24 @@ class CoreRunner extends Runner {
               path.extname(this.configFilePath),
             ) === 'serverless-compose'
           ) {
+            const services = Object.keys(this.config?.services ?? {})
+            const forOne = services.length
+              ? ` From here, run it for one service: "serverless ${services[0]} agent inspect" (services: ${services.join(', ')}), or run it in that service's directory.`
+              : " Run it in one of your services' directories."
             throw new ServerlessError(
-              '"serverless agent inspect" does not support Serverless Compose. Run it from one of your service directories instead.',
+              `"serverless agent inspect" runs on one service at a time.${forOne}`,
               'AGENT_INSPECT_COMPOSE_NOT_SUPPORTED',
               { stack: false },
             )
           }
           return this.delegateToFramework()
         }
-        throw new Error(
-          'Unknown command. Did you mean "serverless agent skills install"?',
-        )
+        try {
+          await this.runLocalAgentCommand()
+        } finally {
+          await this.authenticateForAnalytics()
+        }
+        break
       }
       case 'mcp': {
         try {
@@ -588,7 +783,11 @@ class CoreRunner extends Runner {
         break
       }
       default:
-        throw new Error('Command not found')
+        throw new ServerlessError(
+          `Serverless command "${this.command.join(' ')}" not found. Run "serverless help" for a list of all available commands.`,
+          ServerlessErrorCodes.general.UNRECOGNIZED_CLI_COMMAND,
+          { stack: false },
+        )
     }
     return {}
   }

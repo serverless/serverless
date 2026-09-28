@@ -241,6 +241,88 @@ describe('packageService', () => {
     })
   })
 
+  describe('#resolveFilePathsLayer() - service dev dependencies', () => {
+    // Spawns real `npm ls` processes, which can take seconds on Windows CI
+    jest.setTimeout(60_000)
+
+    let serviceDir
+
+    beforeEach(() => {
+      // `npm ls` reports realpaths (macOS tmpdir is behind a symlink)
+      serviceDir = fs.realpathSync(tmpDirPath)
+      serverless.serviceDir = serviceDir
+    })
+
+    function writePackage(dir, contents) {
+      fs.mkdirSync(dir, { recursive: true })
+      fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify(contents))
+    }
+
+    async function resolveLayerFiles(layerName) {
+      return (await packagePlugin.resolveFilePathsLayer(layerName))
+        .map((filePath) => filePath.replace(/\\/g, '/'))
+        .sort()
+    }
+
+    it('does not exclude same-named packages from a layer directory', async () => {
+      // The service lists "shared-pkg" as a devDependency, while the layer
+      // ships its own copy as a production dependency
+      writePackage(serviceDir, {
+        name: 'service',
+        version: '1.0.0',
+        devDependencies: { 'shared-pkg': '1.0.0' },
+      })
+      writePackage(path.join(serviceDir, 'node_modules', 'shared-pkg'), {
+        name: 'shared-pkg',
+        version: '1.0.0',
+      })
+      const layerDir = path.join(serviceDir, 'layer')
+      writePackage(layerDir, {
+        name: 'layer',
+        version: '1.0.0',
+        dependencies: { 'shared-pkg': '1.0.0' },
+        devDependencies: { 'layer-dev-pkg': '1.0.0' },
+      })
+      writePackage(path.join(layerDir, 'node_modules', 'shared-pkg'), {
+        name: 'shared-pkg',
+        version: '1.0.0',
+      })
+      writePackage(path.join(layerDir, 'node_modules', 'layer-dev-pkg'), {
+        name: 'layer-dev-pkg',
+        version: '1.0.0',
+      })
+
+      serverless.service.layers = {
+        myLayer: { path: 'layer', package: { patterns: ['node_modules/**'] } },
+      }
+
+      const filePaths = await resolveLayerFiles('myLayer')
+
+      expect(filePaths).toContain('node_modules/shared-pkg/package.json')
+      // A layer is packaged as it is on disk, including its own dev dependencies
+      expect(filePaths).toContain('node_modules/layer-dev-pkg/package.json')
+    })
+
+    it('excludes dev dependencies from a layer at the service directory', async () => {
+      writePackage(serviceDir, {
+        name: 'service',
+        version: '1.0.0',
+        devDependencies: { 'dev-pkg': '1.0.0' },
+      })
+      writePackage(path.join(serviceDir, 'node_modules', 'dev-pkg'), {
+        name: 'dev-pkg',
+        version: '1.0.0',
+      })
+
+      serverless.service.layers = { myLayer: { path: '.' } }
+
+      const filePaths = await resolveLayerFiles('myLayer')
+
+      expect(filePaths).toContain('package.json')
+      expect(filePaths).not.toContain('node_modules/dev-pkg/package.json')
+    })
+  })
+
   describe('defaultExcludes', () => {
     it('should have expected default excludes', () => {
       expect(packagePlugin.defaultExcludes).toContain('.git/**')

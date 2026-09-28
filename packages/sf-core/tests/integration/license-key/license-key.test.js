@@ -62,7 +62,7 @@ describe('Traditional Service - License Key', () => {
         },
         jest,
       }),
-    ).rejects.toThrow(/license key/)
+    ).rejects.toThrow(/License Key/)
   })
 
   test('License key loaded using env resolver', async () => {

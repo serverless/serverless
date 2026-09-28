@@ -12,6 +12,7 @@ export const ensureNoParamsAndStagesTogether = (config) => {
       '"params" and "stages" cannot be used together in the top-level of serverless.yml.' +
         'If you want to define params, use the "params" key in the "stages" block.',
       ServerlessErrorCodes.resolvers.RESOLVER_INVALID_CONFIG,
+      { stack: false },
     )
   }
 }
@@ -28,6 +29,7 @@ export const validateCustomResolverConfigs = (
         throw new ServerlessError(
           `"type" attribute is missing in ${resolverName} resolver in stage ${stageName}`,
           ServerlessErrorCodes.resolvers.RESOLVER_INVALID_CONFIG,
+          { stack: false },
         )
       }
       const Provider = providerRegistry.get(resolverConfig.type)
@@ -35,6 +37,7 @@ export const validateCustomResolverConfigs = (
         throw new ServerlessError(
           `Resolver provider ${resolverConfig.type} is not supported`,
           ServerlessErrorCodes.resolvers.RESOLVER_PROVIDER_NOT_SUPPORTED,
+          { stack: false },
         )
       }
       // Compose-only provider types (e.g. `service`) are valid only inside a
@@ -43,6 +46,7 @@ export const validateCustomResolverConfigs = (
         throw new ServerlessError(
           `Resolver "${resolverName}" of type "${resolverConfig.type}" in stage "${stageName}" is only available in Serverless Compose (serverless-compose.yml), not in serverless.yml.`,
           ServerlessErrorCodes.resolvers.RESOLVER_PROVIDER_NOT_SUPPORTED,
+          { stack: false },
         )
       }
       try {
@@ -51,6 +55,7 @@ export const validateCustomResolverConfigs = (
         throw new ServerlessError(
           `Invalid configuration for resolver "${resolverName}" of type "${resolverConfig.type}" in stage "${stageName}": ${error.message}`,
           ServerlessErrorCodes.resolvers.RESOLVER_INVALID_CONFIG,
+          { stack: false },
         )
       }
     }

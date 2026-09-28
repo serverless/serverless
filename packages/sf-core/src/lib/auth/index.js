@@ -22,6 +22,11 @@ import {
   ServerlessErrorCodes,
 } from '@serverless/util'
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers'
+import { NOT_SIGNED_IN_REMEDY } from './sign-in-guidance.js'
+import { pickFallbackOrg, settleDefaultOrg } from './default-org.js'
+
+// How long a non-interactive `serverless login` waits for the browser sign-in.
+const LOGIN_TIMEOUT_MS = 10 * 60 * 1000
 
 export class Authentication {
   constructor({ versionFramework } = {}) {
@@ -151,10 +156,15 @@ export class Authentication {
         `No access key or license key manually provided, or user session or license key in .${baseFilename}rc`,
       )
 
-      // Throw error if not interactive
+      // Not signed in and nobody to prompt. Name every route out, including
+      // the one an agent can drive itself: "serverless login" prints a URL in a
+      // non-interactive shell. This is an expected state on a fresh machine,
+      // not a crash, so it carries no stack trace.
       if (!logger.isInteractive()) {
-        throw new Error(
-          'You must sign in or use a license key with Serverless Framework V.4 and later versions. Please use "serverless login".',
+        throw new ServerlessError(
+          `You must sign in or use a License Key with Serverless Framework V.4 and later versions: ${NOT_SIGNED_IN_REMEDY}.`,
+          ServerlessErrorCodes.general.AUTH_REQUIRED,
+          { stack: false },
         )
       }
 
@@ -305,20 +315,11 @@ export class Authentication {
         // Throw error if user is not a member of any Orgs
         if (!orgs.length) {
           throw new Error(
-            'You are not a member of any Serverless Framework Orgs. Please login to the Serverless Dashboard to create an Org, or have support help you create an Org.',
+            'You are not a member of any Serverless Framework Orgs. Sign in to the Serverless Dashboard to create an Org, or have support help you create an Org.',
           )
         }
         // TODO: If interactive, prompt user to select an Org
-        // Fetch all orgs in a new array where the role is owner
-        let reducedOrgs = orgs.filter((org) => org.role === 'owner')
-        // If there are no orgs where the role is owner, use all orgs
-        if (!reducedOrgs.length) {
-          reducedOrgs = orgs
-        }
-        // Find the org that with the oldest createdAt date
-        const defaultOrg = reducedOrgs.reduce((prev, current) => {
-          return prev.createdAt < current.createdAt ? prev : current
-        })
+        const defaultOrg = pickFallbackOrg(orgs)
         // Save the default org name in .{baseFilename}rc
         await saveRcAuthenticatedUser({
           userId: rcUser.userId,
@@ -695,10 +696,13 @@ export class Authentication {
     // Save the current progress message, if any, to restore later
     const progressMessage = progressMain.getState()
 
-    // Check whether this is an interactive environment. If not, throw a helpful error.
+    // The menu below needs someone to answer it. Callers that can run
+    // without a person use loginNonInteractive() instead.
     if (!logger.isInteractive()) {
-      throw new Error(
-        'Unable to login in non-interactive mode. Please use a license key or access key, both of which you can get from the Serverless Framework Dashboard: https://app.serverless.com',
+      throw new ServerlessError(
+        'Can\'t sign in without a terminal. Run "serverless login" (it prints a URL to open in a browser), or set SERVERLESS_ACCESS_KEY or SERVERLESS_LICENSE_KEY.',
+        ServerlessErrorCodes.general.AUTH_REQUIRED,
+        { stack: false },
       )
     }
 
@@ -844,99 +848,19 @@ export class Authentication {
 
       const loginData = await loginDataDeferred
 
-      // Save the user session in .{baseFilename}rc
-      await saveRcAuthenticatedUser({
-        userId: loginData.user_uid || loginData.id,
-        name: loginData.name,
-        email: loginData.email,
-        username: loginData.username,
-        refreshToken: loginData.refreshToken,
-        accessToken: loginData.accessToken,
-        idToken: loginData.idToken,
-        expiresAt: loginData.expiresAt,
+      const defaultOrg = await this.completeBrowserLogin({
+        loginData,
         baseFilename,
-      })
-
-      // Check if the ID Token needs to be refreshed, and update .{baseFilename}rc if so
-      if (await isUserIdTokenExpired({ idToken: loginData.idToken })) {
-        await this.refreshUserIdTokenAndSave({
-          userId: loginData.user_uid || loginData.id,
-          refreshToken: loginData.refreshToken,
-          baseFilename,
-        })
-      }
-
-      /**
-       * Now, we'll pull in the users Orgs and prompt them
-       * to select a default Org, if they have more than one Org.
-       */
-      const sdk = new CoreSDK({
-        authToken: loginData.idToken,
-        headers: {
-          'x-serverless-version': this.versionFramework,
-        },
-      })
-      let orgs
-      try {
-        orgs = await sdk.orgs.list({ userName: loginData.username })
-      } catch (error) {
-        logger.debug(
-          `Error fetching Orgs for user "user_uid" ${loginData.user_uid} or "id" ${loginData.id}`,
-          error,
-        )
-        throw new Error(
-          "Sorry, our authentication service is currently experiencing issues. Please try again in a few moments. We've been alerted of the issue.",
-        )
-      }
-      // Throw error if user is not a member of any Orgs
-      if (!orgs.length || orgs.length === 0) {
-        throw new Error(
-          'You are not a member of any Serverless Framework Orgs. Please login to the Serverless Dashboard to create an Org, or have support help you create an Org.',
-        )
-      }
-
-      /**
-       * Check to see if a default Org is already set in .{baseFilename}rc
-       * If not, prompt the user to select a default Org
-       */
-      let defaultOrgName = null
-      const rcConfig = await getRcConfig(baseFilename)
-      if (rcConfig.users[loginData.user_uid || loginData.id]?.defaultOrgName) {
-        defaultOrgName =
-          rcConfig.users[loginData.user_uid || loginData.id].defaultOrgName
-      } else {
-        if (orgs.length === 1) {
-          defaultOrgName = orgs[0].orgName
-        } else if (orgs.length > 1) {
-          const orgChoices = orgs.map((org) => {
-            return { value: org.orgName, name: org.orgName }
-          })
-          // Show prompt
-          const orgAnswer = await logger.choose({
+        chooseDefaultOrg: async (orgs) =>
+          logger.choose({
             message:
               'You have multiple Orgs. Please select a default Org to use with this user account.',
-            choices: orgChoices,
-          })
-
-          defaultOrgName = orgAnswer
-        }
-      }
-
-      await saveRcAuthenticatedUser({
-        userId: loginData.user_uid || loginData.id,
-        defaultOrgName,
-        baseFilename,
+            choices: orgs.map((org) => ({
+              value: org.orgName,
+              name: org.orgName,
+            })),
+          }),
       })
-
-      // Fetch the full default org from the list of orgs
-      const defaultOrg = orgs.find((org) => org.orgName === defaultOrgName)
-
-      if (!defaultOrg) {
-        // That shouldn't really happen, but handle it with a better error message just in case
-        throw new Error(
-          'The specified default org name does not exist. Please login to the Serverless Dashboard to create an Org, or have support help you create an Org.',
-        )
-      }
 
       logger.success('You have successfully signed in.')
 
@@ -948,7 +872,7 @@ export class Authentication {
       }
 
       return {
-        orgId: defaultOrg.orgUid,
+        orgId: defaultOrg.orgId,
         orgName: defaultOrg.orgName,
         isDefault: true,
       }
@@ -1162,6 +1086,211 @@ export class Authentication {
   }
 
   /**
+   * Second half of a browser sign-in, shared by the interactive menu and the
+   * non-interactive login: persist the session, refresh the token if needed,
+   * load the user's orgs and settle the default org. `requestedOrgName`
+   * (`serverless login --org`) wins; otherwise a saved default is kept, and
+   * `chooseDefaultOrg` decides among several orgs when there is none -- a
+   * prompt when someone is at the keyboard, the fallback rule when nobody is.
+   */
+  async completeBrowserLogin({
+    loginData,
+    baseFilename = 'serverless',
+    chooseDefaultOrg,
+    requestedOrgName = null,
+  }) {
+    const logger = log.get('core:auth:authenticate')
+    // Save the user session in .{baseFilename}rc
+    await saveRcAuthenticatedUser({
+      userId: loginData.user_uid || loginData.id,
+      name: loginData.name,
+      email: loginData.email,
+      username: loginData.username,
+      refreshToken: loginData.refreshToken,
+      accessToken: loginData.accessToken,
+      idToken: loginData.idToken,
+      expiresAt: loginData.expiresAt,
+      baseFilename,
+    })
+
+    // Check if the ID Token needs to be refreshed, and update .{baseFilename}rc if so
+    if (await isUserIdTokenExpired({ idToken: loginData.idToken })) {
+      await this.refreshUserIdTokenAndSave({
+        userId: loginData.user_uid || loginData.id,
+        refreshToken: loginData.refreshToken,
+        baseFilename,
+      })
+    }
+
+    /**
+     * Now, we'll pull in the users Orgs and prompt them
+     * to select a default Org, if they have more than one Org.
+     */
+    const sdk = new CoreSDK({
+      authToken: loginData.idToken,
+      headers: {
+        'x-serverless-version': this.versionFramework,
+      },
+    })
+    let orgs
+    try {
+      orgs = await sdk.orgs.list({ userName: loginData.username })
+    } catch (error) {
+      logger.debug(
+        `Error fetching Orgs for user "user_uid" ${loginData.user_uid} or "id" ${loginData.id}`,
+        error,
+      )
+      throw new Error(
+        "Sorry, our authentication service is currently experiencing issues. Please try again in a few moments. We've been alerted of the issue.",
+      )
+    }
+    // Throw error if user is not a member of any Orgs
+    if (!orgs.length || orgs.length === 0) {
+      throw new Error(
+        'You are not a member of any Serverless Framework Orgs. Sign in to the Serverless Dashboard to create an Org, or have support help you create an Org.',
+      )
+    }
+
+    const rcConfig = await getRcConfig(baseFilename)
+    const { orgName: defaultOrgName, source: defaultSource } =
+      await settleDefaultOrg({
+        orgs,
+        savedDefaultOrgName:
+          rcConfig.users[loginData.user_uid || loginData.id]?.defaultOrgName,
+        requestedOrgName,
+        chooseDefaultOrg,
+      })
+
+    await saveRcAuthenticatedUser({
+      userId: loginData.user_uid || loginData.id,
+      defaultOrgName,
+      baseFilename,
+    })
+
+    // Fetch the full default org from the list of orgs
+    const defaultOrg = orgs.find((org) => org.orgName === defaultOrgName)
+
+    if (!defaultOrg) {
+      // That shouldn't really happen, but handle it with a better error message just in case
+      throw new Error(
+        'The specified default org name does not exist. Sign in to the Serverless Dashboard to create an Org, or have support help you create an Org.',
+      )
+    }
+
+    return {
+      orgId: defaultOrg.orgUid,
+      orgName: defaultOrg.orgName,
+      isDefault: true,
+      username: loginData.username,
+      orgCount: orgs.length,
+      orgNames: orgs.map((org) => org.orgName),
+      defaultSource,
+    }
+  }
+
+  /**
+   * The signed-in user's orgs, from the session in .{baseFilename}rc,
+   * refreshing its ID token first when it has expired. Used by
+   * `serverless login --org` to switch the default without a new sign-in.
+   */
+  async listSignedInUserOrgs({ baseFilename = 'serverless' } = {}) {
+    let rcConfig = await getRcConfig(baseFilename)
+    let rcUser = rcConfig.users[rcConfig.userId]
+    if (!rcUser?.dashboard?.refreshToken) {
+      throw new ServerlessError(
+        `Your session is incomplete. Run "${baseFilename} logout", then "${baseFilename} login" again.`,
+        ServerlessErrorCodes.general.AUTH_FAILED,
+        { stack: false },
+      )
+    }
+    if (await isUserIdTokenExpired({ idToken: rcUser.dashboard.idToken })) {
+      await this.refreshUserIdTokenAndSave({
+        userId: rcConfig.userId,
+        refreshToken: rcUser.dashboard.refreshToken,
+        baseFilename,
+      })
+      rcConfig = await getRcConfig(baseFilename)
+      rcUser = rcConfig.users[rcConfig.userId]
+    }
+    const sdk = new CoreSDK({
+      authToken: rcUser.dashboard.idToken,
+      headers: {
+        'x-serverless-version': this.versionFramework,
+      },
+    })
+    const orgs = await sdk.orgs.list({ userName: rcUser.username })
+    return { userId: rcConfig.userId, username: rcUser.username, orgs }
+  }
+
+  /** Save `orgName` as the signed-in user's default org. */
+  async saveDefaultOrg({ userId, orgName, baseFilename = 'serverless' }) {
+    await saveRcAuthenticatedUser({
+      userId,
+      defaultOrgName: orgName,
+      baseFilename,
+    })
+  }
+
+  /**
+   * Sign in from a shell with no one at the keyboard -- an AI agent, a script.
+   * Prints the Dashboard URL for a person to open, then waits for the browser
+   * sign-in to complete, the same broker flow the interactive menu uses minus
+   * the menu and the automatic browser launch. `requestedOrgName` becomes
+   * the default org; with several orgs, none requested and no saved default,
+   * the fallback rule picks one, and the result says so. The URL and the
+   * wait are messages for a person, so they go through the logger (stderr)
+   * like every other notice; the caller prints the resulting state as data.
+   */
+  async loginNonInteractive({
+    baseFilename = 'serverless',
+    requestedOrgName = null,
+    notice,
+    timeoutMs = LOGIN_TIMEOUT_MS,
+  }) {
+    const logger = log.get('core:auth:authenticate')
+    const say = notice ?? ((text) => logger.notice(text))
+    // One bound for the whole wait, including the login broker's reply with
+    // the sign-in URL: a broker that connects and never answers must not
+    // hang the command.
+    let timer
+    const timeout = new Promise((_, reject) => {
+      timer = setTimeout(
+        () =>
+          reject(
+            new ServerlessError(
+              `Sign-in was not completed within ${Math.round(timeoutMs / 60000)} minutes. Run "serverless login" again for a new URL.`,
+              ServerlessErrorCodes.general.AUTH_FAILED,
+              { stack: false },
+            ),
+          ),
+        timeoutMs,
+      )
+    })
+    let data
+    try {
+      const { loginUrl, loginData } = await Promise.race([
+        this.loginViaBrowser(),
+        timeout,
+      ])
+      say(
+        `Sign in to the Serverless Framework Dashboard by opening this URL in a browser:\n${loginUrl}`,
+      )
+      say(
+        `Waiting for the sign-in to complete (up to ${Math.round(timeoutMs / 60000)} minutes)`,
+      )
+      data = await Promise.race([loginData, timeout])
+    } finally {
+      clearTimeout(timer)
+    }
+    return await this.completeBrowserLogin({
+      loginData: data,
+      baseFilename,
+      requestedOrgName,
+      chooseDefaultOrg: (orgs) => pickFallbackOrg(orgs).orgName,
+    })
+  }
+
+  /**
    * Login via web browser to Serverless Dashboard,
    * supporting both prod and dev environments
    */
@@ -1247,6 +1376,29 @@ export class Authentication {
     ws.onopen = () => {
       ws.send('{"action":"login"}')
     }
+
+    // A connection that closes or fails before the sign-in completes fails the
+    // sign-in; otherwise nothing would ever settle the wait, and the process
+    // would end without an error once nothing else keeps it running. After
+    // the sign-in, these rejections do nothing.
+    const endedEarly = (detail) =>
+      new ServerlessError(
+        `The sign-in connection closed before the sign-in completed${detail ? ` (${detail})` : ''}. Run "serverless login" again.`,
+        ServerlessErrorCodes.general.AUTH_FAILED,
+        { stack: false },
+      )
+    ws.onerror = (event) => {
+      const error = endedEarly(event?.message)
+      rejectTransactionId(error)
+      rejectLoginData(error)
+    }
+    ws.onclose = () => {
+      const error = endedEarly()
+      rejectTransactionId(error)
+      rejectLoginData(error)
+    }
+    // The caller awaits loginData only after it prints the URL.
+    loginData.catch(() => {})
 
     // Await transactionId and construct login URL
     // @ts-expect-error ...

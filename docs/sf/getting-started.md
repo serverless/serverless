@@ -30,14 +30,51 @@ npm i serverless -g
 
 Run `serverless` to verify your installation is working, and show the current version.
 
+**npm 12 and later.** npm blocks packages' install scripts unless you allow them, and prints an `npm warn install-scripts` line naming `serverless`. The installation is complete either way: the CLI downloads its binary the first time you run `serverless`. To download it during `npm install` instead, allow the script:
+
+```text
+npm i -g --allow-scripts=serverless serverless
+```
+
+### For AI coding agents
+
+If you work through an AI coding agent (Claude Code, Codex, Cursor, or any
+agent that can run terminal commands), paste this prompt into it instead of
+running the commands yourself:
+
+```text
+Set up the Serverless Framework for me so I can build and deploy to AWS from this machine. Do everything you can yourself; hand me only the steps that need my account or my browser.
+1. Install it with `npm i -g serverless`.
+2. Run `serverless agent setup`. It installs the serverless-framework Agent Skill and prints an environment report.
+3. Read the serverless-framework skill's SKILL.md and follow it.
+4. Finish with a short report: what's ready, what still needs me, and what you suggest doing next here.
+```
+
+What this does to your machine:
+
+- Installs the Serverless Framework CLI and downloads the release into
+  `~/.serverless/releases`.
+- Writes the `serverless-framework` [Agent Skill](guides/agent-skills.md)
+  into `~/.claude/skills` and/or `~/.agents/skills`, whichever your agents
+  use. Inside a project, it also writes project skills into `.claude/skills`
+  and `.agents/skills`.
+- Nothing else. No prompts, no sign-in required, safe to re-run.
+
+How you know it worked: `serverless --version` prints the Framework version,
+the `environment:` report shows `auth:` and `aws credentials:` lines (failing
+lines name their fix), and your agent lists a `serverless-framework` skill in
+its next session. See [`agent setup`](providers/aws/cli-reference/agent-setup.md)
+and [`agent docs`](providers/aws/cli-reference/agent-docs.md).
+
 ### Installing behind a proxy or firewall
 
-The Serverless Framework CLI downloads its binary during installation and connects to two hosts over HTTPS (port 443), both when installing and when running:
+During installation, the Serverless Framework CLI downloads its binary from `install.serverless.com`. When it runs, it connects to three hosts over HTTPS (port 443):
 
 - `install.serverless.com` — downloads of the CLI binary and framework releases, and version checks for automatic updates
 - `core.serverless.com` — license key validation, authentication, and usage reporting
+- `api.serverless.com` — signing in through the browser, for example with `serverless login`
 
-If your network restricts outbound traffic, allow both hosts. `npm install` itself needs access to your npm registry as usual.
+If your network restricts outbound traffic, allow all three hosts. `npm install` itself needs access to your npm registry as usual.
 
 **Proxies.** Set the standard `HTTPS_PROXY` environment variable (and `NO_PROXY` for hosts that must be reached directly). The CLI uses these both while installing and every time it runs. During `npm install`, proxy settings from your npm configuration (`https-proxy`, `proxy`, and `noproxy` in `.npmrc`) are also applied to the binary download when no proxy environment variables are set.
 

@@ -72,6 +72,38 @@ describe('getRunner marks a ComposeRunner config as a compose config file', () =
     expect(result?.runner).toBeDefined()
   })
 
+  // Core commands (agent setup, login, agent inspect) run at a Compose root
+  // on the compose file too: the flag follows the file, not the runner.
+  test.each([['agent', 'setup'], ['login'], ['agent', 'inspect']])(
+    'a core command at the Compose root (%s) accepts the compose file too',
+    async (...command) => {
+      let capturedArgs
+      const original = variables.createResolverManager
+      const spy = jest
+        .spyOn(variables, 'createResolverManager')
+        .mockImplementation(async (args) => {
+          capturedArgs = args
+          return original(args)
+        })
+      let error
+      try {
+        await getRunner({
+          logger,
+          command,
+          options: { stage: 'dev' },
+          compose: { workingDir: fixtureDir },
+          versions: {},
+        })
+      } catch (err) {
+        error = err
+      } finally {
+        spy.mockRestore()
+      }
+      expect(capturedArgs.isComposeConfigFile).toBe(true)
+      expect(error).toBeUndefined()
+    },
+  )
+
   test('a plain serverless.yml gets no allowed paths (nothing is deferred there)', async () => {
     let capturedArgs
     const original = variables.createResolverManager

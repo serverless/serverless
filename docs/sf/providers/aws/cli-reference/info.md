@@ -107,7 +107,7 @@ $ serverless info --json
     ],
     "layers": [],
     "endpoints": [
-      "httpApi: https://mnpgyjhfqj.execute-api.us-east-1.amazonaws.com"
+      "https://mnpgyjhfqj.execute-api.us-east-1.amazonaws.com"
     ],
     "service": "my-serverless-service",
     "stage": "dev",

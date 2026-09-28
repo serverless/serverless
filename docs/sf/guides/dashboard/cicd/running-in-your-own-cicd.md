@@ -23,56 +23,108 @@ keywords:
 
 # Deploy in your own CI/CD
 
-If you have an existing CI/CD service and you do not wish to use the CI/CD service provided by Serverless, you can still deploy from your existing CI/CD service while using the other features of the Serverless Framework Dashboard.
-
-Configuring your CI/CD pipeline is split between configuring the environment and the build step. Configuring the environment only needs to be performed once across all service deployments while the build step must be configured to run on each deploy.
+You can deploy from any CI/CD service, such as GitHub Actions, GitLab CI or CircleCI, while still using the Serverless Framework Dashboard. A pipeline needs three things: the CLI, a way to sign in to Serverless without a browser, and AWS credentials.
 
 ## Configure the environment
 
-Complete the steps in this guide to install the Serverless Framework open-source CLI and configure authentication.
+### Install Node.js and the CLI
 
-### Install Node.js and NPM
-
-Your CI/CD environment must have Node.js and NPM installed as they are prerequisites for the Serverless Framework CLI. Follow the instructions below to install Node.js and NPM. You must install **version 6.x or later** of Node.js.
-
-[https://nodejs.org/en/download/package-manager/](https://nodejs.org/en/download/package-manager/)
-
-### Install the Serverless Framework open-source CLI
-
-In your CI/CD environment install Serverless Framework open-source CLI as it is later used to perform the deploy.
+The CLI runs on Node.js 18 or later; use a current LTS release. Install the CLI as a step of the pipeline:
 
 ```sh
 npm install -g serverless
 ```
 
-### Create an Access Key in the Serverless Framework Dashboard
+npm 12 prints a warning that it blocked the package's install script. The CLI still works: it downloads what it needs on its first run.
 
-When using the the Serverless Framework open-source CLI with Serverless Framework Dashboard locally you must first authenticate with the `serverless login` command. The `serverless login` command will open up a browser where you are prompted for your Serverless Framework Dashboard username and password. Since your CI/CD environment is non-interactive, you will need to authenticate the CLI using an access token instead.
+### Sign in to Serverless
 
-Follow these steps to create an access token:
+`serverless login` opens a browser, which a pipeline doesn't have. Give the pipeline a key in an environment variable instead, stored as a secret of your CI/CD service:
 
-1. Login to the dashboard at https://app.serverless.com/
-2. Open the username dropdown in the upper-right corner.
-3. Select "personal access keys" from the dropdown.
-4. Click “+ add” button.
-5. Provide a name and press “Create”
-6. You will be presented with the access key on the new page.
+- `SERVERLESS_ACCESS_KEY`: an Access Key. Create one in the Dashboard under Settings > Access Keys (https://app.serverless.com/settings/accessKeys). The key is scoped to your user and the org, and stops working as soon as you leave the org.
+- `SERVERLESS_LICENSE_KEY`: a [License Key](../../license-keys.md), for a key that is not tied to a user.
 
-**Note**: The access token has permission to the org; however, it is associated with your account. If your account is deleted, then the access token will be revoked too.
+Which one to use:
 
-### Configure environment variables
+- An Access Key belongs to one user, so create one just for the pipeline and label it (for example `github-ci`) rather than reusing your own. A personal key stops working in CI when you leave the org or delete the key.
+- A License Key isn't tied to a user and doesn't expire. It needs an active subscription, and it turns off the Dashboard for the deploys that use it (see [License Keys](../../license-keys.md)).
 
-In the previous step you obtained an access token from the Serverless Framework Dashboard which you will now set in your CI/CD environment so that the Serverless Framework open-source CLI can authenticate with the Serverless Framework Dashboard.
+### Provide AWS credentials
 
-Set the following environment variable in your CI/CD environment:
+A deploy takes its AWS credentials the same way as on your machine (see [which credentials a deploy uses](../../../providers/aws/guide/credentials.md#which-credentials-a-deploy-uses)). In a pipeline, prefer short-lived credentials:
 
-- `SERVERLESS_ACCESS_KEY`: Your Serverless Framework Dashboard access token from previous step.
+- **An IAM role the pipeline assumes through OpenID Connect (OIDC).** No AWS keys are stored in the CI/CD service. GitHub Actions, GitLab and CircleCI all support it: register the provider's OIDC issuer as an identity provider in IAM, and create a role that trusts it, limited to your repository and branch. The role needs permission to deploy the service's stack.
+- **Access keys** of an IAM user in `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, stored as secrets.
+- **The org's [Serverless Dashboard Provider](../providers.md)**, when the service uses one.
 
 ## Configure the build step
 
-Your CI/CD pipeline is now ready to deploy the service. This step should be configured to run on every deploy.
+Run this on every deploy:
 
 ```sh
-npm install # installs all plugins and packages
-serverless deploy # deploys your service
+npm ci # installs the service's plugins and packages
+serverless deploy --stage <stage>
 ```
+
+`npm ci` installs exactly what `package-lock.json` lists, so commit the lockfile (`npm install` writes it). A service with no npm dependencies can leave the `npm ci` step out.
+
+## Example: GitHub Actions
+
+This workflow deploys the `dev` stage on every push to `main`, with an IAM role assumed through OIDC. It expects:
+
+- an IAM identity provider for `https://token.actions.githubusercontent.com` with the audience `sts.amazonaws.com`, and a role that trusts it for this repository (see the [configure-aws-credentials](https://github.com/aws-actions/configure-aws-credentials#configuring-iam-to-trust-github) README for the trust policy);
+- the role's ARN in a repository variable named `AWS_DEPLOY_ROLE_ARN`;
+- an Access Key in a repository secret named `SERVERLESS_ACCESS_KEY`.
+
+```yaml
+# .github/workflows/deploy-dev.yml
+name: Deploy dev
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write # lets the job request the OIDC token for AWS
+
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm install -g serverless
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+      - run: serverless deploy --stage dev
+        env:
+          SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
+```
+
+GitHub reads workflows only from `.github/workflows` at the root of the repository. When the service lives in a subdirectory, keep the workflow at the root and set `defaults.run.working-directory` to the service directory.
+
+`cache: npm` and `npm ci` both need the committed `package-lock.json`. Without npm dependencies, remove `cache: npm` and the `npm ci` step.
+
+## Deploying a Compose project
+
+For a [Serverless Compose](../../compose.md) project, run `serverless deploy --stage <stage>` in the directory that holds `serverless-compose.yml`. It deploys every service, in the order their dependencies set. Compose deploys each service as it is on disk, so first install dependencies in each service directory that has a `package.json`. In the GitHub Actions example, that means one `npm ci` step per service:
+
+```yaml
+- run: npm ci
+  working-directory: users-db
+- run: npm ci
+  working-directory: api
+```
+
+If the services are npm workspaces of the root `package.json`, a single `npm ci` at the root installs them all.

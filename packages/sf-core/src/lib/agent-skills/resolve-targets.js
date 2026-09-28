@@ -5,6 +5,7 @@
  */
 import { stat } from 'fs/promises'
 import path from 'path'
+import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
 import { hasManagedSkills } from './engine.js'
 
 export const DIR_MAP = { claude: '.claude/skills', agents: '.agents/skills' }
@@ -29,6 +30,22 @@ const dirExists = async (p) => {
 const toAbs = (serviceDir, keys) =>
   [...new Set(keys)].map((k) => path.join(serviceDir, ...DIR_MAP[k].split('/')))
 
+/**
+ * Reject unknown `--dir` values. Split out of resolveTargetDirs so callers that
+ * may never reach the project half (`agent setup` outside a service directory)
+ * still fail on a bad flag instead of silently ignoring it.
+ */
+export const assertValidDirFlags = (dirFlags) => {
+  for (const flag of dirFlags ?? []) {
+    if (!DIR_MAP[flag])
+      throw new ServerlessError(
+        `Unknown --dir value "${flag}". Valid values: ${Object.keys(DIR_MAP).join(', ')}`,
+        ServerlessErrorCodes.general.INVALID_CLI_INPUT,
+        { stack: false },
+      )
+  }
+}
+
 export const resolveTargetDirs = async ({
   mode,
   dirFlags,
@@ -37,12 +54,7 @@ export const resolveTargetDirs = async ({
 }) => {
   // 1. Explicit --dir (install only): exact targets, creates them.
   if (mode === 'install' && dirFlags?.length) {
-    for (const flag of dirFlags) {
-      if (!DIR_MAP[flag])
-        throw new Error(
-          `Unknown --dir value "${flag}". Valid values: ${Object.keys(DIR_MAP).join(', ')}`,
-        )
-    }
+    assertValidDirFlags(dirFlags)
     return toAbs(serviceDir, dirFlags)
   }
 
@@ -66,13 +78,32 @@ export const resolveTargetDirs = async ({
   }
   if (serviceDetected.length) return toAbs(serviceDir, serviceDetected)
 
-  // 4. Home-dir detection (what does this developer run?).
+  // 4. Home-dir detection (what does this developer run?). Callers may pass no
+  // homeDir when it could not be resolved — then this rung simply has nothing
+  // to detect and we fall through to the safe default.
   const homeDetected = []
-  for (const [marker, key] of Object.entries(HOME_MARKERS)) {
+  for (const [marker, key] of homeDir ? Object.entries(HOME_MARKERS) : []) {
     if (await dirExists(path.join(homeDir, marker))) homeDetected.push(key)
   }
   if (homeDetected.length) return toAbs(serviceDir, homeDetected)
 
   // 5. Safe default: both.
   return toAbs(serviceDir, Object.keys(DIR_MAP))
+}
+
+/**
+ * User-scope targets: the `--dir` dirs when given, else home-rooted skills
+ * dirs for detected agents.
+ */
+export const resolveUserTargetDirs = async ({ homeDir, dirFlags }) => {
+  if (dirFlags?.length) {
+    assertValidDirFlags(dirFlags)
+    return toAbs(homeDir, dirFlags)
+  }
+  const detected = []
+  for (const [marker, key] of Object.entries(HOME_MARKERS)) {
+    if (await dirExists(path.join(homeDir, marker))) detected.push(key)
+  }
+  const keys = detected.length ? [...new Set(detected)] : Object.keys(DIR_MAP)
+  return keys.map((k) => path.join(homeDir, ...DIR_MAP[k].split('/')))
 }

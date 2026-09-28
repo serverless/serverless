@@ -17,7 +17,7 @@ await jest.unstable_mockModule('node:fs/promises', () => {
   return { ...fsMock, default: fsMock }
 })
 
-const { getDocs } = await import('../src/tools/docs.js')
+const { getDocs, resolveDocPath } = await import('../src/tools/docs.js')
 
 // Same resolution the tool performs via fromRepoRoot('docs/sf'): this file
 // lives in packages/mcp/tests, three levels below the repo root.
@@ -113,5 +113,45 @@ describe('Docs Tool', () => {
     expect(result.isError).toBe(false)
     expect(result.content[0].text).toContain('Path "sf/missing.md" not found.')
     expect(mockReadFile).not.toHaveBeenCalled()
+  })
+})
+
+describe('resolveDocPath containment', () => {
+  const base = path.resolve(path.sep, 'docs')
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  test('accepts a sibling name that merely starts with two dots', async () => {
+    // "..md" is the first candidate a caller tries for the root path "."; a
+    // bare startsWith('..') containment test reads it as an escape.
+    mockRealpath.mockImplementation(async (p) => {
+      if (p === base) return p
+      const error = new Error(`ENOENT: no such file or directory, ${p}`)
+      error.code = 'ENOENT'
+      throw error
+    })
+
+    const result = await resolveDocPath(base, '..md')
+
+    expect(result).toEqual({
+      resolvedPath: path.join(base, '..md'),
+      isWithinBase: true,
+      exists: false,
+    })
+  })
+
+  test('still rejects a leading ".." segment and an absolute path', async () => {
+    mockRealpath.mockImplementation(async (p) => p)
+
+    await expect(resolveDocPath(base, '../etc')).resolves.toMatchObject({
+      isWithinBase: false,
+      exists: false,
+    })
+    await expect(
+      resolveDocPath(base, path.resolve(path.sep, 'etc')),
+    ).resolves.toMatchObject({ isWithinBase: false, exists: false })
+    expect(mockRealpath).not.toHaveBeenCalled()
   })
 })

@@ -1,4 +1,13 @@
-# Dev mode and driving the emulator
+# Dev Mode and driving the emulator
+
+## Contents
+
+- IAM emulation
+- Driving it as an agent
+- Suspend and resume in dev
+- Stopping the dev process
+- Reading the piped output
+- Hooks in dev
 
 `serverless dev --sandbox <name>` builds the sandbox's image locally and
 starts an SDK-compatible MicroVMs API emulator on your machine — the endpoint
@@ -136,7 +145,13 @@ sandbox, not just `dev`.
 
 ## Stopping the dev process
 
-Once you are done with the emulator, stop the backgrounded `dev` process by sending it SIGTERM with `kill <pid>`, then wait a few seconds for it to shut down the emulator and stop the sandbox containers. If the process remains alive after a few seconds, force-kill it with `kill -9 <pid>` — but then manually verify cleanup with `docker ps` to ensure no stray containers are left running.
+Once you are done with the emulator, send SIGTERM to the Framework's Node
+process. The npm and standalone installs run the CLI in a child Node process,
+so the pid from `$!` can be the launcher's: find the process with
+`pgrep -f 'sf-core\.js( [^ -][^ ]*)? dev( |$)'` and `kill` that pid, then
+wait a few seconds for it to shut down the emulator and stop the sandbox containers. If
+it is still alive after that, force-kill it with `kill -9 <pid>` and check
+with `docker ps` that no stray containers are left running.
 
 ## Reading the piped output
 
@@ -168,5 +183,6 @@ what status it returned. Build your hook handlers
 against this loop the same way you would against a real deploy — a hook bug
 that would fail in production fails here too, before you spend a deploy
 cycle finding out. See `references/config.md` for the full `hooks` schema
-(timeouts, the build-time vs. runtime hook groups, the 200-fast/503-retry
-contract for `ready`).
+(timeouts, the build-time vs. runtime hook groups) and
+`references/platform.md` for the hooks contract (answer fast with `200`; `ready`
+may answer `503` to be retried).

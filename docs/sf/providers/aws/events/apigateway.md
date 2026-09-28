@@ -1889,7 +1889,7 @@ provider:
       fullExecutionData: false
 ```
 
-Websockets have the same configuration options as the the REST API. Example:
+Websockets have the same configuration options as the REST API. Example:
 
 ```yml
 # serverless.yml

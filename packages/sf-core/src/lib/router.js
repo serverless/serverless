@@ -12,7 +12,11 @@ import {
 import { readdir } from 'fs/promises'
 import path from 'path'
 import readConfig from '@serverless/framework/lib/configuration/read.js'
-import { commandExist, validateCliSchema } from '../utils/cli/cli.js'
+import {
+  commandExist,
+  commandWithoutPositionals,
+  validateCliSchema,
+} from '../utils/cli/cli.js'
 import { createHash } from 'crypto'
 import saveMeta from './meta/index.js'
 import { CoreRunner } from './runners/core/core.js'
@@ -74,6 +78,7 @@ const route = async ({ command, options, versions, compose }) => {
     })
 
   const schema = runner.getCliSchema()
+  const eventCommand = commandWithoutPositionals({ command, schema })
   if (schema) {
     const {
       helpPrinted,
@@ -91,6 +96,12 @@ const route = async ({ command, options, versions, compose }) => {
     if (helpPrinted || versionPrinted) {
       return
     }
+  }
+
+  // Help for a built-in command needs no sign-in: the runner prints it from
+  // its static schema and nothing else runs (see renderHelpBeforeAuth).
+  if (await runner.renderHelpBeforeAuth?.()) {
+    return
   }
 
   let runnerResult, runnerError
@@ -127,7 +138,8 @@ const route = async ({ command, options, versions, compose }) => {
   }
 
   // Silently converge already-installed managed agent skills to the bundled
-  // set. Internally guarded (CI, `agent` command, no config) and never throws.
+  // set, in the user's home dirs and in the service. Internally guarded (CI,
+  // `agent` command, no config skips the project half) and never throws.
   if (!runnerError) {
     await autoUpdateAgentSkills({ command, configFilePath })
   }
@@ -136,7 +148,7 @@ const route = async ({ command, options, versions, compose }) => {
     await finalize({
       logger,
       versionFramework: versions?.serverless_framework,
-      command,
+      command: eventCommand,
       commandStartTime,
       options,
       resolverManager,
@@ -156,7 +168,7 @@ const route = async ({ command, options, versions, compose }) => {
     // Send analysis event with error
     await handleFinalizationError({
       versionFramework: versions?.serverless_framework,
-      command,
+      command: eventCommand,
       commandStartTime,
       options,
       configFilePath,
@@ -439,6 +451,18 @@ const getMachineId = () => {
   return createHash('md5').update(macAddresses.join('')).digest('hex')
 }
 
+/**
+ * Read-only agent commands that never touch the service configuration.
+ * Skipping config discovery keeps them working in a directory whose
+ * serverless.yml cannot be parsed or resolved -- the moment an agent most
+ * needs the docs. `agent setup` and `agent skills install` are NOT here:
+ * their project half reads the config.
+ */
+const isConfigFreeAgentCommand = (command) =>
+  command?.[0] === 'agent' &&
+  (command[1] === 'docs' ||
+    (command[1] === 'skills' && command[2] !== 'install'))
+
 export const getRunner = async ({
   logger,
   command,
@@ -446,12 +470,14 @@ export const getRunner = async ({
   compose,
   versions,
 }) => {
-  let runnerDetails = await findRunner({
-    logger,
-    command,
-    options,
-    workingDir: compose?.workingDir ?? process.cwd(),
-  })
+  let runnerDetails = isConfigFreeAgentCommand(command)
+    ? { RunnerClass: CoreRunner }
+    : await findRunner({
+        logger,
+        command,
+        options,
+        workingDir: compose?.workingDir ?? process.cwd(),
+      })
 
   const shouldByHandledByCore =
     // onboarding
@@ -466,6 +492,11 @@ export const getRunner = async ({
     options?.v ||
     command[0] === 'version'
 
+  // Whether the config found here is a compose file is a property of the file,
+  // not of the runner that ends up handling the command: a core command run at
+  // a Compose root still has serverless-compose.yml as its config.
+  const isComposeConfigFile = !!runnerDetails?.RunnerClass?.isComposeConfigFile
+
   if (shouldByHandledByCore) {
     runnerDetails = runnerDetails
       ? { ...runnerDetails, RunnerClass: CoreRunner }
@@ -477,6 +508,13 @@ export const getRunner = async ({
     !runnerDetails &&
     (command[0] === 'help' || options?.help || options?.h)
   ) {
+    runnerDetails = { RunnerClass: CoreRunner }
+  }
+
+  // An unknown `agent` subcommand outside a service: the core runner names the
+  // agent commands, instead of a missing configuration file. Inside a service
+  // it still goes to the Framework, like any other unknown command.
+  if (!runnerDetails && command[0] === 'agent') {
     runnerDetails = { RunnerClass: CoreRunner }
   }
 
@@ -509,8 +547,10 @@ export const getRunner = async ({
       // this (ComposeRunner.isComposeConfigFile === true); without forwarding it,
       // this up-front manager validates a serverless-compose.yml as if it were a
       // regular serverless.yml and rejects its compose-only resolvers before the
-      // ComposeRunner's own manager (which sets the flag) ever runs.
-      isComposeConfigFile: RunnerClass.isComposeConfigFile,
+      // ComposeRunner's own manager (which sets the flag) ever runs. The flag
+      // follows the file, so core commands at a Compose root (agent setup,
+      // login, agent inspect) accept it too.
+      isComposeConfigFile,
       print: command?.[0] === 'print' && !!options?.debug,
       versionFramework: versions?.serverless_framework,
     })) || {}
@@ -606,31 +646,35 @@ const finalize = async ({
       accessKey,
     }),
   )
-  // Task 3: Save meta information
-  tasks.push(
-    saveMeta({
-      logger,
-      metaObject: {
-        versionFramework,
-        servicePath: configFilePath,
-        serviceConfigFileName: configFilePath && path.basename(configFilePath),
-        service: config,
-        provider: config?.provider,
-        dashboard: authenticatedData?.dashboard,
-        isWithinCompose: compose?.isWithinCompose,
-        composeOrgName: compose?.orgName,
-        error: runnerError,
-        serviceRawFile: configFileRaw,
-        command,
-        options,
-        orgId,
-        orgName: authenticatedData?.orgName,
-        userId: authenticatedData?.userId,
-        userName: authenticatedData?.userName,
-        ...(await runner.getMetadataToSave()),
-      },
-    }),
-  )
+  // Task 3: Save meta information -- only for a service: without a config
+  // file there is no service directory, and the record would land in
+  // ./.serverless of wherever the command ran (keyed "unknown").
+  if (configFilePath)
+    tasks.push(
+      saveMeta({
+        logger,
+        metaObject: {
+          versionFramework,
+          servicePath: configFilePath,
+          serviceConfigFileName:
+            configFilePath && path.basename(configFilePath),
+          service: config,
+          provider: config?.provider,
+          dashboard: authenticatedData?.dashboard,
+          isWithinCompose: compose?.isWithinCompose,
+          composeOrgName: compose?.orgName,
+          error: runnerError,
+          serviceRawFile: configFileRaw,
+          command,
+          options,
+          orgId,
+          orgName: authenticatedData?.orgName,
+          userId: authenticatedData?.userId,
+          userName: authenticatedData?.userName,
+          ...(await runner.getMetadataToSave()),
+        },
+      }),
+    )
 
   // Execute the specified tasks in parallel
   const results = await Promise.allSettled(tasks)

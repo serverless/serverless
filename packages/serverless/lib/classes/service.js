@@ -3,6 +3,13 @@ import util from 'util'
 import _ from 'lodash'
 import semver from 'semver'
 import { log } from '@serverless/util'
+import { resolveServerlessConfigFileExcludes } from '../plugins/package/lib/package-service.js'
+
+// The config file as it exists on disk (`serverless.yml`, not `serverless`):
+// the framework is handed the name without its extension.
+const configFileName = (serverless) =>
+  resolveServerlessConfigFileExcludes(serverless)[0] ??
+  serverless.configurationFilename
 
 class Service {
   constructor(serverless, data) {
@@ -138,22 +145,36 @@ class Service {
       coercedYmlVersion &&
       coercedVersion.major !== coercedYmlVersion.major
     ) {
-      const errorMessage = [
-        `The Serverless version (${version}) does not satisfy the`,
-        ` "frameworkVersion" (${ymlVersion}) in ${this.serverless.configurationFilename}`,
-      ].join('')
-      throw new ServerlessError(errorMessage, 'FRAMEWORK_VERSION_MISMATCH')
+      // Every version named comes from the pin and the running CLI. Stackless:
+      // a pin this CLI cannot run is a configuration state, not a crash.
+      // An older pin gets the same concrete steps as the installer: keep it
+      // with a project copy, or upgrade with the serverless-upgrade skill.
+      const older = coercedYmlVersion.major < coercedVersion.major
+      const spec = /^[\w.^~-]+$/.test(ymlVersion)
+        ? `serverless@${ymlVersion}`
+        : `'serverless@${ymlVersion}'`
+      const mismatch = new ServerlessError(
+        `frameworkVersion "${ymlVersion}" in ${configFileName(this.serverless)} does not match this Serverless Framework version (${version}). ` +
+          (older
+            ? `To keep using "${ymlVersion}", install it in the project with "npm install --save-dev ${spec}". ` +
+              `To use ${version}, change frameworkVersion to "${coercedVersion.major}", then run "serverless agent skills read serverless-upgrade".`
+            : `To keep using "${ymlVersion}", run this service with a CLI that matches it. ` +
+              `To use ${version}, change frameworkVersion to a range that includes it (for example "${coercedVersion.major}").`),
+        'FRAMEWORK_VERSION_MISMATCH',
+      )
+      mismatch.stack = undefined
+      throw mismatch
     }
 
     if (!configurationInput.service) {
       throw new ServerlessError(
-        `"service" property is missing in ${this.serverless.configurationFilename}`,
+        `"service" property is missing in ${configFileName(this.serverless)}`,
         'SERVICE_NAME_MISSING',
       )
     }
     if (!configurationInput.provider) {
       throw new ServerlessError(
-        `"provider" property is missing in ${this.serverless.configurationFilename}`,
+        `"provider" property is missing in ${configFileName(this.serverless)}`,
         'PROVIDER_NAME_MISSING',
       )
     }

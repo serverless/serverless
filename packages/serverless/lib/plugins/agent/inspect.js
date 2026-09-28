@@ -29,6 +29,7 @@
 import yaml from 'js-yaml'
 import { log, writeText } from '@serverless/util'
 import ServerlessError from '../../serverless-error.js'
+import { deployCommand } from '../aws/lib/deploy-command.js'
 import { discoverResources, groupByCategory } from './lib/discover-resources.js'
 import { select } from './lib/select.js'
 import { createInvoker } from './lib/build-clients.js'
@@ -227,13 +228,19 @@ class AgentInspect {
       // mentions "stack" and "does not exist" stays fatal rather than being
       // misread as not-deployed.
       if (/Stack with id .+ does not exist/i.test(error.message || '')) {
+        // The hint deploys exactly what was inspected: this stage and
+        // region, and within Compose this service only.
+        const deploy = deployCommand({
+          serverless: this.serverless,
+          provider: this.provider,
+        })
         this.render({
           service: this.serverless.service.service,
           stage,
           region,
           ...(stackName ? { stackName } : {}),
           mode: 'not-deployed',
-          hint: `No deployed stack found for stage "${stage}" in ${region}. Run "serverless deploy" first, then re-run inspect.`,
+          hint: `No deployed stack found for stage "${stage}" in ${region}. Run "${deploy}" first, then re-run inspect.`,
           resources: {},
         })
         return

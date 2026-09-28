@@ -6,7 +6,7 @@ import { getUserCachePath } from '@serverless/framework/lib/plugins/python/lib/s
 import fsExtra from 'fs-extra'
 import shellQuote from 'shell-quote'
 import { createHash } from 'node:crypto'
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, join, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -29,6 +29,18 @@ const __dirname = dirname(__filename)
  * @param  {string} fullpath
  * @return {string}
  */
+// The static cache folder for a requirements checksum:
+// <checksum>_<install settings hash>_<arch>_slspyc. The settings hash covers
+// the options that change what an install produces (see installSettingsHash).
+function staticCacheFolder(cachepath, checksum, arch) {
+  const names = readdirSync(cachepath).filter(
+    (name) =>
+      name.startsWith(`${checksum}_`) && name.endsWith(`_${arch}_slspyc`),
+  )
+  expect(names).toHaveLength(1)
+  return names[0]
+}
+
 function sha256Path(fullpath) {
   return createHash('sha256').update(readFileSync(fullpath)).digest('hex')
 }
@@ -1409,14 +1421,13 @@ test(
     const cachepath = getUserCachePath()
     const cacheFolderHash = sha256Path('.serverless/requirements.txt')
     const arch = 'x86_64'
+    const cacheFolder = staticCacheFolder(cachepath, cacheFolderHash, arch)
     expect(
       pathExistsSync(`${cachepath}${sep}downloadCacheslspyc${sep}http-v2`),
     ).toBeTruthy() // http exists in download-cache
 
     expect(
-      pathExistsSync(
-        `${cachepath}${sep}${cacheFolderHash}_${arch}_slspyc${sep}flask`,
-      ),
+      pathExistsSync(`${cachepath}${sep}${cacheFolder}${sep}flask`),
     ).toBeTruthy() // flask exists in static-cache
   },
   { skip: true },
@@ -1430,14 +1441,13 @@ test(
     const cachepath = getUserCachePath()
     const cacheFolderHash = sha256Path('.serverless/requirements.txt')
     const arch = 'x86_64'
+    const cacheFolder = staticCacheFolder(cachepath, cacheFolderHash, arch)
     expect(
       pathExistsSync(`${cachepath}${sep}downloadCacheslspyc${sep}http-v2`),
     ).toBeTruthy() // http-v2 exists in download-cache
 
     expect(
-      pathExistsSync(
-        `${cachepath}${sep}${cacheFolderHash}_${arch}_slspyc${sep}flask`,
-      ),
+      pathExistsSync(`${cachepath}${sep}${cacheFolder}${sep}flask`),
     ).toBeTruthy() // flask exists in static-cache
   },
   { skip: !canUseDocker() || brokenOn('win32') },
@@ -1449,21 +1459,20 @@ test('py3.13 uses static cache', async () => {
   const cachepath = getUserCachePath()
   const cacheFolderHash = sha256Path('.serverless/requirements.txt')
   const arch = 'x86_64'
+  const cacheFolder = staticCacheFolder(cachepath, cacheFolderHash, arch)
   expect(
-    pathExistsSync(
-      `${cachepath}${sep}${cacheFolderHash}_${arch}_slspyc${sep}flask`,
-    ),
+    pathExistsSync(`${cachepath}${sep}${cacheFolder}${sep}flask`),
   ).toBeTruthy() // flask exists in static-cache
 
   expect(
     pathExistsSync(
-      `${cachepath}${sep}${cacheFolderHash}_${arch}_slspyc${sep}.completed_requirements`,
+      `${cachepath}${sep}${cacheFolder}${sep}.completed_requirements`,
     ),
   ).toBeTruthy() // .completed_requirements exists in static-cache
 
   // py3.13 checking that static cache actually pulls from cache (by poisoning it)
   writeFileSync(
-    `${cachepath}${sep}${cacheFolderHash}_${arch}_slspyc${sep}injected_file_is_bad_form`,
+    `${cachepath}${sep}${cacheFolder}${sep}injected_file_is_bad_form`,
     'injected new file into static cache folder',
   )
   sls(['package'], { env: {} })
@@ -1477,15 +1486,14 @@ test('py3.13 uses static cache with cacheLocation option', async () => {
   sls(['package'], { env: { cacheLocation: cachepath } })
   const cacheFolderHash = sha256Path('.serverless/requirements.txt')
   const arch = 'x86_64'
+  const cacheFolder = staticCacheFolder(cachepath, cacheFolderHash, arch)
   expect(
-    pathExistsSync(
-      `${cachepath}${sep}${cacheFolderHash}_${arch}_slspyc${sep}flask`,
-    ),
+    pathExistsSync(`${cachepath}${sep}${cacheFolder}${sep}flask`),
   ).toBeTruthy() // flask exists in static-cache
 
   expect(
     pathExistsSync(
-      `${cachepath}${sep}${cacheFolderHash}_${arch}_slspyc${sep}.completed_requirements`,
+      `${cachepath}${sep}${cacheFolder}${sep}.completed_requirements`,
     ),
   ).toBeTruthy() // .completed_requirements exists in static-cache
 })
@@ -1498,21 +1506,20 @@ test(
     const cachepath = getUserCachePath()
     const cacheFolderHash = sha256Path('.serverless/requirements.txt')
     const arch = 'x86_64'
+    const cacheFolder = staticCacheFolder(cachepath, cacheFolderHash, arch)
     expect(
-      pathExistsSync(
-        `${cachepath}${sep}${cacheFolderHash}_${arch}_slspyc${sep}flask`,
-      ),
+      pathExistsSync(`${cachepath}${sep}${cacheFolder}${sep}flask`),
     ).toBeTruthy() // flask exists in static-cache
 
     expect(
       pathExistsSync(
-        `${cachepath}${sep}${cacheFolderHash}_${arch}_slspyc${sep}.completed_requirements`,
+        `${cachepath}${sep}${cacheFolder}${sep}.completed_requirements`,
       ),
     ).toBeTruthy() // .completed_requirements exists in static-cache
 
     // py3.13 checking that static cache actually pulls from cache (by poisoning it)
     writeFileSync(
-      `${cachepath}${sep}${cacheFolderHash}_${arch}_slspyc${sep}injected_file_is_bad_form`,
+      `${cachepath}${sep}${cacheFolder}${sep}injected_file_is_bad_form`,
       'injected new file into static cache folder',
     )
     sls(['package'], { env: { dockerizePip: 'true', slim: 'true' } })

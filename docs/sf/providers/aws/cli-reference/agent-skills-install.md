@@ -23,7 +23,8 @@ keywords:
 # Agent Skills Install
 
 Install (or refresh) the Agent Skills bundled with the Serverless Framework
-CLI into your service directory. Skills are instruction files that teach AI
+CLI: the user-level `serverless-framework` skill into your home directory and,
+in a service directory, the project skills into the service. Skills are instruction files that teach AI
 coding agents — Claude Code, Codex, Cursor, and any agent supporting the
 [open Agent Skills standard](https://agentskills.io) — how to work with your
 service. The command is idempotent: re-running it updates already-installed
@@ -37,8 +38,9 @@ none yet, the command reports
 serverless agent skills install
 ```
 
-Run it in your service directory (where `serverless.yml` lives). By default
-the command detects which agent directories you or your team already use and
+Run it in your service directory (where `serverless.yml` lives) to install
+the project skills there; anywhere else it installs only the user-level skill.
+By default the command detects which agent directories you or your team already use and
 writes only those; with no signal it creates both `.claude/skills/` and
 `.agents/skills/`. See the [Agent Skills guide](../../../guides/agent-skills.md)
 for the full behavior, automatic updates, and customization.

@@ -7,6 +7,10 @@ import { partition } from '@aws-sdk/core/client'
 import { getAwsCredentials } from './credentials.js'
 import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
 import { invalidateAwsResponseCache, sendAwsRequest } from './clients.js'
+import {
+  awsCredentialsFix,
+  describeAwsCredentialSource,
+} from './credential-source.js'
 
 export class Aws extends AbstractProvider {
   static type = 'aws'
@@ -101,7 +105,11 @@ export class Aws extends AbstractProvider {
 
     try {
       if (key === 'accountId') {
-        return await resolveAccountId(this.logger, this.credentials, region)
+        return await resolveAccountId(this.logger, this.credentials, region, {
+          dashboard: this.dashboard,
+          config: this.config,
+          resolver: this.resolverName,
+        })
       }
 
       if (key === 'region') {
@@ -174,6 +182,7 @@ export class Aws extends AbstractProvider {
       dashboard: this.dashboard,
       config: this.config,
       isDefaultConfig: this.isDefaultConfig,
+      resolverName: this.resolverName,
     })
   }
 
@@ -187,7 +196,17 @@ export class Aws extends AbstractProvider {
   }
 }
 
-const resolveAccountId = async (logger, credentials, region) => {
+// AWS answered with a 4xx (an invalid, unauthorized or unsigned key), or the
+// SDK could not load the credentials at all.
+const isCredentialRejection = (error) => {
+  const status = error?.$metadata?.httpStatusCode
+  return (
+    error?.name === 'CredentialsProviderError' ||
+    (typeof status === 'number' && status >= 400 && status < 500)
+  )
+}
+
+const resolveAccountId = async (logger, credentials, region, sourceInput) => {
   try {
     const { Account: accountId } = await sendAwsRequest({
       service: 'sts',
@@ -215,12 +234,26 @@ const resolveAccountId = async (logger, credentials, region) => {
         },
       )
     }
-    throw new ServerlessError(
-      `Failed to resolve AWS account ID: ${error.message}`,
-      'AWS_ACCOUNT_ID_RESOLUTION_FAILED',
-      {
-        stack: false,
-      },
+    // Only when AWS answered and refused the credentials does the message say
+    // where they came from and what to do, in the same words `serverless
+    // agent setup` uses for this state. A request that never reached AWS
+    // (DNS, a refused connection, a proxy) is about the network, not them.
+    const credentialsRejected = isCredentialRejection(error)
+    const fix =
+      credentialsRejected &&
+      awsCredentialsFix({
+        ...describeAwsCredentialSource(sourceInput),
+        resolver: sourceInput?.resolver,
+      })
+    throw Object.assign(
+      new ServerlessError(
+        fix
+          ? `Failed to resolve AWS account ID: ${String(error.message).replace(/\.?\s*$/, '.')} ${fix.charAt(0).toUpperCase()}${fix.slice(1)}.`
+          : `Failed to resolve AWS account ID: ${error.message}`,
+        'AWS_ACCOUNT_ID_RESOLUTION_FAILED',
+        { originalMessage: error.message, stack: false },
+      ),
+      { credentialsRejected },
     )
   }
 }

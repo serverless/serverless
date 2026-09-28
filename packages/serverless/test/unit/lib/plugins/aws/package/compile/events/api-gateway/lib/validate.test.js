@@ -242,6 +242,73 @@ describe('#validate()', () => {
     )
   })
 
+  it('should accept an intrinsic authorizer arn when a name is provided', () => {
+    awsCompileApigEvents.serverless.service.functions = {
+      first: {
+        events: [
+          {
+            http: {
+              method: 'GET',
+              path: 'foo/bar',
+              authorizer: {
+                name: 'authorizer',
+                arn: { 'Fn::GetAtt': ['SomeLambdaFunction', 'Arn'] },
+              },
+            },
+          },
+        ],
+      },
+    }
+    const validated = awsCompileApigEvents.validate()
+    expect(validated.events[0].http.authorizer.name).toBe('authorizer')
+    expect(validated.events[0].http.authorizer.arn).toEqual({
+      'Fn::GetAtt': ['SomeLambdaFunction', 'Arn'],
+    })
+  })
+
+  it('should reject an intrinsic authorizer arn without a name', () => {
+    awsCompileApigEvents.serverless.service.functions = {
+      first: {
+        events: [
+          {
+            http: {
+              method: 'GET',
+              path: 'foo/bar',
+              authorizer: {
+                arn: { 'Fn::GetAtt': ['SomeLambdaFunction', 'Arn'] },
+              },
+            },
+          },
+        ],
+      },
+    }
+    expect(() => awsCompileApigEvents.validate()).toThrow(
+      'Please provide an authorizer name for authorizers configured with a CloudFormation intrinsic "arn"',
+    )
+  })
+
+  it('should reject a COGNITO_USER_POOLS intrinsic authorizer arn without a name', () => {
+    awsCompileApigEvents.serverless.service.functions = {
+      first: {
+        events: [
+          {
+            http: {
+              method: 'GET',
+              path: 'foo/bar',
+              authorizer: {
+                arn: { 'Fn::GetAtt': ['CognitoUserPool', 'Arn'] },
+                type: 'COGNITO_USER_POOLS',
+              },
+            },
+          },
+        ],
+      },
+    }
+    expect(() => awsCompileApigEvents.validate()).toThrow(
+      'Please provide an authorizer name for authorizers of type COGNITO_USER_POOLS',
+    )
+  })
+
   it('should support string syntax: METHOD path', () => {
     awsCompileApigEvents.serverless.service.functions = {
       first: {

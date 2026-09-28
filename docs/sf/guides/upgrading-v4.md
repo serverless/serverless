@@ -73,7 +73,7 @@ The updated license terms can be reviewed in the On-Premise Software License sec
 
 For organizations that meet or exceed the revenue threshold, a subscription is required, priced based on Credits. One Credit is equivalent to one Serverless Framework Service Instance. A Service corresponds to a `serverless.yml` file, while a Service Instance refers to the deployment of that file to a specific AWS account, Stage, and Region. Another way to think about a Service Instance is that it equates to an AWS CloudFormation Stack deployed via Serverless Framework.
 
-To estimate pricing, multiply the Credit price by the number of estimated Service Instances you might have. Our Serverless Framework Dashboard also features a pricing calculator within the [Billing page](<[https://app.serverless.com/](https://app.serverless.com/settings/billing)>).
+To estimate pricing, multiply the Credit price by the number of estimated Service Instances you might have. Our Serverless Framework Dashboard also features a pricing calculator within the [Billing page](https://app.serverless.com/settings/billing).
 
 If a Service Instance is interacted with using Serverless Framework CLI version 4 at any point (including instances initially deployed using versions 3 or earlier), it will be counted towards usage. To stop a Service Instance from counting towards your usage, run the `serverless remove` CLI command using version 4.
 

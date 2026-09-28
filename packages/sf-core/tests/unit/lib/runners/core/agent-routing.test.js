@@ -1,9 +1,10 @@
 import { jest } from '@jest/globals'
 
 // Router-delegation tests for the `agent` command in CoreRunner (Task 7):
+//   * `agent setup`           -> CoreRunner's agentSetup, WITHOUT a config guard
 //   * `agent skills install` -> CoreRunner's agentSkillsInstall (unchanged)
 //   * `agent inspect`         -> delegated to the framework runner
-//   * unknown `agent <x>`     -> helpful skills hint
+//   * unknown `agent <x>`     -> helpful setup/skills hint
 // Plus a yargs-parse check that `--name a --name b` becomes an array through
 // the sf-core CLI schema (the layer that honors `array: true`).
 
@@ -15,7 +16,7 @@ const mockLog = {
   debug: jest.fn(),
   logo: jest.fn(),
   aside: jest.fn(),
-  isInteractive: () => false,
+  isInteractive: jest.fn(() => false),
   blankLine: jest.fn(),
 }
 
@@ -30,9 +31,13 @@ jest.unstable_mockModule('@serverless/util', () => ({
     }
   },
   ServerlessErrorCodes: {
-    general: { CONFIG_FILE_NOT_FOUND: 'CONFIG_FILE_NOT_FOUND' },
+    general: {
+      CONFIG_FILE_NOT_FOUND: 'CONFIG_FILE_NOT_FOUND',
+      UNRECOGNIZED_CLI_COMMAND: 'UNRECOGNIZED_CLI_COMMAND',
+    },
   },
   setGlobalRendererSettings: jest.fn(),
+  getGlobalRendererSettings: jest.fn(() => ({ isInteractive: true })),
   writeText: jest.fn(),
   resolveStateStore: jest.fn(),
 }))
@@ -70,6 +75,36 @@ const mockAgentSkillsInstall = jest.fn(async () => ({
 jest.unstable_mockModule(
   '../../../../../src/lib/runners/core/agent-skills-install.js',
   () => ({ default: mockAgentSkillsInstall }),
+)
+
+const mockAgentSetup = jest.fn(async () => ({
+  skills: { added: 0, upgraded: 0, skipped: 0 },
+  auth: { state: 'none' },
+  aws: { state: 'none' },
+  service: { present: false },
+}))
+jest.unstable_mockModule(
+  '../../../../../src/lib/runners/core/agent-setup.js',
+  () => ({ default: mockAgentSetup }),
+)
+
+const mockAgentDocs = jest.fn(async () => ({ pages: 0, index: true }))
+jest.unstable_mockModule(
+  '../../../../../src/lib/runners/core/agent-docs.js',
+  () => ({ default: mockAgentDocs }),
+)
+
+const mockAgentSkillsList = jest.fn(async () => ({ skills: 3 }))
+const mockAgentSkillsRead = jest.fn(async () => ({
+  skill: 'x',
+  file: 'SKILL.md',
+}))
+jest.unstable_mockModule(
+  '../../../../../src/lib/runners/core/agent-skills-read.js',
+  () => ({
+    agentSkillsList: mockAgentSkillsList,
+    agentSkillsRead: mockAgentSkillsRead,
+  }),
 )
 
 // The framework runner — the delegation target. We capture the ctor args and
@@ -120,6 +155,12 @@ jest.unstable_mockModule(
 jest.unstable_mockModule('../../../../../src/lib/runners/core/mcp.js', () => ({
   default: jest.fn(),
 }))
+// Signed out by default, so the quiet analysis-event sign-in after an agent
+// command never reads the developer's real rc file here.
+jest.unstable_mockModule(
+  '../../../../../src/lib/runners/core/agent-env-report.js',
+  () => ({ detectServerlessAuth: jest.fn(async () => ({ state: 'none' })) }),
+)
 jest.unstable_mockModule('../../../../../src/utils/index.js', () => ({
   getAwsCredentialProvider: jest.fn(),
   readFile: jest.fn(),
@@ -132,9 +173,15 @@ jest.unstable_mockModule(
   '../../../../../src/lib/runners/core/login-aws-sso.js',
   () => ({ default: jest.fn() }),
 )
+jest.unstable_mockModule(
+  '../../../../../src/lib/runners/core/login-noninteractive.js',
+  () => ({ default: jest.fn() }),
+)
 
 const { CoreRunner } =
   await import('../../../../../src/lib/runners/core/core.js')
+const { default: mockLoginNonInteractive } =
+  await import('../../../../../src/lib/runners/core/login-noninteractive.js')
 const yargs = (await import('yargs')).default
 
 const makeRunner = (command, options = {}, resolverManager = {}) =>
@@ -147,13 +194,81 @@ const makeRunner = (command, options = {}, resolverManager = {}) =>
     resolverManager,
   })
 
+// Same shape as makeRunner but with NO resolved service config — the state a
+// run from an empty directory is in. Commands that must work anywhere are
+// asserted through this one, so a re-introduced config guard fails the test.
+const makeBareRunner = (command, options = {}) =>
+  new CoreRunner({
+    command,
+    options,
+    config: null,
+    configFilePath: null,
+    versionFramework: '4.0.0',
+    resolverManager: {},
+  })
+
 beforeEach(() => {
   mockAgentSkillsInstall.mockClear()
+  mockAgentSetup.mockClear()
+  mockAgentDocs.mockClear()
+  mockAgentSkillsList.mockClear()
+  mockAgentSkillsRead.mockClear()
   mockFrameworkRun.mockClear()
   frameworkCtorCalls.length = 0
 })
 
 describe('CoreRunner agent routing', () => {
+  it('routes `agent setup` to agentSetup', async () => {
+    const runner = makeRunner(['agent', 'setup'], {})
+    await runner.run()
+    expect(mockAgentSetup).toHaveBeenCalledTimes(1)
+    expect(mockAgentSetup).toHaveBeenCalledWith({
+      configFilePath: '/svc/serverless.yml',
+      // The AWS check reads the profile a deploy would use from the config,
+      // and the credential resolver a deploy would use from the manager.
+      config: { service: 'test' },
+      resolverManager: {},
+      options: {},
+    })
+    expect(mockAgentSkillsInstall).not.toHaveBeenCalled()
+    expect(mockFrameworkRun).not.toHaveBeenCalled()
+  })
+
+  it('runs `agent setup` OUTSIDE a service dir — no CONFIG_FILE_NOT_FOUND guard', async () => {
+    // `agent setup` is the design's bootstrap mode: it must work from an empty
+    // directory so a fresh machine can install the gateway skill and read the
+    // environment report before any serverless.yml exists.
+    const runner = new CoreRunner({
+      command: ['agent', 'setup'],
+      options: {},
+      config: undefined,
+      configFilePath: undefined,
+      versionFramework: '4.0.0',
+      resolverManager: {},
+    })
+    await expect(runner.run()).resolves.toBeDefined()
+    expect(mockAgentSetup).toHaveBeenCalledTimes(1)
+    expect(mockAgentSetup).toHaveBeenCalledWith(
+      expect.objectContaining({ configFilePath: undefined, options: {} }),
+    )
+  })
+
+  it('runs `agent skills install` OUTSIDE a service dir (user-level skills only)', async () => {
+    const runner = new CoreRunner({
+      command: ['agent', 'skills', 'install'],
+      options: {},
+      config: undefined,
+      configFilePath: undefined,
+      versionFramework: '4.0.0',
+      resolverManager: {},
+    })
+    await runner.run()
+    expect(mockAgentSkillsInstall).toHaveBeenCalledWith(
+      expect.objectContaining({ configFilePath: undefined, options: {} }),
+    )
+    expect(mockAgentSetup).not.toHaveBeenCalled()
+  })
+
   it('routes `agent skills install` to agentSkillsInstall (unchanged)', async () => {
     const runner = makeRunner(['agent', 'skills', 'install'], {})
     await runner.run()
@@ -261,14 +376,16 @@ describe('CoreRunner agent routing', () => {
     const runner = new CoreRunner({
       command: ['agent', 'inspect'],
       options: {},
-      config: { services: {} },
+      config: { services: { api: { path: 'api' }, worker: { path: 'w' } } },
       configFilePath: '/repo/serverless-compose.yml',
       versionFramework: '4.0.0',
       resolverManager: { resolveStage: jest.fn(async () => 'dev') },
     })
+    // Names Compose's per-service form, which does reach inspect from here.
     await expect(runner.run()).rejects.toMatchObject({
       code: 'AGENT_INSPECT_COMPOSE_NOT_SUPPORTED',
-      message: expect.stringMatching(/service director/),
+      message:
+        '"serverless agent inspect" runs on one service at a time. From here, run it for one service: "serverless api agent inspect" (services: api, worker), or run it in that service\'s directory.',
     })
     expect(mockFrameworkRun).not.toHaveBeenCalled()
     expect(frameworkCtorCalls).toHaveLength(0)
@@ -295,21 +412,202 @@ describe('CoreRunner agent routing', () => {
     expect(mockFrameworkRun).not.toHaveBeenCalled()
   })
 
-  it('throws the skills hint for an unknown agent subcommand', async () => {
+  const UNKNOWN_AGENT_HINT = (command) =>
+    `Serverless command "${command}" not found. Did you mean "serverless agent setup", "serverless agent docs" or "serverless agent skills"?`
+  const UNKNOWN_AGENT_SKILLS_HINT = (command) =>
+    `Serverless command "${command}" not found. Did you mean "serverless agent skills install", "serverless agent skills list" or "serverless agent skills read <name>"?`
+
+  it('throws the setup/docs/skills hint for an unknown agent subcommand', async () => {
     const runner = makeRunner(['agent', 'bogus'], {})
-    await expect(runner.run()).rejects.toThrow(
-      /Did you mean "serverless agent skills install"/,
-    )
+    await expect(runner.run()).rejects.toMatchObject({
+      message: UNKNOWN_AGENT_HINT('agent bogus'),
+      code: 'UNRECOGNIZED_CLI_COMMAND',
+    })
     expect(mockFrameworkRun).not.toHaveBeenCalled()
     expect(mockAgentSkillsInstall).not.toHaveBeenCalled()
+    expect(mockAgentSetup).not.toHaveBeenCalled()
   })
 
   it('throws the skills hint for `agent skills <other>`', async () => {
     const runner = makeRunner(['agent', 'skills', 'uninstall'], {})
-    await expect(runner.run()).rejects.toThrow(
-      /Did you mean "serverless agent skills install"/,
-    )
+    await expect(runner.run()).rejects.toMatchObject({
+      message: UNKNOWN_AGENT_SKILLS_HINT('agent skills uninstall'),
+      code: 'UNRECOGNIZED_CLI_COMMAND',
+    })
     expect(mockAgentSkillsInstall).not.toHaveBeenCalled()
+  })
+
+  it('routes `agent docs` to agentDocs with the parsed paths, no config guard', async () => {
+    const runner = makeBareRunner(['agent', 'docs'], { paths: ['a', 'b'] })
+    await runner.run()
+    expect(mockAgentDocs).toHaveBeenCalledWith({ paths: ['a', 'b'] })
+  })
+
+  it('routes `agent docs` without paths to agentDocs with undefined paths', async () => {
+    const runner = makeBareRunner(['agent', 'docs'], {})
+    await runner.run()
+    expect(mockAgentDocs).toHaveBeenCalledWith({ paths: undefined })
+  })
+
+  it('routes `agent skills` (bare) and `agent skills list` to agentSkillsList', async () => {
+    await makeBareRunner(['agent', 'skills'], {}).run()
+    await makeBareRunner(['agent', 'skills', 'list'], {}).run()
+    expect(mockAgentSkillsList).toHaveBeenCalledTimes(2)
+  })
+
+  it('routes `agent skills read` to agentSkillsRead with name and file', async () => {
+    const runner = makeBareRunner(['agent', 'skills', 'read'], {
+      name: 'serverless-sandboxes',
+      file: 'references/config.md',
+    })
+    await runner.run()
+    expect(mockAgentSkillsRead).toHaveBeenCalledWith({
+      name: 'serverless-sandboxes',
+      file: 'references/config.md',
+    })
+  })
+
+  it('throws the skills hint for an unknown `agent skills` subcommand outside a service dir', async () => {
+    await expect(
+      makeBareRunner(['agent', 'skills', 'frobnicate'], {}).run(),
+    ).rejects.toThrow(UNKNOWN_AGENT_SKILLS_HINT('agent skills frobnicate'))
+  })
+
+  it('throws the agent hint for an unknown `agent` subcommand outside a service dir', async () => {
+    await expect(
+      makeBareRunner(['agent', 'frobnicate'], {}).run(),
+    ).rejects.toThrow(UNKNOWN_AGENT_HINT('agent frobnicate'))
+  })
+})
+
+// The agent commands need no sign-in, so they skip the one every other command
+// makes, and with it the analysis event (sent with the user's access key).
+// When a session or an access key is already there, they sign in quietly
+// after the command so the run is counted like any other.
+describe('CoreRunner agent commands and the analysis event', () => {
+  const signIn = (result) => {
+    const authenticate = jest.fn(result)
+    return {
+      authenticate,
+      createAuthentication: jest.fn(() => ({ authenticate })),
+    }
+  }
+
+  it('signs in without prompting when a session or an access key exists', async () => {
+    for (const state of ['rc-user', 'env-access']) {
+      const runner = makeBareRunner(['agent', 'docs'])
+      const { authenticate, createAuthentication } = signIn(async () => ({
+        accessKeyV1: 'k',
+        orgId: 'o1',
+      }))
+      await runner.authenticateForAnalytics({
+        detectAuth: async () => ({ state }),
+        createAuthentication,
+      })
+      expect(authenticate).toHaveBeenCalledTimes(1)
+      expect(runner.authenticatedData).toEqual({
+        accessKeyV1: 'k',
+        orgId: 'o1',
+      })
+    }
+  })
+
+  it('signs in with prompts off, then restores the setting', async () => {
+    const util = await import('@serverless/util')
+    util.setGlobalRendererSettings.mockClear()
+    const runner = makeBareRunner(['agent', 'docs'])
+    const { createAuthentication } = signIn(async () => {
+      expect(util.setGlobalRendererSettings).toHaveBeenLastCalledWith({
+        isInteractive: false,
+      })
+      return { orgId: 'o1' }
+    })
+    await runner.authenticateForAnalytics({
+      detectAuth: async () => ({ state: 'rc-user' }),
+      createAuthentication,
+    })
+    expect(util.setGlobalRendererSettings).toHaveBeenLastCalledWith({
+      isInteractive: true,
+    })
+  })
+
+  it('attempts nothing without a session or access key, or with only a license key', async () => {
+    for (const state of [
+      'none',
+      'env-license',
+      'config-license',
+      'rc-license',
+    ]) {
+      const runner = makeBareRunner(['agent', 'docs'])
+      const { createAuthentication } = signIn(async () => ({}))
+      await runner.authenticateForAnalytics({
+        detectAuth: async () => ({ state }),
+        createAuthentication,
+      })
+      expect(createAuthentication).not.toHaveBeenCalled()
+      expect(runner.authenticatedData).toBeUndefined()
+    }
+  })
+
+  it('a failed sign-in is ignored', async () => {
+    const runner = makeBareRunner(['agent', 'docs'])
+    const { createAuthentication } = signIn(async () => {
+      throw new Error('network down')
+    })
+    await expect(
+      runner.authenticateForAnalytics({
+        detectAuth: async () => ({ state: 'rc-user' }),
+        createAuthentication,
+      }),
+    ).resolves.toBeUndefined()
+    expect(runner.authenticatedData).toBeUndefined()
+  })
+
+  it('a slow sign-in is waited for, and its result is used', async () => {
+    const runner = makeBareRunner(['agent', 'docs'])
+    const data = { orgId: 'org-1', userId: 'user-1', accessKeyV1: 'key' }
+    const { createAuthentication } = signIn(
+      () => new Promise((resolve) => setTimeout(() => resolve(data), 50)),
+    )
+    await runner.authenticateForAnalytics({
+      detectAuth: async () => ({ state: 'rc-user' }),
+      createAuthentication,
+    })
+    expect(runner.authenticatedData).toBe(data)
+  })
+
+  it('runs after setup, docs and skills, also when the command fails, but not for inspect', async () => {
+    for (const command of [
+      ['agent', 'setup'],
+      ['agent', 'docs'],
+      ['agent', 'skills', 'list'],
+      ['agent', 'skills', 'read'],
+    ]) {
+      const runner = makeRunner(command, { name: 'serverless-mcp' })
+      const quiet = jest
+        .spyOn(runner, 'authenticateForAnalytics')
+        .mockResolvedValue()
+      await runner.run()
+      expect(quiet).toHaveBeenCalledTimes(1)
+    }
+    mockAgentDocs.mockRejectedValueOnce(new Error('no such page'))
+    const failing = makeBareRunner(['agent', 'docs'])
+    const quiet = jest
+      .spyOn(failing, 'authenticateForAnalytics')
+      .mockResolvedValue()
+    await expect(failing.run()).rejects.toThrow('no such page')
+    expect(quiet).toHaveBeenCalledTimes(1)
+
+    const inspect = makeRunner(
+      ['agent', 'inspect'],
+      {},
+      { resolveStage: jest.fn(async () => 'dev') },
+    )
+    const notCalled = jest
+      .spyOn(inspect, 'authenticateForAnalytics')
+      .mockResolvedValue()
+    await inspect.run()
+    expect(notCalled).not.toHaveBeenCalled()
   })
 })
 
@@ -319,6 +617,49 @@ describe('CoreRunner CLI schema for `agent inspect`', () => {
     const agent = schema.find((c) => c.command === 'agent')
     return agent.builder.find((c) => c.command === 'inspect')
   }
+
+  it('declares `setup` before `skills` in the agent builder', () => {
+    const agent = CoreRunner.getCliSchema().find((c) => c.command === 'agent')
+    const commands = agent.builder.map((c) => c.command)
+    expect(commands.indexOf('setup')).toBeGreaterThanOrEqual(0)
+    expect(commands.indexOf('setup')).toBeLessThan(commands.indexOf('skills'))
+    expect(agent.builder.find((c) => c.command === 'setup').description).toBe(
+      'Set up AI agent integrations: install Agent Skills and report environment status',
+    )
+  })
+
+  it('declares --dir on `setup` identically to `skills install`', () => {
+    // agentSetup honors --dir, so --help must say so — and with the same
+    // definition, since both commands feed the same resolver.
+    const agent = CoreRunner.getCliSchema().find((c) => c.command === 'agent')
+    const setupDir = agent.builder.find((c) => c.command === 'setup').builder[0]
+      .options.dir
+    const installDir = agent.builder
+      .find((c) => c.command === 'skills')
+      .builder.find((c) => c.command === 'install').builder[0].options.dir
+    expect(setupDir).toEqual(installDir)
+    expect(setupDir.array).toBe(true)
+    expect(setupDir.type).toBe('string')
+  })
+
+  it('declares `docs [paths..]` and the `skills` list/read subcommands', () => {
+    const agent = CoreRunner.getCliSchema().find((c) => c.command === 'agent')
+    const docs = agent.builder.find((c) => c.command === 'docs [paths..]')
+    expect(docs).toBeDefined()
+    expect(docs.description).toBe(
+      'Print Serverless Framework documentation: the page index, or the given pages (paths from the index)',
+    )
+    const skills = agent.builder.find((c) => c.command === 'skills')
+    expect(skills.builder.find((c) => c.command === 'list').description).toBe(
+      'List the Agent Skills bundled with this CLI version',
+    )
+    expect(
+      skills.builder.find((c) => c.command === 'read [name] [file]')
+        .description,
+    ).toBe(
+      'Print a bundled Agent Skill by name (its SKILL.md, or one of its files) without installing it; "serverless agent skills list" names them',
+    )
+  })
 
   it('declares an `inspect` sibling of `skills`', () => {
     const inspect = findAgentInspect()
@@ -398,5 +739,43 @@ describe('CoreRunner CLI schema for `agent inspect`', () => {
     }
     expect(options['aws-services']).toMatchObject({ type: 'string' })
     expect(options.format).toMatchObject({ type: 'string', default: 'json' })
+  })
+})
+
+describe('CoreRunner login routing', () => {
+  beforeEach(() => {
+    mockLoginNonInteractive.mockClear()
+    mockLog.isInteractive.mockReturnValue(false)
+  })
+  afterAll(() => mockLog.isInteractive.mockReturnValue(false))
+
+  it('without a terminal, `login` runs the non-interactive login', async () => {
+    await makeRunner(['login'], {}).run()
+    expect(mockLoginNonInteractive).toHaveBeenCalledWith(
+      expect.objectContaining({ org: undefined }),
+    )
+  })
+
+  it('`login --org` passes the org through', async () => {
+    await makeRunner(['login'], { org: 'beta' }).run()
+    expect(mockLoginNonInteractive).toHaveBeenCalledWith(
+      expect.objectContaining({ org: 'beta' }),
+    )
+  })
+
+  it('`login --org` in a terminal also takes the prompt-free path', async () => {
+    mockLog.isInteractive.mockReturnValue(true)
+    await makeRunner(['login'], { org: 'beta' }).run()
+    expect(mockLoginNonInteractive).toHaveBeenCalledWith(
+      expect.objectContaining({ org: 'beta' }),
+    )
+  })
+
+  // In the builder, where the help renderer reads options; `global: false`
+  // keeps it off `login aws` and `login aws sso`.
+  it('declares --org on `login` as a string option', () => {
+    const login = CoreRunner.getCliSchema().find((c) => c.command === 'login')
+    const org = login.builder.find((b) => b.options?.org)?.options.org
+    expect(org).toMatchObject({ type: 'string', global: false })
   })
 })

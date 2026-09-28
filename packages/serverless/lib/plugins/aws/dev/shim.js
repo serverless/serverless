@@ -4,7 +4,7 @@
  */
 
 import iot from 'aws-iot-device-sdk'
-import { toStreamedResponse } from './shim-response.js'
+import { disconnectedMessage, toStreamedResponse } from './shim-response.js'
 
 // List of env vars that should not be sent to the local machine
 const envVarsToIgnore = ['PATH', 'NODE_PATH', 'LD_LIBRARY_PATH', 'PWD', 'SHLVL']
@@ -115,7 +115,7 @@ const waitForNoResponse = async () => {
     return await waitForNoResponse()
   }
 
-  return "Dev Mode Disconnected: This AWS Lambda function is instrumented with Serverless Framework's Dev Mode but the Dev Mode session is no longer active. Run `serverless dev` to reconnect, or `serverless deploy` to remove Dev Mode's instrumentation and restore the original code."
+  return disconnectedMessage(process.env.SLS_RESTORE_COMMAND)
 }
 
 /**

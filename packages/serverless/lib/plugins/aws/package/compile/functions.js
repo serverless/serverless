@@ -10,6 +10,7 @@ import resolveFileSystemType from '../../utils/resolve-file-system-type.js'
 import { LOG_GROUP_CLASSES } from '../../lib/naming.js'
 import { log, ServerlessError } from '@serverless/util'
 import usesDedicatedPerFunctionRole from '../lib/uses-dedicated-per-function-role.js'
+import { warnDeprecatedRuntimes } from '../lib/runtime-deprecation.js'
 
 const defaultCors = {
   allowedOrigins: ['*'],
@@ -1433,6 +1434,12 @@ class AwsCompileFunctions {
 
   async compileFunctions() {
     const allFunctions = this.serverless.service.getAllFunctions()
+    // Before compiling: compileFunction writes the resolved runtime back onto
+    // each function, and the warning says when that runtime is the default.
+    warnDeprecatedRuntimes({
+      serverless: this.serverless,
+      provider: this.provider,
+    })
     return Promise.all(
       allFunctions.map((functionName) => this.compileFunction(functionName)),
     )
