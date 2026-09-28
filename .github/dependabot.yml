@@ -53,9 +53,6 @@ updates:
       - dependency-name: 'joi'
         # joi v18 drops support for Node.js 18
         versions: ['>= 18.0.0']
-      - dependency-name: 'is-docker'
-        # is-docker v4 drops support for Node.js 18
-        versions: ['>= 4.0.0']
       - dependency-name: 'eventsource'
         # eventsource v4 drops support for Node.js 18
         versions: ['>= 4.0.0']
