@@ -427,17 +427,45 @@ export default {
     const layerObject = this.serverless.service.getLayer(layerName)
     const layerPackageConfig = layerObject.package || {}
 
-    return this.resolveFilePathsFromPatterns(
-      await this.excludeDevDependencies({
-        exclude: this.getExcludes(layerPackageConfig.exclude, false),
-        include: this.getIncludes([
-          ...(layerPackageConfig.include || []),
-          ...(layerPackageConfig.patterns || []),
-        ]),
-        contextName: `layer "${layerName}"`,
-      }),
-      layerObject.path,
-    )
+    const params = await this.excludeDevDependencies({
+      exclude: this.getExcludes(layerPackageConfig.exclude, false),
+      include: this.getIncludes([
+        ...(layerPackageConfig.include || []),
+        ...(layerPackageConfig.patterns || []),
+      ]),
+      contextName: `layer "${layerName}"`,
+    })
+
+    // Dev dependency globs are relative to the service directory, while layer
+    // files are matched relative to the layer path. Rebase them onto the layer
+    // path, dropping those outside of it, so that e.g. a service devDependency
+    // does not exclude a same-named production dependency of the layer.
+    if (params.devDependencyExcludeSet) {
+      const layerDir = path.resolve(
+        this.serverless.serviceDir,
+        layerObject.path,
+      )
+      const rebasedGlobs = []
+      for (const glob of params.devDependencyExcludeSet) {
+        const rebasedGlob = path.relative(
+          layerDir,
+          path.resolve(this.serverless.serviceDir, glob),
+        )
+        const isOutsideLayer =
+          rebasedGlob === '..' ||
+          rebasedGlob.startsWith(`..${path.sep}`) ||
+          path.isAbsolute(rebasedGlob)
+        if (!isOutsideLayer) {
+          rebasedGlobs.push(rebasedGlob.split(path.sep).join('/'))
+        }
+      }
+      params.exclude = params.exclude
+        .filter((pattern) => !params.devDependencyExcludeSet.has(pattern))
+        .concat(rebasedGlobs)
+      params.devDependencyExcludeSet = new Set(rebasedGlobs)
+    }
+
+    return this.resolveFilePathsFromPatterns(params, layerObject.path)
   },
 
   async resolveFilePathsFromPatterns(params, prefix) {

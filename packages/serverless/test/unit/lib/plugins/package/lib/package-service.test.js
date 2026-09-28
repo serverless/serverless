@@ -241,6 +241,64 @@ describe('packageService', () => {
     })
   })
 
+  describe('#resolveFilePathsLayer() - dev dependency exclusion', () => {
+    // Spawns real `npm ls` processes, which can take seconds on Windows CI
+    jest.setTimeout(60_000)
+
+    let serviceDir
+
+    beforeEach(() => {
+      // `npm ls` reports realpaths (macOS tmpdir is behind a symlink)
+      serviceDir = fs.realpathSync(tmpDirPath)
+      serverless.serviceDir = serviceDir
+    })
+
+    function writePackage(dir, contents) {
+      fs.mkdirSync(dir, { recursive: true })
+      fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify(contents))
+    }
+
+    it('applies dev dependency exclusion relative to the layer path', async () => {
+      // The service lists "shared-pkg" as a devDependency, while the layer
+      // ships its own copy as a production dependency
+      writePackage(serviceDir, {
+        name: 'service',
+        version: '1.0.0',
+        devDependencies: { 'shared-pkg': '1.0.0' },
+      })
+      writePackage(path.join(serviceDir, 'node_modules', 'shared-pkg'), {
+        name: 'shared-pkg',
+        version: '1.0.0',
+      })
+      const layerDir = path.join(serviceDir, 'layer')
+      writePackage(layerDir, {
+        name: 'layer',
+        version: '1.0.0',
+        dependencies: { 'shared-pkg': '1.0.0' },
+        devDependencies: { 'layer-dev-pkg': '1.0.0' },
+      })
+      writePackage(path.join(layerDir, 'node_modules', 'shared-pkg'), {
+        name: 'shared-pkg',
+        version: '1.0.0',
+      })
+      writePackage(path.join(layerDir, 'node_modules', 'layer-dev-pkg'), {
+        name: 'layer-dev-pkg',
+        version: '1.0.0',
+      })
+
+      serverless.service.layers = {
+        myLayer: { path: 'layer', package: { patterns: ['node_modules/**'] } },
+      }
+
+      const filePaths = (await packagePlugin.resolveFilePathsLayer('myLayer'))
+        .map((filePath) => filePath.replace(/\\/g, '/'))
+        .sort()
+
+      expect(filePaths).toContain('node_modules/shared-pkg/package.json')
+      expect(filePaths).not.toContain('node_modules/layer-dev-pkg/package.json')
+    })
+  })
+
   describe('defaultExcludes', () => {
     it('should have expected default excludes', () => {
       expect(packagePlugin.defaultExcludes).toContain('.git/**')
