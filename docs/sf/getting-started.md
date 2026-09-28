@@ -68,12 +68,13 @@ and [`agent docs`](providers/aws/cli-reference/agent-docs.md).
 
 ### Installing behind a proxy or firewall
 
-During installation, the Serverless Framework CLI downloads its binary from `install.serverless.com`. When it runs, it connects to two hosts over HTTPS (port 443):
+During installation, the Serverless Framework CLI downloads its binary from `install.serverless.com`. When it runs, it connects to three hosts over HTTPS (port 443):
 
 - `install.serverless.com` — downloads of the CLI binary and framework releases, and version checks for automatic updates
 - `core.serverless.com` — license key validation, authentication, and usage reporting
+- `api.serverless.com` — signing in through the browser, for example with `serverless login`
 
-If your network restricts outbound traffic, allow both hosts. `npm install` itself needs access to your npm registry as usual.
+If your network restricts outbound traffic, allow all three hosts. `npm install` itself needs access to your npm registry as usual.
 
 **Proxies.** Set the standard `HTTPS_PROXY` environment variable (and `NO_PROXY` for hosts that must be reached directly). The CLI uses these both while installing and every time it runs. During `npm install`, proxy settings from your npm configuration (`https-proxy`, `proxy`, and `noproxy` in `.npmrc`) are also applied to the binary download when no proxy environment variables are set.
 
