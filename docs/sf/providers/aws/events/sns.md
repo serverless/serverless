@@ -261,7 +261,7 @@ functions:
             deadLetterTargetArn: arn:aws:sqs:us-east-1:11111111111:myDLQ
 ```
 
-To define the Dead Letter Queue, you can alternatively use the the resource name with `deadLetterTargetRef`
+To define the Dead Letter Queue, you can alternatively use the resource name with `deadLetterTargetRef`
 
 ```yml
 functions:

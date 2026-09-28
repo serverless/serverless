@@ -33,7 +33,7 @@ Lambda function handler.
 
 ## Compatibility
 
-While Serverless Framework Dashboard is developed by the makers of the Serverless Framework, the entire Serverless Framework Dashboard product and this SDK are 100% agnostic of the deployment tool you use. Serverless Framework Dashboard and this SDK work just as well with Terraform, CDK, SAM, Pulumi, etc, as as they do with Serverless Framework.
+While Serverless Framework Dashboard is developed by the makers of the Serverless Framework, the entire Serverless Framework Dashboard product and this SDK are 100% agnostic of the deployment tool you use. Serverless Framework Dashboard and this SDK work just as well with Terraform, CDK, SAM, Pulumi, etc, as they do with Serverless Framework.
 
 ## Installation
 
