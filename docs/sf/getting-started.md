@@ -68,7 +68,7 @@ and [`agent docs`](providers/aws/cli-reference/agent-docs.md).
 
 ### Installing behind a proxy or firewall
 
-The Serverless Framework CLI downloads its binary during installation and connects to two hosts over HTTPS (port 443), both when installing and when running:
+During installation, the Serverless Framework CLI downloads its binary from `install.serverless.com`. When it runs, it connects to two hosts over HTTPS (port 443):
 
 - `install.serverless.com` — downloads of the CLI binary and framework releases, and version checks for automatic updates
 - `core.serverless.com` — license key validation, authentication, and usage reporting
