@@ -98,6 +98,18 @@ Or, you can set this environment variable:
 SERVERLESS_FRAMEWORK_FORCE_UPDATE=true
 ```
 
+To reinstall a release from scratch, delete its folder, `~/.serverless/releases/<version>` (`%USERPROFILE%\.serverless\releases\<version>` on Windows), and run any `serverless` command. The release is downloaded again.
+
+Do this when every command fails with an error that points inside that folder, for example:
+
+```text
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'esbuild' imported from /home/me/.serverless/releases/4.43.0/package/dist/sf-core.js
+Error: Cannot find module '/home/me/.serverless/releases/4.43.0/package/dist/sf-core.js'
+SyntaxError: Unexpected end of input
+```
+
+An install by an earlier version of the `serverless` installer that was interrupted, or that ran at the same time as another `serverless` command, can leave such a folder behind. `serverless update` does not replace a release folder that already exists.
+
 ## Pinning to a Specific Version
 
 You are able to pin to a specific version of the Serverless Framework using normal semver syntax, by setting the `frameworkVersion` property in your `serverless.yml` file. If you do not set this property, then every 24 hours you will be automatically updated to the latest version of the Serverless Framework. If you do set this property, you will be updated every 24 hours to the highest version that is currently available for the version constraint you have set.

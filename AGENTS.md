@@ -112,6 +112,7 @@ npm test -w @serverless/engine                       # engine unit tests
 npm run test:python -w @serverlessinc/sf-core        # python plugin tests
 npm run test:build -w @serverlessinc/sf-core         # packaging smoke + skills-packaging check (not in CI)
 cd binary-installer && go test ./... && make build-prod   # Go installer
+cd binary-installer && make test-e2e                     # Go installer end to end: real downloads, needs node
 ```
 
 The CI python job is path-filtered (runs only when python plugin paths change) — failures can sit unnoticed on main until a PR touches those paths. `packages/util` has no tests at all: util changes are exercised only through its consumers' suites.
@@ -126,7 +127,7 @@ The released CLI is bundled with esbuild into a single file. Standard `import`/`
 
 Keep `esbuild` listed in `external` in `packages/sf-core/esbuild.js` — bundling esbuild's own code breaks the worker it spawns (see the comment there).
 
-`packages/framework-dist` is an empty shell in git: its contents are generated at build time. The npm `serverless` package (`sf-core-installer`) only downloads the Go launcher binary, which resolves `frameworkVersion` per project, downloads the release tarball built from `framework-dist` into `~/.serverless/releases/<version>`, and runs `npm install` there — the published tarball contents directly become end-user installs. Launcher behavior (version resolution, caching, 24h update throttle) is documented in `binary-installer/README.md`.
+`packages/framework-dist` is an empty shell in git: its contents are generated at build time. The npm `serverless` package (`sf-core-installer`) only downloads the Go launcher binary, which resolves `frameworkVersion` per project, downloads the release tarball built from `framework-dist`, and installs it into `~/.serverless/releases/<version>` (running `npm install` for archives that declare dependencies) — the published tarball contents directly become end-user installs. Launcher behavior (version resolution, caching, 24h update throttle) is documented in `binary-installer/README.md`.
 
 ## Agent Skills (`skills/`)
 
@@ -143,7 +144,7 @@ Commit `skills/manifest.json` alongside. Aux files are never deleted from user i
 CI runs on pull requests targeting `main`, on Node.js 24.x:
 
 - **CI: Framework CLI** — Lint, Test: Engine, Test: Framework (unit + integration). Skipped entirely for docs-only changes (`paths-ignore: docs/**`) and for draft PRs.
-- **CI: Binary Installer** — Go build and tests; runs only when `binary-installer/**` changes
+- **CI: Binary Installer** — Go unit tests and an end-to-end suite (`binary-installer/e2e`, parallel first runs against real releases) on Linux, macOS, and Windows, plus the production build; runs only when `binary-installer/**` changes
 - **CI: Python Requirements** — path-filtered (see Testing above)
 - **CI: MCP Servers** — the live `mcp` suite; path-filtered to the MCP plugin, the api-gateway and esbuild seams, and the MCP tests/fixtures. GitHub Actions has no job-level path filter, which is why this and the python suite each live in their own workflow file.
 

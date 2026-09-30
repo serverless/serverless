@@ -61,7 +61,8 @@ The release workflow (`.github/workflows/release-binary-installer.yml`) signs vi
    - Resolves the framework release to use:
      - Canary channel (`frameworkVersion: canary` or `canary-<commit-short-sha>`): fetches the latest/specified canary release metadata from the install host.
      - Stable channel: fetches the versions index and picks the best matching supported version (exact or semver range). When nothing matches, it exits 1 with a message built from the pin and the index: for a pin older than every supported release, how to keep it (a project-local `devDependencies` install, which step 1 runs) or upgrade; otherwise, the available range and the newest release.
-   - Installs the selected framework release under `~/.serverless/releases/<version>` by downloading an archive and running `npm install` in the extracted `package/` folder.
+   - Installs the selected framework release under `~/.serverless/releases/<version>`: downloads the archive, extracts it into a temporary directory inside `releases/`, runs `npm install` in its `package/` folder when the archive declares dependencies, and then moves the finished release into place with a single rename.
+   - Concurrent launchers (for example parallel CI jobs on a fresh machine) take turns through a per-version lock file: one installs, the others print a waiting message after a couple of seconds and then use its release, so the archive is downloaded once. If the filesystem does not support locking, or a wait exceeds 10 minutes, a launcher installs without the lock; the rename still ensures no launcher runs, overwrites, or deletes a release another one is building, and the first release published is kept. An existing release directory is never moved, replaced, or deleted.
 4. Node checks and execution:
    - Verifies `node` and `npm` exist and Node.js is >= 18.
    - Launches `node <releasePath>/package/dist/sf-core.js` with the original CLI arguments.
@@ -77,6 +78,10 @@ The release workflow (`.github/workflows/release-binary-installer.yml`) signs vi
 - `~/.serverless/releases/<version>/`
   - Extracted framework release contents with `package/` and installed dependencies.
   - The CLI entry executed is `package/dist/sf-core.js`.
+- `~/.serverless/releases/.<version>.lock`
+  - Empty lock file that serializes installs of `<version>`. Never deleted.
+- `~/.serverless/releases/.<version>.tmp-*/`
+  - A release being built, removed when the install finishes or fails. A directory left behind by a launcher that was killed outright is removed once it is 24 hours old, by a later install or by the daily versions-index refresh. Building inside `releases/` keeps the final rename on one filesystem, including when `releases/` is a mount point or a symlink to another volume. The local-release fallback ignores these dot-prefixed entries.
 
 ### HTTP calls and throttling
 
@@ -90,22 +95,22 @@ The release workflow (`.github/workflows/release-binary-installer.yml`) signs vi
 - Release archives:
   - Stable: `https://install.serverless.com/archives/serverless-<version>.tgz`
   - Canary: `https://install.serverless-dev.com/archives/<canary-version>.tgz` (or `canary-<x>.tgz` for latest)
-  - Downloaded when the target release directory does not exist or when explicitly forced (see below). On success, `metadata.json` is updated.
+  - Downloaded when the target release directory is missing (see below). On success, `metadata.json` is updated.
 - Installer self-update:
   - URL: `<install host>/installer-builds/serverless-<os>-<arch>`
   - Only when running `serverless update`.
 
 ### Update policy (when downloads happen)
 
-- Framework releases are downloaded when:
-  - The resolved `~/.serverless/releases/<version>` directory is missing, or
-  - The user explicitly forces an update via `serverless update` or `SERVERLESS_FRAMEWORK_FORCE_UPDATE=true`.
+- A framework release is downloaded when the resolved `~/.serverless/releases/<version>` directory is missing. An existing directory counts as installed: this launcher only creates it by renaming a complete build into place.
+- An existing release is never downloaded again, including on `serverless update` or with `SERVERLESS_FRAMEWORK_FORCE_UPDATE=true`: releases do not change once published, and another command may be running from it. A forced update refreshes the versions index, so it installs a newer matching release when there is one.
+- To reinstall a release, for example one an older launcher left incomplete (commands then fail with `Cannot find module …/sf-core.js` or `Cannot find package …`), delete its directory and run any command.
 - The 24h throttle only applies to refreshing the versions index, not installing releases.
 
 ### Environment variables
 
 - `SERVERLESS_FRAMEWORK_FORCE_UPDATE`
-  - When set, forces a fresh version resolution and release download even if a matching release directory exists.
+  - When set, forces a fresh version resolution (see the update policy for which releases are then downloaded).
 - `SLS_DISABLE_EXTRA_CA_CERTS`
   - When set to any value other than "false", augments the HTTP client trust store with additional CAs from the variables below.
 - `NODE_EXTRA_CA_CERTS`, `SSL_CERT_FILE`, `SSL_CERT_DIR`

@@ -8,6 +8,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
+	"math/rand/v2"
 	"net/http"
 	"os"
 	"os/exec"
@@ -117,6 +119,11 @@ func getVersionsFileWithURL(url string, force bool) (*metadata.VersionsFile, err
 	metadata.WriteVersionsCache(cacheDir, cachePath, body)
 	// Bump updateLastChecked now that we've fetched a fresh index
 	metadata.TouchLocalMetadataTimestamp()
+	// This runs at most once a day, so it also clears a killed install's
+	// leftovers on a machine that never installs another release.
+	if homeDir, err := os.UserHomeDir(); err == nil {
+		removeStaleTemporaryDirs(filepath.Join(homeDir, ".serverless", "releases"))
+	}
 	return vf, nil
 }
 
@@ -298,7 +305,7 @@ func GetFrameworkVersion(filename string, shouldCheckForUpdates bool) (*Framewor
 		}
 	}
 
-	releasePath, err := downloadFrameworkVersion(releaseRecord, shouldCheckForUpdates, shouldPrintAutoUpdateWarning)
+	releasePath, err := downloadFrameworkVersion(releaseRecord, shouldPrintAutoUpdateWarning)
 	if err != nil {
 		if errors.Is(err, context.Canceled) {
 			fmt.Fprintf(os.Stderr, "Installation interrupted\n")
@@ -407,7 +414,15 @@ func findClosestMatch(versions []string, constraint string) (string, error) {
 	return "", fmt.Errorf("no matching version found")
 }
 
-func downloadFrameworkVersion(releaseRecord *ReleaseRecord, shouldCheckForUpdates bool, shouldPrintAutoUpdateWarning bool) (string, error) {
+// downloadFrameworkVersion installs the release unless its directory already
+// exists, and returns its path. An existing release is never reinstalled, even
+// on a forced update: this launcher only ever creates the directory complete,
+// by one rename, releases do not change once published, and another command
+// may be running from it. A forced update still refreshes the versions list
+// (see getVersion), so it installs a newer matching release when there is one.
+// A directory left incomplete by an older launcher, which extracted in place,
+// is removed by the user to reinstall it.
+func downloadFrameworkVersion(releaseRecord *ReleaseRecord, shouldPrintAutoUpdateWarning bool) (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("resolving home dir: %w", err)
@@ -419,21 +434,35 @@ func downloadFrameworkVersion(releaseRecord *ReleaseRecord, shouldCheckForUpdate
 		return "", err
 	}
 
-	// This may always pull for the latest that matches user's requested version
 	useSpinner := !IsCIEnvironment()
 	spinnerStopped := false
-	if _, err := os.Stat(releasePath); os.IsNotExist(err) || shouldCheckForUpdates {
+	if !releaseExists(releasePath) {
 		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 		defer stop()
 
-		installCompleted := false
-		defer func() {
-			if !installCompleted {
-				if err := os.RemoveAll(releasePath); err != nil {
-					fmt.Fprintf(os.Stderr, "Failed to remove incomplete installation at %s: %v\nPlease run `serverless update` to reinstall.\n", releasePath, err)
-				}
-			}
-		}()
+		// Launchers installing the same release take turns: one installs while
+		// the others wait for it and then use its release. Without the lock
+		// (unsupported filesystem, or a wait that ran too long) the install is
+		// still safe, because the release is built in a private directory and
+		// published with a single rename.
+		if err := os.MkdirAll(releasesDir, 0755); err != nil {
+			return "", fmt.Errorf("creating directory %s: %w", releasesDir, err)
+		}
+		unlock, _, err := lockRelease(ctx, releasesDir, string(releaseRecord.Version))
+		if err != nil {
+			return "", err
+		}
+		defer unlock()
+		if releaseExists(releasePath) {
+			return releasePath, nil // installed by another launcher while this one waited
+		}
+
+		removeStaleTemporaryDirs(releasesDir)
+		stagingPath, err := makeStagingDir(releasesDir, string(releaseRecord.Version))
+		if err != nil {
+			return "", err
+		}
+		defer os.RemoveAll(stagingPath)
 
 		var s *spinner.Spinner
 		if useSpinner {
@@ -506,8 +535,8 @@ func downloadFrameworkVersion(releaseRecord *ReleaseRecord, shouldCheckForUpdate
 			switch header.Typeflag {
 			case tar.TypeDir:
 				cleanPath := filepath.Clean(header.Name)
-				path := filepath.Join(releasePath, cleanPath)
-				if !strings.HasPrefix(path, filepath.Clean(releasePath)+string(os.PathSeparator)) {
+				path := filepath.Join(stagingPath, cleanPath)
+				if !strings.HasPrefix(path, filepath.Clean(stagingPath)+string(os.PathSeparator)) {
 					return "", fmt.Errorf("invalid file path")
 				}
 				if err := os.MkdirAll(path, 0755); err != nil {
@@ -516,8 +545,8 @@ func downloadFrameworkVersion(releaseRecord *ReleaseRecord, shouldCheckForUpdate
 				dirPaths[path] = true
 			case tar.TypeReg:
 				cleanPath := filepath.Clean(header.Name)
-				path := filepath.Join(releasePath, cleanPath)
-				if !strings.HasPrefix(path, filepath.Clean(releasePath)+string(os.PathSeparator)) {
+				path := filepath.Join(stagingPath, cleanPath)
+				if !strings.HasPrefix(path, filepath.Clean(stagingPath)+string(os.PathSeparator)) {
 					return "", fmt.Errorf("invalid file path")
 				}
 				dirPath := filepath.Dir(path)
@@ -545,7 +574,7 @@ func downloadFrameworkVersion(releaseRecord *ReleaseRecord, shouldCheckForUpdate
 		}
 		// Check if the archive has dependencies — new archives (bundled archive format) have
 		// no dependencies and ship esbuild binaries directly in dist/node_modules/.
-		needsNpmInstall, err := archiveHasDependencies(filepath.Join(releasePath, "package"))
+		needsNpmInstall, err := archiveHasDependencies(filepath.Join(stagingPath, "package"))
 		if err != nil {
 			return "", fmt.Errorf("checking archive dependencies: %w", err)
 		}
@@ -553,7 +582,7 @@ func downloadFrameworkVersion(releaseRecord *ReleaseRecord, shouldCheckForUpdate
 		if needsNpmInstall {
 			cmd := exec.CommandContext(ctx, "npm", "install", "--no-audit", "--no-fund", "--no-progress")
 			cmd.Env = os.Environ()
-			cmd.Dir = filepath.Join(releasePath, "package")
+			cmd.Dir = filepath.Join(stagingPath, "package")
 
 			// Capture combined output for failure reporting while staying silent on success
 			output, err := cmd.CombinedOutput()
@@ -606,11 +635,14 @@ func downloadFrameworkVersion(releaseRecord *ReleaseRecord, shouldCheckForUpdate
 		} else {
 			// New archive format: all deps bundled, esbuild binaries shipped.
 			// Clean up unused platform esbuild binaries to save ~40MB disk space.
-			cleanupUnusedEsbuildBinaries(filepath.Join(releasePath, "package", "dist", "node_modules", "@esbuild"))
+			cleanupUnusedEsbuildBinaries(filepath.Join(stagingPath, "package", "dist", "node_modules", "@esbuild"))
+		}
+
+		if err := publishRelease(stagingPath, releasePath); err != nil {
+			return "", err
 		}
 
 		metadata.WriteLocalMetadata(string(releaseRecord.Version))
-		installCompleted = true
 		stopSpinner()
 
 		fmt.Fprintf(os.Stderr, "✔ Installed Serverless Framework v%s\n", releaseRecord.Version)
@@ -619,6 +651,163 @@ func downloadFrameworkVersion(releaseRecord *ReleaseRecord, shouldCheckForUpdate
 		}
 	}
 	return releasePath, nil
+}
+
+// staleTemporaryAge is how old a temporary directory must be before a later
+// install removes it. Only a launcher killed outright leaves one behind, and
+// no install runs anywhere near this long.
+const staleTemporaryAge = 24 * time.Hour
+
+// Release-lock tuning; variables so tests can shorten them.
+var (
+	tryLockFile      = platformTryLockFile
+	lockPollInterval = 200 * time.Millisecond
+	lockNoticeAfter  = 2 * time.Second
+	lockWaitTimeout  = 10 * time.Minute
+)
+
+// releaseLockPath is the lock file guarding installs of version. Lock files
+// are never deleted: deleting one while another launcher has it open would let
+// two launchers hold locks on different files.
+func releaseLockPath(releasesDir, version string) string {
+	return filepath.Join(releasesDir, "."+version+".lock")
+}
+
+// lockRelease waits until this launcher is the only one installing version
+// and returns the function that ends that, and whether the lock is held. It
+// never fails for want of a lock: if the lock file cannot be opened or locked,
+// or another launcher holds it longer than lockWaitTimeout, it returns without
+// the lock (locked is false); the install is then still correct but may be
+// duplicated. It fails only when ctx is cancelled. The lock file is opened close-on-exec, so neither npm nor the
+// node process started after the install inherits the lock.
+func lockRelease(ctx context.Context, releasesDir, version string) (unlock func(), locked bool, err error) {
+	noLock := func() {}
+	f, err := os.OpenFile(releaseLockPath(releasesDir, version), os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		return noLock, false, nil
+	}
+	start := time.Now()
+	announced := false
+	for {
+		ok, err := tryLockFile(f)
+		if err != nil {
+			_ = f.Close()
+			return noLock, false, nil
+		}
+		if ok {
+			return func() {
+				_ = unlockFile(f)
+				_ = f.Close()
+			}, true, nil
+		}
+		waited := time.Since(start)
+		if waited >= lockWaitTimeout {
+			fmt.Fprintf(os.Stderr, "Another process has been installing Serverless Framework v%s for %s; installing without waiting further.\n", version, waited.Round(time.Second))
+			_ = f.Close()
+			return noLock, false, nil
+		}
+		if !announced && waited >= lockNoticeAfter {
+			fmt.Fprintf(os.Stderr, "Waiting for another process to finish installing Serverless Framework v%s...\n", version)
+			announced = true
+		}
+		select {
+		case <-ctx.Done():
+			_ = f.Close()
+			return nil, false, ctx.Err()
+		case <-time.After(lockPollInterval):
+		}
+	}
+}
+
+// makeStagingDir creates a fresh directory in releasesDir in which to build
+// version, and returns its path. Building inside releases/ keeps publishing a
+// rename within one filesystem, even when releases/ is a mount point or a
+// symlink to another volume. The name starts with a dot, so the local-release
+// fallback never takes it for a release.
+func makeStagingDir(releasesDir, version string) (string, error) {
+	// os.MkdirTemp would create the directory owner-only; os.Mkdir with 0755
+	// gives the release the mode (after umask) release directories have always had.
+	for range 100 {
+		path := filepath.Join(releasesDir, fmt.Sprintf(".%s.tmp-%d-%d", version, os.Getpid(), rand.Uint32()))
+		err := os.Mkdir(path, 0755)
+		if err == nil {
+			return path, nil
+		}
+		if !os.IsExist(err) {
+			return "", fmt.Errorf("creating directory %s: %w", path, err)
+		}
+	}
+	return "", fmt.Errorf("creating a temporary directory in %s: too many name collisions", releasesDir)
+}
+
+// releaseExists reports whether anything is in place at releasePath. Anything
+// there counts as installed, even a dangling symlink: this launcher only
+// creates it by renaming a complete build into place, and never replaces it.
+func releaseExists(releasePath string) bool {
+	_, err := os.Lstat(releasePath)
+	return !errors.Is(err, fs.ErrNotExist)
+}
+
+// publishRelease moves the release built in stagingPath to releasePath with a
+// single rename. If another launcher published the release first, its copy is
+// kept and this one is discarded by the caller. An existing release directory
+// is never moved or replaced, so a command running from it is never affected.
+func publishRelease(stagingPath, releasePath string) error {
+	err := renameDir(stagingPath, releasePath)
+	if err == nil || releaseExists(releasePath) {
+		return nil
+	}
+	return fmt.Errorf("installing release to %s: %w", releasePath, err)
+}
+
+// renameDir renames a directory. On Windows it retries with backoff for about
+// 10 seconds, because antivirus scanners and indexers hold handles on newly
+// written files, which makes renaming their directory fail. It stops as soon
+// as a retry cannot succeed (see renameRetryable).
+func renameDir(from, to string) error {
+	err := os.Rename(from, to)
+	delay := 10 * time.Millisecond
+	for attempt := 0; err != nil && runtime.GOOS == "windows" && attempt < 10; attempt++ {
+		if !renameRetryable(from, to) {
+			break
+		}
+		time.Sleep(delay)
+		delay *= 2
+		err = os.Rename(from, to)
+	}
+	return err
+}
+
+// renameRetryable reports whether a failed rename of from to to may still
+// succeed: from exists and to does not. An existing destination means
+// another launcher published first.
+func renameRetryable(from, to string) bool {
+	if _, err := os.Stat(from); err != nil {
+		return false
+	}
+	_, err := os.Stat(to)
+	return errors.Is(err, fs.ErrNotExist)
+}
+
+// removeStaleTemporaryDirs removes install directories in releasesDir that
+// are older than staleTemporaryAge. Symlinks are never followed. Failures are
+// ignored: a leftover directory only costs disk space.
+func removeStaleTemporaryDirs(releasesDir string) {
+	entries, err := os.ReadDir(releasesDir)
+	if err != nil {
+		return
+	}
+	for _, entry := range entries {
+		name := entry.Name()
+		if !entry.IsDir() || !strings.HasPrefix(name, ".") || !strings.Contains(name, ".tmp-") {
+			continue
+		}
+		info, err := entry.Info()
+		if err != nil || time.Since(info.ModTime()) < staleTemporaryAge {
+			continue
+		}
+		_ = os.RemoveAll(filepath.Join(releasesDir, name))
+	}
 }
 
 // archiveHasDependencies reads the extracted package.json and returns true if

@@ -81,20 +81,10 @@ func TestGetConfigPathFromArgs(t *testing.T) {
 }
 
 func TestResolveConfigFilePathWithFlag(t *testing.T) {
-	origDir, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("failed to get working directory: %v", err)
-	}
-	t.Cleanup(func() {
-		if chdirErr := os.Chdir(origDir); chdirErr != nil {
-			t.Errorf("failed to restore working directory: %v", chdirErr)
-		}
-	})
-
 	tmpDir := t.TempDir()
-	if err := os.Chdir(tmpDir); err != nil {
-		t.Fatalf("failed to change dir to temp: %v", err)
-	}
+	// t.Chdir restores the working directory before the temp dir is removed,
+	// which Windows requires.
+	t.Chdir(tmpDir)
 
 	configFile := "custom-config.yml"
 	if err := os.WriteFile(configFile, []byte("service: demo\n"), 0o644); err != nil {
@@ -130,17 +120,16 @@ func TestShouldCheckForUpdates(t *testing.T) {
 }
 
 func TestResolveConfigFilePath_Edges(t *testing.T) {
-	origDir, _ := os.Getwd()
-	t.Cleanup(func() { _ = os.Chdir(origDir) })
 	tmp := t.TempDir()
-	_ = os.Chdir(tmp)
+	t.Chdir(tmp)
 
 	// tilde path expands
 	home := t.TempDir()
 	t.Setenv("HOME", home)
+	t.Setenv("USERPROFILE", home)
 	cfg := filepath.Join(home, "serverless.yml")
 	_ = os.WriteFile(cfg, []byte("service: demo\n"), 0o644)
-	got := resolveConfigFilePath([]string{"--config", "~/serverless.yml"})
+	got := resolveConfigFilePath([]string{"--config", "~" + string(os.PathSeparator) + "serverless.yml"})
 	if filepath.Clean(got) != filepath.Clean(cfg) {
 		t.Fatalf("tilde expansion failed: %s != %s", got, cfg)
 	}
@@ -168,20 +157,10 @@ func TestResolveConfigFilePath_Edges(t *testing.T) {
 }
 
 func TestResolveConfigFilePathFallback(t *testing.T) {
-	origDir, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("failed to get working directory: %v", err)
-	}
-	t.Cleanup(func() {
-		if chdirErr := os.Chdir(origDir); chdirErr != nil {
-			t.Errorf("failed to restore working directory: %v", chdirErr)
-		}
-	})
-
 	tmpDir := t.TempDir()
-	if err := os.Chdir(tmpDir); err != nil {
-		t.Fatalf("failed to change dir to temp: %v", err)
-	}
+	// t.Chdir restores the working directory before the temp dir is removed,
+	// which Windows requires.
+	t.Chdir(tmpDir)
 
 	if err := os.WriteFile("serverless.yml", []byte("service: demo\n"), 0o644); err != nil {
 		t.Fatalf("failed to create default config: %v", err)
@@ -195,20 +174,10 @@ func TestResolveConfigFilePathFallback(t *testing.T) {
 }
 
 func TestResolveConfigFilePathMissingFile(t *testing.T) {
-	origDir, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("failed to get working directory: %v", err)
-	}
-	t.Cleanup(func() {
-		if chdirErr := os.Chdir(origDir); chdirErr != nil {
-			t.Errorf("failed to restore working directory: %v", chdirErr)
-		}
-	})
-
 	tmpDir := t.TempDir()
-	if err := os.Chdir(tmpDir); err != nil {
-		t.Fatalf("failed to change dir to temp: %v", err)
-	}
+	// t.Chdir restores the working directory before the temp dir is removed,
+	// which Windows requires.
+	t.Chdir(tmpDir)
 
 	if err := os.WriteFile("serverless.yml", []byte("service: demo\n"), 0o644); err != nil {
 		t.Fatalf("failed to create default config: %v", err)
@@ -222,20 +191,10 @@ func TestResolveConfigFilePathMissingFile(t *testing.T) {
 }
 
 func TestResolveConfigFilePathDirectory(t *testing.T) {
-	origDir, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("failed to get working directory: %v", err)
-	}
-	t.Cleanup(func() {
-		if chdirErr := os.Chdir(origDir); chdirErr != nil {
-			t.Errorf("failed to restore working directory: %v", chdirErr)
-		}
-	})
-
 	tmpDir := t.TempDir()
-	if err := os.Chdir(tmpDir); err != nil {
-		t.Fatalf("failed to change dir to temp: %v", err)
-	}
+	// t.Chdir restores the working directory before the temp dir is removed,
+	// which Windows requires.
+	t.Chdir(tmpDir)
 
 	if err := os.WriteFile("serverless.yml", []byte("service: demo\n"), 0o644); err != nil {
 		t.Fatalf("failed to create default config: %v", err)

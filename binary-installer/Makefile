@@ -5,7 +5,7 @@ ARCHITECTURES=amd64 arm64
 LDFLAGS=-ldflags="-s -w"
 BUILD_FLAGS=-trimpath $(LDFLAGS)
 
-.PHONY: all clean build-all build-prod build-canary test
+.PHONY: all clean build-all build-prod build-canary test test-e2e
 
 all: clean build-all
 
@@ -42,3 +42,8 @@ build-canary:
 
 test:
 	@go test ./...
+
+# Builds the launcher and runs it end to end against the real install host;
+# needs network access plus node and npm on PATH.
+test-e2e:
+	@go test -tags e2e ./e2e/ -v -count=1 -timeout 45m
