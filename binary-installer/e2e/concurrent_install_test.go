@@ -15,6 +15,7 @@ package e2e
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -582,7 +583,19 @@ func setupNpmWrapper(t *testing.T) string {
 	t.Helper()
 	src := filepath.Join("..", "..", "packages", "sf-core-installer")
 	dst := filepath.Join(t.TempDir(), "sf-core-installer")
-	for _, name := range []string{"package.json", "package-lock.json", ".npmrc", "binary.js", "run.js", "postInstall.js"} {
+	// The modules npm publishes: the "files" list in package.json, so a module
+	// added to the wrapper is copied too
+	manifest, err := os.ReadFile(filepath.Join(src, "package.json"))
+	if err != nil {
+		t.Fatalf("reading the npm wrapper: %v", err)
+	}
+	var pkg struct {
+		Files []string `json:"files"`
+	}
+	if err := json.Unmarshal(manifest, &pkg); err != nil || len(pkg.Files) == 0 {
+		t.Fatalf("reading the files list of the npm wrapper: %v", err)
+	}
+	for _, name := range append([]string{"package.json", "package-lock.json", ".npmrc"}, pkg.Files...) {
 		b, err := os.ReadFile(filepath.Join(src, name))
 		if err != nil {
 			t.Fatalf("reading the npm wrapper: %v", err)
