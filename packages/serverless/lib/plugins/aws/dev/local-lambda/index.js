@@ -6,6 +6,8 @@ import pkg from 'lodash'
 import { fileURLToPath } from 'url'
 const logger = log.get('sls:dev:local-lambda')
 import { ServerlessError, log, style } from '@serverless/util'
+// Subpath import: tests that load every plugin mock '@serverless/util' wholesale.
+import { shouldDisableColors } from '@serverless/util/src/agent/index.js'
 
 const { flatten } = pkg
 let __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -188,6 +190,8 @@ class LocalLambda {
       })
 
       const childEnv = { ...this.environment }
+      // The wrapper colours the objects a handler logs; an AI coding agent gets them plain.
+      if (shouldDisableColors()) childEnv.SLS_DEV_PLAIN_OUTPUT = '1'
 
       // Spawn a child process to execute the runtime wrapper and set the specified environment variables
       const child = spawn(

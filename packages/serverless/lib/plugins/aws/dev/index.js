@@ -12,6 +12,8 @@ import {
   ServerlessError,
   stringToSafeColor,
 } from '@serverless/util'
+// Subpath import: tests that load every plugin mock '@serverless/util' wholesale.
+import { shouldDisableColors } from '@serverless/util/src/agent/index.js'
 import LocalLambda from './local-lambda/index.js'
 import { artifactModulePath, mcpEntrySourcePath } from '../mcp/lib/packaging.js'
 import { esbuildBuildState } from '../mcp/lib/esbuild-build-state.js'
@@ -1638,7 +1640,7 @@ class AwsDev {
           `${util.inspect(event, {
             showHidden: true,
             depth: null,
-            colors: true,
+            colors: !shouldDisableColors(),
           })}`,
         )
       }
@@ -1686,7 +1688,7 @@ class AwsDev {
           `${util.inspect(response, {
             showHidden: true,
             depth: null,
-            colors: true,
+            colors: !shouldDisableColors(),
           })}`,
         )
       }

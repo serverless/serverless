@@ -1,15 +1,36 @@
-import { describe, it, expect, jest } from '@jest/globals'
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  it,
+  expect,
+  jest,
+} from '@jest/globals'
 import { Writable } from 'stream'
+import chalk from 'chalk'
 import stripAnsi from 'strip-ansi'
-import cfDiff from '@aws-cdk/cloudformation-diff'
-import runDiffMixin, {
+import {
+  detectAgent,
+  resetAgentDetectionForTests,
+} from '@serverless/util/src/agent/index.js'
+
+// @aws-cdk/cloudformation-diff builds its change markers ([+], [~], [-]) once, when it is first
+// loaded, coloured whenever chalk has colour at that moment. Load it with colour on, as in a
+// terminal, so those markers carry escape codes however jest's own output is attached.
+const importColourLevel = chalk.level
+chalk.level = 3
+const { default: cfDiff } = await import('@aws-cdk/cloudformation-diff')
+const {
+  default: runDiffMixin,
+  diffOutputStream,
   renderDiff,
   normalizeForDiff,
   isStackNotFoundError,
   getEffectiveErrorClass,
-} from '../../../../../../lib/plugins/aws/diff/run-diff.js'
+} = await import('../../../../../../lib/plugins/aws/diff/run-diff.js')
+chalk.level = importColourLevel
 
-const { diffTemplate, formatDifferences } = cfDiff
+const { diffTemplate, formatDifferences, Formatter } = cfDiff
 
 /**
  * Drift detector for renderDiff().
@@ -723,5 +744,367 @@ describe('_getRemoteCodeSha', () => {
       code: 'DIFF_FUNCTION_CODE_VERIFICATION_FAILED',
       message: expect.stringContaining('CodeSha256 missing'),
     })
+  })
+})
+
+/**
+ * Colour codes in the rendered diff. For an AI coding agent (unless FORCE_COLOR or
+ * SLS_INTERACTIVE_SETUP_ENABLE is set) the diff must carry no escape codes but otherwise read
+ * exactly as a person's; everyone else gets the coloured output unchanged. The templates below
+ * render through the real Formatter: additions, removals, updates, replacements, nested
+ * property changes, an IAM statement table, Parameters, Outputs and the Function Code summary.
+ */
+describe('runDiff output colours', () => {
+  const ESC = '\u001b'
+
+  const deployed = {
+    Parameters: {
+      Stage: { Type: 'String', Default: 'dev' },
+    },
+    Resources: {
+      HelloLambdaFunction: {
+        Type: 'AWS::Lambda::Function',
+        Properties: {
+          Handler: 'hello.handler',
+          Runtime: 'nodejs22.x',
+          MemorySize: 1024,
+          Timeout: 6,
+          Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
+          Environment: {
+            Variables: { TABLE_NAME: { Ref: 'ItemsTable' }, LOG_LEVEL: 'info' },
+          },
+        },
+      },
+      WorkerLambdaFunction: {
+        Type: 'AWS::Lambda::Function',
+        Properties: {
+          Handler: 'worker.handler',
+          Runtime: 'nodejs22.x',
+          Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
+        },
+      },
+      IamRoleLambdaExecution: {
+        Type: 'AWS::IAM::Role',
+        Properties: {
+          AssumeRolePolicyDocument: {
+            Statement: [
+              {
+                Effect: 'Allow',
+                Principal: { Service: 'lambda.amazonaws.com' },
+                Action: 'sts:AssumeRole',
+              },
+            ],
+          },
+          Policies: [
+            {
+              PolicyName: 'lambda',
+              PolicyDocument: {
+                Statement: [
+                  {
+                    Effect: 'Allow',
+                    Action: ['dynamodb:GetItem'],
+                    Resource: { 'Fn::GetAtt': ['ItemsTable', 'Arn'] },
+                  },
+                  {
+                    Effect: 'Allow',
+                    Action: ['sqs:SendMessage'],
+                    Resource: { 'Fn::GetAtt': ['JobsQueue', 'Arn'] },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+      JobsQueue: {
+        Type: 'AWS::SQS::Queue',
+        Properties: { QueueName: 'jobs-v1', VisibilityTimeout: 30 },
+      },
+      ItemsTable: {
+        Type: 'AWS::DynamoDB::Table',
+        Properties: {
+          BillingMode: 'PAY_PER_REQUEST',
+          AttributeDefinitions: [{ AttributeName: 'pk', AttributeType: 'S' }],
+          KeySchema: [{ AttributeName: 'pk', KeyType: 'HASH' }],
+        },
+      },
+    },
+    Outputs: {
+      HelloLambdaFunctionQualifiedArn: {
+        Value: { Ref: 'HelloLambdaVersionAAAA' },
+        Export: { Name: 'svc-dev-HelloLambdaFunctionQualifiedArn' },
+      },
+      QueueUrl: { Value: { Ref: 'JobsQueue' } },
+    },
+  }
+
+  const local = {
+    Parameters: {
+      Stage: { Type: 'String', Default: 'prod' },
+      Region: { Type: 'String', Default: 'us-east-1' },
+    },
+    Resources: {
+      HelloLambdaFunction: {
+        Type: 'AWS::Lambda::Function',
+        Properties: {
+          Handler: 'hello.handler',
+          Runtime: 'nodejs22.x',
+          MemorySize: 2048,
+          Timeout: 10,
+          Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
+          Environment: {
+            Variables: {
+              TABLE_NAME: { Ref: 'ItemsTable' },
+              LOG_LEVEL: 'debug',
+              FEATURE_FLAG: 'on',
+            },
+          },
+        },
+      },
+      ReportLambdaFunction: {
+        Type: 'AWS::Lambda::Function',
+        Properties: {
+          Handler: 'report.handler',
+          Runtime: 'nodejs22.x',
+          Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
+        },
+      },
+      IamRoleLambdaExecution: {
+        Type: 'AWS::IAM::Role',
+        Properties: {
+          AssumeRolePolicyDocument: {
+            Statement: [
+              {
+                Effect: 'Allow',
+                Principal: { Service: 'lambda.amazonaws.com' },
+                Action: 'sts:AssumeRole',
+              },
+            ],
+          },
+          Policies: [
+            {
+              PolicyName: 'lambda',
+              PolicyDocument: {
+                Statement: [
+                  {
+                    Effect: 'Allow',
+                    Action: ['dynamodb:GetItem', 'dynamodb:PutItem'],
+                    Resource: { 'Fn::GetAtt': ['ItemsTable', 'Arn'] },
+                  },
+                  {
+                    Effect: 'Allow',
+                    Action: ['s3:GetObject', 's3:PutObject'],
+                    Resource:
+                      'arn:aws:s3:::report-artifacts-bucket-with-a-deliberately-long-name/reports/*',
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+      JobsQueue: {
+        Type: 'AWS::SQS::Queue',
+        Properties: { QueueName: 'jobs-v2', VisibilityTimeout: 60 },
+      },
+      ItemsTable: {
+        Type: 'AWS::DynamoDB::Table',
+        Properties: {
+          BillingMode: 'PAY_PER_REQUEST',
+          AttributeDefinitions: [{ AttributeName: 'id', AttributeType: 'S' }],
+          KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
+        },
+      },
+    },
+    Outputs: {
+      HelloLambdaFunctionQualifiedArn: {
+        Value: { Ref: 'HelloLambdaVersionBBBB' },
+        Export: { Name: 'svc-dev-HelloLambdaFunctionQualifiedArn' },
+      },
+      TableName: { Value: { Ref: 'ItemsTable' } },
+    },
+  }
+
+  const codeChanges = [
+    { funcName: 'hello', status: 'changed' },
+    { funcName: 'report', status: 'new' },
+    { funcName: 'worker', status: 'unchanged' },
+  ]
+
+  let savedLevel
+  let savedEnv
+  let savedColumns
+  beforeEach(() => {
+    savedLevel = chalk.level
+    savedEnv = process.env
+    savedColumns = Object.getOwnPropertyDescriptor(process.stdout, 'columns')
+    chalk.level = 3
+    // A narrow terminal, so the IAM statement table wraps to the stream's width.
+    Object.defineProperty(process.stdout, 'columns', {
+      value: 80,
+      configurable: true,
+      writable: true,
+    })
+    resetAgentDetectionForTests()
+  })
+  afterEach(() => {
+    chalk.level = savedLevel
+    process.env = savedEnv
+    if (savedColumns) {
+      Object.defineProperty(process.stdout, 'columns', savedColumns)
+    } else {
+      delete process.stdout.columns
+    }
+    resetAgentDetectionForTests()
+    jest.restoreAllMocks()
+  })
+
+  const detectWith = async (env) => {
+    process.env = { ...savedEnv, ...env }
+    if (!('FORCE_COLOR' in env)) delete process.env.FORCE_COLOR
+    if (!('SLS_INTERACTIVE_SETUP_ENABLE' in env)) {
+      delete process.env.SLS_INTERACTIVE_SETUP_ENABLE
+    }
+    await detectAgent()
+  }
+
+  // Runs the real runDiff (real Formatter, real code summary) and returns what it wrote.
+  const runAndCapture = async () => {
+    const chunks = []
+    const write = jest
+      .spyOn(process.stdout, 'write')
+      .mockImplementation((chunk) => {
+        chunks.push(String(chunk))
+        return true
+      })
+    const notice = jest.fn()
+    try {
+      await runDiffMixin.runDiff.call({
+        options: {},
+        progress: { remove: jest.fn() },
+        log: { notice },
+        _loadLocalTemplate: async () => local,
+        _fetchDeployedTemplate: async () => deployed,
+        _detectCodeChanges: async () => codeChanges,
+        _renderCodeChangeSummary: runDiffMixin._renderCodeChangeSummary,
+      })
+    } finally {
+      write.mockRestore()
+    }
+    return { stdout: chunks.join(''), notices: notice.mock.calls.flat() }
+  }
+
+  // The coloured Function Code section and diff, rendered straight to a terminal-like stream —
+  // what a person has always seen.
+  const colouredRendering = () => {
+    const chunks = []
+    const stream = new Writable({
+      write(chunk, _encoding, callback) {
+        chunks.push(chunk)
+        callback()
+      },
+    })
+    stream.columns = 80
+    const formatter = new Formatter(stream, {})
+    formatter.printSectionHeader('Function Code')
+    formatter.print(`${chalk.green('[+]')} report`)
+    formatter.print(`${chalk.yellow('[~]')} hello`)
+    formatter.printSectionFooter()
+    renderDiff(
+      stream,
+      diffTemplate(normalizeForDiff(deployed), normalizeForDiff(local)),
+    )
+    return Buffer.concat(chunks).toString('utf8')
+  }
+
+  it('renders every section the fixture is meant to exercise', async () => {
+    const { stdout } = await runAndCapture()
+    const plain = stripAnsi(stdout)
+    for (const text of [
+      'Function Code',
+      '[+] report',
+      '[~] hello',
+      'IAM Statement Changes',
+      's3:GetObject',
+      'sqs:SendMessage',
+      'Parameters',
+      'Resources',
+      '[+] AWS::Lambda::Function ReportLambdaFunction',
+      '[-] AWS::Lambda::Function WorkerLambdaFunction destroy',
+      '[~] MemorySize',
+      'Added: .FEATURE_FLAG',
+      'AWS::DynamoDB::Table ItemsTable replace',
+      'KeySchema (requires replacement)',
+      'AWS::SQS::Queue JobsQueue replace',
+      '[+] Parameter Region',
+      'Outputs',
+      '[-] Output QueueUrl',
+    ]) {
+      expect(plain).toContain(text)
+    }
+  })
+
+  it('writes no escape codes for a detected agent, with the same content as for a person', async () => {
+    const { stdout: human } = await runAndCapture()
+    await detectWith({ AI_AGENT: 'claude-code_2-1-284_agent' })
+    const { stdout: agent, notices } = await runAndCapture()
+
+    expect(human).toContain(ESC)
+    expect(agent).not.toContain(ESC)
+    expect(agent).toBe(stripAnsi(human))
+    expect(notices.join('\n')).not.toContain(ESC)
+    expect(notices).toContain(
+      'Resources: 1 to create, 4 to update, 1 to remove',
+    )
+  })
+
+  it('gives a person the process stdout itself', () => {
+    expect(diffOutputStream()).toBe(process.stdout)
+  })
+
+  it('strips strings, passes other chunks through and forwards write arguments for an agent', async () => {
+    await detectWith({ AI_AGENT: 'claude-code_2-1-284_agent' })
+    const write = jest
+      .spyOn(process.stdout, 'write')
+      .mockImplementation(() => true)
+    const stream = diffOutputStream()
+    const buffer = Buffer.from(`${ESC}[31mred${ESC}[39m\n`)
+    const callback = () => {}
+    let calls
+    try {
+      expect(() => stream.write(buffer)).not.toThrow()
+      stream.write(`${ESC}[31mred${ESC}[39m\n`, 'utf8', callback)
+    } finally {
+      calls = [...write.mock.calls]
+      write.mockRestore()
+    }
+    expect(calls[0][0]).toBe(buffer)
+    expect(calls[0]).toHaveLength(1)
+    expect(calls[1]).toEqual(['red\n', 'utf8', callback])
+    expect(stream.columns).toBe(80)
+  })
+
+  it('writes the coloured output unchanged without an agent', async () => {
+    const { stdout } = await runAndCapture()
+    expect(stdout).toContain(ESC)
+    expect(stdout).toBe(colouredRendering())
+  })
+
+  it('keeps colours for a detected agent with FORCE_COLOR', async () => {
+    await detectWith({
+      AI_AGENT: 'claude-code_2-1-284_agent',
+      FORCE_COLOR: '1',
+    })
+    const { stdout } = await runAndCapture()
+    expect(stdout).toBe(colouredRendering())
+  })
+
+  it('keeps colours for a detected agent with SLS_INTERACTIVE_SETUP_ENABLE', async () => {
+    await detectWith({
+      AI_AGENT: 'claude-code_2-1-284_agent',
+      SLS_INTERACTIVE_SETUP_ENABLE: '1',
+    })
+    const { stdout } = await runAndCapture()
+    expect(stdout).toBe(colouredRendering())
   })
 })

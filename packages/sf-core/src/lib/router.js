@@ -6,6 +6,7 @@ import {
   instanceUsageTrackingClient,
   platformEventClient,
   isCICDEnvironment,
+  getDetectedAgent,
   log,
   progress,
 } from '@serverless/util'
@@ -367,9 +368,11 @@ const createUsageEvent = ({
  * @param {Error} [params.error] - Error object, if the action failed.
  * @param {Object} [params.runnerSpecificDetails] - Additional runner-specific details.
  * @param {Array} [params.notifications] - Notifications from BFF with shown status.
- * @returns {Object|null} The created analysis event or null if the license key is used.
+ * @returns {Object|null} The created analysis event or null if the license key is used. The
+ *   event's `agent` property (a known agent name or "other") is present only when an AI coding
+ *   agent was detected.
  */
-const createAnalysisEvent = ({
+export const createAnalysisEvent = ({
   licenseKey,
   orgId,
   versionFramework,
@@ -407,6 +410,10 @@ const createAnalysisEvent = ({
     resolvers: Array.from(new Set(resolvers)),
     ...runnerSpecificDetails,
   }
+
+  // Closed vocabulary (known agent names or "other"); the raw AI_AGENT value is never sent
+  const { isAgent, name: agentName } = getDetectedAgent()
+  if (isAgent) analysisEvent.agent = agentName
 
   if (typeof commandStartTime === 'number') {
     analysisEvent.commandDurationMs = Date.now() - commandStartTime

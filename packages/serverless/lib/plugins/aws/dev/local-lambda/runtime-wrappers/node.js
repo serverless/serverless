@@ -4,6 +4,11 @@ import os from 'os'
 import fs from 'fs'
 import { inspect } from 'util'
 
+// Set by the parent (LocalLambda) for an AI coding agent: logged objects are formatted without
+// colour codes. Removed here so the handler sees the same environment either way.
+const colors = !process.env.SLS_DEV_PLAIN_OUTPUT
+delete process.env.SLS_DEV_PLAIN_OUTPUT
+
 const originaStdoutlWrite = process.stdout.write
 const originaStderrlWrite = process.stderr.write
 
@@ -13,7 +18,7 @@ process.stdout.write = (chunk, encoding, callback) => {
     // Attempt to parse chunk as JSON
     const obj = JSON.parse(chunk.trim())
     // Utilize util.inspect to improve the readability of the object
-    const formatted = inspect(obj, { colors: true, depth: null })
+    const formatted = inspect(obj, { colors, depth: null })
 
     // Call the original stdout.write with the formatted string
     originaStdoutlWrite.call(
@@ -60,7 +65,7 @@ function customLog(originalFunction) {
     args = args.map((arg) => {
       if (typeof arg === 'object' && arg !== null) {
         // Format the object with colors and unlimited depth
-        return inspect(arg, { colors: true, depth: null })
+        return inspect(arg, { colors, depth: null })
       }
       return arg
     })

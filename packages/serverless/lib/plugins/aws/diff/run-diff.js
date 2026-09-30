@@ -1,14 +1,38 @@
 import { readFile } from 'fs/promises'
 import path from 'path'
+import { stripVTControlCharacters } from 'util'
 import chalk from 'chalk'
 import cfDiff from '@aws-cdk/cloudformation-diff'
 import { writeText } from '@serverless/util'
+// Subpath import: tests that load every plugin mock '@serverless/util' wholesale.
+import { shouldDisableColors } from '@serverless/util/src/agent/index.js'
 import normalizeFiles from '../lib/normalize-files.js'
 import { hashFile } from '../lib/hash-file.js'
 import { resolveFunctionArtifactPaths } from '../lib/get-function-artifact-paths.js'
 import ServerlessError from '../../../serverless-error.js'
 
 const { diffTemplate, Formatter } = cfDiff
+
+/**
+ * The stream the diff is rendered to: stdout, or for an AI coding agent that has not asked for
+ * colour, stdout with escape codes stripped. `@aws-cdk/cloudformation-diff` colours its change
+ * markers and table borders once, when it is first loaded, so turning chalk off at render time
+ * cannot remove them. The Formatter only calls `write` and reads `columns`.
+ */
+export const diffOutputStream = () => {
+  if (!shouldDisableColors()) return process.stdout
+  return {
+    // Strings are stripped; anything else (a Buffer) passes through, so this never throws.
+    write: (chunk, ...rest) =>
+      process.stdout.write(
+        typeof chunk === 'string' ? stripVTControlCharacters(chunk) : chunk,
+        ...rest,
+      ),
+    get columns() {
+      return process.stdout.columns
+    },
+  }
+}
 
 // NOTE: We intentionally do NOT cap concurrency around `provider.request`
 // calls here. The shared request layer (`lib/aws/request-queue.js`) already
@@ -69,7 +93,7 @@ export default {
       return
     }
 
-    renderDiff(process.stdout, diff)
+    renderDiff(diffOutputStream(), diff)
     this.log.notice(
       `Resources: ${summary.create} to create, ${summary.update} to update, ${summary.remove} to remove`,
     )
@@ -341,7 +365,7 @@ export default {
 
     // Use the diff library's Formatter so the Code section header is styled
     // identically to Resources / Outputs / IAM Statement Changes / etc.
-    const formatter = new Formatter(process.stdout, {})
+    const formatter = new Formatter(diffOutputStream(), {})
     formatter.printSectionHeader('Function Code')
     for (const entry of entries) {
       formatter.print(entry.line)

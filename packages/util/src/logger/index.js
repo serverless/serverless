@@ -8,6 +8,7 @@ import util from 'util'
 import Enquirer from 'enquirer'
 import chalk from 'chalk'
 import ora from 'ora'
+import { shouldDisableColors } from '../agent/index.js'
 
 const supportsColor = chalk.supportsColor
 
@@ -29,6 +30,10 @@ renderer.state = {
 // Color support level
 renderer.colorSupportLevel =
   typeof supportsColor === 'object' ? supportsColor.level : 3
+// Objects in log messages are rendered with util.inspect, which colours independently of chalk.
+// The level above is never 0 at load (it falls back to 3), so this stays true unless
+// disableColorsForAgent turned colours off.
+const inspectColors = () => renderer.colorSupportLevel > 0
 // Interactive setting.
 //
 // Animations (the ora spinner) additionally require a USABLE terminal width. A pty created without
@@ -44,19 +49,31 @@ renderer.colorSupportLevel =
 // issue #13786). stderr is vetoed too because the spinner renders to stderr. Non-TTY streams are
 // NOT vetoed — the override keeps enabling interactive flows for scripted (piped) setups, and ora
 // skips its clear-line path entirely on non-TTY streams, so no flood is possible there.
-function computeIsInteractive({
-  stdin = process.stdin,
-  stdout = process.stdout,
-  stderr = process.stderr,
-  env = process.env,
-} = {}) {
+//
+// An AI coding agent (see `src/agent`) is never interactive: it cannot answer prompts, and spinner
+// redraws garble the output it captures. The override still wins over agent detection, so a human
+// who was wrongly detected as an agent can get prompts back. Without an agent the result is the
+// same as `hasUsableTty || override` after the width veto.
+function computeIsInteractive(options) {
+  const {
+    stdin = process.stdin,
+    stdout = process.stdout,
+    stderr = process.stderr,
+    env: givenEnv,
+    isAgent = false,
+  } = options ?? {}
+  // Anything but an object (null included) means the process environment.
+  const env =
+    givenEnv !== null && typeof givenEnv === 'object' ? givenEnv : process.env
   const isZeroWidthTty = (stream) =>
     Boolean(stream.isTTY) &&
     !(Number.isInteger(stream.columns) && stream.columns > 0)
   if (isZeroWidthTty(stdout) || isZeroWidthTty(stderr)) return false
-  const hasUsableTty =
+  if (env.SLS_INTERACTIVE_SETUP_ENABLE) return true
+  if (isAgent) return false
+  return (
     Boolean(stdin.isTTY) && Boolean(stdout.isTTY) && typeof env.CI !== 'string'
-  return Boolean(hasUsableTty || env.SLS_INTERACTIVE_SETUP_ENABLE)
+  )
 }
 renderer.isInteractive = computeIsInteractive()
 // Whether progress may render as a spinner animation: the session must be interactive AND the
@@ -242,6 +259,42 @@ const setGlobalRendererSettings = ({
 }
 
 /**
+ * Turn colours off for an AI coding agent: escape codes are noise in the output it captures.
+ * shouldDisableColors keeps them when FORCE_COLOR (any value, which chalk already honours) or
+ * SLS_INTERACTIVE_SETUP_ENABLE is set. Pre-built chalk styles (renderer.colors/style) read the
+ * instance's level on every call, so lowering the level is enough.
+ */
+const disableColorsForAgent = ({ agent, env }) => {
+  if (!shouldDisableColors({ agent, env })) return
+  chalk.level = 0
+  renderer.colorSupportLevel = 0
+}
+
+/**
+ * Apply the renderer settings for a session run by an AI coding agent.
+ * Only ever turns interactivity off; the zero-width veto and SLS_INTERACTIVE_SETUP_ENABLE keep
+ * their precedence (computeIsInteractive).
+ */
+const applyAgentSession = (options) => {
+  const { agent, env } = options ?? {}
+  if (!agent?.isAgent) return
+  renderer.isInteractive = computeIsInteractive({ env, isAgent: true })
+  disableColorsForAgent({ agent, env })
+}
+
+// Test-only: the logger's chalk instance is private to @serverless/util (a different chalk major
+// than the rest of the workspace), so tests read and restore its level through these.
+const getColorSettingsForTests = () => ({
+  chalkLevel: chalk.level,
+  colorSupportLevel: renderer.colorSupportLevel,
+})
+
+const setColorSettingsForTests = ({ chalkLevel, colorSupportLevel }) => {
+  chalk.level = chalkLevel
+  renderer.colorSupportLevel = colorSupportLevel
+}
+
+/**
  * Get the Renderer's global settings.
  */
 const getGlobalRendererSettings = () => {
@@ -289,7 +342,7 @@ const writeStdErr = ({
     formattedMessage = firstToken.replace(/%s|%d/g, () => {
       const token = messageTokens.shift()
       if (typeof token === 'object' && token !== null) {
-        return util.inspect(token, { colors: true, depth: null })
+        return util.inspect(token, { colors: inspectColors(), depth: null })
       }
       return token
     })
@@ -303,7 +356,7 @@ const writeStdErr = ({
         : firstToken.message
     } else if (typeof firstToken === 'object' && firstToken !== null) {
       formattedMessage = util.inspect(firstToken, {
-        colors: true,
+        colors: inspectColors(),
         depth: null,
       })
     } else {
@@ -318,7 +371,10 @@ const writeStdErr = ({
     if (token instanceof Error) {
       messageContent = token.toString()
     } else if (typeof token === 'object' && token !== null) {
-      messageContent = util.inspect(token, { colors: true, depth: null })
+      messageContent = util.inspect(token, {
+        colors: inspectColors(),
+        depth: null,
+      })
     } else {
       messageContent = token ? token.toString() : ''
     }
@@ -1185,8 +1241,11 @@ const getPluginWriters = (pluginName) => {
 // Exports (adjusted to CommonJS syntax)
 export {
   Logger,
+  applyAgentSession,
   computeIsInteractive,
+  getColorSettingsForTests,
   getGlobalRendererSettings,
+  setColorSettingsForTests,
   setGlobalRendererSettings,
   log,
   progress,

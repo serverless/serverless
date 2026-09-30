@@ -155,3 +155,81 @@ test('override + TTY with undefined columns is NOT interactive', () => {
     }),
   ).toBe(false)
 })
+
+// AI coding agents: detection only ever switches interactivity OFF. The zero-width veto and the
+// SLS_INTERACTIVE_SETUP_ENABLE override keep their precedence over it.
+test('an agent on a real terminal is NOT interactive', () => {
+  expect(
+    computeIsInteractive({
+      stdin: tty(120),
+      stdout: tty(120),
+      stderr: tty(120),
+      env: {},
+      isAgent: true,
+    }),
+  ).toBe(false)
+})
+
+test('the override still forces interactive for an agent (escape hatch for a wrong detection)', () => {
+  expect(
+    computeIsInteractive({
+      stdin: tty(120),
+      stdout: tty(120),
+      stderr: tty(120),
+      env: { SLS_INTERACTIVE_SETUP_ENABLE: '1' },
+      isAgent: true,
+    }),
+  ).toBe(true)
+})
+
+test('zero-width veto beats the override even for an agent', () => {
+  expect(
+    computeIsInteractive({
+      stdin: tty(0),
+      stdout: tty(0),
+      stderr: tty(0),
+      env: { SLS_INTERACTIVE_SETUP_ENABLE: '1' },
+      isAgent: true,
+    }),
+  ).toBe(false)
+})
+
+test('an agent on pipes stays non-interactive', () => {
+  expect(
+    computeIsInteractive({
+      stdin: pipe(),
+      stdout: pipe(),
+      stderr: pipe(),
+      env: {},
+      isAgent: true,
+    }),
+  ).toBe(false)
+})
+
+test('isAgent defaults to false — a real terminal without it is interactive (no change for humans)', () => {
+  expect(
+    computeIsInteractive({
+      stdin: tty(120),
+      stdout: tty(120),
+      stderr: tty(120),
+      env: {},
+    }),
+  ).toBe(true)
+})
+
+// Hardening: no argument, null or a non-object env never throws; the process environment is used.
+test('a missing or null options object reads the process streams and environment', () => {
+  expect(() => computeIsInteractive(null)).not.toThrow()
+  expect(computeIsInteractive(null)).toBe(computeIsInteractive())
+})
+
+test.each([[null], [undefined], ['CI=true'], [42]])(
+  'env %p falls back to the process environment',
+  (env) => {
+    const streams = { stdin: tty(120), stdout: tty(120), stderr: tty(120) }
+    expect(() => computeIsInteractive({ ...streams, env })).not.toThrow()
+    expect(computeIsInteractive({ ...streams, env })).toBe(
+      computeIsInteractive({ ...streams, env: process.env }),
+    )
+  },
+)

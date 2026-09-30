@@ -4,6 +4,9 @@ import {
   progress,
   setGlobalRendererSettings,
   getGlobalRendererSettings,
+  detectAgent,
+  applyAgentSession,
+  getAgentDetectionError,
 } from '@serverless/util'
 import { route } from './lib/router.js'
 
@@ -13,8 +16,22 @@ import { route } from './lib/router.js'
 const run = async ({ command, options, debug, verbose }) => {
   const logger = log.get('core')
 
+  // An AI coding agent gets no prompts, spinners or colours (it cannot answer prompts, and
+  // redraws garble its captured output). Runs before setupLogging so its --debug settings dump
+  // reports the final isInteractive value without colour codes, and before the first spinner.
+  const agent = await detectAgent()
+  applyAgentSession({ agent })
+
   // Set the logging level and initialize the main progress renderer
   setupLogging({ debug, verbose, logger })
+  if (agent.isAgent) logger.debug(`AI agent detected: ${agent.name}`)
+  // Detection never throws; a failure or timeout means a person's session, noted for --debug.
+  const detectionError = getAgentDetectionError()
+  if (detectionError) {
+    logger.debug(
+      `AI agent detection failed, continuing without it: ${detectionError.message}`,
+    )
+  }
 
   /**
    * Establish the "main" progress spinner.
