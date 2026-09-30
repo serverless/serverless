@@ -36,23 +36,31 @@ const runScript = (script, env, args = []) => {
 
 before(() => {
   workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sf-installer-e2e-'))
-  for (const file of ['binary.js', 'postInstall.js', 'run.js']) {
+  // Exactly the files npm publishes, so a module missing from `files` in
+  // package.json fails these tests instead of every `npm install serverless`
+  const { files, dependencies } = JSON.parse(
+    fs.readFileSync(path.join(packageDir, 'package.json'), 'utf8'),
+  )
+  for (const file of files) {
     fs.copyFileSync(path.join(packageDir, file), path.join(workDir, file))
   }
-  // Copy only the undici dependency — the package's own node_modules/.bin may
-  // already hold a downloaded launcher binary, which would let run.js skip the
-  // download under test.
-  if (!fs.existsSync(path.join(packageDir, 'node_modules', 'undici'))) {
-    throw new Error(
-      'packages/sf-core-installer has no node_modules/undici — the package is ' +
-        'outside the npm workspaces; run `npm ci --ignore-scripts` in it first.',
+  // Copy only the declared dependencies — the package's own node_modules/.bin
+  // may already hold a downloaded launcher binary, which would let run.js
+  // skip the download under test.
+  for (const dependency of Object.keys(dependencies || {})) {
+    if (!fs.existsSync(path.join(packageDir, 'node_modules', dependency))) {
+      throw new Error(
+        `packages/sf-core-installer has no node_modules/${dependency} — the ` +
+          'package is outside the npm workspaces; run `npm ci --ignore-scripts` ' +
+          'in it first.',
+      )
+    }
+    fs.cpSync(
+      path.join(packageDir, 'node_modules', dependency),
+      path.join(workDir, 'node_modules', dependency),
+      { recursive: true },
     )
   }
-  fs.cpSync(
-    path.join(packageDir, 'node_modules', 'undici'),
-    path.join(workDir, 'node_modules', 'undici'),
-    { recursive: true },
-  )
 })
 
 after(() => {
@@ -132,28 +140,27 @@ describe(
   'Binary.install — interrupted download',
   { skip: process.platform === 'win32' },
   () => {
-    // Starts a download that never completes (fetch is stubbed to hang), then
-    // signals the process; the exit status must follow the 128 + signal
-    // convention rather than a generic 1.
+    // Starts a download from a local server that never answers, then signals
+    // the process; the exit status must follow the 128 + signal convention
+    // rather than a generic 1.
     const interruptDownload = (signal) =>
       new Promise((resolve, reject) => {
         const dir = fs.mkdtempSync(path.join(workDir, 'interrupt-'))
         const runner = path.join(dir, 'runner.js')
         fs.writeFileSync(
           runner,
-          `const { Binary } = require('../binary')
-// The marker is emitted from inside fetch(), i.e. after install() has
-// registered its signal handlers — printing earlier races the kill. A bare
-// pending Promise would not keep the event loop alive (the process would
-// exit 0 by itself), so hold a timer like a real socket would.
-globalThis.fetch = () => {
-  process.stdout.write('downloading\\n')
-  setTimeout(() => {}, 60000)
-  return new Promise(() => {})
-}
-new Binary('fake', 'https://example.com/x', '0.0.0', { installDirectory: ${JSON.stringify(path.join(dir, 'bin'))} })
-  .install(true)
-  .then(() => process.exit(0), () => process.exit(1))`,
+          `const http = require('http')
+const { Binary } = require('../binary')
+// The marker is emitted once the request reaches the server, i.e. after
+// install() has registered its signal handlers — printing earlier races the
+// kill.
+const server = http.createServer(() => process.stdout.write('downloading\\n'))
+server.listen(0, '127.0.0.1', () => {
+  const url = 'http://127.0.0.1:' + server.address().port + '/x'
+  new Binary('fake', url, '0.0.0', { installDirectory: ${JSON.stringify(path.join(dir, 'bin'))} })
+    .install(true)
+    .then(() => process.exit(0), () => process.exit(1))
+})`,
         )
         const child = spawn(process.execPath, [runner], { cwd: workDir })
         child.stdout.once('data', () => child.kill(signal))

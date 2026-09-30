@@ -5,7 +5,9 @@
   "main": "index.js",
   "files": [
     "binary.js",
+    "download.js",
     "postInstall.js",
+    "proxy.js",
     "run.js"
   ],
   "scripts": {
@@ -13,7 +15,8 @@
     "lint:fix": "eslint --fix",
     "prettier": "prettier -c . --ignore-path ../../.prettierignore",
     "prettier:fix": "prettier -w . --ignore-path ../../.prettierignore",
-    "test": "node --test \"tests/*.test.js\"",
+    "test": "node --test tests/binary.test.js tests/download.test.js tests/download-edge-cases.test.js tests/entrypoints.test.js",
+    "test:e2e": "node --test tests/e2e/install.test.js",
     "postinstall": "node ./postInstall.js"
   },
   "keywords": [],
@@ -27,7 +30,7 @@
     "sls": "run.js"
   },
   "dependencies": {
-    "undici": "6.28.1"
+    "undici": "6.29.0"
   },
   "devDependencies": {},
   "publishConfig": {

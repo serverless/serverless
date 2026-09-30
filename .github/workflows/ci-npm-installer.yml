@@ -1,0 +1,166 @@
+name: 'CI: NPM Installer'
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+  pull_request:
+    # The default types plus ready_for_review: the jobs skip drafts, so a
+    # draft marked ready would otherwise stay untested
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main]
+    paths:
+      - '.github/workflows/ci-npm-installer.yml'
+      - 'packages/sf-core-installer/**'
+  # The installer runs in the postinstall of every `npm install serverless`,
+  # on whatever Node.js version the user has. New Node.js releases can change
+  # its behaviour without any change in this repository, so it is also tested
+  # on a schedule against the latest release.
+  schedule:
+    - cron: '0 6 * * 1'
+
+# A new push supersedes the run for the previous one
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: ./packages/sf-core-installer
+
+jobs:
+  test-npm-installer:
+    name: 'Test: NPM Installer (${{ matrix.os }}, Node.js ${{ matrix.node }})'
+    if: ${{ !github.event.pull_request.draft }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        # Oldest supported, current development version, newest release
+        node: ['18.x', '24.x', 'latest']
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - name: 'Checkout Code'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: 'Setup: Node.js'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ matrix.node }}
+          check-latest: true
+          cache: npm
+          cache-dependency-path: packages/sf-core-installer/package-lock.json
+      - name: 'Install: Dependencies'
+        # --ignore-scripts keeps CI hermetic: the package's own postinstall
+        # would download the launcher binary.
+        run: npm ci --ignore-scripts
+      - name: 'Test: Unit'
+        # Fail on any deprecation the installer code hits, including
+        # documentation-only ones, so a Node.js API it relies on is flagged
+        # at least one major release before it could be removed. Passed to
+        # the test run only: npm's `node-options` does not apply to npm itself.
+        env:
+          npm_config_node_options: '--pending-deprecation --throw-deprecation'
+        run: npm test
+
+  # End-to-end: pack the installer, publish it to a local registry, install it
+  # by name with real package managers and run `serverless --version`,
+  # directly and through proxies. Downloads the real launcher binary.
+  e2e-npm:
+    name: 'E2E: npm (${{ matrix.os }}, Node.js ${{ matrix.node }})'
+    if: ${{ !github.event.pull_request.draft }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node: ['18.x', '24.x', 'latest']
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - name: 'Checkout Code'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: 'Setup: Node.js'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ matrix.node }}
+          check-latest: true
+      - name: 'Test: E2E (bundled npm)'
+        env:
+          E2E_PACKAGE_MANAGERS: npm
+        run: npm run test:e2e
+
+  e2e-package-managers:
+    name: 'E2E: ${{ matrix.package-manager }} (${{ matrix.os }})'
+    if: ${{ !github.event.pull_request.draft }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        # Each supported line's latest release; bumped by hand
+        package-manager:
+          - npm@10.9.9
+          - npm@11.20.0
+          - npm@12.1.0
+          - pnpm@9.15.9
+          - pnpm@10.34.6
+          - pnpm@11.28.2
+          - yarn@1.22.22
+          - yarn@4.18.1
+          - yarn@4.18.1:pnp
+          - bun@1.3.12
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - name: 'Checkout Code'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: 'Setup: Node.js'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          # Ships corepack, which provides the pnpm and Yarn versions
+          node-version: 24.x
+          check-latest: true
+      - name: 'Setup: Bun'
+        if: ${{ startsWith(matrix.package-manager, 'bun@') }}
+        env:
+          BUN_VERSION: ${{ matrix.package-manager }}
+        run: npm install -g --no-audit --no-fund "$BUN_VERSION"
+        shell: bash
+      - name: 'Test: E2E'
+        env:
+          # bun@<version> selects the bun binary installed above
+          E2E_PACKAGE_MANAGERS: ${{ startsWith(matrix.package-manager, 'bun@') && 'bun' || matrix.package-manager }}
+        run: npm run test:e2e
+
+  e2e-proxy-only-network:
+    name: 'E2E: proxy-only network'
+    if: ${{ !github.event.pull_request.draft }}
+    # Docker containers run only on the Linux runners
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: 'Checkout Code'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: 'Setup: Node.js'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.x
+          check-latest: true
+      - name: 'Test: E2E in a network whose only way out is a proxy'
+        env:
+          E2E_LOG_DIR: ${{ runner.temp }}/e2e-logs
+        run: tests/e2e/proxy-only-network.sh
+      - name: 'Upload: Proxy and registry logs'
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-proxy-only-network-logs
+          path: ${{ runner.temp }}/e2e-logs
