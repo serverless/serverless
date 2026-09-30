@@ -22,7 +22,7 @@ export default [
       'packages/util/index.js',
       'packages/standards/{src,index.js}/**/*.js',
       'packages/standards/index.js',
-      'packages/sf-core-installer/{binary,postInstall,run}.js',
+      'packages/sf-core-installer/{binary,download,proxy,postInstall,run}.js',
       'release-scripts/scripts/**/*.js',
       '*.{js,mjs,cjs}',
     ],
