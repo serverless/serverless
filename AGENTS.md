@@ -24,7 +24,7 @@ Monorepo for the **Serverless Framework** - a command-line tool for deploying se
 
 - **`packages/sf-core`**: the CLI shell. `bin/sf-core.js` boots `src/lib/router.js`, which dispatches commands to runners in `src/lib/runners/`. Also hosts auth, variable resolvers, observability, and agent-skills logic.
 - **`packages/serverless`**: where most changes land — the AWS provider implementation, all plugins (`lib/plugins/aws/`, `lib/plugins/esbuild/`, ...), and the `serverless.yml` config schema (`lib/config-schema.js`, extended per plugin).
-- **`packages/framework-dist`** and **`packages/sf-core-installer`** are excluded from npm workspaces. `sf-core-installer` is what npm users install as `serverless`; it carries its own `overrides`, its own **published** `npm-shrinkwrap.json`, and its own `.npmrc` — root-level dependency fixes never reach it.
+- **`packages/framework-dist`** and **`packages/sf-core-installer`** are excluded from npm workspaces. `sf-core-installer` is what npm users install as `serverless`; its only dependency is `undici`, pinned to 6.x (the last line supporting Node.js 18; no transitive dependencies), and it has its own `.npmrc` — root-level dependency fixes never reach it.
 
 ## Development Setup
 
@@ -145,6 +145,7 @@ CI runs on pull requests targeting `main`, on Node.js 24.x:
 
 - **CI: Framework CLI** — Lint, Test: Engine, Test: Framework (unit + integration). Skipped entirely for docs-only changes (`paths-ignore: docs/**`) and for draft PRs.
 - **CI: Binary Installer** — Go unit tests and an end-to-end suite (`binary-installer/e2e`, parallel first runs against real releases) on Linux, macOS, and Windows, plus the production build; runs only when `binary-installer/**` changes
+- **CI: NPM Installer** — `packages/sf-core-installer` tests on Linux, macOS and Windows × Node.js 18, 24 and the latest release, failing on any Node.js deprecation; runs when that package changes and weekly, because a new Node.js release can break the npm install path with no change in this repository. Its end-to-end jobs (`npm run test:e2e` in that package; needs internet) install the packed package from a local registry with npm, pnpm, Yarn and Bun, directly and through proxies, and once more in a Docker network whose only way out is a proxy (`tests/e2e/proxy-only-network.sh`)
 - **CI: Python Requirements** — path-filtered (see Testing above)
 - **CI: MCP Servers** — the live `mcp` suite; path-filtered to the MCP plugin, the api-gateway and esbuild seams, and the MCP tests/fixtures. GitHub Actions has no job-level path filter, which is why this and the python suite each live in their own workflow file.
 

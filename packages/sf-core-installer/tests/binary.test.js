@@ -1,16 +1,20 @@
-const { test, describe, beforeEach, afterEach } = require('node:test')
+const {
+  test,
+  describe,
+  before,
+  after,
+  beforeEach,
+  afterEach,
+} = require('node:test')
 const assert = require('node:assert/strict')
 const os = require('node:os')
 const fs = require('node:fs')
 const path = require('node:path')
+const http = require('node:http')
+const net = require('node:net')
 
-const {
-  Binary,
-  childExitCode,
-  describeError,
-  getProxyUrl,
-  install,
-} = require('../binary')
+const { Binary, childExitCode, describeError, install } = require('../binary')
+const { getProxyUrl } = require('../proxy')
 
 const PROXY_ENV_KEYS = [
   'HTTP_PROXY',
@@ -25,7 +29,6 @@ const PROXY_ENV_KEYS = [
 ]
 
 const savedEnv = {}
-const realFetch = globalThis.fetch
 
 beforeEach(() => {
   for (const key of PROXY_ENV_KEYS) {
@@ -39,7 +42,6 @@ afterEach(() => {
     if (savedEnv[key] === undefined) delete process.env[key]
     else process.env[key] = savedEnv[key]
   }
-  globalThis.fetch = realFetch
 })
 
 describe('describeError', () => {
@@ -205,11 +207,32 @@ describe('getProxyUrl', () => {
 
 describe('Binary.install', () => {
   let installDirectory
+  let server
+  let serverPort
+  let closedPort
+  let requests = 0
 
-  const makeBinary = () =>
-    new Binary('test-binary', 'https://install.serverless.com/x', '0.0.0', {
-      installDirectory,
+  before(async () => {
+    server = http.createServer((req, res) => {
+      requests += 1
+      if (req.url === '/ok') return res.end('binary-content')
+      res.writeHead(403)
+      return res.end()
     })
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
+    serverPort = server.address().port
+    const unused = net.createServer()
+    await new Promise((resolve) => unused.listen(0, '127.0.0.1', resolve))
+    closedPort = unused.address().port
+    await new Promise((resolve) => unused.close(resolve))
+  })
+
+  after(async () => {
+    await new Promise((resolve) => server.close(resolve))
+  })
+
+  const makeBinary = (url) =>
+    new Binary('test-binary', url, '0.0.0', { installDirectory })
 
   beforeEach(() => {
     installDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'sf-installer-'))
@@ -220,12 +243,7 @@ describe('Binary.install', () => {
   })
 
   test('downloads and writes an executable binary', async () => {
-    globalThis.fetch = async () => ({
-      ok: true,
-      arrayBuffer: async () =>
-        new TextEncoder().encode('binary-content').buffer,
-    })
-    const binary = makeBinary()
+    const binary = makeBinary(`http://127.0.0.1:${serverPort}/ok`)
     await binary.install(true)
     assert.equal(fs.readFileSync(binary.binaryPath, 'utf8'), 'binary-content')
     if (process.platform !== 'win32') {
@@ -234,48 +252,42 @@ describe('Binary.install', () => {
   })
 
   test('skips the download when the binary already exists', async () => {
-    let fetchCalls = 0
-    globalThis.fetch = async () => {
-      fetchCalls += 1
-      throw new Error('should not be called')
-    }
-    const binary = makeBinary()
+    const before = requests
+    const binary = makeBinary(`http://127.0.0.1:${serverPort}/ok`)
     fs.writeFileSync(binary.binaryPath, 'existing')
     await binary.install(true)
-    assert.equal(fetchCalls, 0)
+    assert.equal(requests, before)
+    assert.equal(fs.readFileSync(binary.binaryPath, 'utf8'), 'existing')
   })
 
   test('rejects with the original error on network failure', async () => {
-    globalThis.fetch = async () => {
-      throw new Error('fetch failed', {
-        cause: Object.assign(new Error('reset'), { code: 'ECONNRESET' }),
-      })
-    }
-    const binary = makeBinary()
+    const binary = makeBinary(`http://127.0.0.1:${closedPort}/ok`)
     await assert.rejects(binary.install(true), (error) => {
-      assert.equal(describeError(error), 'fetch failed: reset (ECONNRESET)')
+      // fetch() adds a "fetch failed" wrapper; the underlying reason must
+      // be reported either way
+      assert.match(
+        describeError(error),
+        new RegExp(
+          `(^|: )connect ECONNREFUSED 127\\.0\\.0\\.1:${closedPort} \\(ECONNREFUSED\\)$`,
+        ),
+      )
       return true
     })
     assert.equal(fs.existsSync(binary.binaryPath), false)
   })
 
   test('rejects on a non-2xx response and leaves no binary behind', async () => {
-    globalThis.fetch = async () => ({
-      ok: false,
-      status: 403,
-      statusText: 'Forbidden',
-    })
-    const binary = makeBinary()
-    await assert.rejects(binary.install(true), /HTTP 403/)
+    const binary = makeBinary(`http://127.0.0.1:${serverPort}/forbidden`)
+    await assert.rejects(binary.install(true), /HTTP 403: Forbidden/)
     assert.equal(fs.existsSync(binary.binaryPath), false)
   })
 
   test('rejects instead of throwing on an invalid proxy configuration', async () => {
     process.env.HTTPS_PROXY = '://not a url'
-    const binary = makeBinary()
+    const binary = makeBinary('https://install.serverless.com/x')
     // A synchronous throw here would escape entrypoint .catch() handlers and
     // abort npm install; it must surface as a rejection.
-    await assert.rejects(binary.install(true))
+    await assert.rejects(binary.install(true), { code: 'ERR_INVALID_URL' })
   })
 
   test('constructor rejects invalid parameters by throwing', () => {
