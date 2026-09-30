@@ -63,10 +63,17 @@ const get = (url) =>
       .on('error', reject)
   })
 
+// Where to fetch a request path from: only the public registry, whatever
+// the path looks like (`//host/...` or an absolute URL resolve elsewhere)
+const upstreamUrl = (requestUrl) => {
+  const url = new URL(requestUrl, UPSTREAM)
+  return url.origin === UPSTREAM ? url.href : undefined
+}
+
 const server = http.createServer(async (req, res) => {
   const base = `http://${req.headers.host}`
-  const pathname = decodeURIComponent(new URL(req.url, base).pathname)
   try {
+    const pathname = decodeURIComponent(new URL(req.url, base).pathname)
     if (pathname === `/${localName}`) {
       const version = manifest.version
       const published = new Date(Date.now() - 30 * 24 * 3600 * 1000)
@@ -102,16 +109,21 @@ const server = http.createServer(async (req, res) => {
       })
       return res.end(tarball)
     }
+    const target = upstreamUrl(req.url)
+    if (!target) {
+      res.writeHead(400, { 'content-type': 'text/plain' })
+      return res.end('only registry paths are served\n')
+    }
     // Tarballs of other packages: /<name>/-/<file>.tgz, streamed from upstream
     if (pathname.includes('/-/')) {
-      const upstream = await get(`${UPSTREAM}${req.url}`)
+      const upstream = await get(target)
       res.writeHead(upstream.status, {
         'content-type': 'application/octet-stream',
       })
       return res.end(upstream.body)
     }
     // Metadata of other packages, with tarball URLs pointing here
-    const upstream = await get(`${UPSTREAM}${req.url}`)
+    const upstream = await get(target)
     if (upstream.status !== 200) {
       res.writeHead(upstream.status)
       return res.end(upstream.body)
@@ -123,8 +135,10 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(200, { 'content-type': 'application/json' })
     return res.end(text)
   } catch (err) {
-    res.writeHead(502)
-    return res.end(String(err))
+    // The detail goes to this server's log, not to the client
+    console.error(`${req.method} ${JSON.stringify(req.url)}: ${err.message}`)
+    res.writeHead(502, { 'content-type': 'text/plain' })
+    return res.end('upstream request failed\n')
   }
 })
 

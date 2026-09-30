@@ -6,6 +6,9 @@ permissions:
 on:
   workflow_dispatch:
   pull_request:
+    # The default types plus ready_for_review: the jobs skip drafts, so a
+    # draft marked ready would otherwise stay untested
+    types: [opened, synchronize, reopened, ready_for_review]
     branches: [main]
     paths:
       - '.github/workflows/ci-npm-installer.yml'
