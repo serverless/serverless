@@ -10,6 +10,7 @@ import (
 func TestReadVersionsFromCache_FreshStaleForce(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
 	cacheDir, cachePath := VersionsCachePath()
 	_ = os.MkdirAll(cacheDir, 0o755)
 	_ = os.WriteFile(cachePath, []byte(`{"blockedVersions":[],"supportedVersions":["4.0.0"]}`), 0o644)
@@ -38,6 +39,7 @@ func TestReadVersionsFromCache_FreshStaleForce(t *testing.T) {
 func TestLocalMetadata_RoundTrip_AndInvalid(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
 	// Ensure metadata dir exists
 	_ = os.MkdirAll(filepath.Join(tempHome, ".serverless", "binaries"), 0o755)
 	WriteLocalMetadata("4.2.0")
@@ -50,7 +52,9 @@ func TestLocalMetadata_RoundTrip_AndInvalid(t *testing.T) {
 		t.Fatalf("metadata not written")
 	}
 	t0 := first.UpdateLastChecked
-	time.Sleep(10 * time.Millisecond)
+	// Longer than the Windows wall-clock tick (up to ~15.6 ms), so the two
+	// timestamps differ.
+	time.Sleep(50 * time.Millisecond)
 	WriteLocalMetadata("4.3.0")
 	second := GetLocalMetadata()
 	if second == nil {

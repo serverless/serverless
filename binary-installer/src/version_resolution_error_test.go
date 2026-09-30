@@ -14,6 +14,7 @@ import (
 func TestGetVersion_NoMatchingRelease(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
 	cacheDir := filepath.Join(tempHome, ".serverless", "binaries")
 	if err := os.MkdirAll(cacheDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)

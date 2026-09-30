@@ -26,6 +26,7 @@ func TestGetVersionsFile_UsesMetadataThrottling(t *testing.T) {
 	// Prepare cache in temp HOME
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
 	cacheDir := filepath.Join(tempHome, ".serverless", "binaries")
 	cachePath := filepath.Join(cacheDir, "versions.json")
 	if err := os.MkdirAll(cacheDir, 0o755); err != nil {
@@ -82,13 +83,19 @@ func TestGetVersionsFileWithURL_ForceBypassCache(t *testing.T) {
 
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
 	cacheDir := filepath.Join(tempHome, ".serverless", "binaries")
 	if err := os.MkdirAll(cacheDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	// Write any cache content; it should be ignored
 	_ = os.WriteFile(filepath.Join(cacheDir, "versions.json"), []byte(`{"blockedVersions":[],"supportedVersions":["1.0.0"]}`), 0o644)
-	metadata.WriteLocalMetadata("1.0.0") // fresh metadata
+	// Fresh metadata, backdated a minute so the bump is measurable even where
+	// consecutive time.Now() calls return the same value (Windows clocks).
+	fresh := fmt.Sprintf(`{"version":"1.0.0","updateLastChecked":%q}`, time.Now().Add(-time.Minute).Format(time.RFC3339Nano))
+	if err := os.WriteFile(filepath.Join(cacheDir, "metadata.json"), []byte(fresh), 0o644); err != nil {
+		t.Fatal(err)
+	}
 	before := metadata.GetLocalMetadata()
 
 	vf, err := getVersionsFileWithURL(ts.URL, true)
@@ -130,6 +137,7 @@ func TestGetVersion_Table(t *testing.T) {
 	// Prepare cached versions.json in temp HOME and fresh metadata
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
 	cacheDir := filepath.Join(tempHome, ".serverless", "binaries")
 	if err := os.MkdirAll(cacheDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
@@ -163,6 +171,7 @@ func TestGetVersion_Table(t *testing.T) {
 func TestGetVersion_NoConstraint_WarningFlag(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
 	t.Setenv("CI", "0")
 	// cache with supported versions
 	cacheDir := filepath.Join(tempHome, ".serverless", "binaries")
@@ -199,6 +208,7 @@ func TestGetVersion_NoConstraint_WarningFlag(t *testing.T) {
 func TestGetVersion_InvalidConstraint(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
 	cacheDir := filepath.Join(tempHome, ".serverless", "binaries")
 	if err := os.MkdirAll(cacheDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
@@ -219,6 +229,7 @@ func TestGetVersionsFileWithURL_ParseErrorFallsBack(t *testing.T) {
 	// Fresh metadata, but server returns invalid JSON; should fall back to cache if present
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
 	cacheDir := filepath.Join(tempHome, ".serverless", "binaries")
 	if err := os.MkdirAll(cacheDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
@@ -250,6 +261,7 @@ func TestGetVersionsFileWithURL_FetchErrorNoCache(t *testing.T) {
 	// Metadata stale, no cache present, and network fails -> expect error
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
 	old := time.Now().Add(-25 * time.Hour).Format(time.RFC3339Nano)
 	metaPath := filepath.Join(tempHome, ".serverless", "binaries", "metadata.json")
 	_ = os.MkdirAll(filepath.Dir(metaPath), 0o755)
@@ -294,6 +306,7 @@ func TestGetFrameworkVersion_Stable_NoNetwork(t *testing.T) {
 	// Prepare a fake installed stable release and versions cache
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
 	// Pre-create release dir to avoid download
 	rel := filepath.Join(tempHome, ".serverless", "releases", "4.1.0", "package", "dist")
 	if err := os.MkdirAll(rel, 0o755); err != nil {
@@ -328,6 +341,7 @@ func TestGetFrameworkVersion_Stable_NoNetwork(t *testing.T) {
 func TestGetFrameworkVersion_PinnedCanary_NoNetwork(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
 	// Pre-create pinned canary release dir
 	rel := filepath.Join(tempHome, ".serverless", "releases", "canary-1.2.3", "package", "dist")
 	if err := os.MkdirAll(rel, 0o755); err != nil {
@@ -389,6 +403,7 @@ func TestGetFrameworkVersion_RejectsTraversingCanary(t *testing.T) {
 		t.Run(v, func(t *testing.T) {
 			tempHome := t.TempDir()
 			t.Setenv("HOME", tempHome)
+			t.Setenv("USERPROFILE", tempHome)
 
 			cfg := filepath.Join(tempHome, "serverless.yml")
 			if err := os.WriteFile(cfg, []byte("frameworkVersion: '"+v+"'\n"), 0o644); err != nil {
@@ -458,6 +473,7 @@ func TestGetVersionsFileWithURL_CorruptedCache_ThenFetch(t *testing.T) {
 	// Fresh metadata but corrupted cache JSON; ensure it fetches instead of returning cache
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
 	cacheDir := filepath.Join(tempHome, ".serverless", "binaries")
 	if err := os.MkdirAll(cacheDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
@@ -489,6 +505,7 @@ func TestGetVersionsFileWithURL_CorruptedCache_ThenFetch(t *testing.T) {
 func TestGetVersion_NoSupportedVersions(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
 	cacheDir := filepath.Join(tempHome, ".serverless", "binaries")
 	if err := os.MkdirAll(cacheDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)

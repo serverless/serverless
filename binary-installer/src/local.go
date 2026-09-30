@@ -3,6 +3,9 @@ package version
 import (
 	"fmt"
 	"os"
+	"strings"
+
+	"github.com/Masterminds/semver"
 )
 
 func getMostRecentLocallyInstalledVersion(constraint *string) (FrameworkVersion, error) {
@@ -19,9 +22,15 @@ func getMostRecentLocallyInstalledVersion(constraint *string) (FrameworkVersion,
 
 	versions := []string{}
 	for _, file := range files {
-		if file.IsDir() {
-			versions = append(versions, file.Name())
+		// Skip what is not a release: temporary directories of installs in
+		// progress (dot-prefixed) and canary builds.
+		if !file.IsDir() || strings.HasPrefix(file.Name(), ".") {
+			continue
 		}
+		if _, err := semver.NewVersion(file.Name()); err != nil {
+			continue
+		}
+		versions = append(versions, file.Name())
 	}
 	if len(versions) == 0 {
 		return "", fmt.Errorf("no versions installed")
