@@ -1,0 +1,4 @@
+# The resolver fixtures are compared with golden files that use LF line
+# endings, including the source text of exported functions, so check them out
+# with LF on every platform.
+packages/sf-core/tests/resolvers/** text=auto eol=lf

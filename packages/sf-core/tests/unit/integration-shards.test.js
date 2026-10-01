@@ -4,7 +4,7 @@ import path from 'path'
 import url from 'url'
 
 // The live integration suites run as one CI job per AWS account
-// (.github/workflows/ci-framework.yml). tests/integration/shards.json assigns
+// (.github/workflows/test-framework.yml). tests/integration/shards.json assigns
 // each suite to a shard and records its duration; the sequencer turns that
 // into `jest --shard`. These tests keep the map, the sequencer and the
 // workflow in agreement, so no suite is silently skipped or moved away from
@@ -142,7 +142,7 @@ describe('IntegrationSequencer', () => {
 
   test('the CI matrix runs exactly the shards the map defines', async () => {
     const workflow = await readFile(
-      path.join(rootDir, '../../.github/workflows/ci-framework.yml'),
+      path.join(rootDir, '../../.github/workflows/test-framework.yml'),
       'utf8',
     )
     const legs = [...workflow.matchAll(/--shard=(\d+)\/(\d+)/g)]
