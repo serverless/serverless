@@ -5,9 +5,9 @@ import { getTestRunId, getTestStageName } from '../../utils/testStageName.js'
 // letters, digits and hyphens. CI sets TEST_STAGE from the pull request
 // author's login, and GitHub App logins look like `name[bot]`.
 const STACK_NAME_SAFE = /^[a-z0-9-]+$/
-// Some suites derive a second stage by adding one character, and default
-// Lambda role names (`<service>-<stage>-<region>-lambdaRole`) cap the stage
-// at 16 characters, so a generated stage stays within 15.
+// Some suites derive another stage by adding up to two characters, and
+// default Lambda role names (`<service>-<stage>-<region>-lambdaRole`) are
+// limited to 64 characters, so a generated stage stays within 15.
 const MAX_STAGE_LENGTH = 15
 // Seconds since the epoch in base36 (6 characters), then 3 random characters.
 const RUN_ID = '[0-9a-z]{9}'

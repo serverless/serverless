@@ -69,10 +69,10 @@ jobs:
         with:
           role-to-assume: ${{ vars.TEST1_ROLE_ARN }}
           aws-region: us-east-1
-      # The sandbox suites build images from public.ecr.aws; signed-in pulls
-      # aren't limited by the anonymous allowance that runners' shared IP
-      # addresses exhaust. Only the ubuntu-latest leg builds images; the others
-      # skip those suites.
+      # The dev-mode sandbox suites build an image locally from public.ecr.aws;
+      # signed-in pulls aren't limited by the anonymous allowance that runners'
+      # shared IP addresses exhaust. Only the ubuntu-latest leg builds images;
+      # the others skip those suites.
       - name: 'Setup: ECR Public Login'
         if: ${{ matrix.group == 'ubuntu-latest' }}
         uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7

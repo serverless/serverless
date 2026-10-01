@@ -17,9 +17,9 @@ export const getTestRunId = () => {
 // letters, digits and hyphens. CI sets TEST_STAGE from the pull request
 // author's login, and GitHub App logins look like `name[bot]`, so clean the
 // value before shortening it. Default Lambda role names
-// (`<service>-<stage>-<region>-lambdaRole`) cap the stage at 16 characters and
-// some suites add one character to derive a second stage, so the result stays
-// within 15: a 5-character prefix, `t` and the 9-character run id.
+// (`<service>-<stage>-<region>-lambdaRole`) are limited to 64 characters, and
+// some suites derive another stage by adding up to two characters, so the
+// result stays within 15: a 5-character prefix, `t` and the 9-character run id.
 export const getTestStageName = () => {
   const prefix = (process.env.TEST_STAGE ?? '')
     .toLowerCase()
