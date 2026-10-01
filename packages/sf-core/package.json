@@ -42,7 +42,7 @@
     "@aws-sdk/client-lambda": "3.1139.0",
     "@aws-sdk/client-sqs": "3.1139.0",
     "@jest/test-sequencer": "^30.5.2",
-    "@modelcontextprotocol/client": "^2.0.0",
+    "@modelcontextprotocol/client": "^2.1.0",
     "cross-env": "^10.1.0",
     "cross-spawn": "^7.0.6",
     "date-fns": "^4.4.0",
