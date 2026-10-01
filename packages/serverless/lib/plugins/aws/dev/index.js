@@ -1087,6 +1087,18 @@ class AwsDev {
       }
 
       /**
+       * The wildcard subscriptions also match functions this service does not
+       * define locally, e.g. ones another session deployed to the same stage.
+       * Ignore them rather than failing the whole session.
+       */
+      if (!this.serverless.service.getAllFunctions().includes(functionName)) {
+        logger.debug(
+          `Ignoring message for function "${functionName}", which is not defined in this service`,
+        )
+        return
+      }
+
+      /**
        * Handle error notifications from the shim (e.g., payload too large)
        */
       if (topic.endsWith('/error')) {

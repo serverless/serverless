@@ -19,6 +19,20 @@ const logger = {
 
 const devices = []
 
+// The SDK's offline queue and the AWS IoT Core per-connection quota both stop at
+// 50 subscriptions; the fake drops the rest the same way.
+const MAX_SUBSCRIPTIONS = 50
+
+// MQTT topic filter matching, limited to the single-level "+" wildcard.
+const topicMatches = (filter, topic) => {
+  const filterLevels = filter.split('/')
+  const topicLevels = topic.split('/')
+  return (
+    filterLevels.length === topicLevels.length &&
+    filterLevels.every((level, i) => level === '+' || level === topicLevels[i])
+  )
+}
+
 class FakeDevice {
   constructor() {
     this.handlers = {}
@@ -29,9 +43,21 @@ class FakeDevice {
     this.handlers[event] = handler
   }
   subscribe(topic, options) {
+    if (this.subscriptions.length >= MAX_SUBSCRIPTIONS) {
+      this.handlers.error?.(
+        new Error('Maximum queued offline subscription reached'),
+      )
+      return
+    }
     this.subscriptions.push({ topic, options })
   }
   publish() {}
+  // Like the broker, delivers a message only when a subscription matches its topic.
+  async receive(topic, payload) {
+    if (this.subscriptions.some(({ topic: f }) => topicMatches(f, topic))) {
+      await this.handlers.message(topic, Buffer.from(JSON.stringify(payload)))
+    }
+  }
 }
 
 jest.unstable_mockModule('@serverless/util', () => ({
@@ -118,12 +144,29 @@ describe('dev mode IoT subscriptions', () => {
     const dev = buildDev(30)
     const device = await connect(dev)
 
-    await device.handlers.message(
-      'sls/us-east-1/users-api/alex/fn30/error',
-      Buffer.from(JSON.stringify({ error: 'fn30 payload too large' })),
-    )
+    await device.receive('sls/us-east-1/users-api/alex/fn30/error', {
+      error: 'fn30 payload too large',
+    })
 
     expect(logger.error).toHaveBeenCalledWith('fn30 payload too large')
+    clearInterval(dev.heartbeatInterval)
+  })
+
+  it('ignores invocations of functions the service does not define', async () => {
+    const dev = buildDev(30)
+    const device = await connect(dev)
+
+    // The wildcard also matches functions missing from the local configuration,
+    // e.g. ones another session deployed to the same stage.
+    await expect(
+      device.receive('sls/us-east-1/users-api/alex/ghost/request', {
+        event: {},
+        environment: {},
+        context: { awsRequestId: 'request-1' },
+      }),
+    ).resolves.toBeUndefined()
+
+    expect(logger.error).not.toHaveBeenCalled()
     clearInterval(dev.heartbeatInterval)
   })
 })
