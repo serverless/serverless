@@ -16,6 +16,9 @@ Integration tests require a predefined AWS, Serverless Dashboard, and Terraform 
 npm test -w @serverlessinc/sf-core
 ```
 
+In CI the suites are split into one shard per test account; see
+[CI Test Accounts](#ci-test-accounts).
+
 Note: this excludes two suites.
 
 - `domains` — runs only via `npm run test:domains -w @serverlessinc/sf-core`.
@@ -85,6 +88,8 @@ The integration tests require specific AWS resources, including:
 - `resolvers-integration-test`
   - File: `test.txt`
   - Content: `file content`
+- `sam-integration-tests-existing-bucket`
+  - Artifact bucket the `sam/sam-existing` suite deploys through (`s3_bucket` in its `samconfig.toml`)
 
 #### AWS DynamoDB Tables
 
@@ -194,33 +199,71 @@ outputs:
 
 CI never uses long-lived AWS keys: each workflow assumes
 `GithubActionsDeploymentRole` in a test account through GitHub's OIDC provider
-(`role-to-assume` in `.github/workflows/ci-*.yml`).
+(`role-to-assume` in `.github/workflows/ci-*.yml`). There are three test
+accounts, test-1 to test-3, and each role ARN is a repository variable
+(`TEST1_ROLE_ARN` to `TEST3_ROLE_ARN`).
 
-Most integration suites run in one account, which holds every prerequisite
-listed above. Additional accounts exist to spread the suites out: separate
-runners break the single-runner ceiling, and AWS API rate limits are isolated
-per account instead of shared by every suite in one run. The MCP suite is the
-first to move — it runs in a second account, because standing up whole REST
-APIs alongside the other suites is what makes those limits bite.
+### Integration Shards
 
-Bootstrapping an additional account for CI is a two-part, human-run job, and
-both parts are per-account:
+`CI: Framework CLI` runs the integration suites as one matrix leg per account.
+Separate runners share the work, and AWS API rate limits are isolated per
+account instead of shared by every suite in one run. Shard N runs in test-N.
+
+`packages/sf-core/tests/integration/shards.json` decides which suites run in
+which shard. The Jest sequencer in `tests/integration/sequencer.cjs` reads it
+when `npm test` is given `--shard=N/3`, and starts each shard's longest suites
+first. Without `--shard`, `npm test` runs every suite, longest first.
+
+Each entry records a shard and the suite's duration in seconds:
+
+```json
+"tests/integration/simple-nodejs/simple-nodejs.test.js": {
+  "shard": 2,
+  "seconds": 62
+},
+"tests/integration/simple-compose/simple-compose.test.js": {
+  "shard": 1,
+  "seconds": 203,
+  "pin": "serverless-compose-state-bucket-integration-test prerequisite"
+}
+```
+
+- Only test-1 holds the prerequisites listed above. A suite that needs one
+  stays in shard 1 and names the reason in `pin`. A unit test rejects a pinned
+  suite in any other shard.
+- A new suite needs an entry. A unit test fails until it has one, and until
+  then the suite runs in shard 1, where every prerequisite exists.
+- To rebalance, copy the durations from the `PASS ... (N s)` lines of a recent
+  run into `seconds`, then move unpinned suites so the shard totals are
+  similar. A shard ends when its longest suite does, so the totals only need
+  to be roughly even.
+
+`CI: MCP Servers` runs its suite in a single leg in test-2. The suite is
+self-contained and behaves identically in any bootstrapped account, so a
+second leg would duplicate rather than parallelize.
+
+### Bootstrapping an Account
+
+Adding an account for CI is a per-account, human-run job in three parts:
 
 1. **The OIDC provider and the deployment role** are provisioned internally by
    the maintainers. Once an account is ready, its role ARN is supplied to the
-   workflows as a repository variable (see the matrix comments in
-   `.github/workflows/ci-mcp.yml`) rather than committed here.
-2. **The prerequisites this file documents** — SSM parameters, secrets, buckets,
-   tables, stacks and the Cognito user pool exist per account. A suite whose
-   prerequisite is missing in the account it runs in either fails or, in the MCP
-   enforcement suite's case, skips — reporting green over coverage that never
-   ran.
+   workflows as a repository variable rather than committed here.
+2. **The default deployment and state buckets.** The Framework creates these
+   on first use. Create them once, one deploy at a time, before the account
+   joins the matrix. With the new account's credentials:
 
-`CI: MCP Servers` shows the shape: a one-leg matrix naming its account, with
-the role ARN in a repository variable. The suite is self-contained and behaves
-identically in any bootstrapped account, so running it in more than one would
-duplicate rather than parallelize — the gain comes from each suite having an
-account to itself, which is a leg plus a variable for the next one to move.
+   ```sh
+   export AWS_REGION=us-east-1 TEST_STAGE=boot
+   npm run test:simple:nodejs -w @serverlessinc/sf-core -- --runInBand
+   npm run test:compose:subset -w @serverlessinc/sf-core -- --runInBand
+   ```
+
+3. **The prerequisites from this file that the account's suites need.** Suites
+   pinned to shard 1 need test-1's, and the MCP enforcement suite needs the
+   Cognito user pool. A suite whose prerequisite is missing in its account
+   either fails or, in the MCP enforcement suite's case, skips, reporting green
+   over coverage that never ran.
 
 ## Other Test Suites
 

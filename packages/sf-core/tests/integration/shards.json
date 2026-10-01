@@ -1,0 +1,173 @@
+{
+  "shardCount": 3,
+  "suites": {
+    "tests/integration/compose-dev/compose-dev.test.js": {
+      "shard": 2,
+      "seconds": 222
+    },
+    "tests/integration/compose-service-provider/compose-service-provider.test.js": {
+      "shard": 2,
+      "seconds": 337
+    },
+    "tests/integration/compose-service-subset/compose-service-subset.test.js": {
+      "shard": 3,
+      "seconds": 274
+    },
+    "tests/integration/deployment-bucket/legacy-deployment-bucket-changesets-cli/legacy-deployment-bucket-changeset-cli.test.js": {
+      "shard": 3,
+      "seconds": 97
+    },
+    "tests/integration/deployment-bucket/legacy-deployment-bucket-changesets-config/legacy-deployment-bucket-changeset-config.test.js": {
+      "shard": 2,
+      "seconds": 91
+    },
+    "tests/integration/deployment-bucket/legacy-deployment-bucket-direct-cli/legacy-deployment-bucket-direct-cli.test.js": {
+      "shard": 2,
+      "seconds": 91
+    },
+    "tests/integration/deployment-bucket/legacy-deployment-bucket-direct-config/legacy-deployment-bucket-direct-config.test.js": {
+      "shard": 3,
+      "seconds": 87
+    },
+    "tests/integration/deployment-bucket/standalone-to-compose/standalone-to-compose.test.js": {
+      "shard": 1,
+      "seconds": 302,
+      "pin": "compose state bucket prerequisite; needs the global serverless@3 install"
+    },
+    "tests/integration/esbuild/bundling-on/bundling-on.test.js": {
+      "shard": 2,
+      "seconds": 75
+    },
+    "tests/integration/esbuild/js-config/js-config.test.js": {
+      "shard": 3,
+      "seconds": 67
+    },
+    "tests/integration/esbuild/package-individually/package-individually.test.js": {
+      "shard": 3,
+      "seconds": 67
+    },
+    "tests/integration/esbuild/type-module/type-module.test.js": {
+      "shard": 2,
+      "seconds": 67
+    },
+    "tests/integration/esbuild/zero-config/zero-config.test.js": {
+      "shard": 2,
+      "seconds": 67
+    },
+    "tests/integration/license-key/license-key.test.js": {
+      "shard": 1,
+      "seconds": 10,
+      "pin": "license key SSM parameter lives in this account"
+    },
+    "tests/integration/local-plugin/local-plugin.test.js": {
+      "shard": 2,
+      "seconds": 67
+    },
+    "tests/integration/resolvers/cf-many/cf-many.test.js": {
+      "shard": 3,
+      "seconds": 303
+    },
+    "tests/integration/resolvers/framework/resolvers.test.js": {
+      "shard": 1,
+      "seconds": 142,
+      "pin": "SSM, Secrets Manager and resolver fixture stack prerequisites"
+    },
+    "tests/integration/resolvers/terraform/remote-output/terraform-remote-output.test.js": {
+      "shard": 1,
+      "seconds": 67,
+      "pin": "reads /resolvers/terraform-hcp-token from SSM"
+    },
+    "tests/integration/resolvers/terraform/s3-output/terraform-s3-output-compose.test.js": {
+      "shard": 1,
+      "seconds": 62,
+      "pin": "terraform-s3-resolver-test bucket and lock table prerequisites"
+    },
+    "tests/integration/resolvers/terraform/s3-output/terraform-s3-output.test.js": {
+      "shard": 1,
+      "seconds": 67,
+      "pin": "terraform-s3-resolver-test bucket and lock table prerequisites"
+    },
+    "tests/integration/sam/cloudformation-compose/cloudformation-compose.test.js": {
+      "shard": 2,
+      "seconds": 61
+    },
+    "tests/integration/sam/cloudformation/cloudformation.test.js": {
+      "shard": 2,
+      "seconds": 140
+    },
+    "tests/integration/sam/sam-compose-run-service/sam-compose-run-service.test.js": {
+      "shard": 2,
+      "seconds": 100
+    },
+    "tests/integration/sam/sam-compose-state/sam-compose-state.test.js": {
+      "shard": 3,
+      "seconds": 165
+    },
+    "tests/integration/sam/sam-compose/sam-compose.test.js": {
+      "shard": 3,
+      "seconds": 125
+    },
+    "tests/integration/sam/sam-existing/sam-existing.test.js": {
+      "shard": 1,
+      "seconds": 86,
+      "pin": "deploys into the sam-integration-tests-existing-bucket prerequisite"
+    },
+    "tests/integration/sam/sam-info/sam-info.test.js": {
+      "shard": 3,
+      "seconds": 65
+    },
+    "tests/integration/sam/sam-todo/sam-todo.test.js": {
+      "shard": 3,
+      "seconds": 93
+    },
+    "tests/integration/sandboxes/dev-api-emulation.test.js": {
+      "shard": 3,
+      "seconds": 20
+    },
+    "tests/integration/sandboxes/dev-api-fidelity.test.js": {
+      "shard": 3,
+      "seconds": 1
+    },
+    "tests/integration/sandboxes/dev-mode-hooks.test.js": {
+      "shard": 3,
+      "seconds": 12
+    },
+    "tests/integration/sandboxes/sandboxes.test.js": {
+      "shard": 1,
+      "seconds": 281,
+      "pin": "deploys a Lambda MicroVM sandbox, which runs in test-1"
+    },
+    "tests/integration/self-managed-storage/reference-mode/reference-mode.test.js": {
+      "shard": 2,
+      "seconds": 166
+    },
+    "tests/integration/simple-compose/simple-compose.test.js": {
+      "shard": 1,
+      "seconds": 203,
+      "pin": "serverless-compose-state-bucket-integration-test prerequisite"
+    },
+    "tests/integration/simple-dashboard/simple-dashboard.test.js": {
+      "shard": 1,
+      "seconds": 73,
+      "pin": "deploys through the Dashboard org provider credentials"
+    },
+    "tests/integration/simple-nodejs/simple-nodejs.test.js": {
+      "shard": 2,
+      "seconds": 62
+    },
+    "tests/integration/simple-python/simple-python.test.js": {
+      "shard": 3,
+      "seconds": 62
+    },
+    "tests/integration/state/default/default-state.test.js": {
+      "shard": 1,
+      "seconds": 274,
+      "pin": "asserts on the account default state bucket"
+    },
+    "tests/integration/state/state-resolver/state-resolver.test.js": {
+      "shard": 1,
+      "seconds": 214,
+      "pin": "serverless-compose-state-bucket-integration-test prerequisite"
+    }
+  }
+}

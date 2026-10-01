@@ -69,9 +69,9 @@ jobs:
     # GithubActionsDeploymentRole. The MCP suite is self-contained and identical
     # in every account, so a second leg buys no extra coverage — the matrix is
     # here for the fleet-wide goal: separate runners break the single-runner
-    # ceiling and API rate limits are isolated per account. That only pays off
-    # once the OTHER integration suites shard across the same accounts, and this
-    # workflow is the template for that.
+    # ceiling and API rate limits are isolated per account. The other
+    # integration suites shard across the same accounts the same way (the
+    # `test-integration` matrix in ci-framework.yml).
     #
     # All three accounts are bootstrapped: each holds the OIDC provider, the
     # deployment role, and the Cognito prerequisite `mcp-auth.test.js` needs —
@@ -120,7 +120,7 @@ jobs:
       # artifact, so a deploy fails outright without it; `mcp-dev.test.js` runs a
       # `serverless dev` session, which copies the dev-mode shim into the
       # deployed function and aborts at startup when it is missing. The sf-core
-      # bundle and the global serverless@3 that `Test: Framework` builds are not
+      # bundle and the global serverless@3 that `Test: Integration` builds are not
       # used by this suite and are left out.
       - name: 'Build: MCP Entry'
         working-directory: ./packages/serverless
