@@ -5,7 +5,7 @@
 import _ from 'lodash'
 import { CoreSDK } from '@serverless-inc/sdk'
 import { randomUUID } from 'crypto'
-import simpleGit from 'simple-git'
+import { simpleGit } from 'simple-git'
 import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
 
 export class Deployment {
