@@ -11,7 +11,7 @@
   },
   "author": "Serverless Inc.",
   "dependencies": {
-    "@aws-sdk/client-s3": "3.1136.0",
+    "@aws-sdk/client-s3": "3.1139.0",
     "@vercel/detect-agent": "^1.2.5",
     "aws-sdk-v3-proxy": "^2.2.0",
     "chalk": "^5.6.2",
