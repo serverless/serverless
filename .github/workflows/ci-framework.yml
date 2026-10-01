@@ -141,6 +141,6 @@ jobs:
     with:
       # A manual run can test every platform the release tests, from any
       # branch; this workflow has no release jobs, so nothing can publish.
-      platforms: ${{ inputs.platforms || (inputs.all-platforms && '["ubuntu-latest","latest-arm-linux","gh-windows-latest"]') || '["ubuntu-latest"]' }}
+      platforms: ${{ inputs.platforms || (inputs.all-platforms && '["ubuntu-latest","latest-arm-linux","windows-latest"]') || '["ubuntu-latest"]' }}
       stage-prefix: pr-${{ github.event.pull_request.user.login || github.actor }}
       aws-sdk: '3'

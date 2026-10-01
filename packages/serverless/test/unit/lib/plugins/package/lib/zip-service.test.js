@@ -154,9 +154,10 @@ describe('zipService', () => {
   })
 
   describe('#excludeDevDependencies() - node dependency resolution', () => {
-    // Each test spawns real `npm ls` processes; on Windows CI a single npm
-    // spawn can take seconds, so the default 5s per-test timeout is too tight.
-    jest.setTimeout(60_000)
+    // Each test spawns real `npm ls` processes; on the standard Windows CI
+    // runner a single test can take over a minute, so the default 5s per-test
+    // timeout is far too tight.
+    jest.setTimeout(180_000)
 
     // Separator-agnostic so assertions hold on both POSIX ("node_modules/x/**")
     // and Windows ("node_modules\\x\\**") glob output.

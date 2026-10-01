@@ -71,3 +71,18 @@ describe('the live mcp suite is reachable only through test:mcp', () => {
     expect(scripts['test:mcp']).toMatch(/--maxWorkers[= ]2\b/)
   })
 })
+
+// CI runs these scripts on Linux and Windows. npm runs scripts through cmd.exe
+// on Windows, which neither sets variables with POSIX `NAME=value` syntax nor
+// expands globs: Jest then treats a pattern like `tests/resolvers/**` as
+// invalid and runs every test instead, live integration suites included.
+describe('package scripts that CI runs work on Windows', () => {
+  test.each(['test', 'test:unit', 'test:resolvers'])(
+    'the %s script sets its environment through cross-env and uses no shell globs',
+    async (scriptName) => {
+      const scripts = await readScripts()
+      expect(scripts[scriptName]).toMatch(/^cross-env /)
+      expect(scripts[scriptName]).not.toMatch(/\*\*/)
+    },
+  )
+})

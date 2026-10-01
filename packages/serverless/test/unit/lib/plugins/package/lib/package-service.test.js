@@ -242,8 +242,9 @@ describe('packageService', () => {
   })
 
   describe('#resolveFilePathsLayer() - service dev dependencies', () => {
-    // Spawns real `npm ls` processes, which can take seconds on Windows CI
-    jest.setTimeout(60_000)
+    // Spawns real `npm ls` processes; on the standard Windows CI runner a
+    // single test can take over a minute.
+    jest.setTimeout(180_000)
 
     let serviceDir
 

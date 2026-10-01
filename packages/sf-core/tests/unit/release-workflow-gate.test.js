@@ -17,7 +17,7 @@ const load = async (name) =>
 const RELEASE_PLATFORMS = [
   'ubuntu-latest',
   'latest-arm-linux',
-  'gh-windows-latest',
+  'windows-latest',
 ]
 
 const needsOf = (job) => [job.needs ?? []].flat()
