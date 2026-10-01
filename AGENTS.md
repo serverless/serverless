@@ -110,7 +110,7 @@ New integration tests must be self-cleaning (deploy → exercise → teardown, e
 npm test -w @serverless/mcp                          # mcp tests (NOT run by any CI workflow)
 npm test -w @serverless/engine                       # engine unit tests
 npm run test:python -w @serverlessinc/sf-core        # python plugin tests
-npm run test:build -w @serverlessinc/sf-core         # packaging smoke + skills-packaging check (not in CI)
+npm run test:build -w @serverlessinc/sf-core         # build + pack the release locally, then run the packaging checks
 cd binary-installer && go test ./... && make build-prod   # Go installer
 cd binary-installer && make test-e2e                     # Go installer end to end: real downloads, needs node
 ```
@@ -123,7 +123,7 @@ Never drive the CLI through a pty (`script`, `pty.spawn`): a pty is indistinguis
 
 ## Distribution & Bundling
 
-The released CLI is bundled with esbuild into a single file. Standard `import`/`export` modules are bundled automatically, but **non-JS assets and anything loaded via a `__dirname`-relative path** (JSON, `.py` files, templates, spawned scripts) must be explicitly registered in `packages/sf-core/scripts/prepareDistributionTarballs.js` — otherwise the code works from source and breaks in the release.
+The released CLI is bundled with esbuild into a single file. Standard `import`/`export` modules are bundled automatically, but **non-JS assets and anything loaded via a `__dirname`-relative path** (JSON, `.py` files, templates, spawned scripts) must be explicitly registered in `packages/sf-core/scripts/prepareDistributionTarballs.js` — otherwise the code works from source and breaks in the release. The checks that the packed package works live in one script, `packages/sf-core/scripts/verify-release-package.sh`, run by the release before any upload, by PR CI (Test: Release Package) and by `test:build`; add new packaging checks there, not at the call sites.
 
 Keep `esbuild` listed in `external` in `packages/sf-core/esbuild.js` — bundling esbuild's own code breaks the worker it spawns (see the comment there).
 
@@ -143,7 +143,7 @@ Commit `skills/manifest.json` alongside. Aux files are never deleted from user i
 
 CI runs on pull requests targeting `main`, on Node.js 24.x:
 
-- **CI: Framework CLI** — Lint, Test: Engine, Test: Unit, and Test: Integration: one leg per test account, sharded by `packages/sf-core/tests/integration/shards.json`, plus a leg for the resolvers suite. Skipped entirely for docs-only changes (`paths-ignore: docs/**`) and for draft PRs.
+- **CI: Framework CLI** — Lint, Test: Engine, Test: Unit, Test: Release Package (builds and packs the release package, then runs the packaging checks), and Test: Integration: one leg per test account, sharded by `packages/sf-core/tests/integration/shards.json`, plus a leg for the resolvers suite. Skipped entirely for docs-only changes (`paths-ignore: docs/**`) and for draft PRs.
 - **CI: Binary Installer** — Go unit tests and an end-to-end suite (`binary-installer/e2e`, parallel first runs against real releases) on Linux, macOS, and Windows, plus the production build; runs only when `binary-installer/**` changes
 - **CI: NPM Installer** — `packages/sf-core-installer` tests on Linux, macOS and Windows × Node.js 18, 24 and the latest release, failing on any Node.js deprecation; runs when that package changes and weekly, because a new Node.js release can break the npm install path with no change in this repository. Its end-to-end jobs (`npm run test:e2e` in that package; needs internet) install the packed package from a local registry with npm, pnpm, Yarn and Bun, directly and through proxies, and once more in a Docker network whose only way out is a proxy (`tests/e2e/proxy-only-network.sh`)
 - **CI: Python Requirements** — path-filtered (see Testing above)
