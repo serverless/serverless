@@ -44,12 +44,29 @@ export class AwsS3Client {
    * @returns {Promise<void>}
    */
   async createVersionedBucket({ bucketName }) {
-    // Create the S3 bucket
+    await this.createBucket({ bucketName })
+    await this.enableBucketVersioning({ bucketName })
+  }
+
+  /**
+   * Creates an S3 bucket, letting SDK errors through unchanged.
+   *
+   * @param {BucketParams} params - The parameters for creating the bucket.
+   * @returns {Promise<void>}
+   */
+  async createBucket({ bucketName }) {
     const createBucketParams = { Bucket: bucketName }
     const createBucketCommand = new CreateBucketCommand(createBucketParams)
     await this.client.send(createBucketCommand)
+  }
 
-    // Enable versioning for the S3 bucket
+  /**
+   * Enables versioning for an S3 bucket, letting SDK errors through unchanged.
+   *
+   * @param {BucketParams} params - The parameters for the bucket.
+   * @returns {Promise<void>}
+   */
+  async enableBucketVersioning({ bucketName }) {
     const versioningParams = {
       Bucket: bucketName,
       VersioningConfiguration: {
@@ -58,6 +75,19 @@ export class AwsS3Client {
     }
     const versioningCommand = new PutBucketVersioningCommand(versioningParams)
     await this.client.send(versioningCommand)
+  }
+
+  /**
+   * Gets the versioning status of an S3 bucket, letting SDK errors through unchanged so
+   * callers can tell `NoSuchBucket` from `AccessDenied` by `err.name`.
+   *
+   * @param {BucketParams} params - The parameters for the bucket.
+   * @returns {Promise<string|undefined>} - `Enabled`, `Suspended`, or undefined if versioning was never enabled.
+   */
+  async fetchBucketVersioningStatus({ bucketName }) {
+    const command = new GetBucketVersioningCommand({ Bucket: bucketName })
+    const response = await this.client.send(command)
+    return response.Status
   }
 
   /**
