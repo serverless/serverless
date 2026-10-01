@@ -16,7 +16,7 @@ const load = async (name) =>
 
 const RELEASE_PLATFORMS = [
   'ubuntu-latest',
-  'latest-arm-linux',
+  'ubuntu-24.04-arm',
   'windows-latest',
 ]
 
