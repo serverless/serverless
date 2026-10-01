@@ -148,6 +148,15 @@ describe('shared test workflow', () => {
     }
   })
 
+  // A step condition can quietly stop a test from running, so only these
+  // steps may have one: they skip setup that a platform or leg doesn't need,
+  // or tests the old release never ran on that platform.
+  const ALLOWED_STEP_IFS = {
+    'Test: Unit (mcp)': "${{ runner.os == 'Linux' }}",
+    'Setup: ECR Public Login': "${{ runner.os == 'Linux' }}",
+    'Install: Serverless v3': '${{ matrix.needs-serverless-v3 }}',
+  }
+
   test('no test job or step can be skipped or soft-fail', async () => {
     const { jobs } = await load('test-framework.yml')
     for (const [id, job] of Object.entries(jobs)) {
@@ -160,9 +169,25 @@ describe('shared test workflow', () => {
         expect({
           id,
           step: step.name,
+          if: step.if,
           continueOnError: step['continue-on-error'],
-        }).toEqual({ id, step: step.name, continueOnError: undefined })
+        }).toEqual({
+          id,
+          step: step.name,
+          if: ALLOWED_STEP_IFS[step.name],
+          continueOnError: undefined,
+        })
       }
     }
+  })
+
+  // PowerShell, the Windows default, drops the `--` that passes --shard to
+  // Jest; without bash, every Windows leg would run every suite.
+  test('the integration command runs with bash on every platform', async () => {
+    const { jobs } = await load('test-framework.yml')
+    const step = jobs.integration.steps.find(
+      ({ name }) => name === 'Test: Integration',
+    )
+    expect(step.shell).toBe('bash')
   })
 })

@@ -126,10 +126,10 @@ jobs:
           aws-region: us-east-1
       # The dev-mode sandbox suites build an image locally from public.ecr.aws;
       # signed-in pulls aren't limited by the anonymous allowance that runners'
-      # shared IP addresses exhaust. Only the standard Linux runners build
-      # images; the other platforms skip those suites.
+      # shared IP addresses exhaust. Only Linux runners build images; the
+      # others skip those suites.
       - name: 'Setup: ECR Public Login'
-        if: ${{ matrix.platform == 'ubuntu-latest' || matrix.platform == 'ubuntu-24.04-arm' }}
+        if: ${{ runner.os == 'Linux' }}
         uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
         with:
           registry-type: public
