@@ -238,12 +238,24 @@ const validateBucket = async (s3Client, bucketName) => {
   ]).toContain(versioningStatus.Status)
 }
 
+// The default state bucket is shared by every run in the account, and a
+// remove resets a service's state file to {} rather than deleting it, so the
+// bucket holds more keys than one ListObjectsV2 page returns. Page through it.
 const listBucketObjects = async (s3Client, bucketName) => {
-  const listObjectsCommand = new ListObjectsV2Command({
-    Bucket: bucketName,
-  })
-  const objectList = await s3Client.send(listObjectsCommand)
-  return objectList.Contents.map((item) => item.Key)
+  const keys = []
+  let ContinuationToken
+  do {
+    const page = await s3Client.send(
+      new ListObjectsV2Command({
+        Bucket: bucketName,
+        Prefix: 'services/traditional/',
+        ContinuationToken,
+      }),
+    )
+    keys.push(...(page.Contents ?? []).map((item) => item.Key))
+    ContinuationToken = page.NextContinuationToken
+  } while (ContinuationToken)
+  return keys
 }
 
 const validateComposeAObject = async (s3Client, bucketName, keys, stage) => {
