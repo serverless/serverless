@@ -16,6 +16,17 @@ on:
         description: Prefix for the stages the integration suites deploy to
         type: string
         required: true
+      aws-sdk:
+        description: >-
+          SLS_AWS_SDK for the integration shards: '3' for AWS SDK v3, or empty
+          for the default SDK path users run
+        type: string
+        default: ''
+    secrets:
+      SERVERLESS_LICENSE_KEY_DEV:
+        required: true
+      SERVERLESS_ACCESS_KEY_DEV:
+        required: true
 
 permissions:
   id-token: write
@@ -77,22 +88,19 @@ jobs:
           - leg: shard 1/3 · test-1
             role: ${{ vars.TEST1_ROLE_ARN }}
             command: npm run test -- --maxWorkers=8 --shard=1/3
-            sdk: '3'
             needs-serverless-v3: true
           - leg: shard 2/3 · test-2
             role: ${{ vars.TEST2_ROLE_ARN }}
             command: npm run test -- --maxWorkers=8 --shard=2/3
-            sdk: '3'
           - leg: shard 3/3 · test-3
             role: ${{ vars.TEST3_ROLE_ARN }}
             command: npm run test -- --maxWorkers=8 --shard=3/3
-            sdk: '3'
           # The resolvers suite reads the same prerequisites and has always
-          # run without SLS_AWS_SDK; an empty value reads the same as unset.
+          # run without SLS_AWS_SDK, whichever SDK the shards use.
           - leg: resolvers · test-1
             role: ${{ vars.TEST1_ROLE_ARN }}
             command: npm run test:resolvers -- --maxWorkers=8
-            sdk: ''
+            resolvers: true
     runs-on: ${{ matrix.platform }}
     defaults:
       run:
@@ -145,5 +153,6 @@ jobs:
           SERVERLESS_LICENSE_KEY_DEV: ${{ secrets.SERVERLESS_LICENSE_KEY_DEV }}
           SERVERLESS_ACCESS_KEY_DEV: ${{ secrets.SERVERLESS_ACCESS_KEY_DEV }}
           TEST_STAGE: ${{ inputs.stage-prefix }}
-          SLS_AWS_SDK: ${{ matrix.sdk }}
+          # An empty value reads the same as unset: the default SDK path.
+          SLS_AWS_SDK: ${{ !matrix.resolvers && inputs.aws-sdk || '' }}
           AWS_MAX_ATTEMPTS: 7

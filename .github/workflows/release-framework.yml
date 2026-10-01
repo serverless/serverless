@@ -48,10 +48,14 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    secrets: inherit
+    secrets:
+      SERVERLESS_LICENSE_KEY_DEV: ${{ secrets.SERVERLESS_LICENSE_KEY_DEV }}
+      SERVERLESS_ACCESS_KEY_DEV: ${{ secrets.SERVERLESS_ACCESS_KEY_DEV }}
     with:
       platforms: '["ubuntu-latest","latest-arm-linux","gh-windows-latest"]'
       stage-prefix: mr-${{ github.actor }}
+      # The default SDK path, which users run; pull request CI covers v3.
+      aws-sdk: ''
 
   release-canary:
     name: 'Release: Canary & Tag'
