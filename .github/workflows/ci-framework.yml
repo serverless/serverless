@@ -67,6 +67,57 @@ jobs:
       - name: 'Test: Engine Unit'
         run: npm test
 
+  # Builds the release package the way the release workflow does and runs the
+  # packaging checks the release runs before uploading it. The release
+  # workflow only runs after merge, and main is published as canary within
+  # minutes, so packaging breaks must be caught here.
+  test-release-package:
+    name: 'Test: Release Package'
+    if: ${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    # Builds and checks files only; no AWS access, so no id-token.
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: ./packages/sf-core
+    steps:
+      - name: 'Checkout Code'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: 'Setup: Node.js'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.x
+          check-latest: true
+          cache: npm
+      - name: 'Setup: Enable Corepack'
+        run: corepack enable npm
+      - name: 'Install: Dependencies'
+        run: |
+          cd ../../
+          npm ci
+      - name: 'Build: Minify Shim'
+        run: |
+          cd ../serverless/lib/plugins/aws/dev
+          ../../../../../../node_modules/.bin/esbuild ./shim.js --bundle --platform=node --minify --outfile=./shim.min.js
+      - name: 'Build: MCP Entry'
+        working-directory: ./packages/serverless
+        run: npm run build:mcp:entry
+      - name: 'Build: Framework'
+        run: npm run build
+      - name: 'Build: Release Package'
+        working-directory: ./packages/sf-core/scripts
+        run: |
+          node prepareDistributionTarballs.js
+          cd ../../framework-dist
+          bash ../sf-core/scripts/pack-framework-dist.sh
+      - name: 'Test: Release Package'
+        working-directory: ./packages/framework-dist
+        run: |
+          verify_dir=$(mktemp -d)
+          tar -xzf serverlessinc-framework-alpha-*.tgz -C "${verify_dir}"
+          bash ../sf-core/scripts/verify-release-package.sh "${verify_dir}/package"
+
   test-unit:
     name: 'Test: Unit'
     if: ${{ !github.event.pull_request.draft }}

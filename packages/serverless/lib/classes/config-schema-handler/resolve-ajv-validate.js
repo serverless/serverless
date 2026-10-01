@@ -1,5 +1,5 @@
-import Ajv from 'ajv'
-import addFormats from 'ajv-formats'
+import Ajv, { _ } from 'ajv'
+import { fullFormats } from 'ajv-formats/dist/formats.js'
 import objectHash from 'object-hash'
 import path from 'path'
 import os from 'os'
@@ -55,9 +55,19 @@ const getValidate = async (schema) => {
       verbose: true,
       strict: false,
       strictRequired: false,
-      code: { source: true },
+      code: {
+        source: true,
+        // Formats are registered directly rather than through the ajv-formats
+        // plugin: the plugin generates code with its own copy of ajv, which
+        // npm may install separately from this one, and code from a second
+        // ajv copy is serialized as data instead of code in the standalone
+        // validator.
+        formats: _`require("ajv-formats/dist/formats").fullFormats`,
+      },
     })
-    addFormats(ajv)
+    for (const [name, format] of Object.entries(fullFormats)) {
+      ajv.addFormat(name, format)
+    }
 
     const regexpKeyword = await import('./regexp-keyword.js')
     ajv.addKeyword(regexpKeyword)

@@ -270,7 +270,7 @@ Adding an account for CI is a per-account, human-run job in three parts:
 - `npm test -w @serverless/engine` — engine unit tests
 - `npm test -w @serverless/mcp` — MCP server tests (not run by any CI workflow)
 - `npm run test:python -w @serverlessinc/sf-core` — Python plugin tests (covered by the `CI: Python Requirements` workflow)
-- `npm run test:build -w @serverlessinc/sf-core` — packaging/distribution smoke test
+- `npm run test:build -w @serverlessinc/sf-core` — builds and packs the release package locally, then runs the packaging checks in `packages/sf-core/scripts/verify-release-package.sh` (the same checks the `Test: Release Package` CI job and the release run)
 
 ## Troubleshooting
 
