@@ -4,7 +4,6 @@ import { setGlobalRendererSettings } from '@serverless/util'
 import { jest } from '@jest/globals'
 import { getTestStageName, runSfCore } from '../../utils/runSfCore'
 import {
-  DeleteParameterCommand,
   ParameterType,
   PutParameterCommand,
   SSMClient,
@@ -34,12 +33,6 @@ describe('Traditional Service - License Key', () => {
 
   afterAll(async () => {
     process.env = originalEnv
-    // Delete license key SSM parameter
-    const ssmClient = new SSMClient({ region: 'us-east-2' })
-    const deleteCommand = new DeleteParameterCommand({
-      Name: '/serverless-framework/license-key',
-    })
-    await ssmClient.send(deleteCommand)
   })
 
   afterEach(() => {
@@ -126,13 +119,15 @@ describe('Traditional Service - License Key', () => {
       SERVERLESS_ACCESS_KEY: undefined,
     }
 
-    // Put a license key in SSM
+    // Write the license key to the default SSM parameter. Concurrent runs in
+    // the account write the same value, so overwrite it and never delete it:
+    // deleting it would remove it from under another run that is reading it.
     const ssmClient = new SSMClient({ region: 'us-east-2' })
-    // Create SSM parameter with the license key
     const command = new PutParameterCommand({
       Name: '/serverless-framework/license-key',
       Value: process.env.SERVERLESS_LICENSE_KEY_DEV,
       Type: ParameterType.SECURE_STRING,
+      Overwrite: true,
     })
     await ssmClient.send(command)
 
