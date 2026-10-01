@@ -63,7 +63,10 @@ jobs:
       - name: 'Test: Unit (serverless)'
         working-directory: ./packages/serverless
         run: npm run test:unit
+      # The mcp package's test script sets NODE_OPTIONS with POSIX shell
+      # syntax, which Windows can't run.
       - name: 'Test: Unit (mcp)'
+        if: ${{ runner.os == 'Linux' }}
         working-directory: ./packages/mcp
         run: npm run test:unit
 
@@ -147,7 +150,10 @@ jobs:
       - name: 'Install: Serverless v3'
         if: ${{ matrix.needs-serverless-v3 }}
         run: npm install -g serverless@3
+      # bash on every platform: PowerShell, the Windows default, drops the
+      # `--` before the arguments meant for Jest.
       - name: 'Test: Integration'
+        shell: bash
         run: ${{ matrix.command }}
         env:
           SERVERLESS_LICENSE_KEY_DEV: ${{ secrets.SERVERLESS_LICENSE_KEY_DEV }}
