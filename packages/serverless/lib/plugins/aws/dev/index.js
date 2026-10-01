@@ -1049,18 +1049,21 @@ class AwsDev {
       mainProgress.remove()
     })
 
-    // Each function has a seperate topic we need to subscribe to
-    const functionNames = this.serverless.service.getAllFunctions()
-
-    for (const functionName of functionNames) {
-      device.subscribe(this.getTopicId(`${functionName}/request`), {
-        qos: 1,
-      })
-      // Subscribe to error topic for payload limit notifications
-      device.subscribe(this.getTopicId(`${functionName}/error`), {
-        qos: 1,
-      })
-    }
+    /**
+     * Each function has its own request and error topic. Subscribe to all of them
+     * with one "+" wildcard filter per topic type rather than one subscription per
+     * function: AWS IoT Core allows 50 subscriptions per connection, and the IoT
+     * device SDK queues at most 50 subscriptions while offline, so two subscriptions
+     * per function silently dropped every function after the 25th.
+     * "+" matches exactly one topic level, which is the function name.
+     */
+    device.subscribe(this.getTopicId('+/request'), {
+      qos: 1,
+    })
+    // Error topic for payload limit notifications
+    device.subscribe(this.getTopicId('+/error'), {
+      qos: 1,
+    })
 
     /**
      * We listen for messages on the function's invocation topic.
