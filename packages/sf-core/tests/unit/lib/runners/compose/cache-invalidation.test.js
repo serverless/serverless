@@ -64,8 +64,12 @@ const runGraph = async (command, { events, failOn } = {}) => {
 describe('Compose resolver-cache invalidation', () => {
   let events
   let invalidate
+  let originalExitCode
 
   beforeEach(() => {
+    // A failed graph sets process.exitCode; restore it so the failure case
+    // doesn't fail the whole Jest run when tests share one process.
+    originalExitCode = process.exitCode
     events = []
     invalidate = jest
       .spyOn(variables, 'invalidateProviderCaches')
@@ -76,6 +80,7 @@ describe('Compose resolver-cache invalidation', () => {
 
   afterEach(() => {
     jest.restoreAllMocks()
+    process.exitCode = originalExitCode
   })
 
   // `remove` walks the graph the other way round — dependents first — so the
