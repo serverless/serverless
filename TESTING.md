@@ -209,9 +209,21 @@ accounts, test-1 to test-3, and each role ARN is a repository variable
 
 ### Integration Shards
 
-`CI: Framework CLI` runs the integration suites as one matrix leg per account.
+The unit tests and integration suites are defined once, in
+`.github/workflows/test-framework.yml`, which only runs when another workflow
+calls it. `CI: Framework CLI` calls it on Linux, and `Release: Framework CLI`
+calls it on Linux, ARM Linux and Windows. Each platform runs the integration
+suites as one matrix leg per account, plus a leg for the resolvers suite.
 Separate runners share the work, and AWS API rate limits are isolated per
 account instead of shared by every suite in one run. Shard N runs in test-N.
+
+To run the release's platforms from a branch before merging, dispatch
+`CI: Framework CLI` with `all-platforms` set. That workflow has no release
+jobs, so nothing is published:
+
+```sh
+gh workflow run ci-framework.yml --ref <branch> -f all-platforms=true
+```
 
 `packages/sf-core/tests/integration/shards.json` decides which suites run in
 which shard. The Jest sequencer in `tests/integration/sequencer.cjs` reads it

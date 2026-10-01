@@ -1,0 +1,149 @@
+name: 'Test: Framework'
+
+# The framework's unit tests and live integration tests, shared by
+# CI: Framework CLI (pull requests, Linux) and Release: Framework CLI (every
+# platform). It only runs tests and can only be called by another workflow,
+# so nothing here can publish a release: the release jobs live in
+# release-framework.yml and wait for every job below.
+on:
+  workflow_call:
+    inputs:
+      platforms:
+        description: JSON array of runner labels to test on
+        type: string
+        required: true
+      stage-prefix:
+        description: Prefix for the stages the integration suites deploy to
+        type: string
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  unit:
+    name: 'Unit (${{ matrix.platform }})'
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ${{ fromJSON(inputs.platforms) }}
+    runs-on: ${{ matrix.platform }}
+    defaults:
+      run:
+        working-directory: ./packages/sf-core
+    steps:
+      - name: 'Checkout Code'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: 'Setup: Node.js'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.x
+          check-latest: true
+          cache: npm
+      - name: 'Setup: Enable Corepack'
+        run: corepack enable npm
+      - name: 'Install: Dependencies'
+        run: |
+          cd ../../
+          npm ci
+      - name: 'Test: Unit (sf-core)'
+        run: npm run test:unit
+      - name: 'Test: Unit (serverless)'
+        working-directory: ./packages/serverless
+        run: npm run test:unit
+      - name: 'Test: Unit (mcp)'
+        working-directory: ./packages/mcp
+        run: npm run test:unit
+
+  integration:
+    name: 'Integration (${{ matrix.platform }}, ${{ matrix.leg }})'
+    # One leg per test account and platform: separate runners lift the
+    # single-runner ceiling and AWS rate limits stay per account.
+    # tests/integration/shards.json says which suites run in which shard;
+    # suites that need the prerequisites in TESTING.md are pinned to shard 1,
+    # which runs in test-1. fail-fast stays off so one leg failing never
+    # cancels the others mid-deploy, and a flaky leg can be re-run on its own.
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ${{ fromJSON(inputs.platforms) }}
+        leg:
+          - shard 1/3 · test-1
+          - shard 2/3 · test-2
+          - shard 3/3 · test-3
+          - resolvers · test-1
+        include:
+          - leg: shard 1/3 · test-1
+            role: ${{ vars.TEST1_ROLE_ARN }}
+            command: npm run test -- --maxWorkers=8 --shard=1/3
+            sdk: '3'
+            needs-serverless-v3: true
+          - leg: shard 2/3 · test-2
+            role: ${{ vars.TEST2_ROLE_ARN }}
+            command: npm run test -- --maxWorkers=8 --shard=2/3
+            sdk: '3'
+          - leg: shard 3/3 · test-3
+            role: ${{ vars.TEST3_ROLE_ARN }}
+            command: npm run test -- --maxWorkers=8 --shard=3/3
+            sdk: '3'
+          # The resolvers suite reads the same prerequisites and has always
+          # run without SLS_AWS_SDK; an empty value reads the same as unset.
+          - leg: resolvers · test-1
+            role: ${{ vars.TEST1_ROLE_ARN }}
+            command: npm run test:resolvers -- --maxWorkers=8
+            sdk: ''
+    runs-on: ${{ matrix.platform }}
+    defaults:
+      run:
+        working-directory: ./packages/sf-core
+    steps:
+      - name: 'Checkout Code'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: 'Setup: Node.js'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.x
+          check-latest: true
+          cache: npm
+      - name: 'Setup: Enable Corepack'
+        run: corepack enable npm
+      - name: 'Setup: AWS Credentials'
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ matrix.role }}
+          aws-region: us-east-1
+      # The dev-mode sandbox suites build an image locally from public.ecr.aws;
+      # signed-in pulls aren't limited by the anonymous allowance that runners'
+      # shared IP addresses exhaust. Only ubuntu-latest builds images; the
+      # other platforms skip those suites.
+      - name: 'Setup: ECR Public Login'
+        if: ${{ matrix.platform == 'ubuntu-latest' }}
+        uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
+        with:
+          registry-type: public
+      - name: 'Install: Dependencies'
+        run: |
+          cd ../../
+          npm ci
+      - name: 'Build: Minify Shim'
+        run: |
+          cd ../serverless/lib/plugins/aws/dev
+          ../../../../../../node_modules/.bin/esbuild ./shim.js --bundle --platform=node --minify --outfile=./shim.min.js
+      - name: 'Build: MCP Entry'
+        working-directory: ./packages/serverless
+        run: npm run build:mcp:entry
+      - name: 'Build: Framework'
+        run: npm run build
+      # Only standalone-to-compose, which is pinned to shard 1, deploys with v3.
+      - name: 'Install: Serverless v3'
+        if: ${{ matrix.needs-serverless-v3 }}
+        run: npm install -g serverless@3
+      - name: 'Test: Integration'
+        run: ${{ matrix.command }}
+        env:
+          SERVERLESS_LICENSE_KEY_DEV: ${{ secrets.SERVERLESS_LICENSE_KEY_DEV }}
+          SERVERLESS_ACCESS_KEY_DEV: ${{ secrets.SERVERLESS_ACCESS_KEY_DEV }}
+          TEST_STAGE: ${{ inputs.stage-prefix }}
+          SLS_AWS_SDK: ${{ matrix.sdk }}
+          AWS_MAX_ATTEMPTS: 7
