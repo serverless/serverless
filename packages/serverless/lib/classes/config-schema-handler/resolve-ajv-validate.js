@@ -36,6 +36,14 @@ const getCacheDir = async () => {
   )
 }
 
+const isFile = async (filePath) => {
+  try {
+    return (await fsp.stat(filePath)).isFile()
+  } catch {
+    return false
+  }
+}
+
 // Validators are cached by schema hash for the purpose
 // of speeding up tests and reducing their memory footprint.
 const cachedValidatorsBySchemaHash = {}
@@ -88,11 +96,21 @@ const getValidate = async (schema) => {
     const moduleCode = standaloneCode(ajv, validate)
 
     const tmpDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'sls-ajv'))
-
-    const tmpCachePath = path.resolve(tmpDir, filename)
-    await fsp.writeFile(tmpCachePath, moduleCode)
-    await safeMoveFile(tmpCachePath, cachePath)
-    await fsp.rmdir(tmpDir)
+    try {
+      const tmpCachePath = path.resolve(tmpDir, filename)
+      await fsp.writeFile(tmpCachePath, moduleCode)
+      try {
+        await safeMoveFile(tmpCachePath, cachePath)
+      } catch (err) {
+        // Parallel runs (concurrent deploys, Compose services) can cache the
+        // same validator first. The file name is the schema hash, so its
+        // content is identical; on Windows the move onto it can fail with EPERM.
+        if (!(await isFile(cachePath))) throw err
+      }
+    } finally {
+      // A leftover temporary directory is harmless; never fail the run over it.
+      await fsp.rm(tmpDir, { recursive: true, force: true }).catch(() => {})
+    }
   }
 
   await ensureExists(cachePath, generate)
