@@ -43,8 +43,8 @@ cd ../sf-core/scripts
 aws s3 cp ./releases.json s3://${s3_bucket}/releases.json
 
 if [ "$is_canary" = false ]; then
-    npm run -w=release-scripts publish:release ${version}
-    npm run -w=release-scripts publish:release-metadata ${version}
+    npm run -w=@serverlessinc/release-scripts publish:release ${version}
+    npm run -w=@serverlessinc/release-scripts publish:release-metadata ${version}
     git tag sf-core-installer@${version}
     git push --tags
 fi
