@@ -4,7 +4,7 @@ import os from 'os'
 import url from 'url'
 import path from 'path'
 
-export { getTestStageName } from './testStageName.js'
+export { getTestRunId, getTestStageName } from './testStageName.js'
 
 /**
  * Runs Serverless Core via the code or the binary,

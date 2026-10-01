@@ -6,11 +6,15 @@ import {
   DescribeStacksCommand,
 } from '@aws-sdk/client-cloudformation'
 import { jest } from '@jest/globals'
-import { getTestStageName, runSfCore } from '../../../utils/runSfCore'
+import {
+  getTestRunId,
+  getTestStageName,
+  runSfCore,
+} from '../../../utils/runSfCore'
 import { fetchWithRetry } from '../../../utils/testUtils'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
-const randomId = Math.floor(1000 + Math.random() * 9000).toString()
+const randomId = getTestRunId()
 let endpoint
 
 describe('SAM/CFN - SAM within a Compose app', () => {
