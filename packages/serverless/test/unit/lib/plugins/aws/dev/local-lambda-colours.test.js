@@ -42,7 +42,8 @@ describe('node runtime wrapper object formatting', () => {
   // Runs the wrapper as LocalLambda does and returns its stdout and the saved result.
   const runWrapper = (extraEnv) =>
     new Promise((resolve, reject) => {
-      const env = { ...process.env, TMPDIR: tmpDir }
+      // os.tmpdir() reads TMPDIR on POSIX but TEMP/TMP on Windows.
+      const env = { ...process.env, TMPDIR: tmpDir, TEMP: tmpDir, TMP: tmpDir }
       delete env.SLS_DEV_PLAIN_OUTPUT
       Object.assign(env, extraEnv)
       const child = spawn(
@@ -62,10 +63,14 @@ describe('node runtime wrapper object formatting', () => {
       child.stdout.on('data', (chunk) => (stdout += chunk))
       child.on('error', reject)
       child.on('close', () => {
-        const result = JSON.parse(
-          fs.readFileSync(path.join(tmpDir, `sls_${child.pid}.json`), 'utf8'),
-        )
-        resolve({ stdout, result })
+        try {
+          const result = JSON.parse(
+            fs.readFileSync(path.join(tmpDir, `sls_${child.pid}.json`), 'utf8'),
+          )
+          resolve({ stdout, result })
+        } catch (error) {
+          reject(error)
+        }
       })
     })
 
