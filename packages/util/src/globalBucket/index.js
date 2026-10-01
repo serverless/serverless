@@ -117,6 +117,9 @@ const checkStoredBucket = async ({
       logger.debug(`Bucket ${parsedBucket.bucketName} created`)
     } catch (err) {
       const name = err.name
+      // The conflicting-operation error is routine here: deploys that run at the same time
+      // get it on CreateBucket even when the bucket has existed for a long time, so it
+      // does not mean the bucket is still being created.
       if (
         err instanceof BucketAlreadyOwnedByYou ||
         err instanceof BucketAlreadyExists ||
@@ -184,9 +187,11 @@ const isContendedCreate = (err) =>
  * Creates a new bucket and stores its information in SSM.
  *
  * The SSM parameter is claimed with a create-only write, so when several processes
- * bootstrap the same region at once exactly one of them creates the bucket. The others
- * read the parameter again and wait for the winner's bucket without creating it, so the
- * winner's CreateBucket is never contended by them.
+ * bootstrap the same region at once exactly one of them creates the bucket. The processes
+ * whose write loses read the parameter again and wait for the winner's bucket without
+ * creating it. A process that starts later and finds the parameter on its first read
+ * takes the checkStoredBucket path instead, and its CreateBucket can still overlap the
+ * winner's; the winner treats that as contention and waits.
  *
  * @param {Object} params - The parameters for creating and storing the bucket.
  * @param {AwsSsmClient} params.ssmService - The SSM service instance.
