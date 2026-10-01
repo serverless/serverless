@@ -5,7 +5,7 @@
 import _ from 'lodash'
 import { CoreSDK } from '@serverless-inc/sdk'
 import { randomUUID } from 'crypto'
-import simpleGit from 'simple-git'
+import { simpleGit } from 'simple-git'
 import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
 
 export class Deployment {
@@ -157,7 +157,9 @@ const setVcsData = async (deploymentInstance) => {
       relativePath: process.env.SERVERLESS_ROOT_PATH,
     })
   } else {
-    const git = simpleGit()
+    // simple-git strips GIT_* variables from the git process by default; keep
+    // the ones that select which repository the deployment is made from
+    const git = simpleGit({ allowEnvironment: ['GIT_DIR', 'GIT_WORK_TREE'] })
     try {
       const isGit = await git.checkIsRepo()
       if (isGit) {
