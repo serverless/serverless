@@ -426,6 +426,9 @@ describe('Serverless Framework Service - Sandboxes', () => {
 
   // ── 7. IAM emulation ──────────────────────────────────────────────────────
 
+  // setUp waits for the IAM trust-policy change to propagate: 10 s, then up to
+  // 8 AssumeRole attempts with backoff (about 165 s in all), so the timeout
+  // allows that wait plus the checks and cleanup around it.
   test('IAM emulation assumes the execution role and cleans up the trust policy', async () => {
     const { default: SandboxIamEmulation } =
       await import('@serverless/framework/lib/plugins/aws/sandboxes/dev/iam-emulation.js')
@@ -475,7 +478,7 @@ describe('Serverless Framework Service - Sandboxes', () => {
     // cleanUp() added exactly one principal, so it takes the splice path and
     // removes the whole statement — assert that directly (not merely emptied).
     expect(stmt).toBeUndefined()
-  }, 120000)
+  }, 240000)
 
   // ── 8. Remove ──────────────────────────────────────────────────────────────
 

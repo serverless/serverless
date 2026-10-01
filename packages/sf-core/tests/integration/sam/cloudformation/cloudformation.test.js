@@ -7,10 +7,14 @@ import {
   DescribeStacksCommand,
 } from '@aws-sdk/client-cloudformation'
 import { jest } from '@jest/globals'
-import { getTestStageName, runSfCore } from '../../../utils/runSfCore'
+import {
+  getTestRunId,
+  getTestStageName,
+  runSfCore,
+} from '../../../utils/runSfCore'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
-const randomId = Math.floor(1000 + Math.random() * 9000).toString()
+const randomId = getTestRunId()
 
 describe('SAM/CFN Projects - CloudFormation', () => {
   const configFileDirPath = path.join(__dirname, 'fixture')
