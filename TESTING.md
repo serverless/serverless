@@ -59,6 +59,10 @@ The integration tests require specific AWS resources, including:
 - `/serverless-framework/license-key-serverlesstestaccount` (SecureString): `your-license-key`
 - `/resolvers/terraform-hcp-token` (String): `your-terraform-hcp-token`
 
+##### us-east-2
+
+- `/serverless-framework/license-key` (SecureString): `your-license-key`. The `license-key` suite creates it if it's missing and overwrites it on every run, so it doesn't need creating by hand.
+
 ##### eu-west-1
 
 - `/resolvers/sample-param` (String): `ssm-value`
