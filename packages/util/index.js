@@ -1,3 +1,4 @@
+export * from './src/agent/index.js'
 export * from './src/errors/index.js'
 export * from './src/state/index.js'
 export * from './src/globalBucket/index.js'

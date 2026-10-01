@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals'
+import { afterEach, beforeEach, jest } from '@jest/globals'
 
 // One logger per namespace, kept rather than freshly built per call: the plugin
 // binds `log.get('sls:dev')` once at module scope, so a factory returning a new
@@ -52,6 +52,9 @@ jest.unstable_mockModule('chokidar', () => ({
 
 const { default: AwsDev } =
   await import('../../../../../../lib/plugins/aws/dev/index.js')
+
+const { detectAgent, resetAgentDetectionForTests } =
+  await import('@serverless/util/src/agent/index.js')
 
 const { shouldWarnEdgeFirstByteBudget } =
   await import('../../../../../../lib/plugins/aws/mcp/lib/endpoint-type.js')
@@ -299,6 +302,56 @@ describe('MCP invocation log lines', () => {
     )
 
     expect(printedBy(devLogger)).toBe('← λ plain (200)')
+  })
+})
+
+// `--verbose` dumps every event and response with util.inspect, which colours
+// independently of chalk; a detected AI coding agent gets them plain unless
+// FORCE_COLOR is set.
+describe('verbose event and response dumps', () => {
+  const ESC = '\u001b['
+  let savedEnv
+  beforeEach(() => {
+    savedEnv = process.env
+    process.env = { ...savedEnv }
+    delete process.env.FORCE_COLOR
+    delete process.env.SLS_INTERACTIVE_SETUP_ENABLE
+    resetAgentDetectionForTests()
+  })
+  afterEach(() => {
+    process.env = savedEnv
+    resetAgentDetectionForTests()
+  })
+
+  const printVerbose = () => {
+    const { plugin } = buildPlugin({
+      functions: { plain: { handler: 'handler.hello' } },
+    })
+    const devLogger = getLogger('sls:dev')
+    devLogger.aside.mockClear()
+    plugin.logFunctionEvent('plain', { count: 1 }, true, (s) => s)
+    plugin.logFunctionResponse('plain', { statusCode: 200 }, true, (s) => s)
+    return devLogger.aside.mock.calls.map(([line]) => line).join('\n')
+  }
+
+  test('are coloured without an agent', () => {
+    expect(printVerbose()).toContain(ESC)
+  })
+
+  test('carry no escape codes for a detected agent', async () => {
+    process.env.AI_AGENT = 'claude-code_2-1-284_agent'
+    await detectAgent()
+    const printed = printVerbose()
+    expect(printed).toContain('count: 1')
+    expect(printed).toContain('statusCode: 200')
+    expect(printed).not.toContain(ESC)
+  })
+
+  test('stay coloured for a detected agent with FORCE_COLOR', async () => {
+    process.env.AI_AGENT = 'claude-code_2-1-284_agent'
+    process.env.FORCE_COLOR = '1'
+    await detectAgent()
+    expect(printVerbose()).toContain(ESC)
   })
 })
 

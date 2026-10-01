@@ -1,6 +1,28 @@
-import { log, platformEventClient } from '@serverless/util'
+import { getDetectedAgent, log, platformEventClient } from '@serverless/util'
 import { startSseServer } from '@serverless/mcp/src/server.js'
 import { startStdioServer } from '@serverless/mcp/src/stdio-server.js'
+
+/**
+ * Creates the analysis event for one MCP tool call.
+ *
+ * @param {Object} params
+ * @param {string} params.toolName - The MCP tool that was called.
+ * @param {Object} params.authenticatedData - Authenticated data (userId, orgId).
+ * @returns {Object} The event; `agent` (a known agent name or "other") is present only when an
+ *   AI coding agent was detected.
+ */
+export const createMcpAnalysisEvent = ({ toolName, authenticatedData }) => {
+  const event = {
+    projectType: 'mcp',
+    toolName,
+    userId: authenticatedData.userId,
+    orgId: authenticatedData.orgId,
+  }
+  // Closed vocabulary, same as the CLI analysis event; the raw AI_AGENT value is never sent
+  const { isAgent, name } = getDetectedAgent()
+  if (isAgent) event.agent = name
+  return event
+}
 
 /**
  * Runs the MCP Server
@@ -19,12 +41,7 @@ export default async function commandMcp({
   const sendAnalytics = authenticatedData?.accessKeyV1
     ? async ({ toolName }) => {
         try {
-          const event = {
-            projectType: 'mcp',
-            toolName,
-            userId: authenticatedData.userId,
-            orgId: authenticatedData.orgId,
-          }
+          const event = createMcpAnalysisEvent({ toolName, authenticatedData })
 
           // Add event to batch
           platformEventClient.addToPublishBatch({

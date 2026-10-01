@@ -4,18 +4,21 @@ import { jest, describe, test, expect, beforeEach } from '@jest/globals'
 
 const mockFileExists = jest.fn()
 const mockSend = jest.fn()
+const mockShouldDisableColors = jest.fn(() => false)
+const mockChalk = {
+  level: 3,
+  green: (s) => s,
+  blue: (s) => s,
+  gray: (s) => s,
+  dim: (s) => s,
+}
 
 jest.unstable_mockModule('chokidar', () => ({
   default: { watch: jest.fn(() => ({ on: jest.fn(), close: jest.fn() })) },
 }))
 
 jest.unstable_mockModule('chalk', () => ({
-  default: {
-    green: (s) => s,
-    blue: (s) => s,
-    gray: (s) => s,
-    dim: (s) => s,
-  },
+  default: mockChalk,
 }))
 
 jest.unstable_mockModule('@serverless/util', () => ({
@@ -37,6 +40,10 @@ jest.unstable_mockModule('@serverless/util', () => ({
       remove: jest.fn(),
     }),
   },
+}))
+
+jest.unstable_mockModule('@serverless/util/src/agent/index.js', () => ({
+  shouldDisableColors: mockShouldDisableColors,
 }))
 
 jest.unstable_mockModule('@serverless/util/src/docker/index.js', () => ({
@@ -135,6 +142,31 @@ describe('AgentCoreDevMode', () => {
     test('uses default port 8080', () => {
       const instance = createInstance()
       expect(instance).toBeDefined()
+    })
+  })
+
+  describe('start() colours', () => {
+    // start() fails at the first AWS call (mocked send returns nothing); the
+    // colour decision is taken before that, at the start of the session.
+    const startUntilFirstFailure = async (instance) => {
+      mockSend.mockRejectedValueOnce(new Error('stop here'))
+      await expect(instance.start()).rejects.toThrow('stop here')
+    }
+
+    beforeEach(() => {
+      mockChalk.level = 3
+    })
+
+    test('turns chalk colours off when shouldDisableColors() is true', async () => {
+      mockShouldDisableColors.mockReturnValueOnce(true)
+      await startUntilFirstFailure(createInstance())
+      expect(mockChalk.level).toBe(0)
+    })
+
+    test('leaves chalk alone when shouldDisableColors() is false', async () => {
+      await startUntilFirstFailure(createInstance())
+      expect(mockShouldDisableColors).toHaveBeenCalled()
+      expect(mockChalk.level).toBe(3)
     })
   })
 

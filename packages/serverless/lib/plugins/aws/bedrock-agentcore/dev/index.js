@@ -7,6 +7,8 @@ import { randomUUID } from 'crypto'
 import chokidar from 'chokidar'
 import chalk from 'chalk'
 import { addProxyToAwsClient, log, progress } from '@serverless/util'
+// Subpath import: tests that load every plugin mock '@serverless/util' wholesale.
+import { shouldDisableColors } from '@serverless/util/src/agent/index.js'
 import { DockerClient } from '@serverless/util/src/docker/index.js'
 import {
   GetRoleCommand,
@@ -175,6 +177,10 @@ export class AgentCoreDevMode {
    * Start dev mode
    */
   async start() {
+    // The chat uses this chalk, not the logger's, so an AI coding agent's no-colour default is
+    // applied here. This is the workspace's shared chalk instance, so the level drops for the rest
+    // of the process (intended: the whole process is an agent session).
+    if (shouldDisableColors()) chalk.level = 0
     logger.debug(`Starting dev mode for agent: ${this.#agentName}`)
 
     try {
