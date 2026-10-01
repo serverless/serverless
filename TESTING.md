@@ -258,6 +258,31 @@ Each entry records a shard and the suite's duration in seconds:
 self-contained and behaves identically in any bootstrapped account, so a
 second leg would duplicate rather than parallelize.
 
+### Leftovers from Interrupted Runs
+
+Each suite removes what it deploys, but a cancelled or failed run can leave
+stacks and state-bucket keys behind. `Cleanup: Test Accounts`
+(`.github/workflows/cleanup-test-accounts.yml`) reports them every night, for
+each test account:
+
+- stacks whose names match the suites' CI naming, untouched for at least a day;
+- keys in the account's default state bucket whose test stack no longer exists.
+
+It's a dry run and deletes nothing. The matching rules are in
+`packages/sf-core/scripts/test-account-cleanup/rules.js`, and a unit test fails
+if a fixture's stack name stops matching them. They match only the stage
+formats CI has produced since early 2025; stacks from older formats need
+removing by hand. One bucket holds the state keys of stacks in every region,
+so each key is checked against the stacks of its own region. If AWS returns an
+error, the report prints the step and the error type only, because AWS error
+messages can include the account ID. To see the report for an account
+locally, run it with that account's credentials:
+
+```sh
+cd packages/sf-core
+node scripts/test-account-cleanup/report.js --regions us-east-1,us-east-2,eu-west-1
+```
+
 ### Bootstrapping an Account
 
 Adding an account for CI is a per-account, human-run job in three parts:
