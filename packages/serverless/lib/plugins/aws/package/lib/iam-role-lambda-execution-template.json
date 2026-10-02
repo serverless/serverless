@@ -9,7 +9,12 @@
           "Principal": {
             "Service": ["lambda.amazonaws.com"]
           },
-          "Action": ["sts:AssumeRole"]
+          "Action": ["sts:AssumeRole"],
+          "Condition": {
+            "StringEquals": {
+              "aws:SourceAccount": { "Ref": "AWS::AccountId" }
+            }
+          }
         }
       ]
     },
