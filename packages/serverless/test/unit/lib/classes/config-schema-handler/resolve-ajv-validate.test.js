@@ -2,9 +2,7 @@ import { describe, beforeAll, afterAll, it, expect } from '@jest/globals'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import objectHash from 'object-hash'
 import { fullFormats } from 'ajv-formats/dist/formats.js'
-import deepSortObjectByKey from '../../../../../lib/utils/deep-sort-object-by-key.js'
 
 /**
  * Tests for the standalone validator that `ConfigSchemaHandler` generates from
@@ -25,13 +23,14 @@ import deepSortObjectByKey from '../../../../../lib/utils/deep-sort-object-by-ke
 let schemaCacheDir
 let previousSchemaCacheBaseDir
 let getValidate
+let getSchemaHash
 let Serverless
 
 beforeAll(async () => {
   schemaCacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sls-ajv-validate-'))
   previousSchemaCacheBaseDir = process.env.SLS_SCHEMA_CACHE_BASE_DIR
   process.env.SLS_SCHEMA_CACHE_BASE_DIR = schemaCacheDir
-  ;({ default: getValidate } =
+  ;({ default: getValidate, getSchemaHash } =
     await import('../../../../../lib/classes/config-schema-handler/resolve-ajv-validate.js'))
   ;({ default: Serverless } = await import('../../../../../lib/serverless.js'))
 })
@@ -53,11 +52,60 @@ const cachedValidatorDir = () => {
 }
 
 const readCachedValidatorFor = (schema) => {
-  const hash = objectHash(deepSortObjectByKey(schema))
+  const hash = getSchemaHash(schema)
   return fs.readFileSync(path.join(cachedValidatorDir(), `${hash}.js`), 'utf8')
 }
 
 describe('resolve-ajv-validate', () => {
+  describe('cache key', () => {
+    const nameSchema = (pattern) => ({
+      type: 'object',
+      properties: { name: { type: 'string', pattern } },
+      additionalProperties: false,
+    })
+
+    it('reuses the validator for the same schema with keys in another order', async () => {
+      const validate = await getValidate(nameSchema('^cache-key-a$'))
+
+      expect(
+        await getValidate({
+          additionalProperties: false,
+          properties: { name: { pattern: '^cache-key-a$', type: 'string' } },
+          type: 'object',
+        }),
+      ).toBe(validate)
+    })
+
+    it('compiles a separate validator for a schema differing deep inside', async () => {
+      const validateA = await getValidate(nameSchema('^cache-key-b$'))
+      const validateB = await getValidate(nameSchema('^cache-key-c$'))
+
+      expect(validateB).not.toBe(validateA)
+      expect(validateA({ name: 'cache-key-b' })).toBe(true)
+      expect(validateB({ name: 'cache-key-b' })).toBe(false)
+      expect(validateB({ name: 'cache-key-c' })).toBe(true)
+    })
+
+    it("does not depend on the locale's collation", () => {
+      const schema = {
+        properties: { b: {}, a: {}, Z: {}, aa: {}, ä: {} },
+      }
+      const hash = getSchemaHash(schema)
+
+      const { localeCompare } = String.prototype
+      // Collate in reverse, as no real locale does, to make any reliance on
+      // `localeCompare` visible.
+      String.prototype.localeCompare = function (other) {
+        return -localeCompare.call(this, other)
+      }
+      try {
+        expect(getSchemaHash(schema)).toBe(hash)
+      } finally {
+        String.prototype.localeCompare = localeCompare
+      }
+    })
+  })
+
   describe('format keywords', () => {
     const uriSchema = {
       type: 'object',

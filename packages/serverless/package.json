@@ -84,7 +84,6 @@
     "luxon": "^3.7.2",
     "memoizee": "^0.4.17",
     "micromatch": "^4.0.8",
-    "object-hash": "^3.0.0",
     "open": "^10.2.0",
     "p-limit": "^6.2.0",
     "p-map": "^7.0.8",
