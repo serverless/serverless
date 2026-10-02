@@ -36,6 +36,8 @@ appSync:
 - `code`: The path to the JS resolver handler file, relative to `serverless.yml`.
 - `request`: The path to the VTL request mapping template file, relative to `serverless.yml`.
 - `response`: The path to the VTL response mapping template file, relative to `serverless.yml`.
+- `requestS3Location`: An S3 location `{ bucket, key }` for the VTL request mapping template. Mutually exclusive with `request` and `code` (VTL only). No file is read and no variable substitution is applied.
+- `responseS3Location`: An S3 location `{ bucket, key }` for the VTL response mapping template. Mutually exclusive with `response` and `code` (VTL only). No file is read and no variable substitution is applied.
 - `maxBatchSize`: The maximum [batch size](https://aws.amazon.com/blogs/mobile/introducing-configurable-batching-size-for-aws-appsync-lambda-resolvers/) to use (only available for AWS Lambda DataSources)
 - `substitutions`: See [Variable Substitutions](substitutions.md)
 - `sync`: [See SyncConfig](syncConfig.md)
