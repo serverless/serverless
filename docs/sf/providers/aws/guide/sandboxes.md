@@ -767,6 +767,9 @@ Prefer a per-command `--endpoint-url` (or a per-client `endpoint` on `LambdaMicr
   `--no-assume-role`.
 
 The emulator does not validate request signatures and does not emulate network isolation or service quotas.
+Because it is unauthenticated, it only answers requests addressed to `127.0.0.1`, `localhost` or `[::1]`
+and refuses browser requests (any request carrying an `Origin` header) with `403`, so a web page you visit
+cannot launch or control your local sandboxes. Call it from the AWS SDK or CLI, not from browser code.
 
 ---
 

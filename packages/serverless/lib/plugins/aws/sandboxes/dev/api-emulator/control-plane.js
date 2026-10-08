@@ -113,6 +113,36 @@ export const ROUTES = [
   },
 ]
 
+// The emulator signs nothing and checks no credentials, and RunMicrovm hands the caller's
+// runHookPayload to a container holding real AWS credentials. Any web page the developer opens can
+// reach 127.0.0.1, so requests are refused unless they are addressed to a loopback name (a
+// DNS-rebound hostname is not) and carry no Origin header (browsers send one on every
+// cross-site POST/DELETE; the AWS SDKs and CLI never do).
+const LOOPBACK_HOSTNAMES = new Set(['127.0.0.1', 'localhost', '[::1]'])
+
+function hostnameOf(hostHeader) {
+  if (typeof hostHeader !== 'string' || !hostHeader) return null
+  try {
+    return new URL(`http://${hostHeader}`).hostname
+  } catch {
+    return null
+  }
+}
+
+export function rejectNonLocalRequest(req, boundHost) {
+  const hostname = hostnameOf(req.headers.host)
+  const allowed =
+    hostname !== null &&
+    (LOOPBACK_HOSTNAMES.has(hostname) || hostname === hostnameOf(boundHost))
+  if (!allowed) {
+    return 'Request rejected: the local MicroVMs API only accepts requests addressed to 127.0.0.1, localhost or [::1].'
+  }
+  if (req.headers.origin !== undefined) {
+    return 'Request rejected: the local MicroVMs API does not accept browser requests.'
+  }
+  return null
+}
+
 function readJson(req) {
   return new Promise((resolve) => {
     const chunks = []
@@ -445,6 +475,15 @@ export async function startControlPlane({
   const server = createServer(async (req, res) => {
     let op = 'request'
     try {
+      const rejection = rejectNonLocalRequest(req, host)
+      if (rejection) {
+        res.writeHead(403, {
+          'content-type': 'application/json',
+          'x-amzn-errortype': 'AccessDeniedException',
+        })
+        res.end(JSON.stringify({ message: rejection }))
+        return
+      }
       // The SDK prefixes every path with an API version date, e.g. `/2025-09-09/microvms`.
       // Strip a leading `/YYYY-MM-DD` so the ROUTES stay clean and we don't pin a version date.
       const pathname = req.url
