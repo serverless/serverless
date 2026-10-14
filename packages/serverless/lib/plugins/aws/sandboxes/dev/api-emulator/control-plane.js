@@ -115,10 +115,17 @@ export const ROUTES = [
 
 // The emulator signs nothing and checks no credentials, and RunMicrovm hands the caller's
 // runHookPayload to a container holding real AWS credentials. Any web page the developer opens can
-// reach 127.0.0.1, so requests are refused unless they are addressed to a loopback name (a
+// reach 127.0.0.1, so requests are refused unless they are addressed to a local name (a
 // DNS-rebound hostname is not) and carry no Origin header (browsers send one on every
-// cross-site POST/DELETE; the AWS SDKs and CLI never do).
-const LOOPBACK_HOSTNAMES = new Set(['127.0.0.1', 'localhost', '[::1]'])
+// cross-site POST/DELETE; the AWS SDKs and CLI never do). host.docker.internal is how a Docker
+// Desktop container reaches the host's loopback interface; a page cannot rebind a name it does not
+// control, and a cross-site request to it still carries an Origin.
+const LOCAL_HOSTNAMES = new Set([
+  '127.0.0.1',
+  'localhost',
+  '[::1]',
+  'host.docker.internal',
+])
 
 function hostnameOf(hostHeader) {
   if (typeof hostHeader !== 'string' || !hostHeader) return null
@@ -133,9 +140,9 @@ export function rejectNonLocalRequest(req, boundHost) {
   const hostname = hostnameOf(req.headers.host)
   const allowed =
     hostname !== null &&
-    (LOOPBACK_HOSTNAMES.has(hostname) || hostname === hostnameOf(boundHost))
+    (LOCAL_HOSTNAMES.has(hostname) || hostname === hostnameOf(boundHost))
   if (!allowed) {
-    return 'Request rejected: the local MicroVMs API only accepts requests addressed to 127.0.0.1, localhost or [::1].'
+    return 'Request rejected: the local MicroVMs API only accepts requests addressed to 127.0.0.1, localhost, [::1] or host.docker.internal.'
   }
   if (req.headers.origin !== undefined) {
     return 'Request rejected: the local MicroVMs API does not accept browser requests.'

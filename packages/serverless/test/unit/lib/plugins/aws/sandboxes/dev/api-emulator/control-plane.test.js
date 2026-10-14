@@ -821,23 +821,27 @@ test('rejects cross-site browser requests carrying an Origin header', async () =
   }
 })
 
-test.each(['127.0.0.1', 'localhost', 'LOCALHOST', '[::1]'])(
-  'accepts SDK/CLI requests addressed to loopback host %s',
-  async (hostname) => {
-    const { cp, containers } = await harness()
-    try {
-      const run = await reqWithHeaders(
-        cp.port,
-        'POST',
-        '/2025-09-09/microvms',
-        { host: `${hostname}:${cp.port}`, 'content-type': 'application/json' },
-        '{}',
-      )
-      expect(run.status).toBe(200)
-      expect(run.json.state).toBe('RUNNING')
-      expect(containers).toHaveLength(1)
-    } finally {
-      await cp.shutdown()
-    }
-  },
-)
+test.each([
+  '127.0.0.1',
+  'localhost',
+  'LOCALHOST',
+  '[::1]',
+  // Docker Desktop routes this name from a container to the host's loopback interface.
+  'host.docker.internal',
+])('accepts SDK/CLI requests addressed to local host %s', async (hostname) => {
+  const { cp, containers } = await harness()
+  try {
+    const run = await reqWithHeaders(
+      cp.port,
+      'POST',
+      '/2025-09-09/microvms',
+      { host: `${hostname}:${cp.port}`, 'content-type': 'application/json' },
+      '{}',
+    )
+    expect(run.status).toBe(200)
+    expect(run.json.state).toBe('RUNNING')
+    expect(containers).toHaveLength(1)
+  } finally {
+    await cp.shutdown()
+  }
+})
