@@ -892,16 +892,20 @@ describe('a dev build after a case-only rename', () => {
   })
 
   test('gives a file moved onto a name that differs in case the new name', async () => {
-    const dir = dirWith({ 'staged.js': 'new', 'Api.js': 'old' })
+    // `api.js` exists, and the file system reports it as `Api.js`, as a case-insensitive one does
+    // for a file first created under that name. Only the stub knows `Api.js`, so only the move of
+    // the staged file touches the disk, which keeps the test the same on every file system.
+    const dir = dirWith({ 'staged.js': 'new', 'api.js': 'old' })
     const to = path.join(dir, 'api.js')
-    // The file system kept the existing name, as a case-insensitive one does.
     const onDisk = new Map([[to, path.join(dir, 'Api.js')]])
     const renamed = []
     const move = await promoteDevOutput(path.join(dir, 'staged.js'), to, {
       resolvePath: async (file) => onDisk.get(file) ?? file,
       renameFile: async (source, target) => {
         renamed.push([path.basename(source), path.basename(target)])
-        return fs.promises.rename(source, target)
+        if (path.basename(source) === 'staged.js') {
+          await fs.promises.rename(source, target)
+        }
       },
     })
     await move.discard()
