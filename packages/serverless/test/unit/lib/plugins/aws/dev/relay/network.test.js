@@ -48,10 +48,11 @@ describe('connections to AWS IoT Core', () => {
   })
 
   test("default to this process's setting", () => {
+    // The getter exists from Node.js 18.18.
     expect(iotSocketOptions()).toEqual({
       autoSelectFamilyAttemptTimeout: Math.max(
         2_000,
-        net.getDefaultAutoSelectFamilyAttemptTimeout(),
+        net.getDefaultAutoSelectFamilyAttemptTimeout?.() ?? 0,
       ),
     })
   })
