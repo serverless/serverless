@@ -200,7 +200,7 @@ export const waitForStop = async ({
   total,
   started,
   attachStarted,
-  brokerCreatedNow,
+  brokerIsNew,
   watch,
   watchIntervalMs,
   stops,
@@ -246,7 +246,7 @@ export const waitForStop = async ({
     attachMs: now() - attachStarted,
   })
   gap()
-  if (brokerCreatedNow) logger.aside(newBrokerLine())
+  if (brokerIsNew) logger.aside(newBrokerLine())
   const keysOn =
     typeof startKeys === 'function' &&
     hotkeysEnabled({

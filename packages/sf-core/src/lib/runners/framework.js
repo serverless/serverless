@@ -74,9 +74,9 @@ export const metricsBeforeRun = ({ command, serviceUniqueId }) =>
 /**
  * The hint an AI agent gets as the first line of a foreground `serverless dev`, before sign-in,
  * variable resolution and any AWS call; null for every other run. Agents and sandboxes modes
- * (chosen by option, or by a configuration without functions), --help, --detach, --dry-run and
- * the session process get none. A service of a Compose project (`compose`) is named in the
- * commands, as `serverless <service> dev` runs from the project's root.
+ * (chosen by option, or by a configuration without functions or MCP servers), --help, --detach,
+ * --dry-run and the session process get none. A service of a Compose project (`compose`) is named
+ * in the commands, as `serverless <service> dev` runs from the project's root.
  */
 export const devAgentHint = ({
   command,
@@ -92,7 +92,11 @@ export const devAgentHint = ({
   }
   if (options.sandbox !== undefined) return null
   if (options.mode === 'agents' || options.mode === 'sandboxes') return null
-  if (Object.keys(config?.functions ?? {}).length === 0) return null
+  // The MCP servers under `mcp.servers` are functions too: the MCP plugin adds them later.
+  const functionCount =
+    Object.keys(config?.functions ?? {}).length +
+    Object.keys(config?.mcp?.servers ?? {}).length
+  if (functionCount === 0) return null
   if (!isAgent()) return null
   return agentHint(
     composeServiceOf({ compose }),

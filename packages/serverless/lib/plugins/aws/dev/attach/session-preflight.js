@@ -5,7 +5,12 @@
  * AWS.
  */
 import { ServerlessError } from '@serverless/util'
-import { BROKER_POLICY_NAME, brokerRoleName } from './naming.js'
+import {
+  BROKER_POLICY_NAME,
+  brokerRoleName,
+  isProtectedStage,
+} from './naming.js'
+import { protectedStageMessage } from './output.js'
 import {
   credentialsInvalidError,
   findIotEndpoint,
@@ -17,6 +22,20 @@ import {
 import { credentialSourceOf } from '../relay/messages.js'
 import { brokerPolicyState, getBroker, identityFrom } from './broker.js'
 import { cliCommand } from '../commands/cli-names.js'
+
+/**
+ * Refuses a stage Dev Mode never runs on, before anything starts: the session itself, and a
+ * --detach start before it starts the session process.
+ */
+export const refuseProtectedStage = (stage) => {
+  if (isProtectedStage(stage)) {
+    throw new ServerlessError(
+      protectedStageMessage(stage),
+      'DEV_MODE_STAGE_PROTECTED',
+      { stack: false },
+    )
+  }
+}
 
 export const nothingToAttachError = () =>
   new ServerlessError(

@@ -277,6 +277,30 @@ describe('serverless dev --dry-run', () => {
     expect(exitCodeOf(result)).toBe(1)
   })
 
+  test("an endpoint whose name does not resolve yet gets the advice for a region's first use", async () => {
+    const detail = `getaddrinfo ENOTFOUND ${IOT_ENDPOINT}`
+    const run = setup({
+      connectIot: async () => ({
+        ok: false,
+        unresolved: true,
+        message: detail,
+      }),
+    })
+    const { result } = await runDevDryRun(run)
+    expect(result).toMatchObject({
+      status: 'action_required',
+      reason: 'network_blocked',
+    })
+    expect(result.preflight.find((c) => c.check === 'iot_connect')).toEqual({
+      check: 'iot_connect',
+      ok: false,
+      reason: 'network_blocked',
+      host: IOT_ENDPOINT,
+      user_action_required: true,
+      message: `The AWS IoT Core endpoint for this account in us-east-1 cannot be resolved yet (${detail}). AWS creates an account's endpoint in a region the first time it is used there, and it can take a few minutes before it resolves. Run the command again in a few minutes. If it still cannot be resolved then, check your network connection and proxy settings (HTTPS_PROXY).`,
+    })
+  })
+
   test('a region without AWS IoT Core is region_no_broker', async () => {
     const notFound = Object.assign(
       new Error('getaddrinfo ENOTFOUND iot.ap-east-2.amazonaws.com'),
@@ -820,6 +844,45 @@ describe('the connection check to AWS IoT Core', () => {
     ).toEqual({
       ok: false,
       message: `no answer within ${IOT_CONNECT_TIMEOUT_MS / 1000}s`,
+    })
+  })
+
+  test("a DNS failure of the endpoint's own name says so; one of another name (a proxy) does not", async () => {
+    const failing = (hostname) => () => {
+      const req = new EventEmitter()
+      req.destroy = () => {}
+      req.end = () =>
+        setImmediate(() =>
+          req.emit(
+            'error',
+            Object.assign(new Error(`getaddrinfo ENOTFOUND ${hostname}`), {
+              code: 'ENOTFOUND',
+              hostname,
+            }),
+          ),
+        )
+      return req
+    }
+    expect(
+      await checkIotConnect({
+        host: IOT_ENDPOINT,
+        request: failing(IOT_ENDPOINT),
+        agentFor: () => undefined,
+      }),
+    ).toEqual({
+      ok: false,
+      unresolved: true,
+      message: `getaddrinfo ENOTFOUND ${IOT_ENDPOINT}`,
+    })
+    expect(
+      await checkIotConnect({
+        host: IOT_ENDPOINT,
+        request: failing('proxy.corp.example'),
+        agentFor: () => undefined,
+      }),
+    ).toEqual({
+      ok: false,
+      message: 'getaddrinfo ENOTFOUND proxy.corp.example',
     })
   })
 

@@ -45,6 +45,7 @@ describe('the session modules', () => {
       'createApproval',
       'createLayerLambda',
       'nothingToAttachError',
+      'refuseProtectedStage',
       'runPreflight',
       'stackExistsWith',
     ])

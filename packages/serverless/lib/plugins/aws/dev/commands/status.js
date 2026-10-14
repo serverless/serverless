@@ -38,6 +38,14 @@ export const statusModeTable = (functions) =>
     })),
   )
 
+/**
+ * Whether the function table of a status result's `functions` says something its summary does
+ * not: a function that does not run here, or one that runs here with a reason (one the session
+ * lost that still points at Dev Mode). The s key and `serverless dev --detach` show it only then.
+ */
+export const statusTableWorthShowing = (functions) =>
+  functions.some((fn) => fn.mode !== 'dev' || fn.reason)
+
 /** The session fields of a status result, from a session record. */
 const sessionFieldsOf = (record) => ({
   session_id: record.session_id,

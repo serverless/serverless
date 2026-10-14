@@ -356,6 +356,41 @@ test('the account setup says once what it did, nothing when it did nothing', () 
   expect(out.accountSetupDoneLine({ region: 'us-east-1' })).toBeNull()
 })
 
+test('a role an earlier run created moments ago is in use, with its age, not created', () => {
+  const nowMs = Date.parse('2026-10-05T10:43:00Z')
+  const name = 'serverless-dev-broker-us-east-1'
+  expect(
+    out.accountSetupDoneLine({
+      region: 'us-east-1',
+      usedRole: { name, createdAt: new Date('2026-10-05T10:40:01Z') },
+      nowMs,
+    }),
+  ).toBe(
+    `Set up Dev Mode in us-east-1: using IAM role ${name} (created 2 min ago)`,
+  )
+  expect(
+    out.accountSetupDoneLine({
+      region: 'us-east-1',
+      usedRole: { name, createdAt: new Date('2026-10-05T10:42:30Z') },
+      layers: ['serverless-dev-arm64'],
+      nowMs,
+    }),
+  ).toBe(
+    `Set up Dev Mode in us-east-1: using IAM role ${name} (created less than a minute ago), published layer serverless-dev-arm64`,
+  )
+  // Repaired as well: the role is named once, with its age.
+  expect(
+    out.accountSetupDoneLine({
+      region: 'us-east-1',
+      usedRole: { name, createdAt: new Date('2026-10-05T10:41:00Z') },
+      repairedRole: name,
+      nowMs,
+    }),
+  ).toBe(
+    `Set up Dev Mode in us-east-1: repaired IAM role ${name} (created 2 min ago)`,
+  )
+})
+
 test('the function table shows only when it says more than the ready line', () => {
   const dev = { function: 'a', mode: 'dev', notes: [] }
   expect(out.tableWorthShowing([dev, { ...dev, function: 'b' }])).toBe(false)
@@ -932,6 +967,31 @@ test('leftDevModeLine names a take-over by the same person and a lost layer', ()
     ),
   ).toBe(
     'a lost the Dev Mode layer but still points at its wrapper (AWS_LAMBDA_EXEC_WRAPPER); it cannot start until it is restored (serverless dev restore --stage alice --region eu-west-1).',
+  )
+})
+
+test('lostWhy says in the function table why a function no longer runs here', () => {
+  const why = (change) => out.lostWhy(change)
+  expect(why({ state: 'taken_over', owner: 'bob@desk' })).toBe(
+    'taken over by bob@desk (--take-over)',
+  )
+  expect(why({ state: 'taken_over_by_you' })).toBe(
+    'taken over by another session of yours',
+  )
+  expect(why({ state: 'wrapper_replaced' })).toBe(
+    'left Dev Mode: something else changed its AWS_LAMBDA_EXEC_WRAPPER',
+  )
+  expect(why({ state: 'detached' })).toBe(
+    'left Dev Mode: its Dev Mode configuration was removed elsewhere',
+  )
+  expect(why({ state: 'function_deleted' })).toBe(
+    'the function no longer exists',
+  )
+  expect(why({ state: 'layer_missing' })).toBe(
+    'lost the Dev Mode layer; cannot start until it is restored',
+  )
+  expect(why({ state: 'env_unreadable' })).toBe(
+    `can no longer be checked: ${ENV_UNREADABLE_WHY}`,
   )
 })
 

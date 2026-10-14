@@ -111,7 +111,11 @@ Every reason and what to do about it:
    and `--aws-profile <name>` if the session was started with one.
 4. When a result has `"user_action_required": true`, stop: show the person
    `message` and `next`. Do not run `next` yourself — it is credentials, an
-   approval or a permission only a person can give.
+   approval or a permission only a person can give. One exception: a
+   `network_blocked` result whose `message` says the region's AWS IoT Core
+   endpoint cannot be resolved yet is the account's first use of that
+   region. Run the same command again in a few minutes instead, and ask the
+   person only if the endpoint still cannot be resolved then.
 5. A relayed invocation and `serverless dev replay` run your code with the
    function's real role: writes, messages and payments happen. Ask before
    replaying anything that charges, sends or deletes.

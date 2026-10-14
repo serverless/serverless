@@ -53,6 +53,12 @@ S3), the account's AWS IoT Core endpoint
 **Fix:** ask the person to allow the host. `serverless dev --dry-run --json`
 checks the connection to AWS IoT Core (`iot_connect`) and names it.
 
+When `message` says the AWS IoT Core endpoint cannot be resolved yet, the
+account has never used AWS IoT Core in that region: AWS created the endpoint
+when the session looked it up, and its host name can take a few minutes to
+resolve (the session already waited 2 minutes). Run the command again in a few
+minutes before asking for anything.
+
 ## While a session runs
 
 ### A function shows `deployed` or `skipped`
@@ -78,7 +84,8 @@ off.
 
 ### A large request or result fails with `Runtime.DevModeRelayFailed`, or runs the deployed code
 
-**Cause:** payloads above about 126 KB travel through the deployment bucket,
+**Cause:** payloads that do not fit in one AWS IoT Core message (126 KiB,
+Dev Mode's header included) travel through the deployment bucket,
 and the session printed
 `Payloads above 126 KB cannot be relayed in this session: <reason>` (an
 SSE-C bucket, missing S3 permissions, or a bucket in another region).

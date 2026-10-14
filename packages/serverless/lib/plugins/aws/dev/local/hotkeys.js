@@ -8,7 +8,7 @@
  */
 import readline from 'readline'
 import { functionsWord, timestampAgo } from '../attach/output.js'
-import { statusModeTable } from '../commands/status.js'
+import { statusModeTable, statusTableWorthShowing } from '../commands/status.js'
 
 export const KEYS_HINT =
   'Press h for keys, Ctrl+C or q to restore your functions and exit.'
@@ -115,7 +115,8 @@ const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`
 /**
  * What the s key shows, as `[summary, details, table]`: the session in one line, the functions
  * with a handler process and the last invocation in the second (relative to `nowMs`), and the
- * function table only when some function does not run here (null otherwise).
+ * function table only when some function does not run here, or runs here with a reason (one the
+ * session lost that still points at Dev Mode; null otherwise).
  */
 export const statusKeyLines = ({
   status,
@@ -144,7 +145,7 @@ export const statusKeyLines = ({
       ? `${last.function} ${last.outcome}${ago ? `, ${ago}` : ''}`
       : 'none yet'
   }`
-  const table = functions.some((fn) => fn.mode !== 'dev')
+  const table = statusTableWorthShowing(functions)
     ? statusModeTable(functions)
     : null
   return [summary, details, table]

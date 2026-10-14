@@ -223,6 +223,67 @@ describe('createSessionLifecycle', () => {
     expect(state.released).toBe(true)
   })
 
+  test('a function the session loses changes its row and is recorded', () => {
+    const state = memoryState()
+    const lifecycle = createSessionLifecycle({ state })
+    const names = [
+      'mine',
+      'theirs',
+      'wrapped',
+      'detached',
+      'gone',
+      'layerless',
+      'sealed',
+      'kept',
+    ]
+    lifecycle.modes(
+      names.map((name) => ({
+        function: name,
+        mode: 'dev',
+        notes: [{ reason: 'vpc_egress_required', message: 'm' }],
+      })),
+    )
+    const lost = [
+      ['mine', 'taken_over_by_you'],
+      ['theirs', 'taken_over'],
+      ['wrapped', 'wrapper_replaced'],
+      ['detached', 'detached'],
+      ['gone', 'function_deleted'],
+      ['layerless', 'layer_missing'],
+      ['sealed', 'env_unreadable'],
+    ]
+    for (const [name, lostState] of lost) {
+      lifecycle.lost({ name, state: lostState, why: `why ${name}` })
+    }
+    expect(
+      lifecycle.rows.map(({ function: name, mode, reason, why, notes }) => [
+        name,
+        mode,
+        reason,
+        why,
+        notes.length,
+      ]),
+    ).toEqual([
+      ['mine', 'skipped', 'taken_over_by_you', 'why mine', 0],
+      ['theirs', 'skipped', 'taken_over', 'why theirs', 0],
+      ['wrapped', 'deployed', 'wrapper_replaced', 'why wrapped', 0],
+      ['detached', 'deployed', 'detached', 'why detached', 0],
+      ['gone', 'deployed', 'function_deleted', 'why gone', 0],
+      ['layerless', 'dev', 'layer_missing', 'why layerless', 0],
+      ['sealed', 'dev', 'env_unreadable', 'why sealed', 0],
+      ['kept', 'dev', undefined, undefined, 1],
+    ])
+    expect(
+      state.records.filter((record) => record.type === 'function.lost'),
+    ).toEqual(
+      lost.map(([name, lostState]) => ({
+        type: 'function.lost',
+        function: name,
+        state: lostState,
+      })),
+    )
+  })
+
   test('a failed start keeps no URL in its message', () => {
     const state = memoryState()
     const lifecycle = createSessionLifecycle({ state })

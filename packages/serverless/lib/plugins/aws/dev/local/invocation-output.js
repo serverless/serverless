@@ -242,13 +242,61 @@ const errorOf = (body, errorType) => {
   }
 }
 
+/**
+ * A stream's kept bytes as its caller receives them: `prelude`, the metadata of the HTTP prelude it
+ * opened with (status, headers, cookies), and `body`, what follows it. Without the prelude content
+ * type, or without a whole prelude in `head`, there is no `prelude` and everything is body.
+ */
+export const splitPrelude = ({ contentType, head }) => {
+  const bytes = head ?? Buffer.alloc(0)
+  if (contentType === PRELUDE_CONTENT_TYPE) {
+    const delimiter = bytes.indexOf(PRELUDE_DELIMITER)
+    const prelude =
+      delimiter === -1 ? undefined : json(bytes.subarray(0, delimiter))
+    if (prelude && typeof prelude === 'object') {
+      return {
+        prelude,
+        body: bytes.subarray(delimiter + PRELUDE_DELIMITER.length),
+      }
+    }
+  }
+  return { prelude: undefined, body: bytes }
+}
+
 export const preludeStatusCode = ({ contentType, head }) => {
-  if (contentType !== PRELUDE_CONTENT_TYPE || !head) return undefined
-  const delimiter = head.indexOf(PRELUDE_DELIMITER)
-  if (delimiter === -1) return undefined
-  const code = json(head.subarray(0, delimiter))?.statusCode
+  const code = splitPrelude({ contentType, head }).prelude?.statusCode
   return typeof code === 'number' ? code : undefined
 }
+
+/** A reply's payload as the end line reads it: parsed JSON, else its text. */
+const payloadOf = (bytes) => {
+  const parsed = json(bytes)
+  return parsed === undefined ? bytes.toString('utf8') : parsed
+}
+
+/**
+ * A streamed reply read as a buffered one: its prelude with the body as text (a stream without a
+ * prelude is its payload). Undefined when the stream went past the head the invocation kept
+ * (`bodyHead`): a reply cut short cannot be read.
+ */
+const streamedReplyOf = ({ contentType, bodyHead, bodyBytes }) => {
+  if (!bodyHead || (bodyBytes ?? bodyHead.length) > bodyHead.length) {
+    return undefined
+  }
+  const { prelude, body } = splitPrelude({ contentType, head: bodyHead })
+  return prelude ? { ...prelude, body: body.toString('utf8') } : payloadOf(body)
+}
+
+/**
+ * A reply as `describeMcpResponse` reads it, an HTTP response with a text body: a payload without
+ * that shape (a stream without a prelude) becomes the body.
+ */
+const asHttpReply = (replied) =>
+  typeof replied?.body === 'string'
+    ? replied
+    : {
+        body: typeof replied === 'string' ? replied : JSON.stringify(replied),
+      }
 
 /**
  * Counts the chunks of a stream's body, the part its caller receives as the response. A stream
@@ -597,8 +645,24 @@ export const createInvocationOutput = ({
       firstByteMs,
       head,
       contentType,
+      bodyHead,
+      bodyBytes,
     }) {
       const outcome = outcomeOf({ reply, trailers, head, contentType, event })
+      const mcp = mcpFunctions.has(functionKey)
+      // The reply as the JSON-RPC callout and the dump read it: a buffered reply's payload, and an
+      // MCP server's streamed reply (MCP replies are small JSON-RPC messages). Other streams are
+      // not read.
+      const replied =
+        reply.kind === 'response'
+          ? payloadOf(reply.body)
+          : reply.kind === 'stream' && mcp
+            ? streamedReplyOf({
+                contentType: contentType ?? reply.contentType,
+                bodyHead,
+                bodyBytes,
+              })
+            : undefined
       const message = outcome.error ? showMessage(outcome.error.message) : ''
       const details = [formatDuration(durationMs)]
       if (initMs !== undefined) {
@@ -641,8 +705,8 @@ export const createInvocationOutput = ({
         const text = fit(outcome.text)
         status = outcome.tone === 'ok' ? style.success(text) : text
         const rpcError =
-          reply.kind === 'response' && mcpFunctions.has(functionKey)
-            ? describeMcpResponse(json(reply.body))
+          mcp && replied !== undefined
+            ? describeMcpResponse(asHttpReply(replied))
             : null
         if (rpcError && room > 1) {
           room -= 1
@@ -671,22 +735,15 @@ export const createInvocationOutput = ({
             : undefined
         write(`  Caller received: ${callerReceived(event, streamed)}`)
       }
-      if (detailedOn && reply.kind === 'response') {
-        const body = json(reply.body)
-        write(
-          dump(
-            body === undefined
-              ? reply.body.toString('utf8')
-              : redactResponse(body).value,
-          ),
-        )
+      if (detailedOn && replied !== undefined) {
+        write(dump(redactResponse(replied).value))
       }
       if (timeoutSeconds && deadlineMs !== undefined && endedAt > deadlineMs) {
         warn(timeoutLine({ functionKey, durationMs, initMs, timeoutSeconds }))
       }
       const silentMs = reply.kind === 'stream' ? firstByteMs : durationMs
       if (
-        mcpFunctions.has(functionKey) &&
+        mcp &&
         silentMs !== undefined &&
         shouldWarnEdgeFirstByteBudget({ provider, executionTimeInMs: silentMs })
       ) {

@@ -200,9 +200,26 @@ export const modeCounts = (rows) => ({
 })
 
 /**
+ * The mode of a function the session lost, by the state the attachment check found: taken by
+ * another session, it is in Dev Mode elsewhere (`skipped`, as when another session held it at
+ * start); no longer attached, it runs the deployed code; still pointing at Dev Mode's wrapper, it
+ * stays `dev` until it is restored.
+ */
+const LOST_MODES = {
+  taken_over: 'skipped',
+  taken_over_by_you: 'skipped',
+  wrapper_replaced: 'deployed',
+  detached: 'deployed',
+  function_deleted: 'deployed',
+  layer_missing: 'dev',
+  env_unreadable: 'dev',
+}
+
+/**
  * The records a session writes about itself, each at most once where that matters:
- * `starting`, `modes(rows)` (the final table), `ready`, `failed` (only before ready), `stopping`
- * (the first stop only), and `ended`, which closes the log and deletes the session file.
+ * `starting`, `modes(rows)` (the final table), `lost` (a function the session lost, which also
+ * changes its row), `ready`, `failed` (only before ready), `stopping` (the first stop only), and
+ * `ended`, which closes the log and deletes the session file.
  */
 export const createSessionLifecycle = ({ state, now = Date.now }) => {
   const { events, sessionFile } = state
@@ -223,6 +240,21 @@ export const createSessionLifecycle = ({ state, now = Date.now }) => {
       for (const row of finalRows) {
         events.emit('function.mode', modeRecordOf(row))
       }
+    },
+    /** `state` is the attachment check's; `why` the function table's text for it. */
+    lost({ name, state: lostState, why }) {
+      rows = rows.map((row) =>
+        row.function === name
+          ? {
+              function: name,
+              mode: LOST_MODES[lostState] ?? row.mode,
+              reason: lostState,
+              why,
+              notes: [],
+            }
+          : row,
+      )
+      events.emit('function.lost', { function: name, state: lostState })
     },
     ready({ readyMs, attachMs }) {
       if (ready || ended) return

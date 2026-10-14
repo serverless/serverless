@@ -20,6 +20,7 @@ import {
   style,
 } from '@serverless/util/src/logger/index.js'
 import * as out from '../attach/output.js'
+import { refuseProtectedStage } from '../attach/session-preflight.js'
 import { GLOBAL_TIMERS } from '../attach/session-support.js'
 import { connectToSession } from '../control/client.js'
 import { processAlive } from '../local/leftovers.js'
@@ -49,6 +50,7 @@ import { durationText } from './duration.js'
 import { envelope, errorResult, restoreAfterStopNext } from './envelope.js'
 import { cliCommand, shownPath } from './cli-names.js'
 import { endStatusOf } from './session-end.js'
+import { statusModeTable, statusTableWorthShowing } from './status.js'
 import {
   PRESENCE_POLL_MS,
   TOUCH_INTERVAL_MS,
@@ -385,12 +387,6 @@ export const runDetach = async ({
       functions,
     }
     const devCount = functions.filter((fn) => fn.mode === 'dev').length
-    const rows = functions.map((fn) => ({
-      function: fn.name,
-      mode: fn.mode,
-      why: fn.why,
-      notes: [],
-    }))
     const lines = [
       alreadyRunning
         ? ['notice', out.alreadyRunningLine(record)]
@@ -399,8 +395,8 @@ export const runDetach = async ({
             `Dev Mode on in the background · ${devCount} of ${out.functionsWord(functions.length)} ${style.aside(`(session ${record.session_id}, pid ${record.pid})`)}`,
           ],
       ...(kept ? [['notice', kept]] : []),
-      ...(out.tableWorthShowing(rows)
-        ? [['blankLine'], ['notice', out.renderModeTable(rows)]]
+      ...(statusTableWorthShowing(functions)
+        ? [['blankLine'], ['notice', statusModeTable(functions)]]
         : []),
       ['blankLine'],
       ['aside', filesLine(fields)],
@@ -449,6 +445,8 @@ export const runDetach = async ({
   }
 
   try {
+    // Before the session process starts, so a refused stage leaves no log behind.
+    refuseProtectedStage(scope.stage)
     const running = await findRunning()
     if (running) return await existing(running)
 

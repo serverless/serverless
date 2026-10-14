@@ -102,9 +102,22 @@ export const testSuffix = (env = process.env) =>
     : ''
 export const layerName = (arch, env) =>
   `serverless-dev-${arch}${testSuffix(env)}`
+const BROKER_ROLE_PREFIX = 'serverless-dev-broker-'
 /** IAM role names are account-global, so the region is part of the name. */
 export const brokerRoleName = (region, env) =>
-  `serverless-dev-broker-${region}${testSuffix(env)}`
+  `${BROKER_ROLE_PREFIX}${region}${testSuffix(env)}`
+
+/** The ARN of the broker role `name` under the IAM path `path` in `identity`'s account. */
+export const brokerRoleArn = ({ identity, name, path = '/' }) =>
+  `arn:${identity.partition}:iam::${identity.accountId}:role${path}${name}`
+
+/**
+ * The resource that covers the broker role of every region under any IAM path (in an IAM
+ * resource `*` also matches `/`), as the documented developer policy names it. Without an
+ * identity, the account id is a placeholder.
+ */
+export const brokerRolePattern = (identity) =>
+  `arn:${identity?.partition ?? 'aws'}:iam::${identity?.accountId ?? '<account-id>'}:role/*${BROKER_ROLE_PREFIX}*`
 
 const LAYER_ARN = /^arn:([^:]+):lambda:([^:]+):([0-9]{12}):layer:([^:]+):\d+$/
 const SCOPE_ARN = /^arn:([^:]+):lambda:([^:]+):([0-9]{12}):/

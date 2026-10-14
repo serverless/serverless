@@ -3010,6 +3010,18 @@ describe('a broker role without its permission policy', () => {
     expect(updates(lambda)).toEqual([])
   })
 
+  test('a denied repair of a role under an IAM path names its ARN with the path', async () => {
+    const { lambda, iam } = await brokenBroker()
+    // As "serverless dev setup --path /serverless/" creates it.
+    const arn = `arn:aws:iam::${ACCOUNT}:role/serverless/${NAME}`
+    Object.assign(iam.roles.get(NAME), { Path: '/serverless/', Arn: arn })
+    iam.putRolePolicyError = denied('iam:PutRolePolicy')
+    const s = start({ ...four, lambda, iam })
+    const error = await s.result.catch((e) => e)
+    expect(error.code).toBe('DEV_MODE_BROKER_CREATE_DENIED')
+    expect(error.message).toContain(`on the IAM role ${arn} (`)
+  })
+
   test('when IAM will not say, it is assumed to be in place and nothing is repaired', async () => {
     const { lambda, iam } = await brokenBroker()
     iam.getRolePolicyError = denied('iam:GetRolePolicy')
@@ -3410,9 +3422,40 @@ describe('the relay in a session', () => {
     )
     first.proc.emit('SIGINT', 'SIGINT')
     await first.result
+    // IAM's creation date of the role, more than 3 minutes before the next session.
+    first.iam.roles.get(name).CreateDate = new Date(Date.now() - 4 * 60_000)
     const second = start({ ...four, lambda: first.lambda, iam: first.iam })
     await second.whenReady
-    expect(second.logger.text()).not.toContain('is new: AWS can take')
+    expect(second.logger.text()).not.toContain(newBrokerLine(name))
+    expect(second.logger.text()).not.toContain('created IAM role')
+    second.proc.emit('SIGINT', 'SIGINT')
+    expect(await second.result).toBe(0)
+  })
+
+  test('a session that finds the role created less than 3 minutes ago, by a start that ended early, says it uses it, how old it is, and that it can take a while', async () => {
+    const first = start(four)
+    await first.whenReady
+    first.proc.emit('SIGINT', 'SIGINT')
+    await first.result
+    const name = 'serverless-dev-broker-us-east-1'
+    const nowMs = 1_790_000_000_000
+    first.iam.roles.get(name).CreateDate = new Date(nowMs - 150_000)
+    const second = start({
+      ...four,
+      lambda: first.lambda,
+      iam: first.iam,
+      deps: { now: () => nowMs },
+    })
+    await second.whenReady
+    const text = second.logger.text()
+    expect(text).toContain(
+      `Set up Dev Mode in us-east-1: using IAM role ${name} (created 2 min ago)`,
+    )
+    expect(text).not.toContain('created IAM role')
+    expect(text).toContain(newBrokerLine(name))
+    expect(second.iam.calls.filter(([op]) => op === 'createRole')).toHaveLength(
+      1,
+    )
     second.proc.emit('SIGINT', 'SIGINT')
     expect(await second.result).toBe(0)
   })
@@ -4369,6 +4412,39 @@ describe('the session record', () => {
     })
     s.proc.emit('SIGINT', 'SIGINT')
     await s.result
+  })
+
+  test('a function the session loses is no longer reported as running here, in dev status', async () => {
+    const serviceDir = tempServiceDir()
+    const s = start({
+      functions: { api: {}, worker: {} },
+      live: { api: {}, worker: {} },
+      watchIntervalMs: 5,
+      state: null,
+      serviceDir,
+    })
+    await s.whenReady
+    s.lambda.state.delete('svc-dev-api')
+    await until(() =>
+      s.logger
+        .text()
+        .includes('api left Dev Mode: the function no longer exists.'),
+    )
+    const { result, human } = await runDevStatus({ serviceDir })
+    expect(result.functions).toEqual([
+      {
+        name: 'api',
+        mode: 'deployed',
+        reason: 'function_deleted',
+        why: 'the function no longer exists',
+      },
+      { name: 'worker', mode: 'dev' },
+    ])
+    expect(humanText(human)).toContain(
+      'api       deployed  the function no longer exists',
+    )
+    s.proc.emit('SIGINT', 'SIGINT')
+    expect(await s.result).toBe(0)
   })
 
   test('the relay connection and run write their records to the event log', async () => {

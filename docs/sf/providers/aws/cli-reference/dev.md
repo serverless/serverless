@@ -39,22 +39,22 @@ serverless dev --dry-run             # the checks and the changes, with nothing 
 
 ## Options
 
-| Option                      | Description                                                                                                                                                                                                 |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--stage`, `-s`             | The stage to attach. Dev Mode refuses `prod` and `production` (`stage_protected`).                                                                                                                          |
-| `--region`, `-r`            | The region of the stage.                                                                                                                                                                                    |
-| `--aws-profile`             | The AWS profile to use.                                                                                                                                                                                     |
-| `--function`, `-f`          | Attach only this function (repeatable); the others run their deployed code.                                                                                                                                 |
-| `--skip-function`           | Keep this function on its deployed code (repeatable).                                                                                                                                                       |
-| `--take-over`               | Also attach functions another live session holds, including another session of yours in a different terminal.                                                                                               |
-| `--approve`                 | Show the changes and ask for confirmation before changing any function. Needs an interactive terminal; on a stage that was never deployed, it asks twice (before the deployment and before attaching).      |
-| `--on-exit keep\|remove`    | Instead of restoring on exit: `keep` leaves the functions in Dev Mode (exit 0, or 3 when some function could not be attached); `remove` restores them and then removes the service, with confirmation.      |
-| `--detailed`                | Print each invocation's event and response.                                                                                                                                                                 |
-| `--detach`                  | Start the session in the background and return once it is ready (at most 100 seconds). [`serverless dev stop`](#dev-stop) ends it. See [Detached sessions](#detached-sessions).                             |
-| `--idle-timeout <duration>` | With `--detach` only: stop and restore after this long without activity, such as `30m` or `2h` (default `60m`). `0` turns it off; any other value under a minute is refused.                                |
-| `--json`                    | With `--detach` or `--dry-run` only: print one JSON result on standard output, human text on standard error. `--json`, `--json=true` and `--json=1` turn it on; `--json=false` and `--json=0` leave it off. |
-| `--dry-run`                 | Run the read-only checks and print the changes a session would make, changing nothing. See [Dry-run results](#dry-run-results).                                                                             |
-| `--no-keys`                 | Turn off the single-key commands in a terminal (see [Keys](#keys)).                                                                                                                                         |
+| Option                      | Description                                                                                                                                                                                                                                        |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--stage`, `-s`             | The stage to attach. Dev Mode refuses `prod` and `production` (`stage_protected`).                                                                                                                                                                 |
+| `--region`, `-r`            | The region of the stage.                                                                                                                                                                                                                           |
+| `--aws-profile`             | The AWS profile to use.                                                                                                                                                                                                                            |
+| `--function`, `-f`          | Attach only this function (repeatable); the others run their deployed code.                                                                                                                                                                        |
+| `--skip-function`           | Keep this function on its deployed code (repeatable).                                                                                                                                                                                              |
+| `--take-over`               | Also attach functions another live session holds, including another session of yours in a different terminal.                                                                                                                                      |
+| `--approve`                 | Show the changes and ask for confirmation before changing any function. Needs an interactive terminal; on a stage that was never deployed, it asks twice (before the deployment and before attaching). Declining changes nothing more and exits 0. |
+| `--on-exit keep\|remove`    | Instead of restoring on exit: `keep` leaves the functions in Dev Mode (exit 0, or 3 when some function could not be attached); `remove` restores them and then removes the service, with confirmation.                                             |
+| `--detailed`                | Print each invocation's event and response.                                                                                                                                                                                                        |
+| `--detach`                  | Start the session in the background and return once it is ready (at most 100 seconds). [`serverless dev stop`](#dev-stop) ends it. See [Detached sessions](#detached-sessions).                                                                    |
+| `--idle-timeout <duration>` | With `--detach` only: stop and restore after this long without activity, such as `30m` or `2h` (default `60m`). `0` turns it off; any other value under a minute is refused.                                                                       |
+| `--json`                    | With `--detach` or `--dry-run` only: print one JSON result on standard output, human text on standard error. `--json`, `--json=true` and `--json=1` turn it on; `--json=false` and `--json=0` leave it off.                                        |
+| `--dry-run`                 | Run the read-only checks and print the changes a session would make, changing nothing. See [Dry-run results](#dry-run-results).                                                                                                                    |
+| `--no-keys`                 | Turn off the single-key commands in a terminal (see [Keys](#keys)).                                                                                                                                                                                |
 
 Durations (`--idle-timeout`, and `--timeout` on `dev wait` and `dev stop`): `100` or `100s` (seconds), `5m`, `1h`.
 
@@ -93,13 +93,13 @@ A foreground `serverless dev --json` is refused with:
 
 In an interactive terminal, a running session takes these keys, in lower or upper case. They are off in CI, under an AI agent, when standard input or output is not a terminal, in a terminal that reports a width of zero columns, and with `--no-keys`. The start-up line is then `Press Ctrl+C to restore your functions and exit.` With [`SLS_INTERACTIVE_SETUP_ENABLE`](README.md#non-interactive-use-ci-and-ai-agents) set, they are on wherever standard input is a terminal, except in a zero-width terminal or with `--no-keys`.
 
-| Key        | Action                                                                                                                                                                                                                                 |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `h` or `?` | Show the keys, on one line.                                                                                                                                                                                                            |
-| `r`        | Rebuild and restart the handler processes now (repeated presses make one rebuild).                                                                                                                                                     |
-| `v`        | Show or hide details: each invocation's full label, event and response.                                                                                                                                                                |
-| `s`        | Show the session in two lines: its state, service, stage, functions and invocation counts, then the functions with a warm handler process and the last invocation. Then the function table, when some function runs its deployed code. |
-| `q`        | Restore your functions and exit, like the first Ctrl+C.                                                                                                                                                                                |
+| Key        | Action                                                                                                                                                                                                                                                 |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `h` or `?` | Show the keys, on one line.                                                                                                                                                                                                                            |
+| `r`        | Rebuild and restart the handler processes now (repeated presses make one rebuild).                                                                                                                                                                     |
+| `v`        | Show or hide details: each invocation's full label, event and response.                                                                                                                                                                                |
+| `s`        | Show the session in two lines: its state, service, stage, functions and invocation counts, then the functions with a warm handler process and the last invocation. Then the function table, when some function runs its deployed code or has a reason. |
+| `q`        | Restore your functions and exit, like the first Ctrl+C.                                                                                                                                                                                                |
 
 Ctrl+C works as without keys: the first restores and exits, a second exits without waiting.
 
@@ -109,9 +109,9 @@ Ctrl+C works as without keys: the first restores and exits, a second exits witho
 serverless dev status [--json]
 ```
 
-Shows whether Dev Mode is on in this service directory: the session, its functions and their modes, the invocation counts, how long ago the last invocation was, and the endpoints. The endpoints come as `serverless deploy` and `serverless info` print them: every endpoint under `endpoint:` (one) or `endpoints:`, then the [MCP servers](../guide/mcp.md) under `mcp:`. It reads the session's files and asks the running session; it makes no AWS call. With no session, it reports state `off` (or `failed` when the last start failed) and exits 0. When the last session ended without its final record, or ended without restoring every function (its message says how many), the result comes with `serverless dev restore --stage <stage> --region <region>` as the next step, as `dev stop` and `dev wait` give it.
+Shows whether Dev Mode is on in this service directory: the session, its functions and their modes, the invocation counts, how long ago the last invocation was, and the endpoints. The endpoints come as `serverless deploy` and `serverless info` print them: every endpoint under `endpoint:` (one) or `endpoints:`, then the [MCP servers](../guide/mcp.md) under `mcp:`. It reads the session's files and asks the running session; it makes no AWS call. It reports Dev Mode sessions for functions and MCP servers: a `serverless dev` session for [sandboxes](../guide/sandboxes.md#local-development-serverless-dev) is not shown here. With no session, it reports state `off` (or `failed` when the last start failed) and exits 0. When the last session ended without its final record, or ended without restoring every function (its message says how many), the result comes with `serverless dev restore --stage <stage> --region <region>` as the next step, as `dev stop` and `dev wait` give it.
 
-`--json` fields: `state` (`starting`, `on`, `stopping`, `off` or `failed`), `session_id`, `pid`, `owner`, `service`, `stage`, `region`, `detached`, `started_at`, `ready_at`, `idle_timeout_s`, `invocations` (`total`, `errors`), `last_invocation` (`request_id`, `function`, `outcome`, `ts`), `functions` (`name`, `mode`, `reason`, `why`, `notes`; each `reason`, such as `timeout_too_short` or `handler_not_in_service`, is listed in [Functions and modes](../guide/dev-mode.md#functions-and-modes)), `endpoints` (`method`, `url`, `function`, and `mcp: true` on an MCP server's entry, whose `method` is `ANY`) and `cursor`, the last record's.
+`--json` fields: `state` (`starting`, `on`, `stopping`, `off` or `failed`), `session_id`, `pid`, `owner`, `service`, `stage`, `region`, `detached`, `started_at`, `ready_at`, `idle_timeout_s`, `invocations` (`total`, `errors`), `last_invocation` (`request_id`, `function`, `outcome`, `ts`), `functions` (`name`, `mode`, `reason`, `why`, `notes`; each `reason`, such as `timeout_too_short` or `handler_not_in_service`, is listed in [Functions and modes](../guide/dev-mode.md#functions-and-modes); a function the session lost while it ran has the `function.lost` state as its `reason`, and its `mode` changes as that section describes), `endpoints` (`method`, `url`, `function`, and `mcp: true` on an MCP server's entry, whose `method` is `ANY`) and `cursor`, the last record's.
 
 ```text
 Dev Mode on · session s_8aa6ea24e76c · pid 2824 · stage alice · us-east-1 · detached
@@ -357,6 +357,49 @@ Creates the IAM role Dev Mode uses in an AWS account and region, for accounts wh
 | `--region`, `-r`         | Outside a service directory: the region to set up.                     |
 | `--aws-profile`          | Outside a service directory: the AWS profile whose credentials to use. |
 
+A permissions boundary given with `--permissions-boundary` must allow what the role's own policy grants, on these resources (`<region>` and `<account-id>` are the role's):
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "iot:Connect",
+      "Resource": "arn:aws:iot:<region>:<account-id>:client/sls-dev-*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "iot:Publish",
+      "Resource": "arn:aws:iot:<region>:<account-id>:topic/sls-dev/*/up"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "iot:Subscribe",
+      "Resource": [
+        "arn:aws:iot:<region>:<account-id>:topicfilter/sls-dev/*/down/*",
+        "arn:aws:iot:<region>:<account-id>:topicfilter/sls-dev/*/gone"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": "iot:Receive",
+      "Resource": [
+        "arn:aws:iot:<region>:<account-id>:topic/sls-dev/*/down/*",
+        "arn:aws:iot:<region>:<account-id>:topic/sls-dev/*/gone"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": "iot:SendDirectMessage",
+      "Resource": "arn:aws:iot:<region>:<account-id>:client/sls-dev-*-cli"
+    }
+  ]
+}
+```
+
+The role's own policy narrows these further: it denies `iot:Connect` with a client id that ends in `-cli`, and allows `iot:SendDirectMessage` only on topics `sls-dev/*/ping`.
+
 Outside a service directory, `dev setup` runs without a service and without signing in first. It takes the AWS credentials of `--aws-profile`, or of the default chain, and the region from `--region`, `AWS_REGION`, `AWS_DEFAULT_REGION` or the AWS profile, in that order, else `us-east-1`. It prints the region it uses and where it came from first (or the profile or default form):
 
 ```text
@@ -390,7 +433,7 @@ It fails with `DEV_SETUP_AWS_CREDENTIALS_MISSING` when no AWS credentials load: 
 
 - **A second start.** Running it again with the same stage, region and functions returns the same session with `"already_running": true` and exit code 0, as long as that session answers; a session that is already stopping answers `session_running`. The running session keeps the settings it started with: when the new start gives another `--idle-timeout`, or `--take-over` or `--on-exit`, the result's `message` says that they apply only to a new session, which `serverless dev stop` and a new start give.
 - **Idle timeout.** A detached session stops and restores its functions after 60 minutes without activity. `--idle-timeout <duration>` (such as `30m` or `2h`) changes it, `0` turns it off, and any other value under one minute is refused. Activity is an invocation starting or ending, a reload, a watched file change, a request from `dev status`, `dev requests` or `dev replay`, and an open `dev wait` (except `--for ended`). A session with an invocation running is never idle.
-- **`--approve` with `--detach`** asks for confirmation before the session starts, when a person is at an interactive terminal; otherwise it returns `approval_needs_terminal` and changes nothing.
+- **`--approve` with `--detach`** asks for confirmation before the session starts, when a person is at an interactive terminal; otherwise it returns `approval_needs_terminal` and changes nothing. A declined confirmation returns `status: "ok"`, `state: "off"` and the message `Nothing was changed.`, with exit code 0.
 - **`--on-exit keep`** applies when the session stops, by `dev stop` or at the idle timeout. `--on-exit remove` is refused with `--detach` (`invalid_option_combination`): removing the service asks for confirmation at a terminal, which a background session does not have.
 
 ## `serverless invoke` during a session
@@ -461,7 +504,7 @@ Every `--json` result is one JSON object with these fields, plus the command's o
 | `aws_credentials_missing`    | `action_required` | No AWS credentials loaded. Ask the person to configure them.                                                                                                                                                                                                                                                                                                         |
 | `credentials_expired`        | `action_required` | AWS rejected the credentials. Ask the person to sign in again; `message` names where the credentials come from and how.                                                                                                                                                                                                                                              |
 | `permission_denied`          | `action_required` | An AWS permission is missing; `message` names it. Ask for it to be granted.                                                                                                                                                                                                                                                                                          |
-| `network_blocked`            | `action_required` | Your machine cannot reach AWS or AWS IoT Core. Ask for the host to be allowed.                                                                                                                                                                                                                                                                                       |
+| `network_blocked`            | `action_required` | Your machine cannot reach AWS or AWS IoT Core. Ask for the host to be allowed. When `message` says the AWS IoT Core endpoint cannot be resolved yet (the account's first use of AWS IoT Core in the region), run the command again in a few minutes instead.                                                                                                         |
 | `broker_missing`             | `action_required` | The IAM role does not exist yet. In `--dry-run`: informational, the first session creates it.                                                                                                                                                                                                                                                                        |
 | `layers_missing`             | `error`           | The CLI's layer files are missing. In `--dry-run`: informational, the session publishes them.                                                                                                                                                                                                                                                                        |
 | `nothing_to_attach`          | `error`           | No function can run in Dev Mode. Read each function's reason.                                                                                                                                                                                                                                                                                                        |
@@ -506,7 +549,7 @@ Each row is a CLI error code and the `reason` it has in `--json` results.
 | `DEV_MODE_IDENTITY_ACCESS_DENIED`     | `permission_denied`          | `sts:GetCallerIdentity` was denied. Allow it.                                                                                                                                                                                                                                                                   |
 | `DEV_MODE_IOT_ACCESS_DENIED`          | `permission_denied`          | `iot:DescribeEndpoint` was denied. Allow it.                                                                                                                                                                                                                                                                    |
 | `DEV_MODE_IOT_CONNECT_DENIED`         | `permission_denied`          | AWS IoT Core refused your machine (see below).                                                                                                                                                                                                                                                                  |
-| `DEV_MODE_IOT_UNREACHABLE`            | `network_blocked`            | AWS IoT Core cannot be reached. Check the network and `HTTPS_PROXY`.                                                                                                                                                                                                                                            |
+| `DEV_MODE_IOT_UNREACHABLE`            | `network_blocked`            | AWS IoT Core cannot be reached. Check the network and `HTTPS_PROXY`. In a region where the account has never used AWS IoT Core, its new endpoint's host name can take a few minutes to resolve: the session waits up to 2 minutes, then says to run the command again in a few minutes.                         |
 | `DEV_MODE_LAYER_ACCESS_DENIED`        | `permission_denied`          | Listing or publishing the `serverless-dev-*` layers was denied. Allow it.                                                                                                                                                                                                                                       |
 | `DEV_MODE_LAYER_MISSING`              | `layers_missing`             | The CLI installation lacks its Dev Mode layer files. Reinstall the Serverless Framework.                                                                                                                                                                                                                        |
 | `DEV_MODE_LOCAL_COMMAND_NO_AWS`       | `error`                      | A plugin of the service asked for AWS credentials during `dev status`, `dev stop`, `dev wait`, `dev requests` or `dev replay`, which read only the local session and use no AWS credentials. The plugin has to skip its AWS calls for these commands: tell its author.                                          |
@@ -584,7 +627,7 @@ Developers need these permissions in the stage's account and region (replace the
         "iam:PutRolePolicy",
         "iam:PutRolePermissionsBoundary"
       ],
-      "Resource": "arn:aws:iam::<account-id>:role/serverless-dev-broker-*"
+      "Resource": "arn:aws:iam::<account-id>:role/*serverless-dev-broker-*"
     },
     {
       "Sid": "DevModeIotConnect",
@@ -626,8 +669,9 @@ Developers need these permissions in the stage's account and region (replace the
 ```
 
 - The function and stack resources above assume the default names (`<service>-<stage>-<function>` and `<service>-<stage>`); adjust them for custom names.
-- `iam:CreateRole` and `iam:PutRolePolicy` are needed once per account and region, by whoever starts the first session, to create the IAM role; `iam:PutRolePermissionsBoundary` only with `serverless dev setup --permissions-boundary`. If developers cannot create IAM roles, an administrator runs [`serverless dev setup`](#dev-setup) once and developers need only `iam:GetRole`. `iam:GetRolePolicy` is optional for a session (without it, the role's policy is taken to be in place). `serverless dev setup` on an existing role needs it, because it never replaces a policy that a newer version of Dev Mode wrote. `iam:PutRolePolicy` also puts the policy back when it is missing, older or changed. A role created with `dev setup --path` has that path in its ARN.
+- `iam:CreateRole` and `iam:PutRolePolicy` are needed once per account and region, by whoever starts the first session, to create the IAM role; `iam:PutRolePermissionsBoundary` only with `serverless dev setup --permissions-boundary`. If developers cannot create IAM roles, an administrator runs [`serverless dev setup`](#dev-setup) once and developers need only `iam:GetRole`. `iam:GetRolePolicy` is optional for a session (without it, the role's policy is taken to be in place). `serverless dev setup` on an existing role needs it, because it never replaces a policy that a newer version of Dev Mode wrote. `iam:PutRolePolicy` also puts the policy back when it is missing, older or changed. A role created with `dev setup --path` has that path in its ARN (`arn:aws:iam::<account-id>:role/serverless/serverless-dev-broker-<region>` for `--path /serverless/`); the `*` after `role/` in the policy above covers the role under any path.
 - The AWS IoT Core permissions are required: a denial fails the start with `DEV_MODE_IOT_CONNECT_DENIED`, which names them. `iot:SendDirectMessage` is optional: without it, Dev Mode cannot check whether another developer's session is still live, so their functions stay with them and a warning says so.
+- `<deployment-bucket>` is the bucket `serverless deploy` uses for the stage: `provider.deploymentBucket.name` when the service sets one, the `ServerlessDeploymentBucket` resource of the stage's stack when it has one, else the bucket named in the SSM parameter `/serverless-framework/deployment/s3-bucket` (see [Deployment Bucket](../../../guides/deployment-bucket#ssm-parameter-storage)).
 - The S3 permissions are optional: without them, payloads above one message are not relayed (see [Limits and known differences](../guide/dev-mode.md#limits-and-known-differences)), and the session prints why. `s3:ListBucket` is used when `s3:ListBucketVersions` is denied. A deployment bucket encrypted with an AWS KMS key also needs `kms:GenerateDataKey` and `kms:Decrypt` on that key.
 - A service whose `provider.httpApi.id` names an existing HTTP API also uses `apigateway:GET` on that API (and `cloudformation:ListExports` for an `Fn::ImportValue`), as `serverless info` does, to list its endpoints. Both are optional: without them, those endpoints are not listed.
 - The first session of a never-deployed stage deploys it, which needs your usual deploy permissions.
@@ -858,15 +902,15 @@ For [sandboxes](../guide/sandboxes.md), `serverless dev --sandbox <name>` (or `-
 
 ## MCP servers
 
-`serverless dev` serves the [MCP servers](../guide/mcp.md) declared under your service's `mcp` property the same way it serves your functions; the [Dev Mode section of the MCP guide](../guide/mcp.md#dev-mode) describes the behavior, from access control and `state` keys to streaming and payload size. The session prints each server's URL under `mcp:` after the ready line, a single server on that line and several on one line each, as [`dev status`](#dev-status) does. It logs each request with its JSON-RPC method and the tool, prompt or resource it targets, with the local run time on the reply line. A JSON-RPC error carried inside a `200` response is called out on the reply line, since the status code alone would hide it:
+`serverless dev` serves the [MCP servers](../guide/mcp.md) declared under your service's `mcp` property the same way it serves your functions; the [Dev Mode section of the MCP guide](../guide/mcp.md#dev-mode) describes the behavior, from access control and `state` keys to streaming and payload size. The session prints each server's URL under `mcp:` after the ready line, a single server on that line and several on one line each, as [`dev status`](#dev-status) does. It logs each request with its JSON-RPC method and the tool, prompt or resource it targets, with the local run time on the reply line. MCP servers stream their responses, so each reply line also gives the time to the first byte and the number of chunks. A JSON-RPC error carried inside a `200` response is called out on the reply line, since the status code alone would hide it:
 
 ```text
 → λ crm ── mcp tools/list · 1f0c2a9e
-← λ crm (200) 1.2s · cold start 310ms · 1f0c2a9e
+← λ crm (200) 1.2s · cold start 310ms · first byte 1.1s, 1 chunk · 1f0c2a9e
 → λ crm ── mcp tools/call get_weather · 7b44e0d1
-← λ crm (200) 640ms · 7b44e0d1
+← λ crm (200) 640ms · first byte 615ms, 1 chunk · 7b44e0d1
 → λ crm ── mcp tools/call noSuchTool · c3a9d5f2
-← λ crm (200) ── error -32602: Tool noSuchTool not found 158ms · c3a9d5f2
+← λ crm (200) ── error -32602: Tool noSuchTool not found 158ms · first byte 151ms, 1 chunk · c3a9d5f2
 ```
 
-Only JSON-RPC-level errors get that callout. A failure inside a tool — arguments its input schema rejects, for example — is an MCP tool result carrying `isError: true` inside a `200` response. It is logged as a plain `(200)` line, and the reason appears in the result the client receives. Anything your server logs appears between the two lines, and `--detailed` additionally prints the complete API Gateway event and response envelope for every request.
+Only JSON-RPC-level errors get that callout. A failure inside a tool — arguments its input schema rejects, for example — is an MCP tool result carrying `isError: true` inside a `200` response. It is logged as a plain `(200)` line, and the reason appears in the result the client receives. Anything your server logs appears between the two lines, and `--detailed` additionally prints, for every request, the complete API Gateway event and the response: its status code, headers and body.

@@ -18,7 +18,11 @@ import {
   isCredentialError,
   providerCallError,
 } from '../attach/aws.js'
-import { credentialSourceOf } from '../relay/messages.js'
+import {
+  credentialSourceOf,
+  endpointUnresolvedLine,
+} from '../relay/messages.js'
+import { unresolvedHost } from '../relay/transport.js'
 import { brokerPolicyState, getBroker, identityFrom } from '../attach/broker.js'
 import {
   classifyByConfig,
@@ -34,6 +38,7 @@ import {
   readLayerArtifact,
 } from '../attach/layer.js'
 import {
+  brokerRoleArn,
   brokerRoleName,
   isProtectedStage,
   layerName,
@@ -158,7 +163,12 @@ export const checkIotConnect = ({
     }
     req.on('timeout', () => req.destroy(new Error(limit)))
     req.on('error', (error) =>
-      done({ ok: false, message: error?.message ?? limit }),
+      done({
+        ok: false,
+        // The endpoint's own name does not resolve: the account's first use of the region.
+        ...(unresolvedHost(error, host) && { unresolved: true }),
+        message: error?.message ?? limit,
+      }),
     )
     req.end()
   })
@@ -357,7 +367,9 @@ export const planSession = async ({
       fail('iot_connect', {
         reason: 'network_blocked',
         host: iotEndpoint,
-        message: `Dev Mode could not connect to AWS IoT Core at ${iotEndpoint}:443 (${reach.message}). Allow outbound HTTPS to that host, or set HTTPS_PROXY, then run the command again.`,
+        message: reach.unresolved
+          ? endpointUnresolvedLine({ region, detail: reach.message })
+          : `Dev Mode could not connect to AWS IoT Core at ${iotEndpoint}:443 (${reach.message}). Allow outbound HTTPS to that host, or set HTTPS_PROXY, then run the command again.`,
       })
     }
   }
@@ -486,7 +498,7 @@ export const planSession = async ({
       owner,
       attachedAt: Math.floor(now() / 1000),
       broker: broker ?? {
-        arn: `arn:${identity.partition}:iam::${identity.accountId}:role/${brokerName}`,
+        arn: brokerRoleArn({ identity, name: brokerName }),
         externalId: '0'.repeat(32),
       },
       key: Buffer.alloc(32).toString('base64'),

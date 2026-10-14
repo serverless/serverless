@@ -108,6 +108,7 @@ const ownLogOf = (service) =>
 
 const launch = ({
   options = {},
+  stage = 'dev',
   interactive = false,
   deps = {},
   child = Object.assign(new EventEmitter(), {
@@ -127,7 +128,7 @@ const launch = ({
   const live = { client: null }
   const promise = runDetach({
     serverless: { serviceDir: service, service: { service: 'orders' } },
-    provider: fakeProvider(),
+    provider: fakeProvider({ stage }),
     options: { detach: true, json: true, ...options },
     logger,
     deps: {
@@ -348,6 +349,56 @@ describe('serverless dev --detach', () => {
       `Dev Mode is already on here (session ${SESSION}, pid ${CHILD_PID}, stage dev).`,
     ])
     expect(running.spawn).not.toHaveBeenCalled()
+  })
+
+  test('--detach again shows a function the session lost with its reason, as dev status does', async () => {
+    const why = 'lost the Dev Mode layer; cannot start until it is restored'
+    const functions = [
+      { name: 'createOrder', mode: 'dev' },
+      { name: 'worker', mode: 'dev', reason: 'layer_missing', why },
+    ]
+    const running = launch({
+      deps: {
+        connect: async () =>
+          clientOf(sessionRecord({ state: 'on' }), {
+            state: 'on',
+            functions,
+            cursor: `${SESSION}:9`,
+          }),
+      },
+    })
+    const { result, human } = await running.promise
+    expect(result).toMatchObject({ already_running: true, functions })
+    expect(human).toContainEqual([
+      'notice',
+      [
+        'Function     Mode  Why',
+        'createOrder  dev',
+        `worker       dev   ${why}`,
+      ].join('\n'),
+    ])
+  })
+
+  test('a session whose functions all run here shows no function table', async () => {
+    const running = launch({
+      deps: {
+        connect: async () =>
+          clientOf(sessionRecord({ state: 'on' }), {
+            state: 'on',
+            functions: [
+              { name: 'createOrder', mode: 'dev' },
+              { name: 'api', mode: 'dev', notes: ['vpc_egress_required'] },
+            ],
+            cursor: `${SESSION}:9`,
+          }),
+      },
+    })
+    const { human } = await running.promise
+    expect(humanText(human)).not.toMatch(/Function\s+Mode\s+Why/)
+    expect(human[0]).toEqual([
+      'notice',
+      `Dev Mode is already on here (session ${SESSION}, pid ${CHILD_PID}, stage dev).`,
+    ])
   })
 
   test('--detach again with other settings says the running session keeps its own', async () => {
@@ -744,6 +795,21 @@ describe('serverless dev --detach', () => {
     expect(human).toContain(
       'Dev Mode could not write its session record in .serverless/dev (ENOSPC: no space left on device).',
     )
+  })
+
+  test('a protected stage is stage_protected before anything starts or is written', async () => {
+    const { service, spawn, promise } = launch({ stage: 'prod' })
+    const { result, timersLeft } = await promise
+    expect(result).toEqual({
+      v: 1,
+      status: 'error',
+      reason: 'stage_protected',
+      message:
+        'Dev Mode does not run on stage "prod": it changes the live configuration of deployed functions. Use a personal or development stage, for example "serverless dev --stage <your-name>".',
+    })
+    expect(spawn).not.toHaveBeenCalled()
+    expect(fs.existsSync(devDirOf(service))).toBe(false)
+    expect(timersLeft).toBe(0)
   })
 
   test('a session process that cannot be started is detach_failed', async () => {

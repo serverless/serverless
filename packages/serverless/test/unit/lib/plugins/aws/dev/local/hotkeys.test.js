@@ -248,6 +248,30 @@ describe('hotkeys', () => {
     )
   })
 
+  test('the s key shows a function that stays in Dev Mode but lost what it needs', () => {
+    const [summary, , table] = statusKeyLines({
+      status: {
+        functions: [
+          { name: 'api', mode: 'dev' },
+          {
+            name: 'worker',
+            mode: 'dev',
+            reason: 'layer_missing',
+            why: 'lost the Dev Mode layer; cannot start until it is restored',
+          },
+        ],
+      },
+    })
+    expect(summary).toBe('Dev Mode on · 2 functions · 0 invocations, no errors')
+    expect(table).toBe(
+      [
+        'Function  Mode  Why',
+        'api       dev',
+        'worker    dev   lost the Dev Mode layer; cannot start until it is restored',
+      ].join('\n'),
+    )
+  })
+
   test('a session without its record still shows its status', () => {
     expect(
       statusKeyLines({

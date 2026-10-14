@@ -23,6 +23,7 @@ import {
   refusedLine,
   credentialsExpiredLine,
   credentialsWorkAgainLine,
+  endpointWaitLine,
   livenessDeniedLine,
   livenessUnansweredLine,
   reconnectedLine,
@@ -83,6 +84,8 @@ export const startRelayConnection = async ({
   resolveCredentials,
   credentialSource,
   logger,
+  // The session's spinner, which says when the first connection waits for its endpoint.
+  spinner,
   timers,
   now = Date.now,
   connectTransport = createTransport,
@@ -120,7 +123,9 @@ export const startRelayConnection = async ({
         record('credentials.refreshed', {})
       }
       if (quiet) return
-      if (event.state === 'lost')
+      if (event.state === 'endpoint_unresolved') {
+        spinner?.notice(endpointWaitLine(event.region))
+      } else if (event.state === 'lost')
         logger.warning(connectionLostLine(event.reason))
       else if (event.state === 'reconnected') {
         logger.notice(reconnectedLine(event.offlineMs))

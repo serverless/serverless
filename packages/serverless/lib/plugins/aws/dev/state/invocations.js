@@ -30,13 +30,12 @@ import {
 } from './real-dir.js'
 import { TIMED_OUT } from '../local/replies.js'
 import {
-  PRELUDE_CONTENT_TYPE,
-  PRELUDE_DELIMITER,
   callerReceived,
   errorStatusCode,
   eventLabel,
   outcomeOf,
   preludeStatusCode,
+  splitPrelude,
 } from '../local/invocation-output.js'
 
 export const INVOCATION_FILES_PER_FUNCTION = 500
@@ -139,22 +138,18 @@ export const bodyOf = (
 const streamBodyOf = ({ bodyHead, bodyBytes, contentType }, limit) => {
   const head = bodyHead ?? Buffer.alloc(0)
   const truncated = (bodyBytes ?? head.length) > head.length
-  if (contentType === PRELUDE_CONTENT_TYPE) {
-    const at = head.indexOf(PRELUDE_DELIMITER)
-    const prelude = at === -1 ? undefined : json(head.subarray(0, at))
-    if (prelude && typeof prelude === 'object') {
-      const rest = head.subarray(at + PRELUDE_DELIMITER.length)
-      const { value, paths } = redactResponse(prelude)
-      const text = textOf(rest, { cut: truncated })
-      return {
-        value: {
-          ...value,
-          body: text ?? { base64: rest.toString('base64') },
-        },
-        truncated,
-        bytes: bodyBytes ?? head.length,
-        paths,
-      }
+  const { prelude, body: rest } = splitPrelude({ contentType, head })
+  if (prelude) {
+    const { value, paths } = redactResponse(prelude)
+    const text = textOf(rest, { cut: truncated })
+    return {
+      value: {
+        ...value,
+        body: text ?? { base64: rest.toString('base64') },
+      },
+      truncated,
+      bytes: bodyBytes ?? head.length,
+      paths,
     }
   }
   const body = bodyOf(head, (value) => ({ value, paths: [] }), limit, {

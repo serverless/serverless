@@ -208,7 +208,7 @@ describe('dev setup and the version of the permission policy', () => {
       .catch((e) => e)
     expect(error.code).toBe('DEV_SETUP_ACCESS_DENIED')
     expect(error.message).toContain(
-      `"serverless dev setup" needs iam:GetRole, iam:GetRolePolicy, iam:CreateRole and iam:PutRolePolicy on the IAM role "${NAME}"`,
+      `"serverless dev setup" needs iam:GetRole, iam:GetRolePolicy, iam:CreateRole and iam:PutRolePolicy on the IAM role arn:aws:iam::${ACCOUNT}:role/${NAME},`,
     )
     expect(puts(iam)).toEqual([])
   })
@@ -244,10 +244,44 @@ describe('dev setup and the version of the permission policy', () => {
       .catch((e) => e)
     expect(error.code).toBe('DEV_SETUP_ACCESS_DENIED')
     expect(error.message).toContain(
-      `"serverless dev setup" needs iam:GetRole, iam:GetRolePolicy, iam:CreateRole and iam:PutRolePolicy on the IAM role "${NAME}"`,
+      `"serverless dev setup" needs iam:GetRole, iam:GetRolePolicy, iam:CreateRole and iam:PutRolePolicy on the IAM role arn:aws:iam::${ACCOUNT}:role/${NAME},`,
     )
     expect(error.message).not.toContain('DeleteRolePolicy')
   })
+})
+
+test('a denied dev setup names the role with the path it has or would have, and any path when GetRole is denied', async () => {
+  // An existing role under a path: its own ARN.
+  const pathed = fakeIam()
+  await setup({ path: '/serverless/' }, pathed).run()
+  pathed.putRolePolicyError = denied('iam:PutRolePolicy')
+  pathed.policies.clear()
+  const existing = await setup({}, pathed)
+    .run()
+    .catch((e) => e)
+  expect(existing.message).toBe(
+    'Your AWS credentials cannot set up Dev Mode in us-east-1 (not authorized to perform: iam:PutRolePolicy).\n' +
+      `"serverless dev setup" needs iam:GetRole, iam:GetRolePolicy, iam:CreateRole and iam:PutRolePolicy on the IAM role arn:aws:iam::${ACCOUNT}:role/serverless/${NAME}, plus iam:PutRolePermissionsBoundary when --permissions-boundary is given.\n` +
+      'Run it again with the credentials of an AWS administrator.',
+  )
+  // A role it would create under --path: the ARN it would have.
+  const creating = fakeIam()
+  creating.createRoleError = denied('iam:CreateRole')
+  const create = await setup({ path: '/serverless/' }, creating)
+    .run()
+    .catch((e) => e)
+  expect(create.message).toContain(
+    `on the IAM role arn:aws:iam::${ACCOUNT}:role/serverless/${NAME},`,
+  )
+  // GetRole denied: where the role is cannot be known.
+  const unread = fakeIam()
+  unread.getRoleError = denied('iam:GetRole')
+  const read = await setup({ path: '/serverless/' }, unread)
+    .run()
+    .catch((e) => e)
+  expect(read.message).toContain(
+    `on the IAM role "${NAME}" under any IAM path (arn:aws:iam::${ACCOUNT}:role/*serverless-dev-broker-*),`,
+  )
 })
 
 test('dev setup refuses to move an existing role to another path', async () => {
@@ -1331,7 +1365,7 @@ describe('the checks before deploy, remove, rollback and deploy function', () =>
       expect(progress.texts()).toEqual([])
     })
 
-    test(`with .serverless/dev here: ${kind === 'denied' ? 'still a debug line' : 'the warning'}`, async () => {
+    test('with .serverless/dev here: the warning', async () => {
       const { s } = failingSdk(restoreSetup(), error)
       await restoreStageBeforeCommand({
         ...s,
@@ -1344,12 +1378,13 @@ describe('the checks before deploy, remove, rollback and deploy function', () =>
         functionKey: 'api',
         devModeRanHere: true,
       })
+      expect(levels(s.logger)).toEqual(['warning'])
+      expect(levels(one.logger)).toEqual(['warning'])
       if (kind === 'denied') {
-        expect(levels(s.logger)).toEqual(['debug'])
-        expect(levels(one.logger)).toEqual(['debug'])
+        expect(s.logger.text()).toContain('Dev Mode check skipped')
+        expect(one.logger.text()).toContain('Dev Mode check skipped')
         return
       }
-      expect(levels(s.logger)).toEqual(['warning'])
       expect(s.logger.text()).toContain(
         'Could not check this stage for Dev Mode configuration',
       )
@@ -1530,14 +1565,62 @@ test('a stage that was never deployed is checked quietly', async () => {
   ])
 })
 
-test('a deploy-only principal never fails the deploy: AccessDenied is a debug line', async () => {
+test("a deploy-only principal never fails the deploy: AccessDenied is a debug line with AWS's message", async () => {
   const s = restoreSetup()
   failingGet(s, deniedGet())
   await expect(
     restoreStageBeforeCommand({ ...s, verb: 'deploy' }),
   ).resolves.toBeUndefined()
   expect(levels(s.logger)).toEqual(['debug'])
-  expect(s.logger.text()).toContain('lambda:GetFunction')
+  expect(s.logger.text()).toBe(
+    'Dev Mode check skipped: it needs lambda:GetFunction (User is not authorized to perform: lambda:GetFunction on resource: svc-dev-api). If a Dev Mode session attached functions of this stage, they stay attached after this deployment; run "serverless dev restore --stage dev --region us-east-1" to detach them.',
+  )
+})
+
+test("deploy function denied lambda:GetFunction elsewhere: a debug line with AWS's message", async () => {
+  const s = restoreSetup({ live: { 'svc-dev-api': attachedConfig() } })
+  failingGet(s, deniedGet())
+  await restoreFunctionBeforeDeployFunction({ ...s, functionKey: 'api' })
+  expect(levels(s.logger)).toEqual(['debug'])
+  expect(s.logger.text()).toBe(
+    'Dev Mode check skipped: it needs lambda:GetFunction (User is not authorized to perform: lambda:GetFunction on resource: svc-dev-api). If a Dev Mode session attached api, it stays attached after this deployment; run "serverless dev restore --stage dev --region us-east-1 --function api" to detach it.',
+  )
+})
+
+test('where Dev Mode ran, a check denied lambda:GetFunction is a warning that names the restore', async () => {
+  const lines = {}
+  for (const verb of ['deploy', 'rollback', 'removal']) {
+    const s = restoreSetup({ live: { 'svc-dev-api': attachedConfig() } })
+    failingGet(s, deniedGet())
+    await expect(
+      restoreStageBeforeCommand({ ...s, verb, devModeRanHere: true }),
+    ).resolves.toBeUndefined()
+    expect(levels(s.logger)).toEqual(['warning'])
+    expect(updated(s.lambda)).toEqual([])
+    lines[verb] = s.logger.text()
+  }
+  expect(lines).toEqual({
+    deploy:
+      'Dev Mode check skipped: it needs lambda:GetFunction. If a Dev Mode session attached functions of this stage, they stay attached after this deployment; run "serverless dev restore --stage dev --region us-east-1" to detach them.',
+    rollback:
+      'Dev Mode check skipped: it needs lambda:GetFunction. If a Dev Mode session attached functions of this stage, they stay attached after this rollback; run "serverless dev restore --stage dev --region us-east-1" to detach them.',
+    removal:
+      'Dev Mode check skipped: it needs lambda:GetFunction. If a Dev Mode session attached functions of this stage, this removal deletes them without detaching them first.',
+  })
+})
+
+test('where Dev Mode ran, deploy function denied lambda:GetFunction warns with the restore of that function', async () => {
+  const s = restoreSetup({ live: { 'svc-dev-api': attachedConfig() } })
+  failingGet(s, deniedGet())
+  await restoreFunctionBeforeDeployFunction({
+    ...s,
+    functionKey: 'api',
+    devModeRanHere: true,
+  })
+  expect(levels(s.logger)).toEqual(['warning'])
+  expect(s.logger.text()).toBe(
+    'Dev Mode check skipped: it needs lambda:GetFunction. If a Dev Mode session attached api, it stays attached after this deployment; run "serverless dev restore --stage dev --region us-east-1 --function api" to detach it.',
+  )
 })
 
 test('one denied read skips the whole check with one debug line, restoring nothing', async () => {

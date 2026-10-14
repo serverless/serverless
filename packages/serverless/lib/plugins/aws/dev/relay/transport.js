@@ -20,13 +20,19 @@ import { createPacer } from './pacer.js'
 import { laptopClientId, topicsOf } from './protocol.js'
 import { presignIotWebSocket } from './sigv4.js'
 import { withoutSecrets } from './redact.js'
-import { credentialsFixLine } from './messages.js'
+import { credentialsFixLine, endpointUnresolvedLine } from './messages.js'
 
 export const KEEPALIVE_SECONDS = 30
 export const RECONNECT_MIN_MS = 1_000
 export const RECONNECT_MAX_MS = 30_000
 /** How long start() waits for AWS IoT Core to accept the connection. */
 export const CONNECT_TIMEOUT_MS = 20_000
+/**
+ * How long start() keeps trying while the endpoint's host name does not resolve: AWS creates an
+ * account's AWS IoT Core endpoint in a region the first time it is used there, and its name can
+ * take a while to resolve.
+ */
+export const RESOLVE_WAIT_MS = 120_000
 /** How long stop() waits for the goodbye to be acknowledged before closing the connection. */
 export const STOP_TIMEOUT_MS = 2_000
 const CREDENTIAL_REFRESH_MS = 60_000
@@ -39,7 +45,28 @@ const NOT_AUTHORIZED = 135
 
 const noop = () => {}
 
-/** Why one connection attempt failed: 'signature' (HTTP 403), 'denied' or 'unreachable'. */
+// The codes Node.js gives a host name that does not resolve (EAI_AGAIN: not for now).
+const UNRESOLVED_CODES = new Set(['ENOTFOUND', 'EAI_AGAIN'])
+
+/**
+ * Whether `error`, or an error it wraps (`cause`), says that `host` did not resolve. A proxy whose
+ * own name does not resolve names another host, so it does not count.
+ */
+export const unresolvedHost = (error, host) => {
+  for (let at = error, depth = 0; at && depth < 5; at = at.cause, depth += 1) {
+    if (UNRESOLVED_CODES.has(at.code) && at.hostname === host) return true
+  }
+  return false
+}
+
+/** Reconnects and the first connection's retries wait 1 s, 2 s, 4 s and so on up to 30 s. */
+const backoffMs = (retries) =>
+  Math.min(RECONNECT_MAX_MS, RECONNECT_MIN_MS * 2 ** retries)
+
+/**
+ * Why one connection attempt failed: 'signature' (HTTP 403), 'denied', 'unresolved' (the name of
+ * the endpoint did not resolve) or 'unreachable'.
+ */
 class AttemptFailure extends Error {
   constructor(kind, detail, action = 'connect to') {
     super(detail)
@@ -54,7 +81,8 @@ class CredentialsUnreadable extends Error {}
 /** stop() was called, or the attempt was given up, while it ran. */
 class Cancelled extends Error {}
 
-const failureOf = (error, action) => {
+/** `host`: the endpoint's host name, which a DNS failure must name to count as 'unresolved'. */
+const failureOf = (error, { action, host } = {}) => {
   if (error instanceof AttemptFailure) return error
   const detail = withoutSecrets(error?.message ?? error)
   // ws reports a refused WebSocket handshake as "Unexpected server response: <status>".
@@ -67,6 +95,10 @@ const failureOf = (error, action) => {
     /not authori[sz]ed/i.test(detail)
   ) {
     return new AttemptFailure('denied', detail, action)
+  }
+  // A proxy whose own name does not resolve is not counted: only the endpoint's name.
+  if (host && unresolvedHost(error, host)) {
+    return new AttemptFailure('unresolved', detail, action)
   }
   return new AttemptFailure('unreachable', detail, action)
 }
@@ -83,6 +115,13 @@ const startError = (failure, region) => {
     return new ServerlessError(
       `Dev Mode could not ${failure.action} AWS IoT Core in ${region} (${failure.message}). Your AWS credentials need iot:Connect on client "sls-dev-*", and iot:Subscribe, iot:Receive and iot:Publish on topics "sls-dev/*". Ask your AWS administrator to allow them.`,
       'DEV_MODE_IOT_CONNECT_DENIED',
+      { stack: false },
+    )
+  }
+  if (failure.kind === 'unresolved') {
+    return new ServerlessError(
+      endpointUnresolvedLine({ region, detail: failure.message }),
+      'DEV_MODE_IOT_UNREACHABLE',
       { stack: false },
     )
   }
@@ -255,13 +294,13 @@ export const createTransport = ({
         const refused = (Array.isArray(granted) ? granted : []).find(
           (grant) => grant?.qos >= REFUSED,
         )
-        if (error) reject(failureOf(error, 'subscribe to'))
+        if (error) reject(failureOf(error, { action: 'subscribe to' }))
         else if (refused) {
           const failure = new Error(
             `Subscribe error: reason code ${refused.qos}`,
           )
           failure.code = refused.qos
-          reject(failureOf(failure, 'subscribe to'))
+          reject(failureOf(failure, { action: 'subscribe to' }))
         } else resolve()
       })
     })
@@ -306,7 +345,7 @@ export const createTransport = ({
       })
     } catch (error) {
       proxyCut.abort()
-      throw failureOf(error)
+      throw failureOf(error, { host: endpoint })
     }
     proxyCuts.set(client, proxyCut)
     connecting.add(client)
@@ -335,7 +374,9 @@ export const createTransport = ({
         listen(client.stream, 'error', (error) => {
           lastError = error
         })
-        listen(client, 'error', (error) => settle(failureOf(error)))
+        listen(client, 'error', (error) =>
+          settle(failureOf(error, { host: endpoint })),
+        )
         listen(client, 'close', () =>
           settle(
             failureOf(
@@ -343,6 +384,7 @@ export const createTransport = ({
                 new Error(
                   'the connection closed before AWS IoT Core accepted it',
                 ),
+              { host: endpoint },
             ),
           ),
         )
@@ -414,8 +456,7 @@ export const createTransport = ({
   const scheduleReconnect = () => {
     if (stopping || reconnectTimer !== null) return
     const delay =
-      Math.min(RECONNECT_MAX_MS, RECONNECT_MIN_MS * 2 ** attempts) +
-      Math.floor(Math.random() * RECONNECT_JITTER_MS)
+      backoffMs(attempts) + Math.floor(Math.random() * RECONNECT_JITTER_MS)
     attempts += 1
     reconnectTimer = timers.setTimeout(() => {
       reconnectTimer = null
@@ -463,19 +504,45 @@ export const createTransport = ({
     report({ state: 'reconnected', offlineMs })
   }
 
+  /** Waits `ms`, or until stop() is called. */
+  const pause = (ms) =>
+    new Promise((resolve) => {
+      let timer = null
+      const done = () => {
+        if (timer !== null) timers.clearTimeout(timer)
+        cancels.delete(done)
+        resolve()
+      }
+      cancels.add(done)
+      timer = timers.setTimeout(done, ms)
+    })
+
   /**
-   * Connects for the first time; rejects with a ServerlessError when that is impossible. A stop()
-   * while it runs settles it quietly (resolved, with nothing connected).
+   * Connects for the first time; rejects with a ServerlessError when that is impossible. While the
+   * endpoint's name does not resolve, it tries again with backoff for up to RESOLVE_WAIT_MS, and
+   * reports `endpoint_unresolved` once; any other failure rejects at once. A stop() while it runs
+   * settles it quietly (resolved, with nothing connected).
    */
   const start = async () => {
-    try {
-      await connectOnce({ quiet: true })
-    } catch (error) {
-      if (stopping || error instanceof Cancelled) return
-      if (error instanceof CredentialsUnreadable) {
-        throw credentialsError(credentialSource)
+    const startedAt = now()
+    for (let retries = 0; ; retries += 1) {
+      try {
+        await connectOnce({ quiet: true })
+        break
+      } catch (error) {
+        if (stopping || error instanceof Cancelled) return
+        if (error instanceof CredentialsUnreadable) {
+          throw credentialsError(credentialSource)
+        }
+        const failure = failureOf(error)
+        const left = RESOLVE_WAIT_MS - (now() - startedAt)
+        if (failure.kind !== 'unresolved' || left <= 0) {
+          throw startError(failure, region)
+        }
+        if (retries === 0) report({ state: 'endpoint_unresolved', region })
+        await pause(Math.min(backoffMs(retries), left))
+        if (stopping) return
       }
-      throw startError(failureOf(error), region)
     }
     if (stopping) return
     refreshTimer = timers.setInterval(() => {

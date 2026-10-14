@@ -9,7 +9,13 @@ import {
   progress as defaultProgress,
   ServerlessError,
 } from '@serverless/util'
-import { BROKER_POLICY_NAME, brokerRoleName, functionKeyOf } from './naming.js'
+import {
+  BROKER_POLICY_NAME,
+  brokerRoleArn,
+  brokerRoleName,
+  brokerRolePattern,
+  functionKeyOf,
+} from './naming.js'
 import {
   PRE_COMMAND_CONNECTION_TIMEOUT_MS,
   PRE_COMMAND_RETRY,
@@ -61,10 +67,14 @@ const DENIED_CODES = new Set([
   'DEV_MODE_BROKER_UNAVAILABLE',
 ])
 
-const setupDenied = ({ region, name, error }) =>
+/**
+ * `arn`: the role's ARN once setup knows where the role is or would be created; before (iam:GetRole
+ * denied), the role is named with the pattern that covers it under any IAM path.
+ */
+const setupDenied = ({ region, name, arn, identity, error }) =>
   new ServerlessError(
     `Your AWS credentials cannot set up Dev Mode in ${region} (${error.originalMessage ?? error.message}).\n` +
-      `"serverless dev setup" needs iam:GetRole, iam:GetRolePolicy, iam:CreateRole and iam:PutRolePolicy on the IAM role "${name}", plus iam:PutRolePermissionsBoundary when --permissions-boundary is given.\n` +
+      `"serverless dev setup" needs iam:GetRole, iam:GetRolePolicy, iam:CreateRole and iam:PutRolePolicy on the IAM role ${arn ?? `"${name}" under any IAM path (${brokerRolePattern(identity)})`}, plus iam:PutRolePermissionsBoundary when --permissions-boundary is given.\n` +
       'Run it again with the credentials of an AWS administrator.',
     'DEV_SETUP_ACCESS_DENIED',
     {
@@ -73,6 +83,10 @@ const setupDenied = ({ region, name, error }) =>
     },
   )
 
+/**
+ * Creates the broker role, or brings an existing one up to date. `found.arn` is set to the role's
+ * ARN once it is known: the existing role's, else the one it is created with.
+ */
 const ensureBroker = async ({
   iam,
   name,
@@ -81,6 +95,7 @@ const ensureBroker = async ({
   path,
   boundary,
   explicitPath,
+  found,
 }) => {
   let existing = await getBroker({
     iam,
@@ -89,6 +104,7 @@ const ensureBroker = async ({
     region,
     retryCommand: cliCommand('dev setup'),
   })
+  found.arn = existing?.arn ?? brokerRoleArn({ identity, name, path })
   // createBroker puts the permission policy on a role a teammate created at the same moment.
   let policyPut = false
   if (!existing) {
@@ -108,6 +124,7 @@ const ensureBroker = async ({
     // A teammate created it at the same moment: continue as for an existing role.
     existing = created
     policyPut = Boolean(created)
+    if (existing) found.arn = existing.arn
     if (!existing) {
       throw new ServerlessError(
         `The IAM role "${name}" was being created by someone else at the same time. Run "${cliCommand('dev setup')}" again.`,
@@ -127,10 +144,17 @@ const ensureBroker = async ({
   // version of Dev Mode wrote is left as it is: its bridges may need more.
   const keep = policyPut
     ? existing.policyKept
-    : await brokerPolicyIsNewer({ iam, name, identity, region })
+    : await brokerPolicyIsNewer({
+        iam,
+        name,
+        arn: existing.arn,
+        identity,
+        region,
+      })
   if (boundary) await putBrokerBoundary({ iam, name, boundary })
-  if (!policyPut && !keep)
-    await putBrokerPolicy({ iam, name, identity, region })
+  if (!policyPut && !keep) {
+    await putBrokerPolicy({ iam, name, arn: existing.arn, identity, region })
+  }
   const written = !keep
   const policy = written
     ? `re-applied its permission policy ${BROKER_POLICY_NAME}`
@@ -161,6 +185,9 @@ export const runDevSetup = async ({ provider, options = {}, deps = {} }) => {
   const spinner = progress.get('dev-setup')
   spinner.notice(`Setting up Dev Mode in ${region}`)
   let summary
+  let identity
+  // The role's ARN, once setup knows where the role is or would be created.
+  const found = { arn: null }
   try {
     let account
     try {
@@ -174,7 +201,7 @@ export const runDevSetup = async ({ provider, options = {}, deps = {} }) => {
         code: 'DEV_MODE_IDENTITY_ACCESS_DENIED',
       })
     }
-    const identity = identityFrom({
+    identity = identityFrom({
       accountId: account.accountId,
       callerArn: account.arn,
     })
@@ -186,10 +213,11 @@ export const runDevSetup = async ({ provider, options = {}, deps = {} }) => {
       path,
       boundary,
       explicitPath: options.path !== undefined,
+      found,
     })
   } catch (error) {
     if (DENIED_CODES.has(error?.code) || isAccessDenied(error)) {
-      throw setupDenied({ region, name, error })
+      throw setupDenied({ region, name, arn: found.arn, identity, error })
     }
     throw error
   } finally {
@@ -403,9 +431,24 @@ const restoreStage = async ({ serverless, provider, options, deps }) => {
   }
 }
 
-/** A denied check is skipped with one debug line: deploy-only credentials are normal. */
-const skippedLine = (error) =>
-  `Skipped the Dev Mode check (needs lambda:GetFunction on the functions of this service): ${error.message}`
+/**
+ * A check denied lambda:GetFunction is skipped. Deploy-only credentials are normal, so the line is
+ * a warning only where Dev Mode ran (see reportUnchecked). `functionKey`: the one function
+ * `deploy function` checks; else the stage before `verb` ("deploy", "removal", "rollback").
+ * `cause`, AWS's own message, goes in the debug line only.
+ */
+const skippedLine = ({ verb, scope, functionKey, cause }) => {
+  const skipped = `Dev Mode check skipped: it needs lambda:GetFunction${cause ? ` (${withoutPeriod(cause)})` : ''}.`
+  if (functionKey) {
+    return `${skipped} If a Dev Mode session attached ${functionKey}, it stays attached after this deployment; run "${restoreCommand(scope, { functionKey })}" to detach it.`
+  }
+  const attached = 'If a Dev Mode session attached functions of this stage,'
+  // A removal deletes the functions, so there is nothing left to restore after it.
+  if (verb === 'removal') {
+    return `${skipped} ${attached} this removal deletes them without detaching them first.`
+  }
+  return `${skipped} ${attached} they stay attached after this ${verb === 'deploy' ? 'deployment' : verb}; run "${restoreCommand(scope)}" to detach them.`
+}
 
 /** Why the check before a command could not run, for its warning. */
 const checkProblem = (error) =>
@@ -415,11 +458,12 @@ const checkProblem = (error) =>
 
 /**
  * A check that could not run is a warning only where Dev Mode ran (`ranHere`): a stage it never
- * ran on has nothing to restore, so its people see the command's output alone, and a debug line.
+ * ran on has nothing to restore, so its people see the command's output alone, and a debug line
+ * (`debugText` when the debug line says more).
  */
-const reportUnchecked = ({ logger, ranHere, text }) => {
+const reportUnchecked = ({ logger, ranHere, text, debugText = text }) => {
   if (ranHere) logger.warning(text)
-  else logger.debug(text)
+  else logger.debug(debugText)
 }
 
 /**
@@ -568,7 +612,13 @@ export const restoreStageBeforeCommand = async ({
   } catch (error) {
     spinner.remove()
     if (isAccessDenied(error)) {
-      logger.debug(skippedLine(error))
+      const skipped = { verb, scope: scopeOf(provider) }
+      reportUnchecked({
+        logger,
+        ranHere: devModeRanHere,
+        text: skippedLine(skipped),
+        debugText: skippedLine({ ...skipped, cause: error.message }),
+      })
       return
     }
     reportUnchecked({
@@ -617,7 +667,13 @@ export const restoreFunctionBeforeDeployFunction = async ({
     }
   } catch (error) {
     if (isAccessDenied(error)) {
-      logger.debug(skippedLine(error))
+      const skipped = { scope: scopeOf(provider), functionKey }
+      reportUnchecked({
+        logger,
+        ranHere: devModeRanHere,
+        text: skippedLine(skipped),
+        debugText: skippedLine({ ...skipped, cause: error.message }),
+      })
       return
     }
     reportUnchecked({
