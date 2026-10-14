@@ -3,13 +3,14 @@ import {
   GetBucketVersioningCommand,
   GetObjectCommand,
   HeadBucketCommand,
-  ListObjectsV2Command,
   S3Client,
 } from '@aws-sdk/client-s3'
+import { GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts'
 import path from 'path'
 import url from 'url'
 import { jest } from '@jest/globals'
 import { getTestStageName, runSfCore } from '../../../utils/runSfCore.js'
+import { listStackStateKeys } from '../../../utils/stateBucket.js'
 import { setGlobalRendererSettings } from '@serverless/util'
 import _ from 'lodash'
 
@@ -23,7 +24,23 @@ describe('State Resolver', () => {
   const regExpSafeStage = _.escapeRegExp(stage)
 
   const bucketName = 'serverless-compose-state-bucket-integration-test'
-  const s3Client = new S3Client({ region: 'us-east-1' })
+  const region = 'us-east-1'
+  const s3Client = new S3Client({ region })
+  const stsClient = new STSClient({ region })
+  let accountId
+
+  // The state bucket is shared by every run in the account, so list only the
+  // keys of this run's stacks.
+  const listRunStateKeys = () =>
+    listStackStateKeys({
+      s3Client,
+      bucketName,
+      accountId,
+      region,
+      stackNames: ['compose-a', 'compose-b'].map(
+        (serviceName) => `state-resolver-${serviceName}-${stage}`,
+      ),
+    })
 
   process.env.TEST_STAGE = stage
 
@@ -39,6 +56,9 @@ describe('State Resolver', () => {
       SERVERLESS_LICENSE_KEY: process.env.SERVERLESS_LICENSE_KEY_DEV,
       SERVERLESS_ACCESS_KEY: undefined,
     }
+
+    const identity = await stsClient.send(new GetCallerIdentityCommand({}))
+    accountId = identity.Account
   })
 
   afterAll(async () => {
@@ -76,7 +96,7 @@ describe('State Resolver', () => {
       }),
     ).resolves.not.toThrow()
 
-    const keys = await listBucketObjects(s3Client, bucketName)
+    const keys = await listRunStateKeys()
 
     // Validate the content of objects
     await validateComposeAObject(s3Client, bucketName, keys, regExpSafeStage)
@@ -108,7 +128,7 @@ describe('State Resolver', () => {
       }),
     ).resolves.not.toThrow()
 
-    const objectList = await listBucketObjects(s3Client, bucketName)
+    const objectList = await listRunStateKeys()
 
     // Validate the content of objects
     await validateEmptyObject(
@@ -140,14 +160,6 @@ const validateBucket = async (s3Client, bucketName) => {
     BucketVersioningStatus.Enabled,
     BucketVersioningStatus.Suspended,
   ]).toContain(versioningStatus.Status)
-}
-
-const listBucketObjects = async (s3Client, bucketName) => {
-  const listObjectsCommand = new ListObjectsV2Command({
-    Bucket: bucketName,
-  })
-  const objectList = await s3Client.send(listObjectsCommand)
-  return objectList.Contents.map((item) => item.Key)
 }
 
 const validateComposeAObject = async (s3Client, bucketName, keys, stage) => {

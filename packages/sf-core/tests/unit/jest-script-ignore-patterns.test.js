@@ -77,7 +77,13 @@ describe('the live mcp suite is reachable only through test:mcp', () => {
 // expands globs: Jest then treats a pattern like `tests/resolvers/**` as
 // invalid and runs every test instead, live integration suites included.
 describe('package scripts that CI runs work on Windows', () => {
-  test.each(['test', 'test:unit', 'test:resolvers'])(
+  test.each([
+    'test',
+    'test:unit',
+    'test:resolvers',
+    'test:dev-mode',
+    'test:dev-mode:agent-loop',
+  ])(
     'the %s script sets its environment through cross-env and uses no shell globs',
     async (scriptName) => {
       const scripts = await readScripts()

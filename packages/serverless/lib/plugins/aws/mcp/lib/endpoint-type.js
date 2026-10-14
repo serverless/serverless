@@ -4,7 +4,7 @@
  * silent for a while still reaches the client.
  *
  * Both the analytics block (`../analytics.js`) and the dev-mode invoke path
- * (`../../dev/index.js`) read the same value, so the resolution lives here
+ * (`../../dev/local/invocation-output.js`) read the same value, so the resolution lives here
  * rather than in either of them - two copies would eventually disagree about
  * what an unset or oddly-cased `endpointType` means.
  *

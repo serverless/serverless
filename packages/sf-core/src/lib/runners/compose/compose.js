@@ -12,6 +12,12 @@ import {
 import renderComposeHelp from './help.js'
 import { warnAboutUnreachableServiceReferences } from './service-params.js'
 import frameworkCommandsSchema from '@serverless/framework/lib/cli/commands-schema.js'
+import { declaringPrefixOf } from '@serverless/framework/lib/cli/positionals.js'
+import { shellWord } from '@serverless/framework/lib/plugins/aws/lib/cli-command.js'
+import {
+  composeCommandWithoutPositionals,
+  normalizeRepeatableOptions,
+} from '../../../utils/cli/cli.js'
 import { Runner } from '../index.js'
 import path from 'path'
 
@@ -60,6 +66,14 @@ export class ComposeRunner extends Runner {
   }
 
   getCliSchema() {}
+
+  /** The command usage reports name: never a positional value (a request id). */
+  getEventCommand(command) {
+    return composeCommandWithoutPositionals({
+      command,
+      commandsSchema: frameworkCommandsSchema,
+    })
+  }
 
   async run() {
     const logger = log.get('compose')
@@ -141,6 +155,42 @@ const parseServiceOption = (value) => {
     .filter(Boolean)
 }
 
+// The options that choose where a service runs: the only ones a suggested command carries. Any
+// other value (a --param, a plugin's option) may be a secret, and the message goes into the
+// command's error event.
+const SCOPE_OPTIONS = [
+  'stage',
+  's',
+  'region',
+  'r',
+  'aws-profile',
+  'config',
+  'c',
+]
+
+/**
+ * The scope options a command was given, as the arguments that give them again (`--stage dev`,
+ * `-r eu-west-1`), each value quoted only when a shell would split or change it.
+ */
+const scopeArgs = (options = {}) =>
+  SCOPE_OPTIONS.flatMap((key) => {
+    const flag = key.length === 1 ? `-${key}` : `--${key}`
+    return []
+      .concat(options[key] ?? [])
+      .flatMap((value) =>
+        typeof value === 'string' || typeof value === 'number'
+          ? [`${flag} ${shellWord(String(value))}`]
+          : [],
+      )
+  })
+
+/** How a message names `command`: its own words, never a positional value (a request id). */
+const namedCommand = (command) =>
+  composeCommandWithoutPositionals({
+    command,
+    commandsSchema: frameworkCommandsSchema,
+  }).join(' ')
+
 /**
  * @typedef {Object} RunComposeOptions
  * @property {string} configFile
@@ -188,15 +238,23 @@ const runCompose = async ({
     ) {
       options.service = command[0]
       command = command.slice(1)
+      // The CLI normalizes repeatable options by the command's first words, which the service
+      // name hid from it.
+      normalizeRepeatableOptions(command, options)
     }
     // Verify that the command is supported if a service is not provided
     else if (
       !options.service &&
       !supportedComposeCommands.includes(command.join(' '))
     ) {
+      const named = namedCommand(command)
       // Check if user meant
       // to run a framework command on a service that does not exist
-      if (frameworkCommandsSchema.get(command.slice(1).join(' '))) {
+      if (
+        frameworkCommandsSchema.get(command.slice(1).join(' ')) ||
+        (command.length > 1 &&
+          declaringPrefixOf(command.slice(1), frameworkCommandsSchema))
+      ) {
         const err = new ServerlessError(
           `The service ${command[0]} does not exist in the Compose configuration.`,
           ServerlessErrorCodes.compose.COMPOSE_COMMAND_NOT_SUPPORTED,
@@ -206,10 +264,15 @@ const runCompose = async ({
       }
       const serviceNames = Object.keys(composeConfigFile?.services || {})
       if (command.join(' ') === 'dev') {
-        // `dev` is a single-service, interactive session — teach the exact commands
+        // `dev` is a single-service, interactive session — teach the exact commands, with the
+        // scope options given, so a copied line runs on the same stage and region
+        const given = scopeArgs(options).join(' ')
         const err = new ServerlessError(
           `In a Compose project, "dev" runs on one service at a time. Start it for a specific service:\n${serviceNames
-            .map((name) => `  serverless ${name} dev`)
+            .map(
+              (name) =>
+                `  serverless ${shellWord(name)} dev${given ? ` ${given}` : ''}`,
+            )
             .join('\n')}`,
           ServerlessErrorCodes.compose.COMPOSE_COMMAND_NOT_SUPPORTED,
         )
@@ -217,7 +280,7 @@ const runCompose = async ({
         throw err
       }
       const err = new ServerlessError(
-        `The command "${command.join(' ')}" is not currently supported at the project level by Compose. Project-wide commands: ${supportedComposeCommands.join(', ')}. To run it for a single service: serverless <service> ${command.join(' ')}.`,
+        `The command "${named}" is not currently supported at the project level by Compose. Project-wide commands: ${supportedComposeCommands.join(', ')}. To run it for a single service: serverless <service> ${named}.`,
         ServerlessErrorCodes.compose.COMPOSE_COMMAND_NOT_SUPPORTED,
       )
       err.stack = undefined
@@ -237,7 +300,22 @@ const runCompose = async ({
     // run the whole graph — fail clearly instead of silently fanning out.
     if (serviceOptionProvided && serviceNames.length === 0) {
       const err = new ServerlessError(
-        `No services were resolved from --service. Provide a comma-separated list of service names, e.g.: serverless ${command.join(' ')} --service=<service-a>,<service-b>.`,
+        `No services were resolved from --service. Provide a comma-separated list of service names, e.g.: serverless ${namedCommand(command)} --service=<service-a>,<service-b>.`,
+        ServerlessErrorCodes.compose.COMPOSE_COMMAND_NOT_SUPPORTED,
+      )
+      err.stack = undefined
+      throw err
+    }
+
+    // Subset runs support the project-wide commands only; interactive, single-service commands
+    // like `dev` cannot fan out over a list. Refused before anything is read or built.
+    if (
+      serviceNames.length > 1 &&
+      !supportedComposeCommands.includes(command.join(' '))
+    ) {
+      const named = namedCommand(command)
+      const err = new ServerlessError(
+        `The command "${named}" runs on one service at a time and cannot be used with a service list. Run it for a single service, e.g.: serverless ${serviceNames[0]} ${named}.`,
         ServerlessErrorCodes.compose.COMPOSE_COMMAND_NOT_SUPPORTED,
       )
       err.stack = undefined
@@ -284,20 +362,6 @@ const runCompose = async ({
         state,
       })
     } else {
-      if (
-        serviceNames.length > 1 &&
-        !supportedComposeCommands.includes(command.join(' '))
-      ) {
-        // Subset runs support the project-wide commands only; interactive,
-        // single-service commands like `dev` cannot fan out over a list
-        const err = new ServerlessError(
-          `The command "${command.join(' ')}" runs on one service at a time and cannot be used with a service list. Run it for a single service, e.g.: serverless ${serviceNames[0]} ${command.join(' ')}.`,
-          ServerlessErrorCodes.compose.COMPOSE_COMMAND_NOT_SUPPORTED,
-        )
-        err.stack = undefined
-        throw err
-      }
-
       if (
         getGlobalRendererSettings().logLevel === 'notice' ||
         getGlobalRendererSettings().logLevel === 'info'

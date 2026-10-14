@@ -13,6 +13,7 @@
     "Packaging": "providers/aws/guide/packaging",
     "Building": "providers/aws/guide/building",
     "Testing": "providers/aws/guide/testing",
+    "Dev Mode": "providers/aws/guide/dev-mode",
     "Services": "providers/aws/guide/services",
     "Functions": "providers/aws/guide/functions",
     "Events": {

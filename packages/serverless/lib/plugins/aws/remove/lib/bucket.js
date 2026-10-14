@@ -1,5 +1,7 @@
 import { log } from '@serverless/util'
 import ServerlessError from '../../../../serverless-error.js'
+// The protocol module has no dependencies: remove loads no Dev Mode code with it
+import { SIDE_CHANNEL_ROOT } from '../../dev/relay/protocol.js'
 
 // S3 DeleteObjects accepts at most 1000 keys per request
 const DELETE_BATCH_SIZE = 1000
@@ -34,8 +36,19 @@ export default {
     }/${this.provider.getStage()}/`
   },
 
+  // The stage's payloads of `serverless dev`, which relays those above one AWS
+  // IoT Core message through the deployment bucket under
+  // `<root>/<service>/<stage>/<session>/`; the trailing slash keeps sibling
+  // stages out
+  getDevModePrefix() {
+    return `${SIDE_CHANNEL_ROOT}/${this.serverless.service.service}/${this.provider.getStage()}/`
+  },
+
   // Yields one page of `{ Key }` objects at a time
-  async *listObjectsV2(bucketName) {
+  async *listObjectsV2(
+    bucketName,
+    prefix = this.getDeploymentArtifactsPrefix(),
+  ) {
     let continuationToken
 
     do {
@@ -43,7 +56,7 @@ export default {
       try {
         result = await this.provider.request('S3', 'listObjectsV2', {
           Bucket: bucketName,
-          Prefix: this.getDeploymentArtifactsPrefix(),
+          Prefix: prefix,
           ...(continuationToken && { ContinuationToken: continuationToken }),
         })
       } catch (err) {
@@ -65,13 +78,16 @@ export default {
 
   // Yields one page of `{ Key, VersionId }` objects at a time, covering both
   // object versions and delete markers
-  async *listObjectVersions(bucketName) {
+  async *listObjectVersions(
+    bucketName,
+    prefix = this.getDeploymentArtifactsPrefix(),
+  ) {
     let markers
 
     do {
       const result = await this.provider.request('S3', 'listObjectVersions', {
         Bucket: bucketName,
-        Prefix: this.getDeploymentArtifactsPrefix(),
+        Prefix: prefix,
         ...markers,
       })
 
@@ -234,6 +250,37 @@ export default {
     }
   },
 
+  // Deletes every version and delete marker a `serverless dev` session left
+  // under the stage's Dev Mode prefix (a session deletes its own objects; one
+  // that crashed leaves them). When versions cannot be listed, the current
+  // objects are deleted by key, which empties a bucket without versioning so
+  // the stack can delete it. It never fails the removal: what it cannot
+  // delete stays, as it did before this cleanup existed
+  async emptyDevModePrefix(bucketName) {
+    const prefix = this.getDevModePrefix()
+    const deletePages = async (pages, options) => {
+      for await (const objects of pages) {
+        if (objects.length) {
+          await this.deleteObjects(bucketName, objects, options)
+        }
+      }
+    }
+    try {
+      try {
+        await deletePages(this.listObjectVersions(bucketName, prefix), {
+          retryNullVersionsByKey: true,
+        })
+      } catch (err) {
+        if (err.code !== 'AWS_S3_LIST_OBJECT_VERSIONS_ACCESS_DENIED') throw err
+        await deletePages(this.listObjectsV2(bucketName, prefix))
+      }
+    } catch (err) {
+      log.debug(
+        `Could not remove the Dev Mode payloads under "${prefix}" in the deployment bucket "${bucketName}": ${err?.message ?? err}`,
+      )
+    }
+  },
+
   async emptyS3Bucket() {
     await this.setServerlessDeploymentBucketName()
 
@@ -256,6 +303,7 @@ export default {
         )
         continue
       }
+      await this.emptyDevModePrefix(bucketName)
       await this.emptyDeploymentBucket(bucketName)
     }
   },

@@ -23,7 +23,8 @@ cd ../../framework-dist
 bash ../sf-core/scripts/pack-framework-dist.sh
 
 # Verify the packed tarball before anything is uploaded: a packaging drift
-# (a missing MCP Lambda entry, bundled skill or config-validator runtime file)
+# (a missing MCP Lambda entry, Dev Mode layer zip, Dev Mode runtime client or
+# TypeScript loader, bundled skill or config-validator runtime file)
 # would ship a CLI that fails only in the release, and no PR CI runs this
 # workflow. PR CI runs the same checks on its own build of the package.
 # `|| exit 1` because this script does not `set -e` — without it a failed check

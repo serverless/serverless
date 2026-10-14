@@ -15,7 +15,7 @@
  * source paths stand, which is the classic-mode answer.
  *
  * Shared by the mcp plugin's packaging rewrite (`../index.js`) and the dev
- * plugin's local spawn (`../../dev/index.js`) so both derive the path from one
+ * plugin's local worker (`../../dev/local/mcp.js`) so both derive the path from one
  * source of truth.
  */
 export const esbuildBuildState = async ({ plugins }) => {

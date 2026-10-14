@@ -10,14 +10,15 @@ import {
   GetBucketVersioningCommand,
   GetObjectCommand,
   HeadBucketCommand,
-  ListObjectsV2Command,
   ListObjectVersionsCommand,
   S3Client,
 } from '@aws-sdk/client-s3'
+import { GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts'
 import path from 'path'
 import url from 'url'
 import { jest } from '@jest/globals'
 import { getTestStageName, runSfCore } from '../../../utils/runSfCore.js'
+import { listStackStateKeys } from '../../../utils/stateBucket.js'
 import { setGlobalRendererSettings } from '@serverless/util'
 import { GetFunctionCommand, LambdaClient } from '@aws-sdk/client-lambda'
 import readConfig from '@serverless/framework/lib/configuration/read.js'
@@ -33,8 +34,24 @@ describe('Default State', () => {
   const stage = getTestStageName()
   const regExpSafeStage = _.escapeRegExp(stage)
 
-  const s3Client = new S3Client({ region: 'us-east-1' })
-  const ssmClient = new SSMClient({ region: 'us-east-1' })
+  const region = 'us-east-1'
+  const s3Client = new S3Client({ region })
+  const ssmClient = new SSMClient({ region })
+  const stsClient = new STSClient({ region })
+  let accountId
+
+  // The default state bucket is shared by every run in the account, so list
+  // only the keys of this run's stacks.
+  const listRunStateKeys = (bucketName) =>
+    listStackStateKeys({
+      s3Client,
+      bucketName,
+      accountId,
+      region,
+      stackNames: ['compose-a', 'compose-b'].map(
+        (serviceName) => `default-state-${serviceName}-${stage}`,
+      ),
+    })
 
   process.env.TEST_STAGE = stage
 
@@ -50,6 +67,9 @@ describe('Default State', () => {
       SERVERLESS_LICENSE_KEY: process.env.SERVERLESS_LICENSE_KEY_DEV,
       SERVERLESS_ACCESS_KEY: undefined,
     }
+
+    const identity = await stsClient.send(new GetCallerIdentityCommand({}))
+    accountId = identity.Account
   })
 
   afterAll(async () => {
@@ -78,7 +98,7 @@ describe('Default State', () => {
     // Check if the bucket exists and is versioned
     await validateBucket(s3Client, bucketName)
 
-    const objectList = await listBucketObjects(s3Client, bucketName)
+    const objectList = await listRunStateKeys(bucketName)
 
     // Validate the content of objects
     await validateComposeAObject(
@@ -103,7 +123,7 @@ describe('Default State', () => {
 
     const { bucketName } = await getBucketDetailsFromSSM(ssmClient)
 
-    const objectList = await listBucketObjects(s3Client, bucketName)
+    const objectList = await listRunStateKeys(bucketName)
 
     // Validate both objects
     await validateComposeAObject(
@@ -183,7 +203,7 @@ describe('Default State', () => {
 
     const { bucketName } = await getBucketDetailsFromSSM(ssmClient)
 
-    const objectList = await listBucketObjects(s3Client, bucketName)
+    const objectList = await listRunStateKeys(bucketName)
 
     // After removal, validate that both objects (Compose A and Compose B) are empty
     await validateEmptyObject(
@@ -236,26 +256,6 @@ const validateBucket = async (s3Client, bucketName) => {
     BucketVersioningStatus.Enabled,
     BucketVersioningStatus.Suspended,
   ]).toContain(versioningStatus.Status)
-}
-
-// The default state bucket is shared by every run in the account, and a
-// remove resets a service's state file to {} rather than deleting it, so the
-// bucket holds more keys than one ListObjectsV2 page returns. Page through it.
-const listBucketObjects = async (s3Client, bucketName) => {
-  const keys = []
-  let ContinuationToken
-  do {
-    const page = await s3Client.send(
-      new ListObjectsV2Command({
-        Bucket: bucketName,
-        Prefix: 'services/traditional/',
-        ContinuationToken,
-      }),
-    )
-    keys.push(...(page.Contents ?? []).map((item) => item.Key))
-    ContinuationToken = page.NextContinuationToken
-  } while (ContinuationToken)
-  return keys
 }
 
 const validateComposeAObject = async (s3Client, bucketName, keys, stage) => {

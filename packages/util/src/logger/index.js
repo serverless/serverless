@@ -26,14 +26,77 @@ renderer.state = {
   // Store the last message printed to the console
   // Start with empty line since a blank line is always created upon start.
   lastToken: '',
+  // Whether the line above the next one is blank: a blank line was the last thing written, or
+  // the spinner wrote one above itself. `gap()` reads it; `lastToken` alone cannot tell, since a
+  // stopped spinner empties it whether or not a blank line is above.
+  blankAbove: false,
+  // What standard output and standard error had written (less the spinner's frames) when
+  // `blankAbove` was last set: output written straight to them since (a plugin's console.log, a
+  // stream) means the line above is not blank.
+  bytesAtBlank: null,
+  // The bytes the spinner wrote to standard error.
+  spinnerBytes: 0,
+  // Whether the spinner keeps a blank line above itself (see `progress.setBlankLineAboveSpinner`).
+  spinnerBlankLine: true,
 }
+/** What `stream` says it has written; null for a stream that keeps no count (a file). */
+const bytesOf = (stream) => {
+  const count = stream?.bytesWritten
+  return typeof count === 'number' ? count : null
+}
+/**
+ * The bytes written so far by others than the spinner: standard output's, and standard error's
+ * less the spinner's frames (they are drawn through `spinnerStream`). Null when a stream keeps no
+ * count.
+ */
+const foreignBytes = () => {
+  const stdout = bytesOf(process.stdout)
+  const stderr = bytesOf(process.stderr)
+  return stdout === null || stderr === null
+    ? null
+    : `${stdout}:${stderr - renderer.state.spinnerBytes}`
+}
+/** Records whether the line above the next one is blank, and the output it was measured at. */
+const markBlankAbove = (blank) => {
+  renderer.state.blankAbove = blank
+  renderer.state.bytesAtBlank = blank ? foreignBytes() : null
+}
+/**
+ * Whether the line above the next one is blank: one was written last through this renderer, and
+ * nothing else was written to standard output or standard error since (a plugin's console.log,
+ * a stream). Where a stream keeps no count, nothing tells, and the answer is no.
+ */
+const blankLineAbove = () =>
+  renderer.state.blankAbove &&
+  renderer.state.bytesAtBlank !== null &&
+  foreignBytes() === renderer.state.bytesAtBlank
+
+/**
+ * Standard error as the spinner writes to it, counting what it writes (its frames, cursor moves
+ * and clears), so that those bytes never look like output from elsewhere.
+ */
+const spinnerStream = () => {
+  const target = process.stderr
+  const stream = Object.create(target)
+  stream.write = (chunk, ...rest) => {
+    renderer.state.spinnerBytes +=
+      typeof chunk === 'string'
+        ? Buffer.byteLength(chunk)
+        : (chunk?.length ?? 0)
+    return target.write(chunk, ...rest)
+  }
+  return stream
+}
+
 // Color support level
 renderer.colorSupportLevel =
   typeof supportsColor === 'object' ? supportsColor.level : 3
-// Objects in log messages are rendered with util.inspect, which colours independently of chalk.
-// The level above is never 0 at load (it falls back to 3), so this stays true unless
-// disableColorsForAgent turned colours off.
-const inspectColors = () => renderer.colorSupportLevel > 0
+// Whether the logger colours what chalk does not: objects in log messages (util.inspect colours
+// independently of chalk), the spinner frame (ora brings its own chalk instance) and prompts
+// (enquirer uses ansi-colors). Those libraries never read NO_COLOR, and util.inspect and ansi-colors
+// not FORCE_COLOR=false either. The level above is never 0 at load (it falls back to 3, FORCE_COLOR=0
+// included), so this stays true until applyColorRule turns colours off at startup.
+const colorsEnabled = () => renderer.colorSupportLevel > 0
 // Interactive setting.
 //
 // Animations (the ora spinner) additionally require a USABLE terminal width. A pty created without
@@ -150,19 +213,23 @@ renderer.spinner = {
     if (
       renderer.state.lastToken !== '' &&
       lineBreak &&
+      renderer.state.spinnerBlankLine &&
       (renderer.logLevel === 'notice' || renderer.logLevel === 'compose')
     ) {
-      console.log('')
+      // On stderr, where the spinner draws: the blank line stays with it when stdout is a file.
+      process.stderr.write('\n')
       renderer.state.lastToken = ''
+      markBlankAbove(true)
     }
 
     if (renderer.spinner.isInitialized()) {
       renderer.spinner._spinner.start()
     } else {
       renderer.spinner._spinner = ora({
-        color: 'red',
+        color: colorsEnabled() ? 'red' : false,
         text: content,
         isEnabled: canAnimateProgress(),
+        stream: spinnerStream(),
       }).start()
     }
   },
@@ -259,28 +326,38 @@ const setGlobalRendererSettings = ({
 }
 
 /**
- * Turn colours off for an AI coding agent: escape codes are noise in the output it captures.
- * shouldDisableColors keeps them when FORCE_COLOR (any value, which chalk already honours) or
- * SLS_INTERACTIVE_SETUP_ENABLE is set. Pre-built chalk styles (renderer.colors/style) read the
- * instance's level on every call, so lowering the level is enough.
+ * Turn colours off when the shared rule says so (shouldDisableColors): FORCE_COLOR=0 or false, or
+ * without FORCE_COLOR, NO_COLOR or an AI coding agent (escape codes are noise in the output it
+ * captures). The agent passed is the one that counts; a missing one means no agent. Pre-built
+ * chalk styles (renderer.colors/style) read the instance's level on every call, so lowering the
+ * level is enough; util.inspect, the spinner and prompts follow colorsEnabled().
  */
-const disableColorsForAgent = ({ agent, env }) => {
-  if (!shouldDisableColors({ agent, env })) return
+const applyColorRule = ({ agent, env }) => {
+  if (!shouldDisableColors({ agent: agent ?? null, env })) return
   chalk.level = 0
   renderer.colorSupportLevel = 0
 }
 
 /**
- * Apply the renderer settings for a session run by an AI coding agent.
- * Only ever turns interactivity off; the zero-width veto and SLS_INTERACTIVE_SETUP_ENABLE keep
- * their precedence (computeIsInteractive).
+ * Apply the session's renderer settings once the agent is known, before anything is rendered:
+ * the colour rule for every session (NO_COLOR applies to people too), and for an AI coding agent
+ * a non-interactive renderer. Only ever turns interactivity off; the zero-width veto and
+ * SLS_INTERACTIVE_SETUP_ENABLE keep their precedence (computeIsInteractive).
  */
 const applyAgentSession = (options) => {
   const { agent, env } = options ?? {}
+  applyColorRule({ agent, env })
   if (!agent?.isAgent) return
   renderer.isInteractive = computeIsInteractive({ env, isAgent: true })
-  disableColorsForAgent({ agent, env })
 }
+
+/**
+ * enquirer styles everything but the overrides given here with ansi-colors, which only reads
+ * FORCE_COLOR=0; `enabled: false` turns it off whenever the colour rule did. Left out otherwise, so
+ * enquirer keeps its own default.
+ */
+const promptStyles = (styles) =>
+  colorsEnabled() ? styles : { ...styles, enabled: false }
 
 // Test-only: the logger's chalk instance is private to @serverless/util (a different chalk major
 // than the rest of the workspace), so tests read and restore its level through these.
@@ -342,7 +419,7 @@ const writeStdErr = ({
     formattedMessage = firstToken.replace(/%s|%d/g, () => {
       const token = messageTokens.shift()
       if (typeof token === 'object' && token !== null) {
-        return util.inspect(token, { colors: inspectColors(), depth: null })
+        return util.inspect(token, { colors: colorsEnabled(), depth: null })
       }
       return token
     })
@@ -356,7 +433,7 @@ const writeStdErr = ({
         : firstToken.message
     } else if (typeof firstToken === 'object' && firstToken !== null) {
       formattedMessage = util.inspect(firstToken, {
-        colors: inspectColors(),
+        colors: colorsEnabled(),
         depth: null,
       })
     } else {
@@ -372,7 +449,7 @@ const writeStdErr = ({
       messageContent = token.toString()
     } else if (typeof token === 'object' && token !== null) {
       messageContent = util.inspect(token, {
-        colors: inspectColors(),
+        colors: colorsEnabled(),
         depth: null,
       })
     } else {
@@ -419,9 +496,11 @@ const writeStdErr = ({
   }
 
   process.stderr.write(fullMessage)
+  markBlankAbove(fullMessage === '\n')
 
-  // Save last token
-  renderer.state.lastToken = fullMessage
+  // Save last token. A blank line is the blank line the spinner keeps above itself: it does not
+  // print a second one.
+  renderer.state.lastToken = fullMessage === '\n' ? '' : fullMessage
 
   // Restart the spinner if it was stopped
 
@@ -505,6 +584,7 @@ const writeText = (...textTokens) => {
   process.stdout.write(joinTextTokens(text))
 
   renderer.state.lastToken = text
+  renderer.state.blankAbove = false
 
   // Restart the spinner if it was stopped
   renderer.spinner.start({ lineBreak: false })
@@ -835,6 +915,15 @@ class Logger {
   }
 
   /**
+   * Separates two sections with one blank line, never two: writes a blank line unless the line
+   * above the next one is blank already, after a blank line, or under a spinner, which keeps a
+   * blank line above itself and whose line the next line takes.
+   */
+  gap() {
+    if (!blankLineAbove()) this.blankLine()
+  }
+
+  /**
    * Renders a confirmation prompt to the console.
    * @param {Object} param - The parameters for the confirmation prompt.
    * @param {string} param.message - The message to display for the confirmation prompt.
@@ -853,10 +942,17 @@ class Logger {
       initial: initial ?? true,
       message: renderer.colors.default(message),
       // prefix: '',
-      styles: {
+      styles: promptStyles({
         primary: renderer.colors.red,
         submitted: renderer.colors.red,
         success: renderer.colors.red,
+      }),
+      // The answer as a person gave it: yes or no, never the boolean the prompt keeps.
+      format(value) {
+        const answer = value ? 'yes' : 'no'
+        return this.state.submitted
+          ? this.styles.success(answer)
+          : this.styles.primary(answer)
       },
       onCancel: () => {
         const err = new Error('Canceled')
@@ -867,6 +963,7 @@ class Logger {
 
     // Save the last selected value
     renderer.state.lastToken = response.confirm
+    renderer.state.blankAbove = false
 
     // Restart the spinner if it was stopped
     renderer.spinner.start()
@@ -892,11 +989,11 @@ class Logger {
       message: renderer.colors.default(message),
       initial,
       // @ts-expect-error ...
-      styles: {
+      styles: promptStyles({
         danger: renderer.colors.red, // This sets the color for the error message
         primary: renderer.colors.red, // This sets the primary color to red
         submitted: renderer.colors.red, // Assuming 'submitted' is the correct property for the final input
-      },
+      }),
       validate: (input) => {
         let res
         if (validate) {
@@ -919,6 +1016,7 @@ class Logger {
 
     // Save the last selected value
     renderer.state.lastToken = response.input
+    renderer.state.blankAbove = false
 
     // Restart the spinner if it was stopped
     renderer.spinner.start()
@@ -949,11 +1047,11 @@ class Logger {
       name: 'select',
       choices: choices.map((choice) => choice.name),
       message: renderer.colors.default(message),
-      styles: {
+      styles: promptStyles({
         danger: renderer.colors.red, // This sets the color for the error message
         primary: renderer.colors.red, // This sets the primary color to red
         submitted: renderer.colors.red, // Assuming 'submitted' is the correct property for the final input
-      },
+      }),
       result(name) {
         // Return the value corresponding to the selected name
         return nameToValueMap[name]
@@ -970,6 +1068,7 @@ class Logger {
 
     // Save the last selected value
     renderer.state.lastToken = answer.select
+    renderer.state.blankAbove = false
 
     // Restart the spinner if it was stopped
     renderer.spinner.start()
@@ -989,11 +1088,11 @@ class Logger {
       choices,
       initial,
       message: renderer.colors.default(message),
-      styles: {
+      styles: promptStyles({
         danger: renderer.colors.red, // This sets the color for the error message
         primary: renderer.colors.red, // This sets the primary color to red
         submitted: renderer.colors.red, // Assuming 'submitted' is the correct property for the final input
-      },
+      }),
       result: (names) => {
         return choices
           .filter((choice) => names.includes(choice.name))
@@ -1007,6 +1106,7 @@ class Logger {
     })
     // Save the last selected value
     renderer.state.lastToken = answer.multiselect
+    renderer.state.blankAbove = false
 
     // Restart the spinner if it was stopped
     renderer.spinner.start()
@@ -1183,12 +1283,29 @@ const progress = {
     renderer.state.progressTasks.clear()
     writeProgress()
   },
+  /**
+   * Whether the spinner keeps a blank line above itself (the default). Without it, the spinner
+   * sits right under the last line, and stays there as lines are printed above it: under a block
+   * of lines that a blank line must not split.
+   */
+  setBlankLineAboveSpinner(on) {
+    renderer.state.spinnerBlankLine = Boolean(on)
+  },
 }
 
 /**
- * Make a copy of the style object for external use
+ * Whether the CLI printed a blank line before anything else, on the same screen as this output:
+ * then the first section needs no blank line of its own above it.
  */
-const style = { ...renderer.style }
+const noteStartupBlankLine = (printed) => {
+  markBlankAbove(Boolean(printed))
+}
+
+/**
+ * Make a copy of the style object for external use. `success` colours an outcome that went well
+ * (a 2xx status, say); it is not in renderer.style, so success lines keep their default colour.
+ */
+const style = { ...renderer.style, success: renderer.colors.green }
 
 /**
  * Get Plugin Writers
@@ -1242,6 +1359,7 @@ const getPluginWriters = (pluginName) => {
 export {
   Logger,
   applyAgentSession,
+  noteStartupBlankLine,
   computeIsInteractive,
   getColorSettingsForTests,
   getGlobalRendererSettings,

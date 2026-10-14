@@ -30,8 +30,13 @@ jest.unstable_mockModule('@serverless/util', () => ({
   writeText: jest.fn(),
 }))
 
-const { extractCommandsAndOptions, commandExist, validateCliSchema } =
-  await import('../../../../src/utils/cli/cli.js')
+const {
+  extractCommandsAndOptions,
+  commandExist,
+  normalizeDevSelectors,
+  normalizeRepeatableOptions,
+  validateCliSchema,
+} = await import('../../../../src/utils/cli/cli.js')
 
 // Mock process.exit to prevent yargs from exiting
 const originalExit = process.exit
@@ -121,6 +126,75 @@ describe('CLI Utils', () => {
 
       expect(Array.isArray(result.options.e)).toBe(true)
       expect(result.options.e).toEqual(['BAZ=qux'])
+    })
+
+    it('should normalize function options to arrays for dev and dev restore', () => {
+      for (const command of [['dev'], ['dev', 'restore']]) {
+        const options = normalizeDevSelectors(command, {
+          function: 'api',
+          'skip-function': 'report',
+        })
+        expect(options.function).toEqual(['api'])
+        expect(options['skip-function']).toEqual(['report'])
+      }
+    })
+
+    it('should merge -f into --function for dev, never overwrite it', () => {
+      const options = normalizeDevSelectors(['dev'], {
+        function: ['api', 'billing'],
+        f: 'worker',
+      })
+      expect(options.function).toEqual(['api', 'billing', 'worker'])
+      expect(options).not.toHaveProperty('f')
+      const short = normalizeDevSelectors(['dev', 'restore'], {
+        f: ['worker', 'api'],
+      })
+      expect(short.function).toEqual(['worker', 'api'])
+      expect(short).not.toHaveProperty('f')
+    })
+
+    it('should leave Dev Mode selectors to the command that runs', () => {
+      // A Compose service named "dev": "serverless dev invoke -f hello" is "invoke".
+      for (const words of [
+        ['dev', 'invoke'],
+        ['dev', 'logs'],
+        ['api', 'dev'],
+      ]) {
+        const result = extractCommandsAndOptions({
+          _: words,
+          $0: 'serverless',
+          f: 'worker',
+        })
+        expect(result.options.f).toBe('worker')
+        expect(result.options).not.toHaveProperty('function')
+      }
+      expect(normalizeDevSelectors(['invoke'], { f: 'worker' })).toEqual({
+        f: 'worker',
+      })
+    })
+
+    it('should give the same options when normalized twice', () => {
+      const once = normalizeDevSelectors(['dev'], {
+        function: ['api', 'billing'],
+        f: 'worker',
+        'skip-function': 'report',
+      })
+      const snapshot = JSON.parse(JSON.stringify(once))
+      normalizeDevSelectors(['dev'], once)
+      expect(once).toEqual(snapshot)
+      const env = { env: 'FOO=bar', e: 'BAZ=qux' }
+      normalizeRepeatableOptions(['invoke', 'local'], env)
+      normalizeRepeatableOptions(['invoke', 'local'], env)
+      expect(env).toEqual({ env: ['FOO=bar'], e: ['BAZ=qux'] })
+    })
+
+    it('should leave deploy function -f as a string', () => {
+      const result = extractCommandsAndOptions({
+        _: ['deploy', 'function'],
+        $0: 'serverless',
+        f: 'api',
+      })
+      expect(result.options.f).toBe('api')
     })
 
     it('should not normalize env option for other commands', () => {

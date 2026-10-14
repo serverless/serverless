@@ -73,13 +73,18 @@ newly onboarded teammates) benefit.
 
 ## Automatic updates
 
-Once installed, skills refresh automatically: whenever you run any `serverless`
-command with a newer CLI that bundles newer skills, installed skills are
-silently upgraded (a one-line notice is printed). Notes:
+Once installed, skills refresh automatically: when a `serverless` command
+completes successfully with a newer CLI that bundles newer skills, installed
+skills are silently upgraded (a one-line notice is printed). User-level skills
+are upgraded wherever the command runs, project skills when it runs in the
+service. Notes:
 
 - Updates only ever move forward — an older CLI never downgrades skills a
   teammate's newer CLI installed.
-- Auto-update is skipped in CI environments.
+- Auto-update is skipped in CI environments, after a failed command, and
+  for `--help`, `--version` and the `agent` commands: `agent setup` and
+  `agent skills install` update skills themselves, and `agent docs` and
+  `agent skills list`/`read` never write any.
 - New skills added in newer CLI versions are installed into directories that
   already contain Framework-managed skills.
 
@@ -114,6 +119,17 @@ directory). As long as the other directory still contains Framework-managed
 skills, a deleted directory is not recreated — not even by re-running
 `install`. To fully remove: delete all Framework-managed skill folders from
 both directories.
+
+## Dev Mode for coding agents
+
+`serverless dev` runs your deployed functions' real invocations on your machine. An agent starts it
+with `serverless dev --detach`, follows it with `serverless dev wait`, `serverless dev requests` and
+`serverless dev replay`, and ends it with `serverless dev stop`, which restores the functions; every
+one of these commands prints one JSON result with `--json`. The
+[Dev Mode guide](../providers/aws/guide/dev-mode.md#using-dev-mode-from-an-ai-agent) describes the
+loop, the exit codes and the files, and the bundled skill teaches it:
+
+    serverless agent skills read serverless-dev-mode
 
 ## More agent tooling
 

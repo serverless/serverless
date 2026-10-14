@@ -1,0 +1,84 @@
+name: 'CI: Dev Mode Bridge'
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/ci-dev-mode-bridge.yml'
+      - 'dev-mode-bridge/**'
+      - 'packages/serverless/scripts/build-dev-layer.js'
+      - 'packages/serverless/lib/plugins/aws/dev/attach/naming.js'
+      - 'packages/serverless/package.json'
+      - 'package.json'
+      - '.gitattributes'
+
+jobs:
+  test-dev-mode-bridge:
+    name: 'Test: Dev Mode Bridge'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout Code'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: 'Setup: Go'
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: dev-mode-bridge/go.mod
+          cache: false
+      - name: 'Test: Unit'
+        working-directory: ./dev-mode-bridge
+        # Tests skip when a tool they need is missing (bash >= 4, curl, a git checkout for the
+        # VCS-stamp test); here a missing tool fails them instead.
+        env:
+          SLS_DEV_TEST_REQUIRE_TOOLS: '1'
+        run: |
+          go vet ./...
+          go test -race ./...
+      - name: 'Test: Vulnerabilities'
+        working-directory: ./dev-mode-bridge
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
+
+  # The release workflow builds the layers on Linux and Windows runners, so both are built here.
+  build-dev-mode-layers:
+    name: 'Build: Dev Mode Layers (${{ matrix.os }})'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - name: 'Checkout Code'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: 'Setup: Go'
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: dev-mode-bridge/go.mod
+          cache: false
+      - name: 'Setup: Node.js'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.x
+          check-latest: true
+      - name: 'Setup: Enable Corepack'
+        run: corepack enable npm
+      # No dependency install: the layer build uses only Node.js built-ins.
+      - name: 'Build: Layers (twice, must be byte-identical)'
+        shell: bash
+        run: |
+          npm run build:devmode:layer -w @serverless/framework
+          first=$(sha256sum packages/serverless/lib/plugins/aws/dev/layer/dist/*.zip)
+          echo "$first"
+          npm run build:devmode:layer -w @serverless/framework
+          second=$(sha256sum packages/serverless/lib/plugins/aws/dev/layer/dist/*.zip)
+          if [ "$first" != "$second" ]; then
+            echo "The second build differs from the first:" >&2
+            echo "$second" >&2
+            exit 1
+          fi

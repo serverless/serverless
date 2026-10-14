@@ -201,7 +201,7 @@ In V.4, these files are read automatically, without the `useDotEnv` property. `u
 
 In previous versions of Serverless Framework (<= V.3), the `dev` command would work exclusively with Serverless Console or Serverless Framework Dashboard. However, `dev` has been completely re-imagined to only work with the CLI, not requiring Dashboard, and proxy events from your live AWS Lambda functions to your local code, enabling you to develop faster than ever.
 
-Learn more about the new [dev mode](https://www.serverless.com/framework/docs/providers/aws/cli-reference/dev).
+Learn more in the [Dev Mode guide](https://www.serverless.com/framework/docs/providers/aws/guide/dev-mode).
 
 ### Native Typescript Support
 

@@ -269,13 +269,211 @@ commands.set('dev', {
       shortcut: 'p',
       type: 'string',
     },
+    function: {
+      usage:
+        'Attach only this function (repeatable); the others run their deployed code',
+      shortcut: 'f',
+      type: 'multiple',
+    },
+    'skip-function': {
+      usage: 'Keep this function on its deployed code (repeatable)',
+      type: 'multiple',
+    },
+    'take-over': {
+      usage: 'Also attach functions that are in Dev Mode for another developer',
+      type: 'boolean',
+    },
+    approve: {
+      usage: 'Ask for confirmation before changing any function',
+      type: 'boolean',
+    },
     'on-exit': {
       usage:
-        'What to do when exiting dev mode. Allowed value: "remove" (with confirmation)',
+        'What to do on exit instead of restoring: "keep" leaves functions in Dev Mode, "remove" restores and then removes the service (with confirmation)',
       type: 'string',
+    },
+    json: {
+      usage:
+        'With --detach or --dry-run: print one JSON result on stdout (text goes to stderr)',
+      type: 'boolean',
+    },
+    'dry-run': {
+      usage:
+        'Check everything and print the changes Dev Mode would make, without changing anything',
+      type: 'boolean',
+    },
+    detach: {
+      usage:
+        'Start the session in the background and return once it is ready (for scripts and AI agents); "serverless dev stop" ends it',
+      type: 'boolean',
+    },
+    'idle-timeout': {
+      usage:
+        'With --detach: stop and restore after this long without activity, such as 30m (default 60m; 0 never)',
+      type: 'string',
+    },
+    'session-process': {
+      usage: 'Internal: used by --detach',
+      type: 'boolean',
+    },
+    keys: {
+      usage:
+        'Single-key commands while Dev Mode runs in a terminal (on by default); --no-keys turns them off',
+      type: 'boolean',
     },
   },
   lifecycleEvents: ['dev'],
+  serviceDependencyMode: 'required',
+  hasAwsExtension: true,
+})
+
+commands.set('dev restore', {
+  usage:
+    'Remove Dev Mode configuration from the functions of a stage (left by a session that did not exit cleanly, or by --on-exit keep)',
+  options: {
+    function: {
+      usage: 'Only this function (repeatable)',
+      shortcut: 'f',
+      type: 'multiple',
+    },
+    json: {
+      usage: 'Print one JSON result on stdout (text goes to stderr)',
+      type: 'boolean',
+    },
+  },
+  lifecycleEvents: ['restore'],
+  serviceDependencyMode: 'required',
+  hasAwsExtension: true,
+})
+
+commands.set('dev setup', {
+  usage:
+    'Create the IAM role Dev Mode uses in this AWS account and region (for accounts where developers cannot create IAM roles)',
+  options: {
+    'permissions-boundary': {
+      usage: 'ARN of a permissions boundary policy to attach to the role',
+      type: 'string',
+    },
+    path: {
+      usage: 'IAM path for the role, for example "/serverless/" (default "/")',
+      type: 'string',
+    },
+  },
+  lifecycleEvents: ['setup'],
+  serviceDependencyMode: 'required',
+  hasAwsExtension: true,
+})
+
+commands.set('dev status', {
+  usage:
+    'Show whether Dev Mode is on in this service directory: its functions, invocations and endpoints',
+  options: {
+    json: {
+      usage: 'Print one JSON result on stdout (text goes to stderr)',
+      type: 'boolean',
+    },
+  },
+  lifecycleEvents: ['status'],
+  serviceDependencyMode: 'required',
+  hasAwsExtension: true,
+})
+
+commands.set('dev stop', {
+  usage:
+    'Stop the Dev Mode session running in this service directory and restore its functions',
+  options: {
+    keep: {
+      usage: 'Leave the functions in Dev Mode (as "--on-exit keep" does)',
+      type: 'boolean',
+    },
+    timeout: {
+      usage:
+        'How long to wait for the restore, for example 90s or 10m (default 7m)',
+      type: 'string',
+    },
+    json: {
+      usage: 'Print one JSON result on stdout (text goes to stderr)',
+      type: 'boolean',
+    },
+  },
+  lifecycleEvents: ['stop'],
+  serviceDependencyMode: 'required',
+  hasAwsExtension: true,
+})
+
+commands.set('dev wait', {
+  usage:
+    'Wait until the Dev Mode session in this directory is ready, runs an invocation, reloads or ends, then print that event',
+  options: {
+    for: {
+      usage: 'What to wait for: "ready", "invocation", "reload" or "ended"',
+      type: 'string',
+    },
+    function: {
+      usage: 'Only an invocation or reload of this function (repeatable)',
+      shortcut: 'f',
+      type: 'multiple',
+    },
+    after: {
+      usage:
+        'Only events after this cursor (from a --json result), including ones that already happened; with --for ready or ended, a state already reached returns its earlier record',
+      type: 'string',
+    },
+    timeout: {
+      usage:
+        'How long to wait, such as 100s, 5m or 1h (default 100s, at most 1h)',
+      type: 'string',
+    },
+    json: {
+      usage: 'Print one JSON result on stdout (text goes to stderr)',
+      type: 'boolean',
+    },
+  },
+  lifecycleEvents: ['wait'],
+  serviceDependencyMode: 'required',
+  hasAwsExtension: true,
+})
+
+commands.set('dev requests', {
+  usage:
+    'List the latest invocations Dev Mode ran on this machine, newest first, with the file that holds each one',
+  options: {
+    function: {
+      usage: 'Only this function (repeatable)',
+      shortcut: 'f',
+      type: 'multiple',
+    },
+    limit: {
+      usage: 'How many to list (default 20, at most 500)',
+      type: 'string',
+    },
+    json: {
+      usage: 'Print one JSON result on stdout (text goes to stderr)',
+      type: 'boolean',
+    },
+  },
+  lifecycleEvents: ['requests'],
+  serviceDependencyMode: 'required',
+  hasAwsExtension: true,
+})
+
+commands.set('dev replay', {
+  usage:
+    'Run a recorded invocation again on this machine through the running session; no caller receives the result',
+  positionals: {
+    requestId: {
+      usage:
+        'The request id, or its first 8 or more characters (see "serverless dev requests")',
+      required: true,
+    },
+  },
+  options: {
+    json: {
+      usage: 'Print one JSON result on stdout (text goes to stderr)',
+      type: 'boolean',
+    },
+  },
+  lifecycleEvents: ['replay'],
   serviceDependencyMode: 'required',
   hasAwsExtension: true,
 })

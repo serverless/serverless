@@ -1,9 +1,6 @@
 import { log, ServerlessError } from '@serverless/util'
-import {
-  buildDiscoveryDescriptors,
-  resolveBaseUrls,
-} from './lib/discovery-route.js'
-import { formatMcpEndpoints, serviceEndpointOf } from './lib/endpoints.js'
+import { buildDiscoveryDescriptors } from './lib/discovery-route.js'
+import { formatMcpEndpoints, mcpServerUrls } from './lib/endpoints.js'
 import { esbuildBuildState } from './lib/esbuild-build-state.js'
 import {
   artifactModulePath,
@@ -103,10 +100,8 @@ class AwsMcp {
       },
       // The window for the handler swap opens the moment esbuild's packaging
       // hook returns (it has to build and zip the user's own module) and closes
-      // when `compileFunctions` reads the handler.
-      // `after:package:createDeploymentArtifacts` sits in it too, but dev mode
-      // replaces that hook with a no-op for every plugin but its own
-      // (`../dev/index.js`), so a swap there would silently stop running.
+      // when `compileFunctions` reads the handler; the swap runs at the end of
+      // that window, right before the handler is read.
       'before:package:compileFunctions': () => this.repointFunctions(),
       // `deploy function` never reaches `compileFunctions`: it reads the handler
       // one event later, in `updateFunctionConfiguration`
@@ -179,12 +174,10 @@ class AwsMcp {
   }
 
   /**
-   * Dev mode owns the artifact and the handler of every function it redirects
-   * (`../dev/index.js` deploys its shim zip and selects the shim handler), so
-   * the packaging integration stands down - staging or swapping here would be
-   * clobbered. Serving MCP requests under dev is the dev plugin's job: it
-   * deploys the streamified shim door for these functions and runs the
-   * prebuilt entry's buffered door locally.
+   * Whether this run is a `serverless dev` session. Dev Mode neither packages
+   * nor deploys: it attaches the functions as they are deployed
+   * (`../dev/attach/session.js`), so the packaging integration stands down
+   * during a session rather than stage or swap anything.
    */
   isDevMode() {
     return this.serverless.devmodeEnabled === true
@@ -390,20 +383,16 @@ class AwsMcp {
     const outputs = this.serverless.pluginManager.plugins.find((plugin) =>
       Array.isArray(plugin.gatheredData?.outputs),
     )?.gatheredData.outputs
-    const lines = formatMcpEndpoints({
-      servers: this.validated.servers,
-      serviceEndpoint: serviceEndpointOf(outputs),
-      // The resolution the discovery documents are built from, so the URL
-      // printed here and the URL a document advertises are the same string by
-      // construction. Resolved rather than carried over from packaging: `info`
-      // never packages anything, and this needs no REST API id - a server
-      // reached at the stage URL has no resolved URL to print and falls back to
-      // the stack output.
-      baseUrls: resolveBaseUrls({
+    // The resolution the discovery documents are built from (see
+    // `mcpServerUrls`), so the URL printed here and the URL a document
+    // advertises are the same string by construction.
+    const lines = formatMcpEndpoints(
+      mcpServerUrls({
         servers: this.validated.servers,
+        outputs,
         provider: this.serverless.service.provider,
       }),
-    })
+    )
     if (lines.length === 0) {
       log.debug(
         'mcp: no custom domain is configured and no "ServiceEndpoint" stack output was gathered, skipping the endpoint summary',

@@ -13,6 +13,7 @@ on:
       - 'packages/serverless/**'
       - 'packages/engine/**'
       - 'packages/mcp/**'
+      - 'dev-mode-bridge/**'
 
 defaults:
   run:
@@ -29,7 +30,7 @@ jobs:
       - name: 'Checkout Code'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: 'Setup: Node.js'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24.x
           check-latest: true
@@ -72,7 +73,7 @@ jobs:
         with:
           fetch-depth: 50
       - name: 'Setup: Node.js'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24.x
           check-latest: true
@@ -83,10 +84,14 @@ jobs:
         run: |
           cd ../../
           npm ci
-      - name: 'Build: Minify Shim'
-        run: |
-          cd ../serverless/lib/plugins/aws/dev
-          ../../../../../../node_modules/.bin/esbuild ./shim.js --bundle --platform=node --minify --outfile=./shim.min.js
+      - name: 'Setup: Go'
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: dev-mode-bridge/go.mod
+          cache: false
+      - name: 'Build: Dev Mode Layers'
+        working-directory: ./packages/serverless
+        run: npm run build:devmode:layer
       - name: 'Build: MCP Entry'
         working-directory: ./packages/serverless
         run: npm run build:mcp:entry
@@ -123,7 +128,7 @@ jobs:
       - name: 'Checkout Code'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: 'Setup: Node.js'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24.x
           check-latest: true
@@ -139,10 +144,14 @@ jobs:
         run: |
           cd ../../
           npm ci
-      - name: 'Build: Minify Shim'
-        run: |
-          cd ../serverless/lib/plugins/aws/dev
-          ../../../../../../node_modules/.bin/esbuild ./shim.js --bundle --platform=node --minify --outfile=./shim.min.js
+      - name: 'Setup: Go'
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: dev-mode-bridge/go.mod
+          cache: false
+      - name: 'Build: Dev Mode Layers'
+        working-directory: ./packages/serverless
+        run: npm run build:devmode:layer
       - name: 'Build: MCP Entry'
         working-directory: ./packages/serverless
         run: npm run build:mcp:entry
@@ -167,7 +176,7 @@ jobs:
       - name: 'Checkout Code'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: 'Setup: Node.js'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24.x
           check-latest: true

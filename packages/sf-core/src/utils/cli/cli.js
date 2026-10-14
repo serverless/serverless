@@ -1,5 +1,7 @@
 import yargs from 'yargs'
 import { ServerlessError, log, progress, writeText } from '@serverless/util'
+import { declaringPrefixOf } from '@serverless/framework/lib/cli/positionals.js'
+import { normalizeJsonArgs } from '@serverless/util/src/cli/json-flag.js'
 
 const buildArgvArray = ({ command, options }) => {
   const argvArray = [...command] // Start with the command array
@@ -133,18 +135,42 @@ const commandWithoutPositionals = ({ command, schema }) =>
   (command && schema && matchCommand({ command, schema })) || command
 
 /**
- * Get "command" and "options" from argv
+ * A Framework command without the positional values its entry in the Framework commands schema
+ * declares (`positionals`), so usage reports name the command, never a value: `dev replay <id>`
+ * is reported as `dev replay`. No word after such a command is ever reported, also words beyond
+ * the ones it declares (`dev replay <id> <extra>` is `dev replay`). A command the schema has as
+ * it is, or whose longest known prefix declares no positionals, comes back unchanged.
  */
-const extractCommandsAndOptions = (argv) => {
-  const command = argv._
-  const options = argv
-  delete options._
-  delete options.$0
-  if (options.debug === true) {
-    options.debug = '*'
-  }
+const frameworkCommandWithoutPositionals = ({ command, commandsSchema }) => {
+  if (!Array.isArray(command)) return command
+  const prefix = declaringPrefixOf(command, commandsSchema)
+  return prefix ? command.slice(0, prefix.length) : command
+}
 
-  // Normalize multi-value options for specific commands.
+/**
+ * A Compose command without positional values: the Framework command's own words, after the
+ * service name when the first word is one (`api dev replay <id>` → `api dev replay`). No word after
+ * a command that declares positionals is kept, however many follow; any other command comes back
+ * unchanged.
+ */
+const composeCommandWithoutPositionals = ({ command, commandsSchema }) => {
+  if (!Array.isArray(command)) return command
+  const own = declaringPrefixOf(command, commandsSchema)
+  if (own) return command.slice(0, own.length)
+  const afterService =
+    command.length > 1
+      ? declaringPrefixOf(command.slice(1), commandsSchema)
+      : null
+  return afterService ? command.slice(0, afterService.length + 1) : command
+}
+
+/**
+ * Normalize the repeatable options of `command` in place. `command` must start with the command's
+ * own words: Compose calls this again once it has removed a leading service name
+ * (`serverless api invoke local`), which hides the command from the first call. A second call
+ * changes nothing.
+ */
+const normalizeRepeatableOptions = (command, options) => {
   // For "invoke local", ensure --env / -e are always treated as arrays,
   // matching the "multiple" type in the Framework command schema.
   if (command[0] === 'invoke' && command[1] === 'local') {
@@ -155,6 +181,64 @@ const extractCommandsAndOptions = (argv) => {
       options.e = [options.e]
     }
   }
+  return options
+}
+
+/**
+ * "dev" and "dev restore": --function/-f and --skip-function are repeatable ("multiple" in the
+ * Framework command schema), so a single value becomes a one-item array. -f is merged into
+ * --function: mapping the shortcut to its full name would replace the values given with
+ * --function instead of adding to them. Call it with the command that runs, once any Compose
+ * service name is removed: before that, "serverless dev invoke -f hello" in a project with a
+ * service named "dev" would look like Dev Mode. A second call changes nothing.
+ */
+const normalizeDevSelectors = (command, options) => {
+  if (command[0] === 'dev') {
+    const values = (key) =>
+      options[key] === undefined ? [] : [].concat(options[key])
+    if (options.function !== undefined || options.f !== undefined) {
+      options.function = [...values('function'), ...values('f')]
+      delete options.f
+    }
+    if (options['skip-function'] !== undefined) {
+      options['skip-function'] = values('skip-function')
+    }
+  }
+  return options
+}
+
+/**
+ * The command-line arguments (without node and the script) as the CLI parses them. `--json` is a
+ * flag: it never takes the next word as its value (`dev replay --json <id>` keeps the id), and
+ * `--json=true|1` and `--json=false|0` turn it on and off. Words are never read as numbers, so a
+ * positional such as a request id prefix (`123456e7`) keeps its exact text.
+ */
+const parseCommandLine = (args) =>
+  yargs(normalizeJsonArgs(args))
+    .scriptName('serverless')
+    .usage('$0 <cmd> [args]')
+    .parserConfiguration({
+      'parse-numbers': false,
+      'parse-positional-numbers': false,
+      'camel-case-expansion': false,
+    })
+    .array('param') // Always parse --param as an array
+    .boolean('json')
+    .version(false)
+    .help(false).argv
+
+/**
+ * Get "command" and "options" from argv
+ */
+const extractCommandsAndOptions = (argv) => {
+  const command = argv._
+  const options = argv
+  delete options._
+  delete options.$0
+  if (options.debug === true) {
+    options.debug = '*'
+  }
+  normalizeRepeatableOptions(command, options)
   return { command, options }
 }
 
@@ -162,5 +246,10 @@ export {
   validateCliSchema,
   commandExist,
   commandWithoutPositionals,
+  frameworkCommandWithoutPositionals,
+  composeCommandWithoutPositionals,
   extractCommandsAndOptions,
+  parseCommandLine,
+  normalizeDevSelectors,
+  normalizeRepeatableOptions,
 }

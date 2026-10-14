@@ -7,7 +7,6 @@ export default [
       '**/dist/**',
       '**/.serverless/**',
       '**/coverage/**',
-      'packages/serverless/lib/plugins/aws/dev/shim.min.js',
     ],
   },
   ...baseConfig.map((config) => ({
