@@ -187,6 +187,32 @@ describe('service-provider dispatch-pass resolution', () => {
     expect(seen.api.dbHost).toBe('db.alice.internal')
   })
 
+  test('a service hears which Compose file the command named, and runs without it as an option', async () => {
+    const compose = await buildScenario({
+      runStage: 'alice',
+      services: { api: {} },
+      keepNodes: ['api'],
+    })
+    const runnerFunction = jest.fn(async () => ({}))
+    await compose.executeComponentsGraph({
+      command: ['dev', 'wait'],
+      reverse: false,
+      composeOrgName: 'org',
+      options: { stage: 'alice', c: 'compose/shop.yml' },
+      resolverProviders: {},
+      params: {},
+      runnerFunction,
+      state: freshState(),
+      isMultipleComponents: false,
+    })
+    const [{ options, compose: context }] = runnerFunction.mock.calls[0]
+    expect(context).toMatchObject({
+      serviceName: 'api',
+      configFile: 'compose/shop.yml',
+    })
+    expect(options).not.toHaveProperty('c')
+  })
+
   test('pinned ${shared:...} (effectiveStage !== runStage) get-states at the PINNED stage', async () => {
     resolveConfigAndGetState.mockResolvedValue({
       state: { outputs: { DbEndpoint: 'db.prod.internal' } },

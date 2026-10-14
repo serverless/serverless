@@ -26,6 +26,8 @@ check() {
 check 'packed CLI runs' node "${package_dir}/dist/sf-core.js" --version
 check 'bundled skills' node "${script_dir}/verify-skills-packaging.js" "${package_dir}/dist/sf-core.js"
 check 'MCP Lambda entry' node "${script_dir}/verify-mcp-entry-packaging.js" "${package_dir}"
+check 'Dev Mode layers' node "${script_dir}/verify-dev-layer-packaging.js" "${package_dir}"
+check 'Dev Mode runtime clients' node "${script_dir}/verify-dev-local-packaging.js" "${package_dir}"
 check 'config validator' node "${script_dir}/verify-config-validator-packaging.js" "${package_dir}"
 
 if [ "${#failed[@]}" -gt 0 ]; then

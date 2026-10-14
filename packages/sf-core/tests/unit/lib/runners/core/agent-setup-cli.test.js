@@ -4,6 +4,7 @@ import { promisify } from 'util'
 import { mkdtemp, writeFile, realpath } from 'fs/promises'
 import { tmpdir } from 'os'
 import path from 'path'
+import { readFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 
 // Smoke tests that spawn the REAL bin, not the runner module: they are the only
@@ -15,6 +16,13 @@ const run = promisify(execFile)
 const BIN = fileURLToPath(
   new URL('../../../../../bin/sf-core.js', import.meta.url),
 )
+// The version this checkout's manifest ships, so a skill bump needs no test edit.
+const FRAMEWORK_SKILL_VERSION = JSON.parse(
+  readFileSync(
+    new URL('../../../../../../../skills/manifest.json', import.meta.url),
+    'utf8',
+  ),
+)['serverless-framework'].version
 // macOS: /var/folders symlinks — always realpath tmp dirs (repo-known jest quirk)
 const tmp = async () =>
   realpath(await mkdtemp(path.join(tmpdir(), 'agent-setup-')))
@@ -49,7 +57,7 @@ describe('agent setup CLI (spawned, unauthenticated, non-TTY)', () => {
       { cwd, env: env(home) },
     )
     const out = stdout + stderr
-    expect(out).toContain('serverless-framework v1')
+    expect(out).toContain(`serverless-framework v${FRAMEWORK_SKILL_VERSION}`)
     expect(out).toContain('service: no serverless.yml in this directory')
     expect(out).toContain('auth: not signed in')
     // Dir + leaf together: proves the real bin names the directory the skill

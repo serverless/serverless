@@ -748,8 +748,8 @@ describe('_getRemoteCodeSha', () => {
 })
 
 /**
- * Colour codes in the rendered diff. For an AI coding agent (unless FORCE_COLOR or
- * SLS_INTERACTIVE_SETUP_ENABLE is set) the diff must carry no escape codes but otherwise read
+ * Colour codes in the rendered diff. With NO_COLOR, or for an AI coding agent (unless FORCE_COLOR or
+ * SLS_INTERACTIVE_SETUP_ENABLE is set), the diff must carry no escape codes but otherwise read
  * exactly as a person's; everyone else gets the coloured output unchanged. The templates below
  * render through the real Formatter: additions, removals, updates, replacements, nested
  * property changes, an IAM statement table, Parameters, Outputs and the Function Code summary.
@@ -934,9 +934,18 @@ describe('runDiff output colours', () => {
   let savedLevel
   let savedEnv
   let savedColumns
+  // The caller's shell never decides: the colour variables come from each test alone.
+  const COLOUR_VARIABLES = [
+    'NO_COLOR',
+    'FORCE_COLOR',
+    'SLS_INTERACTIVE_SETUP_ENABLE',
+  ]
+
   beforeEach(() => {
     savedLevel = chalk.level
     savedEnv = process.env
+    process.env = { ...savedEnv }
+    for (const name of COLOUR_VARIABLES) delete process.env[name]
     savedColumns = Object.getOwnPropertyDescriptor(process.stdout, 'columns')
     chalk.level = 3
     // A narrow terminal, so the IAM statement table wraps to the stream's width.
@@ -959,12 +968,16 @@ describe('runDiff output colours', () => {
     jest.restoreAllMocks()
   })
 
-  const detectWith = async (env) => {
+  // Only the variables given, over the caller's environment without its colour variables.
+  const withEnv = (env) => {
     process.env = { ...savedEnv, ...env }
-    if (!('FORCE_COLOR' in env)) delete process.env.FORCE_COLOR
-    if (!('SLS_INTERACTIVE_SETUP_ENABLE' in env)) {
-      delete process.env.SLS_INTERACTIVE_SETUP_ENABLE
+    for (const name of COLOUR_VARIABLES) {
+      if (!(name in env)) delete process.env[name]
     }
+  }
+
+  const detectWith = async (env) => {
+    withEnv(env)
     await detectAgent()
   }
 
@@ -1056,6 +1069,43 @@ describe('runDiff output colours', () => {
     expect(notices).toContain(
       'Resources: 1 to create, 4 to update, 1 to remove',
     )
+  })
+
+  // No detection runs here, so no agent is involved, whatever the caller's shell sets.
+  it('writes no escape codes with NO_COLOR, with the same content as with colour', async () => {
+    const { stdout: coloured } = await runAndCapture()
+    withEnv({ NO_COLOR: '1' })
+    const { stdout: plain, notices } = await runAndCapture()
+
+    expect(coloured).toContain(ESC)
+    expect(plain).not.toContain(ESC)
+    expect(plain).toBe(stripAnsi(coloured))
+    expect(notices.join('\n')).not.toContain(ESC)
+  })
+
+  it('keeps colours with an empty NO_COLOR', async () => {
+    withEnv({ NO_COLOR: '' })
+    expect(diffOutputStream()).toBe(process.stdout)
+    const { stdout } = await runAndCapture()
+    expect(stdout).toBe(colouredRendering())
+  })
+
+  // chalk is forced to full colour here, so only the rule can strip the codes.
+  it.each([[{ FORCE_COLOR: '0' }], [{ FORCE_COLOR: 'false', NO_COLOR: '1' }]])(
+    'writes no escape codes with %p',
+    async (env) => {
+      const { stdout: coloured } = await runAndCapture()
+      withEnv(env)
+      const { stdout: plain } = await runAndCapture()
+      expect(plain).not.toContain(ESC)
+      expect(plain).toBe(stripAnsi(coloured))
+    },
+  )
+
+  it('keeps colours with FORCE_COLOR over NO_COLOR', async () => {
+    withEnv({ NO_COLOR: '1', FORCE_COLOR: '1' })
+    const { stdout } = await runAndCapture()
+    expect(stdout).toBe(colouredRendering())
   })
 
   it('gives a person the process stdout itself', () => {

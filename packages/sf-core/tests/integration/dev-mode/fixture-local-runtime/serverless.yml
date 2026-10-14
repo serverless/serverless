@@ -1,0 +1,22 @@
+service: devmode-lr
+
+provider:
+  name: aws
+  runtime: nodejs24.x
+  architecture: arm64
+  region: us-east-1
+  environment:
+    FIXTURE_GREETING: deployed-greeting
+
+build:
+  esbuild: false
+
+functions:
+  node:
+    handler: handler.handler
+  stream:
+    handler: stream.handler
+  python:
+    handler: handler_py.handler
+    runtime: python3.13
+    architecture: x86_64

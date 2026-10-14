@@ -21,8 +21,8 @@ import { log, ServerlessError } from '@serverless/util'
  * The release bundles this module into `dist/`, while the entry is a non-JS
  * asset the release scripts copy verbatim into the source-tree layout - so from
  * the bundle it has to be reached through that layout rather than relative to
- * the bundle. Same rewrite, for the same reason, as the dev-mode shim's
- * (`../../dev/index.js`), the delivery pattern this one copies.
+ * the bundle. The Dev Mode layer zips are reached the same way, for the same
+ * reason (`layerArtifactPathFrom` in `../../dev/attach/naming.js`).
  *
  * Split out from the value below so the bundled layout - which no unit test can
  * reach by importing this module - is pinned by a test rather than by the

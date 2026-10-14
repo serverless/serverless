@@ -649,6 +649,87 @@ describe('Aws Resolver', () => {
     })
   })
 
+  describe('credentialSource', () => {
+    const build = ({ providerConfig = {}, dashboard = null, resolverName }) =>
+      Object.assign(
+        new Aws({
+          logger: mockLogger,
+          providerConfig,
+          serviceConfigFile: {},
+          configFileDirPath: '/tmp',
+          options: {},
+          stage: 'dev',
+          dashboard,
+          composeParams: null,
+          resolveVariableFunc: jest.fn(),
+          resolveConfigurationPropertyFunc: jest.fn(),
+        }),
+        resolverName && { resolverName },
+      )
+    const withEnv = (vars, fn) => {
+      const env = process.env
+      process.env = {
+        ...env,
+        AWS_PROFILE: '',
+        AWS_ACCESS_KEY_ID: '',
+        AWS_SECRET_ACCESS_KEY: '',
+        ...vars,
+      }
+      try {
+        return fn()
+      } finally {
+        process.env = env
+      }
+    }
+
+    test('a Dashboard Provider', () => {
+      expect(
+        build({
+          dashboard: { aws: { accessKeyId: 'a', secretAccessKey: 'b' } },
+        }).credentialSource(),
+      ).toEqual({ source: 'dashboard', resolver: undefined })
+    })
+
+    test('an aws resolver in serverless.yml, with its name', () => {
+      expect(
+        build({
+          providerConfig: { type: 'aws', profile: 'ops' },
+          resolverName: 'awsOps',
+        }).credentialSource(),
+      ).toEqual({ source: 'profile', profile: 'ops', resolver: 'awsOps' })
+      expect(
+        build({
+          providerConfig: {
+            type: 'aws',
+            accessKeyId: 'a',
+            secretAccessKey: 'b',
+          },
+          resolverName: 'awsKeys',
+        }).credentialSource(),
+      ).toEqual({ source: 'resolver-config', resolver: 'awsKeys' })
+    })
+
+    test('a profile, and keys in the environment', () => {
+      withEnv({}, () =>
+        expect(
+          build({ providerConfig: { profile: 'dev' } }).credentialSource(),
+        ).toEqual({ source: 'profile', profile: 'dev', resolver: undefined }),
+      )
+      withEnv({ AWS_ACCESS_KEY_ID: 'a', AWS_SECRET_ACCESS_KEY: 'b' }, () =>
+        expect(build({}).credentialSource()).toEqual({
+          source: 'env',
+          resolver: undefined,
+        }),
+      )
+    })
+
+    test('makes no AWS call', () => {
+      build({ providerConfig: { profile: 'dev' } }).credentialSource()
+      expect(mockSendAwsRequest).not.toHaveBeenCalled()
+      expect(mockGetAwsCredentials).not.toHaveBeenCalled()
+    })
+  })
+
   describe('static properties', () => {
     test('has correct type', () => {
       expect(Aws.type).toBe('aws')

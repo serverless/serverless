@@ -1,24 +1,26 @@
 import { describe, it, expect } from '@jest/globals'
 import {
   formatMcpEndpoints,
+  mcpServerUrls,
   serviceEndpointOf,
 } from '../../../../../../lib/plugins/aws/mcp/lib/endpoints.js'
-import {
-  buildDiscoveryDescriptors,
-  resolveBaseUrls,
-} from '../../../../../../lib/plugins/aws/mcp/lib/discovery-route.js'
+import { buildDiscoveryDescriptors } from '../../../../../../lib/plugins/aws/mcp/lib/discovery-route.js'
 
 const serviceEndpoint = 'https://abc123.execute-api.us-east-1.amazonaws.com/dev'
 
-// The summary is formatted from exactly what the discovery routes are built
-// from, so the tests resolve it the same way the plugin does rather than
-// hand-writing a map.
-const format = ({ servers, provider = {}, ...rest }) =>
-  formatMcpEndpoints({
-    servers,
-    baseUrls: resolveBaseUrls({ servers, provider }),
-    ...rest,
-  })
+// The summary as the plugin builds it: the server URLs from the stack's outputs
+// (a `ServiceEndpoint` output when `serviceEndpoint` is given) and the provider
+// block, then the section's entries.
+const format = ({ servers, provider = {}, serviceEndpoint: endpoint }) =>
+  formatMcpEndpoints(
+    mcpServerUrls({
+      servers,
+      provider,
+      outputs: endpoint
+        ? [{ OutputKey: 'ServiceEndpoint', OutputValue: endpoint }]
+        : [],
+    }),
+  )
 
 // What CloudFormation substitutes into a stage-sourced document on deploy. The
 // values are the ones `serviceEndpoint` above is made of, because the stack
@@ -52,6 +54,28 @@ const publishedResourceOf = ({ servers, provider = {} }, name) => {
         )
   return JSON.parse(document).resource
 }
+
+describe('mcpServerUrls', () => {
+  // Dev Mode reads the same answer as data: the server's name and its URL.
+  it('gives each server its name and URL, leaving out a server with no origin', () => {
+    expect(
+      mcpServerUrls({
+        servers: [
+          {
+            name: 'crm',
+            oauthDiscovery: {
+              issuer: 'https://acme.auth0.com',
+              publicUrl: 'https://mcp.acme.com',
+            },
+          },
+          { name: 'docs' },
+        ],
+        outputs: [],
+        provider: {},
+      }),
+    ).toEqual([{ name: 'crm', url: 'https://mcp.acme.com/crm/mcp' }])
+  })
+})
 
 describe('formatMcpEndpoints', () => {
   // The entries feed `addServiceOutputSection('mcp', ...)`, whose renderer

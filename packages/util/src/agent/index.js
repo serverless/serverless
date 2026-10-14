@@ -142,20 +142,43 @@ export const resetAgentDetectionForTests = () => {
 }
 
 /**
- * Whether colour output should be turned off: an AI coding agent (the detected one unless `agent`
- * is given), FORCE_COLOR not set (any value set is the user's choice, which chalk already honours),
- * and SLS_INTERACTIVE_SETUP_ENABLE not set (the escape hatch for a person wrongly detected as an
- * agent restores the human session, colours included). The logger and every other chalk instance
- * use this one rule; call it at first use, after detectAgent() has run.
+ * Whether the run is treated as an AI coding agent's: an agent was detected (the detected one
+ * unless `agent` is given) and SLS_INTERACTIVE_SETUP_ENABLE, the escape hatch for a person wrongly
+ * detected as an agent, is not set. The colour rule and agent-only hints use it.
+ */
+export const isAgentSession = (options) => {
+  const { env: givenEnv, agent = getDetectedAgent() } = options ?? {}
+  // Anything but an object (null included) means the process environment.
+  const env =
+    givenEnv !== null && typeof givenEnv === 'object' ? givenEnv : process.env
+  return Boolean(agent?.isAgent) && !env.SLS_INTERACTIVE_SETUP_ENABLE
+}
+
+/**
+ * Whether colour output should be turned off. One rule for the logger, every other chalk instance
+ * and every other colour decision in the CLI, in this order:
+ * 1. FORCE_COLOR set → its value decides, as chalk reads it: `false`, or a number that is 0 (`0`,
+ *    `00`) → off; any other value (empty, `FALSE` and `true` included) → not off. Either way
+ *    NO_COLOR and agent detection are ignored.
+ * 2. NO_COLOR set to a non-empty value → off (https://no-color.org). SLS_INTERACTIVE_SETUP_ENABLE
+ *    does not override it: NO_COLOR is the person's own choice.
+ * 3. An AI coding agent (the detected one unless `agent` is given) → off, unless
+ *    SLS_INTERACTIVE_SETUP_ENABLE is set (the escape hatch for a person wrongly detected as an
+ *    agent restores the human session, colours included).
+ * 4. Otherwise not off: the terminal's own support decides (chalk's level).
+ * Call it at first use, after detectAgent() has run.
  */
 export const shouldDisableColors = (options) => {
   const { env: givenEnv, agent = getDetectedAgent() } = options ?? {}
   // Anything but an object (null included) means the process environment.
   const env =
     givenEnv !== null && typeof givenEnv === 'object' ? givenEnv : process.env
-  return (
-    Boolean(agent?.isAgent) &&
-    !('FORCE_COLOR' in env) &&
-    !env.SLS_INTERACTIVE_SETUP_ENABLE
-  )
+  if ('FORCE_COLOR' in env) {
+    // Exactly as chalk's supports-color reads it, so the CLI never disagrees with chalk output it
+    // does not control: the exact string 'false', or a value parseInt reads as 0 ('0', '00', ' 0').
+    const value = String(env.FORCE_COLOR)
+    return value === 'false' || Number.parseInt(value, 10) === 0
+  }
+  if (env.NO_COLOR) return true
+  return isAgentSession({ agent, env })
 }

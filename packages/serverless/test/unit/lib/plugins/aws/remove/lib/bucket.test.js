@@ -2,8 +2,9 @@ import { describe, it, expect, jest, beforeEach } from '@jest/globals'
 
 const logInfo = jest.fn()
 const logWarning = jest.fn()
+const logDebug = jest.fn()
 jest.unstable_mockModule('@serverless/util', () => ({
-  log: { info: logInfo, warning: logWarning },
+  log: { info: logInfo, warning: logWarning, debug: logDebug },
 }))
 
 const bucketMixin = (
@@ -20,6 +21,13 @@ const ServerlessError = (
 // trailing slash keeps a stage from matching a sibling stage that merely
 // starts with the same characters (dev vs dev2, prod vs production)
 const PREFIX = 'serverless/svc/dev/'
+// Payloads `serverless dev` relayed through the bucket live under their own prefix
+const DEV_MODE_PREFIX = 'serverless-dev-mode/svc/dev/'
+const isDevMode = (params) =>
+  params?.Prefix?.startsWith('serverless-dev-mode/') ||
+  params?.Delete?.Objects?.some(({ Key }) =>
+    Key.startsWith('serverless-dev-mode/'),
+  )
 const IN_STACK = 'svc-dev-serverlessdeploymentbucket-abc'
 
 const accessDenied = (code) =>
@@ -37,7 +45,9 @@ const accessDenied = (code) =>
 //  - versioning: bucket name → getBucketVersioning Status ('Enabled',
 //    'Suspended'), or 'DENIED' to make the probe fail with AccessDenied
 //    (default: the bucket reports no versioning configuration)
-//  - s3: per-method S3 response overrides (a value or a function of params)
+//  - s3: per-method S3 response overrides (a value or a function of params);
+//    `devModeListObjectVersions` answers the listing of the Dev Mode prefix
+//    (default: empty)
 const buildCtx = ({
   inStack = null,
   global = false,
@@ -73,7 +83,12 @@ const buildCtx = ({
       }
       return Status ? { Status } : {}
     }
-    const override = s3[method]
+    const override =
+      method === 'listObjectVersions' && isDevMode(params)
+        ? (s3.devModeListObjectVersions ?? { Versions: [] })
+        : method === 'listObjectsV2' && isDevMode(params)
+          ? (s3.devModeListObjectsV2 ?? { Contents: [] })
+          : s3[method]
     if (override !== undefined) {
       return typeof override === 'function' ? override(params) : override
     }
@@ -109,9 +124,14 @@ const buildCtx = ({
   }
 }
 
+// The calls for the service's artifacts; `devModeCallsOf` has the Dev Mode ones
 const callsOf = (ctx, method) =>
   ctx.provider.request.mock.calls
-    .filter(([, m]) => m === method)
+    .filter(([, m, params]) => m === method && !isDevMode(params))
+    .map(([, , params]) => params)
+const devModeCallsOf = (ctx, method) =>
+  ctx.provider.request.mock.calls
+    .filter(([, m, params]) => m === method && isDevMode(params))
     .map(([, , params]) => params)
 
 const versionedListing = {
@@ -160,6 +180,7 @@ const plainListing = {
 beforeEach(() => {
   logInfo.mockClear()
   logWarning.mockClear()
+  logDebug.mockClear()
 })
 
 describe('emptyS3Bucket — in-stack deployment bucket', () => {
@@ -817,6 +838,201 @@ describe('emptyS3Bucket — large buckets', () => {
       Key: `${PREFIX}1/file-1199`,
       VersionId: 'null',
     })
+  })
+})
+
+describe('emptyS3Bucket — payloads of serverless dev', () => {
+  it("deletes every version and delete marker under the stage's Dev Mode prefix, page by page, before the artifacts", async () => {
+    const ctx = buildCtx({
+      global: true,
+      s3: {
+        listObjectVersions: versionedListing,
+        devModeListObjectVersions: (params) =>
+          params.KeyMarker
+            ? {
+                DeleteMarkers: [
+                  { Key: `${DEV_MODE_PREFIX}s_2/b`, VersionId: 'm1' },
+                ],
+              }
+            : {
+                Versions: [
+                  { Key: `${DEV_MODE_PREFIX}s_1/a`, VersionId: 'v1' },
+                  { Key: `${DEV_MODE_PREFIX}s_1/a`, VersionId: 'v2' },
+                ],
+                IsTruncated: true,
+                NextKeyMarker: `${DEV_MODE_PREFIX}s_1/a`,
+                NextVersionIdMarker: 'v2',
+              },
+      },
+    })
+
+    await ctx.emptyS3Bucket()
+
+    expect(devModeCallsOf(ctx, 'listObjectVersions')).toEqual([
+      { Bucket: 'global-bucket', Prefix: DEV_MODE_PREFIX },
+      {
+        Bucket: 'global-bucket',
+        Prefix: DEV_MODE_PREFIX,
+        KeyMarker: `${DEV_MODE_PREFIX}s_1/a`,
+        VersionIdMarker: 'v2',
+      },
+    ])
+    expect(devModeCallsOf(ctx, 'deleteObjects')).toEqual([
+      {
+        Bucket: 'global-bucket',
+        Delete: {
+          Objects: [
+            { Key: `${DEV_MODE_PREFIX}s_1/a`, VersionId: 'v1' },
+            { Key: `${DEV_MODE_PREFIX}s_1/a`, VersionId: 'v2' },
+          ],
+        },
+      },
+      {
+        Bucket: 'global-bucket',
+        Delete: {
+          Objects: [{ Key: `${DEV_MODE_PREFIX}s_2/b`, VersionId: 'm1' }],
+        },
+      },
+    ])
+    // the service's artifacts are still removed as before
+    expect(callsOf(ctx, 'deleteObjects')).toEqual([
+      { Bucket: 'global-bucket', Delete: { Objects: versionedObjects } },
+    ])
+    const order = ctx.provider.request.mock.calls.map(([, m, p]) =>
+      isDevMode(p) ? `dev:${m}` : m,
+    )
+    expect(order.lastIndexOf('dev:deleteObjects')).toBeLessThan(
+      order.indexOf('deleteObjects'),
+    )
+  })
+
+  it('never fails the removal when the Dev Mode prefix cannot be listed or deleted', async () => {
+    for (const devModeListObjectVersions of [
+      // a denied version listing falls back to listing by key (tested below)
+      () => {
+        throw Object.assign(new Error('We encountered an internal error'), {
+          code: 'AWS_S3_LIST_OBJECT_VERSIONS_INTERNAL_ERROR',
+        })
+      },
+      { Versions: [{ Key: `${DEV_MODE_PREFIX}s_1/a`, VersionId: 'v1' }] },
+    ]) {
+      logDebug.mockClear()
+      const ctx = buildCtx({
+        named: 'my-bucket',
+        deploymentBucketObject: { name: 'my-bucket', versioning: true },
+        s3: {
+          listObjectVersions: versionedListing,
+          devModeListObjectVersions,
+          deleteObjects: (params) =>
+            isDevMode(params)
+              ? {
+                  Errors: [
+                    {
+                      Key: `${DEV_MODE_PREFIX}s_1/a`,
+                      VersionId: 'v1',
+                      Code: 'InternalError',
+                    },
+                  ],
+                }
+              : {},
+        },
+      })
+
+      await expect(ctx.emptyS3Bucket()).resolves.toBeUndefined()
+
+      expect(callsOf(ctx, 'deleteObjects')).toEqual([
+        { Bucket: 'my-bucket', Delete: { Objects: versionedObjects } },
+      ])
+      expect(logDebug).toHaveBeenCalledTimes(1)
+      expect(logDebug.mock.calls[0][0]).toContain(DEV_MODE_PREFIX)
+      expect(logWarning).not.toHaveBeenCalled()
+    }
+  })
+
+  it('empties the prefix by key, page by page, when its versions cannot be listed in an unversioned bucket the stack owns', async () => {
+    const page = (start, count, next) => ({
+      Contents: Array.from({ length: count }, (_, i) => ({
+        Key: `${DEV_MODE_PREFIX}s_1/${start + i}`,
+      })),
+      IsTruncated: Boolean(next),
+      NextContinuationToken: next,
+    })
+    const ctx = buildCtx({
+      inStack: IN_STACK,
+      s3: {
+        listObjectsV2: plainListing,
+        devModeListObjectVersions: () => {
+          throw accessDenied('AWS_S3_LIST_OBJECT_VERSIONS_ACCESS_DENIED')
+        },
+        devModeListObjectsV2: (params) =>
+          params.ContinuationToken === 'page-2'
+            ? page(1000, 2)
+            : page(0, 1000, 'page-2'),
+      },
+    })
+
+    await ctx.emptyS3Bucket()
+
+    expect(devModeCallsOf(ctx, 'listObjectsV2')).toEqual([
+      { Bucket: IN_STACK, Prefix: DEV_MODE_PREFIX },
+      {
+        Bucket: IN_STACK,
+        Prefix: DEV_MODE_PREFIX,
+        ContinuationToken: 'page-2',
+      },
+    ])
+    const deletes = devModeCallsOf(ctx, 'deleteObjects')
+    expect(deletes.map((d) => d.Delete.Objects.length)).toEqual([1000, 2])
+    expect(deletes[1].Delete.Objects).toEqual([
+      { Key: `${DEV_MODE_PREFIX}s_1/1000` },
+      { Key: `${DEV_MODE_PREFIX}s_1/1001` },
+    ])
+    expect(callsOf(ctx, 'deleteObjects')).toEqual([
+      { Bucket: IN_STACK, Delete: { Objects: plainListing.Contents } },
+    ])
+    expect(logDebug).not.toHaveBeenCalled()
+  })
+
+  it('proceeds with a debug line only when neither listing of the prefix is allowed', async () => {
+    const ctx = buildCtx({
+      inStack: IN_STACK,
+      s3: {
+        listObjectsV2: plainListing,
+        devModeListObjectVersions: () => {
+          throw accessDenied('AWS_S3_LIST_OBJECT_VERSIONS_ACCESS_DENIED')
+        },
+        devModeListObjectsV2: () => {
+          throw accessDenied('AWS_S3_LIST_OBJECTS_V2_ACCESS_DENIED')
+        },
+      },
+    })
+
+    await expect(ctx.emptyS3Bucket()).resolves.toBeUndefined()
+
+    expect(devModeCallsOf(ctx, 'deleteObjects')).toEqual([])
+    expect(callsOf(ctx, 'deleteObjects')).toEqual([
+      { Bucket: IN_STACK, Delete: { Objects: plainListing.Contents } },
+    ])
+    expect(logDebug).toHaveBeenCalledTimes(1)
+    expect(logDebug.mock.calls[0][0]).toContain(DEV_MODE_PREFIX)
+    expect(logWarning).not.toHaveBeenCalled()
+  })
+
+  it('uses the prefix the Dev Mode side channel writes under', async () => {
+    const { SIDE_CHANNEL_ROOT } =
+      await import('../../../../../../../lib/plugins/aws/dev/relay/side-channel.js')
+    expect(buildCtx().getDevModePrefix()).toBe(`${SIDE_CHANNEL_ROOT}/svc/dev/`)
+  })
+
+  it('leaves the Dev Mode prefixes of other stages alone', async () => {
+    const ctx = buildCtx({ global: true })
+
+    await ctx.emptyS3Bucket()
+
+    expect(
+      devModeCallsOf(ctx, 'listObjectVersions').map((p) => p.Prefix),
+    ).toEqual([DEV_MODE_PREFIX])
+    expect(devModeCallsOf(ctx, 'deleteObjects')).toEqual([])
   })
 })
 

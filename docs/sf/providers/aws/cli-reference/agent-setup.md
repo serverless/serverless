@@ -54,7 +54,7 @@ carry their fix:
 
 ```text
 skills:
-  serverless-framework v1 (user) — installed in ~/.claude/skills, ~/.agents/skills
+  serverless-framework v2 (user) — installed in ~/.claude/skills, ~/.agents/skills
 
 environment:
   service: no serverless.yml in this directory — create one (see the serverless-framework skill), then run "serverless agent setup" again there to install the project skills; or run "serverless" in an interactive terminal to scaffold a project

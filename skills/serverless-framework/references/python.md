@@ -67,8 +67,9 @@ mismatch.
 
 ## Iterating locally
 
-`serverless dev` runs Node.js functions only
-([development-workflow.md](development-workflow.md)), so for Python:
+`serverless dev` runs Python handlers with your local interpreter (the
+`serverless-dev-mode` skill says which one), so the loop is unit tests plus a
+Dev Mode session ([development-workflow.md](development-workflow.md)):
 
 1. Unit tests with `pytest`, the AWS SDK stubbed (`botocore.stub.Stubber` or
    `moto`), in a virtual environment that has the service's requirements.
@@ -85,13 +86,16 @@ mismatch.
        - '!**/__pycache__/**'
    ```
 
-2. `serverless invoke local -f <function> --path events/<event>.json` runs the
-   handler on your machine with a Lambda-style event. It runs `python3` from
-   your `PATH` (an active virtual environment comes first), so activate the
-   one with the requirements.
-3. Deploy your stage and run the integration tests against it
+2. A Dev Mode session on your stage
+   (`serverless dev --detach --json --stage <you>`): real events run the
+   handler on your machine, and each edit applies on the next invocation.
+   Dependencies built for Lambda's Linux can fail to import on macOS or
+   Windows; install the requirements into `.venv` on this machine for the
+   session.
+3. Run the integration tests against your stage
    ([development-workflow.md](development-workflow.md)). To check the
-   deployed code directly, use `serverless invoke -f <function>` and
-   `serverless logs -f <function>`.
+   deployed code directly, stop the session first, then use
+   `serverless invoke -f <function> --stage <you>` and
+   `serverless logs -f <function> --stage <you>`.
 
 Full option reference: `serverless agent docs providers/aws/guide/python`.

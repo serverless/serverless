@@ -14,6 +14,7 @@ import agentSkillsInstall from './agent-skills-install.js'
 import agentSetup from './agent-setup.js'
 import agentDocs from './agent-docs.js'
 import { agentSkillsList, agentSkillsRead } from './agent-skills-read.js'
+import frameworkCommandsSchema from '@serverless/framework/lib/cli/commands-schema.js'
 import { TraditionalRunner } from '../framework.js'
 import { Authentication } from '../../auth/index.js'
 import commandOnboarding from './onboarding.js'
@@ -73,6 +74,47 @@ function stripCamelCaseDuplicateOptions(options) {
     forwarded[key] = value
   }
   return forwarded
+}
+
+/** Whether `command` is `dev setup`, the one Dev Mode command the core runner can run. */
+export const isDevSetup = (command) =>
+  command?.[0] === 'dev' && command?.[1] === 'setup'
+
+/** A Framework commands-schema option as the core runner's schema declares one. */
+const coreOption = ({ usage, type, shortcut }) => ({
+  description: usage,
+  type,
+  ...(shortcut && { alias: shortcut }),
+})
+
+/**
+ * `dev setup` outside a service directory, built from the Framework's own `dev setup` entry (its
+ * usage and options) and the global --region and --aws-profile options, so the two never drift.
+ * Declared only on the instance that runs it (the router hands it here only when no configuration
+ * file was found), never in the static schema the router routes with: every other `dev` command
+ * stays with the Framework.
+ */
+export const devSetupSchema = () => {
+  const entry = frameworkCommandsSchema.get('dev setup')
+  const common = frameworkCommandsSchema.commonOptions
+  const options = Object.fromEntries(
+    Object.entries({
+      region: common.region,
+      'aws-profile': common['aws-profile'],
+      ...entry.options,
+    }).map(([name, option]) => [name, coreOption(option)]),
+  )
+  return {
+    command: 'dev',
+    description: 'Dev Mode',
+    builder: [
+      {
+        command: 'setup',
+        description: entry.usage,
+        builder: [{ options }],
+      },
+    ],
+  }
 }
 
 class CoreRunner extends Runner {
@@ -434,7 +476,8 @@ class CoreRunner extends Runner {
   }
 
   getCliSchema() {
-    return CoreRunner.getCliSchema()
+    const schema = CoreRunner.getCliSchema()
+    return isDevSetup(this.command) ? [...schema, devSetupSchema()] : schema
   }
 
   /**
@@ -780,6 +823,25 @@ class CoreRunner extends Runner {
           authenticatedData: this.authenticatedData,
           versionFramework: this.versionFramework,
         })
+        break
+      }
+      case 'dev': {
+        // Only `dev setup` reaches the core runner, and only outside a service (see getRunner).
+        // Like `agent setup` it needs no sign-in; a quiet one afterwards counts the run.
+        if (!isDevSetup(this.command)) {
+          throw new ServerlessError(
+            `Serverless command "${this.command.join(' ')}" not found. Run it in a service directory.`,
+            ServerlessErrorCodes.general.UNRECOGNIZED_CLI_COMMAND,
+            { stack: false },
+          )
+        }
+        try {
+          const { runDevSetupOutsideService } =
+            await import('@serverless/framework/lib/plugins/aws/dev/attach/setup-outside.js')
+          await runDevSetupOutsideService({ options: this.options })
+        } finally {
+          await this.authenticateForAnalytics()
+        }
         break
       }
       default:

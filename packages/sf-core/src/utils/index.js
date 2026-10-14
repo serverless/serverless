@@ -1,5 +1,8 @@
 // Assuming these are your imports from individual files
-import { getAwsCredentialProvider } from './credentials/index.js'
+import {
+  getAwsCredentialProvider,
+  prepareAwsCredentialResolver,
+} from './credentials/index.js'
 import {
   generateShortId,
   getCliOption,
@@ -37,6 +40,7 @@ import { downloadTemplate, parseRepoURL } from './https/index.js'
 // Export the combined object as default
 export {
   getAwsCredentialProvider,
+  prepareAwsCredentialResolver,
   generateShortId,
   getHumanFriendlyTime,
   diffObjects,

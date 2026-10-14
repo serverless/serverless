@@ -10,6 +10,10 @@ import {
   log,
   progress,
 } from '@serverless/util'
+import {
+  forcedExitPending,
+  onForcedExit,
+} from '@serverless/util/src/forced-exit/index.js'
 import { readdir } from 'fs/promises'
 import path from 'path'
 import readConfig from '@serverless/framework/lib/configuration/read.js'
@@ -20,7 +24,7 @@ import {
 } from '../utils/cli/cli.js'
 import { createHash } from 'crypto'
 import saveMeta from './meta/index.js'
-import { CoreRunner } from './runners/core/core.js'
+import { CoreRunner, isDevSetup } from './runners/core/core.js'
 import { CfnRunner } from './runners/cfn/cfn.js'
 import { TraditionalRunner } from './runners/framework.js'
 import { ComposeRunner } from './runners/compose/compose.js'
@@ -79,7 +83,9 @@ const route = async ({ command, options, versions, compose }) => {
     })
 
   const schema = runner.getCliSchema()
-  const eventCommand = commandWithoutPositionals({ command, schema })
+  const eventCommand =
+    runner.getEventCommand?.(command) ??
+    commandWithoutPositionals({ command, schema })
   if (schema) {
     const {
       helpPrinted,
@@ -106,12 +112,44 @@ const route = async ({ command, options, versions, compose }) => {
   }
 
   let runnerResult, runnerError
+  // A command that ends the process itself (Dev Mode's second Ctrl+C, or a restore that ran out of
+  // time) still sends its analysis event, with the code it exits with (see forced-exit).
+  const stopForcedExitEvent = onForcedExit((forcedExitCode) =>
+    sendAnalysisAndUsageEvent({
+      authenticatedData: runner?.authenticatedData,
+      orgId: runner?.authenticatedData?.orgId,
+      versionFramework: versions?.serverless_framework,
+      command: eventCommand,
+      commandStartTime,
+      configFilePath,
+      runner,
+      compose,
+      resolverManager,
+      options,
+      runnerError: undefined,
+      runnerResult: undefined,
+      accessKey:
+        runner?.authenticatedData?.accessKeyV1 ||
+        runner?.authenticatedData?.accessKeyV2,
+      exitCode: forcedExitCode,
+    }),
+  )
   try {
     progressMain.remove()
     runnerResult = await runner.run()
   } catch (error) {
     runnerError = error
+  } finally {
+    stopForcedExitEvent()
   }
+  // The process is about to end: the forced exit already sent the event.
+  const exiting = forcedExitPending()
+  if (exiting) {
+    await exiting
+    return
+  }
+  // A command that ends with a non-zero code without throwing (Dev Mode's exit 3) did not succeed.
+  const exitCode = runnerResult?.exitCode
 
   // Save service state
   if (runner?.state && runnerResult?.state) {
@@ -164,6 +202,7 @@ const route = async ({ command, options, versions, compose }) => {
         runnerResult,
         runnerError,
       },
+      exitCode,
     })
   } catch (error) {
     // Send analysis event with error
@@ -178,6 +217,7 @@ const route = async ({ command, options, versions, compose }) => {
       runner,
       error,
       compose,
+      exitCode,
     })
     // Swallow the finalization error
   }
@@ -368,6 +408,7 @@ const createUsageEvent = ({
  * @param {Error} [params.error] - Error object, if the action failed.
  * @param {Object} [params.runnerSpecificDetails] - Additional runner-specific details.
  * @param {Array} [params.notifications] - Notifications from BFF with shown status.
+ * @param {number} [params.exitCode] - The exit code the command set without throwing; non-zero means it did not succeed.
  * @returns {Object|null} The created analysis event or null if the license key is used. The
  *   event's `agent` property (a known agent name or "other") is present only when an AI coding
  *   agent was detected.
@@ -387,6 +428,7 @@ export const createAnalysisEvent = ({
   error,
   runnerSpecificDetails,
   notifications,
+  exitCode,
 }) => {
   if (licenseKey) {
     // If a license key is used, we do not send analysis events
@@ -394,7 +436,7 @@ export const createAnalysisEvent = ({
   }
 
   const analysisEvent = {
-    actionSucceeded: !error,
+    actionSucceeded: !error && !exitCode,
     operatingSystem: os.platform(),
     architecture: os.arch(),
     cicd: isCICDEnvironment(),
@@ -525,6 +567,22 @@ export const getRunner = async ({
     runnerDetails = { RunnerClass: CoreRunner }
   }
 
+  // `dev setup` sets up an AWS account and region, not a service: outside a service directory the
+  // core runner runs it with the region and credentials of the command line and this machine.
+  // Inside a service the Framework runs it, as before. A configuration file asked for with
+  // --config that is not there is still reported missing, and one of a framework the CLI no
+  // longer supports is still named.
+  if (
+    !runnerDetails &&
+    isDevSetup(command) &&
+    !(options?.config ?? options?.c)
+  ) {
+    await assertNoRemovedFrameworkConfig({
+      workingDir: compose?.workingDir ?? process.cwd(),
+    })
+    runnerDetails = { RunnerClass: CoreRunner }
+  }
+
   // if no runner is found and command cannot be handled by CoreRunner
   // throw an error
   if (!runnerDetails) {
@@ -610,6 +668,7 @@ const finalize = async ({
   compose,
   configData: { config, configFilePath, configFileRaw },
   runnerData: { runner, runnerResult, runnerError },
+  exitCode,
 }) => {
   const progressMain = progress.get('main')
   progressMain.notice('Finalizing')
@@ -651,6 +710,7 @@ const finalize = async ({
       runnerError,
       runnerResult,
       accessKey,
+      exitCode,
     }),
   )
   // Task 3: Save meta information -- only for a service: without a config
@@ -712,6 +772,7 @@ const handleFinalizationError = async ({
   runner,
   error,
   compose,
+  exitCode,
 }) => {
   const logger = log.get('core:router:finalization-error-handler')
   try {
@@ -734,6 +795,7 @@ const handleFinalizationError = async ({
       error,
       runnerSpecificDetails: runner.getAnalysisEventDetails(),
       notifications: authenticatedData?.notifications,
+      exitCode,
     })
     if (analysisEvent) {
       platformEventClient.addToPublishBatch({
@@ -811,6 +873,7 @@ async function sendAnalysisAndUsageEvent({
   runnerError,
   runnerResult,
   accessKey,
+  exitCode,
 }) {
   // Create analysis event
   const analysisEvent = createAnalysisEvent({
@@ -831,6 +894,7 @@ async function sendAnalysisAndUsageEvent({
     error: runnerError,
     runnerSpecificDetails: runner.getAnalysisEventDetails(),
     notifications: authenticatedData?.notifications,
+    exitCode,
   })
 
   if (analysisEvent) {

@@ -1,4 +1,6 @@
+import { HttpsProxyAgent } from 'https-proxy-agent'
 import { ProxyAgent as UndiciProxyAgent } from 'undici'
+import { proxyCaFromEnv, proxyUrlsFromEnv } from './aws.js'
 
 function getProxyUrl() {
   return (
@@ -11,8 +13,8 @@ function getProxyUrl() {
   )
 }
 
-function shouldBypassProxy(url) {
-  const noProxy = process.env.NO_PROXY || process.env.no_proxy
+function shouldBypassProxy(url, env = process.env) {
+  const noProxy = env.NO_PROXY || env.no_proxy
   if (!noProxy) return false
 
   // Parse the URL to get the hostname
@@ -25,6 +27,9 @@ function shouldBypassProxy(url) {
 
   // Split NO_PROXY by comma and check each pattern
   const patterns = noProxy.split(',').map((p) => p.trim())
+
+  // `*` alone means every host, as in curl and most other tools.
+  if (patterns.includes('*')) return true
 
   for (const pattern of patterns) {
     if (!pattern) continue
@@ -92,5 +97,26 @@ function getProxyDispatcher(url) {
   return cachedProxyAgent
 }
 
-export { getProxyDispatcher, shouldBypassProxy }
+/**
+ * A Node.js agent that tunnels a TLS connection (an `https:` or `wss:` URL) through the proxy, for
+ * clients that take an `agent` rather than an undici dispatcher, such as WebSocket clients; or
+ * undefined when no proxy is set or NO_PROXY covers the URL's host. It chooses the proxy and the
+ * proxy's CA as addProxyToAwsClient does for an HTTPS endpoint (HTTPS_PROXY, else HTTP_PROXY, else
+ * a generic `proxy`), read from `env` (the process environment by default). `agentOptions` go to
+ * the agent and its connection to the proxy (for example a `signal` that ends that connection).
+ */
+function getProxyAgent(url, { env = process.env, agentOptions } = {}) {
+  const { httpProxy, httpsProxy } = proxyUrlsFromEnv(env)
+  const proxy = httpsProxy || httpProxy
+  if (!proxy || shouldBypassProxy(url, env)) return undefined
+  // These options apply to the connection to the proxy only; the tunnelled connection keeps its own.
+  const ca = proxyCaFromEnv(env)
+  return new HttpsProxyAgent(proxy, {
+    ...(ca.length > 0 ? { ca } : {}),
+    rejectUnauthorized: true,
+    ...agentOptions,
+  })
+}
+
+export { getProxyAgent, getProxyDispatcher, shouldBypassProxy }
 export * from './aws.js'

@@ -132,6 +132,22 @@ describe('help without sign-in (spawned, non-TTY, service directory)', () => {
     },
   )
 
+  it.each([
+    [['dev', 'replay', '--help']],
+    [['dev', 'replay', '3f2a9c1e', '--help']],
+  ])(
+    '`serverless %j` prints the command help with its positional, and runs nothing',
+    async (args) => {
+      const dir = await makeService()
+      const { code, out, stdout } = await serverless(dir, home, args)
+      expect(code).toBe(0)
+      expect(stdout).toContain('dev replay <requestId>')
+      expect(out).not.toContain('You must sign in')
+      await expectNoTripwires(dir)
+      await expectNothingWritten(dir)
+    },
+  )
+
   it('the gate still applies to the command itself', async () => {
     const dir = await makeService()
     const { code, out } = await serverless(dir, home, ['deploy'])
@@ -196,6 +212,16 @@ describe('renderHelpBeforeAuth', () => {
   it('declines without a help flag or the help command', async () => {
     expect(await call(['deploy'], {}, 'none')).toBe(false)
     expect(await call(['deploy'], { help: false }, 'none')).toBe(false)
+  })
+
+  it('declines a word beyond what a command declares', async () => {
+    expect(
+      await call(
+        ['dev', 'replay', 'a1b2c3d4', 'e5f6a7b8'],
+        { help: true },
+        'none',
+      ),
+    ).toBe(false)
   })
 
   it('declines for a command the static schema does not know', async () => {

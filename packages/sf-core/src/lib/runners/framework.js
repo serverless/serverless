@@ -3,17 +3,31 @@ import frameworkCommandsSchema from '@serverless/framework/lib/cli/commands-sche
 import Serverless from '@serverless/framework'
 import resolveInputFinal from '@serverless/framework/lib/cli/resolve-input-final.js'
 import ensureSupportedCommand from '@serverless/framework/lib/cli/ensure-supported-command.js'
+import { movePositionals } from '@serverless/framework/lib/cli/positionals.js'
 import renderGeneralHelp from '@serverless/framework/lib/cli/render-help/general.js'
 import renderCommandHelp from '@serverless/framework/lib/cli/render-help/command.js'
 import { AwsCloudformationService } from '@serverless/engine/src/lib/aws/cloudformation.js'
-import { getAwsCredentialProvider } from '../../utils/index.js'
 import {
+  getAwsCredentialProvider,
+  prepareAwsCredentialResolver,
+} from '../../utils/index.js'
+import {
+  frameworkCommandWithoutPositionals,
+  normalizeDevSelectors,
+} from '../../utils/cli/cli.js'
+import {
+  isAgentSession,
   log,
   progress,
   ServerlessError,
   ServerlessErrorCodes,
   writeText,
 } from '@serverless/util'
+import { agentHint } from '@serverless/framework/lib/plugins/aws/dev/attach/output.js'
+import {
+  composeServiceOf,
+  configOf,
+} from '@serverless/framework/lib/plugins/aws/lib/cli-command.js'
 import { Authentication } from '../auth/index.js'
 import { detectServerlessAuth } from './core/agent-env-report.js'
 import { resolveServiceAwsProfile } from '../resolvers/providers/aws/credential-source.js'
@@ -33,6 +47,58 @@ import { buildSandboxesAnalytics } from '@serverless/framework/lib/plugins/aws/s
 import { buildMcpAnalytics } from '@serverless/framework/lib/plugins/aws/mcp/analytics.js'
 import { buildProvisionedPollersAnalytics } from '@serverless/framework/lib/plugins/aws/package/compile/events/lib/provisioned-pollers-analytics.js'
 import { Deployment } from '../platform/deployments.js'
+
+// Dev Mode commands that read only the service directory's .serverless/dev and talk to the
+// session running there: they need no stack lookup.
+const LOCAL_DEV_COMMANDS = new Set([
+  'dev status',
+  'dev stop',
+  'dev wait',
+  'dev requests',
+  'dev replay',
+])
+
+/** Whether `command` (its words) is one of them. */
+export const readsOnlyLocalDevState = (command) =>
+  LOCAL_DEV_COMMANDS.has([].concat(command ?? []).join(' '))
+
+/**
+ * The analytics metrics known before the command runs. A command that skips the stack lookup
+ * leaves `stackExistedBeforeRun` unset: it was not looked up, so it is not known.
+ */
+export const metricsBeforeRun = ({ command, serviceUniqueId }) =>
+  readsOnlyLocalDevState(command)
+    ? {}
+    : { stackExistedBeforeRun: Boolean(serviceUniqueId) }
+
+/**
+ * The hint an AI agent gets as the first line of a foreground `serverless dev`, before sign-in,
+ * variable resolution and any AWS call; null for every other run. Agents and sandboxes modes
+ * (chosen by option, or by a configuration without functions), --help, --detach, --dry-run and
+ * the session process get none. A service of a Compose project (`compose`) is named in the
+ * commands, as `serverless <service> dev` runs from the project's root.
+ */
+export const devAgentHint = ({
+  command,
+  options = {},
+  config,
+  isAgent,
+  compose,
+}) => {
+  if ([].concat(command ?? []).join(' ') !== 'dev') return null
+  if (options.help || options.h) return null
+  if (options.detach || options['dry-run'] || options['session-process']) {
+    return null
+  }
+  if (options.sandbox !== undefined) return null
+  if (options.mode === 'agents' || options.mode === 'sandboxes') return null
+  if (Object.keys(config?.functions ?? {}).length === 0) return null
+  if (!isAgent()) return null
+  return agentHint(
+    composeServiceOf({ compose }),
+    configOf({ compose }, options),
+  )
+}
 
 export class TraditionalRunner extends Runner {
   constructor({
@@ -106,7 +172,13 @@ export class TraditionalRunner extends Runner {
   } = {}) {
     const { command, options } = this
     const helpFlag = Boolean(options.help || options.h)
-    const commandName = command.join(' ')
+    // `dev replay <requestId> --help` is help for `dev replay`: the positional words a command
+    // declares are left out (on a copy; the command itself is prepared later).
+    const commandName = movePositionals(
+      [...command],
+      {},
+      frameworkCommandsSchema,
+    ).join(' ')
     const general = command[0] === 'help' || (!command[0] && helpFlag)
     const builtInCommand =
       !general &&
@@ -150,12 +222,18 @@ export class TraditionalRunner extends Runner {
       stage: this.stage,
     })
 
-    const commandSchema = frameworkCommandsSchema.get(this.command.join(' '))
-    convertOptionShortcutsToFullNames(
-      this.options,
-      commandSchema,
-      frameworkCommandsSchema,
-    )
+    prepareFrameworkOptions(this.command, this.options)
+
+    // An agent learns the finite commands before anything can fail or wait on AWS.
+    const hint = devAgentHint({
+      command: this.command,
+      options: this.options,
+      config: this.config,
+      // An agent, unless a person taken for one set SLS_INTERACTIVE_SETUP_ENABLE.
+      isAgent: () => isAgentSession(),
+      compose: this.compose,
+    })
+    if (hint) logger.notice(hint)
 
     // Authenticate
     const authenticatedData = await this.resolveVariablesAndAuthenticate()
@@ -163,20 +241,29 @@ export class TraditionalRunner extends Runner {
     // Resolve the variables in the template file
     await this.resolveVariables({ printResolvedVariables: true })
 
-    // Get the AWS deployment credential provider
-    const { region, resolveCredentials } = await this.getAwsCredentialProvider()
+    // Get the AWS deployment credential provider. The Dev Mode commands that read only the local
+    // session state need the region alone: no credentials, no account lookup.
+    const localDevCommand = readsOnlyLocalDevState(this.command)
+    const { region, resolveCredentials, credentialSource } = localDevCommand
+      ? await this.getAwsRegionWithoutCredentials()
+      : await this.getAwsCredentialProvider()
 
-    let serviceUniqueId = (
-      await this.getServiceUniqueId().catch((err) => {
-        logger.debug('error getting service unique id', err)
-        return { serviceUniqueId: null }
-      })
-    )?.serviceUniqueId
+    let serviceUniqueId = localDevCommand
+      ? null
+      : (
+          await this.getServiceUniqueId().catch((err) => {
+            logger.debug('error getting service unique id', err)
+            return { serviceUniqueId: null }
+          })
+        )?.serviceUniqueId
 
     // Captured pre-run so isFirstDeploy can distinguish create vs update —
     // awsCfStack.timeUpdated is unreliable for this (still null on the 2nd
     // deploy, since stack info is snapshotted before the update runs)
-    this.analyticsMetrics = { stackExistedBeforeRun: Boolean(serviceUniqueId) }
+    this.analyticsMetrics = metricsBeforeRun({
+      command: this.command,
+      serviceUniqueId,
+    })
 
     // Run the command
     const {
@@ -185,6 +272,7 @@ export class TraditionalRunner extends Runner {
       compiledCloudFormationTemplate,
       coreCloudFormationTemplate,
       analyticsMetrics,
+      exitCode,
     } = await runFramework({
       accessKeyV1: authenticatedData.accessKeyV1,
       accessKeyV2: authenticatedData.accessKeyV2,
@@ -197,12 +285,14 @@ export class TraditionalRunner extends Runner {
       serviceConfigFileName: path.parse(this.configFilePath).name,
       serviceProviderAwsProvider: resolveCredentials,
       serviceProviderAwsRegion: region,
+      serviceProviderAwsCredentialSource: credentialSource,
       orgName: authenticatedData.orgName,
       orgId: authenticatedData.orgId,
       resolversManager: this.resolverManager,
       composeServiceParams: this.compose?.serviceParams,
       isWithinCompose: this.compose?.isWithinCompose,
       composeServiceName: this.compose?.serviceName,
+      composeConfigFile: this.compose?.configFile,
       composeOrgName: this.compose?.orgName,
     })
 
@@ -211,7 +301,7 @@ export class TraditionalRunner extends Runner {
     this.coreCloudFormationTemplate = coreCloudFormationTemplate
     Object.assign(this.analyticsMetrics, analyticsMetrics)
 
-    if (!serviceUniqueId) {
+    if (!serviceUniqueId && !localDevCommand) {
       serviceUniqueId = (
         await this.getServiceUniqueId().catch((err) => {
           logger.debug('error getting service unique id', err)
@@ -224,11 +314,14 @@ export class TraditionalRunner extends Runner {
       authenticatedData,
       state,
       serviceUniqueId,
+      // A command that ended with a non-zero code without throwing (Dev Mode's exit 3).
+      ...(exitCode && { exitCode }),
     }
   }
 
-  async getAwsCredentialProvider() {
-    const { region, resolveCredentials } = await getAwsCredentialProvider({
+  /** Where the service's AWS credentials come from, for both steps of the credential lookup. */
+  awsCredentialSource() {
+    return {
       awsProfile: resolveServiceAwsProfile({
         options: this.options,
         config: this.config,
@@ -240,9 +333,37 @@ export class TraditionalRunner extends Runner {
       providerAwsSessionToken:
         this.authenticatedData?.dashboard?.serviceProvider?.sessionToken,
       resolversManager: this.resolverManager,
-    })
+    }
+  }
+
+  async getAwsCredentialProvider() {
+    const { region, resolveCredentials, credentialSource } =
+      await getAwsCredentialProvider(this.awsCredentialSource())
     this.getAwsDeploymentCredentials = resolveCredentials
-    return { region, resolveCredentials }
+    return { region, resolveCredentials, credentialSource }
+  }
+
+  /**
+   * The region `getAwsCredentialProvider` reads, without reading the credentials or calling AWS:
+   * for the Dev Mode commands that read only the local session state. Their credential provider
+   * fails if anything asks it, and `getAwsDeploymentCredentials` stays unset.
+   */
+  async getAwsRegionWithoutCredentials() {
+    const { region, credentialSource } = await prepareAwsCredentialResolver(
+      this.awsCredentialSource(),
+    )
+    const command = [].concat(this.command ?? []).join(' ')
+    return {
+      region,
+      credentialSource,
+      resolveCredentials: async () => {
+        throw new ServerlessError(
+          `"serverless ${command}" reads only the local Dev Mode session and does not use AWS credentials.`,
+          'DEV_MODE_LOCAL_COMMAND_NO_AWS',
+          { stack: false },
+        )
+      },
+    }
   }
 
   async getServiceUniqueId() {
@@ -315,6 +436,14 @@ export class TraditionalRunner extends Runner {
         timeUpdated: this.awsCfStack?.timeUpdated,
       },
     }
+  }
+
+  /** The command as usage reports name it: without the positional values it was given. */
+  getEventCommand(command) {
+    return frameworkCommandWithoutPositionals({
+      command,
+      commandsSchema: frameworkCommandsSchema,
+    })
   }
 
   getAnalysisEventDetails() {
@@ -444,9 +573,11 @@ const runFramework = async ({
   servicePath,
   serviceProviderAwsProvider,
   serviceProviderAwsRegion,
+  serviceProviderAwsCredentialSource,
   composeServiceParams,
   isWithinCompose,
   composeServiceName,
+  composeConfigFile,
   composeOrgName,
   command,
   accessKeyV1,
@@ -599,10 +730,13 @@ const runFramework = async ({
     options,
     credentialProviders: { aws: serviceProviderAwsProvider },
     region: serviceProviderAwsRegion,
+    // Where the AWS credentials come from, for advice when AWS rejects them (Dev Mode reads it).
+    awsCredentialSource: serviceProviderAwsCredentialSource,
     compose: {
       serviceParams: composeServiceParams,
       isWithinCompose,
       serviceName: composeServiceName,
+      configFile: composeConfigFile,
     },
     instanceId: await resolversManager.resolveVariableOnce('sls:instanceId'),
   })
@@ -720,6 +854,7 @@ const runFramework = async ({
     coreCloudFormationTemplate:
       serverless.service?.provider?.coreCloudFormationTemplate,
     analyticsMetrics,
+    exitCode: serverless.exitCode,
   }
 }
 
@@ -828,6 +963,29 @@ const getStackInfo = async ({ stackName, region, credentials }) => {
     status: awsStackInfo?.StackStatus,
     outputs: awsStackInfo?.Outputs,
   }
+}
+
+/**
+ * Prepare the options of a Framework command before anything reads them: Dev Mode's repeatable
+ * function selectors become lists, then shortcuts are mapped to full option names. This runs with
+ * the command that actually runs, after Compose removed any service name, for Compose and plain
+ * services alike. Positional words a command declares become options first (`movePositionals`).
+ *
+ * @param {string[]} command - The command words, without a Compose service name.
+ * @param {Object} options - The options object, changed in place.
+ * @returns {Object} The same options object.
+ */
+export const prepareFrameworkOptions = (command, options) => {
+  // `dev replay <requestId>`: declared positional words become options, so the command that runs
+  // and the command usage reports name is the schema's.
+  movePositionals(command, options, frameworkCommandsSchema)
+  normalizeDevSelectors(command, options)
+  convertOptionShortcutsToFullNames(
+    options,
+    frameworkCommandsSchema.get(command.join(' ')),
+    frameworkCommandsSchema,
+  )
+  return options
 }
 
 /**

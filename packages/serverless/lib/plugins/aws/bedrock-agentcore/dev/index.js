@@ -177,9 +177,10 @@ export class AgentCoreDevMode {
    * Start dev mode
    */
   async start() {
-    // The chat uses this chalk, not the logger's, so an AI coding agent's no-colour default is
-    // applied here. This is the workspace's shared chalk instance, so the level drops for the rest
-    // of the process (intended: the whole process is an agent session).
+    // The chat uses this chalk, not the logger's, so the CLI's colour rule (FORCE_COLOR, then
+    // NO_COLOR, then an AI coding agent) is applied here. This is the workspace's shared
+    // chalk instance, so the level drops for the rest of the process (intended: the rule holds for
+    // the whole process).
     if (shouldDisableColors()) chalk.level = 0
     logger.debug(`Starting dev mode for agent: ${this.#agentName}`)
 

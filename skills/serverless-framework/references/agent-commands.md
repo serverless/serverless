@@ -1,8 +1,10 @@
 # Commands built for agents
 
-All of these run non-interactively and never prompt. `agent setup`,
-`agent docs` and `agent skills` need no sign-in and no AWS credentials and run
-from any directory; `agent inspect` and `serverless dev` need both.
+All of these run non-interactively and never prompt;
+`serverless dev --approve` is the exception: it asks a person and refuses
+without a terminal. `agent setup`, `agent docs` and `agent skills` need no
+sign-in and no AWS credentials and run from any directory; `agent inspect`
+and `serverless dev` need both.
 
 ## `serverless agent setup`
 
@@ -77,8 +79,12 @@ When `serverless` is not on the PATH, use `npx -y serverless mcp` instead
 
 ## `serverless dev`
 
-Dev Mode: connects the deployed service to local code, so invocations
-of the real AWS endpoints run the local handler and changes are testable
-without redeploying. Run it in a service directory; it needs sign-in and AWS
-credentials. The first start deploys the stage itself; in a Compose project,
-the services it reads from must already be deployed.
+Dev Mode: real invocations of the deployed stage's functions run the code on
+this machine, and each edit applies on the next invocation, without a
+redeploy. Agents start it on their own stage with
+`serverless dev --detach --json --stage <you>`, follow it with
+`serverless dev wait` and end it with `serverless dev stop`; read the
+`serverless-dev-mode` skill (`serverless agent skills read serverless-dev-mode`).
+Run it in a service directory; it needs sign-in and AWS credentials. A stage
+that was never deployed is deployed first; in a Compose project, the services
+it reads from must already be deployed.

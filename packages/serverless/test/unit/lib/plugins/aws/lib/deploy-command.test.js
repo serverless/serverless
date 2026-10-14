@@ -16,15 +16,15 @@ describe('deployCommand', () => {
     )
   })
 
-  it('adds --service within Compose', () => {
+  it('names the service within Compose, as every suggested command does', () => {
     expect(
       deployCommand(
         build({ compose: { isWithinCompose: true, serviceName: 'api' } }),
       ),
-    ).toBe('serverless deploy --service=api --stage alex --region us-east-1')
+    ).toBe('serverless api deploy --stage alex --region us-east-1')
   })
 
-  it('no --service outside Compose or without a service key', () => {
+  it('no service outside Compose or without a service key', () => {
     expect(deployCommand(build({ compose: { isWithinCompose: false } }))).toBe(
       'serverless deploy --stage alex --region us-east-1',
     )

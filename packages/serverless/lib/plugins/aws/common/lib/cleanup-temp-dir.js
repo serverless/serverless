@@ -1,5 +1,5 @@
 import path from 'path'
-import fse from 'fs-extra'
+import { emptyServerlessDir } from './serverless-dir.js'
 
 export default {
   async cleanupTempDir() {
@@ -10,7 +10,8 @@ export default {
       )
 
       if (this.serverless.utils.dirExistsSync(serverlessTmpDirPath)) {
-        fse.removeSync(serverlessTmpDirPath)
+        // A Dev Mode session's record in .serverless/dev/ stays.
+        emptyServerlessDir(serverlessTmpDirPath)
       }
     }
   },
