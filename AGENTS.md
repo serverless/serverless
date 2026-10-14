@@ -1,6 +1,6 @@
 # Serverless Framework
 
-Monorepo for the **Serverless Framework** - a command-line tool for deploying serverless applications to AWS Lambda and other managed cloud services, driven by YAML configuration (`serverless.yml`). Development uses Node.js 24 + npm 12 (ES Modules); the shipped CLI supports Node.js >= 18.
+Monorepo for the **Serverless Framework** - a command-line tool for deploying serverless applications to AWS Lambda and other managed cloud services, driven by YAML configuration (`serverless.yml`). Development uses Node.js 24 or 26 + npm 12 (ES Modules); the shipped CLI supports Node.js >= 18.
 
 ## Repository Structure
 
@@ -69,7 +69,7 @@ Gotchas:
 
 ## Dependencies
 
-- The shipped CLI supports Node.js 18 (`packages/serverless` declares `engines.node: ">=18.0"`). Runtime dependencies must keep Node 18 support even though development uses Node 24. Majors that drop Node 18 are blocked via the ignore list in `.github/dependabot.yml` — check it before bumping; dev-only dependencies may require any Node version.
+- The shipped CLI supports Node.js 18 (`packages/serverless` declares `engines.node: ">=18.0"`). Runtime dependencies must keep Node 18 support even though development uses Node 24 or 26. Majors that drop Node 18 are blocked via the ignore list in `.github/dependabot.yml` — check it before bumping; dev-only dependencies may require any Node version.
 - Write `package-lock.json` only with npm 12. npm <= 11 silently drops root `overrides` in workspaces repos (npm/cli#4834). Use `npm ci` for plain installs.
 - `.npmrc` sets `min-release-age=3`: npm versions published less than 3 days ago won't resolve unless you pass `--min-release-age=0` explicitly.
 
@@ -143,7 +143,7 @@ Commit `skills/manifest.json` alongside. Aux files are never deleted from user i
 
 ## CI Pipeline
 
-CI runs on pull requests targeting `main`, on Node.js 24.x:
+CI runs on pull requests targeting `main`, on Node.js 24.x. The framework unit tests also run on Node.js 26.x, as do the ARM Linux integration legs in release and `all-platforms` runs:
 
 - **CI: Framework CLI** — Lint, Test: Engine, Test: Release Package (builds and packs the release package, then runs the packaging checks), and the unit and integration tests from the shared `.github/workflows/test-framework.yml`: one integration leg per test account, sharded by `packages/sf-core/tests/integration/shards.json`, plus a leg for the resolvers suite. Runs on Linux; a manual dispatch with `all-platforms` also runs ARM Linux and Windows. Skipped entirely for docs-only changes (`paths-ignore: docs/**`) and for draft PRs.
 - **CI: Binary Installer** — Go unit tests and an end-to-end suite (`binary-installer/e2e`, parallel first runs against real releases) on Linux, macOS, and Windows, plus the production build; runs only when `binary-installer/**` changes

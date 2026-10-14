@@ -4,7 +4,7 @@ Welcome, and thanks in advance for your help!
 
 ## Prerequisites
 
-- **Node.js 24** is required for development
+- **Node.js 24 or 26** is required for development
 - **npm 12** — the repo pins it via the `packageManager` field; enable it with `corepack enable npm` (older npm versions can silently mis-write `package-lock.json` in this workspaces repo)
 
 ## Getting Started

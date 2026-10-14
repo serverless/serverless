@@ -34,11 +34,14 @@ permissions:
 
 jobs:
   unit:
-    name: 'Unit (${{ matrix.platform }})'
+    name: 'Unit (${{ matrix.platform }}, Node.js ${{ matrix.node }})'
+    # The CLI runs on whichever Node.js its users have, so the unit tests run
+    # on both supported LTS lines.
     strategy:
       fail-fast: false
       matrix:
         platform: ${{ fromJSON(inputs.platforms) }}
+        node: ['24.x', '26.x']
     runs-on: ${{ matrix.platform }}
     defaults:
       run:
@@ -49,11 +52,28 @@ jobs:
       - name: 'Setup: Node.js'
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24.x
+          node-version: ${{ matrix.node }}
           check-latest: true
           cache: npm
+      # Node.js 25 and later don't bundle Corepack. There, the pinned Corepack
+      # is installed and writes its npm next to this job's Node.js, which comes
+      # first on PATH; an older corepack on PATH from the runner image would
+      # put it where the bundled npm shadows it. The last line fails the step
+      # if npm isn't the version package.json pins.
       - name: 'Setup: Enable Corepack'
-        run: corepack enable npm
+        shell: bash
+        run: |
+          if [ "$(node -p 'process.versions.node.split(".")[0] >= 25')" = true ]; then
+            npm install --global --prefix "$RUNNER_TEMP/corepack" corepack@0.36.0
+            # lib/node_modules on Linux and macOS, node_modules on Windows
+            corepack_js=$(ls "$RUNNER_TEMP"/corepack/{lib/,}node_modules/corepack/dist/corepack.js 2>/dev/null | head -1)
+            node "$corepack_js" enable npm \
+              --install-directory "$(node -p 'require("path").dirname(process.execPath)')"
+          else
+            corepack enable npm
+          fi
+          cd ../..
+          test "npm@$(npm --version)" = "$(node -p 'require("./package.json").packageManager')"
       - name: 'Install: Dependencies'
         run: |
           cd ../../
@@ -83,6 +103,8 @@ jobs:
     # (ubuntu-24.04-arm: us-east-2, windows-latest: us-west-2). Their suites
     # follow AWS_REGION through tests/utils/testRegion.js; shard 1 and the
     # resolvers leg stay in us-east-1, where the prerequisites live.
+    # The ARM Linux legs run on Node.js 26 and the others on Node.js 24, so
+    # both versions deploy for real without adding legs or AWS load.
     strategy:
       fail-fast: false
       matrix:
@@ -121,11 +143,28 @@ jobs:
       - name: 'Setup: Node.js'
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24.x
+          node-version: ${{ matrix.platform == 'ubuntu-24.04-arm' && '26.x' || '24.x' }}
           check-latest: true
           cache: npm
+      # Node.js 25 and later don't bundle Corepack. There, the pinned Corepack
+      # is installed and writes its npm next to this job's Node.js, which comes
+      # first on PATH; an older corepack on PATH from the runner image would
+      # put it where the bundled npm shadows it. The last line fails the step
+      # if npm isn't the version package.json pins.
       - name: 'Setup: Enable Corepack'
-        run: corepack enable npm
+        shell: bash
+        run: |
+          if [ "$(node -p 'process.versions.node.split(".")[0] >= 25')" = true ]; then
+            npm install --global --prefix "$RUNNER_TEMP/corepack" corepack@0.36.0
+            # lib/node_modules on Linux and macOS, node_modules on Windows
+            corepack_js=$(ls "$RUNNER_TEMP"/corepack/{lib/,}node_modules/corepack/dist/corepack.js 2>/dev/null | head -1)
+            node "$corepack_js" enable npm \
+              --install-directory "$(node -p 'require("path").dirname(process.execPath)')"
+          else
+            corepack enable npm
+          fi
+          cd ../..
+          test "npm@$(npm --version)" = "$(node -p 'require("./package.json").packageManager')"
       - name: 'Setup: AWS Credentials'
         uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
