@@ -19,10 +19,11 @@ npm test -w @serverlessinc/sf-core
 In CI the suites are split into one shard per test account; see
 [CI Test Accounts](#ci-test-accounts).
 
-Note: this excludes two suites.
+Note: this excludes three suites.
 
 - `domains` — runs only via `npm run test:domains -w @serverlessinc/sf-core`.
 - `mcp` (MCP Servers) — runs only via `npm run test:mcp -w @serverlessinc/sf-core`, which the path-filtered `CI: MCP Servers` workflow invokes when MCP-relevant paths change. It deploys real REST APIs, which is why it is kept off unrelated pull requests. Only its enforcement-and-discovery suite (`mcp-auth.test.js`) needs the Cognito prerequisite below — without it that suite skips with a log while the rest still runs.
+- `dev-mode` — runs only via `npm run test:dev-mode -w @serverlessinc/sf-core`, which the path-filtered `CI: Dev Mode` workflow invokes when Dev Mode-relevant paths change (in test-1). Each file deploys its own fixture service, runs `serverless dev` against it and removes it: `dev-mode.test.js` (attach, Ctrl+C, a crash followed by `serverless dev restore` or `serverless deploy`), `local-runtime.test.js` (handlers on this machine, fed live-shaped invocations through the test-only `SLS_DEV_TEST_FEED=1`), `relay.test.js` (real invocations relayed through AWS IoT Core), `mcp-dev.test.js` (an MCP server in a session) and `agent-loop.test.js` (the commands a coding agent uses — `serverless dev --detach`, `dev wait`, `dev requests`, `dev replay`, `dev status`, `dev stop` — with a TypeScript and a Python handler, a killed session, a double SIGTERM during the restore, and a search of `.serverless/dev` for secrets). They create the Dev Mode IAM role and layers under a test suffix and delete them at the end, together with the log groups of their functions. Build the Dev Mode layers (needs Go) and the MCP entry first: `npm run build:devmode:layer -w @serverless/framework` and `npm run build:mcp:entry -w @serverless/framework`. The Python tests need a Python 3.9+ on `PATH` and are skipped otherwise. `CI: Dev Mode` also runs `agent-loop.test.js` on Windows (`npm run test:dev-mode:agent-loop -w @serverlessinc/sf-core`): it stops sessions with `serverless dev stop`, which reaches the session over its loopback control endpoint, while the other files stop them with Ctrl+C, which Node turns into an immediate termination on Windows. Its double-SIGTERM test is skipped there.
 
 ### Running Specific Test Suites
 
