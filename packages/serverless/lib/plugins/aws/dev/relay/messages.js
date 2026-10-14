@@ -12,6 +12,18 @@ import { cliCommand } from '../commands/cli-names.js'
 export const connectionLostLine = (reason) =>
   `Dev Mode lost its connection to AWS IoT Core (${reason}). Invocations run the deployed code until this machine reconnects.`
 
+/**
+ * Why the AWS IoT Core endpoint cannot be reached when its name does not resolve: the account's
+ * first use of AWS IoT Core in `region`. `detail` is the DNS error. The session's start and
+ * `serverless dev --dry-run` give it alike.
+ */
+export const endpointUnresolvedLine = ({ region, detail }) =>
+  `The AWS IoT Core endpoint for this account in ${region} cannot be resolved yet (${detail}). AWS creates an account's endpoint in a region the first time it is used there, and it can take a few minutes before it resolves. Run the command again in a few minutes. If it still cannot be resolved then, check your network connection and proxy settings (HTTPS_PROXY).`
+
+/** The spinner's text while a first connection waits for the endpoint's name to resolve. */
+export const endpointWaitLine = (region) =>
+  `Waiting for AWS IoT Core in ${region} to become reachable`
+
 export const reconnectedLine = (offlineMs) =>
   `Dev Mode reconnected to AWS IoT Core after ${Math.max(1, Math.round(offlineMs / 1000))} s offline.`
 

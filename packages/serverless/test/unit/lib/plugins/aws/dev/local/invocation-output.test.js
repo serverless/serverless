@@ -1221,6 +1221,98 @@ describe('createInvocationOutput', () => {
     )
   })
 
+  describe('a streamed MCP reply', () => {
+    const contentType = 'application/vnd.awslambda.http-integration-response'
+    const rpcError = JSON.stringify({
+      jsonrpc: '2.0',
+      id: 1,
+      error: { code: -32602, message: 'Tool noSuchTool not found' },
+    })
+    // What the end line gets for a stream: the kept head of everything streamed, prelude included.
+    const streamEnd = (bodyHead, overrides = {}) => ({
+      functionKey: 'crm',
+      requestId: ID,
+      event: {},
+      reply: { kind: 'stream', contentType },
+      contentType,
+      head: bodyHead,
+      bodyHead,
+      bodyBytes: bodyHead.length,
+      durationMs: 158,
+      trailers: { errorType: null, errorBody: null },
+      chunks: 1,
+      firstByteMs: 150,
+      ...overrides,
+    })
+
+    test('shows a JSON-RPC error a 200 hides, in a JSON or an SSE body', () => {
+      const { output, lines } = capture({ mcpFunctions: new Set(['crm']) })
+      output.end(streamEnd(prelude({ statusCode: 200 }, rpcError)))
+      output.end(
+        streamEnd(
+          prelude(
+            {
+              statusCode: 200,
+              headers: { 'content-type': 'text/event-stream' },
+            },
+            `event: message\ndata: ${rpcError}\n\n`,
+          ),
+        ),
+      )
+      expect(lines).toEqual([
+        '← λ crm (200) ── error -32602: Tool noSuchTool not found 158ms · first byte 150ms, 1 chunk · 3f2a9c1e',
+        '← λ crm (200) ── error -32602: Tool noSuchTool not found 158ms · first byte 150ms, 1 chunk · 3f2a9c1e',
+      ])
+    })
+
+    test('--detailed prints the response, its credential headers and cookies redacted', () => {
+      const { output, lines } = capture({
+        detailed: true,
+        mcpFunctions: new Set(['crm']),
+      })
+      output.end(
+        streamEnd(
+          prelude(
+            {
+              statusCode: 200,
+              headers: { 'set-cookie': 'id=sk-test-1' },
+              cookies: ['s=sk-test-2'],
+            },
+            rpcError,
+          ),
+        ),
+      )
+      expect(lines[0]).toBe(
+        '← λ crm (200) ── error -32602: Tool noSuchTool not found 158ms · first byte 150ms, 1 chunk · 3f2a9c1e',
+      )
+      const dumped = lines.slice(1).join('\n')
+      expect(dumped).toContain('statusCode: 200')
+      expect(dumped).toContain('Tool noSuchTool not found')
+      expect(dumped).toContain("'[redacted]'")
+      expect(dumped).not.toMatch(/sk-test-/)
+    })
+
+    test('past the kept head: no callout and no dump, the end line as for any stream', () => {
+      const { output, lines } = capture({
+        detailed: true,
+        mcpFunctions: new Set(['crm']),
+      })
+      const bodyHead = prelude({ statusCode: 200 }, rpcError)
+      output.end(streamEnd(bodyHead, { bodyBytes: bodyHead.length + 1 }))
+      expect(lines).toEqual([
+        '← λ crm (200) 158ms · first byte 150ms, 1 chunk · 3f2a9c1e',
+      ])
+    })
+
+    test('a function that is not an MCP server streams as before: no callout and no dump', () => {
+      const { output, lines } = capture({ detailed: true })
+      output.end(streamEnd(prelude({ statusCode: 200 }, rpcError)))
+      expect(lines).toEqual([
+        '← λ crm (200) 158ms · first byte 150ms, 1 chunk · 3f2a9c1e',
+      ])
+    })
+  })
+
   test('--detailed prints the event and the buffered response', () => {
     const { output, lines } = capture({ detailed: true })
     output.start({

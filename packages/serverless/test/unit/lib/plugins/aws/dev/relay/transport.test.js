@@ -9,6 +9,7 @@ import {
   KEEPALIVE_SECONDS,
   RECONNECT_MAX_MS,
   RECONNECT_MIN_MS,
+  RESOLVE_WAIT_MS,
   STOP_TIMEOUT_MS,
   createTransport,
 } from '../../../../../../../lib/plugins/aws/dev/relay/transport.js'
@@ -73,6 +74,28 @@ class FakeClient extends EventEmitter {
       }
     }
     ;(typeof options === 'function' ? options : cb)?.()
+  }
+}
+
+/** The error Node.js gives when a host name does not resolve (as ws passes it on). */
+const unresolved = (hostname, code = 'ENOTFOUND') =>
+  Object.assign(new Error(`getaddrinfo ${code} ${hostname}`), {
+    code,
+    syscall: 'getaddrinfo',
+    hostname,
+  })
+
+/** A connect whose first `failures` clients fail with `error()`; later ones connect. */
+const failingFirst = (failures, error) => {
+  let created = 0
+  return (url, options) => {
+    created += 1
+    const client = new FakeClient(url, options)
+    const failing = created <= failures
+    setImmediate(() =>
+      failing ? client.emit('error', error()) : client.connectNow(),
+    )
+    return client
   }
 }
 
@@ -371,8 +394,8 @@ describe("this machine's AWS IoT Core connection", () => {
         setImmediate(() =>
           client.emit(
             'error',
-            Object.assign(new Error('getaddrinfo ENOTFOUND'), {
-              code: 'ENOTFOUND',
+            Object.assign(new Error(`connect ECONNREFUSED 10.0.0.1:443`), {
+              code: 'ECONNREFUSED',
             }),
           ),
         )
@@ -381,10 +404,31 @@ describe("this machine's AWS IoT Core connection", () => {
     })
     await expect(offline.transport.start()).rejects.toMatchObject({
       code: 'DEV_MODE_IOT_UNREACHABLE',
-      message: expect.stringMatching(/ENOTFOUND/),
+      message: expect.stringMatching(
+        /ECONNREFUSED.*Check your network connection and proxy settings/,
+      ),
     })
+    expect(offline.clients).toHaveLength(1)
     expect(offline.client().ended).toBe(true)
+    expect(offline.states).toEqual([])
     expect(offline.clock.live()).toBe(0)
+
+    // A proxy whose own name does not resolve is not the endpoint's name: no wait either.
+    const noProxy = setup({
+      connect: (url, options) => {
+        const client = new FakeClient(url, options)
+        setImmediate(() =>
+          client.emit('error', unresolved('proxy.example.internal')),
+        )
+        return client
+      },
+    })
+    await expect(noProxy.transport.start()).rejects.toMatchObject({
+      code: 'DEV_MODE_IOT_UNREACHABLE',
+      message: expect.stringMatching(/Check your network connection/),
+    })
+    expect(noProxy.clients).toHaveLength(1)
+    expect(noProxy.clock.live()).toBe(0)
 
     const closes = setup({
       connect: (url, options) => {
@@ -434,6 +478,90 @@ describe("this machine's AWS IoT Core connection", () => {
     expect(client().ended).toBe(true)
     expect(states).toEqual([])
     expect(clock.live()).toBe(0)
+  })
+
+  describe("when the endpoint's name does not resolve yet (a region's first use)", () => {
+    test('start tries again with backoff, says it waits once, and connects when the name resolves', async () => {
+      let failures = 0
+      const { transport, clients, clock, states } = setup({
+        connect: failingFirst(3, () => {
+          failures += 1
+          // The DNS error can also come wrapped, as the cause of another error.
+          return failures === 2
+            ? new Error('WebSocket error', { cause: unresolved(ENDPOINT) })
+            : unresolved(ENDPOINT, failures === 3 ? 'EAI_AGAIN' : 'ENOTFOUND')
+        }),
+      })
+      const startedAt = clock.now()
+      let outcome = null
+      transport.start().then(
+        () => (outcome = 'started'),
+        (error) => (outcome = error),
+      )
+      await clock.flush()
+      expect(states).toEqual([
+        { state: 'endpoint_unresolved', region: 'us-east-1' },
+      ])
+      const delays = []
+      while (outcome === null && delays.length < 10) {
+        const [delay] = clock.timeouts()
+        delays.push(delay)
+        await clock.advance(delay)
+        await clock.flush()
+      }
+      expect(outcome).toBe('started')
+      // 1, 2 and 4 s between the attempts.
+      expect(delays).toEqual([1, 2, 4].map((s) => s * RECONNECT_MIN_MS))
+      expect(clock.now() - startedAt).toBe(7 * RECONNECT_MIN_MS)
+      expect(clients).toHaveLength(4)
+      expect(clients.slice(0, -1).every((c) => c.ended === true)).toBe(true)
+      expect(clients.at(-1).subscriptions).toEqual([[UP, { qos: 1 }]])
+      expect(states).toHaveLength(1)
+      await transport.stop()
+      expect(clock.live()).toBe(0)
+    })
+
+    test(`start gives up after ${RESOLVE_WAIT_MS / 1000} s, with the same code and advice to try again in a few minutes`, async () => {
+      const { transport, clients, clock } = setup({
+        connect: failingFirst(Infinity, () => unresolved(ENDPOINT)),
+      })
+      const startedAt = clock.now()
+      let outcome = null
+      transport.start().then(
+        () => (outcome = 'started'),
+        (error) => (outcome = error),
+      )
+      await clock.flush()
+      while (outcome === null && clock.timeouts().length > 0) {
+        await clock.advance(clock.timeouts()[0])
+        await clock.flush()
+      }
+      expect(clock.now() - startedAt).toBe(RESOLVE_WAIT_MS)
+      expect(outcome).toMatchObject({
+        code: 'DEV_MODE_IOT_UNREACHABLE',
+        message: `The AWS IoT Core endpoint for this account in us-east-1 cannot be resolved yet (getaddrinfo ENOTFOUND ${ENDPOINT}). AWS creates an account's endpoint in a region the first time it is used there, and it can take a few minutes before it resolves. Run the command again in a few minutes. If it still cannot be resolved then, check your network connection and proxy settings (HTTPS_PROXY).`,
+      })
+      expect(clients.length).toBeGreaterThan(2)
+      expect(clients.every((c) => c.ended === true)).toBe(true)
+      expect(clock.live()).toBe(0)
+    })
+
+    test('stop during the wait ends it at once, and start then settles quietly', async () => {
+      const { transport, clients, clock } = setup({
+        connect: failingFirst(Infinity, () => unresolved(ENDPOINT)),
+      })
+      const starting = transport.start().then(
+        () => 'resolved',
+        (error) => error,
+      )
+      await clock.flush()
+      expect(clients).toHaveLength(1)
+      expect(clock.timeouts()).toEqual([RECONNECT_MIN_MS])
+      await transport.stop()
+      expect(await starting).toBe('resolved')
+      expect(clients).toHaveLength(1)
+      expect(clock.live()).toBe(0)
+    })
   })
 
   test('no error message carries the signed URL', async () => {

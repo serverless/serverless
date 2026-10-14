@@ -15,6 +15,8 @@ import {
   BROKER_POLICY_NAME,
   BROKER_POLICY_VERSION,
   BROKER_TRUST_SID,
+  brokerRoleArn,
+  brokerRolePattern,
 } from './naming.js'
 import {
   credentialsInvalidError,
@@ -293,10 +295,13 @@ export const trustPolicyDifferences = ({ role, identity, region }) => {
 export const brokerSetupHint = (region) =>
   `Ask an administrator to run "serverless dev setup --region ${region}" once (it accepts --permissions-boundary and --path when your organization requires them).`
 
-const deniedError = (action, name, error, region) =>
+/** The role as a message names it: its ARN, which carries its IAM path, when it is known. */
+const roleLabel = ({ arn, name }) => arn ?? `"${name}"`
+
+const createDeniedError = (arn, error, region) =>
   new ServerlessError(
-    `Dev Mode could not ${action} the IAM role "${name}" (${error.message}).\n` +
-      'The first "serverless dev" in an AWS account and region creates this role once; that needs iam:GetRole, iam:CreateRole and iam:PutRolePolicy.\n' +
+    `Dev Mode could not create the IAM role ${arn} (${error.message}).\n` +
+      'The first "serverless dev" in an AWS account and region creates this role once; that needs iam:GetRole, iam:CreateRole and iam:PutRolePolicy on it.\n' +
       brokerSetupHint(region),
     'DEV_MODE_BROKER_CREATE_DENIED',
     originalOf(error),
@@ -344,7 +349,7 @@ export const getBroker = async ({
     if (isCredentialError(error)) throw credentialsInvalidError(error)
     if (isAccessDenied(error)) {
       throw new ServerlessError(
-        `Dev Mode needs iam:GetRole on the IAM role "${name}" to read its settings (${error.message}). Ask your AWS administrator to allow it.`,
+        `Dev Mode needs iam:GetRole on the IAM role "${name}" to read its settings (${error.message}). Ask your AWS administrator to allow it on ${brokerRolePattern(identity)}, which covers the role under any IAM path.`,
         'DEV_MODE_BROKER_READ_DENIED',
         originalOf(error),
       )
@@ -375,8 +380,22 @@ export const getBroker = async ({
     externalId: readExternalId(role),
     path: role.Path,
     created: false,
+    createdAt: role.CreateDate ? new Date(role.CreateDate) : undefined,
   }
 }
+
+/** How long a new IAM role can take before AWS accepts it everywhere. */
+const NEW_BROKER_MS = 3 * 60_000
+
+/**
+ * Whether the role may not work everywhere yet: created by this session, or by an earlier one
+ * (say a start that ended before it was ready) less than NEW_BROKER_MS before `nowMs`.
+ */
+export const isNewBroker = (broker, nowMs) =>
+  Boolean(
+    broker?.created ||
+    (broker?.createdAt && nowMs - broker.createdAt.getTime() < NEW_BROKER_MS),
+  )
 
 /** A policy statement as IAM means it: single values and lists alike, keys in any order. */
 const statementMeaning = (statement) => {
@@ -456,8 +475,11 @@ const readBrokerPolicyState = async ({ iam, name, identity, region }) => {
 export const brokerPolicyNeedsRepair = (state) =>
   state === 'missing' || state === 'outdated'
 
-/** Writes this version's permission policy, over whatever the role has under that name. */
-export const putBrokerPolicy = async ({ iam, name, identity, region }) => {
+/**
+ * Writes this version's permission policy, over whatever the role has under that name. `arn`, the
+ * role's ARN when it is known, names it in an error.
+ */
+export const putBrokerPolicy = async ({ iam, name, arn, identity, region }) => {
   try {
     await iam.putRolePolicy({
       RoleName: name,
@@ -470,7 +492,7 @@ export const putBrokerPolicy = async ({ iam, name, identity, region }) => {
     if (isCredentialError(error)) throw credentialsInvalidError(error)
     if (isAccessDenied(error)) {
       throw new ServerlessError(
-        `Dev Mode could not put the permission policy ${BROKER_POLICY_NAME} on the IAM role "${name}" (${error.message}).\n` +
+        `Dev Mode could not put the permission policy ${BROKER_POLICY_NAME} on the IAM role ${roleLabel({ arn, name })} (${error.message}).\n` +
           'That needs iam:PutRolePolicy on the role.\n' +
           brokerSetupHint(region),
         'DEV_MODE_BROKER_CREATE_DENIED',
@@ -484,9 +506,15 @@ export const putBrokerPolicy = async ({ iam, name, identity, region }) => {
 /**
  * Whether the broker's permission policy must be left as it is because a newer version of Dev Mode
  * wrote it. Without iam:GetRolePolicy that cannot be told, and writing could replace a newer one:
- * `DEV_MODE_BROKER_READ_DENIED`.
+ * `DEV_MODE_BROKER_READ_DENIED`. `arn`, the role's ARN when it is known, names it in that error.
  */
-export const brokerPolicyIsNewer = async ({ iam, name, identity, region }) => {
+export const brokerPolicyIsNewer = async ({
+  iam,
+  name,
+  arn,
+  identity,
+  region,
+}) => {
   try {
     return (
       (await readBrokerPolicyState({ iam, name, identity, region })) === 'newer'
@@ -494,7 +522,7 @@ export const brokerPolicyIsNewer = async ({ iam, name, identity, region }) => {
   } catch (error) {
     if (!isAccessDenied(error)) throw error
     throw new ServerlessError(
-      `Dev Mode needs iam:GetRolePolicy on the IAM role "${name}" to read its permission policy ${BROKER_POLICY_NAME} before it writes one (${error.message}): a newer version of Dev Mode may have written it, and Dev Mode never replaces a newer one. Ask your AWS administrator to allow it.`,
+      `Dev Mode needs iam:GetRolePolicy on the IAM role ${roleLabel({ arn, name })} to read its permission policy ${BROKER_POLICY_NAME} before it writes one (${error.message}): a newer version of Dev Mode may have written it, and Dev Mode never replaces a newer one. Ask your AWS administrator to allow it.`,
       'DEV_MODE_BROKER_READ_DENIED',
       originalOf(error),
     )
@@ -505,9 +533,17 @@ export const brokerPolicyIsNewer = async ({ iam, name, identity, region }) => {
  * Puts this version's permission policy on an existing broker unless a newer version wrote it.
  * Returns whether it was written.
  */
-export const updateBrokerPolicy = async ({ iam, name, identity, region }) => {
-  if (await brokerPolicyIsNewer({ iam, name, identity, region })) return false
-  await putBrokerPolicy({ iam, name, identity, region })
+export const updateBrokerPolicy = async ({
+  iam,
+  name,
+  arn,
+  identity,
+  region,
+}) => {
+  if (await brokerPolicyIsNewer({ iam, name, arn, identity, region })) {
+    return false
+  }
+  await putBrokerPolicy({ iam, name, arn, identity, region })
   return true
 }
 
@@ -563,6 +599,7 @@ export const createBroker = async ({
         const written = await updateBrokerPolicy({
           iam,
           name,
+          arn: existing.arn,
           identity,
           region,
         })
@@ -579,13 +616,19 @@ export const createBroker = async ({
       }
     }
     if (isCredentialError(error)) throw credentialsInvalidError(error)
-    if (isAccessDenied(error)) throw deniedError('create', name, error, region)
+    if (isAccessDenied(error)) {
+      throw createDeniedError(
+        brokerRoleArn({ identity, name, path }),
+        error,
+        region,
+      )
+    }
     if (permissionsBoundary && BOUNDARY_ERRORS.has(error?.name)) {
       throw boundaryError(permissionsBoundary, error)
     }
     throw error
   }
   // A role created now has no earlier policy.
-  await putBrokerPolicy({ iam, name, identity, region })
+  await putBrokerPolicy({ iam, name, arn: role.Arn, identity, region })
   return { name, arn: role.Arn, externalId, path: role.Path, created: true }
 }

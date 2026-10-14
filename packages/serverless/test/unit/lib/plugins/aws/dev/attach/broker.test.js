@@ -4,6 +4,7 @@ import {
   buildTrustPolicy,
   createBroker,
   getBroker,
+  isNewBroker,
   identityFrom,
   policyVersionOf,
   putBrokerPolicy,
@@ -25,6 +26,8 @@ afterAll(() => {
 const identity = { accountId: ACCOUNT, partition: 'aws' }
 const AT = { identity, region: 'us-east-1' }
 const NAME = 'serverless-dev-broker-us-east-1'
+// A role created with "serverless dev setup --path /serverless/".
+const PATHED_ARN = `arn:aws:iam::${ACCOUNT}:role/serverless/${NAME}`
 const fixedBytes = () => Buffer.alloc(16, 0xab)
 const EXT = 'ab'.repeat(16)
 const SOURCE = `arn:aws:lambda:us-east-1:${ACCOUNT}:function:*`
@@ -445,6 +448,34 @@ test('createBroker writes the trust policy once and the current permission polic
   })
 })
 
+test('getBroker returns when the role was created, as IAM reports it', async () => {
+  const iam = fakeIam()
+  await createBroker({
+    iam,
+    name: NAME,
+    identity,
+    region: 'us-east-1',
+    randomBytes: fixedBytes,
+  })
+  iam.roles.get(NAME).CreateDate = new Date('2026-10-05T10:40:00Z')
+  expect(
+    (await getBroker({ iam, name: NAME, ...AT })).createdAt.toISOString(),
+  ).toBe('2026-10-05T10:40:00.000Z')
+})
+
+test('isNewBroker: a role created now, or less than 3 minutes ago, may not work yet', () => {
+  const at = Date.parse('2026-10-05T10:43:00Z')
+  expect(isNewBroker({ created: true }, at)).toBe(true)
+  expect(isNewBroker({ createdAt: new Date('2026-10-05T10:40:01Z') }, at)).toBe(
+    true,
+  )
+  expect(isNewBroker({ createdAt: new Date('2026-10-05T10:40:00Z') }, at)).toBe(
+    false,
+  )
+  expect(isNewBroker({ created: false }, at)).toBe(false)
+  expect(isNewBroker(null, at)).toBe(false)
+})
+
 test('createBroker passes a permissions boundary and a path when given', async () => {
   const iam = fakeIam()
   const broker = await createBroker({
@@ -481,21 +512,30 @@ test('a teammate creating the role at the same moment is not an error', async ()
   expect(again.externalId).toBe('ab'.repeat(16))
 })
 
-test('a denied CreateRole explains dev setup', async () => {
+test('a denied CreateRole names the role with its path and explains dev setup', async () => {
   const iam = fakeIam()
   iam.createRoleError = Object.assign(
     new Error('not authorized to perform: iam:CreateRole'),
     { name: 'AccessDenied' },
   )
   await expect(
-    createBroker({ iam, name: NAME, identity, region: 'us-east-1' }),
+    createBroker({
+      iam,
+      name: NAME,
+      identity,
+      region: 'us-east-1',
+      path: '/serverless/',
+    }),
   ).rejects.toMatchObject({
     code: 'DEV_MODE_BROKER_CREATE_DENIED',
-    message: expect.stringContaining('serverless dev setup'),
+    message:
+      `Dev Mode could not create the IAM role arn:aws:iam::${ACCOUNT}:role/serverless/${NAME} (not authorized to perform: iam:CreateRole).\n` +
+      'The first "serverless dev" in an AWS account and region creates this role once; that needs iam:GetRole, iam:CreateRole and iam:PutRolePolicy on it.\n' +
+      'Ask an administrator to run "serverless dev setup --region us-east-1" once (it accepts --permissions-boundary and --path when your organization requires them).',
   })
 })
 
-test('a denied GetRole names the permission', async () => {
+test('a denied GetRole names the permission on the role under any IAM path', async () => {
   const iam = fakeIam()
   iam.getRoleError = Object.assign(
     new Error('not authorized to perform: iam:GetRole'),
@@ -503,7 +543,7 @@ test('a denied GetRole names the permission', async () => {
   )
   await expect(getBroker({ iam, name: NAME, ...AT })).rejects.toMatchObject({
     code: 'DEV_MODE_BROKER_READ_DENIED',
-    message: expect.stringContaining('iam:GetRole'),
+    message: `Dev Mode needs iam:GetRole on the IAM role "${NAME}" to read its settings (not authorized to perform: iam:GetRole). Ask your AWS administrator to allow it on arn:aws:iam::${ACCOUNT}:role/*serverless-dev-broker-*, which covers the role under any IAM path.`,
   })
 })
 
@@ -624,18 +664,47 @@ describe('the permission policy carries its version in its statement ids', () =>
     ).rejects.toMatchObject({ code: 'DEV_MODE_BROKER_READ_DENIED' })
   })
 
+  test("a teammate's role under an IAM path is named by its ARN when its policy cannot be read", async () => {
+    const iam = seed(ours())
+    Object.assign(iam.roles.get(NAME), {
+      Path: '/serverless/',
+      Arn: PATHED_ARN,
+    })
+    iam.getRolePolicyError = Object.assign(
+      new Error('not authorized to perform: iam:GetRolePolicy'),
+      { name: 'AccessDenied', $metadata: { httpStatusCode: 403 } },
+    )
+    await expect(
+      createBroker({
+        iam,
+        name: NAME,
+        ...AT,
+        randomBytes: fixedBytes,
+        unreadablePolicy: 'stop',
+      }),
+    ).rejects.toMatchObject({
+      code: 'DEV_MODE_BROKER_READ_DENIED',
+      message: expect.stringContaining(
+        `iam:GetRolePolicy on the IAM role ${PATHED_ARN} `,
+      ),
+    })
+  })
+
   test('updateBrokerPolicy writes nothing when IAM will not say what the policy is', async () => {
     const iam = seed(ours())
     iam.getRolePolicyError = Object.assign(
       new Error('not authorized to perform: iam:GetRolePolicy'),
       { name: 'AccessDenied', $metadata: { httpStatusCode: 403 } },
     )
-    const error = await updateBrokerPolicy({ iam, name: NAME, ...AT }).catch(
-      (e) => e,
-    )
+    const error = await updateBrokerPolicy({
+      iam,
+      name: NAME,
+      ...AT,
+      arn: PATHED_ARN,
+    }).catch((e) => e)
     expect(error.code).toBe('DEV_MODE_BROKER_READ_DENIED')
     expect(error.message).toBe(
-      `Dev Mode needs iam:GetRolePolicy on the IAM role "${NAME}" to read its permission policy serverless-dev-broker before it writes one (not authorized to perform: iam:GetRolePolicy): a newer version of Dev Mode may have written it, and Dev Mode never replaces a newer one. Ask your AWS administrator to allow it.`,
+      `Dev Mode needs iam:GetRolePolicy on the IAM role ${PATHED_ARN} to read its permission policy serverless-dev-broker before it writes one (not authorized to perform: iam:GetRolePolicy): a newer version of Dev Mode may have written it, and Dev Mode never replaces a newer one. Ask your AWS administrator to allow it.`,
     )
     expect(writes(iam)).toEqual([])
   })
@@ -792,12 +861,15 @@ describe('putBrokerPolicy', () => {
       new Error('not authorized to perform: iam:PutRolePolicy'),
       { name: 'AccessDenied', $metadata: { httpStatusCode: 403 } },
     )
-    const error = await putBrokerPolicy({ iam, name: NAME, ...AT }).catch(
-      (e) => e,
-    )
+    const error = await putBrokerPolicy({
+      iam,
+      name: NAME,
+      ...AT,
+      arn: PATHED_ARN,
+    }).catch((e) => e)
     expect(error.code).toBe('DEV_MODE_BROKER_CREATE_DENIED')
     expect(error.message).toBe(
-      `Dev Mode could not put the permission policy serverless-dev-broker on the IAM role "${NAME}" (not authorized to perform: iam:PutRolePolicy).\n` +
+      `Dev Mode could not put the permission policy serverless-dev-broker on the IAM role ${PATHED_ARN} (not authorized to perform: iam:PutRolePolicy).\n` +
         'That needs iam:PutRolePolicy on the role.\n' +
         'Ask an administrator to run "serverless dev setup --region us-east-1" once (it accepts --permissions-boundary and --path when your organization requires them).',
     )

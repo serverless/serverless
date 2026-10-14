@@ -27,7 +27,7 @@ import {
 } from '@serverless/util'
 // Subpath import: tests that load every plugin mock '@serverless/util' wholesale.
 import { style } from '@serverless/util/src/logger/index.js'
-import { functionKeyOf, isProtectedStage, layerName } from './naming.js'
+import { brokerRoleArn, functionKeyOf, layerName } from './naming.js'
 import { buildAttachVariables } from './undo-record.js'
 import {
   classifyByConfig,
@@ -38,7 +38,7 @@ import {
   unattachedDevModeLayers,
 } from './eligibility.js'
 import { createDevModeClients, credentialProvider } from './aws.js'
-import { brokerPolicyNeedsRepair } from './broker.js'
+import { brokerPolicyNeedsRepair, isNewBroker } from './broker.js'
 import { credentialSourceOf } from '../relay/messages.js'
 import {
   findLayerVersion,
@@ -70,6 +70,7 @@ import {
   createApproval,
   createLayerLambda,
   nothingToAttachError,
+  refuseProtectedStage,
   runPreflight,
   stackExistsWith,
 } from './session-preflight.js'
@@ -174,13 +175,7 @@ const runAttachedSession = async ({
   deps = {},
 }) => {
   const stage = provider.getStage()
-  if (isProtectedStage(stage)) {
-    throw new ServerlessError(
-      out.protectedStageMessage(stage),
-      'DEV_MODE_STAGE_PROTECTED',
-      { stack: false },
-    )
-  }
+  refuseProtectedStage(stage)
   const region = provider.getRegion()
   // What a restore the session suggests names: its stage, region and --aws-profile.
   const scope = { stage, region, aws_profile: awsProfileOf(options) }
@@ -444,14 +439,15 @@ const runAttachedSession = async ({
     watchIntervalMs,
     isStopping: () => Boolean(stops.signal()),
     onLost: (change) =>
-      state.events.emit('function.lost', {
-        function: nameOf(change.name),
+      lifecycle.lost({
+        name: nameOf(change.name),
         state: change.state,
+        why: out.lostWhy(change),
       }),
   })
 
   let attachFailed = false
-  let brokerCreatedNow = false
+  let brokerIsNew = false
   const run = createRunState({ logger, ctx })
   // A detached session stops after its idle timeout; a session in a terminal never does.
   const idleMs = idleTimeoutOf(options)
@@ -577,7 +573,7 @@ const runAttachedSession = async ({
       owner,
       attachedAt: Math.floor(now() / 1000),
       broker: broker ?? {
-        arn: `arn:${identity.partition}:iam::${identity.accountId}:role/${brokerName}`,
+        arn: brokerRoleArn({ identity, name: brokerName }),
         externalId: '0'.repeat(32),
       },
       key: sessionKey.toString('base64'),
@@ -694,7 +690,7 @@ const runAttachedSession = async ({
     }
     serverless.devmodeEnabled = true
 
-    ;({ broker, brokerCreatedNow } = await ensureAccountSetup({
+    ;({ broker } = await ensureAccountSetup({
       broker,
       brokerPolicy,
       brokerName,
@@ -704,6 +700,9 @@ const runAttachedSession = async ({
       main,
       session,
     }))
+    // A role an earlier start created moments ago is as new as one created now: the set-up line
+    // names it with its age, and the note says it can take a while to work.
+    brokerIsNew = isNewBroker(broker, now())
     // Connected before anything is attached: a missing AWS IoT Core permission fails the session
     // while no function has changed.
     if (stops.signal()) {
@@ -720,6 +719,7 @@ const runAttachedSession = async ({
       credentials,
       credentialSource: credentialSourceOf(provider),
       logger,
+      spinner: main,
       timers,
       now,
       record: (type, fields) => state.events.emit(type, fields),
@@ -736,7 +736,12 @@ const runAttachedSession = async ({
     })
     const setupLine = out.accountSetupDoneLine({
       region,
-      createdRole: brokerCreatedNow ? brokerName : null,
+      createdRole: broker.created ? brokerName : null,
+      usedRole:
+        brokerIsNew && !broker.created
+          ? { name: brokerName, createdAt: broker.createdAt }
+          : null,
+      nowMs: now(),
       repairedRole: brokerPolicyNeedsRepair(brokerPolicy) ? brokerName : null,
       layers: publishedLayers,
     })
@@ -855,7 +860,7 @@ const runAttachedSession = async ({
         total: keys.length,
         started,
         attachStarted,
-        brokerCreatedNow,
+        brokerIsNew,
         watch,
         watchIntervalMs,
         stops,
@@ -941,13 +946,7 @@ export const runDevSession = async ({
   deps = {},
 }) => {
   const stage = provider.getStage()
-  if (isProtectedStage(stage)) {
-    throw new ServerlessError(
-      out.protectedStageMessage(stage),
-      'DEV_MODE_STAGE_PROTECTED',
-      { stack: false },
-    )
-  }
+  refuseProtectedStage(stage)
   const region = provider.getRegion()
   const {
     logger: rawLogger = defaultLogger,

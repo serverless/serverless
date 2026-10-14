@@ -169,19 +169,26 @@ export const deployFirstLine = (stage) =>
   `Stage "${stage}" is not deployed yet: deploying it first.`
 
 /**
- * What the account setup did, once it is done: `{ region, createdRole, repairedRole, layers }`
- * (the role's name when it was created or repaired, the layers published). Null when it did
- * nothing.
+ * What the account setup did, once it is done: `{ region, createdRole, repairedRole, usedRole,
+ * nowMs, layers }` (the role's name when it was created or repaired, the layers published). Null
+ * when it did nothing. `usedRole`, `{ name, createdAt }`: a role an earlier run created moments
+ * ago, named with its age at `nowMs`, since it may not work everywhere yet.
  */
 export const accountSetupDoneLine = ({
   region,
   createdRole,
   repairedRole,
+  usedRole,
+  nowMs = Date.now(),
   layers = [],
 }) => {
+  const age = usedRole
+    ? ` (created ${formatAgo(usedRole.createdAt.getTime() / 1000, nowMs)})`
+    : ''
   const done = [
     createdRole && `created IAM role ${createdRole}`,
-    repairedRole && `repaired IAM role ${repairedRole}`,
+    repairedRole && `repaired IAM role ${repairedRole}${age}`,
+    !repairedRole && usedRole && `using IAM role ${usedRole.name}${age}`,
     ...layers.map((name) => `published layer ${name}`),
   ].filter(Boolean)
   return done.length ? `Set up Dev Mode in ${region}: ${done.join(', ')}` : null
@@ -596,6 +603,21 @@ const LEFT_DEV_MODE = {
  */
 export const leftDevModeLine = (change, scope) =>
   LEFT_DEV_MODE[change.state](change, scope)
+
+const LOST_WHY = {
+  taken_over: ({ owner }) => `taken over by ${owner} (--take-over)`,
+  taken_over_by_you: () => 'taken over by another session of yours',
+  wrapper_replaced: () =>
+    'left Dev Mode: something else changed its AWS_LAMBDA_EXEC_WRAPPER',
+  detached: () =>
+    'left Dev Mode: its Dev Mode configuration was removed elsewhere',
+  function_deleted: () => 'the function no longer exists',
+  layer_missing: () =>
+    'lost the Dev Mode layer; cannot start until it is restored',
+  env_unreadable: () => `can no longer be checked: ${ENV_UNREADABLE_WHY}`,
+}
+/** The function table's why for a function the session lost (see leftDevModeLine). */
+export const lostWhy = (change) => LOST_WHY[change.state](change)
 
 /** Printed once per session when the attachment checks keep failing; later failures are debug lines. */
 /**

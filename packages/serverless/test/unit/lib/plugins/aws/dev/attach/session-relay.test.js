@@ -184,6 +184,23 @@ describe("the session's relay connection", () => {
     await connection.stop()
   })
 
+  test("while the endpoint's name does not resolve yet, the spinner says the session waits for it", async () => {
+    const logger = recordingLogger()
+    const spinner = []
+    const { made, connectTransport } = fakeTransportFactory()
+    const connection = await start({
+      logger,
+      connectTransport,
+      spinner: { notice: (text) => spinner.push(text) },
+    })
+    made.options.onState({ state: 'endpoint_unresolved', region: 'eu-west-1' })
+    expect(spinner).toEqual([
+      'Waiting for AWS IoT Core in eu-west-1 to become reachable',
+    ])
+    expect(logger.lines).toEqual([])
+    await connection.stop()
+  })
+
   test('a refused connection fails the start with the transport error', async () => {
     const denied = Object.assign(
       new Error('Dev Mode could not connect to AWS IoT Core'),

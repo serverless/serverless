@@ -11,7 +11,12 @@ const runDevStatus = jest.fn(async () => ({
 }))
 jest.unstable_mockModule(
   '../../../../../../lib/plugins/aws/dev/commands/status.js',
-  () => ({ runDevStatus }),
+  () => ({
+    runDevStatus,
+    // What `--detach` reuses from it.
+    statusModeTable: jest.fn(),
+    statusTableWorthShowing: jest.fn(),
+  }),
 )
 const runDevStop = jest.fn(async () => ({
   result: {

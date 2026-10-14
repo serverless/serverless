@@ -72,7 +72,7 @@ export const detectRuntimes = async ({
 /**
  * Creates the broker role when it does not exist (`session.broker` then holds it) and puts back
  * its permission policy when the plan said it was missing or from an earlier version. Returns the
- * broker and whether it was created now.
+ * broker (`created: true` when it was created now).
  */
 export const ensureAccountSetup = async ({
   broker,
@@ -84,7 +84,6 @@ export const ensureAccountSetup = async ({
   main,
   session,
 }) => {
-  let brokerCreatedNow = false
   if (!broker) {
     main.notice(`Creating IAM role ${brokerName}`)
     broker = await createBroker({
@@ -101,7 +100,6 @@ export const ensureAccountSetup = async ({
       )
     }
     session.broker = broker
-    brokerCreatedNow = true
   }
   if (brokerPolicyNeedsRepair(brokerPolicy)) {
     // Its creation stopped before the permission policy was written, or an earlier version wrote
@@ -110,11 +108,12 @@ export const ensureAccountSetup = async ({
     await putBrokerPolicy({
       iam: clients.iam,
       name: brokerName,
+      arn: broker.arn,
       identity,
       region,
     })
   }
-  return { broker, brokerCreatedNow }
+  return { broker }
 }
 
 /**

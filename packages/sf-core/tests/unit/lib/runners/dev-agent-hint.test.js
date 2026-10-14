@@ -57,6 +57,17 @@ describe('the agent hint of serverless dev', () => {
     )
   })
 
+  test('a service whose only functions are MCP servers gets the hint', () => {
+    expect(
+      hintFor({
+        config: {
+          service: 'orders',
+          mcp: { servers: { crm: { server: 'src/server.mjs' } } },
+        },
+      }),
+    ).toBe(AGENT_HINT)
+  })
+
   test.each([
     ['a person', { isAgent: () => false }],
     ['--help', { options: { help: true } }],
