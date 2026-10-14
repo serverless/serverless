@@ -34,10 +34,11 @@
   ],
   "author": "Serverless Inc.",
   "devDependencies": {
-    "eslint": "^10.11.0",
+    "eslint": "^10.12.0",
+    "eslint-plugin-jest": "^29.16.11",
     "husky": "^9.1.7",
-    "lint-staged": "^17.5.1",
-    "prettier": "^3.9.9"
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.10"
   },
   "lint-staged": {
     "*.{js,ts,tsx,jsx}": [
@@ -48,7 +49,6 @@
     "jest@30": {
       "glob@<11": "^13.0.6"
     },
-    "help-me@<5": "^5.0.0",
     "aws-sdk": {
       "uuid": "^11.1.1"
     },

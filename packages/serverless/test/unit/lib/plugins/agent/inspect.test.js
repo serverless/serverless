@@ -643,7 +643,7 @@ describe('fatal errors (non-zero exit, single JSON error on stdout)', () => {
     await new AgentInspect(serverless, { functions: true }).inspect()
 
     expect(lastPayload().hint).toBe(
-      'No deployed stack found for stage "dev" in us-east-1. Run "serverless deploy --service=api --stage dev --region us-east-1" first, then re-run inspect.',
+      'No deployed stack found for stage "dev" in us-east-1. Run "serverless api deploy --stage dev --region us-east-1" first, then re-run inspect.',
     )
   })
 

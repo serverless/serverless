@@ -13,22 +13,22 @@ entry production uses — edits apply on the next request, no redeploy.
 
 ## What differs from a deployed server
 
-- Results are buffered: progress arrives together at the end of the call.
-- Dev Mode carries requests and results up to about 125 KB, as for every
-  function; test larger payloads against the deployed stage.
-- On the default edge-optimized endpoint, a call that produces nothing for
-  roughly 30 seconds is dropped with a `504`, and the session warns there. On
-  `REGIONAL` a dev call runs past that instead, up to the server's own
-  `timeout`, and no warning is printed.
-- Each request runs the module fresh (a few hundred ms).
-
-Deploy normally to test incremental streaming and long tools.
+- Each warm Lambda execution environment keeps one module process on your
+  machine; a save restarts it for the next request.
+- Large requests and results relay through the deployment bucket; when that
+  is off, see the `serverless-dev-mode` skill's troubleshooting (large
+  payloads).
+- The endpoint type's idle bound applies as deployed: on an edge-optimized
+  endpoint a call that writes nothing for about 30 seconds gets a `504`;
+  emit progress or use `REGIONAL`.
+- A relayed call adds about half a second.
 
 ## Reading the session
 
-The session lists each server under `mcp:` and logs every request by JSON-RPC
-method and target — `→ λ crm ── mcp tools/call get_weather`, then
-`← λ crm (200) 640ms`, with any JSON-RPC error inside a `200` called out on
-that line.
+Each server is a function under its name, like any other (`serverless dev
+status` lists it with its mode), and the session logs every request by JSON-RPC
+method and target —
+`→ λ crm ── mcp tools/call get_weather`, then `← λ crm (200) 640ms`, with any
+JSON-RPC error inside a `200` called out on that line.
 
-`serverless deploy` after the session restores normal serving.
+Stopping the session (`serverless dev stop`, or Ctrl+C) restores normal serving.

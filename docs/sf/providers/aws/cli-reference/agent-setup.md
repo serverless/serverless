@@ -46,15 +46,16 @@ as adding an MCP server to the service, so they are installed whether or not
 the service uses the feature yet. Commit them so teammates' agents get them;
 deployments leave them out of the function package (re-include them with
 [`package.patterns`](../guide/packaging.md) if a function needs them).
-Installed skills update automatically as the CLI updates; skills you
-customize are never overwritten.
+Installed skills update automatically as the CLI updates (see
+[Automatic updates](../../../guides/agent-skills.md#automatic-updates)); skills
+you customize are never overwritten.
 
 **Reports environment status.** Each line is a check, and failing checks
 carry their fix:
 
 ```text
 skills:
-  serverless-framework v1 (user) — installed in ~/.claude/skills, ~/.agents/skills
+  serverless-framework v2 (user) — installed in ~/.claude/skills, ~/.agents/skills
 
 environment:
   service: no serverless.yml in this directory — create one (see the serverless-framework skill), then run "serverless agent setup" again there to install the project skills; or run "serverless" in an interactive terminal to scaffold a project
@@ -64,7 +65,8 @@ environment:
 docs: read ~/.claude/skills/serverless-framework/SKILL.md now; new sessions load it automatically. "serverless agent docs" prints the documentation on demand
 ```
 
-Nothing prompts. Serverless authentication and service presence are
+Nothing prompts, and the command exits 0 even when a check fails — the
+report lines say what needs fixing. Serverless authentication and service presence are
 checked locally, in the order the CLI signs in: an Access Key in the
 environment, your signed-in session, a License Key in the environment, a
 `licenseKey` in `serverless.yml`, then a License Key saved on this machine. The AWS
@@ -84,8 +86,10 @@ check:
   `serverless.yml` without resolving variables. Run `serverless package` to
   check it.
 - AWS credentials supplied by a [Serverless Dashboard Provider](../../../guides/dashboard/providers.md).
-  When no local credentials are found and you are signed in or use an access
-  key, the line says a deploy may use that provider instead, unless the `aws`
+  When you are signed in or use an Access Key, a deploy uses the org's
+  provider instead of local credentials if one is set up, so the line says
+  so — after the account and region when AWS accepts the local credentials,
+  and after the fix when none are found. The note is left out when the `aws`
   resolver sets `dashboard: false`.
 
 The check covers one stage: `--stage`, else `provider.stage`, else `dev`.

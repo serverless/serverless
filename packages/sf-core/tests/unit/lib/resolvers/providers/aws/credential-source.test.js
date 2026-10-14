@@ -1,5 +1,6 @@
 import {
   describeAwsCredentialSource,
+  describeMissingAwsCredentials,
   awsCredentialsFix,
   resolveServiceAwsProfile,
 } from '../../../../../../src/lib/resolvers/providers/aws/credential-source.js'
@@ -100,5 +101,35 @@ describe('awsCredentialsFix', () => {
     expect(awsCredentialsFix({ source: 'resolver-config' })).toBe(
       'the credentials come from accessKeyId/secretAccessKey in the aws resolver configuration in serverless.yml: update them',
     )
+  })
+})
+
+describe('describeMissingAwsCredentials', () => {
+  it('in a service: another profile can be named in provider.profile', () => {
+    expect(describeMissingAwsCredentials({ profile: 'ops' })).toEqual({
+      problem: 'profile "ops" has no usable credentials',
+      fix: 'create it with "serverless login aws --aws-profile ops" in an interactive terminal, or name another profile in provider.profile or with --aws-profile',
+    })
+  })
+
+  it('outside a service: another profile is named with --aws-profile only', () => {
+    expect(
+      describeMissingAwsCredentials({ profile: 'ops', outsideService: true }),
+    ).toEqual({
+      problem: 'profile "ops" has no usable credentials',
+      fix: 'create it with "serverless login aws --aws-profile ops" in an interactive terminal, or name another profile with --aws-profile',
+    })
+  })
+
+  it('outside a service, every other case reads as in one', () => {
+    for (const args of [
+      {},
+      { ssoExpired: true },
+      { profile: 'ops', ssoExpired: true },
+    ]) {
+      expect(
+        describeMissingAwsCredentials({ ...args, outsideService: true }),
+      ).toEqual(describeMissingAwsCredentials(args))
+    }
   })
 })

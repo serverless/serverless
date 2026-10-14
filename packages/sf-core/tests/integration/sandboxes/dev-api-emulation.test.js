@@ -14,6 +14,7 @@ import {
   CreateMicrovmAuthTokenCommand,
   TerminateMicrovmCommand,
 } from '@aws-sdk/client-lambda-microvms'
+import { TEST_REGION } from '../../utils/testRegion.js'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const IMAGE = 'serverless-sandbox-dev-test/echo:latest'
@@ -92,7 +93,7 @@ d('dev API emulation — real SDK against the local control-plane', () => {
     })
     cp = await startControlPlane({ registry, containerManager })
     client = new LambdaMicrovmsClient({
-      region: 'us-east-1',
+      region: TEST_REGION,
       endpoint: cp.url,
       credentials: { accessKeyId: 'local', secretAccessKey: 'local' },
     })

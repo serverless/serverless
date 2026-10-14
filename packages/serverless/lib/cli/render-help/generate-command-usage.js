@@ -1,10 +1,11 @@
 import { style } from '@serverless/util'
+import { commandUsageName } from '../positionals.js'
 
 export default (commandName, commandSchema) => {
   const indentFillLength = 30
-
+  const name = commandUsageName(commandName, commandSchema)
   const usage = commandSchema.usage
-  return `  ${commandName} ${' '.repeat(
-    Math.max(indentFillLength - commandName.length, 0),
+  return `  ${name} ${' '.repeat(
+    Math.max(indentFillLength - name.length, 0),
   )} ${style.aside(usage)}`
 }

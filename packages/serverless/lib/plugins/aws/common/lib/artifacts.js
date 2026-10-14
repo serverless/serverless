@@ -2,6 +2,11 @@ import path from 'path'
 import fs from 'fs'
 import fse from 'fs-extra'
 import ServerlessError from '../../../../serverless-error.js'
+import {
+  hasKeptEntry,
+  emptyServerlessDir,
+  withoutKeptEntry,
+} from './serverless-dir.js'
 
 // Canonical form of a path for containment comparison: symlinks followed and,
 // on case-insensitive filesystems, the on-disk casing. Paths that do not exist
@@ -78,11 +83,13 @@ export default {
         fse.removeSync(resolvedPackagePath)
       }
       this.serverless.utils.writeFileDir(resolvedPackagePath)
+      // A Dev Mode session's record in .serverless/dev/ is no artifact: it stays where it is.
       this.serverless.utils.copyDirContentsSync(
         serverlessTmpDirPath,
         resolvedPackagePath,
+        { filter: withoutKeptEntry(serverlessTmpDirPath) },
       )
-      fse.removeSync(serverlessTmpDirPath)
+      emptyServerlessDir(serverlessTmpDirPath)
     }
   },
 
@@ -97,12 +104,15 @@ export default {
 
     if (this.serverless.utils.dirExistsSync(resolvedPackagePath)) {
       if (this.serverless.utils.dirExistsSync(serverlessTmpDirPath)) {
-        fse.removeSync(serverlessTmpDirPath)
+        emptyServerlessDir(serverlessTmpDirPath)
       }
       this.serverless.utils.writeFileDir(serverlessTmpDirPath)
+      // A Dev Mode session's record kept in .serverless/dev/ is never replaced from a package.
+      const kept = hasKeptEntry(serverlessTmpDirPath)
       this.serverless.utils.copyDirContentsSync(
         resolvedPackagePath,
         serverlessTmpDirPath,
+        kept ? { filter: withoutKeptEntry(resolvedPackagePath) } : undefined,
       )
     }
   },

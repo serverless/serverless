@@ -47,7 +47,7 @@ jobs:
       - name: 'Checkout Code'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: 'Setup: Node.js'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24.x
           check-latest: true
@@ -78,6 +78,11 @@ jobs:
     # suites that need the prerequisites in TESTING.md are pinned to shard 1,
     # which runs in test-1. fail-fast stays off so one leg failing never
     # cancels the others mid-deploy, and a flaky leg can be re-run on its own.
+    # CloudFormation rate limits are per account and region, so shards 2 and
+    # 3, which need no prerequisites, deploy into a region per platform
+    # (ubuntu-24.04-arm: us-east-2, windows-latest: us-west-2). Their suites
+    # follow AWS_REGION through tests/utils/testRegion.js; shard 1 and the
+    # resolvers leg stay in us-east-1, where the prerequisites live.
     strategy:
       fail-fast: false
       matrix:
@@ -95,9 +100,11 @@ jobs:
           - leg: shard 2/3 · test-2
             role: ${{ vars.TEST2_ROLE_ARN }}
             command: npm run test -- --maxWorkers=8 --shard=2/3
+            region-per-platform: true
           - leg: shard 3/3 · test-3
             role: ${{ vars.TEST3_ROLE_ARN }}
             command: npm run test -- --maxWorkers=8 --shard=3/3
+            region-per-platform: true
           # The resolvers suite reads the same prerequisites and has always
           # run without SLS_AWS_SDK, whichever SDK the shards use.
           - leg: resolvers · test-1
@@ -112,7 +119,7 @@ jobs:
       - name: 'Checkout Code'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: 'Setup: Node.js'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24.x
           check-latest: true
@@ -123,7 +130,8 @@ jobs:
         uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
           role-to-assume: ${{ matrix.role }}
-          aws-region: us-east-1
+          # Also exported as AWS_REGION, the region the suites deploy to.
+          aws-region: ${{ matrix.region-per-platform && fromJSON('{"ubuntu-24.04-arm":"us-east-2","windows-latest":"us-west-2"}')[matrix.platform] || 'us-east-1' }}
       # The dev-mode sandbox suites build an image locally from public.ecr.aws;
       # signed-in pulls aren't limited by the anonymous allowance that runners'
       # shared IP addresses exhaust. Only Linux runners build images; the
@@ -137,10 +145,14 @@ jobs:
         run: |
           cd ../../
           npm ci
-      - name: 'Build: Minify Shim'
-        run: |
-          cd ../serverless/lib/plugins/aws/dev
-          ../../../../../../node_modules/.bin/esbuild ./shim.js --bundle --platform=node --minify --outfile=./shim.min.js
+      - name: 'Setup: Go'
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: dev-mode-bridge/go.mod
+          cache: false
+      - name: 'Build: Dev Mode Layers'
+        working-directory: ./packages/serverless
+        run: npm run build:devmode:layer
       - name: 'Build: MCP Entry'
         working-directory: ./packages/serverless
         run: npm run build:mcp:entry
@@ -162,3 +174,6 @@ jobs:
           # An empty value reads the same as unset: the default SDK path.
           SLS_AWS_SDK: ${{ !matrix.resolvers && inputs.aws-sdk || '' }}
           AWS_MAX_ATTEMPTS: 7
+          # The Framework's own retry loop around each AWS request, on both
+          # SDK paths; AWS_MAX_ATTEMPTS only reaches the SDK v3 clients.
+          SLS_AWS_REQUEST_MAX_RETRIES: 8

@@ -3,7 +3,6 @@ frameworkVersion: '*'
 
 provider:
   name: aws
-  region: us-east-1
   runtime: nodejs20.x
   deploymentBucket:
     codeStorageMode: reference

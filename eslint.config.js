@@ -1,3 +1,4 @@
+import jest from 'eslint-plugin-jest'
 import baseConfig from './packages/standards/src/eslint.js'
 
 export default [
@@ -7,7 +8,6 @@ export default [
       '**/dist/**',
       '**/.serverless/**',
       '**/coverage/**',
-      'packages/serverless/lib/plugins/aws/dev/shim.min.js',
     ],
   },
   ...baseConfig.map((config) => ({
@@ -27,4 +27,18 @@ export default [
       '*.{js,mjs,cjs}',
     ],
   })),
+  // An un-awaited `expect(...).rejects` settles after its test has finished,
+  // and Jest reports the failure against whichever suite is running then.
+  {
+    files: [
+      'packages/sf-core/tests/**/*.{js,cjs,mjs}',
+      'packages/engine/test/**/*.{js,mjs}',
+      'packages/serverless/test/**/*.{js,cjs,mjs}',
+      'packages/mcp/tests/**/*.js',
+    ],
+    plugins: { jest },
+    rules: {
+      'jest/valid-expect': 'error',
+    },
+  },
 ]

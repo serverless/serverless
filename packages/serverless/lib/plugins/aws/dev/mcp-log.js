@@ -19,16 +19,17 @@ const ANSI_ESCAPES = /\x1b\[[0-9;?]*[ -/]*[@-~]/g
 // eslint-disable-next-line no-control-regex
 const CONTROL_CHARACTERS = /[\x00-\x1f\x7f-\x9f]/g
 
-const printable = (value) => {
+/** The text without escape sequences or control characters, so it cannot drive the terminal. */
+export const clean = (text) =>
+  text.replace(ANSI_ESCAPES, '').replace(CONTROL_CHARACTERS, '')
+
+export const printable = (value) => {
   if (typeof value !== 'string') return null
-  const clean = value
-    .replace(ANSI_ESCAPES, '')
-    .replace(CONTROL_CHARACTERS, '')
-    .trim()
-  if (!clean) return null
-  return clean.length > MAX_FIELD_LENGTH
-    ? `${clean.slice(0, MAX_FIELD_LENGTH)}…`
-    : clean
+  const text = clean(value).trim()
+  if (!text) return null
+  return text.length > MAX_FIELD_LENGTH
+    ? `${text.slice(0, MAX_FIELD_LENGTH)}…`
+    : text
 }
 
 const decodeBody = (payload) => {

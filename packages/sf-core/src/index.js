@@ -17,8 +17,9 @@ const run = async ({ command, options, debug, verbose }) => {
   const logger = log.get('core')
 
   // An AI coding agent gets no prompts, spinners or colours (it cannot answer prompts, and
-  // redraws garble its captured output). Runs before setupLogging so its --debug settings dump
-  // reports the final isInteractive value without colour codes, and before the first spinner.
+  // redraws garble its captured output); NO_COLOR turns colours off in every session. Runs before
+  // setupLogging so its --debug settings dump reports the final isInteractive value without colour
+  // codes, and before the first spinner.
   const agent = await detectAgent()
   applyAgentSession({ agent })
 

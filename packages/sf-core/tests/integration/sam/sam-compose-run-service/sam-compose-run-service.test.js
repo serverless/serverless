@@ -13,6 +13,7 @@ import {
   runSfCore,
 } from '../../../utils/runSfCore'
 import { fetchWithRetry } from '../../../utils/testUtils'
+import { TEST_REGION } from '../../../utils/testRegion.js'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const randomId = getTestRunId()
@@ -20,7 +21,7 @@ let samEndpoint, frameworkEndpoint
 
 describe('SAM/CFN - Deploy only SAM service inside Compose', () => {
   const configFileDirPath = path.join(__dirname, 'fixture')
-  const cloudformationClient = new CloudFormationClient({ region: 'us-east-1' })
+  const cloudformationClient = new CloudFormationClient({ region: TEST_REGION })
   const samStackName = `sam-tests-run-service-sam-${randomId}`
   const frameworkStackName = `sam-tests-run-service-framework-${randomId}`
   const originalEnv = process.env
@@ -167,7 +168,7 @@ describe('SAM/CFN - Deploy only SAM service inside Compose', () => {
   })
 
   test('Ensure both stacks do not exist', async () => {
-    expect(
+    await expect(
       cloudformationClient.send(
         new DescribeStacksCommand({
           StackName: samStackName,
@@ -175,7 +176,7 @@ describe('SAM/CFN - Deploy only SAM service inside Compose', () => {
       ),
     ).rejects.toThrow()
 
-    expect(
+    await expect(
       cloudformationClient.send(
         new DescribeStacksCommand({
           StackName: frameworkStackName,

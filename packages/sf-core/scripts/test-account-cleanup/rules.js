@@ -114,3 +114,72 @@ export const staleStateKeys = (objects, statusById, now) =>
       return status === null || status === 'DELETE_COMPLETE'
     })
     .map(({ Key }) => Key)
+
+// Dev Mode's account-level resources carry a suffix only in live tests (SLS_DEV_TEST_SUFFIX; the
+// rule is `testSuffix` in packages/serverless/lib/plugins/aws/dev/attach/naming.js): the broker
+// role `serverless-dev-broker-<region>-<suffix>` and the layers `serverless-dev-<arch>-<suffix>`.
+// The unsuffixed names belong to real use of Dev Mode in the account and never match.
+const DEV_MODE_TEST_SUFFIX = '[a-z0-9]{1,12}'
+const AWS_REGION_NAME = '[a-z]{2}(?:-[a-z]+)+-\\d+'
+const DEV_MODE_TEST_BROKER_ROLE = new RegExp(
+  `^serverless-dev-broker-${AWS_REGION_NAME}-${DEV_MODE_TEST_SUFFIX}$`,
+)
+const DEV_MODE_TEST_LAYER = new RegExp(
+  `^serverless-dev-(?:x86_64|arm64)-${DEV_MODE_TEST_SUFFIX}$`,
+)
+
+export const isDevModeTestBrokerRole = (name) =>
+  DEV_MODE_TEST_BROKER_ROLE.test(name)
+export const isDevModeTestLayer = (name) => DEV_MODE_TEST_LAYER.test(name)
+
+// Roles (ListRoles) of Dev Mode tests created at least the minimum age ago.
+export const staleDevModeRoles = (roles, now) =>
+  roles.filter(
+    ({ RoleName, CreateDate }) =>
+      isDevModeTestBrokerRole(RoleName) && isOldEnough(CreateDate, now),
+  )
+
+// Layers (ListLayers) of Dev Mode tests whose latest version is at least the minimum age.
+export const staleDevModeLayers = (layers, now) =>
+  layers.filter(
+    ({ LayerName, LatestMatchingVersion }) =>
+      isDevModeTestLayer(LayerName) &&
+      Boolean(LatestMatchingVersion?.CreatedDate) &&
+      isOldEnough(LatestMatchingVersion.CreatedDate, now),
+  )
+
+// The relay's payload objects: `serverless-dev-mode/<service>/<stage>/<session>/<object>` in the
+// region's deployment bucket. A session deletes what it reads and sweeps its prefix as it stops;
+// a killed one cannot, so objects older than the minimum age are leftovers, whoever left them.
+export const DEV_MODE_PREFIX = 'serverless-dev-mode/'
+
+export const isDeploymentBucket = (name, region) =>
+  name.startsWith(`serverless-framework-deployments-${region}-`)
+
+// A listing the account's role may not make (iam:ListRoles, lambda:ListLayers, s3:ListAllMyBuckets,
+// s3:ListBucketVersions): the report says so in that section instead of failing the run.
+const ACCESS_DENIED = new Set([
+  'AccessDenied',
+  'AccessDeniedException',
+  'UnauthorizedOperation',
+])
+export const isAccessDenied = (error) =>
+  ACCESS_DENIED.has(error?.name) || error?.$metadata?.httpStatusCode === 403
+
+// Versions and delete markers (ListObjectVersions) under the prefix, at least the minimum age:
+// how many, and the `<service>-<stage>` of those a test stack name matches. Other services' names
+// are never returned: the report is public.
+export const staleDevModeObjects = (entries, now) => {
+  const stale = entries.filter(
+    ({ Key, LastModified }) =>
+      Key?.startsWith(DEV_MODE_PREFIX) && isOldEnough(LastModified, now),
+  )
+  const testStages = new Set()
+  for (const { Key } of stale) {
+    const [service, stage] = Key.slice(DEV_MODE_PREFIX.length).split('/')
+    if (service && stage && isTestStack(`${service}-${stage}`)) {
+      testStages.add(`${service}-${stage}`)
+    }
+  }
+  return { count: stale.length, testStages: [...testStages].sort() }
+}

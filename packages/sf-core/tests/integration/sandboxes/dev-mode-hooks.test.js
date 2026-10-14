@@ -14,6 +14,7 @@ import {
   ResumeMicrovmCommand,
   TerminateMicrovmCommand,
 } from '@aws-sdk/client-lambda-microvms'
+import { TEST_REGION } from '../../utils/testRegion.js'
 
 // This is the dev-mode counterpart to dev-api-emulation.test.js. Where that test exercises the
 // data-plane (SDK -> control-plane -> per-instance proxy -> app on :8080), this one exercises the
@@ -144,7 +145,7 @@ d('dev mode — lifecycle hook delivery to a real container', () => {
     })
     cp = await startControlPlane({ registry, containerManager, fireHook })
     client = new LambdaMicrovmsClient({
-      region: 'us-east-1',
+      region: TEST_REGION,
       endpoint: cp.url,
       credentials: { accessKeyId: 'local', secretAccessKey: 'local' },
     })

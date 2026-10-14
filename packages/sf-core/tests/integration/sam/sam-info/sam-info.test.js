@@ -7,13 +7,14 @@ import {
 } from '@aws-sdk/client-cloudformation'
 import { jest } from '@jest/globals'
 import { getTestRunId, runSfCore } from '../../../utils/runSfCore'
+import { TEST_REGION } from '../../../utils/testRegion.js'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const randomId = getTestRunId()
 
 describe('SAM/CFN Projects - SAM Info Command', () => {
   const configFileDirPath = path.join(__dirname, 'fixture')
-  const cloudformationClient = new CloudFormationClient({ region: 'us-east-1' })
+  const cloudformationClient = new CloudFormationClient({ region: TEST_REGION })
   const stackName = `sam-info-integration-test-${randomId}`
   const originalEnv = process.env
 
@@ -75,7 +76,7 @@ describe('SAM/CFN Projects - SAM Info Command', () => {
   })
 
   test('Ensure stack does not exist', async () => {
-    expect(
+    await expect(
       cloudformationClient.send(
         new DescribeStacksCommand({
           StackName: stackName,

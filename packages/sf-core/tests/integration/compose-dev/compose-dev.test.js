@@ -1,35 +1,27 @@
-import fs from 'fs'
 import path from 'path'
 import url from 'url'
-import { spawn } from 'child_process'
 import { setGlobalRendererSettings } from '@serverless/util'
 import { jest } from '@jest/globals'
+import {
+  CloudFormationClient,
+  DescribeStacksCommand,
+} from '@aws-sdk/client-cloudformation'
+import { GetFunctionCommand, LambdaClient } from '@aws-sdk/client-lambda'
 import { getTestStageName, runSfCore } from '../../utils/runSfCore.js'
 import { fetchWithRetry } from '../../utils/testUtils.js'
+import {
+  assertDevModeLayersBuilt,
+  cleanupDevModeAccountResources,
+  newDevModeTestSuffix,
+  spawnSourceCli,
+  waitForOutput,
+  waitForRelay,
+} from '../../utils/devMode.js'
+import { TEST_REGION } from '../../utils/testRegion.js'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
-const SF_CORE_BIN = path.resolve(__dirname, '../../../bin/sf-core.js')
 
 jest.setTimeout(900000)
-
-/**
- * Pull the live HTTP endpoint out of the dev-mode output.
- *
- * The dev runner prints an "Endpoints:" block (see `logOutputs` in
- * plugins/aws/dev/index.js). A single httpApi endpoint can appear either as a
- * "GET - https://..." line or as a bare execute-api URL, so accept both and
- * make sure the resolved URL carries the route path (`/hello`).
- */
-const extractEndpoint = (output, routePath) => {
-  const methodMatch = output.match(
-    /(?:GET|ANY|POST|PUT|PATCH|DELETE)\s*-\s*(https:\/\/\S+)/,
-  )
-  const bareMatch = output.match(/(https:\/\/[^\s"']+execute-api[^\s"']*)/)
-  const raw = (methodMatch && methodMatch[1]) || (bareMatch && bareMatch[1])
-  if (!raw) return null
-  const base = raw.replace(/\/+$/, '')
-  return base.endsWith(routePath) ? base : `${base}${routePath}`
-}
 
 describe('Compose single-service dev with Pattern D params', () => {
   const configFileDirPath = path.join(__dirname, 'fixture')
@@ -42,25 +34,18 @@ describe('Compose single-service dev with Pattern D params', () => {
   // otherwise a wrongly-resolved hoisted `aws:cf` param at the personal stage
   // could still satisfy a `toContain` assertion meant to pin the shared stage.
   const personalStage = `p${sharedStage}` // the developer's personal stage
+  // Suffixes the account-level Dev Mode names (broker role, layers), so this suite can delete
+  // exactly what it created.
+  const suffix = newDevModeTestSuffix()
   let devProcess
-  let devOutput = ''
 
   beforeAll(async () => {
     // Capture cwd before anything that can throw, so afterAll's restore never
     // runs with `undefined` and masks the real setup error.
     originalCwd = process.cwd()
-    // The dev command copies the pre-built dev-mode shim into the deployed
-    // function; it is a gitignored build artifact, so fresh checkouts/worktrees
-    // don't have it and `dev` fails at startup with BUILD_SHIM_FAILED.
-    const shimPath = path.resolve(
-      __dirname,
-      '../../../../serverless/lib/plugins/aws/dev/shim.min.js',
-    )
-    if (!fs.existsSync(shimPath)) {
-      throw new Error(
-        `Dev-mode shim not built: ${shimPath} is missing. Build it once with 'npm run build:devmode:shim' in packages/serverless before running this test.`,
-      )
-    }
+    // The Dev Mode layer zips are gitignored build artifacts: fresh checkouts and worktrees
+    // don't have them, and `dev` cannot attach without them.
+    assertDevModeLayersBuilt()
     process.chdir(configFileDirPath)
     setGlobalRendererSettings({ isInteractive: false, logLevel: 'error' })
     // Mutate process.env in place. Reassigning it (process.env = {...}) does not
@@ -73,10 +58,12 @@ describe('Compose single-service dev with Pattern D params', () => {
     }
     delete process.env.SERVERLESS_ACCESS_KEY
     process.env.COMPOSE_DEV_SHARED_STAGE = sharedStage
+    process.env.SLS_DEV_TEST_SUFFIX = suffix
   })
 
   afterAll(async () => {
-    if (devProcess && !devProcess.killed && devProcess.exitCode === null) {
+    if (devProcess && devProcess.exitCode === null && !devProcess.signalCode) {
+      // Exit restores the attached function, so give it time before forcing.
       devProcess.kill('SIGINT')
       await new Promise((resolve) => {
         const t = setTimeout(() => {
@@ -86,14 +73,14 @@ describe('Compose single-service dev with Pattern D params', () => {
             // already gone
           }
           resolve()
-        }, 15000)
-        devProcess.on('exit', () => {
+        }, 30000)
+        devProcess.exited.then(() => {
           clearTimeout(t)
           resolve()
         })
       })
     }
-    // Teardown: personal-stage services (api self-provisioned by dev, plus
+    // Teardown: personal-stage services (api deployed by dev, plus
     // localdep), then the shared one.
     for (const [service, stage] of [
       ['api', personalStage],
@@ -111,6 +98,11 @@ describe('Compose single-service dev with Pattern D params', () => {
         console.error(`teardown of ${service}@${stage} failed:`, err.message)
       }
     }
+    const left = await cleanupDevModeAccountResources({
+      region: TEST_REGION,
+      suffix,
+    }).catch((error) => [error.message])
+    if (left.length) console.error('Dev Mode test resources left behind:', left)
     // Restore cwd first: jest workers run several test files in one process,
     // so a leaked chdir makes later, unrelated test files resolve THIS
     // fixture's serverless-compose.yml (whose ${env:COMPOSE_DEV_SHARED_STAGE}
@@ -142,54 +134,44 @@ describe('Compose single-service dev with Pattern D params', () => {
     })
   })
 
-  test('serverless api dev at the personal stage connects and serves local code with both params', async () => {
-    // The dev command is long-running, so it cannot be hosted by the in-process
-    // runSfCore helper — spawn the CLI directly. stdio:'pipe' (no TTY) keeps the
-    // dev-mode spinner from animating and flooding output.
-    devProcess = spawn(
-      process.execPath,
-      [SF_CORE_BIN, 'api', 'dev', '--stage', personalStage],
-      { cwd: configFileDirPath, env: { ...process.env }, stdio: 'pipe' },
-    )
-
-    const endpoint = await new Promise((resolve, reject) => {
-      const timer = setTimeout(
-        () => reject(new Error(`dev did not connect. Output:\n${devOutput}`)),
-        600000,
-      )
-      const onData = (chunk) => {
-        devOutput += chunk.toString()
-        // The endpoint block is printed before the "Connected" line; only
-        // resolve once both are present so the local shim is actually wired.
-        if (/Connected/.test(devOutput)) {
-          const endpoint = extractEndpoint(devOutput, routePath)
-          if (endpoint) {
-            clearTimeout(timer)
-            resolve(endpoint)
-          }
-        }
-      }
-      devProcess.stdout.on('data', onData)
-      devProcess.stderr.on('data', onData)
-      devProcess.on('exit', (code) => {
-        clearTimeout(timer)
-        reject(new Error(`dev exited early (${code}). Output:\n${devOutput}`))
-      })
-      devProcess.on('error', (err) => {
-        clearTimeout(timer)
-        reject(
-          new Error(
-            `dev failed to spawn: ${err.message}\nOutput:\n${devOutput}`,
-          ),
-        )
-      })
+  test('serverless api dev at an undeployed personal stage deploys it, attaches it, and restores it when the session ends', async () => {
+    // `dev` is long-running, so it runs as a child process over pipes rather than in-process.
+    devProcess = spawnSourceCli({
+      args: ['api', 'dev', '--stage', personalStage],
+      cwd: configFileDirPath,
+      env: { SLS_DEV_TEST_SUFFIX: suffix },
     })
-
+    await waitForOutput(devProcess, /Dev Mode on/)
+    const region = TEST_REGION
+    const stackName = `compose-devtest-api-${personalStage}`
+    const lambda = new LambdaClient({ region })
+    const functionName = `${stackName}-hello`
     try {
-      const response = await fetchWithRetry(endpoint)
-      const body = await response.json()
-
-      expect(body.marker).toEqual('local-dev-mode-code')
+      // The stage was never deployed: dev deploys it first, as a normal deployment.
+      expect(devProcess.output).toContain(
+        `Stage "${personalStage}" is not deployed yet: deploying it first.`,
+      )
+      expect(devProcess.output).toMatch(
+        new RegExp(`Service deployed to stack ${stackName}\\b.*\\(\\d+s\\)`),
+      )
+      const { Stacks } = await new CloudFormationClient({ region }).send(
+        new DescribeStacksCommand({ StackName: stackName }),
+      )
+      const apiUrl = Stacks[0].Outputs.find(
+        (output) => output.OutputKey === 'HttpApiUrl',
+      ).OutputValue
+      // A new broker role can take a few minutes before the function may use it. The direct
+      // invocation's payload carries the response body as an escaped JSON string.
+      await waitForRelay({
+        region,
+        functionName,
+        isThisMachine: (payload) => payload.includes('this-machine'),
+      })
+      // The request runs on this machine, with the deployed function's environment: both params
+      // resolved.
+      const body = await (await fetchWithRetry(`${apiUrl}${routePath}`)).json()
+      expect(body.marker).toEqual('working-copy-code')
+      expect(body.ran).toEqual('this-machine')
       // graph param resolved at the personal stage
       expect(body.localTopicArn).toContain(
         `compose-devtest-localdep-${personalStage}`,
@@ -198,12 +180,56 @@ describe('Compose single-service dev with Pattern D params', () => {
       expect(body.sharedTopicArn).toContain(
         `compose-devtest-shared-${sharedStage}`,
       )
+      const attached = (
+        await lambda.send(
+          new GetFunctionCommand({ FunctionName: functionName }),
+        )
+      ).Configuration
+      expect(attached.Environment.Variables.AWS_LAMBDA_EXEC_WRAPPER).toBe(
+        '/opt/sls-dev-wrapper',
+      )
     } catch (err) {
       // Capture everything before afterAll tears the stacks down.
       console.error('=== dev-mode child output ===')
-      console.error(devOutput)
-      console.error('=== assertion failure ===', err.message)
+      console.error(devProcess.output)
       throw err
     }
+    if (process.platform === 'win32') {
+      // Windows has no signals one process can send another: Node's kill() ends the child at
+      // once, as a crash would, so the session cannot restore and `dev restore` puts the function
+      // back. (Ctrl+C typed into the console, or closing it, does reach the session there.)
+      devProcess.kill('SIGKILL')
+      await devProcess.exited
+      const left = (
+        await lambda.send(
+          new GetFunctionCommand({ FunctionName: functionName }),
+        )
+      ).Configuration
+      expect(left.Environment.Variables.AWS_LAMBDA_EXEC_WRAPPER).toBe(
+        '/opt/sls-dev-wrapper',
+      )
+      const restore = spawnSourceCli({
+        args: ['api', 'dev', 'restore', '--stage', personalStage],
+        cwd: configFileDirPath,
+        env: { SLS_DEV_TEST_SUFFIX: suffix },
+      })
+      const { code } = await restore.exited
+      await restore.closed
+      if (code !== 0) console.error(restore.output)
+      expect(code).toBe(0)
+    } else {
+      devProcess.kill('SIGINT')
+      expect((await devProcess.exited).code).toBe(0)
+    }
+    const restored = (
+      await lambda.send(new GetFunctionCommand({ FunctionName: functionName }))
+    ).Configuration
+    expect(
+      restored.Environment.Variables.AWS_LAMBDA_EXEC_WRAPPER,
+    ).toBeUndefined()
+    expect(restored.Layers ?? []).toEqual([])
+    expect(restored.Environment.Variables.LOCAL_TOPIC_ARN).toContain(
+      `compose-devtest-localdep-${personalStage}`,
+    )
   })
 })

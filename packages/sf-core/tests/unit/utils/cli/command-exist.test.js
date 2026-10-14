@@ -104,6 +104,15 @@ describe('commandWithoutPositionals', () => {
     ).toEqual(['agent', 'skills', 'read'])
   })
 
+  it('drops every word after a command that declares positionals, also words beyond them', () => {
+    expect(
+      commandWithoutPositionals({
+        command: ['agent', 'skills', 'read', 'name', 'file', 'one-more'],
+        schema,
+      }),
+    ).toEqual(['agent', 'skills', 'read'])
+  })
+
   it('keeps commands without positionals as they are', () => {
     expect(
       commandWithoutPositionals({ command: ['agent', 'docs'], schema }),

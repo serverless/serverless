@@ -269,25 +269,17 @@ In Serverless Framework V.4, we've created a _hybrid approach to development_, t
 serverless dev
 ```
 
-When you run this command, the following happens...
+When you run this command, Dev Mode attaches the Node.js and Python functions of your deployed stage to your machine in seconds, with no deployment.
 
-An AWS Cloudformation deployment will happen to slightly modify all of the AWS Lambda functions within your Service so that they include a lightweight wrapper.
+From then on, real invocations of those functions — API requests, queue messages, direct invokes — run the code on your machine, with the function's own environment and IAM role, and the result goes back to the caller. Your edits apply on the next invocation.
 
-Once this AWS Cloudformation deployment has completed, your live AWS Lambda functions within your Service will still be able to receive events and be invoked within AWS.
+Logs and errors from your code show in your terminal `dev` session.
 
-However, the events will be securely and instantly proxied down to your machine, and the code on your machine which will be run, rather than the code within your live AWS Lambda functions.
+Press Ctrl+C to end the session: Dev Mode restores your functions to their deployed configuration.
 
-This allows you to make changes to your code, without having to deploy or recreate every aspect of your architecture locally, allowing you to develop rapidly.
+Please note, `dev` is only designed for development or personal stages/environments and should not be run in production or any stage where a high volume of events are being processed. Dev Mode refuses the `prod` and `production` stages.
 
-Logs from your local code will also be shown within your terminal `dev` session.
-
-Once your code has finished, the response from your local code will be forwarded back up to your live AWS Lambda functions, and they will return the response—just like a normal AWS Lambda function in the cloud would.
-
-Please note, `dev` is only designed for development or personal stages/environments and should not be run in production or any stage where a high volume of events are being processed.
-
-Once you are finished with your `dev` session, you MUST re-deploy, using `serverless deploy` to push your recent local changes back to your live AWS Lambda functions—or your AWS Lambda functions will fail(!)
-
-More details on dev mode can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/dev).
+Learn more in the [Dev Mode guide](https://www.serverless.com/framework/docs/providers/aws/guide/dev-mode) and the [`serverless dev` reference](https://www.serverless.com/framework/docs/providers/aws/cli-reference/dev).
 
 ## Invoking
 

@@ -10,7 +10,7 @@ description: >-
   S3, SQS, DynamoDB, and the rest).
 metadata:
   managed-by: serverless-framework
-  version: '1'
+  version: '2'
   scope: user
   author: Serverless Inc.
 ---
@@ -80,7 +80,7 @@ resources they need, as one stack per stage.
 - Adding or changing a feature (`serverless dev`, unit and integration
   tests): [references/development-workflow.md](references/development-workflow.md).
 - Python functions (packaging dependencies, building for Lambda from macOS or
-  Windows, the local loop without `serverless dev`):
+  Windows, the local loop):
   [references/python.md](references/python.md).
 - Operating the CLI, credentials, CI/CD, troubleshooting:
   [references/cli.md](references/cli.md).
@@ -88,11 +88,14 @@ resources they need, as one stack per stage.
   server `serverless mcp`, `dev`): [references/agent-commands.md](references/agent-commands.md).
 - Upgrading from v1–v3, or cleaning up older v4 config: the
   `serverless-upgrade` skill.
+- Running the deployed stage's functions on this machine while developing,
+  by a person or an agent (`serverless dev`, `--detach`, `dev wait`,
+  `dev stop`): the `serverless-dev-mode` skill.
 - Hosting an MCP server on AWS: the `serverless-mcp` skill.
 - Untrusted, AI-generated, or per-session code in isolated compute: the
   `serverless-sandboxes` skill.
 
-`agent setup` installs these three project skills into the project; where they
+`agent setup` installs these four project skills into the project; where they
 are not installed, `serverless agent skills read <name>` prints them.
 
 ## Gotchas
@@ -106,10 +109,10 @@ are not installed, `serverless agent skills read <name>` prints them.
   then run `serverless agent setup` and follow the serverless-upgrade skill.
 - `serverless package` checks the config and the build; checks against the AWS
   account, such as a resource name already taken, happen at deploy.
-- To stop a background `serverless dev`, find the session with
-  `pgrep -f 'sf-core\.js( [^ -][^ ]*)? dev( |$)'` (the pid from `$!` can be the
-  launcher's) and kill that pid, then deploy the stage to restore it
-  ([references/development-workflow.md](references/development-workflow.md)).
+- From a tool call, start `serverless dev` with `--detach` and
+  `--stage <you>`, and end it with `serverless dev stop`, which restores the
+  functions; when a session was killed, `serverless dev restore --stage <you>`
+  does (the `serverless-dev-mode` skill).
 - When `serverless login` lists several orgs, ask which one the service
   belongs to and write `org:` into `serverless.yml`
   ([references/cli.md](references/cli.md)).

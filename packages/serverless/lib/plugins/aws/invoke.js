@@ -4,6 +4,14 @@ import stdin from 'get-stdin'
 import formatLambdaLogEvent from './utils/format-lambda-log-event.js'
 import ServerlessError from '../../serverless-error.js'
 import { writeText, style } from '@serverless/util'
+import {
+  LOCAL_LOG_HEADING,
+  findHandledInvocation,
+  handledLine,
+  localLogLines,
+  requestIdOf,
+} from './dev/state/handled.js'
+import { setCliNames, shownPath } from './dev/commands/cli-names.js'
 
 class AwsInvoke {
   constructor(serverless, options, pluginUtils) {
@@ -12,6 +20,8 @@ class AwsInvoke {
     this.provider = this.serverless.getProvider('aws')
     this.logger = pluginUtils.log
     this.progress = pluginUtils.progress
+    // Whether this directory's Dev Mode session ran a call (replaced in tests).
+    this.findHandledInvocation = findHandledInvocation
 
     Object.assign(this, validate)
 
@@ -36,7 +46,7 @@ class AwsInvoke {
 
         this.progress.notice('Invoking function')
         await this.extendedValidate()
-        this.log(await this.invoke())
+        await this.log(await this.invoke())
       },
     }
   }
@@ -150,7 +160,7 @@ class AwsInvoke {
     return payload
   }
 
-  log(invocationReply) {
+  async log(invocationReply) {
     this.progress.remove()
 
     if (invocationReply.Payload) {
@@ -189,10 +199,50 @@ class AwsInvoke {
       }
     }
 
+    await this.logDevMode(invocationReply)
+
     if (invocationReply.FunctionError) {
       throw new ServerlessError(
         'Invoked function failed',
         'AWS_LAMBDA_INVOCATION_FAILED',
+      )
+    }
+  }
+
+  /**
+   * When this directory's Dev Mode session ran the call on the working copy: one line naming the
+   * request and its invocation file, and with --log the handler's log lines from this machine,
+   * after the CloudWatch tail. stderr only; stdout and the exit code never change, and a failed
+   * lookup is a debug line.
+   */
+  async logDevMode(invocationReply) {
+    try {
+      const requestId = requestIdOf(invocationReply)
+      const handled = await this.findHandledInvocation({
+        serviceDir: this.serverless.serviceDir,
+        service: this.serverless.service.service,
+        stage: this.provider.getStage(),
+        region: this.provider.getRegion(),
+        functionKey: this.options.function,
+        requestId,
+        invocationType: this.options.type || 'RequestResponse',
+        qualifier: this.options.qualifier,
+      })
+      if (!handled) return
+      // Named as it is reached from where the CLI runs (a Compose root, --config).
+      setCliNames({ serverless: this.serverless, options: this.options })
+      this.logger.aside(
+        handledLine({ requestId, file: shownPath(handled.file) }),
+      )
+      if (this.options.log === 'Tail') {
+        this.logger.blankLine()
+        this.logger.notice(LOCAL_LOG_HEADING)
+        for (const line of localLogLines(handled.record))
+          this.logger.aside(line)
+      }
+    } catch (error) {
+      this.logger.debug(
+        `Dev Mode could not tell whether it ran this invocation: ${error?.message ?? error}`,
       )
     }
   }

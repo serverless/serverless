@@ -3,7 +3,10 @@ import { mkdtemp, mkdir, writeFile, readFile, rm } from 'fs/promises'
 import { existsSync } from 'fs'
 import os, { tmpdir } from 'os'
 import path from 'path'
-import { autoUpdateAgentSkills } from '../../../../src/lib/agent-skills/auto-update.js'
+import {
+  autoUpdateAgentSkills,
+  summarizeChanges,
+} from '../../../../src/lib/agent-skills/auto-update.js'
 import { syncSkills } from '../../../../src/lib/agent-skills/engine.js'
 
 const managedMd = (v) => `---
@@ -294,4 +297,33 @@ it('never throws even when sync explodes', async () => {
       }),
     ),
   ).resolves.toBeUndefined()
+})
+
+it('names each skill change once, however many folders it happened in', () => {
+  const change = (skill, dir, action, fromVersion, toVersion) => ({
+    skill,
+    dir,
+    action,
+    fromVersion,
+    toVersion,
+  })
+  expect(
+    summarizeChanges([
+      change('serverless-framework', '/h/.claude/skills', 'upgraded', 1, 2),
+      change('serverless-framework', '/h/.agents/skills', 'upgraded', 1, 2),
+      change('serverless-dev-mode', '/s/.claude/skills', 'added', undefined, 1),
+      change('serverless-mcp', '/s/.claude/skills', 'upgraded', 3, 4),
+      change('serverless-dev-mode', '/s/.agents/skills', 'added', undefined, 1),
+      change('serverless-mcp', '/s/.agents/skills', 'upgraded', 3, 4),
+    ]),
+  ).toBe(
+    'serverless-framework v1→v2, +serverless-dev-mode, serverless-mcp v3→v4',
+  )
+  // Folders that held different versions keep their own entries.
+  expect(
+    summarizeChanges([
+      change('serverless-mcp', '/a', 'upgraded', 2, 4),
+      change('serverless-mcp', '/b', 'upgraded', 3, 4),
+    ]),
+  ).toBe('serverless-mcp v2→v4, serverless-mcp v3→v4')
 })

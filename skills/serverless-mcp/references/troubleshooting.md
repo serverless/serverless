@@ -110,7 +110,7 @@ to get that evidence.
 
 **Cause:** The function was not deployed as an MCP server
 
-**Fix:** Deploy through `mcp:`; if this followed a `serverless dev` session, redeploy with `serverless deploy`
+**Fix:** Deploy through `mcp:`; if a `serverless dev` session was killed, run `serverless dev restore --stage <your stage>`
 
 ## Auth and discovery
 
@@ -312,17 +312,17 @@ need a deploy to find out.
 
 ## Deploy-time and CLI surprises
 
-### Under `serverless dev`, progress arrives only at the end of the call — or, on an edge-optimized endpoint, a quiet tool gets `504` at roughly 30 s and the session prints a budget warning
+### Under `serverless dev`, a quiet tool gets `504` at roughly 30 s on an edge-optimized endpoint
 
-**Cause:** Dev Mode delivers results buffered: the body is assembled fully and sent at once (valid Streamable HTTP), so nothing is written until the call finishes and progress cannot reset the idle clock
+**Cause:** The endpoint's idle bound, the same as deployed
 
-**Fix:** Expected. Deploy with `serverless deploy` to test incremental streaming and long-running tools. On `REGIONAL` the same quiet call answers through the session, up to the server's `timeout`
+**Fix:** Emit progress, or set `provider.endpointType: REGIONAL`
 
-### A tool call in a dev session fails naming the 125 KB Dev Mode limit
+### A large request or result under `serverless dev` runs the deployed code or fails with `Runtime.DevModeRelayFailed`
 
-**Cause:** Requests and results are relayed through the dev session, which bounds both at roughly 125 KB — as for every Dev Mode function
+**Cause:** Large payloads relay through the deployment bucket, which this session cannot use; the session printed why
 
-**Fix:** Deploy normally to exercise large payloads
+**Fix:** See the `serverless-dev-mode` skill's troubleshooting (large payloads)
 
 ### `deploy function -f <name>` updated the code but not the environment
 

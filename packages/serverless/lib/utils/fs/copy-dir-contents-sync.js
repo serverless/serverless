@@ -2,10 +2,18 @@ import fse from 'fs-extra'
 
 const isNotSymbolicLink = (src) => !fse.lstatSync(src).isSymbolicLink()
 
-function copyDirContentsSync(srcDir, destDir, { noLinks = false } = {}) {
+/** `filter(source)`, when given, leaves out what it returns false for (and, for a directory, all of it). */
+function copyDirContentsSync(
+  srcDir,
+  destDir,
+  { noLinks = false, filter = null } = {},
+) {
+  const filters = [noLinks && isNotSymbolicLink, filter].filter(Boolean)
   const copySyncOptions = {
     dereference: true,
-    filter: noLinks ? isNotSymbolicLink : null,
+    filter: filters.length
+      ? (source) => filters.every((keep) => keep(source))
+      : null,
   }
   fse.copySync(srcDir, destDir, copySyncOptions)
 }

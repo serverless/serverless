@@ -179,8 +179,11 @@ project is scaffolded: [package-json-scripts.md](package-json-scripts.md).
    themselves by their dependencies. Services you do not name are neither
    deployed nor removed, so the stateful `orders-db` stays as it is and the
    app reads its `dev` outputs.
-3. **Develop one service at a time**: `npm run dev:<service>`. In a Compose
-   project `dev` runs on one service per terminal, and so does
+3. **Develop one service at a time**: `npm run dev:<service>` in a terminal;
+   an agent starts it with `npm run -s dev:<service> -- --detach --json`
+   (`-s` keeps npm's banner off stdout), since a foreground session never
+   returns to a tool call. In a Compose project `dev` runs on one service per
+   session, and so does
    `serverless <service> agent inspect`, which checks one service's deployed
    state from the project root.
 4. **Remove your personal stage** with `npm run remove:personal-stage`, the

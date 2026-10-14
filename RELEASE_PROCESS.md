@@ -35,7 +35,7 @@ The process is automated through GitHub Actions and consists of tagging, buildin
 
 ## Pipeline Jobs ([release-framework.yml](.github/workflows/release-framework.yml))
 
-The workflow triggers on pushes to `main` that touch `packages/sf-core/**`, `packages/serverless/**`, `packages/engine/**`, or `packages/mcp/**` (plus manual `workflow_dispatch`), and consists of five jobs:
+The workflow triggers on pushes to `main` that touch `packages/sf-core/**`, `packages/serverless/**`, `packages/engine/**`, `packages/mcp/**`, or `dev-mode-bridge/**` (plus manual `workflow_dispatch`), and consists of five jobs:
 
 - **`test-engine`:**
   Runs the engine package's unit tests.
@@ -89,7 +89,7 @@ The workflow triggers on pushes to `main` that touch `packages/sf-core/**`, `pac
   - Check out the repository.
   - Set up Node.js 24.x and install dependencies.
   - **Build Process:**
-    - Minify the dev mode shim using esbuild.
+    - Build the Dev Mode layer zips (`npm run build:devmode:layer`, needs Go).
     - Build the code using the npm build script.
   - **AWS Configuration:**
     - Configure AWS credentials using the GitHub Actions role.
@@ -120,7 +120,7 @@ The workflow triggers on pushes to `main` that touch `packages/sf-core/**`, `pac
   - Check out the repository.
   - Set up Node.js 24.x and install dependencies.
   - **Build Process:**
-    - Minify the dev mode shim using esbuild.
+    - Build the Dev Mode layer zips (`npm run build:devmode:layer`, needs Go).
     - Build the code using the npm build script.
   - **AWS Configuration:**
     - Configure AWS credentials using the production deployment role.
