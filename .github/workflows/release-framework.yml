@@ -15,6 +15,16 @@ on:
       - 'packages/mcp/**'
       - 'dev-mode-bridge/**'
 
+# Overlapping runs deploy into the same test accounts at once and get
+# throttled by AWS, so runs wait for each other. None is ever cancelled: a
+# run tags a release only when its own push changed the version, so a
+# cancelled run would skip that release. `queue: max` keeps every waiting
+# run instead of only the newest.
+concurrency:
+  group: release-framework
+  cancel-in-progress: false
+  queue: max
+
 defaults:
   run:
     working-directory: ./packages/sf-core
