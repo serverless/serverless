@@ -66,7 +66,8 @@ jobs:
           if [ "$(node -p 'process.versions.node.split(".")[0] >= 25')" = true ]; then
             npm install --global --prefix "$RUNNER_TEMP/corepack" corepack@0.36.0
             # lib/node_modules on Linux and macOS, node_modules on Windows
-            corepack_js=$(ls "$RUNNER_TEMP"/corepack/{lib/,}node_modules/corepack/dist/corepack.js 2>/dev/null | head -1)
+            corepack_js=$RUNNER_TEMP/corepack/lib/node_modules/corepack/dist/corepack.js
+            [ -f "$corepack_js" ] || corepack_js=$RUNNER_TEMP/corepack/node_modules/corepack/dist/corepack.js
             node "$corepack_js" enable npm \
               --install-directory "$(node -p 'require("path").dirname(process.execPath)')"
           else
@@ -157,7 +158,8 @@ jobs:
           if [ "$(node -p 'process.versions.node.split(".")[0] >= 25')" = true ]; then
             npm install --global --prefix "$RUNNER_TEMP/corepack" corepack@0.36.0
             # lib/node_modules on Linux and macOS, node_modules on Windows
-            corepack_js=$(ls "$RUNNER_TEMP"/corepack/{lib/,}node_modules/corepack/dist/corepack.js 2>/dev/null | head -1)
+            corepack_js=$RUNNER_TEMP/corepack/lib/node_modules/corepack/dist/corepack.js
+            [ -f "$corepack_js" ] || corepack_js=$RUNNER_TEMP/corepack/node_modules/corepack/dist/corepack.js
             node "$corepack_js" enable npm \
               --install-directory "$(node -p 'require("path").dirname(process.execPath)')"
           else
