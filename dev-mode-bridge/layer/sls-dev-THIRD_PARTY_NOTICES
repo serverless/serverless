@@ -55,7 +55,7 @@ infringement, or inducement of patent infringement, then any patent
 rights granted to you under this License for this implementation of Go
 shall terminate as of the date such litigation is filed.
 
-== github.com/aws/aws-sdk-go-v2 v1.47.1 ==
+== github.com/aws/aws-sdk-go-v2 v1.47.3 ==
 -- LICENSE.txt --
 
                                  Apache License
@@ -264,7 +264,7 @@ AWS SDK for Go
 Copyright 2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 Copyright 2014-2015 Stripe, Inc.
 
-== github.com/aws/aws-sdk-go-v2/credentials v1.20.6 ==
+== github.com/aws/aws-sdk-go-v2/credentials v1.20.9 ==
 -- LICENSE.txt --
 
                                  Apache License
@@ -469,7 +469,7 @@ Copyright 2014-2015 Stripe, Inc.
    See the License for the specific language governing permissions and
    limitations under the License.
 
-== github.com/aws/aws-sdk-go-v2/internal/configsources v1.5.4 ==
+== github.com/aws/aws-sdk-go-v2/internal/configsources v1.5.6 ==
 -- LICENSE.txt --
 
                                  Apache License
@@ -674,7 +674,7 @@ Copyright 2014-2015 Stripe, Inc.
    See the License for the specific language governing permissions and
    limitations under the License.
 
-== github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.8.4 ==
+== github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.8.6 ==
 -- LICENSE.txt --
 
                                  Apache License
@@ -879,7 +879,7 @@ Copyright 2014-2015 Stripe, Inc.
    See the License for the specific language governing permissions and
    limitations under the License.
 
-== github.com/aws/aws-sdk-go-v2/internal/v4a v1.5.4 ==
+== github.com/aws/aws-sdk-go-v2/internal/v4a v1.5.6 ==
 -- LICENSE.txt --
 
                                  Apache License
@@ -1084,7 +1084,7 @@ Copyright 2014-2015 Stripe, Inc.
    See the License for the specific language governing permissions and
    limitations under the License.
 
-== github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.19 ==
+== github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.21 ==
 -- LICENSE.txt --
 
                                  Apache License
@@ -1289,7 +1289,7 @@ Copyright 2014-2015 Stripe, Inc.
    See the License for the specific language governing permissions and
    limitations under the License.
 
-== github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.14.4 ==
+== github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.14.6 ==
 -- LICENSE.txt --
 
                                  Apache License
@@ -1494,7 +1494,7 @@ Copyright 2014-2015 Stripe, Inc.
    See the License for the specific language governing permissions and
    limitations under the License.
 
-== github.com/aws/aws-sdk-go-v2/service/iotdataplane v1.40.1 ==
+== github.com/aws/aws-sdk-go-v2/service/iotdataplane v1.40.4 ==
 -- LICENSE.txt --
 
                                  Apache License
@@ -1699,7 +1699,7 @@ Copyright 2014-2015 Stripe, Inc.
    See the License for the specific language governing permissions and
    limitations under the License.
 
-== github.com/aws/aws-sdk-go-v2/service/sts v1.51.1 ==
+== github.com/aws/aws-sdk-go-v2/service/sts v1.51.4 ==
 -- LICENSE.txt --
 
                                  Apache License
@@ -1904,7 +1904,7 @@ Copyright 2014-2015 Stripe, Inc.
    See the License for the specific language governing permissions and
    limitations under the License.
 
-== github.com/aws/smithy-go v1.28.1 ==
+== github.com/aws/smithy-go v1.28.5 ==
 -- LICENSE --
 
                                  Apache License
