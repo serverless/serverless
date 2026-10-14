@@ -88,9 +88,9 @@ check:
 - AWS credentials supplied by a [Serverless Dashboard Provider](../../../guides/dashboard/providers.md).
   When you are signed in or use an Access Key, a deploy uses the org's
   provider instead of local credentials if one is set up, so the line says
-  so — after the account and region when local credentials were found, and
-  after the fix when none were. The note is left out when the `aws` resolver
-  sets `dashboard: false`.
+  so — after the account and region when AWS accepts the local credentials,
+  and after the fix when none are found. The note is left out when the `aws`
+  resolver sets `dashboard: false`.
 
 The check covers one stage: `--stage`, else `provider.stage`, else `dev`.
 The `service:` line names it. Stages under `stages:` whose `aws` resolver
