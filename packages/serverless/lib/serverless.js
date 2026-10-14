@@ -45,6 +45,9 @@ class Serverless {
    * @param {string} options.serviceConfigFileName - The service config file name.
    * @param {Object} options.service - The service for the Serverless instance.
    * @param {Object} options.credentialProviders - The credential providers.
+   * @param {Object} [options.awsCredentialSource] - Where the AWS credentials come from, as the
+   *   CLI runner described it (a Dashboard Provider, an aws resolver, a profile, the environment),
+   *   for advice when AWS rejects them.
    * @param {Compose} options.compose - The data from Compose.
    * @throws {ServerlessError} If there's an error in validation or incompatible configurations.
    */
@@ -59,6 +62,7 @@ class Serverless {
     serviceConfigFileName = null,
     service = {},
     credentialProviders = {},
+    awsCredentialSource,
     region = null,
     compose = {},
     instanceId,
@@ -70,12 +74,15 @@ class Serverless {
     this.orgName = orgName || null
     this.accessKey = accessKey || null
     this.credentialProviders = credentialProviders
+    this.awsCredentialSource = awsCredentialSource
     this.compose = {
       serviceParams: compose.serviceParams || {},
       isWithinCompose: compose.isWithinCompose || false,
       // The service's key in serverless-compose.yml, for commands a user
       // runs from the Compose root (`--service=<key>`).
       serviceName: compose.serviceName || null,
+      // The Compose file a command from the root named (-c/--config), if any.
+      configFile: compose.configFile || null,
     }
     /**
      * Validate Service path and filename input

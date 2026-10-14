@@ -1,7 +1,12 @@
-import resolveCfImportValue from '../utils/resolve-cf-import-value.js'
 import ServerlessError from '../../../serverless-error.js'
 import { deployCommand } from '../lib/deploy-command.js'
 import { getLogicalId, pascalCase } from '../bedrock-agentcore/utils/naming.js'
+import {
+  cloudFrontOf,
+  endpointOutputs,
+  externalHttpApiEndpointOf,
+  functionUrlOf,
+} from './endpoints.js'
 
 /**
  * `serverless info` on a stage that was never deployed is the normal state
@@ -66,31 +71,22 @@ export default {
           },
         ),
     ]
-    const httpApiId =
-      this.serverless.service.provider.httpApi &&
-      this.serverless.service.provider.httpApi.id
-    if (httpApiId) {
+    if (this.serverless.service.provider.httpApi?.id) {
       sdkRequests.push(
-        (httpApiId['Fn::ImportValue']
-          ? resolveCfImportValue(this.provider, httpApiId['Fn::ImportValue'])
-          : Promise.resolve(httpApiId)
-        )
-          .then((id) => {
-            return this.provider.request('ApiGatewayV2', 'getApi', {
-              ApiId: id,
-            })
-          })
-          .then(
-            (result) => {
-              stackData.externalHttpApiEndpoint = result.ApiEndpoint
-            },
-            (error) => {
-              throw new ServerlessError(
-                `Could not resolve provider.httpApi.id parameter. ${error.message}`,
-                'UNABLE_TO_RESOLVE_HTTP_API_ID',
-              )
-            },
-          ),
+        externalHttpApiEndpointOf({
+          provider: this.provider,
+          service: this.serverless.service,
+        }).then(
+          (endpoint) => {
+            stackData.externalHttpApiEndpoint = endpoint
+          },
+          (error) => {
+            throw new ServerlessError(
+              `Could not resolve provider.httpApi.id parameter. ${error.message}`,
+              'UNABLE_TO_RESOLVE_HTTP_API_ID',
+            )
+          },
+        ),
       )
     }
 
@@ -100,9 +96,6 @@ export default {
 
       if (stackData.outputs) {
         ;({ outputs } = stackData)
-
-        const serviceEndpointOutputRegex =
-          this.provider.naming.getServiceEndpointRegex()
 
         // Outputs
         this.gatheredData.outputs = outputs
@@ -114,14 +107,12 @@ export default {
           functionInfo.name = func
           functionInfo.deployedName = functionObj.name
           functionInfo.artifactSize = functionObj.artifactSize
-          const functionUrlOutput = outputs.find(
-            (output) =>
-              output.OutputKey ===
-              this.provider.naming.getLambdaFunctionUrlOutputLogicalId(func),
-          )
-          if (functionUrlOutput) {
-            functionInfo.url = functionUrlOutput.OutputValue
-          }
+          const url = functionUrlOf({
+            outputs,
+            naming: this.provider.naming,
+            functionName: func,
+          })
+          if (url) functionInfo.url = url
           this.gatheredData.info.functions.push(functionInfo)
         })
 
@@ -188,31 +179,31 @@ export default {
         }
 
         // CloudFront
-        const cloudFrontDomainName = outputs.find(
-          (output) =>
-            output.OutputKey ===
-            this.provider.naming.getCloudFrontDistributionDomainNameLogicalId(),
-        )
-        if (cloudFrontDomainName) {
-          this.gatheredData.info.cloudFront = cloudFrontDomainName.OutputValue
-        }
+        const cloudFront = cloudFrontOf({
+          outputs,
+          naming: this.provider.naming,
+        })
+        if (cloudFront) this.gatheredData.info.cloudFront = cloudFront
 
         // Endpoints
-        outputs
-          .filter((x) => x.OutputKey.match(serviceEndpointOutputRegex))
-          .forEach((x) => {
-            this.gatheredData.info.endpoints.push(x.OutputValue)
-            if (x.OutputKey === 'HttpApiUrl') {
-              this.httpApiEndpoints.add(x.OutputValue)
-            }
-            if (
-              this.serverless.service.deployment &&
-              this.serverless.service.deployment.deploymentId
-            ) {
-              this.serverless.service.deployment.apiId =
-                x.OutputValue.split('//')[1].split('.')[0]
-            }
-          })
+        const { endpoints, httpApiEndpoints } = endpointOutputs({
+          outputs,
+          naming: this.provider.naming,
+        })
+        for (const endpoint of endpoints) {
+          this.gatheredData.info.endpoints.push(endpoint)
+          if (httpApiEndpoints.has(endpoint)) {
+            this.httpApiEndpoints.add(endpoint)
+          }
+          if (
+            this.serverless.service.deployment &&
+            this.serverless.service.deployment.deploymentId
+          ) {
+            this.serverless.service.deployment.apiId = endpoint
+              .split('//')[1]
+              .split('.')[0]
+          }
+        }
       }
       if (stackData.externalHttpApiEndpoint) {
         this.gatheredData.info.endpoints.push(stackData.externalHttpApiEndpoint)

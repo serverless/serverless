@@ -107,10 +107,14 @@ jobs:
         run: |
           cd ../../
           npm ci
-      - name: 'Build: Minify Shim'
-        run: |
-          cd ../serverless/lib/plugins/aws/dev
-          ../../../../../../node_modules/.bin/esbuild ./shim.js --bundle --platform=node --minify --outfile=./shim.min.js
+      - name: 'Setup: Go'
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: dev-mode-bridge/go.mod
+          cache: false
+      - name: 'Build: Dev Mode Layers'
+        working-directory: ./packages/serverless
+        run: npm run build:devmode:layer
       - name: 'Build: MCP Entry'
         working-directory: ./packages/serverless
         run: npm run build:mcp:entry

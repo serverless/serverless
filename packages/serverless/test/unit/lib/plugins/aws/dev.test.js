@@ -1,11 +1,4 @@
-import {
-  jest,
-  describe,
-  it,
-  expect,
-  beforeEach,
-  afterEach,
-} from '@jest/globals'
+import { jest, describe, it, expect, beforeEach } from '@jest/globals'
 
 const mockLogger = {
   logoDevMode: jest.fn(),
@@ -52,14 +45,6 @@ jest.unstable_mockModule('@serverless/util', () => ({
 const { default: AwsDev } =
   await import('../../../../../lib/plugins/aws/dev/index.js')
 
-const originalProcessVersion = process.version
-
-const setProcessVersion = (version) => {
-  Object.defineProperty(process, 'version', {
-    configurable: true,
-    value: version,
-  })
-}
 const createServerless = () => {
   const provider = {
     getStage: jest.fn(),
@@ -88,12 +73,58 @@ describe('AwsDev', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    setProcessVersion(originalProcessVersion)
     awsDev = new AwsDev(createServerless(), {})
   })
 
-  afterEach(() => {
-    setProcessVersion(originalProcessVersion)
+  describe('hooks', () => {
+    const hooksFor = (commands, options = {}) => {
+      const serverless = createServerless()
+      serverless.processedInput = { commands, options }
+      return new AwsDev(serverless, options).hooks
+    }
+
+    it('does not hook packaging for "serverless dev" in any mode', () => {
+      for (const options of [{}, { sandbox: 'web' }, { mode: 'agents' }]) {
+        expect(
+          hooksFor(['dev'], options)[
+            'before:package:createDeploymentArtifacts'
+          ],
+        ).toBeUndefined()
+      }
+    })
+
+    it('registers the setup hook for "serverless dev setup"', () => {
+      const hooks = hooksFor(['dev', 'setup'])
+      expect(hooks['before:package:createDeploymentArtifacts']).toBeUndefined()
+      expect(hooks['dev:setup:setup']).toBeInstanceOf(Function)
+    })
+
+    it('registers the restore hook for "serverless dev restore"', () => {
+      const hooks = hooksFor(['dev', 'restore'])
+      expect(hooks['dev:restore:restore']).toBeInstanceOf(Function)
+      expect(hooks['before:deploy:deploy']).toBeUndefined()
+    })
+
+    it.each([
+      [['deploy'], 'before:deploy:deploy'],
+      [['remove'], 'before:remove:remove'],
+      [['rollback'], 'before:rollback:rollback'],
+      [['deploy', 'function'], 'before:deploy:function:initialize'],
+    ])('restores Dev Mode functions first in "%s"', (commands, hook) => {
+      expect(hooksFor(commands)[hook]).toBeInstanceOf(Function)
+    })
+
+    it('runs no restore-first hook in the deployment "serverless dev" starts itself', () => {
+      const hooks = hooksFor(['dev'])
+      for (const hook of [
+        'before:deploy:deploy',
+        'before:remove:remove',
+        'before:rollback:rollback',
+        'before:deploy:function:initialize',
+      ]) {
+        expect(hooks[hook]).toBeUndefined()
+      }
+    })
   })
 
   describe('#validateOnExitOption()', () => {
@@ -101,17 +132,20 @@ describe('AwsDev', () => {
       expect(() => awsDev.validateOnExitOption()).not.toThrow()
     })
 
-    it('should not throw when --on-exit is set to "remove"', () => {
-      awsDev.options['on-exit'] = 'remove'
+    it.each(['keep', 'remove'])(
+      'should not throw when --on-exit is set to "%s"',
+      (value) => {
+        awsDev.options['on-exit'] = value
 
-      expect(() => awsDev.validateOnExitOption()).not.toThrow()
-    })
+        expect(() => awsDev.validateOnExitOption()).not.toThrow()
+      },
+    )
 
     it('should throw when --on-exit has an unsupported value', () => {
       awsDev.options['on-exit'] = 'foo'
 
       expect(() => awsDev.validateOnExitOption()).toThrow(
-        'Option "--on-exit" must be "remove".',
+        'Option "--on-exit" must be "keep" or "remove".',
       )
 
       try {
@@ -119,51 +153,6 @@ describe('AwsDev', () => {
       } catch (error) {
         expect(error.code).toBe('INVALID_DEV_ON_EXIT_OPTION')
       }
-    })
-  })
-
-  describe('#update()', () => {
-    it('should set runtime to local node runtime when it is supported by AWS Lambda', async () => {
-      setProcessVersion('v22.1.0')
-      awsDev.getIotEndpoint = jest.fn().mockResolvedValue('iot-endpoint')
-
-      const functionConfig = {
-        handler: 'handler.main',
-        runtime: 'nodejs20.x',
-      }
-
-      awsDev.serverless.service.getFunction = jest.fn(() => functionConfig)
-      awsDev.serverless.service.provider.iam = {}
-      awsDev.serverless.getProvider().getStage.mockReturnValue('dev')
-
-      await awsDev.update()
-
-      expect(functionConfig.runtime).toBe('nodejs22.x')
-      expect(mockLogger.warning).toHaveBeenCalledWith(
-        'Your local machine is using Node.js v22, while at least one of your functions is not. Ensure matching runtime versions for accurate testing.',
-      )
-    })
-
-    it('should fall back to nodejs20.x when local node runtime is not supported by AWS Lambda', async () => {
-      setProcessVersion('v26.0.0')
-      awsDev.getIotEndpoint = jest.fn().mockResolvedValue('iot-endpoint')
-
-      const functionConfig = {
-        handler: 'handler.main',
-        runtime: 'nodejs20.x',
-      }
-
-      awsDev.serverless.service.getFunction = jest.fn(() => functionConfig)
-      awsDev.serverless.service.provider.iam = {}
-      awsDev.serverless.getProvider().getStage.mockReturnValue('dev')
-
-      await awsDev.update()
-
-      expect(functionConfig.runtime).toBe('nodejs20.x')
-      expect(mockLogger.warning).toHaveBeenCalledTimes(1)
-      expect(mockLogger.warning).toHaveBeenCalledWith(
-        'Your local machine is using Node.js v26, which is not yet supported by AWS Lambda. Falling back to nodejs20.x for dev mode deployment.',
-      )
     })
   })
 

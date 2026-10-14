@@ -33,11 +33,6 @@ jest.unstable_mockModule('@serverless/util', () => ({
   },
 }))
 
-jest.unstable_mockModule('aws-iot-device-sdk', () => ({ default: {} }))
-jest.unstable_mockModule('chokidar', () => ({
-  default: { watch: jest.fn(() => ({ on: jest.fn() })) },
-}))
-
 const { default: AwsDev } =
   await import('../../../../../../lib/plugins/aws/dev/index.js')
 

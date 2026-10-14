@@ -705,6 +705,8 @@ class Compose {
                 isWithinCompose: true,
                 orgName: composeOrgName,
                 serviceName: alias,
+                // The Compose file the command named, for the commands a service suggests.
+                configFile: config ?? c,
               },
               state,
             })

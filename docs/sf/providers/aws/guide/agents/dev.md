@@ -114,20 +114,20 @@ serverless dev --agent myAgent
 serverless dev --port 9000
 
 # Force agents dev mode (see note below)
-serverless dev --agents
+serverless dev --mode agents
 ```
 
-### The `--agents` flag
+### Choosing agents mode
 
 When your `serverless.yml` defines **both** Lambda functions and agents, `serverless dev` defaults to Lambda functions
-dev mode. Use `--agents` to explicitly select agents dev mode:
+dev mode. Use `--mode agents` to explicitly select agents dev mode:
 
 ```bash
 # This runs Lambda dev mode (default when functions exist)
 serverless dev
 
 # This runs agents dev mode
-serverless dev --agents
+serverless dev --mode agents
 ```
 
 If your configuration only has agents (no functions), agents dev mode is selected automatically.

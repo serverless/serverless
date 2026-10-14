@@ -11,7 +11,19 @@ import { providerRegistry } from '../../lib/resolvers/registry/index.js'
  * Delete the AWS STS call in SF wherever it is used.
  *
  */
-const getAwsCredentialProvider = async ({
+const getAwsCredentialProvider = async (params) =>
+  resolveAwsAccountCredentials(await prepareAwsCredentialResolver(params))
+
+const credentialsLogger = () =>
+  log.get('core:utils:credentials:aws:get-aws-credential-identity-provider')
+
+/**
+ * The first step of `getAwsCredentialProvider`, which makes no network call: the AWS credential
+ * resolver (the one the resolver manager holds, or a new one), the region it reads and where its
+ * credentials come from (`credentialSource`, for the advice when AWS rejects them). Commands
+ * that need only the region stop here.
+ */
+const prepareAwsCredentialResolver = async ({
   awsProfile = null,
   providerAwsAccessKeyId = null,
   providerAwsSecretAccessKey = null,
@@ -22,9 +34,7 @@ const getAwsCredentialProvider = async ({
   options,
   resolverConfig,
 }) => {
-  const logger = log.get(
-    'core:utils:credentials:aws:get-aws-credential-identity-provider',
-  )
+  const logger = credentialsLogger()
 
   const awsResolver = await getAwsCredentialResolver({
     logger,
@@ -39,7 +49,24 @@ const getAwsCredentialProvider = async ({
     resolverConfig,
   })
 
-  const region = awsResolver.resolveRegion()
+  return {
+    awsResolver,
+    region: awsResolver.resolveRegion(),
+    credentialSource: awsResolver.credentialSource?.(),
+  }
+}
+
+/**
+ * The second step of `getAwsCredentialProvider`: reads the credentials and resolves the AWS
+ * account id through AWS STS, then returns the region, the credential provider and the
+ * credential source of the first step.
+ */
+const resolveAwsAccountCredentials = async ({
+  awsResolver,
+  region,
+  credentialSource,
+}) => {
+  const logger = credentialsLogger()
 
   const p = progress.get('resolve-aws-credentials')
   p.notice('Checking AWS credentials')
@@ -61,6 +88,7 @@ const getAwsCredentialProvider = async ({
     } else {
       return {
         region,
+        credentialSource,
         resolveCredentials: () => {
           throw error
         },
@@ -81,6 +109,7 @@ const getAwsCredentialProvider = async ({
   // SDK clients can use resolveCredentials directly - they'll ignore extra properties
   return {
     region,
+    credentialSource,
     resolveCredentials: async () => {
       // Check if it's a function (fromNodeProviderChain) or an object (dashboard/config credentials)
       // Provider functions from credentials.js have error handling built-in
@@ -156,4 +185,4 @@ const getAwsCredentialResolver = async ({
   })
 }
 
-export { getAwsCredentialProvider }
+export { getAwsCredentialProvider, prepareAwsCredentialResolver }

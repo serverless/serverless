@@ -105,11 +105,12 @@ export class Aws extends AbstractProvider {
 
     try {
       if (key === 'accountId') {
-        return await resolveAccountId(this.logger, this.credentials, region, {
-          dashboard: this.dashboard,
-          config: this.config,
-          resolver: this.resolverName,
-        })
+        return await resolveAccountId(
+          this.logger,
+          this.credentials,
+          region,
+          this.credentialSource(),
+        )
       }
 
       if (key === 'region') {
@@ -175,6 +176,22 @@ export class Aws extends AbstractProvider {
     throw new Error(`Resolver ${resolverType} is not supported`)
   }
 
+  /**
+   * Where this resolver's credentials come from (`describeAwsCredentialSource`), with the name
+   * of the aws resolver in serverless.yml that supplies them, if one does: what the advice for
+   * rejected credentials names. Reads only the resolver's own configuration and the
+   * environment; makes no call.
+   */
+  credentialSource() {
+    return {
+      ...describeAwsCredentialSource({
+        dashboard: this.dashboard,
+        config: this.config,
+      }),
+      resolver: this.resolverName,
+    }
+  }
+
   async resolveCredentials() {
     await super.resolveCredentials()
     return await getAwsCredentials({
@@ -206,7 +223,7 @@ const isCredentialRejection = (error) => {
   )
 }
 
-const resolveAccountId = async (logger, credentials, region, sourceInput) => {
+const resolveAccountId = async (logger, credentials, region, source) => {
   try {
     const { Account: accountId } = await sendAwsRequest({
       service: 'sts',
@@ -239,12 +256,7 @@ const resolveAccountId = async (logger, credentials, region, sourceInput) => {
     // agent setup` uses for this state. A request that never reached AWS
     // (DNS, a refused connection, a proxy) is about the network, not them.
     const credentialsRejected = isCredentialRejection(error)
-    const fix =
-      credentialsRejected &&
-      awsCredentialsFix({
-        ...describeAwsCredentialSource(sourceInput),
-        resolver: sourceInput?.resolver,
-      })
+    const fix = credentialsRejected && awsCredentialsFix(source)
     throw Object.assign(
       new ServerlessError(
         fix

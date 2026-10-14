@@ -1,0 +1,55 @@
+#!/bin/bash
+# Serverless Framework Dev Mode exec wrapper (AWS_LAMBDA_EXEC_WRAPPER=/opt/sls-dev-wrapper).
+#
+# Starts the Dev Mode bridge (a Lambda Runtime API proxy), then runs the next wrapper in the
+# chain -- the function's original AWS_LAMBDA_EXEC_WRAPPER, recorded by the CLI in
+# SLS_DEV_ORIGINAL_EXEC_WRAPPER -- or the runtime itself, with AWS_LAMBDA_RUNTIME_API
+# pointed at the bridge. If anything about the bridge fails, the chain runs against the real
+# Runtime API and the deployed code answers every invocation.
+#
+# Runs on bash 4.2 (Amazon Linux 2 runtimes): no process substitution (Lambda has no /dev/fd),
+# no epoch-time shell variable (bash 5 only). The runtime's arguments pass through unchanged.
+
+log() { echo "[sls-dev-wrapper] $*" >&2; }
+
+ORIGINAL="${SLS_DEV_ORIGINAL_EXEC_WRAPPER:-}"
+# Never chain to ourselves: that would exec this script in a loop until the function times out.
+case "$ORIGINAL" in
+  "$0" | /opt/sls-dev-wrapper) ORIGINAL="" ;;
+esac
+# Build the chain first, so the bridge-failure paths below still run the original wrapper.
+if [ -n "$ORIGINAL" ]; then
+  # -x alone is true for a directory, which exec cannot run (exit 126).
+  if [ -f "$ORIGINAL" ] && [ -x "$ORIGINAL" ]; then
+    set -- "$ORIGINAL" "$@"
+  else
+    log "original wrapper $ORIGINAL is missing or not executable; starting the runtime without it"
+  fi
+fi
+
+BRIDGE="${0%/*}/bin/sls-dev-bridge"
+if [ -z "${AWS_LAMBDA_RUNTIME_API:-}" ] || [ ! -x "$BRIDGE" ]; then
+  log "bridge unavailable; the deployed code answers every invocation"
+  exec "$@"
+fi
+
+export SLS_DEV_REAL_RUNTIME_API="$AWS_LAMBDA_RUNTIME_API"
+export SLS_DEV_BRIDGE_PORT="${SLS_DEV_BRIDGE_PORT:-9140}"
+
+coproc SLS_DEV_BRIDGE_PROC { exec "$BRIDGE"; }
+# bash unsets the array once the coproc exits, so a bridge that died at once leaves these empty.
+BRIDGE_OUT=${SLS_DEV_BRIDGE_PROC[0]:-}
+BRIDGE_IN=${SLS_DEV_BRIDGE_PROC[1]:-}
+READY=""
+if [ -n "$BRIDGE_OUT" ]; then
+  read -r -t 2 READY <&"$BRIDGE_OUT"
+fi
+# Close our ends of the pipes so the runtime does not inherit them.
+if [ -n "$BRIDGE_OUT" ]; then exec {BRIDGE_OUT}<&-; fi
+if [ -n "$BRIDGE_IN" ]; then exec {BRIDGE_IN}>&-; fi
+if [ "$READY" != "ready" ]; then
+  log "bridge did not start; the deployed code answers every invocation"
+  exec "$@"
+fi
+export AWS_LAMBDA_RUNTIME_API="127.0.0.1:$SLS_DEV_BRIDGE_PORT"
+exec "$@"

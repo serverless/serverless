@@ -82,8 +82,8 @@ class Utils {
     return walkDirSync(dirPath)
   }
 
-  copyDirContentsSync(srcDir, destDir) {
-    return copyDirContentsSync(srcDir, destDir)
+  copyDirContentsSync(srcDir, destDir, options) {
+    return copyDirContentsSync(srcDir, destDir, options)
   }
 
   generateShortId(length) {

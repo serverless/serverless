@@ -8,9 +8,10 @@
  *   - `node_modules` and the lockfiles are NOT esbuild outputs. They are
  *     produced by the dependency install step and re-creating them cold on
  *     every deploy is a multi-second regression.
- *   - dev mode (`_build('originalHandler')`) must keep the last-good outputs
- *     so a failed incremental rebuild doesn't leave the dev loop with nothing
- *     to serve.
+ *   - dev mode (a build under a dev build request) resets it once, at a
+ *     session's first build (without `node_modules`), and later dev builds keep
+ *     the last-good outputs so a failed incremental rebuild doesn't leave the
+ *     dev loop with nothing to serve.
  */
 
 import { jest } from '@jest/globals'
@@ -21,9 +22,23 @@ import os from 'os'
 import path from 'path'
 import JsZip from 'jszip'
 import { log } from '@serverless/util'
+import {
+  closeDevBuildRequest,
+  openDevBuildRequest,
+} from '../../../../../lib/utils/dev-build-request.js'
 
 const Esbuild = (await import('../../../../../lib/plugins/esbuild/index.js'))
   .default
+
+/** Runs the esbuild dev hook under a dev build request for `functions`, closed however it ends. */
+async function devBuild(plugin, functions) {
+  const request = openDevBuildRequest(plugin.serverless, { functions })
+  try {
+    return await plugin.hooks['before:dev-build:build']()
+  } finally {
+    closeDevBuildRequest(plugin.serverless, request)
+  }
+}
 
 // `log.get` is a memoized singleton, so this is the same logger instance the
 // plugin holds — spying here intercepts its calls.
@@ -200,14 +215,16 @@ describe('_resetBuildDir', () => {
   })
 })
 
-describe('_build resets the build dir only off the dev path', () => {
+describe('_build resets the build dir on the deploy path and when a dev session starts', () => {
   jest.setTimeout(30_000)
 
   const handlerSource =
     'export const hello = async () => ({ statusCode: 200 })\n'
 
-  it('wipes stale outputs on the deploy/package path', async () => {
+  it('wipes stale outputs on the deploy/package path, keeping the installed dependencies', async () => {
     const { serviceDir, buildDir } = makeServiceDir()
+    fs.writeFileSync(path.join(buildDir, 'yarn.lock'), '')
+    fs.writeFileSync(path.join(buildDir, 'pnpm-lock.yaml'), '')
     fs.writeFileSync(path.join(serviceDir, 'handler.js'), handlerSource)
     const fns = { hello: { handler: 'handler.hello' } }
     const plugin = new Esbuild(makeServerless(serviceDir, fns), {})
@@ -217,16 +234,31 @@ describe('_build resets the build dir only off the dev path', () => {
 
     expect(fs.existsSync(path.join(buildDir, 'stale-output.js'))).toBe(false)
     expect(fs.existsSync(path.join(buildDir, 'handler.js'))).toBe(true)
+    // Only a dev session's first build leaves them out (below).
+    expect(
+      fs.existsSync(path.join(buildDir, 'node_modules', 'dep', 'index.js')),
+    ).toBe(true)
+    for (const lockfile of ['package-lock.json', 'yarn.lock', 'pnpm-lock.yaml'])
+      expect(fs.existsSync(path.join(buildDir, lockfile))).toBe(true)
   })
 
-  it('keeps previous outputs on the dev-mode path', async () => {
+  it("resets it on a dev session's first build only, without the installed dependencies", async () => {
     const { serviceDir, buildDir } = makeServiceDir()
     fs.writeFileSync(path.join(serviceDir, 'handler.js'), handlerSource)
-    const fns = { hello: { originalHandler: 'handler.hello' } }
+    const fns = { hello: { handler: 'handler.hello' } }
     const plugin = new Esbuild(makeServerless(serviceDir, fns), {})
     plugin.functions = async () => fns
 
-    await plugin._build('originalHandler')
+    await devBuild(plugin, ['hello'])
+
+    expect(fs.existsSync(path.join(buildDir, 'stale-output.js'))).toBe(false)
+    expect(fs.existsSync(path.join(buildDir, 'node_modules'))).toBe(false)
+    expect(fs.existsSync(path.join(buildDir, 'package-lock.json'))).toBe(true)
+    expect(fs.existsSync(path.join(buildDir, 'handler.js'))).toBe(true)
+
+    // Later dev builds of the session keep what they did not move in themselves.
+    fs.writeFileSync(path.join(buildDir, 'stale-output.js'), 'stale')
+    await devBuild(plugin, ['hello'])
 
     expect(fs.existsSync(path.join(buildDir, 'stale-output.js'))).toBe(true)
     expect(fs.existsSync(path.join(buildDir, 'handler.js'))).toBe(true)
@@ -391,13 +423,17 @@ describe('_build bookkeeping', () => {
   })
 
   it('does not assert on the dev-mode path', async () => {
-    // Dev mode swallows build failures by design so the dev loop keeps
-    // serving; a missing handler there must not abort it either.
+    // Dev mode keeps the last good outputs so the dev loop keeps serving;
+    // a missing handler there must not abort it either.
     const { serviceDir } = makeTsServiceDir()
-    const fns = { ghost: { originalHandler: 'src/missing.handler' } }
+    const fns = { ghost: { handler: 'src/missing.handler' } }
     const plugin = new Esbuild(makeServerless(serviceDir, fns), {})
 
-    await expect(plugin._build('originalHandler')).resolves.toBeUndefined()
+    await expect(devBuild(plugin, ['ghost'])).resolves.toBeUndefined()
+    // The same build off the dev path fails on the missing handler.
+    await expect(plugin._build()).rejects.toMatchObject({
+      code: 'ESBUILD_HANDLER_NOT_BUILT',
+    })
   })
 
   it('records nothing when esbuild is configured not to write the outfile', async () => {

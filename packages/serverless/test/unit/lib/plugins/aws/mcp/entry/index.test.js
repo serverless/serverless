@@ -168,36 +168,17 @@ describe('mcp entry', () => {
     expect(response.body).toBe('handled')
   })
 
-  // Dev mode imports this same prebuilt file on the user's machine and calls
-  // the buffered door, so the export has to be there and has to serve the same
-  // app the streaming one does.
-  it('serves the user handler through the buffered Lambda bridge too', async () => {
-    const { bufferedHandler } = await import(entryPath)
-
-    const result = await bufferedHandler(restEvent(), {})
-
-    expect(result.statusCode).toBe(202)
-    expect(result.body).toBe('handled')
-    expect(result.isBase64Encoded).toBe(false)
-  })
-
   // `awslambda` is injected by the Lambda runtime, and `streamHandle` reads it
   // as it is called — at module scope. Unguarded, importing this file anywhere
-  // else (dev mode, on the user's machine) throws a ReferenceError before any
-  // export is reachable, which would put the buffered door out of reach of the
-  // only caller that needs it.
-  it('imports with no Lambda runtime global, leaving only the buffered door', async () => {
+  // else throws a ReferenceError before any export is reachable.
+  it('imports with no Lambda runtime global, with no handler', async () => {
     const { awslambda } = globalThis
     delete globalThis.awslambda
     try {
       const entry = await import(entryPath)
 
-      expect(typeof entry.bufferedHandler).toBe('function')
       expect(entry.handler).toBeUndefined()
-      // And the door that remains is a working one, not just a present name.
-      const result = await entry.bufferedHandler(restEvent(), {})
-      expect(result.statusCode).toBe(202)
-      expect(result.body).toBe('handled')
+      expect(Object.keys(entry)).toEqual(['handler'])
     } finally {
       globalThis.awslambda = awslambda
     }
@@ -208,19 +189,14 @@ describe('mcp entry', () => {
   // `state:` server loads one to read its key - assigns
   // `globalThis.awslambda ||= {}` on import. Off Lambda that leaves exactly this
   // shape, and a presence-only guard hands it to Hono's bridge, which calls
-  // `streamifyResponse` on it and throws at module scope. Live-observed as a
-  // 502 through a dev session, with the local child never getting past import.
-  it('leaves only the buffered door when the SDK stubbed the global', async () => {
+  // `streamifyResponse` on it and throws at module scope.
+  it('imports with no handler when the SDK stubbed the global', async () => {
     const { awslambda } = globalThis
     globalThis.awslambda = {}
     try {
       const entry = await import(entryPath)
 
-      expect(typeof entry.bufferedHandler).toBe('function')
       expect(entry.handler).toBeUndefined()
-      const result = await entry.bufferedHandler(restEvent(), {})
-      expect(result.statusCode).toBe(202)
-      expect(result.body).toBe('handled')
     } finally {
       globalThis.awslambda = awslambda
     }

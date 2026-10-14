@@ -63,15 +63,6 @@ const FIX = {
 export const awsCredentialsFix = (source) => FIX[source.source](source)
 
 /**
- * No credentials could be loaded at all (as opposed to AWS rejecting them):
- * what is missing and how to set it up. `profile` is the one the command
- * named, if any; `resolver` is the aws resolver in serverless.yml that named
- * it, whose profile `--aws-profile` does not override. Shared by the
- * AWS_CREDENTIALS_MISSING error and `serverless agent setup`'s aws line.
- *
- * @returns {{ problem: string, fix: string }}
- */
-/**
  * Whether the AWS SDK's error says an SSO profile's sign-in has lapsed
  * ("Token is expired. To refresh this SSO session run 'aws sso login' …",
  * "The SSO session associated with this profile has expired …").
@@ -82,10 +73,23 @@ export const awsCredentialsFix = (source) => FIX[source.source](source)
 export const isExpiredSsoSession = (message = '') =>
   /sso/i.test(message) && /expired|invalid/i.test(message)
 
+/**
+ * No credentials could be loaded at all (as opposed to AWS rejecting them):
+ * what is missing and how to set it up. `profile` is the one the command
+ * named, if any; `resolver` is the aws resolver in serverless.yml that named
+ * it, whose profile `--aws-profile` does not override. `outsideService` is
+ * for a command that runs without a service (`serverless dev setup` outside
+ * one), where there is no provider.profile to name another profile in.
+ * Shared by the AWS_CREDENTIALS_MISSING error and `serverless agent setup`'s
+ * aws line.
+ *
+ * @returns {{ problem: string, fix: string }}
+ */
 export const describeMissingAwsCredentials = ({
   profile,
   resolver,
   ssoExpired,
+  outsideService = false,
 } = {}) => {
   if (ssoExpired) {
     const signIn = `sign in again with "serverless login aws sso${profile ? ` --aws-profile ${profile}` : ''}" in an interactive terminal`
@@ -106,7 +110,7 @@ export const describeMissingAwsCredentials = ({
   if (profile) {
     return {
       problem: `profile "${profile}" has no usable credentials`,
-      fix: `${createProfile}, or name another profile in provider.profile or with --aws-profile`,
+      fix: `${createProfile}, or name another profile ${outsideService ? 'with --aws-profile' : 'in provider.profile or with --aws-profile'}`,
     }
   }
   return {

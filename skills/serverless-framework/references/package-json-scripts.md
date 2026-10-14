@@ -16,7 +16,8 @@ consistent, so nobody rebuilds them by hand.
     "deploy:personal-stage": "serverless deploy --service=api,worker --stage ${STAGE:-$USER}",
     "dev:api": "serverless api dev --stage ${STAGE:-$USER}",
     "dev:worker": "serverless worker dev --stage ${STAGE:-$USER}",
-    "restore:personal-stage": "serverless deploy --service=api,worker --stage ${STAGE:-$USER}",
+    "restore:api": "serverless api dev restore --stage ${STAGE:-$USER}",
+    "restore:worker": "serverless worker dev restore --stage ${STAGE:-$USER}",
     "remove:personal-stage": "serverless remove --service=api,worker --stage ${STAGE:-$USER}",
     "test:unit": "…",
     "test:integration": "STAGE=${STAGE:-$USER} …"
@@ -30,9 +31,8 @@ consistent, so nobody rebuilds them by hand.
   in dependency order. `orders-db` is not listed, so the shared data service
   is left as it is.
 - `dev:<service>`: one dev session per service, each in its own terminal.
-- `restore:personal-stage`: deploys the stage again after a dev session, so
-  its functions serve the deployed code instead of relaying to a closed
-  session.
+- `restore:<service>`: restores the functions a killed `serverless dev`
+  session of that service left in Dev Mode.
 - `remove:personal-stage`: removes the app services from your personal stage
   only.
 - `test:integration`: passes `STAGE=${STAGE:-$USER}` to the test runner, so
@@ -64,9 +64,9 @@ list: use `serverless deploy --stage ${STAGE:-$USER}`,
 
 ## Adding a service
 
-- Add a `dev:<service>` script for it.
-- Add it to the `--service` lists of `deploy:personal-stage`,
-  `restore:personal-stage`, and `remove:personal-stage` **only if it is a
-  stateless app service**. A new data service stays out of those lists
-  and is read through the pinned `service` resolver
+- Add `dev:<service>` and `restore:<service>` scripts for it.
+- Add it to the `--service` lists of `deploy:personal-stage` and
+  `remove:personal-stage` **only if it is a stateless app service**. A new
+  data service stays out of those lists and is read through the pinned
+  `service` resolver
   ([multi-service.md](multi-service.md)).

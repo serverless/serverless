@@ -1,5 +1,6 @@
 import { distance as getDistance } from 'fastest-levenshtein'
 import ServerlessError from '../serverless-error.js'
+import { commandUsageName, declaringPrefixOf } from './positionals.js'
 
 const getCommandSuggestion = (command, commandsSchema) => {
   let suggestion
@@ -21,6 +22,22 @@ const getCommandSuggestion = (command, commandsSchema) => {
 }
 
 export default ({ command, options, commandSchema, commandsSchema }) => {
+  // More words than a command declares: the words are values (a request id), so the error, which
+  // goes into the CLI's usage report, names only the command.
+  const declaring =
+    !commandSchema && typeof commandsSchema?.has === 'function'
+      ? declaringPrefixOf(String(command).split(' '), commandsSchema)
+      : null
+  if (declaring) {
+    const name = String(command).split(' ').slice(0, declaring.length).join(' ')
+    const count = declaring.names.length
+    const err = new ServerlessError(
+      `Serverless command "${name}" takes at most ${count} argument${count === 1 ? '' : 's'}: ${commandUsageName(name, commandsSchema.get(name))}. Run "serverless ${name} --help" for more info.`,
+      'UNRECOGNIZED_CLI_COMMAND',
+    )
+    err.stack = undefined
+    throw err
+  }
   // If the command is not found, suggest the closest match
   if (!commandSchema) {
     let errorMessage =
@@ -84,6 +101,11 @@ export default ({ command, options, commandSchema, commandsSchema }) => {
    */
   for (const [optionName, optionValue] of Object.entries(options)) {
     let schemaCommandOption = commandSchema.options[optionName]
+
+    // A declared positional argument arrives as a string option of its name.
+    if (!schemaCommandOption && commandSchema.positionals?.[optionName]) {
+      schemaCommandOption = { type: 'string' }
+    }
 
     // If no schema is found for the option, check if it's a common/global option
     if (!schemaCommandOption && commandsSchema.commonOptions) {

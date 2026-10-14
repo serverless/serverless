@@ -261,12 +261,20 @@ second leg would duplicate rather than parallelize.
 ### Leftovers from Interrupted Runs
 
 Each suite removes what it deploys, but a cancelled or failed run can leave
-stacks and state-bucket keys behind. `Cleanup: Test Accounts`
+stacks, state-bucket keys and Dev Mode test resources behind.
+`Cleanup: Test Accounts`
 (`.github/workflows/cleanup-test-accounts.yml`) reports them every night, for
 each test account:
 
 - stacks whose names match the suites' CI naming, untouched for at least a day;
-- keys in the account's default state bucket whose test stack no longer exists.
+- keys in the account's default state bucket whose test stack no longer exists;
+- Dev Mode test resources: IAM roles and Lambda layers whose names carry a Dev
+  Mode test suffix (`serverless-dev-broker-<region>-<suffix>`,
+  `serverless-dev-<arch>-<suffix>`; the CLI adds a suffix only under the tests'
+  `SLS_DEV_TEST_SUFFIX`), created at least a day ago (a layer by its latest
+  version), and objects under `serverless-dev-mode/` in each region's
+  deployment buckets last modified at least a day ago. Objects are counted;
+  their stage is named only when it matches the suites' CI naming.
 
 It's a dry run and deletes nothing. The matching rules are in
 `packages/sf-core/scripts/test-account-cleanup/rules.js`, and a unit test fails

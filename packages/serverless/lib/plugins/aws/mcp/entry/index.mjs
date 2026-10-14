@@ -11,7 +11,6 @@ import { pathToFileURL } from 'node:url'
 import { streamHandle } from 'hono/aws-lambda'
 import {
   buildApp,
-  buildBufferedHandler,
   readEntryEnv,
   resolveServerModulePath,
 } from './lib/compose.mjs'
@@ -61,17 +60,17 @@ const app = buildApp({ mcpHandler })
 //
 // `awslambda` is a global the Lambda runtime injects, and `streamHandle` reads
 // it as it is called — at module scope, so its absence would throw before any
-// export of this file is reachable. Dev mode imports this same prebuilt file on
-// the user's machine, where there is no such runtime, and an import must not
-// throw there: outside Lambda only the buffered door below exists.
+// export of this file is reachable. Anywhere without Lambda's runtime (a test
+// importing this file, for one) the import must not throw: `handler` is then
+// undefined.
 //
 // The mere EXISTENCE of the global cannot decide that, because it is not the
 // runtime's alone: `@aws/lambda-invoke-store`, which every AWS SDK v3 client
 // pulls in — and `./lib/state.mjs` above loads one — runs
 // `globalThis.awslambda = globalThis.awslambda || {}` on import, unless
 // `AWS_LAMBDA_NODEJS_NO_GLOBAL_AWSLAMBDA` says otherwise. So a plain
-// `typeof awslambda === 'undefined'` test passes on the user's machine as soon
-// as a `state:` server has resolved its key, and `streamHandle` then throws
+// `typeof awslambda === 'undefined'` test passes off Lambda as soon as a
+// `state:` server has resolved its key, and `streamHandle` then throws
 // against a stub that has no `streamifyResponse`. Probe the capability this
 // file actually needs instead. Inside Lambda the guard stays dead code, so the
 // deployed wiring is exactly what it was.
@@ -85,11 +84,6 @@ const streamed =
   typeof awslambda.streamifyResponse === 'function'
     ? streamHandle(app)
     : undefined
-
-// Dev mode's door: the dev CLI imports this same prebuilt file on the user's
-// machine and calls the buffered adapter over the same app — local execution
-// and production run the same composition byte for byte.
-export const bufferedHandler = buildBufferedHandler({ app })
 
 // `streamifyResponse` marks the function it is given with the symbol the
 // runtime reads to select streaming mode, so the wrapper has to carry that mark

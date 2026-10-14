@@ -29,6 +29,10 @@ import os from 'os'
 import path from 'path'
 import JsZip from 'jszip'
 import { log } from '@serverless/util'
+import {
+  closeDevBuildRequest,
+  openDevBuildRequest,
+} from '../../../../../lib/utils/dev-build-request.js'
 
 const spawnMock = jest.fn(() => {
   const child = new EventEmitter()
@@ -175,16 +179,29 @@ describe('a service whose handlers are all layer-provided', () => {
   })
 
   it('leaves dev mode holding its last-good outputs', async () => {
-    // Dev mode never resets, on this path or any other — a failed incremental
-    // rebuild must not leave the dev loop with nothing to serve.
+    // Only a session's first dev build resets — a later rebuild must not leave
+    // the dev loop with nothing to serve.
     const serviceDir = makeServiceDir(BASE_FILES)
     const previous = path.join(buildDirOf(serviceDir), 'src', 'handler.js')
+    const fns = { dd: LAYER_HANDLER }
+    const plugin = makePlugin(serviceDir, fns)
+    const devBuild = async () => {
+      const request = openDevBuildRequest(plugin.serverless, {
+        functions: ['dd'],
+      })
+      try {
+        await plugin.hooks['before:dev-build:build']()
+      } finally {
+        closeDevBuildRequest(plugin.serverless, request)
+      }
+      return request
+    }
+
+    await devBuild()
     fs.mkdirSync(path.dirname(previous), { recursive: true })
     fs.writeFileSync(previous, 'last good\n')
-    const fns = { dd: { ...LAYER_HANDLER, originalHandler: '/opt/x.handler' } }
-    const plugin = makePlugin(serviceDir, fns)
-
-    await plugin._build('originalHandler')
+    const request = await devBuild()
+    expect(request.result()).toEqual({ covered: ['dd'], built: [] })
 
     expect(fs.readFileSync(previous, 'utf8')).toBe('last good\n')
   })

@@ -27,6 +27,8 @@ messages suggest. Do not install with `sudo`.
 | `serverless invoke local -f NAME`    | Run the handler locally without deploying                               |
 | `serverless logs -f NAME`            | Fetch a function's CloudWatch logs (`--tail` to follow)                 |
 | `serverless dev`                     | Dev Mode: routes invocations of the deployed service to local code      |
+| `serverless dev stop`                | Ends a Dev Mode session and restores its functions                      |
+| `serverless dev restore`             | Restores functions a killed session left in Dev Mode                    |
 | `serverless remove`                  | Delete the service's stack and resources                                |
 
 ## Authentication and credentials

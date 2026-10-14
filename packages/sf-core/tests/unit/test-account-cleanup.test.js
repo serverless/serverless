@@ -5,13 +5,26 @@ import path from 'path'
 import url from 'url'
 import {
   CLEANUP_MIN_AGE_MS,
+  DEV_MODE_PREFIX,
   SAM_STACK_PREFIXES,
+  isAccessDenied,
+  isDeploymentBucket,
+  isDevModeTestBrokerRole,
+  isDevModeTestLayer,
   isTestStack,
   stackIdFromStateKey,
+  staleDevModeLayers,
+  staleDevModeObjects,
+  staleDevModeRoles,
   staleStacks,
   staleStateKeys,
   stateStackStatuses,
 } from '../../scripts/test-account-cleanup/rules.js'
+import {
+  brokerRoleName,
+  layerName,
+} from '../../../serverless/lib/plugins/aws/dev/attach/naming.js'
+import { newDevModeTestSuffix } from '../utils/devModeTestSuffix.js'
 
 // The cleanup job deletes leftovers of integration-test runs from the shared
 // test accounts. These tests keep its matching rules in step with the suites:
@@ -277,24 +290,40 @@ describe('report errors', () => {
   const ACCOUNT_ID = '123456789012'
   let server
   let endpoint
+  // How the fake AWS endpoint answers each request: `(request, body, response)`.
+  let respond
 
-  beforeAll(async () => {
-    server = http.createServer((request, response) => {
-      request.resume()
-      request.on('end', () => {
-        response.writeHead(403, { 'Content-Type': 'text/xml' })
-        response.end(
-          `<ErrorResponse><Error><Type>Sender</Type><Code>AccessDenied</Code><Message>User: arn:aws:sts::${ACCOUNT_ID}:assumed-role/role/session is not authorized to perform: cloudformation:ListStacks</Message></Error><RequestId>1</RequestId></ErrorResponse>`,
-        )
+  const xmlError = (response, status, code) => {
+    response.writeHead(status, { 'Content-Type': 'text/xml' })
+    response.end(
+      `<ErrorResponse><Error><Type>Sender</Type><Code>${code}</Code><Message>User: arn:aws:sts::${ACCOUNT_ID}:assumed-role/role/session is not authorized</Message></Error><RequestId>1</RequestId></ErrorResponse>`,
+    )
+  }
+  const denyAll = (request, body, response) =>
+    xmlError(response, 403, 'AccessDenied')
+  // CloudFormation lists no stacks and the account has no state bucket; every other call goes
+  // to `other`.
+  const emptyAccount = (other) => (request, body, response) => {
+    if (body.includes('Action=ListStacks')) {
+      response.writeHead(200, { 'Content-Type': 'text/xml' })
+      response.end(
+        '<ListStacksResponse xmlns="http://cloudformation.amazonaws.com/doc/2010-05-15/"><ListStacksResult><StackSummaries/></ListStacksResult><ResponseMetadata><RequestId>1</RequestId></ResponseMetadata></ListStacksResponse>',
+      )
+      return
+    }
+    if (request.headers['x-amz-target'] === 'AmazonSSM.GetParameter') {
+      response.writeHead(400, {
+        'Content-Type': 'application/x-amz-json-1.1',
       })
-    })
-    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
-    endpoint = `http://127.0.0.1:${server.address().port}`
-  })
+      response.end(
+        JSON.stringify({ __type: 'ParameterNotFound', message: 'none' }),
+      )
+      return
+    }
+    other(request, body, response)
+  }
 
-  afterAll(() => new Promise((resolve) => server.close(resolve)))
-
-  test('fail the run without printing the error message', async () => {
+  const runReport = async () => {
     const child = spawn(
       process.execPath,
       ['scripts/test-account-cleanup/report.js', '--regions', 'us-east-1'],
@@ -315,8 +344,58 @@ describe('report errors', () => {
     child.stdout.on('data', (chunk) => (output += chunk))
     child.stderr.on('data', (chunk) => (output += chunk))
     const code = await new Promise((resolve) => child.on('close', resolve))
+    return { code, output }
+  }
+
+  beforeAll(async () => {
+    server = http.createServer((request, response) => {
+      let body = ''
+      request.setEncoding('utf8')
+      request.on('data', (chunk) => (body += chunk))
+      request.on('end', () => respond(request, body, response))
+    })
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
+    endpoint = `http://127.0.0.1:${server.address().port}`
+  })
+
+  afterAll(() => new Promise((resolve) => server.close(resolve)))
+
+  test('fail the run without printing the error message', async () => {
+    respond = denyAll
+    const { code, output } = await runReport()
     expect(code).toBe(1)
     expect(output).toMatch(/AccessDenied/)
+    expect(output).not.toContain(ACCOUNT_ID)
+  }, 30_000)
+
+  test('a Dev Mode listing the role may not make is a warning in its section, not a failure', async () => {
+    respond = emptyAccount(denyAll)
+    const { code, output } = await runReport()
+    expect(code).toBe(0)
+    const section = output.slice(output.indexOf('### Dev Mode test leftovers'))
+    expect(section).toMatch(
+      /- Warning: could not list IAM roles \(iam:ListRoles\) \(AccessDenied\): not checked/,
+    )
+    expect(section).toMatch(
+      /- Warning: could not list S3 buckets \(s3:ListAllMyBuckets\)/,
+    )
+    expect(section).toMatch(
+      /- Warning: could not list Lambda layers in us-east-1 \(lambda:ListLayers\)/,
+    )
+    // Nothing was listed, so nothing is counted.
+    expect(section).not.toMatch(/would be deleted/)
+    expect(output).not.toContain(ACCOUNT_ID)
+  }, 30_000)
+
+  test('any other error in a Dev Mode listing still fails the run', async () => {
+    respond = emptyAccount((request, body, response) =>
+      xmlError(response, 400, 'ValidationError'),
+    )
+    const { code, output } = await runReport()
+    expect(code).toBe(1)
+    expect(output).toContain(
+      'Cleanup report failed while listing IAM roles: ValidationError',
+    )
     expect(output).not.toContain(ACCOUNT_ID)
   }, 30_000)
 })
@@ -360,5 +439,122 @@ describe('dry run', () => {
     const text = JSON.stringify(workflow)
     expect(text).toMatch(/test-account-cleanup\/report\.js/)
     expect(text).not.toMatch(/delete/i)
+  })
+})
+
+// Live Dev Mode tests create a broker role and layers named with a test suffix. The rules must
+// match exactly the names those tests produce, and never the shared, unsuffixed ones that real
+// use of Dev Mode in the account creates.
+describe('Dev Mode test leftovers', () => {
+  test('match the suffixed names live tests create and never the shared ones', () => {
+    const env = { SLS_DEV_TEST_SUFFIX: newDevModeTestSuffix() }
+    for (const region of [
+      'us-east-1',
+      'eu-central-1',
+      'ap-southeast-2',
+      'us-gov-west-1',
+    ]) {
+      expect(isDevModeTestBrokerRole(brokerRoleName(region, env))).toBe(true)
+      expect(isDevModeTestBrokerRole(brokerRoleName(region, {}))).toBe(false)
+    }
+    for (const arch of ['x86_64', 'arm64']) {
+      expect(isDevModeTestLayer(layerName(arch, env))).toBe(true)
+      expect(isDevModeTestLayer(layerName(arch, {}))).toBe(false)
+    }
+    expect(
+      isDevModeTestBrokerRole('serverless-dev-broker-us-east-1-p4a1b2c3'),
+    ).toBe(true)
+    // An older Dev Mode's layer, and names that only look alike.
+    expect(isDevModeTestLayer('serverless-dev-mode')).toBe(false)
+    expect(isDevModeTestBrokerRole('serverless-dev-broker-us-east-1-')).toBe(
+      false,
+    )
+    expect(
+      isDevModeTestBrokerRole('serverless-dev-broker-us-east-1-Upper'),
+    ).toBe(false)
+    expect(
+      isDevModeTestBrokerRole('serverless-dev-broker-us-east-1-abcdefghijklm'),
+    ).toBe(false)
+    expect(
+      isDevModeTestBrokerRole('team-serverless-dev-broker-us-east-1-it1'),
+    ).toBe(false)
+  })
+
+  test('select old suffixed roles and layers and keep recent and shared ones', () => {
+    const roles = [
+      { RoleName: 'serverless-dev-broker-us-east-1-itold', CreateDate: OLD },
+      { RoleName: 'serverless-dev-broker-us-east-1-itnew', CreateDate: RECENT },
+      { RoleName: 'serverless-dev-broker-us-east-1', CreateDate: OLD },
+    ]
+    expect(
+      staleDevModeRoles(roles, NOW).map(({ RoleName }) => RoleName),
+    ).toEqual(['serverless-dev-broker-us-east-1-itold'])
+    const layers = [
+      {
+        LayerName: 'serverless-dev-arm64-itold',
+        LatestMatchingVersion: { CreatedDate: OLD.toISOString() },
+      },
+      {
+        LayerName: 'serverless-dev-x86_64-itnew',
+        LatestMatchingVersion: { CreatedDate: RECENT.toISOString() },
+      },
+      {
+        LayerName: 'serverless-dev-arm64',
+        LatestMatchingVersion: { CreatedDate: OLD.toISOString() },
+      },
+      {
+        LayerName: 'serverless-dev-mode',
+        LatestMatchingVersion: { CreatedDate: OLD.toISOString() },
+      },
+    ]
+    expect(
+      staleDevModeLayers(layers, NOW).map(({ LayerName }) => LayerName),
+    ).toEqual(['serverless-dev-arm64-itold'])
+  })
+
+  test('count old objects under the Dev Mode prefix and name only test stages', () => {
+    // The prefix separates service and stage with `/`; the test stack name joins them with `-`.
+    const entries = [
+      {
+        Key: `${DEV_MODE_PREFIX}devmode-agent/pr-czttm8lpvg57/s_1/a`,
+        LastModified: OLD,
+      },
+      {
+        Key: `${DEV_MODE_PREFIX}devmode-agent/pr-czttm8lpvg57/s_1/b`,
+        LastModified: OLD,
+      },
+      { Key: `${DEV_MODE_PREFIX}orders/dev/s_2/c`, LastModified: OLD },
+      { Key: `${DEV_MODE_PREFIX}orders/dev/s_3/d`, LastModified: RECENT },
+    ]
+    expect(staleDevModeObjects(entries, NOW)).toEqual({
+      count: 3,
+      testStages: ['devmode-agent-pr-czttm8lpvg57'],
+    })
+  })
+
+  test('a refused listing is told apart from other errors', () => {
+    expect(isAccessDenied({ name: 'AccessDenied' })).toBe(true)
+    expect(isAccessDenied({ name: 'AccessDeniedException' })).toBe(true)
+    expect(
+      isAccessDenied({ name: 'Other', $metadata: { httpStatusCode: 403 } }),
+    ).toBe(true)
+    expect(isAccessDenied({ name: 'ThrottlingException' })).toBe(false)
+    expect(isAccessDenied(undefined)).toBe(false)
+  })
+
+  test('recognise only the deployment buckets of the region', () => {
+    expect(
+      isDeploymentBucket(
+        'serverless-framework-deployments-us-east-1-0a1b2c3d-4e5f',
+        'us-east-1',
+      ),
+    ).toBe(true)
+    expect(
+      isDeploymentBucket(
+        'serverless-framework-deployments-us-east-2-0a1b2c3d-4e5f',
+        'us-east-1',
+      ),
+    ).toBe(false)
+    expect(isDeploymentBucket('my-bucket', 'us-east-1')).toBe(false)
   })
 })

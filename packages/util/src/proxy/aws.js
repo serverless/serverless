@@ -67,25 +67,43 @@ function shouldAwsEndpointsBypassProxy() {
   return testUrls.every((url) => shouldBypassProxy(url))
 }
 
-function firstEnv(...names) {
+function firstEnv(env, ...names) {
   for (const name of names) {
-    const val = process.env[name]
+    const val = env[name]
     if (val && String(val).trim() !== '') return String(val).trim()
   }
   return undefined
 }
 
-function buildAgentOptionsFromEnv(existingAgentOptions = {}) {
-  const agentOptions = { ...existingAgentOptions }
-  const proxyOpts = (agentOptions.proxyRequestOptions =
-    agentOptions.proxyRequestOptions || {})
+/**
+ * The proxies `env` sets: HTTP_PROXY and HTTPS_PROXY (either case, upper case first) for their own
+ * scheme, or, when neither is set, a generic `proxy` for the scheme its URL names. A request to an
+ * HTTPS endpoint takes `httpsProxy`, else `httpProxy`. Shared by the AWS SDK clients and
+ * getProxyAgent, so both choose the same proxy.
+ */
+export function proxyUrlsFromEnv(env = process.env) {
+  const httpProxy = firstEnv(env, 'HTTP_PROXY', 'http_proxy')
+  const httpsProxy = firstEnv(env, 'HTTPS_PROXY', 'https_proxy')
+  if (httpProxy || httpsProxy) return { httpProxy, httpsProxy }
+  const generic = firstEnv(env, 'proxy')
+  if (!generic) return {}
+  // Route based on scheme when only a generic proxy is provided
+  return /^https:/i.test(generic)
+    ? { httpsProxy: generic }
+    : { httpProxy: generic }
+}
 
-  // Collect proxy CA values from env
+/**
+ * The CA certificates `env` gives for the TLS handshake with the proxy (`ca`/HTTPS_CA, then the
+ * file `cafile`/HTTPS_CAFILE names); an unreadable file is skipped. Shared by the AWS SDK clients
+ * and getProxyAgent.
+ */
+export function proxyCaFromEnv(env = process.env) {
   const proxyCaValues = []
-  const caEnv = firstEnv('ca', 'HTTPS_CA', 'https_ca')
+  const caEnv = firstEnv(env, 'ca', 'HTTPS_CA', 'https_ca')
   if (caEnv) proxyCaValues.push(caEnv)
 
-  const cafilePath = firstEnv('cafile', 'HTTPS_CAFILE', 'https_cafile')
+  const cafilePath = firstEnv(env, 'cafile', 'HTTPS_CAFILE', 'https_cafile')
   if (cafilePath) {
     try {
       proxyCaValues.push(fs.readFileSync(cafilePath, 'utf8'))
@@ -98,6 +116,16 @@ function buildAgentOptionsFromEnv(existingAgentOptions = {}) {
       )
     }
   }
+  return proxyCaValues
+}
+
+function buildAgentOptionsFromEnv(existingAgentOptions = {}) {
+  const agentOptions = { ...existingAgentOptions }
+  const proxyOpts = (agentOptions.proxyRequestOptions =
+    agentOptions.proxyRequestOptions || {})
+
+  // Collect proxy CA values from env
+  const proxyCaValues = proxyCaFromEnv()
 
   // Apply env-provided CA to the proxy TLS handshake only
   if (proxyCaValues.length > 0) {
@@ -128,16 +156,7 @@ function buildProxyOptionsFromEnv(overrides = {}) {
 
   // Determine proxy URLs from env when not provided explicitly
   if (!httpProxy && !httpsProxy) {
-    const httpEnv = firstEnv('HTTP_PROXY', 'http_proxy')
-    const httpsEnv = firstEnv('HTTPS_PROXY', 'https_proxy')
-    const generic = firstEnv('proxy')
-    httpProxy = httpProxy || httpEnv
-    httpsProxy = httpsProxy || httpsEnv
-    if (!httpProxy && !httpsProxy && generic) {
-      // Route based on scheme when only a generic proxy is provided
-      if (/^https:/i.test(generic)) httpsProxy = generic
-      else httpProxy = generic
-    }
+    ;({ httpProxy, httpsProxy } = proxyUrlsFromEnv())
   }
 
   const mergedAgentOptions = buildAgentOptionsFromEnv(agentOptions)

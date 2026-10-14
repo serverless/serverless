@@ -2,16 +2,21 @@ import path from 'path'
 import { pathToFileURL } from 'url'
 import {
   copyFile,
+  link,
   lstat,
   mkdir,
   open,
   readdir,
   readFile,
+  realpath,
+  rename,
   rm,
+  rmdir,
   stat,
   writeFile,
 } from 'fs/promises'
-import { createWriteStream, existsSync } from 'fs'
+import { randomBytes } from 'crypto'
+import { constants as fsConstants, createWriteStream, existsSync } from 'fs'
 import * as esbuild from 'esbuild'
 import { ZipArchive } from 'archiver'
 import spawnExt from 'child-process-ext/spawn.js'
@@ -23,6 +28,7 @@ import ServerlessError from '../../serverless-error.js'
 import { log } from '@serverless/util'
 import { resolveServerlessConfigFileExcludes } from '../package/lib/package-service.js'
 import { AGENT_SKILL_EXCLUDES } from '../package/lib/agent-skill-excludes.js'
+import { currentDevBuildRequest } from '../../utils/dev-build-request.js'
 import {
   compilePatterns,
   filterPaths,
@@ -79,6 +85,291 @@ const CLASSIC_DEFAULT_EXCLUDES = [
 // entry: exclusions are leading negations, so any later positive match — the
 // file's own name or a glob that covers it — re-includes it.
 const DOTENV_EXCLUDE = '**/.env*'
+
+const asideOf = (file) => `${file}.${randomBytes(4).toString('hex')}.old`
+
+/**
+ * Gives `file` its own name when the file on disk at that path has a name that differs only in
+ * case: a case-insensitive file system (the macOS and Windows default) keeps the existing name
+ * when a rename replaces a file, so a module renamed by case only would keep its old name.
+ * `resolvePath` stands for the file system's realpath, which returns the name on disk. Never
+ * throws: the file's content is in place either way.
+ */
+const takeOwnName = async (file, { resolvePath, renameFile }) => {
+  try {
+    const onDisk = path.basename(await resolvePath(file))
+    const own = path.basename(file)
+    if (onDisk === own || onDisk.toLowerCase() !== own.toLowerCase()) return
+    await renameFile(path.join(path.dirname(file), onDisk), file)
+  } catch (error) {
+    log.debug(
+      `Could not give ${file} its name (${error.code ?? error.message}); it keeps the name on disk`,
+    )
+  }
+}
+
+/**
+ * Moves one staged dev build file into the build directory without ever leaving the function with
+ * no output, and keeps the file it replaces aside (`<file>.<hex>.old`) until its group has moved:
+ * a hard link (or, where the file system has none, a copy) keeps the old file while a rename
+ * replaces it at once; where the rename cannot (a
+ * target in use, on Windows), the old file is moved aside first and put back if the new one cannot
+ * move in. Resolves `{ restore, discard }`: `restore()` puts the old file back (or removes a file
+ * that is new), `discard()` deletes the aside copy unless `restore()` could not put it back, and
+ * resolves the aside copies it could not delete (a file held open on Windows), for a later build
+ * to remove. Neither throws. The moved file ends with `to`'s name, also where it replaced a file
+ * whose name differs only in case. `renameFile`, `removeFile` and `resolvePath` stand for the
+ * file system's rename, remove and realpath.
+ */
+export const promoteDevOutput = async (
+  from,
+  to,
+  {
+    linkFile = link,
+    copy = copyFile,
+    renameFile = rename,
+    removeFile = rm,
+    resolvePath = realpath,
+  } = {},
+) => {
+  await mkdir(path.dirname(to), { recursive: true })
+  const existed = existsSync(to)
+  // Aside copies that could not be deleted.
+  const leftovers = []
+  let aside = asideOf(to)
+  let kept =
+    existed &&
+    (await linkFile(to, aside).then(
+      () => true,
+      // A file system without hard links: a copy keeps the old file instead.
+      () =>
+        copy(to, aside, fsConstants.COPYFILE_EXCL).then(
+          () => true,
+          () => false,
+        ),
+    ))
+  try {
+    await renameFile(from, to)
+  } catch (error) {
+    if (!existed) throw error
+    if (kept) {
+      const first = aside
+      await removeFile(first, { force: true }).catch(() =>
+        leftovers.push(first),
+      )
+    }
+    aside = asideOf(to)
+    kept = false
+    await renameFile(to, aside)
+    kept = true
+    try {
+      await renameFile(from, to)
+    } catch (moveError) {
+      await renameFile(aside, to).catch(() => {})
+      throw moveError
+    }
+  }
+  if (existed) await takeOwnName(to, { resolvePath, renameFile })
+  return {
+    restore: async () => {
+      if (!kept) {
+        if (!existed) await removeFile(to, { force: true }).catch(() => {})
+        return
+      }
+      try {
+        await renameFile(aside, to)
+      } catch {
+        // Windows renames onto no existing file: the new one goes first. A last good copy that
+        // still cannot go back stays where it is, and is never deleted.
+        try {
+          await removeFile(to, { force: true })
+          await renameFile(aside, to)
+        } catch (error) {
+          kept = false
+          log.debug(
+            `Could not put back ${to} (${error.code ?? error.message}); its last good copy stays in ${aside}`,
+          )
+          return
+        }
+      }
+      kept = false
+    },
+    discard: async () => {
+      if (kept) {
+        await removeFile(aside, { force: true }).catch(() =>
+          leftovers.push(aside),
+        )
+      }
+      return leftovers
+    },
+  }
+}
+
+/** Every file under `dir`, as paths relative to it. */
+const filesUnder = async (dir, prefix = '') => {
+  const files = []
+  for (const entry of await readdir(path.join(dir, prefix), {
+    withFileTypes: true,
+  })) {
+    const relative = path.join(prefix, entry.name)
+    if (entry.isDirectory()) files.push(...(await filesUnder(dir, relative)))
+    else files.push(relative)
+  }
+  return files
+}
+
+/**
+ * Moves one dev build group's staged files into `buildDir`, in whole or not at all: every file but
+ * the handlers and their maps first, then the maps, then the handlers, so a handler refers to the
+ * files it had until it moves. If one file cannot move in, every file of the group that did goes
+ * back, so a handler and its map always belong together. `handlers` are paths relative to both
+ * directories. Resolves the files it moved in and the aside copies it could not delete (see
+ * `promoteDevOutput`), relative to `buildDir`: the next dev build that has neither removes them.
+ * `removeFile` stands for the file system's remove.
+ */
+export const promoteDevGroup = async ({
+  stagingDir,
+  buildDir,
+  handlers,
+  removeFile,
+}) => {
+  // A configFile with `write: false` leaves nothing on disk to move.
+  const files = existsSync(stagingDir) ? await filesUnder(stagingDir) : []
+  const handlerFiles = new Set(handlers)
+  const maps = new Set(handlers.map((handler) => `${handler}.map`))
+  const order = [
+    ...files.filter((file) => !handlerFiles.has(file) && !maps.has(file)),
+    ...files.filter((file) => maps.has(file)),
+    ...files.filter((file) => handlerFiles.has(file)),
+  ]
+  const moved = []
+  const leftovers = []
+  try {
+    for (const file of order) {
+      moved.push(
+        await promoteDevOutput(
+          path.join(stagingDir, file),
+          path.join(buildDir, file),
+          removeFile ? { removeFile } : {},
+        ),
+      )
+    }
+  } catch (error) {
+    for (const move of [...moved].reverse()) await move.restore()
+    throw error
+  } finally {
+    for (const move of moved) {
+      for (const aside of await move.discard()) {
+        leftovers.push(path.relative(buildDir, aside))
+      }
+    }
+  }
+  return [...order, ...leftovers]
+}
+
+/**
+ * The files of the `previous` dev build (relative to `buildDir`) that the `current` one does not
+ * have, and that can therefore be removed. A previous path that differs from a current one only in
+ * case is kept when both resolve to the same file: on a case-insensitive file system (the macOS
+ * and Windows default) it is the file the current build just moved in. `resolvePath` stands for
+ * the file system's realpath, which returns the name on disk.
+ */
+export const devOutputsToRemove = async ({
+  buildDir,
+  previous,
+  current,
+  resolvePath = realpath,
+}) => {
+  const byCase = new Map([...current].map((file) => [file.toLowerCase(), file]))
+  const resolved = (file) =>
+    resolvePath(path.join(buildDir, file)).catch(() => null)
+  const stale = []
+  for (const file of previous) {
+    if (current.has(file)) continue
+    const match = byCase.get(file.toLowerCase())
+    if (match) {
+      const [onDisk, matchOnDisk] = await Promise.all([
+        resolved(file),
+        resolved(match),
+      ])
+      if (onDisk !== null && onDisk === matchOnDisk) continue
+    }
+    stale.push(file)
+  }
+  return stale
+}
+
+/**
+ * Removes `files` (relative to `buildDir`) and then each of their directories that is left empty,
+ * up to `buildDir`. Resolves the files that could not be removed (a file held open on Windows), so
+ * a later build can try again; never throws.
+ */
+const removeDevOutputs = async (buildDir, files) => {
+  const kept = []
+  for (const file of files) {
+    try {
+      await rm(path.join(buildDir, file), { force: true })
+    } catch (error) {
+      log.debug(
+        `Could not remove ${file}, which this dev build no longer has (${error.code ?? error.message}); the next dev build tries again`,
+      )
+      kept.push(file)
+      continue
+    }
+    for (
+      let dir = path.dirname(file);
+      dir !== '.' && dir !== path.dirname(dir);
+      dir = path.dirname(dir)
+    ) {
+      // Fails, and stops, at the first directory that still holds something.
+      const removed = await rmdir(path.join(buildDir, dir)).then(
+        () => true,
+        () => false,
+      )
+      if (!removed) break
+    }
+  }
+  return kept
+}
+
+/**
+ * A staging directory of this dev build, next to `buildDirPath`: named for this build only
+ * (`<build>-dev-staging-<build id>-<n>`), so a directory an earlier build could not remove is never
+ * written into or promoted.
+ */
+const devStagingDir = (buildDirPath, buildId, index) =>
+  `${buildDirPath}-dev-staging-${buildId}-${index}`
+
+/**
+ * Removes the staging directories of dev builds next to `buildDirPath` (`<build>-dev-staging-…`).
+ * A file still held open (Windows refuses to remove one) is tried again briefly; one that still
+ * cannot go is left for the next dev build's removal, and never fails the build or replaces its
+ * own error.
+ */
+const removeDevStaging = async (buildDirPath) => {
+  const parent = path.dirname(buildDirPath)
+  const prefix = `${path.basename(buildDirPath)}-dev-staging-`
+  let names = []
+  try {
+    names = await readdir(parent)
+  } catch {
+    return
+  }
+  for (const name of names.filter((item) => item.startsWith(prefix))) {
+    try {
+      await rm(path.join(parent, name), {
+        recursive: true,
+        force: true,
+        maxRetries: 5,
+        retryDelay: 100,
+      })
+    } catch (error) {
+      log.debug(
+        `Could not remove the dev build staging directory ${name} yet (${error.code ?? error.message}); the next dev build removes it`,
+      )
+    }
+  }
+}
 
 // How many raw file copies run at once during a non-bundled build. A large
 // service can sweep tens of thousands of files, and an unbounded `Promise.all`
@@ -412,13 +703,21 @@ class Esbuild {
     // not populate.
     this.patternClaimedBuildPaths = new Set()
 
+    // The files the last dev build of this Dev Mode session moved into the build directory
+    // (relative to it); null until the session's first dev build, which starts from a reset build
+    // directory. The next dev build removes the ones it does not move in itself.
+    this.devOutputs = null
+
     this._buildProperties = _.memoize(this._buildProperties.bind(this))
     this._readPackageJson = _.memoize(this._readPackageJson.bind(this))
 
     this.hooks = {
+      // Dev Mode's build: the dev build request names the functions to build (see
+      // `lib/utils/dev-build-request.js`).
       'before:dev-build:build': async () => {
-        if (await this._shouldRun('originalHandler')) {
-          await this._build('originalHandler')
+        const request = currentDevBuildRequest(this.serverless)
+        if (request && (await this._shouldRun())) {
+          await this._build('handler', { devRequest: request })
         }
       },
       'after:dev-build:build': async () => {},
@@ -1042,9 +1341,28 @@ class Esbuild {
 
   /**
    * Take the current build context. Which could be service-wide or a given function and then build it
-   * @param {string} handlerPropertyName - The property name of the handler in the function object. In the case of dev mode this will be different, so we need to be able to set it.
+   * @param {string} handlerPropertyName - The property name of the handler in the function object
+   *   (every caller, Dev Mode's build included, uses `handler`).
+   * @param {object} [options]
+   * @param {object|null} [options.devRequest] - The dev build request when Dev Mode builds (see
+   *   `lib/utils/dev-build-request.js`): only its functions are built, each is covered before the
+   *   build and marked built once its output is written, and the last good output is kept when the
+   *   build fails.
    */
-  async _build(handlerPropertyName = 'handler') {
+  async _build(handlerPropertyName = 'handler', { devRequest = null } = {}) {
+    this.devRequest = devRequest
+    try {
+      return await this._runBuild(handlerPropertyName, devRequest)
+    } finally {
+      this.devRequest = null
+    }
+  }
+
+  /** The body of `_build`, with `this.devRequest` set for the duration of the build. */
+  async _runBuild(handlerPropertyName, devRequest) {
+    const dev = Boolean(devRequest)
+    // Names this dev build's staging directories (see devStagingDir).
+    const devBuildId = dev ? randomBytes(4).toString('hex') : null
     // Where each function's handler artifact was actually emitted, recorded by
     // the build itself so packaging never has to re-derive it. Rebuilt from
     // scratch on every invocation (dev mode rebuilds through the same plugin
@@ -1052,11 +1370,33 @@ class Esbuild {
     this.builtArtifacts = new Map()
     this.patternClaimedBuildPaths = new Set()
 
-    const functionsToBuild = await this.functions(handlerPropertyName)
+    let functionsToBuild = await this.functions(handlerPropertyName)
+    // A dev build builds only the functions the dev build request names.
+    if (dev) {
+      functionsToBuild = Object.fromEntries(
+        Object.entries(functionsToBuild).filter(([alias]) =>
+          devRequest.functions.includes(alias),
+        ),
+      )
+      // Dev Mode names these functions, and only these, when this build fails.
+      for (const alias of Object.keys(functionsToBuild)) devRequest.cover(alias)
+    }
 
     if (Object.keys(functionsToBuild).length === 0) {
       log.debug('No functions to build with esbuild')
       return
+    }
+
+    // A session's first dev build starts from the build directory a deploy build starts from, so
+    // nothing an earlier deploy build or session left there can be imported or read in Dev Mode,
+    // and without the dependencies a deploy installed there: Dev Mode resolves them from the
+    // service directory, and that copy would come first for the code in the build directory.
+    if (dev && this.devOutputs === null) {
+      await this._resetBuildDir({ keepDependencies: false })
+      // The artifact's package.json decides, as in the deployed function, how Node.js loads the
+      // build's `.js` files; without it, a package.json above the service directory would.
+      await this._writeArtifactPackageJson()
+      this.devOutputs = new Set()
     }
 
     const buildProperties = await this._buildProperties()
@@ -1068,25 +1408,38 @@ class Esbuild {
     // entirely — different entry points, different output layout — so it runs
     // as its own path and leaves the bundling one below untouched.
     if (buildProperties.bundle === false) {
-      // Dev mode (the only caller passing `originalHandler`) keeps the
-      // last-good outputs, exactly as on the bundling path. The reset belongs
-      // HERE, in `_build`: `before:esbuild-package:package` fires after it and
-      // is the plugin injection point whose outputs the zip must include, so a
-      // reset in `_package` would wipe plugin-injected files (see
-      // `_resetBuildDir`).
-      if (handlerPropertyName !== 'originalHandler') {
+      // The dev build keeps the last-good outputs, exactly as on the bundling
+      // path. The reset belongs HERE, in `_build`:
+      // `before:esbuild-package:package` fires after it and is the plugin
+      // injection point whose outputs the zip must include, so a reset in
+      // `_package` would wipe plugin-injected files (see `_resetBuildDir`).
+      if (!dev) {
         await this._resetBuildDir()
       }
 
+      // A dev build writes every partition and copy to a staging directory, and moves it in as
+      // one group only once every partition built: a failed build moves nothing.
+      if (dev) await removeDevStaging(this.buildDirPath)
       try {
         await this._buildProject(
           functionsToBuild,
           handlerPropertyName,
           buildProperties,
+          {
+            stagingDir: dev
+              ? devStagingDir(this.buildDirPath, devBuildId, 0)
+              : null,
+          },
         )
       } catch (err) {
-        if (this.serverless.devmodeEnabled === true) {
-          return
+        // Dev mode keeps serving the last good outputs and passes every failure on, so the dev
+        // session says why: esbuild's own (already printed) errors as ESBULD_BUILD_ERROR, any
+        // other error as thrown.
+        if (dev) {
+          if (Array.isArray(err?.errors)) {
+            throw new ServerlessError(err.message, 'ESBULD_BUILD_ERROR')
+          }
+          throw err
         }
         // Errors this path raises deliberately (an output collision, an
         // unusable `outExtension`) already say what to do about them; only
@@ -1095,9 +1448,11 @@ class Esbuild {
           throw err
         }
         throw new ServerlessError(err.message, 'ESBULD_BUILD_ERROR')
+      } finally {
+        if (dev) await removeDevStaging(this.buildDirPath)
       }
 
-      if (handlerPropertyName !== 'originalHandler') {
+      if (!dev) {
         this._assertAllHandlersBuilt(functionsToBuild, handlerPropertyName)
       }
 
@@ -1169,18 +1524,18 @@ class Esbuild {
       //
       // Nothing resolving also means EVERY approved function is unresolvable,
       // so this path needs the same assertion as a completed build — otherwise
-      // the worst case is the one case that stays silent. Dev mode
-      // (`originalHandler`) keeps its last-good outputs and skips both.
-      if (handlerPropertyName !== 'originalHandler') {
+      // the worst case is the one case that stays silent. The dev build
+      // keeps its last-good outputs and skips both.
+      if (!dev) {
         await this._resetBuildDir()
         this._assertAllHandlersBuilt(functionsToBuild, handlerPropertyName)
       }
       return
     }
 
-    // Dev mode (the only caller passing `originalHandler`) must keep the
-    // last-good outputs, so the reset is limited to the deploy/package flows.
-    if (handlerPropertyName !== 'originalHandler') {
+    // The dev build must keep the last-good outputs, so the reset is limited
+    // to the deploy/package flows.
+    if (!dev) {
       await this._resetBuildDir()
     }
 
@@ -1193,9 +1548,18 @@ class Esbuild {
 
     const shouldSetNodeOptions = this._shouldSetNodeOptions(buildProperties)
 
+    // A dev build writes each group's output (the handler, its map and every other file esbuild
+    // emits, such as file-loader assets) to a staging directory of its own next to the build
+    // directory (same depth, so source map paths stay valid), and moves it in only once every group
+    // built: until then each function keeps its last good output, also for a worker that starts
+    // fresh. Each group is recorded as built once its own output moved in.
+    // Per group, by its index, once it built: its staging directory, outfile and side effects.
+    const staged = []
+    if (dev) await removeDevStaging(this.buildDirPath)
+
     try {
-      await Promise.all(
-        Array.from(buildGroups.values()).map((group) => {
+      const groupBuilds = Array.from(buildGroups.values()).map(
+        (group, index) => {
           return limit(async () => {
             // Reconcile the group members' external lists. They only diverge
             // when functions sharing a handler file straddle the node16/18
@@ -1228,6 +1592,12 @@ class Esbuild {
               this.buildDirPath,
               group.handlerPath + outputExtension,
             )
+            const stagingDir = dev
+              ? devStagingDir(this.buildDirPath, devBuildId, index)
+              : null
+            const target = dev
+              ? path.join(stagingDir, group.handlerPath + outputExtension)
+              : outfile
 
             const esbuildProps = {
               ...buildProperties,
@@ -1236,7 +1606,7 @@ class Esbuild {
                 ? { external }
                 : { external: [] }),
               entryPoints: [group.entry],
-              outfile,
+              outfile: target,
               logLevel: 'error',
             }
 
@@ -1265,70 +1635,140 @@ class Esbuild {
               )
             }
 
-            if (!this.serverless.builtFunctions) {
-              this.serverless.builtFunctions = new Set()
-            }
-
-            // Recorded here, where the emitted paths are known for certain,
-            // rather than re-derived from the handler string at packaging
-            // time. Zip-relative and POSIX-separated because that is what an
-            // archive entry name has to be, on every platform.
-            //
-            // The outfile is probed rather than assumed: a configFile can
-            // merge `write: false`, which makes esbuild return the output in
-            // memory and touch nothing on disk. Recording a path that was
-            // never written would give packaging a phantom artifact and
-            // satisfy the end-of-build assertion.
-            const zipRelativeOutfile = path
-              .relative(this.buildDirPath, outfile)
-              .split(path.sep)
-              .join('/')
-            const artifact = existsSync(outfile)
-              ? {
-                  outfile: zipRelativeOutfile,
-                  // `sourcemap: 'inline'`/`false` emit no map file.
-                  mapfile: existsSync(`${outfile}.map`)
-                    ? `${zipRelativeOutfile}.map`
-                    : null,
-                }
-              : null
-
-            // Apply the per-function side effects to every alias sharing this
-            // handler file, not just the one whose build we ran. Each alias
-            // gets its own copy of the record so a consumer mutating one
-            // cannot reach into its group siblings.
-            for (const alias of group.aliases) {
-              this.serverless.builtFunctions.add(alias)
-              if (artifact) {
-                this.builtArtifacts.set(alias, { ...artifact })
+            const record = () => {
+              if (!this.serverless.builtFunctions) {
+                this.serverless.builtFunctions = new Set()
               }
-              if (shouldSetNodeOptions) {
-                const functionObject =
-                  this.serverless.service.getFunction(alias)
-                if (functionObject.environment?.NODE_OPTIONS) {
-                  functionObject.environment.NODE_OPTIONS = `${functionObject.environment.NODE_OPTIONS} --enable-source-maps`
-                } else {
-                  if (!functionObject.environment) {
-                    functionObject.environment = {}
+
+              // Recorded here, where the emitted paths are known for certain,
+              // rather than re-derived from the handler string at packaging
+              // time. Zip-relative and POSIX-separated because that is what an
+              // archive entry name has to be, on every platform.
+              //
+              // The outfile is probed rather than assumed: a configFile can
+              // merge `write: false`, which makes esbuild return the output in
+              // memory and touch nothing on disk. Recording a path that was
+              // never written would give packaging a phantom artifact and
+              // satisfy the end-of-build assertion.
+              const zipRelativeOutfile = path
+                .relative(this.buildDirPath, outfile)
+                .split(path.sep)
+                .join('/')
+              const artifact = existsSync(outfile)
+                ? {
+                    outfile: zipRelativeOutfile,
+                    // `sourcemap: 'inline'`/`false` emit no map file.
+                    mapfile: existsSync(`${outfile}.map`)
+                      ? `${zipRelativeOutfile}.map`
+                      : null,
                   }
-                  functionObject.environment.NODE_OPTIONS =
-                    '--enable-source-maps'
+                : null
+
+              // Apply the per-function side effects to every alias sharing this
+              // handler file, not just the one whose build we ran. Each alias
+              // gets its own copy of the record so a consumer mutating one
+              // cannot reach into its group siblings.
+              for (const alias of group.aliases) {
+                this.serverless.builtFunctions.add(alias)
+                if (artifact) {
+                  this.devRequest?.markBuilt(alias, artifact.outfile)
+                  this.builtArtifacts.set(alias, { ...artifact })
+                }
+                if (shouldSetNodeOptions) {
+                  const functionObject =
+                    this.serverless.service.getFunction(alias)
+                  if (functionObject.environment?.NODE_OPTIONS) {
+                    functionObject.environment.NODE_OPTIONS = `${functionObject.environment.NODE_OPTIONS} --enable-source-maps`
+                  } else {
+                    if (!functionObject.environment) {
+                      functionObject.environment = {}
+                    }
+                    functionObject.environment.NODE_OPTIONS =
+                      '--enable-source-maps'
+                  }
                 }
               }
             }
+            if (dev) staged[index] = { stagingDir, outfile, record }
+            else record()
           })
-        }),
+        },
       )
+      if (dev) {
+        // Every group settles before anything moves in, and a failure leaves nothing behind.
+        const settled = await Promise.allSettled(groupBuilds)
+        const failed = settled.find((outcome) => outcome.status === 'rejected')
+        if (failed) throw failed.reason
+        // The files `package.patterns` select move in first, as files the handlers refer to; at a
+        // path the build also wrote, they win, as in the artifact (see
+        // `_copyPatternsIntoBuildDir`).
+        // Numbered after the groups' own staging directories.
+        const patternsDir = devStagingDir(
+          this.buildDirPath,
+          devBuildId,
+          buildGroups.size,
+        )
+        await this._copyDevPatterns({
+          intoDir: patternsDir,
+          functionsToBuild,
+        })
+        // Every file this build moves in, for `_settleDevOutputs`.
+        const promoted = []
+        try {
+          if (existsSync(patternsDir)) {
+            const patternFiles = await filesUnder(patternsDir)
+            for (const { stagingDir } of staged.filter(Boolean)) {
+              for (const file of patternFiles) {
+                await rm(path.join(stagingDir, file), { force: true })
+              }
+            }
+            promoted.push(
+              ...(await promoteDevGroup({
+                stagingDir: patternsDir,
+                buildDir: this.buildDirPath,
+                handlers: [],
+              })),
+            )
+          }
+          for (const { stagingDir, outfile, record } of staged.filter(
+            Boolean,
+          )) {
+            promoted.push(
+              ...(await promoteDevGroup({
+                stagingDir,
+                buildDir: this.buildDirPath,
+                handlers: [path.relative(this.buildDirPath, outfile)],
+              })),
+            )
+            record()
+          }
+        } catch (error) {
+          // The groups that moved in before one could not stay; the next build that moves
+          // everything in removes what it no longer has of them.
+          await this._settleDevOutputs(promoted, { complete: false })
+          throw error
+        }
+        await this._settleDevOutputs(promoted)
+      } else {
+        await Promise.all(groupBuilds)
+      }
     } catch (err) {
-      if (this.serverless.devmodeEnabled === true) {
-        return
+      // Dev mode keeps serving the last good outputs and passes every failure on (see the
+      // non-bundled path above).
+      if (dev) {
+        if (Array.isArray(err?.errors)) {
+          throw new ServerlessError(err.message, 'ESBULD_BUILD_ERROR')
+        }
+        throw err
       }
       throw new ServerlessError(err.message, 'ESBULD_BUILD_ERROR')
+    } finally {
+      if (dev) await removeDevStaging(this.buildDirPath)
     }
 
-    // Dev mode deliberately swallows build failures above so the dev loop
-    // keeps serving the last-good outputs; the same reasoning applies here.
-    if (handlerPropertyName !== 'originalHandler') {
+    // Dev mode keeps serving the last-good outputs after a failed build; it
+    // does not assert either.
+    if (!dev) {
       this._assertAllHandlersBuilt(functionsToBuild, handlerPropertyName)
     }
 
@@ -1376,9 +1816,17 @@ class Esbuild {
    * @param {string} handlerPropertyName - The handler property to resolve from
    * @param {object} buildProperties - The merged esbuild build properties
    */
-  async _buildProject(functionsToBuild, handlerPropertyName, buildProperties) {
+  async _buildProject(
+    functionsToBuild,
+    handlerPropertyName,
+    buildProperties,
+    { stagingDir = null } = {},
+  ) {
     const serviceDir = this.serverless.config.serviceDir
     const service = this.serverless.service
+    // Where this build writes: the build directory, or a dev build's staging directory, moved in
+    // as one group once everything built.
+    const outDir = stagingDir ?? this.buildDirPath
 
     // A `format` the user actually asked for governs the `.js` class outright.
     // The one `_buildProperties` derives from the root package.json `type` does
@@ -1576,44 +2024,48 @@ class Esbuild {
       buildProperties.buildConcurrency ?? Math.max(partitions.size, 1),
     )
 
-    await Promise.all(
-      [...partitions.entries()].map(([key, partition]) =>
-        partitionLimit(async () => {
-          const result = await esbuild.build({
-            ...esbuildBase,
-            ...(partition.sourceClass === '.js' ? jsClassOnlyProperties : {}),
-            bundle: false,
-            format: partition.format,
-            entryPoints: partition.entryFiles.map((file) =>
-              path.join(serviceDir, file),
-            ),
-            // `outbase` is what preserves the layout: esbuild places each
-            // output at its entry point's path relative to it. Without it
-            // esbuild picks the lowest common ancestor of the partition's entry
-            // points, which differs per partition and would flatten or shift
-            // the tree.
-            outdir: this.buildDirPath,
-            outbase: serviceDir,
-            ...(partition.outputExtension !== '.js'
-              ? { outExtension: { '.js': partition.outputExtension } }
-              : {}),
-          })
+    const partitionBuilds = [...partitions.entries()].map(([key, partition]) =>
+      partitionLimit(async () => {
+        const result = await esbuild.build({
+          ...esbuildBase,
+          ...(partition.sourceClass === '.js' ? jsClassOnlyProperties : {}),
+          bundle: false,
+          format: partition.format,
+          entryPoints: partition.entryFiles.map((file) =>
+            path.join(serviceDir, file),
+          ),
+          // `outbase` is what preserves the layout: esbuild places each
+          // output at its entry point's path relative to it. Without it
+          // esbuild picks the lowest common ancestor of the partition's entry
+          // points, which differs per partition and would flatten or shift
+          // the tree.
+          outdir: outDir,
+          outbase: serviceDir,
+          ...(partition.outputExtension !== '.js'
+            ? { outExtension: { '.js': partition.outputExtension } }
+            : {}),
+        })
 
-          // One metafile per partition. A single `meta.json`, as the bundling
-          // path writes, would be overwritten by each partition in turn and
-          // describe only the last one.
-          if (result.metafile) {
-            await writeFile(
-              path.join(
-                this.buildDirPath,
-                `meta.${key.replace(/[|.]/g, '')}.json`,
-              ),
-              JSON.stringify(result.metafile, null, 2),
-            )
-          }
-        }),
-      ),
+        // One metafile per partition. A single `meta.json`, as the bundling
+        // path writes, would be overwritten by each partition in turn and
+        // describe only the last one.
+        if (result.metafile) {
+          await writeFile(
+            path.join(outDir, `meta.${key.replace(/[|.]/g, '')}.json`),
+            JSON.stringify(result.metafile, null, 2),
+          )
+        }
+      }),
     )
+    // Every partition settles before anything moves or is removed: a partition that fails leaves
+    // the others to finish writing (a dev build's staging directory is removed only after that).
+    if (stagingDir) {
+      const settled = await Promise.allSettled(partitionBuilds)
+      const failed = settled.find((outcome) => outcome.status === 'rejected')
+      if (failed) throw failed.reason
+    } else {
+      await Promise.all(partitionBuilds)
+    }
 
     // Every file this build just emitted, with the depth of scan its format
     // warrants. Derived from the partition plan rather than from a walk of the
@@ -1640,7 +2092,7 @@ class Esbuild {
         })
       }
     }
-    await this._warnOnUnresolvableRelativeImports(scanTargets)
+    await this._warnOnUnresolvableRelativeImports(scanTargets, outDir)
 
     // Anything the sweep selected under a root the artifact walk skips by
     // default got there through a positive pattern (the sweep's own
@@ -1656,7 +2108,7 @@ class Esbuild {
     // service of 10k files would otherwise issue 10k redundant `mkdir` calls.
     const destinations = copy.map((file) => ({
       from: path.join(serviceDir, file),
-      to: path.join(this.buildDirPath, file),
+      to: path.join(outDir, file),
     }))
     for (const dir of new Set(
       destinations.map((destination) => path.dirname(destination.to)),
@@ -1669,6 +2121,20 @@ class Esbuild {
         copyLimit(() => copyFile(destination.from, destination.to)),
       ),
     )
+
+    if (stagingDir) {
+      // The files `package.patterns` select, as the artifact has them (see
+      // `_copyPatternsIntoBuildDir`), moved in with the build.
+      await this._copyDevPatterns({ intoDir: stagingDir, functionsToBuild })
+      const promoted = await promoteDevGroup({
+        stagingDir,
+        buildDir: this.buildDirPath,
+        handlers: [...handlerFileByAlias.values()].map((handlerFile) =>
+          path.join(this._outputPathForSource(handlerFile, buildProperties)),
+        ),
+      })
+      await this._settleDevOutputs(promoted)
+    }
 
     // Per-alias side effects, gated on the artifact actually being on disk:
     // `write: false` in a configFile makes esbuild return its output in memory
@@ -1683,6 +2149,7 @@ class Esbuild {
       if (!existsSync(path.join(this.buildDirPath, outfile))) continue
 
       this.serverless.builtFunctions.add(alias)
+      this.devRequest?.markBuilt(alias, outfile)
       this.builtArtifacts.set(alias, {
         outfile,
         // `sourcemap: 'inline'`/`false` emit no map file.
@@ -1726,7 +2193,7 @@ class Esbuild {
    * @param {Array<{output: string, dynamicOnly: boolean}>} targets build-dir-
    *   relative POSIX output paths, each with the scan depth its format warrants
    */
-  async _warnOnUnresolvableRelativeImports(targets) {
+  async _warnOnUnresolvableRelativeImports(targets, dir = this.buildDirPath) {
     // Indexed rather than appended: the reads are concurrent, and a warning
     // whose first ten entries depend on I/O scheduling is a warning that reads
     // differently on every run.
@@ -1737,10 +2204,7 @@ class Esbuild {
         limit(async () => {
           let contents
           try {
-            contents = await readFile(
-              path.join(this.buildDirPath, target.output),
-              'utf8',
-            )
+            contents = await readFile(path.join(dir, target.output), 'utf8')
           } catch {
             // Nothing on disk to scan. `write: false` carried in from a
             // configFile is the ordinary way here, and it is not this
@@ -2215,15 +2679,26 @@ class Esbuild {
    * them (a vendored or patched dependency is a normal thing to name in a
    * pattern) straight from the service directory.
    *
+   * Dev Mode's build copies them into its staging directory instead
+   * (`intoDir`), moved in with the rest of the build once it succeeded; it has
+   * no use for the archive entries, as Dev Mode resolves dependencies from the
+   * service directory.
+   *
+   * @param {object} [options]
+   * @param {string} [options.intoDir] - where the files go: the build directory
+   *   by default
+   * @param {string[]} [options.patterns] - the patterns to resolve: the
+   *   service-level `package.patterns` by default
    * @returns {Promise<{ excludedCount: number, installedTreeEntries: Array<object> }>}
    *   how many globbed paths the patterns retracted, and the archive entries
    *   for the matches that may not be copied
    */
-  async _copyPatternsIntoBuildDir() {
+  async _copyPatternsIntoBuildDir({
+    intoDir = this.buildDirPath,
+    patterns = this.serverless.service.package?.patterns ?? [],
+  } = {}) {
     const serviceDir = this.serverless.config.serviceDir
-    const { matches, excludedCount } = await this._resolvePatternFiles(
-      this.serverless.service.package?.patterns ?? [],
-    )
+    const { matches, excludedCount } = await this._resolvePatternFiles(patterns)
     // Matches above the service directory are placed by `archivePathFor`, so
     // the installed-tree test and the copy destination both look at where the
     // file lands, not where it came from: `../node_modules/hoisted/**` in a
@@ -2260,10 +2735,7 @@ class Esbuild {
       toCopy.map((relativePath) =>
         limit(async () => {
           const source = path.join(serviceDir, relativePath)
-          const destination = path.join(
-            this.buildDirPath,
-            archivePathFor(relativePath),
-          )
+          const destination = path.join(intoDir, archivePathFor(relativePath))
 
           // A file can vanish between glob expansion and the copy. Probing it
           // first turns that into the same clean CANNOT_READ_FILE the archive
@@ -2293,6 +2765,29 @@ class Esbuild {
       )
     }
     return { excludedCount, installedTreeEntries }
+  }
+
+  /**
+   * A dev build's pattern files, into its staging directory `intoDir`: the
+   * service-level `package.patterns`, and under `package.individually` each
+   * built function's own, resolved alone as each function's artifact gets them
+   * (`_patternEntries(functionPatterns)` in `_package`). The build directory is
+   * shared, so it holds every built function's files.
+   *
+   * @param {object} options
+   * @param {string} options.intoDir - the dev build's staging directory
+   * @param {Record<string, object>} options.functionsToBuild - the functions
+   *   this build covers
+   */
+  async _copyDevPatterns({ intoDir, functionsToBuild }) {
+    await this._copyPatternsIntoBuildDir({ intoDir })
+    if (!this.serverless.service.package?.individually) return
+    for (const functionObject of Object.values(functionsToBuild)) {
+      const patterns = functionObject?.package?.patterns ?? []
+      if (patterns.length > 0) {
+        await this._copyPatternsIntoBuildDir({ intoDir, patterns })
+      }
+    }
   }
 
   /**
@@ -2719,7 +3214,7 @@ class Esbuild {
    *
    * This function takes package.individually into account and will either create a single zip file to use for all functions or a zip file per function otherwise.
    *
-   * @param {string} handlerPropertyName - The property name of the handler in the function object. In the case of dev mode this will be different, so we need to be able to set it.
+   * @param {string} handlerPropertyName - The property name of the handler in the function object.
    */
   async _package(handlerPropertyName = 'handler') {
     const functions = await this.functions(handlerPropertyName)
@@ -2990,6 +3485,20 @@ class Esbuild {
    * Take the package.json and add an updated version with no dev dependencies and external and excluded node_modules taken care of, to the .serverless/build directory
    */
   async _preparePackageJson() {
+    const buildDir = await this._writeArtifactPackageJson()
+
+    await this._installArtifactDependencies(buildDir)
+  }
+
+  /**
+   * Writes the artifact's `package.json` into the build directory: the
+   * service's own without `devDependencies`, its dependencies narrowed to
+   * those the build leaves external. Besides naming what the install puts in
+   * `node_modules`, it decides how Node.js loads the build's `.js` files
+   * (`type`, `imports`). Dev Mode's build writes it too, without the install.
+   * Resolves the build directory.
+   */
+  async _writeArtifactPackageJson() {
     const runtime = this.serverless.service.provider.runtime || 'nodejs18.x'
     const { external, exclude } = await this._externals(runtime)
 
@@ -2997,7 +3506,7 @@ class Esbuild {
 
     let composePackageJson = {}
 
-    if (this.serverless.compose.isWithinCompose) {
+    if (this.serverless.compose?.isWithinCompose) {
       const composeDir = await this._getComposeDir(
         this.serverless.config.serviceDir,
       )
@@ -3074,7 +3583,11 @@ class Esbuild {
       path.join(buildDir, 'package.json'),
       JSON.stringify(packageJsonNoDevDeps, null, 2),
     )
+    return buildDir
+  }
 
+  /** The lockfile next to the artifact's `package.json`, then the install in the build directory. */
+  async _installArtifactDependencies(buildDir) {
     // Copy appropriate lockfile if it exists
     const packager = this._determinePackager()
     const lockFiles = {
@@ -3179,6 +3692,33 @@ class Esbuild {
   }
 
   /**
+   * Records what a dev build moved into the build directory (`promoted`, relative to it). Once the
+   * whole build moved in (`complete`), the files the session's previous dev build moved in and
+   * this one does not have are removed: a source file deleted or renamed, or a `package.patterns`
+   * file removed, during the session is gone from Dev Mode as it is from the next deployment. A
+   * build that moved in only part of its groups removes nothing. A file that cannot be removed now
+   * stays recorded, for the next build. A file renamed by case only is never removed: on a
+   * case-insensitive file system its old name is the file this build moved in.
+   */
+  async _settleDevOutputs(promoted, { complete = true } = {}) {
+    const previous = this.devOutputs ?? new Set()
+    if (!complete) {
+      this.devOutputs = new Set([...previous, ...promoted])
+      return
+    }
+    const current = new Set(promoted)
+    const kept = await removeDevOutputs(
+      this.buildDirPath,
+      await devOutputsToRemove({
+        buildDir: this.buildDirPath,
+        previous,
+        current,
+      }),
+    )
+    this.devOutputs = new Set([...current, ...kept])
+  }
+
+  /**
    * Clears previous build outputs so the packaging step can treat the build
    * directory as the complete artifact definition. `node_modules` and
    * lockfiles are preserved: they are not esbuild outputs, are regenerated
@@ -3191,10 +3731,16 @@ class Esbuild {
    * supported injection point for plugins that add files to the build
    * directory, and the zip has to include what they wrote -- moving the reset
    * into `_package` would delete those files right before packaging.
+   *
+   * A Dev Mode session's first dev build resets it too, without keeping
+   * `node_modules` (`keepDependencies: false`): Dev Mode resolves dependencies
+   * from the service directory.
    */
-  async _resetBuildDir() {
+  async _resetBuildDir({ keepDependencies = true } = {}) {
+    // Staging directories dev builds could not remove go too.
+    await removeDevStaging(this.buildDirPath)
     const preserved = new Set([
-      'node_modules',
+      ...(keepDependencies ? ['node_modules'] : []),
       'package-lock.json',
       'yarn.lock',
       'pnpm-lock.yaml',

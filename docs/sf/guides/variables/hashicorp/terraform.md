@@ -131,7 +131,7 @@ For the `s3` backend, a request that Amazon S3 throttles is retried with the AWS
 
 A download that is interrupted by the network fails the command with `Error fetching Terraform outputs from S3: Error: aborted`; rerun the command. Because each state is read once per resolution pass rather than once per referenced output, such a failure can occur at most once per state file per pass.
 
-During `serverless dev`, the state read at startup is kept for the whole session. Restart the session after `terraform apply` to pick up new outputs.
+Functions in a `serverless dev` session run with their deployed configuration, so values resolved from Terraform state reach them after the next `serverless deploy`.
 
 ## Resolvers in Serverless Framework V.4
 

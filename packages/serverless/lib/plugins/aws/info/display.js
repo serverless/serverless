@@ -1,5 +1,6 @@
 import filesize from '../../../utils/filesize.js'
 import { style } from '@serverless/util'
+import { formatEndpoints } from './endpoints.js'
 
 export default {
   async displayServiceInfo() {
@@ -41,80 +42,13 @@ export default {
 
   displayEndpoints() {
     const info = this.gatheredData.info
-    const outputSectionItems = []
-
-    if (info.endpoints && info.endpoints.length) {
-      info.endpoints.forEach((endpoint) => {
-        if (this.httpApiEndpoints?.has(endpoint)) {
-          // an HTTP API: its routes come from the httpApi events
-          const { httpApiEventsPlugin } = this.serverless
-          httpApiEventsPlugin.resolveConfiguration()
-
-          for (const functionData of Object.values(
-            this.serverless.service.functions,
-          )) {
-            for (const event of functionData.events) {
-              if (!event.httpApi) continue
-              outputSectionItems.push(
-                `${event.resolvedMethod} - ${endpoint}${
-                  event.resolvedPath || ''
-                }`,
-              )
-            }
-          }
-        } else if (endpoint.startsWith('https://')) {
-          // a REST API: its routes come from the http events
-          Object.values(this.serverless.service.functions).forEach(
-            (functionObject) => {
-              functionObject.events.forEach((event) => {
-                if (event.http) {
-                  let method
-                  let path
-
-                  if (typeof event.http === 'object') {
-                    method = event.http.method.toUpperCase()
-                    path = event.http.path
-                  } else {
-                    method = event.http.split(' ')[0].toUpperCase()
-                    path = event.http.split(' ')[1]
-                  }
-                  path =
-                    path !== '/'
-                      ? `/${path
-                          .split('/')
-                          .filter((p) => p !== '')
-                          .join('/')}`
-                      : ''
-                  outputSectionItems.push(`${method} - ${endpoint}${path}`)
-                }
-              })
-            },
-          )
-        } else {
-          // if the endpoint is not of type http(s) (e.g. wss) we just display
-          outputSectionItems.push(endpoint)
-        }
-      })
-    }
-
-    if (info.cloudFront) {
-      outputSectionItems.push(`CloudFront - ${info.cloudFront}`)
-    }
-
-    const functionsWithUrls = this.gatheredData.info.functions.filter(
-      (fn) => fn.url,
-    )
-
-    for (const functionWithUrl of functionsWithUrls) {
-      if (outputSectionItems.length === 0 && functionsWithUrls.length === 1) {
-        // In this situation we want to skip displaying function name as there is only one URL in whole service
-        outputSectionItems.push(functionWithUrl.url)
-      } else {
-        outputSectionItems.push(
-          `${functionWithUrl.name}: ${functionWithUrl.url}`,
-        )
-      }
-    }
+    const outputSectionItems = formatEndpoints({
+      serverless: this.serverless,
+      endpoints: info.endpoints,
+      httpApiEndpoints: this.httpApiEndpoints,
+      cloudFront: info.cloudFront,
+      functionUrls: info.functions.filter((fn) => fn.url),
+    })
 
     if (outputSectionItems.length > 1) {
       this.serverless.serviceOutputs.set('endpoints', outputSectionItems)

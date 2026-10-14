@@ -69,7 +69,7 @@ describe('info: stack lookup', () => {
       .getStackInfo()
       .catch((e) => e)
     expect(error.message).toBe(
-      'Service "hello-api" is not deployed to stage "dev" in eu-west-1. Deploy it with "serverless deploy --service=api --stage dev --region eu-west-1".',
+      'Service "hello-api" is not deployed to stage "dev" in eu-west-1. Deploy it with "serverless api deploy --stage dev --region eu-west-1".',
     )
   })
 
