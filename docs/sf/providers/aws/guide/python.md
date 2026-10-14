@@ -143,8 +143,6 @@ match its `.pyc` is still recompiled, so stale code is never run. This needs Pyt
 older versions ignore the variable and behave as before.
 
 If you already set `SOURCE_DATE_EPOCH`, in your shell or in `dockerEnv`, your value is used.
-Requirements cached by an earlier version keep their old bytecode until `requirements.txt`
-changes or the cache is cleared with `serverless requirements cleanCache`.
 
 ## Pipenv support
 
