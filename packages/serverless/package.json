@@ -97,7 +97,7 @@
     "p-try": "^3.0.0",
     "require-from-string": "^2.0.2",
     "semver": "^7.8.5",
-    "shell-quote": "^1.8.4",
+    "shell-quote": "^1.12.0",
     "string-width": "^7.2.0",
     "strip-ansi": "^7.2.0",
     "terminal-link": "^4.0.0",
