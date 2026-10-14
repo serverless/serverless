@@ -14,7 +14,7 @@ import resolveCfImportValue from '../utils/resolve-cf-import-value.js'
  */
 export const endpointOutputs = ({ outputs, naming }) => {
   const matching = outputs.filter((output) =>
-    output.OutputKey.match(naming.getServiceEndpointRegex()),
+    naming.getServiceEndpointRegex().test(output.OutputKey),
   )
   return {
     endpoints: matching.map((output) => output.OutputValue),
