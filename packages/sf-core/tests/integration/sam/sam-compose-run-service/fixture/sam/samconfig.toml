@@ -1,3 +1,4 @@
 [default]
 [default.global.parameters]
 stack_name = "sam-tests-run-service-sam-${env:STACK_RANDOM_ID}"
+region = "${env:AWS_REGION, 'us-east-1'}"

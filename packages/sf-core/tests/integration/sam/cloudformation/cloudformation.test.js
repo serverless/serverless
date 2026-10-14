@@ -12,13 +12,14 @@ import {
   getTestStageName,
   runSfCore,
 } from '../../../utils/runSfCore'
+import { TEST_REGION } from '../../../utils/testRegion.js'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const randomId = getTestRunId()
 
 describe('SAM/CFN Projects - CloudFormation', () => {
   const configFileDirPath = path.join(__dirname, 'fixture')
-  const cloudformationClient = new CloudFormationClient({ region: 'us-east-1' })
+  const cloudformationClient = new CloudFormationClient({ region: TEST_REGION })
   const stackName = `cfn-integration-test-${randomId}`
   const originalEnv = process.env
   const stage = getTestStageName()
@@ -53,7 +54,7 @@ describe('SAM/CFN Projects - CloudFormation', () => {
     process.argv[2] = 'deploy'
     await runSfCore({
       coreParams: {
-        options: { stack: stackName },
+        options: { stack: stackName, region: TEST_REGION },
         command: ['deploy'],
       },
       jest,
@@ -75,7 +76,7 @@ describe('SAM/CFN Projects - CloudFormation', () => {
     await runSfCore({
       coreParams: {
         stack: stackName,
-        options: { stack: stackName },
+        options: { stack: stackName, region: TEST_REGION },
         command: ['remove'],
       },
       jest,
@@ -83,7 +84,7 @@ describe('SAM/CFN Projects - CloudFormation', () => {
   })
 
   test('Ensure stack does not exist', async () => {
-    expect(
+    await expect(
       cloudformationClient.send(
         new DescribeStacksCommand({
           StackName: stackName,

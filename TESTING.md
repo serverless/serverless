@@ -218,6 +218,15 @@ suites as one matrix leg per account, plus a leg for the resolvers suite.
 Separate runners share the work, and AWS API rate limits are isolated per
 account instead of shared by every suite in one run. Shard N runs in test-N.
 
+CloudFormation rate limits are per account and per region, so shards 2 and 3
+also spread across regions by platform: Linux runs them in `us-east-1`, ARM
+Linux in `us-east-2` and Windows in `us-west-2`. Shard 1 and the resolvers leg
+stay in `us-east-1`, where the prerequisites are. The region reaches the suites
+as `AWS_REGION`; an unpinned suite deploys and checks its resources in
+`TEST_REGION` from `tests/utils/testRegion.js`, which follows `AWS_REGION`, and
+a unit test fails if one hard-codes `us-east-1`. To run a suite in another
+region locally, set `AWS_REGION`.
+
 To run the release's platforms from a branch before merging, dispatch
 `CI: Framework CLI` with `all-platforms` set. That workflow has no release
 jobs, so nothing is published:
@@ -289,7 +298,7 @@ locally, run it with that account's credentials:
 
 ```sh
 cd packages/sf-core
-node scripts/test-account-cleanup/report.js --regions us-east-1,us-east-2,eu-west-1
+node scripts/test-account-cleanup/report.js --regions us-east-1,us-east-2,us-west-2,eu-west-1
 ```
 
 ### Bootstrapping an Account
@@ -300,14 +309,19 @@ Adding an account for CI is a per-account, human-run job in three parts:
    the maintainers. Once an account is ready, its role ARN is supplied to the
    workflows as a repository variable rather than committed here.
 2. **The default deployment and state buckets.** The Framework creates these
-   on first use. Create them once, one deploy at a time, before the account
-   joins the matrix. With the new account's credentials:
+   on first use: one state bucket per account, in `us-east-1`, and one
+   deployment bucket per region. Create them once, one deploy at a time,
+   before the account joins the matrix. With the new account's credentials:
 
    ```sh
    export AWS_REGION=us-east-1 TEST_STAGE=boot
    npm run test:simple:nodejs -w @serverlessinc/sf-core -- --runInBand
    npm run test:compose:subset -w @serverlessinc/sf-core -- --runInBand
    ```
+
+   For test-2 and test-3, repeat `test:simple:nodejs` with `AWS_REGION` set to
+   `us-east-2` and to `us-west-2`, the regions their shards run in on ARM Linux
+   and Windows.
 
 3. **The prerequisites from this file that the account's suites need.** Suites
    pinned to shard 1 need test-1's, and the MCP enforcement suite needs the

@@ -9,6 +9,7 @@ import {
 } from '@aws-sdk/client-cloudformation'
 import { jest } from '@jest/globals'
 import { getTestStageName, runSfCore } from '../../utils/runSfCore.js'
+import { TEST_REGION } from '../../utils/testRegion.js'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
@@ -43,7 +44,7 @@ const stripAnsi = (s) => s.replace(/\[[0-9;]*m/g, '')
 // below aborts.
 describe('Compose service-provider graph params (${service:...} + ${shared:...})', () => {
   const configFileDirPath = path.join(__dirname, 'fixture')
-  const cloudformationClient = new CloudFormationClient({ region: 'us-east-1' })
+  const cloudformationClient = new CloudFormationClient({ region: TEST_REGION })
   const originalEnv = { ...process.env }
   const originalArgv = [...process.argv]
   let originalCwd

@@ -10,7 +10,7 @@
 // layers. It never prints account IDs, bucket names, state keys or the names
 // of stacks it keeps.
 //
-//   node scripts/test-account-cleanup/report.js --regions us-east-1,us-east-2
+//   node scripts/test-account-cleanup/report.js --regions us-east-1,us-east-2,us-west-2
 import { appendFile } from 'fs/promises'
 import {
   CloudFormationClient,
