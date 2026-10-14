@@ -1768,6 +1768,11 @@ func TestNoURLOrSignatureReachesTheLogsOrTheCaller(t *testing.T) {
 		h := newHarnessWith(t, harnessOptions{timing: fastTiming(), dial: func(context.Context, func(mqttws.Message), func(error)) (BrokerConn, error) {
 			return nil, &url.Error{Op: "GET", URL: "wss://example-ats.iot.us-east-1.amazonaws.com/mqtt" + signed, Err: errors.New("dial tcp: i/o timeout")}
 		}})
+		// The link's own line is written only while the runtime is not waiting on /next: wait for
+		// it before queuing, so both lines the redaction check reads are always there.
+		waitFor(t, "the start connect to fail", func() bool {
+			return strings.Contains(h.logs.joined(), "could not connect to AWS IoT Core: ")
+		})
 		h.api.queue <- fakeInvocation{id: "req-1", deadline: deadlineIn(30 * time.Second), body: "{}"}
 		waitResponse(t, h.runtimeNext())
 		if !strings.Contains(h.logs.joined(), "could not connect to AWS IoT Core: GET: dial tcp: i/o timeout") {
