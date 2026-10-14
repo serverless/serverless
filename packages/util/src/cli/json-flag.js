@@ -36,14 +36,16 @@ export const normalizeJsonArgs = (args) => {
  * Whether command-line arguments (without node and the script) ask for JSON output, read the way
  * the CLI parses them: `--json` is a flag, `--json=<value>` sets it by jsonFlagOn, a next argument
  * is its value only when it is `true` or `false` (any other word is not taken: `dev replay --json
- * <id>`), and `--no-json` turns it off; the last one wins.
+ * <id>`), and `--no-json` turns it off; the last one wins. Arguments after `--` are not read.
  */
 export const jsonInArgs = (args) => {
+  const end = args.indexOf('--')
+  const options = end === -1 ? args : args.slice(0, end)
   let on = false
-  args.forEach((arg, index) => {
+  options.forEach((arg, index) => {
     if (arg === '--no-json') on = false
     else if (arg.startsWith('--json=')) on = jsonFlagOn(arg.slice(7))
-    else if (arg === '--json') on = args[index + 1] !== 'false'
+    else if (arg === '--json') on = options[index + 1] !== 'false'
   })
   return on
 }

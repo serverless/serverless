@@ -25,6 +25,19 @@ import {
 
 const NO_INVOCATIONS = Object.freeze({ total: 0, errors: 0 })
 
+/**
+ * The function table of a status result's `functions`, a function's reason codes standing in for
+ * its why. `serverless dev status` and the s key both show it.
+ */
+export const statusModeTable = (functions) =>
+  renderModeTable(
+    functions.map((fn) => ({
+      function: fn.name,
+      mode: fn.mode,
+      why: fn.why ?? (fn.notes ?? []).join('; '),
+    })),
+  )
+
 /** The session fields of a status result, from a session record. */
 const sessionFieldsOf = (record) => ({
   session_id: record.session_id,
@@ -194,16 +207,7 @@ export const statusLines = (result, endpointText, nowMs = Date.now()) => {
   ]
   if (result.message) lines.push(['notice', result.message])
   if (result.functions.length) {
-    lines.push(blank, [
-      'notice',
-      renderModeTable(
-        result.functions.map((fn) => ({
-          function: fn.name,
-          mode: fn.mode,
-          why: fn.why ?? (fn.notes ?? []).join('; '),
-        })),
-      ),
-    ])
+    lines.push(blank, ['notice', statusModeTable(result.functions)])
   }
   const { total, errors } = result.invocations
   const last = result.last_invocation

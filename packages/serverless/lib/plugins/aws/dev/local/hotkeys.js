@@ -7,11 +7,8 @@
  * the keys stop (the session stops them when its stop begins), at exit, and after a crash.
  */
 import readline from 'readline'
-import {
-  functionsWord,
-  renderModeTable,
-  timestampAgo,
-} from '../attach/output.js'
+import { functionsWord, timestampAgo } from '../attach/output.js'
+import { statusModeTable } from '../commands/status.js'
 
 export const KEYS_HINT =
   'Press h for keys, Ctrl+C or q to restore your functions and exit.'
@@ -148,14 +145,7 @@ export const statusKeyLines = ({
       : 'none yet'
   }`
   const table = functions.some((fn) => fn.mode !== 'dev')
-    ? renderModeTable(
-        functions.map((fn) => ({
-          function: fn.name,
-          mode: fn.mode,
-          why: fn.why,
-          notes: [],
-        })),
-      )
+    ? statusModeTable(functions)
     : null
   return [summary, details, table]
 }

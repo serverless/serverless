@@ -69,10 +69,11 @@ const withLock = (fs, dir, step, now = Date.now) => {
       if (error.code !== 'EEXIST') throw error
     }
     try {
-      if (now() - fs.statSync(lock).mtimeMs > LOCK_STALE_MS) {
+      // A link at the lock's place is never followed: an old one is moved aside and removed.
+      if (now() - fs.lstatSync(lock).mtimeMs > LOCK_STALE_MS) {
         const aside = temporaryNameOf(lock)
         fs.renameSync(lock, aside)
-        if (now() - fs.statSync(aside).mtimeMs <= LOCK_STALE_MS) {
+        if (now() - fs.lstatSync(aside).mtimeMs <= LOCK_STALE_MS) {
           try {
             fs.linkSync(aside, lock)
           } catch (error) {
@@ -84,8 +85,12 @@ const withLock = (fs, dir, step, now = Date.now) => {
         continue
       }
     } catch {
-      // Released or taken over meanwhile: try again.
-      continue
+      // Released or taken over meanwhile: try again. A lock that keeps failing here (one this
+      // process cannot check or move) is held, like any other, until the wait is over.
+      if (now() < deadline) {
+        pause(LOCK_POLL_MS)
+        continue
+      }
     }
     if (now() >= deadline) {
       throw Object.assign(

@@ -1,11 +1,11 @@
 {
   "serverless-dev-mode": {
     "version": 1,
-    "hash": "f7124363b7a65bb34795469190c51c026ebd12b662b09f26e7e6231b8c387d02"
+    "hash": "98074cdfe88902fa8799f21b8f70f278ca4c65bc2b24f85a7bee3285abde58e3"
   },
   "serverless-framework": {
     "version": 2,
-    "hash": "6f3ed9cfa2e65880b80f31c1e1d23226563a7e89ea0f6d6ee71cbd9bee2bc55b"
+    "hash": "d5b803b38c2687af092d3930a8e92305162decdff0afbf12448d40df99aeec1a"
   },
   "serverless-mcp": {
     "version": 4,

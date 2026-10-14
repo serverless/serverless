@@ -62,7 +62,9 @@ done, without waiting to be asked again.
 serve the deployed code again. If a session was killed,
 `serverless dev restore --stage <you>` restores them (the next
 `serverless deploy` does too). Run `serverless dev --detach --stage <you>`
-again to resume.
+again to resume. In a Compose project, run these in the service's directory,
+or from the root as `serverless <service> dev stop`,
+`npm run restore:<service>` and `npm run -s dev:<service> -- --detach --json`.
 
 ## Handlers that use a private VPC database
 

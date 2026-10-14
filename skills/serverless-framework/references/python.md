@@ -95,6 +95,7 @@ Dev Mode session ([development-workflow.md](development-workflow.md)):
 3. Run the integration tests against your stage
    ([development-workflow.md](development-workflow.md)). To check the
    deployed code directly, stop the session first, then use
-   `serverless invoke -f <function>` and `serverless logs -f <function>`.
+   `serverless invoke -f <function> --stage <you>` and
+   `serverless logs -f <function> --stage <you>`.
 
 Full option reference: `serverless agent docs providers/aws/guide/python`.

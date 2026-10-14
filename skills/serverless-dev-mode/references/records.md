@@ -87,7 +87,8 @@ left out.
 - `outcome`: `ok`, `error`, `timeout`, `worker_exited`. `file` is `null` when
   the invocation file could not be written.
 - `label` names the event: `aws:apigateway:v2:post:/orders` (HTTP API),
-  `aws:apigateway:v1:get:/orders` (REST API), `aws:lambda-url:post:/`,
+  `aws:apigateway:v1:get:/orders` (REST API), `aws:alb:get:/orders`
+  (Application Load Balancer), `aws:lambda-url:post:/`,
   `aws:sqs:<queue>:<message id>`, `aws:s3:<bucket>:<event name>`,
   `aws:eventbridge:<source>:<detail-type>`, `aws:schedule:<rule>`,
   `mcp tools/call <tool>`, `direct invoke`, and others in that style.

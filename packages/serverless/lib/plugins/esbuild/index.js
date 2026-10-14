@@ -1670,8 +1670,8 @@ class Esbuild {
               // cannot reach into its group siblings.
               for (const alias of group.aliases) {
                 this.serverless.builtFunctions.add(alias)
-                this.devRequest?.markBuilt(alias, artifact?.outfile)
                 if (artifact) {
+                  this.devRequest?.markBuilt(alias, artifact.outfile)
                   this.builtArtifacts.set(alias, { ...artifact })
                 }
                 if (shouldSetNodeOptions) {

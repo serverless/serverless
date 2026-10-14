@@ -15,6 +15,7 @@ import {
   newDevModeTestSuffix,
   spawnSourceCli,
   waitForOutput,
+  waitForRelay,
 } from '../../utils/devMode.js'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
@@ -158,10 +159,18 @@ describe('Compose single-service dev with Pattern D params', () => {
       const apiUrl = Stacks[0].Outputs.find(
         (output) => output.OutputKey === 'HttpApiUrl',
       ).OutputValue
-      // Invocations are not relayed to this machine yet: the deployed code answers, with both
-      // params resolved.
+      // A new broker role can take a few minutes before the function may use it. The direct
+      // invocation's payload carries the response body as an escaped JSON string.
+      await waitForRelay({
+        region,
+        functionName,
+        isThisMachine: (payload) => payload.includes('this-machine'),
+      })
+      // The request runs on this machine, with the deployed function's environment: both params
+      // resolved.
       const body = await (await fetchWithRetry(`${apiUrl}${routePath}`)).json()
       expect(body.marker).toEqual('working-copy-code')
+      expect(body.ran).toEqual('this-machine')
       // graph param resolved at the personal stage
       expect(body.localTopicArn).toContain(
         `compose-devtest-localdep-${personalStage}`,

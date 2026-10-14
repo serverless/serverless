@@ -41,6 +41,9 @@ describe('compose teaching errors', () => {
   })
 
   test('the suggested commands carry only the scope options, values quoted only when needed', async () => {
+    // Quoted for a POSIX shell, whatever the platform the test runs on.
+    const platform = Object.getOwnPropertyDescriptor(process, 'platform')
+    Object.defineProperty(process, 'platform', { ...platform, value: 'linux' })
     const error = await runCompose(
       runComposeArgs(['dev'], {
         s: 'my stage',
@@ -52,7 +55,9 @@ describe('compose teaching errors', () => {
         detach: false,
         debug: '*',
       }),
-    ).catch((caught) => caught)
+    )
+      .catch((caught) => caught)
+      .finally(() => Object.defineProperty(process, 'platform', platform))
     expect(error.message).toContain(
       "  serverless api dev -s 'my stage' -r eu-west-1 --aws-profile dev-profile -c serverless-compose.yml\n",
     )

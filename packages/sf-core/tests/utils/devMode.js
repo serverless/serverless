@@ -118,7 +118,8 @@ export const waitForOutput = (child, pattern, timeoutMs = 600_000) =>
     }
     child.stdout.on('data', check)
     child.stderr.on('data', check)
-    child.exited.then(({ code }) => {
+    // Decided once the output has all arrived: its last lines can come after the exit.
+    Promise.all([child.exited, child.closed]).then(([{ code }]) => {
       if (pattern.test(child.output)) finish()
       else
         finish(

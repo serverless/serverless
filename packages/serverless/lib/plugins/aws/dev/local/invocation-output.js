@@ -69,6 +69,13 @@ export const eventLabel = (event, { mcp = false } = {}) => {
     const call = describeMcpRequest(event)
     if (call) return `mcp ${call}`
   }
+  if (isLoadBalancer(event) && event.httpMethod) {
+    return `aws:alb:${show(event.httpMethod).toLowerCase()}:${show(event.path, '/')}`
+  }
+  // An HTTP API's payload format 1.0 has a REST API's shape plus `version: '1.0'`.
+  if (isHttpApi(event) && event.httpMethod) {
+    return `aws:apigateway:v2:${show(event.httpMethod).toLowerCase()}:${show(event.path, '/')}`
+  }
   if (event.requestContext && event.httpMethod) {
     return `aws:apigateway:v1:${show(event.httpMethod).toLowerCase()}:${show(event.path, '/')}`
   }
