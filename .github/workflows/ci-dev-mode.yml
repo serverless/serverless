@@ -154,11 +154,13 @@ jobs:
           cache: npm
       - name: 'Setup: Enable Corepack'
         run: corepack enable npm
+      # A test build, so cached Go modules and build output are fine here; the
+      # release jobs build the layers that ship without any cache.
       - name: 'Setup: Go'
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: dev-mode-bridge/go.mod
-          cache: false
+          cache-dependency-path: dev-mode-bridge/go.sum
       # The suite's Python case skips without a Python 3.9+; fail here instead.
       - name: 'Check: Python'
         run: python3 -c 'import sys; assert sys.version_info >= (3, 9), sys.version'
@@ -212,11 +214,13 @@ jobs:
           cache: npm
       - name: 'Setup: Enable Corepack'
         run: corepack enable npm
+      # A test build, so cached Go modules and build output are fine here; the
+      # release jobs build the layers that ship without any cache.
       - name: 'Setup: Go'
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: dev-mode-bridge/go.mod
-          cache: false
+          cache-dependency-path: dev-mode-bridge/go.sum
       # Windows runners call it `python`, not `python3`; Dev Mode looks for either.
       - name: 'Setup: Python'
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0

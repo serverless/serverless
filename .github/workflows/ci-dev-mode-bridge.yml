@@ -25,11 +25,12 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # Tests only, so cached Go modules and build output are fine here.
       - name: 'Setup: Go'
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: dev-mode-bridge/go.mod
-          cache: false
+          cache-dependency-path: dev-mode-bridge/go.sum
       - name: 'Test: Unit'
         working-directory: ./dev-mode-bridge
         # Tests skip when a tool they need is missing (bash >= 4, curl, a git checkout for the
@@ -60,12 +61,16 @@ jobs:
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: dev-mode-bridge/go.mod
+          # No cache: this job proves that a build from scratch is
+          # byte-identical, the way the release builds the layers.
           cache: false
       - name: 'Setup: Node.js'
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24.x
           check-latest: true
+          # Nothing is installed here, so there's no npm cache to restore.
+          package-manager-cache: false
       - name: 'Setup: Enable Corepack'
         run: corepack enable npm
       # No dependency install: the layer build uses only Node.js built-ins.

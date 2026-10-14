@@ -188,11 +188,13 @@ jobs:
         run: |
           cd ../../
           npm ci
+      # A test build, so cached Go modules and build output are fine here; the
+      # release jobs build the layers that ship without any cache.
       - name: 'Setup: Go'
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: dev-mode-bridge/go.mod
-          cache: false
+          cache-dependency-path: dev-mode-bridge/go.sum
       - name: 'Build: Dev Mode Layers'
         working-directory: ./packages/serverless
         run: npm run build:devmode:layer

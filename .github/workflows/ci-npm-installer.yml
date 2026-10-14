@@ -89,6 +89,9 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
+          # These jobs install only the dependency-free installer package, so
+          # setup-node's automatic cache of the root lockfile is never used.
+          package-manager-cache: false
       - name: 'Test: E2E (bundled npm)'
         env:
           E2E_PACKAGE_MANAGERS: npm
@@ -126,6 +129,9 @@ jobs:
           # Ships corepack, which provides the pnpm and Yarn versions
           node-version: 24.x
           check-latest: true
+          # These jobs install only the dependency-free installer package, so
+          # setup-node's automatic cache of the root lockfile is never used.
+          package-manager-cache: false
       - name: 'Setup: Bun'
         if: ${{ startsWith(matrix.package-manager, 'bun@') }}
         env:
@@ -154,6 +160,9 @@ jobs:
         with:
           node-version: 24.x
           check-latest: true
+          # These jobs install only the dependency-free installer package, so
+          # setup-node's automatic cache of the root lockfile is never used.
+          package-manager-cache: false
       - name: 'Test: E2E in a network whose only way out is a proxy'
         env:
           E2E_LOG_DIR: ${{ runner.temp }}/e2e-logs
