@@ -108,8 +108,7 @@ updates:
 
   # Maintain the Dev Mode bridge's Go dependencies. Every bump changes the layer zips (and so
   # publishes a new layer version in users' accounts), so they are grouped into one update.
-  # A bump also needs layer/sls-dev-THIRD_PARTY_NOTICES regenerated (go run ./cmd/notices); the
-  # bridge's tests fail until it is.
+  # The layer build generates the third-party notices from go.mod, so a bump builds as it is.
   - package-ecosystem: 'gomod'
     directory: '/dev-mode-bridge'
     schedule:
