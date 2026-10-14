@@ -123,7 +123,8 @@ on:
       - 'packages/util/src/proxy/**'
 
 # A cancelled run leaves its stack, role and layers behind until someone
-# removes them, so runs of one ref queue instead of cancelling each other.
+# removes them, so a running run is never cancelled. A run waiting for the
+# group is replaced by a newer one; it hasn't started, so it leaves nothing.
 concurrency:
   group: ci-dev-mode-${{ github.ref }}
   cancel-in-progress: false

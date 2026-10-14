@@ -17,7 +17,7 @@ lint = true
 [default.deploy.parameters]
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
-region = "us-east-1"
+region = "${env:AWS_REGION, 'us-east-1'}"
 image_repositories = []
 
 [default.package.parameters]

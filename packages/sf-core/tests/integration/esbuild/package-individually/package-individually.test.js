@@ -10,12 +10,13 @@ import {
 import { jest } from '@jest/globals'
 import { getTestStageName, runSfCore } from '../../../utils/runSfCore'
 import { existsSync } from 'fs'
+import { TEST_REGION } from '../../../utils/testRegion.js'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 describe('Serverless Framework Service - ESBuild Package Individually', () => {
   const configFileDirPath = path.join(__dirname, 'fixture')
-  const lambdaClient = new LambdaClient({ region: 'us-east-1' })
+  const lambdaClient = new LambdaClient({ region: TEST_REGION })
   const originalEnv = process.env
   const stage = getTestStageName()
   let service, configFilePath

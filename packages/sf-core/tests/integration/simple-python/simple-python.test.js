@@ -5,6 +5,7 @@ import { setGlobalRendererSettings } from '@serverless/util'
 import { LambdaClient, GetFunctionCommand } from '@aws-sdk/client-lambda'
 import { jest } from '@jest/globals'
 import { getTestStageName, runSfCore } from '../../utils/runSfCore'
+import { TEST_REGION } from '../../utils/testRegion.js'
 
 /**
  * Things we need,
@@ -16,7 +17,7 @@ const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 describe('Serverless Framework Service - Simple - Python', () => {
   const configFileDirPath = path.join(__dirname, 'fixture')
-  const lambdaClient = new LambdaClient({ region: 'us-east-1' })
+  const lambdaClient = new LambdaClient({ region: TEST_REGION })
   const originalEnv = process.env
   const stage = getTestStageName()
   process.env.TEST_STAGE = stage

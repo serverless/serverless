@@ -61,4 +61,4 @@ jobs:
           cd ../../
           npm ci
       - name: 'Report: Leftovers'
-        run: node scripts/test-account-cleanup/report.js --regions us-east-1,us-east-2,eu-west-1
+        run: node scripts/test-account-cleanup/report.js --regions us-east-1,us-east-2,us-west-2,eu-west-1
