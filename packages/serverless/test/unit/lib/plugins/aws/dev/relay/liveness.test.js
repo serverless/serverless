@@ -9,6 +9,7 @@ import {
   pingSession,
   sessionsLiveness,
 } from '../../../../../../../lib/plugins/aws/dev/relay/liveness.js'
+import { iotSocketOptions } from '../../../../../../../lib/plugins/aws/dev/relay/network.js'
 import { manualClock } from './manual-clock.js'
 
 const credentials = {
@@ -228,6 +229,22 @@ describe('liveness of other sessions', () => {
     expect(endpoint.protocol).toBe('https:')
     expect(await client.config.region()).toBe('us-east-1')
     expect(await client.config.maxAttempts()).toBe(1)
+    client.destroy()
+  })
+
+  test("the data plane client gives each of the endpoint's addresses 2 s to answer, as the session's connection does", async () => {
+    const client = createDirectMessagingClient({
+      endpoint: 'abc-ats.iot.us-east-1.amazonaws.com',
+      region: 'us-east-1',
+      credentials,
+    })
+    const { httpsAgent } = await client.config.requestHandler.configProvider
+    expect(httpsAgent.options).toMatchObject(iotSocketOptions())
+    // The AWS SDK's own agent settings stay.
+    expect(httpsAgent.options).toMatchObject({
+      keepAlive: true,
+      maxSockets: 50,
+    })
     client.destroy()
   })
 })
