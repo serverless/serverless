@@ -23,6 +23,7 @@ import {
   endpointUnresolvedLine,
 } from '../relay/messages.js'
 import { unresolvedHost } from '../relay/transport.js'
+import { connectFailureDetail, iotSocketOptions } from '../relay/network.js'
 import { brokerPolicyState, getBroker, identityFrom } from '../attach/broker.js'
 import {
   classifyByConfig,
@@ -103,7 +104,8 @@ const principalOf = (arn) =>
 
 /**
  * Whether this machine reaches the AWS IoT Core endpoint over HTTPS: one GET of /mqtt, through the
- * proxy the relay would use. Any HTTP answer means yes (it needs no signature to answer). The
+ * proxy the relay would use, and directly with the time per address it gives (network.js). Any HTTP
+ * answer means yes (it needs no signature to answer); a failure names each address tried. The
  * answer comes within `timeoutMs` whatever the network does: the request's idle timeout starts
  * only once it has a socket, which a proxy that never answers CONNECT never gives it, so a timer
  * bounds the whole check. With its answer the check ends the request and the connection to the
@@ -144,6 +146,7 @@ export const checkIotConnect = ({
           servername: host,
           method: 'GET',
           path: '/mqtt',
+          ...iotSocketOptions(),
           agent:
             agentFor(`wss://${host}/mqtt`, { signal: abort.signal }) ||
             undefined,
@@ -167,7 +170,7 @@ export const checkIotConnect = ({
         ok: false,
         // The endpoint's own name does not resolve: the account's first use of the region.
         ...(unresolvedHost(error, host) && { unresolved: true }),
-        message: error?.message ?? limit,
+        message: error ? connectFailureDetail(error) : limit,
       }),
     )
     req.end()

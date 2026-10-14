@@ -13,6 +13,7 @@ import {
   STOP_TIMEOUT_MS,
   createTransport,
 } from '../../../../../../../lib/plugins/aws/dev/relay/transport.js'
+import { iotSocketOptions } from '../../../../../../../lib/plugins/aws/dev/relay/network.js'
 import { manualClock } from './manual-clock.js'
 
 const ENDPOINT = 'abc-ats.iot.us-east-1.amazonaws.com'
@@ -229,6 +230,18 @@ describe("this machine's AWS IoT Core connection", () => {
     await transport.stop()
   })
 
+  test("the WebSocket gives each of the endpoint's addresses 2 s to answer, not Node.js's default", async () => {
+    // The endpoint has an IPv4 and an IPv6 address. With Node.js's default (250 ms per address),
+    // a machine without an IPv6 route more than 250 ms from the region reaches neither.
+    const { transport, client } = setup()
+    await transport.start()
+    expect(client().options.wsOptions).toMatchObject(iotSocketOptions())
+    expect(
+      client().options.wsOptions.autoSelectFamilyAttemptTimeout,
+    ).toBeGreaterThanOrEqual(2_000)
+    await transport.stop()
+  })
+
   test('a reconnect reads the credentials again and signs a new URL and a new will on a new client', async () => {
     const { transport, clients, clock, states, signedUrl } = setup()
     await transport.start()
@@ -442,6 +455,48 @@ describe("this machine's AWS IoT Core connection", () => {
     })
     expect(closes.clients).toHaveLength(1)
     expect(closes.clock.live()).toBe(0)
+  })
+
+  test('start names every address it tried and what happened there', async () => {
+    // Node.js reports a connection that tried several addresses as an AggregateError with an
+    // empty message; ws hands it on, and mqtt.js forwards it because it carries a code.
+    const timedOut = Object.assign(
+      new AggregateError([
+        Object.assign(new Error('connect ETIMEDOUT 3.104.179.222:443'), {
+          code: 'ETIMEDOUT',
+          address: '3.104.179.222',
+          port: 443,
+        }),
+        Object.assign(new Error('connect EHOSTUNREACH 2406:da1c::1:443'), {
+          code: 'EHOSTUNREACH',
+          address: '2406:da1c::1',
+          port: 443,
+        }),
+      ]),
+      { code: 'ETIMEDOUT' },
+    )
+    const message =
+      'Dev Mode could not connect to AWS IoT Core in us-east-1 (timed out at 3.104.179.222:443 over IPv4; no route to [2406:da1c::1]:443 over IPv6). Check your network connection and proxy settings (HTTPS_PROXY), then run the command again.'
+    const forwarded = setup({ connect: failingFirst(1, () => timedOut) })
+    await expect(forwarded.transport.start()).rejects.toMatchObject({
+      code: 'DEV_MODE_IOT_UNREACHABLE',
+      message,
+    })
+    // When only the stream reports it and the client then closes.
+    const closed = setup({
+      connect: (url, options) => {
+        const client = new FakeClient(url, options)
+        setImmediate(() => {
+          client.stream.emit('error', timedOut)
+          client.emit('close')
+        })
+        return client
+      },
+    })
+    await expect(closed.transport.start()).rejects.toMatchObject({
+      code: 'DEV_MODE_IOT_UNREACHABLE',
+      message,
+    })
   })
 
   test('start gives up after 20 s without an answer and ends the client', async () => {

@@ -21,6 +21,7 @@ import { laptopClientId, topicsOf } from './protocol.js'
 import { presignIotWebSocket } from './sigv4.js'
 import { withoutSecrets } from './redact.js'
 import { credentialsFixLine, endpointUnresolvedLine } from './messages.js'
+import { connectFailureDetail, iotSocketOptions } from './network.js'
 
 export const KEEPALIVE_SECONDS = 30
 export const RECONNECT_MIN_MS = 1_000
@@ -84,7 +85,7 @@ class Cancelled extends Error {}
 /** `host`: the endpoint's host name, which a DNS failure must name to count as 'unresolved'. */
 const failureOf = (error, { action, host } = {}) => {
   if (error instanceof AttemptFailure) return error
-  const detail = withoutSecrets(error?.message ?? error)
+  const detail = withoutSecrets(connectFailureDetail(error))
   // ws reports a refused WebSocket handshake as "Unexpected server response: <status>".
   if (/Unexpected server response: 403\b/.test(detail)) {
     return new AttemptFailure('signature', detail, action)
@@ -335,7 +336,10 @@ export const createTransport = ({
         transformWsUrl: () => brokerUrl,
         createWebsocket: (unsigned, protocols, options) =>
           createWebSocket(url, protocols, options.wsOptions),
-        wsOptions: { agent: proxyAgentFor(proxyCut.signal) },
+        wsOptions: {
+          ...iotSocketOptions(),
+          agent: proxyAgentFor(proxyCut.signal),
+        },
         will: {
           topic: topics.gone,
           payload: goneFrame(),
@@ -480,7 +484,7 @@ export const createTransport = ({
         report({
           state: 'lost',
           reason: lastError
-            ? withoutSecrets(lastError.message)
+            ? withoutSecrets(connectFailureDetail(lastError))
             : 'the connection closed',
         })
       }

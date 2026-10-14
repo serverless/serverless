@@ -23,6 +23,7 @@ import {
   runDevDryRun,
 } from '../../../../../../../lib/plugins/aws/dev/commands/dry-run.js'
 import { exitCodeOf } from '../../../../../../../lib/plugins/aws/dev/commands/envelope.js'
+import { iotSocketOptions } from '../../../../../../../lib/plugins/aws/dev/relay/network.js'
 import {
   buildPermissionPolicy,
   createBroker,
@@ -920,6 +921,54 @@ describe('the connection check to AWS IoT Core', () => {
       path: '/mqtt',
       agent,
       timeout: IOT_CONNECT_TIMEOUT_MS,
+    })
+  })
+
+  test("it gives each of the endpoint's addresses 2 s to answer, as the session's connection does", async () => {
+    let seen
+    await checkIotConnect({
+      host: IOT_ENDPOINT,
+      agentFor: () => undefined,
+      request: (options, onResponse) => {
+        seen = options
+        return request('answer')(options, onResponse)
+      },
+    })
+    expect(seen).toMatchObject(iotSocketOptions())
+    expect(seen.autoSelectFamilyAttemptTimeout).toBeGreaterThanOrEqual(2_000)
+  })
+
+  test('a connection that tried several addresses names each one and what happened there', async () => {
+    const failure = Object.assign(
+      new AggregateError([
+        Object.assign(new Error('connect ETIMEDOUT 3.104.179.222:443'), {
+          code: 'ETIMEDOUT',
+          address: '3.104.179.222',
+          port: 443,
+        }),
+        Object.assign(new Error('connect EHOSTUNREACH 2406:da1c::1:443'), {
+          code: 'EHOSTUNREACH',
+          address: '2406:da1c::1',
+          port: 443,
+        }),
+      ]),
+      { code: 'ETIMEDOUT' },
+    )
+    expect(
+      await checkIotConnect({
+        host: IOT_ENDPOINT,
+        agentFor: () => undefined,
+        request: () => {
+          const req = new EventEmitter()
+          req.destroy = () => {}
+          req.end = () => setImmediate(() => req.emit('error', failure))
+          return req
+        },
+      }),
+    ).toEqual({
+      ok: false,
+      message:
+        'timed out at 3.104.179.222:443 over IPv4; no route to [2406:da1c::1]:443 over IPv6',
     })
   })
 
