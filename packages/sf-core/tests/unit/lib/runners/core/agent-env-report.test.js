@@ -1,3 +1,5 @@
+import { spawnSync } from 'child_process'
+import { fileURLToPath, pathToFileURL } from 'url'
 import { jest } from '@jest/globals'
 import { mkdtemp, readdir, rm, writeFile } from 'fs/promises'
 import os, { tmpdir } from 'os'
@@ -779,6 +781,33 @@ describe('detectAwsCredentials', () => {
       check: 'unverified',
       reason: 'timeout',
     })
+  })
+
+  it('AWS not answering in time: the timeout fires even with nothing else running', () => {
+    // A separate process, where the event loop really empties: an MFA prompt
+    // that closed for lack of input leaves nothing else to keep Node.js running
+    const moduleUrl = pathToFileURL(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        '../../../../../src/lib/runners/core/agent-env-report.js',
+      ),
+    ).href
+    const { stdout } = spawnSync(
+      process.execPath,
+      [
+        '--input-type=module',
+        '-e',
+        `import { detectAwsCredentials } from ${JSON.stringify(moduleUrl)}
+         const r = await detectAwsCredentials({
+           env: { AWS_PROFILE: 'dev' },
+           getProvider: () => new Promise(() => {}),
+           timeoutMs: 50,
+         })
+         console.log(r.reason)`,
+      ],
+      { encoding: 'utf8', timeout: 30_000 },
+    )
+    expect(stdout.trim()).toBe('timeout')
   })
 
   it('never rejects out of the detector', async () => {

@@ -204,8 +204,9 @@ export const detectAwsCredentials = async ({
         return await provider.resolveCredentials()
       })(),
       new Promise((resolve) => {
+        // Referenced, so it still fires when nothing else keeps Node.js
+        // running (an MFA prompt that closed for lack of input)
         timer = setTimeout(() => resolve(TIMED_OUT), timeoutMs)
-        timer.unref?.()
       }),
     ])
     if (credentials === TIMED_OUT) {

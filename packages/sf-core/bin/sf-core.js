@@ -3,7 +3,11 @@ import fs from 'fs'
 import gracefulFs from 'graceful-fs'
 import { startsWithBlankLine } from './blankLine.js'
 import { hideBin } from 'yargs/helpers'
-import { noteStartupBlankLine, progress } from '@serverless/util'
+import {
+  noteStartupBlankLine,
+  progress,
+  ServerlessError,
+} from '@serverless/util'
 import ServerlessCore from '../src/index.js'
 import { printError } from './print-error.js'
 
@@ -11,6 +15,7 @@ import {
   extractCommandsAndOptions,
   parseCommandLine,
 } from '../src/utils/cli/cli.js'
+import { failOnStall } from '../src/utils/cli/fail-on-stall.js'
 
 gracefulFs.gracefulify(fs)
 
@@ -42,12 +47,22 @@ export const errorHandler = (error) => {
   printError(error)
   process.exit(1)
 }
-run()
-  .catch(errorHandler)
-  .finally(() => {
-    // Remove all Progress renderers
-    progress.cleanup()
-  })
+const command = run()
+
+failOnStall(command, () =>
+  errorHandler(
+    new ServerlessError(
+      'The command stopped before it finished: an operation it was waiting for never completed. Run the command again with "--debug" to see the last operation it started.',
+      'COMMAND_STALLED',
+      { stack: false },
+    ),
+  ),
+)
+
+command.catch(errorHandler).finally(() => {
+  // Remove all Progress renderers
+  progress.cleanup()
+})
 
 process.once('uncaughtException', errorHandler)
 process.once('unhandledRejection', errorHandler)
