@@ -204,6 +204,34 @@ describe('aws common artifacts', () => {
       expectServiceIntact()
     })
 
+    it('moves everything but a Dev Mode session record, which stays in .serverless/dev/', async () => {
+      await fsp.mkdir(path.join(serviceDir, '.serverless', 'dev'))
+      await fsp.writeFile(
+        path.join(serviceDir, '.serverless', 'dev', 'control.token'),
+        'secret',
+      )
+      const packageDir = path.join(rootDir, 'out')
+      const plugin = createPlugin(packageDir)
+      await plugin.moveArtifactsToPackage()
+      expect(fs.readdirSync(packageDir)).toEqual(['service.zip'])
+      expect(fs.readdirSync(path.join(serviceDir, '.serverless'))).toEqual([
+        'dev',
+      ])
+      expect(
+        fs.existsSync(
+          path.join(serviceDir, '.serverless', 'dev', 'control.token'),
+        ),
+      ).toBe(true)
+    })
+
+    it('without a Dev Mode record, moves .serverless and removes it, as before', async () => {
+      const packageDir = path.join(rootDir, 'out')
+      const plugin = createPlugin(packageDir)
+      await plugin.moveArtifactsToPackage()
+      expect(fs.readdirSync(packageDir)).toEqual(['service.zip'])
+      expect(fs.existsSync(path.join(serviceDir, '.serverless'))).toBe(false)
+    })
+
     it('does not reject a sibling whose name merely starts with the service name', async () => {
       // `path.relative(<root>/service-out, <root>/service)` is "../service":
       // a string-prefix check would wrongly treat this as an ancestor.
@@ -257,6 +285,29 @@ describe('aws common artifacts', () => {
         code: 'PACKAGE_PATH_CONTAINS_SERVICE',
       })
       expectServiceIntact()
+    })
+
+    it('keeps a Dev Mode session record in .serverless/dev/ and never copies one over it', async () => {
+      await fsp.mkdir(path.join(serviceDir, '.serverless', 'dev'))
+      await fsp.writeFile(
+        path.join(serviceDir, '.serverless', 'dev', 'session.json'),
+        'live',
+      )
+      const packageDir = path.join(rootDir, 'out')
+      await fsp.mkdir(path.join(packageDir, 'dev'), { recursive: true })
+      await fsp.writeFile(path.join(packageDir, 'prebuilt.zip'), 'zip')
+      await fsp.writeFile(path.join(packageDir, 'dev', 'session.json'), 'old')
+      const plugin = createPlugin(packageDir)
+      await plugin.moveArtifactsToTemp()
+      expect(
+        fs.readdirSync(path.join(serviceDir, '.serverless')).sort(),
+      ).toEqual(['dev', 'prebuilt.zip'])
+      expect(
+        fs.readFileSync(
+          path.join(serviceDir, '.serverless', 'dev', 'session.json'),
+          'utf8',
+        ),
+      ).toBe('live')
     })
 
     it('copies a sibling package directory into .serverless', async () => {

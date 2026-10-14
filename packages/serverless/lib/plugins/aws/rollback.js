@@ -9,6 +9,10 @@ import getSharedStackActionParams from './lib/get-shared-stack-action-params.js'
 import getCreateStackParams from './lib/get-create-stack-params.js'
 import getUpdateStackParams from './lib/get-update-stack-params.js'
 import findAndGroupDeployments from './utils/find-and-group-deployments.js'
+import {
+  deploymentDirectoryName,
+  hasDeployment,
+} from './utils/deployment-exists.js'
 import ServerlessError from '../../serverless-error.js'
 import { log, progress, style } from '@serverless/util'
 
@@ -126,21 +130,12 @@ class AwsRollback {
       )
     }
 
-    let date = new Date(this.options.timestamp)
-
-    // The if below is added due issues#5664 - Check it for more details
-    if (date instanceof Date === false || isNaN(date.valueOf())) {
-      date = new Date(Number(this.options.timestamp))
-    }
-
-    const dateString = `${date.getTime().toString()}-${date.toISOString()}`
-    const exists = deployments.some((deployment) =>
-      deployment.some(
-        (item) =>
-          item.directory === dateString &&
-          item.file === this.provider.naming.getCompiledTemplateS3Suffix(),
-      ),
-    )
+    const dateString = deploymentDirectoryName(this.options.timestamp)
+    const exists = hasDeployment({
+      deployments,
+      directory: dateString,
+      templateSuffix: this.provider.naming.getCompiledTemplateS3Suffix(),
+    })
 
     if (!exists) {
       const msg = `Couldn't find a deployment for the timestamp: ${this.options.timestamp}.`

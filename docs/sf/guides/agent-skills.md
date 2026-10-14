@@ -115,6 +115,17 @@ skills, a deleted directory is not recreated — not even by re-running
 `install`. To fully remove: delete all Framework-managed skill folders from
 both directories.
 
+## Dev Mode for coding agents
+
+`serverless dev` runs your deployed functions' real invocations on your machine. An agent starts it
+with `serverless dev --detach`, follows it with `serverless dev wait`, `serverless dev requests` and
+`serverless dev replay`, and ends it with `serverless dev stop`, which restores the functions; every
+one of these commands prints one JSON result with `--json`. The
+[Dev Mode guide](../providers/aws/guide/dev-mode.md#using-dev-mode-from-an-ai-agent) describes the
+loop, the exit codes and the files, and the bundled skill teaches it:
+
+    serverless agent skills read serverless-dev-mode
+
 ## More agent tooling
 
 Once an agent is set up to work with your service, [`serverless agent

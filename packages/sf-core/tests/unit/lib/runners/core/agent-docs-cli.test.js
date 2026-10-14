@@ -4,6 +4,7 @@ import { promisify } from 'util'
 import { mkdtemp, realpath, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import path from 'path'
+import { readFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 
 // Smoke tests that spawn the REAL bin, not the runner module: they are the only
@@ -17,6 +18,18 @@ import { fileURLToPath } from 'url'
 const run = promisify(execFile)
 const BIN = fileURLToPath(
   new URL('../../../../../bin/sf-core.js', import.meta.url),
+)
+// The version this checkout's manifest ships, so a skill bump needs no test edit.
+const FRAMEWORK_SKILL_LIST_LINE = new RegExp(
+  `^serverless-framework\\s+v${
+    JSON.parse(
+      readFileSync(
+        new URL('../../../../../../../skills/manifest.json', import.meta.url),
+        'utf8',
+      ),
+    )['serverless-framework'].version
+  }\\s+user\\s+`,
+  'm',
 )
 // macOS: /var/folders symlinks — always realpath tmp dirs (repo-known jest quirk)
 const tmp = async () =>
@@ -129,7 +142,7 @@ describe('agent docs / skills CLI (spawned, unauthenticated, non-TTY, empty dir)
       [BIN, 'agent', 'skills', 'list'],
       { cwd, env: env(home) },
     )
-    expect(stdout).toMatch(/^serverless-framework\s+v1\s+user\s+/m)
+    expect(stdout).toMatch(FRAMEWORK_SKILL_LIST_LINE)
   })
 
   it('agent skills (bare) lists the bundled skills; read prints one', async () => {
@@ -139,7 +152,7 @@ describe('agent docs / skills CLI (spawned, unauthenticated, non-TTY, empty dir)
       cwd,
       env: env(home),
     })
-    expect(list.stdout).toMatch(/^serverless-framework\s+v1\s+user\s+/m)
+    expect(list.stdout).toMatch(FRAMEWORK_SKILL_LIST_LINE)
     const read = await run(
       process.execPath,
       [BIN, 'agent', 'skills', 'read', 'serverless-framework'],

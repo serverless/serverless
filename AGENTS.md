@@ -15,6 +15,7 @@ Monorepo for the **Serverless Framework** - a command-line tool for deploying se
 │   ├── framework-dist/         # Bundled distribution package (excluded from npm workspaces)
 │   └── sf-core-installer/      # Published to npm as "serverless" (excluded from npm workspaces)
 ├── binary-installer/           # Go-based binary installer
+├── dev-mode-bridge/            # Go Runtime API bridge + exec wrapper for the Dev Mode layer
 ├── docs/sf/                    # User-facing documentation (published to serverless.com)
 ├── skills/                     # Agent Skills shipped inside the CLI (CI-linted)
 └── release-scripts/            # Release automation
@@ -92,15 +93,15 @@ Always invoke Jest via the npm scripts, not bare `jest` — the scripts set `--e
 Integration tests deploy real AWS stacks. They run in CI on non-draft PRs and can be run locally given AWS credentials plus the prerequisite resources described in [TESTING.md](TESTING.md).
 
 ```bash
-npm test -w @serverlessinc/sf-core              # integration suite (excludes domains and mcp)
+npm test -w @serverlessinc/sf-core              # integration suite (excludes domains, mcp and dev-mode)
 npm run test:<suite> -w @serverlessinc/sf-core  # targeted suite
 ```
 
-Targeted suites include: `simple:nodejs`, `simple:python`, `simple:compose`, `simple:dashboard`, `simple:resolvers`, `resolvers`, `esbuild`, `sam`, `sandboxes`, `state`, `deployment-bucket`, `license-key`, `domains`, `mcp`, `compose:dev`, `compose:subset`. Prefer the targeted suite covering the touched area. Two suites are excluded from `npm test`: `domains` (not run by any CI workflow — only when invoked explicitly) and `mcp` (run by the path-filtered `CI: MCP Servers` workflow; only its `mcp-auth.test.js` suite needs the Cognito prerequisite from [TESTING.md](TESTING.md) — absent that, that suite skips while the rest runs). Any other new directory under `tests/integration/` joins `npm test` automatically, so an expensive new suite has to opt out the same way. A new suite also needs an entry in `packages/sf-core/tests/integration/shards.json`, which a unit test enforces; see "CI Test Accounts" in [TESTING.md](TESTING.md).
+Targeted suites include: `simple:nodejs`, `simple:python`, `simple:compose`, `simple:dashboard`, `simple:resolvers`, `resolvers`, `esbuild`, `sam`, `sandboxes`, `state`, `deployment-bucket`, `license-key`, `domains`, `mcp`, `dev-mode`, `dev-mode:agent-loop`, `compose:dev`, `compose:subset`. Prefer the targeted suite covering the touched area. Three suites are excluded from `npm test`: `domains` (not run by any CI workflow — only when invoked explicitly), `mcp` (run by the path-filtered `CI: MCP Servers` workflow; only its `mcp-auth.test.js` suite needs the Cognito prerequisite from [TESTING.md](TESTING.md) — absent that, that suite skips while the rest runs) and `dev-mode` (run by the path-filtered `CI: Dev Mode` workflow on Linux, and its `agent-loop` file on Windows; creates an IAM role and layers under a test suffix and deletes them; run it with `npm run test:dev-mode -w @serverlessinc/sf-core` after `npm run build:devmode:layer -w @serverless/framework` and `npm run build:mcp:entry -w @serverless/framework`). Any other new directory under `tests/integration/` joins `npm test` automatically, so an expensive new suite has to opt out the same way. A new suite also needs an entry in `packages/sf-core/tests/integration/shards.json`, which a unit test enforces; see "CI Test Accounts" in [TESTING.md](TESTING.md).
 
 Conventions: each suite pairs `<name>.test.js` with a sibling `fixture/` directory holding the service under test — **one fixture directory per test file**, since jest parallelizes test files with no worker cap and two files deploying from one directory would race over `.serverless/`, `node_modules/` and any staged artifact; reuse the shared helpers in `packages/sf-core/tests/utils/` (`runSfCore.js`, `testUtils.js` — e.g. `fetchWithRetry` for eventually-consistent endpoints) rather than hand-rolling CLI invocation. Fixtures must not list legacy bundler plugins (`serverless-esbuild`, `serverless-webpack`, `serverless-plugin-typescript`, `serverless-bundle`) — those throw `PLUGIN_TYPESCRIPT_CONFLICT` unless `build.esbuild: false` is set.
 
-Dev-mode tests need the gitignored shim built first: `npm run build:devmode:shim -w @serverless/framework` (CI does this as a separate step).
+`serverless dev` from source and the Dev Mode tests need the gitignored layer zips built first: `npm run build:devmode:layer -w @serverless/framework` (needs Go; CI does this as a separate step).
 
 New integration tests must be self-cleaning (deploy → exercise → teardown, even on failure), use unique stack names so parallel runs are safe, and contain no secrets or account IDs in fixtures or assertions.
 
@@ -113,6 +114,7 @@ npm run test:python -w @serverlessinc/sf-core        # python plugin tests
 npm run test:build -w @serverlessinc/sf-core         # build + pack the release locally, then run the packaging checks
 cd binary-installer && go test ./... && make build-prod   # Go installer
 cd binary-installer && make test-e2e                     # Go installer end to end: real downloads, needs node
+cd dev-mode-bridge && go vet ./... && go test -race ./... && make vuln   # Dev Mode bridge (wrapper tests need bash >= 4 and curl)
 ```
 
 The CI python job is path-filtered (runs only when python plugin paths change) — failures can sit unnoticed on main until a PR touches those paths. `packages/util` has no tests at all: util changes are exercised only through its consumers' suites.
@@ -145,12 +147,14 @@ CI runs on pull requests targeting `main`, on Node.js 24.x:
 
 - **CI: Framework CLI** — Lint, Test: Engine, Test: Release Package (builds and packs the release package, then runs the packaging checks), and the unit and integration tests from the shared `.github/workflows/test-framework.yml`: one integration leg per test account, sharded by `packages/sf-core/tests/integration/shards.json`, plus a leg for the resolvers suite. Runs on Linux; a manual dispatch with `all-platforms` also runs ARM Linux and Windows. Skipped entirely for docs-only changes (`paths-ignore: docs/**`) and for draft PRs.
 - **CI: Binary Installer** — Go unit tests and an end-to-end suite (`binary-installer/e2e`, parallel first runs against real releases) on Linux, macOS, and Windows, plus the production build; runs only when `binary-installer/**` changes
-- **Cleanup: Test Accounts** — nightly, on the main repository only: reports integration-test stacks and state-bucket keys left behind in each test account by interrupted runs (`packages/sf-core/scripts/test-account-cleanup/`). A dry run; it deletes nothing yet.
+- **Cleanup: Test Accounts** — nightly, on the main repository only: reports integration-test stacks, state-bucket keys and Dev Mode test resources (suffixed broker roles and layers, payload objects under `serverless-dev-mode/`) left behind in each test account by interrupted runs (`packages/sf-core/scripts/test-account-cleanup/`). A dry run; it deletes nothing yet.
 - **CI: NPM Installer** — `packages/sf-core-installer` tests on Linux, macOS and Windows × Node.js 18, 24 and the latest release, failing on any Node.js deprecation; runs when that package changes and weekly, because a new Node.js release can break the npm install path with no change in this repository. Its end-to-end jobs (`npm run test:e2e` in that package; needs internet) install the packed package from a local registry with npm, pnpm, Yarn and Bun, directly and through proxies, and once more in a Docker network whose only way out is a proxy (`tests/e2e/proxy-only-network.sh`)
 - **CI: Python Requirements** — path-filtered (see Testing above)
-- **CI: MCP Servers** — the live `mcp` suite; path-filtered to the MCP plugin, the api-gateway and esbuild seams, and the MCP tests/fixtures. GitHub Actions has no job-level path filter, which is why this and the python suite each live in their own workflow file.
+- **CI: Dev Mode Bridge** — Go vet/tests and a reproducible layer build; runs only when `dev-mode-bridge/**` or the layer build script changes
+- **CI: Dev Mode** — the live `dev-mode` suite in test-1 on Linux, plus its `agent-loop` file on Windows; path-filtered to the Dev Mode plugin, the bridge, the esbuild plugin (the dev-build interface) and the suite's tests and helpers
+- **CI: MCP Servers** — the live `mcp` suite; path-filtered to the MCP plugin, the api-gateway and esbuild seams, and the MCP tests/fixtures. GitHub Actions has no job-level path filter, which is why this, the Dev Mode suite and the python suite each live in their own workflow file.
 
-The `release-*.yml` workflows run only on push to main or manual dispatch. `release-framework.yml` runs its tests through the same `test-framework.yml` as PR CI, on Linux, ARM Linux and Windows, and its release jobs run only after every one of those tests passed; `packages/sf-core/tests/unit/release-workflow-gate.test.js` fails if that gate is weakened or the shared workflow gains a trigger or release step. The release jobs themselves are never exercised by PR CI, so review changes to them with extra care. `release-framework.yml` is additionally path-filtered to `packages/{sf-core,serverless,engine,mcp}/**`: changes elsewhere (e.g. `packages/util`) never trigger a release build on their own.
+The `release-*.yml` workflows run only on push to main or manual dispatch. `release-framework.yml` runs its tests through the same `test-framework.yml` as PR CI, on Linux, ARM Linux and Windows, and its release jobs run only after every one of those tests passed; `packages/sf-core/tests/unit/release-workflow-gate.test.js` fails if that gate is weakened or the shared workflow gains a trigger or release step. The release jobs themselves are never exercised by PR CI, so review changes to them with extra care. `release-framework.yml` is additionally path-filtered to `packages/{sf-core,serverless,engine,mcp}/**` and `dev-mode-bridge/**`: changes elsewhere (e.g. `packages/util`) never trigger a release build on their own.
 
 ## Pull Requests & Releases
 

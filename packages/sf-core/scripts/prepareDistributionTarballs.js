@@ -7,6 +7,15 @@ import os from 'os'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { entryPathFrom } from '../../serverless/lib/plugins/aws/mcp/lib/packaging.js'
+import {
+  ARCHITECTURES,
+  layerArtifactPath,
+  layerArtifactPathFrom,
+} from '../../serverless/lib/plugins/aws/dev/attach/naming.js'
+import {
+  CLIENT_FILES,
+  clientPathFrom,
+} from '../../serverless/lib/plugins/aws/dev/local/paths.js'
 
 const { readFile, writeFile, cp, mkdir, chmod } = fsp
 
@@ -62,20 +71,19 @@ cpPromises.push(
     { recursive: true },
   ),
 )
-cpPromises.push(
-  cp(
-    '../../serverless/lib/plugins/aws/dev/shim.min.js',
-    '../../framework-dist/lib/plugins/aws/dev/shim.min.js',
-  ),
-)
-cpPromises.push(
-  cp(
-    '../../serverless/lib/plugins/aws/dev/local-lambda/runtime-wrappers/node.js',
-    '../../framework-dist/lib/plugins/aws/dev/local-lambda/runtime-wrappers/node.js',
-  ),
-)
+// The runtime clients Dev Mode starts handler processes with on the developer's machine. The
+// bundled plugin finds them through the source-tree layout, so the destination is asked of
+// `clientPathFrom`, the runtime authority, as for the MCP entry and the layer zips.
+for (const name of Object.values(CLIENT_FILES)) {
+  cpPromises.push(
+    cp(
+      `../../serverless/lib/plugins/aws/dev/local/clients/${name}`,
+      clientPathFrom('../../framework-dist/dist', name),
+    ),
+  )
+}
 // The prebuilt MCP Lambda entry, which the mcp plugin copies into the user's
-// artifact. Like the dev-mode shim it is a build product (`npm run
+// artifact. It is a build product (`npm run
 // build:mcp:entry` in packages/serverless, run before this script), and the
 // bundled plugin reaches it through the source-tree layout — so the destination
 // is asked of `entryPathFrom` (the runtime authority) rather than written out
@@ -87,6 +95,19 @@ cpPromises.push(
     entryPathFrom('../../framework-dist/dist'),
   ),
 )
+// The Dev Mode layer zips (`npm run build:devmode:layer -w @serverless/framework`, run before
+// this script). The bundled plugin resolves them through the source-tree layout, so the
+// destination is asked of `layerArtifactPathFrom` — the runtime authority — as for the MCP entry.
+// Only the named zips are copied, never the whole directory, so a stale `.tmp` from an
+// interrupted build cannot ship.
+for (const arch of ARCHITECTURES) {
+  cpPromises.push(
+    cp(
+      layerArtifactPath(arch),
+      layerArtifactPathFrom('../../framework-dist/dist', arch),
+    ),
+  )
+}
 
 cpPromises.push(
   cp(
@@ -212,6 +233,15 @@ await cp(esbuildSrcDir, esbuildDistDir, {
     return first !== 'bin'
   },
 })
+
+// --- Ship tsx as files next to the bundle ---
+// Dev Mode runs a TypeScript handler that no build plugin compiled with `node --import <tsx>`,
+// in a separate process, which cannot load the copy of tsx bundled into sf-core.js. tsx's only
+// dependency is esbuild, shipped just above.
+const tsxSrcDir = path.dirname(
+  resolveFromServerless.resolve('tsx/package.json'),
+)
+await cp(tsxSrcDir, `${distNodeModules}/tsx`, { recursive: true })
 
 // --- Download esbuild platform binaries for all 5 supported platforms ---
 const esbuildVersion = esbuildPkg.version

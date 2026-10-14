@@ -2,6 +2,8 @@
 **/dist
 # **/.env # TODO: Our tests use many .env files, so we cannot ignore them ATM.
 **/.serverless
+# Python bytecode caches (the Dev Mode Python client and its tests write them)
+**/__pycache__/
 .DS_Store
 .idea
 

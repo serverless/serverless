@@ -1,6 +1,6 @@
 // applyAgentSession and shouldDisableColors. A detected AI coding agent gets no ANSI colour codes
-// unless the user set FORCE_COLOR (any value: chalk already maps it to a level, so the CLI leaves
-// chalk exactly as it would be).
+// unless the user set FORCE_COLOR to a value other than 0 or false (chalk already maps it to a
+// level, so the CLI leaves chalk exactly as it would be); FORCE_COLOR=0 or false means no colour.
 // Sessions without an agent must render exactly as before. The logger's chalk instance and
 // renderer colour level are saved and restored around every test through the logger's own
 // test helpers, so other suites never see a changed level.
@@ -17,6 +17,7 @@ import {
 } from '@serverless/util/src/logger/index.js'
 import {
   detectAgent,
+  isAgentSession,
   resetAgentDetectionForTests,
   shouldDisableColors,
 } from '@serverless/util/src/agent/index.js'
@@ -78,7 +79,20 @@ describe('applyAgentSession colours', () => {
     expect(output).not.toContain(ESC)
   })
 
-  test.each([['1'], ['3'], ['true'], [''], ['0'], ['false']])(
+  test.each([['0'], ['false']])(
+    'agent with FORCE_COLOR=%j → no escape codes',
+    (value) => {
+      applyAgentSession({ agent: CLAUDE, env: { FORCE_COLOR: value } })
+      expect(getColorSettingsForTests()).toEqual({
+        chalkLevel: 0,
+        colorSupportLevel: 0,
+      })
+      expect(style.error('boom')).toBe('boom')
+      expect(logObject()).not.toContain(ESC)
+    },
+  )
+
+  test.each([['1'], ['3'], ['true'], ['']])(
     'agent with FORCE_COLOR=%j → colour settings left as chalk set them',
     (value) => {
       applyAgentSession({ agent: CLAUDE, env: { FORCE_COLOR: value } })
@@ -183,6 +197,7 @@ describe('applyAgentSession with odd input', () => {
     savedEnv = process.env
     process.env = { ...savedEnv }
     delete process.env.FORCE_COLOR
+    delete process.env.NO_COLOR
     delete process.env.SLS_INTERACTIVE_SETUP_ENABLE
   })
   afterEach(() => {
@@ -230,8 +245,15 @@ describe('applyAgentSession interactivity', () => {
 
 describe('shouldDisableColors', () => {
   let savedEnv
+  // The caller's environment without its colour variables, so the shell never decides.
+  let base
   beforeEach(() => {
     savedEnv = process.env
+    base = { ...savedEnv }
+    delete base.NO_COLOR
+    delete base.FORCE_COLOR
+    delete base.SLS_INTERACTIVE_SETUP_ENABLE
+    process.env = base
     resetAgentDetectionForTests()
   })
   afterEach(() => {
@@ -244,20 +266,20 @@ describe('shouldDisableColors', () => {
   })
 
   test('true for a detected agent without FORCE_COLOR', async () => {
-    process.env = { ...savedEnv, AI_AGENT: 'claude-code_2-1-284_agent' }
+    process.env = { ...base, AI_AGENT: 'claude-code_2-1-284_agent' }
     await detectAgent()
     expect(shouldDisableColors({ env: {} })).toBe(true)
   })
 
   test('false for a detected agent with FORCE_COLOR set (even empty)', async () => {
-    process.env = { ...savedEnv, AI_AGENT: 'claude-code_2-1-284_agent' }
+    process.env = { ...base, AI_AGENT: 'claude-code_2-1-284_agent' }
     await detectAgent()
     expect(shouldDisableColors({ env: { FORCE_COLOR: '' } })).toBe(false)
     expect(shouldDisableColors({ env: { FORCE_COLOR: '1' } })).toBe(false)
   })
 
   test('false for a detected agent with SLS_INTERACTIVE_SETUP_ENABLE', async () => {
-    process.env = { ...savedEnv, AI_AGENT: 'claude-code_2-1-284_agent' }
+    process.env = { ...base, AI_AGENT: 'claude-code_2-1-284_agent' }
     await detectAgent()
     expect(
       shouldDisableColors({ env: { SLS_INTERACTIVE_SETUP_ENABLE: '1' } }),
@@ -270,7 +292,7 @@ describe('shouldDisableColors', () => {
   test.each([[null], ['FORCE_COLOR=1'], [42]])(
     'env %p falls back to the process environment',
     async (env) => {
-      process.env = { ...savedEnv, AI_AGENT: 'claude-code_2-1-284_agent' }
+      process.env = { ...base, AI_AGENT: 'claude-code_2-1-284_agent' }
       delete process.env.FORCE_COLOR
       delete process.env.SLS_INTERACTIVE_SETUP_ENABLE
       await detectAgent()
@@ -286,7 +308,7 @@ describe('shouldDisableColors', () => {
   })
 
   test('reads process.env by default', async () => {
-    process.env = { ...savedEnv, AI_AGENT: 'claude-code_2-1-284_agent' }
+    process.env = { ...base, AI_AGENT: 'claude-code_2-1-284_agent' }
     delete process.env.FORCE_COLOR
     delete process.env.SLS_INTERACTIVE_SETUP_ENABLE
     await detectAgent()
@@ -296,5 +318,37 @@ describe('shouldDisableColors', () => {
     delete process.env.FORCE_COLOR
     process.env.SLS_INTERACTIVE_SETUP_ENABLE = '1'
     expect(shouldDisableColors()).toBe(false)
+  })
+})
+
+describe('isAgentSession', () => {
+  const NOT_AN_AGENT = { isAgent: false, name: null }
+
+  test('no agent: not an agent session', () => {
+    expect(isAgentSession({ agent: NOT_AN_AGENT, env: {} })).toBe(false)
+    expect(isAgentSession({ agent: null, env: {} })).toBe(false)
+  })
+
+  test('an agent: an agent session, whatever the colour settings', () => {
+    expect(isAgentSession({ agent: CLAUDE, env: {} })).toBe(true)
+    expect(isAgentSession({ agent: CLAUDE, env: { FORCE_COLOR: '1' } })).toBe(
+      true,
+    )
+  })
+
+  test('an agent with SLS_INTERACTIVE_SETUP_ENABLE set: a person, not an agent session', () => {
+    expect(
+      isAgentSession({
+        agent: CLAUDE,
+        env: { SLS_INTERACTIVE_SETUP_ENABLE: '1' },
+      }),
+    ).toBe(false)
+    // Set but empty does not count, as for the colour rule.
+    expect(
+      isAgentSession({
+        agent: CLAUDE,
+        env: { SLS_INTERACTIVE_SETUP_ENABLE: '' },
+      }),
+    ).toBe(true)
   })
 })

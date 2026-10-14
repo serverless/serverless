@@ -13,6 +13,21 @@ import { getBundledSkills } from './manifest.js'
 import { resolveTargetDirs, resolveUserTargetDirs } from './resolve-targets.js'
 import { hasManagedSkills, syncSkills } from './engine.js'
 
+/**
+ * The changes as one list, each skill change named once however many folders it happened in:
+ * `serverless-framework v1→v2, +serverless-dev-mode`.
+ */
+export const summarizeChanges = (changes) =>
+  [
+    ...new Set(
+      changes.map((c) =>
+        c.action === 'added'
+          ? `+${c.skill}`
+          : `${c.skill} v${c.fromVersion}→v${c.toVersion}`,
+      ),
+    ),
+  ].join(', ')
+
 export const autoUpdateAgentSkills = async ({
   command,
   configFilePath,
@@ -73,14 +88,9 @@ export const autoUpdateAgentSkills = async ({
     }
 
     if (changes.length) {
-      const summary = changes
-        .map((c) =>
-          c.action === 'added'
-            ? `+${c.skill}`
-            : `${c.skill} v${c.fromVersion}→v${c.toVersion}`,
-        )
-        .join(', ')
-      logger.notice(`Serverless agent skills updated: ${summary}`)
+      logger.notice(
+        `Serverless agent skills updated: ${summarizeChanges(changes)}`,
+      )
     }
   } catch (error) {
     logger.debug('Agent skills auto-update failed:', error?.message || error)

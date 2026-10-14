@@ -14,7 +14,7 @@ description: >-
   endpoint.
 metadata:
   managed-by: serverless-framework
-  version: '3'
+  version: '4'
   author: Serverless Inc.
 ---
 
@@ -79,7 +79,7 @@ function.
 "The YAML looks right" and "the deploy printed an endpoint" are not success
 signals: the endpoint exists before the protocol works.
 
-```
+```text
 success signal → write the module → declare it → deploy → verify a real
 round trip → clean up scratch stacks
 ```
@@ -126,9 +126,9 @@ Trust an observed JSON-RPC result, a status code, or a log line.
 
 **Dev Mode serves MCP servers.** Under `serverless dev` your local module
 answers the deployed endpoint, with access control and discovery still in
-force. Results are buffered and each request runs the module fresh, so test
-streaming and long tools on a normal deploy, and run `serverless deploy` after
-the session: [references/dev-mode.md](references/dev-mode.md).
+force; responses and progress stream as deployed, and stopping the session
+restores the deployed server: [references/dev-mode.md](references/dev-mode.md).
+The `serverless-dev-mode` skill covers the session itself.
 
 **Don't hand-wire what the Framework wires.** Your own `http` event, streaming
 handler or discovery route around an `mcp` server duplicates work already

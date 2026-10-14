@@ -29,10 +29,106 @@ describe('compose teaching errors', () => {
     )
   })
 
+  test('project-level dev suggests the per-service commands with the options given', async () => {
+    const error = await runCompose(
+      runComposeArgs(['dev'], { stage: 'nscxd', region: 'us-east-1' }),
+    ).catch((caught) => caught)
+    expect(error.message).toBe(
+      'In a Compose project, "dev" runs on one service at a time. Start it for a specific service:\n' +
+        '  serverless api dev --stage nscxd --region us-east-1\n' +
+        '  serverless worker dev --stage nscxd --region us-east-1',
+    )
+  })
+
+  test('the suggested commands carry only the scope options, values quoted only when needed', async () => {
+    const error = await runCompose(
+      runComposeArgs(['dev'], {
+        s: 'my stage',
+        r: 'eu-west-1',
+        'aws-profile': 'dev-profile',
+        c: 'serverless-compose.yml',
+        f: ['a', 'b'],
+        'take-over': true,
+        detach: false,
+        debug: '*',
+      }),
+    ).catch((caught) => caught)
+    expect(error.message).toContain(
+      "  serverless api dev -s 'my stage' -r eu-west-1 --aws-profile dev-profile -c serverless-compose.yml\n",
+    )
+  })
+
+  test('no other option value reaches the message, which the error event carries', async () => {
+    const SECRET = 'dbPassword=hunter2-secret'
+    for (const options of [
+      { param: SECRET, stage: 'ci' },
+      { param: [SECRET, 'other=value'], 'aws-profile': 'ci' },
+      { 'some-plugin-token': 'tok_secret_123', region: 'us-east-1' },
+    ]) {
+      const error = await runCompose(runComposeArgs(['dev'], options)).catch(
+        (caught) => caught,
+      )
+      expect(error.message).toMatch(
+        /serverless api dev --(stage|aws-profile|region) /,
+      )
+      expect(error.message).not.toContain('hunter2')
+      expect(error.message).not.toContain('other=value')
+      expect(error.message).not.toContain('tok_secret_123')
+      expect(error.message).not.toContain('--param')
+    }
+  })
+
   test('unsupported project-level command names supported commands and the per-service form', async () => {
     await expect(runCompose(runComposeArgs(['logs']))).rejects.toThrow(
       /Project-wide commands: deploy, info, remove, print, package[\s\S]*serverless <service> logs/,
     )
+  })
+
+  test('a refused project-level command names only its own words, never a positional value', async () => {
+    const ID = '3f2a9c1e-0000-4000-8000-00000000000b'
+    for (const command of [
+      ['dev', 'replay', ID, 'my-secret-word'],
+      ['nope', 'dev', 'replay', ID],
+    ]) {
+      const error = await runCompose(runComposeArgs(command)).catch(
+        (caught) => caught,
+      )
+      expect(error).toBeInstanceOf(Error)
+      expect(error.message).not.toContain(ID)
+      expect(error.message).not.toContain('my-secret-word')
+    }
+    const atRoot = await runCompose(
+      runComposeArgs(['dev', 'replay', ID]),
+    ).catch((caught) => caught)
+    expect(atRoot.message).toContain('The command "dev replay" is not')
+    expect(atRoot.message).toContain('serverless <service> dev replay.')
+    const noService = await runCompose(
+      runComposeArgs(['nope', 'dev', 'replay', ID]),
+    ).catch((caught) => caught)
+    expect(noService.message).toBe(
+      'The service nope does not exist in the Compose configuration.',
+    )
+  })
+
+  test('a --service refusal never names a positional value', async () => {
+    const ID = '3f2a9c1e-0000-4000-8000-00000000000b'
+    const command = () => ['dev', 'replay', ID, 'my-secret-word']
+    const empty = await runCompose(
+      runComposeArgs(command(), { service: ',' }),
+    ).catch((caught) => caught)
+    expect(empty.message).toBe(
+      'No services were resolved from --service. Provide a comma-separated list of service names, e.g.: serverless dev replay --service=<service-a>,<service-b>.',
+    )
+    const list = await runCompose(
+      runComposeArgs(command(), { service: 'api,worker' }),
+    ).catch((caught) => caught)
+    expect(list.message).toBe(
+      'The command "dev replay" runs on one service at a time and cannot be used with a service list. Run it for a single service, e.g.: serverless api dev replay.',
+    )
+    for (const error of [empty, list]) {
+      expect(error.message).not.toContain(ID)
+      expect(error.message).not.toContain('my-secret-word')
+    }
   })
 
   test('a --service value that resolves to no names is rejected, not run whole-graph', async () => {

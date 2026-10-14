@@ -1,3 +1,6 @@
+dev-mode-bridge/layer/sls-dev-wrapper text eol=lf
+dev-mode-bridge/layer/sls-dev-THIRD_PARTY_NOTICES text eol=lf
+packages/sf-core/tests/integration/dev-mode/fixture/chain-wrapper.sh text eol=lf
 # The resolver fixtures are compared with golden files that use LF line
 # endings, including the source text of exported functions, so check them out
 # with LF on every platform.

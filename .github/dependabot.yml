@@ -27,7 +27,6 @@ updates:
           - '@aws-sdk/*'
           - '@smithy/*'
           - 'aws-sdk-v3-proxy'
-          - 'aws-iot-device-sdk'
       dev-dependencies:
         patterns:
           - '*'
@@ -106,6 +105,24 @@ updates:
       semver-major-days: 30
       semver-minor-days: 7
       semver-patch-days: 3
+
+  # Maintain the Dev Mode bridge's Go dependencies. Every bump changes the layer zips (and so
+  # publishes a new layer version in users' accounts), so they are grouped into one update.
+  # A bump also needs layer/sls-dev-THIRD_PARTY_NOTICES regenerated (go run ./cmd/notices); the
+  # bridge's tests fail until it is.
+  - package-ecosystem: 'gomod'
+    directory: '/dev-mode-bridge'
+    schedule:
+      interval: 'weekly'
+    cooldown:
+      default-days: 5
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
+    groups:
+      dev-mode-bridge:
+        patterns:
+          - '*'
 
   # Maintain Maven dependencies for Java runtime wrapper
   - package-ecosystem: 'maven'

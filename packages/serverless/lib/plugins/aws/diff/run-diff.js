@@ -14,10 +14,11 @@ import ServerlessError from '../../../serverless-error.js'
 const { diffTemplate, Formatter } = cfDiff
 
 /**
- * The stream the diff is rendered to: stdout, or for an AI coding agent that has not asked for
- * colour, stdout with escape codes stripped. `@aws-cdk/cloudformation-diff` colours its change
- * markers and table borders once, when it is first loaded, so turning chalk off at render time
- * cannot remove them. The Formatter only calls `write` and reads `columns`.
+ * The stream the diff is rendered to: stdout, or, when the CLI's colour rule turns colours off
+ * (FORCE_COLOR=0 or false, NO_COLOR, an AI coding agent), stdout with escape codes stripped.
+ * `@aws-cdk/cloudformation-diff` colours its change markers and table borders once, when it is
+ * first loaded, so turning chalk off at render time cannot remove them. The Formatter only calls
+ * `write` and reads `columns`.
  */
 export const diffOutputStream = () => {
   if (!shouldDisableColors()) return process.stdout
