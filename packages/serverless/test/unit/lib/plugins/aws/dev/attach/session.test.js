@@ -3438,8 +3438,14 @@ describe('the relay in a session', () => {
     first.proc.emit('SIGINT', 'SIGINT')
     await first.result
     const name = 'serverless-dev-broker-us-east-1'
-    first.iam.roles.get(name).CreateDate = new Date(Date.now() - 150_000)
-    const second = start({ ...four, lambda: first.lambda, iam: first.iam })
+    const nowMs = 1_790_000_000_000
+    first.iam.roles.get(name).CreateDate = new Date(nowMs - 150_000)
+    const second = start({
+      ...four,
+      lambda: first.lambda,
+      iam: first.iam,
+      deps: { now: () => nowMs },
+    })
     await second.whenReady
     const text = second.logger.text()
     expect(text).toContain(

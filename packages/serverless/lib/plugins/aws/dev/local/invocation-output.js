@@ -288,6 +288,17 @@ const streamedReplyOf = ({ contentType, bodyHead, bodyBytes }) => {
 }
 
 /**
+ * A reply as `describeMcpResponse` reads it, an HTTP response with a text body: a payload without
+ * that shape (a stream without a prelude) becomes the body.
+ */
+const asHttpReply = (replied) =>
+  typeof replied?.body === 'string'
+    ? replied
+    : {
+        body: typeof replied === 'string' ? replied : JSON.stringify(replied),
+      }
+
+/**
  * Counts the chunks of a stream's body, the part its caller receives as the response. A stream
  * opened with Lambda's HTTP integration prelude starts with writes of its own (its metadata, then
  * 8 NUL bytes) that are not body: they never count, and a chunk that ends the prelude counts only
@@ -694,7 +705,9 @@ export const createInvocationOutput = ({
         const text = fit(outcome.text)
         status = outcome.tone === 'ok' ? style.success(text) : text
         const rpcError =
-          mcp && replied !== undefined ? describeMcpResponse(replied) : null
+          mcp && replied !== undefined
+            ? describeMcpResponse(asHttpReply(replied))
+            : null
         if (rpcError && room > 1) {
           room -= 1
           status += ` ${style.error(fit(`── ${rpcError}`))}`

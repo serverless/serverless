@@ -1265,6 +1265,23 @@ describe('createInvocationOutput', () => {
       ])
     })
 
+    test('shows a JSON-RPC error in a stream without a prelude, in a JSON or an SSE body', () => {
+      const { output, lines } = capture({ mcpFunctions: new Set(['crm']) })
+      const bare = (type, text) =>
+        streamEnd(Buffer.from(text), {
+          contentType: type,
+          reply: { kind: 'stream', contentType: type },
+        })
+      output.end(bare('application/json', rpcError))
+      output.end(
+        bare('text/event-stream', `event: message\ndata: ${rpcError}\n\n`),
+      )
+      expect(lines).toEqual([
+        '← λ crm (ok) ── error -32602: Tool noSuchTool not found 158ms · first byte 150ms, 1 chunk · 3f2a9c1e',
+        '← λ crm (ok) ── error -32602: Tool noSuchTool not found 158ms · first byte 150ms, 1 chunk · 3f2a9c1e',
+      ])
+    })
+
     test('--detailed prints the response, its credential headers and cookies redacted', () => {
       const { output, lines } = capture({
         detailed: true,
