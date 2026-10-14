@@ -22,16 +22,42 @@ describe('promptWithInput', () => {
     expect(input.listenerCount('end')).toBe(0)
   })
 
-  it('fails when the input ends before an answer', async () => {
+  it('resolves with an answer read before the input ended', async () => {
+    // A piped answer: enquirer is still working through its keys at the end
+    const input = new PassThrough()
+    const enquirer = fakeEnquirer()
+    const answered = promptWithInput(enquirer, question, input)
+    input.end()
+    input.resume()
+    await new Promise((resolve) => input.once('end', resolve))
+    enquirer.answer({ input: 'bob' })
+    await expect(answered).resolves.toEqual({ input: 'bob' })
+    expect(process.listeners('beforeExit')).toHaveLength(0)
+  })
+
+  it('fails when the input ends and nothing else is left to run', async () => {
     const input = new PassThrough()
     const answered = promptWithInput(fakeEnquirer(), question, input)
     input.end()
     input.resume()
+    await new Promise((resolve) => input.once('end', resolve))
+    process.emit('beforeExit', 0)
     await expect(answered).rejects.toMatchObject({
       code: 'PROMPT_WITHOUT_INPUT',
       message:
         '"Enter MFA code" needs an answer, but the input has ended. Run the command in an interactive terminal.',
     })
+  })
+
+  it('fails a while after the input ended when other work keeps running', async () => {
+    const input = new PassThrough()
+    const answered = promptWithInput(fakeEnquirer(), question, input, 20)
+    input.end()
+    input.resume()
+    await expect(answered).rejects.toMatchObject({
+      code: 'PROMPT_WITHOUT_INPUT',
+    })
+    expect(process.listeners('beforeExit')).toHaveLength(0)
   })
 
   it('fails at once when the input has already ended', async () => {

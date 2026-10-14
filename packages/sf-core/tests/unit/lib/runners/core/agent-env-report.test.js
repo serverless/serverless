@@ -810,6 +810,25 @@ describe('detectAwsCredentials', () => {
     expect(stdout.trim()).toBe('timeout')
   })
 
+  it('credentials that need input with none to give: unverified, not rejected', async () => {
+    const error = new Error('"Enter MFA code" needs an answer')
+    error.code = 'PROMPT_WITHOUT_INPUT'
+    const r = await detectAwsCredentials({
+      env: { AWS_PROFILE: 'mfa' },
+      getProvider: async () => ({
+        resolveCredentials: async () => {
+          throw error
+        },
+      }),
+    })
+    expect(r).toEqual({
+      state: 'profile',
+      profile: 'mfa',
+      check: 'unverified',
+      reason: 'prompt',
+    })
+  })
+
   it('never rejects out of the detector', async () => {
     const r = await detectAwsCredentials({
       env: {},
@@ -1229,6 +1248,21 @@ describe('renderEnvironmentReport', () => {
         { ...ok, check: 'unverified', reason: 'timeout' },
       ),
     ).not.toContain(HINT)
+  })
+
+  it('says credentials that need input were not verified, not rejected by AWS', () => {
+    const lines = render(
+      { state: 'env-license' },
+      {
+        state: 'profile',
+        profile: 'mfa',
+        check: 'unverified',
+        reason: 'prompt',
+      },
+    )
+    expect(lines[2]).toBe(
+      'aws credentials: profile "mfa" — not verified: the profile asks for input, such as an MFA code, and there is no terminal to answer it; run "serverless agent setup" in an interactive terminal',
+    )
   })
 
   it('orders the report service, auth, aws credentials', () => {

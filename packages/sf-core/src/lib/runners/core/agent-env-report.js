@@ -128,7 +128,8 @@ const hasVariable = (value) => typeof value === 'string' && value.includes('${')
  *   `sso-expired` / `none`; `check` says whether AWS confirmed it
  *   (`verified`, with `account` and `region`), refused it (`rejected`, with
  *   AWS's words in `reason`), or could not be asked (`unverified`: `timeout`,
- *   `network` with the error in `detail`, or `variable` for a profile or
+ *   `network` with the error in `detail`, `prompt` when the credentials need
+ *   input such as an MFA code and there is none, or `variable` for a profile or
  *   region that only variable resolution could name; `variableRegion` holds
  *   the unresolved region when that is the setting).
  */
@@ -238,6 +239,10 @@ export const detectAwsCredentials = async ({
         ...(credentialResolver && { resolver: credentialResolver.name }),
         ...(resolverConfig?.dashboard === false && { dashboardDisabled: true }),
       }
+    }
+    // The credentials ask for input, such as an MFA code, and there is none
+    if (error?.code === 'PROMPT_WITHOUT_INPUT') {
+      return { ...found, check: 'unverified', reason: 'prompt' }
     }
     // The lookup never reached AWS: the network, not the credentials.
     if (
@@ -396,7 +401,9 @@ const AWS_CHECK_TEXT = {
   unverified: (aws) =>
     aws.reason === 'network'
       ? ` — not verified: could not reach AWS (${aws.detail}); check the network or proxy, then re-run "serverless agent setup"`
-      : ' — not verified: no answer from AWS within 15 s (the network, not the credentials); re-run "serverless agent setup", or "serverless package" checks them',
+      : aws.reason === 'prompt'
+        ? ' — not verified: the profile asks for input, such as an MFA code, and there is no terminal to answer it; run "serverless agent setup" in an interactive terminal'
+        : ' — not verified: no answer from AWS within 15 s (the network, not the credentials); re-run "serverless agent setup", or "serverless package" checks them',
 }
 
 // A deploy signed in as a user or with an access key takes the org's AWS

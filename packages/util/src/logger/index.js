@@ -144,8 +144,16 @@ renderer.isInteractive = computeIsInteractive()
 /**
  * Asks an enquirer question, failing it when there is no input left to answer with: once the
  * input has ended (a closed pipe, `< /dev/null`), a prompt would otherwise wait forever.
+ * enquirer may still be working through keys it read before the end (a piped answer, about a
+ * millisecond per key), so the prompt fails once nothing else is left to run, or `graceMs` after
+ * the end when other work keeps Node.js running.
  */
-export const promptWithInput = (enquirer, question, input = process.stdin) => {
+export const promptWithInput = (
+  enquirer,
+  question,
+  input = process.stdin,
+  graceMs = 2000,
+) => {
   const noInput = () =>
     new ServerlessError(
       `"${util.stripVTControlCharacters(question.message)}" needs an answer, but the input has ended. Run the command in an interactive terminal.`,
@@ -154,12 +162,23 @@ export const promptWithInput = (enquirer, question, input = process.stdin) => {
     )
   if (input.readableEnded) return Promise.reject(noInput())
   return new Promise((resolve, reject) => {
-    const onEnd = () => reject(noInput())
+    let timer
+    const cleanUp = () => {
+      input.removeListener('end', onEnd)
+      process.removeListener('beforeExit', fail)
+      clearTimeout(timer)
+    }
+    const fail = () => {
+      cleanUp()
+      reject(noInput())
+    }
+    const onEnd = () => {
+      process.once('beforeExit', fail)
+      timer = setTimeout(fail, graceMs)
+      timer.unref()
+    }
     input.once('end', onEnd)
-    enquirer
-      .prompt(question)
-      .then(resolve, reject)
-      .finally(() => input.removeListener('end', onEnd))
+    enquirer.prompt(question).finally(cleanUp).then(resolve, reject)
   })
 }
 // Whether progress may render as a spinner animation: the session must be interactive AND the
