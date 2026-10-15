@@ -87,7 +87,9 @@ jobs:
         with:
           node-version: 24.x
           check-latest: true
-          cache: npm
+          # No cache in release builds, so a poisoned cache can't reach what
+          # ships; package-manager-cache also stops the automatic npm cache.
+          package-manager-cache: false
       - name: 'Setup: Enable Corepack'
         run: corepack enable npm
       - name: 'Install: Dependencies'
@@ -98,6 +100,8 @@ jobs:
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: dev-mode-bridge/go.mod
+          # No cache: Go reuses cached build output without checking it, and
+          # these layers ship to users, so they're always built from scratch.
           cache: false
       - name: 'Build: Dev Mode Layers'
         working-directory: ./packages/serverless
@@ -142,7 +146,9 @@ jobs:
         with:
           node-version: 24.x
           check-latest: true
-          cache: npm
+          # No cache in release builds, so a poisoned cache can't reach what
+          # ships; package-manager-cache also stops the automatic npm cache.
+          package-manager-cache: false
       - name: 'Setup: Enable Corepack'
         run: corepack enable npm
       - name: 'Setup: AWS Credentials'
@@ -158,6 +164,8 @@ jobs:
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: dev-mode-bridge/go.mod
+          # No cache: Go reuses cached build output without checking it, and
+          # these layers ship to users, so they're always built from scratch.
           cache: false
       - name: 'Build: Dev Mode Layers'
         working-directory: ./packages/serverless
@@ -190,7 +198,9 @@ jobs:
         with:
           node-version: 24.x
           check-latest: true
-          cache: npm
+          # No cache in release builds, so a poisoned cache can't reach what
+          # ships; package-manager-cache also stops the automatic npm cache.
+          package-manager-cache: false
           scope: '@serverless'
           registry-url: https://registry.npmjs.org
       - name: 'Setup: Enable Corepack'
