@@ -11,6 +11,8 @@ package bridge
 //     BrokerConn's Publish or Close, and the message path never takes it.
 //   - BrokerConn.Close is never called from OnMessage or OnLost: connections are closed by the
 //     invocation or Close that dropped them, or by a goroutine the relay waits for in Close.
+//   - An invocation waits, holding no lock, for OnLost to report the end of the connection it
+//     used (link.release, bounded by lossReportWait); OnLost never waits for an invocation.
 //   - uploadPool.mu, livenessCache.mu and awayCount.mu are leaves: nothing is called while holding
 //     them.
 //
@@ -69,6 +71,11 @@ const (
 	// IoT Core can refuse a CONNECT of a client id whose previous connection is still open (reason
 	// code 0x97), and a close stuck on a dead socket must not hold the invocation that waits.
 	staleCloseWait = 500 * time.Millisecond
+	// lossReportWait bounds how long an invocation the bridge answered, whose connection ended,
+	// waits before it hands off for the MQTT client to report the loss, so that its cause is logged
+	// while the environment still works (see release). The client reports it on a goroutine of its own right
+	// after it marks the connection done, and not at all after a Close that came first.
+	lossReportWait = 500 * time.Millisecond
 )
 
 // refusedForQuota says whether err is a CONNECT refused for one of AWS IoT Core's rate quotas.
@@ -132,6 +139,8 @@ type link struct {
 	// connection an invocation used is logged once whichever does.
 	endedUnder BrokerConn
 	endLogged  BrokerConn
+	// reported is closed, and replaced, each time lost() runs (see release).
+	reported chan struct{}
 }
 
 // connectFailed is errNotConnected with the cause of the last failed connect.
@@ -434,6 +443,12 @@ func (l *link) lost(ref *connRef, err error) {
 	if logIt {
 		l.logf("the connection to AWS IoT Core ended: %s", clean(err))
 	}
+	l.mu.Lock()
+	if l.reported != nil {
+		close(l.reported)
+		l.reported = nil
+	}
+	l.mu.Unlock()
 }
 
 // get returns a usable connection and its epoch, waiting at most `wait` for one to be made. A
@@ -491,14 +506,44 @@ func (l *link) get(ctx context.Context, wait time.Duration) (BrokerConn, int, er
 }
 
 // release marks the end of an invocation that got conn: idle time counts from here. A connection
-// that already ended, and whose end lost() has not logged yet, is remembered for lost().
-func (l *link) release(conn BrokerConn) {
+// that already ended, and whose end lost() has not logged yet, is remembered for lost(). When the
+// bridge answered the invocation itself, release also waits up to lossReportWait for that report:
+// the runtime then asks for its next invocation at once, and nothing is logged while it waits (see
+// runtimeWaiter), so the line that explains how this invocation ended would be lost. An invocation
+// the deployed code answers needs no wait: the environment works until the runtime asks again.
+func (l *link) release(conn BrokerConn, answered bool) {
 	l.mu.Lock()
-	defer l.mu.Unlock()
 	l.active--
 	l.lastUsed = l.now()
-	if conn != nil && conn != l.endLogged && ended(conn) {
-		l.endedUnder = conn
+	if conn == nil || conn == l.endLogged || !ended(conn) {
+		l.mu.Unlock()
+		return
+	}
+	l.endedUnder = conn
+	l.mu.Unlock()
+	if !answered {
+		return
+	}
+	timer := time.NewTimer(lossReportWait)
+	defer timer.Stop()
+	for {
+		l.mu.Lock()
+		if l.closed || l.endLogged == conn {
+			l.mu.Unlock()
+			return
+		}
+		if l.reported == nil {
+			l.reported = make(chan struct{})
+		}
+		reported := l.reported
+		l.mu.Unlock()
+		select {
+		case <-reported:
+		case <-timer.C:
+			return
+		case <-l.ctx.Done():
+			return
+		}
 	}
 }
 

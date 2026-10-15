@@ -273,7 +273,7 @@ func TestALostConnectionIsLoggedOnlyUnderAnInvocation(t *testing.T) {
 				case "end":
 					close(conn.done)
 				case "release":
-					l.release(conn)
+					l.release(conn, true)
 				case "broken":
 					l.broken(conn)
 				case "lost":
@@ -288,6 +288,47 @@ func TestALostConnectionIsLoggedOnlyUnderAnInvocation(t *testing.T) {
 			defer l.mu.Unlock()
 			if l.conn != nil {
 				t.Fatal("the link kept the connection that ended")
+			}
+		})
+	}
+}
+
+// An invocation the bridge answered itself hands off only once the end of its connection is
+// logged, or after lossReportWait when no report comes (a Close came first). One the deployed code
+// answers hands off at once: the environment works until the runtime asks again, so a later report
+// is still logged, and the deployed code never waits for it.
+func TestOnlyAnAnsweredInvocationWaitsForTheEndOfItsConnectionToBeReported(t *testing.T) {
+	for _, c := range []struct {
+		name     string
+		answered bool
+		wait     time.Duration
+	}{
+		{name: "answered by the bridge", answered: true, wait: lossReportWait},
+		{name: "answered by the deployed code", answered: false, wait: 0},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			now := time.Now()
+			conn := &restingConn{done: make(chan struct{})}
+			l := &link{
+				now:       func() time.Time { return now },
+				idleAfter: time.Minute,
+				logf:      func(string, ...any) {},
+				ctx:       ctx,
+				wg:        &sync.WaitGroup{},
+				conn:      conn,
+				lastUsed:  now,
+			}
+			if _, _, err := l.get(context.Background(), time.Second); err != nil {
+				t.Fatal(err)
+			}
+			close(conn.done)
+			started := time.Now()
+			l.release(conn, c.answered)
+			// The bound is what matters; the slack above it covers a slow scheduler under -race.
+			if waited := time.Since(started); waited < c.wait || waited > c.wait+lossReportWait/2 {
+				t.Fatalf("release waited %v with no report, want about %v", waited, c.wait)
 			}
 		})
 	}
@@ -355,7 +396,10 @@ func TestAConnectEndingWhileTheRuntimeWaitsWritesNothing(t *testing.T) {
 
 // A connection that ends while an invocation waits for its acceptance, or after it, is logged
 // with its cause exactly once, through the real MQTT client: it marks the connection done before
-// it reports the loss, so the invocation can hand off and release the link first.
+// it reports the loss, on a goroutine of its own, so the invocation can be answered before the
+// report comes. The report here comes late, as under a busy scheduler: an accepted invocation the
+// bridge answers itself still hands off only once the end is logged, since the bridge then waits
+// for the runtime's next invocation and writes nothing more.
 func TestAConnectionEndingUnderAnInvocationIsLoggedWithItsCause(t *testing.T) {
 	const cause = "the connection to AWS IoT Core ended: "
 	for _, accepted := range []bool{false, true} {
@@ -366,7 +410,7 @@ func TestAConnectionEndingUnderAnInvocationIsLoggedWithItsCause(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			timing := fastTiming()
 			timing.AcceptWindow = 20 * time.Second
-			h := newHarness(t, timing)
+			h := newHarnessWith(t, harnessOptions{timing: timing, lateLoss: lossReportWait / 5})
 			l := newLaptop(t, h.broker)
 			h.api.queue <- fakeInvocation{id: "req-1", deadline: deadlineIn(60 * time.Second), body: "{}"}
 			runtime := h.runtimeNext()

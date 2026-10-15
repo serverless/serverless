@@ -11,7 +11,7 @@ import (
 	"github.com/serverless/serverless/dev-mode-bridge/internal/protocol"
 )
 
-func (r *Relay) handle(ctx context.Context, st *relayed) bool {
+func (r *Relay) handle(ctx context.Context, st *relayed) (answered bool) {
 	inv := st.inv
 	id := inv.RequestID
 	t := r.d.Timing
@@ -39,7 +39,7 @@ func (r *Relay) handle(ctx context.Context, st *relayed) bool {
 		}
 		return r.logPass(id, fmt.Sprintf("no connection to AWS IoT Core (%s)", clean(err)))
 	}
-	defer r.link.release(conn)
+	defer func() { r.link.release(conn, answered) }()
 	st.conn = conn
 	defer func() {
 		if st.suspect || st.replace {
