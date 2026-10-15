@@ -8,7 +8,7 @@
   "devEngines": {
     "runtime": {
       "name": "node",
-      "version": "^24.15.0",
+      "version": "^24.15.0 || ^26.0.0",
       "onFail": "warn"
     },
     "packageManager": {
