@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/serverless/serverless/dev-mode-bridge/internal/awsauth"
 	"github.com/serverless/serverless/dev-mode-bridge/internal/mqttws"
 	"github.com/serverless/serverless/dev-mode-bridge/internal/mqttws/mqttwstest"
 	"github.com/serverless/serverless/dev-mode-bridge/internal/protocol"
@@ -493,6 +494,35 @@ func TestAConnectionEndingUnderAnInvocationIsLoggedWithItsCause(t *testing.T) {
 			}
 		})
 	}
+}
+
+// An accepted invocation that fails because the relay panicked is answered by the bridge too: when
+// its connection had ended, it hands off only once the cause of the end is logged.
+func TestAPanicAfterTheConnectionEndedStillLogsTheCause(t *testing.T) {
+	const cause = "the connection to AWS IoT Core ended: "
+	timing := fastTiming()
+	timing.AcceptWindow = 20 * time.Second
+	h := newHarnessWith(t, harnessOptions{timing: timing, lateLoss: lossReportWait / 5, ping: func(h *harness) (awsauth.Liveness, error) {
+		if h.pings.Load() == 1 {
+			return awsauth.Live, nil
+		}
+		// The first silence check: the connection ends, then the relay panics.
+		h.relay.link.mu.Lock()
+		conn := h.relay.link.conn
+		h.relay.link.mu.Unlock()
+		h.broker.Drop(bridgeID)
+		<-conn.Done()
+		panic("liveness exploded")
+	}})
+	l := newLaptop(t, h.broker)
+	h.api.queue <- fakeInvocation{id: "req-1", deadline: deadlineIn(60 * time.Second), body: "{}"}
+	h.runtimeNext()
+	l.read(t)
+	l.send(t, protocol.Header{Kind: protocol.KindAccepted, ID: "req-1"}, nil)
+	if p := h.api.next(t); p.errorType != "Runtime.DevModeRelayFailed" {
+		t.Fatalf("posted %+v, want Runtime.DevModeRelayFailed", p)
+	}
+	waitFor(t, "the cause of the end to be logged", func() bool { return strings.Contains(h.logs.joined(), cause) })
 }
 
 // A connection that ends while the invoke is being published is logged with its cause exactly

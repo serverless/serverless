@@ -39,7 +39,14 @@ func (r *Relay) handle(ctx context.Context, st *relayed) (answered bool) {
 		}
 		return r.logPass(id, fmt.Sprintf("no connection to AWS IoT Core (%s)", clean(err)))
 	}
-	defer func() { r.link.release(conn, answered) }()
+	defer func() {
+		defer func() { r.link.release(conn, answered) }()
+		// A panic is recovered here, before the connection is released, so that an invocation it
+		// fails after acceptance counts as answered by the bridge (see link.release).
+		if p := recover(); p != nil {
+			answered = r.recovered(st, p)
+		}
+	}()
 	st.conn = conn
 	defer func() {
 		if st.suspect || st.replace {
