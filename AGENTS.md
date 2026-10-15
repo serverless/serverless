@@ -108,7 +108,7 @@ New integration tests must be self-cleaning (deploy → exercise → teardown, e
 ### Other Suites
 
 ```bash
-npm test -w @serverless/mcp                          # mcp tests (NOT run by any CI workflow)
+npm test -w @serverless/mcp                          # mcp unit + e2e tests (CI runs only the unit part; tests/e2e is not run by any workflow)
 npm test -w @serverless/engine                       # engine unit tests
 npm run test:python -w @serverlessinc/sf-core        # python plugin tests
 npm run test:build -w @serverlessinc/sf-core         # build + pack the release locally, then run the packaging checks
