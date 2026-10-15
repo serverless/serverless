@@ -46,7 +46,7 @@ export default {
   },
   normalizePathPart(rawPath) {
     return _.upperFirst(
-      _.capitalize(rawPath)
+      rawPath
         .replace(/-/g, 'Dash')
         .replace(/\{(.*)\}/g, '$1Var')
         .replace(/[^0-9A-Za-z]/g, ''),
