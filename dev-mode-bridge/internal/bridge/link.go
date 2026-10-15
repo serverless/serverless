@@ -433,17 +433,22 @@ func (l *link) lost(ref *connRef, err error) {
 	}
 	underInvocation := (current && l.active > 0) || (ref.conn != nil && l.endedUnder == ref.conn)
 	logIt := underInvocation && !l.closed
+	if underInvocation && l.endedUnder == ref.conn {
+		l.endedUnder = nil
+	}
+	l.mu.Unlock()
+	if logIt {
+		l.logf("the connection to AWS IoT Core ended: %s", clean(err))
+	}
+	// Marked only once the line is written: an invocation waiting in release hands off after it,
+	// and one released meanwhile (it set endedUnder again) is not remembered past it.
+	l.mu.Lock()
 	if underInvocation {
 		l.endLogged = ref.conn
 		if l.endedUnder == ref.conn {
 			l.endedUnder = nil
 		}
 	}
-	l.mu.Unlock()
-	if logIt {
-		l.logf("the connection to AWS IoT Core ended: %s", clean(err))
-	}
-	l.mu.Lock()
 	if l.reported != nil {
 		close(l.reported)
 		l.reported = nil

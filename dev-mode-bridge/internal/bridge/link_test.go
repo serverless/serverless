@@ -334,6 +334,59 @@ func TestOnlyAnAnsweredInvocationWaitsForTheEndOfItsConnectionToBeReported(t *te
 	}
 }
 
+// An invocation the bridge answered hands off only once the line about the end of its connection
+// is written, not as soon as the loss report has begun: once it hands off, nothing is logged.
+func TestAnAnsweredInvocationHandsOffAfterTheEndOfItsConnectionIsWritten(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	var mu sync.Mutex
+	var order []string
+	note := func(event string) {
+		mu.Lock()
+		defer mu.Unlock()
+		order = append(order, event)
+	}
+	writing, write := make(chan struct{}), make(chan struct{})
+	now := time.Now()
+	conn := &restingConn{done: make(chan struct{})}
+	l := &link{
+		now:       func() time.Time { return now },
+		idleAfter: time.Minute,
+		logf: func(string, ...any) {
+			close(writing)
+			<-write
+			note("logged")
+		},
+		ctx:      ctx,
+		wg:       &sync.WaitGroup{},
+		conn:     conn,
+		lastUsed: now,
+	}
+	if _, _, err := l.get(context.Background(), time.Second); err != nil {
+		t.Fatal(err)
+	}
+	close(conn.done)
+	go l.lost(&connRef{conn: conn}, errors.New("ended"))
+	<-writing
+	released := make(chan struct{})
+	go func() {
+		defer close(released)
+		l.release(conn, true)
+		note("released")
+	}()
+	select {
+	case <-released:
+	case <-time.After(lossReportWait / 5):
+	}
+	close(write)
+	<-released
+	mu.Lock()
+	defer mu.Unlock()
+	if len(order) != 2 || order[0] != "logged" {
+		t.Fatalf("events %v: the invocation handed off before the end of its connection was written", order)
+	}
+}
+
 // The case seen in AWS: an attached environment outlives its session, idle, and AWS IoT Core
 // ends its connection (keep-alive timeout) while the runtime waits for an invocation that never
 // comes. The bridge writes nothing.
