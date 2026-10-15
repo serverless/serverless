@@ -391,6 +391,9 @@ export const downloadTemplate = async (inputUrl, newTemplateName) => {
     path.join(newServicePath, 'serverless.template.yml'),
   )
 
+  // Remove .git if it exists
+  await removeFileOrDirectory(path.join(newServicePath, '.git'))
+
   return newServicePath
 }
 
