@@ -92,7 +92,8 @@ jobs:
         run: npm run test:unit
 
   integration:
-    name: 'Integration (${{ matrix.platform }}, ${{ matrix.leg }})'
+    # The Node.js version here must match the one 'Setup: Node.js' picks below.
+    name: "Integration (${{ matrix.platform }}, Node.js ${{ matrix.platform == 'ubuntu-24.04-arm' && '26.x' || '24.x' }}, ${{ matrix.leg }})"
     # One leg per test account and platform: separate runners lift the
     # single-runner ceiling and AWS rate limits stay per account.
     # tests/integration/shards.json says which suites run in which shard;
@@ -144,6 +145,7 @@ jobs:
       - name: 'Setup: Node.js'
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
+          # Keep in step with the Node.js version in the job name above.
           node-version: ${{ matrix.platform == 'ubuntu-24.04-arm' && '26.x' || '24.x' }}
           check-latest: true
           cache: npm
