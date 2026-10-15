@@ -1,6 +1,6 @@
 import Ajv, { _ } from 'ajv'
 import { fullFormats } from 'ajv-formats/dist/formats.js'
-import objectHash from 'object-hash'
+import crypto from 'crypto'
 import path from 'path'
 import os from 'os'
 import { default as standaloneCode } from 'ajv/dist/standalone/index.js'
@@ -9,7 +9,6 @@ import fsp from 'fs/promises'
 import { fileURLToPath } from 'url'
 import safeMoveFile from '../../utils/fs/safe-move-file.js'
 import requireFromString from 'require-from-string'
-import deepSortObjectByKey from '../../utils/deep-sort-object-by-key.js'
 import ensureExists from '../../utils/ensure-exists.js'
 import ServerlessError from '../../serverless-error.js'
 
@@ -48,8 +47,30 @@ const isFile = async (filePath) => {
 // of speeding up tests and reducing their memory footprint.
 const cachedValidatorsBySchemaHash = {}
 
+// The cache key is a hash of the schema's JSON with object keys sorted. A JSON
+// Schema is JSON, and ajv itself embeds it into the standalone validator with
+// `JSON.stringify`. Keys are sorted by code unit, not `localeCompare`, so the
+// key (and the cache file name) does not depend on the machine's locale.
+// Hashing one string is cheap next to walking the object, which matters: the
+// schema arrives here with every `$ref` inlined (hundreds of KB), on every
+// command.
+const sortKeys = (key, value) =>
+  value && typeof value === 'object' && !Array.isArray(value)
+    ? Object.fromEntries(
+        Object.keys(value)
+          .sort()
+          .map((k) => [k, value[k]]),
+      )
+    : value
+
+export const getSchemaHash = (schema) =>
+  crypto
+    .createHash('sha256')
+    .update(JSON.stringify(schema, sortKeys))
+    .digest('hex')
+
 const getValidate = async (schema) => {
-  const schemaHash = objectHash(deepSortObjectByKey(schema))
+  const schemaHash = getSchemaHash(schema)
   if (cachedValidatorsBySchemaHash[schemaHash]) {
     return cachedValidatorsBySchemaHash[schemaHash]
   }
