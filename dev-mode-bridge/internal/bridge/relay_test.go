@@ -230,6 +230,9 @@ type harnessOptions struct {
 	retryable func(error) bool
 	broker    func(b *mqttwstest.Broker) // changes the broker before the relay first connects
 	onDial    func()                     // called as each connect begins, before it dials
+	// lateLoss delays the MQTT client's report of a lost connection, which it makes on a goroutine
+	// of its own after it marks the connection done.
+	lateLoss time.Duration
 }
 
 func fastTiming() Timing {
@@ -266,6 +269,13 @@ func newHarnessWith(t *testing.T, o harnessOptions) *harness {
 		h.dialMu.Unlock()
 		if o.onDial != nil {
 			o.onDial()
+		}
+		if o.lateLoss > 0 {
+			report := onLost
+			onLost = func(err error) {
+				time.Sleep(o.lateLoss)
+				report(err)
+			}
 		}
 		if o.dial != nil {
 			return o.dial(ctx, onMessage, onLost)
