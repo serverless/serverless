@@ -129,4 +129,67 @@ describe('APIGatewayV2Wrapper', () => {
     expect(result).toBeNull()
     expect(sendMock).not.toHaveBeenCalled()
   })
+
+  it('keeps the live ipAddressType when updating securityPolicy', async () => {
+    const wrapper = new APIGatewayV2Wrapper()
+    const sendMock = jest
+      .spyOn(wrapper.apiGateway, 'send')
+      .mockResolvedValue({ regionalDomainName: 'd.example.com' })
+
+    await wrapper.updateCustomDomain({
+      givenDomainName: 'api.example.com',
+      hasSecurityPolicyConfigured: true,
+      certificateArn: 'arn:configured',
+      securityPolicy: 'TLS_1_2',
+      domainInfo: {
+        securityPolicy: 'TLS_1_0',
+        ipAddressType: 'dualstack',
+      },
+    })
+
+    expect(sendMock.mock.calls[0][0].input.DomainNameConfigurations).toEqual([
+      {
+        CertificateArn: 'arn:configured',
+        SecurityPolicy: 'TLS_1_2',
+        IpAddressType: 'dualstack',
+      },
+    ])
+  })
+
+  it('sets IpAddressType on create when ipAddressType is provided', async () => {
+    const wrapper = new APIGatewayV2Wrapper()
+    const sendMock = jest
+      .spyOn(wrapper.apiGateway, 'send')
+      .mockResolvedValue({ regionalDomainName: 'd.example.com' })
+
+    await wrapper.createCustomDomain({
+      givenDomainName: 'api.example.com',
+      endpointType: Globals.endpointTypes.regional,
+      certificateArn: 'arn:configured',
+      securityPolicy: 'TLS_1_2',
+      ipAddressType: 'dualstack',
+    })
+
+    expect(
+      sendMock.mock.calls[0][0].input.DomainNameConfigurations[0].IpAddressType,
+    ).toBe('dualstack')
+  })
+
+  it('omits IpAddressType on create when ipAddressType is not provided', async () => {
+    const wrapper = new APIGatewayV2Wrapper()
+    const sendMock = jest
+      .spyOn(wrapper.apiGateway, 'send')
+      .mockResolvedValue({ regionalDomainName: 'd.example.com' })
+
+    await wrapper.createCustomDomain({
+      givenDomainName: 'api.example.com',
+      endpointType: Globals.endpointTypes.regional,
+      certificateArn: 'arn:configured',
+      securityPolicy: 'TLS_1_2',
+    })
+
+    expect(
+      sendMock.mock.calls[0][0].input.DomainNameConfigurations[0],
+    ).not.toHaveProperty('IpAddressType')
+  })
 })

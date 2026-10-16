@@ -23,6 +23,10 @@ export default class Globals {
     regional: 'REGIONAL',
   }
 
+  static ipAddressTypes = {
+    dualstack: 'dualstack',
+  }
+
   static accessModes = {
     basic: 'BASIC',
     strict: 'STRICT',

@@ -56,6 +56,10 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
       params.endpointAccessMode = domain.accessMode
     }
 
+    if (domain.ipAddressType) {
+      params.endpointConfiguration.ipAddressType = domain.ipAddressType
+    }
+
     const isEdgeType = domain.endpointType === Globals.endpointTypes.edge
     if (isEdgeType) {
       params.certificateArn = domain.certificateArn
