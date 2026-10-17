@@ -104,6 +104,8 @@ The Serverless Framework fully supports the standard AWS credentials provider ch
 
 The Serverless Framework leverages the [AWS credentials provider chain](https://docs.aws.amazon.com/sdkref/latest/guide/standardized-credentials.html#credentialProviderChain), which sequentially attempts to retrieve your credentials from various sources. This built-in flexibility allows you to switch between different credential management strategies with ease.
 
+Credential requests made by the AWS SDK's internal SSO and STS clients use the same proxy configuration as Framework's AWS service requests. Set `HTTPS_PROXY` (or `HTTP_PROXY` as a fallback) when these requests must pass through a proxy. Lowercase equivalents are also supported. Set `NO_PROXY=.amazonaws.com` to bypass the proxy for AWS endpoints.
+
 For more information, refer to the [AWS credentials provider chain documentation](https://docs.aws.amazon.com/sdkref/latest/guide/standardized-credentials.html).
 
 ## Using Resolvers to Specify Deployment Credentials
