@@ -8,6 +8,13 @@ import ServerlessError from '../../../serverless-error.js'
 import parseS3URI from '../../aws/utils/parse-s3-uri.js'
 import { log } from '@serverless/util'
 import { AGENT_SKILL_EXCLUDES } from './agent-skill-excludes.js'
+import { BOOTSTRAP_FILE, WEB_APPS_DIR } from '../../aws/web-apps/constants.js'
+import { getWebAppsConfig } from '../../aws/lib/web-apps.js'
+import {
+  generateBootstrap,
+  getEntryFormat,
+  normalizeEntryPath,
+} from '../../aws/web-apps/packaging/bootstrap.js'
 
 /**
  * Configuration file extensions the framework knows how to parse.
@@ -52,6 +59,22 @@ export function resolveServerlessConfigFileExcludes(serverless) {
   // If nothing matched (unusual — the framework wouldn't have loaded
   // anything), fall back to excluding the bare name.
   return present.length > 0 ? present : [base]
+}
+
+/**
+ * Web apps this plugin zips: those without `package.artifact` (shipped as
+ * supplied) that esbuild did not build (`serverless.builtWebApps`, set by the
+ * esbuild plugin before packaging).
+ *
+ * @returns {string[]} web app names
+ */
+export function getWebAppsToPackage(serverless) {
+  const builtWebApps = serverless.builtWebApps || new Set()
+  return Object.entries(getWebAppsConfig(serverless))
+    .filter(
+      ([name, webApp]) => !webApp?.package?.artifact && !builtWebApps.has(name),
+    )
+    .map(([name]) => name)
 }
 
 export default {
@@ -187,6 +210,13 @@ export default {
         if (config.package.artifact) return
         log.info(`Packaging agent "${name}"`)
         await this.packageAgent(name)
+      }),
+    )
+
+    packagePromises = packagePromises.concat(
+      getWebAppsToPackage(this.serverless).map(async (name) => {
+        log.info(`Packaging web app "${name}"`)
+        await this.packageWebApp(name)
       }),
     )
 
@@ -394,6 +424,58 @@ export default {
         ]),
         contextName: `agent "${agentName}"`,
       }),
+    )
+  },
+
+  /**
+   * Zip a web app that esbuild does not build: the service directory, selected
+   * by the service's and then the web app's package patterns, plus the
+   * generated bootstrap that starts `entry`. Written to
+   * `.serverless/webapps/<name>.zip`, which moves with the other artifacts to
+   * the package directory.
+   */
+  async packageWebApp(name) {
+    const webApp = getWebAppsConfig(this.serverless)[name]
+    const packageConfig = webApp.package || {}
+
+    const filePaths = await this.resolveFilePathsFromPatterns(
+      await this.excludeDevDependencies({
+        exclude: this.getExcludes([], true),
+        include: this.getIncludes(packageConfig.patterns || []),
+        contextName: `web app "${name}"`,
+      }),
+    )
+
+    const entryPath = normalizeEntryPath(webApp.entry)
+    if (
+      !filePaths.some((filePath) => filePath.replace(/\\/g, '/') === entryPath)
+    ) {
+      throw new ServerlessError(
+        `webApps.${name}.entry "${webApp.entry}" is not among the files packaged for this web app. Check the path and package.patterns.`,
+        'WEB_APPS_ENTRY_NOT_FOUND',
+        { stack: false },
+      )
+    }
+
+    return this.zipFiles(
+      filePaths,
+      path.join(WEB_APPS_DIR, `${name}.zip`),
+      undefined,
+      {
+        generatedEntries: [
+          {
+            name: BOOTSTRAP_FILE,
+            content: generateBootstrap({
+              entryPath,
+              entryFormat: getEntryFormat(
+                this.serverless.serviceDir,
+                entryPath,
+              ),
+              enableSourceMaps: false,
+            }),
+          },
+        ],
+      },
     )
   },
 

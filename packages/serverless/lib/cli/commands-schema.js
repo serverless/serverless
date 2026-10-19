@@ -496,13 +496,22 @@ commands.set('invoke', {
       type: 'string',
       usage: 'The sandbox name (for AWS Lambda MicroVMs)',
     },
+    'web-app': {
+      type: 'string',
+      usage: 'The web app name (for AWS Lambda Web Functions)',
+    },
     method: {
       type: 'string',
-      usage: 'HTTP method for a sandbox invoke (default: GET)',
+      usage: 'HTTP method for a sandbox or web app invoke (default: GET)',
     },
     port: {
       type: 'string',
       usage: 'Sandbox container port to target (default: 8080)',
+    },
+    header: {
+      type: 'multiple',
+      usage:
+        "HTTP request header for a sandbox or web app invoke, as 'Name: value' (repeatable)",
     },
     'session-id': {
       type: 'string',
@@ -518,7 +527,7 @@ commands.set('invoke', {
     path: {
       type: 'string',
       usage:
-        "For --function: path to a JSON/YAML input-data file. For --sandbox: the HTTP request path (default '/')",
+        "For --function: path to a JSON/YAML input-data file. For --sandbox and --web-app: the HTTP request path (default '/')",
       shortcut: 'p',
     },
     type: {
@@ -527,13 +536,14 @@ commands.set('invoke', {
       shortcut: 't',
     },
     log: {
-      usage: 'Trigger logging data output',
+      usage:
+        "Trigger logging data output. For --web-app: print the request's log lines",
       shortcut: 'l',
       type: 'boolean',
     },
     data: {
       type: 'string',
-      usage: 'Input data',
+      usage: 'Input data. For --sandbox and --web-app: the HTTP request body',
       shortcut: 'd',
     },
     raw: {
@@ -634,6 +644,10 @@ commands.set('logs', {
       type: 'string',
       usage: 'The sandbox name (for AWS Lambda MicroVMs)',
     },
+    'web-app': {
+      type: 'string',
+      usage: 'The web app name (for AWS Lambda Web Functions)',
+    },
     tail: {
       usage: 'Tail the log output',
       shortcut: 't',
@@ -710,6 +724,7 @@ for (const flag of [
   'identity',
   'iot',
   'sandboxes',
+  'web-apps',
 ]) {
   agentInspectOptions[flag] = {
     type: 'boolean',

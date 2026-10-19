@@ -1,4 +1,4 @@
-import { getResourceName } from '../utils/naming.js'
+import { getResourceName } from '../../lib/resource-naming.js'
 
 const RUNTIME = ['run', 'resume', 'suspend', 'terminate']
 const IMAGE = ['ready', 'validate']

@@ -1,7 +1,17 @@
 // The blank lines around the error every command ends with: exactly one before `✖`, in a terminal
 // (where a spinner may keep one above itself) and in a pipe, at every log level.
-import { afterEach, beforeEach, describe, expect, test } from '@jest/globals'
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  jest,
+  test,
+} from '@jest/globals'
 import * as logging from '@serverless/util/src/logger/index.js'
+import ServerlessError from '@serverless/framework/lib/serverless-error.js'
+import ServerlessWebApps from '@serverless/framework/lib/plugins/aws/web-apps/index.js'
+import ServerlessSandboxes from '@serverless/framework/lib/plugins/aws/sandboxes/index.js'
 import { printError } from '../../../bin/print-error.js'
 
 const {
@@ -296,5 +306,64 @@ describe('one blank line before the error', () => {
       printError(failure())
     })
     expectOneBlankBeforeError(lines)
+  })
+})
+
+// A configuration error says what to fix: it prints as its message alone, the way a user expects a
+// config error. An unexpected error keeps its stack trace and the help block, to stay diagnosable.
+describe('configuration errors print as one line', () => {
+  const serverlessWith = (config) => ({
+    serviceDir: '/svc',
+    configurationInput: config,
+    service: { service: 'svc', provider: {}, ...config },
+    getProvider: () => ({
+      getStage: () => 'dev',
+      getRegion: () => 'us-east-1',
+    }),
+    configSchemaHandler: { defineTopLevelProperty: jest.fn() },
+    classes: { Error: ServerlessError },
+  })
+
+  const thrownBy = (fn) => {
+    try {
+      fn()
+    } catch (error) {
+      return error
+    }
+    throw new Error('expected an error')
+  }
+
+  const printed = (error) =>
+    screenOf({ terminal: false }, () => printError(error)).filter(Boolean)
+
+  test('a web app validation error', () => {
+    const serverless = serverlessWith({
+      webApps: { api: { entry: 'src/server.js', runtime: 'nodejs22.x' } },
+    })
+    const plugin = new ServerlessWebApps(serverless, {}, { log: {} })
+    const error = thrownBy(() => plugin.validate())
+    expect(error.code).toBe('WEB_APPS_VALIDATION_ERROR')
+    expect(printed(error)).toEqual([
+      '✖ webApps.api.runtime must be nodejs24.x or newer (nodejsNN.x).',
+    ])
+  })
+
+  test('a sandbox validation error', () => {
+    const serverless = serverlessWith({
+      sandboxes: { worker: { artifact: './app', minimumMemory: 3000 } },
+    })
+    const plugin = new ServerlessSandboxes(serverless, {}, { log: {} })
+    const error = thrownBy(() => plugin.validate())
+    expect(error.code).toBe('SANDBOXES_VALIDATION_ERROR')
+    expect(printed(error)).toEqual([
+      '✖ sandboxes.worker.minimumMemory must be one of 512, 1024, 2048, 4096, 8192 MiB',
+    ])
+  })
+
+  test('an unexpected error keeps its stack trace and the help block', () => {
+    const lines = printed(new TypeError('x is not a function'))
+    expect(lines[0]).toBe('✖ TypeError: x is not a function')
+    expect(lines.some((line) => line.trimStart().startsWith('at '))).toBe(true)
+    expect(lines).toContain('For help, try the following:')
   })
 })

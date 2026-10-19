@@ -1,6 +1,5 @@
 'use strict'
 
-import path from 'path'
 import fsPromises from 'fs/promises'
 import { defineSandboxesSchema } from './validators/schema.js'
 import { validateSandboxes } from './validators/config.js'
@@ -9,9 +8,13 @@ import {
   dashboardConsoleUrl,
   resolveObservability,
 } from './compilers/observability.js'
-import { uploadArtifact } from './packaging/artifact.js'
-import { persistArtifacts, readUploadManifest } from './packaging/persist.js'
-import { getResourceName } from './utils/naming.js'
+import {
+  persistArtifacts,
+  resolveArtifactsDir,
+  resolvePackageDir,
+  uploadPackagedArtifacts,
+} from '../lib/content-addressed-artifacts.js'
+import { getResourceName } from '../lib/resource-naming.js'
 
 /**
  * Serverless Framework internal plugin for AWS Lambda MicroVM sandboxes.
@@ -22,7 +25,7 @@ import { getResourceName } from './utils/naming.js'
  * Hook lifecycle:
  *   before:package:initialize  → validate configuration (fast, synchronous)
  *   before:package:finalize    → compile CloudFormation resources (idempotent);
- *                                 zip local artifacts to the package dir + manifest (no S3)
+ *                                 zip local artifacts + manifest to .serverless (no S3)
  *   before:deploy:deploy       → upload the packaged artifacts (from disk) to S3
  *
  * Artifacts are written to disk at package time and uploaded from disk at deploy
@@ -93,6 +96,7 @@ class ServerlessSandboxes {
       throw new this.serverless.classes.Error(
         errors.join('\n'),
         'SANDBOXES_VALIDATION_ERROR',
+        { stack: false },
       )
     }
   }
@@ -102,13 +106,21 @@ class ServerlessSandboxes {
    * the --package option, else service.package.path, else <serviceDir>/.serverless.
    */
   getPackageDir() {
-    const configured =
-      this.options?.package || this.serverless.service.package?.path
-    const serviceDir = this.serverless.serviceDir || '.'
-    if (!configured) return path.join(serviceDir, '.serverless')
-    return path.isAbsolute(configured)
-      ? configured
-      : path.join(serviceDir, configured)
+    return resolvePackageDir({
+      options: this.options,
+      service: this.serverless.service,
+      serviceDir: this.serverless.serviceDir,
+    })
+  }
+
+  /**
+   * Where `compile()` writes artifacts during `package`:
+   * `<serviceDir>/.serverless`. The package step moves its contents to the
+   * `--package` directory at the end, so zips and the manifest written here
+   * end up next to the other artifacts.
+   */
+  getArtifactsDir() {
+    return resolveArtifactsDir({ serviceDir: this.serverless.serviceDir })
   }
 
   /**
@@ -117,41 +129,23 @@ class ServerlessSandboxes {
    * Reads the upload manifest written into the package directory at package time
    * (not in-memory state), so this works for both `serverless deploy` and the
    * separate-process `serverless deploy --package <dir>`. s3:// pass-through
-   * artifacts produce no manifest entry and are skipped.
+   * artifacts produce no manifest entry and are skipped. Keys are
+   * content-addressed, so an artifact already in the bucket is not uploaded
+   * again.
    */
   async packageArtifacts() {
-    const packageDir = this.getPackageDir()
-    const manifest = await readUploadManifest({ packageDir, fs: this._fs })
-    if (manifest.length === 0) return
-
-    const bucket = await this.provider.getServerlessDeploymentBucketName()
-    const deploymentBucketObject =
-      this.serverless.service.provider?.deploymentBucketObject
-
-    await Promise.all(
-      manifest.map(async ({ key, file }) => {
-        // The manifest is read from disk (and may come from a `--package <dir>`
-        // built elsewhere), so treat `file` as untrusted: confine the resolved
-        // path to packageDir. Without this a tampered manifest with `../`
-        // segments could make deploy read — and upload to the deployment
-        // bucket — arbitrary files outside the package directory.
-        const resolved = path.resolve(packageDir, file)
-        const root = path.resolve(packageDir)
-        if (resolved !== root && !resolved.startsWith(root + path.sep)) {
-          throw new this.serverless.classes.Error(
-            `Refusing to upload sandbox artifact from '${file}': path escapes the package directory.`,
-            'SANDBOXES_ARTIFACT_PATH_ESCAPE',
-          )
-        }
-        return uploadArtifact({
-          provider: this.provider,
-          bucket,
-          key,
-          body: await this._fs.readFile(resolved),
-          deploymentBucketObject,
-        })
-      }),
-    )
+    await uploadPackagedArtifacts({
+      provider: this.provider,
+      packageDir: this.getPackageDir(),
+      kind: 'sandboxes',
+      label: 'sandbox artifact',
+      errorCode: 'SANDBOXES_ARTIFACT_PATH_ESCAPE',
+      missingErrorCode: 'SANDBOXES_ARTIFACT_MISSING',
+      deploymentBucketObject:
+        this.serverless.service.provider?.deploymentBucketObject,
+      fs: this._fs,
+      log: this.log,
+    })
   }
 
   /**
@@ -200,8 +194,9 @@ class ServerlessSandboxes {
    * Compile all sandbox CloudFormation resources into the provider template.
    * Idempotent: subsequent calls are no-ops once resourcesCompiled is set.
    *
-   * Local-dir artifacts are zipped and written (with a manifest) into the
-   * package directory; the actual S3 upload happens in packageArtifacts().
+   * Local-dir artifacts are zipped and written (with a manifest) into
+   * `<serviceDir>/.serverless`, which the package step moves to the package
+   * directory; the actual S3 upload happens in packageArtifacts().
    */
   async compile() {
     if (this.resourcesCompiled) return
@@ -222,11 +217,13 @@ class ServerlessSandboxes {
       log: this.log,
     })
 
-    // Persist local-dir artifacts + a manifest into the package directory so the
-    // deploy step uploads them from disk (matching how function zips are handed
-    // from `package` to `deploy`, and enabling `deploy --package`).
+    // Persist local-dir artifacts + a manifest where `package` writes its
+    // artifacts, so the deploy step uploads them from disk (matching how
+    // function zips are handed from `package` to `deploy`, and enabling
+    // `deploy --package`).
     await persistArtifacts({
-      packageDir: this.getPackageDir(),
+      packageDir: this.getArtifactsDir(),
+      kind: 'sandboxes',
       pendingUploads,
       fs: this._fs,
     })

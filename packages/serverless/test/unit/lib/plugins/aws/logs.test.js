@@ -62,6 +62,46 @@ describe('AwsLogs', () => {
       const inst = makeLogsPlugin({ agent: 'my-agent' })
       await expect(inst.hooks['logs:logs']()).resolves.toBeUndefined()
     })
+
+    test('names --web-app in the missing-option error', async () => {
+      const inst = makeLogsPlugin({})
+      await expect(inst.hooks['logs:logs']()).rejects.toMatchObject({
+        code: 'LOGS_MISSING_OPTION',
+        stack: undefined,
+        message:
+          'One of the required options must be provided: --function (-f), --agent (-a), --sandbox, or --web-app',
+      })
+    })
+
+    test('does not throw when only --web-app is provided', async () => {
+      const inst = makeLogsPlugin({ 'web-app': 'api' })
+      await expect(inst.hooks['logs:logs']()).resolves.toBeUndefined()
+    })
+
+    test.each([{ function: 'hello' }, { agent: 'a' }, { sandbox: 's' }])(
+      'rejects --web-app combined with %p',
+      async (other) => {
+        const inst = makeLogsPlugin({ 'web-app': 'api', ...other })
+        await expect(inst.hooks['logs:logs']()).rejects.toMatchObject({
+          code: 'LOGS_MUTUAL_EXCLUSIVITY',
+          stack: undefined,
+          message:
+            'Cannot combine --web-app with --function, --agent or --sandbox.',
+        })
+      },
+    )
+  })
+
+  describe('getLogStreams', () => {
+    test('a function log group without streams keeps its message', async () => {
+      const inst = makeLogsPlugin({ function: 'hello' })
+      inst.provider.request = jest.fn(async () => ({ logStreams: [] }))
+      await expect(inst.getLogStreams()).rejects.toMatchObject({
+        code: 'NO_EXISTING_LOG_STREAMS',
+        message: 'No existing streams for the function',
+        stack: undefined,
+      })
+    })
   })
 
   describe('extendedValidate', () => {

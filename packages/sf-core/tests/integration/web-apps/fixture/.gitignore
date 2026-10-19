@@ -1,0 +1,3 @@
+# Written by web-apps.test.js before each deploy
+src/version.js
+prebuilt/

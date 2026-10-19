@@ -16,7 +16,7 @@ keywords:
 
 # Custom Domains
 
-The Serverless Framework v4 provides built-in support for configuring custom domains for your APIs. This feature automatically handles SSL certificate creation, Route53 DNS configuration, and API Gateway domain mapping.
+The Serverless Framework v4 provides built-in support for configuring custom domains for your APIs and [web apps](./web-apps.md). This feature automatically handles SSL certificate creation, Route53 DNS configuration, and API Gateway domain mapping. For web apps, it serves the domain through Amazon CloudFront; see [Web Apps](#web-apps).
 
 > **Acknowledgement:**
 > Big shout out to [Amplify Education](https://amplify.com/) for creating and maintaining [the original Serverless Domain Manager plugin](https://github.com/amplify-education/serverless-domain-manager). The custom domains feature in the Serverless Framework v4 was made possible thanks to their hard work and contributions to the community.
@@ -219,6 +219,7 @@ Below are all available configuration options for custom domains:
 | `enabled`                      | boolean/string | No       | Whether the domain is enabled. Can be a boolean or a condition string                                                                                                                                                           |
 | `allowPathMatching`            | boolean        | No       | Allow path-based routing for the domain                                                                                                                                                                                         |
 | `preserveExternalPathMappings` | boolean        | No       | Preserve existing path mappings not managed by Serverless Framework                                                                                                                                                             |
+| `webApp`                       | string         | No       | Name of a web app under `webApps` to serve on this domain through CloudFront instead of an API Gateway API. See [Web Apps](#web-apps)                                                                                           |
 
 ### Example with Advanced Configuration
 
@@ -348,6 +349,8 @@ functions:
 
 This configuration will make your API available at `https://api.example.com/v1/users`.
 
+API Gateway strips the base path before the request reaches your API: the route above is `/users`, and requests to `/v1/users` match it. On entries with `webApp`, `basePath` routes by path instead and forwards the path unchanged; see [Routing web apps by path](#routing-web-apps-by-path).
+
 ## Endpoint Types
 
 ### Regional (Recommended)
@@ -428,6 +431,67 @@ Keep these rules in mind when configuring domain security:
 - REST domains with multi-level `basePath` values (for example, `v1/test`) are managed through API Gateway V2, so the same `TLS_1_2` guidance applies.
 - When a custom domain already exists, Serverless Framework reconciles only explicitly configured `securityPolicy` and `accessMode` values. Omitted fields are left unchanged.
 - For API Gateway V2 `securityPolicy` reconciliation, Serverless resolves certificate context from `certificateArn` in config or from the existing domain before sending the update request.
+
+## Web Apps
+
+An entry with `webApp` serves one of the service's [web apps](./web-apps.md) on the hostname. The Framework puts an Amazon CloudFront distribution in front of the web app, finds or requests an ACM certificate in `us-east-1` (CloudFront's certificate Region, whatever Region the service deploys to), and creates Route53 A and AAAA alias records for the distribution.
+
+```yaml
+service: shop
+
+provider:
+  name: aws
+  domain:
+    name: shop.example.com
+    webApp: web
+
+webApps:
+  web:
+    entry: src/server.ts
+```
+
+`serverless deploy` and `serverless info` list `https://shop.example.com` under `endpoints` next to the web app's own endpoint. The first deploy with a new hostname takes several minutes while the certificate is issued and the distribution is created. `serverless remove` deletes the distribution and the A and AAAA records; the certificate and its DNS validation record stay, as they do for API Gateway custom domains, so a later deploy reuses the certificate.
+
+### Routing web apps by path
+
+Several entries for the same hostname route paths to different web apps of the service:
+
+```yaml
+provider:
+  name: aws
+  domains:
+    - name: shop.example.com
+      webApp: web # every path the other entries don't match
+    - name: shop.example.com
+      basePath: api # /api and /api/*
+      webApp: api
+
+webApps:
+  web:
+    entry: src/web.ts
+  api:
+    entry: src/api.ts # defines its routes under /api
+```
+
+Each hostname needs one entry without `basePath`, which receives every path no other entry matches. An entry with `basePath: api` receives `/api` and every path under `/api/`. The longest matching `basePath` wins: with entries for `api` and `api/v2`, `/api/v2/orders` reaches the `api/v2` web app.
+
+The two kinds of entries treat `basePath` differently:
+
+| Entry                                | Request to `https://shop.example.com/api/users` reaches |
+| ------------------------------------ | ------------------------------------------------------- |
+| `basePath: api` with `webApp: api`   | the web app as `/api/users` (forwarded unchanged)       |
+| `basePath: api` with `apiType: http` | the API as `/users` (base path stripped)                |
+
+### Rules for web app entries
+
+- A hostname serves either web apps or API Gateway APIs. A hostname that already exists as an API Gateway custom domain in the account stops the deploy before anything changes.
+- Hostnames are case-insensitive: `Shop.Example.com` and `shop.example.com` name the same hostname, and the Framework uses the lowercase form.
+- Certificate and DNS settings (`certificateArn`, `certificateName`, `createRoute53Record`, `createRoute53IPv6Record`, `hostedZoneId`, `hostedZonePrivate`, `splitHorizonDns`, `route53Profile`, `route53Region`, `route53Params`) apply to the whole hostname. Set them on the entry without `basePath`; an entry with `basePath` may only repeat the same values, and a different value stops the deploy.
+- The API Gateway options (`apiType`, `endpointType`, `securityPolicy`, `accessMode`, `allowPathMatching`, `preserveExternalPathMappings`, `autoDomain`, `autoDomainWaitFor`, `tlsTruststoreUri`, `tlsTruststoreVersion`, `rest`, `http`, `websocket`) are not accepted on entries with `webApp`.
+- For a domain whose DNS is not in Route53, set `createRoute53Record: false` and create or import an ACM certificate in `us-east-1` that covers the hostname; the deploy finds it by hostname, or you can name it in `certificateArn`. Then point a CNAME record at the distribution's domain name, which `serverless info --verbose` prints as a stack output ending in `CloudFrontDistributionDomainName`.
+- A web app served on a domain cannot set `url.authorizer`: its endpoint requires the signed requests CloudFront sends, and unsigned direct requests get HTTP 403. Authenticate users in the app.
+
+Behind CloudFront, a response must start within the web app's `timeout` plus 5 seconds, and never later than 120 seconds. See [Custom domains](./web-apps.md#custom-domains) in the web apps guide for the timeout, retry and header details.
 
 ## Prerequisites
 

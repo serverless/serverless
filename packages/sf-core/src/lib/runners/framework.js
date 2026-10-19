@@ -45,6 +45,7 @@ import {
 import { buildCommandState } from './state-utils.js'
 import { buildSandboxesAnalytics } from '@serverless/framework/lib/plugins/aws/sandboxes/analytics.js'
 import { buildMcpAnalytics } from '@serverless/framework/lib/plugins/aws/mcp/analytics.js'
+import { buildWebAppsAnalytics } from '@serverless/framework/lib/plugins/aws/web-apps/analytics.js'
 import { buildProvisionedPollersAnalytics } from '@serverless/framework/lib/plugins/aws/package/compile/events/lib/provisioned-pollers-analytics.js'
 import { Deployment } from '../platform/deployments.js'
 
@@ -451,13 +452,21 @@ export class TraditionalRunner extends Runner {
   }
 
   getAnalysisEventDetails() {
+    // Handler and entry paths are relative to the service directory, the
+    // config file's directory.
+    const serviceDir = this.configFilePath && path.dirname(this.configFilePath)
     const details = {
       providerRuntime: this.config.provider?.runtime,
       awsCfStackId: this.serviceUniqueId,
-      isEsbuildEnabled: Esbuild.WillEsBuildRun(
-        this.config,
-        this.configFilePath,
-      ),
+      // WillEsBuildRun reads functions and webApps; a throw escaping this
+      // method would drop the billing usage event.
+      isEsbuildEnabled: (() => {
+        try {
+          return Esbuild.WillEsBuildRun(this.config, serviceDir)
+        } catch {
+          return false
+        }
+      })(),
       integrations: this.integrations,
       // Service-shape and build metrics; deriveAnalysisEnrichment is total
       // (never throws) — a throw escaping this method aborts finalization
@@ -483,6 +492,11 @@ export class TraditionalRunner extends Runner {
       // contract as the sandboxes/mcp ones: total (never throws), `{}` when
       // no event uses the key, `{ provisionedPollers: <block> }` otherwise.
       ...buildProvisionedPollersAnalytics(this.config),
+      // Web apps config-shape block, same contract as the sandboxes/mcp ones:
+      // total (never throws), `{}` when the service defines no web apps,
+      // `{ webApps: <block> }` otherwise. The service directory lets it apply
+      // esbuild's selection rules to each web app's entry.
+      ...buildWebAppsAnalytics(this.config, serviceDir),
     }
 
     // plugins

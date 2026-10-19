@@ -38,6 +38,23 @@ function makeTemplate() {
 const stubZipDir = jest.fn().mockResolvedValue(Buffer.from('fake-zip'))
 
 describe('orchestrate', () => {
+  it('throws invalid config as one error without a stack trace', async () => {
+    await expect(
+      orchestrate({
+        sandboxesConfig: { runner: { artifact: './app', minimumMemory: 3 } },
+        ctx: makeCtx(),
+        template: makeTemplate(),
+        provider: makeProvider(),
+        serverless: {},
+        log: { debug: jest.fn() },
+        _zipDir: stubZipDir,
+      }),
+    ).rejects.toMatchObject({
+      code: 'SANDBOXES_VALIDATION_ERROR',
+      stack: undefined,
+    })
+  })
+
   describe('single sandbox (no vpc)', () => {
     let template
     let provider
@@ -504,6 +521,174 @@ describe('orchestrate', () => {
       expect(
         template.Resources.RunnerConnector.Properties.OperatorRole,
       ).toEqual({ 'Fn::GetAtt': ['RunnerConnectorOperatorRole', 'Arn'] })
+    })
+  })
+
+  // The connector and its operator role are compiled by the shared
+  // `plugins/aws/lib/network-connector.js`. Deployed sandbox stacks must not
+  // see a template change from that, so these are the exact resources (key
+  // order included) the sandbox compiler emitted before the move.
+  describe('vpc connector output is unchanged', () => {
+    const operatorRoleBase = (policyStatementsExtra = []) => ({
+      AssumeRolePolicyDocument: {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Effect: 'Allow',
+            Principal: { Service: 'network-connectors.lambda.amazonaws.com' },
+            Action: 'sts:AssumeRole',
+          },
+        ],
+      },
+      Policies: [
+        {
+          PolicyName: 'sandboxes-network-connector-policy',
+          PolicyDocument: {
+            Version: '2012-10-17',
+            Statement: [
+              {
+                Effect: 'Allow',
+                Action: ['ec2:CreateNetworkInterface'],
+                Resource: [
+                  {
+                    'Fn::Sub':
+                      'arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:network-interface/*',
+                  },
+                  {
+                    'Fn::Sub':
+                      'arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:subnet/*',
+                  },
+                  {
+                    'Fn::Sub':
+                      'arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:security-group/*',
+                  },
+                ],
+              },
+              {
+                Effect: 'Allow',
+                Action: ['ec2:CreateTags'],
+                Resource: {
+                  'Fn::Sub':
+                    'arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:network-interface/*',
+                },
+                Condition: {
+                  StringEquals: {
+                    'ec2:ManagedResourceOperator':
+                      'network-connectors.lambda.amazonaws.com',
+                  },
+                },
+              },
+              ...policyStatementsExtra,
+            ],
+          },
+        },
+      ],
+    })
+
+    const expected = {
+      RunnerConnector: {
+        Type: 'AWS::Lambda::NetworkConnector',
+        Properties: {
+          Name: 'svc-runner-dev',
+          Configuration: {
+            VpcEgressConfiguration: {
+              SubnetIds: ['subnet-aaa', 'subnet-bbb'],
+              SecurityGroupIds: ['sg-111'],
+              NetworkProtocol: 'DualStack',
+              AssociatedComputeResourceTypes: ['MicroVm'],
+            },
+          },
+          OperatorRole: {
+            'Fn::GetAtt': ['RunnerConnectorOperatorRole', 'Arn'],
+          },
+          Tags: [{ Key: 'team', Value: 'platform' }],
+        },
+      },
+      RunnerConnectorOperatorRole: {
+        Type: 'AWS::IAM::Role',
+        Properties: {
+          ...operatorRoleBase([
+            {
+              Effect: 'Allow',
+              Action: ['ec2:DescribeSubnets'],
+              Resource: '*',
+            },
+          ]),
+          ManagedPolicyArns: ['arn:aws:iam::aws:policy/ReadOnlyAccess'],
+          PermissionsBoundary: 'arn:aws:iam::123456789012:policy/boundary',
+          Tags: [{ Key: 'team', Value: 'platform' }],
+        },
+      },
+      PlainConnector: {
+        Type: 'AWS::Lambda::NetworkConnector',
+        Properties: {
+          Name: 'svc-plain-dev',
+          Configuration: {
+            VpcEgressConfiguration: {
+              SubnetIds: [{ Ref: 'SubnetA' }],
+              SecurityGroupIds: { 'Fn::Split': [',', 'sg-1,sg-2'] },
+              NetworkProtocol: 'IPv4',
+              AssociatedComputeResourceTypes: ['MicroVm'],
+            },
+          },
+          OperatorRole: { 'Fn::GetAtt': ['PlainConnectorOperatorRole', 'Arn'] },
+        },
+      },
+      PlainConnectorOperatorRole: {
+        Type: 'AWS::IAM::Role',
+        Properties: operatorRoleBase(),
+      },
+    }
+
+    test('emits the same connectors and operator roles, key order included', async () => {
+      const template = makeTemplate()
+      await orchestrate({
+        sandboxesConfig: {
+          runner: {
+            artifact: 's3://my-bucket/artifact.zip',
+            vpc: {
+              subnetIds: ['subnet-aaa', 'subnet-bbb'],
+              securityGroupIds: ['sg-111'],
+              protocol: 'dualstack',
+            },
+            tags: { team: 'platform' },
+            iam: {
+              operatorRole: {
+                statements: [
+                  {
+                    Effect: 'Allow',
+                    Action: ['ec2:DescribeSubnets'],
+                    Resource: '*',
+                  },
+                ],
+                managedPolicies: ['arn:aws:iam::aws:policy/ReadOnlyAccess'],
+                permissionsBoundary:
+                  'arn:aws:iam::123456789012:policy/boundary',
+              },
+            },
+          },
+          plain: {
+            artifact: 's3://my-bucket/plain.zip',
+            vpc: {
+              subnetIds: [{ Ref: 'SubnetA' }],
+              securityGroupIds: { 'Fn::Split': [',', 'sg-1,sg-2'] },
+            },
+          },
+        },
+        ctx: makeCtx(),
+        template,
+        provider: makeProvider(),
+        serverless: {},
+        log: { debug: jest.fn() },
+        _zipDir: stubZipDir,
+      })
+
+      for (const [logicalId, resource] of Object.entries(expected)) {
+        expect(template.Resources[logicalId]).toEqual(resource)
+        expect(JSON.stringify(template.Resources[logicalId])).toBe(
+          JSON.stringify(resource),
+        )
+      }
     })
   })
 

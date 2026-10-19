@@ -1,7 +1,45 @@
 import {
+  truncateWithHash,
   getResourceName,
+  getStageScopedName,
   getLogicalId,
-} from '../../../../../../../lib/plugins/aws/sandboxes/utils/naming.js'
+} from '../../../../../../lib/plugins/aws/lib/resource-naming.js'
+
+describe('truncateWithHash', () => {
+  test('returns values within the limit unchanged', () => {
+    expect(truncateWithHash('abc', 3)).toBe('abc')
+  })
+  test('ends over-long values in the separator and 7 hex characters', () => {
+    const out = truncateWithHash('a'.repeat(70), 64, '-')
+    expect(out).toHaveLength(64)
+    expect(out).toMatch(/^a{56}-[0-9a-f]{7}$/)
+  })
+  test('joins head and hash with no separator by default', () => {
+    expect(truncateWithHash('a'.repeat(70), 64)).toMatch(/^a{57}[0-9a-f]{7}$/)
+  })
+})
+
+describe('getStageScopedName', () => {
+  test('orders service, stage, then name', () => {
+    expect(getStageScopedName('shop', 'dev', 'api')).toBe('shop-dev-api')
+  })
+  test('caps at 64 characters with a hash of the full name', () => {
+    const service = 's'.repeat(40)
+    const a = getStageScopedName(service, 'dev', 'x'.repeat(24) + 'A')
+    const b = getStageScopedName(service, 'dev', 'x'.repeat(24) + 'B')
+    expect(`${service}-dev-${'x'.repeat(24)}A`).toHaveLength(70)
+    expect(a).toHaveLength(64)
+    expect(a).toMatch(/-[0-9a-f]{7}$/)
+    expect(a).not.toBe(b)
+  })
+  test('prefixes a name that does not start with a letter or digit', () => {
+    expect(getStageScopedName('_svc', 'dev', 'a')).toBe('s_svc-dev-a')
+  })
+  test('strips characters outside [a-zA-Z0-9-_]', () => {
+    expect(getStageScopedName('my.svc', 'dev', 'a@b')).toBe('mysvc-dev-ab')
+  })
+})
+
 describe('naming', () => {
   test('getResourceName joins + sanitizes + caps at 64', () => {
     expect(getResourceName('my-svc', 'runner', 'dev')).toBe('my-svc-runner-dev')

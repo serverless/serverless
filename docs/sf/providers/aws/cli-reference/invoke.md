@@ -54,16 +54,55 @@ serverless invoke [local] --function functionName
 For [AWS Lambda MicroVMs (sandboxes)](../guide/sandboxes.md), use `--sandbox` instead of `--function`. The framework starts a fresh MicroVM instance, sends the HTTP request through the AWS proxy, prints the response, and terminates the instance.
 
 ```bash
-serverless invoke --sandbox <name> [--path /health] [--method POST] [--data '{...}'] [--port 8080]
+serverless invoke --sandbox <name> [--path /health] [--method POST] [--header 'Name: value'] [--data '{...}'] [--port 8080]
 ```
 
 - `--sandbox` The sandbox name as defined under `sandboxes` in `serverless.yml`. **Required** (cannot be combined with `--function` or `--agent`).
 - `--path` or `-p` HTTP request path. Default `/`.
 - `--method` HTTP method. Default `GET`.
+- `--header` A request header, as `'Name: value'`. Repeat the flag for more headers. Values must be printable ASCII. It cannot set `Host`, `X-Aws-Proxy-Auth` or `X-Aws-Proxy-Port`, which the Framework sets to reach the sandbox.
 - `--data` or `-d` Request body (for non-GET requests).
 - `--port` Container port to send the request to. Default `8080`.
 
+The options for invoking a function or an agent (`--qualifier`, `--type`, `--raw`, `--context`, `--contextPath`, `--tenant-id`, `--durable-execution-name`, `--session-id` and `--log`) stop the command with an error, for example `✖ --qualifier is not available with --sandbox.`
+
 See the [sandboxes guide](../guide/sandboxes.md#invoking-a-sandbox) for the caller IAM prerequisites and full details.
+
+## Invoking a web app
+
+For [web apps (AWS Lambda Web Functions)](../guide/web-apps.md), use `--web-app` instead of `--function`. The Framework sends one HTTP request to the web app's endpoint and prints the response: the status line and headers to standard error, then the body to standard output as it arrives, so piping the command to `jq` or a file passes the body alone. A redirect is printed, not followed. Requests to an `aws_iam` endpoint, or to a web app served on a custom domain, are signed with your AWS credentials.
+
+```bash
+serverless invoke --web-app <name> [--path /health] [--method POST] [--header 'Name: value'] [--data '{...}'] [--log]
+```
+
+- `--web-app` The web app name as defined under `webApps` in `serverless.yml`. **Required** (cannot be combined with `--function`, `--agent` or `--sandbox`).
+- `--path` or `-p` HTTP request path. Default `/`.
+- `--method` HTTP method. Default `GET`.
+- `--header` A request header, as `'Name: value'`. Repeat the flag for more headers, for example `--method POST --header 'Content-Type: application/json' --data '{"a":1}'`. A signed request is signed over these headers too. It cannot set `Host`, nor, for an `aws_iam` or custom-domain web app, `Authorization`, `X-Amz-Date`, `X-Amz-Security-Token` or `X-Amz-Content-Sha256`, which the Framework sets to sign the request.
+- `--data` or `-d` Request body. It is not sent with `GET` or `HEAD`, so set `--method` along with it.
+- `--log` or `-l` After the response, print the log lines of this request. Waits up to 30 seconds for them, then points to `serverless logs --web-app <name>`. Lines written outside a request (startup code, timers) or with `process.stdout.write` carry no request ID and are not shown.
+
+The options for invoking a function, an agent or a sandbox (`--qualifier`, `--type`, `--raw`, `--context`, `--contextPath`, `--tenant-id`, `--durable-execution-name`, `--session-id` and `--port`) stop the command with an error, for example `✖ --qualifier is not available with --web-app.`
+
+```text
+$ serverless invoke --web-app api --path /health
+
+HTTP 200 OK
+content-length: 11
+content-type: application/json; charset=utf-8
+date: Thu, 15 Oct 2026 08:03:43 GMT
+etag: W/"b-Ai2R8hgEarLmHKwesT1qcY913ys"
+lambda-web-logstream: 2026/10/15/my-web-app-dev-api[rev-t8yf1]cc269a07c59a48d19d554992708bda83
+lambda-web-request-id: DFWK6UW3VJPQRADPSKLN2OULWA
+x-powered-by: Express
+
+{"ok":true}
+```
+
+A response with status 400 or above is printed in full, and then the command exits with code 1 and the error `✖ Web app "api" returned HTTP 404.`.
+
+The caller needs `lambda:InvokeWebFunctionEndpoint` for an `aws_iam` or custom-domain web app, and `logs:FilterLogEvents` on the web app's `/aws/lambda/web/<function-name>.local` log group for `--log`. See the [web apps guide](../guide/web-apps.md#invoking-a-web-app) for details.
 
 ## Provided lifecycle events
 

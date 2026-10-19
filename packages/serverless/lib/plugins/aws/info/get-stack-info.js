@@ -6,7 +6,10 @@ import {
   endpointOutputs,
   externalHttpApiEndpointOf,
   functionUrlOf,
+  webAppUrlsOf,
 } from './endpoints.js'
+import { serviceHasWebApps } from '../lib/web-apps.js'
+import { isStackNotFound } from '../lib/not-found-errors.js'
 
 /**
  * `serverless info` on a stage that was never deployed is the normal state
@@ -19,9 +22,7 @@ import {
  * deployCommand).
  */
 const notDeployedError = (plugin, error) => {
-  if (!/^Stack with id \S+ does not exist$/.test(error?.message ?? '')) {
-    return undefined
-  }
+  if (!isStackNotFound(error)) return undefined
   const stage = plugin.provider.getStage()
   const region = plugin.provider.getRegion()
   const notDeployed = new ServerlessError(
@@ -115,6 +116,15 @@ export default {
           if (url) functionInfo.url = url
           this.gatheredData.info.functions.push(functionInfo)
         })
+
+        // Web apps: present only in a service that has them, so `info --json` stays as it was
+        // for every other service
+        if (serviceHasWebApps(this.serverless)) {
+          this.gatheredData.info.webApps = webAppUrlsOf({
+            serverless: this.serverless,
+            outputs,
+          })
+        }
 
         // Layers
         this.serverless.service.getAllLayers().forEach((layer) => {

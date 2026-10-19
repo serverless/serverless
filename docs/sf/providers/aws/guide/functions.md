@@ -24,6 +24,10 @@ keywords:
 
 If you are using AWS as a provider, all _functions_ inside the service are AWS Lambda functions.
 
+## Event Functions or Web Functions?
+
+Functions under `functions` are what AWS calls Lambda Event Functions: an exported handler that Lambda calls once per event or HTTP request. To run a standard HTTP server instead (Express, Fastify, Hono, Next.js), with many concurrent requests per execution environment, define it under `webApps` as a [web app](./web-apps.md), which deploys as an AWS Lambda Web Function. See [Web apps or functions?](./web-apps.md#web-apps-or-functions) for how the two compare.
+
 ## Configuration
 
 All of the Lambda functions in your serverless service can be found in `serverless.yml` under the `functions` property.

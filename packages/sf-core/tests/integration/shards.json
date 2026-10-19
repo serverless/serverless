@@ -134,7 +134,7 @@
     },
     "tests/integration/sandboxes/sandboxes.test.js": {
       "shard": 1,
-      "seconds": 281,
+      "seconds": 306,
       "pin": "deploys a Lambda MicroVM sandbox, which runs in test-1"
     },
     "tests/integration/self-managed-storage/reference-mode/reference-mode.test.js": {
@@ -168,6 +168,15 @@
       "shard": 1,
       "seconds": 214,
       "pin": "serverless-compose-state-bucket-integration-test prerequisite"
+    },
+    "tests/integration/web-apps/web-apps-vpc.test.js": {
+      "shard": 1,
+      "seconds": 360,
+      "pin": "attaches web apps to the default VPC of the test account"
+    },
+    "tests/integration/web-apps/web-apps.test.js": {
+      "shard": 3,
+      "seconds": 220
     }
   }
 }

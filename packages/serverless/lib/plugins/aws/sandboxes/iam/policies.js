@@ -1,6 +1,6 @@
 'use strict'
 
-import { getResourceName } from '../utils/naming.js'
+import { getResourceName } from '../../lib/resource-naming.js'
 
 /**
  * Determine if an IAM role should be generated for a sandbox resource.
@@ -88,7 +88,7 @@ function lambdaTrustPolicy() {
  * @param {object|undefined} roleCfg - iam.buildRole / iam.executionRole / iam.operatorRole customization object
  * @returns {object} The mutated role
  */
-function withCustomizations(role, roleCfg) {
+export function withCustomizations(role, roleCfg) {
   if (!roleCfg || typeof roleCfg !== 'object') return role
   // Intrinsics and ARN strings are not customization objects
   if (
@@ -280,92 +280,4 @@ export function generateExecutionRole(name, cfg, ctx) {
   }
 
   return withCustomizations(role, cfg.iam && cfg.iam.executionRole)
-}
-
-/**
- * Generate the operator IAM role for an AWS::Lambda::NetworkConnector.
- *
- * The trust principal MUST be 'network-connectors.lambda.amazonaws.com' —
- * 'lambda.amazonaws.com' is rejected with "unable to assume the provided
- * NetworkConnectorOperatorRole" at deployment time.
- *
- * NOTE: do NOT add an `aws:SourceAccount` condition here. Unlike the build and
- * execution roles (principal lambda.amazonaws.com), the network-connectors
- * service does not present SourceAccount when assuming this role, so the
- * condition makes the assume-role fail at deploy ("unable to assume the
- * provided NetworkConnectorOperatorRole").
- *
- * Permissions:
- *   - ec2:CreateNetworkInterface on network-interface / subnet / security-group ARNs
- *   - ec2:CreateTags with ec2:ManagedResourceOperator StringEquals condition
- *
- * @param {string} name - Sandbox runner name
- * @param {object} cfg  - Full sandbox configuration object (may contain cfg.iam.operatorRole)
- * @param {object} ctx  - Deployment context: { serviceName, stage, region }
- * @returns {object} CloudFormation AWS::IAM::Role resource object
- */
-export function generateOperatorRole(name, cfg, ctx) {
-  const role = {
-    Type: 'AWS::IAM::Role',
-    Properties: {
-      AssumeRolePolicyDocument: {
-        Version: '2012-10-17',
-        Statement: [
-          {
-            Effect: 'Allow',
-            Principal: { Service: 'network-connectors.lambda.amazonaws.com' },
-            Action: 'sts:AssumeRole',
-          },
-        ],
-      },
-      Policies: [
-        {
-          PolicyName: 'sandboxes-network-connector-policy',
-          PolicyDocument: {
-            Version: '2012-10-17',
-            Statement: [
-              // Allow creating ENIs in the VPC subnets/security groups
-              {
-                Effect: 'Allow',
-                Action: ['ec2:CreateNetworkInterface'],
-                Resource: [
-                  {
-                    'Fn::Sub':
-                      'arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:network-interface/*',
-                  },
-                  {
-                    'Fn::Sub':
-                      'arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:subnet/*',
-                  },
-                  {
-                    'Fn::Sub':
-                      'arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:security-group/*',
-                  },
-                ],
-              },
-              // Allow tagging the ENIs the network connector creates. Scoped to
-              // network-interface ARNs (matching the AWS-managed
-              // AWSLambdaNetworkConnectorOperatorPolicy) and gated by the
-              // managed-resource-operator condition.
-              {
-                Effect: 'Allow',
-                Action: ['ec2:CreateTags'],
-                Resource: {
-                  'Fn::Sub':
-                    'arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:network-interface/*',
-                },
-                Condition: {
-                  StringEquals: {
-                    'ec2:ManagedResourceOperator':
-                      'network-connectors.lambda.amazonaws.com',
-                  },
-                },
-              },
-            ],
-          },
-        },
-      ],
-    },
-  }
-  return withCustomizations(role, cfg.iam && cfg.iam.operatorRole)
 }

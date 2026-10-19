@@ -13,7 +13,7 @@ keywords: ['Serverless', 'Framework', 'logs', 'AWS Lambda', 'CloudWatch', 'Agent
 
 # AWS - Logs
 
-Lets you watch the logs of a specific function, agent, or sandbox.
+Lets you watch the logs of a specific function, agent, sandbox, or web app.
 
 ```bash
 # Lambda function logs
@@ -24,6 +24,9 @@ serverless logs -a myAgent
 
 # Sandbox (Lambda MicroVM) logs
 serverless logs --sandbox mySandbox
+
+# Web app (Lambda Web Function) logs
+serverless logs --web-app myWebApp
 
 # Optionally tail the logs with --tail or -t
 serverless logs -f hello -t
@@ -37,6 +40,7 @@ This command returns as many log events as can fit in 1MB (up to 10,000 log even
 - `--function` or `-f` The function you want to fetch the logs for. **Required when not using `--agent`.**
 - `--agent` or `-a` The agent name (for AgentCore Runtime agents). **Required when not using `--function`.** Cannot be used together with `--function`.
 - `--sandbox` The sandbox name (for [AWS Lambda MicroVMs](../guide/sandboxes.md)). Use instead of `--function` / `--agent` to fetch a sandbox's CloudWatch logs. Defaults to the last 10 minutes; use `--startTime` to widen the window. **`--tail` does not stream/follow sandbox logs** — it prints a one-time notice and falls back to the same one-shot window.
+- `--web-app` The web app name (for [AWS Lambda Web Functions](../guide/web-apps.md)). Use instead of `--function` / `--agent` / `--sandbox`. Reads the web app's `/aws/lambda/web/<function-name>.local` log group, where lines arrive first, and supports `--startTime`, `--filter`, `--tail` and `--interval` as for functions. The caller needs `logs:DescribeLogStreams` and `logs:FilterLogEvents` on that log group.
 - `--stage` or `-s` The stage you want to view the function logs for. If not provided, the plugin will use the default stage listed in `serverless.yml`. If that doesn't exist either it'll just fetch the logs from the `dev` stage.
 - `--region` or `-r` The region you want to view the function logs for. If not provided, the plugin will use the default region listed in `serverless.yml`. If that doesn't exist either it'll just fetch the logs from the `us-east-1` region.
 - `--aws-profile` The AWS profile you want to use.
@@ -131,3 +135,31 @@ serverless logs -a myAgent --filter "ERROR"
 ```
 
 This will fetch only the agent logs that contain the string `ERROR`.
+
+### Web apps
+
+```bash
+serverless logs --web-app api
+```
+
+This will fetch the web app's logs from the last 10 minutes.
+
+```bash
+serverless logs --web-app api -t
+```
+
+Tail the web app's logs and print new lines as they arrive.
+
+Before the web app has logged anything, for example right after its first deploy, the command stops with `No logs yet for web app "api". Send it a request, then run this command again.`
+
+The command reads `/aws/lambda/web/<function-name>.local`, where `<function-name>` is `<service>-<stage>-<name>` unless the web app sets `name`. The identity running it needs this permission:
+
+```json
+{
+  "Effect": "Allow",
+  "Action": ["logs:DescribeLogStreams", "logs:FilterLogEvents"],
+  "Resource": "arn:aws:logs:<region>:<account-id>:log-group:/aws/lambda/web/<function-name>.local:*"
+}
+```
+
+A grant on the `/aws/lambda/web/<function-name>` log group does not cover the `.local` one. See [Logs](../guide/web-apps.md#logs) in the web apps guide.

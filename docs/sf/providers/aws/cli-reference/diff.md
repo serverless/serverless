@@ -31,7 +31,7 @@ serverless diff
 
 Two orthogonal signals are surfaced:
 
-1. **Function Code changes** — per-function comparison of the locally-packaged zip against each Lambda's `CodeSha256` in AWS. Tells you which functions will have their code redeployed.
+1. **Function Code changes** — per-function comparison of the locally-packaged zip against each Lambda's `CodeSha256` in AWS. Tells you which functions will have their code redeployed. A service with [web apps](../guide/web-apps.md) also gets a **Web App Code** section, which lists the web apps whose code is new or changed against the deployed stack.
 2. **CloudFormation template diff** — a structured diff of resources, IAM statements, security groups, parameters, outputs, and other top-level template sections. Tells you what CloudFormation will change.
 
 By default, the service is packaged first so the local template reflects the current configuration on disk. If you already have a packaged artifact directory (for example, from a previous CI step), pass `--package <path>` to use it directly and skip repackaging.
@@ -99,6 +99,26 @@ Resources: 2 to create, 0 to update, 2 to remove
 
 Both functions appear under `Function Code` because they share a single zip under default packaging. Services using `package.individually: true` see per-function granularity.
 
+### Web app code change
+
+You edited a web app's server code:
+
+```text
+Web App Code
+[~] api
+
+Resources
+[~] AWS::Lambda::WebFunctionRevision ApiWebFunctionRevision
+ └─ [~] BuildConfig
+     └─ [~] .CodeConfig:
+         └─ [~] .S3Object:
+             └─ [~] .Key:
+                 ├─ [-] serverless/my-service/dev/webapps/api-3f9c…e1.zip
+                 └─ [+] serverless/my-service/dev/webapps/api-8a2d…7b.zip
+```
+
+A web app's zip is stored under a name derived from its content, so changed code gives the web app's revision a new code location, and the deploy creates a new revision. A web app whose code is unchanged is not listed; when none changed, the command prints `No web app code changes`.
+
 ### Replacement (resource will be destroyed and recreated)
 
 ```text
@@ -154,7 +174,11 @@ serverless diff --json
 {
   "code": {
     "changed": ["hello"],
-    "new": ["welcome"]
+    "new": ["welcome"],
+    "webApps": {
+      "changed": ["api"],
+      "new": []
+    }
   },
   "summary": {
     "create": 4,
@@ -180,6 +204,7 @@ The `code` field reports per-function code changes:
 
 - `changed` — functions whose deployed `CodeSha256` differs from the local zip hash.
 - `new` — functions present locally but not in the deployed stack.
+- `webApps` — the same two arrays for web apps, present only when the service defines `webApps`. A web app is `changed` when its code differs from the deployed stack's and `new` when the deployed stack doesn't have it yet.
 
 Functions not listed in either array are unchanged (or are container-image functions / `package.disable: true`, which are excluded since they have no comparable zip artifact). If a function's remote configuration cannot be read — typically a missing `lambda:GetFunction` permission, or a Lambda missing in AWS despite being present in the deployed CloudFormation template — the diff fails fast with a clear error rather than producing a partial-state report.
 
@@ -203,4 +228,5 @@ This reads the CloudFormation template and zip artifacts from the given director
 
 - The structured diff applies the same template normalization the framework uses internally to decide whether a deploy is necessary, so artifact-key churn that the framework considers meaningless does not appear in the diff.
 - The `Function Code` section is the truthful "did handler code change?" signal — it compares zip hashes against AWS Lambda's `CodeSha256`. It is independent of the template-level diff below it.
+- The `Web App Code` section compares the content-derived name of each web app's zip in the local template with the one in the deployed stack's template, so it needs no AWS calls beyond reading that template.
 - Custom configuration filenames (`--config my-service.yml`) are supported.

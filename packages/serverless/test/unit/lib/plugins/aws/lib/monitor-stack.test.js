@@ -1040,4 +1040,113 @@ describe('monitorStack', () => {
       expect(awsPlugin.provider.request).toHaveBeenCalledTimes(4)
     })
   })
+
+  describe('Web Function quota failures', () => {
+    const quotaContext =
+      "Check this account's Web Function quotas with: aws lambda-web get-web-account-settings"
+
+    const runFailure = async ({ resourceType, reason, webApps }) => {
+      awsPlugin.serverless = {
+        service: {},
+        configurationInput: { webApps },
+      }
+      awsPlugin.provider.request
+        .mockResolvedValueOnce({
+          StackEvents: [
+            {
+              EventId: '1',
+              StackName: 'shop-dev',
+              LogicalResourceId: 'shop-dev',
+              ResourceType: 'AWS::CloudFormation::Stack',
+              ResourceStatus: 'UPDATE_IN_PROGRESS',
+            },
+          ],
+        })
+        .mockResolvedValueOnce({
+          StackEvents: [
+            {
+              EventId: '2',
+              StackName: 'shop-dev',
+              LogicalResourceId: 'ApiWebFunction',
+              ResourceType: resourceType,
+              ResourceStatus: 'CREATE_FAILED',
+              ResourceStatusReason: reason,
+            },
+          ],
+        })
+      return awsPlugin
+        .monitorStack('update', { StackId: 'shop-dev' }, { frequency: 10 })
+        .catch((error) => error)
+    }
+
+    it.each([
+      'AWS::Lambda::WebFunction',
+      'AWS::Lambda::WebFunctionRevision',
+      'AWS::Lambda::WebFunctionEndpoint',
+    ])(
+      'follows the AWS message with the quota command for %s',
+      async (type) => {
+        const error = await runFailure({
+          resourceType: type,
+          reason: 'Resource handler returned message: "Limit Exceeded"',
+          webApps: { api: { entry: 'src/server.js' } },
+        })
+
+        expect(error.message).toBe(
+          `An error occurred: ApiWebFunction - Resource handler returned message: "Limit Exceeded".\n${quotaContext}`,
+        )
+        expect(error.code).toBe(
+          `AWS_CLOUD_FORMATION_UPDATE_STACK_INTERNAL_LAMBDA_${type
+            .slice('AWS::Lambda::'.length)
+            .replace(/(?<!^)([A-Z])/g, '_$1')
+            .toUpperCase()}_CREATE_FAILED`,
+        )
+      },
+    )
+
+    it('matches a quota reason in any case', async () => {
+      const error = await runFailure({
+        resourceType: 'AWS::Lambda::WebFunction',
+        reason: 'You have exceeded the QUOTA for web functions',
+        webApps: { api: { entry: 'src/server.js' } },
+      })
+
+      expect(error.message.endsWith(`\n${quotaContext}`)).toBe(true)
+    })
+
+    it('leaves other Web Function failures alone', async () => {
+      const error = await runFailure({
+        resourceType: 'AWS::Lambda::WebFunction',
+        reason: 'Invalid request',
+        webApps: { api: { entry: 'src/server.js' } },
+      })
+
+      expect(error.message).toBe(
+        'An error occurred: ApiWebFunction - Invalid request.',
+      )
+    })
+
+    it('leaves quota failures of other resources alone', async () => {
+      const error = await runFailure({
+        resourceType: 'AWS::Lambda::Function',
+        reason: 'Limit Exceeded',
+        webApps: { api: { entry: 'src/server.js' } },
+      })
+
+      expect(error.message).toBe(
+        'An error occurred: ApiWebFunction - Limit Exceeded.',
+      )
+    })
+
+    it('leaves the message alone for a service without web apps', async () => {
+      const error = await runFailure({
+        resourceType: 'AWS::Lambda::WebFunction',
+        reason: 'Limit Exceeded',
+      })
+
+      expect(error.message).toBe(
+        'An error occurred: ApiWebFunction - Limit Exceeded.',
+      )
+    })
+  })
 })

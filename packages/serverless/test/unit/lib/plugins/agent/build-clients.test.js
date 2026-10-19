@@ -46,6 +46,7 @@ const FakeAwsIotClient = makeFakeEngineClientClass('iot')
 const FakeAwsKinesisClient = makeFakeEngineClientClass('kinesis')
 const FakeAwsCloudFrontClient = makeFakeEngineClientClass('cloudfront')
 const FakeAwsLambdaMicrovmsClient = makeFakeEngineClientClass('lambda-microvms')
+const FakeAwsLambdaWebClient = makeFakeEngineClientClass('lambda-web')
 
 // AwsCloudWatchClient is unique: it wraps TWO proxy-wrapped SDK clients
 // (`this.logsClient` for @aws-sdk/client-cloudwatch-logs, `this.metricsClient`
@@ -146,6 +147,12 @@ jest.unstable_mockModule(
     AwsLambdaMicrovmsClient: FakeAwsLambdaMicrovmsClient,
   }),
 )
+jest.unstable_mockModule(
+  '../../../../../../engine/src/lib/aws/lambda-web.js',
+  () => ({
+    AwsLambdaWebClient: FakeAwsLambdaWebClient,
+  }),
+)
 
 // Fake SDK command modules -- each exported "Command" is just a marker class
 // so we can assert `new SdkModule.FooCommand(input)` was constructed with the
@@ -224,6 +231,15 @@ jest.unstable_mockModule('@aws-sdk/client-cloudfront', () => ({
 }))
 jest.unstable_mockModule('@aws-sdk/client-lambda-microvms', () => ({
   GetMicrovmImageCommand: makeCommandClass('GetMicrovmImageCommand'),
+}))
+jest.unstable_mockModule('@aws-sdk/client-lambda-web', () => ({
+  GetWebFunctionCommand: makeCommandClass('GetWebFunctionCommand'),
+  GetWebFunctionRevisionCommand: makeCommandClass(
+    'GetWebFunctionRevisionCommand',
+  ),
+  GetWebFunctionEndpointCommand: makeCommandClass(
+    'GetWebFunctionEndpointCommand',
+  ),
 }))
 
 const { createInvoker } =
@@ -312,6 +328,24 @@ describe('build-clients', () => {
         FakeAwsLambdaMicrovmsClient,
         'GetMicrovmImage',
         'GetMicrovmImageCommand',
+      ],
+      [
+        'lambda-web',
+        FakeAwsLambdaWebClient,
+        'GetWebFunction',
+        'GetWebFunctionCommand',
+      ],
+      [
+        'lambda-web',
+        FakeAwsLambdaWebClient,
+        'GetWebFunctionRevision',
+        'GetWebFunctionRevisionCommand',
+      ],
+      [
+        'lambda-web',
+        FakeAwsLambdaWebClient,
+        'GetWebFunctionEndpoint',
+        'GetWebFunctionEndpointCommand',
       ],
     ])(
       'routes %s through its engine client and dispatches %s',

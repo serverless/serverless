@@ -265,6 +265,56 @@ describe('resolve-ajv-validate', () => {
       ).toMatch(/functions\.router\.events\.0\.cloudFront\.origin/)
     })
 
+    const lambdaLogLevels = (levels) => ({
+      provider: { logs: { lambda: levels } },
+    })
+
+    it('accepts Lambda log levels in any case', async () => {
+      expect(
+        await validateServiceConfig(
+          lambdaLogLevels({
+            applicationLogLevel: 'warn',
+            systemLogLevel: 'Info',
+          }),
+        ),
+      ).toBeNull()
+      expect(
+        await validateServiceConfig({
+          functions: {
+            api: {
+              handler: 'handler.handler',
+              logs: { applicationLogLevel: 'FATAL', systemLogLevel: 'debug' },
+            },
+          },
+        }),
+      ).toBeNull()
+    })
+
+    it('rejects an unknown Lambda application log level, listing the allowed values', async () => {
+      expect(
+        await validateServiceConfig(
+          lambdaLogLevels({ applicationLogLevel: 'verbose' }),
+        ),
+      ).toMatch(
+        /provider\.logs\.lambda\.applicationLogLevel.*must be equal to one of the allowed values \[DEBUG, ERROR, FATAL, INFO, TRACE, WARN\]/,
+      )
+    })
+
+    it('rejects an unknown Lambda system log level on a function', async () => {
+      expect(
+        await validateServiceConfig({
+          functions: {
+            api: {
+              handler: 'handler.handler',
+              logs: { systemLogLevel: 'error' },
+            },
+          },
+        }),
+      ).toMatch(
+        /functions\.api\.logs\.systemLogLevel.*must be equal to one of the allowed values \[DEBUG, INFO, WARN\]/,
+      )
+    })
+
     it('accepts URLs in an ALB OIDC authorizer', async () => {
       expect(
         await validateServiceConfig(

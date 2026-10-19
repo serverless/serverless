@@ -3,7 +3,7 @@
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc.js'
 import ServerlessError from '../../serverless-error.js'
-import { getResourceName } from './sandboxes/utils/naming.js'
+import { getResourceName } from './lib/resource-naming.js'
 
 dayjs.extend(utc)
 
@@ -21,6 +21,7 @@ class AwsLogsSandbox {
           throw new ServerlessError(
             'Cannot combine --sandbox with --function or --agent.',
             'LOGS_MUTUAL_EXCLUSIVITY',
+            { stack: false },
           )
         }
         await this.printLogs()
@@ -42,6 +43,7 @@ class AwsLogsSandbox {
       throw new ServerlessError(
         'No sandboxes defined in serverless.yml under `sandboxes`.',
         'NO_SANDBOXES_DEFINED',
+        { stack: false },
       )
     }
     const names = Object.keys(sandboxes)
@@ -49,12 +51,14 @@ class AwsLogsSandbox {
       throw new ServerlessError(
         `Specify which sandbox with --sandbox <name>. Available: ${names.join(', ')}`,
         'SANDBOX_NAME_REQUIRED',
+        { stack: false },
       )
     }
     if (!sandboxes[this.options.sandbox]) {
       throw new ServerlessError(
         `Sandbox '${this.options.sandbox}' not found. Available: ${names.join(', ')}`,
         'SANDBOX_NOT_FOUND',
+        { stack: false },
       )
     }
     return this.options.sandbox
@@ -118,6 +122,7 @@ class AwsLogsSandbox {
             `Log group '${logGroupName}' not found. The sandbox may not have ` +
               `been built or run yet.`,
             'SANDBOX_LOG_GROUP_NOT_FOUND',
+            { stack: false },
           )
         }
         throw err

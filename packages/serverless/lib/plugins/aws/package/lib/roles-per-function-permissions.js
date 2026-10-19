@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import resolveFileSystemType from '../../utils/resolve-file-system-type.js'
 import getStreamNameFromArn from '../../utils/get-stream-name-from-arn.js'
+import { grantWebAppLogGroups } from '../../web-apps/iam.js'
 
 function applyLogPermissions({
   functionObject,
@@ -47,6 +48,22 @@ function applyLogPermissions({
       ],
     })
   }
+}
+
+// A web app's role: the two statements of the shared role's template,
+// granting the web function's log groups.
+function applyWebAppLogPermissions({ webFunctionName, policyStatements }) {
+  policyStatements[0] = {
+    Effect: 'Allow',
+    Action: ['logs:CreateLogStream', 'logs:CreateLogGroup', 'logs:TagResource'],
+    Resource: [],
+  }
+  policyStatements[1] = {
+    Effect: 'Allow',
+    Action: ['logs:PutLogEvents'],
+    Resource: [],
+  }
+  grantWebAppLogGroups(policyStatements, webFunctionName)
 }
 
 function applyVpcPermissions({
@@ -642,6 +659,13 @@ function applyDestinationPermissions({
   }
 }
 
+/**
+ * @param {object} params
+ * @param {string} [params.webFunctionName] - set for a web app (the entry is
+ *   `webApps.<functionName>`): its role gets the web function's log groups and
+ *   its KMS key, and none of the function permissions. No VPC policy: the
+ *   network connector creates the network interfaces.
+ */
 export default function applyPerFunctionPermissions({
   functionName,
   functionObject,
@@ -650,8 +674,15 @@ export default function applyPerFunctionPermissions({
   serverless,
   provider,
   throwError,
+  webFunctionName,
 }) {
   if (!functionObject || !functionIamRole) return
+
+  if (webFunctionName !== undefined) {
+    applyWebAppLogPermissions({ webFunctionName, policyStatements })
+    applyKmsPermissions({ functionObject, policyStatements, serverless })
+    return
+  }
 
   applyLogPermissions({
     functionObject,

@@ -1,6 +1,11 @@
 import AWS from '../../aws/v2/sdk.js'
 import _ from 'lodash'
 import naming, { LOG_GROUP_CLASSES } from './lib/naming.js'
+import {
+  APPLICATION_LOG_LEVELS,
+  SYSTEM_LOG_LEVELS,
+  anyCasePattern,
+} from './lib/log-levels.js'
 import fsp from 'fs/promises'
 import getS3EndpointForRegion from './utils/get-s3-endpoint-for-region.js'
 import memoizeeMethods from 'memoizee/methods.js'
@@ -40,6 +45,67 @@ function resolveRuntimeManagement(input) {
   }
   return input
 }
+
+/**
+ * Schema of an entry's own IAM role settings (`functions.<name>.iam`,
+ * `webApps.<name>.iam`): the keys that give it a dedicated execution role.
+ *
+ * @param {string} entry - what the entry is called in descriptions, for
+ *   example `function` or `web app`
+ * @returns {object}
+ */
+const getEntryIamSchema = (entry) => ({
+  description: `IAM role settings of this ${entry}.`,
+  type: 'object',
+  properties: {
+    inheritStatements: { type: 'boolean' },
+    role: {
+      description: `The ${entry}'s own IAM role.`,
+      type: 'object',
+      properties: {
+        // Any intrinsic: the value reaches CloudFormation as it is
+        name: {
+          anyOf: [
+            { type: 'string' },
+            { $ref: '#/definitions/awsCfFunction' },
+            { $ref: '#/definitions/awsCfIf' },
+          ],
+        },
+        statements: {
+          description: `Inline IAM policy statements for this ${entry}.`,
+          $ref: '#/definitions/awsIamPolicyStatements',
+        },
+        permissionsBoundary: { $ref: '#/definitions/awsArn' },
+        managedPolicies: {
+          description: `Managed policy ARNs attached to this ${entry}'s role.`,
+          type: 'array',
+          items: { $ref: '#/definitions/awsArn' },
+        },
+        path: {
+          description: `IAM role path for this ${entry}'s role.`,
+          type: 'string',
+          pattern: '(^\\/$)|(^\\/[\\u0021-\\u007f]+\\/$)',
+        },
+        // awsResourceTags, with any intrinsic as a value
+        tags: {
+          type: 'object',
+          patternProperties: {
+            '^(?!aws:)[\\w./=+:\\-_\\x20]{1,128}$': {
+              anyOf: [
+                { type: 'string', maxLength: 256 },
+                { $ref: '#/definitions/awsCfFunction' },
+                { $ref: '#/definitions/awsCfIf' },
+              ],
+            },
+          },
+          additionalProperties: false,
+        },
+      },
+      additionalProperties: false,
+    },
+  },
+  additionalProperties: false,
+})
 
 const constants = {
   providerName: 'aws',
@@ -1109,9 +1175,10 @@ vpc:
             type: 'object',
             properties: {
               applicationLogLevel: {
-                description: `Application log level threshold.`,
+                description: `Application log level threshold. Case-insensitive.`,
                 type: 'string',
-                enum: ['DEBUG', 'ERROR', 'FATAL', 'INFO', 'TRACE', 'WARN'],
+                // Any case; the error message lists the values (normalize-ajv-errors)
+                pattern: anyCasePattern(APPLICATION_LOG_LEVELS),
               },
               logFormat: {
                 description: `Log output format.`,
@@ -1130,9 +1197,9 @@ vpc:
                 $ref: '#/definitions/awsLogGroupClass',
               },
               systemLogLevel: {
-                description: `System log level threshold.`,
+                description: `System log level threshold. Case-insensitive.`,
                 type: 'string',
-                enum: ['DEBUG', 'INFO', 'WARN'],
+                pattern: anyCasePattern(SYSTEM_LOG_LEVELS),
               },
             },
             additionalProperties: false,
@@ -1363,6 +1430,10 @@ tags:
               preserveExternalPathMappings: {
                 description: `Keep path mappings not managed by this service.`,
                 type: 'boolean',
+              },
+              webApp: {
+                description: `Name of the web app (under webApps) this hostname serves.`,
+                type: 'string',
               },
             },
             additionalProperties: true,
@@ -3267,38 +3338,7 @@ destinations:
         // Extend function-level schema with IAM per-function properties
         serverless.configSchemaHandler.defineFunctionProperties('aws', {
           properties: {
-            iam: {
-              description: `Function-level IAM role overrides.`,
-              type: 'object',
-              properties: {
-                inheritStatements: { type: 'boolean' },
-                role: {
-                  description: `Per-function IAM role configuration.`,
-                  type: 'object',
-                  properties: {
-                    name: { type: 'string' },
-                    statements: {
-                      description: `Inline IAM policy statements for this function.`,
-                      $ref: '#/definitions/awsIamPolicyStatements',
-                    },
-                    permissionsBoundary: { $ref: '#/definitions/awsArn' },
-                    managedPolicies: {
-                      description: `Managed policy ARNs attached to this function role.`,
-                      type: 'array',
-                      items: { $ref: '#/definitions/awsArn' },
-                    },
-                    path: {
-                      description: `IAM role path for this function.`,
-                      type: 'string',
-                      pattern: '(^\\/$)|(^\\/[\\u0021-\\u007f]+\\/$)',
-                    },
-                    tags: { $ref: '#/definitions/awsResourceTags' },
-                  },
-                  additionalProperties: false,
-                },
-              },
-              additionalProperties: false,
-            },
+            iam: getEntryIamSchema('function'),
             iamRoleStatementsInherit: { type: 'boolean' },
             iamRoleStatementsName: { type: 'string' },
             iamPermissionsBoundary: { $ref: '#/definitions/awsArn' },
@@ -4260,3 +4300,5 @@ Object.defineProperties(
 )
 
 export default AwsProvider
+
+export { caseInsensitive, getEntryIamSchema }

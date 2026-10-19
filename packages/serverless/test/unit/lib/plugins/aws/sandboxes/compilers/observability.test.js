@@ -90,7 +90,7 @@ import {
   compileAlarms,
   METRIC_NAMESPACE,
 } from '../../../../../../../lib/plugins/aws/sandboxes/compilers/observability.js'
-import { getLogicalId } from '../../../../../../../lib/plugins/aws/sandboxes/utils/naming.js'
+import { getLogicalId } from '../../../../../../../lib/plugins/aws/lib/resource-naming.js'
 
 const ctx = { serviceName: 'svc', stage: 'dev' }
 

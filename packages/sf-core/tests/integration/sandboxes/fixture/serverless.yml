@@ -8,6 +8,17 @@ provider:
   environment:
     FROM_PROVIDER: inherited
 
+# A function and a web app next to the sandbox: the three kinds of Lambda
+# compute deploy, run and are removed together.
+functions:
+  hello:
+    handler: handler.hello
+    runtime: nodejs24.x
+
+webApps:
+  site:
+    entry: web/server.mjs
+
 sandboxes:
   echo:
     artifact: ./app

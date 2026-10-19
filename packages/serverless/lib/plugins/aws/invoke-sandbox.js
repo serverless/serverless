@@ -9,6 +9,14 @@ import {
   createAuthToken,
   terminateMicrovm,
 } from './sandboxes/runtime/dataplane.js'
+import { parseHeaderOptions } from './lib/invoke-options.js'
+
+/** The headers the Framework sets on every sandbox request, and `--header` cannot. */
+const RESERVED_HEADERS = {
+  host: "from the sandbox's endpoint",
+  'x-aws-proxy-auth': 'to reach the sandbox through the AWS proxy',
+  'x-aws-proxy-port': 'to reach the sandbox through the AWS proxy',
+}
 
 class AwsInvokeSandbox {
   constructor(serverless, options, pluginUtils) {
@@ -25,6 +33,7 @@ class AwsInvokeSandbox {
           throw new ServerlessError(
             'Cannot combine --sandbox with --function or --agent.',
             'INVOKE_MUTUAL_EXCLUSIVITY',
+            { stack: false },
           )
         }
         this.progress.notice('Invoking sandbox')
@@ -48,6 +57,7 @@ class AwsInvokeSandbox {
       throw new ServerlessError(
         'No sandboxes defined in serverless.yml under `sandboxes`.',
         'NO_SANDBOXES_DEFINED',
+        { stack: false },
       )
     }
     const names = Object.keys(sandboxes)
@@ -55,12 +65,14 @@ class AwsInvokeSandbox {
       throw new ServerlessError(
         `Specify which sandbox with --sandbox <name>. Available: ${names.join(', ')}`,
         'SANDBOX_NAME_REQUIRED',
+        { stack: false },
       )
     }
     if (!sandboxes[this.options.sandbox]) {
       throw new ServerlessError(
         `Sandbox '${this.options.sandbox}' not found. Available: ${names.join(', ')}`,
         'SANDBOX_NOT_FOUND',
+        { stack: false },
       )
     }
     return this.options.sandbox
@@ -72,6 +84,11 @@ class AwsInvokeSandbox {
       const port = Number(this.options.port) || 8080
       const reqPath = this.options.path || '/'
       const method = (this.options.method || 'GET').toUpperCase()
+      // Checked before an instance starts
+      const userHeaders = parseHeaderOptions(
+        this.options.header,
+        RESERVED_HEADERS,
+      )
 
       const { imageIdentifier, executionRoleArn, connectorArn } =
         await resolveSandboxOutputs(this.provider, name)
@@ -98,6 +115,7 @@ class AwsInvokeSandbox {
         // Insert a leading slash when reqPath doesn't already have one.
         const url = `${base}${reqPath.startsWith('/') ? '' : '/'}${reqPath}`
         const headers = {
+          ...userHeaders,
           'X-aws-proxy-auth': token,
           'X-aws-proxy-port': String(port),
         }
@@ -119,6 +137,7 @@ class AwsInvokeSandbox {
           throw new ServerlessError(
             `Sandbox '${name}' returned HTTP ${res.status}`,
             'SANDBOX_INVOKE_HTTP_ERROR',
+            { stack: false },
           )
         }
       } catch (err) {
@@ -128,6 +147,7 @@ class AwsInvokeSandbox {
               `lambda:RunMicrovm, GetMicrovm, CreateMicrovmAuthToken, TerminateMicrovm, ` +
               `iam:PassRole and lambda:PassNetworkConnector.`,
             'SANDBOX_INVOKE_ACCESS_DENIED',
+            { stack: false },
           )
         }
         throw err

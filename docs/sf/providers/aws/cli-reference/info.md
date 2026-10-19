@@ -65,6 +65,26 @@ functions:
   my-serverless-service-dev-hello
 ```
 
+#### Web apps
+
+Each [web app](../guide/web-apps.md) is listed under `endpoints` by name with its endpoint URL, followed by each custom domain that serves it:
+
+```text
+$ serverless info
+
+service: shop
+stage: dev
+region: us-east-1
+stack: shop-dev
+endpoints:
+  web: https://abc123example.lambda-web.us-east-1.on.aws
+  web: https://shop.example.com
+  api: https://def456example.lambda-web.us-east-1.on.aws
+  api: https://shop.example.com/api
+```
+
+A service whose only endpoint is one web app's prints it as `endpoint: <url>`. With a custom domain, `--verbose` also shows the CloudFront distribution's domain name and ID as stack outputs.
+
 #### Verbose
 
 When using the `--verbose` flag, the `info` command will also append all Stack Outputs to the output:

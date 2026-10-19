@@ -5,7 +5,6 @@ import {
   link,
   lstat,
   mkdir,
-  open,
   readdir,
   readFile,
   realpath,
@@ -27,8 +26,16 @@ import micromatch from 'micromatch'
 import ServerlessError from '../../serverless-error.js'
 import { log } from '@serverless/util'
 import { resolveServerlessConfigFileExcludes } from '../package/lib/package-service.js'
+import { getWebAppsConfig } from '../aws/lib/web-apps.js'
 import { AGENT_SKILL_EXCLUDES } from '../package/lib/agent-skill-excludes.js'
 import { currentDevBuildRequest } from '../../utils/dev-build-request.js'
+import { readArchiveEntryNames } from '../../utils/read-archive-entry-names.js'
+import { BOOTSTRAP_FILE, WEB_APPS_DIR } from '../aws/web-apps/constants.js'
+import { getWebAppRuntime } from '../aws/web-apps/runtime.js'
+import {
+  generateBootstrap,
+  normalizeEntryPath,
+} from '../aws/web-apps/packaging/bootstrap.js'
 import {
   compilePatterns,
   filterPaths,
@@ -61,6 +68,19 @@ const BUILDABLE_HANDLER_EXTENSIONS = [
   '.jsx',
   '.tsx',
 ]
+
+// Handler and entry extensions built without any `build` setting.
+const TYPESCRIPT_EXTENSIONS = ['.ts', '.cts', '.mts', '.tsx']
+
+/**
+ * Whether a file path names a TypeScript file, which the plugin builds without
+ * any `build` setting.
+ *
+ * @param {string} [file]
+ * @returns {boolean}
+ */
+export const isTypeScriptFile = (file) =>
+  typeof file === 'string' && TYPESCRIPT_EXTENSIONS.includes(path.extname(file))
 
 // The files classic packaging drops from every artifact no matter how the
 // service is configured. Mirrors `defaultExcludes` in
@@ -502,6 +522,33 @@ const stripHandlerExportSuffix = (functionHandler) => {
   return functionHandler.slice(0, functionHandler.lastIndexOf(exportName))
 }
 
+// A web app's `entry` names its file, extension included, so it is resolved as
+// written rather than probed like a handler: a `src/server.js` next to the
+// configured `src/server.ts` must not take its place. The extension, when the
+// file exists and is one the plugin builds.
+const webAppEntryExtension = (serviceDir, entry) => {
+  const extension = path.extname(entry)
+  return BUILDABLE_HANDLER_EXTENSIONS.includes(extension) &&
+    existsSync(path.join(serviceDir, entry))
+    ? extension
+    : undefined
+}
+
+// The build-directory paths (outfiles and source maps) of recorded artifacts.
+const artifactPathsOf = (...artifactMaps) => {
+  const paths = new Set()
+  for (const artifacts of artifactMaps) {
+    for (const { outfile, mapfile } of artifacts.values()) {
+      paths.add(outfile)
+      if (mapfile) paths.add(mapfile)
+    }
+  }
+  return paths
+}
+
+const byZipPath = (a, b) =>
+  a.zipPath < b.zipPath ? -1 : a.zipPath > b.zipPath ? 1 : 0
+
 // Compare two arrays as sets (order- and duplicate-insensitive). Used to
 // detect whether functions sharing a handler file resolved to the same
 // esbuild `external` list.
@@ -680,6 +727,7 @@ class Esbuild {
     this.serverless = serverless
     this.options = options || {}
     this._functions = undefined
+    this._webApps = undefined
     // Set once the `packages: external` / empty-node_modules warning has been
     // emitted, so that it is reported per invocation rather than per function.
     this._nodeModulesExclusionWarned = false
@@ -734,11 +782,16 @@ class Esbuild {
           this._setConfigForLocalInvocation()
         }
       },
+      // The only build that includes web apps: `deploy function`, `invoke
+      // local`, `offline` and Dev Mode run functions alone.
       'before:package:createDeploymentArtifacts': async () => {
-        if (await this._shouldRun()) {
-          await this._build()
+        if (
+          (await this._shouldRun()) ||
+          Object.keys(await this.webApps()).length > 0
+        ) {
+          await this._build('handler', { includeWebApps: true })
           await this._preparePackageJson()
-          await this._package()
+          await this._package('handler', { includeWebApps: true })
         }
       },
       'before:deploy:function:packageFunction': async () => {
@@ -882,6 +935,33 @@ class Esbuild {
     return functionsToBuild
   }
 
+  /**
+   * Get a record of the web apps esbuild builds: `webApps` entries, selected by
+   * the function rules applied to `entry` (see `_shouldBuildFunction`). Web apps
+   * are no function objects, so nothing that reads `service.functions` or this
+   * plugin's function state sees them.
+   */
+  async webApps() {
+    if (this._webApps) {
+      return this._webApps
+    }
+
+    const webAppsToBuild = {}
+    for (const [name, webApp] of Object.entries(
+      getWebAppsConfig(this.serverless),
+    )) {
+      if (
+        await this._shouldBuildFunction(webApp, 'entry', { isWebApp: true })
+      ) {
+        webAppsToBuild[name] = webApp
+      }
+    }
+
+    this._webApps = webAppsToBuild
+
+    return webAppsToBuild
+  }
+
   static WillEsBuildRun(
     configFile,
     serviceDir,
@@ -934,24 +1014,67 @@ class Esbuild {
         }
       }
 
-      if (
-        parsedExtension &&
-        ['.ts', '.cts', '.mts', '.tsx'].includes(parsedExtension)
-      ) {
+      if (parsedExtension && TYPESCRIPT_EXTENSIONS.includes(parsedExtension)) {
         return true
       }
 
       return false
     })
-    return willRun
+
+    const willBuildWebApp = Object.values(configFile.webApps || {}).some(
+      (webApp) => Esbuild.WillEsBuildWebApp(configFile, serviceDir, webApp),
+    )
+
+    return willRun || willBuildWebApp
+  }
+
+  /**
+   * Whether esbuild builds one web app. Follows `_shouldBuildFunction` with
+   * `isWebApp`: the web app's own runtime, and no service-level
+   * `package.artifact` rule. Total on malformed config: analytics calls it.
+   *
+   * @param {object} configFile - the service configuration
+   * @param {string} serviceDir - the directory `entry` is relative to
+   * @param {object} webApp - a `webApps.<name>` entry
+   * @returns {boolean}
+   */
+  static WillEsBuildWebApp(configFile, serviceDir, webApp) {
+    if (configFile?.build?.esbuild === false) return false
+    if (typeof webApp?.entry !== 'string' || webApp.build === false) {
+      return false
+    }
+    if (webApp.package?.artifact) return false
+    const runtime = getWebAppRuntime(webApp, configFile.provider?.runtime)
+    if (typeof runtime !== 'string' || !runtime.startsWith('nodejs')) {
+      return false
+    }
+    if (webApp.build) return webApp.build === 'esbuild'
+    if (configFile.build === 'esbuild' || configFile.build?.esbuild) {
+      return true
+    }
+    return TYPESCRIPT_EXTENSIONS.includes(
+      webAppEntryExtension(serviceDir, webApp.entry),
+    )
   }
 
   /**
    * Take a Function Configuration and determine if it should be built by esbuild
-   * @param {Object} functionObject - A Framework Function Configuration Object
+   * @param {Object} functionObject - A Framework Function Configuration Object,
+   *   or a web app's (`webApps.<name>`, with `handlerPropertyName` `entry`)
+   * @param {string} [handlerPropertyName]
+   * @param {object} [options]
+   * @param {boolean} [options.isWebApp] - apply the web app rules: the runtime is
+   *   the web app's own, else `provider.runtime` when it is nodejs24.x or
+   *   newer, else `nodejs24.x`; the service-level `package.artifact` (the
+   *   functions' shared zip) does not apply, and `entry` is resolved as the
+   *   file it names
    * @returns
    */
-  async _shouldBuildFunction(functionObject, handlerPropertyName = 'handler') {
+  async _shouldBuildFunction(
+    functionObject,
+    handlerPropertyName = 'handler',
+    { isWebApp = false } = {},
+  ) {
     if (this.serverless.service.build?.esbuild === false) {
       return false
     }
@@ -979,13 +1102,18 @@ class Esbuild {
     // If a service-level artifact is provided and the function itself is not individually packaged,
     // do not build this function (matches packageFunction behavior)
     if (
+      !isWebApp &&
       !isFunctionPackagedIndividually &&
       this.serverless?.service?.package?.artifact
     ) {
       return false
     }
-    const runtime =
-      functionObject.runtime || this.serverless.service.provider.runtime
+    const runtime = isWebApp
+      ? getWebAppRuntime(
+          functionObject,
+          this.serverless.service.provider.runtime,
+        )
+      : functionObject.runtime || this.serverless.service.provider.runtime
     const functionBuildParam = functionObject.build
     const providerBuildParam = this.serverless.service.build
 
@@ -1000,10 +1128,13 @@ class Esbuild {
       log.debug(
         'Build property not set using default checking behavior for esbuild',
       )
-      const extension = await this._extensionForFunction(
-        functionObject[handlerPropertyName],
-      )
-      if (extension && ['.ts', '.cts', '.mts', '.tsx'].includes(extension)) {
+      const extension = isWebApp
+        ? webAppEntryExtension(
+            this.serverless.config.serviceDir,
+            functionObject[handlerPropertyName],
+          )
+        : await this._extensionForFunction(functionObject[handlerPropertyName])
+      if (extension && TYPESCRIPT_EXTENSIONS.includes(extension)) {
         log.debug('Build property not set using esbuild since typescript')
         return true
       }
@@ -1348,18 +1479,27 @@ class Esbuild {
    *   `lib/utils/dev-build-request.js`): only its functions are built, each is covered before the
    *   build and marked built once its output is written, and the last good output is kept when the
    *   build fails.
+   * @param {boolean} [options.includeWebApps] - also build the web apps `webApps()` selects (the
+   *   package build only)
    */
-  async _build(handlerPropertyName = 'handler', { devRequest = null } = {}) {
+  async _build(
+    handlerPropertyName = 'handler',
+    { devRequest = null, includeWebApps = false } = {},
+  ) {
     this.devRequest = devRequest
     try {
-      return await this._runBuild(handlerPropertyName, devRequest)
+      return await this._runBuild(
+        handlerPropertyName,
+        devRequest,
+        includeWebApps,
+      )
     } finally {
       this.devRequest = null
     }
   }
 
   /** The body of `_build`, with `this.devRequest` set for the duration of the build. */
-  async _runBuild(handlerPropertyName, devRequest) {
+  async _runBuild(handlerPropertyName, devRequest, includeWebApps = false) {
     const dev = Boolean(devRequest)
     // Names this dev build's staging directories (see devStagingDir).
     const devBuildId = dev ? randomBytes(4).toString('hex') : null
@@ -1368,9 +1508,13 @@ class Esbuild {
     // scratch on every invocation (dev mode rebuilds through the same plugin
     // instance) so it can never report an artifact from a previous build.
     this.builtArtifacts = new Map()
+    // The same for each web app's entry, kept apart so that nothing reading
+    // function state (Dev Mode, `deploy function`) ever sees a web app.
+    this.builtWebAppArtifacts = new Map()
     this.patternClaimedBuildPaths = new Set()
 
     let functionsToBuild = await this.functions(handlerPropertyName)
+    const webAppsToBuild = includeWebApps ? await this.webApps() : {}
     // A dev build builds only the functions the dev build request names.
     if (dev) {
       functionsToBuild = Object.fromEntries(
@@ -1382,7 +1526,10 @@ class Esbuild {
       for (const alias of Object.keys(functionsToBuild)) devRequest.cover(alias)
     }
 
-    if (Object.keys(functionsToBuild).length === 0) {
+    if (
+      Object.keys(functionsToBuild).length === 0 &&
+      Object.keys(webAppsToBuild).length === 0
+    ) {
       log.debug('No functions to build with esbuild')
       return
     }
@@ -1429,6 +1576,7 @@ class Esbuild {
             stagingDir: dev
               ? devStagingDir(this.buildDirPath, devBuildId, 0)
               : null,
+            webAppsToBuild,
           },
         )
       } catch (err) {
@@ -1454,6 +1602,7 @@ class Esbuild {
 
       if (!dev) {
         this._assertAllHandlersBuilt(functionsToBuild, handlerPropertyName)
+        this._assertAllWebAppsBuilt(webAppsToBuild)
       }
 
       return
@@ -1469,6 +1618,33 @@ class Esbuild {
     // unique file once, applying the per-function side effects to every alias
     // in the group afterwards.
     const buildGroups = new Map()
+    // A web app joins the group of a function with the same file: one build,
+    // one outfile, recorded for each of them.
+    const addToBuildGroup = ({
+      entry,
+      handlerPath,
+      external,
+      alias,
+      webApp,
+    }) => {
+      const existingGroup = buildGroups.get(entry)
+      if (existingGroup) {
+        if (alias !== undefined) existingGroup.aliases.push(alias)
+        if (webApp !== undefined) existingGroup.webApps.push(webApp)
+        existingGroup.externals.push(external)
+      } else {
+        buildGroups.set(entry, {
+          entry,
+          // Relative stripped handler path used to derive the outfile. All
+          // members of a group resolve to the same file, so any member's
+          // relative path is correct once `path.join`-normalized below.
+          handlerPath,
+          aliases: alias !== undefined ? [alias] : [],
+          webApps: webApp !== undefined ? [webApp] : [],
+          externals: [external],
+        })
+      }
+    }
 
     for (const [alias, functionObject] of Object.entries(functionsToBuild)) {
       const handlerPath = stripHandlerExportSuffix(
@@ -1493,21 +1669,30 @@ class Esbuild {
         handlerPath + extension,
       )
 
-      const existingGroup = buildGroups.get(entry)
-      if (existingGroup) {
-        existingGroup.aliases.push(alias)
-        existingGroup.externals.push(external)
-      } else {
-        buildGroups.set(entry, {
-          entry,
-          // Relative stripped handler path used to derive the outfile. All
-          // members of a group resolve to the same file, so any member's
-          // relative path is correct once `path.join`-normalized below.
-          handlerPath,
-          aliases: [alias],
-          externals: [external],
-        })
+      addToBuildGroup({ entry, handlerPath, external, alias })
+    }
+
+    // Web apps are bundled exactly as handlers: the outfile is the entry
+    // without its extension plus the output extension.
+    for (const [name, webApp] of Object.entries(webAppsToBuild)) {
+      const extension = webAppEntryExtension(
+        this.serverless.config.serviceDir,
+        webApp.entry,
+      )
+      if (!extension) {
+        continue
       }
+      const entryPath = normalizeEntryPath(webApp.entry)
+      addToBuildGroup({
+        entry: path.join(this.serverless.config.serviceDir, entryPath),
+        handlerPath: entryPath.slice(0, -extension.length),
+        external: (
+          await this._externals(
+            getWebAppRuntime(webApp, this.serverless.service.provider.runtime),
+          )
+        ).external,
+        webApp: name,
+      })
     }
 
     if (buildGroups.size === 0) {
@@ -1529,6 +1714,7 @@ class Esbuild {
       if (!dev) {
         await this._resetBuildDir()
         this._assertAllHandlersBuilt(functionsToBuild, handlerPropertyName)
+        this._assertAllWebAppsBuilt(webAppsToBuild)
       }
       return
     }
@@ -1581,8 +1767,12 @@ class Esbuild {
                 external = referenceExternal.filter((dep) =>
                   externals.every((other) => other.includes(dep)),
                 )
+                const members = [
+                  ...group.aliases,
+                  ...group.webApps.map((name) => `webApps.${name}`),
+                ].join(', ')
                 logger.warning(
-                  `Functions ${group.aliases.join(', ')} share the handler file "${group.entry}" but resolve to different esbuild "external" lists. ` +
+                  `${group.webApps.length > 0 ? 'Functions and web apps' : 'Functions'} ${members} share the handler file "${group.entry}" but resolve to different esbuild "external" lists. ` +
                     `Building the file once with the intersection of those lists: ${external.length > 0 ? external.join(', ') : '(empty)'}.`,
                 )
               }
@@ -1688,6 +1878,19 @@ class Esbuild {
                   }
                 }
               }
+              // Recorded only: no function state, no write into the web app's
+              // config, and no NODE_OPTIONS, which on a web function replaces
+              // the default V8 heap size. The bootstrap enables source maps.
+              // `format` is the module system the bootstrap starts the entry
+              // with; esbuild emits CommonJS unless told otherwise.
+              if (artifact) {
+                for (const name of group.webApps) {
+                  this.builtWebAppArtifacts.set(name, {
+                    ...artifact,
+                    format: esbuildProps.format === 'esm' ? 'esm' : 'cjs',
+                  })
+                }
+              }
             }
             if (dev) staged[index] = { stagingDir, outfile, record }
             else record()
@@ -1770,6 +1973,7 @@ class Esbuild {
     // does not assert either.
     if (!dev) {
       this._assertAllHandlersBuilt(functionsToBuild, handlerPropertyName)
+      this._assertAllWebAppsBuilt(webAppsToBuild)
     }
 
     return
@@ -1815,12 +2019,15 @@ class Esbuild {
    * @param {Object} functionsToBuild - Functions approved by `_shouldBuildFunction`
    * @param {string} handlerPropertyName - The handler property to resolve from
    * @param {object} buildProperties - The merged esbuild build properties
+   * @param {object} [options]
+   * @param {Record<string, object>} [options.webAppsToBuild] - web apps whose
+   *   `entry` compiles like a handler
    */
   async _buildProject(
     functionsToBuild,
     handlerPropertyName,
     buildProperties,
-    { stagingDir = null } = {},
+    { stagingDir = null, webAppsToBuild = {} } = {},
   ) {
     const serviceDir = this.serverless.config.serviceDir
     const service = this.serverless.service
@@ -1867,6 +2074,15 @@ class Esbuild {
         toSweptPath(stripHandlerExportSuffix(functionHandler) + extension),
       )
     }
+    // A web app's entry always compiles too, as a handler does.
+    const handlerFileByWebApp = new Map()
+    for (const [name, webApp] of Object.entries(webAppsToBuild)) {
+      if (!webAppEntryExtension(serviceDir, webApp.entry)) continue
+      handlerFileByWebApp.set(
+        name,
+        toSweptPath(normalizeEntryPath(webApp.entry)),
+      )
+    }
 
     const layerPaths =
       typeof service.getAllLayers === 'function'
@@ -1888,7 +2104,10 @@ class Esbuild {
       additionalExclusions: [...CLASSIC_DEFAULT_EXCLUDES, DOTENV_EXCLUDE],
     })
 
-    const handlerFiles = [...handlerFileByAlias.values()]
+    const handlerFiles = [
+      ...handlerFileByAlias.values(),
+      ...handlerFileByWebApp.values(),
+    ]
     const { compile: sweptCompile, copy } = splitCompileAndCopy(
       swept,
       handlerFiles,
@@ -1913,6 +2132,8 @@ class Esbuild {
 
     const packageJsonTypeCache = new Map()
     const partitions = new Map()
+    // The format each file compiles to, for the web app entries among them
+    const formatBySource = new Map()
     for (const file of compile) {
       // The class a file belongs to is the module system its own name carries:
       // `.mts`/`.mjs` are ESM, `.cts`/`.cjs` are CommonJS, and everything else
@@ -1947,6 +2168,8 @@ class Esbuild {
           explicitFormat ? null : file,
         )
       }
+
+      formatBySource.set(file, format)
 
       // Keyed by SOURCE class, not by the extension it ends up with: with
       // `outExtension: { '.js': '.mjs' }` the `.js` and `.mjs` classes emit the
@@ -2169,6 +2392,18 @@ class Esbuild {
           functionObject.environment.NODE_OPTIONS = '--enable-source-maps'
         }
       }
+    }
+    // Recorded only, as on the bundling path.
+    for (const [name, handlerFile] of handlerFileByWebApp) {
+      const outfile = this._outputPathForSource(handlerFile, buildProperties)
+      if (!existsSync(path.join(this.buildDirPath, outfile))) continue
+      this.builtWebAppArtifacts.set(name, {
+        outfile,
+        mapfile: existsSync(path.join(this.buildDirPath, `${outfile}.map`))
+          ? `${outfile}.map`
+          : null,
+        format: formatBySource.get(handlerFile) === 'esm' ? 'esm' : 'cjs',
+      })
     }
   }
 
@@ -2407,6 +2642,32 @@ class Esbuild {
         'ESBUILD_HANDLER_NOT_BUILT',
       )
     }
+  }
+
+  /**
+   * Every web app esbuild was asked to build has to have produced its entry:
+   * one that is missing, or that a build configured not to write, would ship
+   * a bootstrap that imports nothing.
+   *
+   * @param {Record<string, object>} webAppsToBuild - web apps selected by `webApps()`
+   */
+  _assertAllWebAppsBuilt(webAppsToBuild) {
+    const missing = Object.keys(webAppsToBuild).filter(
+      (name) => !this.builtWebAppArtifacts.has(name),
+    )
+    if (missing.length === 0) {
+      return
+    }
+    throw new ServerlessError(
+      missing
+        .map(
+          (name) =>
+            `webApps.${name}.entry "${webAppsToBuild[name].entry}" is not among the files built for this web app. Check the path.`,
+        )
+        .join('\n'),
+      'WEB_APPS_ENTRY_NOT_FOUND',
+      { stack: false },
+    )
   }
 
   /**
@@ -2968,10 +3229,18 @@ class Esbuild {
    * @param {Array<{absPath: string, zipPath: string, mode: number}>} options.entries
    * @param {Array<object>} options.compiledPatterns - compiled ordered patterns
    *   governing `node_modules`
+   * @param {Array<{name: string, content: string}>} [options.generatedEntries] -
+   *   files that exist only in the archive (a web app's bootstrap), placed in
+   *   the sorted order; one replaces an entry with the same archive path
    * @returns {Promise<{ excludedEntryCount: number, excludedNodeModulesEntryCount: number, includedNodeModulesFileCount: number }>}
    *   the node_modules walk's pattern counters
    */
-  async _writeArchive({ zipPath, entries, compiledPatterns }) {
+  async _writeArchive({
+    zipPath,
+    entries,
+    compiledPatterns,
+    generatedEntries = [],
+  }) {
     const nodeModulesPath = path.join(this.buildDirPath, 'node_modules')
     const { filter: patternEntryFilter, counters } =
       createNodeModulesEntryFilter(compiledPatterns)
@@ -3010,6 +3279,18 @@ class Esbuild {
             return false
           }
 
+    const generatedNames = new Set(generatedEntries.map(({ name }) => name))
+    const archiveEntries =
+      generatedEntries.length === 0
+        ? entries
+        : [
+            ...entries.filter((entry) => !generatedNames.has(entry.zipPath)),
+            ...generatedEntries.map(({ name, content }) => ({
+              zipPath: name,
+              content,
+            })),
+          ].sort(byZipPath)
+
     const zip = new ZipArchive()
     const output = createWriteStream(zipPath)
 
@@ -3022,7 +3303,15 @@ class Esbuild {
         try {
           zip.pipe(output)
 
-          for (const entry of entries) {
+          for (const entry of archiveEntries) {
+            if (entry.content !== undefined) {
+              zip.append(entry.content, {
+                name: entry.zipPath,
+                date: PINNED_ARTIFACT_DATE,
+                mode: 0o644,
+              })
+              continue
+            }
             zip.file(entry.absPath, {
               name: entry.zipPath,
               date: PINNED_ARTIFACT_DATE,
@@ -3059,113 +3348,6 @@ class Esbuild {
   }
 
   /**
-   * The entry names a finished archive actually contains, read back out of its
-   * central directory.
-   *
-   * The handler assertion is worth nothing if it checks the list packaging
-   * MEANT to write: an entry archiver dropped, renamed while sanitizing, or
-   * never flushed would sail straight through. So it is read off the file on
-   * disk instead.
-   *
-   * Only the directory itself is read, never the archive body — a Lambda
-   * artifact runs to hundreds of megabytes and loading it into a buffer to
-   * answer "which names are in here" is not affordable. ZIP64 is handled
-   * because it is genuinely reachable: archiver switches to it above 65535
-   * entries, which a real `node_modules` passes easily.
-   *
-   * Returns `null` rather than throwing if the archive cannot be read as
-   * expected. The caller then falls back to the intended list: this check
-   * exists to catch a missing handler, and it must never be the thing that
-   * invents one.
-   *
-   * @param {string} zipPath
-   * @returns {Promise<Set<string>|null>}
-   */
-  async _readArchiveEntryNames(zipPath) {
-    let handle
-    try {
-      handle = await open(zipPath, 'r')
-      const { size } = await handle.stat()
-
-      // The end-of-central-directory record is last, but a trailing comment
-      // (up to 64KiB) can sit behind it, so scan back over that window.
-      const tailLength = Math.min(size, 22 + 0xffff)
-      const tail = Buffer.alloc(tailLength)
-      await handle.read(tail, 0, tailLength, size - tailLength)
-
-      let eocd = -1
-      for (let i = tail.length - 22; i >= 0; i -= 1) {
-        if (tail.readUInt32LE(i) === 0x06054b50) {
-          eocd = i
-          break
-        }
-      }
-      if (eocd === -1) return null
-
-      let entryCount = tail.readUInt16LE(eocd + 10)
-      let directorySize = tail.readUInt32LE(eocd + 12)
-      let directoryOffset = tail.readUInt32LE(eocd + 16)
-
-      // Any of the three saturated means the real values live in the ZIP64
-      // record, found through the locator that sits immediately before the
-      // classic one.
-      if (
-        entryCount === 0xffff ||
-        directorySize === 0xffffffff ||
-        directoryOffset === 0xffffffff
-      ) {
-        const locator = eocd - 20
-        if (locator < 0 || tail.readUInt32LE(locator) !== 0x07064b50)
-          return null
-        const zip64Offset = Number(tail.readBigUInt64LE(locator + 8))
-        const zip64 = Buffer.alloc(56)
-        await handle.read(zip64, 0, 56, zip64Offset)
-        if (zip64.readUInt32LE(0) !== 0x06064b50) return null
-        entryCount = Number(zip64.readBigUInt64LE(32))
-        directorySize = Number(zip64.readBigUInt64LE(40))
-        directoryOffset = Number(zip64.readBigUInt64LE(48))
-      }
-
-      // Every figure above comes off the file being read, so none of them can
-      // be trusted to be sane. The central directory lives inside the archive
-      // and each of its records is at least 46 bytes; anything else means the
-      // record was misread, and allocating on it would abort the whole CLI
-      // with an out-of-memory crash rather than fail this one check.
-      if (
-        directoryOffset < 0 ||
-        directorySize < 0 ||
-        directoryOffset + directorySize > size ||
-        entryCount < 0 ||
-        entryCount * 46 > directorySize
-      ) {
-        return null
-      }
-
-      const directory = Buffer.alloc(directorySize)
-      await handle.read(directory, 0, directorySize, directoryOffset)
-
-      const names = new Set()
-      let offset = 0
-      for (let i = 0; i < entryCount; i += 1) {
-        if (offset + 46 > directory.length) return null
-        if (directory.readUInt32LE(offset) !== 0x02014b50) return null
-        const nameLength = directory.readUInt16LE(offset + 28)
-        const extraLength = directory.readUInt16LE(offset + 30)
-        const commentLength = directory.readUInt16LE(offset + 32)
-        names.add(
-          directory.toString('utf8', offset + 46, offset + 46 + nameLength),
-        )
-        offset += 46 + nameLength + extraLength + commentLength
-      }
-      return names
-    } catch {
-      return null
-    } finally {
-      await handle?.close()
-    }
-  }
-
-  /**
    * Every function's handler has to be in the artifact that ships it.
    *
    * The build records where it wrote each handler; packaging appends the build
@@ -3180,7 +3362,7 @@ class Esbuild {
    * The names come from the finished archive's own central directory, so this
    * asserts what shipped rather than what packaging intended to ship. The
    * caller's intended list is only the fallback for an archive that cannot be
-   * read back (see `_readArchiveEntryNames`).
+   * read back (see `readArchiveEntryNames`).
    *
    * @param {Object} functions - the functions this archive was built for
    * @param {Set<string>} intendedZipPaths - archive paths packaging appended
@@ -3189,7 +3371,7 @@ class Esbuild {
   async _assertHandlersInArtifact(functions, intendedZipPaths, zipPath) {
     const builtArtifacts = this.builtArtifacts ?? new Map()
     const appendedZipPaths =
-      (await this._readArchiveEntryNames(zipPath)) ?? intendedZipPaths
+      (await readArchiveEntryNames(zipPath)) ?? intendedZipPaths
     const missing = []
 
     for (const alias of Object.keys(functions)) {
@@ -3210,24 +3392,88 @@ class Esbuild {
   }
 
   /**
+   * A web app's built entry has to be in its archive, or the bootstrap imports
+   * a file that is not there. Read back from the finished archive, as
+   * `_assertHandlersInArtifact` does for functions.
+   *
+   * @param {string} name - the web app's key
+   * @param {string} outfile - where the build wrote its entry
+   * @param {Set<string>} intendedZipPaths - archive paths packaging appended
+   * @param {string} zipPath - the archive to read back
+   */
+  async _assertWebAppEntryInArtifact(name, outfile, intendedZipPaths, zipPath) {
+    const appendedZipPaths =
+      (await readArchiveEntryNames(zipPath)) ?? intendedZipPaths
+    if (!appendedZipPaths.has(outfile)) {
+      throw new ServerlessError(
+        `The built entry for webApps.${name} ("${outfile}") is missing from ${zipPath}. Check package.patterns for this web app.`,
+        'ESBUILD_WEB_APP_ENTRY_MISSING_FROM_ARTIFACT',
+        { stack: false },
+      )
+    }
+  }
+
+  /**
    * Take the current build context. Which could be service-wide or a given function and then package it.
    *
    * This function takes package.individually into account and will either create a single zip file to use for all functions or a zip file per function otherwise.
+   * Web apps, when included, are zipped one each whatever `package.individually` says.
    *
    * @param {string} handlerPropertyName - The property name of the handler in the function object.
+   * @param {object} [options]
+   * @param {boolean} [options.includeWebApps] - also package the web apps `webApps()` selects (the
+   *   package build only)
    */
-  async _package(handlerPropertyName = 'handler') {
+  async _package(
+    handlerPropertyName = 'handler',
+    { includeWebApps = false } = {},
+  ) {
     const functions = await this.functions(handlerPropertyName)
-    const buildProperties = await this._buildProperties()
+    const webApps = includeWebApps ? await this.webApps() : {}
 
     if (Object.keys(functions).length === 0) {
       log.debug('No functions to package')
-      return
+      if (Object.keys(webApps).length === 0) {
+        return
+      }
     }
+
+    const prepared = await this._preparePackagingBuildDir()
+    if (Object.keys(functions).length > 0) {
+      await this._packageFunctions(functions, prepared)
+    }
+    if (Object.keys(webApps).length > 0) {
+      await this._packageWebApps(webApps, prepared)
+    }
+  }
+
+  /**
+   * Let plugins add to the build directory (`esbuild-package`), then copy the
+   * files the service-level `package.patterns` select into it. Runs once per
+   * packaging, before the first archive is written.
+   *
+   * @returns {Promise<{ excludedCount: number, installedTreeEntries: Array<object> }>}
+   *   see `_copyPatternsIntoBuildDir`
+   */
+  async _preparePackagingBuildDir() {
+    await this.serverless.pluginManager.spawn('esbuild-package')
+    return this._copyPatternsIntoBuildDir()
+  }
+
+  /**
+   * Package the functions: one zip for all of them, or one each under
+   * `package.individually`.
+   *
+   * @param {Object} functions - the functions to package
+   * @param {{ excludedCount: number, installedTreeEntries: Array<object> }} prepared
+   *   what preparing the build directory returned
+   */
+  async _packageFunctions(functions, prepared) {
+    const buildProperties = await this._buildProperties()
 
     // If not packaging individually then package all functions together into a single zip
     if (!this.serverless?.service?.package?.individually) {
-      await this._packageAll(functions)
+      await this._packageAll(functions, prepared)
       return
     }
 
@@ -3236,9 +3482,8 @@ class Esbuild {
 
     const limit = pLimit(concurrency)
 
-    await this.serverless.pluginManager.spawn('esbuild-package')
     const { excludedCount: excludedServiceIncludeCount, installedTreeEntries } =
-      await this._copyPatternsIntoBuildDir()
+      prepared
 
     // Walked once and shared: every function's zip is a subset of the same
     // build directory, plus the service-level pattern matches that could not be
@@ -3253,18 +3498,22 @@ class Esbuild {
     // package.json, and it only gates the non-bundled arm of the warning.
     const declaredDependencyCount = await this._declaredDependencyCount()
 
-    // Everything the build emitted for any function. With bundling on, each
-    // bundle already contains every dependency its own handler needs, so
-    // shipping the other functions' bundles in this function's zip is pure
+    // Everything the build emitted for any function or web app. With bundling
+    // on, each bundle already contains every dependency its own handler needs,
+    // so shipping the other functions' bundles in this function's zip is pure
     // weight — that is the whole point of `package.individually`. With bundling
     // off, the emitted files ARE the project and every function needs all of
     // them.
-    const allArtifactPaths = new Set()
-    for (const { outfile, mapfile } of (
-      this.builtArtifacts ?? new Map()
-    ).values()) {
-      allArtifactPaths.add(outfile)
-      if (mapfile) allArtifactPaths.add(mapfile)
+    const allArtifactPaths = artifactPathsOf(
+      this.builtArtifacts ?? new Map(),
+      this.builtWebAppArtifacts ?? new Map(),
+    )
+    const shared = {
+      buildDirEntries,
+      servicePatterns,
+      allArtifactPaths,
+      excludedServiceIncludeCount,
+      buildProperties,
     }
 
     const zipPromises = Object.entries(functions).map(
@@ -3277,81 +3526,13 @@ class Esbuild {
             zipName,
           )
 
-          const functionPatterns = functionObject.package?.patterns ?? []
-          const compiledFunctionPatterns = compilePatterns(functionPatterns)
-          // Service- and function-level patterns merge in that order so that
-          // a function can re-include (or further exclude) what the service
-          // level decided; `last match wins` then falls out of the ordering.
-          const mergedPatterns = [...servicePatterns, ...functionPatterns]
-          const compiledPatterns = compilePatterns(mergedPatterns)
-
-          const own =
-            (this.builtArtifacts ?? new Map()).get(functionAlias) ?? {}
-          const excluded =
-            buildProperties.bundle === false
-              ? new Set()
-              : new Set(
-                  [...allArtifactPaths].filter(
-                    (artifactPath) =>
-                      artifactPath !== own.outfile &&
-                      artifactPath !== own.mapfile,
-                  ),
-                )
-
-          // Per-function patterns are additive to THIS zip only, so they are
-          // appended here rather than copied into the shared build directory.
-          // When one names a path the build directory also holds, the pattern
-          // copy is the one that ships — the same precedence service-level
-          // patterns get from overwriting the build directory — and the
-          // build-dir entry is dropped so the archive never carries the name
-          // twice.
-          const {
-            entries: patternEntries,
-            excludedCount: excludedFunctionIncludeCount,
-          } = await this._patternEntries(functionPatterns)
-          const patternZipPaths = new Set(
-            patternEntries.map((entry) => entry.zipPath),
-          )
-
-          // Build-directory entries a function-level negation retracted count
-          // as pattern exclusions too, exactly like the ones the node_modules
-          // filter and the include lists contribute.
-          let excludedBuildDirEntryCount = 0
-          const entries = [
-            ...buildDirEntries.filter((entry) => {
-              if (
-                excluded.has(entry.zipPath) ||
-                patternZipPaths.has(entry.zipPath)
-              ) {
-                return false
-              }
-              // Negations in the function's own pattern list are the classic
-              // per-function slimming escape hatch — over project files. The
-              // generated manifest and lockfile are not project files and
-              // always ship (see `ARTIFACT_MANIFEST_ENTRIES`).
-              if (
-                !ARTIFACT_MANIFEST_ENTRIES.has(entry.zipPath) &&
-                !isPathIncluded(compiledFunctionPatterns, entry.zipPath)
-              ) {
-                excludedBuildDirEntryCount += 1
-                return false
-              }
-              return true
-            }),
-            ...patternEntries,
-          ].sort((a, b) =>
-            a.zipPath < b.zipPath ? -1 : a.zipPath > b.zipPath ? 1 : 0,
-          )
-
-          const patternCounters = await this._writeArchive({
-            zipPath,
-            entries,
-            compiledPatterns,
-          })
-          patternCounters.excludedEntryCount +=
-            excludedServiceIncludeCount +
-            excludedFunctionIncludeCount +
-            excludedBuildDirEntryCount
+          const { entries, compiledPatterns, patternCounters } =
+            await this._writeEntryArchive({
+              zipPath,
+              own: (this.builtArtifacts ?? new Map()).get(functionAlias) ?? {},
+              patterns: functionObject.package?.patterns ?? [],
+              shared,
+            })
 
           await this._assertHandlersInArtifact(
             { [functionAlias]: functionObject },
@@ -3386,12 +3567,215 @@ class Esbuild {
   }
 
   /**
+   * Write the archive of one individually packaged entry — a function under
+   * `package.individually`, or a web app: the build directory without the
+   * other entries' outputs (when bundling), narrowed by the entry's own
+   * `package.patterns`, plus the files those patterns add.
+   *
+   * @param {object} params
+   * @param {string} params.zipPath - where to write the archive
+   * @param {{outfile?: string, mapfile?: string|null}} params.own - what the
+   *   build recorded for this entry
+   * @param {string[]} params.patterns - the entry's own `package.patterns`
+   * @param {object} params.shared - what every archive of the run shares: the
+   *   build-directory entries, the service patterns, every artifact path, the
+   *   service include exclusion count and the build properties
+   * @param {Array<{name: string, content: string}>} [params.generatedEntries]
+   * @returns {Promise<{ entries: Array<object>, compiledPatterns: Array<object>, patternCounters: object }>}
+   */
+  async _writeEntryArchive({
+    zipPath,
+    own,
+    patterns,
+    shared,
+    generatedEntries,
+  }) {
+    const {
+      buildDirEntries,
+      servicePatterns,
+      allArtifactPaths,
+      excludedServiceIncludeCount,
+      buildProperties,
+    } = shared
+
+    const compiledFunctionPatterns = compilePatterns(patterns)
+    // Service- and function-level patterns merge in that order so that
+    // a function can re-include (or further exclude) what the service
+    // level decided; `last match wins` then falls out of the ordering.
+    const mergedPatterns = [...servicePatterns, ...patterns]
+    const compiledPatterns = compilePatterns(mergedPatterns)
+
+    const excluded =
+      buildProperties.bundle === false
+        ? new Set()
+        : new Set(
+            [...allArtifactPaths].filter(
+              (artifactPath) =>
+                artifactPath !== own.outfile && artifactPath !== own.mapfile,
+            ),
+          )
+
+    // Per-function patterns are additive to THIS zip only, so they are
+    // appended here rather than copied into the shared build directory.
+    // When one names a path the build directory also holds, the pattern
+    // copy is the one that ships — the same precedence service-level
+    // patterns get from overwriting the build directory — and the
+    // build-dir entry is dropped so the archive never carries the name
+    // twice.
+    const {
+      entries: patternEntries,
+      excludedCount: excludedFunctionIncludeCount,
+    } = await this._patternEntries(patterns)
+    const patternZipPaths = new Set(
+      patternEntries.map((entry) => entry.zipPath),
+    )
+
+    // Build-directory entries a function-level negation retracted count
+    // as pattern exclusions too, exactly like the ones the node_modules
+    // filter and the include lists contribute.
+    let excludedBuildDirEntryCount = 0
+    const entries = [
+      ...buildDirEntries.filter((entry) => {
+        if (excluded.has(entry.zipPath) || patternZipPaths.has(entry.zipPath)) {
+          return false
+        }
+        // Negations in the function's own pattern list are the classic
+        // per-function slimming escape hatch — over project files. The
+        // generated manifest and lockfile are not project files and
+        // always ship (see `ARTIFACT_MANIFEST_ENTRIES`).
+        if (
+          !ARTIFACT_MANIFEST_ENTRIES.has(entry.zipPath) &&
+          !isPathIncluded(compiledFunctionPatterns, entry.zipPath)
+        ) {
+          excludedBuildDirEntryCount += 1
+          return false
+        }
+        return true
+      }),
+      ...patternEntries,
+    ].sort(byZipPath)
+
+    const patternCounters = await this._writeArchive({
+      zipPath,
+      entries,
+      compiledPatterns,
+      generatedEntries,
+    })
+    patternCounters.excludedEntryCount +=
+      excludedServiceIncludeCount +
+      excludedFunctionIncludeCount +
+      excludedBuildDirEntryCount
+
+    return { entries, compiledPatterns, patternCounters }
+  }
+
+  /**
+   * Zip each web app on its own, to `.serverless/webapps/<name>.zip`, whatever
+   * `package.individually` says: the built entry, the build directory's
+   * shared files and dependencies, the service's and then the web app's
+   * `package.patterns`, and the generated bootstrap that starts the entry.
+   * The web app config is left as written; `serverless.builtWebApps` names the
+   * web apps zipped here, so classic packaging skips them.
+   *
+   * @param {Record<string, object>} webApps - web apps selected by `webApps()`
+   * @param {{ excludedCount: number, installedTreeEntries: Array<object> }} prepared
+   *   what preparing the build directory returned
+   */
+  async _packageWebApps(webApps, prepared) {
+    const buildProperties = await this._buildProperties()
+    const builtWebAppArtifacts = this.builtWebAppArtifacts ?? new Map()
+    const webAppsDir = path.join(
+      this.serverless.config.serviceDir,
+      '.serverless',
+      WEB_APPS_DIR,
+    )
+    await mkdir(webAppsDir, { recursive: true })
+
+    const shared = {
+      buildDirEntries: [
+        ...(await this._collectBuildDirEntries()),
+        ...prepared.installedTreeEntries,
+      ],
+      servicePatterns: this.serverless.service.package?.patterns ?? [],
+      allArtifactPaths: artifactPathsOf(
+        this.builtArtifacts ?? new Map(),
+        builtWebAppArtifacts,
+      ),
+      excludedServiceIncludeCount: prepared.excludedCount,
+      buildProperties,
+    }
+    const declaredDependencyCount = await this._declaredDependencyCount()
+    const limit = pLimit(
+      buildProperties.buildConcurrency ?? Object.keys(webApps).length,
+    )
+
+    try {
+      await Promise.all(
+        Object.entries(webApps).map(([name, webApp]) =>
+          limit(async () => {
+            const zipName = `${WEB_APPS_DIR}/${name}.zip`
+            const zipPath = path.join(webAppsDir, `${name}.zip`)
+            const own = builtWebAppArtifacts.get(name)
+
+            const { entries, compiledPatterns, patternCounters } =
+              await this._writeEntryArchive({
+                zipPath,
+                own,
+                patterns: webApp.package?.patterns ?? [],
+                shared,
+                generatedEntries: [
+                  {
+                    name: BOOTSTRAP_FILE,
+                    content: generateBootstrap({
+                      entryPath: own.outfile,
+                      entryFormat: own.format,
+                      // Exactly when a function with the same build
+                      // properties gets NODE_OPTIONS=--enable-source-maps.
+                      enableSourceMaps:
+                        this._shouldSetNodeOptions(buildProperties),
+                    }),
+                  },
+                ],
+              })
+
+            await this._assertWebAppEntryInArtifact(
+              name,
+              own.outfile,
+              new Set([
+                ...entries.map((entry) => entry.zipPath),
+                BOOTSTRAP_FILE,
+              ]),
+              zipPath,
+            )
+
+            this._reportPatternFiltering({
+              zipName,
+              subject: `webApps.${name}`,
+              compiledPatterns,
+              ...patternCounters,
+              buildProperties,
+              declaredDependencyCount,
+            })
+          }),
+        ),
+      )
+    } catch (err) {
+      if (err instanceof ServerlessError) throw err
+      throw new ServerlessError(err.message, 'ESBULD_PACKAGE_ERROR')
+    }
+
+    this.serverless.builtWebApps = new Set(Object.keys(webApps))
+  }
+
+  /**
    * Package every function into one archive: the whole build directory plus the
    * installed dependencies.
    *
    * @param {Object} functions - the functions this artifact ships
+   * @param {{ excludedCount: number, installedTreeEntries: Array<object> }} [prepared]
+   *   what preparing the build directory returned; prepared here when absent
    */
-  async _packageAll(functions) {
+  async _packageAll(functions, prepared) {
     const buildProperties = await this._buildProperties()
     const zipName = `${this.serverless.service.service}.zip`
     const zipPath = path.join(
@@ -3400,18 +3784,32 @@ class Esbuild {
       zipName,
     )
 
-    await this.serverless.pluginManager.spawn('esbuild-package')
     const { excludedCount: excludedServiceIncludeCount, installedTreeEntries } =
-      await this._copyPatternsIntoBuildDir()
+      prepared ?? (await this._preparePackagingBuildDir())
+
+    // Web app bundles ship in their own archives, not in the functions' one
+    // (with bundling off, the build output is the project, and all of it ships).
+    const builtArtifacts = this.builtArtifacts ?? new Map()
+    const functionArtifactPaths = artifactPathsOf(builtArtifacts)
+    const webAppOnlyPaths =
+      buildProperties.bundle === false
+        ? new Set()
+        : new Set(
+            [...artifactPathsOf(this.builtWebAppArtifacts ?? new Map())].filter(
+              (artifactPath) => !functionArtifactPaths.has(artifactPath),
+            ),
+          )
 
     // Sorted together, so the pattern-supplied dependency files take their
     // place in the same byte-wise order the build-directory sweep produces.
     const entries = [
       ...(await this._collectBuildDirEntries()),
       ...installedTreeEntries,
-    ].sort((a, b) =>
-      a.zipPath < b.zipPath ? -1 : a.zipPath > b.zipPath ? 1 : 0,
-    )
+    ]
+      .filter((entry) => !webAppOnlyPaths.has(entry.zipPath))
+      .sort((a, b) =>
+        a.zipPath < b.zipPath ? -1 : a.zipPath > b.zipPath ? 1 : 0,
+      )
     // Only service-level patterns apply here: a single shared zip has no
     // per-function view to narrow, so function-level patterns are ignored
     // without `individually` — same as classic packaging.

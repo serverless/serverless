@@ -3,10 +3,7 @@ import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import AdmZip from 'adm-zip'
-import {
-  computeCodeArtifact,
-  uploadArtifact,
-} from '../../../../../../../lib/plugins/aws/sandboxes/packaging/artifact.js'
+import { computeCodeArtifact } from '../../../../../../../lib/plugins/aws/sandboxes/packaging/artifact.js'
 
 describe('computeCodeArtifact', () => {
   test('passes through an s3:// artifact unchanged', async () => {
@@ -104,6 +101,15 @@ describe('computeCodeArtifact', () => {
         { serviceName: 's', stage: 'dev', name: 'echo', serviceDir: '/' },
       ),
     ).rejects.toThrow(/artifact directory not found/)
+    await expect(
+      computeCodeArtifact(
+        { artifact: '/nonexistent/sandboxes-artifact-xyz-123' },
+        { serviceName: 's', stage: 'dev', name: 'echo', serviceDir: '/' },
+      ),
+    ).rejects.toMatchObject({
+      code: 'SANDBOXES_ARTIFACT_NOT_FOUND',
+      stack: undefined,
+    })
   })
 
   test('throws a clear error when the artifact dir has no Dockerfile (not the opaque build failure)', async () => {
@@ -115,6 +121,15 @@ describe('computeCodeArtifact', () => {
         { serviceName: 's', stage: 'dev', name: 'echo', serviceDir: '/' },
       ),
     ).rejects.toThrow(/no Dockerfile found/)
+    await expect(
+      computeCodeArtifact(
+        { artifact: dir },
+        { serviceName: 's', stage: 'dev', name: 'echo', serviceDir: '/' },
+      ),
+    ).rejects.toMatchObject({
+      code: 'SANDBOXES_DOCKERFILE_NOT_FOUND',
+      stack: undefined,
+    })
   })
 
   test('zips a real dir that contains a Dockerfile (no zipDir stub)', async () => {
@@ -194,59 +209,5 @@ describe('computeCodeArtifact — deterministic zipping (stable content-addresse
 
   test('two separate dirs with identical content yield the same key', async () => {
     expect(await keyFor(mkArtifactDir())).toBe(await keyFor(mkArtifactDir()))
-  })
-})
-
-describe('uploadArtifact', () => {
-  test('calls provider.request S3 upload with correct params', async () => {
-    const provider = { request: jest.fn().mockResolvedValue({}) }
-    const zipBuf = Buffer.from('zip-content')
-
-    await uploadArtifact({
-      provider,
-      bucket: 'dep-bucket',
-      key: 'serverless/svc/dev/sandboxes/fn-abc123.zip',
-      body: zipBuf,
-    })
-
-    expect(provider.request).toHaveBeenCalledWith(
-      'S3',
-      'upload',
-      expect.objectContaining({
-        Bucket: 'dep-bucket',
-        Key: 'serverless/svc/dev/sandboxes/fn-abc123.zip',
-        Body: zipBuf,
-        ContentType: 'application/zip',
-      }),
-    )
-  })
-
-  test('applies encryption options when deploymentBucketObject is provided', async () => {
-    const provider = { request: jest.fn().mockResolvedValue({}) }
-
-    await uploadArtifact({
-      provider,
-      bucket: 'enc-bucket',
-      key: 'some/key.zip',
-      body: Buffer.from('data'),
-      deploymentBucketObject: { serverSideEncryption: 'AES256' },
-    })
-
-    const [, , params] = provider.request.mock.calls[0]
-    expect(params.ServerSideEncryption).toBe('AES256')
-  })
-
-  test('does NOT apply encryption when deploymentBucketObject is absent', async () => {
-    const provider = { request: jest.fn().mockResolvedValue({}) }
-
-    await uploadArtifact({
-      provider,
-      bucket: 'plain-bucket',
-      key: 'some/key.zip',
-      body: Buffer.from('data'),
-    })
-
-    const [, , params] = provider.request.mock.calls[0]
-    expect(params.ServerSideEncryption).toBeUndefined()
   })
 })

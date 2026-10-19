@@ -2,18 +2,22 @@
 
 import ServerlessError from '../../../../serverless-error.js'
 import { validateSandboxes } from '../validators/config.js'
-import { getLogicalId, getResourceName } from '../utils/naming.js'
+import { getLogicalId, getResourceName } from '../../lib/resource-naming.js'
 import { resolveBaseImage } from '../utils/baseImage.js'
 import { computeCodeArtifact } from '../packaging/artifact.js'
+import { resolveBucketRef } from '../../lib/content-addressed-artifacts.js'
 import {
   shouldGenerateRole,
   resolveRole,
   generateBuildRole,
   generateExecutionRole,
-  generateOperatorRole,
+  withCustomizations,
 } from '../iam/policies.js'
 import { compileImage } from '../compilers/image.js'
-import { compileNetworkConnector } from '../compilers/networkConnector.js'
+import {
+  compileNetworkConnector,
+  generateOperatorRole,
+} from '../../lib/network-connector.js'
 import {
   resolveObservability,
   compileLogGroup,
@@ -56,24 +60,6 @@ function applySandboxTags(resources, logicalIds, tags) {
     r.Properties = r.Properties || {}
     r.Properties.Tags = Tags
   }
-}
-
-/**
- * Resolve how compiled resources must reference the deployment bucket.
- *
- * When the user specifies a local directory, we don't know the deployment
- * bucket name at compile time (it may be a CFN-managed resource named
- * `ServerlessDeploymentBucket`).  We mirror the pattern used for Lambda
- * functions: if the framework resolved a concrete bucket name use it
- * directly; otherwise emit a `{ Ref: 'ServerlessDeploymentBucket' }` intrinsic
- * so CloudFormation resolves it at deploy time. Every consumer (CodeArtifact
- * URI, IAM role policies) must use this same value so they agree on the bucket.
- *
- * @param {string|undefined} resolvedBucket - Bucket name when known (may be undefined)
- * @returns {string|object} bucket name, or the in-stack bucket `Ref` intrinsic
- */
-function resolveBucketRef(resolvedBucket) {
-  return resolvedBucket ? resolvedBucket : { Ref: 'ServerlessDeploymentBucket' }
 }
 
 /**
@@ -126,7 +112,9 @@ export async function orchestrate({
   const errors = []
   validateSandboxes(sandboxesConfig, { throwError: (msg) => errors.push(msg) })
   if (errors.length > 0) {
-    throw new ServerlessError(errors.join('\n'), 'SANDBOXES_VALIDATION_ERROR')
+    throw new ServerlessError(errors.join('\n'), 'SANDBOXES_VALIDATION_ERROR', {
+      stack: false,
+    })
   }
 
   const {
@@ -294,22 +282,20 @@ export async function orchestrate({
 
     if (cfg.vpc) {
       if (shouldGenerateRole(operatorRoleCfg)) {
-        template.Resources[operatorRoleLogicalId] = generateOperatorRole(
-          name,
-          cfg,
-          ctx,
+        template.Resources[operatorRoleLogicalId] = withCustomizations(
+          generateOperatorRole({
+            policyName: 'sandboxes-network-connector-policy',
+          }),
+          operatorRoleCfg,
         )
       }
 
-      const connectorCtx = {
-        ...ctx,
+      const connectorResource = compileNetworkConnector({
+        physicalName: getResourceName(serviceName, name, stage),
+        vpcCfg: cfg.vpc,
         operatorRoleArn: resolveRole(operatorRoleCfg, operatorRoleLogicalId),
-      }
-      const connectorResource = compileNetworkConnector(
-        name,
-        cfg.vpc,
-        connectorCtx,
-      )
+        computeResourceType: 'MicroVm',
+      })
       template.Resources[connectorLogicalId] = connectorResource
 
       // Expose the connector ARN as a stack output for the data-plane run path.

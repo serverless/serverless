@@ -232,3 +232,123 @@ describe('the HTTP API that provider.httpApi.id names', () => {
     })
   })
 })
+
+// Web apps list their endpoint URL from the `<N>WebFunctionUrl` output, then
+// each custom domain that serves them (hostnames from the config).
+describe('info endpoints: web apps', () => {
+  const API_URL = 'https://abc111.lambda-web.us-east-1.on.aws'
+  const WEB_URL = 'https://def222.lambda-web.us-east-1.on.aws'
+  const FUNCTION_URL = 'https://xyz.lambda-url.us-east-1.on.aws/'
+
+  const webAppsPlugin = ({ outputs, functions = {}, webApps, provider }) => {
+    const info = plugin({ outputs, functions })
+    info.serverless.service.webApps = webApps
+    info.serverless.service.provider = { ...provider }
+    return info
+  }
+
+  it('gathers each deployed web app with its URL into info.webApps', async () => {
+    const info = webAppsPlugin({
+      webApps: { api: {}, 'my-web': {}, notYet: {} },
+      outputs: [
+        { OutputKey: 'ApiWebFunctionUrl', OutputValue: API_URL },
+        { OutputKey: 'MyDashwebWebFunctionUrl', OutputValue: WEB_URL },
+      ],
+    })
+    await info.getStackInfo()
+    expect(info.gatheredData.info.webApps).toEqual([
+      { name: 'api', url: API_URL },
+      { name: 'my-web', url: WEB_URL },
+    ])
+  })
+
+  it('leaves info --json unchanged for a service without web apps', async () => {
+    const info = plugin({ outputs: [] })
+    await info.getStackInfo()
+    expect(info.gatheredData.info).not.toHaveProperty('webApps')
+  })
+
+  it('prints each web app after function URLs, then the hostnames that serve it', async () => {
+    const outputs = [
+      { OutputKey: 'webLambdaFunctionUrl', OutputValue: FUNCTION_URL },
+      { OutputKey: 'ApiWebFunctionUrl', OutputValue: API_URL },
+      { OutputKey: 'ShopWebFunctionUrl', OutputValue: WEB_URL },
+    ]
+    const info = webAppsPlugin({
+      functions: { web: { url: true, events: [] } },
+      webApps: { shop: {}, api: {} },
+      provider: {
+        domains: [
+          { name: 'Shop.Example.com', webApp: 'shop' },
+          { name: 'shop.example.com', basePath: '/api/', webApp: 'api' },
+          { name: 'off.example.com', webApp: 'api', enabled: false },
+          { name: 'rest.example.com', apiType: 'rest' },
+        ],
+      },
+      outputs,
+    })
+    await info.getStackInfo()
+    info.displayEndpoints()
+    const displayed = info.serverless.serviceOutputs.get('endpoints')
+    expect(displayed).toEqual([
+      `web: ${FUNCTION_URL}`,
+      `shop: ${WEB_URL}`,
+      'shop: https://shop.example.com',
+      `api: ${API_URL}`,
+      'api: https://shop.example.com/api',
+    ])
+    expect(
+      endpointLinesOf({
+        serverless: info.serverless,
+        outputs,
+        naming: info.provider.naming,
+      }),
+    ).toEqual(displayed)
+  })
+
+  it('a lone web app endpoint prints as the bare URL', async () => {
+    const outputs = [{ OutputKey: 'ApiWebFunctionUrl', OutputValue: API_URL }]
+    const info = webAppsPlugin({ webApps: { api: {} }, outputs })
+    await info.getStackInfo()
+    info.displayEndpoints()
+    expect(info.serverless.serviceOutputs.get('endpoint')).toBe(API_URL)
+    expect(
+      endpointLinesOf({
+        serverless: info.serverless,
+        outputs,
+        naming: info.provider.naming,
+      }),
+    ).toEqual([API_URL])
+  })
+
+  it('a lone function URL keeps its name when a web app is listed too', async () => {
+    const info = webAppsPlugin({
+      functions: { web: { url: true, events: [] } },
+      webApps: { api: {} },
+      outputs: [
+        { OutputKey: 'webLambdaFunctionUrl', OutputValue: FUNCTION_URL },
+        { OutputKey: 'ApiWebFunctionUrl', OutputValue: API_URL },
+      ],
+    })
+    await info.getStackInfo()
+    info.displayEndpoints()
+    expect(info.serverless.serviceOutputs.get('endpoints')).toEqual([
+      `web: ${FUNCTION_URL}`,
+      `api: ${API_URL}`,
+    ])
+  })
+
+  it('a web app with a domain names both lines', async () => {
+    const info = webAppsPlugin({
+      webApps: { api: {} },
+      provider: { domain: { name: 'api.example.com', webApp: 'api' } },
+      outputs: [{ OutputKey: 'ApiWebFunctionUrl', OutputValue: API_URL }],
+    })
+    await info.getStackInfo()
+    info.displayEndpoints()
+    expect(info.serverless.serviceOutputs.get('endpoints')).toEqual([
+      `api: ${API_URL}`,
+      'api: https://api.example.com',
+    ])
+  })
+})

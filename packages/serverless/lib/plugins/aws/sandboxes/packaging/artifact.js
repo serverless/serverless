@@ -1,12 +1,14 @@
 'use strict'
 
 import ServerlessError from '../../../../serverless-error.js'
-import crypto from 'crypto'
 import path from 'path'
 import fs from 'fs'
 import { ZipArchive } from 'archiver'
 import { globbySync } from 'globby'
-import setS3UploadEncryptionOptions from '../../../../aws/set-s3-upload-encryption-options.js'
+import {
+  buildArtifactKey,
+  sha256Hex,
+} from '../../lib/content-addressed-artifacts.js'
 
 /**
  * Zip a directory into an in-memory Buffer using archiver.
@@ -27,6 +29,7 @@ async function defaultZipDir(dirPath) {
         `The "artifact" path is resolved relative to the service directory ` +
         `(the directory containing serverless.yml).`,
       'SANDBOXES_ARTIFACT_NOT_FOUND',
+      { stack: false },
     )
   }
   // The MicroVM image is built FROM a Dockerfile in the artifact dir. Catch a
@@ -38,6 +41,7 @@ async function defaultZipDir(dirPath) {
         `A local sandbox artifact must contain a Dockerfile (the image is built ` +
         `from it). Add a Dockerfile, or point "artifact" at a pre-built s3:// zip.`,
       'SANDBOXES_DOCKERFILE_NOT_FOUND',
+      { stack: false },
     )
   }
   return new Promise((resolve, reject) => {
@@ -122,45 +126,14 @@ export async function computeCodeArtifact(cfg, deps) {
 
   const zipBuffer = await zipDir(dir)
 
-  const sha = crypto.createHash('sha256').update(zipBuffer).digest('hex')
-  const key = `serverless/${serviceName}/${stage}/sandboxes/${name}-${sha}.zip`
+  const key = buildArtifactKey({
+    prefix: 'serverless',
+    serviceName,
+    stage,
+    kind: 'sandboxes',
+    name,
+    sha256: sha256Hex(zipBuffer),
+  })
 
   return { uri: undefined, key, zipBuffer }
-}
-
-/**
- * Upload a sandbox zip artifact to S3.
- *
- * Applies deployment-bucket encryption options when `deploymentBucketObject`
- * is present (mirrors the behaviour of `lib/plugins/aws/lib/upload-zip-file.js`).
- *
- * @param {object} params
- * @param {object} params.provider               - Serverless AWS provider
- * @param {string} params.bucket                 - Deployment bucket name
- * @param {string} params.key                    - S3 object key
- * @param {Buffer} params.body                   - Zip content
- * @param {object} [params.deploymentBucketObject] - Encryption options object from
- *                                                  provider.deploymentBucketObject
- *
- * @returns {Promise<void>}
- */
-export async function uploadArtifact({
-  provider,
-  bucket,
-  key,
-  body,
-  deploymentBucketObject,
-}) {
-  let params = {
-    Bucket: bucket,
-    Key: key,
-    Body: body,
-    ContentType: 'application/zip',
-  }
-
-  if (deploymentBucketObject) {
-    params = setS3UploadEncryptionOptions(params, deploymentBucketObject)
-  }
-
-  await provider.request('S3', 'upload', params)
 }
