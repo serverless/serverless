@@ -30,7 +30,7 @@
     "sls": "run.js"
   },
   "dependencies": {
-    "undici": "6.29.0"
+    "undici": "6.29.1"
   },
   "devDependencies": {},
   "publishConfig": {
