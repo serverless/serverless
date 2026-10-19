@@ -2,17 +2,6 @@ import { HttpsProxyAgent } from 'https-proxy-agent'
 import { ProxyAgent as UndiciProxyAgent, fetch as undiciFetch } from 'undici'
 import { proxyCaFromEnv, proxyUrlsFromEnv } from './aws.js'
 
-function getProxyUrl() {
-  return (
-    process.env.proxy ||
-    process.env.HTTP_PROXY ||
-    process.env.http_proxy ||
-    process.env.HTTPS_PROXY ||
-    process.env.https_proxy ||
-    null
-  )
-}
-
 function shouldBypassProxy(url, env = process.env) {
   const noProxy = env.NO_PROXY || env.no_proxy
   if (!noProxy) return false
@@ -72,28 +61,38 @@ function shouldBypassProxy(url, env = process.env) {
   return false
 }
 
+/**
+ * The options for the undici ProxyAgent that sends a request for `url` through the proxy `env`
+ * sets, or undefined when no proxy is set or NO_PROXY covers the URL's host. It chooses the proxy
+ * and the proxy's CA as addProxyToAwsClient does: for an `http:` URL HTTP_PROXY, else HTTPS_PROXY;
+ * for any other URL HTTPS_PROXY, else HTTP_PROXY; a generic `proxy` only when neither is set.
+ */
+function proxyDispatcherOptions(url, env = process.env) {
+  const { httpProxy, httpsProxy } = proxyUrlsFromEnv(env)
+  const uri = /^http:/i.test(url)
+    ? httpProxy || httpsProxy
+    : httpsProxy || httpProxy
+  if (!uri || shouldBypassProxy(url, env)) return undefined
+  // proxyTls applies to the connection to the proxy only; the tunnelled connection keeps its own.
+  const ca = proxyCaFromEnv(env)
+  return ca.length > 0 ? { uri, proxyTls: { ca } } : { uri }
+}
+
 let cachedProxyAgent
-let cachedProxyUrl
+let cachedProxyKey
 
 function getProxyDispatcher(url) {
-  const proxy = getProxyUrl()
+  const options = proxyDispatcherOptions(url)
+  if (!options) return undefined
 
-  // If no proxy is configured, return undefined
-  if (!proxy) return undefined
-
-  // If the URL should bypass proxy according to NO_PROXY, return undefined
-  if (url && shouldBypassProxy(url)) {
-    return undefined
-  }
-
-  // Use cached agent if proxy URL hasn't changed
-  if (cachedProxyAgent && cachedProxyUrl === proxy) {
+  // Use cached agent if the proxy and its CA haven't changed
+  const key = JSON.stringify(options)
+  if (cachedProxyAgent && cachedProxyKey === key) {
     return cachedProxyAgent
   }
 
-  // Create new undici ProxyAgent
-  cachedProxyAgent = new UndiciProxyAgent(proxy)
-  cachedProxyUrl = proxy
+  cachedProxyAgent = new UndiciProxyAgent(options)
+  cachedProxyKey = key
   return cachedProxyAgent
 }
 
@@ -132,5 +131,10 @@ function fetchWithProxy(url, init = {}) {
   return undiciFetch(url, { ...init, dispatcher })
 }
 
-export { fetchWithProxy, getProxyAgent, shouldBypassProxy }
+export {
+  fetchWithProxy,
+  getProxyAgent,
+  proxyDispatcherOptions,
+  shouldBypassProxy,
+}
 export * from './aws.js'

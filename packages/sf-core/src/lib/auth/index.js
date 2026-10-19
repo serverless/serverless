@@ -3,7 +3,6 @@ import * as https from 'https'
 import { execSync } from 'child_process'
 import open from 'open'
 import { jwtDecode } from 'jwt-decode'
-import { HttpsProxyAgent } from 'https-proxy-agent'
 import { CoreSDK } from '@serverless-inc/sdk'
 import { GetParameterCommand, SSMClient } from '@aws-sdk/client-ssm'
 import {
@@ -16,6 +15,7 @@ import {
 } from '../../utils/fs/index.js'
 import {
   addProxyToAwsClient,
+  getProxyAgent,
   log,
   progress,
   ServerlessError,
@@ -1313,7 +1313,7 @@ export class Authentication {
     const WS = wsModule.default ?? wsModule
     const ws = new WS(loginBrokerUrl, undefined, {
       followRedirects: true,
-      agent: await getAgent(),
+      agent: await getAgent(loginBrokerUrl),
     })
 
     // Promises to handle transactionId and loginData
@@ -1640,13 +1640,11 @@ const canRunOpenOnLinux = () => {
  * certificate handling. This is especially relevant in corporate
  * environments or when dealing with self-signed certificates.
  */
-const getAgent = async () => {
-  const proxyUrl =
-    process.env.proxy ||
-    process.env.HTTP_PROXY ||
-    process.env.http_proxy ||
-    process.env.HTTPS_PROXY ||
-    process.env.https_proxy
+const getAgent = async (url) => {
+  // Through a proxy, the proxy and its CA are chosen as for the AWS SDK clients, and NO_PROXY
+  // applies.
+  const proxyAgent = getProxyAgent(url)
+  if (proxyAgent) return proxyAgent
 
   const agentOptions = {}
 
@@ -1669,11 +1667,6 @@ const getAgent = async () => {
 
   if (caCerts.length > 0) {
     agentOptions.ca = caCerts
-  }
-
-  if (proxyUrl) {
-    // Initialize HttpsProxyAgent directly with the proxy URL
-    return new HttpsProxyAgent(proxyUrl)
   }
 
   if (agentOptions.ca) {
