@@ -150,7 +150,7 @@ const webAppConfigSchema = {
             // An intrinsic passes through to the endpoint
             maxEnvironments: {
               anyOf: [
-                { type: 'integer', minimum: 2 },
+                { type: 'integer', minimum: 2, maximum: 10000 },
                 { $ref: '#/definitions/awsCfFunction' },
               ],
             },

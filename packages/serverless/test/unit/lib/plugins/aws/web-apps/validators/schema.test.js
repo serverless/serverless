@@ -206,7 +206,17 @@ describe('webApps schema', () => {
         api: { entry: 'src/server.ts', url: { maxEnvironments: 1 } },
       }),
     ).toMatch(
-      /'webApps\.api\.url\.maxEnvironments': must be an integer of at least 2/,
+      /'webApps\.api\.url\.maxEnvironments': must be an integer from 2 to 10000/,
+    )
+  })
+
+  it('rejects maxEnvironments above 10000', async () => {
+    expect(
+      await validate({
+        api: { entry: 'src/server.ts', url: { maxEnvironments: 10001 } },
+      }),
+    ).toMatch(
+      /'webApps\.api\.url\.maxEnvironments': must be an integer from 2 to 10000/,
     )
   })
 

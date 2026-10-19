@@ -643,11 +643,15 @@ describe('validateWebApps', () => {
       ],
       [
         { url: { maxEnvironments: 1 } },
-        'webApps.api.url.maxEnvironments must be a whole number of at least 2.',
+        'webApps.api.url.maxEnvironments must be a whole number from 2 to 10000.',
+      ],
+      [
+        { url: { maxEnvironments: 10001 } },
+        'webApps.api.url.maxEnvironments must be a whole number from 2 to 10000.',
       ],
       [
         { url: { maxEnvironments: 'many' } },
-        'webApps.api.url.maxEnvironments must be a whole number of at least 2.',
+        'webApps.api.url.maxEnvironments must be a whole number from 2 to 10000.',
       ],
       [
         { url: { rateLimit: 150 } },

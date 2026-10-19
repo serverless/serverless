@@ -255,7 +255,7 @@ webApps:
       artifact: build/api.zip      # optional: deploy a prebuilt zip as it is
     url:                           # optional; true (the default) or settings
       authorizer: aws_iam          # optional: callers sign requests with IAM credentials
-      maxEnvironments: 50          # optional, at least 2: execution environments
+      maxEnvironments: 50          # optional, 2 to 10000: execution environments
       rateLimit: 2000              # optional: requests per second
 ```
 
@@ -281,7 +281,7 @@ webApps:
 | `package.artifact`        | none                                 | A zip to deploy as it is. See [Prebuilt zip](#prebuilt-zip).                                                                                                                                                                                                                                        |
 | `url`                     | `true`                               | The web app's endpoint. Every web app has one, so `false` is not accepted. See [Endpoint and access](#endpoint-and-access).                                                                                                                                                                         |
 | `url.authorizer`          | none (public)                        | `aws_iam` requires callers to sign requests with IAM credentials.                                                                                                                                                                                                                                   |
-| `url.maxEnvironments`     | none                                 | The most execution environments the endpoint scales to, at least 2.                                                                                                                                                                                                                                 |
+| `url.maxEnvironments`     | none                                 | The most execution environments the endpoint scales to, 2 to 10000.                                                                                                                                                                                                                                 |
 | `url.rateLimit`           | none                                 | The most requests per second the endpoint accepts. Lambda accepts `0`, 100 to 1,000 in steps of 100, and 2,000 to 10,000 in steps of 1,000; `0` blocks all traffic. See [scaling settings](https://docs.aws.amazon.com/lambda/latest/dg/web-functions-scaling.html#web-functions-scaling-settings). |
 
 ---

@@ -311,7 +311,7 @@ const improveMessages = (resultErrorsSet) => {
           break
         }
         if (isWebAppMaxEnvironmentsInstancePath(error.instancePath)) {
-          error.message = 'must be an integer of at least 2'
+          error.message = 'must be an integer from 2 to 10000'
           break
         }
       // fallthrough

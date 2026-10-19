@@ -1790,7 +1790,7 @@ webApps:
     url:
       # optional, aws_iam requires SigV4-signed requests (default: public)
       authorizer: aws_iam
-      # optional, the most execution environments, at least 2
+      # optional, the most execution environments, 2 to 10000
       maxEnvironments: 50
       # optional, requests per second: 0, 100-1000 in steps of 100, or 2000-10000 in steps of 1000
       rateLimit: 2000

@@ -264,7 +264,7 @@ describe('web apps in configValidationMode: warn', () => {
           api: { entry: 'src/server.js', url: { maxEnvironments: 'many' } },
         },
       },
-      'webApps.api.url.maxEnvironments must be a whole number of at least 2.',
+      'webApps.api.url.maxEnvironments must be a whole number from 2 to 10000.',
     ],
     [
       'a url.rateLimit Lambda does not accept',

@@ -27,6 +27,7 @@ const MAX_TIMEOUT = 900
 const MIN_MAX_CONCURRENCY = 1
 const MAX_MAX_CONCURRENCY = 128
 const MIN_MAX_ENVIRONMENTS = 2
+const MAX_MAX_ENVIRONMENTS = 10000
 
 const awsReserved = new Set(AWS_RESERVED_ENV)
 const frameworkReserved = new Set(FRAMEWORK_RESERVED_ENV)
@@ -260,8 +261,8 @@ const VALUE_TYPE_RULES = [
     get: urlSetting('maxEnvironments'),
     isValid: (value) =>
       isPlainObject(value) ||
-      isWholeNumberIn(value, MIN_MAX_ENVIRONMENTS, Infinity),
-    message: `must be a whole number of at least ${MIN_MAX_ENVIRONMENTS}.`,
+      isWholeNumberIn(value, MIN_MAX_ENVIRONMENTS, MAX_MAX_ENVIRONMENTS),
+    message: `must be a whole number from ${MIN_MAX_ENVIRONMENTS} to ${MAX_MAX_ENVIRONMENTS}.`,
   },
   {
     field: 'url.rateLimit',
