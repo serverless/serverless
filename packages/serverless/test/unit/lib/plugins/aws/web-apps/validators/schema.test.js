@@ -182,7 +182,9 @@ describe('webApps schema', () => {
     const message = await validate({
       api: { entry: 'src/server.ts', url: { rateLimit: 150 } },
     })
-    expect(message).toMatch(/'webApps\.api\.url\.rateLimit'/)
+    expect(message).toMatch(
+      /'webApps\.api\.url\.rateLimit': must be equal to one of the allowed values\. /,
+    )
     expect(message).toContain(
       'Lambda accepts 0, 100 to 1000 in steps of 100, and 2000 to 10000 in steps of 1000; supported values can vary by Region, see https://docs.aws.amazon.com/lambda/latest/dg/web-functions-scaling.html',
     )
@@ -203,7 +205,23 @@ describe('webApps schema', () => {
       await validate({
         api: { entry: 'src/server.ts', url: { maxEnvironments: 1 } },
       }),
-    ).toMatch(/'webApps\.api\.url\.maxEnvironments'/)
+    ).toMatch(
+      /'webApps\.api\.url\.maxEnvironments': must be an integer of at least 2/,
+    )
+  })
+
+  it('accepts CloudFormation intrinsics for url.maxEnvironments and url.rateLimit', async () => {
+    expect(
+      await validate({
+        api: {
+          entry: 'src/server.ts',
+          url: {
+            maxEnvironments: { Ref: 'MaxEnvironments' },
+            rateLimit: { 'Fn::If': ['IsProd', 2000, 100] },
+          },
+        },
+      }),
+    ).toBeNull()
   })
 
   it('rejects a key ending in "-"', async () => {

@@ -10,6 +10,11 @@ const isFunctionInstancePath =
 const isWebAppRateLimitInstancePath = RegExp.prototype.test.bind(
   /^\/webApps\/[^/]+\/url\/rateLimit$/,
 )
+const isWebAppMaxEnvironmentsInstancePath = RegExp.prototype.test.bind(
+  /^\/webApps\/[^/]+\/url\/maxEnvironments$/,
+)
+const WEB_APP_RATE_LIMIT_HINT =
+  'Lambda accepts 0, 100 to 1000 in steps of 100, and 2000 to 10000 in steps of 1000; supported values can vary by Region, see https://docs.aws.amazon.com/lambda/latest/dg/web-functions-scaling.html'
 const isWebAppRuntimeInstancePath = RegExp.prototype.test.bind(
   /^\/webApps\/[^/]+\/runtime$/,
 )
@@ -300,6 +305,15 @@ const improveMessages = (resultErrorsSet) => {
           error.message = 'unsupported function event'
           break
         }
+        // A literal or an intrinsic: word the error for the literal, as before intrinsics passed
+        if (isWebAppRateLimitInstancePath(error.instancePath)) {
+          error.message = `must be equal to one of the allowed values. ${WEB_APP_RATE_LIMIT_HINT}`
+          break
+        }
+        if (isWebAppMaxEnvironmentsInstancePath(error.instancePath)) {
+          error.message = 'must be an integer of at least 2'
+          break
+        }
       // fallthrough
       case 'oneOf':
         if (error.commonType) {
@@ -316,8 +330,7 @@ const improveMessages = (resultErrorsSet) => {
           error.message += ` [${error.params.allowedValues.join(', ')}]`
         }
         if (isWebAppRateLimitInstancePath(error.instancePath)) {
-          error.message +=
-            '. Lambda accepts 0, 100 to 1000 in steps of 100, and 2000 to 10000 in steps of 1000; supported values can vary by Region, see https://docs.aws.amazon.com/lambda/latest/dg/web-functions-scaling.html'
+          error.message += `. ${WEB_APP_RATE_LIMIT_HINT}`
         }
         break
       default:

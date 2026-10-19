@@ -147,8 +147,19 @@ const webAppConfigSchema = {
               description: `Case-insensitive.`,
               anyOf: URL_AUTHORIZERS.map(caseInsensitive),
             },
-            maxEnvironments: { type: 'integer', minimum: 2 },
-            rateLimit: { enum: RATE_LIMIT_VALUES },
+            // An intrinsic passes through to the endpoint
+            maxEnvironments: {
+              anyOf: [
+                { type: 'integer', minimum: 2 },
+                { $ref: '#/definitions/awsCfFunction' },
+              ],
+            },
+            rateLimit: {
+              anyOf: [
+                { enum: RATE_LIMIT_VALUES },
+                { $ref: '#/definitions/awsCfFunction' },
+              ],
+            },
           },
           additionalProperties: false,
         },
