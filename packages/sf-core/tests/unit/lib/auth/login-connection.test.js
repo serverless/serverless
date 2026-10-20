@@ -1,9 +1,14 @@
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import { jest } from '@jest/globals'
 
 // A stand-in for the login broker's WebSocket: the test drives its events.
 class FakeSocket {
   static last = null
-  constructor() {
+  constructor(url, protocols, options) {
+    this.url = url
+    this.options = options
     FakeSocket.last = this
   }
   send() {}
@@ -63,5 +68,93 @@ describe('loginViaBrowser when the connection ends early', () => {
       code: 'AUTH_FAILED',
       message: expect.stringContaining('(socket hang up)'),
     })
+  })
+})
+
+// The login broker is reached over HTTPS, so the proxy is chosen as for the other HTTPS
+// connections, the AWS SDK clients' among them.
+describe('loginViaBrowser through a proxy', () => {
+  const PROXY_VARS = [
+    'proxy',
+    'HTTP_PROXY',
+    'http_proxy',
+    'HTTPS_PROXY',
+    'https_proxy',
+    'NO_PROXY',
+    'no_proxy',
+    'ca',
+    'HTTPS_CA',
+    'https_ca',
+    'cafile',
+    'HTTPS_CAFILE',
+    'https_cafile',
+  ]
+  const savedEnv = {}
+
+  beforeEach(() => {
+    FakeSocket.last = null
+    for (const name of PROXY_VARS) {
+      savedEnv[name] = process.env[name]
+      delete process.env[name]
+    }
+  })
+
+  afterEach(() => {
+    for (const name of PROXY_VARS) {
+      if (savedEnv[name] === undefined) delete process.env[name]
+      else process.env[name] = savedEnv[name]
+    }
+  })
+
+  const socketAgent = async () => {
+    const pending = new Authentication({}).loginViaBrowser()
+    const socket = await openedSocket()
+    socket.onclose()
+    await expect(pending).rejects.toMatchObject({ code: 'AUTH_FAILED' })
+    return socket.options.agent
+  }
+
+  it('connects through HTTPS_PROXY when HTTP_PROXY and a generic proxy are set too', async () => {
+    process.env.HTTP_PROXY = 'http://h:1'
+    process.env.proxy = 'http://g:3'
+    process.env.HTTPS_PROXY = 'http://s:2'
+    const agent = await socketAgent()
+    expect(agent.proxy.host).toBe('s:2')
+  })
+
+  it('connects through HTTP_PROXY when it is the only one set', async () => {
+    process.env.HTTP_PROXY = 'http://h:1'
+    expect((await socketAgent()).proxy.host).toBe('h:1')
+  })
+
+  it('connects directly when NO_PROXY covers the host', async () => {
+    process.env.HTTPS_PROXY = 'http://s:2'
+    process.env.NO_PROXY = '.serverless.com'
+    expect(await socketAgent()).toBeUndefined()
+  })
+
+  // The CA settings keep the formats the direct connection accepts: a comma-separated HTTPS_CA
+  // with escaped newlines, and a comma-separated list of HTTPS_CAFILE paths.
+  it('gives the proxy connection every CA from a comma-separated HTTPS_CA', async () => {
+    process.env.HTTPS_PROXY = 'https://s:2'
+    process.env.HTTPS_CA = 'first\\ncert,second\\ncert'
+    const agent = await socketAgent()
+    expect(agent.connectOpts.ca).toEqual(['first\ncert', 'second\ncert'])
+  })
+
+  it('gives the proxy connection every file from a comma-separated HTTPS_CAFILE', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'login-ca-'))
+    try {
+      const first = path.join(dir, 'first.pem')
+      const second = path.join(dir, 'second.pem')
+      fs.writeFileSync(first, 'first cert')
+      fs.writeFileSync(second, 'second cert')
+      process.env.HTTPS_PROXY = 'https://s:2'
+      process.env.HTTPS_CAFILE = `${first}, ${second}`
+      const agent = await socketAgent()
+      expect(agent.connectOpts.ca).toEqual(['first cert', 'second cert'])
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true })
+    }
   })
 })
