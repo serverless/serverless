@@ -31,6 +31,7 @@
     "test:dev-mode": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/dev-mode/ --runInBand",
     "test:dev-mode:agent-loop": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/dev-mode/agent-loop.test.js --runInBand",
     "test:binary": "cross-env BINARY_INTEGRATION_TESTS=true NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\"  NODE_NO_WARNINGS=1 jest \"tests/integration/.*\" --testPathIgnorePatterns=/node_modules/ --testPathIgnorePatterns=tests/integration/mcp/ --testPathIgnorePatterns=tests/integration/dev-mode/",
+    "test:e2e:proxy": "node --test tests/e2e/proxy.test.js",
     "test:python": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/python/test.js",
     "build": "node esbuild.js",
     "test:build": "cd ../.. && npm i && npm run build:mcp:entry -w @serverless/framework && npm run build:devmode:layer -w @serverless/framework && cd packages/sf-core && npm run build && cd scripts && rm -rf ../../framework-dist/lib && node ./prepareDistributionTarballs.js && cd ../../framework-dist && bash ../sf-core/scripts/pack-framework-dist.sh && rm -rf package && tar -xvzf serverlessinc-framework-alpha-$npm_package_version.tgz && bash ../sf-core/scripts/verify-release-package.sh package"
@@ -69,7 +70,7 @@
     "@dagrejs/graphlib": "^2.2.4",
     "@dopplerhq/node-sdk": "^1.3.0",
     "@octokit/rest": "^21.1.1",
-    "@serverless-inc/sdk": "^2.9.0",
+    "@serverless-inc/sdk": "^2.11.1",
     "@serverless/engine": "*",
     "@serverless/framework": "*",
     "@serverless/mcp": "*",

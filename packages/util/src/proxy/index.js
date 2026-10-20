@@ -1,5 +1,5 @@
 import { HttpsProxyAgent } from 'https-proxy-agent'
-import { ProxyAgent as UndiciProxyAgent } from 'undici'
+import { ProxyAgent as UndiciProxyAgent, fetch as undiciFetch } from 'undici'
 import { proxyCaFromEnv, proxyUrlsFromEnv } from './aws.js'
 
 function getProxyUrl() {
@@ -118,5 +118,19 @@ function getProxyAgent(url, { env = process.env, agentOptions } = {}) {
   })
 }
 
-export { getProxyAgent, getProxyDispatcher, shouldBypassProxy }
+/**
+ * fetch() of a URL (a string or a URL object) through the proxy the environment sets, or straight
+ * to the host when there is none or NO_PROXY covers it. Through a proxy it uses the fetch() of the undici the ProxyAgent comes from,
+ * never the global fetch(): the global fetch() runs on the undici that Node.js bundles, and a
+ * ProxyAgent from a different undici major is not compatible with it (Node.js 26, which bundles
+ * undici 8, rejects a ProxyAgent from undici 6 with "invalid onError method"). That is also why
+ * the dispatcher itself is not exported.
+ */
+function fetchWithProxy(url, init = {}) {
+  const dispatcher = getProxyDispatcher(String(url))
+  if (!dispatcher) return fetch(url, init)
+  return undiciFetch(url, { ...init, dispatcher })
+}
+
+export { fetchWithProxy, getProxyAgent, shouldBypassProxy }
 export * from './aws.js'

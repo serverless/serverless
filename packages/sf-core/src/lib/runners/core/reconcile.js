@@ -4,7 +4,7 @@ import {
   ServerlessError,
   ServerlessErrorCodes,
   style,
-  getProxyDispatcher,
+  fetchWithProxy,
 } from '@serverless/util'
 import {
   CloudFormationClient,
@@ -45,10 +45,9 @@ const getSubscription = async (auth, versionFramework) => {
    * if not available, we fallback to the default orgId
    */
   const url = `https://core.${domain}/api/billing/orgs/${auth.orgId}`
-  const response = await fetch(url, {
+  const response = await fetchWithProxy(url, {
     method: 'GET',
     headers: buildHeaders(auth, versionFramework),
-    dispatcher: getProxyDispatcher(url),
   })
 
   if (!response.ok) {
@@ -83,10 +82,9 @@ const getAwsAccountInstances = async ({
       : 'serverless.com'
 
   const url = `https://core.${domain}/api/usage/instances/${auth.orgId}`
-  const response = await fetch(url, {
+  const response = await fetchWithProxy(url, {
     method: 'GET',
     headers: buildHeaders(auth, versionFramework),
-    dispatcher: getProxyDispatcher(url),
   })
 
   if (!response.ok) {
@@ -292,14 +290,13 @@ const reconcileInstances = async ({
     }
 
     try {
-      const response = await fetch(url, {
+      const response = await fetchWithProxy(url, {
         method: 'POST',
         headers: buildHeaders(auth, versionFramework),
         body: JSON.stringify({
           instances: batch,
           isQualified,
         }),
-        dispatcher: getProxyDispatcher(url),
       })
 
       if (!response.ok) {

@@ -135,6 +135,56 @@ jobs:
           tar -xzf serverlessinc-framework-alpha-*.tgz -C "${verify_dir}"
           bash ../sf-core/scripts/verify-release-package.sh "${verify_dir}/package"
 
+  # The CLI from source, on Node.js 24 and 26, in a Docker network whose only
+  # way out is a proxy: `serverless usage` signs in and reads the org's usage
+  # from the Serverless API, so a request that ignores the proxy, or that a
+  # Node.js version rejects through it, fails here. Only STS calls reach AWS.
+  e2e-proxy:
+    name: 'E2E: proxy-only network'
+    if: ${{ !github.event.pull_request.draft }}
+    # Docker containers run only on the Linux runners
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      id-token: write
+      contents: read
+    defaults:
+      run:
+        working-directory: ./packages/sf-core
+    steps:
+      - name: 'Checkout Code'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: 'Setup: Node.js'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.x
+          check-latest: true
+          cache: npm
+      - name: 'Setup: Enable Corepack'
+        run: corepack enable npm
+      - name: 'Setup: AWS Credentials'
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ vars.TEST1_ROLE_ARN }}
+          aws-region: us-east-1
+      - name: 'Install: Dependencies'
+        run: |
+          cd ../../
+          npm ci
+      - name: 'Test: E2E in a network whose only way out is a proxy'
+        env:
+          SERVERLESS_ACCESS_KEY_DEV: ${{ secrets.SERVERLESS_ACCESS_KEY_DEV }}
+          E2E_LOG_DIR: ${{ runner.temp }}/e2e-logs
+        run: tests/e2e/proxy-only-network.sh
+      - name: 'Upload: Proxy log'
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-proxy-only-network-logs
+          path: ${{ runner.temp }}/e2e-logs
+
   tests:
     if: ${{ !github.event.pull_request.draft }}
     uses: ./.github/workflows/test-framework.yml

@@ -335,6 +335,7 @@ Adding an account for CI is a per-account, human-run job in three parts:
 - `npm test -w @serverless/mcp` — MCP server tests (not run by any CI workflow)
 - `npm run test:python -w @serverlessinc/sf-core` — Python plugin tests (covered by the `CI: Python Requirements` workflow)
 - `npm run test:build -w @serverlessinc/sf-core` — builds and packs the release package locally, then runs the packaging checks in `packages/sf-core/scripts/verify-release-package.sh` (the same checks the `Test: Release Package` CI job and the release run)
+- `npm run test:e2e:proxy -w @serverlessinc/sf-core` — runs `serverless usage` from source with only `HTTPS_PROXY` set, against a local proxy, and checks that it works and that it reached the Serverless API through the proxy; on the Node.js that runs it. Needs `SERVERLESS_ACCESS_KEY_DEV` (skipped without it) and AWS credentials; makes no AWS calls besides STS. `packages/sf-core/tests/e2e/proxy-only-network.sh [majors]` runs it in a Docker network whose only way out is the proxy, on Node.js 24 and 26 by default (the `E2E: proxy-only network` job of `CI: Framework CLI`); only that run proves that no request goes direct
 
 ## Troubleshooting
 
