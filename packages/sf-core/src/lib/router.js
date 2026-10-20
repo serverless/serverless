@@ -685,8 +685,9 @@ const finalize = async ({
   const accessKey =
     authenticatedData?.accessKeyV1 || authenticatedData?.accessKeyV2
 
-  // The analysis event is queued before any task starts, so once finalize gets
-  // past this point the run is reported exactly once, whatever the tasks do.
+  // The run's analysis event is queued before any task starts, so the tasks
+  // cannot keep it from being published. A failed task is reported by the
+  // error handler as a separate failed event ("Sending events failed: ...").
   // A throw here leaves no task running and falls back to the error handler.
   const analysisParams = {
     authenticatedData,
@@ -771,9 +772,7 @@ const finalize = async ({
   })
 
   if (errors.length > 0) {
-    const error = new Error(`Sending events failed: ${errors.join('\n')}`)
-    error.analysisEventQueued = true
-    throw error
+    throw new Error(`Sending events failed: ${errors.join('\n')}`)
   }
 }
 
@@ -791,12 +790,8 @@ const handleFinalizationError = async ({
   exitCode,
 }) => {
   const logger = log.get('core:router:finalization-error-handler')
-  logger.debug('Error during finalization:', error)
-  // finalize already queued this run's analysis event: a failure in its own
-  // bookkeeping (metadata, deployment record, publishing) is not the run's
-  // outcome, and a second event would report the run twice.
-  if (error?.analysisEventQueued) return
   try {
+    logger.debug('Error during finalization:', error)
     const analysisEvent = createAnalysisEvent({
       licenseKey: authenticatedData?.accessKeyV2,
       orgId: authenticatedData?.orgId,

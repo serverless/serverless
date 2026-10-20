@@ -73,15 +73,18 @@ afterEach(() => jest.restoreAllMocks())
 const analysisEvents = () =>
   queued.filter(({ source }) => source === 'sfcore.analysis.generated.v1')
 
-test('a failing metadata lookup does not report a successful run twice, or as failed', async () => {
+test('a failing metadata step fails its own task and is reported as a separate failed event', async () => {
   const runner = new FakeRunner()
   let finalizeError
   await finalize(finalizeParams(runner)).catch((error) => {
     finalizeError = error
   })
-  // The failure stays in its own task: the metadata step is the one that fails.
-  expect(finalizeError?.message).toContain('AWS account could not be resolved')
+  // The failure stays in its own task: the run's event is still published.
+  expect(finalizeError?.message).toMatch(
+    /^Sending events failed: AWS account could not be resolved/,
+  )
   expect(saveMeta).not.toHaveBeenCalled()
+  expect(platformEventClient.publishEventBatches).toHaveBeenCalledTimes(1)
 
   // The router hands any finalize failure to the error handler.
   await handleFinalizationError({
@@ -95,13 +98,14 @@ test('a failing metadata lookup does not report a successful run twice, or as fa
     error: finalizeError,
   })
 
-  expect(analysisEvents()).toHaveLength(1)
+  expect(analysisEvents()).toHaveLength(2)
   expect(analysisEvents()[0].event.actionSucceeded).toBe(true)
   expect(analysisEvents()[0].event).not.toHaveProperty('error')
-  expect(platformEventClient.publishEventBatches).toHaveBeenCalledTimes(1)
+  expect(analysisEvents()[1].event.actionSucceeded).toBe(false)
+  expect(platformEventClient.publishEventBatches).toHaveBeenCalledTimes(2)
 })
 
-test('a finalize failure before the run was reported still sends one event', async () => {
+test('a finalize failure before the run was reported sends one failed event', async () => {
   const runner = new FakeRunner()
   await handleFinalizationError({
     versionFramework: '4.99.0',
@@ -117,7 +121,7 @@ test('a finalize failure before the run was reported still sends one event', asy
   expect(platformEventClient.publishEventBatches).toHaveBeenCalledTimes(1)
 })
 
-test('a failing usage event still publishes the run once', async () => {
+test("a failing usage event still publishes the run's analysis event", async () => {
   const runner = new FakeRunner()
   runner.getMetadataToSave = async () => ({})
   runner.getUsageEventDetails = async () => {
@@ -127,7 +131,6 @@ test('a failing usage event still publishes the run once', async () => {
   params.runnerData.runnerResult = { serviceUniqueId: 'stack-id' }
   const finalizeError = await finalize(params).catch((error) => error)
   expect(finalizeError?.message).toContain('AWS account could not be resolved')
-  expect(finalizeError?.analysisEventQueued).toBe(true)
   expect(platformEventClient.publishEventBatches).toHaveBeenCalledTimes(1)
   expect(analysisEvents()).toHaveLength(1)
   expect(analysisEvents()[0].event.actionSucceeded).toBe(true)
