@@ -4,6 +4,12 @@ const saveMeta = jest.fn(async () => {})
 jest.unstable_mockModule('../../../../src/lib/meta/index.js', () => ({
   default: saveMeta,
 }))
+const saveDeployment = jest.fn(async () => {})
+jest.unstable_mockModule('../../../../src/lib/platform/deployments.js', () => ({
+  Deployment: class {},
+  addCommonDeploymentData: jest.fn(async () => {}),
+  saveDeployment,
+}))
 
 const { platformEventClient, log } = await import('@serverless/util')
 const { finalize, handleFinalizationError } =
@@ -153,20 +159,41 @@ test('a failure while building the analysis event still sends the usage event, d
   runner.getAnalysisEventDetails = () => {
     throw new Error('details unavailable')
   }
-  runner.getDeploymentEventDetails = jest.fn(async () => null)
+  runner.getDeploymentEventDetails = async () => ({ id: 'deployment' })
   runner.getMetadataToSave = async () => ({})
   const params = finalizeParams(runner)
   params.runnerData.runnerResult = { serviceUniqueId: 'stack-id' }
   await expect(finalize(params)).rejects.toThrow(
     /^Sending events failed: details unavailable/,
   )
-  expect(runner.getDeploymentEventDetails).toHaveBeenCalled()
+  expect(saveDeployment).toHaveBeenCalledWith(
+    expect.objectContaining({ deploymentInstance: { id: 'deployment' } }),
+  )
   expect(saveMeta).toHaveBeenCalled()
   expect(platformEventClient.publishEventBatches).toHaveBeenCalledTimes(1)
   expect(analysisEvents()).toHaveLength(0)
   expect(
     queued.filter(({ source }) => source === 'billing.instance.reported.v1'),
   ).toHaveLength(1)
+})
+
+test('the error handler reports a failure even when the analysis details throw', async () => {
+  const runner = new FakeRunner()
+  runner.getAnalysisEventDetails = () => {
+    throw new Error('details unavailable')
+  }
+  await handleFinalizationError({
+    versionFramework: '4.99.0',
+    command: ['print'],
+    commandStartTime: Date.now(),
+    options: {},
+    authenticatedData,
+    runner,
+    error: new Error('Sending events failed: details unavailable'),
+  })
+  expect(analysisEvents()).toHaveLength(1)
+  expect(analysisEvents()[0].event.actionSucceeded).toBe(false)
+  expect(platformEventClient.publishEventBatches).toHaveBeenCalledTimes(1)
 })
 
 // A lookup that failed while the command ran leaves a resolver that throws

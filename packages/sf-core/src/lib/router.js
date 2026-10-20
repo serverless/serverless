@@ -819,7 +819,14 @@ const handleFinalizationError = async ({
       runnerType: runner.constructor.runnerType,
       cliOptions: options,
       error,
-      runnerSpecificDetails: runner.getAnalysisEventDetails(),
+      // The details may be what failed: the failure is reported without them.
+      runnerSpecificDetails: (() => {
+        try {
+          return runner.getAnalysisEventDetails()
+        } catch {
+          return undefined
+        }
+      })(),
       notifications: authenticatedData?.notifications,
       exitCode,
     })
