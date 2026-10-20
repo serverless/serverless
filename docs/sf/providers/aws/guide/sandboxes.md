@@ -119,11 +119,13 @@ serverless/<service>/<stage>/sandboxes/<name>-<sha256>.zip
 
 The S3 key is content-addressed: re-deploying without changing the selected files reuses the same key and the existing image. A change to any selected file rebuilds the image.
 
+`serverless package` writes the zip to `.serverless/sandboxes/<name>-<sha256>.zip` (under the `--package` directory when you pass one) and lists what `serverless deploy` uploads in `.serverless/sandboxes-uploads.json`. List the zip, for example with `unzip -l`, to see exactly which files a sandbox ships.
+
 ### Choosing the files
 
 The zip holds every file in the artifact directory except:
 
-- local dependency and cache directories, at any depth: `node_modules`, `.venv`, `venv`, `__pycache__`, `.pytest_cache` and `.mypy_cache`;
+- anything named `node_modules`, `.venv`, `venv`, `__pycache__`, `.pytest_cache` or `.mypy_cache`, at any depth (local dependencies and caches), including a plain file with one of these names. Names that only start with them, such as `node_modules.txt` or `node_modules_backup/`, are kept;
 - the [default exclusions](./packaging.md#patterns) of function packaging (`.git`, `.serverless`, the service configuration file, `.env*` with `useDotenv`, …). As for functions, they are matched from the service directory, so they only reach the artifact when it is the service directory (`artifact: .`). In an artifact subdirectory such as `./app`, a `.git` directory, an `.env` file or a `.DS_Store` is included unless a pattern excludes it (`'!app/.env*'`).
 
 The image is built on ARM64 by your `Dockerfile`, which installs dependencies itself (for example with `npm ci` or `pip install`). Dependencies installed on your machine are built for its platform, a virtualenv only works on the machine that created it, and a `COPY . .` would overwrite the dependencies the build installed. They also change the content hash, so every local install would rebuild the image.
@@ -133,7 +135,7 @@ To choose files yourself, use `package.patterns`. They work exactly as [function
 ```yml
 package:
   patterns:
-    - '!docs/**' # applies to functions and sandboxes alike
+    - '!**/docs/**' # any docs/ directory, in functions and sandboxes alike
 
 sandboxes:
   api:
@@ -146,6 +148,20 @@ sandboxes:
 
 - The `Dockerfile` at the root of the artifact directory is always included.
 - Service-level patterns written for your functions apply to sandboxes too. A pattern list that excludes everything and re-includes your function code (`'!**'` followed by `src/**`) leaves a sandbox with only its `Dockerfile`: re-include the sandbox's files with its own patterns (`'app/**'`).
+- `'app/**'` re-includes everything under `app/`, including the default exclusions (`node_modules`, `.venv`, `venv`, … and `.env` files), which a `COPY . .` then copies into the image. Exclude again the ones the directory holds, after it (later patterns win):
+
+  ```yml
+  sandboxes:
+    api:
+      artifact: ./app
+      package:
+        patterns:
+          - 'app/**'
+          - '!app/**/node_modules/**'
+          - '!app/**/.venv/**'
+          - '!app/.env*'
+  ```
+
 - For an artifact directory outside the service directory (`artifact: ../shared/app`), write the `../` path in the pattern (`'!../shared/app/tests/**'`): as for functions, `**` doesn't match paths that start with `../`. The default exclusions apply wherever the directory is.
 - A `.dockerignore` in the artifact directory still applies when the image is built, on AWS and in `serverless dev`. Patterns decide what is uploaded; `.dockerignore` decides what the build sees.
 - Patterns don't apply to an `s3://` artifact, which is used as it is.
