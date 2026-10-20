@@ -975,6 +975,7 @@ async function publishUsageAndQueuedEvents({
   }
 
   // Publish events
+  let publishError
   try {
     let user
 
@@ -993,11 +994,14 @@ async function publishUsageAndQueuedEvents({
       versionFramework,
     })
   } catch (error) {
-    throw new Error(
+    publishError = new Error(
       `Error publishing telemetry event batches: ${error.message}`,
     )
   }
+  // The usage error comes first: a missing sign-in fails the publish too, and
+  // the usage error names the cause.
   if (usageError) throw usageError
+  if (publishError) throw publishError
 }
 
 export { route, finalize, handleFinalizationError }

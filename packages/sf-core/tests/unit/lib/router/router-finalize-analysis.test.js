@@ -136,6 +136,18 @@ test("a failing usage event still publishes the run's analysis event", async () 
   expect(analysisEvents()[0].event.actionSucceeded).toBe(true)
 })
 
+test('without sign-in data, the usage error is reported rather than the failed publish', async () => {
+  const runner = new FakeRunner()
+  runner.authenticatedData = undefined
+  runner.getMetadataToSave = async () => ({})
+  const finalizeError = await finalize(finalizeParams(runner)).catch(
+    (error) => error,
+  )
+  expect(finalizeError?.message).toBe(
+    'Sending events failed: No authenticated data found',
+  )
+})
+
 test('a failure while building the analysis event still sends the usage event, deployment record and metadata', async () => {
   const runner = new FakeRunner()
   runner.getAnalysisEventDetails = () => {
