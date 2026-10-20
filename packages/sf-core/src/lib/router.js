@@ -939,26 +939,32 @@ async function publishUsageAndQueuedEvents({
   runnerResult,
   accessKey,
 }) {
-  // Create usage event if no error
+  // Create usage event if no error. A failure here is rethrown after the
+  // publish, so it does not keep the queued analysis event from being sent.
+  let usageError
   if (!runnerError) {
-    // Ensure authenticated data is available
-    if (!authenticatedData && runner.constructor.name !== 'CoreRunner') {
-      throw new ServerlessError(
-        'No authenticated data found',
-        ServerlessErrorCodes.general.AUTH_FAILED,
-      )
-    }
+    try {
+      // Ensure authenticated data is available
+      if (!authenticatedData && runner.constructor.name !== 'CoreRunner') {
+        throw new ServerlessError(
+          'No authenticated data found',
+          ServerlessErrorCodes.general.AUTH_FAILED,
+        )
+      }
 
-    const serviceUniqueId = runnerResult?.serviceUniqueId
-    if (runner.constructor.name !== 'CoreRunner' && serviceUniqueId) {
-      // Create usage event
-      const usageEvent = createUsageEvent({
-        command,
-        versionFramework,
-        serviceUniqueId,
-        details: await runner.getUsageEventDetails(),
-      })
-      instanceUsageTrackingClient.trackUsage(usageEvent)
+      const serviceUniqueId = runnerResult?.serviceUniqueId
+      if (runner.constructor.name !== 'CoreRunner' && serviceUniqueId) {
+        // Create usage event
+        const usageEvent = createUsageEvent({
+          command,
+          versionFramework,
+          serviceUniqueId,
+          details: await runner.getUsageEventDetails(),
+        })
+        instanceUsageTrackingClient.trackUsage(usageEvent)
+      }
+    } catch (error) {
+      usageError = error
     }
   }
 
@@ -985,6 +991,7 @@ async function publishUsageAndQueuedEvents({
       `Error publishing telemetry event batches: ${error.message}`,
     )
   }
+  if (usageError) throw usageError
 }
 
 export { route, finalize, handleFinalizationError }

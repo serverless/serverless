@@ -117,6 +117,22 @@ test('a finalize failure before the run was reported still sends one event', asy
   expect(platformEventClient.publishEventBatches).toHaveBeenCalledTimes(1)
 })
 
+test('a failing usage event still publishes the run once', async () => {
+  const runner = new FakeRunner()
+  runner.getMetadataToSave = async () => ({})
+  runner.getUsageEventDetails = async () => {
+    throw accountLookupError()
+  }
+  const params = finalizeParams(runner)
+  params.runnerData.runnerResult = { serviceUniqueId: 'stack-id' }
+  const finalizeError = await finalize(params).catch((error) => error)
+  expect(finalizeError?.message).toContain('AWS account could not be resolved')
+  expect(finalizeError?.analysisEventQueued).toBe(true)
+  expect(platformEventClient.publishEventBatches).toHaveBeenCalledTimes(1)
+  expect(analysisEvents()).toHaveLength(1)
+  expect(analysisEvents()[0].event.actionSucceeded).toBe(true)
+})
+
 test('a failure while queuing the analysis event starts no finalize task', async () => {
   const runner = new FakeRunner()
   runner.getAnalysisEventDetails = () => {
