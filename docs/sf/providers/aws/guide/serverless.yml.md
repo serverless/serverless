@@ -216,6 +216,7 @@ provider:
     # Whether to create Route53 DNS records (optional, default: true, set to false for third-party registrars)
     createRoute53Record: true
     # Whether to create IPv6 (AAAA) Route53 records (optional, default: true)
+    # Set to true explicitly to also create the domain with IPv6 (dualstack) support
     createRoute53IPv6Record: true
     # Route53 hosted zone ID (optional, auto-detected if not provided)
     hostedZoneId: Z1PA6795UKMFR9

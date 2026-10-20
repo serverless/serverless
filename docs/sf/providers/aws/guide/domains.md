@@ -205,7 +205,7 @@ Below are all available configuration options for custom domains:
 | `certificateArn`               | string         | No       | ARN of existing ACM certificate. If not provided, a new certificate will be created                                                                                                                                             |
 | `certificateName`              | string         | No       | Name of existing ACM certificate to use instead of creating a new one                                                                                                                                                           |
 | `createRoute53Record`          | boolean        | No       | Whether to create Route53 DNS records. Set to `false` for third-party registrars. Defaults to `true`                                                                                                                            |
-| `createRoute53IPv6Record`      | boolean        | No       | Whether to create IPv6 (AAAA) Route53 records. Defaults to `true`                                                                                                                                                               |
+| `createRoute53IPv6Record`      | boolean        | No       | Whether to create IPv6 (AAAA) Route53 records. Defaults to `true`. Set it to `true` explicitly to also create the domain with IPv6 support. See [IPv6](#ipv6)                                                                   |
 | `hostedZoneId`                 | string         | No       | Route53 hosted zone ID. If not provided, will be automatically detected                                                                                                                                                         |
 | `hostedZonePrivate`            | boolean        | No       | Whether to use a private hosted zone. Defaults to `false`                                                                                                                                                                       |
 | `route53Profile`               | string         | No       | AWS profile to use for Route53 operations                                                                                                                                                                                       |
@@ -234,7 +234,6 @@ provider:
     endpointType: regional
     certificateArn: arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012
     createRoute53Record: true
-    createRoute53IPv6Record: true
     hostedZoneId: Z1PA6795UKMFR9
     securityPolicy: TLS_1_2
     accessMode: strict
@@ -374,6 +373,22 @@ provider:
     name: api.example.com
     endpointType: edge
 ```
+
+## IPv6
+
+Custom domains accept IPv4 traffic by default. To make a domain reachable over IPv6 as well, set `createRoute53IPv6Record: true` explicitly:
+
+```yaml
+provider:
+  domain:
+    name: api.example.com
+    createRoute53IPv6Record: true
+```
+
+The Framework then creates the domain with the dualstack IP address type, so it accepts both IPv4 and IPv6 traffic. Unless `createRoute53Record` is `false`, it also adds A and AAAA records for the domain.
+
+- The setting applies when the Framework creates the domain. To add IPv6 to a domain that already exists, [change its IP address type in API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/rest-custom-domain-ip-address-type.html). Later deploys keep the type the domain has.
+- Clients that support IPv6 connect over it once the domain accepts it. If a resource policy or AWS WAF rule allows or blocks callers by IP address, make sure it also covers their IPv6 addresses.
 
 ## Multiple Domain Configurations
 

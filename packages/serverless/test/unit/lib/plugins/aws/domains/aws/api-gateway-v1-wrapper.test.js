@@ -56,6 +56,44 @@ describe('APIGatewayV1Wrapper', () => {
     expect(sendMock.mock.calls[0][0].input.endpointAccessMode).toBeUndefined()
   })
 
+  it('sets endpointConfiguration.ipAddressType when ipAddressType is provided', async () => {
+    const wrapper = new APIGatewayV1Wrapper()
+    const sendMock = jest
+      .spyOn(wrapper.apiGateway, 'send')
+      .mockResolvedValue({ regionalDomainName: 'd.example.com' })
+
+    await wrapper.createCustomDomain({
+      givenDomainName: 'api.example.com',
+      endpointType: Globals.endpointTypes.regional,
+      certificateArn: 'arn:aws:acm:us-east-1:123456789012:certificate/test',
+      securityPolicy: 'TLS_1_2',
+      ipAddressType: 'dualstack',
+    })
+
+    expect(sendMock.mock.calls[0][0].input.endpointConfiguration).toEqual({
+      types: [Globals.endpointTypes.regional],
+      ipAddressType: 'dualstack',
+    })
+  })
+
+  it('omits endpointConfiguration.ipAddressType when ipAddressType is not provided', async () => {
+    const wrapper = new APIGatewayV1Wrapper()
+    const sendMock = jest
+      .spyOn(wrapper.apiGateway, 'send')
+      .mockResolvedValue({ regionalDomainName: 'd.example.com' })
+
+    await wrapper.createCustomDomain({
+      givenDomainName: 'api.example.com',
+      endpointType: Globals.endpointTypes.regional,
+      certificateArn: 'arn:aws:acm:us-east-1:123456789012:certificate/test',
+      securityPolicy: 'TLS_1_2',
+    })
+
+    expect(sendMock.mock.calls[0][0].input.endpointConfiguration).toEqual({
+      types: [Globals.endpointTypes.regional],
+    })
+  })
+
   it('updates both securityPolicy and accessMode when they drift and are explicitly configured', async () => {
     const wrapper = new APIGatewayV1Wrapper()
     const sendMock = jest

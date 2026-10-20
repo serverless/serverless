@@ -1359,7 +1359,7 @@ tags:
                 type: 'boolean',
               },
               createRoute53IPv6Record: {
-                description: `Create Route53 AAAA alias record.`,
+                description: `Create Route53 AAAA alias record. Set explicitly to true to also create the domain as dualstack (IPv4 and IPv6).`,
                 type: 'boolean',
               },
               route53Profile: {
