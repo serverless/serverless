@@ -68,6 +68,58 @@ test('resolveTarget throws when the named sandbox is unknown', () => {
   expect(() => inst.resolveTarget()).toThrow(/not found/i)
 })
 
+const thrownBy = (fn) => {
+  try {
+    fn()
+  } catch (error) {
+    return error
+  }
+  throw new Error('expected an error')
+}
+
+test.each([
+  ['NO_SANDBOXES_DEFINED', { sandbox: 'echo' }, {}],
+  ['SANDBOX_NAME_REQUIRED', { sandbox: true }, { echo: {} }],
+  ['SANDBOX_NOT_FOUND', { sandbox: 'nope' }, { echo: {} }],
+])(
+  'resolveTarget throws %s without a stack trace',
+  (code, options, sandboxes) => {
+    const error = thrownBy(() =>
+      makeInstance(options, sandboxes).resolveTarget(),
+    )
+    expect(error).toMatchObject({ code, stack: undefined })
+  },
+)
+
+test('--sandbox with --function throws without a stack trace', async () => {
+  const inst = makeInstance({ sandbox: 'echo', function: 'f' }, { echo: {} })
+  await expect(inst.hooks['invoke:invoke']()).rejects.toMatchObject({
+    code: 'INVOKE_MUTUAL_EXCLUSIVITY',
+    stack: undefined,
+  })
+})
+
+test('an error response and access denied throw without a stack trace', async () => {
+  global.fetch = jest.fn(async () => ({ status: 500, text: async () => '' }))
+  const write = jest.spyOn(process.stdout, 'write').mockReturnValue(true)
+  try {
+    const inst = makeInstance({ sandbox: 'echo' }, { echo: {} })
+    await expect(inst.hooks['invoke:invoke']()).rejects.toMatchObject({
+      code: 'SANDBOX_INVOKE_HTTP_ERROR',
+      stack: undefined,
+    })
+    dataplane.runMicrovm.mockRejectedValueOnce(
+      Object.assign(new Error('denied'), { name: 'AccessDeniedException' }),
+    )
+    await expect(inst.hooks['invoke:invoke']()).rejects.toMatchObject({
+      code: 'SANDBOX_INVOKE_ACCESS_DENIED',
+      stack: undefined,
+    })
+  } finally {
+    write.mockRestore()
+  }
+})
+
 test('full round-trip runs, tokens, fetches, prints, and always terminates', async () => {
   global.fetch = jest.fn(async () => ({
     status: 200,
@@ -130,3 +182,74 @@ test('terminates even when the HTTP request throws', async () => {
     expect.anything(),
   )
 })
+
+test('sends each --header with the request, next to the proxy headers', async () => {
+  global.fetch = jest.fn(async () => ({ status: 200, text: async () => 'ok' }))
+  const write = jest.spyOn(process.stdout, 'write').mockReturnValue(true)
+  try {
+    const inst = makeInstance(
+      {
+        sandbox: 'echo',
+        method: 'POST',
+        data: '{"a":1}',
+        header: ['Content-Type: application/json', 'X-Trace: abc'],
+      },
+      { echo: {} },
+    )
+    await inst.hooks['invoke:invoke']()
+  } finally {
+    write.mockRestore()
+  }
+  const [, init] = global.fetch.mock.calls[0]
+  expect(init.body).toBe('{"a":1}')
+  expect(init.headers).toEqual({
+    'content-type': 'application/json',
+    'x-trace': 'abc',
+    'X-aws-proxy-auth': 'JWE',
+    'X-aws-proxy-port': '8080',
+  })
+})
+
+test.each([
+  [
+    'X-Aws-Proxy-Auth: token',
+    'INVOKE_RESERVED_HEADER',
+    '--header cannot set X-Aws-Proxy-Auth: the Framework sets it to reach the sandbox through the AWS proxy.',
+  ],
+  [
+    'x-aws-proxy-port: 1',
+    'INVOKE_RESERVED_HEADER',
+    '--header cannot set x-aws-proxy-port: the Framework sets it to reach the sandbox through the AWS proxy.',
+  ],
+  [
+    'Host: example.com',
+    'INVOKE_RESERVED_HEADER',
+    "--header cannot set Host: the Framework sets it from the sandbox's endpoint.",
+  ],
+  [
+    'no-colon',
+    'INVOKE_INVALID_HEADER',
+    "Each --header must be one line in the form 'Name: value', for example --header 'Content-Type: application/json'.",
+  ],
+  [
+    'X-Name: żółw',
+    'INVOKE_INVALID_HEADER',
+    'The --header X-Name value must be printable ASCII text. Encode other characters first, for example with encodeURIComponent.',
+  ],
+])(
+  'stops on --header %p before starting an instance',
+  async (header, code, message) => {
+    global.fetch = jest.fn()
+    const inst = makeInstance(
+      { sandbox: 'echo', header: [header] },
+      { echo: {} },
+    )
+    await expect(inst.hooks['invoke:invoke']()).rejects.toMatchObject({
+      code,
+      message,
+      stack: undefined,
+    })
+    expect(dataplane.runMicrovm).not.toHaveBeenCalled()
+    expect(global.fetch).not.toHaveBeenCalled()
+  },
+)

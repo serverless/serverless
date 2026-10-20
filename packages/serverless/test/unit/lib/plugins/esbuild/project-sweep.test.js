@@ -19,6 +19,7 @@ import {
   sweepProjectFiles,
   splitCompileAndCopy,
   detectOutputCollisions,
+  declaredPackageJsonType,
   nearestPackageJsonType,
   outputPathFor,
   scanExtensionlessEsmImports,
@@ -450,6 +451,38 @@ describe('toSweptPath', () => {
  * format would emit `export` statements into a directory Node loads as
  * CommonJS (or the reverse), and the failure only shows up at invocation time.
  */
+/**
+ * Node detects the module syntax of a `.js` file only when no package.json
+ * declares a `type` for it, so a caller that mirrors Node needs to tell "none"
+ * from an explicit "commonjs".
+ */
+describe('declaredPackageJsonType', () => {
+  it('is undefined without a package.json', () => {
+    const dir = makeTree(['src/a.js'])
+    expect(declaredPackageJsonType(dir, 'src/a.js')).toBeUndefined()
+  })
+
+  it('is undefined when the nearest package.json has no type, even under a module root', () => {
+    const dir = makeTreeWithContents({
+      'package.json': '{"type":"module"}',
+      'src/package.json': '{"name":"inner"}',
+      'src/a.js': '',
+    })
+    expect(declaredPackageJsonType(dir, 'src/a.js')).toBeUndefined()
+  })
+
+  it('names an explicit commonjs or module type', () => {
+    const dir = makeTreeWithContents({
+      'package.json': '{"type":"commonjs"}',
+      'esm/package.json': '{"type":"module"}',
+      'a.js': '',
+      'esm/a.js': '',
+    })
+    expect(declaredPackageJsonType(dir, 'a.js')).toBe('commonjs')
+    expect(declaredPackageJsonType(dir, 'esm/a.js')).toBe('module')
+  })
+})
+
 describe('nearestPackageJsonType', () => {
   it('defaults to commonjs when the service has no package.json at all', () => {
     const dir = makeTree(['src/a.ts'])

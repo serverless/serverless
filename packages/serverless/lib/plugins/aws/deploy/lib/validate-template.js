@@ -1,5 +1,17 @@
 import getS3EndpointForRegion from '../../utils/get-s3-endpoint-for-region.js'
 import ServerlessError from '../../../../serverless-error.js'
+import {
+  getWebFunctionsUnavailableContext,
+  serviceHasWebApps,
+} from '../../lib/web-apps.js'
+
+/**
+ * Whether CloudFormation rejected the template because the Region does not
+ * have the Web Function resource types.
+ */
+const isWebFunctionTypeUnrecognized = (message = '') =>
+  message.includes('Unrecognized resource types') &&
+  message.includes('AWS::Lambda::WebFunction')
 
 export default {
   async validateTemplate() {
@@ -16,10 +28,18 @@ export default {
     return this.provider
       .request('CloudFormation', 'validateTemplate', params)
       .catch((error) => {
-        const errorMessage = [
+        let errorMessage = [
           'The CloudFormation template is invalid:',
           ` ${error.message}`,
         ].join('')
+        if (
+          serviceHasWebApps(this.serverless) &&
+          isWebFunctionTypeUnrecognized(error.message)
+        ) {
+          errorMessage += `\n${getWebFunctionsUnavailableContext(
+            this.provider.getRegion(),
+          )}`
+        }
         throw new ServerlessError(
           errorMessage,
           'INVALID_AWS_CLOUDFORMATION_TEMPLATE',

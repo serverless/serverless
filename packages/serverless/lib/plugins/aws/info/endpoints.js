@@ -5,7 +5,11 @@
  * (`endpointLinesOf`), with the URL of an HTTP API `provider.httpApi.id` names
  * (`externalHttpApiEndpointOf`).
  */
+import { log } from '@serverless/util'
 import resolveCfImportValue from '../utils/resolve-cf-import-value.js'
+import { getWebAppsConfig } from '../lib/web-apps.js'
+import { getWebAppLogicalIds } from '../web-apps/compilers/function.js'
+import { listWebAppDomains } from '../web-apps/compilers/domain.js'
 
 /**
  * The endpoint base URLs among the stack's `outputs` (`[{ OutputKey, OutputValue }]`), in their
@@ -51,6 +55,38 @@ const outputValue = (outputs, key) =>
 export const functionUrlOf = ({ outputs, naming, functionName }) =>
   outputValue(outputs, naming.getLambdaFunctionUrlOutputLogicalId(functionName))
 
+/**
+ * Each deployed web app's endpoint URL, from its `<N>WebFunctionUrl` output, in the order of
+ * `webApps`: `[{ name, url }]`. A web app without the output (not deployed yet) is left out.
+ */
+export const webAppUrlsOf = ({ serverless, outputs }) =>
+  Object.keys(getWebAppsConfig(serverless))
+    .map((name) => ({
+      name,
+      url: outputValue(outputs, getWebAppLogicalIds(name).urlOutput),
+    }))
+    .filter(({ url }) => url)
+
+/**
+ * Each web app's endpoint URL followed by the URL of each enabled custom domain entry that
+ * targets it (`https://<hostname>[/<basePath>]`, hostnames from the config), as `[{ name, url }]`.
+ */
+const webAppEndpointsOf = ({ serverless, webApps }) => {
+  if (webApps.length === 0) return []
+  const domains = listWebAppDomains(serverless.service.provider || {}, {
+    warn: (message) => log.warning(message),
+  })
+  return webApps.flatMap(({ name, url }) => [
+    { name, url },
+    ...domains
+      .filter((domain) => domain.webApp === name)
+      .map((domain) => ({
+        name,
+        url: `https://${domain.name}${domain.basePath ? `/${domain.basePath}` : ''}`,
+      })),
+  ])
+}
+
 /** The domain name of the service's CloudFront distribution, from the stack's outputs. */
 export const cloudFrontOf = ({ outputs, naming }) =>
   outputValue(outputs, naming.getCloudFrontDistributionDomainNameLogicalId())
@@ -58,9 +94,10 @@ export const cloudFrontOf = ({ outputs, naming }) =>
 /**
  * The lines `info` and `deploy` print under "endpoint(s)": each route of a REST API
  * (`METHOD - <url><path>`) or of an HTTP API, another endpoint (a WebSocket API) as its URL, the
- * CloudFront distribution, then each function URL (`name: <url>`, or the bare URL when it is the
- * service's only endpoint). `endpoints` are the base URLs, `httpApiEndpoints` those of an HTTP
- * API, `functionUrls` `[{ name, url }]`.
+ * CloudFront distribution, each function URL, then each web app's endpoint URL and the custom
+ * domains that serve it (`name: <url>`, or the bare URL when it is the service's only endpoint).
+ * `endpoints` are the base URLs, `httpApiEndpoints` those of an HTTP API, `functionUrls` and
+ * `webApps` `[{ name, url }]`.
  */
 export const formatEndpoints = ({
   serverless,
@@ -68,6 +105,7 @@ export const formatEndpoints = ({
   httpApiEndpoints,
   cloudFront,
   functionUrls = [],
+  webApps = [],
 }) => {
   const outputSectionItems = []
 
@@ -121,12 +159,16 @@ export const formatEndpoints = ({
     outputSectionItems.push(`CloudFront - ${cloudFront}`)
   }
 
-  for (const functionWithUrl of functionUrls) {
-    if (outputSectionItems.length === 0 && functionUrls.length === 1) {
-      // In this situation we want to skip displaying function name as there is only one URL in whole service
-      outputSectionItems.push(functionWithUrl.url)
-    } else {
-      outputSectionItems.push(`${functionWithUrl.name}: ${functionWithUrl.url}`)
+  const namedUrls = [
+    ...functionUrls,
+    ...webAppEndpointsOf({ serverless, webApps }),
+  ]
+  if (outputSectionItems.length === 0 && namedUrls.length === 1) {
+    // The only URL in the whole service: no name needed
+    outputSectionItems.push(namedUrls[0].url)
+  } else {
+    for (const { name, url } of namedUrls) {
+      outputSectionItems.push(`${name}: ${url}`)
     }
   }
 
@@ -161,5 +203,6 @@ export const endpointLinesOf = ({
         url: functionUrlOf({ outputs, naming, functionName: name }),
       }))
       .filter(({ url }) => url),
+    webApps: webAppUrlsOf({ serverless, outputs }),
   })
 }

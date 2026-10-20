@@ -575,6 +575,7 @@ describe('CoreRunner CLI schema for `agent inspect`', () => {
       'identity',
       'iot',
       'sandboxes',
+      'web-apps',
       'all',
     ]) {
       expect(options[flag]).toMatchObject({ type: 'boolean' })

@@ -606,5 +606,80 @@ describe('zipService', () => {
         packagePlugin.zipFiles([], path.resolve(tmpDirPath, 'tmp.zip')),
       ).rejects.toThrow(/No files to package/)
     })
+
+    describe('with generated entries', () => {
+      const generatedEntries = [
+        { name: 'b-generated.mjs', content: 'export {}\n' },
+      ]
+
+      beforeEach(() => {
+        fs.writeFileSync(path.join(tmpDirPath, 'a.js'), 'a')
+        fs.writeFileSync(path.join(tmpDirPath, 'c.js'), 'c')
+      })
+
+      it('adds them to the zip in sorted order with a pinned date and mode', async () => {
+        const artifact = await packagePlugin.zipFiles(
+          ['c.js', 'a.js'],
+          'generated.zip',
+          undefined,
+          { generatedEntries },
+        )
+
+        const zip = await new JsZip().loadAsync(fs.readFileSync(artifact))
+        expect(Object.keys(zip.files)).toEqual([
+          'a.js',
+          'b-generated.mjs',
+          'c.js',
+        ])
+        const entry = zip.files['b-generated.mjs']
+        expect(await entry.async('string')).toBe('export {}\n')
+        // new Date(0) is before the zip epoch, so it is stored as 1980-01-01
+        expect(entry.date.getUTCFullYear()).toBe(1980)
+        expect(entry.date.getUTCMonth()).toBe(0)
+        expect(entry.date.getUTCDate()).toBe(1)
+        if (os.platform() !== 'win32') {
+          expect(entry.unixPermissions).toBe(Math.pow(2, 15) + 0o644)
+        }
+      })
+
+      it('replaces a packaged file with the same name', async () => {
+        fs.writeFileSync(path.join(tmpDirPath, 'b-generated.mjs'), 'user file')
+
+        const artifact = await packagePlugin.zipFiles(
+          ['a.js', 'b-generated.mjs'],
+          'replaced.zip',
+          undefined,
+          { generatedEntries },
+        )
+
+        const zip = await new JsZip().loadAsync(fs.readFileSync(artifact))
+        expect(Object.keys(zip.files)).toEqual(['a.js', 'b-generated.mjs'])
+        expect(await zip.files['b-generated.mjs'].async('string')).toBe(
+          'export {}\n',
+        )
+      })
+
+      it('produces byte-identical zips for identical input', async () => {
+        const first = await packagePlugin.zipFiles(
+          ['a.js', 'c.js'],
+          'first.zip',
+          undefined,
+          { generatedEntries },
+        )
+        // File times never reach the zip
+        const later = new Date(Date.now() + 60_000)
+        fs.utimesSync(path.join(tmpDirPath, 'a.js'), later, later)
+        const second = await packagePlugin.zipFiles(
+          ['c.js', 'a.js'],
+          'second.zip',
+          undefined,
+          { generatedEntries },
+        )
+
+        expect(fs.readFileSync(first).equals(fs.readFileSync(second))).toBe(
+          true,
+        )
+      })
+    })
   })
 })

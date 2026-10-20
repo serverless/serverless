@@ -153,6 +153,8 @@ The Framework can generate dedicated IAM roles per function in two complementary
 - **Per‑function IAM with no default role** – set `provider.iam.role.mode: perFunction` to skip the shared service-wide role and give **every** function its own IAM role, even if it does not define any `functions.<name>.iam.role.*` settings.
 - **Per‑function IAM on selected functions** – configure `functions.<name>.iam.role.statements` and/or `functions.<name>.iam.role.managedPolicies` to create a dedicated role **only** for specific functions; others continue using the default service role.
 
+Web apps follow the same rules: `provider.iam.role.mode: perFunction` gives each web app a role of its own, and `webApps.<name>.iam` takes the `iam.inheritStatements` and `iam.role.*` keys shown here for functions. See [IAM](./web-apps.md#iam) in the web apps guide.
+
 At a high level, role synthesis works as follows:
 
 - When `provider.iam.role.mode` is omitted or set to `shared` (default), the Framework creates a single shared execution role for the service. Per‑function roles are only generated for functions that opt in with `functions.<name>.iam.role.*`, and `functions.<name>.iam.inheritStatements` controls whether `provider.iam.role.statements` are merged into those roles. When a function opts into a dedicated role, its automatically generated permissions (event sources such as streams and queues, DLQ publishing, KMS decryption, log groups and similar) are placed only on that function's dedicated role — the shared service role contains permissions solely for the functions that still use it. Moving functions with many event sources to dedicated roles is therefore also the supported way to stay under the 10,240-byte IAM inline policy limit on the shared role.

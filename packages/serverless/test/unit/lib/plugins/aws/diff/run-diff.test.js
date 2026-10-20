@@ -27,6 +27,7 @@ const {
   normalizeForDiff,
   isStackNotFoundError,
   getEffectiveErrorClass,
+  detectWebAppCodeChanges,
 } = await import('../../../../../../lib/plugins/aws/diff/run-diff.js')
 chalk.level = importColourLevel
 
@@ -999,6 +1000,7 @@ describe('runDiff output colours', () => {
         _loadLocalTemplate: async () => local,
         _fetchDeployedTemplate: async () => deployed,
         _detectCodeChanges: async () => codeChanges,
+        _detectWebAppCodeChanges: () => null,
         _renderCodeChangeSummary: runDiffMixin._renderCodeChangeSummary,
       })
     } finally {
@@ -1156,5 +1158,183 @@ describe('runDiff output colours', () => {
     })
     const { stdout } = await runAndCapture()
     expect(stdout).toBe(colouredRendering())
+  })
+})
+
+describe('web app code changes', () => {
+  const revision = (key) => ({
+    Type: 'AWS::Lambda::WebFunctionRevision',
+    Properties: {
+      FunctionName: 'shop-dev-x',
+      BuildConfig: {
+        CodeConfig: { S3Object: { Bucket: 'deployments', Key: key } },
+        RuntimeConfig: { Runtime: 'nodejs24.x' },
+      },
+    },
+  })
+  const key = (name, sha) =>
+    `serverless/shop/dev/webapps/${name}-${sha.repeat(64)}.zip`
+
+  const deployedTemplate = {
+    Resources: {
+      ApiWebFunctionRevision: revision(key('api', 'a')),
+      SiteWebFunctionRevision: revision(key('site', 'b')),
+    },
+  }
+  const localTemplate = {
+    Resources: {
+      ApiWebFunctionRevision: revision(key('api', 'c')),
+      SiteWebFunctionRevision: revision(key('site', 'b')),
+      AdminWebFunctionRevision: revision(key('admin', 'd')),
+    },
+  }
+
+  describe('detectWebAppCodeChanges', () => {
+    it("compares each revision's content-addressed key in the two templates", () => {
+      expect(
+        detectWebAppCodeChanges({
+          webAppNames: ['api', 'site', 'admin'],
+          deployedTemplate,
+          localTemplate,
+        }),
+      ).toEqual([
+        { name: 'api', status: 'changed' },
+        { name: 'site', status: 'unchanged' },
+        { name: 'admin', status: 'new' },
+      ])
+    })
+
+    it('reports every web app as new when the stack does not exist yet', () => {
+      expect(
+        detectWebAppCodeChanges({
+          webAppNames: ['api'],
+          deployedTemplate: {},
+          localTemplate,
+        }),
+      ).toEqual([{ name: 'api', status: 'new' }])
+    })
+  })
+
+  describe('_detectWebAppCodeChanges', () => {
+    const detect = (service) =>
+      runDiffMixin._detectWebAppCodeChanges.call(
+        { serverless: { service } },
+        deployedTemplate,
+        localTemplate,
+      )
+
+    it('is null for a service without web apps', () => {
+      expect(detect({ functions: { hello: {} } })).toBeNull()
+    })
+
+    it("compares the service's web apps", () => {
+      expect(detect({ webApps: { api: {}, site: {} } })).toEqual([
+        { name: 'api', status: 'changed' },
+        { name: 'site', status: 'unchanged' },
+      ])
+    })
+  })
+
+  describe('output', () => {
+    let savedLevel
+    beforeEach(() => {
+      savedLevel = chalk.level
+      chalk.level = 0
+      resetAgentDetectionForTests()
+    })
+    afterEach(() => {
+      chalk.level = savedLevel
+      jest.restoreAllMocks()
+    })
+
+    const run = async ({
+      json = false,
+      webAppCodeChanges,
+      codeChanges = [],
+    }) => {
+      const chunks = []
+      jest.spyOn(process.stdout, 'write').mockImplementation((chunk) => {
+        chunks.push(String(chunk))
+        return true
+      })
+      const notice = jest.fn()
+      try {
+        await runDiffMixin.runDiff.call({
+          options: { json },
+          progress: { remove: jest.fn() },
+          log: { notice },
+          _loadLocalTemplate: async () => ({ Resources: {} }),
+          _fetchDeployedTemplate: async () => ({ Resources: {} }),
+          _detectCodeChanges: async () => codeChanges,
+          _detectWebAppCodeChanges: () => webAppCodeChanges,
+          _renderCodeChangeSummary: runDiffMixin._renderCodeChangeSummary,
+        })
+      } finally {
+        jest.restoreAllMocks()
+      }
+      return {
+        stdout: stripAnsi(chunks.join('')),
+        notices: notice.mock.calls.flat(),
+      }
+    }
+
+    const webAppCodeChanges = [
+      { name: 'api', status: 'changed' },
+      { name: 'site', status: 'unchanged' },
+      { name: 'admin', status: 'new' },
+    ]
+
+    it('lists new and changed web apps in a Web App Code section', async () => {
+      const { stdout } = await run({
+        webAppCodeChanges,
+        codeChanges: [{ funcName: 'hello', status: 'changed' }],
+      })
+
+      expect(stdout).toContain('Function Code\n[~] hello\n')
+      expect(stdout).toContain('Web App Code\n[+] admin\n[~] api\n')
+      expect(stdout).not.toContain('site')
+      expect(stdout.indexOf('Function Code')).toBeLessThan(
+        stdout.indexOf('Web App Code'),
+      )
+    })
+
+    it('says so when no web app code changed', async () => {
+      const { stdout, notices } = await run({
+        webAppCodeChanges: [{ name: 'site', status: 'unchanged' }],
+      })
+
+      expect(stdout).not.toContain('Web App Code')
+      expect(notices).toContain('No web app code changes')
+    })
+
+    it('prints nothing about web apps for a service without them', async () => {
+      const { stdout, notices } = await run({ webAppCodeChanges: null })
+
+      expect(stdout).not.toContain('Web App Code')
+      expect(notices.join('\n')).not.toContain('web app')
+    })
+
+    const jsonOf = (stdout) =>
+      JSON.parse(stdout.slice(stdout.indexOf('{'), stdout.lastIndexOf('}') + 1))
+
+    it('reports web apps under code.webApps in --json', async () => {
+      const { stdout } = await run({
+        json: true,
+        webAppCodeChanges,
+        codeChanges: [{ funcName: 'hello', status: 'new' }],
+      })
+
+      expect(jsonOf(stdout).code).toEqual({
+        changed: [],
+        new: ['hello'],
+        webApps: { changed: ['api'], new: ['admin'] },
+      })
+    })
+
+    it('leaves code.webApps out of --json for a service without web apps', async () => {
+      const { stdout } = await run({ json: true, webAppCodeChanges: null })
+
+      expect(jsonOf(stdout).code).toEqual({ changed: [], new: [] })
+    })
   })
 })

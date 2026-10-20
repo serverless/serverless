@@ -40,8 +40,9 @@ const logger = log.get('sls:plugins:agent:inspect')
 
 // The category flags (axis 1). Derived from the registry so it can't drift out
 // of sync with what select/discover know about; `all` is the meta-flag. Every
-// spec-surface category (observability, cdn, identity, iot, sandboxes) now has
-// registry entries, so this Set already contains them -- no manual append.
+// spec-surface category (observability, cdn, identity, iot, sandboxes,
+// web-apps) now has registry entries, so this Set already contains them -- no
+// manual append.
 const CATEGORY_FLAGS = [
   ...new Set(REGISTRY_ENTRIES.map((entry) => entry.category)),
 ]
@@ -53,7 +54,7 @@ const CATEGORY_ORDER = [...CATEGORY_FLAGS, 'other']
 
 // The exact expansion guidance from the spec's index example.
 const INDEX_HINT =
-  'Expand with category flags (--functions, --api, --events, --iam, --storage, --observability, --cdn, --identity, --iot, --sandboxes), --aws-services <names>, or --all. Add --name <logicalId> to scope to one resource.'
+  'Expand with category flags (--functions, --api, --events, --iam, --storage, --observability, --cdn, --identity, --iot, --sandboxes, --web-apps), --aws-services <names>, or --all. Add --name <logicalId> to scope to one resource.'
 
 function buildCommandOptions() {
   const options = {}
@@ -120,7 +121,10 @@ class AgentInspect {
   selectionOptions() {
     const raw = this.options
     const normalized = {}
-    for (const flag of CATEGORY_FLAGS) normalized[flag] = Boolean(raw[flag])
+    for (const flag of CATEGORY_FLAGS) {
+      const camelCased = flag.replace(/-([a-z])/g, (_, c) => c.toUpperCase())
+      normalized[flag] = Boolean(raw[flag] || raw[camelCased])
+    }
     normalized.all = Boolean(raw.all)
     normalized.awsServices = raw.awsServices || raw['aws-services']
     normalized.name = raw.name
@@ -158,6 +162,7 @@ class AgentInspect {
         throw new ServerlessError(
           `Unknown --format value "${format}". Valid values: json, yaml.`,
           'AGENT_INSPECT_UNKNOWN_FORMAT',
+          { stack: false },
         )
       }
 
@@ -168,6 +173,7 @@ class AgentInspect {
         throw new ServerlessError(
           `"serverless agent inspect" requires the "aws" provider (found "${this.serverless.service.provider.name}").`,
           'AGENT_INSPECT_UNSUPPORTED_PROVIDER',
+          { stack: false },
         )
       }
 

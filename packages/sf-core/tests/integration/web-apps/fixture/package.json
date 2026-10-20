@@ -1,0 +1,8 @@
+{
+  "name": "sfc-web-apps",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

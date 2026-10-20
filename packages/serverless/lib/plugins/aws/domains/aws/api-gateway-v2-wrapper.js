@@ -90,9 +90,11 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
    * Get Custom Domain Info
    * @param {DomainConfig} domain
    * @param {boolean} silent To issue an error or not. Not by default.
+   * @param {{ logMissing?: boolean }} [options] logMissing: false skips the
+   *   line logged for a domain that does not exist
    * @returns {Promise<DomainInfo>}
    */
-  async getCustomDomain(domain, silent = true) {
+  async getCustomDomain(domain, silent = true, { logMissing = true } = {}) {
     // Make API call
     try {
       const domainInfo = await this.apiGateway.send(
@@ -110,7 +112,9 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
           { originalMessage: err.message },
         )
       }
-      Logging.logInfo(`V2 - '${domain.givenDomainName}' does not exist.`)
+      if (logMissing) {
+        Logging.logInfo(`V2 - '${domain.givenDomainName}' does not exist.`)
+      }
     }
   }
 

@@ -96,7 +96,7 @@ A trimmed example of the bare-command envelope:
   "region": "us-east-1",
   "stackName": "orders-api-dev",
   "mode": "index",
-  "hint": "Expand with category flags (--functions, --api, --events, --iam, --storage, --observability, --cdn, --identity, --iot, --sandboxes), --aws-services <names>, or --all. Add --name <logicalId> to scope to one resource.",
+  "hint": "Expand with category flags (--functions, --api, --events, --iam, --storage, --observability, --cdn, --identity, --iot, --sandboxes, --web-apps), --aws-services <names>, or --all. Add --name <logicalId> to scope to one resource.",
   "resources": {
     "functions": [
       {
@@ -130,8 +130,9 @@ and status.
 ## Options
 
 - `--functions`, `--api`, `--events`, `--iam`, `--storage`,
-  `--observability`, `--cdn`, `--identity`, `--iot`, `--sandboxes` Expand a
-  resource category (combinable; see the Selection model section below).
+  `--observability`, `--cdn`, `--identity`, `--iot`, `--sandboxes`,
+  `--web-apps` Expand a resource category (combinable; see the Selection model
+  section below).
 - `--all` Expand every category.
 - `--aws-services` Comma-separated AWS service names to expand (see the
   Selection model section below).
@@ -166,6 +167,7 @@ Coarse, framework-shaped groupings. Combine as many as you like.
 | `--identity`      | Cognito user pools (+ clients)                                                                 |
 | `--iot`           | IoT topic rules + provisioning templates                                                       |
 | `--sandboxes`     | Lambda MicroVM images (Sandboxes); network connectors appear in the index only                 |
+| `--web-apps`      | Lambda Web Functions (web apps): each function, its current revision and its endpoint          |
 | `--all`           | Every category above                                                                           |
 
 A resource's supporting infrastructure is categorized by its own type, not
@@ -184,7 +186,8 @@ serverless agent inspect --aws-services lambda,iam,s3
 Supported tokens: `lambda`, `iam`, `apigateway`, `apigatewayv2`, `sns`,
 `eventbridge` (alias `events`), `scheduler`, `s3`, `dynamodb`, `sqs`, `logs`,
 `elbv2` (alias `alb`), `cloudfront`, `cognito-idp` (alias `cognito`), `iot`,
-`kinesis`, `cloudwatch`, `lambda-microvms` (aliases `microvms`/`sandboxes`).
+`kinesis`, `cloudwatch`, `lambda-microvms` (aliases `microvms`/`sandboxes`),
+`lambda-web`.
 
 An unknown token produces a structured error listing the supported service
 names — it never silently ignores a typo. Whitespace and trailing commas
@@ -279,6 +282,9 @@ the command actually calls.
         "lambda:GetLayerVersionPolicy",
         "lambda:GetMicrovmImage",
         "lambda:GetPolicy",
+        "lambda:GetWebFunction",
+        "lambda:GetWebFunctionEndpoint",
+        "lambda:GetWebFunctionRevision",
         "lambda:ListAliases",
         "lambda:ListEventSourceMappings",
         "lambda:ListVersionsByFunction"
@@ -436,6 +442,9 @@ Notes on this policy:
 - `sts:GetCallerIdentity` and `cloudformation:ListStackResources` are
   included because credential resolution and stack discovery run
   unconditionally, before any category or service is selected.
+- `lambda:GetWebFunction`, `lambda:GetWebFunctionRevision` and
+  `lambda:GetWebFunctionEndpoint` describe web apps (Lambda Web Functions,
+  their revisions and their endpoints).
 - `lambda:GetMicrovmImage` describes Sandboxes MicroVM images
   (`AWS::Lambda::MicrovmImage`). Network connectors have no describe
   operation, so no action is needed for them — see Notes and limitations

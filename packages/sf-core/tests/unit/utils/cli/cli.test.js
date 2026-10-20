@@ -209,6 +209,40 @@ describe('CLI Utils', () => {
       expect(result.options.env).toBe('FOO=bar')
     })
 
+    it('should make invoke --header an array, also from a Compose service', () => {
+      expect(
+        extractCommandsAndOptions({
+          _: ['invoke'],
+          $0: 'serverless',
+          header: 'Content-Type: application/json',
+        }).options.header,
+      ).toEqual(['Content-Type: application/json'])
+      expect(
+        extractCommandsAndOptions({
+          _: ['invoke'],
+          $0: 'serverless',
+          header: ['A: 1', 'B: 2'],
+        }).options.header,
+      ).toEqual(['A: 1', 'B: 2'])
+      // Compose normalizes again once the service name is removed
+      const options = { header: 'A: 1' }
+      normalizeRepeatableOptions(['invoke'], options)
+      normalizeRepeatableOptions(['invoke'], options)
+      expect(options).toEqual({ header: ['A: 1'] })
+    })
+
+    it('should not normalize header for other commands', () => {
+      for (const words of [['invoke', 'local'], ['deploy']]) {
+        expect(
+          extractCommandsAndOptions({
+            _: words,
+            $0: 'serverless',
+            header: 'A: 1',
+          }).options.header,
+        ).toBe('A: 1')
+      }
+    })
+
     it('should keep env as array if already an array', () => {
       const argv = {
         _: ['invoke', 'local'],

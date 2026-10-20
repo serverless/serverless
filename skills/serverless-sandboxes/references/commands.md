@@ -62,8 +62,12 @@ until it reports `RUNNING` (failing fast on a terminal state, with the
 platform's `stateReason`), sends the one HTTP request, and terminates the
 instance afterward — it is not a way to reach a long-lived, already-running
 instance. Use `--method` (default `GET`) and `--path` (default `/`) to
-shape the request; pass `--data` for a body on non-`GET` methods. `--port`
-selects which container port to call (default `8080`).
+shape the request; pass `--data` for a body on non-`GET` methods, and
+`--header 'Name: value'` (repeatable) for request headers, for example
+`--method POST --header 'Content-Type: application/json' --data '{"a":1}'`.
+`Host`, `X-Aws-Proxy-Auth` and `X-Aws-Proxy-Port` are set by the Framework and
+can't be overridden. `--port` selects which container port to call (default
+`8080`).
 
 The Framework launches this one-shot instance with an injected idle policy
 (`maxIdleDurationSeconds: 60`, `suspendedDurationSeconds: 0`,

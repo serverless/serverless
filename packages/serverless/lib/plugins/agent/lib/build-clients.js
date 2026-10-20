@@ -101,6 +101,7 @@ import { AwsKinesisClient } from '@serverless/engine/src/lib/aws/kinesis.js'
 import { AwsCloudWatchClient } from '@serverless/engine/src/lib/aws/cloudwatch.js'
 import { AwsCloudFrontClient } from '@serverless/engine/src/lib/aws/cloudfront.js'
 import { AwsLambdaMicrovmsClient } from '@serverless/engine/src/lib/aws/lambda-microvms.js'
+import { AwsLambdaWebClient } from '@serverless/engine/src/lib/aws/lambda-web.js'
 
 import * as LambdaSdk from '@aws-sdk/client-lambda'
 import * as IamSdk from '@aws-sdk/client-iam'
@@ -120,6 +121,7 @@ import * as CloudWatchLogsSdk from '@aws-sdk/client-cloudwatch-logs'
 import * as CloudWatchSdk from '@aws-sdk/client-cloudwatch'
 import * as CloudFrontSdk from '@aws-sdk/client-cloudfront'
 import * as LambdaMicrovmsSdk from '@aws-sdk/client-lambda-microvms'
+import * as LambdaWebSdk from '@aws-sdk/client-lambda-web'
 
 // awsService token -> { EngineClientClass, sdkModule, clientProp }. Adding a
 // new service is one entry here -- no other change to this file's logic is
@@ -214,6 +216,11 @@ const SERVICE_MAP = {
   'lambda-microvms': {
     EngineClientClass: AwsLambdaMicrovmsClient,
     sdkModule: LambdaMicrovmsSdk,
+    clientProp: 'client',
+  },
+  'lambda-web': {
+    EngineClientClass: AwsLambdaWebClient,
+    sdkModule: LambdaWebSdk,
     clientProp: 'client',
   },
   // Observability: both tokens reuse AwsCloudWatchClient's two sub-clients

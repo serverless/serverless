@@ -1,0 +1,37 @@
+service: sfc-web-apps-vpc
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  # The suite resolves the default VPC's subnets and security group at run time.
+  # The web apps without their own vpc inherit this and share one network
+  # connector.
+  vpc:
+    subnetIds:
+      - ${env:WEB_APPS_TEST_SUBNET_A}
+      - ${env:WEB_APPS_TEST_SUBNET_B}
+    securityGroupIds:
+      - ${env:WEB_APPS_TEST_SECURITY_GROUP}
+  environment:
+    VPC_RESOLVER: ${env:WEB_APPS_TEST_VPC_RESOLVER}
+
+webApps:
+  one:
+    entry: src/server.js
+    environment:
+      APP_NAME: one
+  two:
+    entry: src/server.js
+    environment:
+      APP_NAME: two
+  # Its own vpc: its own network connector
+  own:
+    entry: src/server.js
+    environment:
+      APP_NAME: own
+    vpc:
+      subnetIds:
+        - ${env:WEB_APPS_TEST_SUBNET_A}
+        - ${env:WEB_APPS_TEST_SUBNET_B}
+      securityGroupIds:
+        - ${env:WEB_APPS_TEST_SECURITY_GROUP}

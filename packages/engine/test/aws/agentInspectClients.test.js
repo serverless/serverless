@@ -43,6 +43,9 @@ jest.unstable_mockModule('@aws-sdk/client-kinesis', () => ({
 jest.unstable_mockModule('@aws-sdk/client-lambda-microvms', () => ({
   LambdaMicrovmsClient: mockSdkClient('lambda-microvms'),
 }))
+jest.unstable_mockModule('@aws-sdk/client-lambda-web', () => ({
+  LambdaWebClient: mockSdkClient('lambda-web'),
+}))
 
 const { addProxyToAwsClient } = await import('@serverless/util')
 const { ConfiguredRetryStrategy } = await import('@smithy/util-retry')
@@ -53,6 +56,7 @@ const { AwsIotClient } = await import('../../src/lib/aws/iot.js')
 const { AwsKinesisClient } = await import('../../src/lib/aws/kinesis.js')
 const { AwsLambdaMicrovmsClient } =
   await import('../../src/lib/aws/lambda-microvms.js')
+const { AwsLambdaWebClient } = await import('../../src/lib/aws/lambda-web.js')
 
 const cases = [
   { name: 'AwsSnsClient', Ctor: AwsSnsClient, sdk: 'sns' },
@@ -65,6 +69,7 @@ const cases = [
     Ctor: AwsLambdaMicrovmsClient,
     sdk: 'lambda-microvms',
   },
+  { name: 'AwsLambdaWebClient', Ctor: AwsLambdaWebClient, sdk: 'lambda-web' },
 ]
 
 describe('agent-inspect engine clients', () => {

@@ -2271,6 +2271,58 @@ describe('AwsCompileFunctions', () => {
       expect(dependsOn).toEqual(['FuncLogGroup'])
     })
 
+    it('applies provider.logs.lambda levels in any case, upper-cased, and lets the function override one', async () => {
+      awsCompileFunctions.serverless.service.provider.logs = {
+        lambda: {
+          logFormat: 'JSON',
+          applicationLogLevel: 'warn',
+          systemLogLevel: 'Info',
+        },
+      }
+      awsCompileFunctions.serverless.service.functions = {
+        func: { handler: 'handler', name: 'func' },
+        other: {
+          handler: 'handler',
+          name: 'other',
+          logs: { applicationLogLevel: 'debug' },
+        },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      expect(resources.FuncLambdaFunction.Properties.LoggingConfig).toEqual({
+        LogFormat: 'JSON',
+        ApplicationLogLevel: 'WARN',
+        SystemLogLevel: 'INFO',
+      })
+      expect(resources.OtherLambdaFunction.Properties.LoggingConfig).toEqual({
+        LogFormat: 'JSON',
+        ApplicationLogLevel: 'DEBUG',
+        SystemLogLevel: 'INFO',
+      })
+    })
+
+    it('leaves the levels out when the log format is not JSON', async () => {
+      awsCompileFunctions.serverless.service.provider.logs = {
+        lambda: { applicationLogLevel: 'WARN', systemLogLevel: 'INFO' },
+      }
+      awsCompileFunctions.serverless.service.functions = {
+        func: { handler: 'handler', name: 'func' },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      expect(
+        resources.FuncLambdaFunction.Properties.LoggingConfig,
+      ).toBeUndefined()
+    })
+
     it('emits Properties.LoggingConfig.LogFormat for a function with logs.logFormat: JSON and leaves LogGroup unset', async () => {
       awsCompileFunctions.serverless.service.functions = {
         func: {

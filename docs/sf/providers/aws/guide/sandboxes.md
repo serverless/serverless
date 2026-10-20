@@ -474,7 +474,7 @@ The MicroVM image is always built on `ARM_64` architecture. The base image is re
 ## Invoking a Sandbox
 
 ```bash
-serverless invoke --sandbox <name> [--path <path>] [--method <method>] [--data '<body>'] [--port <port>]
+serverless invoke --sandbox <name> [--path <path>] [--method <method>] [--header 'Name: value'] [--data '<body>'] [--port <port>]
 ```
 
 `--sandbox <name>` is required and identifies which sandbox to invoke (analogous to `--function` for Lambda invocations). The framework:
@@ -490,13 +490,18 @@ The CLI launches this one-shot instance with an injected idle policy (`maxIdleDu
 
 ### Options
 
-| Flag                | Default          | Description                                 |
-| ------------------- | ---------------- | ------------------------------------------- |
-| `--sandbox <name>`  | — **(required)** | Sandbox name as defined in `serverless.yml` |
-| `--path <path>`     | `/`              | HTTP request path                           |
-| `--method <method>` | `GET`            | HTTP method                                 |
-| `--data '<body>'`   | —                | Request body (non-GET requests)             |
-| `--port <port>`     | `8080`           | Container port to send the request to       |
+| Flag                     | Default          | Description                                 |
+| ------------------------ | ---------------- | ------------------------------------------- |
+| `--sandbox <name>`       | — **(required)** | Sandbox name as defined in `serverless.yml` |
+| `--path <path>`          | `/`              | HTTP request path                           |
+| `--method <method>`      | `GET`            | HTTP method                                 |
+| `--header 'Name: value'` | —                | A request header (repeat for more headers)  |
+| `--data '<body>'`        | —                | Request body (non-GET requests)             |
+| `--port <port>`          | `8080`           | Container port to send the request to       |
+
+`--header` values must be printable ASCII, and `--header` cannot set `Host`, `X-Aws-Proxy-Auth` or `X-Aws-Proxy-Port`, which the Framework sets to reach the sandbox through the AWS proxy.
+
+The options for invoking a function or an agent, such as `--qualifier`, `--raw`, `--session-id` or `--log`, stop the command with an error, for example `✖ --qualifier is not available with --sandbox.`
 
 ### Examples
 
@@ -508,7 +513,7 @@ serverless invoke --sandbox echo
 serverless invoke --sandbox echo --path /health
 
 # POST with a JSON body
-serverless invoke --sandbox echo --path /api/items --method POST --data '{"name":"widget"}'
+serverless invoke --sandbox echo --path /api/items --method POST --header 'Content-Type: application/json' --data '{"name":"widget"}'
 
 # Non-default container port
 serverless invoke --sandbox echo --path /metrics --port 9090

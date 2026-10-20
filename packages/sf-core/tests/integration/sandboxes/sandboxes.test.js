@@ -141,9 +141,42 @@ describe('Serverless Framework Service - Sandboxes', () => {
     }
   })
 
-  afterAll(() => {
+  // Whether the stack exists and is not deleted.
+  const stackExists = async () => {
+    try {
+      const { Stacks } = await cfnClient.send(
+        new DescribeStacksCommand({ StackName: stackName }),
+      )
+      return Stacks?.[0]?.StackStatus !== 'DELETE_COMPLETE'
+    } catch (error) {
+      if (/does not exist/.test(error?.message ?? '')) return false
+      throw error
+    }
+  }
+
+  afterAll(async () => {
+    // Safety net: remove the stack when a failed step left it standing, and
+    // fail the run when it cannot be removed, so a leak never passes as green.
+    jest.restoreAllMocks()
+    let failure
+    try {
+      if (await stackExists()) {
+        await runSfCore({
+          coreParams: {
+            options: { stage, c: configFilePath },
+            command: ['remove'],
+          },
+          jest,
+          expectError: true,
+        })
+        if (await stackExists()) throw new Error('the stack still exists')
+      }
+    } catch (error) {
+      failure = new Error(`Teardown of ${stackName} failed: ${error.message}`)
+    }
     process.env = originalEnv
-  })
+    if (failure) throw failure
+  }, 900000)
 
   afterEach(() => {
     jest.restoreAllMocks()
@@ -251,6 +284,31 @@ describe('Serverless Framework Service - Sandboxes', () => {
     )
     const g = logGroups.find((x) => x.logGroupName === groupName)
     expect(g?.retentionInDays).toBe(7)
+  })
+
+  // ── 3b. Kitchen sink ───────────────────────────────────────────────────────
+
+  test('Kitchen sink: the function and the web app run beside the sandbox', async () => {
+    const { LambdaClient, GetFunctionCommand } =
+      await import('@aws-sdk/client-lambda')
+    const lambda = new LambdaClient({ region: REGION })
+    const { Configuration } = await lambda.send(
+      new GetFunctionCommand({ FunctionName: `${SERVICE}-${stage}-hello` }),
+    )
+    expect(Configuration.State).toBe('Active')
+
+    const { Stacks } = await cfnClient.send(
+      new DescribeStacksCommand({ StackName: stackName }),
+    )
+    const siteUrl = Stacks[0].Outputs?.find(
+      (o) => o.OutputKey === 'SiteWebFunctionUrl',
+    )?.OutputValue
+    expect(siteUrl).toMatch(/^https:\/\//)
+    const response = await fetchWithRetry(siteUrl, {}, { maxAttempts: 6 })
+    expect(await response.json()).toEqual({
+      app: 'site',
+      FROM_PROVIDER: 'inherited',
+    })
   })
 
   // ── 4. Invoke ──────────────────────────────────────────────────────────────
@@ -502,12 +560,22 @@ describe('Serverless Framework Service - Sandboxes', () => {
     } catch (err) {
       // DescribeStacks throws ValidationError when the stack doesn't exist at all — that's fine
       if (
-        err.name === 'ValidationError' &&
-        err.message?.includes('does not exist')
+        err.name !== 'ValidationError' ||
+        !err.message?.includes('does not exist')
       ) {
-        return
+        throw err
       }
-      throw err
     }
+
+    // The web app's log groups go with the stack.
+    const { CloudWatchLogsClient, DescribeLogGroupsCommand } =
+      await import('@aws-sdk/client-cloudwatch-logs')
+    const logs = new CloudWatchLogsClient({ region: REGION })
+    const { logGroups } = await logs.send(
+      new DescribeLogGroupsCommand({
+        logGroupNamePrefix: `/aws/lambda/web/${SERVICE}-${stage}-`,
+      }),
+    )
+    expect(logGroups.map((group) => group.logGroupName)).toEqual([])
   })
 })

@@ -1,7 +1,7 @@
 'use strict'
 
 import ServerlessError from '../../../../serverless-error.js'
-import { getLogicalId } from '../utils/naming.js'
+import { getLogicalId } from '../../lib/resource-naming.js'
 
 const TERMINAL_FAIL = new Set(['FAILED', 'TERMINATED', 'TERMINATING'])
 
@@ -64,12 +64,14 @@ export async function waitUntilRunning(
           r.stateReason ? `: ${r.stateReason}` : ''
         }`,
         'SANDBOX_RUN_FAILED',
+        { stack: false },
       )
     }
     if (Date.now() > deadline) {
       throw new ServerlessError(
         `MicroVM ${microvmId} did not reach RUNNING within ${timeoutMs}ms`,
         'SANDBOX_RUN_TIMEOUT',
+        { stack: false },
       )
     }
     await sleep(intervalMs)
@@ -121,6 +123,7 @@ export async function resolveSandboxOutputs(provider, sandboxName) {
     throw new ServerlessError(
       `Stack '${stackName}' not found. Deploy the service first.`,
       'SANDBOX_STACK_NOT_FOUND',
+      { stack: false },
     )
   }
   const imageLogicalId = getLogicalId(sandboxName, 'Image')
@@ -136,6 +139,7 @@ export async function resolveSandboxOutputs(provider, sandboxName) {
       `Sandbox '${sandboxName}' outputs not found in stack '${stackName}'. ` +
         `Make sure the sandbox is deployed.`,
       'SANDBOX_OUTPUTS_NOT_FOUND',
+      { stack: false },
     )
   }
   return {

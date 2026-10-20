@@ -34,11 +34,21 @@ class ACMWrapper {
   }
 
   async getCertArn(domain) {
+    return (await this.getCertificate(domain)).arn
+  }
+
+  /**
+   * The certificate `getCertArn` selects, with its status.
+   * @param {object} domain
+   * @returns {Promise<{ arn: string, status: string }>}
+   */
+  async getCertificate(domain) {
+    let certificates
     let certificateArn // The arn of the selected certificate
     let certificateName = domain.certificateName // The certificate name
 
     try {
-      const certificates = await getAWSPagedResults(
+      certificates = await getAWSPagedResults(
         this.acm,
         'CertificateSummaryList',
         'NextToken',
@@ -81,7 +91,10 @@ class ACMWrapper {
         ServerlessErrorCodes.domains.ACM_CERTIFICATE_NOT_FOUND,
       )
     }
-    return certificateArn
+    const { Status } = certificates.find(
+      (c) => c.CertificateArn === certificateArn,
+    )
+    return { arn: certificateArn, status: Status }
   }
 
   getCertArnByCertName(certificates, certName) {

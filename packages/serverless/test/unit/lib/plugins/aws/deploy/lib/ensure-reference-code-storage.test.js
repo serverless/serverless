@@ -13,6 +13,7 @@ const buildCtx = ({
   referenceMode = true,
   customBucketName = undefined,
   globalBucketUsed = false,
+  webApps,
   requestImpl,
 } = {}) => ({
   ...mixin,
@@ -26,6 +27,7 @@ const buildCtx = ({
   },
   serverless: {
     service: { provider: { deploymentBucket: customBucketName } },
+    configurationInput: { webApps },
   },
 })
 
@@ -247,5 +249,184 @@ describe('ensureReferenceCodeStoragePrereqs', () => {
     await expect(
       ctx.ensureReferenceCodeStoragePrereqs(),
     ).resolves.toBeUndefined()
+  })
+})
+
+describe('ensureReferenceCodeStoragePrereqs with web apps', () => {
+  const webApps = { api: { entry: 'src/server.js' } }
+  const noSuchBucketPolicy = () =>
+    Object.assign(new Error('The bucket policy does not exist'), {
+      code: 'AWS_S3_GET_BUCKET_POLICY_NO_SUCH_BUCKET_POLICY',
+      providerError: { code: 'NoSuchBucketPolicy' },
+    })
+
+  beforeEach(() => log.warning.mockClear())
+
+  it('adds the policy statement to the global bucket without codeStorageMode', async () => {
+    const request = jest.fn(async (service, method) => {
+      if (method === 'getBucketPolicy') throw noSuchBucketPolicy()
+      return {}
+    })
+    const ctx = buildCtx({
+      referenceMode: false,
+      globalBucketUsed: true,
+      webApps,
+      requestImpl: request,
+    })
+    await ctx.ensureReferenceCodeStoragePrereqs()
+    const putCall = request.mock.calls.find(([, m]) => m === 'putBucketPolicy')
+    expect(
+      JSON.parse(putCall[2].Policy).Statement.map(({ Sid }) => Sid),
+    ).toEqual(['ServerlessLambdaSelfManagedCodeAccess'])
+  })
+
+  it('does nothing for the legacy in-stack bucket', async () => {
+    const request = jest.fn()
+    const ctx = buildCtx({
+      referenceMode: false,
+      webApps,
+      requestImpl: request,
+    })
+    await ctx.ensureReferenceCodeStoragePrereqs()
+    expect(request).not.toHaveBeenCalled()
+  })
+})
+
+describe('custom deployment bucket messages', () => {
+  const webApps = { api: { entry: 'src/server.js' } }
+  const statement = JSON.stringify(
+    {
+      Sid: 'ServerlessLambdaSelfManagedCodeAccess',
+      Effect: 'Allow',
+      Principal: { Service: 'lambda.amazonaws.com' },
+      Action: ['s3:GetObject', 's3:GetObjectVersion'],
+      Resource: 'arn:aws:s3:::my-bucket/*',
+      Condition: { StringEquals: { 'aws:SourceAccount': '111122223333' } },
+    },
+    null,
+    2,
+  )
+  const referenceText = {
+    notVersioned:
+      'Deployment bucket "my-bucket" must have versioning enabled to use "codeStorageMode: reference". ' +
+      'Enable versioning on the bucket, or remove the codeStorageMode setting.',
+    policyMissing:
+      'Deployment bucket "my-bucket" has no bucket policy. "codeStorageMode: reference" requires ' +
+      'the Lambda service to be able to read artifacts directly from this bucket. Add a bucket policy ' +
+      `statement granting it read access, for example:\n${statement}`,
+    grantMissing:
+      'Deployment bucket "my-bucket" policy does not appear to grant the Lambda service read access, ' +
+      `which "codeStorageMode: reference" requires. Add a statement like:\n${statement}`,
+  }
+  const webAppsText = {
+    notVersioned:
+      'Deployment bucket "my-bucket" must have versioning enabled for web apps (webApps). ' +
+      'Enable versioning on the bucket.',
+    policyMissing:
+      'Deployment bucket "my-bucket" has no bucket policy. Web apps (webApps) need the Lambda service ' +
+      'to read their code from this bucket. Add a bucket policy statement granting it read access, ' +
+      `for example:\n${statement}`,
+    grantMissing:
+      'Deployment bucket "my-bucket" policy does not appear to grant the Lambda service read access, ' +
+      `which web apps (webApps) need. Add a statement like:\n${statement}`,
+  }
+  const noSuchBucketPolicy = () =>
+    Object.assign(new Error('The bucket policy does not exist'), {
+      code: 'AWS_S3_GET_BUCKET_POLICY_NO_SUCH_BUCKET_POLICY',
+      providerError: { code: 'NoSuchBucketPolicy' },
+    })
+  const requests = {
+    notVersioned: async () => ({}),
+    policyMissing: async (service, method) => {
+      if (method === 'getBucketVersioning') return { Status: 'Enabled' }
+      if (method === 'getBucketPolicy') throw noSuchBucketPolicy()
+      return {}
+    },
+    grantMissing: async (service, method) => {
+      if (method === 'getBucketVersioning') return { Status: 'Enabled' }
+      if (method === 'getBucketPolicy')
+        return {
+          Policy: JSON.stringify({ Version: '2012-10-17', Statement: [] }),
+        }
+      return {}
+    },
+  }
+
+  beforeEach(() => log.warning.mockClear())
+
+  describe.each([
+    ['reference mode only', { referenceMode: true }, referenceText],
+    ['web apps only', { referenceMode: false, webApps }, webAppsText],
+    [
+      'reference mode with web apps',
+      { referenceMode: true, webApps },
+      referenceText,
+    ],
+  ])('%s', (name, options, expected) => {
+    const ctxFor = (site) =>
+      buildCtx({
+        ...options,
+        customBucketName: 'my-bucket',
+        requestImpl: jest.fn(requests[site]),
+      })
+
+    it('fails on an unversioned bucket', async () => {
+      const error = await ctxFor('notVersioned')
+        .ensureReferenceCodeStoragePrereqs()
+        .catch((caught) => caught)
+      expect(error.code).toBe('REFERENCE_MODE_BUCKET_NOT_VERSIONED')
+      expect(error.stack).toBeUndefined()
+      expect(error.message).toBe(expected.notVersioned)
+    })
+
+    it('fails on a bucket without a policy', async () => {
+      const error = await ctxFor('policyMissing')
+        .ensureReferenceCodeStoragePrereqs()
+        .catch((caught) => caught)
+      expect(error.code).toBe('REFERENCE_MODE_BUCKET_POLICY_MISSING')
+      expect(error.stack).toBeUndefined()
+      expect(error.message).toBe(expected.policyMissing)
+    })
+
+    it('warns when the policy lacks the Lambda grant', async () => {
+      await ctxFor('grantMissing').ensureReferenceCodeStoragePrereqs()
+      expect(log.warning).toHaveBeenCalledTimes(1)
+      expect(log.warning.mock.calls[0][0]).toBe(expected.grantMissing)
+    })
+  })
+})
+
+describe('global deployment bucket grant line', () => {
+  const webApps = { api: { entry: 'src/server.js' } }
+  const bucket = 'serverless-framework-deployments-us-east-1-abc'
+  const referenceLine = `Granted the Lambda service read access to deployment bucket "${bucket}" (self-managed code storage)`
+  const webAppsLine = `Granted the Lambda service read access to deployment bucket "${bucket}" for web apps`
+
+  beforeEach(() => log.info.mockClear())
+
+  it.each([
+    ['reference mode only', { referenceMode: true }, referenceLine],
+    ['web apps only', { referenceMode: false, webApps }, webAppsLine],
+    [
+      'reference mode with web apps',
+      { referenceMode: true, webApps },
+      referenceLine,
+    ],
+  ])('%s', async (name, options, expected) => {
+    const request = jest.fn(async (service, method) => {
+      if (method === 'getBucketPolicy') {
+        throw Object.assign(new Error('The bucket policy does not exist'), {
+          code: 'AWS_S3_GET_BUCKET_POLICY_NO_SUCH_BUCKET_POLICY',
+          providerError: { code: 'NoSuchBucketPolicy' },
+        })
+      }
+      return {}
+    })
+    await buildCtx({
+      ...options,
+      globalBucketUsed: true,
+      requestImpl: request,
+    }).ensureReferenceCodeStoragePrereqs()
+    expect(log.info.mock.calls).toEqual([[expected]])
   })
 })

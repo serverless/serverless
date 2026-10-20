@@ -425,6 +425,10 @@ class CoreRunner extends Runner {
                     description: 'Expand sandboxes resources',
                     type: 'boolean',
                   },
+                  'web-apps': {
+                    description: 'Expand web-apps resources',
+                    type: 'boolean',
+                  },
                   all: {
                     description: 'Expand every category',
                     type: 'boolean',

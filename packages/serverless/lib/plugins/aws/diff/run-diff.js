@@ -9,6 +9,8 @@ import { shouldDisableColors } from '@serverless/util/src/agent/index.js'
 import normalizeFiles from '../lib/normalize-files.js'
 import { hashFile } from '../lib/hash-file.js'
 import { resolveFunctionArtifactPaths } from '../lib/get-function-artifact-paths.js'
+import { getWebAppsConfig, serviceHasWebApps } from '../lib/web-apps.js'
+import { getWebAppLogicalIds } from '../web-apps/compilers/function.js'
 import ServerlessError from '../../../serverless-error.js'
 
 const { diffTemplate, Formatter } = cfDiff
@@ -53,7 +55,8 @@ export default {
    *   1. Per-function code changes — computed by hashing local zips and
    *      comparing to each Lambda's CodeSha256 in AWS. This is the framework's
    *      own definition of "did code change" (see check-for-changes.js for
-   *      the analogous deploy-side check).
+   *      the analogous deploy-side check). Web apps are compared by their
+   *      revision's content-addressed S3 key in the two templates.
    *   2. Structured CloudFormation template diff — rendered after applying
    *      the same normalization the framework uses internally, so the diff
    *      output is free of S3Key timestamp churn and other artifact-routing
@@ -66,6 +69,10 @@ export default {
     ])
 
     const codeChanges = await this._detectCodeChanges(oldTemplate)
+    const webAppCodeChanges = this._detectWebAppCodeChanges(
+      oldTemplate,
+      newTemplate,
+    )
 
     const diff = diffTemplate(
       normalizeForDiff(oldTemplate),
@@ -82,12 +89,16 @@ export default {
 
     if (this.options.json) {
       writeText(
-        JSON.stringify(buildJsonReport(diff, summary, codeChanges), null, 2),
+        JSON.stringify(
+          buildJsonReport(diff, summary, codeChanges, webAppCodeChanges),
+          null,
+          2,
+        ),
       )
       return
     }
 
-    this._renderCodeChangeSummary(codeChanges)
+    this._renderCodeChangeSummary(codeChanges, webAppCodeChanges)
 
     if (diff.isEmpty) {
       this.log.notice('No infrastructure changes against the deployed stack')
@@ -279,6 +290,23 @@ export default {
   },
 
   /**
+   * Which web apps' code is new or changed, or `null` for a service without
+   * web apps (so its output stays as it was). See `detectWebAppCodeChanges`.
+   *
+   * @param {object} deployedTemplate
+   * @param {object} localTemplate
+   * @returns {Array<{ name: string, status: string }> | null}
+   */
+  _detectWebAppCodeChanges(deployedTemplate, localTemplate) {
+    if (!serviceHasWebApps(this.serverless)) return null
+    return detectWebAppCodeChanges({
+      webAppNames: Object.keys(getWebAppsConfig(this.serverless)),
+      deployedTemplate,
+      localTemplate,
+    })
+  },
+
+  /**
    * Look up the deployed Lambda's CodeSha256.
    *
    * Returns `null` when the function is absent at AWS — typically because the
@@ -325,53 +353,30 @@ export default {
   },
 
   /**
-   * Render the per-function code-change section above the structured template
-   * diff. Mirrors the section style used by `@aws-cdk/cloudformation-diff`
-   * (bold/underlined header + colored `[+]` / `[~]` / `[?]` markers) so the
-   * Code section reads as a peer of `Resources`, `Outputs`, etc.
+   * Render the code-change sections above the structured template diff:
+   * `Function Code`, then `Web App Code` for a service with web apps.
    *
-   * Silent when the service has no zip-backed functions to compare. Emits a
-   * one-line "No code changes" notice when functions exist but none changed.
+   * @param {Array<{ funcName: string, status: string }>} codeChanges
+   * @param {Array<{ name: string, status: string }> | null} [webAppCodeChanges]
    */
-  _renderCodeChangeSummary(codeChanges) {
-    if (!codeChanges.length) return
-
-    // Build entries with colored markers matching the diff library's palette:
-    // green for additions, yellow for modifications.
-    const entries = []
-    for (const c of codeChanges) {
-      // `image`, `disabled`, and `unchanged` are not signals worth surfacing.
-      if (
-        c.status === 'image' ||
-        c.status === 'disabled' ||
-        c.status === 'unchanged'
-      )
-        continue
-      if (c.status === 'new') {
-        entries.push({ order: 0, line: `${chalk.green('[+]')} ${c.funcName}` })
-      } else if (c.status === 'changed') {
-        entries.push({ order: 1, line: `${chalk.yellow('[~]')} ${c.funcName}` })
-      }
+  _renderCodeChangeSummary(codeChanges, webAppCodeChanges = null) {
+    renderCodeSection({
+      log: this.log,
+      title: 'Function Code',
+      noChangesNotice: 'No function code changes',
+      changes: codeChanges.map(({ funcName, status }) => ({
+        name: funcName,
+        status,
+      })),
+    })
+    if (webAppCodeChanges) {
+      renderCodeSection({
+        log: this.log,
+        title: 'Web App Code',
+        noChangesNotice: 'No web app code changes',
+        changes: webAppCodeChanges,
+      })
     }
-
-    if (!entries.length) {
-      this.log.notice('No function code changes')
-      return
-    }
-
-    // Sort additions first, then modifications — matches the ordering
-    // convention of the resource diff (creates before updates before removes)
-    // and keeps output stable across runs.
-    entries.sort((a, b) => a.order - b.order)
-
-    // Use the diff library's Formatter so the Code section header is styled
-    // identically to Resources / Outputs / IAM Statement Changes / etc.
-    const formatter = new Formatter(diffOutputStream(), {})
-    formatter.printSectionHeader('Function Code')
-    for (const entry of entries) {
-      formatter.print(entry.line)
-    }
-    formatter.printSectionFooter()
   },
 
   _resolvePackageDir() {
@@ -381,6 +386,90 @@ export default {
       path.join(this.serverless.serviceDir || '.', '.serverless')
     )
   },
+}
+
+/**
+ * Render one code-change section. Mirrors the section style used by
+ * `@aws-cdk/cloudformation-diff` (bold/underlined header + colored `[+]` /
+ * `[~]` markers) so the section reads as a peer of `Resources`, `Outputs`,
+ * etc.
+ *
+ * Silent when there is nothing to compare. Emits a one-line notice when
+ * entries exist but none is new or changed.
+ *
+ * @param {object} params
+ * @param {object} params.log
+ * @param {string} params.title - the section header
+ * @param {string} params.noChangesNotice
+ * @param {Array<{ name: string, status: string }>} params.changes
+ */
+function renderCodeSection({ log, title, noChangesNotice, changes }) {
+  if (!changes.length) return
+
+  // Build entries with colored markers matching the diff library's palette:
+  // green for additions, yellow for modifications. `image`, `disabled`, and
+  // `unchanged` are not signals worth surfacing.
+  const entries = []
+  for (const c of changes) {
+    if (c.status === 'new') {
+      entries.push({ order: 0, line: `${chalk.green('[+]')} ${c.name}` })
+    } else if (c.status === 'changed') {
+      entries.push({ order: 1, line: `${chalk.yellow('[~]')} ${c.name}` })
+    }
+  }
+
+  if (!entries.length) {
+    log.notice(noChangesNotice)
+    return
+  }
+
+  // Sort additions first, then modifications — matches the ordering
+  // convention of the resource diff (creates before updates before removes)
+  // and keeps output stable across runs.
+  entries.sort((a, b) => a.order - b.order)
+
+  // Use the diff library's Formatter so the section header is styled
+  // identically to Resources / Outputs / IAM Statement Changes / etc.
+  const formatter = new Formatter(diffOutputStream(), {})
+  formatter.printSectionHeader(title)
+  for (const entry of entries) {
+    formatter.print(entry.line)
+  }
+  formatter.printSectionFooter()
+}
+
+/**
+ * Which web apps' code is new or changed. A web app's zip is uploaded under a
+ * key that embeds the sha256 of its bytes, so the key its revision reads in
+ * the deployed template, against the local one, says whether the code
+ * changed. A web app whose revision is not in the deployed template is new.
+ *
+ * @param {object} params
+ * @param {string[]} params.webAppNames - the keys under `webApps`
+ * @param {object} params.deployedTemplate
+ * @param {object} params.localTemplate
+ * @returns {Array<{ name: string, status: 'new' | 'changed' | 'unchanged' }>}
+ */
+export function detectWebAppCodeChanges({
+  webAppNames,
+  deployedTemplate,
+  localTemplate,
+}) {
+  const codeKey = (template, logicalId) =>
+    template?.Resources?.[logicalId]?.Properties?.BuildConfig?.CodeConfig
+      ?.S3Object?.Key
+  return webAppNames.map((name) => {
+    const { revision } = getWebAppLogicalIds(name)
+    const deployedKey = codeKey(deployedTemplate, revision)
+    if (deployedKey === undefined) return { name, status: 'new' }
+    return {
+      name,
+      status:
+        deployedKey === codeKey(localTemplate, revision)
+          ? 'unchanged'
+          : 'changed',
+    }
+  })
 }
 
 /**
@@ -542,16 +631,24 @@ function summarizeChanges(diff) {
  * upstream diff types are class instances and don't serialize cleanly, so we
  * project only the fields a CI pipeline is likely to need.
  */
-function buildJsonReport(diff, summary, codeChanges) {
+function buildJsonReport(diff, summary, codeChanges, webAppCodeChanges) {
   // Only actionable signals are surfaced: which functions' code is new and
   // which has changed. Unchanged/image/disabled functions are derivable by
   // the consumer (anything in `getAllFunctions()` and not in either array),
-  // so they aren't repeated here.
-  const code = { changed: [], new: [] }
-  for (const c of codeChanges) {
-    if (c.status === 'changed' || c.status === 'new') {
-      code[c.status].push(c.funcName)
+  // so they aren't repeated here. Web apps get the same two arrays under
+  // `code.webApps`, present only for a service with web apps.
+  const listChanges = (changes, nameOf) => {
+    const lists = { changed: [], new: [] }
+    for (const c of changes) {
+      if (c.status === 'changed' || c.status === 'new') {
+        lists[c.status].push(nameOf(c))
+      }
     }
+    return lists
+  }
+  const code = listChanges(codeChanges, (c) => c.funcName)
+  if (webAppCodeChanges) {
+    code.webApps = listChanges(webAppCodeChanges, (c) => c.name)
   }
   return {
     code,

@@ -457,6 +457,7 @@ describe('select', () => {
       }
       expect(thrown).toBeInstanceOf(ServerlessError)
       expect(thrown.code).toBe('AGENT_INSPECT_AMBIGUOUS_NAME')
+      expect(thrown.stack).toBeUndefined()
       expect(thrown.message).toMatch(/HelloLambdaFunction/)
       expect(thrown.message).toContain('svc-dev/HelloLambdaFunction')
       expect(thrown.message).toContain(
@@ -584,5 +585,88 @@ describe('discover -> select: sandboxes MicrovmImage describable, NetworkConnect
         selected.find((r) => r.logicalId === 'MyNetworkConnector'),
       ).toBeUndefined()
     }
+  })
+})
+
+describe('discover -> select: web apps', () => {
+  const FUNCTION_ARN =
+    'arn:aws:lambda:us-east-1:123456789012:web-function/orders-api-dev-web'
+
+  async function discoverWithWebAppResources() {
+    const listStackResources = async () => ({
+      StackResourceSummaries: [
+        {
+          LogicalResourceId: 'WebWebFunction',
+          PhysicalResourceId: FUNCTION_ARN,
+          ResourceType: 'AWS::Lambda::WebFunction',
+          ResourceStatus: 'CREATE_COMPLETE',
+        },
+        {
+          LogicalResourceId: 'WebWebFunctionRevisionAbc123',
+          PhysicalResourceId: `${FUNCTION_ARN}/revision/r-1`,
+          ResourceType: 'AWS::Lambda::WebFunctionRevision',
+          ResourceStatus: 'CREATE_COMPLETE',
+        },
+        {
+          LogicalResourceId: 'WebWebFunctionEndpoint',
+          PhysicalResourceId: `${FUNCTION_ARN}/endpoint/live`,
+          ResourceType: 'AWS::Lambda::WebFunctionEndpoint',
+          ResourceStatus: 'CREATE_COMPLETE',
+        },
+        {
+          LogicalResourceId: 'CreateOrderLambdaFunction',
+          PhysicalResourceId: 'orders-api-dev-createOrder',
+          ResourceType: 'AWS::Lambda::Function',
+          ResourceStatus: 'CREATE_COMPLETE',
+        },
+      ],
+    })
+    return discoverResources({
+      listStackResources,
+      stackName: 'orders-api-dev',
+    })
+  }
+
+  const WEB_APP_IDS = [
+    'WebWebFunction',
+    'WebWebFunctionEndpoint',
+    'WebWebFunctionRevisionAbc123',
+  ]
+
+  test('the three web app types land in the index under web-apps', async () => {
+    const resources = await discoverWithWebAppResources()
+    for (const id of WEB_APP_IDS) {
+      const resource = resources.find((r) => r.logicalId === id)
+      expect(resource.category).toBe('web-apps')
+      expect(resource.awsService).toBe('lambda-web')
+    }
+  })
+
+  test("{ 'web-apps': true } selects the three web app resources only", async () => {
+    const resources = await discoverWithWebAppResources()
+    const { selected } = select({ resources, options: { 'web-apps': true } })
+    expect(selected.map((r) => r.logicalId).sort()).toEqual(WEB_APP_IDS)
+  })
+
+  test('--aws-services lambda-web selects the three web app resources', async () => {
+    const resources = await discoverWithWebAppResources()
+    const { selected } = select({
+      resources,
+      options: { awsServices: 'lambda-web' },
+    })
+    expect(selected.map((r) => r.logicalId).sort()).toEqual(WEB_APP_IDS)
+  })
+
+  test('--aws-services webapps is an unknown service token', async () => {
+    const resources = await discoverWithWebAppResources()
+    let thrown
+    try {
+      select({ resources, options: { awsServices: 'webapps' } })
+    } catch (err) {
+      thrown = err
+    }
+    expect(thrown).toBeInstanceOf(ServerlessError)
+    expect(thrown.message).toMatch(/webapps/)
+    expect(thrown.message).toContain('lambda-web')
   })
 })

@@ -1,0 +1,5 @@
+{
+  "name": "sfc-web-apps-vpc",
+  "private": true,
+  "type": "module"
+}

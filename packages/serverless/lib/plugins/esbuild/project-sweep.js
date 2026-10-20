@@ -112,6 +112,28 @@ export function nearestPackageJsonType(
   fileRelPath,
   cache = new Map(),
 ) {
+  return declaredPackageJsonType(serviceDir, fileRelPath, cache) === 'module'
+    ? 'module'
+    : 'commonjs'
+}
+
+/**
+ * The `type` the nearest package.json at or above a file declares, up to
+ * `serviceDir`: `'module'`, `'commonjs'`, or `undefined` when that
+ * package.json has no `type` or there is none. Node detects a `.js` file's
+ * module syntax only in the `undefined` case. A package.json that cannot be
+ * parsed counts as declaring CommonJS (see `nearestPackageJsonType`).
+ *
+ * @param {string} serviceDir absolute path to the service directory
+ * @param {string} fileRelPath service-relative POSIX path of the source file
+ * @param {Map<string, 'module'|'commonjs'|'none'>} [cache] per-directory memo
+ * @returns {'module'|'commonjs'|undefined}
+ */
+export function declaredPackageJsonType(
+  serviceDir,
+  fileRelPath,
+  cache = new Map(),
+) {
   const resolveDir = (dir) => {
     const cached = cache.get(dir)
     if (cached !== undefined) return cached
@@ -124,10 +146,13 @@ export function nearestPackageJsonType(
     )
     if (fs.existsSync(pkgPath)) {
       try {
+        const { type } = JSON.parse(fs.readFileSync(pkgPath, 'utf8'))
         result =
-          JSON.parse(fs.readFileSync(pkgPath, 'utf8')).type === 'module'
+          type === 'module'
             ? 'module'
-            : 'commonjs'
+            : type === undefined
+              ? 'none'
+              : 'commonjs'
       } catch {
         // A package.json the service cannot parse is the package manager's
         // problem to report, not a reason to abort the build here. Node itself
@@ -136,7 +161,7 @@ export function nearestPackageJsonType(
         result = 'commonjs'
       }
     } else if (dir === '.' || dir === '/' || dir === '') {
-      result = 'commonjs'
+      result = 'none'
     } else {
       result = resolveDir(path.posix.dirname(dir))
     }
@@ -145,7 +170,8 @@ export function nearestPackageJsonType(
     return result
   }
 
-  return resolveDir(path.posix.dirname(fileRelPath))
+  const declared = resolveDir(path.posix.dirname(fileRelPath))
+  return declared === 'none' ? undefined : declared
 }
 
 /**

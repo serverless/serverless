@@ -1,6 +1,7 @@
 import validate from '../lib/validate.js'
 import { log, progress, ServerlessError } from '@serverless/util'
 import { devModeRanIn } from './state/paths.js'
+import { serviceHasWebApps } from '../lib/web-apps.js'
 import {
   devModeCommandHooks,
   restoreFunctionBeforeDeployFunction,
@@ -448,12 +449,17 @@ class AwsDev {
     this.validateFunctionsModeOptions()
 
     if (this.shouldUseSandboxesDevMode()) {
+      this.noticeWebAppsNotRun()
       return await this.startSandboxesDevMode()
     }
 
     if (this.shouldUseAgentsDevMode()) {
+      this.noticeWebAppsNotRun()
       return await this.startAgentsDevMode()
     }
+
+    this.rejectWebAppsOnlyService()
+    this.noticeWebAppsNotRun()
 
     // --on-exit is checked with the other option combinations, in runDevCommand.
     this.validateJsonOption()
@@ -464,6 +470,29 @@ class AwsDev {
       logger,
     })
     if (exitCode !== 0) this.setExitCode(exitCode)
+  }
+
+  /**
+   * Dev Mode does not run web apps yet: a service with nothing else to run stops here, before
+   * functions mode would report it has no functions.
+   */
+  rejectWebAppsOnlyService() {
+    const hasFunctions =
+      Object.keys(this.serverless.service.functions || {}).length > 0
+    if (hasFunctions || !serviceHasWebApps(this.serverless)) return
+    throw new ServerlessError(
+      "serverless dev does not run web apps yet; support is planned. Start your web app's server locally to develop it.",
+      'WEB_APPS_DEV_NOT_SUPPORTED',
+      { stack: false },
+    )
+  }
+
+  /** One line saying the session leaves the service's web apps out. */
+  noticeWebAppsNotRun() {
+    if (!serviceHasWebApps(this.serverless)) return
+    logger.notice(
+      'Web apps are not part of serverless dev yet; start their servers locally.',
+    )
   }
 
   /**

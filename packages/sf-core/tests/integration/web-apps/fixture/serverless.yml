@@ -1,0 +1,20 @@
+service: sfc-web-apps
+frameworkVersion: '4'
+
+provider:
+  name: aws
+
+webApps:
+  # Express with no url key: a public endpoint
+  api:
+    entry: src/server.js
+  # Callers sign their requests (SigV4)
+  admin:
+    entry: src/admin.js
+    url:
+      authorizer: aws_iam
+  # A zip shipped as supplied, without the bootstrap; the suite writes it
+  prebuilt:
+    entry: server.mjs
+    package:
+      artifact: prebuilt/app.zip

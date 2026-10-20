@@ -22,6 +22,7 @@ function buildContext({
   service = 'my-service',
   stage = 'dev',
   functions = {},
+  webApps,
   providerOverrides = {},
 } = {}) {
   const compiledCloudFormationTemplate = {
@@ -40,6 +41,7 @@ function buildContext({
       service,
       provider,
       functions,
+      webApps,
       getAllFunctions: () => Object.keys(functions),
       getFunction: (name) => functions[name],
     },
@@ -647,6 +649,275 @@ describe('mergeIamTemplates - IAM role policy', () => {
       {
         'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/my-service-dev-quiet:*`,
       },
+    ])
+  })
+})
+
+describe('mergeIamTemplates - web apps', () => {
+  const webLogArns = (functionName, suffix) => [
+    {
+      'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/web/${functionName}${suffix}`,
+    },
+    {
+      'Fn::Sub': `arn:\${AWS::Partition}:logs:*:\${AWS::AccountId}:log-group:/aws/lambda/web/${functionName}.local${suffix}`,
+    },
+  ]
+  const vpcAccessPolicy = {
+    'Fn::Join': [
+      '',
+      [
+        'arn:',
+        { Ref: 'AWS::Partition' },
+        ':iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole',
+      ],
+    ],
+  }
+  const vpc = { securityGroupIds: ['sg-1'], subnetIds: ['subnet-1'] }
+
+  function getRoleStatements(resources) {
+    return resources.IamRoleLambdaExecution.Properties.Policies[0]
+      .PolicyDocument.Statement
+  }
+
+  test('creates the shared role for a service with web apps and no functions', () => {
+    const { ctx, resources } = buildContext({
+      webApps: { api: { entry: 'src/server.ts' } },
+    })
+
+    runMerge(ctx)
+
+    expect(resources.IamRoleLambdaExecution).toBeDefined()
+    const statements = getRoleStatements(resources)
+    expect(statements[0].Resource).toEqual(
+      webLogArns('my-service-dev-api', ':*'),
+    )
+    expect(statements[1].Resource).toEqual(
+      webLogArns('my-service-dev-api', ':*:*'),
+    )
+  })
+
+  test('grants the log groups of a web app with a custom name', () => {
+    const { ctx, resources } = buildContext({
+      functions: { hello: { name: 'my-service-dev-hello', handler: 'h.h' } },
+      webApps: { api: { entry: 'src/server.ts', name: 'storefront' } },
+    })
+
+    runMerge(ctx)
+
+    const statements = getRoleStatements(resources)
+    expect(statements[0].Resource).toEqual([
+      ...webLogArns('storefront', ':*'),
+      {
+        'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/my-service-dev*:*`,
+      },
+    ])
+    expect(statements[1].Resource).toEqual([
+      ...webLogArns('storefront', ':*:*'),
+      {
+        'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/my-service-dev*:*:*`,
+      },
+    ])
+  })
+
+  test('creates no role when every function and web app sets role', () => {
+    const { ctx, resources } = buildContext({
+      functions: {
+        hello: {
+          name: 'my-service-dev-hello',
+          handler: 'h.h',
+          role: 'arn:aws:iam::123456789012:role/fn',
+        },
+      },
+      webApps: {
+        api: {
+          entry: 'src/server.ts',
+          role: 'arn:aws:iam::123456789012:role/web',
+        },
+      },
+    })
+
+    runMerge(ctx)
+
+    expect(resources.IamRoleLambdaExecution).toBeUndefined()
+  })
+
+  test('creates the shared role when every function sets role but a web app does not', () => {
+    const { ctx, resources } = buildContext({
+      functions: {
+        hello: {
+          name: 'my-service-dev-hello',
+          handler: 'h.h',
+          role: 'arn:aws:iam::123456789012:role/fn',
+        },
+      },
+      webApps: { api: { entry: 'src/server.ts' } },
+    })
+
+    runMerge(ctx)
+
+    expect(resources.IamRoleLambdaExecution).toBeDefined()
+  })
+
+  test('adds nothing for a web app that sets role', () => {
+    const { ctx, resources } = buildContext({
+      webApps: {
+        api: { entry: 'src/server.ts' },
+        admin: {
+          entry: 'src/admin.ts',
+          role: 'arn:aws:iam::123456789012:role/web',
+          kmsKeyArn: 'arn:aws:kms:us-east-1:123456789012:key/admin',
+        },
+      },
+    })
+
+    runMerge(ctx)
+
+    const statements = getRoleStatements(resources)
+    expect(statements[0].Resource).toEqual(
+      webLogArns('my-service-dev-api', ':*'),
+    )
+    expect(statements[1].Resource).toEqual(
+      webLogArns('my-service-dev-api', ':*:*'),
+    )
+    expect(statements).toHaveLength(2)
+  })
+
+  test('adds nothing for a web app with a role of its own from iam.role', () => {
+    const { ctx, resources } = buildContext({
+      webApps: {
+        api: { entry: 'src/server.ts' },
+        admin: {
+          entry: 'src/admin.ts',
+          kmsKeyArn: 'arn:aws:kms:us-east-1:123456789012:key/admin',
+          iam: { role: { statements: [] } },
+        },
+      },
+    })
+
+    runMerge(ctx)
+
+    const statements = getRoleStatements(resources)
+    expect(statements[0].Resource).toEqual(
+      webLogArns('my-service-dev-api', ':*'),
+    )
+    expect(statements[1].Resource).toEqual(
+      webLogArns('my-service-dev-api', ':*:*'),
+    )
+    expect(statements).toHaveLength(2)
+  })
+
+  test('keeps the shared role valid when the only web app has a role of its own from iam.role', () => {
+    const { ctx, resources } = buildContext({
+      webApps: {
+        api: {
+          entry: 'src/server.ts',
+          iam: {
+            role: {
+              managedPolicies: ['arn:aws:iam::aws:policy/ReadOnlyAccess'],
+            },
+          },
+        },
+      },
+    })
+
+    runMerge(ctx)
+
+    const statements = getRoleStatements(resources)
+    expect(statements[0].Resource).toEqual([
+      {
+        'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/my-service-dev*:*`,
+      },
+    ])
+    expect(statements[1].Resource).toEqual([
+      {
+        'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/my-service-dev*:*:*`,
+      },
+    ])
+  })
+
+  test('creates no shared role in perFunction mode', () => {
+    const { ctx, resources } = buildContext({
+      webApps: { api: { entry: 'src/server.ts' } },
+      providerOverrides: { iam: { role: { mode: 'perFunction' } } },
+    })
+
+    runMerge(ctx)
+
+    expect(resources.IamRoleLambdaExecution).toBeUndefined()
+  })
+
+  test('does not attach AWSLambdaVPCAccessExecutionRole for provider.vpc when the service has only web apps', () => {
+    const { ctx, resources } = buildContext({
+      webApps: { api: { entry: 'src/server.ts' } },
+      providerOverrides: { vpc },
+    })
+
+    runMerge(ctx)
+
+    expect(
+      resources.IamRoleLambdaExecution.Properties.ManagedPolicyArns,
+    ).toBeUndefined()
+  })
+
+  test('does not attach AWSLambdaVPCAccessExecutionRole for a web app vpc', () => {
+    const { ctx, resources } = buildContext({
+      functions: { hello: { name: 'my-service-dev-hello', handler: 'h.h' } },
+      webApps: { api: { entry: 'src/server.ts', vpc } },
+    })
+
+    runMerge(ctx)
+
+    expect(
+      resources.IamRoleLambdaExecution.Properties.ManagedPolicyArns,
+    ).toBeUndefined()
+  })
+
+  test('still attaches AWSLambdaVPCAccessExecutionRole for provider.vpc when the service has a function', () => {
+    const { ctx, resources } = buildContext({
+      functions: { hello: { name: 'my-service-dev-hello', handler: 'h.h' } },
+      webApps: { api: { entry: 'src/server.ts' } },
+      providerOverrides: { vpc },
+    })
+
+    runMerge(ctx)
+
+    expect(
+      resources.IamRoleLambdaExecution.Properties.ManagedPolicyArns,
+    ).toEqual([vpcAccessPolicy])
+  })
+
+  test('grants kms:Decrypt on the key a web app sets', () => {
+    const kmsKeyArn = 'arn:aws:kms:us-east-1:123456789012:key/web'
+    const { ctx, resources } = buildContext({
+      webApps: { api: { entry: 'src/server.ts', kmsKeyArn } },
+    })
+
+    runMerge(ctx)
+
+    expect(getRoleStatements(resources)).toContainEqual({
+      Effect: 'Allow',
+      Action: ['kms:Decrypt'],
+      Resource: [kmsKeyArn],
+    })
+  })
+
+  test('grants kms:Decrypt once on provider.kmsKeyArn inherited by several web apps', () => {
+    const kmsKeyArn = 'arn:aws:kms:us-east-1:123456789012:key/provider'
+    const { ctx, resources } = buildContext({
+      webApps: {
+        api: { entry: 'src/server.ts' },
+        admin: { entry: 'src/admin.ts' },
+      },
+      providerOverrides: { kmsKeyArn },
+    })
+
+    runMerge(ctx)
+
+    const kmsStatements = getRoleStatements(resources).filter((s) =>
+      s.Action?.includes?.('kms:Decrypt'),
+    )
+    expect(kmsStatements).toEqual([
+      { Effect: 'Allow', Action: ['kms:Decrypt'], Resource: [kmsKeyArn] },
     ])
   })
 })

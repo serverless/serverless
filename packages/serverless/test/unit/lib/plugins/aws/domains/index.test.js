@@ -36,6 +36,22 @@ describe('ServerlessCustomDomain', () => {
     expect(plugin.domains).toHaveLength(2)
   })
 
+  // With configValidationMode: off nothing rejects an empty list item
+  it('skips a null entry in provider.domains', () => {
+    const mockServerless = createMockServerless()
+    mockServerless.service.provider.domains = [
+      null,
+      { name: 'http.api.example.com', apiType: 'http' },
+      { name: 'shop.example.com', webApp: 'api' },
+    ]
+
+    const plugin = new ServerlessCustomDomain(mockServerless, {})
+    plugin.initializeVariables()
+
+    expect(plugin.domains).toHaveLength(1)
+    expect(plugin.webAppDomains).toHaveLength(1)
+  })
+
   it('throws when apiType must be auto-detected with multiple API types present', () => {
     const mockServerless = createMockServerless()
     mockServerless.service.provider.domains = [{ name: 'api.example.com' }]

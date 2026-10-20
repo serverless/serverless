@@ -15,7 +15,6 @@
  */
 
 import { jest } from '@jest/globals'
-import { ZipArchive } from 'archiver'
 import crypto from 'crypto'
 import fs from 'fs'
 import os from 'os'
@@ -2122,7 +2121,7 @@ describe('node_modules emptied by patterns', () => {
  * exists on disk. Checking the list packaging MEANT to append would sail past
  * an entry archiver dropped, renamed while sanitizing, or never flushed.
  */
-describe('_readArchiveEntryNames', () => {
+describe('handler assertion reads the archive back', () => {
   jest.setTimeout(30_000)
 
   const fns = { hello: { handler: 'src/handler.hello' } }
@@ -2154,39 +2153,17 @@ describe('_readArchiveEntryNames', () => {
     })
   })
 
-  it('reads a ZIP64 archive', async () => {
-    // archiver switches to ZIP64 past 65535 entries, which a real node_modules
-    // clears easily. Getting that wrong would not lose an artifact — it would
-    // fail every large deploy with a bogus missing-handler error.
-    const { serviceDir, buildDir } = seedBuildDir({ 'src/handler.js': 'x\n' })
-    const zipPath = path.join(serviceDir, 'zip64.zip')
-    const zip = new ZipArchive({ forceZip64: true })
-    const output = fs.createWriteStream(zipPath)
-    await new Promise((resolve, reject) => {
-      output.on('close', resolve)
-      output.on('error', reject)
-      zip.pipe(output)
-      zip.file(path.join(buildDir, 'src', 'handler.js'), {
-        name: 'src/handler.js',
-      })
-      zip.finalize().catch(reject)
-    })
-    const plugin = new Esbuild(makeServerless(serviceDir, fns), {})
-
-    await expect(plugin._readArchiveEntryNames(zipPath)).resolves.toEqual(
-      new Set(['src/handler.js']),
-    )
-  })
-
-  it('returns null for something that is not an archive, and the assertion falls back', async () => {
+  it('falls back to the intended list when the archive cannot be read back', async () => {
     // A read that cannot answer must never be the thing that invents a missing
     // handler; the caller falls back to the list packaging appended.
     const { serviceDir } = seedBuildDir({ 'src/handler.js': 'x\n' })
     const notAZip = path.join(serviceDir, 'not-a-zip.bin')
     fs.writeFileSync(notAZip, 'definitely not a zip file')
     const plugin = new Esbuild(makeServerless(serviceDir, fns), {})
+    plugin.builtArtifacts = new Map([
+      ['hello', { outfile: 'src/handler.js', mapfile: null }],
+    ])
 
-    await expect(plugin._readArchiveEntryNames(notAZip)).resolves.toBeNull()
     await expect(
       plugin._assertHandlersInArtifact(
         fns,
@@ -2194,15 +2171,6 @@ describe('_readArchiveEntryNames', () => {
         notAZip,
       ),
     ).resolves.toBeUndefined()
-  })
-
-  it('returns null for a file that does not exist', async () => {
-    const { serviceDir } = seedBuildDir({})
-    const plugin = new Esbuild(makeServerless(serviceDir, fns), {})
-
-    await expect(
-      plugin._readArchiveEntryNames(path.join(serviceDir, 'nope.zip')),
-    ).resolves.toBeNull()
   })
 })
 

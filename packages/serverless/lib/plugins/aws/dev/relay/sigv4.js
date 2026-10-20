@@ -6,36 +6,14 @@
  * sorted, then the signature, then the token), so the CLI and the bridge produce the same URL for
  * the same inputs.
  */
-import { createHash, createHmac } from 'node:crypto'
 import { SignatureV4 } from '@smithy/signature-v4'
+import { Sha256 } from '../../lib/sigv4.js'
 
 const SERVICE = 'iotdevicegateway'
 const SIGNATURE = 'X-Amz-Signature'
 const SECURITY_TOKEN = 'X-Amz-Security-Token'
 /** AWS IoT Core accepts the URL for this long after it was signed. */
 const DEFAULT_EXPIRES_SECONDS = 300
-
-/** SHA-256 (and HMAC-SHA-256 when given a secret) in the shape the signer expects. */
-class Sha256 {
-  constructor(secret) {
-    this.secret = secret
-    this.reset()
-  }
-
-  update(data) {
-    this.hash.update(data)
-  }
-
-  async digest() {
-    return new Uint8Array(this.hash.digest())
-  }
-
-  reset() {
-    this.hash = this.secret
-      ? createHmac('sha256', this.secret)
-      : createHash('sha256')
-  }
-}
 
 const byName = ([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)
 

@@ -256,6 +256,15 @@ provider:
       basePath: v1
     - name: websocket.example.com
       apiType: websocket
+  # OR serve web apps on a hostname through CloudFront (see the webApps section below)
+  domains:
+    # Name of a web app under webApps; the entry without basePath receives every other path
+    - name: shop.example.com
+      webApp: web
+    # basePath routes /api and /api/* to the api web app; the path is forwarded unchanged
+    - name: shop.example.com
+      basePath: api
+      webApp: api
 ```
 
 ### General AWS Lambda settings
@@ -282,7 +291,7 @@ provider:
   # Can be overridden for each function separately inside the functions block, see below on page.
   # Valid values: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-logs-loggroup.html
   logRetentionInDays: 14
-  # Policy defining how to monitor and mask sensitive data in CloudWatch logs. Optional.
+  # Policy defining how to monitor and mask sensitive data in CloudWatch logs, for functions and web apps. Optional.
   # Policy format: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/mask-sensitive-log-data-start.html
   logDataProtectionPolicy:
     Name: data-protection-policy
@@ -708,10 +717,10 @@ provider:
     lambda:
       # The Log Format to be used for all lambda functions (default: Text)
       logFormat: JSON
-      # The Application Log Level to be used, This can only be set if `logFormat` is set to `JSON`
-      applicationLogLevel: ERROR
-      # The System Log Level to be used, This can only be set if `logFormat` is set to `JSON`
-      systemLogLevel: INFO
+      # The Application Log Level to be used, case-insensitive. Functions take it only when `logFormat` is `JSON`; web apps always do
+      applicationLogLevel: error
+      # The System Log Level to be used, case-insensitive. Functions take it only when `logFormat` is `JSON`; web apps always do
+      systemLogLevel: info
       # The LogGroup that will be used by default. If this is set the Framework will not create LogGroups for any functions
       logGroup: /aws/lambda/global-log-group
       # The CloudWatch Logs log group class (default: standard).
@@ -1688,6 +1697,103 @@ sandboxes:
       subnetIds: !Split [',', !ImportValue network-private-subnets] # 1–16 ids, or one expression yielding the list
       securityGroupIds:
         - sg-12345678 # 1–5 ids or references
+```
+
+## Web Apps (Lambda Web Functions)
+
+Run HTTP servers (Express, Fastify, Hono, Next.js) as [AWS Lambda Web Functions](./web-apps.md) alongside your Lambda functions. The `webApps` top-level property defines one or more web apps, each an HTTP server that listens on `process.env.PORT`. `serverless deploy` packages each one (bundling TypeScript with esbuild), deploys it with its own HTTPS endpoint and log groups, and prints the endpoint URL; `serverless invoke --web-app <name>` and `serverless logs --web-app <name>` operate on it. Web apps inherit `provider.environment`, `iam`, `vpc`, `tags`, `kmsKeyArn`, `logRetentionInDays`, `logDataProtectionPolicy`, the `provider.logs.lambda` log levels, an explicitly set `provider.timeout`, and `provider.runtime` when it is `nodejs24.x` or newer. See the [complete documentation](./web-apps.md) for all options.
+
+```yml
+# serverless.yml
+
+webApps:
+  orders: # web app name: letters, digits, - and _, ending in a letter or digit
+    # required, the file that starts the HTTP server, inside the service directory (the path inside the zip with package.artifact)
+    entry: src/server.ts
+    # optional, Node.js 24 or newer as nodejsNN.x (default: provider.runtime when it is nodejs24.x or newer, otherwise nodejs24.x)
+    runtime: nodejs24.x
+    # optional, deployed name: letters, digits, - and _, up to 64 characters (default: <service>-<stage>-<name>)
+    name: ${sls:stage}-orders
+    # optional, description to publish to AWS
+    description: Orders API
+    # optional, request timeout in seconds, 3-900 (default: provider.timeout when set, otherwise 30)
+    timeout: 60
+    # optional, the most concurrent requests per execution environment, 1-128 (Lambda's default: 64)
+    maxConcurrency: 64
+    # optional, merged over provider.environment; PORT, HOSTNAME and AWS_LAMBDA_NODEJS_ENTRYPOINT are set by the Framework
+    environment:
+      TABLE_NAME: !Ref OrdersTable
+    # optional, log levels, case-insensitive (default: the provider.logs.lambda levels, otherwise Lambda's default, info)
+    logs:
+      applicationLogLevel: info # trace, debug, info, warn, error or fatal
+      systemLogLevel: info # debug, info or warn
+    # optional, retention for both log groups (default: provider.logRetentionInDays)
+    logRetentionInDays: 14
+    # optional, data protection policy for both log groups (default: provider.logDataProtectionPolicy)
+    logDataProtectionPolicy:
+      Name: mask-email-addresses
+      Version: '2021-06-01'
+      Statement:
+        - Sid: redact
+          DataIdentifier:
+            - arn:aws:dataprotection::aws:data-identifier/EmailAddress
+          Operation:
+            Deidentify:
+              MaskConfig: {}
+    # optional, execution role ARN, name or CloudFormation reference (default: the service's role)
+    role: arn:aws:iam::123456789012:role/orders
+    # optional, a role of the web app's own, as for functions. role can't be combined with
+    # iam.role.statements or iam.role.managedPolicies; with role set, the other iam settings don't apply
+    iam:
+      # optional, add provider.iam.role.statements to the role (default: false, true in perFunction mode)
+      inheritStatements: true
+      role:
+        # IAM policy statements for this web app
+        statements:
+          - Effect: Allow
+            Action: dynamodb:GetItem
+            Resource: !GetAtt OrdersTable.Arn
+        # managed policy ARNs attached to the role
+        managedPolicies:
+          - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        # optional, role name (default: <service>-<stage>-<name>-<region>-lambdaRole)
+        name: ${sls:stage}-orders-role
+        # optional, IAM path of the role
+        path: /web/
+        # optional, permissions boundary of the role
+        permissionsBoundary: arn:aws:iam::123456789012:policy/boundary
+        # optional, merged over provider.iam.role.tags
+        tags:
+          team: orders
+    # optional, outbound access to a VPC through a network connector (default: provider.vpc)
+    vpc:
+      subnetIds:
+        - subnet-0a1b2c3d4e5f60718
+        - subnet-0f1e2d3c4b5a69788
+      securityGroupIds:
+        - sg-0123456789abcdef0
+    # optional, KMS key for environment variable encryption (default: provider.kmsKeyArn)
+    kmsKeyArn: arn:aws:kms:us-east-1:123456789012:key/1234abcd-12ab-34cd-56ef-1234567890ab
+    # optional, merged over provider.tags
+    tags:
+      team: orders
+    # optional, false skips esbuild for this web app; esbuild bundles any entry (default: esbuild for a TypeScript entry)
+    build: esbuild
+    package:
+      # optional, applied after the service-level package.patterns
+      patterns:
+        - '!tests/**'
+      # optional, a prebuilt zip deployed as it is (the server reads AWS_LAMBDA_HTTP_ENDPOINT itself);
+      # a local path or an s3://bucket/key URI, downloaded when packaging
+      artifact: build/orders.zip
+    # optional, the web app's endpoint: true (public, the default) or its settings; false is not accepted
+    url:
+      # optional, aws_iam requires SigV4-signed requests (default: public)
+      authorizer: aws_iam
+      # optional, the most execution environments, 2 to 10000
+      maxEnvironments: 50
+      # optional, requests per second: 0, 100-1000 in steps of 100, or 2000-10000 in steps of 1000
+      rateLimit: 2000
 ```
 
 ## MCP Servers

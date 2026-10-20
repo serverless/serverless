@@ -5,12 +5,13 @@ description: >-
   serverless.yml configuration and the serverless/sls CLI. Use whenever
   serverless.yml or serverless-compose.yml is present, the user runs or debugs
   any serverless/sls command (deploy, dev, invoke, logs), mentions the Serverless
-  Framework, or describes serverless work on AWS: Lambda functions, HTTP APIs,
-  scheduled jobs, or event-driven workflows with any AWS service (API Gateway,
-  S3, SQS, DynamoDB, and the rest).
+  Framework, or describes serverless work on AWS: Lambda functions, web apps
+  such as Express or Next.js on Lambda, HTTP APIs, scheduled jobs, or
+  event-driven workflows with any AWS service (API Gateway, S3, SQS, DynamoDB,
+  and the rest).
 metadata:
   managed-by: serverless-framework
-  version: '2'
+  version: '3'
   scope: user
   author: Serverless Inc.
 ---
@@ -43,6 +44,8 @@ resources they need, as one stack per stage.
 - Don't answer from memory. `serverless agent docs` lists the documentation
   that ships with the installed CLI, matching its version and with no network
   needed; `serverless agent docs <path>` prints a page.
+- When the user reports what a read-only command printed (`serverless logs`,
+  `info`, `agent inspect`), run it yourself first and work from its message.
 
 ## First deploy of a service
 
@@ -59,6 +62,21 @@ resources they need, as one stack per stage.
    (`root`, `ubuntu`), ask.
 5. Verify with a real request to the endpoint, or `serverless invoke` and
    `serverless logs`.
+
+## Choosing the compute
+
+One service can mix these blocks; pick by the shape of the code.
+
+| The code is                                                                                               | Block       | Read                                                         |
+| --------------------------------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------ |
+| A handler `(event, context)` for events (queues, schedules, S3, streams) or API Gateway routes            | `functions` | [references/serverless-yml.md](references/serverless-yml.md) |
+| A standard HTTP server that listens on a port: Express, Fastify, Hono, Next.js (AWS Lambda Web Functions) | `webApps`   | [references/web-apps.md](references/web-apps.md)             |
+| Untrusted, AI-generated or per-session code in isolated containers (AWS Lambda MicroVMs)                  | `sandboxes` | the `serverless-sandboxes` skill                             |
+| An MCP server for AI clients                                                                              | `mcp`       | the `serverless-mcp` skill                                   |
+| An AI agent on Amazon Bedrock AgentCore                                                                   | `ai.agents` | `serverless agent docs providers/aws/guide/agents`           |
+
+Web apps take no events: when the same work also needs a queue consumer or a
+schedule, put that part under `functions` in the same service.
 
 ## Where to look
 

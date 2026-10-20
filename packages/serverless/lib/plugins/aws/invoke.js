@@ -3,6 +3,7 @@ import validate from './lib/validate.js'
 import stdin from 'get-stdin'
 import formatLambdaLogEvent from './utils/format-lambda-log-event.js'
 import ServerlessError from '../../serverless-error.js'
+import { assertInvokeOptionsAvailable } from './lib/invoke-options.js'
 import { writeText, style } from '@serverless/util'
 import {
   LOCAL_LOG_HEADING,
@@ -27,20 +28,40 @@ class AwsInvoke {
 
     this.hooks = {
       'invoke:invoke': async () => {
-        // Ensure at least one of --function, --agent, or --sandbox is provided
+        // Ensure at least one of --function, --agent, --sandbox, or --web-app is provided
         if (
           !this.options.function &&
           !this.options.agent &&
-          !this.options.sandbox
+          !this.options.sandbox &&
+          !this.options['web-app']
         ) {
           throw new ServerlessError(
-            'One of the required options must be provided: --function (-f), --agent (-a), or --sandbox',
+            'One of the required options must be provided: --function (-f), --agent (-a), --sandbox, or --web-app',
             'INVOKE_MISSING_OPTION',
+            { stack: false },
           )
         }
 
-        // Skip if --agent or --sandbox is provided (handled by their dedicated plugins)
-        if (this.options.agent || this.options.sandbox) {
+        // Checked here, in the first hook to run, so that no other target's plugin runs first
+        if (
+          this.options['web-app'] &&
+          (this.options.function || this.options.agent || this.options.sandbox)
+        ) {
+          throw new ServerlessError(
+            'Cannot combine --web-app with --function, --agent or --sandbox.',
+            'INVOKE_MUTUAL_EXCLUSIVITY',
+            { stack: false },
+          )
+        }
+
+        assertInvokeOptionsAvailable(this.options)
+
+        // Skip if --agent, --sandbox or --web-app is provided (handled by their dedicated plugins)
+        if (
+          this.options.agent ||
+          this.options.sandbox ||
+          this.options['web-app']
+        ) {
           return
         }
 
@@ -63,6 +84,7 @@ class AwsInvoke {
         throw new ServerlessError(
           'The file you provided does not exist.',
           'FILE_NOT_FOUND',
+          { stack: false },
         )
       }
       throw err
@@ -205,6 +227,7 @@ class AwsInvoke {
       throw new ServerlessError(
         'Invoked function failed',
         'AWS_LAMBDA_INVOCATION_FAILED',
+        { stack: false },
       )
     }
   }

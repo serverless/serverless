@@ -4,6 +4,7 @@ import crypto from 'crypto'
 import { globbySync } from 'globby'
 import _ from 'lodash'
 import normalizeFiles from '../../lib/normalize-files.js'
+import { ARTIFACT_KINDS } from '../../lib/content-addressed-artifacts.js'
 import ServerlessError from '../../../../serverless-error.js'
 import { log } from '@serverless/util'
 
@@ -15,6 +16,20 @@ const isDeploymentDirToken = RegExp.prototype.test.bind(
 const isOtelExtensionName = RegExp.prototype.test.bind(
   /^sls-otel\.\d+\.\d+\.\d+\.zip$/,
 )
+// Web app and sandbox zips (`.serverless/webapps/`, `.serverless/sandboxes/`)
+// are uploaded under content-addressed keys, never into a deployment
+// directory, so they have no remote hash to match. Their code changes show in
+// the template instead, which names each zip by its content.
+const isContentAddressedArtifact = (relativePath) =>
+  ARTIFACT_KINDS.includes(relativePath.split('/')[0])
+// Stack statuses after which the stack holds the last deploy it was given.
+// Anything else (a rollback, or a failure kept by `disableRollback`) means the
+// last deploy did not land.
+const STABLE_STACK_STATUSES = new Set([
+  'CREATE_COMPLETE',
+  'UPDATE_COMPLETE',
+  'IMPORT_COMPLETE',
+])
 
 export default {
   async checkForChanges() {
@@ -251,7 +266,10 @@ export default {
       cwd: serverlessDirPath,
       dot: true,
       silent: true,
-    }).filter((basename) => !isOtelExtensionName(basename))
+    }).filter(
+      (basename) =>
+        !isOtelExtensionName(basename) && !isContentAddressedArtifact(basename),
+    )
     if (this.serverless.service.package.artifact) {
       zipFiles.push(
         path.resolve(
@@ -323,14 +341,21 @@ export default {
 
     // If any objects were changed after the last time the function was updated
     // there could have been a failed deploy.
-    const changedAfterDeploy = objects.some((object) => {
-      return object.LastModified && object.LastModified > funcLastModifiedDate
-    })
+    if (this.serverless.service.getAllFunctions().length > 0) {
+      const changedAfterDeploy = objects.some((object) => {
+        return object.LastModified && object.LastModified > funcLastModifiedDate
+      })
 
-    if (changedAfterDeploy) {
-      logger.debug(
-        'function modification dates changed after last deploy - deploy',
-      )
+      if (changedAfterDeploy) {
+        logger.debug(
+          'function modification dates changed after last deploy - deploy',
+        )
+        return
+      }
+    } else if (this.isStackBehindDeploymentObjects(objects)) {
+      // A service without functions has no function modification date, so
+      // the stack stands in for it.
+      logger.debug('stack not updated since the last upload - deploy')
       return
     }
     logger.debug(
@@ -350,6 +375,31 @@ export default {
       return
     }
     logger.debug('different artifacts resolved - deploy')
+  },
+
+  /**
+   * For a service without functions: whether the stack may not reflect the
+   * newest deployment directory, because the stack did not exist before this
+   * deploy, its status is not a stable one (a rollback, or a failure kept by
+   * `disableRollback`), or an object was uploaded after the stack was last
+   * updated (a deploy that failed after the upload but before the stack
+   * update, such as a rejected template or change set). Uses the status and
+   * time `createStack` read from describeStacks.
+   *
+   * Known cost: a deploy that changes only the state file is a CloudFormation
+   * no-op, so the stack time does not move past its upload, and later
+   * unchanged deploys keep redeploying until a real stack update moves it.
+   * That is the always-deploy behaviour these services had before; it never
+   * leaves a wrong state.
+   */
+  isStackBehindDeploymentObjects(objects) {
+    if (!STABLE_STACK_STATUSES.has(this.stackStatus)) return true
+    const stackUpdatedAt = new Date(this.stackLastUpdatedTime)
+    if (Number.isNaN(stackUpdatedAt.getTime())) return true
+    return objects.some(
+      (object) =>
+        object.LastModified && new Date(object.LastModified) > stackUpdatedAt,
+    )
   },
 
   /**

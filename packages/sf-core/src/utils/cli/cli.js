@@ -181,6 +181,15 @@ const normalizeRepeatableOptions = (command, options) => {
       options.e = [options.e]
     }
   }
+  // "invoke" (--web-app, --sandbox): --header is repeatable too. It has no shortcut.
+  if (
+    command[0] === 'invoke' &&
+    command.length === 1 &&
+    options.header !== undefined &&
+    !Array.isArray(options.header)
+  ) {
+    options.header = [options.header]
+  }
   return options
 }
 

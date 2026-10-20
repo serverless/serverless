@@ -1,22 +1,34 @@
 'use strict'
 
 import { jest } from '@jest/globals'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import ServerlessSandboxes from '../../../../../../lib/plugins/aws/sandboxes/index.js'
 import ServerlessError from '../../../../../../lib/serverless-error.js'
 
-function makeProvider(overrides = {}) {
+// `existingKeys` lists the S3 keys headObject finds; any other key answers 404.
+function makeProvider(overrides = {}, { existingKeys = [] } = {}) {
   return {
     getStage: () => 'dev',
     getRegion: () => 'us-east-1',
     getServerlessDeploymentBucketName: jest
       .fn()
       .mockResolvedValue('resolved-deploy-bucket'),
-    request: jest.fn().mockImplementation((service, method) => {
+    request: jest.fn().mockImplementation((service, method, params) => {
       if (
         service === 'LambdaMicrovms' &&
         method === 'listManagedMicrovmImageVersions'
       ) {
         return Promise.resolve({ items: [{ imageVersion: '1' }] })
+      }
+      if (service === 'S3' && method === 'headObject') {
+        if (existingKeys.includes(params.Key)) return Promise.resolve({})
+        return Promise.reject(
+          Object.assign(new Error('Not Found'), {
+            providerError: { statusCode: 404, code: 'NotFound' },
+          }),
+        )
       }
       return Promise.resolve({})
     }),
@@ -47,7 +59,8 @@ const makeServerless = (sandboxes, providerOverride) => {
 
 // fs/promises-like stub for the package-dir hand-off. `manifest` (when given)
 // is returned for the manifest read; any other read returns a fake zip body.
-function makeFakeFs(manifest) {
+// `missingZips` makes reads of every zip fail with ENOENT.
+function makeFakeFs(manifest, { missingZips = false } = {}) {
   return {
     mkdir: jest.fn(async () => {}),
     writeFile: jest.fn(async () => {}),
@@ -57,6 +70,11 @@ function makeFakeFs(manifest) {
           throw Object.assign(new Error('not found'), { code: 'ENOENT' })
         }
         return JSON.stringify(manifest)
+      }
+      if (missingZips) {
+        throw Object.assign(new Error(`ENOENT: no such file '${p}'`), {
+          code: 'ENOENT',
+        })
       }
       return Buffer.from('fake-zip')
     }),
@@ -105,6 +123,7 @@ describe('ServerlessSandboxes', () => {
     }
     expect(thrown.message).toMatch(/artifact/)
     expect(thrown.code).toBe('SANDBOXES_VALIDATION_ERROR')
+    expect(thrown.stack).toBeUndefined()
   })
 
   test('validate() is a no-op when sandboxesConfig is null', () => {
@@ -273,6 +292,66 @@ describe('ServerlessSandboxes', () => {
     expect(params.ContentType).toBe('application/zip')
   })
 
+  test('packageArtifacts() skips the upload when the content-addressed key already exists', async () => {
+    const key = 'serverless/svc/dev/sandboxes/runner-abc123.zip'
+    const provider = makeProvider({}, { existingKeys: [key] })
+    const sls = makeServerless(
+      { runner: { artifact: 's3://bucket/artifact.zip' } },
+      provider,
+    )
+    const fakeFs = makeFakeFs([
+      { name: 'runner', key, file: 'sandboxes/runner-abc123.zip' },
+    ])
+    const log = { debug: jest.fn() }
+    const p = new ServerlessSandboxes(sls, {}, { log }, { fs: fakeFs })
+
+    await p.packageArtifacts()
+
+    expect(provider.request).toHaveBeenCalledWith('S3', 'headObject', {
+      Bucket: 'resolved-deploy-bucket',
+      Key: key,
+    })
+    const s3UploadCalls = provider.request.mock.calls.filter(
+      ([svc, method]) => svc === 'S3' && method === 'upload',
+    )
+    expect(s3UploadCalls).toHaveLength(0)
+    expect(log.debug).toHaveBeenCalledWith(
+      `sandboxes: artifact s3://resolved-deploy-bucket/${key} already exists, upload skipped`,
+    )
+  })
+
+  test('packageArtifacts() surfaces a missing packaged zip and uploads nothing (deploy --package with an incomplete dir)', async () => {
+    const provider = makeProvider()
+    const sls = makeServerless(
+      { runner: { artifact: 's3://bucket/artifact.zip' } },
+      provider,
+    )
+    const fakeFs = makeFakeFs(
+      [
+        {
+          name: 'runner',
+          key: 'serverless/svc/dev/sandboxes/runner-abc123.zip',
+          file: 'sandboxes/runner-abc123.zip',
+        },
+      ],
+      { missingZips: true },
+    )
+    const p = new ServerlessSandboxes(
+      sls,
+      {},
+      { log: { debug: jest.fn() } },
+      { fs: fakeFs },
+    )
+
+    await expect(p.packageArtifacts()).rejects.toMatchObject({
+      code: 'SANDBOXES_ARTIFACT_MISSING',
+      stack: undefined,
+      message: `Cannot find sandbox artifact 'sandboxes/runner-abc123.zip' in the package directory ${path.join('/svc', '.serverless')}. Run serverless package again, or deploy without --package.`,
+    })
+    const s3Calls = provider.request.mock.calls.filter(([svc]) => svc === 'S3')
+    expect(s3Calls).toHaveLength(0)
+  })
+
   test('packageArtifacts() rejects a manifest entry whose path escapes the package directory', async () => {
     const provider = makeProvider()
     const sls = makeServerless(
@@ -294,9 +373,12 @@ describe('ServerlessSandboxes', () => {
       { log: { debug: jest.fn() } },
       { fs: fakeFs },
     )
-    await expect(p.packageArtifacts()).rejects.toThrow(/escapes the package/i)
+    await expect(p.packageArtifacts()).rejects.toThrow(
+      "Refusing to upload sandbox artifact from '../../../../../../etc/passwd': path escapes the package directory.",
+    )
     await expect(p.packageArtifacts()).rejects.toMatchObject({
       code: 'SANDBOXES_ARTIFACT_PATH_ESCAPE',
+      stack: undefined,
     })
     const s3UploadCalls = provider.request.mock.calls.filter(
       ([svc, method]) => svc === 'S3' && method === 'upload',
@@ -324,6 +406,82 @@ describe('ServerlessSandboxes', () => {
       ([svc, method]) => svc === 'S3' && method === 'upload',
     )
     expect(s3UploadCalls).toHaveLength(0)
+  })
+
+  describe('package directory hand-off', () => {
+    let serviceDir
+
+    // A real service dir holding a local-directory sandbox, so compile() zips
+    // and persists through the real filesystem.
+    beforeEach(() => {
+      serviceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sbx-package-dir-'))
+      fs.mkdirSync(path.join(serviceDir, 'app'))
+      fs.writeFileSync(path.join(serviceDir, 'app', 'Dockerfile'), 'FROM x')
+    })
+
+    afterEach(() => {
+      fs.rmSync(serviceDir, { recursive: true, force: true })
+    })
+
+    const compileLocalSandbox = async (options) => {
+      const sls = makeServerless({ runner: { artifact: './app' } })
+      sls.serviceDir = serviceDir
+      const p = new ServerlessSandboxes(sls, options, {
+        log: { debug: jest.fn() },
+      })
+      await p.compile()
+    }
+
+    const listFiles = (dir) =>
+      fs.existsSync(dir)
+        ? fs.readdirSync(dir, { recursive: true }).map(String).sort()
+        : []
+
+    test('compile() with --package writes the zip and manifest to <serviceDir>/.serverless, which the package step moves to the --package directory', async () => {
+      await compileLocalSandbox({ package: 'out' })
+
+      const staged = listFiles(path.join(serviceDir, '.serverless'))
+      expect(staged).toContain('sandboxes-uploads.json')
+      expect(
+        staged.some((f) => /^sandboxes[/\\]runner-[a-f0-9]+\.zip$/.test(f)),
+      ).toBe(true)
+      expect(fs.existsSync(path.join(serviceDir, 'out'))).toBe(false)
+    })
+
+    test('compile() without --package writes the zip and manifest to <serviceDir>/.serverless', async () => {
+      await compileLocalSandbox({})
+
+      const staged = listFiles(path.join(serviceDir, '.serverless'))
+      expect(staged).toContain('sandboxes-uploads.json')
+      expect(
+        staged.some((f) => /^sandboxes[/\\]runner-[a-f0-9]+\.zip$/.test(f)),
+      ).toBe(true)
+    })
+
+    const readManifestPath = async (options) => {
+      const sls = makeServerless({ runner: { artifact: './app' } })
+      const fakeFs = makeFakeFs(null)
+      const p = new ServerlessSandboxes(
+        sls,
+        options,
+        { log: { debug: jest.fn() } },
+        { fs: fakeFs },
+      )
+      await p.packageArtifacts()
+      return fakeFs.readFile.mock.calls.map(([p]) => String(p))
+    }
+
+    test('packageArtifacts() with --package reads the manifest from the --package directory', async () => {
+      expect(await readManifestPath({ package: 'out' })).toEqual([
+        path.join('/svc', 'out', 'sandboxes-uploads.json'),
+      ])
+    })
+
+    test('packageArtifacts() without --package reads the manifest from <serviceDir>/.serverless', async () => {
+      expect(await readManifestPath({})).toEqual([
+        path.join('/svc', '.serverless', 'sandboxes-uploads.json'),
+      ])
+    })
   })
 })
 

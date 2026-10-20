@@ -1,4 +1,5 @@
 import { describe, test, expect } from '@jest/globals'
+import * as LambdaWebSdk from '@aws-sdk/client-lambda-web'
 import {
   REGISTRY_ENTRIES,
   AWS_SERVICE_ALIASES,
@@ -27,6 +28,7 @@ const EXPECTED_AWS_SERVICES = [
   'iot',
   'cloudfront',
   'lambda-microvms',
+  'lambda-web',
 ]
 
 // lambda-microvms is INDEX-ONLY (see registry/lambda-microvms.js): its two
@@ -196,6 +198,16 @@ describe('findByAwsService', () => {
     })
   })
 
+  test('lambda-web resolves to the three web app types and has no alias', () => {
+    const canonical = findByAwsService('lambda-web')
+    expect(findByAwsService('webapps')).toEqual([])
+    expect(canonical.map((e) => e.cfnType).sort()).toEqual([
+      'AWS::Lambda::WebFunction',
+      'AWS::Lambda::WebFunctionEndpoint',
+      'AWS::Lambda::WebFunctionRevision',
+    ])
+  })
+
   test('resolveAwsServiceAlias passes through unknown/canonical tokens unchanged', () => {
     expect(resolveAwsServiceAlias('lambda')).toBe('lambda')
     expect(resolveAwsServiceAlias('something-else')).toBe('something-else')
@@ -270,6 +282,21 @@ describe('findByCategory', () => {
       'lambda-microvms',
     )
     expect(byType['AWS::Lambda::NetworkConnector'].awsService).toBeNull()
+  })
+
+  test('web-apps category is lambda-web only (three cfnTypes)', () => {
+    const webAppsEntries = findByCategory('web-apps')
+    expect(webAppsEntries.map((e) => e.cfnType).sort()).toEqual([
+      'AWS::Lambda::WebFunction',
+      'AWS::Lambda::WebFunctionEndpoint',
+      'AWS::Lambda::WebFunctionRevision',
+    ])
+    expect(webAppsEntries.every((e) => e.awsService === 'lambda-web')).toBe(
+      true,
+    )
+    expect(webAppsEntries.every((e) => e.engineClient === 'lambda-web')).toBe(
+      true,
+    )
   })
 
   test('returns an empty array for an unknown category', () => {
@@ -769,5 +796,60 @@ describe('CloudFront::Distribution and CloudFront::CachePolicy (global service)'
     expect(entry.identifier({ PhysicalResourceId: policyId })).toBe(policyId)
     const call = entry.calls.find((c) => c.method === 'GetCachePolicy')
     expect(call.input).toBe('Id')
+  })
+})
+
+describe('Lambda Web Functions (web apps)', () => {
+  const FUNCTION_ARN =
+    'arn:aws:lambda:us-east-1:123456789012:web-function/svc-dev-web'
+
+  test('WebFunction: GetWebFunction takes the function ARN as functionName', () => {
+    const entry = findByCfnType('AWS::Lambda::WebFunction')
+    expect(entry.calls).toEqual([
+      { key: 'webFunction', method: 'GetWebFunction', input: 'functionName' },
+    ])
+    expect(entry.identifier({ PhysicalResourceId: FUNCTION_ARN })).toBe(
+      FUNCTION_ARN,
+    )
+  })
+
+  test('WebFunctionRevision: the revision ARN splits into functionName + revisionId', () => {
+    const entry = findByCfnType('AWS::Lambda::WebFunctionRevision')
+    expect(entry.calls).toEqual([
+      { key: 'revision', method: 'GetWebFunctionRevision' },
+    ])
+    expect(
+      entry.identifier({
+        PhysicalResourceId: `${FUNCTION_ARN}/revision/r-1a2b`,
+      }),
+    ).toEqual({ functionName: FUNCTION_ARN, revisionId: 'r-1a2b' })
+  })
+
+  test('WebFunctionEndpoint: the endpoint ARN splits into functionName + endpointName', () => {
+    const entry = findByCfnType('AWS::Lambda::WebFunctionEndpoint')
+    expect(entry.calls).toEqual([
+      { key: 'endpoint', method: 'GetWebFunctionEndpoint' },
+    ])
+    expect(
+      entry.identifier({ PhysicalResourceId: `${FUNCTION_ARN}/endpoint/live` }),
+    ).toEqual({ functionName: FUNCTION_ARN, endpointName: 'live' })
+  })
+
+  test('the ARN split works in other partitions', () => {
+    const entry = findByCfnType('AWS::Lambda::WebFunctionEndpoint')
+    const arn =
+      'arn:aws-cn:lambda:cn-north-1:123456789012:web-function/fn/endpoint/live'
+    expect(entry.identifier({ PhysicalResourceId: arn })).toEqual({
+      functionName: 'arn:aws-cn:lambda:cn-north-1:123456789012:web-function/fn',
+      endpointName: 'live',
+    })
+  })
+
+  test('every web app call names a command the installed Lambda Web SDK exports', () => {
+    for (const entry of findByAwsService('lambda-web')) {
+      for (const call of entry.calls) {
+        expect(typeof LambdaWebSdk[`${call.method}Command`]).toBe('function')
+      }
+    }
   })
 })
