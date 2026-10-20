@@ -686,9 +686,10 @@ const finalize = async ({
     authenticatedData?.accessKeyV1 || authenticatedData?.accessKeyV2
 
   // The run's analysis event is queued before any task starts, so the tasks
-  // cannot keep it from being published. A failed task is reported by the
-  // error handler as a separate failed event ("Sending events failed: ...").
-  // A throw here leaves no task running and falls back to the error handler.
+  // cannot keep it from being published. A failure here or in a task is
+  // reported by the error handler as a separate failed event ("Sending events
+  // failed: ..."). A failure here does not stop the tasks: the usage event,
+  // the deployment record and the metadata are still sent.
   const analysisParams = {
     authenticatedData,
     orgId,
@@ -705,7 +706,12 @@ const finalize = async ({
     accessKey,
     exitCode,
   }
-  queueAnalysisEvent(analysisParams)
+  let queueError
+  try {
+    queueAnalysisEvent(analysisParams)
+  } catch (error) {
+    queueError = error
+  }
 
   const tasks = []
 
@@ -762,6 +768,11 @@ const finalize = async ({
   const results = await Promise.allSettled(tasks)
 
   let errors = []
+  if (queueError) {
+    const errorMessage = queueError.message || String(queueError)
+    logger.debug(`Finalization failed:`, errorMessage)
+    errors.push(errorMessage)
+  }
   // Print all errors
   results.forEach((result) => {
     if (result.status === 'rejected') {

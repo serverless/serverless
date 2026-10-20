@@ -136,18 +136,25 @@ test("a failing usage event still publishes the run's analysis event", async () 
   expect(analysisEvents()[0].event.actionSucceeded).toBe(true)
 })
 
-test('a failure while queuing the analysis event starts no finalize task', async () => {
+test('a failure while building the analysis event still sends the usage event, deployment record and metadata', async () => {
   const runner = new FakeRunner()
   runner.getAnalysisEventDetails = () => {
     throw new Error('details unavailable')
   }
   runner.getDeploymentEventDetails = jest.fn(async () => null)
-  await expect(finalize(finalizeParams(runner))).rejects.toThrow(
-    'details unavailable',
+  runner.getMetadataToSave = async () => ({})
+  const params = finalizeParams(runner)
+  params.runnerData.runnerResult = { serviceUniqueId: 'stack-id' }
+  await expect(finalize(params)).rejects.toThrow(
+    /^Sending events failed: details unavailable/,
   )
-  expect(runner.getDeploymentEventDetails).not.toHaveBeenCalled()
-  expect(platformEventClient.publishEventBatches).not.toHaveBeenCalled()
-  expect(saveMeta).not.toHaveBeenCalled()
+  expect(runner.getDeploymentEventDetails).toHaveBeenCalled()
+  expect(saveMeta).toHaveBeenCalled()
+  expect(platformEventClient.publishEventBatches).toHaveBeenCalledTimes(1)
+  expect(analysisEvents()).toHaveLength(0)
+  expect(
+    queued.filter(({ source }) => source === 'billing.instance.reported.v1'),
+  ).toHaveLength(1)
 })
 
 // A lookup that failed while the command ran leaves a resolver that throws
