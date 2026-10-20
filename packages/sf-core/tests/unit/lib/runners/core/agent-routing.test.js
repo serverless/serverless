@@ -146,6 +146,28 @@ describe('CoreRunner agent routing', () => {
     })
   })
 
+  it('keeps the framework runner `agent inspect` was delegated to, for the router to report the run', async () => {
+    const runner = makeRunner(
+      ['agent', 'inspect'],
+      {},
+      { resolveStage: jest.fn(async () => 'dev') },
+    )
+    expect(runner.delegatedRunner).toBeUndefined()
+    await runner.run()
+    expect(runner.delegatedRunner?.constructor.name).toBe('TraditionalRunner')
+  })
+
+  it('keeps the delegated framework runner when its run fails', async () => {
+    mockFrameworkRun.mockRejectedValueOnce(new Error('boom'))
+    const runner = makeRunner(
+      ['agent', 'inspect'],
+      {},
+      { resolveStage: jest.fn(async () => 'dev') },
+    )
+    await expect(runner.run()).rejects.toThrow('boom')
+    expect(runner.delegatedRunner?.constructor.name).toBe('TraditionalRunner')
+  })
+
   it('strips the yargs camelCase duplicate option key before delegating (aws-services, not awsServices)', async () => {
     // The router's yargs round-trip (utils/cli/cli.js) uses default
     // camel-case-expansion, minting a camelCase alias for every dashed option:

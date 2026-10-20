@@ -625,6 +625,9 @@ class CoreRunner extends Runner {
       // it is inside Compose, and under which service key.
       compose: this.compose,
     })
+    // The framework runner signs in and knows the service, so the router
+    // reports the run through it (see `delegatedRunner` in ../../router.js).
+    this.delegatedRunner = frameworkRunner
     return frameworkRunner.run()
   }
 

@@ -111,29 +111,35 @@ const route = async ({ command, options, versions, compose }) => {
     return
   }
 
+  // A command the runner hands to another runner (CoreRunner delegates `agent
+  // inspect` to the framework runner) is reported through that runner: it is
+  // the one that signed in and knows the service.
+  const reportingRunner = () => runner.delegatedRunner ?? runner
+
   let runnerResult, runnerError
   // A command that ends the process itself (Dev Mode's second Ctrl+C, or a restore that ran out of
   // time) still sends its analysis event, with the code it exits with (see forced-exit).
-  const stopForcedExitEvent = onForcedExit((forcedExitCode) =>
-    sendAnalysisAndUsageEvent({
-      authenticatedData: runner?.authenticatedData,
-      orgId: runner?.authenticatedData?.orgId,
+  const stopForcedExitEvent = onForcedExit((forcedExitCode) => {
+    const eventRunner = reportingRunner()
+    return sendAnalysisAndUsageEvent({
+      authenticatedData: eventRunner?.authenticatedData,
+      orgId: eventRunner?.authenticatedData?.orgId,
       versionFramework: versions?.serverless_framework,
       command: eventCommand,
       commandStartTime,
       configFilePath,
-      runner,
+      runner: eventRunner,
       compose,
       resolverManager,
       options,
       runnerError: undefined,
       runnerResult: undefined,
       accessKey:
-        runner?.authenticatedData?.accessKeyV1 ||
-        runner?.authenticatedData?.accessKeyV2,
+        eventRunner?.authenticatedData?.accessKeyV1 ||
+        eventRunner?.authenticatedData?.accessKeyV2,
       exitCode: forcedExitCode,
-    }),
-  )
+    })
+  })
   try {
     progressMain.remove()
     runnerResult = await runner.run()
@@ -183,6 +189,7 @@ const route = async ({ command, options, versions, compose }) => {
     await autoUpdateAgentSkills({ command, configFilePath })
   }
 
+  const eventRunner = reportingRunner()
   try {
     await finalize({
       logger,
@@ -198,7 +205,7 @@ const route = async ({ command, options, versions, compose }) => {
         configFileRaw,
       },
       runnerData: {
-        runner,
+        runner: eventRunner,
         runnerResult,
         runnerError,
       },
@@ -213,8 +220,8 @@ const route = async ({ command, options, versions, compose }) => {
       options,
       configFilePath,
       resolverManager,
-      authenticatedData: runner?.authenticatedData,
-      runner,
+      authenticatedData: eventRunner?.authenticatedData,
+      runner: eventRunner,
       error,
       compose,
       exitCode,
@@ -678,6 +685,27 @@ const finalize = async ({
   const accessKey =
     authenticatedData?.accessKeyV1 || authenticatedData?.accessKeyV2
 
+  // The analysis event is queued before any task starts, so once finalize gets
+  // past this point the run is reported exactly once, whatever the tasks do.
+  // A throw here leaves no task running and falls back to the error handler.
+  const analysisParams = {
+    authenticatedData,
+    orgId,
+    versionFramework,
+    command,
+    commandStartTime,
+    configFilePath,
+    runner,
+    compose,
+    resolverManager,
+    options,
+    runnerError,
+    runnerResult,
+    accessKey,
+    exitCode,
+  }
+  queueAnalysisEvent(analysisParams)
+
   const tasks = []
 
   // Task 1: Save deployment (if deploymentEvent exists)
@@ -694,53 +722,39 @@ const finalize = async ({
       accessKey,
     }),
   )
-  // Task 2: Publish usage and analysis events
-  tasks.push(
-    sendAnalysisAndUsageEvent({
-      authenticatedData,
-      orgId,
-      versionFramework,
-      command,
-      commandStartTime,
-      configFilePath,
-      runner,
-      compose,
-      resolverManager,
-      options,
-      runnerError,
-      runnerResult,
-      accessKey,
-      exitCode,
-    }),
-  )
+  // Task 2: Publish the usage event and every queued event
+  tasks.push(publishUsageAndQueuedEvents(analysisParams))
   // Task 3: Save meta information -- only for a service: without a config
   // file there is no service directory, and the record would land in
   // ./.serverless of wherever the command ran (keyed "unknown").
+  // The runner's metadata (the AWS account lookup among it) is read inside the
+  // task, so a failure there fails this task alone, not the whole finalize.
   if (configFilePath)
     tasks.push(
-      saveMeta({
-        logger,
-        metaObject: {
-          versionFramework,
-          servicePath: configFilePath,
-          serviceConfigFileName:
-            configFilePath && path.basename(configFilePath),
-          service: config,
-          provider: config?.provider,
-          dashboard: authenticatedData?.dashboard,
-          isWithinCompose: compose?.isWithinCompose,
-          composeOrgName: compose?.orgName,
-          error: runnerError,
-          serviceRawFile: configFileRaw,
-          command,
-          options,
-          orgId,
-          orgName: authenticatedData?.orgName,
-          userId: authenticatedData?.userId,
-          userName: authenticatedData?.userName,
-          ...(await runner.getMetadataToSave()),
-        },
-      }),
+      (async () =>
+        saveMeta({
+          logger,
+          metaObject: {
+            versionFramework,
+            servicePath: configFilePath,
+            serviceConfigFileName:
+              configFilePath && path.basename(configFilePath),
+            service: config,
+            provider: config?.provider,
+            dashboard: authenticatedData?.dashboard,
+            isWithinCompose: compose?.isWithinCompose,
+            composeOrgName: compose?.orgName,
+            error: runnerError,
+            serviceRawFile: configFileRaw,
+            command,
+            options,
+            orgId,
+            orgName: authenticatedData?.orgName,
+            userId: authenticatedData?.userId,
+            userName: authenticatedData?.userName,
+            ...(await runner.getMetadataToSave()),
+          },
+        }))(),
     )
 
   // Execute the specified tasks in parallel
@@ -757,7 +771,9 @@ const finalize = async ({
   })
 
   if (errors.length > 0) {
-    throw new Error(`Sending events failed: ${errors.join('\n')}`)
+    const error = new Error(`Sending events failed: ${errors.join('\n')}`)
+    error.analysisEventQueued = true
+    throw error
   }
 }
 
@@ -775,8 +791,12 @@ const handleFinalizationError = async ({
   exitCode,
 }) => {
   const logger = log.get('core:router:finalization-error-handler')
+  logger.debug('Error during finalization:', error)
+  // finalize already queued this run's analysis event: a failure in its own
+  // bookkeeping (metadata, deployment record, publishing) is not the run's
+  // outcome, and a second event would report the run twice.
+  if (error?.analysisEventQueued) return
   try {
-    logger.debug('Error during finalization:', error)
     const analysisEvent = createAnalysisEvent({
       licenseKey: authenticatedData?.accessKeyV2,
       orgId: authenticatedData?.orgId,
@@ -859,7 +879,13 @@ async function sendDeploymentEvent({
   }
 }
 
-async function sendAnalysisAndUsageEvent({
+async function sendAnalysisAndUsageEvent(params) {
+  queueAnalysisEvent(params)
+  await publishUsageAndQueuedEvents(params)
+}
+
+/** Adds the run's analysis event to the batch the next publish sends. */
+function queueAnalysisEvent({
   authenticatedData,
   orgId,
   versionFramework,
@@ -871,11 +897,8 @@ async function sendAnalysisAndUsageEvent({
   resolverManager,
   options,
   runnerError,
-  runnerResult,
-  accessKey,
   exitCode,
 }) {
-  // Create analysis event
   const analysisEvent = createAnalysisEvent({
     licenseKey: authenticatedData?.accessKeyV2,
     orgId,
@@ -903,7 +926,19 @@ async function sendAnalysisAndUsageEvent({
       event: analysisEvent,
     })
   }
+}
 
+/** Adds the usage event of a successful run, then publishes every queued event. */
+async function publishUsageAndQueuedEvents({
+  authenticatedData,
+  orgId,
+  versionFramework,
+  command,
+  runner,
+  runnerError,
+  runnerResult,
+  accessKey,
+}) {
   // Create usage event if no error
   if (!runnerError) {
     // Ensure authenticated data is available
@@ -952,4 +987,4 @@ async function sendAnalysisAndUsageEvent({
   }
 }
 
-export { route }
+export { route, finalize, handleFinalizationError }
