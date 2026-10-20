@@ -365,7 +365,7 @@ webApps:
 
 A web app's environment is `provider.environment` merged with its own `environment`. Values can be strings or CloudFormation references (`!Ref`, `!GetAtt`, `!ImportValue`, `!Sub`) resolved when the stack deploys.
 
-Names that Lambda sets itself, such as `AWS_REGION` and `AWS_LAMBDA_HTTP_ENDPOINT`, can't be set, and neither can `PORT`, `HOSTNAME` and `AWS_LAMBDA_NODEJS_ENTRYPOINT`, which the Framework sets. When `provider.environment` sets one of the Framework's three, the web app gets the Framework's value. The exception is a web app with a [prebuilt zip](#prebuilt-zip): it has no start file, so `PORT` and `HOSTNAME` from `provider.environment` reach it unchanged. Each value can be up to 4,096 characters and all of them together up to 32 KB; the Framework checks literal values when you package.
+Names that Lambda sets itself, such as `AWS_REGION` and `AWS_LAMBDA_HTTP_ENDPOINT`, can't be set, and neither can `PORT`, `HOSTNAME` and `AWS_LAMBDA_NODEJS_ENTRYPOINT`, which the Framework sets. When `provider.environment` sets one of the Framework's three, the web app gets the Framework's value. The exception is a web app with a [prebuilt zip](#prebuilt-zip): the Framework adds no start file to the zip, so `PORT` and `HOSTNAME` from `provider.environment` reach the app unchanged. Each value can be up to 4,096 characters and all of them together up to 32 KB; the Framework checks literal values when you package.
 
 ### IAM
 
