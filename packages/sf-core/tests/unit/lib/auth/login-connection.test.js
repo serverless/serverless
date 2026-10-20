@@ -1,3 +1,6 @@
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import { jest } from '@jest/globals'
 
 // A stand-in for the login broker's WebSocket: the test drives its events.
@@ -79,6 +82,12 @@ describe('loginViaBrowser through a proxy', () => {
     'https_proxy',
     'NO_PROXY',
     'no_proxy',
+    'ca',
+    'HTTPS_CA',
+    'https_ca',
+    'cafile',
+    'HTTPS_CAFILE',
+    'https_cafile',
   ]
   const savedEnv = {}
 
@@ -122,5 +131,30 @@ describe('loginViaBrowser through a proxy', () => {
     process.env.HTTPS_PROXY = 'http://s:2'
     process.env.NO_PROXY = '.serverless.com'
     expect(await socketAgent()).toBeUndefined()
+  })
+
+  // The CA settings keep the formats the direct connection accepts: a comma-separated HTTPS_CA
+  // with escaped newlines, and a comma-separated list of HTTPS_CAFILE paths.
+  it('gives the proxy connection every CA from a comma-separated HTTPS_CA', async () => {
+    process.env.HTTPS_PROXY = 'https://s:2'
+    process.env.HTTPS_CA = 'first\\ncert,second\\ncert'
+    const agent = await socketAgent()
+    expect(agent.connectOpts.ca).toEqual(['first\ncert', 'second\ncert'])
+  })
+
+  it('gives the proxy connection every file from a comma-separated HTTPS_CAFILE', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'login-ca-'))
+    try {
+      const first = path.join(dir, 'first.pem')
+      const second = path.join(dir, 'second.pem')
+      fs.writeFileSync(first, 'first cert')
+      fs.writeFileSync(second, 'second cert')
+      process.env.HTTPS_PROXY = 'https://s:2'
+      process.env.HTTPS_CAFILE = `${first}, ${second}`
+      const agent = await socketAgent()
+      expect(agent.connectOpts.ca).toEqual(['first cert', 'second cert'])
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true })
+    }
   })
 })

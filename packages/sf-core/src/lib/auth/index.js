@@ -1641,11 +1641,6 @@ const canRunOpenOnLinux = () => {
  * environments or when dealing with self-signed certificates.
  */
 const getAgent = async (url) => {
-  // Through a proxy, the proxy and its CA are chosen as for the AWS SDK clients, and NO_PROXY
-  // applies.
-  const proxyAgent = getProxyAgent(url)
-  if (proxyAgent) return proxyAgent
-
   const agentOptions = {}
 
   let caCerts = []
@@ -1668,6 +1663,11 @@ const getAgent = async (url) => {
   if (caCerts.length > 0) {
     agentOptions.ca = caCerts
   }
+
+  // Through a proxy, the proxy is chosen as for the AWS SDK clients, and NO_PROXY applies. The CA
+  // read above, in the formats accepted here, is used for the connection to the proxy.
+  const proxyAgent = getProxyAgent(url, { agentOptions })
+  if (proxyAgent) return proxyAgent
 
   if (agentOptions.ca) {
     return new https.Agent(agentOptions)
