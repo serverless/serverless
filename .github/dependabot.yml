@@ -5,14 +5,27 @@
 
 version: 2
 updates:
-  # Maintain NPM dependencies across the workspace and the standalone packages
-  # (framework-dist, sf-core-installer) that are excluded from the workspace.
+  # Maintain NPM dependencies across the workspace, the standalone packages
+  # (framework-dist, sf-core-installer) that are excluded from the workspace,
+  # and the test fixtures, which stand in for users' own projects.
   # Using `directories` keeps version bumps in sync across all manifests.
+  # packages/sf-core/tests/unit/dependabot-coverage.test.js fails when a
+  # manifest with dependencies is missing here.
   - package-ecosystem: 'npm'
     directories:
       - '/'
       - '/packages/framework-dist'
       - '/packages/sf-core-installer'
+      - '/packages/sf-core/tests/integration/dev-mode/fixture-mcp'
+      - '/packages/sf-core/tests/integration/esbuild/bundling-on/fixture'
+      - '/packages/sf-core/tests/integration/esbuild/js-config/fixture'
+      - '/packages/sf-core/tests/integration/esbuild/type-module/fixture'
+      - '/packages/sf-core/tests/integration/esbuild/zero-config/fixture'
+      - '/packages/sf-core/tests/integration/mcp/fixture'
+      - '/packages/sf-core/tests/integration/mcp/fixture-auth'
+      - '/packages/sf-core/tests/integration/web-apps/fixture'
+      - '/packages/sf-core/tests/python/tests/mixed_runtime_shared'
+      - '/packages/sf-core/tests/python/tests/scaleway_provider'
     schedule:
       interval: 'weekly'
     versioning-strategy: increase
@@ -22,6 +35,20 @@ updates:
       semver-minor-days: 7
       semver-patch-days: 3
     groups:
+      # A dependency joins the first group it matches. These groups come first and
+      # carry no dependency-type or update-types filter, so each one bumps its
+      # dependency in every directory in one pull request, whether a manifest lists
+      # it as a dependency or a devDependency. dependabot-coverage.test.js keeps
+      # them at one version.
+      mcp-sdk:
+        patterns:
+          - '@modelcontextprotocol/*'
+      esbuild:
+        patterns:
+          - 'esbuild'
+      undici:
+        patterns:
+          - 'undici'
       aws-sdk:
         patterns:
           - '@aws-sdk/*'
@@ -105,6 +132,10 @@ updates:
       semver-major-days: 30
       semver-minor-days: 7
       semver-patch-days: 3
+    groups:
+      binary-installer:
+        patterns:
+          - '*'
 
   # Maintain the Dev Mode bridge's Go dependencies. Every bump changes the layer zips (and so
   # publishes a new layer version in users' accounts), so they are grouped into one update.
@@ -123,7 +154,8 @@ updates:
         patterns:
           - '*'
 
-  # Maintain Maven dependencies for Java runtime wrapper
+  # Maintain Maven dependencies for Java runtime wrapper. Grouped so the Jackson
+  # artifacts, which are released together, move in one update.
   - package-ecosystem: 'maven'
     directory: '/packages/serverless/lib/plugins/aws/invoke-local/runtime-wrappers/java'
     schedule:
@@ -133,6 +165,97 @@ updates:
       semver-major-days: 30
       semver-minor-days: 7
       semver-patch-days: 3
+    groups:
+      java-runtime-wrapper:
+        patterns:
+          - '*'
+
+  # Maintain the Python plugin's test fixtures. Each fixture stands in for a
+  # user's project, so they follow current releases; versions are not asserted
+  # by the tests. pip covers requirements files, Pipenv and Poetry; directories
+  # with a uv.lock belong to the uv entry below, which updates the lockfile with
+  # pyproject.toml. dependabot-coverage.test.js keeps both lists complete.
+  - package-ecosystem: 'pip'
+    directories:
+      - '/packages/sf-core/tests/python/tests/base'
+      - '/packages/sf-core/tests/python/tests/base/fn2'
+      - '/packages/sf-core/tests/python/tests/function_level_individually_all_individual/module1'
+      - '/packages/sf-core/tests/python/tests/function_level_individually_all_individual/module2'
+      - '/packages/sf-core/tests/python/tests/function_level_individually_basic'
+      - '/packages/sf-core/tests/python/tests/function_level_individually_mixed_pkg'
+      - '/packages/sf-core/tests/python/tests/function_level_individually_mixed_rt'
+      - '/packages/sf-core/tests/python/tests/function_level_individually_multiple'
+      - '/packages/sf-core/tests/python/tests/function_level_individually_override'
+      - '/packages/sf-core/tests/python/tests/function_level_individually_slim'
+      - '/packages/sf-core/tests/python/tests/function_level_individually_subdirs/module1'
+      - '/packages/sf-core/tests/python/tests/function_level_individually_subdirs/module2'
+      - '/packages/sf-core/tests/python/tests/function_level_individually_zip_basic'
+      - '/packages/sf-core/tests/python/tests/function_level_individually_zip_mixed'
+      - '/packages/sf-core/tests/python/tests/individually'
+      - '/packages/sf-core/tests/python/tests/individually/module1'
+      - '/packages/sf-core/tests/python/tests/individually/module2'
+      - '/packages/sf-core/tests/python/tests/individually_mixed_runtime'
+      - '/packages/sf-core/tests/python/tests/individually_mixed_runtime/module2'
+      - '/packages/sf-core/tests/python/tests/layer_only'
+      - '/packages/sf-core/tests/python/tests/missing_custom_block'
+      - '/packages/sf-core/tests/python/tests/missing_custom_block_disabled'
+      - '/packages/sf-core/tests/python/tests/mixed_runtime_shared'
+      - '/packages/sf-core/tests/python/tests/non_build_pyproject'
+      - '/packages/sf-core/tests/python/tests/pipenv'
+      - '/packages/sf-core/tests/python/tests/poetry'
+      - '/packages/sf-core/tests/python/tests/poetry_individually/module1'
+      - '/packages/sf-core/tests/python/tests/poetry_packages'
+      - '/packages/sf-core/tests/python/tests/scaleway_provider'
+    schedule:
+      interval: 'monthly'
+    cooldown:
+      default-days: 5
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
+    groups:
+      python-fixtures:
+        patterns:
+          - '*'
+
+  - package-ecosystem: 'uv'
+    directories:
+      - '/packages/sf-core/tests/python/tests/non_build_uv'
+      - '/packages/sf-core/tests/python/tests/uv'
+      - '/packages/sf-core/tests/python/tests/uv_installer'
+      - '/packages/sf-core/tests/python/tests/uv_local_package'
+      - '/packages/sf-core/tests/python/tests/uv_only_groups'
+      - '/packages/sf-core/tests/python/tests/uv_optional_dependencies'
+      - '/packages/sf-core/tests/python/tests/uv_optional_groups'
+      - '/packages/sf-core/tests/python/tests/uv_path_dependency'
+      - '/packages/sf-core/tests/python/tests/uv_with_without_groups'
+    schedule:
+      interval: 'monthly'
+    cooldown:
+      default-days: 5
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
+    groups:
+      uv-fixtures:
+        patterns:
+          - '*'
+
+  # Maintain the base images of test fixtures
+  - package-ecosystem: 'docker'
+    directories:
+      - '/packages/sf-core/tests/integration/sandboxes/fixture/app'
+    schedule:
+      interval: 'monthly'
+    cooldown:
+      default-days: 5
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
+    groups:
+      fixture-images:
+        patterns:
+          - '*'
 
   # Maintain GitHub Actions
   - package-ecosystem: 'github-actions'
