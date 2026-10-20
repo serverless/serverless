@@ -23,7 +23,7 @@ jest.unstable_mockModule('@serverless/util', () => ({
   style: {
     bold: Object.assign((s) => s, { underline: (s) => s }),
   },
-  getProxyDispatcher: () => undefined,
+  fetchWithProxy: (...args) => global.fetch(...args),
   addProxyToAwsClient: (client) => client,
 }))
 

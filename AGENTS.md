@@ -112,12 +112,14 @@ npm test -w @serverless/mcp                          # mcp unit + e2e tests (CI 
 npm test -w @serverless/engine                       # engine unit tests
 npm run test:python -w @serverlessinc/sf-core        # python plugin tests
 npm run test:build -w @serverlessinc/sf-core         # build + pack the release locally, then run the packaging checks
+npm run test:e2e:proxy -w @serverlessinc/sf-core     # CLI from source through a local proxy (needs SERVERLESS_ACCESS_KEY_DEV + AWS credentials)
+packages/sf-core/tests/e2e/proxy-only-network.sh     # the same in a Docker network whose only way out is a proxy, on Node.js 24 and 26
 cd binary-installer && go test ./... && make build-prod   # Go installer
 cd binary-installer && make test-e2e                     # Go installer end to end: real downloads, needs node
 cd dev-mode-bridge && go vet ./... && go test -race ./... && make vuln   # Dev Mode bridge (wrapper tests need bash >= 4 and curl)
 ```
 
-The CI python job is path-filtered (runs only when python plugin paths change) — failures can sit unnoticed on main until a PR touches those paths. `packages/util` has no tests at all: util changes are exercised only through its consumers' suites.
+The CI python job is path-filtered (runs only when python plugin paths change) — failures can sit unnoticed on main until a PR touches those paths. `packages/util` has no test suite of its own: its tests live in `packages/serverless/test/unit/lib/util/` (the proxy helpers), and the rest of util is exercised only through its consumers' suites.
 
 ### Testing CLI Behavior Headlessly
 
@@ -145,7 +147,7 @@ Commit `skills/manifest.json` alongside. Aux files are never deleted from user i
 
 CI runs on pull requests targeting `main`, on Node.js 24.x. The framework unit tests also run on Node.js 26.x, as do the ARM Linux integration legs in release and `all-platforms` runs:
 
-- **CI: Framework CLI** — Lint, Test: Engine, Test: Release Package (builds and packs the release package, then runs the packaging checks), and the unit and integration tests from the shared `.github/workflows/test-framework.yml`: one integration leg per test account, sharded by `packages/sf-core/tests/integration/shards.json`, plus a leg for the resolvers suite. Runs on Linux; a manual dispatch with `all-platforms` also runs ARM Linux and Windows. Skipped entirely for docs-only changes (`paths-ignore: docs/**`) and for draft PRs.
+- **CI: Framework CLI** — Lint, Test: Engine, Test: Release Package (builds and packs the release package, then runs the packaging checks), and the unit and integration tests from the shared `.github/workflows/test-framework.yml`: one integration leg per test account, sharded by `packages/sf-core/tests/integration/shards.json`, plus a leg for the resolvers suite, and E2E: proxy-only network (`packages/sf-core/tests/e2e/proxy-only-network.sh`: the CLI from source on Node.js 24 and 26 in a Docker network whose only way out is a proxy). Runs on Linux; a manual dispatch with `all-platforms` also runs ARM Linux and Windows. Skipped entirely for docs-only changes (`paths-ignore: docs/**`) and for draft PRs.
 - **CI: Binary Installer** — Go unit tests and an end-to-end suite (`binary-installer/e2e`, parallel first runs against real releases) on Linux, macOS, and Windows, plus the production build; runs only when `binary-installer/**` changes
 - **Cleanup: Test Accounts** — nightly, on the main repository only: reports integration-test stacks, state-bucket keys and Dev Mode test resources (suffixed broker roles and layers, payload objects under `serverless-dev-mode/`) left behind in each test account by interrupted runs (`packages/sf-core/scripts/test-account-cleanup/`). A dry run; it deletes nothing yet.
 - **CI: NPM Installer** — `packages/sf-core-installer` tests on Linux, macOS and Windows × Node.js 18, 24 and the latest release, failing on any Node.js deprecation; runs when that package changes and weekly, because a new Node.js release can break the npm install path with no change in this repository. Its end-to-end jobs (`npm run test:e2e` in that package; needs internet) install the packed package from a local registry with npm, pnpm, Yarn and Bun, directly and through proxies, and once more in a Docker network whose only way out is a proxy (`tests/e2e/proxy-only-network.sh`)
