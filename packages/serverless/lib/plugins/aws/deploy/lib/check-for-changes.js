@@ -386,6 +386,11 @@ export default {
    * update, such as a rejected template or change set). Uses the status and
    * time `createStack` read from describeStacks.
    *
+   * S3 reports LastModified in whole seconds, up to a second after the write,
+   * so an upload made in the same second the stack update started can look
+   * newer than it. An object counts as newer only when even the earliest write
+   * time its LastModified allows is at or after the stack time.
+   *
    * Known cost: a deploy that changes only the state file is a CloudFormation
    * no-op, so the stack time does not move past its upload, and later
    * unchanged deploys keep redeploying until a real stack update moves it.
@@ -398,7 +403,9 @@ export default {
     if (Number.isNaN(stackUpdatedAt.getTime())) return true
     return objects.some(
       (object) =>
-        object.LastModified && new Date(object.LastModified) > stackUpdatedAt,
+        object.LastModified &&
+        new Date(object.LastModified).getTime() - 1000 >=
+          stackUpdatedAt.getTime(),
     )
   },
 
