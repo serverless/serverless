@@ -5,11 +5,17 @@ import { jest } from '@jest/globals'
 
 // A stand-in for the login broker's WebSocket: the test drives its events.
 class FakeSocket {
-  static last = null
+  static opened
+  static #resolveOpened
+  static reset() {
+    FakeSocket.opened = new Promise((resolve) => {
+      FakeSocket.#resolveOpened = resolve
+    })
+  }
   constructor(url, protocols, options) {
     this.url = url
     this.options = options
-    FakeSocket.last = this
+    FakeSocket.#resolveOpened(this)
   }
   send() {}
   close() {}
@@ -18,13 +24,9 @@ jest.unstable_mockModule('ws', () => ({ default: FakeSocket }))
 
 const { Authentication } = await import('../../../../src/lib/auth/index.js')
 
-// loginViaBrowser opens the socket after two awaits; wait until it exists.
-const openedSocket = async () => {
-  for (let i = 0; i < 50 && !FakeSocket.last; i++) {
-    await new Promise((resolve) => setImmediate(resolve))
-  }
-  return FakeSocket.last
-}
+// loginViaBrowser opens the socket only after its awaits settle, which include reading the CA
+// files, so a fixed number of event-loop turns isn't enough: wait for the socket itself.
+const openedSocket = () => FakeSocket.opened
 
 const ready = (socket) =>
   socket.onmessage({
@@ -35,7 +37,7 @@ const ready = (socket) =>
 // connection ended early, and the process then exited 0 without an error.
 describe('loginViaBrowser when the connection ends early', () => {
   beforeEach(() => {
-    FakeSocket.last = null
+    FakeSocket.reset()
   })
 
   it('fails the sign-in when the connection closes before the URL', async () => {
@@ -92,7 +94,7 @@ describe('loginViaBrowser through a proxy', () => {
   const savedEnv = {}
 
   beforeEach(() => {
-    FakeSocket.last = null
+    FakeSocket.reset()
     for (const name of PROXY_VARS) {
       savedEnv[name] = process.env[name]
       delete process.env[name]
