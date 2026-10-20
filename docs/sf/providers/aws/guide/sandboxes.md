@@ -126,7 +126,7 @@ The S3 key is content-addressed: re-deploying without changing the selected file
 The zip holds every file in the artifact directory except:
 
 - anything named `node_modules`, `.venv`, `venv`, `__pycache__`, `.pytest_cache` or `.mypy_cache`, at any depth (local dependencies and caches), including a plain file with one of these names. Names that only start with them, such as `node_modules.txt` or `node_modules_backup/`, are kept;
-- the [default exclusions](./packaging.md#patterns) of function packaging (`.git`, `.serverless`, the service configuration file, `.env*` with `useDotenv`, …). As for functions, they are matched from the service directory, so they only reach the artifact when it is the service directory (`artifact: .`). In an artifact subdirectory such as `./app`, a `.git` directory, an `.env` file or a `.DS_Store` is included unless a pattern excludes it (`'!app/.env*'`).
+- the [default exclusions](./packaging.md#patterns) of function packaging (`.git`, `.serverless`, the service configuration file, `.env*` with `useDotenv`, …). As for functions, they are matched from the service directory, so they only reach the artifact when it is the service directory (`artifact: .`). In an artifact subdirectory such as `./app`, a `.git` directory, an `.env` file or a `.DS_Store` is included unless a pattern excludes it (`'!app/**/.env*'`).
 
 The image is built on ARM64 by your `Dockerfile`, which installs dependencies itself (for example with `npm ci` or `pip install`). Dependencies installed on your machine are built for its platform, a virtualenv only works on the machine that created it, and a `COPY . .` would overwrite the dependencies the build installed. They also change the content hash, so every local install would rebuild the image.
 
@@ -159,7 +159,7 @@ sandboxes:
           - 'app/**'
           - '!app/**/node_modules/**'
           - '!app/**/.venv/**'
-          - '!app/.env*'
+          - '!app/**/.env*' # .env files at any depth, app/.env included
   ```
 
 - For an artifact directory outside the service directory (`artifact: ../shared/app`), write the `../` path in the pattern (`'!../shared/app/tests/**'`): as for functions, `**` doesn't match paths that start with `../`. The default exclusions apply wherever the directory is.
