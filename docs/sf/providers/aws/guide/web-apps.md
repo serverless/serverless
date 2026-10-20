@@ -452,7 +452,7 @@ A hostname serves either web apps or API Gateway APIs. A hostname that already e
 ### What the web app sees behind CloudFront
 
 - Every request reaches the web app: responses aren't cached, all HTTP methods are allowed, and headers (other than `Host`), cookies and query strings are forwarded, including `Authorization`. HTTP requests are redirected to HTTPS.
-- `Host` is the web app's endpoint domain. The public hostname arrives in `X-Forwarded-Host`, which CloudFront sets and viewers can't override; use it to build absolute URLs and redirects.
+- `Host` is the web app's endpoint domain. The public hostname arrives in `X-Forwarded-Host`, which CloudFront sets and viewers can't override; use it to build absolute URLs and redirects. Requests that reach the endpoint directly, such as those from `serverless invoke --web-app`, don't pass through CloudFront and carry no `X-Forwarded-Host`, so fall back to a configured base URL when the header is absent.
 - The endpoint requires signed requests, so anonymous callers can't bypass the domain: CloudFront signs the requests it forwards, and an unsigned request to the endpoint gets HTTP 403. IAM identities in your account that are allowed to invoke the web app can still call the endpoint directly, which is how `serverless invoke --web-app` reaches it.
 - A web app behind a domain can't set `url.authorizer`. Authenticate users in your app, for example with a session cookie or a bearer token.
 

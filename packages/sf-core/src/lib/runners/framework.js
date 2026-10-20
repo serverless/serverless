@@ -555,9 +555,19 @@ export class TraditionalRunner extends Runner {
   }
 
   async getMetadataToSave() {
-    const credentials = this.getAwsDeploymentCredentials
-      ? await this.getAwsDeploymentCredentials()
-      : null
+    // Best effort: commands that need no AWS access (print, invoke local)
+    // still save their metadata when the account cannot be resolved. The
+    // resolver of a failed account lookup throws synchronously.
+    let credentials = null
+    try {
+      credentials = this.getAwsDeploymentCredentials
+        ? await this.getAwsDeploymentCredentials()
+        : null
+    } catch (err) {
+      log
+        .get('core:runner:metadata')
+        .debug('error resolving AWS account for metadata', err)
+    }
 
     return {
       serviceProviderAwsAccountId: credentials?.accountId,
