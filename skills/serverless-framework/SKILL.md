@@ -11,7 +11,7 @@ description: >-
   and the rest).
 metadata:
   managed-by: serverless-framework
-  version: '3'
+  version: '4'
   scope: user
   author: Serverless Inc.
 ---

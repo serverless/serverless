@@ -4,8 +4,8 @@
     "hash": "774e180426c86c7ce645e6749c1ceb29b48a653a88997e07d6ed5b54798fa06e"
   },
   "serverless-framework": {
-    "version": 3,
-    "hash": "5f602ce720384740c628c3ae4ea25428095ee2ae67b8600d97c4a9b655ae453b"
+    "version": 4,
+    "hash": "a834907107257b127a63708ff58e138f489fe309472b76dd748d59d7cfcde793"
   },
   "serverless-mcp": {
     "version": 4,

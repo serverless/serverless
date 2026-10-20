@@ -132,8 +132,10 @@ the hostname in us-east-1 (the deploy finds it by hostname, or set
 `certificateArn`). After the deploy, point a CNAME at the
 `<Hostname>CloudFrontDistributionDomainName` output of
 `serverless info --verbose` (the hostname in lower case with `Dot` for each
-dot: `ShopDotexampleDotcomCloudFrontDistributionDomainName` for
-`shop.example.com`); `serverless deploy` lists only the hostname.
+`.` and `Dash` for each `-`, starting with a capital letter:
+`ShopDotexampleDotcomCloudFrontDistributionDomainName` for `shop.example.com`,
+`MyDashshopDotexampleDotcomCloudFrontDistributionDomainName` for
+`my-shop.example.com`); `serverless deploy` lists only the hostname.
 
 A hostname can belong to only one CloudFront distribution, so set the domain
 for the stage that serves it (for example through `stages.prod.params`) and

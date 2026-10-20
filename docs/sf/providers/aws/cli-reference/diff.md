@@ -119,6 +119,8 @@ Resources
 
 A web app's zip is stored under a name derived from its content, so changed code gives the web app's revision a new code location, and the deploy creates a new revision. A web app whose code is unchanged is not listed; when none changed, the command prints `No web app code changes`.
 
+A JavaScript web app that isn't bundled is zipped together with the service directory, so editing a file changes the zip of every such web app that includes the file, and each of them is listed. Set `package.patterns` on each web app to keep only its own files in its zip; see [Packaging](../guide/web-apps.md#packaging).
+
 ### Replacement (resource will be destroyed and recreated)
 
 ```text
