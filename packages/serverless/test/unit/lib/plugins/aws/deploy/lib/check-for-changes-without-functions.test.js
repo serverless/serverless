@@ -180,6 +180,33 @@ describe('checkIfDeploymentIsNecessary for a service without functions', () => {
     expect(ctx.serverless.service.provider.shouldNotDeploy).toBe(false)
   })
 
+  it('skips when the stack update started in the second S3 reports for the upload', async () => {
+    // Uploaded at 00:00:00.4, reported by S3 as 00:00:01; the stack update
+    // started at 00:00:00.784.
+    fs.writeFileSync(path.join(serverlessDir, 'webapps', 'api-aaa.zip'), 'x')
+    const ctx = buildCtx({
+      stackStatus: 'CREATE_COMPLETE',
+      stackLastUpdatedTime: new Date('2026-10-15T00:00:00.784Z'),
+    })
+
+    await ctx.checkIfDeploymentIsNecessary(remoteObjects(), null)
+
+    expect(ctx.serverless.service.provider.shouldNotDeploy).toBe(true)
+  })
+
+  it('deploys when an object was written after the second the stack update started', async () => {
+    // LastModified 00:00:01 means a write after 00:00:00, the stack time.
+    fs.writeFileSync(path.join(serverlessDir, 'webapps', 'api-aaa.zip'), 'x')
+    const ctx = buildCtx({
+      stackStatus: 'UPDATE_COMPLETE',
+      stackLastUpdatedTime: new Date('2026-10-15T00:00:00.000Z'),
+    })
+
+    await ctx.checkIfDeploymentIsNecessary(remoteObjects(), null)
+
+    expect(ctx.serverless.service.provider.shouldNotDeploy).toBe(false)
+  })
+
   it('compares a stack time given as a string', async () => {
     fs.writeFileSync(path.join(serverlessDir, 'webapps', 'api-aaa.zip'), 'x')
     const ctx = buildCtx({
