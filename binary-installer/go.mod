@@ -1,6 +1,6 @@
 module sf-core
 
-go 1.27.2
+go 1.27.3
 
 require (
 	github.com/Masterminds/semver v1.5.0
