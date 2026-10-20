@@ -14,9 +14,11 @@ starts an SDK-compatible MicroVMs API emulator on your machine — the endpoint
 it prints (default `http://127.0.0.1:9100`, override with `--port`) speaks
 the same `RunMicrovm` / `CreateMicrovmAuthToken` / `SuspendMicrovm` /
 `ResumeMicrovm` / `TerminateMicrovm` calls as the real Lambda MicroVMs
-control plane. It watches the artifact directory and
-rebuilds automatically on change, and each instance you launch runs as a
-local Docker container rather than a real Firecracker VM.
+control plane. It builds from the same files a deploy uploads (the
+sandbox's `package.patterns` and default exclusions; `.dockerignore` applies
+too), watches the artifact directory and rebuilds automatically on change, and
+each instance you launch runs as a local Docker container rather than a real
+Firecracker VM.
 
 `s3://` artifacts are not supported in dev — the command needs local source
 (a directory containing a `Dockerfile`) to build and rebuild against. Point

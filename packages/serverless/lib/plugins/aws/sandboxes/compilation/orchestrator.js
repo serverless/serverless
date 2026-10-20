@@ -151,6 +151,7 @@ export async function orchestrate({
       stage,
       name,
       serviceDir,
+      serverless,
       zipDir: _zipDir,
     })
 

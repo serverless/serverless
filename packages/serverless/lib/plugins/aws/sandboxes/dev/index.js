@@ -1,6 +1,7 @@
 'use strict'
 
 import path from 'path'
+import os from 'os'
 import fs from 'fs'
 import chokidar from 'chokidar'
 import { DockerClient } from '@serverless/util/src/docker/index.js'
@@ -10,6 +11,20 @@ import {
   shortMicrovmId,
 } from './api-emulator/container-logs.js'
 import ServerlessError from '../../../../serverless-error.js'
+import {
+  resolveSandboxPatterns,
+  SANDBOX_DEFAULT_EXCLUDE_DIRS,
+  selectSandboxFiles,
+} from '../packaging/files.js'
+
+// Directories whose changes never rebuild the image: the build output, git
+// metadata, coverage reports and the directories a sandbox artifact leaves out.
+const WATCH_EXCLUDED_DIRS = [
+  '.serverless',
+  '.git',
+  'coverage',
+  ...SANDBOX_DEFAULT_EXCLUDE_DIRS,
+].map((dir) => `/${dir}/`)
 
 class SandboxesDevMode {
   constructor(serverless, options, pluginUtils, deps = {}) {
@@ -23,6 +38,9 @@ class SandboxesDevMode {
     this.createWatcher =
       deps.createWatcher || ((p, opts) => chokidar.watch(p, opts))
     this.sleep = deps.sleep || ((ms) => new Promise((r) => setTimeout(r, ms)))
+    this.stageBuildContext =
+      deps.stageBuildContext || (() => this.defaultStageBuildContext())
+    this.buildContextDir = null
     this.createIamEmulation = deps.createIamEmulation || null
     this.startControlPlane =
       deps.startControlPlane ||
@@ -433,20 +451,62 @@ class SandboxesDevMode {
     }
   }
 
+  /**
+   * Copy the files a deploy zips for this sandbox (its package patterns and
+   * the defaults) into a fresh temporary directory and return its path, so the
+   * local image is built from the same files as the deployed one. A directory
+   * rather than a tar on stdin: Docker applies the artifact's .dockerignore
+   * only to a directory context, as the deployed image build does.
+   */
+  defaultStageBuildContext() {
+    const { contextPath, cfg } = this.ctx
+    const files = selectSandboxFiles(contextPath, {
+      serviceDir: path.resolve(this.serverless.serviceDir || '.'),
+      ...resolveSandboxPatterns(this.serverless, cfg),
+    })
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sls-sandbox-dev-'))
+    try {
+      for (const file of files) {
+        const target = path.join(dir, file)
+        fs.mkdirSync(path.dirname(target), { recursive: true })
+        fs.copyFileSync(path.join(contextPath, file), target)
+      }
+    } catch (error) {
+      // A file can vanish between selection and copy (an editor's atomic
+      // save); build() never learns this directory, so remove it here.
+      fs.rmSync(dir, { recursive: true, force: true })
+      throw error
+    }
+    return dir
+  }
+
   async build() {
     this.progress?.notice?.(`Building sandbox image for "${this.ctx.name}"`)
-    await this.docker.buildImage({
-      containerName: this.ctx.containerName,
-      containerPath: this.ctx.contextPath,
-      imageUri: this.ctx.imageUri,
-      platform: this.ctx.platform,
-    })
+    // Tracked so a shutdown during the build removes it too.
+    this.buildContextDir = await this.stageBuildContext()
+    try {
+      await this.docker.buildImage({
+        containerName: this.ctx.containerName,
+        containerPath: this.buildContextDir,
+        imageUri: this.ctx.imageUri,
+        platform: this.ctx.platform,
+      })
+    } finally {
+      this.removeBuildContext()
+    }
+  }
+
+  removeBuildContext() {
+    if (!this.buildContextDir) return
+    fs.rmSync(this.buildContextDir, { recursive: true, force: true })
+    this.buildContextDir = null
   }
 
   async shutdown() {
     if (this.shuttingDown) return
     this.shuttingDown = true
     if (this.watcher) await this.watcher.close().catch(() => {})
+    this.removeBuildContext()
     let terminated = 0
     if (this.controlPlane)
       terminated = (await this.controlPlane.shutdown().catch(() => 0)) || 0
@@ -493,6 +553,8 @@ class SandboxesDevMode {
       )
     } catch (err) {
       this.progress?.remove?.()
+      // Stopping mid-build removes the build context; that failure is expected.
+      if (this.shuttingDown) return
       // Previous container keeps running; the loop survives.
       this.logger.error(`↻ rebuild failed: ${err.message}`)
     } finally {
@@ -508,18 +570,7 @@ class SandboxesDevMode {
     // chokidar reports OS-native separators; normalize to '/' so the directory
     // matches below work on Windows (where paths use '\') too.
     const p = filePath.replace(/\\/g, '/')
-    const EXCLUDED = [
-      '/.serverless/',
-      '/node_modules/',
-      '/.git/',
-      '/__pycache__/',
-      '/.venv/',
-      '/venv/',
-      '/.pytest_cache/',
-      '/.mypy_cache/',
-      '/coverage/',
-    ]
-    if (EXCLUDED.some((dir) => p.includes(dir))) return true
+    if (WATCH_EXCLUDED_DIRS.some((dir) => p.includes(dir))) return true
     if (
       stats?.isFile() &&
       (p.endsWith('.test.js') ||

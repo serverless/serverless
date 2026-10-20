@@ -11,7 +11,7 @@ description: >-
   Framework" nor "sandbox" but describes an isolated AWS execution environment.
 metadata:
   managed-by: serverless-framework
-  version: '3'
+  version: '4'
   author: Serverless Inc.
 ---
 
@@ -88,7 +88,14 @@ it relies on its own process exit to terminate immediately, or on
 
 **Rebuilds follow the artifact.** Changing the uploaded zip or Dockerfile
 content triggers a new image build; deploying with no artifact change is
-skipped as a no-op.
+skipped as a no-op. The zip leaves out `node_modules`, `.venv`, `venv`,
+`__pycache__`, `.pytest_cache` and `.mypy_cache` at any depth; the
+Dockerfile installs dependencies. The function packaging defaults (`.git`,
+`.env*` with `useDotenv`, …) match from the service directory, so they reach
+the artifact only for `artifact: .` — exclude `app/.env*` and similar with a
+pattern.
+`package.patterns` select files as for a function
+([references/config.md](references/config.md)).
 
 **Auth failures are not retry loops.** Never loop on a failed sign-in or AWS
 credentials error; the `serverless-framework` skill (`references/cli.md`)

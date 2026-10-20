@@ -143,6 +143,40 @@ describe('computeCodeArtifact', () => {
     expect(Buffer.isBuffer(r.zipBuffer)).toBe(true)
   })
 
+  test('zips only the files the package patterns select (no zipDir stub)', async () => {
+    const serviceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sbx-patterns-'))
+    for (const file of [
+      'Dockerfile',
+      'serverless.yml',
+      'src/server.mjs',
+      'src/test.spec.mjs',
+      '.git/HEAD',
+      'node_modules/a/index.js',
+      'venv/bin/python',
+    ]) {
+      fs.mkdirSync(path.dirname(path.join(serviceDir, file)), {
+        recursive: true,
+      })
+      fs.writeFileSync(path.join(serviceDir, file), file)
+    }
+    const serverless = {
+      configurationFilename: 'serverless.yml',
+      configurationInput: {},
+      service: {
+        package: { patterns: ['!src/*.spec.mjs'] },
+        getAllLayers: () => [],
+      },
+      pluginManager: { parsePluginsObject: () => ({}) },
+    }
+    const r = await computeCodeArtifact(
+      { artifact: '.', package: { patterns: ['node_modules/a/**'] } },
+      { serviceName: 's', stage: 'dev', name: 'echo', serviceDir, serverless },
+    )
+    expect(
+      new AdmZip(r.zipBuffer).getEntries().map((e) => e.entryName),
+    ).toEqual(['Dockerfile', 'node_modules/a/index.js', 'src/server.mjs'])
+  })
+
   test('does NOT call provider.request (no AWS calls during compute)', async () => {
     const provider = { request: jest.fn() }
     await computeCodeArtifact(

@@ -1689,6 +1689,9 @@ Run container workloads as [AWS Lambda MicroVMs](./sandboxes.md) alongside your 
 sandboxes:
   api: # sandbox name (used in CloudFormation logical IDs)
     artifact: ./app # local directory with a Dockerfile, or an s3:// zip
+    package:
+      patterns: # files of a local artifact, relative to the service directory, after the service-level patterns
+        - '!app/tests/**'
     minimumMemory: 2048
     environment:
       KEY: value

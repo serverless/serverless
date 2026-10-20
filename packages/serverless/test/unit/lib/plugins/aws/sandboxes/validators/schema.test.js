@@ -47,6 +47,18 @@ describe('defineSandboxesSchema', () => {
     expect(sandboxSchema.properties.artifact.type).toBe('string')
   })
 
+  test('per-sandbox schema package accepts only patterns, a list of strings', () => {
+    defineSandboxesSchema(mockServerless)
+    const sandboxSchema = capturedSandboxesSchema.additionalProperties
+    expect(sandboxSchema.properties.package).toEqual({
+      type: 'object',
+      properties: {
+        patterns: { type: 'array', items: { type: 'string' } },
+      },
+      additionalProperties: false,
+    })
+  })
+
   test('per-sandbox schema minimumMemory is an enum of valid MiB values', () => {
     defineSandboxesSchema(mockServerless)
     const sandboxSchema = capturedSandboxesSchema.additionalProperties
