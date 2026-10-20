@@ -77,24 +77,81 @@ export function getWebAppsToPackage(serverless) {
     .map(([name]) => name)
 }
 
+/** Files no artifact the framework zips ever contains, whatever the config. */
+export const DEFAULT_EXCLUDES = [
+  '.git/**',
+  '.gitignore',
+  '.DS_Store',
+  'npm-debug.log',
+  'yarn-*.log',
+  '.serverless/**',
+  '.serverless_plugins/**',
+  ...AGENT_SKILL_EXCLUDES,
+]
+
+/**
+ * The service-level `package.include` and `package.patterns`, followed by
+ * `include` (an artifact's own patterns).
+ */
+export function getPackageIncludes(serverless, include) {
+  const packageIncludes = [
+    ...(serverless.service.package.include || []),
+    ...(serverless.service.package.patterns || []),
+  ]
+  return _.union(packageIncludes, include)
+}
+
+/**
+ * The exclusions every artifact starts from: `defaults`, the service config
+ * file, the local plugins path, service-level `package.exclude`, layer paths
+ * (with `excludeLayers`), `.env*` under `useDotenv`, then `exclude`.
+ */
+export function getPackageExcludes(
+  serverless,
+  exclude,
+  excludeLayers,
+  defaults = DEFAULT_EXCLUDES,
+) {
+  const packageExcludes = serverless.service.package.exclude || []
+  // add local service plugins Path
+  const pluginsLocalPath = serverless.pluginManager.parsePluginsObject(
+    serverless.service.plugins,
+  ).localPath
+  const localPathExcludes = []
+  if (pluginsLocalPath) {
+    localPathExcludes.push(pluginsLocalPath)
+  }
+  // add layer paths
+  const layerExcludes = excludeLayers
+    ? serverless.service
+        .getAllLayers()
+        .map((layer) => `${serverless.service.getLayer(layer).path}/**`)
+    : []
+  // add defaults for exclude
+
+  const serverlessConfigFileExclude =
+    resolveServerlessConfigFileExcludes(serverless)
+
+  const configurationInput = serverless.configurationInput
+  const envFilesExclude =
+    configurationInput && configurationInput.useDotenv ? ['.env*'] : []
+
+  return _.union(
+    defaults,
+    serverlessConfigFileExclude,
+    localPathExcludes,
+    packageExcludes,
+    layerExcludes,
+    envFilesExclude,
+    exclude,
+  )
+}
+
 export default {
-  defaultExcludes: [
-    '.git/**',
-    '.gitignore',
-    '.DS_Store',
-    'npm-debug.log',
-    'yarn-*.log',
-    '.serverless/**',
-    '.serverless_plugins/**',
-    ...AGENT_SKILL_EXCLUDES,
-  ],
+  defaultExcludes: DEFAULT_EXCLUDES,
 
   getIncludes(include) {
-    const packageIncludes = [
-      ...(this.serverless.service.package.include || []),
-      ...(this.serverless.service.package.patterns || []),
-    ]
-    return _.union(packageIncludes, include)
+    return getPackageIncludes(this.serverless, include)
   },
 
   getRuntime(runtime) {
@@ -103,39 +160,11 @@ export default {
   },
 
   getExcludes(exclude, excludeLayers) {
-    const packageExcludes = this.serverless.service.package.exclude || []
-    // add local service plugins Path
-    const pluginsLocalPath = this.serverless.pluginManager.parsePluginsObject(
-      this.serverless.service.plugins,
-    ).localPath
-    const localPathExcludes = []
-    if (pluginsLocalPath) {
-      localPathExcludes.push(pluginsLocalPath)
-    }
-    // add layer paths
-    const layerExcludes = excludeLayers
-      ? this.serverless.service
-          .getAllLayers()
-          .map((layer) => `${this.serverless.service.getLayer(layer).path}/**`)
-      : []
-    // add defaults for exclude
-
-    const serverlessConfigFileExclude = resolveServerlessConfigFileExcludes(
+    return getPackageExcludes(
       this.serverless,
-    )
-
-    const configurationInput = this.serverless.configurationInput
-    const envFilesExclude =
-      configurationInput && configurationInput.useDotenv ? ['.env*'] : []
-
-    return _.union(
-      this.defaultExcludes,
-      serverlessConfigFileExclude,
-      localPathExcludes,
-      packageExcludes,
-      layerExcludes,
-      envFilesExclude,
       exclude,
+      excludeLayers,
+      this.defaultExcludes,
     )
   },
 

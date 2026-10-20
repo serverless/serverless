@@ -111,13 +111,44 @@ sandboxes:
     artifact: ./docker/api # path resolved relative to serverless.yml
 ```
 
-The directory must exist and must contain a `Dockerfile`. The framework zips the entire directory, computes a SHA-256 content hash, and uploads the zip to the deployment bucket at:
+The directory must exist and must contain a `Dockerfile`. The framework zips the directory's files, selected as described in [Choosing the files](#choosing-the-files), computes a SHA-256 content hash, and uploads the zip to the deployment bucket at:
 
 ```
 serverless/<service>/<stage>/sandboxes/<name>-<sha256>.zip
 ```
 
-The S3 key is content-addressed: re-deploying without changing the directory contents reuses the same key.
+The S3 key is content-addressed: re-deploying without changing the selected files reuses the same key and the existing image. A change to any selected file rebuilds the image.
+
+### Choosing the files
+
+The zip holds every file in the artifact directory except:
+
+- local dependency and cache directories, at any depth: `node_modules`, `.venv`, `venv`, `__pycache__`, `.pytest_cache` and `.mypy_cache`;
+- the [default exclusions](./packaging.md#patterns) of function packaging (`.git`, `.serverless`, the service configuration file, `.env*` with `useDotenv`, …). As for functions, they are matched from the service directory, so they only reach the artifact when it is the service directory (`artifact: .`). In an artifact subdirectory such as `./app`, a `.git` directory, an `.env` file or a `.DS_Store` is included unless a pattern excludes it (`'!app/.env*'`).
+
+The image is built on ARM64 by your `Dockerfile`, which installs dependencies itself (for example with `npm ci` or `pip install`). Dependencies installed on your machine are built for its platform, a virtualenv only works on the machine that created it, and a `COPY . .` would overwrite the dependencies the build installed. They also change the content hash, so every local install would rebuild the image.
+
+To choose files yourself, use `package.patterns`. They work exactly as [function patterns](./packaging.md#patterns): globs relative to the service directory, applied in order, `!` to exclude, and later patterns win. The service-level `package.patterns` apply first, then the sandbox's own:
+
+```yml
+package:
+  patterns:
+    - '!docs/**' # applies to functions and sandboxes alike
+
+sandboxes:
+  api:
+    artifact: ./app
+    package:
+      patterns:
+        - '!app/tests/**' # paths start at the service directory, so they name the artifact directory
+        - 'app/node_modules/**' # re-include a default exclusion, e.g. vendored dependencies
+```
+
+- The `Dockerfile` at the root of the artifact directory is always included.
+- Service-level patterns written for your functions apply to sandboxes too. A pattern list that excludes everything and re-includes your function code (`'!**'` followed by `src/**`) leaves a sandbox with only its `Dockerfile`: re-include the sandbox's files with its own patterns (`'app/**'`).
+- For an artifact directory outside the service directory (`artifact: ../shared/app`), write the `../` path in the pattern (`'!../shared/app/tests/**'`): as for functions, `**` doesn't match paths that start with `../`. The default exclusions apply wherever the directory is.
+- A `.dockerignore` in the artifact directory still applies when the image is built, on AWS and in `serverless dev`. Patterns decide what is uploaded; `.dockerignore` decides what the build sees.
+- Patterns don't apply to an `s3://` artifact, which is used as it is.
 
 ### S3 URI passthrough
 
@@ -151,6 +182,8 @@ sandboxes:
     artifact: <string>
 
     # optional
+    package:
+      patterns: [<glob>, ...] # files of a local artifact; see Choosing the files
     minimumMemory: 512 | 1024 | 2048 | 4096 | 8192
     description: <string>
     environment:
@@ -189,6 +222,7 @@ sandboxes:
 | Property         | Type              | Default          | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | ---------------- | ----------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `artifact`       | string            | — **(required)** | Local directory path (contains `Dockerfile`) or `s3://` URI                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `package`        | object            | —                | `patterns`: globs selecting the files of a local `artifact`, relative to the service directory. See [Choosing the files](#choosing-the-files).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `minimumMemory`  | number            | `2048`           | Minimum memory in MiB the MicroVM is guaranteed (maps to `MinimumMemoryInMiB`) — a floor, not a cap. Must be one of: `512`, `1024`, `2048`, `4096`, `8192`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `description`    | string            | auto             | Human-readable description embedded in the CloudFormation resource.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `environment`    | object            | `{}`             | Environment variables baked into the image snapshot at build time and available to the MicroVM process. Same shape as on a function: literal strings or CloudFormation references (`!Ref`, `!GetAtt`, `!ImportValue`, `!Sub`, …), resolved when the stack deploys. `provider.environment` is inherited — a sandbox receives every provider-level variable and its own keys override. **Identical across every instance** of that image version and persists across suspend/resume. Use it only for static, non-sensitive configuration. Per-instance data (session IDs, tenant IDs, and similar) has to travel through the launch call's `runHookPayload` instead. Real secrets shouldn't go in `environment` at all — fetch them at runtime through the execution role (Secrets Manager or SSM). See [Snapshots and per-instance state](#snapshots-and-per-instance-state). |
@@ -679,6 +713,11 @@ customizable with `--port`, so the address your code targets doesn't change betw
 port is already in use, `dev` exits with a clear error so you can pick another; run two sandboxes at
 once by giving each its own `--port`. Press Ctrl-C to stop.
 
+The image is built from the same files a deploy uploads (see [Choosing the
+files](#choosing-the-files)): `dev` copies them into a temporary directory for each build,
+so your `package.patterns` and the default exclusions apply locally too, along with your
+`.dockerignore`.
+
 > **Note:** `dev` requires a Docker daemon and a local `artifact` directory
 > containing a `Dockerfile`. The image is built for the daemon's native CPU
 > architecture, so a daemon whose architecture differs from your machine's
@@ -705,9 +744,10 @@ is rebuilt; the **next** `RunMicrovm` launches a fresh container from the update
 (already-running instances keep the image they started with), so you can iterate without
 re-running the command.
 
-- Framework and tooling directories are ignored, including `.serverless`,
-  `node_modules`, `.git`, virtualenv/cache directories, and test files
-  (`*.test.js`, `*.spec.js`, `*_test.py`, `*.test.py`).
+- Changes in `.serverless`, `.git` and `coverage` directories don't rebuild the image,
+  nor do changes in the dependency and cache directories a deploy leaves out
+  (`node_modules`, `.venv`, `venv`, `__pycache__`, `.pytest_cache`, `.mypy_cache`) or
+  changes to test files (`*.test.js`, `*.spec.js`, `*_test.py`, `*.test.py`).
 - If a rebuild fails (for example, a Docker build error), running instances keep working
   and the error is printed — the dev session stays up so you can fix the issue and save
   again.

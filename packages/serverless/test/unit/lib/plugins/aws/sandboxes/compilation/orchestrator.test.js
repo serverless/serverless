@@ -35,6 +35,19 @@ function makeTemplate() {
   return { Resources: {}, Outputs: {} }
 }
 
+// The parts of the Serverless instance the packaging patterns read; a real
+// instance always has them (service.package defaults to {}).
+function makeServerless(service = {}) {
+  return {
+    service: {
+      package: {},
+      getAllLayers: () => [],
+      ...service,
+    },
+    pluginManager: { parsePluginsObject: () => ({}) },
+  }
+}
+
 const stubZipDir = jest.fn().mockResolvedValue(Buffer.from('fake-zip'))
 
 describe('orchestrate', () => {
@@ -45,7 +58,7 @@ describe('orchestrate', () => {
         ctx: makeCtx(),
         template: makeTemplate(),
         provider: makeProvider(),
-        serverless: {},
+        serverless: makeServerless(),
         log: { debug: jest.fn() },
         _zipDir: stubZipDir,
       }),
@@ -69,7 +82,7 @@ describe('orchestrate', () => {
         ctx: makeCtx(),
         template,
         provider,
-        serverless: {},
+        serverless: makeServerless(),
         log: { debug: jest.fn() },
         _zipDir: stubZipDir,
       })
@@ -180,7 +193,7 @@ describe('orchestrate', () => {
         ctx: makeCtx({ deploymentBucket: undefined }),
         template,
         provider: makeProvider(),
-        serverless: {},
+        serverless: makeServerless(),
         log: { debug: jest.fn() },
         _zipDir: stubZipDir,
       })
@@ -220,9 +233,9 @@ describe('orchestrate', () => {
         // The framework records the resolved (global) bucket name here and
         // deletes the ServerlessDeploymentBucket resource; emitting a Ref would
         // fail CFN validation with "Unresolved resource dependencies".
-        serverless: {
-          service: { package: { deploymentBucket: 'global-bkt' } },
-        },
+        serverless: makeServerless({
+          package: { deploymentBucket: 'global-bkt' },
+        }),
         log: { debug: jest.fn() },
         _zipDir: stubZipDir,
       })
@@ -266,7 +279,7 @@ describe('orchestrate', () => {
         ctx: makeCtx(),
         template,
         provider: makeProvider(),
-        serverless: {},
+        serverless: makeServerless(),
         log: { debug: jest.fn() },
         _zipDir: stubZipDir,
       })
@@ -322,7 +335,7 @@ describe('orchestrate', () => {
         ctx: makeCtx(),
         template,
         provider: makeProvider(),
-        serverless: {},
+        serverless: makeServerless(),
         log: { debug: jest.fn() },
         _zipDir: stubZipDir,
       })
@@ -345,7 +358,7 @@ describe('orchestrate', () => {
         ctx: makeCtx(),
         template,
         provider: makeProvider(),
-        serverless: {},
+        serverless: makeServerless(),
         log: { debug: jest.fn() },
         _zipDir: stubZipDir,
       })
@@ -361,7 +374,7 @@ describe('orchestrate', () => {
         ctx: makeCtx(),
         template,
         provider: makeProvider(),
-        serverless: {},
+        serverless: makeServerless(),
         log: { debug: jest.fn() },
         _zipDir: stubZipDir,
       }
@@ -386,7 +399,7 @@ describe('orchestrate', () => {
         ctx: makeCtx(),
         template,
         provider: makeProvider(),
-        serverless: {},
+        serverless: makeServerless(),
         log: { debug: jest.fn() },
         _zipDir: stubZipDir,
       })
@@ -416,7 +429,7 @@ describe('orchestrate', () => {
         ctx: makeCtx(),
         template,
         provider: makeProvider(),
-        serverless: {},
+        serverless: makeServerless(),
         log: { debug: jest.fn() },
         _zipDir: stubZipDir,
       })
@@ -459,7 +472,7 @@ describe('orchestrate', () => {
         ctx: makeCtx(),
         template,
         provider: makeProvider(),
-        serverless: {},
+        serverless: makeServerless(),
         log: { debug: jest.fn() },
         _zipDir: stubZipDir,
       })
@@ -678,7 +691,7 @@ describe('orchestrate', () => {
         ctx: makeCtx(),
         template,
         provider: makeProvider(),
-        serverless: {},
+        serverless: makeServerless(),
         log: { debug: jest.fn() },
         _zipDir: stubZipDir,
       })
@@ -703,7 +716,7 @@ describe('orchestrate', () => {
         ctx: makeCtx(),
         template,
         provider: makeProvider(),
-        serverless: {},
+        serverless: makeServerless(),
         log: { debug: jest.fn() },
         _zipDir: stubZipDir,
       })
@@ -726,7 +739,7 @@ describe('orchestrate', () => {
         ctx: makeCtx(),
         template,
         provider: makeProvider(),
-        serverless: {},
+        serverless: makeServerless(),
         log: { debug: jest.fn() },
         _zipDir: stubZipDir,
       })
@@ -749,7 +762,7 @@ describe('orchestrate', () => {
         ctx: makeCtx(),
         template,
         provider: makeProvider(),
-        serverless: {},
+        serverless: makeServerless(),
         log: { debug: jest.fn() },
         _zipDir: stubZipDir,
       })
@@ -777,7 +790,7 @@ describe('orchestrate', () => {
         ctx: makeCtx(),
         template,
         provider: makeProvider(),
-        serverless: {},
+        serverless: makeServerless(),
         log: { debug: jest.fn() },
         _zipDir: stubZipDir,
       })
@@ -818,7 +831,7 @@ describe('orchestrate', () => {
         ctx: makeCtx(),
         template: t2,
         provider: makeProvider(),
-        serverless: {},
+        serverless: makeServerless(),
         log: { debug: jest.fn() },
         _zipDir: stubZipDir,
       })
@@ -839,13 +852,11 @@ describe('orchestrate', () => {
         ctx: makeCtx(),
         template,
         provider: makeProvider(),
-        serverless: {
-          service: {
-            provider: {
-              environment: { SHARED: 'from-provider', GLOBAL: 'g' },
-            },
+        serverless: makeServerless({
+          provider: {
+            environment: { SHARED: 'from-provider', GLOBAL: 'g' },
           },
-        },
+        }),
         log: { debug: jest.fn() },
         _zipDir: stubZipDir,
       })
@@ -869,7 +880,9 @@ describe('orchestrate', () => {
         ctx: makeCtx(),
         template,
         provider: makeProvider(),
-        serverless: { service: { provider: { environment: { GLOBAL: 'g' } } } },
+        serverless: makeServerless({
+          provider: { environment: { GLOBAL: 'g' } },
+        }),
         log: { debug: jest.fn() },
         _zipDir: stubZipDir,
       })
@@ -888,7 +901,7 @@ describe('orchestrate', () => {
         ctx: makeCtx(),
         template,
         provider: makeProvider(),
-        serverless: {},
+        serverless: makeServerless(),
         log: { debug: jest.fn() },
         _zipDir: stubZipDir,
       })

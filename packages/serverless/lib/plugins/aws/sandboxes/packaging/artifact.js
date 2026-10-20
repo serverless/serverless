@@ -4,7 +4,7 @@ import ServerlessError from '../../../../serverless-error.js'
 import path from 'path'
 import fs from 'fs'
 import { ZipArchive } from 'archiver'
-import { globbySync } from 'globby'
+import { resolveSandboxPatterns, selectSandboxFiles } from './files.js'
 import {
   buildArtifactKey,
   sha256Hex,
@@ -17,9 +17,11 @@ import {
  * stub via `deps.zipDir` so they never touch the filesystem.
  *
  * @param {string} dirPath - Absolute path to the directory to zip
+ * @param {object} selection - `serviceDir`, `excludes` and `includes` for
+ *   selectSandboxFiles (files.js)
  * @returns {Promise<Buffer>}
  */
-async function defaultZipDir(dirPath) {
+async function defaultZipDir(dirPath, selection) {
   // Fail loudly on a missing artifact directory. archiver silently produces an
   // empty (22-byte) zip for a non-existent directory, which then surfaces much
   // later as an opaque MicroVM image-build "did not stabilize" error.
@@ -59,11 +61,7 @@ async function defaultZipDir(dirPath) {
     // spurious ~100s MicrovmImage rebuilds. Mirror the framework's function
     // packaging (lib/plugins/package/lib/zip-service.js): enumerate files,
     // sort by path, and pin every entry's date to `new Date(0)`.
-    const files = globbySync('**/*', {
-      cwd: dirPath,
-      dot: true,
-      onlyFiles: true,
-    }).sort((a, b) => a.localeCompare(b))
+    const files = selectSandboxFiles(dirPath, selection)
 
     for (const rel of files) {
       const fullPath = path.join(dirPath, rel)
@@ -102,6 +100,8 @@ async function defaultZipDir(dirPath) {
  * @param {string}   deps.serviceName - Serverless service name
  * @param {string}   deps.stage       - Deployment stage
  * @param {string}   deps.name        - Sandbox name
+ * @param {string}   [deps.serviceDir] - Service directory; relative artifact paths resolve against it
+ * @param {object}   [deps.serverless] - Serverless instance; its package patterns select the files
  * @param {Function} [deps.zipDir]    - Injected zip fn (dir → Buffer); defaults to archiver impl
  *
  * @returns {Promise<{ uri: string, key: undefined, zipBuffer: undefined }
@@ -112,7 +112,7 @@ export async function computeCodeArtifact(cfg, deps) {
     return { uri: cfg.artifact, key: undefined, zipBuffer: undefined }
   }
 
-  const { serviceName, stage, name, serviceDir } = deps
+  const { serviceName, stage, name, serviceDir, serverless } = deps
   const zipDir = deps.zipDir ?? defaultZipDir
 
   // Resolve the artifact directory relative to the service directory (where
@@ -124,7 +124,10 @@ export async function computeCodeArtifact(cfg, deps) {
     ? cfg.artifact
     : path.resolve(serviceDir || '.', cfg.artifact)
 
-  const zipBuffer = await zipDir(dir)
+  const zipBuffer = await zipDir(dir, {
+    serviceDir: path.resolve(serviceDir || '.'),
+    ...(serverless ? resolveSandboxPatterns(serverless, cfg) : {}),
+  })
 
   const key = buildArtifactKey({
     prefix: 'serverless',

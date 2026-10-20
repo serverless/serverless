@@ -22,6 +22,9 @@ webApps:
 sandboxes:
   echo:
     artifact: ./app
+    package:
+      patterns:
+        - '!app/notes/**'
     minimumMemory: 2048
     environment:
       GREETING: hi

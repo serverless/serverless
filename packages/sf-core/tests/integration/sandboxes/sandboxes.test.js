@@ -25,6 +25,8 @@ import {
   CreateMicrovmAuthTokenCommand,
   TerminateMicrovmCommand,
 } from '@aws-sdk/client-lambda-microvms'
+import fs from 'fs'
+import AdmZip from 'adm-zip'
 import { jest } from '@jest/globals'
 import { getTestStageName, runSfCore } from '../../utils/runSfCore'
 
@@ -192,6 +194,18 @@ describe('Serverless Framework Service - Sandboxes', () => {
       },
       jest,
     })
+  })
+
+  test('Package: the sandbox zip holds only the files its patterns and the defaults select', () => {
+    // app/venv/ (a default exclusion) and app/notes/ (`!app/notes/**`) are
+    // left out; the Dockerfile and the app stay.
+    const zipDir = path.join(configFileDirPath, '.serverless', 'sandboxes')
+    const zips = fs.readdirSync(zipDir).filter((f) => /^echo-.*\.zip$/.test(f))
+    expect(zips).toHaveLength(1)
+    const entries = new AdmZip(path.join(zipDir, zips[0]))
+      .getEntries()
+      .map((e) => e.entryName)
+    expect(entries).toEqual(['app.py', 'Dockerfile'])
   })
 
   // ── 2. Validate resources ──────────────────────────────────────────────────
