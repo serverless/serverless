@@ -31,7 +31,7 @@ jobs:
       - name: 'Setup: Go'
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: '>=1.27.2'
+          go-version: '>=1.27.3'
           cache-dependency-path: binary-installer/go.sum
       - name: 'Test: Unit'
         run: go test ./... -v -timeout 15m
@@ -49,7 +49,7 @@ jobs:
       - name: 'Setup: Go'
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: '>=1.27.2'
+          go-version: '>=1.27.3'
           cache-dependency-path: binary-installer/go.sum
       - name: 'Build: Production'
         run: make build-prod
@@ -78,7 +78,7 @@ jobs:
       - name: 'Setup: Go'
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: '>=1.27.2'
+          go-version: '>=1.27.3'
           cache-dependency-path: binary-installer/go.sum
       - name: 'Setup: Node.js'
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
