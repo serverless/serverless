@@ -79,7 +79,7 @@ serverless prune -n 3 --sandbox mySandbox
 serverless prune -n 3 --includeArtifacts
 ```
 
-`serverless prune -n N` prunes function versions and the image versions of every sandbox. `-f` and `-l` limit the run to that function or layer and leave sandboxes alone; `--sandbox` limits it to that sandbox's image versions.
+`serverless prune -n N` prunes function versions and the image versions of every sandbox. `-f` and `-l` limit the run to that function or layer and leave sandboxes alone; `--sandbox` limits it to that sandbox's image versions. Scoped runs skip the `--includeArtifacts` sweep.
 
 ## Alias Protection
 
@@ -105,7 +105,7 @@ Failed versions are deleted without counting toward `number`. After deleting, `p
 
 A MicroVM your own code starts with an explicit `imageVersion` can't launch once that version is pruned. Keep `number` high enough for any version you pin.
 
-Pruning sandbox image versions needs `lambda:GetMicrovmImage`, `lambda:ListMicrovmImageVersions`, `lambda:ListMicrovms` and `lambda:DeleteMicrovmImageVersion`. Without them, automatic pruning logs a warning and the deploy still succeeds, while `serverless prune` stops with an error that names the missing permission.
+Pruning sandbox image versions needs `lambda:GetMicrovmImage`, `lambda:ListMicrovmImageVersions`, `lambda:GetMicrovmImageVersion`, `lambda:ListMicrovms` and `lambda:DeleteMicrovmImageVersion`. Without them, automatic pruning logs a warning and the deploy still succeeds, while `serverless prune` stops with an error that names the missing permission.
 
 If a deploy reaches the limit, the error says so and shows the commands to recover:
 

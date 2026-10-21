@@ -1,7 +1,8 @@
 import { describe, it, expect, jest } from '@jest/globals'
 
+const logWarning = jest.fn()
 jest.unstable_mockModule('@serverless/util', () => ({
-  log: { info: jest.fn() },
+  log: { info: jest.fn(), warning: logWarning },
 }))
 
 const cleanupMixin = (
@@ -209,6 +210,25 @@ describe('cleanupS3Bucket — sandbox artifacts', () => {
     await ctx.cleanupS3Bucket()
 
     expect(deletedSandboxKeys(ctx)).toEqual([legacy])
+  })
+
+  it('warns instead of failing the deploy when the zip pass fails', async () => {
+    const ctx = buildSandboxCtx({ keys: [] })
+    const request = ctx.provider.request
+    ctx.provider.request = jest.fn(async (service, method, params) => {
+      if (method === 'listObjectsV2' && params.Prefix.endsWith('/sandboxes/')) {
+        throw Object.assign(new Error('Access Denied'), {
+          code: 'AWS_S3_LIST_OBJECTS_V2_ACCESS_DENIED',
+        })
+      }
+      return request(service, method, params)
+    })
+
+    await ctx.cleanupS3Bucket()
+
+    expect(logWarning).toHaveBeenCalledWith(
+      'Could not remove unused sandbox artifacts from S3: Access Denied',
+    )
   })
 
   it('makes no sandbox calls for a service without sandboxes', async () => {

@@ -70,21 +70,30 @@ export default {
     if (!sandboxes || Object.keys(sandboxes).length === 0) return
 
     log.info('Removing unused sandbox artifacts from S3')
-    const { unused, keptAll } = await findUnusedArtifacts({
-      provider: this.provider,
-      bucketName: this.bucketName,
-      deploymentPrefix: this.provider.getDeploymentPrefix(),
-      service: this.serverless.service.service,
-      stage: this.provider.getStage(),
-      kind: 'sandboxes',
-      templateFileName: this.provider.naming.getCompiledTemplateS3Suffix(),
-      extraPrefixes: ['serverless'],
-    })
-    if (keptAll) {
-      log.info(`Keeping all sandbox artifacts: ${keptAll}.`)
-      return
+    // The stack update has succeeded by now: a failure here leaves zips in the
+    // bucket, which the next deploy retries, and must not fail the deploy
+    try {
+      const { unused, keptAll } = await findUnusedArtifacts({
+        provider: this.provider,
+        bucketName: this.bucketName,
+        deploymentPrefix: this.provider.getDeploymentPrefix(),
+        service: this.serverless.service.service,
+        stage: this.provider.getStage(),
+        kind: 'sandboxes',
+        templateFileName: this.provider.naming.getCompiledTemplateS3Suffix(),
+        extraPrefixes: ['serverless'],
+        maxTemplateReads: 20,
+      })
+      if (keptAll) {
+        log.info(`Keeping all sandbox artifacts: ${keptAll}.`)
+        return
+      }
+      await this.removeObjects(unused.map((Key) => ({ Key })))
+    } catch (error) {
+      log.warning(
+        `Could not remove unused sandbox artifacts from S3: ${error.message}`,
+      )
     }
-    await this.removeObjects(unused.map((Key) => ({ Key })))
   },
 
   async cleanupS3Bucket() {

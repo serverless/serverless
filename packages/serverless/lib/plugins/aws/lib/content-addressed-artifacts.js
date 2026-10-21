@@ -368,11 +368,14 @@ async function listAllKeys(provider, bucketName, prefix) {
   return keys
 }
 
+// The text of a getObject Body: a v3 stream or a v2 Buffer. Anything else
+// throws, so an unreadable template keeps every zip instead of matching none.
 async function readBody(body) {
   if (body && typeof body.transformToString === 'function') {
     return body.transformToString()
   }
-  return Buffer.isBuffer(body) ? body.toString('utf8') : String(body ?? '')
+  if (body instanceof Uint8Array) return Buffer.from(body).toString('utf8')
+  throw new Error('Unreadable object body')
 }
 
 /**
@@ -394,6 +397,9 @@ async function readBody(body) {
  *   hold zips of this kind (an earlier key layout)
  * @param {string[]} [params.ignoreDirectories] - deployment folders to treat as
  *   gone (a dry run's planned deletions)
+ * @param {number} [params.maxTemplateReads] - templates to read at most; past
+ *   it every zip is kept. Folders are read newest first and reading stops once
+ *   every zip is referenced, so the common case reads one template.
  * @returns {Promise<{unused: string[], keptAll?: string}>}
  */
 export async function findUnusedArtifacts({
@@ -406,6 +412,7 @@ export async function findUnusedArtifacts({
   templateFileName,
   extraPrefixes = [],
   ignoreDirectories = [],
+  maxTemplateReads = Infinity,
 }) {
   const zipPrefixes = [...new Set([deploymentPrefix, ...extraPrefixes])].map(
     (prefix) => `${prefix}/${service}/${stage}/${kind}/`,
@@ -428,10 +435,21 @@ export async function findUnusedArtifacts({
     stage,
   )
 
-  const ignored = new Set(ignoreDirectories)
+  // Listing order is oldest first; the newest folder names the current zip
+  const remaining = folders
+    .filter((group) => !ignoreDirectories.includes(group[0].directory))
+    .reverse()
   const referenced = new Set()
-  for (const group of folders) {
-    if (ignored.has(group[0].directory)) continue
+  let reads = 0
+  for (const group of remaining) {
+    if (referenced.size === zips.length) break
+    if (reads === maxTemplateReads) {
+      return {
+        unused: [],
+        keptAll: `more than ${maxTemplateReads} deployments to check; "serverless prune --includeArtifacts" retires older ones`,
+      }
+    }
+    reads++
     const { directory } = group[0]
     const keptAll = {
       unused: [],
@@ -445,6 +463,7 @@ export async function findUnusedArtifacts({
         Key: `${deploymentPrefix}/${service}/${stage}/${directory}/${templateFileName}`,
       })
       template = await readBody(result?.Body)
+      JSON.parse(template)
     } catch {
       return keptAll
     }

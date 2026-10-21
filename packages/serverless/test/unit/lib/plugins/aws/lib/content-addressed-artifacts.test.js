@@ -668,6 +668,70 @@ describe('findUnusedArtifacts', () => {
     expect(result).toEqual({ unused: [old] })
   })
 
+  it('keeps every zip when a template body is not readable', async () => {
+    const key = zip('serverless', 'a1')
+    const provider = {
+      request: jest.fn(async (service, method, params) => {
+        if (method === 'listObjectsV2') {
+          return params.Prefix.endsWith('/sandboxes/')
+            ? { Contents: [{ Key: key }] }
+            : {
+                Contents: [
+                  { Key: `serverless/shop/dev/${DIR_NEW}/${TEMPLATE}` },
+                ],
+              }
+        }
+        return { Body: { unexpected: true } }
+      }),
+    }
+
+    expect(await run(provider)).toEqual({
+      unused: [],
+      keptAll: `could not read the template of deployment ${DIR_NEW}`,
+    })
+  })
+
+  it('keeps every zip when a template is not JSON', async () => {
+    const provider = makeProvider({
+      [`serverless/shop/dev/${DIR_NEW}/${TEMPLATE}`]: 'not json',
+      [zip('serverless', 'c3')]: '',
+    })
+
+    expect((await run(provider)).keptAll).toBe(
+      `could not read the template of deployment ${DIR_NEW}`,
+    )
+  })
+
+  it('reads newest first and stops once every zip is accounted for', async () => {
+    const current = zip('serverless', 'b2')
+    const provider = makeProvider({
+      [`serverless/shop/dev/${DIR_OLD}/${TEMPLATE}`]: templateFor(current),
+      [`serverless/shop/dev/${DIR_NEW}/${TEMPLATE}`]: templateFor(current),
+      [current]: '',
+    })
+
+    expect(await run(provider)).toEqual({ unused: [] })
+    expect(
+      provider.request.mock.calls
+        .filter(([, m]) => m === 'getObject')
+        .map(([, , params]) => params.Key),
+    ).toEqual([`serverless/shop/dev/${DIR_NEW}/${TEMPLATE}`])
+  })
+
+  it('keeps every zip when more folders than the cap remain to be read', async () => {
+    const provider = makeProvider({
+      [`serverless/shop/dev/${DIR_OLD}/${TEMPLATE}`]: templateFor('x'),
+      [`serverless/shop/dev/${DIR_NEW}/${TEMPLATE}`]: templateFor('y'),
+      [zip('serverless', 'c3')]: '',
+    })
+
+    expect(await run(provider, { maxTemplateReads: 1 })).toEqual({
+      unused: [],
+      keptAll:
+        'more than 1 deployments to check; "serverless prune --includeArtifacts" retires older ones',
+    })
+  })
+
   it('reads a v3 stream body', async () => {
     const key = zip('serverless', 'a1')
     const provider = {

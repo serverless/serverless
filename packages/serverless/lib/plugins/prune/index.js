@@ -32,7 +32,7 @@ import {
 } from './sandbox-images.js'
 
 const SANDBOX_PRUNE_PERMISSIONS =
-  'lambda:GetMicrovmImage, lambda:ListMicrovmImageVersions, lambda:ListMicrovms and lambda:DeleteMicrovmImageVersion'
+  'lambda:GetMicrovmImage, lambda:ListMicrovmImageVersions, lambda:GetMicrovmImageVersion, lambda:ListMicrovms and lambda:DeleteMicrovmImageVersion'
 
 class Prune {
   constructor(serverless, options, { log: pluginLog, progress } = {}) {
@@ -170,6 +170,9 @@ class Prune {
     // keep their meaning and leave sandboxes alone.
     const { function: fn, layer, sandbox } = this.options
     if (sandbox) this.getSandboxNames()
+    if (sandbox && !fn && !layer && this.options.includeLayers) {
+      this.logNotice('--includeLayers is ignored on a --sandbox run.')
+    }
 
     if (!sandbox || fn || layer) {
       if (this.options.includeLayers) {
@@ -219,9 +222,9 @@ class Prune {
     const requested =
       this.options.includeArtifacts || this.pluginCustom.includeArtifacts
     if (!requested) return false
-    if (this.options.function || this.options.layer) {
+    if (this.options.function || this.options.layer || this.options.sandbox) {
       this.logNotice(
-        'Skipping deployment artifact sweep: it is not available on function/layer-scoped prune runs.',
+        'Skipping deployment artifact sweep: it is not available on function, layer or sandbox scoped prune runs.',
       )
       return false
     }
@@ -631,28 +634,30 @@ class Prune {
       'prune-plugin-prune-sandboxes',
       'Pruning sandbox image versions',
     )
-    const imageArns = await this.resolveSandboxImageArns(names)
-    for (const name of names) {
-      const imageArn = imageArns.get(name)
-      if (!imageArn) {
-        this.logInfo(`Skipping sandbox "${name}": not deployed.`)
-        continue
-      }
-      try {
-        await this.pruneSandboxImage(name, imageArn)
-      } catch (error) {
-        if (!isAccessDenied(error)) throw error
-        const message = `Could not prune image versions of sandbox "${name}": ${error.message} Grant ${SANDBOX_PRUNE_PERMISSIONS} to prune sandbox versions.`
-        if (!automatic) {
-          this.clearProgress('prune-plugin-prune-sandboxes')
-          throw new ServerlessError(message, 'PRUNE_SANDBOX_ACCESS_DENIED', {
-            stack: false,
-          })
+    try {
+      const imageArns = await this.resolveSandboxImageArns(names)
+      for (const name of names) {
+        const imageArn = imageArns.get(name)
+        if (!imageArn) {
+          this.logInfo(`Skipping sandbox "${name}": not deployed.`)
+          continue
         }
-        this.logWarning(message)
+        try {
+          await this.pruneSandboxImage(name, imageArn)
+        } catch (error) {
+          if (!isAccessDenied(error)) throw error
+          const message = `Could not prune image versions of sandbox "${name}": ${error.message} Grant ${SANDBOX_PRUNE_PERMISSIONS} to prune sandbox versions.`
+          if (!automatic) {
+            throw new ServerlessError(message, 'PRUNE_SANDBOX_ACCESS_DENIED', {
+              stack: false,
+            })
+          }
+          this.logWarning(message)
+        }
       }
+    } finally {
+      this.clearProgress('prune-plugin-prune-sandboxes')
     }
-    this.clearProgress('prune-plugin-prune-sandboxes')
     this.logSuccess('Pruning of sandbox image versions complete')
   }
 

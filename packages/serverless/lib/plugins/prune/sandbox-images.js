@@ -29,7 +29,8 @@ const newestFirst = (a, b) =>
  * Kept: the live version, the `number` newest other successful versions,
  * versions still building, and versions MicroVMs still use (these do not count
  * toward `number`, as aliased function versions do not). Failed versions are
- * deleted without counting toward `number`. Order is by creation time.
+ * deleted without counting toward `number`. Order is by creation time. An
+ * image without a live version only loses its failed versions.
  *
  * @param {object} params
  * @param {Array<{imageVersion: string, state: string, createdAt: Date|string}>} params.versions
@@ -44,8 +45,6 @@ export function selectPruneVersionsForImage({
   inUseVersions,
   number,
 }) {
-  if (!liveVersion) return { candidates: [], retained: [] }
-
   const retained = []
   const successful = []
   const failed = []
@@ -65,7 +64,7 @@ export function selectPruneVersionsForImage({
   }
 
   return {
-    candidates: [...successful.slice(number), ...failed],
+    candidates: liveVersion ? [...successful.slice(number), ...failed] : failed,
     retained,
   }
 }
@@ -145,6 +144,8 @@ export async function deleteImageVersion(
         SDK,
       )
     } catch (error) {
+      // Gone already: a concurrent prune or a previous run removed it
+      if (isNotFound(error)) return undefined
       if (!isImageBusy(error) || attempt >= attempts) throw error
       await sleep(intervalMs)
     }
@@ -177,14 +178,18 @@ export async function waitForImageVersionsDeleted(
     const stillThere = []
     for (const imageVersion of pending) {
       try {
-        await provider.request(
+        const { state } = await provider.request(
           'LambdaMicrovms',
           'getMicrovmImageVersion',
           { imageIdentifier: imageArn, imageVersion },
           SDK,
         )
-        stillThere.push(imageVersion)
+        // A failed deletion stays as it is; the next prune retries it
+        if (state !== 'DELETE_FAILED') stillThere.push(imageVersion)
       } catch (error) {
+        // Without read access the wait cannot tell; a busy image is still
+        // handled by the next delete's retry
+        if (isAccessDenied(error)) return []
         if (!isNotFound(error)) throw error
       }
     }

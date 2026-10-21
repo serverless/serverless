@@ -3,6 +3,8 @@ import {
   selectPruneVersionsForImage,
   listImageVersions,
   listInUseImageVersions,
+  deleteImageVersion,
+  waitForImageVersionsDeleted,
 } from '../../../../../lib/plugins/prune/sandbox-images.js'
 
 const version = (imageVersion, createdAt, state = 'SUCCESSFUL') => ({
@@ -121,14 +123,14 @@ describe('selectPruneVersionsForImage', () => {
     expect(retained).toEqual([])
   })
 
-  it('deletes nothing when the image has no live version', () => {
+  it('deletes only failed versions when the image has no live version', () => {
     const { candidates } = selectPruneVersionsForImage({
-      versions,
+      versions: [...versions, version('5.0', '2026-10-05T00:00:00Z', 'FAILED')],
       liveVersion: undefined,
       inUseVersions: new Set(),
       number: 0,
     })
-    expect(candidates).toEqual([])
+    expect(candidates).toEqual(['5.0'])
   })
 })
 
@@ -164,7 +166,7 @@ describe('listImageVersions', () => {
 })
 
 describe('listInUseImageVersions', () => {
-  it('collects versions of MicroVMs that are not terminated', async () => {
+  it('collects versions of MicroVMs that are neither terminating nor terminated', async () => {
     const request = jest
       .fn()
       .mockResolvedValueOnce({
@@ -193,5 +195,55 @@ describe('listInUseImageVersions', () => {
       { imageIdentifier: 'arn:image' },
       { sdkVersion: 3 },
     )
+  })
+})
+
+describe('deleteImageVersion', () => {
+  it('treats a version that is already gone as deleted', async () => {
+    const request = jest.fn().mockRejectedValue(
+      Object.assign(new Error('not found'), {
+        providerError: { code: 'ResourceNotFoundException' },
+      }),
+    )
+
+    await expect(
+      deleteImageVersion({ request }, 'arn:image', '1.0', { sleep: jest.fn() }),
+    ).resolves.toBeUndefined()
+  })
+})
+
+describe('waitForImageVersionsDeleted', () => {
+  const sleep = jest.fn().mockResolvedValue()
+
+  it('stops waiting for a version whose deletion failed', async () => {
+    const request = jest.fn().mockResolvedValue({ state: 'DELETE_FAILED' })
+
+    const remaining = await waitForImageVersionsDeleted(
+      { request },
+      'arn:image',
+      ['1.0'],
+      { sleep },
+    )
+
+    expect(remaining).toEqual([])
+    expect(request).toHaveBeenCalledTimes(1)
+  })
+
+  it('stops waiting when it may not read versions', async () => {
+    const request = jest.fn().mockRejectedValue(
+      Object.assign(new Error('denied'), {
+        providerError: { code: 'AccessDeniedException' },
+      }),
+    )
+
+    const remaining = await waitForImageVersionsDeleted(
+      { request },
+      'arn:image',
+      ['1.0', '2.0'],
+      { sleep },
+    )
+
+    expect(remaining).toEqual([])
+    expect(request).toHaveBeenCalledTimes(1)
   })
 })

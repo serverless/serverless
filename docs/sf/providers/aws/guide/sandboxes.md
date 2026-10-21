@@ -539,7 +539,7 @@ serverless prune -n 5 --sandbox echo
 
 `prune` never deletes the live version, a version that a MicroVM still runs or can resume from, or a version that is still building. If a deploy reaches the limit, the error shows the `prune` command to run.
 
-The zips need no setting. A MicroVM image reads its zip only while it builds: MicroVMs launch and resume from the image's snapshot. Each deploy keeps the zips that a remaining deployment points to, so every deployment `serverless deploy list` shows can still be rolled back with `serverless rollback`, and deletes the others. The number of deployments kept is `provider.deploymentBucket.maxPreviousDeploymentArtifacts` (default `5`). Artifacts you pass as `s3://` URIs are never deleted.
+The zips need no setting. A MicroVM image reads its zip only while it builds: MicroVMs launch and resume from the image's snapshot. Each deploy keeps the zips that a remaining deployment points to, so every deployment `serverless deploy list` shows can still be rolled back with `serverless rollback`, and deletes the others; on a versioned bucket, as for deployment folders, a delete adds a delete marker and the earlier object versions remain until a lifecycle rule expires them. The number of deployments kept is `provider.deploymentBucket.maxPreviousDeploymentArtifacts` (default `5`). Artifacts you pass as `s3://` URIs are never deleted.
 
 ---
 

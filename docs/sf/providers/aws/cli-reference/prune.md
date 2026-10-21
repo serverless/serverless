@@ -28,7 +28,7 @@ serverless prune -n <number>
 - `--layer` or `-l` Limit pruning to a specific layer.
 - `--sandbox` Limit pruning to the image versions of a specific sandbox.
 - `--includeLayers` or `-i` Include layers in pruning.
-- `--includeArtifacts` or `-a` Also mark deployment artifacts that no longer back any function or layer version, and delete sandbox zips that no remaining deployment points to. Skipped on `--function`/`--layer` scoped runs.
+- `--includeArtifacts` or `-a` Also mark deployment artifacts that no longer back any function or layer version, and delete sandbox zips that no remaining deployment points to. Skipped on `--function`, `--layer` and `--sandbox` scoped runs.
 - `--dryRun` or `-d` Preview what would be deleted without deleting.
 - `--verbose` Enable detailed output.
 

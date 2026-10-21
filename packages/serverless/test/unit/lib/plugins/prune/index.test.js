@@ -1966,6 +1966,31 @@ describe('Prune', () => {
       expect(calls.some((c) => c.service === 'LambdaMicrovms')).toBe(false)
     })
 
+    it('skips the artifact sweep on a --sandbox run', async () => {
+      setup({
+        options: { number: '1', sandbox: 'echo', includeArtifacts: true },
+      })
+
+      await plugin.cliPrune()
+
+      expect(calls.some((c) => c.service === 'S3')).toBe(false)
+      expect(logMock.notice).toHaveBeenCalledWith(
+        'Skipping deployment artifact sweep: it is not available on function, layer or sandbox scoped prune runs.',
+      )
+    })
+
+    it('says that --includeLayers does not apply to a --sandbox run', async () => {
+      setup({
+        options: { number: '1', sandbox: 'echo', includeLayers: true },
+      })
+
+      await plugin.cliPrune()
+
+      expect(logMock.notice).toHaveBeenCalledWith(
+        '--includeLayers is ignored on a --sandbox run.',
+      )
+    })
+
     it('refuses an undefined --sandbox before calling AWS', async () => {
       setup({ options: { number: '1', sandbox: 'missing' } })
 
@@ -2027,7 +2052,7 @@ describe('Prune', () => {
       await expect(plugin.cliPrune()).rejects.toMatchObject({
         code: 'PRUNE_SANDBOX_ACCESS_DENIED',
         message:
-          'Could not prune image versions of sandbox "echo": User is not authorized to perform: lambda:ListMicrovms Grant lambda:GetMicrovmImage, lambda:ListMicrovmImageVersions, lambda:ListMicrovms and lambda:DeleteMicrovmImageVersion to prune sandbox versions.',
+          'Could not prune image versions of sandbox "echo": User is not authorized to perform: lambda:ListMicrovms Grant lambda:GetMicrovmImage, lambda:ListMicrovmImageVersions, lambda:GetMicrovmImageVersion, lambda:ListMicrovms and lambda:DeleteMicrovmImageVersion to prune sandbox versions.',
       })
     })
 
@@ -2095,7 +2120,9 @@ describe('Prune', () => {
             }),
             getObject: (params) => ({
               Body: Buffer.from(
-                params.Key.includes(DIR_OLD) ? OLD_ZIP : NEW_ZIP,
+                JSON.stringify({
+                  Uri: `s3://b/${params.Key.includes(DIR_OLD) ? OLD_ZIP : NEW_ZIP}`,
+                }),
               ),
             }),
           },
