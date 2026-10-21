@@ -209,6 +209,35 @@ describe('Dependabot coverage', () => {
     expect(ungrouped).toEqual([])
   })
 
+  // Dependabot rejects the whole file, and so stops every update, when an
+  // entry for one of these ecosystems sets a semver-*-days cooldown. The list
+  // is the "SemVer-bump days supported: no" column of the cooldown table in
+  // the Dependabot options reference; the published JSON schema allows them.
+  test('no entry sets a semver cooldown its ecosystem does not support', () => {
+    const DEFAULT_DAYS_ONLY = [
+      'bazel',
+      'devcontainers',
+      'docker',
+      'docker-compose',
+      'github-actions',
+      'gitsubmodule',
+      'helm',
+      'nix',
+      'opentofu',
+      'pre-commit',
+      'terraform',
+      'vcpkg',
+    ]
+    const unsupported = config.updates
+      .filter((entry) => DEFAULT_DAYS_ONLY.includes(entry['package-ecosystem']))
+      .flatMap((entry) =>
+        Object.keys(entry.cooldown ?? {})
+          .filter((key) => key.startsWith('semver-'))
+          .map((key) => `${entry['package-ecosystem']}: ${key}`),
+      )
+    expect(unsupported).toEqual([])
+  })
+
   test('every manifest with dependencies is listed in .github/dependabot.yml', () => {
     const missing = Object.keys(MANIFESTS).flatMap((ecosystem) => {
       const listed = new Set(listedDirectories(ecosystem))
