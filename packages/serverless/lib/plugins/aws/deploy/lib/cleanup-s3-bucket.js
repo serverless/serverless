@@ -65,8 +65,9 @@ export default {
 
   // Sandbox zips live beside the deployment folders, not in them. A zip is
   // read only when an image builds (deploy, rollback, base-image rebuild), so
-  // it stays while a deployment folder's template points to it. Zips of an
-  // earlier key layout (always under "serverless/") are covered too.
+  // it stays while a deployment folder's template points to it. Zips an
+  // earlier version stored under "serverless/" with a custom deployment prefix
+  // are left to "serverless remove".
   async cleanupSandboxArtifacts() {
     const sandboxes =
       this.serverless.service.sandboxes ||
@@ -85,7 +86,6 @@ export default {
         stage: this.provider.getStage(),
         kind: 'sandboxes',
         templateFileName: this.provider.naming.getCompiledTemplateS3Suffix(),
-        extraPrefixes: ['serverless'],
         maxTemplateReads: 20,
       })
       if (keptAll) {

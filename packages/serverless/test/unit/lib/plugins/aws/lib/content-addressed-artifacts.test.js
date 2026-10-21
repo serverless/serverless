@@ -685,26 +685,6 @@ describe('findUnusedArtifacts', () => {
     })
   })
 
-  it('also covers the extra prefixes under a custom deployment prefix', async () => {
-    const legacyKept = zip('serverless', 'a1')
-    const legacyUnused = zip('serverless', 'b2')
-    const current = zip('custom', 'c3')
-    const provider = makeProvider({
-      [`custom/shop/dev/${DIR_OLD}/${TEMPLATE}`]: templateFor(legacyKept),
-      [`custom/shop/dev/${DIR_NEW}/${TEMPLATE}`]: templateFor(current),
-      [legacyKept]: '',
-      [legacyUnused]: '',
-      [current]: '',
-    })
-
-    const result = await run(provider, {
-      deploymentPrefix: 'custom',
-      extraPrefixes: ['serverless'],
-    })
-
-    expect(result).toEqual({ unused: [legacyUnused] })
-  })
-
   it('treats ignored folders as gone', async () => {
     const old = zip('serverless', 'a1')
     const current = zip('serverless', 'b2')

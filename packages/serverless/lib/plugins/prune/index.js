@@ -391,7 +391,6 @@ class Prune {
       stage: this.provider.getStage(),
       kind: 'sandboxes',
       templateFileName: this.provider.naming.getCompiledTemplateS3Suffix(),
-      extraPrefixes: ['serverless'],
       ignoreDirectories: this.options.dryRun ? markedDirs : [],
     })
     if (keptAll) {

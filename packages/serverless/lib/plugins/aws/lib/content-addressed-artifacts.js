@@ -406,8 +406,6 @@ async function readBody(body) {
  * @param {string} params.stage
  * @param {'webapps'|'sandboxes'} params.kind
  * @param {string} params.templateFileName - compiled template in each folder
- * @param {string[]} [params.extraPrefixes] - other first key segments that may
- *   hold zips of this kind (an earlier key layout)
  * @param {string[]} [params.ignoreDirectories] - deployment folders to treat as
  *   gone (a dry run's planned deletions)
  * @param {number} [params.maxTemplateReads] - templates to read at most; past
@@ -425,21 +423,19 @@ export async function findUnusedArtifacts({
   stage,
   kind,
   templateFileName,
-  extraPrefixes = [],
   ignoreDirectories = [],
   maxTemplateReads = Infinity,
   now = Date.now(),
 }) {
-  const zipPrefixes = [...new Set([deploymentPrefix, ...extraPrefixes])].map(
-    (prefix) => `${prefix}/${service}/${stage}/${kind}/`,
-  )
   const zips = []
-  for (const prefix of zipPrefixes) {
-    const objects = await listAllObjects(provider, bucketName, prefix)
-    for (const { Key, LastModified } of objects) {
-      const uploadedAt = LastModified ? new Date(LastModified).getTime() : 0
-      if (now - uploadedAt >= RECENT_UPLOAD_MS) zips.push(Key)
-    }
+  const objects = await listAllObjects(
+    provider,
+    bucketName,
+    `${deploymentPrefix}/${service}/${stage}/${kind}/`,
+  )
+  for (const { Key, LastModified } of objects) {
+    const uploadedAt = LastModified ? new Date(LastModified).getTime() : 0
+    if (now - uploadedAt >= RECENT_UPLOAD_MS) zips.push(Key)
   }
   if (zips.length === 0) return { unused: [] }
 

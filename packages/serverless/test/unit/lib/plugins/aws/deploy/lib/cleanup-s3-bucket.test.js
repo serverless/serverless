@@ -217,13 +217,14 @@ describe('cleanupS3Bucket — sandbox artifacts', () => {
     expect(deletedSandboxKeys(ctx)).toEqual([old])
   })
 
-  it('covers zips at the "serverless/" location under a custom prefix', async () => {
-    const legacy = 'serverless/svc/dev/sandboxes/echo-a1.zip'
-    const ctx = buildSandboxCtx({ prefix: 'custom', keys: [legacy] })
+  it('looks only under the deployment prefix for sandbox zips', async () => {
+    const unused = 'custom/svc/dev/sandboxes/echo-a1.zip'
+    const outside = 'serverless/svc/dev/sandboxes/echo-z9.zip'
+    const ctx = buildSandboxCtx({ prefix: 'custom', keys: [unused, outside] })
 
     await ctx.cleanupS3Bucket()
 
-    expect(deletedSandboxKeys(ctx)).toEqual([legacy])
+    expect(deletedSandboxKeys(ctx)).toEqual([unused])
   })
 
   it('warns instead of failing the deploy when the zip pass fails', async () => {
