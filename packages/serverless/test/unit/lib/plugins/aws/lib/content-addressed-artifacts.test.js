@@ -595,6 +595,18 @@ describe('findUnusedArtifacts', () => {
     expect(result).toEqual({ unused: [orphan] })
   })
 
+  it('matches keys whose sandbox name the template escapes', async () => {
+    const live = 'serverless/shop/dev/sandboxes/say"hi\\-a1.zip'
+    const provider = makeProvider({
+      [`serverless/shop/dev/${DIR_NEW}/${TEMPLATE}`]: templateFor(live),
+      [live]: '',
+    })
+
+    const result = await run(provider)
+
+    expect(result).toEqual({ unused: [] })
+  })
+
   it('returns nothing without listing folders when there are no zips', async () => {
     const provider = makeProvider({
       [`serverless/shop/dev/${DIR_NEW}/${TEMPLATE}`]: templateFor('x'),

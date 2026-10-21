@@ -468,7 +468,9 @@ export async function findUnusedArtifacts({
       return keptAll
     }
     for (const key of zips) {
-      if (template.includes(key)) referenced.add(key)
+      // The template is JSON text, so a key appears with its `"` and `\` escaped
+      if (template.includes(JSON.stringify(key).slice(1, -1)))
+        referenced.add(key)
     }
   }
 
