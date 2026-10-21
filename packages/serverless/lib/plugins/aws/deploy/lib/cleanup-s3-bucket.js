@@ -48,15 +48,19 @@ export default {
     return getS3ObjectsFromStacks(stacksToRemove, prefix, service, stage)
   },
 
+  // Returns the per-key errors, which DeleteObjects reports instead of throwing
   async removeObjects(objectsToRemove) {
-    if (!objectsToRemove || !objectsToRemove.length) return
+    if (!objectsToRemove || !objectsToRemove.length) return []
+    const errors = []
     // S3 DeleteObjects accepts at most 1000 keys per request
     for (let start = 0; start < objectsToRemove.length; start += 1000) {
-      await this.provider.request('S3', 'deleteObjects', {
+      const result = await this.provider.request('S3', 'deleteObjects', {
         Bucket: this.bucketName,
         Delete: { Objects: objectsToRemove.slice(start, start + 1000) },
       })
+      errors.push(...(result?.Errors || []))
     }
+    return errors
   },
 
   // Sandbox zips live beside the deployment folders, not in them. A zip is
@@ -88,7 +92,12 @@ export default {
         log.info(`Keeping all sandbox artifacts: ${keptAll}.`)
         return
       }
-      await this.removeObjects(unused.map((Key) => ({ Key })))
+      const errors = await this.removeObjects(unused.map((Key) => ({ Key })))
+      if (errors.length > 0) {
+        log.warning(
+          `Could not remove ${errors.length} unused sandbox artifact(s) from S3: ${errors[0].Code}${errors[0].Message ? ` (${errors[0].Message})` : ''}`,
+        )
+      }
     } catch (error) {
       log.warning(
         `Could not remove unused sandbox artifacts from S3: ${error.message}`,

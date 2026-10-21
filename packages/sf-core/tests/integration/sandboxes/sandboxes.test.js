@@ -578,12 +578,15 @@ describe('Serverless Framework Service - Sandboxes', () => {
     const output = (key) =>
       Stacks[0].Outputs.find((o) => o.OutputKey === key).OutputValue
     const imageArn = output('EchoImageIdentifier')
+    // A deleted version can stay listed as DELETING for a while
     const listVersions = async () =>
       (
         await microvmsClient.send(
           new ListMicrovmImageVersionsCommand({ imageIdentifier: imageArn }),
         )
-      ).items.map((v) => v.imageVersion)
+      ).items
+        .filter((v) => !['DELETING', 'DELETED'].includes(v.state))
+        .map((v) => v.imageVersion)
 
     expect((await listVersions()).length).toBeGreaterThanOrEqual(2)
 

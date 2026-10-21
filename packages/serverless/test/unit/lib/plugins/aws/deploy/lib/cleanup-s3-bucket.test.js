@@ -245,6 +245,28 @@ describe('cleanupS3Bucket — sandbox artifacts', () => {
     )
   })
 
+  it('warns when S3 refuses to delete some sandbox zips', async () => {
+    const unused = 'serverless/svc/dev/sandboxes/echo-a1.zip'
+    const ctx = buildSandboxCtx({ keys: [unused] })
+    const request = ctx.provider.request
+    ctx.provider.request = jest.fn(async (service, method, params) => {
+      if (method === 'deleteObjects') {
+        return {
+          Errors: [
+            { Key: unused, Code: 'AccessDenied', Message: 'Access Denied' },
+          ],
+        }
+      }
+      return request(service, method, params)
+    })
+
+    await ctx.cleanupS3Bucket()
+
+    expect(logWarning).toHaveBeenCalledWith(
+      'Could not remove 1 unused sandbox artifact(s) from S3: AccessDenied (Access Denied)',
+    )
+  })
+
   it('makes no sandbox calls for a service without sandboxes', async () => {
     const ctx = buildCtx({ referenceMode: true })
 
