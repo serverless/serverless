@@ -72,6 +72,7 @@ Gotchas:
 - The shipped CLI supports Node.js 18 (`packages/serverless` declares `engines.node: ">=18.0"`). Runtime dependencies must keep Node 18 support even though development uses Node 24 or 26. Majors that drop Node 18 are blocked via the ignore list in `.github/dependabot.yml` — check it before bumping; dev-only dependencies may require any Node version.
 - Write `package-lock.json` only with npm 12. npm <= 11 silently drops root `overrides` in workspaces repos (npm/cli#4834). Use `npm ci` for plain installs.
 - `.npmrc` sets `min-release-age=3`: npm versions published less than 3 days ago won't resolve unless you pass `--min-release-age=0` explicitly.
+- Dependabot updates only the directories `.github/dependabot.yml` lists. A new package or test fixture with dependencies (a `package.json` that declares any, a requirements file, `Pipfile`, `poetry.lock`, `uv.lock`, `Dockerfile`, `go.mod`, `pom.xml` or a pinned Terraform provider) needs its directory in the entry for its package manager; `packages/sf-core/tests/unit/dependabot-coverage.test.js` fails until it is there and names the missing directory. A dependency that several npm directories declare goes in one of the groups listed first in the npm entry, which keep it at one version everywhere, or in that test's `MAY_DIFFER` with the reason its versions may differ.
 
 ## Testing
 
