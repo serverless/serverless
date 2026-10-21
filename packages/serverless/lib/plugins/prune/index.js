@@ -405,13 +405,24 @@ class Prune {
       )
     }
     if (this.options.dryRun || unused.length === 0) return
+    // DeleteObjects reports keys it refused in its response instead of throwing
+    const errors = []
     for (let start = 0; start < unused.length; start += 1000) {
-      await this.provider.request('S3', 'deleteObjects', {
+      const result = await this.provider.request('S3', 'deleteObjects', {
         Bucket: bucketName,
         Delete: {
           Objects: unused.slice(start, start + 1000).map((Key) => ({ Key })),
         },
       })
+      errors.push(...(result?.Errors || []))
+    }
+    if (errors.length > 0) {
+      const { Code, Message } = errors[0]
+      throw new ServerlessError(
+        `Could not remove ${errors.length} unused sandbox artifact(s) from S3: ${Code}${Message ? ` (${Message})` : ''}`,
+        'PRUNE_SANDBOX_ARTIFACTS_NOT_DELETED',
+        { stack: false },
+      )
     }
   }
 

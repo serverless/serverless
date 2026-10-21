@@ -2174,6 +2174,51 @@ describe('Prune', () => {
 
         expect(sandboxZipDeletes()).toEqual([OLD_ZIP])
       })
+
+      it('stops with an error when S3 refuses to delete a zip', async () => {
+        sweepSetup({ number: '0' })
+        const listObjectsV2 = (params) => ({
+          Contents: [
+            `serverless/test-service/dev/${DIR_NEW}/${TEMPLATE}`,
+            OLD_ZIP,
+            NEW_ZIP,
+          ]
+            .filter((k) => k.startsWith(params.Prefix))
+            .map((Key) => ({ Key })),
+        })
+        const request = serverless.getProvider().request
+        serverless.getProvider().request = async (
+          service,
+          method,
+          params,
+          ...rest
+        ) => {
+          if (method === 'listObjectsV2') return listObjectsV2(params)
+          if (method === 'deleteObjects') {
+            return {
+              Errors: [
+                {
+                  Key: OLD_ZIP,
+                  Code: 'AccessDenied',
+                  Message: 'Access Denied',
+                },
+              ],
+            }
+          }
+          return request(service, method, params, ...rest)
+        }
+
+        await expect(
+          plugin.sweepSandboxArtifacts({
+            bucketName: 'test-deployment-bucket',
+            markedDirs: [],
+          }),
+        ).rejects.toMatchObject({
+          code: 'PRUNE_SANDBOX_ARTIFACTS_NOT_DELETED',
+          message:
+            'Could not remove 1 unused sandbox artifact(s) from S3: AccessDenied (Access Denied)',
+        })
+      })
     })
 
     it('does not prune after deploy without automatic mode', async () => {
