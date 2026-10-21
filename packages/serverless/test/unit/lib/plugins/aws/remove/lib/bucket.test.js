@@ -1081,3 +1081,46 @@ describe('setServerlessDeploymentBucketName', () => {
     expect(logInfo).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('emptyS3Bucket — sandbox zips under a custom deployment prefix', () => {
+  const LEGACY = 'serverless/svc/dev/sandboxes/'
+  const legacyCalls = (ctx, method) =>
+    ctx.provider.request.mock.calls
+      .filter(
+        ([, m, params]) =>
+          m === method &&
+          (params?.Prefix === LEGACY ||
+            params?.Delete?.Objects?.some(({ Key }) => Key.startsWith(LEGACY))),
+      )
+      .map(([, , params]) => params)
+
+  it('also empties the "serverless/" sandbox location', async () => {
+    const ctx = buildCtx({
+      global: true,
+      s3: {
+        listObjectVersions: (params) =>
+          params.Prefix === LEGACY
+            ? { Versions: [{ Key: `${LEGACY}echo-a1.zip`, VersionId: 'v1' }] }
+            : { Versions: [] },
+      },
+    })
+    ctx.provider.getDeploymentPrefix = () => 'custom'
+
+    await ctx.emptyS3Bucket()
+
+    expect(legacyCalls(ctx, 'deleteObjects')).toEqual([
+      {
+        Bucket: 'global-bucket',
+        Delete: { Objects: [{ Key: `${LEGACY}echo-a1.zip`, VersionId: 'v1' }] },
+      },
+    ])
+  })
+
+  it('lists nothing extra under the default prefix', async () => {
+    const ctx = buildCtx({ global: true })
+
+    await ctx.emptyS3Bucket()
+
+    expect(legacyCalls(ctx, 'listObjectVersions')).toEqual([])
+  })
+})

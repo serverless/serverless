@@ -12,6 +12,7 @@ function makeProvider(overrides = {}, { existingKeys = [] } = {}) {
   return {
     getStage: () => 'dev',
     getRegion: () => 'us-east-1',
+    getDeploymentPrefix: () => 'serverless',
     getServerlessDeploymentBucketName: jest
       .fn()
       .mockResolvedValue('resolved-deploy-bucket'),

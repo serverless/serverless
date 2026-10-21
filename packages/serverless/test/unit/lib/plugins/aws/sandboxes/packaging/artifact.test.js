@@ -48,6 +48,22 @@ describe('computeCodeArtifact', () => {
     )
   })
 
+  test('s3 key starts with the deployment prefix', async () => {
+    const result = await computeCodeArtifact(
+      { artifact: '/tmp/code-dir' },
+      {
+        deploymentPrefix: 'custom/prefix',
+        serviceName: 'my-svc',
+        stage: 'prod',
+        name: 'api',
+        zipDir: async () => Buffer.from('hello'),
+      },
+    )
+    expect(result.key).toMatch(
+      /^custom\/prefix\/my-svc\/prod\/sandboxes\/api-[a-f0-9]+\.zip$/,
+    )
+  })
+
   test('two calls with identical content produce the same key (content-addressed)', async () => {
     const zipBuf = Buffer.from('same-content')
 

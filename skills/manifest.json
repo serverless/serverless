@@ -12,8 +12,8 @@
     "hash": "4bb3856f92b580d8e256aaf7cca979bfd9d9ca268a79b17683820749077c5216"
   },
   "serverless-sandboxes": {
-    "version": 5,
-    "hash": "a4f3d24560bc6c9bc81bec824aaa30aac792f11a8c597c047fc9ea70bb8ec8d7"
+    "version": 6,
+    "hash": "da502d99c8e1de60647ade5bf043a61aedce1a1c030aad8be099e6a1850cea5e"
   },
   "serverless-upgrade": {
     "version": 1,

@@ -90,13 +90,14 @@ async function defaultZipDir(dirPath, selection) {
  *   - Otherwise `cfg.artifact` is treated as a local directory path.  It is
  *     zipped with `deps.zipDir` (defaults to the real archiver impl).  The S3
  *     key is content-addressed:
- *       `serverless/<serviceName>/<stage>/sandboxes/<name>-<sha256hex>.zip`
+ *       `<deploymentPrefix>/<serviceName>/<stage>/sandboxes/<name>-<sha256hex>.zip`
  *     Returns `{ key, zipBuffer, uri: undefined }` — no upload happens here.
  *
  * @param {object} cfg
  * @param {string} cfg.artifact  - `s3://…` passthrough URI **or** local dir path
  *
  * @param {object} deps
+ * @param {string}   [deps.deploymentPrefix='serverless'] - First key segment (`provider.deploymentPrefix`)
  * @param {string}   deps.serviceName - Serverless service name
  * @param {string}   deps.stage       - Deployment stage
  * @param {string}   deps.name        - Sandbox name
@@ -112,7 +113,14 @@ export async function computeCodeArtifact(cfg, deps) {
     return { uri: cfg.artifact, key: undefined, zipBuffer: undefined }
   }
 
-  const { serviceName, stage, name, serviceDir, serverless } = deps
+  const {
+    serviceName,
+    stage,
+    name,
+    serviceDir,
+    serverless,
+    deploymentPrefix = 'serverless',
+  } = deps
   const zipDir = deps.zipDir ?? defaultZipDir
 
   // Resolve the artifact directory relative to the service directory (where
@@ -130,7 +138,7 @@ export async function computeCodeArtifact(cfg, deps) {
   })
 
   const key = buildArtifactKey({
-    prefix: 'serverless',
+    prefix: deploymentPrefix,
     serviceName,
     stage,
     kind: 'sandboxes',

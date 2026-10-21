@@ -173,8 +173,17 @@ target the local `dev` emulator instead of the real service — see
   redirects a single instance's runtime logs to a custom log group.
 
 Every image version bills snapshot storage for as long as it exists,
-including `INACTIVE` ones — prune old versions with
-`delete-microvm-image-version`. The last remaining version can only be
+including `INACTIVE` ones, and an image holds at most 50 versions by
+default. Prune old versions with `serverless prune -n <N>` (add
+`--sandbox <name>` for one sandbox), or every deploy with
+`custom.prune: { automatic: true, number: <N> }`: it keeps the live
+version plus N older ones and skips versions a MicroVM still runs or can
+resume from. **Never delete the live version
+(`latestActiveImageVersion`) by hand** with
+`delete-microvm-image-version`: AWS allows it, the image falls back to the
+previous version, unpinned launches (including `invoke --sandbox`) serve
+the older code, and a redeploy of unchanged code reports "No changes to
+deploy" and leaves it that way. The last remaining version can only be
 removed via `delete-microvm-image`.
 
 ### Shell access (debugging a running instance)

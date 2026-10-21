@@ -74,6 +74,8 @@ class ServerlessSandboxes {
       stage: this.provider.getStage(),
       region: this.provider.getRegion(),
       deploymentBucket: this.serverless.service.provider?.deploymentBucket,
+      // First key segment of uploaded zips, as for every other artifact
+      deploymentPrefix: this.provider.getDeploymentPrefix(),
       // Absolute dir containing serverless.yml — local artifact paths resolve
       // against this, not process.cwd().
       serviceDir: this.serverless.serviceDir,

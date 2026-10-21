@@ -832,7 +832,7 @@ The Infrequent Access class supports a reduced subset of CloudWatch Logs feature
 
 By default, the framework creates function versions for every deploy. This behavior is optional, and can be turned off in cases where you don't invoke past versions by their qualifier. If you would like to do this, you can invoke your functions as `arn:aws:lambda:....:function/myFunc:3` to invoke version 3 for example.
 
-Versions are not cleaned up by serverless, so make sure you use a plugin or other tool to prune sufficiently old versions. The framework can't clean up versions because it doesn't have information about whether older versions are invoked or not. This feature adds to the number of total stack outputs and resources because a function version is a separate resource from the function it refers to.
+Old versions are kept until you prune them with the built-in [`prune`](./prune.md) command or `custom.prune.automatic`. The Framework can't tell whether an older version is still invoked, so it never deletes versions on its own; `prune` keeps the number of versions you choose and every version an alias points to. This feature adds to the number of total stack outputs and resources because a function version is a separate resource from the function it refers to.
 
 For functions with `snapStart` enabled, every retained version also keeps a cached snapshot that AWS bills for outside the Java managed runtimes; see [Cost of retained versions](#cost-of-retained-versions).
 

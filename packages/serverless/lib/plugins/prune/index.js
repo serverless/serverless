@@ -12,12 +12,27 @@
 import path from 'path'
 import cliCommandsSchema from '../../cli/commands-schema.js'
 import { log } from '@serverless/util'
+import ServerlessError from '../../serverless-error.js'
+import { getLogicalId } from '../aws/lib/resource-naming.js'
+import { findUnusedArtifacts } from '../aws/lib/content-addressed-artifacts.js'
 import {
   buildPinnedShaSet,
   collectLayerArns,
   layerBasenameFromArn,
   sweepArtifacts,
 } from './artifact-sweep.js'
+import {
+  deleteImageVersion,
+  getLiveImageVersion,
+  isAccessDenied,
+  listImageVersions,
+  listInUseImageVersions,
+  selectPruneVersionsForImage,
+  waitForImageVersionsDeleted,
+} from './sandbox-images.js'
+
+const SANDBOX_PRUNE_PERMISSIONS =
+  'lambda:GetMicrovmImage, lambda:ListMicrovmImageVersions, lambda:GetMicrovmImageVersion, lambda:ListMicrovms and lambda:DeleteMicrovmImageVersion'
 
 class Prune {
   constructor(serverless, options, { log: pluginLog, progress } = {}) {
@@ -26,6 +41,7 @@ class Prune {
     this.provider = this.serverless.getProvider('aws')
     this.log = pluginLog || log
     this.progress = progress
+    this.sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
     this.pluginCustom = this.loadCustom(this.serverless.service.custom)
 
@@ -150,12 +166,25 @@ class Prune {
       this.logNotice('Dry-run enabled, no pruning actions will be performed.')
     }
 
-    if (this.options.includeLayers) {
-      await Promise.all([this.pruneFunctions(), this.pruneLayers()])
-    } else if (this.options.layer && !this.options.function) {
-      await this.pruneLayers()
-    } else {
-      await this.pruneFunctions()
+    // --sandbox alone prunes just that sandbox; --function or --layer alone
+    // keep their meaning and leave sandboxes alone.
+    const { function: fn, layer, sandbox } = this.options
+    if (sandbox) this.getSandboxNames()
+    if (sandbox && !fn && !layer && this.options.includeLayers) {
+      this.logNotice('--includeLayers is ignored on a --sandbox run.')
+    }
+
+    if (!sandbox || fn || layer) {
+      if (this.options.includeLayers) {
+        await Promise.all([this.pruneFunctions(), this.pruneLayers()])
+      } else if (layer && !fn) {
+        await this.pruneLayers()
+      } else {
+        await this.pruneFunctions()
+      }
+    }
+    if (sandbox || (!fn && !layer)) {
+      await this.pruneSandboxes()
     }
 
     if (this.shouldSweepArtifacts()) {
@@ -181,6 +210,7 @@ class Prune {
       } else {
         await this.pruneFunctions()
       }
+      await this.pruneSandboxes({ automatic: true })
 
       if (this.shouldSweepArtifacts()) {
         await this.sweepDeploymentArtifacts()
@@ -192,9 +222,9 @@ class Prune {
     const requested =
       this.options.includeArtifacts || this.pluginCustom.includeArtifacts
     if (!requested) return false
-    if (this.options.function || this.options.layer) {
+    if (this.options.function || this.options.layer || this.options.sandbox) {
       this.logNotice(
-        'Skipping deployment artifact sweep: it is not available on function/layer-scoped prune runs.',
+        'Skipping deployment artifact sweep: it is not available on function, layer or sandbox scoped prune runs.',
       )
       return false
     }
@@ -343,9 +373,57 @@ class Prune {
           : `Marked deployment ${dir} for deletion.`,
       )
     }
+    await this.sweepSandboxArtifacts({ bucketName, markedDirs })
 
     this.clearProgress('prune-plugin-sweep-artifacts')
     this.logSuccess('Deployment artifact sweep complete')
+  }
+
+  // Sandbox zips no remaining deployment folder points to, as the post-deploy
+  // cleanup removes them; a dry run treats the folders it would mark as gone
+  async sweepSandboxArtifacts({ bucketName, markedDirs }) {
+    if (Object.keys(this.getSandboxesConfig()).length === 0) return
+    const { unused, keptAll } = await findUnusedArtifacts({
+      provider: this.provider,
+      bucketName,
+      deploymentPrefix: this.provider.getDeploymentPrefix(),
+      service: this.serverless.service.service,
+      stage: this.provider.getStage(),
+      kind: 'sandboxes',
+      templateFileName: this.provider.naming.getCompiledTemplateS3Suffix(),
+      ignoreDirectories: this.options.dryRun ? markedDirs : [],
+    })
+    if (keptAll) {
+      this.logInfo(`Keeping all sandbox artifacts: ${keptAll}.`)
+      return
+    }
+    for (const key of unused) {
+      this.logInfo(
+        this.options.dryRun
+          ? `Sandbox artifact ${key} selected for deletion (dry-run).`
+          : `Deleting sandbox artifact ${key}.`,
+      )
+    }
+    if (this.options.dryRun || unused.length === 0) return
+    // DeleteObjects reports keys it refused in its response instead of throwing
+    const errors = []
+    for (let start = 0; start < unused.length; start += 1000) {
+      const result = await this.provider.request('S3', 'deleteObjects', {
+        Bucket: bucketName,
+        Delete: {
+          Objects: unused.slice(start, start + 1000).map((Key) => ({ Key })),
+        },
+      })
+      errors.push(...(result?.Errors || []))
+    }
+    if (errors.length > 0) {
+      const { Code, Message } = errors[0]
+      throw new ServerlessError(
+        `Could not remove ${errors.length} unused sandbox artifact(s) from S3: ${Code}${Message ? ` (${Message})` : ''}`,
+        'PRUNE_SANDBOX_ARTIFACTS_NOT_DELETED',
+        { stack: false },
+      )
+    }
   }
 
   async pruneLayers() {
@@ -507,6 +585,140 @@ class Prune {
 
     this.clearProgress('prune-plugin-prune-functions')
     this.logSuccess('Pruning of functions complete')
+  }
+
+  getSandboxesConfig() {
+    return (
+      this.serverless.service.sandboxes ||
+      this.serverless.configurationInput?.sandboxes ||
+      {}
+    )
+  }
+
+  // The sandboxes to prune: the --sandbox one, which must be defined, or all
+  getSandboxNames() {
+    const defined = Object.keys(this.getSandboxesConfig())
+    const selected = this.options.sandbox
+    if (!selected) return defined
+    if (!defined.includes(selected)) {
+      throw new ServerlessError(
+        `Sandbox "${selected}" is not defined in this service.${
+          defined.length ? ` Defined sandboxes: ${defined.join(', ')}.` : ''
+        }`,
+        'PRUNE_SANDBOX_NOT_FOUND',
+        { stack: false },
+      )
+    }
+    return [selected]
+  }
+
+  // Image ARN of each deployed sandbox, from the stack's
+  // `<Name>ImageIdentifier` outputs; sandboxes without one are not deployed
+  async resolveSandboxImageArns(names) {
+    let outputs = []
+    try {
+      const result = await this.provider.request(
+        'CloudFormation',
+        'describeStacks',
+        { StackName: this.provider.naming.getStackName() },
+      )
+      outputs = result?.Stacks?.[0]?.Outputs || []
+    } catch (error) {
+      if (!/does not exist/.test(error?.message ?? '')) throw error
+    }
+    return new Map(
+      names.map((name) => [
+        name,
+        outputs.find(
+          (o) => o.OutputKey === `${getLogicalId(name, 'Image')}Identifier`,
+        )?.OutputValue,
+      ]),
+    )
+  }
+
+  async pruneSandboxes({ automatic = false } = {}) {
+    const names = this.getSandboxNames()
+    if (names.length === 0) return
+
+    this.createProgress(
+      'prune-plugin-prune-sandboxes',
+      'Pruning sandbox image versions',
+    )
+    try {
+      const imageArns = await this.resolveSandboxImageArns(names)
+      for (const name of names) {
+        const imageArn = imageArns.get(name)
+        if (!imageArn) {
+          this.logInfo(`Skipping sandbox "${name}": not deployed.`)
+          continue
+        }
+        try {
+          await this.pruneSandboxImage(name, imageArn)
+        } catch (error) {
+          if (!isAccessDenied(error)) throw error
+          const message = `Could not prune image versions of sandbox "${name}": ${error.message} Grant ${SANDBOX_PRUNE_PERMISSIONS} to prune sandbox versions.`
+          if (!automatic) {
+            throw new ServerlessError(message, 'PRUNE_SANDBOX_ACCESS_DENIED', {
+              stack: false,
+            })
+          }
+          this.logWarning(message)
+        }
+      }
+    } finally {
+      this.clearProgress('prune-plugin-prune-sandboxes')
+    }
+    this.logSuccess('Pruning of sandbox image versions complete')
+  }
+
+  async pruneSandboxImage(name, imageArn) {
+    const [liveVersion, versions, inUseVersions] = await Promise.all([
+      getLiveImageVersion(this.provider, imageArn),
+      listImageVersions(this.provider, imageArn),
+      listInUseImageVersions(this.provider, imageArn),
+    ])
+    const { candidates, retained } = selectPruneVersionsForImage({
+      versions,
+      liveVersion,
+      inUseVersions,
+      number: Number(this.getNumber()),
+    })
+    for (const { version, reason } of retained) {
+      this.logInfo(
+        `Retaining sandbox image version ${name}:${version}: ${
+          reason === 'building' ? 'still building' : 'a MicroVM still uses it'
+        }.`,
+      )
+    }
+    if (candidates.length === 0) return
+
+    if (this.options.dryRun) {
+      this.printPruningCandidates(name, candidates)
+      return
+    }
+    this.updateProgress(
+      'prune-plugin-prune-sandboxes',
+      `Pruning sandbox image versions (${name})`,
+    )
+    // One at a time: the image accepts the next delete once the previous
+    // version is gone
+    for (const version of candidates) {
+      this.logInfo(`Deleting sandbox image version ${name}:${version}.`)
+      await deleteImageVersion(this.provider, imageArn, version, {
+        sleep: this.sleep,
+      })
+      const remaining = await waitForImageVersionsDeleted(
+        this.provider,
+        imageArn,
+        [version],
+        { sleep: this.sleep },
+      )
+      if (remaining.length > 0) {
+        this.logInfo(
+          `Sandbox image version ${name}:${version} is still being deleted.`,
+        )
+      }
+    }
   }
 
   async deleteVersionsForLayer(layerName, versions) {

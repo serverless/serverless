@@ -1041,6 +1041,105 @@ describe('monitorStack', () => {
     })
   })
 
+  describe('sandbox image version limit failures', () => {
+    const reason =
+      'Resource handler returned message: "Image arn:aws:lambda:eu-west-1:123456789012:microvm-image:shop-echo-dev has reached the maximum number of versions allowed. (Service: LambdaMicrovms, Status Code: 402, Request ID: 5b785b67)" (RequestToken: c31e92af, HandlerErrorCode: GeneralServiceException)'
+
+    const runFailure = async ({
+      logicalId = 'EchoImage',
+      resourceType = 'AWS::Lambda::MicrovmImage',
+      statusReason = reason,
+      sandboxes = { echo: { artifact: './app' } },
+      custom,
+    }) => {
+      awsPlugin.serverless = {
+        service: { sandboxes, custom },
+        configurationInput: {},
+      }
+      awsPlugin.provider.request
+        .mockResolvedValueOnce({
+          StackEvents: [
+            {
+              EventId: '1',
+              StackName: 'shop-dev',
+              LogicalResourceId: 'shop-dev',
+              ResourceType: 'AWS::CloudFormation::Stack',
+              ResourceStatus: 'UPDATE_IN_PROGRESS',
+            },
+          ],
+        })
+        .mockResolvedValueOnce({
+          StackEvents: [
+            {
+              EventId: '2',
+              StackName: 'shop-dev',
+              LogicalResourceId: logicalId,
+              ResourceType: resourceType,
+              ResourceStatus: 'UPDATE_FAILED',
+              ResourceStatusReason: statusReason,
+            },
+          ],
+        })
+      return awsPlugin
+        .monitorStack('update', { StackId: 'shop-dev' }, { frequency: 10 })
+        .catch((error) => error)
+    }
+
+    it('keeps the AWS message and adds how to prune', async () => {
+      const error = await runFailure({})
+
+      expect(error.message).toBe(
+        `An error occurred: EchoImage - ${reason}.\n` +
+          '\n' +
+          'Sandbox "echo" has reached the maximum number of image versions AWS allows.\n' +
+          'Remove old versions with "serverless prune -n 5", then deploy again.\n' +
+          'To prune automatically after every deploy, add to serverless.yml:\n' +
+          '\n' +
+          'custom:\n' +
+          '  prune:\n' +
+          '    automatic: true\n' +
+          '    number: 5',
+      )
+      expect(error.code).toBe(
+        'AWS_CLOUD_FORMATION_UPDATE_STACK_INTERNAL_LAMBDA_MICROVM_IMAGE_UPDATE_FAILED',
+      )
+    })
+
+    it('maps the logical ID back to a sandbox name with dashes', async () => {
+      const error = await runFailure({
+        logicalId: 'SyncDashallImage',
+        sandboxes: { 'sync-all': {} },
+      })
+
+      expect(error.message).toContain(
+        'Sandbox "sync-all" has reached the maximum number of image versions AWS allows.',
+      )
+    })
+
+    it('skips the config snippet when automatic pruning is already on', async () => {
+      const error = await runFailure({
+        custom: { prune: { automatic: true, number: 3 } },
+      })
+
+      expect(
+        error.message.endsWith(
+          'Sandbox "echo" has reached the maximum number of image versions AWS allows.\n' +
+            'Remove old versions with "serverless prune -n 3", then deploy again.',
+        ),
+      ).toBe(true)
+    })
+
+    it('leaves other MicrovmImage failures alone', async () => {
+      const error = await runFailure({
+        statusReason: 'The container image build failed.',
+      })
+
+      expect(error.message).toBe(
+        'An error occurred: EchoImage - The container image build failed..',
+      )
+    })
+  })
+
   describe('Web Function quota failures', () => {
     const quotaContext =
       "Check this account's Web Function quotas with: aws lambda-web get-web-account-settings"

@@ -5,6 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import {
   buildArtifactKey,
+  findUnusedArtifacts,
   persistArtifacts,
   readUploadManifest,
   resolveBucketRef,
@@ -517,5 +518,271 @@ describe('uploadArtifactIfMissing', () => {
     const [[, , params]] = uploadCalls(provider)
     expect(params.ServerSideEncryption).toBe('aws:kms')
     expect(params.SSEKMSKeyId).toBe('k')
+  })
+})
+
+describe('findUnusedArtifacts', () => {
+  const TEMPLATE = 'compiled-cloudformation-template.json'
+  const DIR_OLD = '1792583884942-2026-10-21T11:58:04.942Z'
+  const DIR_NEW = '1792584095223-2026-10-21T12:01:35.223Z'
+  const zip = (prefix, sha) => `${prefix}/shop/dev/sandboxes/echo-${sha}.zip`
+  const templateFor = (key) =>
+    JSON.stringify({
+      Resources: {
+        EchoImage: {
+          Type: 'AWS::Lambda::MicrovmImage',
+          Properties: {
+            CodeArtifact: {
+              Uri: { 'Fn::Sub': [`s3://\${B}/${key}`, { B: 'bucket' }] },
+            },
+          },
+        },
+      },
+    })
+
+  // `objects` maps keys to template bodies (or '' for other files)
+  const makeProvider = (objects, { failGet, uploadedAt = {} } = {}) => {
+    const request = jest.fn(async (service, method, params) => {
+      if (method === 'listObjectsV2') {
+        const keys = Object.keys(objects)
+          .filter((k) => k.startsWith(params.Prefix))
+          .sort()
+        // two keys per page, to exercise continuation
+        const start = Number(params.ContinuationToken || 0)
+        const page = keys.slice(start, start + 2)
+        const more = start + 2 < keys.length
+        return {
+          Contents: page.map((Key) => ({ Key, LastModified: uploadedAt[Key] })),
+          IsTruncated: more,
+          ...(more && { NextContinuationToken: String(start + 2) }),
+        }
+      }
+      if (method === 'getObject') {
+        if (failGet) throw new Error('AccessDenied')
+        return { Body: Buffer.from(objects[params.Key]) }
+      }
+      throw new Error(`unexpected ${method}`)
+    })
+    return { request }
+  }
+
+  const run = (provider, extra = {}) =>
+    findUnusedArtifacts({
+      provider,
+      bucketName: 'bucket',
+      deploymentPrefix: 'serverless',
+      service: 'shop',
+      stage: 'dev',
+      kind: 'sandboxes',
+      templateFileName: TEMPLATE,
+      ...extra,
+    })
+
+  it('returns zips that no remaining deployment folder points to', async () => {
+    const old = zip('serverless', 'a1')
+    const current = zip('serverless', 'b2')
+    const orphan = zip('serverless', 'c3')
+    const provider = makeProvider({
+      [`serverless/shop/dev/${DIR_OLD}/${TEMPLATE}`]: templateFor(old),
+      [`serverless/shop/dev/${DIR_NEW}/${TEMPLATE}`]: templateFor(current),
+      [old]: '',
+      [current]: '',
+      [orphan]: '',
+    })
+
+    const result = await run(provider)
+
+    expect(result).toEqual({ unused: [orphan] })
+  })
+
+  it('matches keys whose sandbox name the template escapes', async () => {
+    const live = 'serverless/shop/dev/sandboxes/say"hi\\-a1.zip'
+    const provider = makeProvider({
+      [`serverless/shop/dev/${DIR_NEW}/${TEMPLATE}`]: templateFor(live),
+      [live]: '',
+    })
+
+    const result = await run(provider)
+
+    expect(result).toEqual({ unused: [] })
+  })
+
+  it('keeps zips uploaded within the last hour', async () => {
+    const now = Date.parse('2026-10-21T12:00:00Z')
+    const fresh = zip('serverless', 'f1')
+    const hourOld = zip('serverless', 'h1')
+    const old = zip('serverless', 'o1')
+    const provider = makeProvider(
+      {
+        [`serverless/shop/dev/${DIR_NEW}/${TEMPLATE}`]: templateFor('x'),
+        [fresh]: '',
+        [hourOld]: '',
+        [old]: '',
+      },
+      {
+        uploadedAt: {
+          [fresh]: new Date(now - 59 * 60 * 1000),
+          [hourOld]: new Date(now - 60 * 60 * 1000),
+          [old]: new Date(now - 24 * 60 * 60 * 1000),
+        },
+      },
+    )
+
+    const result = await run(provider, { now })
+
+    expect(result).toEqual({ unused: [hourOld, old] })
+  })
+
+  it('keeps a fresh zip when no deployment folder is left', async () => {
+    const now = Date.parse('2026-10-21T12:00:00Z')
+    const current = zip('serverless', 'c1')
+    const provider = makeProvider(
+      { [current]: '' },
+      { uploadedAt: { [current]: new Date(now - 30 * 1000) } },
+    )
+
+    const result = await run(provider, { now })
+
+    expect(result).toEqual({ unused: [] })
+    expect(provider.request).toHaveBeenCalledTimes(1)
+  })
+
+  it('returns nothing without listing folders when there are no zips', async () => {
+    const provider = makeProvider({
+      [`serverless/shop/dev/${DIR_NEW}/${TEMPLATE}`]: templateFor('x'),
+    })
+
+    expect(await run(provider)).toEqual({ unused: [] })
+    expect(
+      provider.request.mock.calls.filter(([, m]) => m === 'getObject'),
+    ).toHaveLength(0)
+  })
+
+  it('keeps every zip when a template cannot be read', async () => {
+    const provider = makeProvider(
+      {
+        [`serverless/shop/dev/${DIR_NEW}/${TEMPLATE}`]: templateFor('x'),
+        [zip('serverless', 'c3')]: '',
+      },
+      { failGet: true },
+    )
+
+    expect(await run(provider)).toEqual({
+      unused: [],
+      keptAll: `could not read the template of deployment ${DIR_NEW}`,
+    })
+  })
+
+  it('keeps every zip when a folder has no template', async () => {
+    const provider = makeProvider({
+      [`serverless/shop/dev/${DIR_NEW}/serverless-state.json`]: '{}',
+      [zip('serverless', 'c3')]: '',
+    })
+
+    expect(await run(provider)).toEqual({
+      unused: [],
+      keptAll: `could not read the template of deployment ${DIR_NEW}`,
+    })
+  })
+
+  it('treats ignored folders as gone', async () => {
+    const old = zip('serverless', 'a1')
+    const current = zip('serverless', 'b2')
+    const provider = makeProvider({
+      [`serverless/shop/dev/${DIR_OLD}/${TEMPLATE}`]: templateFor(old),
+      [`serverless/shop/dev/${DIR_NEW}/${TEMPLATE}`]: templateFor(current),
+      [old]: '',
+      [current]: '',
+    })
+
+    const result = await run(provider, { ignoreDirectories: [DIR_OLD] })
+
+    expect(result).toEqual({ unused: [old] })
+  })
+
+  it('keeps every zip when a template body is not readable', async () => {
+    const key = zip('serverless', 'a1')
+    const provider = {
+      request: jest.fn(async (service, method, params) => {
+        if (method === 'listObjectsV2') {
+          return params.Prefix.endsWith('/sandboxes/')
+            ? { Contents: [{ Key: key }] }
+            : {
+                Contents: [
+                  { Key: `serverless/shop/dev/${DIR_NEW}/${TEMPLATE}` },
+                ],
+              }
+        }
+        return { Body: { unexpected: true } }
+      }),
+    }
+
+    expect(await run(provider)).toEqual({
+      unused: [],
+      keptAll: `could not read the template of deployment ${DIR_NEW}`,
+    })
+  })
+
+  it('keeps every zip when a template is not JSON', async () => {
+    const provider = makeProvider({
+      [`serverless/shop/dev/${DIR_NEW}/${TEMPLATE}`]: 'not json',
+      [zip('serverless', 'c3')]: '',
+    })
+
+    expect((await run(provider)).keptAll).toBe(
+      `could not read the template of deployment ${DIR_NEW}`,
+    )
+  })
+
+  it('reads newest first and stops once every zip is accounted for', async () => {
+    const current = zip('serverless', 'b2')
+    const provider = makeProvider({
+      [`serverless/shop/dev/${DIR_OLD}/${TEMPLATE}`]: templateFor(current),
+      [`serverless/shop/dev/${DIR_NEW}/${TEMPLATE}`]: templateFor(current),
+      [current]: '',
+    })
+
+    expect(await run(provider)).toEqual({ unused: [] })
+    expect(
+      provider.request.mock.calls
+        .filter(([, m]) => m === 'getObject')
+        .map(([, , params]) => params.Key),
+    ).toEqual([`serverless/shop/dev/${DIR_NEW}/${TEMPLATE}`])
+  })
+
+  it('keeps every zip when more folders than the cap remain to be read', async () => {
+    const provider = makeProvider({
+      [`serverless/shop/dev/${DIR_OLD}/${TEMPLATE}`]: templateFor('x'),
+      [`serverless/shop/dev/${DIR_NEW}/${TEMPLATE}`]: templateFor('y'),
+      [zip('serverless', 'c3')]: '',
+    })
+
+    expect(await run(provider, { maxTemplateReads: 1 })).toEqual({
+      unused: [],
+      keptAll:
+        'more than 1 deployments to check; "serverless prune --includeArtifacts" retires older ones',
+    })
+  })
+
+  it('reads a v3 stream body', async () => {
+    const key = zip('serverless', 'a1')
+    const provider = {
+      request: jest.fn(async (service, method, params) => {
+        if (method === 'listObjectsV2') {
+          return params.Prefix.endsWith('/sandboxes/')
+            ? { Contents: [{ Key: key }] }
+            : {
+                Contents: [
+                  { Key: `serverless/shop/dev/${DIR_NEW}/${TEMPLATE}` },
+                ],
+              }
+        }
+        return {
+          Body: { transformToString: async () => templateFor(key) },
+        }
+      }),
+    }
+
+    expect(await run(provider)).toEqual({ unused: [] })
   })
 })

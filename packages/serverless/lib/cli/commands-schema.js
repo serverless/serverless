@@ -795,7 +795,8 @@ commands.set('rollback function', {
 })
 
 commands.set('prune', {
-  usage: 'Clean up deployed functions and/or layers by deleting older versions',
+  usage:
+    'Clean up deployed functions, layers and sandbox images by deleting older versions',
   lifecycleEvents: ['prune'],
   serviceDependencyMode: 'required',
   options: {
@@ -817,6 +818,12 @@ commands.set('prune', {
       required: false,
       type: 'string',
     },
+    sandbox: {
+      usage:
+        'Sandbox name. Limits cleanup to the image versions of the specified sandbox (AWS Lambda MicroVMs)',
+      required: false,
+      type: 'string',
+    },
     includeLayers: {
       usage: 'Boolean flag. Includes the pruning of Lambda layers.',
       shortcut: 'i',
@@ -825,7 +832,7 @@ commands.set('prune', {
     },
     includeArtifacts: {
       usage:
-        'Boolean flag. Also mark deployment artifacts that no longer back any function or layer version.',
+        'Boolean flag. Also mark deployment artifacts that no longer back any function or layer version, and delete unused sandbox zips.',
       shortcut: 'a',
       required: false,
       type: 'boolean',

@@ -123,6 +123,7 @@ export async function orchestrate({
     serviceName,
     stage,
     serviceDir,
+    deploymentPrefix,
   } = ctx
 
   /** @type {Map<string, { key: string, zipBuffer: Buffer }>} */
@@ -147,6 +148,7 @@ export async function orchestrate({
 
     // ── Code artifact (compute only — no S3 upload) ─────────────────────────
     const { uri, key, zipBuffer } = await computeCodeArtifact(cfg, {
+      deploymentPrefix,
       serviceName,
       stage,
       name,

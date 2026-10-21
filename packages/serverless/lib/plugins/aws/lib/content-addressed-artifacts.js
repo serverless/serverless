@@ -4,6 +4,7 @@ import path from 'node:path'
 import pLimit from 'p-limit'
 import ServerlessError from '../../../serverless-error.js'
 import setS3UploadEncryptionOptions from '../../../aws/set-s3-upload-encryption-options.js'
+import findAndGroupDeployments from '../utils/find-and-group-deployments.js'
 
 /**
  * Content-addressed artifacts shared by `sandboxes` and `webApps`.
@@ -348,4 +349,146 @@ export async function uploadPackagedArtifacts({
     uploaded: results.filter((r) => r.result === 'uploaded').map((r) => r.key),
     skipped: results.filter((r) => r.result === 'skipped').map((r) => r.key),
   }
+}
+
+async function listAllObjects(provider, bucketName, prefix) {
+  const objects = []
+  let continuationToken
+  do {
+    const result = await provider.request('S3', 'listObjectsV2', {
+      Bucket: bucketName,
+      Prefix: prefix,
+      ...(continuationToken && { ContinuationToken: continuationToken }),
+    })
+    objects.push(...(result?.Contents || []))
+    continuationToken = result?.IsTruncated
+      ? result.NextContinuationToken
+      : undefined
+  } while (continuationToken)
+  return objects
+}
+
+async function listAllKeys(provider, bucketName, prefix) {
+  return (await listAllObjects(provider, bucketName, prefix)).map(
+    (object) => object.Key,
+  )
+}
+
+// A deploy uploads its zips before the template that points to them, so a
+// cleanup running meanwhile (a concurrent deploy, or a deploy whose own folder
+// is already trimmed) would see them as unused. S3's upload time, not the
+// local clock, decides.
+const RECENT_UPLOAD_MS = 60 * 60 * 1000
+
+// The text of a getObject Body: a v3 stream or a v2 Buffer. Anything else
+// throws, so an unreadable template keeps every zip instead of matching none.
+async function readBody(body) {
+  if (body && typeof body.transformToString === 'function') {
+    return body.transformToString()
+  }
+  if (body instanceof Uint8Array) return Buffer.from(body).toString('utf8')
+  throw new Error('Unreadable object body')
+}
+
+/**
+ * Content-addressed zips of `kind` that no deployment folder left in the
+ * bucket points to. A zip is needed only to build from: the latest folder's
+ * template names the zip of the current deploy, and every older folder is a
+ * `serverless rollback` target that builds from its own. Any folder whose
+ * template cannot be read keeps every zip (fail-safe). A zip uploaded within
+ * the last hour is kept too: its deploy may not have written its folder yet.
+ *
+ * @param {object} params
+ * @param {object} params.provider
+ * @param {string} params.bucketName
+ * @param {string} params.deploymentPrefix
+ * @param {string} params.service
+ * @param {string} params.stage
+ * @param {'webapps'|'sandboxes'} params.kind
+ * @param {string} params.templateFileName - compiled template in each folder
+ * @param {string[]} [params.ignoreDirectories] - deployment folders to treat as
+ *   gone (a dry run's planned deletions)
+ * @param {number} [params.maxTemplateReads] - templates to read at most; past
+ *   it every zip is kept. Folders are read newest first and reading stops once
+ *   every zip is referenced, so the common case reads one template.
+ * @param {number} [params.now] - current time in ms; zips uploaded within the
+ *   last hour are always kept
+ * @returns {Promise<{unused: string[], keptAll?: string}>}
+ */
+export async function findUnusedArtifacts({
+  provider,
+  bucketName,
+  deploymentPrefix,
+  service,
+  stage,
+  kind,
+  templateFileName,
+  ignoreDirectories = [],
+  maxTemplateReads = Infinity,
+  now = Date.now(),
+}) {
+  const zips = []
+  const objects = await listAllObjects(
+    provider,
+    bucketName,
+    `${deploymentPrefix}/${service}/${stage}/${kind}/`,
+  )
+  for (const { Key, LastModified } of objects) {
+    const uploadedAt = LastModified ? new Date(LastModified).getTime() : 0
+    if (now - uploadedAt >= RECENT_UPLOAD_MS) zips.push(Key)
+  }
+  if (zips.length === 0) return { unused: [] }
+
+  const folderKeys = await listAllKeys(
+    provider,
+    bucketName,
+    `${deploymentPrefix}/${service}/${stage}/`,
+  )
+  const folders = findAndGroupDeployments(
+    { Contents: folderKeys.map((Key) => ({ Key })) },
+    deploymentPrefix,
+    service,
+    stage,
+  )
+
+  // Listing order is oldest first; the newest folder names the current zip
+  const remaining = folders
+    .filter((group) => !ignoreDirectories.includes(group[0].directory))
+    .reverse()
+  const referenced = new Set()
+  let reads = 0
+  for (const group of remaining) {
+    if (referenced.size === zips.length) break
+    if (reads === maxTemplateReads) {
+      return {
+        unused: [],
+        keptAll: `more than ${maxTemplateReads} deployments to check; "serverless prune --includeArtifacts" retires older ones`,
+      }
+    }
+    reads++
+    const { directory } = group[0]
+    const keptAll = {
+      unused: [],
+      keptAll: `could not read the template of deployment ${directory}`,
+    }
+    if (!group.some((entry) => entry.file === templateFileName)) return keptAll
+    let template
+    try {
+      const result = await provider.request('S3', 'getObject', {
+        Bucket: bucketName,
+        Key: `${deploymentPrefix}/${service}/${stage}/${directory}/${templateFileName}`,
+      })
+      template = await readBody(result?.Body)
+      JSON.parse(template)
+    } catch {
+      return keptAll
+    }
+    for (const key of zips) {
+      // The template is JSON text, so a key appears with its `"` and `\` escaped
+      if (template.includes(JSON.stringify(key).slice(1, -1)))
+        referenced.add(key)
+    }
+  }
+
+  return { unused: zips.filter((key) => !referenced.has(key)) }
 }
