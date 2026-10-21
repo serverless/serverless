@@ -247,11 +247,9 @@ updates:
       - '/packages/sf-core/tests/integration/sandboxes/fixture/app'
     schedule:
       interval: 'monthly'
+    # Docker image tags take only default-days, not the semver cooldowns
     cooldown:
       default-days: 5
-      semver-major-days: 30
-      semver-minor-days: 7
-      semver-patch-days: 3
     groups:
       fixture-images:
         patterns:
