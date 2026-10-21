@@ -114,10 +114,10 @@ sandboxes:
 The directory must exist and must contain a `Dockerfile`. The framework zips the directory's files, selected as described in [Choosing the files](#choosing-the-files), computes a SHA-256 content hash, and uploads the zip to the deployment bucket at:
 
 ```
-serverless/<service>/<stage>/sandboxes/<name>-<sha256>.zip
+<deploymentPrefix>/<service>/<stage>/sandboxes/<name>-<sha256>.zip
 ```
 
-The S3 key is content-addressed: re-deploying without changing the selected files reuses the same key and the existing image. A change to any selected file rebuilds the image.
+`<deploymentPrefix>` is `provider.deploymentPrefix` (default `serverless`). The S3 key is content-addressed: re-deploying without changing the selected files reuses the same key and the existing image. A change to any selected file rebuilds the image. Each deploy keeps the zips that a remaining deployment points to and deletes the rest; see [Image versions and cleanup](#image-versions-and-cleanup).
 
 `serverless package` writes the zip to `.serverless/sandboxes/<name>-<sha256>.zip` (under the `--package` directory when you pass one) and lists what `serverless deploy` uploads in `.serverless/sandboxes-uploads.json`. List the zip, for example with `unzip -l`, to see exactly which files a sandbox ships.
 
@@ -518,6 +518,28 @@ CloudWatch logs are always shipped to the owned log group `/aws/lambda-microvms/
 The deploy summary — and `serverless info` — list each sandbox under a `sandboxes:` section (name → deployed image name), alongside the `dashboard` console URL when observability is on.
 
 The MicroVM image is always built on `ARM_64` architecture. The base image is resolved to the latest `al2023` version at deploy time.
+
+## Image versions and cleanup
+
+Each deploy that changes a sandbox's artifact or settings builds a new version of its MicroVM image. Launches without an `imageVersion` use the newest successful version; older versions stay available to MicroVMs that pin one. AWS limits how many versions an image can have (50 by default, the **Versions per MicroVM Image** quota), so trim old versions with [`prune`](./prune.md#sandbox-image-versions):
+
+```yml
+custom:
+  prune:
+    automatic: true # prune after every deploy
+    number: 5 # keep the live version and 5 older ones
+```
+
+Or prune once, for every sandbox or just one:
+
+```bash
+serverless prune -n 5
+serverless prune -n 5 --sandbox echo
+```
+
+`prune` never deletes the live version, a version that a MicroVM still runs or can resume from, or a version that is still building. If a deploy reaches the limit, the error shows the `prune` command to run.
+
+The zips need no setting. A MicroVM image reads its zip only while it builds: MicroVMs launch and resume from the image's snapshot. Each deploy keeps the zips that a remaining deployment points to, so every deployment `serverless deploy list` shows can still be rolled back with `serverless rollback`, and deletes the others. The number of deployments kept is `provider.deploymentBucket.maxPreviousDeploymentArtifacts` (default `5`). Artifacts you pass as `s3://` URIs are never deleted.
 
 ---
 

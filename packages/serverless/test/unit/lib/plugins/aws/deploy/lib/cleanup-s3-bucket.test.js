@@ -100,3 +100,122 @@ describe('cleanupS3Bucket — reference mode', () => {
     })
   })
 })
+
+describe('cleanupS3Bucket — listing and deleting', () => {
+  it('reads every page of the stage prefix', async () => {
+    const ctx = buildCtx({ referenceMode: false })
+    const dirs = [1, 2, 3, 4, 5, 6].map(
+      (n) => `169000000000${n}-2026-07-22T10:00:0${n}.000Z`,
+    )
+    ctx.provider.request = jest.fn(async (service, method, params) => {
+      if (method !== 'listObjectsV2') return {}
+      // the oldest folder is on the first page, the rest on the second
+      return params.ContinuationToken
+        ? {
+            Contents: dirs
+              .slice(1)
+              .map((dir) => ({ Key: `serverless/svc/dev/${dir}/svc.zip` })),
+          }
+        : {
+            Contents: [{ Key: `serverless/svc/dev/${dirs[0]}/svc.zip` }],
+            IsTruncated: true,
+            NextContinuationToken: 'next',
+          }
+    })
+
+    await ctx.cleanupS3Bucket()
+
+    expect(ctx.provider.request).toHaveBeenCalledWith('S3', 'listObjectsV2', {
+      Bucket: 'bucket',
+      Prefix: 'serverless/svc/dev',
+      ContinuationToken: 'next',
+    })
+    expect(ctx.provider.request).toHaveBeenCalledWith('S3', 'deleteObjects', {
+      Bucket: 'bucket',
+      Delete: { Objects: [{ Key: `serverless/svc/dev/${dirs[0]}/svc.zip` }] },
+    })
+  })
+
+  it('deletes in batches of 1000 keys', async () => {
+    const ctx = buildCtx({ referenceMode: false })
+    const objects = Array.from({ length: 2001 }, (_, i) => ({ Key: `k${i}` }))
+
+    await ctx.removeObjects(objects)
+
+    const batches = ctx.provider.request.mock.calls.map(
+      ([, , params]) => params.Delete.Objects.length,
+    )
+    expect(batches).toEqual([1000, 1000, 1])
+  })
+})
+
+describe('cleanupS3Bucket — sandbox artifacts', () => {
+  const TEMPLATE = 'compiled-cloudformation-template.json'
+  const DIR = '1690000000006-2026-07-22T10:00:06.000Z'
+
+  // A bucket with one deployment folder whose template points to `kept`
+  const buildSandboxCtx = ({
+    referenceMode = false,
+    emptyChangeSet,
+    prefix = 'serverless',
+    keys,
+  }) => {
+    const ctx = buildCtx({ referenceMode, emptyChangeSet })
+    ctx.serverless.service.sandboxes = { echo: { artifact: './app' } }
+    ctx.provider.getDeploymentPrefix = () => prefix
+    ctx.provider.naming = { getCompiledTemplateS3Suffix: () => TEMPLATE }
+    ctx.serverless.service.package.artifactDirectoryName = `${prefix}/svc/dev/${DIR}`
+    const kept = `${prefix}/svc/dev/sandboxes/echo-b2.zip`
+    const all = [`${prefix}/svc/dev/${DIR}/${TEMPLATE}`, kept, ...keys]
+    ctx.provider.request = jest.fn(async (service, method, params) => {
+      if (method === 'listObjectsV2') {
+        return {
+          Contents: all
+            .filter((key) => key.startsWith(params.Prefix))
+            .map((Key) => ({ Key })),
+        }
+      }
+      if (method === 'getObject') {
+        return { Body: Buffer.from(JSON.stringify({ Uri: `s3://b/${kept}` })) }
+      }
+      return {}
+    })
+    return ctx
+  }
+
+  const deletedSandboxKeys = (ctx) =>
+    ctx.provider.request.mock.calls
+      .filter(([, method]) => method === 'deleteObjects')
+      .flatMap(([, , params]) => params.Delete.Objects.map((o) => o.Key))
+      .filter((key) => key.includes('/sandboxes/'))
+
+  it.each([
+    ['copy mode', { referenceMode: false }],
+    ['reference mode', { referenceMode: true }],
+    ['an empty change set', { emptyChangeSet: true }],
+  ])('deletes unused sandbox zips in %s', async (_, mode) => {
+    const unused = 'serverless/svc/dev/sandboxes/echo-a1.zip'
+    const ctx = buildSandboxCtx({ ...mode, keys: [unused] })
+
+    await ctx.cleanupS3Bucket()
+
+    expect(deletedSandboxKeys(ctx)).toEqual([unused])
+  })
+
+  it('covers zips at the "serverless/" location under a custom prefix', async () => {
+    const legacy = 'serverless/svc/dev/sandboxes/echo-a1.zip'
+    const ctx = buildSandboxCtx({ prefix: 'custom', keys: [legacy] })
+
+    await ctx.cleanupS3Bucket()
+
+    expect(deletedSandboxKeys(ctx)).toEqual([legacy])
+  })
+
+  it('makes no sandbox calls for a service without sandboxes', async () => {
+    const ctx = buildCtx({ referenceMode: true })
+
+    await ctx.cleanupS3Bucket()
+
+    expect(ctx.provider.request).not.toHaveBeenCalled()
+  })
+})

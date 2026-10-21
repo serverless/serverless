@@ -11,7 +11,7 @@ description: >-
   Framework" nor "sandbox" but describes an isolated AWS execution environment.
 metadata:
   managed-by: serverless-framework
-  version: '5'
+  version: '6'
   author: Serverless Inc.
 ---
 
@@ -102,8 +102,9 @@ credentials error; the `serverless-framework` skill (`references/cli.md`)
 says how to get the user signed in.
 
 **Cost discipline.** Suspended snapshots and old image versions still bill
-storage even when nothing is running. Run `serverless remove` on scratch or
-throwaway deployments once you're done verifying.
+storage even when nothing is running. Trim old image versions with
+`serverless prune` (`references/commands.md`), and run `serverless remove` on
+scratch or throwaway deployments once you're done verifying.
 
 ## Gotchas
 

@@ -3,6 +3,7 @@ import ServerlessError from '../../../serverless-error.js'
 import { log, progress, style } from '@serverless/util'
 import getMonitoringFrequency from '../utils/get-monitoring-frequency.js'
 import { WEB_FUNCTION_QUOTA_CONTEXT, serviceHasWebApps } from './web-apps.js'
+import { getSandboxVersionLimitContext } from '../sandboxes/utils/failure-context.js'
 
 const mainProgress = progress.get('main')
 const validStatuses = new Set([
@@ -26,9 +27,10 @@ const resourceTypeToErrorCodePostfix = (resourceType) => {
 }
 
 /**
- * The line to add to a failed resource's reason, if any: a Web Function
+ * The lines to add to a failed resource's reason, if any: a Web Function
  * resource that failed on a quota or limit gets the command that shows the
- * account's Web Function quotas.
+ * account's Web Function quotas, and a sandbox image at its version limit gets
+ * how to prune old versions.
  */
 const getFailureContext = (serverless, event) => {
   if (
@@ -38,7 +40,7 @@ const getFailureContext = (serverless, event) => {
   ) {
     return WEB_FUNCTION_QUOTA_CONTEXT
   }
-  return undefined
+  return getSandboxVersionLimitContext(serverless, event)
 }
 
 export default {

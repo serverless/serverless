@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Prune
-description: Clean up old Lambda function and layer versions
+description: Clean up old Lambda function, layer and sandbox image versions
 short_title: Commands - Prune
 keywords: ['Serverless', 'Framework', 'AWS Lambda', 'prune', 'cleanup', 'versions']
 -->
@@ -13,7 +13,7 @@ keywords: ['Serverless', 'Framework', 'AWS Lambda', 'prune', 'cleanup', 'version
 
 # AWS - Prune
 
-The `prune` command removes old versions of deployed Lambda functions and layers, keeping only the specified number of most recent versions.
+The `prune` command removes old versions of deployed Lambda functions, layers and [sandbox](../guide/sandboxes.md) images, keeping only the specified number of most recent versions.
 
 ```bash
 serverless prune -n <number>
@@ -26,14 +26,19 @@ serverless prune -n <number>
 - `--region` or `-r` The region to prune.
 - `--function` or `-f` Limit pruning to a specific function.
 - `--layer` or `-l` Limit pruning to a specific layer.
+- `--sandbox` Limit pruning to the image versions of a specific sandbox.
 - `--includeLayers` or `-i` Include layers in pruning.
-- `--includeArtifacts` or `-a` Also mark deployment artifacts that no longer back any function or layer version. Skipped on `--function`/`--layer` scoped runs.
+- `--includeArtifacts` or `-a` Also mark deployment artifacts that no longer back any function or layer version, and delete sandbox zips that no remaining deployment points to. Skipped on `--function`/`--layer` scoped runs.
 - `--dryRun` or `-d` Preview what would be deleted without deleting.
 - `--verbose` Enable detailed output.
 
 ## Layer Version Protection
 
 When pruning layers, a layer version that is still attached to an existing version of one of this service's own functions is retained, even if it falls outside the retained `--number`. This is derived from your local service configuration. Attachments from other services or accounts cannot be detected and remain your responsibility to manage.
+
+## Sandbox Image Versions
+
+For each sandbox, `prune` keeps the image's live version plus `--number` older versions, and never deletes a version that a MicroVM still uses or that is still building. See [Sandbox image versions](../guide/prune.md#sandbox-image-versions).
 
 ## Provided lifecycle events
 
@@ -69,6 +74,12 @@ serverless prune -n 3 --includeLayers
 
 ```bash
 serverless prune -n 3 -l myLayer
+```
+
+### Prune the image versions of one sandbox
+
+```bash
+serverless prune -n 3 --sandbox mySandbox
 ```
 
 ### Also mark unreferenced deployment artifacts

@@ -20,6 +20,7 @@ import {
   LambdaMicrovmsClient,
   GetMicrovmImageCommand,
   GetMicrovmImageVersionCommand,
+  ListMicrovmImageVersionsCommand,
   RunMicrovmCommand,
   GetMicrovmCommand,
   CreateMicrovmAuthTokenCommand,
@@ -553,6 +554,67 @@ describe('Serverless Framework Service - Sandboxes', () => {
   }, 240000)
 
   // ── 8. Remove ──────────────────────────────────────────────────────────────
+
+  // ── Image versions and artifacts ───────────────────────────────────────────
+
+  test('Redeploy with changed code, then prune keeps only the live image version and both zips', async () => {
+    const marker = path.join(configFileDirPath, 'app', 'build-marker.txt')
+    fs.writeFileSync(marker, `${Date.now()}\n`)
+    try {
+      await runSfCore({
+        coreParams: {
+          options: { stage, c: configFilePath },
+          command: ['deploy'],
+        },
+        jest,
+      })
+    } finally {
+      fs.rmSync(marker, { force: true })
+    }
+
+    const { Stacks } = await cfnClient.send(
+      new DescribeStacksCommand({ StackName: stackName }),
+    )
+    const output = (key) =>
+      Stacks[0].Outputs.find((o) => o.OutputKey === key).OutputValue
+    const imageArn = output('EchoImageIdentifier')
+    const listVersions = async () =>
+      (
+        await microvmsClient.send(
+          new ListMicrovmImageVersionsCommand({ imageIdentifier: imageArn }),
+        )
+      ).items.map((v) => v.imageVersion)
+
+    expect((await listVersions()).length).toBeGreaterThanOrEqual(2)
+
+    await runSfCore({
+      coreParams: {
+        options: { stage, c: configFilePath, number: '0', sandbox: 'echo' },
+        command: ['prune'],
+      },
+      jest,
+    })
+
+    const { latestActiveImageVersion } = await microvmsClient.send(
+      new GetMicrovmImageCommand({ imageIdentifier: imageArn }),
+    )
+    expect(await listVersions()).toEqual([latestActiveImageVersion])
+
+    // The deploy cleanup keeps the zip each remaining deployment points to:
+    // both deploys are within the default retention window
+    const { S3Client, ListObjectsV2Command } =
+      await import('@aws-sdk/client-s3')
+    const s3 = new S3Client({ region: REGION })
+    const { Contents = [] } = await s3.send(
+      new ListObjectsV2Command({
+        Bucket: output('ServerlessDeploymentBucketName'),
+        Prefix: `serverless/${SERVICE}/${stage}/sandboxes/`,
+      }),
+    )
+    expect(
+      Contents.filter(({ Key }) => /\/echo-[a-f0-9]{64}\.zip$/.test(Key)),
+    ).toHaveLength(2)
+  })
 
   test('Remove', async () => {
     await runSfCore({

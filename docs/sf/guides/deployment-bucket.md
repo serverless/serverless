@@ -259,13 +259,14 @@ detection, `serverless deploy --force` skips it.
 
 ```text
 serverless/<service>/<stage>/webapps/<name>-<sha256>.zip
+serverless/<service>/<stage>/sandboxes/<name>-<sha256>.zip
 ```
 
-The `serverless` segment is the deployment prefix (`provider.deploymentPrefix`) for web apps. Because the name changes only when the content changes:
+The `serverless` segment is the deployment prefix (`provider.deploymentPrefix`). Because the name changes only when the content changes:
 
 - `serverless deploy` checks whether the object already exists and uploads it only when it doesn't, so unchanged code is not uploaded again. The check needs `s3:GetObject` on the bucket; when the check is denied, the deploy uploads the zip, which adds an object version and changes nothing deployed.
 - A service whose code and configuration are unchanged gets `No changes to deploy`. That holds for every service without functions, such as one with only web apps, sandboxes, agents or `resources`, as long as its stack holds the last deploy: after a deploy that failed or rolled back, the next deploy runs even when nothing changed.
-- These objects sit outside the per-deployment directories, so the cleanup of old deployments and `serverless prune --includeArtifacts` leave them in place. `serverless remove` deletes them with the rest of the service's artifacts.
+- These objects sit outside the per-deployment directories. Web app zips stay in place through the cleanup of old deployments and `serverless prune --includeArtifacts`, because Lambda runs web apps from them. Sandbox zips are read only when an image builds, so after each deploy, in either `codeStorageMode`, the Framework deletes the sandbox zips that no remaining deployment points to; `serverless prune --includeArtifacts` applies the same rule after its sweep. `serverless remove` deletes both with the rest of the service's artifacts.
 
 Lambda reads web app code directly from the bucket, so a service with web apps has the same bucket requirements as [`codeStorageMode: reference`](#code-storage-mode-self-managed-lambda-code-storage), whatever `codeStorageMode` is set to: a versioned bucket that grants the Lambda service read access. The Framework-managed bucket is set up automatically; a bucket you name is checked at deploy and never modified, and an in-stack bucket needs `deploymentBucket.versioning: true`.
 

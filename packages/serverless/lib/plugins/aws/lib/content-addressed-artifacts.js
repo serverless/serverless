@@ -4,6 +4,7 @@ import path from 'node:path'
 import pLimit from 'p-limit'
 import ServerlessError from '../../../serverless-error.js'
 import setS3UploadEncryptionOptions from '../../../aws/set-s3-upload-encryption-options.js'
+import findAndGroupDeployments from '../utils/find-and-group-deployments.js'
 
 /**
  * Content-addressed artifacts shared by `sandboxes` and `webApps`.
@@ -348,4 +349,109 @@ export async function uploadPackagedArtifacts({
     uploaded: results.filter((r) => r.result === 'uploaded').map((r) => r.key),
     skipped: results.filter((r) => r.result === 'skipped').map((r) => r.key),
   }
+}
+
+async function listAllKeys(provider, bucketName, prefix) {
+  const keys = []
+  let continuationToken
+  do {
+    const result = await provider.request('S3', 'listObjectsV2', {
+      Bucket: bucketName,
+      Prefix: prefix,
+      ...(continuationToken && { ContinuationToken: continuationToken }),
+    })
+    keys.push(...(result?.Contents || []).map((object) => object.Key))
+    continuationToken = result?.IsTruncated
+      ? result.NextContinuationToken
+      : undefined
+  } while (continuationToken)
+  return keys
+}
+
+async function readBody(body) {
+  if (body && typeof body.transformToString === 'function') {
+    return body.transformToString()
+  }
+  return Buffer.isBuffer(body) ? body.toString('utf8') : String(body ?? '')
+}
+
+/**
+ * Content-addressed zips of `kind` that no deployment folder left in the
+ * bucket points to. A zip is needed only to build from: the latest folder's
+ * template names the zip of the current deploy, and every older folder is a
+ * `serverless rollback` target that builds from its own. Any folder whose
+ * template cannot be read keeps every zip (fail-safe).
+ *
+ * @param {object} params
+ * @param {object} params.provider
+ * @param {string} params.bucketName
+ * @param {string} params.deploymentPrefix
+ * @param {string} params.service
+ * @param {string} params.stage
+ * @param {'webapps'|'sandboxes'} params.kind
+ * @param {string} params.templateFileName - compiled template in each folder
+ * @param {string[]} [params.extraPrefixes] - other first key segments that may
+ *   hold zips of this kind (an earlier key layout)
+ * @param {string[]} [params.ignoreDirectories] - deployment folders to treat as
+ *   gone (a dry run's planned deletions)
+ * @returns {Promise<{unused: string[], keptAll?: string}>}
+ */
+export async function findUnusedArtifacts({
+  provider,
+  bucketName,
+  deploymentPrefix,
+  service,
+  stage,
+  kind,
+  templateFileName,
+  extraPrefixes = [],
+  ignoreDirectories = [],
+}) {
+  const zipPrefixes = [...new Set([deploymentPrefix, ...extraPrefixes])].map(
+    (prefix) => `${prefix}/${service}/${stage}/${kind}/`,
+  )
+  const zips = []
+  for (const prefix of zipPrefixes) {
+    zips.push(...(await listAllKeys(provider, bucketName, prefix)))
+  }
+  if (zips.length === 0) return { unused: [] }
+
+  const folderKeys = await listAllKeys(
+    provider,
+    bucketName,
+    `${deploymentPrefix}/${service}/${stage}/`,
+  )
+  const folders = findAndGroupDeployments(
+    { Contents: folderKeys.map((Key) => ({ Key })) },
+    deploymentPrefix,
+    service,
+    stage,
+  )
+
+  const ignored = new Set(ignoreDirectories)
+  const referenced = new Set()
+  for (const group of folders) {
+    if (ignored.has(group[0].directory)) continue
+    const { directory } = group[0]
+    const keptAll = {
+      unused: [],
+      keptAll: `could not read the template of deployment ${directory}`,
+    }
+    if (!group.some((entry) => entry.file === templateFileName)) return keptAll
+    let template
+    try {
+      const result = await provider.request('S3', 'getObject', {
+        Bucket: bucketName,
+        Key: `${deploymentPrefix}/${service}/${stage}/${directory}/${templateFileName}`,
+      })
+      template = await readBody(result?.Body)
+    } catch {
+      return keptAll
+    }
+    for (const key of zips) {
+      if (template.includes(key)) referenced.add(key)
+    }
+  }
+
+  return { unused: zips.filter((key) => !referenced.has(key)) }
 }
