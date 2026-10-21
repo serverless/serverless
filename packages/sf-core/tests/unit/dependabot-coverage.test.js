@@ -80,6 +80,65 @@ const npmManifests = directoriesWith(/^package\.json$/).map((directory) => ({
   ),
 }))
 
+const readTracked = (file) => readFileSync(path.join(repoRoot, file), 'utf8')
+
+// The directories that hold a manifest of each ecosystem Dependabot supports.
+// An ecosystem with no entry in .github/dependabot.yml is listed too, so a
+// first Gemfile or go.mod in a new place fails the coverage test until an
+// entry covers it.
+const byName = (pattern) => () => directoriesWith(pattern)
+const uvDirectories = byName(/^uv\.lock$/)
+const MANIFESTS = {
+  npm: () => [
+    ...new Set(
+      npmManifests
+        .filter(
+          ({ directory, dependencies }) =>
+            Object.keys(dependencies).length > 0 ||
+            // Its dependencies are written at build time
+            directory === 'packages/framework-dist',
+        )
+        .map(({ dependabotDirectory }) => dependabotDirectory),
+    ),
+  ],
+  // A directory with a uv.lock belongs to the uv entry alone, which updates
+  // the lockfile together with pyproject.toml
+  pip: () => {
+    const uv = new Set(uvDirectories())
+    return directoriesWith(
+      /^(.*requirements.*\.txt|Pipfile|poetry\.lock)$/,
+    ).filter((directory) => !uv.has(directory))
+  },
+  uv: uvDirectories,
+  docker: byName(/^Dockerfile$/),
+  gomod: byName(/^go\.mod$/),
+  maven: byName(/^pom\.xml$/),
+  // Terraform fixtures count once they pin a provider or a Terraform version
+  terraform: () => [
+    ...new Set(
+      trackedFiles
+        .filter(
+          (file) =>
+            path.posix.basename(file) === '.terraform.lock.hcl' ||
+            (file.endsWith('.tf') &&
+              /required_providers|required_version/.test(readTracked(file))),
+        )
+        .map((file) => path.posix.dirname(file)),
+    ),
+  ],
+  bundler: byName(/^Gemfile$/),
+  cargo: byName(/^Cargo\.toml$/),
+  composer: byName(/^composer\.json$/),
+  gradle: byName(/^build\.gradle(\.kts)?$/),
+  nuget: byName(/\.csproj$/),
+  'docker-compose': byName(/^(docker-)?compose\.ya?ml$/),
+}
+const manifestDirectories = (ecosystem) => MANIFESTS[ecosystem]()
+const listedDirectories = (ecosystem) =>
+  config.updates
+    .filter((entry) => entry['package-ecosystem'] === ecosystem)
+    .flatMap(directoriesOf)
+
 // Dependencies that more than one npm directory declares although their
 // versions may differ, with the reason they may.
 const MAY_DIFFER = {
@@ -150,47 +209,22 @@ describe('Dependabot coverage', () => {
     expect(ungrouped).toEqual([])
   })
 
-  test('every npm manifest with dependencies is in the npm entry', () => {
-    const listed = new Set(directoriesOf(entryOf('npm')))
-    const missing = npmManifests
-      .filter(
-        ({ dependabotDirectory, dependencies }) =>
-          Object.keys(dependencies).length > 0 &&
-          !listed.has(dependabotDirectory),
-      )
-      .map(({ directory }) => directory)
+  test('every manifest with dependencies is listed in .github/dependabot.yml', () => {
+    const missing = Object.keys(MANIFESTS).flatMap((ecosystem) => {
+      const listed = new Set(listedDirectories(ecosystem))
+      return manifestDirectories(ecosystem)
+        .filter((directory) => !listed.has(directory))
+        .map((directory) => `${ecosystem}: /${directory}`)
+    })
     expect(missing).toEqual([])
   })
 
-  test('every Python fixture is in the entry for its package manager', () => {
-    const uvDirectories = new Set(directoriesWith(/^uv\.lock$/))
-    const pipDirectories = directoriesWith(
-      /^(.*requirements.*\.txt|Pipfile|poetry\.lock)$/,
-    ).filter((directory) => !uvDirectories.has(directory))
-    expect(directoriesOf(entryOf('uv')).sort()).toEqual(
-      [...uvDirectories].sort(),
-    )
-    expect(directoriesOf(entryOf('pip')).sort()).toEqual(pipDirectories.sort())
-  })
-
-  test('every Dockerfile is in the docker entry', () => {
-    expect(directoriesOf(entryOf('docker')).sort()).toEqual(
-      directoriesWith(/^Dockerfile$/).sort(),
-    )
-  })
-
-  test('every listed directory holds a manifest of its ecosystem', () => {
-    const manifests = {
-      npm: /^package\.json$/,
-      pip: /^(.*requirements.*\.txt|Pipfile|poetry\.lock)$/,
-      uv: /^uv\.lock$/,
-      docker: /^Dockerfile$/,
-    }
-    const stale = Object.entries(manifests).flatMap(([ecosystem, pattern]) => {
-      const present = new Set(directoriesWith(pattern))
-      return directoriesOf(entryOf(ecosystem))
+  test('every directory listed in .github/dependabot.yml holds a manifest of its ecosystem', () => {
+    const stale = Object.keys(MANIFESTS).flatMap((ecosystem) => {
+      const present = new Set(manifestDirectories(ecosystem))
+      return listedDirectories(ecosystem)
         .filter((directory) => !present.has(directory))
-        .map((directory) => `${ecosystem}: ${directory}`)
+        .map((directory) => `${ecosystem}: /${directory}`)
     })
     expect(stale).toEqual([])
   })
