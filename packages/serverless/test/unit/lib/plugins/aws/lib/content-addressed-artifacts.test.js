@@ -541,7 +541,7 @@ describe('findUnusedArtifacts', () => {
     })
 
   // `objects` maps keys to template bodies (or '' for other files)
-  const makeProvider = (objects, { failGet } = {}) => {
+  const makeProvider = (objects, { failGet, uploadedAt = {} } = {}) => {
     const request = jest.fn(async (service, method, params) => {
       if (method === 'listObjectsV2') {
         const keys = Object.keys(objects)
@@ -552,7 +552,7 @@ describe('findUnusedArtifacts', () => {
         const page = keys.slice(start, start + 2)
         const more = start + 2 < keys.length
         return {
-          Contents: page.map((Key) => ({ Key })),
+          Contents: page.map((Key) => ({ Key, LastModified: uploadedAt[Key] })),
           IsTruncated: more,
           ...(more && { NextContinuationToken: String(start + 2) }),
         }
@@ -605,6 +605,46 @@ describe('findUnusedArtifacts', () => {
     const result = await run(provider)
 
     expect(result).toEqual({ unused: [] })
+  })
+
+  it('keeps zips uploaded within the last hour', async () => {
+    const now = Date.parse('2026-10-21T12:00:00Z')
+    const fresh = zip('serverless', 'f1')
+    const hourOld = zip('serverless', 'h1')
+    const old = zip('serverless', 'o1')
+    const provider = makeProvider(
+      {
+        [`serverless/shop/dev/${DIR_NEW}/${TEMPLATE}`]: templateFor('x'),
+        [fresh]: '',
+        [hourOld]: '',
+        [old]: '',
+      },
+      {
+        uploadedAt: {
+          [fresh]: new Date(now - 59 * 60 * 1000),
+          [hourOld]: new Date(now - 60 * 60 * 1000),
+          [old]: new Date(now - 24 * 60 * 60 * 1000),
+        },
+      },
+    )
+
+    const result = await run(provider, { now })
+
+    expect(result).toEqual({ unused: [hourOld, old] })
+  })
+
+  it('keeps a fresh zip when no deployment folder is left', async () => {
+    const now = Date.parse('2026-10-21T12:00:00Z')
+    const current = zip('serverless', 'c1')
+    const provider = makeProvider(
+      { [current]: '' },
+      { uploadedAt: { [current]: new Date(now - 30 * 1000) } },
+    )
+
+    const result = await run(provider, { now })
+
+    expect(result).toEqual({ unused: [] })
+    expect(provider.request).toHaveBeenCalledTimes(1)
   })
 
   it('returns nothing without listing folders when there are no zips', async () => {

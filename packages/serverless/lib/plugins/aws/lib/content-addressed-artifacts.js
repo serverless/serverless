@@ -351,8 +351,8 @@ export async function uploadPackagedArtifacts({
   }
 }
 
-async function listAllKeys(provider, bucketName, prefix) {
-  const keys = []
+async function listAllObjects(provider, bucketName, prefix) {
+  const objects = []
   let continuationToken
   do {
     const result = await provider.request('S3', 'listObjectsV2', {
@@ -360,13 +360,25 @@ async function listAllKeys(provider, bucketName, prefix) {
       Prefix: prefix,
       ...(continuationToken && { ContinuationToken: continuationToken }),
     })
-    keys.push(...(result?.Contents || []).map((object) => object.Key))
+    objects.push(...(result?.Contents || []))
     continuationToken = result?.IsTruncated
       ? result.NextContinuationToken
       : undefined
   } while (continuationToken)
-  return keys
+  return objects
 }
+
+async function listAllKeys(provider, bucketName, prefix) {
+  return (await listAllObjects(provider, bucketName, prefix)).map(
+    (object) => object.Key,
+  )
+}
+
+// A deploy uploads its zips before the template that points to them, so a
+// cleanup running meanwhile (a concurrent deploy, or a deploy whose own folder
+// is already trimmed) would see them as unused. S3's upload time, not the
+// local clock, decides.
+const RECENT_UPLOAD_MS = 60 * 60 * 1000
 
 // The text of a getObject Body: a v3 stream or a v2 Buffer. Anything else
 // throws, so an unreadable template keeps every zip instead of matching none.
@@ -383,7 +395,8 @@ async function readBody(body) {
  * bucket points to. A zip is needed only to build from: the latest folder's
  * template names the zip of the current deploy, and every older folder is a
  * `serverless rollback` target that builds from its own. Any folder whose
- * template cannot be read keeps every zip (fail-safe).
+ * template cannot be read keeps every zip (fail-safe). A zip uploaded within
+ * the last hour is kept too: its deploy may not have written its folder yet.
  *
  * @param {object} params
  * @param {object} params.provider
@@ -400,6 +413,8 @@ async function readBody(body) {
  * @param {number} [params.maxTemplateReads] - templates to read at most; past
  *   it every zip is kept. Folders are read newest first and reading stops once
  *   every zip is referenced, so the common case reads one template.
+ * @param {number} [params.now] - current time in ms; zips uploaded within the
+ *   last hour are always kept
  * @returns {Promise<{unused: string[], keptAll?: string}>}
  */
 export async function findUnusedArtifacts({
@@ -413,13 +428,18 @@ export async function findUnusedArtifacts({
   extraPrefixes = [],
   ignoreDirectories = [],
   maxTemplateReads = Infinity,
+  now = Date.now(),
 }) {
   const zipPrefixes = [...new Set([deploymentPrefix, ...extraPrefixes])].map(
     (prefix) => `${prefix}/${service}/${stage}/${kind}/`,
   )
   const zips = []
   for (const prefix of zipPrefixes) {
-    zips.push(...(await listAllKeys(provider, bucketName, prefix)))
+    const objects = await listAllObjects(provider, bucketName, prefix)
+    for (const { Key, LastModified } of objects) {
+      const uploadedAt = LastModified ? new Date(LastModified).getTime() : 0
+      if (now - uploadedAt >= RECENT_UPLOAD_MS) zips.push(Key)
+    }
   }
   if (zips.length === 0) return { unused: [] }
 

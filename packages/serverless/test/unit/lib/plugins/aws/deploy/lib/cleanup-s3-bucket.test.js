@@ -160,6 +160,7 @@ describe('cleanupS3Bucket — sandbox artifacts', () => {
     emptyChangeSet,
     prefix = 'serverless',
     keys,
+    uploadedAt = {},
   }) => {
     const ctx = buildCtx({ referenceMode, emptyChangeSet })
     ctx.serverless.service.sandboxes = { echo: { artifact: './app' } }
@@ -173,7 +174,7 @@ describe('cleanupS3Bucket — sandbox artifacts', () => {
         return {
           Contents: all
             .filter((key) => key.startsWith(params.Prefix))
-            .map((Key) => ({ Key })),
+            .map((Key) => ({ Key, LastModified: uploadedAt[Key] })),
         }
       }
       if (method === 'getObject') {
@@ -201,6 +202,19 @@ describe('cleanupS3Bucket — sandbox artifacts', () => {
     await ctx.cleanupS3Bucket()
 
     expect(deletedSandboxKeys(ctx)).toEqual([unused])
+  })
+
+  it('keeps a zip uploaded within the last hour that no folder points to yet', async () => {
+    const inFlight = 'serverless/svc/dev/sandboxes/echo-c3.zip'
+    const old = 'serverless/svc/dev/sandboxes/echo-a1.zip'
+    const ctx = buildSandboxCtx({
+      keys: [inFlight, old],
+      uploadedAt: { [inFlight]: new Date(Date.now() - 5 * 60 * 1000) },
+    })
+
+    await ctx.cleanupS3Bucket()
+
+    expect(deletedSandboxKeys(ctx)).toEqual([old])
   })
 
   it('covers zips at the "serverless/" location under a custom prefix', async () => {
