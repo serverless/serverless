@@ -35,12 +35,15 @@ Actively maintained by [Serverless Inc](https://www.serverless.com).
 
 <br/>
 
-**July 2026** – V.4 continues to feature significant updates. Review them all below. Recent releases added Sandboxes (isolated, ephemeral compute on AWS Lambda), native Amazon Bedrock AgentCore support, Managed Instances, Durable Functions, and built-in AWS Login & SSO. As always, we are more excited about the serverless future than ever.
+**October 2026** – V.4 continues to feature significant updates. Review them all below. Recent releases added Web Apps on AWS Lambda Web Functions, MCP server hosting on AWS Lambda, a rebuilt Dev Mode, built-in support for AI coding agents, Sandboxes (isolated, ephemeral compute on AWS Lambda), native Amazon Bedrock AgentCore support, Managed Instances, Durable Functions, and built-in AWS Login & SSO. As always, we are more excited about the serverless future than ever.
 
 ## New Features In V.4
 
 Here's a list of everything that's new in V.4, so far:
 
+- **Web Apps** – Run Express, Fastify, Hono, Next.js and other Node.js HTTP servers on AWS Lambda Web Functions. Define a server under the top-level `webApps` block and `serverless deploy` packages it, creates the web function and its HTTPS endpoint, and prints the URL. Your code listens on `process.env.PORT` as it does locally — no handler to export and no adapter to install. Custom domains are served through Amazon CloudFront. [More info here](https://www.serverless.com/framework/docs/providers/aws/guide/web-apps).
+- **MCP Server Hosting** – Deploy MCP servers written with the official MCP TypeScript SDK to AWS Lambda behind API Gateway with response streaming, via the `mcp` section in `serverless.yml`. [More info here](https://www.serverless.com/framework/docs/providers/aws/guide/mcp).
+- **AI Coding Agent Support** – [`serverless agent setup`](https://www.serverless.com/framework/docs/providers/aws/cli-reference/agent-setup) installs the bundled [Agent Skills](https://www.serverless.com/framework/docs/guides/agent-skills) that teach Claude Code, Codex, Cursor and other agents to work with the Framework, and the `serverless agent` commands give agents structured access to your service. When a command runs under a detected AI coding agent, the CLI never opens a prompt and shows progress as plain lines.
 - **Sandboxes** – Deploy isolated, ephemeral compute environments on AWS Lambda — ideal for untrusted or per-session workloads such as AI agents and code execution. [More info here](https://www.serverless.com/framework/docs/providers/aws/guide/sandboxes).
 - **Amazon Bedrock AgentCore Support** – Define AI agents, memory, tools, gateways, browsers, and code interpreters directly in `serverless.yml` via the `ai` property, and manage them with the `serverless agent` commands. [More info here](https://www.serverless.com/framework/docs/providers/aws/guide/agents).
 - **AWS Login & SSO** – Set up AWS credentials via browser-based flows with [`serverless login aws`](https://www.serverless.com/framework/docs/providers/aws/cli-reference/login-aws) and [`serverless login aws sso`](https://www.serverless.com/framework/docs/providers/aws/cli-reference/login-aws-sso).
@@ -58,18 +61,22 @@ Here's a list of everything that's new in V.4, so far:
 - **Support for AWS SAM, AWS CloudFormation, & Traditional Serverless Framework Projects:** Now, you can use one tool to deploy all three of these IaC project files. [More info here](https://www.serverless.com/framework/docs/guides/sam)
 - **Native TypeScript Support:** You can now use `.ts` handlers in your AWS Lambda functions in `serverless.yml` and have them build automatically upon deploy. [ESBuild](https://esbuild.github.io/) is now included in the Framework which makes this possible. [More info here](https://www.serverless.com/framework/docs/providers/aws/guide/building).
 - **The AWS AI Stack:** V.4 is optimized for [the AWS AI Stack](https://github.com/serverless/aws-ai-stack). Deploy a full-stack, serverless, boilerplate for AI applications on AWS, featuring LLMs via Amazon Bedrock and much more.
-- **New Dev Mode:** Run `serverless dev` to have events from your live architecture routed to your local code, enabling you to make fast changes without deployment. [More info here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/dev).
-- **Latest Runtime Support:** Support for Node.js 24 (`nodejs24.x`), Python 3.14 (`python3.14`), and Java 25 (`java25`) on AWS Lambda.
+- **New Dev Mode:** Run `serverless dev` and your deployed stage's real traffic — API requests, queue messages, direct invokes — runs the code in your working copy, with the function's own environment and IAM role, without a deployment. `serverless dev --detach` runs the session in the background for scripts and AI coding agents, controlled with `dev status`, `dev wait`, `dev stop`, `dev requests` and `dev replay`. [More info here](https://www.serverless.com/framework/docs/providers/aws/guide/dev-mode).
+- **Lambda Self-Managed Code Storage:** Set `provider.deploymentBucket.codeStorageMode: reference` to have Lambda run function and layer code directly from your deployment bucket. [More info here](https://www.serverless.com/framework/docs/guides/deployment-bucket).
+- **Provisioned Mode for Event Sources:** The `provisionedPollers` property enables AWS Lambda's provisioned mode for [`sqs`](https://www.serverless.com/framework/docs/providers/aws/events/sqs), [`kafka`](https://www.serverless.com/framework/docs/providers/aws/events/kafka) and [`msk`](https://www.serverless.com/framework/docs/providers/aws/events/msk) events.
+- **Runtime Deprecation Warnings:** `package` and `deploy` warn when a function uses a runtime past its AWS deprecation date, and say when Lambda stops allowing new functions and updates on it.
+- **Latest Runtime Support:** Support for Node.js 24 (`nodejs24.x`), Python 3.14 (`python3.14`), Java 25 (`java25`), Ruby 4.0 (`ruby4.0`), .NET 10 (`dotnet10`) and the Amazon Linux 2023 Java runtimes (`java8.al2023`, `java11.al2023`, `java17.al2023`) on AWS Lambda, plus the public-preview `nodejs26.x` and `python3.15`.
 - **Latest Region Support:** Support for all major regions, including the newly announced `ap-southeast-6` in New Zealand.
 - **New Stages Property:** Easily organize stage-specific config via `stages` and set `default` config to fallback to.
-- **Improved Compose Experience:** Serverless Compose now has a beautiful new CLI experience that better demonstrates what is being deployed.
+- **Improved Compose Experience:** Serverless Compose now has a beautiful new CLI experience that better demonstrates what is being deployed. Services reference each other's outputs with the `${service:<service>.<Output>}` resolver, including services deployed to a different stage, and `--service` accepts a comma-separated list to run a command on a subset of services. [More info here](https://www.serverless.com/framework/docs/guides/compose).
+- **AWS Partition Variable:** `${aws:partition}` resolves to the AWS partition for the deployment region (`aws`, `aws-cn`, `aws-us-gov`), making ARNs portable across partitions. [More info here](https://www.serverless.com/framework/docs/guides/variables/aws).
 - **New Terraform & Vault Integrations:** Pull state outputs from several Terraform state storage solutions, and secrets from Vault. [Terraform Docs](https://www.serverless.com/framework/docs/guides/variables/hashicorp/terraform) [Vault Docs](https://www.serverless.com/framework/docs/guides/variables/hashicorp/vault)
-- **Advanced Logging Controls for AWS Lambda:** Capture Logs in JSON, increased log granularity, and setting a custom Log Group. Here is the [AWS article](https://aws.amazon.com/blogs/compute/introducing-advanced-logging-controls-for-aws-lambda-functions/). Here is the [YAML implementation](https://github.com/serverless/serverless/blob/v4.0/docs/providers/aws/guide/serverless.yml.md#logs)
+- **Advanced Logging Controls for AWS Lambda:** Capture Logs in JSON, increased log granularity, and setting a custom Log Group. Here is the [AWS article](https://aws.amazon.com/blogs/compute/introducing-advanced-logging-controls-for-aws-lambda-functions/). Here is the [YAML implementation](https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml#logs)
 - **Axiom Integration:** Integrate with [Axiom's observability solution](https://www.serverless.com/framework/docs/guides/observability/axiom) for a powerful logging, metrics and traces experience, at 3X less than AWS cloudwatch.
 - **AWS SSO:** Environment variables, especially ones set by AWS SSO, are prioritized. The Framework and Dashboard no longer interfere with these.
 - **Automatic Updates:** These happen by default now. Though, you will be able to control the level of updates you're open to.
 - **Improved Onboarding & Set-Up:** The `serverless` command has been re-written to be more helpful when setting up a new or existing project.
-- **Updated Custom Resource Handlers:** All custom resource handlers now use a current Node.js runtime (`nodejs22.x`).
+- **Updated Custom Resource Handlers:** All custom resource handlers now use a current Node.js runtime (`nodejs24.x`).
 - **Deprecation Of Non-AWS Providers:** Other cloud providers have been deprecated. V.4 focuses on delivering the best experience on AWS.
 
 ## Breaking Changes
@@ -256,12 +263,14 @@ Running the Serverless Framework's `serverless` command in a new or existing Ser
 ```text
 No valid AWS Credentials were found in your environment variables or on your machine. Serverless Framework needs these to access your AWS account and deploy resources to it. Choose an option below to set up AWS Credentials.
 
-❯ Create AWS IAM Role (Easy & Recommended)
+❯ Sign in with AWS Console (Recommended)
   Save AWS Credentials in a Local Profile
   Skip & Set Later (AWS SSO, ENV Vars)
 ```
 
-We recommend creating an AWS IAM Role that's stored in the Serverless Framework Dashboard. We'll be supporting a lot of Provider Credentials in the near future, and the Dashboard is a great place to keep these centralized across your team, helping you stay organized, and securely eliminating the need to keep credentials on the machines of your teammates.
+We recommend signing in with the AWS Console: it opens your browser, and once you sign in, the Framework saves short-term credentials to an AWS profile on your machine, so no long-term access keys are stored. You can run the same flow at any time with [`serverless login aws`](https://www.serverless.com/framework/docs/providers/aws/cli-reference/login-aws).
+
+If you signed in to the Serverless Framework Dashboard, the list also offers **Create AWS IAM Role**, which stores an AWS IAM Role in the Dashboard so credentials stay centralized across your team instead of on each teammate's machine.
 
 If you are using AWS SSO, you can run [`serverless login aws sso`](https://www.serverless.com/framework/docs/providers/aws/cli-reference/login-aws-sso) to sign in via your browser, or simply paste your temporary SSO credentials within the terminal as environment variables.
 
