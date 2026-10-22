@@ -79,7 +79,7 @@
     "@smithy/node-http-handler": "^4.12.1",
     "adm-zip": "^0.6.0",
     "child-process-ext": "^3.0.2",
-    "dotenv": "^17.3.1",
+    "dotenv": "^18.0.2",
     "fs-extra": "^11.4.1",
     "graceful-fs": "^4.2.11",
     "js-yaml": "^4.3.2",
