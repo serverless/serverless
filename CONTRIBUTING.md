@@ -5,7 +5,7 @@ Welcome, and thanks in advance for your help!
 ## Prerequisites
 
 - **Node.js 24 or 26** is required for development
-- **npm 12** — required (`devEngines` in the root `package.json`), because older npm versions can silently mis-write `package-lock.json` in this workspaces repo. Enable it with `corepack enable npm && corepack install --global npm@12`. Node.js 26 no longer ships Corepack, so on Node.js 26 run `npm install --global corepack` first.
+- **npm 12** — required (`devEngines` in the root `package.json`), because older npm versions can silently mis-write `package-lock.json` in this workspaces repo. Enable it with Corepack 0.36.0 or later (Node.js 26 doesn't ship Corepack, and Node.js 24 before 24.21 ships an older one that rejects the repo's npm version range): `npm install --global corepack@latest && corepack enable npm && corepack install --global npm@12`.
 
 ## Getting Started
 
@@ -14,7 +14,7 @@ Welcome, and thanks in advance for your help!
    ```bash
    git clone https://github.com/<your-username>/serverless.git
    cd serverless
-   # On Node.js 26, install Corepack first: npm install --global corepack
+   npm install --global corepack@latest
    corepack enable npm
    corepack install --global npm@12
    npm ci

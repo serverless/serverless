@@ -9,21 +9,19 @@ runs:
     - name: 'Setup: npm'
       shell: bash
       run: |
-        # Node.js 25 and later don't bundle Corepack. There, the pinned Corepack
-        # is installed and writes its npm next to this job's Node.js, which comes
-        # first on PATH; an older corepack on PATH from the runner image would
-        # put it where the bundled npm shadows it.
-        if [ "$(node -p 'process.versions.node.split(".")[0] >= 25')" = true ]; then
-          npm install --global --prefix "$RUNNER_TEMP/corepack" corepack@0.36.0
-          # lib/node_modules on Linux and macOS, node_modules on Windows
-          corepack_js=$RUNNER_TEMP/corepack/lib/node_modules/corepack/dist/corepack.js
-          [ -f "$corepack_js" ] || corepack_js=$RUNNER_TEMP/corepack/node_modules/corepack/dist/corepack.js
-          corepack() { node "$corepack_js" "$@"; }
-          corepack enable npm \
-            --install-directory "$(node -p 'require("path").dirname(process.execPath)')"
-        else
-          corepack enable npm
-        fi
+        # The pinned Corepack, on every Node.js version: Node.js 25 and later
+        # don't bundle one, and the one bundled before Node.js 24.21 rejects the
+        # devEngines.packageManager range ("Invalid package manager
+        # specification"). It writes its npm next to this job's Node.js, which
+        # comes first on PATH; an older corepack on PATH from the runner image
+        # would put it where the bundled npm shadows it.
+        npm install --global --prefix "$RUNNER_TEMP/corepack" corepack@0.36.0
+        # lib/node_modules on Linux and macOS, node_modules on Windows
+        corepack_js=$RUNNER_TEMP/corepack/lib/node_modules/corepack/dist/corepack.js
+        [ -f "$corepack_js" ] || corepack_js=$RUNNER_TEMP/corepack/node_modules/corepack/dist/corepack.js
+        corepack() { node "$corepack_js" "$@"; }
+        corepack enable npm \
+          --install-directory "$(node -p 'require("path").dirname(process.execPath)')"
         range=$(node -p 'require("./package.json").devEngines.packageManager.version')
         # Installing it as Corepack's default also covers projects outside this
         # repository, such as the temporary ones tests run npm in. Without a
