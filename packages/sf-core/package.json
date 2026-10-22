@@ -94,7 +94,7 @@
     "ws": "^8.22.0",
     "yaml-ast-parser": "^0.0.43",
     "yargs": "^17.7.3",
-    "zod": "^4.4.3"
+    "zod": "^4.6.7"
   },
   "bin": {
     "sf-core": "bin/sf-core.js"
