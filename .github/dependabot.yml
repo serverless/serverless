@@ -49,6 +49,9 @@ updates:
       undici:
         patterns:
           - 'undici'
+      zod:
+        patterns:
+          - 'zod'
       aws-sdk:
         patterns:
           - '@aws-sdk/*'
