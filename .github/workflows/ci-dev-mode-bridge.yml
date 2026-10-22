@@ -71,8 +71,8 @@ jobs:
           check-latest: true
           # Nothing is installed here, so there's no npm cache to restore.
           package-manager-cache: false
-      - name: 'Setup: Enable Corepack'
-        run: corepack enable npm
+      - name: 'Setup: npm'
+        uses: ./.github/actions/setup-npm
       # No dependency install: the layer build uses only Node.js built-ins.
       - name: 'Build: Layers (twice, must be byte-identical)'
         shell: bash

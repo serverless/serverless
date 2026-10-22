@@ -1,0 +1,41 @@
+name: 'Setup: npm'
+description: >-
+  Makes the newest npm in the release line the root package.json asks for
+  (devEngines.packageManager) the job's npm, in this repository and in every
+  other directory. Runs after actions/checkout and actions/setup-node.
+runs:
+  using: composite
+  steps:
+    - name: 'Setup: npm'
+      shell: bash
+      run: |
+        # Node.js 25 and later don't bundle Corepack. There, the pinned Corepack
+        # is installed and writes its npm next to this job's Node.js, which comes
+        # first on PATH; an older corepack on PATH from the runner image would
+        # put it where the bundled npm shadows it.
+        if [ "$(node -p 'process.versions.node.split(".")[0] >= 25')" = true ]; then
+          npm install --global --prefix "$RUNNER_TEMP/corepack" corepack@0.36.0
+          # lib/node_modules on Linux and macOS, node_modules on Windows
+          corepack_js=$RUNNER_TEMP/corepack/lib/node_modules/corepack/dist/corepack.js
+          [ -f "$corepack_js" ] || corepack_js=$RUNNER_TEMP/corepack/node_modules/corepack/dist/corepack.js
+          corepack() { node "$corepack_js" "$@"; }
+          corepack enable npm \
+            --install-directory "$(node -p 'require("path").dirname(process.execPath)')"
+        else
+          corepack enable npm
+        fi
+        range=$(node -p 'require("./package.json").devEngines.packageManager.version')
+        # Installing it as Corepack's default also covers projects outside this
+        # repository, such as the temporary ones tests run npm in. Without a
+        # default, Corepack looks up and downloads the latest npm on first use
+        # there, in every test worker at once. Retried, because an interrupted
+        # download crashes Corepack.
+        for attempt in 1 2 3; do
+          corepack install --global "npm@$range" && break
+          [ "$attempt" = 3 ] && exit 1
+          sleep $((attempt * 10))
+        done
+        # Fails the step if npm is outside that range's major version
+        version=$(npm --version)
+        echo "npm $version"
+        test "${version%%.*}" = "$(node -p "'$range'.match(/\d+/)[0]")"

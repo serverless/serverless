@@ -42,8 +42,8 @@ jobs:
           node-version: 24.x
           check-latest: true
           cache: npm
-      - name: 'Setup: Enable Corepack'
-        run: corepack enable npm
+      - name: 'Setup: npm'
+        uses: ./.github/actions/setup-npm
       - name: 'Install: Dependencies'
         run: npm ci
       - name: 'Lint: ESLint'
@@ -69,8 +69,8 @@ jobs:
           node-version: 24.x
           check-latest: true
           cache: npm
-      - name: 'Setup: Enable Corepack'
-        run: corepack enable npm
+      - name: 'Setup: npm'
+        uses: ./.github/actions/setup-npm
       - name: 'Install: Dependencies'
         run: |
           cd ../../
@@ -101,8 +101,8 @@ jobs:
           node-version: 24.x
           check-latest: true
           cache: npm
-      - name: 'Setup: Enable Corepack'
-        run: corepack enable npm
+      - name: 'Setup: npm'
+        uses: ./.github/actions/setup-npm
       - name: 'Install: Dependencies'
         run: |
           cd ../../
@@ -162,8 +162,8 @@ jobs:
           node-version: 24.x
           check-latest: true
           cache: npm
-      - name: 'Setup: Enable Corepack'
-        run: corepack enable npm
+      - name: 'Setup: npm'
+        uses: ./.github/actions/setup-npm
       - name: 'Setup: AWS Credentials'
         uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:

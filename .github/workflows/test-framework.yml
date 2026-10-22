@@ -55,26 +55,8 @@ jobs:
           node-version: ${{ matrix.node }}
           check-latest: true
           cache: npm
-      # Node.js 25 and later don't bundle Corepack. There, the pinned Corepack
-      # is installed and writes its npm next to this job's Node.js, which comes
-      # first on PATH; an older corepack on PATH from the runner image would
-      # put it where the bundled npm shadows it. The last line fails the step
-      # if npm isn't the version package.json pins.
-      - name: 'Setup: Enable Corepack'
-        shell: bash
-        run: |
-          if [ "$(node -p 'process.versions.node.split(".")[0] >= 25')" = true ]; then
-            npm install --global --prefix "$RUNNER_TEMP/corepack" corepack@0.36.0
-            # lib/node_modules on Linux and macOS, node_modules on Windows
-            corepack_js=$RUNNER_TEMP/corepack/lib/node_modules/corepack/dist/corepack.js
-            [ -f "$corepack_js" ] || corepack_js=$RUNNER_TEMP/corepack/node_modules/corepack/dist/corepack.js
-            node "$corepack_js" enable npm \
-              --install-directory "$(node -p 'require("path").dirname(process.execPath)')"
-          else
-            corepack enable npm
-          fi
-          cd ../..
-          test "npm@$(npm --version)" = "$(node -p 'require("./package.json").packageManager')"
+      - name: 'Setup: npm'
+        uses: ./.github/actions/setup-npm
       - name: 'Install: Dependencies'
         run: |
           cd ../../
@@ -149,26 +131,8 @@ jobs:
           node-version: ${{ matrix.platform == 'ubuntu-24.04-arm' && '26.x' || '24.x' }}
           check-latest: true
           cache: npm
-      # Node.js 25 and later don't bundle Corepack. There, the pinned Corepack
-      # is installed and writes its npm next to this job's Node.js, which comes
-      # first on PATH; an older corepack on PATH from the runner image would
-      # put it where the bundled npm shadows it. The last line fails the step
-      # if npm isn't the version package.json pins.
-      - name: 'Setup: Enable Corepack'
-        shell: bash
-        run: |
-          if [ "$(node -p 'process.versions.node.split(".")[0] >= 25')" = true ]; then
-            npm install --global --prefix "$RUNNER_TEMP/corepack" corepack@0.36.0
-            # lib/node_modules on Linux and macOS, node_modules on Windows
-            corepack_js=$RUNNER_TEMP/corepack/lib/node_modules/corepack/dist/corepack.js
-            [ -f "$corepack_js" ] || corepack_js=$RUNNER_TEMP/corepack/node_modules/corepack/dist/corepack.js
-            node "$corepack_js" enable npm \
-              --install-directory "$(node -p 'require("path").dirname(process.execPath)')"
-          else
-            corepack enable npm
-          fi
-          cd ../..
-          test "npm@$(npm --version)" = "$(node -p 'require("./package.json").packageManager')"
+      - name: 'Setup: npm'
+        uses: ./.github/actions/setup-npm
       - name: 'Setup: AWS Credentials'
         uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:

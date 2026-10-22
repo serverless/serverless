@@ -11,8 +11,8 @@
     "ghcr.io/devcontainers-contrib/features/neovim-homebrew:1": {}
   },
 
-  // Activate the npm version pinned via "packageManager" (same as CI), then install.
-  "postCreateCommand": "corepack enable npm && npm ci"
+  // Activate the newest npm 12, the release line CI uses, then install.
+  "postCreateCommand": "corepack enable npm && corepack install --global npm@12 && npm ci"
 
   // Features to add to the dev container. More info: https://containers.dev/features.
   // "features": {},
