@@ -142,7 +142,6 @@ const listedDirectories = (ecosystem) =>
 // Dependencies that more than one npm directory declares although their
 // versions may differ, with the reason they may.
 const MAY_DIFFER = {
-  zod: 'the MCP fixtures only use it to declare tool schemas',
   express: 'the web-apps fixture only uses it as a sample app',
   'date-fns': 'the esbuild bundling fixture only uses it as code to bundle',
   lodash: 'the mixed-runtime Python fixture only uses it as code to package',
