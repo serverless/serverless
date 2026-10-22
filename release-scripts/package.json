@@ -16,6 +16,6 @@
   "devDependencies": {},
   "dependencies": {
     "@aws-sdk/client-s3": "3.1152.0",
-    "mongodb": "^7.6.0"
+    "mongodb": "^7.7.0"
   }
 }
