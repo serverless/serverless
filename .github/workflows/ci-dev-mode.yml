@@ -152,8 +152,8 @@ jobs:
           node-version: 24.x
           check-latest: true
           cache: npm
-      - name: 'Setup: Enable Corepack'
-        run: corepack enable npm
+      - name: 'Setup: npm'
+        uses: ./.github/actions/setup-npm
       # A test build, so cached Go modules and build output are fine here; the
       # release jobs build the layers that ship without any cache.
       - name: 'Setup: Go'
@@ -212,8 +212,8 @@ jobs:
           node-version: 24.x
           check-latest: true
           cache: npm
-      - name: 'Setup: Enable Corepack'
-        run: corepack enable npm
+      - name: 'Setup: npm'
+        uses: ./.github/actions/setup-npm
       # A test build, so cached Go modules and build output are fine here; the
       # release jobs build the layers that ship without any cache.
       - name: 'Setup: Go'
