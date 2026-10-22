@@ -11,9 +11,8 @@
     "ghcr.io/devcontainers-contrib/features/neovim-homebrew:1": {}
   },
 
-  // Activate the newest npm 12, the release line CI uses, then install. The
-  // Corepack bundled with Node.js 24 before 24.21 rejects the npm version range.
-  "postCreateCommand": "npm install --global corepack@latest && corepack enable npm && corepack install --global npm@12 && npm ci"
+  // Activate the npm release line package.json asks for (same as CI), then install.
+  "postCreateCommand": "npm install --global corepack@latest && corepack enable npm && npm ci"
 
   // Features to add to the dev container. More info: https://containers.dev/features.
   // "features": {},
