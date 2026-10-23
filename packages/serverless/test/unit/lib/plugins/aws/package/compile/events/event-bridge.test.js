@@ -168,6 +168,61 @@ describe('AwsCompileEventBridgeEvents', () => {
       expect(permission.Properties.Action).toBe('lambda:InvokeFunction')
     })
 
+    describe('Lambda Permission SourceArn', () => {
+      const getRuleArnPath = (eventBus) => {
+        awsCompileEventBridgeEvents.serverless.service.functions = {
+          first: {
+            name: 'first',
+            events: [
+              {
+                eventBridge: {
+                  name: 'test-rule-name',
+                  eventBus,
+                  schedule: 'rate(10 minutes)',
+                },
+              },
+            ],
+          },
+        }
+
+        awsCompileEventBridgeEvents.compileEventBridgeEvents()
+
+        const resources =
+          awsCompileEventBridgeEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+        const [, permission] = Object.entries(resources).find(
+          ([, r]) => r.Type === 'AWS::Lambda::Permission',
+        )
+        return permission.Properties.SourceArn['Fn::Join'][1][5]
+      }
+
+      it('should omit bus name when eventBus is not set', () => {
+        expect(getRuleArnPath(undefined)).toEqual({
+          'Fn::Join': ['/', ['rule', 'test-rule-name']],
+        })
+      })
+
+      it('should omit bus name when eventBus is explicitly default', () => {
+        expect(getRuleArnPath('default')).toEqual({
+          'Fn::Join': ['/', ['rule', 'test-rule-name']],
+        })
+      })
+
+      it('should omit bus name when eventBus is the default bus ARN', () => {
+        expect(
+          getRuleArnPath('arn:aws:events:us-east-1:12345:event-bus/default'),
+        ).toEqual({
+          'Fn::Join': ['/', ['rule', 'test-rule-name']],
+        })
+      })
+
+      it('should include bus name for a non-default bus', () => {
+        expect(getRuleArnPath('my-custom-event-bus')).toEqual({
+          'Fn::Join': ['/', ['rule', 'my-custom-event-bus', 'test-rule-name']],
+        })
+      })
+    })
+
     it('should create EventBus resource when non-default bus is specified', () => {
       awsCompileEventBridgeEvents.serverless.service.functions = {
         first: {

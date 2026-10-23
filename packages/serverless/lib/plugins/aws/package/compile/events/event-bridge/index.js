@@ -536,7 +536,11 @@ pattern:
       this.provider.naming.getEventBridgeRuleLogicalId(ruleNameLogicalIdStub)
     ] = eventRuleResource
 
-    const ruleNameArnPath = eventBusName ? [eventBusName, RuleName] : [RuleName]
+    // Rules on the default event bus have no bus name segment in their ARN
+    const ruleNameArnPath =
+      eventBusName && eventBusName !== 'default'
+        ? [eventBusName, RuleName]
+        : [RuleName]
     const lambdaPermissionResource = {
       Type: 'AWS::Lambda::Permission',
       DependsOn: _.get(functionObj.targetAlias, 'logicalId'),
