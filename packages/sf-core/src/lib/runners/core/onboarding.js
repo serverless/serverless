@@ -6,7 +6,6 @@ import {
   getAwsCredentialProvider,
   getConfigFilePath,
   writeAwsCredentialsToFile,
-  generateShortId,
 } from '../../../utils/index.js'
 import {
   log,
@@ -1129,16 +1128,11 @@ const createAwsCredentials = async ({
      * for the AWS IAM Role
      */
     const providerName = 'default'
-    const awsProviderCfStackShortId = generateShortId()
-    let awsProviderCfTemplateUrl
-    if (process.env.SERVERLESS_PLATFORM_STAGE === 'dev') {
-      awsProviderCfTemplateUrl =
-        'https://serverless-framework-template-dev.s3.amazonaws.com/roleTemplate.yml'
-    } else {
-      awsProviderCfTemplateUrl =
-        'https://serverless-framework-template.s3.amazonaws.com/roleTemplate.yml'
-    }
-    const awsProviderCfStackUrl = `https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/quickcreate?templateURL=${awsProviderCfTemplateUrl}&stackName=SFSetup-${awsProviderCfStackShortId}&param_Alias=${providerName}&param_RoleName=SFRole-${awsProviderCfStackShortId}&param_OrgUid=${orgId}`
+    const awsProviderCfStackUrl = await getProviderSetupUrl({
+      sdk,
+      orgId,
+      alias: providerName,
+    })
 
     logger.aside(
       'Here\'s how to create an AWS IAM Role (known by us as a "Provider") for the Serverless Framework to use to deploy resources to your AWS account.',
@@ -1209,6 +1203,26 @@ const createAwsCredentials = async ({
 const listProvidersInOrg = async ({ sdk, orgId }) => {
   const providers = await sdk?.providers.list({ orgId })
   return providers
+}
+
+/**
+ * Get the AWS Cloudformation Stack Creation URL for a new Provider.
+ * The URL includes a short-lived provision token for the Organization.
+ */
+const getProviderSetupUrl = async ({ sdk, orgId, alias }) => {
+  const response = await sdk?.providers._post({
+    path: `/orgs/${orgId}/setup-cf-url`,
+    body: { alias },
+  })
+  const setupUrl = response?.result?.setupUrl
+  if (!setupUrl) {
+    const err = new Error(
+      'Unable to create the AWS IAM Role setup link. Please try again, or create the Provider from the Serverless Framework Dashboard: https://app.serverless.com/settings/providers',
+    )
+    err.stack = null
+    throw err
+  }
+  return setupUrl
 }
 
 /**
