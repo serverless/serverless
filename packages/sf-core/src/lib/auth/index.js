@@ -1,6 +1,5 @@
 import os from 'os'
 import * as https from 'https'
-import { randomInt } from 'crypto'
 import { execSync } from 'child_process'
 import open from 'open'
 import { jwtDecode } from 'jwt-decode'
@@ -31,33 +30,6 @@ import { pickFallbackOrg, settleDefaultOrg } from './default-org.js'
 const LOGIN_TIMEOUT_MS = 10 * 60 * 1000
 
 /**
- * The characters of a sign-in user code: upper-case letters and digits without
- * the ones that are read alike (0/O, 1/I). Two groups of four, as in
- * "WXYZ-2345", so the code can be read off the terminal and compared in the
- * browser.
- */
-const USER_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-const USER_CODE_GROUP_LENGTH = 4
-export const USER_CODE_PATTERN = /^[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/
-
-/**
- * A fresh user code for one browser sign-in. The CLI generates it, prints it,
- * and sends it to the login broker so the Dashboard can show it: the person in
- * the browser confirms it matches the terminal that started the sign-in, which
- * is what ties a sign-in to the CLI that asked for it. A sign-in URL that
- * reaches someone who did not start it (phishing) shows a code they have no
- * terminal to compare with.
- */
-export const generateUserCode = () => {
-  const group = () =>
-    Array.from(
-      { length: USER_CODE_GROUP_LENGTH },
-      () => USER_CODE_ALPHABET[randomInt(USER_CODE_ALPHABET.length)],
-    ).join('')
-  return `${group()}-${group()}`
-}
-
-/**
  * One bound for a whole browser sign-in, including the login broker's reply
  * with the sign-in URL: a broker that connects and never answers must not
  * hang the command. `clear` stops the timer once the sign-in settled.
@@ -83,8 +55,15 @@ const signInTimeout = (timeoutMs) => {
   return { promise, clear: () => clearTimeout(timer) }
 }
 
-const CONFIRM_CODE_MESSAGE =
-  'When the Dashboard asks, confirm that it shows this code:'
+/**
+ * The line that shows the sign-in's user code. The login broker issues the
+ * code with the sign-in URL ("XXXX-XXXX"); the Dashboard asks the person to
+ * type it and relays the tokens only when it matches. The code is what ties a
+ * sign-in to the terminal that started it: a sign-in URL that reaches someone
+ * who did not run the command shows a prompt for a code they do not have. A
+ * broker that issues no code (an older one) gets no line.
+ */
+const ENTER_CODE_MESSAGE = 'When the Dashboard asks for it, enter this code:'
 
 export class Authentication {
   constructor({ versionFramework } = {}) {
@@ -904,7 +883,7 @@ export class Authentication {
           'If your browser does not open automatically, please open this URL:',
           loginUrl,
         )
-        logger.aside(CONFIRM_CODE_MESSAGE, userCode)
+        if (userCode) logger.aside(ENTER_CODE_MESSAGE, userCode)
 
         try {
           if (os.type() === 'Linux' && !canRunOpenOnLinux()) {
@@ -1341,7 +1320,7 @@ export class Authentication {
       say(
         `Sign in to the Serverless Framework Dashboard by opening this URL in a browser:\n${loginUrl}`,
       )
-      say(`${CONFIRM_CODE_MESSAGE} ${userCode}`)
+      if (userCode) say(`${ENTER_CODE_MESSAGE} ${userCode}`)
       say(
         `Waiting for the sign-in to complete (up to ${Math.round(timeoutMs / 60000)} minutes)`,
       )
@@ -1388,12 +1367,13 @@ export class Authentication {
       agent: await getAgent(loginBrokerUrl),
     })
 
-    // Promises to handle transactionId and loginData
-    let resolveTransactionId
-    let rejectTransactionId
-    let transactionId = new Promise((resolve, reject) => {
-      resolveTransactionId = resolve
-      rejectTransactionId = reject
+    // Promises to handle the broker's `ready` reply (the transaction id and
+    // the user code it issued) and the sign-in's tokens
+    let resolveReady
+    let rejectReady
+    const ready = new Promise((resolve, reject) => {
+      resolveReady = resolve
+      rejectReady = reject
     })
 
     let resolveLoginData, rejectLoginData
@@ -1421,14 +1401,14 @@ export class Authentication {
       }
     }
 
-    // The code that ties this sign-in to this CLI: sent to the broker with the
-    // login request, shown by the Dashboard for the person to confirm, and
-    // echoed back with the result. A result that carries another code, or
-    // none, belongs to some other sign-in and is refused.
-    const userCode = generateUserCode()
+    // The broker checks the code the person types against the one it issued
+    // before it relays any tokens, so a result on this connection is already
+    // this sign-in's. A result that nevertheless names another code is
+    // refused: it cannot be the sign-in the person confirmed.
+    let userCode
     const codeMismatch = () =>
       new ServerlessError(
-        'The sign-in result did not carry the code of this sign-in, so it was not used. Run "serverless login" again, and confirm in the browser the code the command prints.',
+        'The sign-in result named a code other than this sign-in\'s, so it was not used. Run "serverless login" again, and enter in the browser the code the command prints.',
         ServerlessErrorCodes.general.AUTH_FAILED,
         { stack: false },
       )
@@ -1439,10 +1419,20 @@ export class Authentication {
         const data = JSON.parse(message.data)
         switch (data.event) {
           case 'ready':
-            resolveTransactionId(data.transactionId)
+            userCode =
+              typeof data.userCode === 'string' && data.userCode
+                ? data.userCode
+                : undefined
+            resolveReady({ transactionId: data.transactionId, userCode })
             break
           case 'fulfilled': {
-            if (data.userCode !== userCode) throw codeMismatch()
+            if (
+              userCode &&
+              data.userCode !== undefined &&
+              data.userCode !== userCode
+            ) {
+              throw codeMismatch()
+            }
             const sanitizedLoginData = sanitizeLoginData(data)
             resolveLoginData(sanitizedLoginData)
             ws.close()
@@ -1452,14 +1442,14 @@ export class Authentication {
             throw new Error('Unexpected message received during login.')
         }
       } catch (error) {
-        rejectTransactionId(error)
+        rejectReady(error)
         rejectLoginData(error)
         ws.close()
       }
     }
 
     ws.onopen = () => {
-      ws.send(JSON.stringify({ action: 'login', userCode }))
+      ws.send('{"action":"login"}')
     }
 
     // A connection that closes or fails before the sign-in completes fails the
@@ -1474,27 +1464,24 @@ export class Authentication {
       )
     ws.onerror = (event) => {
       const error = endedEarly(event?.message)
-      rejectTransactionId(error)
+      rejectReady(error)
       rejectLoginData(error)
     }
     ws.onclose = () => {
       const error = endedEarly()
-      rejectTransactionId(error)
+      rejectReady(error)
       rejectLoginData(error)
     }
     // The caller awaits loginData only after it prints the URL.
     loginData.catch(() => {})
 
-    // Await transactionId and construct login URL
-    // @ts-expect-error ...
-    transactionId = await transactionId
-    // The code goes in the URL too, so the Dashboard can show it from the
-    // link alone; the broker's copy is the one it compares with.
-    // @ts-expect-error ...
+    // Await the broker's reply and construct the login URL. The user code
+    // stays out of the URL on purpose: the Dashboard asks the person to type
+    // it, and must never be able to read it from the link.
+    const { transactionId } = await ready
     const auth0Queries = new URLSearchParams({
       client: 'cli',
       transactionId,
-      userCode,
     }).toString()
     const loginUrl = `${dashboardUrl}?${auth0Queries}`
 

@@ -116,7 +116,7 @@ describe('serverless login (non-interactive)', () => {
     expect(notices[0]).toContain(
       'https://app.example.test?client=cli&transactionId=abc',
     )
-    expect(notices[1]).toContain('confirm that it shows this code: WXYZ-2345')
+    expect(notices[1]).toContain('enter this code: WXYZ-2345')
     expect(notices[2]).toContain('Waiting for the sign-in to complete')
     expect(lines).toEqual(['Signed in as tester (org "acme")'])
     expect(completeBrowserLogin).toHaveBeenCalledWith(

@@ -47,16 +47,17 @@ Dashboard sign-in URL and waits for the sign-in to complete (up to 10 minutes):
 Sign in to the Serverless Framework Dashboard by opening this URL in a browser:
 https://app.serverless.com?client=cli&transactionId=...
 
-When the Dashboard asks, confirm that it shows this code: WXYZ-2345
+When the Dashboard asks for it, enter this code: WXYZ-2345
 Waiting for the sign-in to complete (up to 10 minutes)
 ✔ Signed in as jane (org "acme")
 ```
 
-Open the URL in any browser, sign in, and the command finishes with the
-session saved, exactly as the interactive flow would. The code is new for every
-sign-in and ties it to the command that printed it: if the Dashboard shows a
-different code, or you did not run `serverless login` yourself, do not
-continue. The command only accepts a sign-in that carries its own code. In CI, where no one can
+Open the URL in any browser, sign in, and enter the code when the Dashboard
+asks for it. The command then finishes with the session saved, exactly as the
+interactive flow would. The code is new for every sign-in and ties it to the
+terminal that printed it: the Dashboard hands the session to the CLI only when
+the code matches. If the Dashboard asks for a code and you did not run
+`serverless login` yourself, do not enter anything. In CI, where no one can
 open the URL, the command fails right away and names the keys to set instead. If you belong to several
 orgs, the success line names the default and lists the others; see
 [Choosing an org](#choosing-an-org).
