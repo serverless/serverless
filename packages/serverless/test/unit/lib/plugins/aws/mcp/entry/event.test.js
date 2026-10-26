@@ -7,7 +7,7 @@ import {
   jest,
 } from '@jest/globals'
 import { Writable } from 'node:stream'
-import { streamHandle } from 'hono/aws-lambda'
+import { streamHandle } from '@hono/aws-lambda'
 
 const { withoutBodyOnBodylessMethod } =
   await import('../../../../../../../lib/plugins/aws/mcp/entry/lib/event.mjs')

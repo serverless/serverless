@@ -2,7 +2,7 @@
 //
 // API Gateway will deliver a GET or HEAD that carries a body, and Hono's Lambda
 // adapter passes `event.body` straight into `new Request` whenever it is present
-// (`hono/dist/adapter/aws-lambda/handler.js`, `EventProcessor#createRequest`).
+// (`@hono/aws-lambda/dist/handler.js`, `EventProcessor#createRequest`).
 // undici refuses that combination outright — "Request with GET/HEAD method
 // cannot have body" — and since the MCP route is registered as ANY, the throw
 // would fail the invocation instead of reaching the app. So the body is dropped
