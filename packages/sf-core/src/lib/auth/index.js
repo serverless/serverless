@@ -1,5 +1,6 @@
 import os from 'os'
 import * as https from 'https'
+import { randomInt } from 'crypto'
 import { execSync } from 'child_process'
 import open from 'open'
 import { jwtDecode } from 'jwt-decode'
@@ -25,8 +26,65 @@ import { fromNodeProviderChain } from '@aws-sdk/credential-providers'
 import { NOT_SIGNED_IN_REMEDY } from './sign-in-guidance.js'
 import { pickFallbackOrg, settleDefaultOrg } from './default-org.js'
 
-// How long a non-interactive `serverless login` waits for the browser sign-in.
+// How long `serverless login` waits for the browser sign-in, with or without
+// someone at the keyboard.
 const LOGIN_TIMEOUT_MS = 10 * 60 * 1000
+
+/**
+ * The characters of a sign-in user code: upper-case letters and digits without
+ * the ones that are read alike (0/O, 1/I). Two groups of four, as in
+ * "WXYZ-2345", so the code can be read off the terminal and compared in the
+ * browser.
+ */
+const USER_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+const USER_CODE_GROUP_LENGTH = 4
+export const USER_CODE_PATTERN = /^[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/
+
+/**
+ * A fresh user code for one browser sign-in. The CLI generates it, prints it,
+ * and sends it to the login broker so the Dashboard can show it: the person in
+ * the browser confirms it matches the terminal that started the sign-in, which
+ * is what ties a sign-in to the CLI that asked for it. A sign-in URL that
+ * reaches someone who did not start it (phishing) shows a code they have no
+ * terminal to compare with.
+ */
+export const generateUserCode = () => {
+  const group = () =>
+    Array.from(
+      { length: USER_CODE_GROUP_LENGTH },
+      () => USER_CODE_ALPHABET[randomInt(USER_CODE_ALPHABET.length)],
+    ).join('')
+  return `${group()}-${group()}`
+}
+
+/**
+ * One bound for a whole browser sign-in, including the login broker's reply
+ * with the sign-in URL: a broker that connects and never answers must not
+ * hang the command. `clear` stops the timer once the sign-in settled.
+ */
+const signInTimeout = (timeoutMs) => {
+  let timer
+  const promise = new Promise((_, reject) => {
+    timer = setTimeout(
+      () =>
+        reject(
+          new ServerlessError(
+            `Sign-in was not completed within ${Math.round(timeoutMs / 60000)} minutes. Run "serverless login" again for a new URL.`,
+            ServerlessErrorCodes.general.AUTH_FAILED,
+            { stack: false },
+          ),
+        ),
+      timeoutMs,
+    )
+  })
+  // Nothing awaits the timeout alone; a race that already settled the other
+  // way must not surface it as an unhandled rejection.
+  promise.catch(() => {})
+  return { promise, clear: () => clearTimeout(timer) }
+}
+
+const CONFIRM_CODE_MESSAGE =
+  'When the Dashboard asks, confirm that it shows this code:'
 
 export class Authentication {
   constructor({ versionFramework } = {}) {
@@ -687,7 +745,11 @@ export class Authentication {
    * login/register or provide a License Key. This is also the
    * way to add a new License Key to .{baseFilename}rc, if it doesn't exist.
    */
-  async authenticateInteractive({ message, baseFilename = 'serverless' } = {}) {
+  async authenticateInteractive({
+    message,
+    baseFilename = 'serverless',
+    timeoutMs = LOGIN_TIMEOUT_MS,
+  } = {}) {
     const logger = log.get('core:auth:authenticate')
     const progressMain = progress.get('main')
 
@@ -826,27 +888,44 @@ export class Authentication {
        */
       progressMain.notice('Opening web browser')
 
-      const { loginUrl, loginData: loginDataDeferred } =
-        await this.loginViaBrowser()
-      logger.aside(
-        'If your browser does not open automatically, please open this URL:',
-        loginUrl,
-      )
-
+      // The same bound as the non-interactive sign-in: a browser tab that is
+      // never completed must not leave the command waiting forever.
+      const timeout = signInTimeout(timeoutMs)
+      let loginData
+      let close = () => {}
       try {
-        if (os.type() === 'Linux' && !canRunOpenOnLinux()) {
-          throw new Error('xdg-open not installed')
+        const login = await Promise.race([
+          this.loginViaBrowser(),
+          timeout.promise,
+        ])
+        const { loginUrl, loginData: loginDataDeferred, userCode } = login
+        close = login.close ?? close
+        logger.aside(
+          'If your browser does not open automatically, please open this URL:',
+          loginUrl,
+        )
+        logger.aside(CONFIRM_CODE_MESSAGE, userCode)
+
+        try {
+          if (os.type() === 'Linux' && !canRunOpenOnLinux()) {
+            throw new Error('xdg-open not installed')
+          }
+          await open(loginUrl, { wait: false })
+        } catch (err) {
+          /** empty */
         }
-        await open(loginUrl, { wait: false })
-      } catch (err) {
-        /** empty */
+
+        progressMain.notice(
+          `Waiting for authentication in Serverless Framework Dashboard (up to ${Math.round(timeoutMs / 60000)} minutes)`,
+        )
+
+        loginData = await Promise.race([loginDataDeferred, timeout.promise])
+      } catch (error) {
+        close()
+        throw error
+      } finally {
+        timeout.clear()
       }
-
-      progressMain.notice(
-        'Waiting for authentication in Serverless Framework Dashboard',
-      )
-
-      const loginData = await loginDataDeferred
 
       const defaultOrg = await this.completeBrowserLogin({
         loginData,
@@ -1249,38 +1328,31 @@ export class Authentication {
   }) {
     const logger = log.get('core:auth:authenticate')
     const say = notice ?? ((text) => logger.notice(text))
-    // One bound for the whole wait, including the login broker's reply with
-    // the sign-in URL: a broker that connects and never answers must not
-    // hang the command.
-    let timer
-    const timeout = new Promise((_, reject) => {
-      timer = setTimeout(
-        () =>
-          reject(
-            new ServerlessError(
-              `Sign-in was not completed within ${Math.round(timeoutMs / 60000)} minutes. Run "serverless login" again for a new URL.`,
-              ServerlessErrorCodes.general.AUTH_FAILED,
-              { stack: false },
-            ),
-          ),
-        timeoutMs,
-      )
-    })
+    const timeout = signInTimeout(timeoutMs)
     let data
+    let close = () => {}
     try {
-      const { loginUrl, loginData } = await Promise.race([
+      const login = await Promise.race([
         this.loginViaBrowser(),
-        timeout,
+        timeout.promise,
       ])
+      const { loginUrl, loginData, userCode } = login
+      close = login.close ?? close
       say(
         `Sign in to the Serverless Framework Dashboard by opening this URL in a browser:\n${loginUrl}`,
       )
+      say(`${CONFIRM_CODE_MESSAGE} ${userCode}`)
       say(
         `Waiting for the sign-in to complete (up to ${Math.round(timeoutMs / 60000)} minutes)`,
       )
-      data = await Promise.race([loginData, timeout])
+      data = await Promise.race([loginData, timeout.promise])
+    } catch (error) {
+      // A sign-in that timed out leaves the broker connection open, and that
+      // connection would keep the process alive after the error.
+      close()
+      throw error
     } finally {
-      clearTimeout(timer)
+      timeout.clear()
     }
     return await this.completeBrowserLogin({
       loginData: data,
@@ -1349,6 +1421,18 @@ export class Authentication {
       }
     }
 
+    // The code that ties this sign-in to this CLI: sent to the broker with the
+    // login request, shown by the Dashboard for the person to confirm, and
+    // echoed back with the result. A result that carries another code, or
+    // none, belongs to some other sign-in and is refused.
+    const userCode = generateUserCode()
+    const codeMismatch = () =>
+      new ServerlessError(
+        'The sign-in result did not carry the code of this sign-in, so it was not used. Run "serverless login" again, and confirm in the browser the code the command prints.',
+        ServerlessErrorCodes.general.AUTH_FAILED,
+        { stack: false },
+      )
+
     // WebSocket event handlers
     ws.onmessage = (message) => {
       try {
@@ -1358,6 +1442,7 @@ export class Authentication {
             resolveTransactionId(data.transactionId)
             break
           case 'fulfilled': {
+            if (data.userCode !== userCode) throw codeMismatch()
             const sanitizedLoginData = sanitizeLoginData(data)
             resolveLoginData(sanitizedLoginData)
             ws.close()
@@ -1374,7 +1459,7 @@ export class Authentication {
     }
 
     ws.onopen = () => {
-      ws.send('{"action":"login"}')
+      ws.send(JSON.stringify({ action: 'login', userCode }))
     }
 
     // A connection that closes or fails before the sign-in completes fails the
@@ -1403,14 +1488,19 @@ export class Authentication {
     // Await transactionId and construct login URL
     // @ts-expect-error ...
     transactionId = await transactionId
+    // The code goes in the URL too, so the Dashboard can show it from the
+    // link alone; the broker's copy is the one it compares with.
     // @ts-expect-error ...
     const auth0Queries = new URLSearchParams({
       client: 'cli',
       transactionId,
+      userCode,
     }).toString()
     const loginUrl = `${dashboardUrl}?${auth0Queries}`
 
     return {
+      userCode,
+      close: () => ws.close(),
       loginUrl,
       loginData,
     }

@@ -85,6 +85,7 @@ describe('serverless login (non-interactive)', () => {
     authentication.loginViaBrowser = async () => ({
       loginUrl: 'https://app.example.test?client=cli&transactionId=abc',
       loginData: Promise.resolve(loginData),
+      userCode: 'WXYZ-2345',
     })
     const completeBrowserLogin = jest.fn(async ({ chooseDefaultOrg }) => ({
       orgId: 'o1',
@@ -110,11 +111,13 @@ describe('serverless login (non-interactive)', () => {
       notice,
     })
 
-    // The URL and the wait are notices; the outcome is one success line.
+    // The URL, the code to confirm and the wait are notices; the outcome is
+    // one success line.
     expect(notices[0]).toContain(
       'https://app.example.test?client=cli&transactionId=abc',
     )
-    expect(notices[1]).toContain('Waiting for the sign-in to complete')
+    expect(notices[1]).toContain('confirm that it shows this code: WXYZ-2345')
+    expect(notices[2]).toContain('Waiting for the sign-in to complete')
     expect(lines).toEqual(['Signed in as tester (org "acme")'])
     expect(completeBrowserLogin).toHaveBeenCalledWith(
       expect.objectContaining({ loginData, baseFilename: 'serverless' }),
@@ -343,9 +346,12 @@ describe('serverless login (non-interactive)', () => {
   it('gives up with a stackless error when the browser sign-in never completes', async () => {
     const { lines, notices, success, notice } = collect()
     const authentication = new Authentication({ versionFramework: '4.0.0' })
+    const close = jest.fn()
     authentication.loginViaBrowser = async () => ({
       loginUrl: 'https://app.example.test',
       loginData: new Promise(() => {}),
+      userCode: 'WXYZ-2345',
+      close,
     })
     authentication.completeBrowserLogin = jest.fn()
     const error = await login({
@@ -359,8 +365,10 @@ describe('serverless login (non-interactive)', () => {
     expect(error.message).toContain('was not completed')
     expect(error.stack).toBeUndefined()
     expect(authentication.completeBrowserLogin).not.toHaveBeenCalled()
-    expect(notices).toHaveLength(2)
+    expect(notices).toHaveLength(3)
     expect(lines).toHaveLength(0)
+    // The broker connection is closed, or it would keep the process alive.
+    expect(close).toHaveBeenCalled()
   })
 })
 
