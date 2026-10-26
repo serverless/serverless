@@ -131,6 +131,55 @@ describe('loginViaBrowser user code', () => {
   })
 })
 
+// Before the broker replies, the caller has no `close` to call: the abort
+// signal of its timeout closes the connection instead. An open connection
+// would keep the process alive after the timeout error.
+describe('loginViaBrowser with an abort signal', () => {
+  beforeEach(() => {
+    FakeSocket.reset()
+  })
+
+  it('closes the connection when the signal aborts before the broker replies', async () => {
+    const controller = new AbortController()
+    const pending = new Authentication({}).loginViaBrowser({
+      signal: controller.signal,
+    })
+    const socket = await openedSocket()
+    expect(socket.closed).toBe(false)
+    controller.abort()
+    expect(socket.closed).toBe(true)
+    socket.onclose()
+    await expect(pending).rejects.toMatchObject({ code: 'AUTH_FAILED' })
+  })
+
+  it('closes a connection opened after the signal already aborted', async () => {
+    const controller = new AbortController()
+    controller.abort()
+    const pending = new Authentication({}).loginViaBrowser({
+      signal: controller.signal,
+    })
+    const socket = await openedSocket()
+    expect(socket.closed).toBe(true)
+    socket.onclose()
+    await expect(pending).rejects.toMatchObject({ code: 'AUTH_FAILED' })
+  })
+
+  it('closes the connection when a non-interactive sign-in times out before the URL', async () => {
+    const notices = []
+    const pending = new Authentication({}).loginNonInteractive({
+      notice: (text) => notices.push(text),
+      timeoutMs: 20,
+    })
+    const socket = await openedSocket()
+    await expect(pending).rejects.toMatchObject({
+      code: 'AUTH_FAILED',
+      message: expect.stringContaining('Sign-in was not completed within'),
+    })
+    expect(socket.closed).toBe(true)
+    expect(notices).toEqual([])
+  })
+})
+
 // The sign-in used to wait on promises nothing would settle when the
 // connection ended early, and the process then exited 0 without an error.
 describe('loginViaBrowser when the connection ends early', () => {

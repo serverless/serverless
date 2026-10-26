@@ -33,26 +33,33 @@ const LOGIN_TIMEOUT_MS = 10 * 60 * 1000
  * One bound for a whole browser sign-in, including the login broker's reply
  * with the sign-in URL: a broker that connects and never answers must not
  * hang the command. `clear` stops the timer once the sign-in settled.
+ * `signal` aborts when the timer fires: the broker connection closes on it,
+ * so a sign-in that times out before the broker even replied (when the
+ * caller has no `close` yet) cannot keep the process alive after the error.
  */
 const signInTimeout = (timeoutMs) => {
   let timer
+  const controller = new AbortController()
   const promise = new Promise((_, reject) => {
-    timer = setTimeout(
-      () =>
-        reject(
-          new ServerlessError(
-            `Sign-in was not completed within ${Math.round(timeoutMs / 60000)} minutes. Run "serverless login" again for a new URL.`,
-            ServerlessErrorCodes.general.AUTH_FAILED,
-            { stack: false },
-          ),
+    timer = setTimeout(() => {
+      controller.abort()
+      reject(
+        new ServerlessError(
+          `Sign-in was not completed within ${Math.round(timeoutMs / 60000)} minutes. Run "serverless login" again for a new URL.`,
+          ServerlessErrorCodes.general.AUTH_FAILED,
+          { stack: false },
         ),
-      timeoutMs,
-    )
+      )
+    }, timeoutMs)
   })
   // Nothing awaits the timeout alone; a race that already settled the other
   // way must not surface it as an unhandled rejection.
   promise.catch(() => {})
-  return { promise, clear: () => clearTimeout(timer) }
+  return {
+    promise,
+    signal: controller.signal,
+    clear: () => clearTimeout(timer),
+  }
 }
 
 /**
@@ -874,7 +881,7 @@ export class Authentication {
       let close = () => {}
       try {
         const login = await Promise.race([
-          this.loginViaBrowser(),
+          this.loginViaBrowser({ signal: timeout.signal }),
           timeout.promise,
         ])
         const { loginUrl, loginData: loginDataDeferred, userCode } = login
@@ -1312,7 +1319,7 @@ export class Authentication {
     let close = () => {}
     try {
       const login = await Promise.race([
-        this.loginViaBrowser(),
+        this.loginViaBrowser({ signal: timeout.signal }),
         timeout.promise,
       ])
       const { loginUrl, loginData, userCode } = login
@@ -1345,7 +1352,14 @@ export class Authentication {
    * Login via web browser to Serverless Dashboard,
    * supporting both prod and dev environments
    */
-  async loginViaBrowser() {
+  /**
+   * Connects to the login broker and resolves with the sign-in URL (and the
+   * user code the broker issued) once the broker replies; `loginData` then
+   * settles with the sign-in's tokens. `signal`, when given, closes the
+   * connection on abort, so a caller whose wait ends before this resolves
+   * (a timeout) does not leave the connection open.
+   */
+  async loginViaBrowser({ signal } = {}) {
     // Determine URLs based on environment
     const serverlessStage = process.env.SERVERLESS_PLATFORM_STAGE || 'prod'
     const coreUrl =
@@ -1366,6 +1380,9 @@ export class Authentication {
       followRedirects: true,
       agent: await getAgent(loginBrokerUrl),
     })
+    // The caller's wait may have ended while the connection was being set up.
+    if (signal?.aborted) ws.close()
+    else signal?.addEventListener('abort', () => ws.close(), { once: true })
 
     // Promises to handle the broker's `ready` reply (the transaction id and
     // the user code it issued) and the sign-in's tokens
