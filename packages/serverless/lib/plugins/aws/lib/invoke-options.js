@@ -19,9 +19,9 @@ const FUNCTION_ONLY_OPTIONS = [
  */
 const OPTIONS_NOT_AVAILABLE = {
   function: ['header'],
-  agent: ['header'],
-  'web-app': [...FUNCTION_ONLY_OPTIONS, 'session-id', 'port'],
-  sandbox: [...FUNCTION_ONLY_OPTIONS, 'session-id', 'log'],
+  agent: ['header', 'json'],
+  'web-app': [...FUNCTION_ONLY_OPTIONS, 'session-id', 'port', 'json'],
+  sandbox: [...FUNCTION_ONLY_OPTIONS, 'session-id', 'log', 'json'],
 }
 
 const TARGETS = ['function', 'agent', 'sandbox', 'web-app']

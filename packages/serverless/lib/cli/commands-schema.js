@@ -521,7 +521,8 @@ commands.set('invoke', {
     },
     qualifier: {
       type: 'string',
-      usage: 'Version number or alias to invoke',
+      usage:
+        'Version number or alias to invoke. Default for a durable function: the alias its deploy publishes',
       shortcut: 'q',
     },
     path: {
@@ -566,6 +567,10 @@ commands.set('invoke', {
       type: 'string',
       usage:
         'Unique name for durable function execution (enables idempotency, 1-64 chars)',
+    },
+    json: {
+      usage: 'Print one JSON result on stdout (text goes to stderr)',
+      type: 'boolean',
     },
   },
   lifecycleEvents: ['invoke'],

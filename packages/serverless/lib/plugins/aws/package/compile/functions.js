@@ -451,51 +451,6 @@ class AwsCompileFunctions {
         }
       }
 
-      // Validate and configure Durable Functions
-      // Note: This validation happens after runtime resolution so it works correctly
-      // when runtime is specified at provider level
-      if (functionObject.durableConfig) {
-        // Pattern matching for Node.js 22+ (nodejs22.x, nodejs23.x, ... nodejs99.x),
-        // Python 3.13+ (python3.13, python3.14, ... python3.99),
-        // Java 17+ (java17, java21, ... java99, incl. the .al2023 variants of 17+),
-        // and .NET 8+ (dotnet8, dotnet9, ... dotnet99)
-        const nodejsPattern = /^nodejs(2[2-9]|[3-9][0-9])\.x$/
-        const pythonPattern = /^python3\.(1[3-9]|[2-9][0-9])$/
-        const javaPattern = /^java(1[7-9]|[2-9][0-9])(\.al2023)?$/
-        const dotnetPattern = /^dotnet([89]|[1-9][0-9])$/
-        const isValidRuntime =
-          nodejsPattern.test(functionObject.runtime) ||
-          pythonPattern.test(functionObject.runtime) ||
-          javaPattern.test(functionObject.runtime) ||
-          dotnetPattern.test(functionObject.runtime)
-
-        if (!isValidRuntime) {
-          throw new ServerlessError(
-            'Durable Functions are only supported for Node.js 22+, Python 3.13+, Java 17+, and .NET 8+ runtimes.',
-            'LAMBDA_DURABLE_FUNCTION_INVALID_RUNTIME',
-            { stack: false },
-          )
-        }
-
-        if (functionObject.versionFunction === false) {
-          throw new ServerlessError(
-            `Function "${functionName}" has "durableConfig" set but "versionFunction" is explicitly disabled. Durable Functions require versioning to publish a stable alias for qualified invocations.`,
-            'FUNCTION_DURABLE_REQUIRES_VERSIONING',
-            { stack: false },
-          )
-        }
-
-        // Convert camelCase config to PascalCase for CloudFormation
-        const { executionTimeout, retentionPeriodInDays } =
-          functionObject.durableConfig
-        const durableConfig = {
-          ExecutionTimeout: executionTimeout,
-        }
-        if (retentionPeriodInDays) {
-          durableConfig.RetentionPeriodInDays = retentionPeriodInDays
-        }
-        functionResource.Properties.DurableConfig = durableConfig
-      }
       functionResource.Properties.Handler = functionObject.handler
       functionResource.Properties.Code.S3Bucket = this.serverless.service
         .package.deploymentBucket
@@ -512,6 +467,61 @@ class AwsCompileFunctions {
     } else {
       functionResource.Properties.Code.ImageUri = functionImageUri
       functionResource.Properties.PackageType = 'Image'
+    }
+
+    // Validate and configure Durable Functions
+    // Note: This validation happens after runtime resolution so it works correctly
+    // when runtime is specified at provider level
+    if (functionObject.durableConfig) {
+      // Container images carry their own runtime, so only zip-packaged
+      // functions are checked against the supported runtimes
+      if (!functionObject.image) {
+        // Pattern matching for Node.js 22+ (nodejs22.x, nodejs23.x, ... nodejs99.x),
+        // Python 3.13+ (python3.13, python3.14, ... python3.99),
+        // Java 17+ (java17, java21, ... java99, incl. the .al2023 variants of 17+),
+        // .NET 8+ (dotnet8, dotnet9, ... dotnet99),
+        // and OS-only runtimes from Amazon Linux 2023 on (provided.al2023, provided.al2029, ...)
+        const nodejsPattern = /^nodejs(2[2-9]|[3-9][0-9])\.x$/
+        const pythonPattern = /^python3\.(1[3-9]|[2-9][0-9])$/
+        const javaPattern = /^java(1[7-9]|[2-9][0-9])(\.al2023)?$/
+        const dotnetPattern = /^dotnet([89]|[1-9][0-9])$/
+        const providedMatch = /^provided\.al(\d{4})$/.exec(
+          functionObject.runtime,
+        )
+        const isValidRuntime =
+          nodejsPattern.test(functionObject.runtime) ||
+          pythonPattern.test(functionObject.runtime) ||
+          javaPattern.test(functionObject.runtime) ||
+          dotnetPattern.test(functionObject.runtime) ||
+          (providedMatch !== null && Number(providedMatch[1]) >= 2023)
+
+        if (!isValidRuntime) {
+          throw new ServerlessError(
+            'Durable Functions are supported for Node.js 22+, Python 3.13+, Java 17+, .NET 8+, OS-only runtimes from provided.al2023 (for example Go), and container images.',
+            'LAMBDA_DURABLE_FUNCTION_INVALID_RUNTIME',
+            { stack: false },
+          )
+        }
+      }
+
+      if (functionObject.versionFunction === false) {
+        throw new ServerlessError(
+          `Function "${functionName}" has "durableConfig" set but "versionFunction" is explicitly disabled. Durable Functions require versioning to publish a stable alias for qualified invocations.`,
+          'FUNCTION_DURABLE_REQUIRES_VERSIONING',
+          { stack: false },
+        )
+      }
+
+      // Convert camelCase config to PascalCase for CloudFormation
+      const { executionTimeout, retentionPeriodInDays } =
+        functionObject.durableConfig
+      const durableConfig = {
+        ExecutionTimeout: executionTimeout,
+      }
+      if (retentionPeriodInDays) {
+        durableConfig.RetentionPeriodInDays = retentionPeriodInDays
+      }
+      functionResource.Properties.DurableConfig = durableConfig
     }
     functionResource.Properties.FunctionName = functionObject.name
     functionResource.Properties.MemorySize = functionObject.memory

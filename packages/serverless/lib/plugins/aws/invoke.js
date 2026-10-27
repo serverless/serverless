@@ -2,9 +2,11 @@ import path from 'path'
 import validate from './lib/validate.js'
 import stdin from 'get-stdin'
 import formatLambdaLogEvent from './utils/format-lambda-log-event.js'
+import targetAliasName from './utils/target-alias-name.js'
 import ServerlessError from '../../serverless-error.js'
 import { assertInvokeOptionsAvailable } from './lib/invoke-options.js'
 import { writeText, style } from '@serverless/util'
+import { jsonFlagOn } from '@serverless/util/src/cli/json-flag.js'
 import {
   LOCAL_LOG_HEADING,
   findHandledInvocation,
@@ -134,6 +136,26 @@ class AwsInvoke {
 
   async invoke() {
     const invocationType = this.options.type || 'RequestResponse'
+    const { functionObj } = this.options
+
+    // Lambda invokes a durable function only through a qualifier (a version or an alias), so
+    // without --qualifier the call targets the alias the deploy published for the function.
+    const defaultQualifier = functionObj.durableConfig
+      ? targetAliasName(functionObj)
+      : undefined
+    this.qualifier = this.options.qualifier ?? defaultQualifier
+    this.qualifierDefaulted =
+      this.options.qualifier == null && defaultQualifier !== undefined
+
+    const executionTimeout = Number(functionObj.durableConfig?.executionTimeout)
+    if (invocationType === 'RequestResponse' && executionTimeout > 900) {
+      throw new ServerlessError(
+        `Function "${this.options.function}" is a durable function with an execution timeout of ${functionObj.durableConfig.executionTimeout} seconds. Lambda runs a durable function synchronously only when its execution timeout is 900 seconds (15 minutes) or less. Run the same command with --type Event to start it asynchronously.`,
+        'INVOKE_DURABLE_SYNC_TIMEOUT',
+        { stack: false },
+      )
+    }
+
     if (invocationType !== 'RequestResponse') {
       this.options.log = 'None'
     } else {
@@ -141,7 +163,7 @@ class AwsInvoke {
     }
 
     const params = {
-      FunctionName: this.options.functionObj.name,
+      FunctionName: functionObj.name,
       InvocationType: invocationType,
       LogType: this.options.log,
       Payload: Buffer.from(JSON.stringify(this.options.data || {})),
@@ -153,8 +175,8 @@ class AwsInvoke {
       ).toString('base64')
     }
 
-    if (this.options.qualifier) {
-      params.Qualifier = this.options.qualifier
+    if (this.qualifier) {
+      params.Qualifier = this.qualifier
     }
 
     if (this.options['tenant-id']) {
@@ -165,7 +187,36 @@ class AwsInvoke {
       params.DurableExecutionName = this.options['durable-execution-name']
     }
 
-    return this.provider.request('Lambda', 'invoke', params)
+    // The request's DurableExecutionName and TenantId fields, and the
+    // response's DurableExecutionArn field, are unknown to the frozen v2
+    // `aws-sdk` Lambda API model, which silently drops them. This call
+    // always uses the v3 SDK path so they reach Lambda and come back.
+    try {
+      return await this.provider.request('Lambda', 'invoke', params, {
+        sdkVersion: 3,
+      })
+    } catch (error) {
+      const providerErrorCode = error.providerError?.code
+      let context
+      if (
+        providerErrorCode === 'ResourceNotFoundException' &&
+        this.qualifierDefaulted
+      ) {
+        context = ` The "${this.qualifier}" alias is published by "serverless deploy": deploy the service, or pass --qualifier.`
+      } else if (
+        providerErrorCode === 'DurableExecutionAlreadyStartedException'
+      ) {
+        context =
+          ' An execution with this name already exists with a different payload: use a new --durable-execution-name, or send the same payload to get the existing execution.'
+      }
+      if (context) {
+        error.message += context
+        // The CLI prints the stack when an error has one, and the stack holds the message from
+        // before the context was added. The message now says what to do, so it prints alone.
+        error.stack = undefined
+      }
+      throw error
+    }
   }
 
   // Normalize Lambda invoke payload to string for JSON.parse
@@ -182,8 +233,52 @@ class AwsInvoke {
     return payload
   }
 
+  /**
+   * The `--json` result: always these keys, in this order, with `null` for a value the reply does
+   * not carry. `payload` is the parsed response, or the text when it is not JSON; `log` is the
+   * decoded log tail.
+   */
+  jsonResult(invocationReply) {
+    const text = invocationReply.Payload
+      ? this.payloadToString(invocationReply.Payload)
+      : ''
+    let payload = null
+    if (text) {
+      try {
+        payload = JSON.parse(text)
+      } catch {
+        payload = text
+      }
+    }
+    return {
+      statusCode: invocationReply.StatusCode ?? null,
+      qualifier: this.qualifier ?? null,
+      executedVersion: invocationReply.ExecutedVersion ?? null,
+      durableExecutionArn: invocationReply.DurableExecutionArn ?? null,
+      functionError: invocationReply.FunctionError ?? null,
+      payload,
+      log: invocationReply.LogResult
+        ? Buffer.from(invocationReply.LogResult, 'base64').toString()
+        : null,
+    }
+  }
+
   async log(invocationReply) {
     this.progress.remove()
+
+    if (jsonFlagOn(this.options.json)) {
+      writeText(JSON.stringify(this.jsonResult(invocationReply)))
+      await this.logDevMode(invocationReply)
+      this.throwOnFunctionError(invocationReply)
+      return
+    }
+
+    if (invocationReply.DurableExecutionArn) {
+      const started = (this.options.type || 'RequestResponse') === 'Event'
+      this.logger.notice(
+        `${started ? 'Durable execution started' : 'Durable execution'}: ${invocationReply.DurableExecutionArn}`,
+      )
+    }
 
     if (invocationReply.Payload) {
       const response = JSON.parse(this.payloadToString(invocationReply.Payload))
@@ -222,7 +317,10 @@ class AwsInvoke {
     }
 
     await this.logDevMode(invocationReply)
+    this.throwOnFunctionError(invocationReply)
+  }
 
+  throwOnFunctionError(invocationReply) {
     if (invocationReply.FunctionError) {
       throw new ServerlessError(
         'Invoked function failed',
@@ -249,7 +347,7 @@ class AwsInvoke {
         functionKey: this.options.function,
         requestId,
         invocationType: this.options.type || 'RequestResponse',
-        qualifier: this.options.qualifier,
+        qualifier: this.qualifier,
       })
       if (!handled) return
       // Named as it is reached from where the CLI runs (a Compose root, --config).

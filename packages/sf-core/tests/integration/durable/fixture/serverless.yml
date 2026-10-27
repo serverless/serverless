@@ -1,0 +1,23 @@
+service: sfc-durable
+frameworkVersion: '4'
+
+# No region: the deploy follows AWS_REGION, as the suite's checks do.
+provider:
+  name: aws
+  runtime: nodejs24.x
+
+functions:
+  # An execution timeout above 15 minutes: Lambda starts it only with
+  # --type Event.
+  long:
+    handler: handler.main
+    timeout: 30
+    durableConfig:
+      executionTimeout: 3600
+  # An execution timeout of 15 minutes or less: a synchronous invoke returns
+  # its result.
+  short:
+    handler: handler.main
+    timeout: 30
+    durableConfig:
+      executionTimeout: 600

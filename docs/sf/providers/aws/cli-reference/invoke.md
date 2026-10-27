@@ -38,7 +38,7 @@ serverless invoke [local] --function functionName
 - `--stage` or `-s` The stage in your service you want to invoke your function in.
 - `--region` or `-r` The region in your stage that you want to invoke your function in.
 - `--aws-profile` The AWS profile you want to use.
-- `--qualifier` or `-q` The version number or alias to invoke your function in. Default is `$LATEST`.
+- `--qualifier` or `-q` The version number or alias to invoke. For a durable function the default is the alias its deploy publishes (`durable`, or the SnapStart or provisioned-concurrency alias when the function uses one); other functions are invoked unqualified (`$LATEST`).
 - `--data` or `-d` String data to be passed as an event to your function. By default data is read from standard input.
 - `--raw` Pass data as a raw string even if it is JSON. If not set, JSON data are parsed and passed as an object.
 - `--path` or `-p` The path to a json file with input data to be passed to the invoked function. This path is relative to the root directory of the service.
@@ -48,6 +48,7 @@ serverless invoke [local] --function functionName
 - `--log` or `-l` If set to `true` and invocation type is `RequestResponse`, it will output logging data of the invocation. Default is `false`.
 - `--tenant-id` The Tenant ID for the invocation.
 - `--durable-execution-name` Unique name for durable function execution (enables idempotency, 1-64 alphanumeric chars with hyphens/underscores).
+- `--json` Print one JSON object on stdout: `statusCode`, `qualifier`, `executedVersion`, `durableExecutionArn`, `functionError`, `payload`, `log`. Messages go to stderr.
 
 ## Invoking a sandbox
 
@@ -196,15 +197,37 @@ the specified/deployed function.
 serverless invoke --function functionName --tenant-id tenant-123
 ```
 
-### Function invocation with Durable Execution Name
+### Durable functions
 
-For durable functions, you can provide a unique execution name for idempotency:
+`serverless invoke` sends a durable function's invocation to the alias its deploy publishes, so it needs no `--qualifier`. With `--type Event` the command starts an execution and prints its ARN on stderr:
 
-```bash
-serverless invoke --function myDurableFunction --durable-execution-name my-execution-1
+```text
+$ serverless invoke --function myDurableFunction --type Event --durable-execution-name order-1042
+
+Durable execution started: arn:aws:lambda:us-east-1:123456789012:function:my-service-dev-myDurableFunction:4/durable-execution/order-1042/2f6c0d3e-8a41-4b7e-9c55-1d0e6a7b3f92
 ```
 
-If you invoke the function again with the same name, Lambda returns the existing execution result instead of starting a new one.
+A synchronous invoke (the default `RequestResponse` type) waits for the execution to finish, prints `Durable execution: <arn>` on stderr, and prints the result on stdout. Lambda runs a durable function synchronously only when its `durableConfig.executionTimeout` is 900 seconds or less; for a longer timeout, the command stops with an error that suggests `--type Event`.
+
+Add `--json` to read the ARN and the result from one JSON object on stdout (printed on one line; formatted here for reading):
+
+```bash
+serverless invoke --function myDurableFunction --type Event --durable-execution-name order-1042 --json
+```
+
+```json
+{
+  "statusCode": 202,
+  "qualifier": "durable",
+  "executedVersion": null,
+  "durableExecutionArn": "arn:aws:lambda:us-east-1:123456789012:function:my-service-dev-myDurableFunction:4/durable-execution/order-1042/2f6c0d3e-8a41-4b7e-9c55-1d0e6a7b3f92",
+  "functionError": null,
+  "payload": null,
+  "log": null
+}
+```
+
+`--durable-execution-name` makes the invocation idempotent. With `--type Event`, a name that already exists returns that execution's ARN, even when the payload differs; the new payload is not used. A synchronous invoke with the same name and a different payload returns a `DurableExecutionAlreadyStartedException` error.
 
 ### Local function invocation with custom context
 
