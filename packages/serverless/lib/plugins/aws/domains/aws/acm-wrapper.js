@@ -1,6 +1,7 @@
 import {
   ACMClient,
   CertificateStatus,
+  KeyAlgorithm,
   ListCertificatesCommand,
   RequestCertificateCommand,
   DescribeCertificateCommand,
@@ -15,6 +16,16 @@ const certStatuses = [
   CertificateStatus.PENDING_VALIDATION,
   CertificateStatus.ISSUED,
   CertificateStatus.INACTIVE,
+]
+
+// ListCertificates returns only RSA certificates unless asked for other key
+// types; API Gateway custom domains and CloudFront (web apps) also accept
+// ECDSA P-256 and P-384 ones
+const keyTypes = [
+  KeyAlgorithm.RSA_1024,
+  KeyAlgorithm.RSA_2048,
+  KeyAlgorithm.EC_prime256v1,
+  KeyAlgorithm.EC_secp384r1,
 ]
 
 class ACMWrapper {
@@ -53,10 +64,11 @@ class ACMWrapper {
         'CertificateSummaryList',
         'NextToken',
         'NextToken',
-        new ListCertificatesCommand({ CertificateStatuses: certStatuses }),
+        new ListCertificatesCommand({
+          CertificateStatuses: certStatuses,
+          Includes: { keyTypes },
+        }),
       )
-      // enhancement idea: weight the choice of cert so longer expires
-      // and RenewalEligibility = ELIGIBLE is more preferable
       if (certificateName) {
         certificateArn = this.getCertArnByCertName(
           certificates,
@@ -98,48 +110,60 @@ class ACMWrapper {
   }
 
   getCertArnByCertName(certificates, certName) {
-    const found = certificates.find((c) => c.DomainName === certName)
-    if (found) {
-      return found.CertificateArn
-    }
-    return null
+    return (
+      ACMWrapper.pickCertificate(certificates, (c) =>
+        c.DomainName === certName ? 1 : 0,
+      )?.CertificateArn ?? null
+    )
   }
 
   static getCertArnByDomainName(certificates, domainName) {
-    // The more specific name will be the longest
-    let nameLength = 0
-    let certificateArn
-    for (const currCert of certificates) {
-      const allDomainsForCert = [
-        currCert.DomainName,
-        ...(currCert.SubjectAlternativeNameSummaries || []),
-      ]
-      for (const currCertDomain of allDomainsForCert) {
-        let certificateListName = currCertDomain
-        // Looks for wild card and take it out when checking
-        if (certificateListName[0] === '*') {
-          certificateListName = certificateListName.substring(1)
-        }
-        // Looks to see if the domain name matches the certificate domain
-        // Also checks if the name is more specific than previous ones
-        const isExactMatch = domainName === certificateListName
-        const isWildcardMatch =
-          certificateListName.startsWith('.') &&
-          domainName.endsWith(certificateListName)
-        const isSubdomainMatch =
-          !certificateListName.startsWith('.') &&
-          domainName.endsWith('.' + certificateListName)
+    // A wildcard only covers names one level below it
+    const wildcard = `*.${domainName.substring(domainName.indexOf('.') + 1)}`
+    return ACMWrapper.pickCertificate(certificates, (c) => {
+      const names = [c.DomainName, ...(c.SubjectAlternativeNameSummaries || [])]
+      // An exact name is more specific than a wildcard
+      if (names.includes(domainName)) return 2
+      if (names.includes(wildcard)) return 1
+      return 0
+    })?.CertificateArn
+  }
 
-        if (
-          (isExactMatch || isWildcardMatch || isSubdomainMatch) &&
-          certificateListName.length > nameLength
-        ) {
-          nameLength = certificateListName.length
-          certificateArn = currCert.CertificateArn
-        }
+  /**
+   * Picks the certificate with the highest specificity, then an issued one
+   * over one pending validation (never an inactive one), then the latest
+   * expiry; the listing order breaks remaining ties.
+   * @param {Array} certificates ACM certificate summaries
+   * @param {(certificate: object) => number} specificityOf How specifically the
+   *   certificate covers the name: 0 when it doesn't, higher when more specific
+   * @returns {object|undefined} The selected certificate summary
+   */
+  static pickCertificate(certificates, specificityOf) {
+    const statusRank = {
+      [CertificateStatus.ISSUED]: 2,
+      [CertificateStatus.PENDING_VALIDATION]: 1,
+    }
+    const rank = (c) => {
+      const notAfter = c.NotAfter ? new Date(c.NotAfter).getTime() : 0
+      return [
+        specificityOf(c),
+        statusRank[c.Status] ?? 0,
+        Number.isFinite(notAfter) ? notAfter : 0,
+      ]
+    }
+    const compare = (a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]
+    let best
+    let bestRank
+    for (const certificate of certificates) {
+      const currentRank = rank(certificate)
+      // A certificate that doesn't cover the name or isn't usable never wins
+      if (currentRank[0] === 0 || currentRank[1] === 0) continue
+      if (!best || compare(currentRank, bestRank) > 0) {
+        best = certificate
+        bestRank = currentRank
       }
     }
-    return certificateArn
+    return best
   }
 
   /**
