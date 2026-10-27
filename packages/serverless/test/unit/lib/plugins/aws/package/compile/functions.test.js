@@ -4,6 +4,8 @@ import path from 'path'
 import AwsCompileFunctions from '../../../../../../../lib/plugins/aws/package/compile/functions.js'
 import Serverless from '../../../../../../../lib/serverless.js'
 import AwsProvider from '../../../../../../../lib/plugins/aws/provider.js'
+import naming from '../../../../../../../lib/plugins/aws/lib/naming.js'
+import targetAliasName from '../../../../../../../lib/plugins/aws/utils/target-alias-name.js'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -428,25 +430,30 @@ describe('AwsCompileFunctions', () => {
       })
     })
 
-    it.each(['nodejs14.x', 'python3.12', 'java11', 'java8.al2023', 'dotnet6'])(
-      'should throw error for unsupported runtime %s',
-      async (runtime) => {
-        awsCompileFunctions.serverless.service.functions = {
-          func: {
-            handler: 'handler',
-            name: 'func',
-            runtime,
-            durableConfig: {
-              executionTimeout: 100,
-            },
+    it.each([
+      'nodejs14.x',
+      'python3.12',
+      'java11',
+      'java8.al2023',
+      'dotnet6',
+      'provided.al2',
+      'provided',
+    ])('should throw error for unsupported runtime %s', async (runtime) => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'handler',
+          name: 'func',
+          runtime,
+          durableConfig: {
+            executionTimeout: 100,
           },
-        }
+        },
+      }
 
-        await expect(awsCompileFunctions.compileFunctions()).rejects.toThrow(
-          /Durable Functions are only supported for Node\.js 22\+, Python 3\.13\+, Java 17\+, and \.NET 8\+ runtimes/,
-        )
-      },
-    )
+      await expect(awsCompileFunctions.compileFunctions()).rejects.toThrow(
+        /Durable Functions are supported for Node\.js 22\+, Python 3\.13\+, Java 17\+, \.NET 8\+, OS-only runtimes from provided\.al2023 \(for example Go\), and container images\./,
+      )
+    })
 
     it.each([
       'java17',
@@ -455,6 +462,7 @@ describe('AwsCompileFunctions', () => {
       'java17.al2023',
       'dotnet8',
       'dotnet10',
+      'provided.al2023',
     ])(
       'should configure DurableConfig for supported runtime %s',
       async (runtime) => {
@@ -482,6 +490,102 @@ describe('AwsCompileFunctions', () => {
         })
       },
     )
+
+    it('accepts a later Amazon Linux OS-only runtime by pattern', async () => {
+      awsCompileFunctions.serverless.service.functions = {
+        func: {
+          handler: 'bootstrap',
+          name: 'func',
+          runtime: 'provided.al2029',
+          durableConfig: { executionTimeout: 100 },
+        },
+      }
+      const resources =
+        awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      resources.IamRoleLambdaExecution = {
+        Properties: { ManagedPolicyArns: [] },
+      }
+
+      await awsCompileFunctions.compileFunctions()
+
+      expect(resources.FuncLambdaFunction.Properties.DurableConfig).toEqual({
+        ExecutionTimeout: 100,
+      })
+    })
+
+    describe('Image functions', () => {
+      beforeEach(() => {
+        awsCompileFunctions.provider.resolveImageUriAndSha.mockResolvedValue({
+          functionImageUri: 'uri',
+          functionImageSha: 'sha',
+        })
+        awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
+          { Properties: { ManagedPolicyArns: [] } }
+      })
+
+      it('emits DurableConfig for an image function', async () => {
+        const func = {
+          image: 'uri',
+          name: 'func',
+          durableConfig: { executionTimeout: 3600, retentionPeriodInDays: 7 },
+        }
+        awsCompileFunctions.serverless.service.functions = { func }
+
+        await awsCompileFunctions.compileFunctions()
+
+        const resources =
+          awsCompileFunctions.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+        const props = resources.FuncLambdaFunction.Properties
+        expect(props.DurableConfig).toEqual({
+          ExecutionTimeout: 3600,
+          RetentionPeriodInDays: 7,
+        })
+        expect(props.PackageType).toBe('Image')
+        expect(props.Runtime).toBeUndefined()
+        expect(resources.FuncDurableLambdaAlias).toBeDefined()
+        expect(resources.FuncDurableLambdaAlias.Properties.Name).toBe('durable')
+        expect(func.targetAlias.name).toBe('durable')
+      })
+
+      it('does not check the runtime of an image function', async () => {
+        awsCompileFunctions.serverless.service.functions = {
+          func: {
+            image: 'uri',
+            name: 'func',
+            runtime: 'nodejs20.x',
+            durableConfig: { executionTimeout: 100 },
+          },
+        }
+
+        await awsCompileFunctions.compileFunctions()
+
+        const resources =
+          awsCompileFunctions.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+        expect(resources.FuncLambdaFunction.Properties.DurableConfig).toEqual({
+          ExecutionTimeout: 100,
+        })
+      })
+
+      it('refuses an image function with versionFunction: false', async () => {
+        awsCompileFunctions.serverless.service.functions = {
+          func: {
+            image: 'uri',
+            name: 'func',
+            durableConfig: { executionTimeout: 100 },
+            versionFunction: false,
+          },
+        }
+
+        await expect(
+          awsCompileFunctions.compileFunctions(),
+        ).rejects.toMatchObject({
+          code: 'FUNCTION_DURABLE_REQUIRES_VERSIONING',
+        })
+      })
+    })
 
     describe('Alias', () => {
       it('should create AWS::Lambda::Alias named "durable" when durableConfig is set', async () => {
@@ -566,6 +670,52 @@ describe('AwsCompileFunctions', () => {
         // durable does NOT create its own alias
         expect(resources.FuncDurableLambdaAlias).toBeUndefined()
       })
+
+      it.each([
+        ['durableConfig alone', {}],
+        [
+          'durableConfig with snapStart',
+          { snapStart: true, runtime: 'java21' },
+        ],
+        [
+          'durableConfig with provisionedConcurrency',
+          { provisionedConcurrency: { executions: 1, alias: 'live' } },
+        ],
+      ])(
+        'should target the alias that targetAliasName resolves (%s)',
+        async (_label, overrides) => {
+          provider.naming.getLambdaDurableEnabledAliasName =
+            naming.getLambdaDurableEnabledAliasName
+          provider.naming.getLambdaSnapStartEnabledAliasName =
+            naming.getLambdaSnapStartEnabledAliasName
+          provider.naming.getLambdaProvisionedConcurrencyAliasName =
+            naming.getLambdaProvisionedConcurrencyAliasName
+          provider.naming.getLambdaSnapStartAliasLogicalId = jest.fn(
+            (name) =>
+              `${name.charAt(0).toUpperCase() + name.slice(1)}SnapStartAlias`,
+          )
+          provider.naming.getLambdaProvisionedConcurrencyAliasLogicalId =
+            jest.fn(
+              (name) =>
+                `${name.charAt(0).toUpperCase() + name.slice(1)}ProvisionedConcurrencyAlias`,
+            )
+
+          const func = {
+            handler: 'handler',
+            name: 'func',
+            runtime: 'nodejs22.x',
+            durableConfig: { executionTimeout: 100 },
+            ...overrides,
+          }
+          awsCompileFunctions.serverless.service.functions = { func }
+          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
+            { Properties: { ManagedPolicyArns: [] } }
+
+          await awsCompileFunctions.compileFunctions()
+
+          expect(func.targetAlias.name).toBe(targetAliasName(func))
+        },
+      )
 
       it('should create alias when durableConfig is combined with explicit versionFunction: true', async () => {
         awsCompileFunctions.serverless.service.functions = {

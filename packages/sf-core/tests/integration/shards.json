@@ -34,6 +34,10 @@
       "seconds": 302,
       "pin": "compose state bucket prerequisite; needs the global serverless@3 install"
     },
+    "tests/integration/durable/durable.test.js": {
+      "shard": 2,
+      "seconds": 150
+    },
     "tests/integration/esbuild/bundling-on/bundling-on.test.js": {
       "shard": 2,
       "seconds": 75

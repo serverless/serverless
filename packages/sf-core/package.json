@@ -14,6 +14,7 @@
     "test:simple:nodejs": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/simple-nodejs/**",
     "test:sandboxes": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/sandboxes/**",
     "test:web-apps": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/web-apps/",
+    "test:durable": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/durable/",
     "test:simple:python": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/simple-python/**",
     "test:simple:dashboard": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/simple-dashboard/**",
     "test:simple:compose": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/simple-compose/**",

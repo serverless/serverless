@@ -1248,4 +1248,75 @@ describe('monitorStack', () => {
       )
     })
   })
+
+  describe('Function replacement failures', () => {
+    const replacementContext =
+      'Lambda sets durable configuration, tenancy and package type when a function is created. To change one, give the function a new name, or remove it from the service, deploy, and add it back.'
+    const replacementReason =
+      'CloudFormation cannot update a stack when a custom-named resource requires replacing. Rename shop-dev-worker and update the stack again.'
+
+    const runFailure = async ({ resourceType, reason }) => {
+      awsPlugin.serverless = { service: {}, configurationInput: {} }
+      awsPlugin.provider.request
+        .mockResolvedValueOnce({
+          StackEvents: [
+            {
+              EventId: '1',
+              StackName: 'shop-dev',
+              LogicalResourceId: 'shop-dev',
+              ResourceType: 'AWS::CloudFormation::Stack',
+              ResourceStatus: 'UPDATE_IN_PROGRESS',
+            },
+          ],
+        })
+        .mockResolvedValueOnce({
+          StackEvents: [
+            {
+              EventId: '2',
+              StackName: 'shop-dev',
+              LogicalResourceId: 'WorkerLambdaFunction',
+              ResourceType: resourceType,
+              ResourceStatus: 'UPDATE_FAILED',
+              ResourceStatusReason: reason,
+            },
+          ],
+        })
+      return awsPlugin
+        .monitorStack('update', { StackId: 'shop-dev' }, { frequency: 10 })
+        .catch((error) => error)
+    }
+
+    it('follows a replacement refusal on a Lambda function with why it needs replacing', async () => {
+      const error = await runFailure({
+        resourceType: 'AWS::Lambda::Function',
+        reason: replacementReason,
+      })
+
+      expect(error.message).toBe(
+        `An error occurred: WorkerLambdaFunction - ${replacementReason}.\n${replacementContext}`,
+      )
+    })
+
+    it('leaves other Lambda function failures alone', async () => {
+      const error = await runFailure({
+        resourceType: 'AWS::Lambda::Function',
+        reason: 'Invalid request',
+      })
+
+      expect(error.message).toBe(
+        'An error occurred: WorkerLambdaFunction - Invalid request.',
+      )
+    })
+
+    it('leaves replacement refusals of other resource types alone', async () => {
+      const error = await runFailure({
+        resourceType: 'AWS::DynamoDB::Table',
+        reason: replacementReason,
+      })
+
+      expect(error.message).toBe(
+        `An error occurred: WorkerLambdaFunction - ${replacementReason}.`,
+      )
+    })
+  })
 })

@@ -3,6 +3,8 @@ import { jest } from '@jest/globals'
 const { default: AwsInvoke } =
   await import('../../../../../lib/plugins/aws/invoke.js')
 const { getPluginWriters } = await import('@serverless/util')
+const { default: ServerlessError } =
+  await import('../../../../../lib/serverless-error.js')
 
 const createProvider = (overrides = {}) => ({
   getRegion: jest.fn().mockReturnValue('us-east-1'),
@@ -29,6 +31,26 @@ const createMockUtils = () => ({
   },
   progress: { notice: jest.fn(), remove: jest.fn() },
 })
+
+// Everything written to the real process.stdout and process.stderr while `fn` runs, without
+// terminal styling.
+const captured = async (fn) => {
+  const writes = { stdout: [], stderr: [] }
+  const spies = ['stdout', 'stderr'].map((name) =>
+    jest.spyOn(process[name], 'write').mockImplementation((chunk) => {
+      writes[name].push(String(chunk))
+      return true
+    }),
+  )
+  try {
+    await fn()
+  } finally {
+    for (const spy of spies) spy.mockRestore()
+  }
+  // eslint-disable-next-line no-control-regex
+  const plain = (parts) => parts.join('').replace(/\x1b\[[0-9;]*m/g, '')
+  return { stdout: plain(writes.stdout), stderr: plain(writes.stderr) }
+}
 
 function makeInvokePlugin(options = {}) {
   const serverless = createServerless()
@@ -96,7 +118,7 @@ describe('AwsInvoke', () => {
       ['session-id', 's'.repeat(33)],
     ]
 
-    test.each([...FUNCTION_ONLY, ['port', '3000']])(
+    test.each([...FUNCTION_ONLY, ['port', '3000'], ['json', true]])(
       'rejects --%s with --web-app',
       async (flag, value) => {
         const inst = makeInvokePlugin({ 'web-app': 'api', [flag]: value })
@@ -108,7 +130,7 @@ describe('AwsInvoke', () => {
       },
     )
 
-    test.each([...FUNCTION_ONLY, ['log', true]])(
+    test.each([...FUNCTION_ONLY, ['log', true], ['json', true]])(
       'rejects --%s with --sandbox',
       async (flag, value) => {
         const inst = makeInvokePlugin({ sandbox: 'echo', [flag]: value })
@@ -174,6 +196,15 @@ describe('AwsInvoke', () => {
       },
     )
 
+    test('rejects --json with --agent', async () => {
+      const inst = makeInvokePlugin({ agent: 'a', json: true })
+      await expect(inst.hooks['invoke:invoke']()).rejects.toMatchObject({
+        code: 'INVOKE_OPTION_NOT_AVAILABLE',
+        stack: undefined,
+        message: '--json is not available with --agent.',
+      })
+    })
+
     test('leaves a --sandbox combined with --function to the sandbox plugin', async () => {
       const inst = makeInvokePlugin({
         sandbox: 'echo',
@@ -182,6 +213,208 @@ describe('AwsInvoke', () => {
       })
       await expect(inst.hooks['invoke:invoke']()).resolves.toBeUndefined()
     })
+  })
+})
+
+describe('AwsInvoke invoke request', () => {
+  const make = (options = {}) => {
+    const provider = createProvider({
+      request: jest.fn().mockResolvedValue({ StatusCode: 202 }),
+    })
+    const inst = new AwsInvoke(
+      createServerless(provider),
+      { function: 'worker', ...options },
+      createMockUtils(),
+    )
+    return { inst, provider }
+  }
+  const durable = (executionTimeout = 600) => ({
+    name: 'fn',
+    durableConfig: { executionTimeout },
+  })
+
+  test('sends Qualifier "durable" through SDK v3 for a durable function', async () => {
+    const { inst, provider } = make({ functionObj: durable() })
+    await inst.invoke()
+    expect(provider.request).toHaveBeenCalledWith(
+      'Lambda',
+      'invoke',
+      expect.objectContaining({ FunctionName: 'fn', Qualifier: 'durable' }),
+      { sdkVersion: 3 },
+    )
+    expect(inst.qualifier).toBe('durable')
+    expect(inst.qualifierDefaulted).toBe(true)
+  })
+
+  test('an explicit --qualifier wins', async () => {
+    const { inst, provider } = make({
+      functionObj: durable(),
+      qualifier: '$LATEST',
+    })
+    await inst.invoke()
+    expect(provider.request).toHaveBeenCalledWith(
+      'Lambda',
+      'invoke',
+      expect.objectContaining({ FunctionName: 'fn', Qualifier: '$LATEST' }),
+      { sdkVersion: 3 },
+    )
+    expect(inst.qualifier).toBe('$LATEST')
+    expect(inst.qualifierDefaulted).toBe(false)
+  })
+
+  test('uses the provisioned-concurrency alias of a durable function', async () => {
+    const { inst, provider } = make({
+      functionObj: {
+        ...durable(),
+        provisionedConcurrency: { executions: 1, alias: 'live' },
+      },
+    })
+    await inst.invoke()
+    expect(provider.request).toHaveBeenCalledWith(
+      'Lambda',
+      'invoke',
+      expect.objectContaining({ FunctionName: 'fn', Qualifier: 'live' }),
+      { sdkVersion: 3 },
+    )
+    expect(inst.qualifier).toBe('live')
+    expect(inst.qualifierDefaulted).toBe(true)
+  })
+
+  test('leaves a non-durable function unqualified and still uses SDK v3', async () => {
+    const { inst, provider } = make({ functionObj: { name: 'fn' } })
+    await inst.invoke()
+    expect(provider.request).toHaveBeenCalledTimes(1)
+    const [service, method, params, sdk] = provider.request.mock.calls[0]
+    expect([service, method, sdk]).toEqual([
+      'Lambda',
+      'invoke',
+      { sdkVersion: 3 },
+    ])
+    expect(params).toEqual(expect.objectContaining({ FunctionName: 'fn' }))
+    expect(params).not.toHaveProperty('Qualifier')
+    expect(inst.qualifier).toBeUndefined()
+    expect(inst.qualifierDefaulted).toBe(false)
+  })
+
+  test('stops a synchronous call when executionTimeout is above 900 seconds', async () => {
+    const { inst, provider } = make({ functionObj: durable('901') })
+    await expect(inst.invoke()).rejects.toBeInstanceOf(ServerlessError)
+    await expect(inst.invoke()).rejects.toMatchObject({
+      code: 'INVOKE_DURABLE_SYNC_TIMEOUT',
+      message:
+        'Function "worker" is a durable function with an execution timeout of 901 seconds. Lambda runs a durable function synchronously only when its execution timeout is 900 seconds (15 minutes) or less. Run the same command with --type Event to start it asynchronously.',
+    })
+    expect(provider.request).not.toHaveBeenCalled()
+  })
+
+  test('allows a synchronous call at 900 seconds', async () => {
+    const { inst, provider } = make({ functionObj: durable(900) })
+    await inst.invoke()
+    expect(provider.request).toHaveBeenCalledWith(
+      'Lambda',
+      'invoke',
+      expect.objectContaining({
+        InvocationType: 'RequestResponse',
+        Qualifier: 'durable',
+      }),
+      { sdkVersion: 3 },
+    )
+  })
+
+  test('allows --type Event above 900 seconds', async () => {
+    const { inst, provider } = make({
+      functionObj: durable(3600),
+      type: 'Event',
+    })
+    await inst.invoke()
+    expect(provider.request).toHaveBeenCalledWith(
+      'Lambda',
+      'invoke',
+      expect.objectContaining({
+        InvocationType: 'Event',
+        Qualifier: 'durable',
+      }),
+      { sdkVersion: 3 },
+    )
+  })
+
+  test('allows --type DryRun above 900 seconds and still defaults the qualifier', async () => {
+    const { inst, provider } = make({
+      functionObj: durable(3600),
+      type: 'DryRun',
+    })
+    await inst.invoke()
+    expect(provider.request).toHaveBeenCalledWith(
+      'Lambda',
+      'invoke',
+      expect.objectContaining({
+        InvocationType: 'DryRun',
+        Qualifier: 'durable',
+      }),
+      { sdkVersion: 3 },
+    )
+    expect(inst.qualifierDefaulted).toBe(true)
+  })
+
+  const lambdaError = (message, code, providerCode) =>
+    Object.assign(new ServerlessError(message, code), {
+      providerError: { code: providerCode },
+    })
+  const aliasNotFound = () =>
+    lambdaError(
+      'Function not found: arn:aws:lambda:us-east-1:111122223333:function:fn:durable',
+      'AWS_LAMBDA_INVOKE_RESOURCE_NOT_FOUND_EXCEPTION',
+      'ResourceNotFoundException',
+    )
+
+  test('explains a missing alias it chose itself', async () => {
+    const { inst, provider } = make({ functionObj: durable() })
+    const error = aliasNotFound()
+    provider.request.mockRejectedValue(error)
+    await expect(inst.invoke()).rejects.toBe(error)
+    expect(error).toMatchObject({
+      code: 'AWS_LAMBDA_INVOKE_RESOURCE_NOT_FOUND_EXCEPTION',
+      message:
+        'Function not found: arn:aws:lambda:us-east-1:111122223333:function:fn:durable The "durable" alias is published by "serverless deploy": deploy the service, or pass --qualifier.',
+    })
+    expect(error.stack).toBeUndefined()
+  })
+
+  test('leaves a missing --qualifier alias unexplained', async () => {
+    const { inst, provider } = make({
+      functionObj: durable(),
+      qualifier: 'live',
+    })
+    const error = aliasNotFound()
+    provider.request.mockRejectedValue(error)
+    await expect(inst.invoke()).rejects.toBe(error)
+    expect(error).toMatchObject({
+      code: 'AWS_LAMBDA_INVOKE_RESOURCE_NOT_FOUND_EXCEPTION',
+      message:
+        'Function not found: arn:aws:lambda:us-east-1:111122223333:function:fn:durable',
+    })
+    expect(error.stack).toContain('Function not found')
+  })
+
+  test('explains an execution name used with another payload', async () => {
+    const arn =
+      'arn:aws:lambda:us-east-1:111122223333:function:fn:durable/durable-execution/order-1/0a1b2c3d'
+    const { inst, provider } = make({
+      functionObj: durable(),
+      'durable-execution-name': 'order-1',
+    })
+    const error = lambdaError(
+      `Execution already started: ${arn}`,
+      'AWS_LAMBDA_INVOKE_DURABLE_EXECUTION_ALREADY_STARTED_EXCEPTION',
+      'DurableExecutionAlreadyStartedException',
+    )
+    provider.request.mockRejectedValue(error)
+    await expect(inst.invoke()).rejects.toBe(error)
+    expect(error).toMatchObject({
+      code: 'AWS_LAMBDA_INVOKE_DURABLE_EXECUTION_ALREADY_STARTED_EXCEPTION',
+      message: `Execution already started: ${arn} An execution with this name already exists with a different payload: use a new --durable-execution-name, or send the same payload to get the existing execution.`,
+    })
+    expect(error.stack).toBeUndefined()
   })
 })
 
@@ -230,25 +463,6 @@ describe('AwsInvoke and a Dev Mode session in this directory', () => {
     return { inst, log }
   }
 
-  // Everything written to the real process.stdout and process.stderr while `fn` runs, without
-  // terminal styling.
-  const captured = async (fn) => {
-    const writes = { stdout: [], stderr: [] }
-    const spies = ['stdout', 'stderr'].map((name) =>
-      jest.spyOn(process[name], 'write').mockImplementation((chunk) => {
-        writes[name].push(String(chunk))
-        return true
-      }),
-    )
-    try {
-      await fn()
-    } finally {
-      for (const spy of spies) spy.mockRestore()
-    }
-    // eslint-disable-next-line no-control-regex
-    const plain = (parts) => parts.join('').replace(/\x1b\[[0-9;]*m/g, '')
-    return { stdout: plain(writes.stdout), stderr: plain(writes.stderr) }
-  }
   const stdoutOf = async (fn) => (await captured(fn)).stdout
 
   test.each([
@@ -309,20 +523,38 @@ describe('AwsInvoke and a Dev Mode session in this directory', () => {
     },
   )
 
-  test('--type and --qualifier reach the lookup, which decides from them whether to look at all', async () => {
-    const { inst } = make({
-      options: { type: 'Event', qualifier: 'live' },
-    })
-    await stdoutOf(() => inst.log(v3Reply()))
-    expect(inst.findHandledInvocation).toHaveBeenCalledWith(
-      expect.objectContaining({
-        functionKey: 'hello',
-        requestId: REQUEST,
-        invocationType: 'Event',
-        qualifier: 'live',
-      }),
-    )
-  })
+  test.each([
+    [
+      'the --qualifier given',
+      { type: 'Event', qualifier: 'live' },
+      { name: 'hello-fn' },
+      'Event',
+      'live',
+    ],
+    [
+      'the alias a durable function defaults to',
+      {},
+      { name: 'hello-fn', durableConfig: { executionTimeout: 600 } },
+      'RequestResponse',
+      'durable',
+    ],
+  ])(
+    '--type and %s reach the lookup, which decides from them whether to look at all',
+    async (_name, options, functionObj, invocationType, qualifier) => {
+      const { inst } = make({ options: { ...options, functionObj } })
+      const reply = await inst.invoke()
+      expect(reply).toEqual({})
+      await stdoutOf(() => inst.log(v3Reply()))
+      expect(inst.findHandledInvocation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          functionKey: 'hello',
+          requestId: REQUEST,
+          invocationType,
+          qualifier,
+        }),
+      )
+    },
+  )
 
   test('stdout is byte for byte the same whether or not the session ran the call; the Dev Mode lines go to stderr', async () => {
     // The real plugin logger and writeText: a Dev Mode line written to stdout fails this test.
@@ -445,5 +677,191 @@ describe('AwsInvoke and a Dev Mode session in this directory', () => {
     await stdoutOf(() => inst.log(v2Reply()))
     expect(log.notice).not.toHaveBeenCalled()
     expect(log.aside).not.toHaveBeenCalled()
+  })
+})
+
+describe('AwsInvoke output', () => {
+  const ARN =
+    'arn:aws:lambda:us-east-1:111122223333:function:shop-dev-worker:4/durable-execution/order-1042/2f6c0d3e'
+  const durable = {
+    name: 'worker-fn',
+    durableConfig: { executionTimeout: 600 },
+  }
+  const plain = { name: 'worker-fn' }
+
+  // The real plugin logger and writeText, so a line on the wrong stream fails the test.
+  const run = async ({ reply, options = {}, functionObj = durable }) => {
+    const provider = createProvider({
+      getStage: jest.fn().mockReturnValue('dev'),
+      request: jest.fn().mockResolvedValue(reply),
+    })
+    const { log } = getPluginWriters('aws-invoke-output-test')
+    const inst = new AwsInvoke(
+      createServerless(provider),
+      { function: 'worker', functionObj, ...options },
+      { log, progress: { notice: jest.fn(), remove: jest.fn() } },
+    )
+    inst.findHandledInvocation = jest.fn(async () => null)
+    let error
+    const output = await captured(async () => {
+      try {
+        await inst.log(await inst.invoke())
+      } catch (e) {
+        error = e
+      }
+    })
+    return { ...output, error }
+  }
+  const payloadOf = (text) => new TextEncoder().encode(text)
+  const tail = Buffer.from(
+    'START RequestId: x\nhandler line\nREPORT RequestId: x\n',
+  ).toString('base64')
+
+  test('prints the durable execution ARN on stderr after an Event invoke, and nothing on stdout', async () => {
+    const { stdout, stderr, error } = await run({
+      reply: { StatusCode: 202, DurableExecutionArn: ARN },
+      options: { type: 'Event' },
+    })
+    expect(error).toBeUndefined()
+    expect(stdout).toBe('')
+    expect(stderr).toContain(`Durable execution started: ${ARN}`)
+  })
+
+  test('names the execution after a synchronous invoke', async () => {
+    const { stdout, stderr } = await run({
+      reply: {
+        StatusCode: 200,
+        ExecutedVersion: '4',
+        DurableExecutionArn: ARN,
+        Payload: payloadOf('{"ok":true}'),
+      },
+    })
+    expect(stdout).toBe(`${JSON.stringify({ ok: true }, null, 4)}\n`)
+    expect(stderr).toContain(`Durable execution: ${ARN}`)
+    expect(stderr).not.toContain('Durable execution started')
+  })
+
+  test('prints nothing on stderr for a plain function', async () => {
+    const { stdout, stderr } = await run({
+      reply: {
+        StatusCode: 200,
+        ExecutedVersion: '$LATEST',
+        Payload: payloadOf('{"ok":true}'),
+      },
+      functionObj: plain,
+    })
+    expect(stdout).toContain('"ok": true')
+    expect(stderr).toBe('')
+  })
+
+  test('--json prints one object on stdout', async () => {
+    const { stdout, stderr, error } = await run({
+      reply: { StatusCode: 202, DurableExecutionArn: ARN },
+      options: { type: 'Event', json: true },
+    })
+    expect(error).toBeUndefined()
+    expect(stdout.trimEnd().split('\n')).toHaveLength(1)
+    const result = JSON.parse(stdout)
+    expect(result).toEqual({
+      statusCode: 202,
+      qualifier: 'durable',
+      executedVersion: null,
+      durableExecutionArn: ARN,
+      functionError: null,
+      payload: null,
+      log: null,
+    })
+    expect(Object.keys(result)).toEqual([
+      'statusCode',
+      'qualifier',
+      'executedVersion',
+      'durableExecutionArn',
+      'functionError',
+      'payload',
+      'log',
+    ])
+    expect(stderr).toBe('')
+  })
+
+  test('--json parses a JSON payload', async () => {
+    const { stdout } = await run({
+      reply: {
+        StatusCode: 200,
+        ExecutedVersion: '$LATEST',
+        Payload: payloadOf('{"ok":true}'),
+      },
+      options: { json: true },
+      functionObj: plain,
+    })
+    expect(JSON.parse(stdout)).toEqual({
+      statusCode: 200,
+      qualifier: null,
+      executedVersion: '$LATEST',
+      durableExecutionArn: null,
+      functionError: null,
+      payload: { ok: true },
+      log: null,
+    })
+  })
+
+  test('--json keeps a non-JSON payload as a string', async () => {
+    const { stdout, error } = await run({
+      reply: {
+        StatusCode: 200,
+        ExecutedVersion: '4',
+        DurableExecutionArn: ARN,
+        Payload: payloadOf('plain text'),
+      },
+      options: { json: true },
+    })
+    expect(error).toBeUndefined()
+    expect(JSON.parse(stdout).payload).toBe('plain text')
+  })
+
+  test('--json with --log puts the decoded tail in log', async () => {
+    const { stdout, stderr } = await run({
+      reply: {
+        StatusCode: 200,
+        ExecutedVersion: '$LATEST',
+        Payload: payloadOf('{"ok":true}'),
+        LogResult: tail,
+      },
+      options: { json: true, log: true },
+      functionObj: plain,
+    })
+    expect(stdout.trimEnd().split('\n')).toHaveLength(1)
+    expect(JSON.parse(stdout).log).toBe(
+      'START RequestId: x\nhandler line\nREPORT RequestId: x\n',
+    )
+    expect(stderr).not.toContain('handler line')
+  })
+
+  test('--json with a function error prints the object, then fails as before', async () => {
+    const { stdout, error } = await run({
+      reply: {
+        StatusCode: 200,
+        ExecutedVersion: '$LATEST',
+        FunctionError: 'Unhandled',
+        Payload: payloadOf('{"errorMessage":"boom"}'),
+      },
+      options: { json: true },
+      functionObj: plain,
+    })
+    expect(error).toMatchObject({
+      code: 'AWS_LAMBDA_INVOCATION_FAILED',
+      stack: undefined,
+    })
+    const result = JSON.parse(stdout)
+    expect(result.functionError).toBe('Unhandled')
+    expect(result.payload).toEqual({ errorMessage: 'boom' })
+  })
+
+  test('--json=false keeps the text output', async () => {
+    const { stdout, stderr } = await run({
+      reply: { StatusCode: 202, DurableExecutionArn: ARN },
+      options: { type: 'Event', json: 'false' },
+    })
+    expect(stdout).toBe('')
+    expect(stderr).toContain(`Durable execution started: ${ARN}`)
   })
 })
