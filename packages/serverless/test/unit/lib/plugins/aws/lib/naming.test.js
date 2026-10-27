@@ -108,4 +108,57 @@ describe('aws naming', () => {
       ).toEqual('TestLambdaLayerS3ObjectVersion')
     })
   })
+
+  describe('EventBridge subscribers', () => {
+    test('builds the subscriber logical id from the function, index and hash', () => {
+      expect(
+        naming.getEventBridgeSubscriberLogicalId('fulfil', 1, '3f9a1c0e'),
+      ).toBe('FulfilEventBridgeSubscriber13f9a1c0e')
+    })
+
+    test('builds the subscriber logical id from a custom name', () => {
+      expect(
+        naming.getEventBridgeSubscriberLogicalIdFromName('orders-v2'),
+      ).toBe('Ordersv2EventBridgeSubscriber')
+    })
+
+    test('builds the subscriber name from the deployed function name, index and hash', () => {
+      expect(
+        naming.getEventBridgeSubscriberName('orders-dev-fulfil', 1, '3f9a1c0e'),
+      ).toBe('orders-dev-fulfil-1-3f9a1c0e')
+    })
+
+    test('returns the delivery role logical id', () => {
+      expect(naming.getEventBridgeDeliveryRoleLogicalId()).toBe(
+        'IamRoleEventBridgeDelivery',
+      )
+    })
+
+    test('returns the delivery role name scoped to service, stage and region', () => {
+      const context = {
+        provider: {
+          serverless: { service: { service: 'my-service' } },
+          getStage: () => 'dev',
+        },
+      }
+      expect(naming.getEventBridgeDeliveryRoleName.call(context)).toEqual({
+        'Fn::Join': [
+          '-',
+          ['my-service', 'dev', { Ref: 'AWS::Region' }, 'eventBridge'],
+        ],
+      })
+    })
+
+    test('returns the delivery policy name scoped to service and stage', () => {
+      const context = {
+        provider: {
+          serverless: { service: { service: 'my-service' } },
+          getStage: () => 'dev',
+        },
+      }
+      expect(naming.getEventBridgeDeliveryPolicyName.call(context)).toEqual({
+        'Fn::Join': ['-', ['my-service', 'dev', 'eventBridgeDelivery']],
+      })
+    })
+  })
 })

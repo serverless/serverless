@@ -28,6 +28,18 @@ upset to lose?**
   DynamoDB, S3 buckets, OpenSearch. Deploy it once to a shared, long-lived
   stage and let the app stages read it. Frequent app deploys and
   `serverless remove` then never touch the data.
+- **A shared EventBridge Custom Event Bus is stateful too.** It retains
+  events and every consumer's subscriber attaches to it, and an account gets
+  only 5 per Region by default. Declare the `AWS::EventsV2::EventBus` in a
+  stateful service, output `!GetAtt <Bus>.EventBusArn`, and pass the ARN
+  through Compose `params`. Each consumer subscribes with the ordinary
+  `eventBridge` event and `eventBus: ${param:<busArn>}`: the Framework sees
+  the Custom Event Bus ARN and creates a subscriber instead of a rule. The
+  handler then receives an array of events unless the event sets
+  `batchSize: 1` (`serverless agent docs providers/aws/events/event-bridge`).
+  A complete project: the
+  [compose-eventbridge-custom-bus](https://github.com/serverless/examples/tree/v4/compose-eventbridge-custom-bus)
+  example.
 
 As soon as a resource gets its own service, the project is multi-service:
 manage it with Serverless Compose, one `serverless-compose.yml` at the

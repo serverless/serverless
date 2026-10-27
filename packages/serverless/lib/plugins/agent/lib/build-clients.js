@@ -90,6 +90,7 @@ import { AwsRestApiGatewayClient } from '@serverless/engine/src/lib/aws/restApiG
 import { AwsHttpApiGatewayClient } from '@serverless/engine/src/lib/aws/httpApiGateway.js'
 import { AwsAlbClient } from '@serverless/engine/src/lib/aws/alb.js'
 import { AwsEventBridgeClient } from '@serverless/engine/src/lib/aws/eventbridge.js'
+import { AwsEventBridgeV2Client } from '@serverless/engine/src/lib/aws/eventbridgev2.js'
 import { AwsS3Client } from '@serverless/engine/src/lib/aws/s3.js'
 import { AwsDynamoDBClient } from '@serverless/engine/src/lib/aws/dynamodb.js'
 import { AwsSqsClient } from '@serverless/engine/src/lib/aws/sqs.js'
@@ -109,6 +110,7 @@ import * as ApiGatewaySdk from '@aws-sdk/client-api-gateway'
 import * as ApiGatewayV2Sdk from '@aws-sdk/client-apigatewayv2'
 import * as ElasticLoadBalancingV2Sdk from '@aws-sdk/client-elastic-load-balancing-v2'
 import * as EventBridgeSdk from '@aws-sdk/client-eventbridge'
+import * as EventBridgeV2Sdk from '@aws-sdk/client-eventbridgev2'
 import * as S3Sdk from '@aws-sdk/client-s3'
 import * as DynamoDBSdk from '@aws-sdk/client-dynamodb'
 import * as SqsSdk from '@aws-sdk/client-sqs'
@@ -171,6 +173,13 @@ const SERVICE_MAP = {
   eventbridge: {
     EngineClientClass: AwsEventBridgeClient,
     sdkModule: EventBridgeSdk,
+    clientProp: 'client',
+  },
+  // Custom Event Buses and their subscribers (AWS::EventsV2::*) live in a
+  // separate API with its own SDK client, so they get their own token.
+  eventbridgev2: {
+    EngineClientClass: AwsEventBridgeV2Client,
+    sdkModule: EventBridgeV2Sdk,
     clientProp: 'client',
   },
   s3: {

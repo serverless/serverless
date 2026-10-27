@@ -31,6 +31,9 @@ jest.unstable_mockModule('@aws-sdk/client-sns', () => ({
 jest.unstable_mockModule('@aws-sdk/client-scheduler', () => ({
   SchedulerClient: mockSdkClient('scheduler'),
 }))
+jest.unstable_mockModule('@aws-sdk/client-eventbridgev2', () => ({
+  EventBridgeV2Client: mockSdkClient('eventbridgev2'),
+}))
 jest.unstable_mockModule('@aws-sdk/client-cognito-identity-provider', () => ({
   CognitoIdentityProviderClient: mockSdkClient('cognito'),
 }))
@@ -51,6 +54,8 @@ const { addProxyToAwsClient } = await import('@serverless/util')
 const { ConfiguredRetryStrategy } = await import('@smithy/util-retry')
 const { AwsSnsClient } = await import('../../src/lib/aws/sns.js')
 const { AwsSchedulerClient } = await import('../../src/lib/aws/scheduler.js')
+const { AwsEventBridgeV2Client } =
+  await import('../../src/lib/aws/eventbridgev2.js')
 const { AwsCognitoClient } = await import('../../src/lib/aws/cognito.js')
 const { AwsIotClient } = await import('../../src/lib/aws/iot.js')
 const { AwsKinesisClient } = await import('../../src/lib/aws/kinesis.js')
@@ -61,6 +66,11 @@ const { AwsLambdaWebClient } = await import('../../src/lib/aws/lambda-web.js')
 const cases = [
   { name: 'AwsSnsClient', Ctor: AwsSnsClient, sdk: 'sns' },
   { name: 'AwsSchedulerClient', Ctor: AwsSchedulerClient, sdk: 'scheduler' },
+  {
+    name: 'AwsEventBridgeV2Client',
+    Ctor: AwsEventBridgeV2Client,
+    sdk: 'eventbridgev2',
+  },
   { name: 'AwsCognitoClient', Ctor: AwsCognitoClient, sdk: 'cognito' },
   { name: 'AwsIotClient', Ctor: AwsIotClient, sdk: 'iot' },
   { name: 'AwsKinesisClient', Ctor: AwsKinesisClient, sdk: 'kinesis' },

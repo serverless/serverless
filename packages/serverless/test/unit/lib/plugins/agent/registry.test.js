@@ -16,6 +16,7 @@ const EXPECTED_AWS_SERVICES = [
   'apigatewayv2',
   'elbv2',
   'eventbridge',
+  'eventbridgev2',
   's3',
   'dynamodb',
   'sqs',
@@ -230,12 +231,19 @@ describe('findByCategory', () => {
     )
   })
 
-  test('events category spans eventbridge/sqs/sns/scheduler/kinesis', () => {
+  test('events category spans eventbridge/eventbridgev2/sqs/sns/scheduler/kinesis', () => {
     const eventsServices = new Set(
       findByCategory('events').map((e) => e.awsService),
     )
     expect(eventsServices).toEqual(
-      new Set(['eventbridge', 'sqs', 'sns', 'scheduler', 'kinesis']),
+      new Set([
+        'eventbridge',
+        'eventbridgev2',
+        'sqs',
+        'sns',
+        'scheduler',
+        'kinesis',
+      ]),
     )
   })
 
@@ -624,6 +632,54 @@ describe('Scheduler::Schedule', () => {
   test('GetSchedule takes Name', () => {
     const call = entry().calls.find((c) => c.method === 'GetSchedule')
     expect(call.input).toBe('Name')
+  })
+})
+
+describe('EventsV2::Subscriber', () => {
+  const entry = () => findByCfnType('AWS::EventsV2::Subscriber')
+
+  test('is an events-category eventbridgev2 entry', () => {
+    expect(entry()).toMatchObject({
+      awsService: 'eventbridgev2',
+      category: 'events',
+      engineClient: 'eventbridgev2',
+    })
+  })
+
+  test('identifier is the subscriber ARN as-is (the CFN primary identifier)', () => {
+    const arn =
+      'arn:aws:events:us-east-1:111122223333:subscriber/orders-api-dev-fulfil/8hbj3xxj49kv47mrpwqvh14a0'
+    expect(entry().identifier({ PhysicalResourceId: arn })).toBe(arn)
+  })
+
+  test('DescribeSubscriber takes SubscriberArn', () => {
+    const call = entry().calls.find((c) => c.method === 'DescribeSubscriber')
+    expect(call.key).toBe('subscriber')
+    expect(call.input).toBe('SubscriberArn')
+  })
+})
+
+describe('EventsV2::EventBus', () => {
+  const entry = () => findByCfnType('AWS::EventsV2::EventBus')
+
+  test('is an events-category eventbridgev2 entry', () => {
+    expect(entry()).toMatchObject({
+      awsService: 'eventbridgev2',
+      category: 'events',
+      engineClient: 'eventbridgev2',
+    })
+  })
+
+  test('identifier is the bus ARN as-is (the CFN primary identifier)', () => {
+    const arn =
+      'arn:aws:events:us-east-1:111122223333:event-busv2/orders/a1b2c3d4e5'
+    expect(entry().identifier({ PhysicalResourceId: arn })).toBe(arn)
+  })
+
+  test('DescribeEventBus takes EventBusArn', () => {
+    const call = entry().calls.find((c) => c.method === 'DescribeEventBus')
+    expect(call.key).toBe('eventBus')
+    expect(call.input).toBe('EventBusArn')
   })
 })
 

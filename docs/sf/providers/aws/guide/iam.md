@@ -142,6 +142,10 @@ provider:
       path: /your-custom-path/
 ```
 
+## The EventBridge Delivery Role
+
+A service with an `eventBridge` event on a Custom Event Bus also gets a delivery role, `IamRoleEventBridgeDelivery`, named `<service>-<stage>-<region>-eventBridge`. EventBridge assumes it to invoke the subscribed functions. It is separate from the execution roles above and is created in every IAM mode; an event that sets `role` uses that role instead. See [The delivery role](../events/event-bridge.md#the-delivery-role).
+
 ## Per-Function IAM Roles
 
 A single IAM role has a 10 KB inline policy size limit. When many functions share one role and its policy grows, CloudFormation can fail with a "Maximum policy size exceeded" error. Per‑function roles split permissions by function so each role’s inline policy stays small, while improving least‑privilege by scoping access to just what each function needs.

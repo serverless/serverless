@@ -27,6 +27,7 @@
     "test:domains": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/domains/http-api/** tests/integration/domains/web-apps/** --runInBand",
     "test:state": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/state/**",
     "test:deployment-bucket": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/deployment-bucket/**",
+    "test:eventbridge-custom-bus": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/eventbridge-custom-bus/",
     "test:license-key": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/license-key/**",
     "test:mcp": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/mcp/ --testPathIgnorePatterns=/node_modules/ --maxWorkers=2",
     "test:dev-mode": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" NODE_NO_WARNINGS=1 jest tests/integration/dev-mode/ --runInBand",
