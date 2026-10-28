@@ -13,6 +13,8 @@ const readBody = async (req) => {
   return Buffer.concat(chunks)
 }
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+// The gap between `/events` frames: fixed, so no request sets a timer.
+const EVENT_GAP_MS = 200
 // The deployed fixture is public while the suite runs: query numbers are capped at what it asks
 // for, with room to spare.
 const bounded = (value, fallback, max) => {
@@ -75,14 +77,13 @@ export const startServer = (app) => {
       }
       if (url.pathname === '/events') {
         const count = bounded(url.searchParams.get('count'), 10, 50)
-        const gapMs = bounded(url.searchParams.get('gapMs'), 200, 1000)
         res.writeHead(200, {
           'content-type': 'text/event-stream',
           'cache-control': 'no-cache',
         })
         for (let i = 0; i < count; i += 1) {
           res.write(`id: ${i}\ndata: ${i} ${ran}\n\n`)
-          await sleep(gapMs)
+          await sleep(EVENT_GAP_MS)
         }
         return res.end()
       }

@@ -689,7 +689,7 @@ describe('Dev Mode runs web apps on this machine (live)', () => {
 
   test('a server-sent event stream arrives in order, as it is written', async () => {
     const started = Date.now()
-    const response = await fetch(`${realUrl.api}/events?count=10&gapMs=200`, {
+    const response = await fetch(`${realUrl.api}/events?count=10`, {
       signal: AbortSignal.timeout(60_000),
     })
     expect(response.status).toBe(200)
