@@ -101,6 +101,7 @@ export const ensureAccountSetup = async ({
       name: brokerName,
       identity,
       region,
+      web: webApps,
     })
     if (!broker) {
       throw new ServerlessError(

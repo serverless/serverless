@@ -83,9 +83,9 @@ export const scriptPath = (env, { cwd, platform = process.platform }) => {
     if (paths.dirname(dir) === dir) break
   }
   const name =
-    (platform === 'win32'
-      ? Object.keys(env).find((existing) => existing.toUpperCase() === 'PATH')
-      : 'PATH' in env && 'PATH') ?? 'PATH'
+    (platform === 'win32' &&
+      Object.keys(env).find((existing) => existing.toUpperCase() === 'PATH')) ||
+    'PATH'
   return {
     ...env,
     [name]: [...bins, ...(env[name] ? [env[name]] : [])].join(paths.delimiter),

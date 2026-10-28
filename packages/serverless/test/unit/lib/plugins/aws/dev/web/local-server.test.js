@@ -261,6 +261,13 @@ describe('scriptPath', () => {
     )
   })
 
+  test('sets PATH when the environment has none', () => {
+    for (const platform of ['linux', 'win32']) {
+      const env = scriptPath({}, { cwd: '/repo', platform })
+      expect(Object.keys(env)).toEqual(['PATH'])
+    }
+  })
+
   test('keeps the name Windows stores it under', () => {
     const env = scriptPath(
       { Path: 'C:\\Windows' },

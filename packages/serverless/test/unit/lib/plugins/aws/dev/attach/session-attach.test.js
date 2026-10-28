@@ -113,6 +113,24 @@ describe('ensureAccountSetup and web apps', () => {
     expect(iam.calls.map(([op]) => op)).not.toContain('updateAssumeRolePolicy')
   })
 
+  test('a functions-only session creates the role with the trust earlier releases write', async () => {
+    // Teammates on a CLI from before web apps keep using a role a functions-only session created.
+    const iam = fakeIam()
+    const { broker } = await ensureAccountSetup({
+      broker: null,
+      brokerPolicy: 'missing',
+      brokerName: NAME,
+      ...AT,
+      clients: { iam },
+      main: fakeMain(),
+      session: {},
+    })
+    expect(broker).toMatchObject({ created: true, widened: false })
+    expect(JSON.parse(iam.roles.get(NAME).AssumeRolePolicyDocument)).toEqual(
+      buildTrustPolicy({ ...AT, externalId: broker.externalId, web: false }),
+    )
+  })
+
   test('policy V1 reads as outdated and is repaired to V2 with the fallback statement', async () => {
     const iam = narrowRole()
     iam.policies.set(POLICY, buildPermissionPolicy({ ...AT, version: 1 }))

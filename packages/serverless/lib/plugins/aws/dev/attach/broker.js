@@ -654,6 +654,9 @@ export const createBroker = async ({
   // When a teammate created the role first and its policy cannot be read: 'keep' takes it to be in
   // place (a session), 'stop' fails with DEV_MODE_BROKER_READ_DENIED (dev setup).
   unreadablePolicy = 'keep',
+  // Trust web functions too. A functions-only session writes the trust earlier releases write, so
+  // teammates on those releases keep using the role.
+  web = true,
 }) => {
   const externalId = randomBytes(16).toString('hex')
   let role
@@ -663,7 +666,7 @@ export const createBroker = async ({
       Path: path,
       Description: BROKER_ROLE_DESCRIPTION,
       AssumeRolePolicyDocument: JSON.stringify(
-        buildTrustPolicy({ identity, region, externalId }),
+        buildTrustPolicy({ identity, region, externalId, web }),
       ),
       MaxSessionDuration: 3600,
       ...(permissionsBoundary && { PermissionsBoundary: permissionsBoundary }),
@@ -717,7 +720,7 @@ export const createBroker = async ({
     externalId,
     path: role.Path,
     created: true,
-    widened: true,
+    widened: web,
   }
 }
 
