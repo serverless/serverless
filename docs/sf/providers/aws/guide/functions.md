@@ -465,9 +465,19 @@ functions:
 
 **Note:** Durable Functions are supported for Node.js 22+, Python 3.13+, Java 17+, .NET 8+, OS-only runtimes from `provided.al2023` (for example Go), and container images. Node.js and Python runtimes include the durable execution SDK for development; Java, .NET and Go are compiled languages, so their durable execution SDK must be included in your deployment package; for Go, it is built into the `bootstrap` binary (see the [AWS supported runtimes page](https://docs.aws.amazon.com/lambda/latest/dg/durable-supported-runtimes.html)). Enabling `durableConfig` will automatically enable function versioning (`versionFunctions: true`) and publish an `AWS::Lambda::Alias` named `durable` (or use the SnapStart or provisioned-concurrency alias when the function has one) pointing at the latest version, because AWS rejects unqualified invocations of durable functions. All event-source integrations (schedule, EventBridge, SNS, API Gateway, etc.) target this alias so invocations succeed without further configuration. Setting `versionFunction: false` together with `durableConfig` is rejected.
 
-A Go function runs on `provided.al2023` with a `bootstrap` binary:
+A Go function runs on `provided.al2023` with a `bootstrap` binary. Build it and zip it before deploying:
+
+```bash
+GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -tags lambda.norpc -o bootstrap main.go
+mkdir -p bin && zip bin/myDurableGoFunction.zip bootstrap
+```
+
+A function-level `artifact` is used when the service packages functions individually:
 
 ```yml
+package:
+  individually: true
+
 functions:
   myDurableGoFunction:
     handler: bootstrap
