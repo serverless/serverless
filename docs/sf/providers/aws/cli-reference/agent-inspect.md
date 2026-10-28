@@ -155,20 +155,20 @@ when both are given, the result is their **union**, not their intersection.
 
 Coarse, framework-shaped groupings. Combine as many as you like.
 
-| Flag              | Covers                                                                                         |
-| ----------------- | ---------------------------------------------------------------------------------------------- |
-| `--functions`     | Lambda functions (+ versions/aliases/URLs/permissions/event source mappings), layers           |
-| `--api`           | API Gateway REST, API Gateway HTTP/WebSocket, and Application Load Balancer front doors        |
-| `--events`        | SNS topics, EventBridge rules/buses, Scheduler schedules, SQS queues, Kinesis stream consumers |
-| `--iam`           | IAM roles (assume-role policy, inline + attached policies)                                     |
-| `--storage`       | S3 buckets, DynamoDB tables                                                                    |
-| `--observability` | CloudWatch log groups (+ filters), alarms, dashboards                                          |
-| `--cdn`           | CloudFront distributions + cache policies                                                      |
-| `--identity`      | Cognito user pools (+ clients)                                                                 |
-| `--iot`           | IoT topic rules + provisioning templates                                                       |
-| `--sandboxes`     | Lambda MicroVM images (Sandboxes); network connectors appear in the index only                 |
-| `--web-apps`      | Lambda Web Functions (web apps): each function, its current revision and its endpoint          |
-| `--all`           | Every category above                                                                           |
+| Flag              | Covers                                                                                                                             |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `--functions`     | Lambda functions (+ versions/aliases/URLs/permissions/event source mappings), layers                                               |
+| `--api`           | API Gateway REST, API Gateway HTTP/WebSocket, and Application Load Balancer front doors                                            |
+| `--events`        | SNS topics, EventBridge rules/buses, Custom Event Bus subscribers/buses, Scheduler schedules, SQS queues, Kinesis stream consumers |
+| `--iam`           | IAM roles (assume-role policy, inline + attached policies)                                                                         |
+| `--storage`       | S3 buckets, DynamoDB tables                                                                                                        |
+| `--observability` | CloudWatch log groups (+ filters), alarms, dashboards                                                                              |
+| `--cdn`           | CloudFront distributions + cache policies                                                                                          |
+| `--identity`      | Cognito user pools (+ clients)                                                                                                     |
+| `--iot`           | IoT topic rules + provisioning templates                                                                                           |
+| `--sandboxes`     | Lambda MicroVM images (Sandboxes); network connectors appear in the index only                                                     |
+| `--web-apps`      | Lambda Web Functions (web apps): each function, its current revision and its endpoint                                              |
+| `--all`           | Every category above                                                                                                               |
 
 A resource's supporting infrastructure is categorized by its own type, not
 lumped under the parent feature — a function's execution role appears under
@@ -184,14 +184,19 @@ serverless agent inspect --aws-services lambda,iam,s3
 ```
 
 Supported tokens: `lambda`, `iam`, `apigateway`, `apigatewayv2`, `sns`,
-`eventbridge` (alias `events`), `scheduler`, `s3`, `dynamodb`, `sqs`, `logs`,
-`elbv2` (alias `alb`), `cloudfront`, `cognito-idp` (alias `cognito`), `iot`,
-`kinesis`, `cloudwatch`, `lambda-microvms` (aliases `microvms`/`sandboxes`),
-`lambda-web`.
+`eventbridge` (alias `events`), `eventbridgev2`, `scheduler`, `s3`,
+`dynamodb`, `sqs`, `logs`, `elbv2` (alias `alb`), `cloudfront`, `cognito-idp`
+(alias `cognito`), `iot`, `kinesis`, `cloudwatch`, `lambda-microvms` (aliases
+`microvms`/`sandboxes`), `lambda-web`.
 
 An unknown token produces a structured error listing the supported service
 names — it never silently ignores a typo. Whitespace and trailing commas
 are trimmed, and tokens are matched case-insensitively.
+
+`eventbridge` expands EventBridge rules and Custom Event Bus - Classic buses
+(`AWS::Events::*`). `eventbridgev2` expands Custom Event Bus subscribers and
+buses (`AWS::EventsV2::*`), which EventBridge serves through a separate API.
+`--events` covers both.
 
 The `lambda-microvms` token expands MicroVM images only; network connectors
 have no describe operation and appear in the index only (see Notes below).
@@ -327,6 +332,7 @@ the command actually calls.
       "Action": [
         "events:DescribeEventBus",
         "events:DescribeRule",
+        "events:DescribeSubscriber",
         "events:ListTargetsByRule"
       ],
       "Resource": "*"
@@ -439,6 +445,10 @@ Notes on this policy:
   correct (and only) action needed, scoped to the API Gateway management
   resource ARN pattern shown above. There is no `apigateway:GetRestApi` or
   `apigateway:GetResources` action to grant individually.
+- The `events:` actions cover both EventBridge APIs. Custom Event Bus
+  subscribers and buses (`eventbridgev2`) are read with
+  `events:DescribeSubscriber` and `events:DescribeEventBus`, in the same
+  `events:` IAM namespace as rules and Classic buses.
 - `sts:GetCallerIdentity` and `cloudformation:ListStackResources` are
   included because credential resolution and stack discovery run
   unconditionally, before any category or service is selected.

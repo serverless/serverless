@@ -36,6 +36,7 @@ const FakeAwsHttpApiGatewayClient = makeFakeEngineClientClass(
 )
 const FakeAwsAlbClient = makeFakeEngineClientClass('elbv2')
 const FakeAwsEventBridgeClient = makeFakeEngineClientClass('eventbridge')
+const FakeAwsEventBridgeV2Client = makeFakeEngineClientClass('eventbridgev2')
 const FakeAwsS3Client = makeFakeEngineClientClass('s3')
 const FakeAwsDynamoDBClient = makeFakeEngineClientClass('dynamodb')
 const FakeAwsSqsClient = makeFakeEngineClientClass('sqs')
@@ -91,6 +92,12 @@ jest.unstable_mockModule(
   '../../../../../../engine/src/lib/aws/eventbridge.js',
   () => ({
     AwsEventBridgeClient: FakeAwsEventBridgeClient,
+  }),
+)
+jest.unstable_mockModule(
+  '../../../../../../engine/src/lib/aws/eventbridgev2.js',
+  () => ({
+    AwsEventBridgeV2Client: FakeAwsEventBridgeV2Client,
   }),
 )
 jest.unstable_mockModule('../../../../../../engine/src/lib/aws/s3.js', () => ({
@@ -190,6 +197,10 @@ jest.unstable_mockModule('@aws-sdk/client-elastic-load-balancing-v2', () => ({
 jest.unstable_mockModule('@aws-sdk/client-eventbridge', () => ({
   DescribeRuleCommand: makeCommandClass('DescribeRuleCommand'),
 }))
+jest.unstable_mockModule('@aws-sdk/client-eventbridgev2', () => ({
+  DescribeSubscriberCommand: makeCommandClass('DescribeSubscriberCommand'),
+  DescribeEventBusCommand: makeCommandClass('DescribeEventBusCommand'),
+}))
 jest.unstable_mockModule('@aws-sdk/client-s3', () => ({
   GetBucketLocationCommand: makeCommandClass('GetBucketLocationCommand'),
   GetBucketPolicyCommand: makeCommandClass('GetBucketPolicyCommand'),
@@ -279,6 +290,18 @@ describe('build-clients', () => {
         FakeAwsEventBridgeClient,
         'DescribeRule',
         'DescribeRuleCommand',
+      ],
+      [
+        'eventbridgev2',
+        FakeAwsEventBridgeV2Client,
+        'DescribeSubscriber',
+        'DescribeSubscriberCommand',
+      ],
+      [
+        'eventbridgev2',
+        FakeAwsEventBridgeV2Client,
+        'DescribeEventBus',
+        'DescribeEventBusCommand',
       ],
       [
         'dynamodb',

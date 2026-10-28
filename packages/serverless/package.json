@@ -33,6 +33,7 @@
     "@aws-sdk/client-ecr": "3.1152.0",
     "@aws-sdk/client-elastic-load-balancing-v2": "3.1152.0",
     "@aws-sdk/client-eventbridge": "3.1152.0",
+    "@aws-sdk/client-eventbridgev2": "3.1152.0",
     "@aws-sdk/client-iam": "3.1152.0",
     "@aws-sdk/client-iot": "3.1152.0",
     "@aws-sdk/client-iot-data-plane": "3.1152.0",

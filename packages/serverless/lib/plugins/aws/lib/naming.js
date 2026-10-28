@@ -857,6 +857,45 @@ export default {
       functionName,
     )}EventBridgeLambdaPermission${idx}`
   },
+  getEventBridgeSubscriberLogicalId(functionName, index, hash8) {
+    return `${this.getNormalizedFunctionName(
+      functionName,
+    )}EventBridgeSubscriber${index}${hash8}`
+  },
+  getEventBridgeSubscriberLogicalIdFromName(name) {
+    return `${this.normalizeNameToAlphaNumericOnly(name)}EventBridgeSubscriber`
+  },
+  getEventBridgeSubscriberName(deployedFunctionName, index, hash8) {
+    return `${deployedFunctionName}-${index}-${hash8}`
+  },
+  getEventBridgeDeliveryRoleLogicalId() {
+    return 'IamRoleEventBridgeDelivery'
+  },
+  getEventBridgeDeliveryRoleName() {
+    return {
+      'Fn::Join': [
+        '-',
+        [
+          this.provider.serverless.service.service,
+          this.provider.getStage(),
+          { Ref: 'AWS::Region' },
+          'eventBridge',
+        ],
+      ],
+    }
+  },
+  getEventBridgeDeliveryPolicyName() {
+    return {
+      'Fn::Join': [
+        '-',
+        [
+          this.provider.serverless.service.service,
+          this.provider.getStage(),
+          'eventBridgeDelivery',
+        ],
+      ],
+    }
+  },
 
   // API Gateway Account Logs Write Role
   getCustomResourceApiGatewayAccountCloudWatchRoleHandlerFunctionName() {

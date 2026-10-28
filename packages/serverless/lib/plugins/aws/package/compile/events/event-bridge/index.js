@@ -7,6 +7,70 @@ import {
   makeRuleName,
 } from './utils.js'
 import resolveLambdaTarget from '../../../../utils/resolve-lambda-target.js'
+import { classifyEventBus } from './bus-type.js'
+import {
+  buildSubscriber,
+  validateRuleEvent,
+  validateSubscriberEvent,
+} from './compile-subscriber.js'
+import { buildDeliveryRole } from './delivery-role.js'
+
+function caseInsensitive(str) {
+  return { type: 'string', regexp: new RegExp(`^${str}$`, 'i').toString() }
+}
+
+// Factories, so each Serverless instance registers its own schema objects.
+const patternSchema = () => ({
+  description: `EventBridge pattern with full event matching.
+@see https://docs.aws.amazon.com/eventbridge/latest/userguide/aws-events.html
+@example
+pattern:
+  source:
+    - aws.ec2
+  detail-type:
+    - EC2 Instance State-change Notification`,
+  type: 'object',
+  properties: {
+    version: { description: `Event schema version.` },
+    id: { description: `Event id filter.` },
+    'detail-type': { description: `Detail type filter.` },
+    source: { description: `Event source identifiers.` },
+    account: { description: `AWS account filter.` },
+    time: { description: `Event timestamp filter.` },
+    region: { description: `AWS region filter.` },
+    resources: { description: `Resource ARN filter list.` },
+    detail: {
+      description: `EventBridge/CloudWatch event detail pattern.`,
+    },
+    $or: {
+      description: `OR-combined event pattern clauses.`,
+      type: 'array',
+    },
+  },
+})
+
+// A rule pattern matches the event envelope, so its top-level keys are fixed.
+// A subscriber filter may match any key, so the schema closes `pattern` only
+// when `eventBus` is not a Custom Event Bus. The schema cannot see resource
+// types, so every Ref keeps `pattern` open.
+const customEventBusSchema = () => ({
+  anyOf: [
+    { type: 'string', pattern: ':event-busv2/' },
+    { type: 'object', required: ['Ref'] },
+    {
+      type: 'object',
+      required: ['Fn::GetAtt'],
+      properties: {
+        'Fn::GetAtt': {
+          type: 'array',
+          minItems: 2,
+          maxItems: 2,
+          items: [{ type: 'string' }, { const: 'EventBusArn' }],
+        },
+      },
+    },
+  ],
+})
 
 class AwsCompileEventBridgeEvents {
   constructor(serverless, options) {
@@ -70,18 +134,18 @@ class AwsCompileEventBridgeEvents {
               { $ref: '#/definitions/awsArnString' },
               { $ref: '#/definitions/awsCfImport' },
               { $ref: '#/definitions/awsCfRef' },
-              // GetAtt should only reference "Name" property of EventBus
+              // GetAtt references the "Name" of a Classic bus or the "EventBusArn" of a Custom Event Bus
               {
                 type: 'object',
                 properties: {
                   'Fn::GetAtt': {
-                    description: `GetAtt reference to an EventBus Name attribute.`,
+                    description: `GetAtt reference to an EventBus Name or EventBusArn attribute.`,
                     type: 'array',
                     minItems: 2,
                     maxItems: 2,
                     items: [
                       { type: 'string', minLength: 1 },
-                      { type: 'string', enum: ['Name'] },
+                      { type: 'string', enum: ['Name', 'EventBusArn'] },
                     ],
                   },
                 },
@@ -96,11 +160,10 @@ class AwsCompileEventBridgeEvents {
             type: 'string',
           },
           name: {
-            description: `Custom rule name.`,
+            description: `Custom rule name (up to 64 characters) or subscriber name (up to 256).`,
             type: 'string',
             pattern: '[a-zA-Z0-9-_.]+',
             minLength: 1,
-            maxLength: 64,
           },
           description: {
             description: `Rule description.`,
@@ -111,35 +174,7 @@ class AwsCompileEventBridgeEvents {
             description: `Enable or disable the rule.`,
             type: 'boolean',
           },
-          pattern: {
-            description: `EventBridge pattern with full event matching.
-@see https://docs.aws.amazon.com/eventbridge/latest/userguide/aws-events.html
-@example
-pattern:
-  source:
-    - aws.ec2
-  detail-type:
-    - EC2 Instance State-change Notification`,
-            type: 'object',
-            properties: {
-              version: { description: `Event schema version.` },
-              id: { description: `Event id filter.` },
-              'detail-type': { description: `Detail type filter.` },
-              source: { description: `Event source identifiers.` },
-              account: { description: `AWS account filter.` },
-              time: { description: `Event timestamp filter.` },
-              region: { description: `AWS region filter.` },
-              resources: { description: `Resource ARN filter list.` },
-              detail: {
-                description: `EventBridge/CloudWatch event detail pattern.`,
-              },
-              $or: {
-                description: `OR-combined event pattern clauses.`,
-                type: 'array',
-              },
-            },
-            additionalProperties: false,
-          },
+          pattern: patternSchema(),
           input: {
             description: `Static payload passed to the target.`,
             type: 'object',
@@ -194,8 +229,53 @@ pattern:
             description: `Dead-letter queue ARN for undeliverable events.`,
             $ref: '#/definitions/awsArn',
           },
+          ordering: {
+            description: `Delivery order of a Custom Event Bus subscriber.
+@example 'fifo'`,
+            anyOf: ['unordered', 'fifo'].map(caseInsensitive),
+          },
+          batchSize: {
+            description: `Maximum number of events in one invocation of a Custom Event Bus subscriber.`,
+            type: 'integer',
+            minimum: 1,
+            maximum: 100,
+          },
+          maximumBatchingWindow: {
+            description: `Seconds a Custom Event Bus subscriber waits to fill a batch.`,
+            type: 'integer',
+            minimum: 0,
+            maximum: 300,
+          },
+          async: {
+            description: `Invoke the function asynchronously instead of waiting for it (Custom Event Bus only).`,
+            type: 'boolean',
+          },
+          resumePosition: {
+            description: `Where a Custom Event Bus subscriber resumes after it is started again.
+@example 'latest'`,
+            anyOf: ['last_processed', 'latest'].map(caseInsensitive),
+          },
+          role: {
+            description: `IAM role EventBridge uses to invoke the function (Custom Event Bus only).`,
+            anyOf: [
+              { $ref: '#/definitions/awsArnString' },
+              { $ref: '#/definitions/awsCfFunction' },
+            ],
+          },
         },
-        anyOf: [{ required: ['pattern'] }, { required: ['schedule'] }],
+        if: {
+          required: ['eventBus'],
+          properties: { eventBus: customEventBusSchema() },
+        },
+        // Each branch carries its own name limit, so a long name gets one
+        // message.
+        then: { properties: { name: { maxLength: 256 } } },
+        else: {
+          properties: {
+            pattern: { ...patternSchema(), additionalProperties: false },
+            name: { maxLength: 64 },
+          },
+        },
       },
     )
   }
@@ -209,6 +289,12 @@ pattern:
     const shouldUseCloudFormation = options ? options.useCloudFormation : true
     let hasEventBusesIamRoleStatement = false
     let anyFuncUsesEventBridge = false
+    // Grants for subscribers that EventBridge delivers through the generated role.
+    const deliveryFunctionLogicalIds = []
+    const deliveryDlqArns = []
+    const subscriberLogicalIds = new Set()
+
+    const providerRegion = this.provider.getRegion()
 
     service.getAllFunctions().forEach((functionName) => {
       const functionObj = service.getFunction(functionName)
@@ -219,6 +305,52 @@ pattern:
           if (event.eventBridge) {
             idx++
             anyFuncUsesEventBridge = true
+            if (
+              classifyEventBus(
+                event.eventBridge.eventBus,
+                service.resources?.Resources,
+              ) === 'subscriber'
+            ) {
+              validateSubscriberEvent({
+                functionKey: functionName,
+                functionObj,
+                event: event.eventBridge,
+                providerRegion,
+                useCloudFormation: options?.useCloudFormation,
+              })
+              const { logicalId, resource, usesGeneratedRole } =
+                buildSubscriber({
+                  naming: this.provider.naming,
+                  functionName,
+                  functionObj,
+                  event: event.eventBridge,
+                  index: idx,
+                  deliveryRoleLogicalId:
+                    this.provider.naming.getEventBridgeDeliveryRoleLogicalId(),
+                })
+              if (subscriberLogicalIds.has(logicalId)) {
+                throw new ServerlessError(
+                  `Two eventBridge subscribers compile to the same CloudFormation logical ID "${logicalId}". Give them names that differ in more than punctuation or the case of their first letter.`,
+                  'EVENTBRIDGE_SUBSCRIBER_DUPLICATE_LOGICAL_ID',
+                )
+              }
+              subscriberLogicalIds.add(logicalId)
+              compiledCloudFormationTemplate.Resources[logicalId] = resource
+              if (usesGeneratedRole) {
+                deliveryFunctionLogicalIds.push(
+                  this.provider.naming.getLambdaLogicalId(functionName),
+                )
+                if (event.eventBridge.deadLetterQueueArn !== undefined) {
+                  deliveryDlqArns.push(event.eventBridge.deadLetterQueueArn)
+                }
+              }
+              return
+            }
+            validateRuleEvent({
+              functionKey: functionName,
+              event: event.eventBridge,
+              patternKeys: Object.keys(patternSchema().properties),
+            })
             const Description = event.eventBridge.description
             const EventBus = event.eventBridge.eventBus
             const Schedule = event.eventBridge.schedule
@@ -339,6 +471,35 @@ pattern:
         })
       }
     })
+
+    if (deliveryFunctionLogicalIds.length > 0) {
+      const iamRole = provider.iam?.role
+      // IAM caps role names at 64 characters, as roles-per-function.js checks
+      // for the execution roles.
+      const roleNameLength = this.provider.naming
+        .getEventBridgeDeliveryRoleName()
+        ['Fn::Join'][1].map((part) =>
+          part?.Ref === 'AWS::Region'
+            ? this.provider.getRegion()
+            : String(part ?? ''),
+        )
+        .join('-').length
+      if (roleNameLength > 64) {
+        throw new ServerlessError(
+          `The generated EventBridge delivery role name is ${roleNameLength} characters long, over IAM's limit of 64. Set "role" on each Custom Event Bus eventBridge event, or shorten the service or stage name.`,
+          'EVENTBRIDGE_DELIVERY_ROLE_NAME_TOO_LONG',
+        )
+      }
+      compiledCloudFormationTemplate.Resources[
+        this.provider.naming.getEventBridgeDeliveryRoleLogicalId()
+      ] = buildDeliveryRole({
+        naming: this.provider.naming,
+        functionLogicalIds: deliveryFunctionLogicalIds,
+        dlqArns: deliveryDlqArns,
+        iamRole: _.isObject(iamRole) ? iamRole : {},
+        rolePermissionsBoundary: provider.rolePermissionsBoundary,
+      })
+    }
 
     // These permissions are for the custom resource lambda
     if (!shouldUseCloudFormation && anyFuncUsesEventBridge) {

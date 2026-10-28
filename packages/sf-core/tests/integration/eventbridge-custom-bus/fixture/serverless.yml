@@ -1,0 +1,63 @@
+service: sfc-eb-custom-bus
+org: serverlesstestaccount
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+
+functions:
+  fifoConsumer:
+    handler: handler.consume
+    timeout: 10
+    environment:
+      # Holds each invocation, so that parallel invocations would reorder.
+      DELIVERY_DELAY_MS: '200'
+    events:
+      - eventBridge:
+          eventBus: !Ref OrdersBus
+          ordering: fifo
+          batchSize: 1
+          pattern:
+            detail-type:
+              - FifoProbe
+  batchConsumer:
+    handler: handler.consume
+    events:
+      # No `name`: the generated name changes with `ordering`, so CloudFormation
+      # creates the new subscriber before it deletes the old one.
+      - eventBridge:
+          eventBus: !Ref OrdersBus
+          ordering: ${param:batchOrdering, 'unordered'}
+          deadLetterQueueArn: !GetAtt BatchConsumerDlq.Arn
+          pattern:
+            detail-type:
+              - BatchProbe
+  pausedConsumer:
+    handler: handler.consume
+    events:
+      # Stopped until a redeploy passes --param pausedEnabled=true. Events
+      # published meanwhile wait on the bus and arrive on resume (the default
+      # resumePosition, last_processed).
+      - eventBridge:
+          eventBus: !Ref OrdersBus
+          enabled: ${strToBool(${param:pausedEnabled, 'false'})}
+          pattern:
+            detail-type:
+              - PausedProbe
+
+resources:
+  Resources:
+    OrdersBus:
+      Type: AWS::EventsV2::EventBus
+      Properties:
+        Name: ${self:service}-${sls:stage}
+        StorageConfiguration:
+          RetentionPeriodInDays: 1
+    BatchConsumerDlq:
+      Type: AWS::SQS::Queue
+  Outputs:
+    OrdersBusArn:
+      Value: !GetAtt OrdersBus.EventBusArn
+    BatchConsumerDlqArn:
+      Value: !GetAtt BatchConsumerDlq.Arn

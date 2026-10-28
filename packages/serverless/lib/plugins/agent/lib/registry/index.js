@@ -19,14 +19,15 @@
 //   }
 //
 // The dispatchable services (lambda, iam, apigateway, apigatewayv2, elbv2,
-// eventbridge, s3, dynamodb, sqs, sns, scheduler, kinesis, logs, cloudwatch,
-// cognito-idp, iot, cloudfront, lambda-microvms, lambda-web) each map to an
-// engine client via build-clients.js's SERVICE_MAP. cloudfront is a full
-// describe type, not index-only -- see cloudfront.js for the us-east-1 pin this
-// GLOBAL service needs. lambda-microvms describes MicrovmImage only; its other
-// resource, AWS::Lambda::NetworkConnector, has no describe op in the SDK and
-// stays index-only (awsService:null/calls:[]) -- see lambda-microvms.js.
-// lambda-web describes all three web app types -- see lambda-web.js.
+// eventbridge, eventbridgev2, s3, dynamodb, sqs, sns, scheduler, kinesis,
+// logs, cloudwatch, cognito-idp, iot, cloudfront, lambda-microvms, lambda-web)
+// each map to an engine client via build-clients.js's SERVICE_MAP. cloudfront
+// is a full describe type, not index-only -- see cloudfront.js for the
+// us-east-1 pin this GLOBAL service needs. lambda-microvms describes
+// MicrovmImage only; its other resource, AWS::Lambda::NetworkConnector, has no
+// describe op in the SDK and stays index-only (awsService:null/calls:[]) --
+// see lambda-microvms.js. lambda-web describes all three web app types -- see
+// lambda-web.js.
 
 import { lambdaRegistryEntries } from './lambda.js'
 import { iamRegistryEntries } from './iam.js'

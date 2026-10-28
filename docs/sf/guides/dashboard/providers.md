@@ -168,6 +168,14 @@ If you are create a custom IAM Role with this policy, you will need to add a Tru
                 "lambda:GetFunction",
                 "lambda:UpdateFunctionConfiguration",
                 "events:PutTargets",
+                "events:CreateSubscriber",
+                "events:UpdateSubscriber",
+                "events:DeleteSubscriber",
+                "events:DescribeSubscriber",
+                "events:ListSubscribers",
+                "events:ListTagsForResource",
+                "events:TagResource",
+                "events:UntagResource",
                 "lambda:AddPermission",
                 "cloudformation:CreateStack",
                 "s3:PutBucketPolicy",
@@ -181,6 +189,21 @@ If you are create a custom IAM Role with this policy, you will need to add a Tru
     ]
 }
 ```
+
+The `events:` subscriber actions deploy `eventBridge` events on a Custom Event Bus. Their subscribers deliver through a role the Framework generates, `<service>-<stage>-<region>-eventBridge`, which the deploying identity passes to EventBridge. If you scope `iam:PassRole` rather than granting it on every resource, allow it on that role for EventBridge only, and keep a separate grant for the functions' execution roles:
+
+```
+{
+    "Effect": "Allow",
+    "Action": "iam:PassRole",
+    "Resource": "arn:aws:iam::111122223333:role/*-eventBridge",
+    "Condition": {
+        "StringEquals": { "iam:PassedToService": "events.amazonaws.com" }
+    }
+}
+```
+
+See [Deploy permissions](../../providers/aws/events/event-bridge.md#deploy-permissions) and [The delivery role](../../providers/aws/events/event-bridge.md#the-delivery-role).
 
 ## Migration from Deployment Profile
 

@@ -58,6 +58,10 @@
       "shard": 2,
       "seconds": 67
     },
+    "tests/integration/eventbridge-custom-bus/eventbridge-custom-bus.test.js": {
+      "shard": 3,
+      "seconds": 285
+    },
     "tests/integration/license-key/license-key.test.js": {
       "shard": 1,
       "seconds": 10,

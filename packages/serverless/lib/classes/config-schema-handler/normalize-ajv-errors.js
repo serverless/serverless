@@ -27,6 +27,14 @@ const oneOfPathPattern = /\/(?:anyOf|oneOf)(?:\/\d+\/|$)/
 const isAnyOfPathTypePostfix = RegExp.prototype.test.bind(/^\/\d+\/type$/)
 const oneOfKeywords = new Set(['anyOf', 'oneOf'])
 
+// An `if` error only says that a `then` or `else` branch failed. The branch's
+// own errors carry the reason, so the `if` error adds nothing for the user.
+const filterIfErrors = (resultErrorsSet) => {
+  for (const error of resultErrorsSet) {
+    if (error.keyword === 'if') resultErrorsSet.delete(error)
+  }
+}
+
 const filterIrreleventEventConfigurationErrors = (resultErrorsSet) => {
   // 1. Resolve all errors at event type configuration level
   const eventTypeErrors = Array.from(resultErrorsSet).filter(
@@ -357,6 +365,9 @@ const filterDuplicateErrors = (resultErrorsSet) => {
  */
 export default (ajvErrors) => {
   const resultErrorsSet = new Set(ajvErrors)
+
+  // 0. Filter `if` errors, which repeat the errors of the failing branch
+  filterIfErrors(resultErrorsSet)
 
   // 1. Filter eventual irrelevant errors for faulty event type configurations
   filterIrreleventEventConfigurationErrors(resultErrorsSet)

@@ -1619,6 +1619,29 @@ functions:
             maximumEventAge: 3600
             maximumRetryAttempts: 3
           deadLetterQueueArn: !GetAtt QueueName.Arn
+      # Subscribe to a Custom Event Bus (an ARN containing ':event-busv2/',
+      # a Ref to an AWS::EventsV2::EventBus, or !GetAtt <bus>.EventBusArn)
+      - eventBridge:
+          eventBus: arn:aws:events:us-east-1:111122223333:event-busv2/orders/a1b2c3d4e5f6g7h8i9j0k1l2m
+          pattern:
+            detail-type:
+              - OrderPlaced
+          # Delivery order: 'unordered' (default) or 'fifo'
+          ordering: unordered
+          # Events per invocation, 1-100 (default: 10, delivered as an array of events)
+          batchSize: 1
+          # Seconds to wait to fill a batch, 0-300 (default: 0)
+          maximumBatchingWindow: 0
+          # Invoke asynchronously (default: false, synchronous)
+          async: false
+          # What re-enabling delivers: 'last_processed' (default, the backlog) or 'latest'
+          resumePosition: last_processed
+          # IAM role EventBridge assumes to invoke the function (default: the service's generated delivery role)
+          role: arn:aws:iam::111122223333:role/orders-delivery
+          retryPolicy:
+            maximumEventAge: 86400
+            maximumRetryAttempts: 185
+          deadLetterQueueArn: !GetAtt QueueName.Arn
 ```
 
 ### CloudFront

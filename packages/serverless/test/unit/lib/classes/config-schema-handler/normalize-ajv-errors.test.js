@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals'
+import Ajv from 'ajv'
 import normalizeAjvErrors from '../../../../../lib/classes/config-schema-handler/normalize-ajv-errors.js'
 
 const additionalPropertyError = (instancePath, additionalProperty) => ({
@@ -10,6 +11,13 @@ const additionalPropertyError = (instancePath, additionalProperty) => ({
 })
 
 const messagesOf = (errors) => normalizeAjvErrors(errors).map((e) => e.message)
+
+const messagesFor = (schema, data) => {
+  const ajv = new Ajv({ allErrors: true, verbose: true, strict: false })
+  const validate = ajv.compile(schema)
+  validate(data)
+  return normalizeAjvErrors(validate.errors).map(({ message }) => message)
+}
 
 describe('normalizeAjvErrors', () => {
   it('points an `entry` on a functions entry to webApps', () => {
@@ -80,5 +88,25 @@ describe('normalizeAjvErrors', () => {
         },
       ]),
     ).toEqual(['at \'webApps.api.name\': must match pattern "^a$"'])
+  })
+
+  const schema = {
+    type: 'object',
+    properties: { kind: { type: 'string' }, value: { type: 'object' } },
+    if: { properties: { kind: { const: 'open' } } },
+    then: { properties: { value: { required: ['id'] } } },
+    else: { properties: { value: { additionalProperties: false } } },
+  }
+
+  it('reports the else branch error without the "if" error', () => {
+    expect(messagesFor(schema, { kind: 'closed', value: { foo: 1 } })).toEqual([
+      "at 'value': unrecognized property 'foo'",
+    ])
+  })
+
+  it('reports the then branch error without the "if" error', () => {
+    expect(messagesFor(schema, { kind: 'open', value: {} })).toEqual([
+      "at 'value': must have required property 'id'",
+    ])
   })
 })
