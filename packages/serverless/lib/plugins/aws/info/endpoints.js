@@ -1,8 +1,8 @@
 /**
  * The service's endpoints as `serverless info` and `serverless deploy` print them, and the stack
  * outputs they come from. The info plugin reads them through `getStackInfo` and prints them with
- * `displayEndpoints`; Dev Mode prints the same lines from the stack outputs it already read
- * (`endpointLinesOf`), with the URL of an HTTP API `provider.httpApi.id` names
+ * `displayEndpoints`; Dev Mode lists the same endpoints from the stack outputs it already read
+ * (`stackEndpointEntriesOf`), with the URL of an HTTP API `provider.httpApi.id` names
  * (`externalHttpApiEndpointOf`).
  */
 import { log } from '@serverless/util'
@@ -92,14 +92,16 @@ export const cloudFrontOf = ({ outputs, naming }) =>
   outputValue(outputs, naming.getCloudFrontDistributionDomainNameLogicalId())
 
 /**
- * The lines `info` and `deploy` print under "endpoint(s)": each route of a REST API
- * (`METHOD - <url><path>`) or of an HTTP API, another endpoint (a WebSocket API) as its URL, the
- * CloudFront distribution, each function URL, then each web app's endpoint URL and the custom
- * domains that serve it (`name: <url>`, or the bare URL when it is the service's only endpoint).
+ * The endpoints `info` and `deploy` print under "endpoint(s)", as entries: each route of a REST
+ * API or of an HTTP API (`{ kind: 'route', method, path, url }`, `path` as the event names it,
+ * `*` for an HTTP API's catch-all route), another endpoint (a WebSocket API) as its URL
+ * (`{ kind: 'other', url }`), the CloudFront distribution (`{ kind: 'cloudfront', url }`, its
+ * domain name), each function URL (`{ kind: 'function', name, url }`), then each web app's
+ * endpoint URL and the custom domains that serve it (`{ kind: 'webApp', name, url }`).
  * `endpoints` are the base URLs, `httpApiEndpoints` those of an HTTP API, `functionUrls` and
  * `webApps` `[{ name, url }]`.
  */
-export const formatEndpoints = ({
+export const endpointEntriesOf = ({
   serverless,
   endpoints = [],
   httpApiEndpoints,
@@ -107,7 +109,7 @@ export const formatEndpoints = ({
   functionUrls = [],
   webApps = [],
 }) => {
-  const outputSectionItems = []
+  const entries = []
 
   for (const endpoint of endpoints ?? []) {
     if (httpApiEndpoints?.has(endpoint)) {
@@ -118,9 +120,12 @@ export const formatEndpoints = ({
       for (const functionData of Object.values(serverless.service.functions)) {
         for (const event of functionData.events) {
           if (!event.httpApi) continue
-          outputSectionItems.push(
-            `${event.resolvedMethod} - ${endpoint}${event.resolvedPath || ''}`,
-          )
+          entries.push({
+            kind: 'route',
+            method: event.resolvedMethod,
+            path: event.resolvedPath ?? '*',
+            url: `${endpoint}${event.resolvedPath || ''}`,
+          })
         }
       }
     } else if (endpoint.startsWith('https://')) {
@@ -145,42 +150,63 @@ export const formatEndpoints = ({
                     .filter((p) => p !== '')
                     .join('/')}`
                 : ''
-            outputSectionItems.push(`${method} - ${endpoint}${path}`)
+            entries.push({
+              kind: 'route',
+              method,
+              path: path || '/',
+              url: `${endpoint}${path}`,
+            })
           }
         })
       })
     } else {
       // if the endpoint is not of type http(s) (e.g. wss) we just display
-      outputSectionItems.push(endpoint)
+      entries.push({ kind: 'other', url: endpoint })
     }
   }
 
-  if (cloudFront) {
-    outputSectionItems.push(`CloudFront - ${cloudFront}`)
-  }
+  if (cloudFront) entries.push({ kind: 'cloudfront', url: cloudFront })
 
-  const namedUrls = [
-    ...functionUrls,
-    ...webAppEndpointsOf({ serverless, webApps }),
-  ]
-  if (outputSectionItems.length === 0 && namedUrls.length === 1) {
-    // The only URL in the whole service: no name needed
-    outputSectionItems.push(namedUrls[0].url)
-  } else {
-    for (const { name, url } of namedUrls) {
-      outputSectionItems.push(`${name}: ${url}`)
-    }
+  for (const { name, url } of functionUrls) {
+    entries.push({ kind: 'function', name, url })
   }
+  for (const { name, url } of webAppEndpointsOf({ serverless, webApps })) {
+    entries.push({ kind: 'webApp', name, url })
+  }
+  return entries
+}
 
-  return outputSectionItems
+const lineOf = (entry) => {
+  if (entry.kind === 'route') return `${entry.method} - ${entry.url}`
+  if (entry.kind === 'cloudfront') return `CloudFront - ${entry.url}`
+  if (entry.kind === 'other') return entry.url
+  return `${entry.name}: ${entry.url}`
 }
 
 /**
- * `formatEndpoints` for a deployed stage, from its stack's `outputs` and, for an HTTP API
+ * The lines `info` and `deploy` print under "endpoint(s)" for `entries` (`endpointEntriesOf`): a
+ * route as `METHOD - <url><path>`, another endpoint as its URL, the CloudFront distribution as
+ * `CloudFront - <domain>`, and each function URL and web app URL as `name: <url>`, or as the bare
+ * URL when it is the service's only endpoint.
+ */
+export const endpointLinesOfEntries = (entries) => {
+  // The only URL in the whole service: no name needed
+  if (entries.length === 1 && entries[0].name !== undefined) {
+    return [entries[0].url]
+  }
+  return entries.map(lineOf)
+}
+
+/** `endpointLinesOfEntries` of `endpointEntriesOf` (same arguments). */
+export const formatEndpoints = (args) =>
+  endpointLinesOfEntries(endpointEntriesOf(args))
+
+/**
+ * `endpointEntriesOf` for a deployed stage, from its stack's `outputs` and, for an HTTP API
  * `provider.httpApi.id` names (which has no output), its URL (`externalHttpApiEndpointOf`), listed
  * after the outputs' endpoints as `getStackInfo` lists it.
  */
-export const endpointLinesOf = ({
+export const stackEndpointEntriesOf = ({
   serverless,
   outputs,
   naming,
@@ -191,7 +217,7 @@ export const endpointLinesOf = ({
     endpoints.push(externalHttpApiEndpoint)
     httpApiEndpoints.add(externalHttpApiEndpoint)
   }
-  return formatEndpoints({
+  return endpointEntriesOf({
     serverless,
     endpoints,
     httpApiEndpoints,

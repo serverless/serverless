@@ -183,6 +183,14 @@ describe('Dev Mode lines about this machine', () => {
     expect(configChangedLine('serverless.yml')).toBe(
       'serverless.yml changed: run "serverless deploy" for environment, IAM, events or functions; restart "serverless dev" for a new handler path.',
     )
+    expect(configChangedLine('serverless.yml', { webApps: true })).toBe(
+      'serverless.yml changed: run "serverless deploy" for environment, IAM, events, functions or web apps; restart "serverless dev" for a new handler path or a web app\'s new dev.command or entry.',
+    )
+    expect(
+      configChangedLine('serverless.yml', { functions: false, webApps: true }),
+    ).toBe(
+      'serverless.yml changed: run "serverless deploy" for environment, IAM or web apps; restart "serverless dev" for a web app\'s new dev.command or entry.',
+    )
     expect(watcherFailedLine(new Error('EMFILE'))).toBe(
       'The file watcher reported an error (EMFILE). If saving a file stops reloading your handlers, restart "serverless dev".',
     )

@@ -4,7 +4,8 @@
  * no retries of its own and every call goes through `withBackoff` (jittered, honouring the
  * `retryAfterSeconds` Lambda returns). Conflicts and stale revisions are not retried here: the
  * attach and restore loops re-read the function and re-derive the change instead. The session's
- * periodic check reads with `getFunctionOnce`, which never retries.
+ * periodic check reads with `getFunctionOnce`, which never retries. The Lambda Web client (web
+ * apps) follows the same policy.
  */
 import { lookup as dnsLookup } from 'node:dns/promises'
 import {
@@ -22,8 +23,21 @@ import {
   IAMClient,
   PutRolePermissionsBoundaryCommand,
   PutRolePolicyCommand,
+  UpdateAssumeRolePolicyCommand,
 } from '@aws-sdk/client-iam'
 import { DescribeEndpointCommand, IoTClient } from '@aws-sdk/client-iot'
+import {
+  CreateWebFunctionEndpointCommand,
+  CreateWebFunctionRevisionCommand,
+  DeleteWebFunctionEndpointCommand,
+  DeleteWebFunctionRevisionCommand,
+  GetWebFunctionEndpointCommand,
+  GetWebFunctionRevisionCommand,
+  LambdaWebClient,
+  ListWebFunctionEndpointsCommand,
+  ListWebFunctionRevisionsCommand,
+  UpdateWebFunctionEndpointCommand,
+} from '@aws-sdk/client-lambda-web'
 import { partition } from '@aws-sdk/core/client'
 import { log, ServerlessError } from '@serverless/util'
 // Subpath import: tests that load every plugin mock '@serverless/util' wholesale.
@@ -410,9 +424,9 @@ export const credentialProvider =
   }
 
 /**
- * The SDK clients behind the adapters; the Lambda client makes a single attempt per call. With
- * `connectionTimeoutMs`, a connection not made within it fails the call as a `TimeoutError`; the
- * proxy setup keeps it on the request handler it puts in place.
+ * The SDK clients behind the adapters; the Lambda and Lambda Web clients make a single attempt
+ * per call. With `connectionTimeoutMs`, a connection not made within it fails the call as a
+ * `TimeoutError`; the proxy setup keeps it on the request handler it puts in place.
  */
 export const createSdkClients = ({ provider, region, connectionTimeoutMs }) => {
   const credentials = credentialProvider(provider)
@@ -427,6 +441,55 @@ export const createSdkClients = ({ provider, region, connectionTimeoutMs }) => {
     ),
     iam: addProxyToAwsClient(new IAMClient(config), handler),
     iot: addProxyToAwsClient(new IoTClient(config), handler),
+    lambdaWeb: addProxyToAwsClient(
+      new LambdaWebClient({ ...config, maxAttempts: 1 }),
+      handler,
+    ),
+  }
+}
+
+/** How often the Lambda Web waiters read the revision or endpoint. */
+const WEB_POLL_MS = 1000
+
+/** A Lambda Web response without the SDK's request metadata. */
+const withoutMetadata = ({ $metadata, ...rest } = {}) => rest
+
+/**
+ * How long a waiter reads a revision or endpoint as "not visible yet" before it counts as gone: a
+ * new one shows up within a second or two, so one missing for longer was deleted (by a teammate,
+ * or by this session's own clean-up after Ctrl+C).
+ */
+const WEB_MISSING_GRACE_MS = 5_000
+
+/**
+ * Polls `read` every second until `settled(resource)` says it is done (true) or failed (an error
+ * to throw). A `null` read (not visible yet) is read again until it has been missing for
+ * WEB_MISSING_GRACE_MS in a row, then `missing()` is thrown. `timedOut()` makes the error thrown
+ * when it is still not done after `timeoutMs`.
+ */
+const pollUntil = async ({
+  read,
+  settled,
+  missing,
+  timedOut,
+  timeoutMs,
+  sleep: wait,
+  now,
+}) => {
+  const started = now()
+  let missingSince = null
+  for (;;) {
+    const resource = await read()
+    if (resource) missingSince = null
+    else missingSince ??= now()
+    if (missingSince !== null && now() - missingSince >= WEB_MISSING_GRACE_MS) {
+      throw missing()
+    }
+    const outcome = resource ? settled(resource) : false
+    if (outcome instanceof Error) throw outcome
+    if (outcome) return resource
+    if (now() - started >= timeoutMs) throw timedOut()
+    await wait(WEB_POLL_MS)
   }
 }
 
@@ -439,7 +502,7 @@ export const createDevModeClients = ({
   debug = debugLine,
 }) => {
   const built =
-    sdk?.lambda && sdk?.iam && sdk?.iot
+    sdk?.lambda && sdk?.iam && sdk?.iot && sdk?.lambdaWeb
       ? {}
       : createSdkClients({ provider, region, connectionTimeoutMs })
   // Rejected credentials become Dev Mode's error here, where the provider is known, so the error
@@ -459,11 +522,229 @@ export const createDevModeClients = ({
   const lambdaSdk = credentialsChecked(sdk?.lambda ?? built.lambda)
   const iamSdk = credentialsChecked(sdk?.iam ?? built.iam)
   const iotSdk = credentialsChecked(sdk?.iot ?? built.iot)
-  const send = (command) =>
-    withBackoff(() => lambdaSdk.send(command), {
+  const lambdaWebSdk = credentialsChecked(sdk?.lambdaWeb ?? built.lambdaWeb)
+  const backoff = (client) => (command) =>
+    withBackoff(() => client.send(command), {
       onRetry: retryLine(command, debug),
       ...retry,
     })
+  const send = backoff(lambdaSdk)
+  const sendWeb = backoff(lambdaWebSdk)
+  const nullIfMissing = async (call) => {
+    try {
+      return withoutMetadata(await call())
+    } catch (error) {
+      if (isNotFound(error)) return null
+      throw error
+    }
+  }
+  /** Every item of a Lambda Web list, page after page; none when the web function is gone. */
+  const listAll = async (Command, input, key) => {
+    const items = []
+    let nextToken
+    do {
+      let page
+      try {
+        page = await sendWeb(new Command({ ...input, nextToken }))
+      } catch (error) {
+        if (isNotFound(error)) return []
+        throw error
+      }
+      items.push(...(page[key] ?? []))
+      nextToken = page.nextToken
+    } while (nextToken)
+    return items
+  }
+  /** True once deleted; false when it was already gone. */
+  const deleteWeb = async (command) => {
+    try {
+      await sendWeb(command)
+      return true
+    } catch (error) {
+      if (isNotFound(error)) return false
+      throw error
+    }
+  }
+  const lambdaWeb = {
+    getEndpoint: ({ functionName, endpointName }) =>
+      nullIfMissing(() =>
+        sendWeb(
+          new GetWebFunctionEndpointCommand({ functionName, endpointName }),
+        ),
+      ),
+    /** Sends all of the endpoint's traffic to `revisionId`. */
+    updateEndpointWeights: async ({ functionName, endpointName, revisionId }) =>
+      withoutMetadata(
+        await sendWeb(
+          new UpdateWebFunctionEndpointCommand({
+            functionName,
+            endpointName,
+            revisionWeights: [{ revisionId, weight: 100 }],
+          }),
+        ),
+      ),
+    /**
+     * An endpoint in the function's home region serving `revisionId` alone. Automatic deployment
+     * is off, so revisions created later take none of its traffic.
+     */
+    createEndpoint: async ({
+      functionName,
+      endpointName,
+      revisionId,
+      authType = 'IamAuth',
+    }) =>
+      withoutMetadata(
+        await sendWeb(
+          new CreateWebFunctionEndpointCommand({
+            functionName,
+            endpointName,
+            endpointType: 'HomeRegion',
+            authType,
+            autoDeploymentMode: 'Disabled',
+            revisionWeights: [{ revisionId, weight: 100 }],
+          }),
+        ),
+      ),
+    deleteEndpoint: ({ functionName, endpointName }) =>
+      deleteWeb(
+        new DeleteWebFunctionEndpointCommand({ functionName, endpointName }),
+      ),
+    listEndpoints: ({ functionName }) =>
+      listAll(ListWebFunctionEndpointsCommand, { functionName }, 'endpoints'),
+    /** One attempt, no backoff: for the session's periodic check, which tries again next time. */
+    getEndpointOnce: ({ functionName, endpointName }) =>
+      nullIfMissing(() =>
+        lambdaWebSdk.send(
+          new GetWebFunctionEndpointCommand({ functionName, endpointName }),
+        ),
+      ),
+    getRevisionOnce: ({ functionName, revisionId }) =>
+      nullIfMissing(() =>
+        lambdaWebSdk.send(
+          new GetWebFunctionRevisionCommand({ functionName, revisionId }),
+        ),
+      ),
+    getRevision: ({ functionName, revisionId }) =>
+      nullIfMissing(() =>
+        sendWeb(
+          new GetWebFunctionRevisionCommand({ functionName, revisionId }),
+        ),
+      ),
+    createRevision: async ({
+      functionName,
+      description,
+      kmsKeyArn,
+      buildConfig,
+      serviceConfig,
+    }) =>
+      withoutMetadata(
+        await sendWeb(
+          new CreateWebFunctionRevisionCommand({
+            functionName,
+            description,
+            kmsKeyArn,
+            buildConfig,
+            serviceConfig,
+          }),
+        ),
+      ),
+    deleteRevision: ({ functionName, revisionId }) =>
+      deleteWeb(
+        new DeleteWebFunctionRevisionCommand({ functionName, revisionId }),
+      ),
+    listRevisions: ({ functionName }) =>
+      listAll(ListWebFunctionRevisionsCommand, { functionName }, 'revisions'),
+    /** The revision once it is Active (a new one takes several seconds). */
+    waitRevisionActive: ({
+      functionName,
+      revisionId,
+      timeoutMs = 60_000,
+      sleep: wait = sleep,
+      now = Date.now,
+    }) =>
+      pollUntil({
+        read: () => lambdaWeb.getRevision({ functionName, revisionId }),
+        settled: (revision) => {
+          if (revision.state === 'Active') return true
+          if (revision.state !== 'Failed') return false
+          const reason =
+            revision.errors?.[0]?.errorMessage ?? revision.stateReason
+          return new ServerlessError(
+            `AWS Lambda could not activate the revision ${revisionId} of the web function ${functionName}${reason ? ` (${reason})` : ''}. Check the web app's configuration, then run the command again.`,
+            'DEV_MODE_REVISION_FAILED',
+            { stack: false },
+          )
+        },
+        missing: () =>
+          new ServerlessError(
+            `The revision ${revisionId} of the web function ${functionName} was not found: it was deleted while Dev Mode waited for it. Run the command again.`,
+            'DEV_MODE_REVISION_NOT_FOUND',
+            { stack: false },
+          ),
+        timedOut: () =>
+          new ServerlessError(
+            `The revision ${revisionId} of the web function ${functionName} did not become active within ${Math.round(timeoutMs / 1000)} s. Check the web function in the AWS Lambda console, then run the command again.`,
+            'DEV_MODE_REVISION_TIMEOUT',
+            { stack: false },
+          ),
+        timeoutMs,
+        sleep: wait,
+        now,
+      }),
+    /** The endpoint once it is Active with no update in progress. */
+    waitEndpointActive: ({
+      functionName,
+      endpointName,
+      timeoutMs = 60_000,
+      sleep: wait = sleep,
+      now = Date.now,
+    }) =>
+      pollUntil({
+        read: () => lambdaWeb.getEndpoint({ functionName, endpointName }),
+        settled: (endpoint) => {
+          if (endpoint.state === 'Deleting') {
+            return new ServerlessError(
+              `The endpoint ${endpointName} of the web function ${functionName} is being deleted. Run the command again once it is gone.`,
+              'DEV_MODE_ENDPOINT_DELETING',
+              { stack: false },
+            )
+          }
+          if (
+            endpoint.state === 'Failed' ||
+            endpoint.updateStatus === 'Failed'
+          ) {
+            const reason =
+              endpoint.state === 'Failed'
+                ? endpoint.stateReason
+                : endpoint.updateStatusReason
+            return new ServerlessError(
+              `AWS Lambda could not activate the endpoint ${endpointName} of the web function ${functionName}${reason ? ` (${reason})` : ''}. Check the web function in the AWS Lambda console, then run the command again.`,
+              'DEV_MODE_ENDPOINT_FAILED',
+              { stack: false },
+            )
+          }
+          return (
+            endpoint.state === 'Active' &&
+            endpoint.updateStatus !== 'InProgress'
+          )
+        },
+        missing: () =>
+          new ServerlessError(
+            `The endpoint ${endpointName} of the web function ${functionName} was not found: it was deleted while Dev Mode waited for it. Run the command again.`,
+            'DEV_MODE_ENDPOINT_NOT_FOUND',
+            { stack: false },
+          ),
+        timedOut: () =>
+          new ServerlessError(
+            `The endpoint ${endpointName} of the web function ${functionName} did not become active within ${Math.round(timeoutMs / 1000)} s. Check the web function in the AWS Lambda console, then run the command again.`,
+            'DEV_MODE_ENDPOINT_TIMEOUT',
+            { stack: false },
+          ),
+        timeoutMs,
+        sleep: wait,
+        now,
+      }),
+  }
 
   return {
     lambda: {
@@ -556,6 +837,8 @@ export const createDevModeClients = ({
       putRolePolicy: (params) => iamSdk.send(new PutRolePolicyCommand(params)),
       putRolePermissionsBoundary: (params) =>
         iamSdk.send(new PutRolePermissionsBoundaryCommand(params)),
+      updateAssumeRolePolicy: (params) =>
+        iamSdk.send(new UpdateAssumeRolePolicyCommand(params)),
     },
     iot: {
       describeEndpoint: async () =>
@@ -565,5 +848,6 @@ export const createDevModeClients = ({
           )
         ).endpointAddress,
     },
+    lambdaWeb,
   }
 }

@@ -135,8 +135,11 @@ describe('a running session', () => {
       endpoints: [
         { method: 'POST', url: 'https://x/orders', function: 'createOrder' },
       ],
-      // The lines `info` prints for them, which the session computed.
-      endpointText: { endpoints: ['POST - https://x/orders'], mcp: [] },
+      // The endpoints `info` prints, labelled, which the session computed.
+      endpointRows: {
+        endpoints: [{ label: 'POST /orders', url: 'https://x/orders' }],
+        mcp: [],
+      },
       cursor: `${testSessionId(1)}:57`,
     })
     const { code, result, text } = await run(serviceDir(), {
@@ -187,8 +190,159 @@ describe('a running session', () => {
     expect(text).toMatch(
       /3 invocations \(1 not ok\) · last: createOrder 3f2a9c1e error, \d+ (s|min|h|d) ago/,
     )
-    // As `serverless info` prints them; the result above has the entries only.
-    expect(text).toContain('endpoint: POST - https://x/orders')
+    // As the start-up lists them; the result above has the entries only.
+    expect(text).toContain('endpoints:\n  POST /orders  https://x/orders')
+  })
+
+  test('status lists web_apps with url and local_url', async () => {
+    const state = new Map([
+      [
+        'web',
+        {
+          mode: 'dev',
+          port: 51001,
+          localUrl: 'http://127.0.0.1:52001',
+          credentials: 'relayed',
+          serving: true,
+          note: null,
+        },
+      ],
+      [
+        'admin',
+        {
+          mode: 'local',
+          port: 51002,
+          localUrl: 'http://127.0.0.1:52002',
+          credentials: 'denied',
+          serving: false,
+          note: { reason: 'local_server_down', message: 'down' },
+        },
+      ],
+    ])
+    const fields = sessionStatusFields({
+      record: RECORD,
+      rows: [{ function: 'createOrder', mode: 'dev', notes: [] }],
+      requestRecorder: {
+        counts: () => ({ total: 3, failed: 1 }),
+        lastRequest: () => ({
+          request_id: 'c1d2e3f4-0000-4000-8000-000000000001',
+          web_app: 'web',
+          outcome: 'answered',
+          ts: '2026-10-05T10:41:07.512Z',
+        }),
+      },
+      webApps: {
+        rows: [
+          { webApp: 'web', mode: 'dev', notes: [] },
+          { webApp: 'admin', mode: 'local', notes: [] },
+          {
+            webApp: 'docs',
+            mode: 'skipped',
+            reason: 'not_deployed',
+            why: 'not deployed yet (run serverless deploy)',
+            notes: [],
+          },
+        ],
+        state,
+        urlOf: (key) =>
+          key === 'docs' ? undefined : `https://main-${key}.example`,
+      },
+      endpointRows: {
+        endpoints: [],
+        webAppUrls: [
+          { name: 'web', url: 'https://main-web.example' },
+          { name: 'web', url: 'https://www.example.com' },
+          { name: 'admin', url: 'https://main-admin.example' },
+        ],
+        mcp: [],
+      },
+    })
+    const { result, text } = await run(serviceDir(), {
+      connect: async () => ({
+        status: async () => ({ status: 200, body: fields }),
+      }),
+    })
+    expect(result.web_apps).toEqual([
+      {
+        name: 'web',
+        mode: 'dev',
+        url: 'https://main-web.example',
+        local_url: 'http://127.0.0.1:52001',
+      },
+      {
+        name: 'admin',
+        mode: 'local',
+        why: 'on its local URL only (--local-only); its real URL serves the deployed code; its server on this machine is not listening on port 51002; requests run the deployed code until it is; runs without its role credentials: your AWS credentials may not call its endpoint sls-dev-local (lambda:InvokeWebFunctionEndpoint)',
+        notes: ['local_server_down', 'no_role_credentials'],
+        url: 'https://main-admin.example',
+        local_url: 'http://127.0.0.1:52002',
+      },
+      {
+        name: 'docs',
+        mode: 'skipped',
+        reason: 'not_deployed',
+        why: 'not deployed yet (run serverless deploy)',
+      },
+    ])
+    expect(Object.keys(result)).toEqual(
+      expect.arrayContaining(['functions', 'web_apps', 'endpoints']),
+    )
+    // The requests, as the invocations are counted.
+    expect(result.requests).toEqual({ total: 3, failed: 1 })
+    expect(result.last_request).toEqual({
+      request_id: 'c1d2e3f4-0000-4000-8000-000000000001',
+      web_app: 'web',
+      outcome: 'answered',
+      ts: '2026-10-05T10:41:07.512Z',
+    })
+    expect(text).toContain(
+      '0 invocations\n3 web requests (1 not ok) · last: web c1d2e3f4 answered',
+    )
+    // The table lists them after the functions; web apps: lists the real URLs and the URL on this machine of those that run here.
+    expect(text).toMatch(/web \(web app\)\s+dev/)
+    expect(text).toMatch(/docs \(web app\)\s+skipped\s+not deployed yet/)
+    expect(text).toContain(
+      [
+        'web apps:',
+        '  web    https://main-web.example',
+        '         https://www.example.com',
+        '         http://127.0.0.1:52001',
+        '  admin  http://127.0.0.1:52002  (local only)',
+      ].join('\n'),
+    )
+    expect(text).not.toContain('endpoints:')
+  })
+
+  test('a service without web apps has no web_apps in its status', () => {
+    const fields = sessionStatusFields({
+      record: RECORD,
+      rows: [{ function: 'api', mode: 'dev', notes: [] }],
+      webApps: { rows: [], state: new Map() },
+    })
+    expect(fields).not.toHaveProperty('web_apps')
+    expect(fields).not.toHaveProperty('requests')
+    expect(fields).not.toHaveProperty('last_request')
+  })
+
+  test('a session of web apps alone counts requests, with no invocation line; none yet is zero', async () => {
+    const fields = sessionStatusFields({
+      record: RECORD,
+      rows: [],
+      webApps: {
+        rows: [{ webApp: 'web', mode: 'dev', notes: [] }],
+        state: new Map(),
+      },
+    })
+    expect(fields.requests).toEqual({ total: 0, failed: 0 })
+    expect(fields.last_request).toBeUndefined()
+    const { text } = await run(serviceDir(), {
+      options: {},
+      connect: async () => ({
+        status: async () => ({ status: 200, body: fields }),
+      }),
+    })
+    expect(text).toContain('0 web requests')
+    expect(text).not.toContain('invocation')
   })
 
   test('lists MCP servers after the HTTP endpoints, as deploy and info print them', async () => {
@@ -199,9 +353,9 @@ describe('a running session', () => {
     const fields = sessionStatusFields({
       record: RECORD,
       endpoints,
-      endpointText: {
-        endpoints: ['POST - https://x/orders'],
-        mcp: ['crm → https://x/crm/mcp'],
+      endpointRows: {
+        endpoints: [{ label: 'POST /orders', url: 'https://x/orders' }],
+        mcp: [{ name: 'crm', url: 'https://x/crm/mcp' }],
       },
     })
     const connect = async () => ({
@@ -212,21 +366,134 @@ describe('a running session', () => {
     expect(Object.keys(result)).not.toContain('endpoint_text')
     const { text } = await run(serviceDir(), { options: {}, connect })
     expect(text).toContain(
-      'endpoint: POST - https://x/orders\nmcp: crm → https://x/crm/mcp',
+      'endpoints:\n  POST /orders  https://x/orders\nmcp:\n  crm  https://x/crm/mcp',
     )
   })
 
-  test('lists every endpoint, beyond the ten the start-up names', async () => {
-    const lines = Array.from({ length: 12 }, (_, i) => `GET - https://x/${i}`)
+  // A session of an earlier CLI version answers `endpoint_text` alone, the lines `deploy` and
+  // `info` print, in the shape d86fb3f's session wrote: no `endpoint_rows`.
+  const olderSession = ({ webApps, endpointText }) => {
     const fields = sessionStatusFields({
       record: RECORD,
-      endpointText: { endpoints: lines, mcp: [] },
+      webApps: {
+        rows: webApps.map(({ name, mode }) => ({
+          webApp: name,
+          mode,
+          notes: [],
+        })),
+        state: new Map(
+          webApps.map(({ name, mode, localUrl }) => [
+            name,
+            { mode, port: 51001, localUrl, serving: true, note: null },
+          ]),
+        ),
+        urlOf: (key) => webApps.find((webApp) => webApp.name === key)?.url,
+      },
+    })
+    return async () => ({
+      status: async () => ({
+        status: 200,
+        body: { ...fields, endpoint_text: endpointText },
+      }),
+    })
+  }
+
+  test('a session of an earlier CLI version: its endpoint lines are listed, each web app once, under web apps:', async () => {
+    const connect = olderSession({
+      webApps: [
+        {
+          name: 'site',
+          mode: 'dev',
+          localUrl: 'http://localhost:52001',
+          url: 'https://main-site.example',
+        },
+        {
+          name: 'admin',
+          mode: 'local',
+          localUrl: 'http://localhost:52002',
+          url: 'https://main-admin.example',
+        },
+      ],
+      endpointText: {
+        endpoints: [
+          'GET - https://x/hello',
+          'site: https://main-site.example',
+          'site: https://www.example.com',
+          'admin: https://main-admin.example',
+        ],
+        mcp: ['crm → https://x/crm/mcp'],
+      },
+    })
+    const { text } = await run(serviceDir(), { options: {}, connect })
+    expect(text).toContain(
+      [
+        'endpoints:',
+        '  GET - https://x/hello',
+        'web apps:',
+        '  site   https://main-site.example',
+        '         https://www.example.com',
+        '         http://localhost:52001',
+        '  admin  http://localhost:52002  (local only)',
+        'mcp:',
+        '  crm  https://x/crm/mcp',
+      ].join('\n'),
+    )
+    expect(text.match(/main-site\.example/g)).toHaveLength(1)
+    expect(text).not.toContain('main-admin.example')
+  })
+
+  test('a session of an earlier CLI version with a lone web app: its bare URL is listed under web apps: only', async () => {
+    const connect = olderSession({
+      webApps: [
+        {
+          name: 'site',
+          mode: 'dev',
+          localUrl: 'http://localhost:52001',
+          url: 'https://main-site.example',
+        },
+      ],
+      endpointText: { endpoints: ['https://main-site.example'], mcp: [] },
+    })
+    const { text } = await run(serviceDir(), { options: {}, connect })
+    expect(text).toContain(
+      'web apps:\n  site  https://main-site.example\n        http://localhost:52001',
+    )
+    expect(text).not.toContain('endpoints:')
+  })
+
+  test('both endpoint fields stay out of --json', async () => {
+    const fields = sessionStatusFields({
+      record: RECORD,
+      endpointText: { endpoints: ['GET - https://x/hello'], mcp: [] },
+      endpointRows: {
+        endpoints: [{ label: 'GET /hello', url: 'https://x/hello' }],
+        webAppUrls: [],
+        mcp: [],
+      },
+    })
+    const { result } = await run(serviceDir(), {
+      connect: async () => ({
+        status: async () => ({ status: 200, body: fields }),
+      }),
+    })
+    expect(Object.keys(result)).not.toContain('endpoint_text')
+    expect(Object.keys(result)).not.toContain('endpoint_rows')
+  })
+
+  test('lists every endpoint, beyond the ten the start-up names', async () => {
+    const lines = Array.from({ length: 12 }, (_, i) => ({
+      label: `GET /${i}`,
+      url: `https://x/${i}`,
+    }))
+    const fields = sessionStatusFields({
+      record: RECORD,
+      endpointRows: { endpoints: lines, mcp: [] },
     })
     const connect = async () => ({
       status: async () => ({ status: 200, body: fields }),
     })
     const { text } = await run(serviceDir(), { options: {}, connect })
-    expect(text).toContain('  GET - https://x/11')
+    expect(text).toContain('  GET /11  https://x/11')
     expect(text).not.toContain('more')
   })
 
@@ -368,6 +635,40 @@ describe('no session answers', () => {
         },
       ],
     })
+  })
+
+  test('a session of web apps names them where it could not restore or ended without restoring', async () => {
+    const killed = serviceDir()
+    let log = openEventLog({
+      dir: devDir(killed),
+      sessionId: testSessionId(1),
+    })
+    log.emit('session.starting', { stage: 'alice', region: 'eu-west-1' })
+    log.emit('web_app.mode', { web_app: 'web', mode: 'dev' })
+    log.emit('session.ready', {})
+    log.close()
+    expect((await run(killed)).result.message).toBe(
+      'Dev Mode is off here. The last session ended without restoring its web apps.',
+    )
+    const ended = serviceDir()
+    log = openEventLog({ dir: devDir(ended), sessionId: testSessionId(1) })
+    log.emit('session.starting', { stage: 'alice', region: 'eu-west-1' })
+    log.emit('session.ready', {})
+    log.emit('session.ended', {
+      exit_code: 3,
+      restore: { restored: 0, unchanged: 0, skipped: 0, missing: 0, failed: 2 },
+      web_apps: {
+        restored: 0,
+        unchanged: 0,
+        skipped: 0,
+        missing: 0,
+        failed: 1,
+      },
+    })
+    log.close()
+    expect((await run(ended)).result.message).toBe(
+      'Dev Mode is off here. The last session could not restore 1 function and 1 web app.',
+    )
   })
 
   test("the last session was killed: off, and restore of that session's stage and region is next", async () => {

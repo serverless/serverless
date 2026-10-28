@@ -16,6 +16,8 @@ import { getWebAppLogGroupNames } from './web-apps/compilers/logGroups.js'
 import { getWebAppAuthType } from './web-apps/compilers/endpoint.js'
 import { listWebAppDomains } from './web-apps/compilers/domain.js'
 import { parseHeaderOptions } from './lib/invoke-options.js'
+import { findHandledRequest, handledLine } from './dev/state/handled.js'
+import { setCliNames, shownPath } from './dev/commands/cli-names.js'
 
 /** How often `--log` looks for the request's lines. */
 const LOG_POLL_INTERVAL_MS = 1000
@@ -79,6 +81,7 @@ class AwsInvokeWebApp {
     this.provider = this.serverless.getProvider('aws')
     this.logger = pluginUtils.log
     this.progress = pluginUtils.progress
+    this.findHandledRequest = findHandledRequest
 
     this.hooks = {
       'invoke:invoke': async () => {
@@ -129,6 +132,7 @@ class AwsInvokeWebApp {
 
     this.printHead(response)
     await this.printBody(response)
+    await this.logDevMode({ name, sentAt })
 
     if (this.options.log) {
       await this.printRequestLogs({ name, functionName, response, sentAt })
@@ -139,6 +143,40 @@ class AwsInvokeWebApp {
         `Web app "${name}" returned HTTP ${response.status}.`,
         'WEB_APPS_INVOKE_HTTP_ERROR',
         { stack: false },
+      )
+    }
+  }
+
+  /**
+   * When this directory's Dev Mode session ran the request on the working copy: one line naming
+   * the request and its file, as `invoke --function` prints for an invocation. stderr only; stdout
+   * and the exit code never change, and a failed lookup is a debug line.
+   */
+  async logDevMode({ name, sentAt }) {
+    try {
+      const reqPath = this.options.path || '/'
+      const handled = await this.findHandledRequest({
+        serviceDir: this.serverless.serviceDir,
+        service: this.serverless.service.service,
+        stage: this.provider.getStage(),
+        region: this.provider.getRegion(),
+        webApp: name,
+        method: this.options.method || 'GET',
+        path: reqPath.startsWith('/') ? reqPath : `/${reqPath}`,
+        sentAt,
+      })
+      if (!handled) return
+      // Named as it is reached from where the CLI runs (a Compose root, --config).
+      setCliNames({ serverless: this.serverless, options: this.options })
+      this.logger.aside(
+        handledLine({
+          requestId: handled.requestId,
+          file: shownPath(handled.file),
+        }),
+      )
+    } catch (error) {
+      this.logger.debug(
+        `Dev Mode could not tell whether it ran this request: ${error?.message ?? error}`,
       )
     }
   }

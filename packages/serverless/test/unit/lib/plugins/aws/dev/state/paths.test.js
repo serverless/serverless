@@ -26,6 +26,7 @@ test('the record lives in .serverless/dev of the service directory', () => {
     events: 'session.ndjson',
     log: 'session.log',
     invocations: 'invocations',
+    requests: 'requests',
   })
   expect(REQUEST_ID_PREFIX_MIN).toBe(8)
 })

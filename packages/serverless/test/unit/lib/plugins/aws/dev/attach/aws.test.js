@@ -6,6 +6,15 @@ import {
   UpdateFunctionConfigurationCommand,
 } from '@aws-sdk/client-lambda'
 import { GetRolePolicyCommand } from '@aws-sdk/client-iam'
+import {
+  CreateWebFunctionRevisionCommand,
+  DeleteWebFunctionEndpointCommand,
+  DeleteWebFunctionRevisionCommand,
+  GetWebFunctionEndpointCommand,
+  GetWebFunctionRevisionCommand,
+  ListWebFunctionEndpointsCommand,
+  ListWebFunctionRevisionsCommand,
+} from '@aws-sdk/client-lambda-web'
 import { log } from '@serverless/util'
 import {
   awsErrorOf,
@@ -889,9 +898,10 @@ describe('the real SDK clients', () => {
     jest.restoreAllMocks()
   })
 
-  test('the Lambda client makes a single attempt per call', async () => {
+  test('the Lambda and Lambda Web clients make a single attempt per call', async () => {
     const clients = createSdkClients({ provider, region: 'us-east-1' })
     expect(await clients.lambda.config.maxAttempts()).toBe(1)
+    expect(await clients.lambdaWeb.config.maxAttempts()).toBe(1)
   })
 
   test('a connection timeout ends a call to an endpoint that never connects within it, in one attempt', async () => {
@@ -967,7 +977,7 @@ describe('the real SDK clients', () => {
           connectionTimeoutMs: PRE_COMMAND_CONNECTION_TIMEOUT_MS,
         })
         const without = createSdkClients({ provider, region: 'us-east-1' })
-        for (const name of ['lambda', 'iam', 'iot']) {
+        for (const name of ['lambda', 'iam', 'iot', 'lambdaWeb']) {
           expect(await connectionTimeoutOf(given[name])).toBe(
             PRE_COMMAND_CONNECTION_TIMEOUT_MS,
           )
@@ -989,7 +999,12 @@ describe('the real SDK clients', () => {
     const clients = createSdkClients({ provider, region: 'us-east-1' })
     const start = Date.now()
     const clock = jest.spyOn(Date, 'now').mockReturnValue(start)
-    for (const client of [clients.lambda, clients.iam, clients.iot]) {
+    for (const client of [
+      clients.lambda,
+      clients.iam,
+      clients.iot,
+      clients.lambdaWeb,
+    ]) {
       clock.mockReturnValue(start)
       const before = calls
       const first = await client.config.credentials()
@@ -1115,4 +1130,587 @@ test('by default the retry line goes to the CLI log at debug level', async () =>
   } finally {
     debug.mockRestore()
   }
+})
+
+describe('the Lambda Web adapter', () => {
+  const fn = 'svc-dev-web'
+  const notFound = () =>
+    Object.assign(named('ResourceNotFoundException'), {
+      $metadata: { httpStatusCode: 404 },
+    })
+  const clientsWith = (send, retry = {}) =>
+    createDevModeClients({
+      provider: {},
+      region: 'us-east-1',
+      sdk: { lambda: {}, iam: {}, iot: {}, lambdaWeb: { send } },
+      retry: { sleep: async () => {}, random: noJitter, ...retry },
+      debug: () => {},
+    })
+  const recording = (answer) => {
+    const sent = []
+    const send = async (command) => {
+      sent.push([command.constructor.name, command.input])
+      return answer(command)
+    }
+    return { sent, lambdaWeb: clientsWith(send).lambdaWeb }
+  }
+  const clock = () => {
+    let t = 0
+    const waits = []
+    return {
+      waits,
+      now: () => t,
+      sleep: async (ms) => {
+        waits.push(ms)
+        t += ms
+      },
+    }
+  }
+
+  test('each endpoint method sends its command with the input it names', async () => {
+    const { sent, lambdaWeb } = recording(() => ({
+      $metadata: { httpStatusCode: 200 },
+      endpointName: 'sls-dev-fallback',
+      state: 'Active',
+    }))
+    expect(
+      await lambdaWeb.getEndpoint({
+        functionName: fn,
+        endpointName: 'main',
+      }),
+    ).toEqual({ endpointName: 'sls-dev-fallback', state: 'Active' })
+    await lambdaWeb.updateEndpointWeights({
+      functionName: fn,
+      endpointName: 'main',
+      revisionId: 'rev-dev',
+    })
+    await lambdaWeb.createEndpoint({
+      functionName: fn,
+      endpointName: 'sls-dev-fallback',
+      revisionId: 'rev-clone',
+      authType: 'IamAuth',
+    })
+    await lambdaWeb.deleteEndpoint({
+      functionName: fn,
+      endpointName: 'sls-dev-fallback',
+    })
+    expect(sent).toEqual([
+      [
+        'GetWebFunctionEndpointCommand',
+        { functionName: fn, endpointName: 'main' },
+      ],
+      [
+        'UpdateWebFunctionEndpointCommand',
+        {
+          functionName: fn,
+          endpointName: 'main',
+          revisionWeights: [{ revisionId: 'rev-dev', weight: 100 }],
+        },
+      ],
+      [
+        'CreateWebFunctionEndpointCommand',
+        {
+          functionName: fn,
+          endpointName: 'sls-dev-fallback',
+          endpointType: 'HomeRegion',
+          authType: 'IamAuth',
+          autoDeploymentMode: 'Disabled',
+          revisionWeights: [{ revisionId: 'rev-clone', weight: 100 }],
+        },
+      ],
+      [
+        'DeleteWebFunctionEndpointCommand',
+        { functionName: fn, endpointName: 'sls-dev-fallback' },
+      ],
+    ])
+  })
+
+  test('each revision method sends its command with the input it names', async () => {
+    const buildConfig = {
+      codeConfig: { s3Object: { bucket: 'b', key: 'k' } },
+      runtimeConfig: { runtime: 'nodejs24.x' },
+    }
+    const serviceConfig = {
+      executionRoleArn: 'arn:aws:iam::000000000000:role/r',
+      environmentVariables: { SLS_DEV_SESSION: 's1' },
+    }
+    const { sent, lambdaWeb } = recording((command) =>
+      command instanceof CreateWebFunctionRevisionCommand
+        ? { revisionId: 'rev-new', state: 'Pending' }
+        : { revisionId: 'rev-new', state: 'Active' },
+    )
+    expect(
+      await lambdaWeb.createRevision({
+        functionName: fn,
+        description: 'Serverless Dev Mode bridge for session s1',
+        kmsKeyArn: 'arn:aws:kms:us-east-1:000000000000:key/k',
+        buildConfig,
+        serviceConfig,
+      }),
+    ).toEqual({ revisionId: 'rev-new', state: 'Pending' })
+    expect(
+      await lambdaWeb.getRevision({ functionName: fn, revisionId: 'rev-new' }),
+    ).toEqual({ revisionId: 'rev-new', state: 'Active' })
+    await lambdaWeb.deleteRevision({ functionName: fn, revisionId: 'rev-new' })
+    expect(sent).toEqual([
+      [
+        'CreateWebFunctionRevisionCommand',
+        {
+          functionName: fn,
+          description: 'Serverless Dev Mode bridge for session s1',
+          kmsKeyArn: 'arn:aws:kms:us-east-1:000000000000:key/k',
+          buildConfig,
+          serviceConfig,
+        },
+      ],
+      [
+        'GetWebFunctionRevisionCommand',
+        { functionName: fn, revisionId: 'rev-new' },
+      ],
+      [
+        'DeleteWebFunctionRevisionCommand',
+        { functionName: fn, revisionId: 'rev-new' },
+      ],
+    ])
+  })
+
+  test('a missing endpoint or revision reads as null; deleting one that is gone reports false', async () => {
+    const { lambdaWeb } = recording((command) => {
+      if (
+        command instanceof GetWebFunctionEndpointCommand ||
+        command instanceof GetWebFunctionRevisionCommand ||
+        command instanceof DeleteWebFunctionEndpointCommand ||
+        command instanceof DeleteWebFunctionRevisionCommand
+      )
+        throw notFound()
+      throw new Error(`unexpected ${command.constructor.name}`)
+    })
+    expect(
+      await lambdaWeb.getEndpoint({ functionName: fn, endpointName: 'x' }),
+    ).toBeNull()
+    expect(
+      await lambdaWeb.getRevision({ functionName: fn, revisionId: 'x' }),
+    ).toBeNull()
+    expect(
+      await lambdaWeb.deleteEndpoint({ functionName: fn, endpointName: 'x' }),
+    ).toBe(false)
+    expect(
+      await lambdaWeb.deleteRevision({ functionName: fn, revisionId: 'x' }),
+    ).toBe(false)
+  })
+
+  test('a delete that succeeds reports true; a conflict is passed on', async () => {
+    const { lambdaWeb } = recording((command) => {
+      if (command instanceof DeleteWebFunctionRevisionCommand)
+        throw failing('ConflictException', 409)
+      return {}
+    })
+    expect(
+      await lambdaWeb.deleteEndpoint({ functionName: fn, endpointName: 'e' }),
+    ).toBe(true)
+    await expect(
+      lambdaWeb.deleteRevision({ functionName: fn, revisionId: 'r' }),
+    ).rejects.toMatchObject({ name: 'ConflictException' })
+  })
+
+  test('the list methods follow every page to the end', async () => {
+    const { sent, lambdaWeb } = recording((command) => {
+      const token = command.input.nextToken
+      if (command instanceof ListWebFunctionEndpointsCommand)
+        return token
+          ? { endpoints: [{ endpointName: 'sls-dev-local' }] }
+          : { endpoints: [{ endpointName: 'main' }], nextToken: 'e2' }
+      if (command instanceof ListWebFunctionRevisionsCommand) {
+        if (!token)
+          return { revisions: [{ revisionId: 'r1' }], nextToken: 'r2' }
+        if (token === 'r2') return { revisions: [], nextToken: 'r3' }
+        return { revisions: [{ revisionId: 'r3' }] }
+      }
+      throw new Error(`unexpected ${command.constructor.name}`)
+    })
+    expect(await lambdaWeb.listEndpoints({ functionName: fn })).toEqual([
+      { endpointName: 'main' },
+      { endpointName: 'sls-dev-local' },
+    ])
+    expect(await lambdaWeb.listRevisions({ functionName: fn })).toEqual([
+      { revisionId: 'r1' },
+      { revisionId: 'r3' },
+    ])
+    expect(sent).toEqual([
+      [
+        'ListWebFunctionEndpointsCommand',
+        { functionName: fn, nextToken: undefined },
+      ],
+      [
+        'ListWebFunctionEndpointsCommand',
+        { functionName: fn, nextToken: 'e2' },
+      ],
+      [
+        'ListWebFunctionRevisionsCommand',
+        { functionName: fn, nextToken: undefined },
+      ],
+      [
+        'ListWebFunctionRevisionsCommand',
+        { functionName: fn, nextToken: 'r2' },
+      ],
+      [
+        'ListWebFunctionRevisionsCommand',
+        { functionName: fn, nextToken: 'r3' },
+      ],
+    ])
+  })
+
+  test('listing a web function that is gone returns no items', async () => {
+    const { lambdaWeb } = recording(() => {
+      throw notFound()
+    })
+    expect(await lambdaWeb.listEndpoints({ functionName: fn })).toEqual([])
+    expect(await lambdaWeb.listRevisions({ functionName: fn })).toEqual([])
+  })
+
+  test('calls share the Lambda retry policy and its debug line', async () => {
+    let calls = 0
+    const waits = []
+    const lines = []
+    const { lambdaWeb } = createDevModeClients({
+      provider: {},
+      region: 'us-east-1',
+      sdk: {
+        lambda: {},
+        iam: {},
+        iot: {},
+        lambdaWeb: {
+          send: async () => {
+            calls += 1
+            if (calls === 1)
+              throw Object.assign(named('ThrottlingException'), {
+                retryAfterSeconds: 2,
+                $metadata: { httpStatusCode: 429 },
+              })
+            if (calls === 2) throw withCode('ECONNRESET')
+            return { endpointName: 'main' }
+          },
+        },
+      },
+      retry: { sleep: async (ms) => waits.push(ms), random: noJitter },
+      debug: (text) => lines.push(text),
+    })
+    expect(
+      await lambdaWeb.getEndpoint({ functionName: fn, endpointName: 'main' }),
+    ).toEqual({ endpointName: 'main' })
+    expect(waits).toEqual([2000, 500])
+    expect(lines[0]).toBe(
+      'Dev Mode retries GetWebFunctionEndpointCommand in 2000 ms after ThrottlingException (retry 1 of 7)',
+    )
+  })
+
+  test('the single-attempt reads of the periodic check never retry; missing reads as null', async () => {
+    let calls = 0
+    const { sent, lambdaWeb } = recording((command) => {
+      calls += 1
+      if (command.input.endpointName === 'gone') throw notFound()
+      throw Object.assign(named('ThrottlingException'), {
+        $metadata: { httpStatusCode: 429 },
+      })
+    })
+    await expect(
+      lambdaWeb.getEndpointOnce({ functionName: fn, endpointName: 'main' }),
+    ).rejects.toThrow()
+    await expect(
+      lambdaWeb.getRevisionOnce({ functionName: fn, revisionId: 'rev-1' }),
+    ).rejects.toThrow()
+    expect(calls).toBe(2)
+    expect(
+      await lambdaWeb.getEndpointOnce({
+        functionName: fn,
+        endpointName: 'gone',
+      }),
+    ).toBeNull()
+    expect(sent.map(([name, input]) => [name, input])).toEqual([
+      [
+        'GetWebFunctionEndpointCommand',
+        { functionName: fn, endpointName: 'main' },
+      ],
+      [
+        'GetWebFunctionRevisionCommand',
+        { functionName: fn, revisionId: 'rev-1' },
+      ],
+      [
+        'GetWebFunctionEndpointCommand',
+        { functionName: fn, endpointName: 'gone' },
+      ],
+    ])
+  })
+
+  test('rejected credentials become the Dev Mode credentials error', async () => {
+    const { lambdaWeb } = recording(() => {
+      throw Object.assign(named('ExpiredTokenException'), {
+        $metadata: { httpStatusCode: 403 },
+      })
+    })
+    await expect(
+      lambdaWeb.listRevisions({ functionName: fn }),
+    ).rejects.toMatchObject({ code: 'DEV_MODE_AWS_CREDENTIALS_INVALID' })
+  })
+
+  describe('waitRevisionActive', () => {
+    test('polls every second until the revision is Active', async () => {
+      const states = ['Pending', 'Pending', 'Active']
+      const { sent, lambdaWeb } = recording(() => ({
+        revisionId: 'rev-new',
+        state: states.shift(),
+      }))
+      const c = clock()
+      expect(
+        await lambdaWeb.waitRevisionActive({
+          functionName: fn,
+          revisionId: 'rev-new',
+          sleep: c.sleep,
+          now: c.now,
+        }),
+      ).toEqual({ revisionId: 'rev-new', state: 'Active' })
+      expect(c.waits).toEqual([1000, 1000])
+      expect(sent.map(([name]) => name)).toEqual([
+        'GetWebFunctionRevisionCommand',
+        'GetWebFunctionRevisionCommand',
+        'GetWebFunctionRevisionCommand',
+      ])
+    })
+
+    test('a Failed revision throws DEV_MODE_REVISION_FAILED with its first error', async () => {
+      const { lambdaWeb } = recording(() => ({
+        revisionId: 'rev-new',
+        state: 'Failed',
+        stateReason: 'Revision creation failed',
+        errors: [
+          {
+            attribute: 'serviceConfig.executionRoleArn',
+            errorCode: 'InvalidRole',
+            errorMessage: 'The role cannot be assumed by Lambda.',
+          },
+        ],
+      }))
+      const c = clock()
+      const error = await lambdaWeb
+        .waitRevisionActive({
+          functionName: fn,
+          revisionId: 'rev-new',
+          sleep: c.sleep,
+          now: c.now,
+        })
+        .catch((caught) => caught)
+      expect(error.code).toBe('DEV_MODE_REVISION_FAILED')
+      expect(error.message).toContain('The role cannot be assumed by Lambda.')
+      expect(error.message).toContain('rev-new')
+      expect(c.waits).toEqual([])
+    })
+
+    test('a Failed revision without errors names its state reason', async () => {
+      const { lambdaWeb } = recording(() => ({
+        revisionId: 'rev-new',
+        state: 'Failed',
+        stateReason: 'Internal failure',
+      }))
+      await expect(
+        lambdaWeb.waitRevisionActive({
+          functionName: fn,
+          revisionId: 'rev-new',
+          ...clock(),
+        }),
+      ).rejects.toMatchObject({
+        code: 'DEV_MODE_REVISION_FAILED',
+        message: expect.stringContaining('Internal failure'),
+      })
+    })
+
+    test('a revision still Pending after the timeout throws DEV_MODE_REVISION_TIMEOUT', async () => {
+      const { sent, lambdaWeb } = recording(() => ({
+        revisionId: 'rev-new',
+        state: 'Pending',
+      }))
+      const c = clock()
+      await expect(
+        lambdaWeb.waitRevisionActive({
+          functionName: fn,
+          revisionId: 'rev-new',
+          timeoutMs: 5_000,
+          sleep: c.sleep,
+          now: c.now,
+        }),
+      ).rejects.toMatchObject({ code: 'DEV_MODE_REVISION_TIMEOUT' })
+      expect(c.waits.every((ms) => ms === 1000)).toBe(true)
+      expect(c.now()).toBeGreaterThanOrEqual(5_000)
+      expect(c.now()).toBeLessThanOrEqual(6_000)
+      expect(sent.length).toBeLessThanOrEqual(7)
+    })
+
+    test('the default timeout is a minute', async () => {
+      const { lambdaWeb } = recording(() => ({ state: 'Pending' }))
+      const c = clock()
+      await expect(
+        lambdaWeb.waitRevisionActive({
+          functionName: fn,
+          revisionId: 'rev-new',
+          sleep: c.sleep,
+          now: c.now,
+        }),
+      ).rejects.toMatchObject({ code: 'DEV_MODE_REVISION_TIMEOUT' })
+      expect(c.now()).toBeGreaterThanOrEqual(60_000)
+      expect(c.now()).toBeLessThanOrEqual(61_000)
+    })
+
+    test('a revision not visible yet is polled again', async () => {
+      let reads = 0
+      const { lambdaWeb } = recording(() => {
+        reads += 1
+        if (reads === 1) throw notFound()
+        return { revisionId: 'rev-new', state: 'Active' }
+      })
+      expect(
+        await lambdaWeb.waitRevisionActive({
+          functionName: fn,
+          revisionId: 'rev-new',
+          ...clock(),
+        }),
+      ).toMatchObject({ state: 'Active' })
+      expect(reads).toBe(2)
+    })
+
+    test('a revision missing for longer than five seconds throws DEV_MODE_REVISION_NOT_FOUND', async () => {
+      const { lambdaWeb } = recording(() => {
+        throw notFound()
+      })
+      const c = clock()
+      await expect(
+        lambdaWeb.waitRevisionActive({
+          functionName: fn,
+          revisionId: 'rev-gone',
+          sleep: c.sleep,
+          now: c.now,
+        }),
+      ).rejects.toMatchObject({
+        code: 'DEV_MODE_REVISION_NOT_FOUND',
+        message: expect.stringContaining('rev-gone'),
+      })
+      expect(c.now()).toBeGreaterThanOrEqual(5_000)
+      expect(c.now()).toBeLessThanOrEqual(6_000)
+    })
+
+    test('a revision that disappears while Pending fails five seconds after it went', async () => {
+      let reads = 0
+      const { lambdaWeb } = recording(() => {
+        reads += 1
+        if (reads <= 10) return { revisionId: 'rev-new', state: 'Pending' }
+        throw notFound()
+      })
+      const c = clock()
+      await expect(
+        lambdaWeb.waitRevisionActive({
+          functionName: fn,
+          revisionId: 'rev-new',
+          sleep: c.sleep,
+          now: c.now,
+        }),
+      ).rejects.toMatchObject({ code: 'DEV_MODE_REVISION_NOT_FOUND' })
+      expect(c.now()).toBeGreaterThanOrEqual(15_000)
+      expect(c.now()).toBeLessThanOrEqual(16_000)
+    })
+  })
+
+  describe('waitEndpointActive', () => {
+    test('an endpoint being deleted throws DEV_MODE_ENDPOINT_DELETING at once', async () => {
+      const { lambdaWeb } = recording(() => ({ state: 'Deleting' }))
+      const c = clock()
+      await expect(
+        lambdaWeb.waitEndpointActive({
+          functionName: fn,
+          endpointName: 'sls-dev-fallback',
+          sleep: c.sleep,
+          now: c.now,
+        }),
+      ).rejects.toMatchObject({
+        code: 'DEV_MODE_ENDPOINT_DELETING',
+        message: expect.stringContaining('sls-dev-fallback'),
+      })
+      expect(c.waits).toEqual([])
+    })
+
+    test('an endpoint missing for longer than five seconds throws DEV_MODE_ENDPOINT_NOT_FOUND', async () => {
+      const { lambdaWeb } = recording(() => {
+        throw notFound()
+      })
+      const c = clock()
+      await expect(
+        lambdaWeb.waitEndpointActive({
+          functionName: fn,
+          endpointName: 'sls-dev-fallback',
+          sleep: c.sleep,
+          now: c.now,
+        }),
+      ).rejects.toMatchObject({ code: 'DEV_MODE_ENDPOINT_NOT_FOUND' })
+      expect(c.now()).toBeLessThanOrEqual(6_000)
+    })
+
+    test('waits until the endpoint is Active and no update is in progress', async () => {
+      const answers = [
+        { state: 'Pending' },
+        { state: 'Active', updateStatus: 'InProgress' },
+        { state: 'Active', updateStatus: 'Successful' },
+      ]
+      const { sent, lambdaWeb } = recording(() => answers.shift())
+      const c = clock()
+      expect(
+        await lambdaWeb.waitEndpointActive({
+          functionName: fn,
+          endpointName: 'sls-dev-fallback',
+          sleep: c.sleep,
+          now: c.now,
+        }),
+      ).toEqual({ state: 'Active', updateStatus: 'Successful' })
+      expect(c.waits).toEqual([1000, 1000])
+      expect(sent[0]).toEqual([
+        'GetWebFunctionEndpointCommand',
+        { functionName: fn, endpointName: 'sls-dev-fallback' },
+      ])
+    })
+
+    test('a Failed endpoint or update throws DEV_MODE_ENDPOINT_FAILED with its reason', async () => {
+      for (const answer of [
+        { state: 'Failed', stateReason: 'Endpoint creation failed' },
+        {
+          state: 'Active',
+          updateStatus: 'Failed',
+          updateStatusReason: 'Endpoint creation failed',
+        },
+      ]) {
+        const { lambdaWeb } = recording(() => answer)
+        await expect(
+          lambdaWeb.waitEndpointActive({
+            functionName: fn,
+            endpointName: 'sls-dev-fallback',
+            ...clock(),
+          }),
+        ).rejects.toMatchObject({
+          code: 'DEV_MODE_ENDPOINT_FAILED',
+          message: expect.stringContaining('Endpoint creation failed'),
+        })
+      }
+    })
+
+    test('an endpoint still Pending after the timeout throws DEV_MODE_ENDPOINT_TIMEOUT', async () => {
+      const { lambdaWeb } = recording(() => ({ state: 'Pending' }))
+      const c = clock()
+      await expect(
+        lambdaWeb.waitEndpointActive({
+          functionName: fn,
+          endpointName: 'sls-dev-fallback',
+          timeoutMs: 3_000,
+          sleep: c.sleep,
+          now: c.now,
+        }),
+      ).rejects.toMatchObject({ code: 'DEV_MODE_ENDPOINT_TIMEOUT' })
+      expect(c.now()).toBeGreaterThanOrEqual(3_000)
+      expect(c.now()).toBeLessThanOrEqual(4_000)
+    })
+  })
 })

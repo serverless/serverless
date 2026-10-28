@@ -1,13 +1,13 @@
 /**
- * `serverless dev wait`: waits until this directory's Dev Mode session reaches a point, then
- * prints that event record and its cursor. `--for ready` and `--for ended` return at once when
- * that is already true; `--for invocation` and `--for reload` match the next `invocation.end` /
- * `reload.end` after now, or after `--after <cursor>` (exclusive), including records written
- * before the command started. The result's cursor is the matched record's, so `--after` it
- * continues right after it. `--for ended` answers with the end's own status: exit 0 for a clean
- * end, the end's exit code otherwise. The wait reads .serverless/dev/session.ndjson; while it
- * waits for anything but the end it tells the session every 30 s that it is in use, so a detached
- * session does not stop for being idle.
+ * `serverless dev wait`: waits until this directory's Dev Mode session reaches a point, then prints
+ * that event record and its cursor. `--for ready` and `--for ended` return at once when that is
+ * already true; `--for invocation`, `--for request` and `--for reload` match the next
+ * `invocation.end` / `request.end` (of a web app) / `reload.end` after now, or after `--after
+ * <cursor>` (exclusive), including records written before the command started. The result's cursor
+ * is the matched record's, so `--after` it continues right after it. `--for ended` answers with the
+ * end's own status: exit 0 for a clean end, the end's exit code otherwise. The wait reads
+ * .serverless/dev/session.ndjson; while it waits for anything but the end it tells the session
+ * every 30 s that it is in use, so a detached session does not stop for being idle.
  */
 import fs from 'fs'
 import { ServerlessError } from '@serverless/util'
@@ -37,10 +37,12 @@ import {
 } from './envelope.js'
 import { endStatusOf } from './session-end.js'
 import { cliCommand, shownPath } from './cli-names.js'
+import { runningCounts } from '../attach/output.js'
+import { getWebAppsConfig } from '../../lib/web-apps.js'
 
 export const WAIT_DEFAULT_MS = 100_000
 export const WAIT_MAX_MS = 60 * 60_000
-export const WAIT_FOR = ['ready', 'invocation', 'reload', 'ended']
+export const WAIT_FOR = ['ready', 'invocation', 'request', 'reload', 'ended']
 /** How often a wait checks that the session process is still there. */
 export const PRESENCE_POLL_MS = 1_000
 /** How often an open wait tells the session it is in use. */
@@ -103,11 +105,16 @@ const parseWaitFor = (value) => {
   )
 }
 
-/** Whether a record is what `--for <kind>` (and `--function`) waits for. */
-export const matcherFor = ({ kind, functions = [] }) => {
+/** Whether a record is what `--for <kind>` (and `--function` or `--web-app`) waits for. */
+export const matcherFor = ({ kind, functions = [], webApps = [] }) => {
   const wanted = new Set(functions)
   const forFunction = (name) => wanted.size === 0 || wanted.has(name)
+  const apps = new Set(webApps)
   switch (kind) {
+    case 'request':
+      return (record) =>
+        record.type === 'request.end' &&
+        (apps.size === 0 || apps.has(record.web_app))
     case 'ready':
       return (record) => record.type === 'session.ready'
     case 'ended':
@@ -116,9 +123,12 @@ export const matcherFor = ({ kind, functions = [] }) => {
       return (record) =>
         record.type === 'invocation.end' && forFunction(record.function)
     default:
+      // A reload of the functions (`functions`) or of a web app's server (`web_apps`).
       return (record) =>
         record.type === 'reload.end' &&
-        (wanted.size === 0 || (record.functions ?? []).some(forFunction))
+        ((wanted.size === 0 && apps.size === 0) ||
+          (record.functions ?? []).some((name) => wanted.has(name)) ||
+          (record.web_apps ?? []).some((key) => apps.has(key)))
   }
 }
 
@@ -129,10 +139,14 @@ const WHAT = {
     functions.length
       ? `the next invocation of ${functions.join(' or ')}`
       : 'the next invocation',
-  reload: (functions) =>
-    functions.length
-      ? `the next reload of ${functions.join(' or ')}`
+  reload: (functions, webApps = []) =>
+    functions.length || webApps.length
+      ? `the next reload of ${[...functions, ...webApps].join(' or ')}`
       : 'the next reload',
+  request: (functions, webApps) =>
+    webApps.length
+      ? `the next request to ${webApps.join(' or ')}`
+      : 'the next web app request',
 }
 
 /** A record as a result carries it: its file as it is reached from where the CLI runs. */
@@ -144,7 +158,20 @@ export const describeRecord = (record) => {
   switch (record.type) {
     case 'session.ready': {
       const { dev = 0, deployed = 0, skipped = 0 } = record.functions ?? {}
-      return `Dev Mode is on: ${dev} of ${dev + deployed + skipped} functions run on this machine (session ${record.session_id}).`
+      const web = record.web_apps
+      // Web apps, for a service with web apps: those in dev or local mode run on this machine.
+      const running = web ? (web.dev ?? 0) + (web.local ?? 0) : 0
+      const counts = runningCounts({
+        devCount: dev,
+        total: dev + deployed + skipped,
+        ...(web && {
+          webApps: {
+            running,
+            total: running + (web.deployed ?? 0) + (web.skipped ?? 0),
+          },
+        }),
+      })
+      return `Dev Mode is on: ${counts} run on this machine (session ${record.session_id}).`
     }
     case 'invocation.end':
       return [
@@ -153,9 +180,28 @@ export const describeRecord = (record) => {
       ]
         .filter(Boolean)
         .join('\n')
+    case 'request.end':
+      return [
+        [
+          record.web_app,
+          `${record.method ?? ''} ${record.path ?? ''}`.trim(),
+          shortId(record.request_id),
+          record.outcome,
+          record.status_code ? String(record.status_code) : null,
+          `${record.duration_ms} ms`,
+          record.source && record.source !== 'relay' ? record.source : null,
+        ]
+          .filter(Boolean)
+          .join(' · '),
+        record.file && shownPath(record.file),
+      ]
+        .filter(Boolean)
+        .join('\n')
     case 'reload.end':
       return record.ok
-        ? `Reloaded ${(record.functions ?? []).join(', ')} (${record.ms} ms).`
+        ? `Reloaded ${(record.functions ?? [])
+            .concat((record.web_apps ?? []).map((key) => `web app ${key}`))
+            .join(', ')} (${record.ms} ms).`
         : `The reload failed: ${record.error ?? 'see the session output'}.`
     case 'session.failed':
       return record.message
@@ -167,7 +213,7 @@ export const describeRecord = (record) => {
         record.exit_code === undefined || record.exit_code === null
           ? ''
           : ` (exit ${record.exit_code})`
-      return `Dev Mode off${exit}: ${restore.restored ?? 0} restored, ${restore.failed ?? 0} not restored${record.kept ? '; functions were kept in Dev Mode' : ''}.`
+      return `Dev Mode off${exit}: ${restore.restored ?? 0} restored, ${restore.failed ?? 0} not restored${record.kept ? (record.web_apps ? '; what it attached was kept in Dev Mode' : '; functions were kept in Dev Mode') : ''}.`
     }
     default:
       return record.type
@@ -315,6 +361,18 @@ const waitForSession = async ({
             maxMs: WAIT_MAX_MS,
           })
     const functions = [...new Set([].concat(options.function ?? []))]
+    const webApps = [...new Set([].concat(options['web-app'] ?? []))]
+    // A filter of another kind of event would only wait for the time limit.
+    if (
+      (webApps.length && kind !== 'request' && kind !== 'reload') ||
+      (functions.length && kind === 'request')
+    ) {
+      throw new ServerlessError(
+        'Option "--web-app" goes with "--for request" or "--for reload"; "--function" goes with "--for invocation" or "--for reload".',
+        'DEV_MODE_INVALID_OPTION_COMBINATION',
+        { stack: false },
+      )
+    }
     // A name serverless.yml does not have would only wait for the time limit.
     const names = serverless?.service?.getAllFunctions?.()
     if (names) {
@@ -327,9 +385,20 @@ const waitForSession = async ({
         )
       }
     }
+    if (webApps.length && serverless?.service) {
+      const known = Object.keys(getWebAppsConfig(serverless))
+      const unknown = webApps.find((name) => !known.includes(name))
+      if (unknown !== undefined) {
+        throw new ServerlessError(
+          `Web app "${unknown}" is not in this service. Web apps: ${known.join(', ') || 'none'}.`,
+          'DEV_MODE_UNKNOWN_WEB_APP',
+          { stack: false },
+        )
+      }
+    }
     const after =
       options.after === undefined ? null : parseCursor(String(options.after))
-    const match = matcherFor({ kind, functions })
+    const match = matcherFor({ kind, functions, webApps })
 
     // A cursor of another session: an earlier one here while its records are kept (they name its
     // service and stage), else one this directory knows nothing of, such as the session of
@@ -559,7 +628,7 @@ const waitForSession = async ({
     const afterSeq = Math.max(after?.seq ?? 0, lastOf(own)?.seq ?? 0)
     let toucher = client
     spinner.notice(
-      `Waiting for ${WHAT[kind](functions)} (up to ${durationText(timeoutMs)})`,
+      `Waiting for ${WHAT[kind](functions, webApps)} (up to ${durationText(timeoutMs)})`,
     )
     const outcome = await waitForRecord({
       dir,
@@ -615,6 +684,7 @@ const waitForSession = async ({
       const again = [
         cliCommand(`dev wait --for ${kind}`),
         ...functions.map((name) => `--function ${name}`),
+        ...webApps.map((name) => `--web-app ${name}`),
         ...(cursor ? [`--after ${cursor}`] : []),
       ].join(' ')
       return done({

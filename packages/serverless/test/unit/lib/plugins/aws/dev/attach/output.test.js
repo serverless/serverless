@@ -2,6 +2,12 @@ import * as out from '../../../../../../../lib/plugins/aws/dev/attach/output.js'
 import { ENV_UNREADABLE_WHY } from '../../../../../../../lib/plugins/aws/dev/attach/undo-record.js'
 import { credentialsInvalidError } from '../../../../../../../lib/plugins/aws/dev/attach/aws.js'
 import { runWithoutColor } from '../without-color.js'
+// Subpath import: tests that load every plugin mock '@serverless/util' wholesale.
+import {
+  getColorSettingsForTests,
+  setColorSettingsForTests,
+  style,
+} from '@serverless/util/src/logger/index.js'
 
 // Its tests read the plain text of styled lines.
 runWithoutColor()
@@ -410,51 +416,202 @@ test('the function table shows only when it says more than the ready line', () =
   ).toBe(true)
 })
 
-describe('the start-up endpoint lines, as deploy and info print them', () => {
-  // The lines `info` prints for each endpoint (`formatEndpoints`) and for each MCP server
-  // (`formatMcpEndpoints`), as the session computes them from the stack's outputs.
-  const http = (n) =>
-    `GET - https://abc.execute-api.us-east-1.amazonaws.com/dev/items/${n}`
-  const mcp = (name) =>
-    `${name} → https://abc.execute-api.us-east-1.amazonaws.com/dev/${name}/mcp`
+describe('the start-up lines of the endpoints and the web apps', () => {
+  // As endpointListsOf (../control/endpoints.js) gives them (its `rows`): `endpoints` and `mcp` labelled,
+  // `webAppUrls` each web app's real URL and custom domains. `webApps` are the web apps that run
+  // here, with their mode and the URL on this machine.
+  const API = 'https://abcde12345.execute-api.us-east-1.amazonaws.com'
+  const SITE = 'https://siteexample12345.mrc.lambda-web.us-east-1.on.aws'
+  const ADMIN = 'https://adminexample1234.mrc.lambda-web.us-east-1.on.aws'
+  const http = (n) => ({
+    label: `GET /items/${n}`,
+    url: `${API}/dev/items/${n}`,
+  })
 
-  test('HTTP endpoints only', () => {
-    expect(out.endpointLines({ endpoints: [http(1), http(2)] })).toEqual([
-      ['endpoints:', `  ${http(1)}`, `  ${http(2)}`].join('\n'),
+  test('a function with an API endpoint and a web app in dev mode', () => {
+    expect(
+      out.endpointLines({
+        endpoints: [{ label: 'GET /hello', url: `${API}/hello` }],
+        webAppUrls: [{ name: 'site', url: SITE }],
+        webApps: [
+          { name: 'site', mode: 'dev', localUrl: 'http://localhost:39729' },
+        ],
+      }),
+    ).toEqual([
+      ['endpoints:', `  GET /hello  ${API}/hello`].join('\n'),
+      ['web apps:', `  site  ${SITE}`, '        http://localhost:39729'].join(
+        '\n',
+      ),
     ])
   })
 
-  test('one endpoint: on the line of its heading', () => {
+  test('endpoints of each kind: the URLs aligned in one column, one endpoint in the block too', () => {
+    expect(
+      out.endpointLines({
+        endpoints: [
+          { label: 'GET /', url: `${API}/dev` },
+          { label: 'ANY /proxy/{any+}', url: `${API}/dev/proxy/{any+}` },
+          {
+            label: 'WebSocket',
+            url: 'wss://w.execute-api.us-east-1.amazonaws.com/dev',
+          },
+          { label: 'CloudFront', url: 'd111.cloudfront.net' },
+          { label: 'stream', url: 'https://s.lambda-url.us-east-1.on.aws/' },
+        ],
+      }),
+    ).toEqual([
+      [
+        'endpoints:',
+        `  GET /              ${API}/dev`,
+        `  ANY /proxy/{any+}  ${API}/dev/proxy/{any+}`,
+        '  WebSocket          wss://w.execute-api.us-east-1.amazonaws.com/dev',
+        '  CloudFront         d111.cloudfront.net',
+        '  stream             https://s.lambda-url.us-east-1.on.aws/',
+      ].join('\n'),
+    ])
     expect(out.endpointLines({ endpoints: [http(1)] })).toEqual([
-      `endpoint: ${http(1)}`,
+      `endpoints:\n  GET /items/1  ${API}/dev/items/1`,
     ])
   })
 
-  test('a function URL and a REST API root, as info prints them', () => {
-    const lines = [
-      'GET - https://abc.execute-api.us-east-1.amazonaws.com/dev',
-      'web: https://xyz.lambda-url.us-east-1.on.aws/',
-    ]
-    expect(out.endpointLines({ endpoints: lines })).toEqual([
-      ['endpoints:', ...lines.map((line) => `  ${line}`)].join('\n'),
+  test('a function URL alone: its function names it', () => {
+    expect(
+      out.endpointLines({
+        endpoints: [
+          { label: 'web', url: 'https://x.lambda-url.us-east-1.on.aws/' },
+        ],
+      }),
+    ).toEqual(['endpoints:\n  web  https://x.lambda-url.us-east-1.on.aws/'])
+  })
+
+  test('several web apps, one --local-only: names and URLs aligned, custom domains under the real URL', () => {
+    expect(
+      out.endpointLines({
+        webAppUrls: [
+          { name: 'site', url: SITE },
+          { name: 'site', url: 'https://www.example.com' },
+          { name: 'admin', url: ADMIN },
+          { name: 'docs', url: 'https://docs.lambda-web.us-east-1.on.aws' },
+        ],
+        webApps: [
+          { name: 'site', mode: 'dev', localUrl: 'http://localhost:52341' },
+          { name: 'admin', mode: 'dev', localUrl: 'http://localhost:52357' },
+          { name: 'docs', mode: 'local', localUrl: 'http://localhost:52360' },
+        ],
+      }),
+    ).toEqual([
+      [
+        'web apps:',
+        `  site   ${SITE}`,
+        '         https://www.example.com',
+        '         http://localhost:52341',
+        `  admin  ${ADMIN}`,
+        '         http://localhost:52357',
+        '  docs   http://localhost:52360  (local only)',
+      ].join('\n'),
     ])
   })
 
-  test('one MCP server and no HTTP endpoint: the mcp section inline', () => {
-    expect(out.endpointLines({ mcp: [mcp('crm')] })).toEqual([
-      `mcp: ${mcp('crm')}`,
+  test('a --local-only web app alone', () => {
+    expect(
+      out.endpointLines({
+        webAppUrls: [{ name: 'admin', url: ADMIN }],
+        webApps: [
+          { name: 'admin', mode: 'local', localUrl: 'http://localhost:4000' },
+        ],
+      }),
+    ).toEqual(['web apps:\n  admin  http://localhost:4000  (local only)'])
+  })
+
+  test('in colour, the headings and (local only) are dim, the names and URLs plain', () => {
+    const saved = getColorSettingsForTests()
+    setColorSettingsForTests({ chalkLevel: 1, colorSupportLevel: 1 })
+    try {
+      expect(
+        out.endpointLines({
+          webAppUrls: [{ name: 'site', url: SITE }],
+          webApps: [
+            { name: 'site', mode: 'dev', localUrl: 'http://localhost:1' },
+            { name: 'admin', mode: 'local', localUrl: 'http://localhost:2' },
+          ],
+        }),
+      ).toEqual([
+        [
+          style.aside('web apps:'),
+          `  site   ${SITE}`,
+          '         http://localhost:1',
+          `  admin  http://localhost:2  ${style.aside('(local only)')}`,
+        ].join('\n'),
+      ])
+      expect(style.aside('(local only)')).not.toBe('(local only)')
+    } finally {
+      setColorSettingsForTests(saved)
+    }
+  })
+
+  test('web apps only, and a web app the session does not run is not listed', () => {
+    expect(
+      out.endpointLines({
+        webAppUrls: [
+          { name: 'site', url: SITE },
+          { name: 'admin', url: ADMIN },
+        ],
+        webApps: [
+          { name: 'site', mode: 'dev', localUrl: 'http://localhost:39729' },
+        ],
+      }),
+    ).toEqual([
+      ['web apps:', `  site  ${SITE}`, '        http://localhost:39729'].join(
+        '\n',
+      ),
     ])
   })
 
-  test('HTTP endpoints, then several MCP servers as an indented block', () => {
+  test('a web app in dev mode without a known real URL, or not yet listening here', () => {
+    expect(
+      out.endpointLines({
+        webApps: [
+          { name: 'site', mode: 'dev', localUrl: 'http://localhost:39729' },
+          { name: 'api', mode: 'dev', url: ADMIN },
+        ],
+      }),
+    ).toEqual([
+      ['web apps:', '  site  http://localhost:39729', `  api   ${ADMIN}`].join(
+        '\n',
+      ),
+    ])
+  })
+
+  test('functions only: no web apps section', () => {
+    expect(out.endpointLines({ endpoints: [http(1), http(2)] })).toEqual([
+      [
+        'endpoints:',
+        `  GET /items/1  ${API}/dev/items/1`,
+        `  GET /items/2  ${API}/dev/items/2`,
+      ].join('\n'),
+    ])
+  })
+
+  test('the MCP servers: their own section, after the web apps, in the same shape', () => {
     expect(
       out.endpointLines({
         endpoints: [http(1)],
-        mcp: [mcp('crm'), mcp('docs')],
+        mcp: [
+          { name: 'crm', url: `${API}/dev/crm/mcp` },
+          { name: 'docs', url: `${API}/dev/docs/mcp` },
+        ],
+        webApps: [
+          { name: 'site', mode: 'local', localUrl: 'http://localhost:1' },
+        ],
       }),
     ).toEqual([
-      `endpoint: ${http(1)}`,
-      ['mcp:', `  ${mcp('crm')}`, `  ${mcp('docs')}`].join('\n'),
+      `endpoints:\n  GET /items/1  ${API}/dev/items/1`,
+      'web apps:\n  site  http://localhost:1  (local only)',
+      [
+        'mcp:',
+        `  crm   ${API}/dev/crm/mcp`,
+        `  docs  ${API}/dev/docs/mcp`,
+      ].join('\n'),
     ])
   })
 
@@ -464,7 +621,7 @@ describe('the start-up endpoint lines, as deploy and info print them', () => {
     })
     const lines = section.split('\n')
     expect(lines).toHaveLength(12)
-    expect(lines[10]).toBe(`  ${http(10)}`)
+    expect(lines[10]).toBe(`  GET /items/10  ${API}/dev/items/10`)
     expect(lines[11]).toBe('  ... and 3 more')
   })
 
@@ -476,8 +633,27 @@ describe('the start-up endpoint lines, as deploy and info print them', () => {
     expect(section.split('\n')).toHaveLength(14)
   })
 
-  test('no endpoint: no line', () => {
-    expect(out.endpointLines({ endpoints: [], mcp: [] })).toEqual([])
+  test('lines of a session of an earlier version, as text, are listed as they are', () => {
+    expect(
+      out.endpointLines({
+        endpoints: [`GET - ${API}/hello`, `site: ${SITE}`],
+        mcp: [`crm → ${API}/crm/mcp`],
+      }),
+    ).toEqual([
+      `endpoints:\n  GET - ${API}/hello\n  site: ${SITE}`,
+      `mcp:\n  crm → ${API}/crm/mcp`,
+    ])
+  })
+
+  test('nothing to list: no line', () => {
+    expect(
+      out.endpointLines({
+        endpoints: [],
+        mcp: [],
+        webAppUrls: [],
+        webApps: [],
+      }),
+    ).toEqual([])
     expect(out.endpointLines()).toEqual([])
   })
 })
@@ -807,6 +983,36 @@ test('a restore where every function failed does not read as done', () => {
   expect(lines.map(([, text]) => text).join('\n')).not.toContain('Dev Mode off')
 })
 
+test('a restore of functions and web apps that is incomplete counts them together', () => {
+  const result = {
+    restored: [
+      { name: 'svc-dev-fn', status: 'restored' },
+      { name: 'svc-dev-cmd', status: 'restored', webApp: true },
+    ],
+    unchanged: [],
+    missing: [],
+    skipped: [],
+    failed: [
+      {
+        name: 'svc-dev-api',
+        status: 'failed',
+        webApp: true,
+        message: 'Rate exceeded',
+      },
+    ],
+  }
+  const lines = out.restoreReportLines({ result, seconds: 3 })
+  // Not "2 of 1 function and 2 web apps": the count and the total are of the same things.
+  expect(lines[0]).toEqual([
+    'error',
+    'Restore incomplete · 2 of 3 functions and web apps restored (3.0s)',
+  ])
+  // Web apps alone, or functions alone, keep their own word.
+  expect(
+    out.restoreIncompleteLine({ count: 0, total: 1, seconds: 1, webApps: 1 }),
+  ).toBe('Restore incomplete · 0 of 1 web app restored (1.0s)')
+})
+
 test('a command that restores first keeps its own outcome line', () => {
   const result = {
     restored: [{ name: 'a', status: 'restored' }],
@@ -856,6 +1062,60 @@ test('a command that restored the stage first names owners and age', () => {
   expect(out.restoringBeforeCommandProgress(3)).toBe(
     'Restoring 3 functions from Dev Mode',
   )
+})
+
+test('a restore before a command keeps the functions line as it was; only a web app hides an unknown owner', () => {
+  const now = 1790000000 * 1000
+  const fn = (owner) => ({
+    name: 'a',
+    attachment: { owner, attachedAt: 1790000000 - 7200 },
+  })
+  // Functions only: as before web apps, an owner of "unknown" is named.
+  expect(
+    out.restoredBeforeCommandLine({
+      found: [fn('unknown')],
+      count: 1,
+      nowMs: now,
+    }),
+  ).toBe('Restored 1 function from Dev Mode (unknown, 2 h ago)')
+  expect(
+    out.restoredBeforeCommandLine({
+      found: [fn('alice@mbp')],
+      count: 1,
+      nowMs: now,
+      webApps: [{ key: 'api', owner: 'unknown' }],
+    }),
+  ).toBe(
+    'Restored 1 function and the web app api from Dev Mode (alice@mbp, 2 h ago)',
+  )
+  // No owner left once the web app's "unknown" is dropped: the age still shows.
+  expect(
+    out.restoredBeforeCommandLine({
+      found: [fn(undefined)],
+      count: 1,
+      nowMs: now,
+      webApps: [{ key: 'api', owner: 'unknown' }],
+    }),
+  ).toBe('Restored 1 function and the web app api from Dev Mode (2 h ago)')
+  expect(
+    out.restoredBeforeCommandLine({
+      found: [],
+      count: 0,
+      nowMs: now,
+      webApps: [
+        { key: 'api', owner: 'unknown' },
+        { key: 'admin', owner: 'bob@desk' },
+      ],
+    }),
+  ).toBe('Restored the web apps api and admin from Dev Mode (bob@desk)')
+  expect(
+    out.restoredBeforeCommandLine({
+      found: [],
+      count: 0,
+      nowMs: now,
+      webApps: [{ key: 'api', owner: 'unknown' }],
+    }),
+  ).toBe('Restored the web app api from Dev Mode')
 })
 
 test('restore-first tells a session that may still be running that it loses its functions', () => {
@@ -999,6 +1259,15 @@ test('watchFailingLine says once that the checks keep failing', () => {
   expect(out.watchFailingLine({ count: 3, error: 'Rate exceeded.' })).toBe(
     'Dev Mode could not check the attached functions the last 3 times (Rate exceeded). It keeps trying; later failures show with --debug only.',
   )
+  expect(
+    out.watchFailingLine({
+      count: 3,
+      error: 'Rate exceeded.',
+      what: { functions: false, webApps: true },
+    }),
+  ).toBe(
+    'Dev Mode could not check the attached web apps the last 3 times (Rate exceeded). It keeps trying; later failures show with --debug only.',
+  )
 })
 
 // Rejected credentials, as Dev Mode's clients make them for the profile "dev".
@@ -1089,5 +1358,226 @@ describe('the line for settings a running session keeps', () => {
         options: { 'take-over': true, 'on-exit': 'keep', 'idle-timeout': '1h' },
       }),
     ).toBe(kept('--take-over and --on-exit keep', 'apply'))
+  })
+})
+
+describe('web apps in the session lines', () => {
+  const webRows = [
+    { webApp: 'web', mode: 'dev', notes: [] },
+    { webApp: 'admin', mode: 'local', notes: [] },
+    {
+      webApp: 'docs',
+      mode: 'deployed',
+      reason: 'build_output_entry',
+      why: 'the entry is a build output; set webApps.docs.dev.command (for example: next dev)',
+      notes: [],
+    },
+  ]
+
+  test('web apps follow the functions in the same table, named as web apps, under "Name"', () => {
+    expect(
+      out.renderModeTable(
+        [{ function: 'api', mode: 'dev', notes: [] }],
+        webRows,
+      ),
+    ).toBe(
+      [
+        'Name             Mode      Why',
+        'api              dev',
+        'web (web app)    dev',
+        'admin (web app)  local     on its local URL only (--local-only); its real URL serves the deployed code',
+        'docs (web app)   deployed  the entry is a build output; set webApps.docs.dev.command (for example: next dev)',
+      ].join('\n'),
+    )
+    // A service without web apps keeps its table as it was.
+    expect(
+      out.renderModeTable([{ function: 'api', mode: 'dev', notes: [] }]),
+    ).toBe(['Function  Mode  Why', 'api       dev'].join('\n'))
+    expect(out.tableWorthShowing([], [webRows[0]])).toBe(false)
+    expect(out.tableWorthShowing([], [webRows[1]])).toBe(true)
+  })
+
+  test("a web app's server that does not listen, and a --local-only one without role credentials, say so in their row", () => {
+    const web = out.withLiveNotes(webRows[0], {
+      port: 51234,
+      note: { reason: 'local_server_down', message: 'down' },
+      credentials: 'relayed',
+    })
+    expect(web.notes.map((note) => note.reason)).toEqual(['local_server_down'])
+    expect(out.webAppWhy(web)).toBe(
+      'its server on this machine is not listening on port 51234; requests run the deployed code until it is',
+    )
+    const admin = out.withLiveNotes(webRows[1], {
+      port: 51235,
+      note: null,
+      credentials: 'denied',
+    })
+    expect(out.webAppWhy(admin)).toBe(
+      'on its local URL only (--local-only); its real URL serves the deployed code; runs without its role credentials: your AWS credentials may not call its endpoint sls-dev-local (lambda:InvokeWebFunctionEndpoint)',
+    )
+    expect(out.tableWorthShowing([], [web])).toBe(true)
+    // Nothing to say: the row as it is.
+    expect(out.withLiveNotes(webRows[0], { note: null })).toBe(webRows[0])
+  })
+
+  test('the ready line counts web apps beside the functions, or alone', () => {
+    expect(
+      out.startupSummary({
+        devCount: 2,
+        total: 3,
+        seconds: 8.31,
+        webApps: { running: 1, total: 2 },
+      }),
+    ).toBe('Dev Mode on · 2 of 3 functions and 1 of 2 web apps (8.3s)')
+    expect(
+      out.startupSummary({
+        devCount: 0,
+        total: 0,
+        seconds: 4,
+        webApps: { running: 1, total: 1 },
+      }),
+    ).toBe('Dev Mode on · 1 of 1 web app (4.0s)')
+  })
+
+  test('the hints and the stop lines name web apps', () => {
+    expect(out.stopHint({ functions: true, webApps: true })).toBe(
+      'Press Ctrl+C to restore your functions and web apps and exit.',
+    )
+    expect(out.stopHint({ functions: false, webApps: true })).toBe(
+      'Press Ctrl+C to restore your web apps and exit.',
+    )
+    expect(out.agentHint(undefined, undefined, { webApps: true })).toBe(
+      'Running under an AI agent: start with "serverless dev --detach", then use "serverless dev wait" and "serverless dev stop" (which restores your functions and web apps).',
+    )
+    expect(out.agentHint()).toBe(out.AGENT_HINT)
+    expect(out.AGENT_HINT).toContain('(which restores your functions).')
+    expect(out.stoppingProgress({ count: 3, webApps: 2 }).split(' · ')[0]).toBe(
+      'Restoring 1 function and 2 web apps',
+    )
+    expect(out.stoppingProgress({ count: 3 }).split(' · ')[0]).toBe(
+      'Restoring 3 functions',
+    )
+    expect(out.keptLine(1, 2)).toBe(
+      'Left 1 function and 2 web apps in Dev Mode (--on-exit keep). They run the deployed code until the next serverless dev, deploy, remove or dev restore.',
+    )
+    expect(out.keptLine(2)).toBe(
+      'Left 2 functions in Dev Mode (--on-exit keep). They run the deployed code until the next serverless dev, deploy, remove or dev restore.',
+    )
+    expect(
+      out.forceExitLines(['svc-dev-api', out.webAppName('web')], {
+        keep: true,
+      }),
+    ).toEqual([
+      'Exiting without waiting. Left in Dev Mode: svc-dev-api, web (web app).',
+      'They run the deployed code until the next serverless dev, deploy, remove or dev restore.',
+    ])
+    expect(out.forceExitLines(['svc-dev-api'])[0]).toBe(
+      'Exiting without waiting. Not restored: svc-dev-api.',
+    )
+  })
+
+  test('the plan lists the revisions and endpoints each web app gets', () => {
+    const plan = out.buildPlan({
+      stage: 'dev',
+      deployFirst: false,
+      brokerName: 'serverless-dev-broker-us-east-1',
+      brokerExists: true,
+      missingLayers: [],
+      devRows: [],
+      webRows,
+      widenBroker: true,
+    })
+    expect(plan.accountSetup).toEqual([
+      {
+        action: 'widen_broker_trust',
+        name: 'serverless-dev-broker-us-east-1',
+      },
+    ])
+    expect(plan.webChanges).toEqual([
+      {
+        webApp: 'web',
+        mode: 'dev',
+        revisions: ['clone', 'dev'],
+        endpoints: ['sls-dev-fallback'],
+        main: 'dev_revision',
+      },
+      {
+        webApp: 'admin',
+        mode: 'local',
+        revisions: ['dev'],
+        endpoints: ['sls-dev-local'],
+        main: 'unchanged',
+      },
+    ])
+    expect(out.renderPlan({ plan, region: 'us-east-1' })).toBe(
+      [
+        'Account setup in us-east-1:',
+        '  • let web apps use IAM role serverless-dev-broker-us-east-1 (adds their web functions to its trust policy)',
+        'These changes will be made to 2 web apps (no CloudFormation deploy):',
+        '  • web: create revisions clone and dev, and the endpoint sls-dev-fallback on the clone; main sends its traffic to the dev revision',
+        '  • admin (--local-only): create a dev revision and the endpoint sls-dev-local; main is not changed',
+        'What Dev Mode creates is deleted and main is moved back when you exit, or by the next serverless dev, deploy, rollback or dev restore.',
+      ].join('\n'),
+    )
+    // Without web apps, the plan has no web changes at all.
+    expect(
+      out.buildPlan({
+        stage: 'dev',
+        deployFirst: false,
+        brokerName: 'b',
+        brokerExists: true,
+        missingLayers: [],
+        devRows: [],
+      }),
+    ).not.toHaveProperty('webChanges')
+  })
+
+  test('a failed stop and the idle stop say what the session restores', async () => {
+    const { idleStopLine } =
+      await import('../../../../../../../lib/plugins/aws/dev/attach/session-idle.js')
+    expect(idleStopLine(60_000)).toBe(
+      'No activity for 1m: Dev Mode stops and restores your functions (--idle-timeout).',
+    )
+    expect(idleStopLine(60_000, out.restoresWhat({ webApps: true }))).toBe(
+      'No activity for 1m: Dev Mode stops and restores your functions and web apps (--idle-timeout).',
+    )
+    const scope = { stage: 'dev', region: 'us-east-1' }
+    expect(out.stopFailedLine(new Error('boom'), scope)).toBe(
+      'Dev Mode could not stop cleanly (boom). Run "serverless dev restore --stage dev --region us-east-1" to restore your functions.',
+    )
+    expect(
+      out.stopFailedLine(new Error('boom'), scope, {
+        functions: false,
+        webApps: true,
+      }),
+    ).toBe(
+      'Dev Mode could not stop cleanly (boom). Run "serverless dev restore --stage dev --region us-east-1" to restore your web apps.',
+    )
+  })
+
+  test('a session that only a revision names is not called "unknown"', () => {
+    expect(out.webAppCandidateLine({ key: 'web', owner: 'unknown' })).toBe(
+      '  web  (web app)',
+    )
+    expect(out.webAppCandidateLine({ key: 'web', owner: 'bob@desk' })).toBe(
+      '  web  (web app, bob@desk)',
+    )
+    expect(
+      out.leftDevModeLine({
+        webApp: true,
+        name: 'web',
+        state: 'taken_over',
+        owner: 'unknown',
+        you: 'alice@mbp',
+      }),
+    ).toBe(
+      'The web app web left Dev Mode: another Dev Mode session took it over with --take-over.',
+    )
+    expect(
+      out.lostWebAppWhy({ state: 'taken_over', owner: 'bob@desk', you: 'a' }),
+    ).toBe('taken over by bob@desk (--take-over)')
+    expect(out.lostWebAppWhy({ state: 'function_deleted' })).toBe(
+      'its web function no longer exists',
+    )
   })
 })

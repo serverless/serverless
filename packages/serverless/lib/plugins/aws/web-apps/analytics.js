@@ -36,6 +36,7 @@ const EXPLICIT_KNOBS = {
   role: (webApp) => webApp.role,
   vpc: (webApp) => webApp.vpc,
   kmsKeyArn: (webApp) => webApp.kmsKeyArn,
+  devCommand: (webApp) => (isObj(webApp.dev) ? webApp.dev.command : undefined),
 }
 
 /**

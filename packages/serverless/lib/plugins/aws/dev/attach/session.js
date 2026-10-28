@@ -15,6 +15,10 @@
  * "Dev Mode off", stop the laptop runtime, say goodbye and disconnect, sweep the session's
  * payload objects (for up to ten seconds; the next session removes what is left).
  *
+ * The service's web apps run in the same session (session-web.js): read after the functions,
+ * attached after them, served on this machine beside them, and restored with them on every exit
+ * path. A service without web apps makes no Lambda Web call.
+ *
  * This module runs the session from start to end; the checks before the plan are in
  * session-preflight.js, the changes in AWS in session-attach.js, and the running session and its
  * end in session-run.js.
@@ -38,7 +42,7 @@ import {
   unattachedDevModeLayers,
 } from './eligibility.js'
 import { createDevModeClients, credentialProvider } from './aws.js'
-import { brokerPolicyNeedsRepair, isNewBroker } from './broker.js'
+import { isNewBroker } from './broker.js'
 import { credentialSourceOf } from '../relay/messages.js'
 import {
   findLayerVersion,
@@ -89,8 +93,13 @@ import {
 } from './session-run.js'
 import { detectLocalRuntimes } from '../local/adapters/index.js'
 import { startLaptopRuntime } from '../local/index.js'
+import { terminalWidth } from '../local/terminal-width.js'
 import { startHotkeys } from '../local/hotkeys.js'
 import { createReplayHandler } from '../local/replay.js'
+import { createRequestReplayHandler } from '../web/replay.js'
+import { createRequestRecorder } from '../state/requests.js'
+import { createRequestOutput, recordingWith } from '../web/request-output.js'
+import { recordFilesOf } from '../state/record-files.js'
 import {
   NO_IDLE,
   createIdleTimer,
@@ -108,6 +117,7 @@ import {
   noSessionState,
   openSessionState,
   restoreCounts,
+  webAppRestoreCounts,
   sameScope,
   selectionOf,
 } from '../state/session-state.js'
@@ -120,10 +130,26 @@ import { FILES, SESSION_LOG_ENV, devDirOf } from '../state/paths.js'
 import { LINKED_DIR_CODE } from '../state/real-dir.js'
 import { sessionStatusFields } from '../commands/status.js'
 import { healthOf } from '../control/client.js'
-import { endpointTextOf, endpointsOf } from '../control/endpoints.js'
-import { externalHttpApiEndpointOf } from '../../info/endpoints.js'
+import { endpointListsOf, endpointsOf } from '../control/endpoints.js'
+import {
+  externalHttpApiEndpointOf,
+  webAppUrlsOf,
+} from '../../info/endpoints.js'
 import { mcpServersOf } from '../local/mcp.js'
 import { openSessionControl } from '../control/server.js'
+import { classifyWebApp } from '../web/eligibility.js'
+import {
+  LAMBDA_WEB_READS,
+  createWebAttach,
+  createWebRuntime,
+  deployedWebRow,
+  finalWebRow,
+  readWebApps,
+  runsHere,
+  selectSessionWebApps,
+  webAppsOf,
+} from './session-web.js'
+import { uploadWebBridge } from '../web/bridge-artifact.js'
 import { cliCommand } from '../commands/cli-names.js'
 
 const defaultLogger = log.get('sls:dev')
@@ -222,6 +248,11 @@ const runAttachedSession = async ({
     // The clock of the signal merge window: elapsed time, so a step of the wall clock never turns
     // one stop into two.
     elapsed = () => performance.now(),
+    // The web bridge zip put in the deployment bucket: `{ bucket, key }`.
+    uploadBridge = () => uploadWebBridge({ provider, serverless }),
+    // What the web apps' servers, local listeners and credentials requests are made with
+    // (session-web.js createWebRuntime's `deps`).
+    web: webDeps = {},
   } = deps
   // Set once a forced exit begins (a second Ctrl+C or SIGTERM, or a restore that ran out of time):
   // the lines it printed are the session's last, and no function update starts after them.
@@ -235,6 +266,38 @@ const runAttachedSession = async ({
     skip: [].concat(options['skip-function'] ?? []),
   })
   const deployedName = (key) => service.getFunction(key).name
+  // The service's web apps: none, and the session makes no Lambda Web call.
+  const webApps = webAppsOf(serverless, provider)
+  const webSelection = selectSessionWebApps({ webApps, options })
+  const webSelected = [...webSelection.values()].some(
+    ({ selected }) => selected,
+  )
+  // The rows of web apps none of which is selected: they are not read, and say so.
+  const unselectedWebRows = () =>
+    webApps.map(({ key, config }) =>
+      classifyWebApp({ key, config, selection: webSelection.get(key) }),
+    )
+  const webAttach = webSelected
+    ? createWebAttach({
+        lambdaWeb: clients.lambdaWeb,
+        sessionId,
+        sleep,
+        now,
+        isExiting: () => exiting,
+      })
+    : null
+  // What reaches the session's end and `dev status` about its web apps: their rows and, while
+  // they run here, their servers' state (session-web.js).
+  live.webApps = {
+    rows: [],
+    state: new Map(),
+    // A web app's real URL: as its attach read it, else as the stack's outputs give it.
+    urlOf: (key) =>
+      webAttach?.resultOf(key)?.url ??
+      webAppUrlsOf({ serverless, outputs: stackOutputs }).find(
+        (entry) => entry.name === key,
+      )?.url,
+  }
   // The session's spinner: while an invocation's lines print, it sits right under them.
   const main = guardedProgress(progress.get('main'), () => exiting, {
     gap: () => logger.gap(),
@@ -312,11 +375,33 @@ const runAttachedSession = async ({
     const names = [...touched]
     return {
       ...EMPTY_RESTORE,
-      restored: names.filter((name) => settled.has(name)).length,
-      failed: names.filter((name) => !settled.has(name)).length,
+      restored:
+        names.filter((name) => settled.has(name)).length +
+        (webAttach?.settledCount() ?? 0),
+      failed:
+        names.filter((name) => !settled.has(name)).length +
+        (webAttach?.pending().length ?? 0),
     }
   }
+  // The web apps among them.
+  ending.webSoFar = () =>
+    webAttach && (webAttach.settledCount() || webAttach.pending().length)
+      ? {
+          ...EMPTY_RESTORE,
+          restored: webAttach.settledCount(),
+          failed: webAttach.pending().length,
+        }
+      : null
   let deploying = false
+  // What a stop restores, as the hints say it: the web apps when any is attached, and the
+  // functions unless only web apps are.
+  const restoring = () => {
+    const webApps = webAttach?.attached().length ?? 0
+    return {
+      functions: attached.size > 0 || webApps === 0,
+      webApps: webApps > 0,
+    }
+  }
   // Stop handling goes in before the first change in AWS: the first deployment, or the first
   // attach. From then on every exit path restores what was attached.
   const stops = createStopControl({
@@ -329,16 +414,29 @@ const runAttachedSession = async ({
       out.stoppingProgress({
         deploying,
         keep: options['on-exit'] === 'keep' || request?.keep === true,
-        count: [...touched].filter((name) => !settled.has(name)).length,
+        count:
+          [...touched].filter((name) => !settled.has(name)).length +
+          (webAttach?.pending().length ?? 0),
+        webApps: webAttach?.pending().length ?? 0,
       }),
+    // `--on-exit keep`: a forced exit names what it leaves in Dev Mode as left there.
+    keepOnExit: options['on-exit'] === 'keep',
+    restoring: () => restoring(),
     isDeploying: () => deploying,
-    unsettled: () => [...touched].filter((name) => !settled.has(name)),
+    // Web apps by key. A web app's clean-up already sent may still finish while the forced exit
+    // waits for the CLI; what is left, the next dev, deploy or dev restore removes.
+    unsettled: () => [
+      ...[...touched].filter((name) => !settled.has(name)),
+      ...(webAttach?.pending() ?? []).map(out.webAppName),
+    ],
     stage,
     scope,
     now: elapsed,
     timers,
     onExiting: (code) => {
       exiting = true
+      // No web app attach takes another step: `main` stays where it is.
+      webAttach?.abortAll()
       try {
         recordExit(code)
       } catch {
@@ -347,6 +445,8 @@ const runAttachedSession = async ({
     },
     beforeHandling: beforeStopHandling,
   })
+  // A stop aborts the web app attaches still running: each stops before its next step.
+  if (webAttach) void stops.stopped.then(() => webAttach.abortAll())
   // What the phases of the running session share: its record, its lifecycle records, what its end
   // reports, what the control endpoint reads and asks for, and the stop control.
   const ctx = { state, lifecycle, ending, live, stops }
@@ -380,8 +480,10 @@ const runAttachedSession = async ({
     settled,
     signalled: stops.signal,
     isExiting: () => exiting,
+    webApps: webAttach,
     onExiting: (code) => {
       exiting = true
+      webAttach?.abortAll()
       try {
         recordExit(code)
       } catch {
@@ -390,12 +492,19 @@ const runAttachedSession = async ({
     },
   })
 
-  // A normal deployment of the working copy. --function and --skip-function choose what is
-  // attached, not what the deployment ships, so the deploy plugins do not see them; and
-  // devmodeEnabled stays unset, so bundling and packaging behave exactly as in `deploy`. The
-  // package settings packaging replaces are put back afterwards, for the dev build.
+  // A normal deployment of the working copy. --function, --skip-function and the web app
+  // selectors choose what is attached, not what the deployment ships, so the deploy plugins do
+  // not see them; and devmodeEnabled stays unset, so bundling and packaging behave exactly as in
+  // `deploy`. The package settings packaging replaces are put back afterwards, for the dev build.
   const deployWorkingCopy = async () => {
-    const scoped = ['function', 'f', 'skip-function']
+    const scoped = [
+      'function',
+      'f',
+      'skip-function',
+      'web-app',
+      'skip-web-app',
+      'local-only',
+    ]
     const saved = Object.fromEntries(
       scoped.filter((key) => key in options).map((key) => [key, options[key]]),
     )
@@ -427,6 +536,8 @@ const runAttachedSession = async ({
 
   // While the session waits, the attached functions are read every watchIntervalMs, and each one
   // found changed is reported once (see session-watch.js).
+  // The web apps attached, as the watch reads them (filled once they are).
+  const watchedWebApps = []
   const watch = createAttachmentWatch({
     clients,
     scope,
@@ -444,11 +555,19 @@ const runAttachedSession = async ({
         state: change.state,
         why: out.lostWhy(change),
       }),
+    ...(webAttach && {
+      webApps: watchedWebApps,
+      onWebAppLost: (change) =>
+        lifecycle.webAppLost({
+          ...change,
+          why: out.lostWebAppWhy({ ...change, you: owner }),
+        }),
+    }),
   })
 
   let attachFailed = false
   let brokerIsNew = false
-  const run = createRunState({ logger, ctx })
+  const run = createRunState({ logger, ctx, detailed: options.detailed })
   // A detached session stops after its idle timeout; a session in a terminal never does.
   const idleMs = idleTimeoutOf(options)
   const idle = idleMs
@@ -456,15 +575,17 @@ const runAttachedSession = async ({
         timeoutMs: idleMs,
         timers,
         now,
-        // An invocation still being handled on this machine is activity, however long it takes:
-        // one the relay accepted, or one a handler process runs (a replay too).
+        // An invocation or a web app request still being handled on this machine is activity,
+        // however long it takes: one the relay accepted, one a handler process runs (a replay
+        // too), or a web request a local server has not answered to the end.
         isBusy: () =>
           (run.laptop?.relay?.inFlight?.() ?? 0) > 0 ||
+          (live.webRuntime?.inFlight?.() ?? 0) > 0 ||
           (run.laptop?.runtime?.workers?.() ?? []).some(
             (worker) => worker.busy,
           ),
         onIdle: () => {
-          logger.notice(idleStopLine(idleMs))
+          logger.notice(idleStopLine(idleMs, out.restoresWhat(restoring())))
           live.requestStop({ trigger: 'idle_timeout' })
         },
       })
@@ -484,6 +605,15 @@ const runAttachedSession = async ({
     isStopping: () => run.isStopping(),
     logger,
     now,
+    timers,
+  })
+  // `serverless dev replay` of a web request: it reaches the web apps' servers through `live`.
+  live.replayRequest = createRequestReplayHandler({
+    serviceDir: serverless.serviceDir,
+    runtime: () => live.webRuntime ?? null,
+    recorder: () => live.requestRecorder ?? null,
+    isStopping: () => run.isStopping(),
+    logger,
     timers,
   })
   // The artifacts serverless.yml deploys functions from, read before the first deployment
@@ -516,10 +646,13 @@ const runAttachedSession = async ({
           serviceDir: serverless.serviceDir,
         })
       })
-      if (byConfig.every(Boolean)) {
-        logger.notice(out.renderModeTable(byConfig))
+      // A web app selected has its own rows (read once the stage is deployed).
+      if (byConfig.every(Boolean) && !webSelected) {
+        const notSelected = unselectedWebRows()
+        logger.notice(out.renderModeTable(byConfig, notSelected))
         lifecycle.modes(byConfig)
-        throw nothingToAttachError()
+        lifecycle.webModes(notSelected)
+        throw nothingToAttachError({ webApps: webApps.length > 0 })
       }
       showPlan(
         out.renderPlan({
@@ -635,12 +768,52 @@ const runAttachedSession = async ({
     })
     let rows = keys.map((key) => classify(key, lives.get(key)))
     const devRows = rows.filter((row) => row.mode === 'dev')
-    if (devRows.length === 0) {
+    let webRows = webAttach ? [] : unselectedWebRows()
+    let webDetails = new Map()
+    if (webAttach) {
+      main.notice('Reading web apps')
+      let denied
+      ;({
+        rows: webRows,
+        details: webDetails,
+        denied,
+      } = await readWebApps({
+        lambdaWeb: clients.lambdaWeb,
+        webApps,
+        selection: webSelection,
+        serviceDir: serverless.serviceDir,
+        liveness,
+        context: {
+          sessionId,
+          owner,
+          takeOver: Boolean(options['take-over']),
+        },
+      }))
+      live.webApps.rows = webRows
+      // Web functions this session may not read: they run the deployed code, the functions here.
+      if (denied) {
+        if (!devRows.length) {
+          throw new ServerlessError(
+            `Dev Mode could not read the web apps of this stage: your AWS credentials need ${LAMBDA_WEB_READS} on their web functions. Allow them, then run "${cliCommand('dev')}" again.`,
+            'DEV_MODE_WEB_ACCESS_DENIED',
+            { stack: false },
+          )
+        }
+        logger.warning(
+          `Web apps run the deployed code: your AWS credentials need ${LAMBDA_WEB_READS} on their web functions to run them here.`,
+        )
+        logger.debug(
+          `Dev Mode could not read the web apps: ${denied?.message ?? denied}`,
+        )
+      }
+    }
+    if (devRows.length === 0 && !webRows.some(runsHere)) {
       main.remove()
       logger.gap()
-      logger.notice(out.renderModeTable(rows))
+      logger.notice(out.renderModeTable(rows, webRows))
       lifecycle.modes(rows)
-      throw nothingToAttachError()
+      lifecycle.webModes(webRows)
+      throw nothingToAttachError({ webApps: webApps.length > 0 })
     }
     const artifacts = await Promise.all(
       [...new Set(devRows.map((row) => row.arch))].map((arch) =>
@@ -665,6 +838,8 @@ const runAttachedSession = async ({
         .filter((a) => !layerArns[a.arch])
         .map((a) => layerName(a.arch)),
       devRows,
+      webRows,
+      widenBroker: Boolean(broker) && !broker.widened && webRows.some(runsHere),
     })
     main.remove()
     showPlan(out.renderPlan({ plan, region }))
@@ -690,16 +865,48 @@ const runAttachedSession = async ({
     }
     serverless.devmodeEnabled = true
 
-    ;({ broker } = await ensureAccountSetup({
-      broker,
-      brokerPolicy,
-      brokerName,
-      identity,
-      region,
-      clients,
-      main,
-      session,
-    }))
+    let policyRepaired
+    const setUp = (webAppsHere) =>
+      ensureAccountSetup({
+        broker,
+        brokerPolicy,
+        brokerName,
+        identity,
+        region,
+        clients,
+        main,
+        logger,
+        session,
+        ...(webAppsHere && { webApps: true }),
+      })
+    const widenedBefore = Boolean(broker?.widened)
+    const webAppsHere = webRows.some(runsHere)
+    try {
+      ;({ broker, policyRepaired } = await setUp(webAppsHere))
+    } catch (error) {
+      // The role cannot serve web apps: they run the deployed code, the functions run here.
+      if (error?.code !== 'DEV_MODE_BROKER_UPDATE_DENIED' || !devRows.length) {
+        throw error
+      }
+      logger.warning(error.message)
+      webRows = webRows.map((row) =>
+        runsHere(row)
+          ? deployedWebRow(
+              row,
+              'broker_update_denied',
+              `the IAM role ${brokerName} does not serve web apps yet (${cliCommand(`dev setup --region ${region}`)})`,
+            )
+          : row,
+      )
+      live.webApps.rows = webRows
+      ;({ broker, policyRepaired } = await setUp(false))
+    }
+    // A trust widened now may take a while to reach every AWS Region's endpoints, as a new role.
+    const brokerWidened =
+      webRows.some(runsHere) &&
+      Boolean(broker.widened) &&
+      !widenedBefore &&
+      !broker.created
     // A role an earlier start created moments ago is as new as one created now: the set-up line
     // names it with its age, and the note says it can take a while to work.
     brokerIsNew = isNewBroker(broker, now())
@@ -734,6 +941,24 @@ const runAttachedSession = async ({
       layerLambda,
       main,
     })
+    // The web bridge, once per session, for the dev revisions.
+    let bridge = null
+    if (webRows.some(runsHere)) {
+      try {
+        bridge = await uploadBridge()
+      } catch (error) {
+        webRows = webRows.map((row) =>
+          runsHere(row)
+            ? finalWebRow(row, { status: 'failed', message: error.message })
+            : row,
+        )
+        live.webApps.rows = webRows
+        if (!devRows.length) throw error
+        logger.warning(
+          `Web apps run the deployed code: ${error?.message ?? error}`,
+        )
+      }
+    }
     const setupLine = out.accountSetupDoneLine({
       region,
       createdRole: broker.created ? brokerName : null,
@@ -742,7 +967,7 @@ const runAttachedSession = async ({
           ? { name: brokerName, createdAt: broker.createdAt }
           : null,
       nowMs: now(),
-      repairedRole: brokerPolicyNeedsRepair(brokerPolicy) ? brokerName : null,
+      repairedRole: policyRepaired ? brokerName : null,
       layers: publishedLayers,
     })
 
@@ -762,6 +987,29 @@ const runAttachedSession = async ({
       touched,
       main,
     })
+    // The web apps, once the functions are attached: each in parallel.
+    const webOutcomes =
+      webAttach && webRows.some(runsHere) && !stops.signal()
+        ? await webAttach.attachAll({
+            rows: webRows,
+            details: webDetails,
+            bridge,
+            session,
+            onAttached: (entry) =>
+              watchedWebApps.push({
+                key: entry.key,
+                functionName: entry.functionName,
+                localOnly: entry.localOnly,
+              }),
+          })
+        : new Map()
+    webRows = webRows.map((row) =>
+      runsHere(row) && !webOutcomes.has(row.webApp)
+        ? finalWebRow(row, { status: 'not_started' })
+        : finalWebRow(row, webOutcomes.get(row.webApp)),
+    )
+    live.webApps.rows = webRows
+    const webAttached = webRows.filter(runsHere)
     main.remove()
     // What the local runtime starts from: the configuration each attach wrote against.
     for (const [key, outcome] of outcomes) {
@@ -770,31 +1018,114 @@ const runAttachedSession = async ({
       }
     }
     rows = rows.map((row) => out.finalRow(row, outcomes.get(row.function)))
-    attachFailed = rows.some((row) => row.reason === 'attach_failed')
+    attachFailed = [...rows, ...webRows].some(
+      (row) => row.reason === 'attach_failed',
+    )
     lifecycle.modes(rows)
+    lifecycle.webModes(webRows)
     if (setupLine) {
       logger.notice(setupLine)
       logger.gap()
     }
 
-    if (!stops.signal() && attached.size === 0) {
-      // The table says why for each function.
-      logger.notice(out.renderModeTable(rows))
+    if (!stops.signal() && attached.size === 0 && !webAttached.length) {
+      // The table says why for each function and web app.
+      logger.notice(out.renderModeTable(rows, webRows))
       logger.gap()
       const result = await restoreAttached()
       ending.restore = restoreCounts(result)
+      ending.webApps = webAppRestoreCounts(result)
       if (attachFailed || result.failed.length) {
-        logger.error('No function could be attached.')
-        ending.failure = {
-          reason: 'attach_incomplete',
-          message: 'No function could be attached.',
-        }
+        const message = `No function${webRows.length ? ' or web app' : ''} could be attached.`
+        logger.error(message)
+        ending.failure = { reason: 'attach_incomplete', message }
         return 3
       }
-      throw nothingToAttachError()
+      throw nothingToAttachError({ webApps: webApps.length > 0 })
     }
+    // The web apps' servers on this machine, once they are attached.
+    const web = webAttached.length
+      ? (() => {
+          // Every web request that runs here gets its file and records (when the session has a
+          // record); its files count toward the invocation files' limits.
+          live.requestRecorder =
+            state.requestRecorder ??
+            (state.dir
+              ? createRequestRecorder({
+                  dir: state.dir,
+                  now,
+                  events: state.events,
+                  files: recordFilesOf(state, {
+                    onError: (error) =>
+                      logger.debug(
+                        `Dev Mode could not remove an old request file: ${error?.message ?? error}`,
+                      ),
+                  }),
+                  stage,
+                  onError: (error) =>
+                    logger.debug(
+                      `Dev Mode could not write a web request file: ${error?.message ?? error}`,
+                    ),
+                  onWarning: (line) => logger.warning(line),
+                })
+              : null)
+          // Each request's lines, as the invocations' (local/index.js): the spinner sits right
+          // under them while a request runs.
+          // A function's reload spinner goes before a web request's line, as before an
+          // invocation's (local/index.js takeTerminal).
+          const takeTerminal = () => {
+            run.laptop?.clearSpinner?.()
+            main.hold()
+          }
+          const requestOutput = createRequestOutput({
+            write: (line) => {
+              takeTerminal()
+              logger.notice(line)
+            },
+            idle: () => main.release(),
+            width: () => terminalWidth(processRef),
+            detailed: () => run.detailed,
+            now,
+          })
+          const runtime = createWebRuntime({
+            serverless,
+            region,
+            logger,
+            timers,
+            now,
+            processRef,
+            events: state.events,
+            recorder: recordingWith(live.requestRecorder, requestOutput),
+            developerCredentials: () => credentials.refresh(),
+            options,
+            // A function's reload spinner goes before a server's line too.
+            serverLine: (line) => {
+              run.laptop?.clearSpinner?.()
+              logger.notice(line)
+            },
+            deps: webDeps,
+          })
+          live.webApps.state = runtime.state
+          live.webRuntime = runtime
+          const results = new Map(
+            webAttached.map((row) => [
+              row.webApp,
+              webAttach.resultOf(row.webApp),
+            ]),
+          )
+          return {
+            runtime,
+            relay: runtime.relayOptions({
+              rows: webAttached,
+              details: webDetails,
+            }),
+            start: { rows: webAttached, details: webDetails, results },
+          }
+        })()
+      : null
     if (!stops.signal()) {
       await startRunning({
+        web,
         run,
         rows,
         lives,
@@ -841,13 +1172,15 @@ const runAttachedSession = async ({
           mcpServers,
           externalHttpApiEndpoint,
         })
-        live.endpointText = endpointTextOf({
+        const lists = endpointListsOf({
           serverless,
           outputs: stackOutputs,
           naming: provider.naming,
           mcpServers,
           externalHttpApiEndpoint,
         })
+        live.endpointText = lists.text
+        live.endpointRows = lists.rows
       } catch (error) {
         logger.debug(
           `Dev Mode could not list the endpoints: ${error?.message ?? error}`,
@@ -855,12 +1188,13 @@ const runAttachedSession = async ({
       }
       await waitForStop({
         rows,
-        endpointText: live.endpointText,
+        endpointRows: live.endpointRows,
         attachedCount: attached.size,
         total: keys.length,
         started,
         attachStarted,
         brokerIsNew,
+        brokerWidened,
         watch,
         watchIntervalMs,
         stops,
@@ -873,6 +1207,14 @@ const runAttachedSession = async ({
         options,
         processRef,
         startKeys,
+        webApps: webApps.length
+          ? {
+              rows: webRows,
+              state: live.webApps.state,
+              urlOf: live.webApps.urlOf,
+              total: webApps.length,
+            }
+          : null,
       })
     }
     return await endSession({
@@ -890,15 +1232,27 @@ const runAttachedSession = async ({
       logger,
       ctx,
       isExiting: () => exiting,
+      ...(webAttach && {
+        keptWebApps: () => webAttach.attached().length,
+        keepAttachedWebApps: async () => {
+          const { failed } = await webAttach.keepAttached()
+          const lines = failed.length
+            ? out.notRestoredLines(failed, { scope })
+            : []
+          for (const [level, text] of lines) logger[level](text)
+          return failed.length
+        },
+      }),
     })
   } catch (error) {
     // An error ends a running session; one before it was ready is its failure (the wrapper's record).
     run.beginStop(
       run.stopInfo() ?? (lifecycle.isReady ? { trigger: 'error' } : null),
     )
-    if (touched.size === 0) throw error
+    if (touched.size === 0 && !webAttach?.pending().length) throw error
     const result = await restoreAttached({ beforeReport: run.finishLaptop })
     ending.restore = restoreCounts(result)
+    ending.webApps = webAppRestoreCounts(result)
     if (result.failed.length) {
       logger.error(error.message)
       ending.failure = { reason: reasonOf(error), message: error.message }
@@ -976,6 +1330,8 @@ export const runDevSession = async ({
     only: [].concat(options.function ?? []),
     skip: [].concat(options['skip-function'] ?? []),
   })
+  // So is a --web-app, --skip-web-app or --local-only that names no web app of it.
+  selectSessionWebApps({ webApps: webAppsOf(serverless, provider), options })
   const selection = selectionOf(options)
   let state = deps.state
   if (!state) {
@@ -1093,13 +1449,21 @@ export const runDevSession = async ({
     selection,
   })
   // What the inner session found out, for the last record.
-  const ending = { restore: null, kept: false, failure: null, soFar: null }
+  const ending = {
+    restore: null,
+    webApps: null,
+    kept: false,
+    failure: null,
+    soFar: null,
+    webSoFar: null,
+  }
   // What the control endpoint reports and asks for; the running session fills it in through
   // `ctx.live`. A stop asked for before the stop control exists waits in `pendingStop`.
   const live = {
     recorder: null,
     endpoints: [],
     endpointText: undefined,
+    endpointRows: undefined,
     control: null,
     pendingStop: null,
     requestStop(request) {
@@ -1110,9 +1474,16 @@ export const runDevSession = async ({
       sessionStatusFields({
         record: state.sessionFile.record,
         rows: lifecycle.rows,
+        webApps: {
+          rows: lifecycle.webRows,
+          state: live.webApps?.state,
+          urlOf: live.webApps?.urlOf,
+        },
         recorder: live.recorder,
+        requestRecorder: live.requestRecorder,
         endpoints: live.endpoints,
         endpointText: live.endpointText,
+        endpointRows: live.endpointRows,
         cursor: state.events.lastCursor(),
       }),
   }
@@ -1120,6 +1491,7 @@ export const runDevSession = async ({
     lifecycle.ended({
       exitCode,
       restore: ending.restore ?? ending.soFar?.() ?? EMPTY_RESTORE,
+      webApps: ending.restore ? ending.webApps : ending.webSoFar?.(),
       kept: ending.kept,
     })
   // From the claim until the session's own stop handling goes in, right before its first change in
@@ -1163,7 +1535,15 @@ export const runDevSession = async ({
           status: () => live.status(),
           stop: ({ keep }) =>
             live.requestStop({ trigger: 'stop_command', keep }),
-          replay: ({ request_id }) => {
+          replay: ({ request_id, kind }) => {
+            if (kind === 'request') {
+              if (!live.replayRequest) {
+                throw new Error(
+                  `Dev Mode is still starting; replay once "${cliCommand('dev wait --for ready')}" returns.`,
+                )
+              }
+              return live.replayRequest(request_id)
+            }
             if (!live.replay) {
               throw new Error(
                 `Dev Mode is still starting; replay once "${cliCommand('dev wait --for ready')}" returns.`,

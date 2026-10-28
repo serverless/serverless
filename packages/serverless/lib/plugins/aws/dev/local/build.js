@@ -6,7 +6,8 @@
  * functions from their handler,
  * says which it covers and which it built, and Dev Mode never rewrites a function's handler.
  *
- * `--function` and `--skip-function` choose what Dev Mode attaches, not what the build plugins see:
+ * `--function`, `--skip-function` and the web app selectors (`--web-app`, `--skip-web-app`,
+ * `--local-only`) choose what Dev Mode attaches, not what the build plugins see:
  * they read `options.function` as a single function to build, so the selectors are hidden from
  * them while the build runs and put back afterwards. Builds run one at a time.
  *
@@ -22,7 +23,14 @@ import {
   openDevBuildRequest,
 } from '../../../../utils/dev-build-request.js'
 
-const DEV_SELECTORS = ['function', 'f', 'skip-function']
+const DEV_SELECTORS = [
+  'function',
+  'f',
+  'skip-function',
+  'web-app',
+  'skip-web-app',
+  'local-only',
+]
 
 export const createDevBuild = ({
   serverless,

@@ -8,6 +8,7 @@ import {
   newSessionRecord,
   openSessionState,
   restoreCounts,
+  webAppRestoreCounts,
   sameScope,
   selectionOf,
 } from '../../../../../../../lib/plugins/aws/dev/state/session-state.js'
@@ -110,6 +111,40 @@ test('restore counts come from a restore result, or zeros', () => {
   expect(restoreCounts({ failed: ['a'], timedOut: true })).toEqual({
     ...EMPTY_RESTORE,
     failed: 1,
+  })
+})
+
+test("a restore's web app counts: its web app entries alone, or null without any", () => {
+  expect(
+    webAppRestoreCounts({
+      restored: [{ webApp: true }, {}, { webApp: true }],
+      unchanged: [],
+      skipped: [],
+      missing: [],
+      failed: [{}],
+    }),
+  ).toEqual({ ...EMPTY_RESTORE, restored: 2 })
+  expect(
+    webAppRestoreCounts({ restored: [], failed: [{ webApp: true }] }),
+  ).toEqual({ ...EMPTY_RESTORE, failed: 1 })
+  expect(webAppRestoreCounts({ restored: [{}], failed: [] })).toBeNull()
+  expect(webAppRestoreCounts(undefined)).toBeNull()
+})
+
+test('session.ended carries the web app counts beside the restore counts', () => {
+  const state = memoryState()
+  const lifecycle = createSessionLifecycle({ state })
+  lifecycle.ended({
+    exitCode: 0,
+    restore: { restored: 3 },
+    webApps: { restored: 2 },
+  })
+  expect(state.records.at(-1)).toEqual({
+    type: 'session.ended',
+    exit_code: 0,
+    restore: { ...EMPTY_RESTORE, restored: 3 },
+    web_apps: { ...EMPTY_RESTORE, restored: 2 },
+    kept: false,
   })
 })
 
@@ -282,6 +317,157 @@ describe('createSessionLifecycle', () => {
         state: lostState,
       })),
     )
+  })
+
+  test('a web app the session lost is recorded as web_app.lost', () => {
+    const state = memoryState()
+    const lifecycle = createSessionLifecycle({ state })
+    for (const lostState of ['detached', 'function_deleted', 'taken_over']) {
+      lifecycle.webAppLost({ webApp: 'api', state: lostState })
+    }
+    expect(state.records).toEqual(
+      ['detached', 'function_deleted', 'taken_over'].map((lostState) => ({
+        type: 'web_app.lost',
+        web_app: 'api',
+        state: lostState,
+      })),
+    )
+  })
+
+  test("web_app.lost names who took a web app over; a take-over of the owner's own is taken_over_by_you", () => {
+    const state = memoryState()
+    const lifecycle = createSessionLifecycle({ state })
+    lifecycle.webModes([
+      { webApp: 'api', mode: 'dev', notes: [] },
+      { webApp: 'web', mode: 'dev', notes: [] },
+    ])
+    lifecycle.webAppLost({
+      webApp: 'api',
+      state: 'taken_over',
+      owner: 'bob@desk',
+    })
+    lifecycle.webAppLost({
+      webApp: 'web',
+      state: 'taken_over_by_you',
+      owner: 'alice@mbp',
+    })
+    expect(
+      state.records.filter((record) => record.type === 'web_app.lost'),
+    ).toEqual([
+      {
+        type: 'web_app.lost',
+        web_app: 'api',
+        state: 'taken_over',
+        owner: 'bob@desk',
+      },
+      { type: 'web_app.lost', web_app: 'web', state: 'taken_over_by_you' },
+    ])
+    expect(lifecycle.webRows.map((row) => [row.webApp, row.mode])).toEqual([
+      ['api', 'skipped'],
+      ['web', 'skipped'],
+    ])
+  })
+
+  test('web apps get a web_app.mode record each, and session.ready counts them by mode', () => {
+    const state = memoryState()
+    const lifecycle = createSessionLifecycle({ state })
+    lifecycle.modes([{ function: 'api', mode: 'dev', notes: [] }])
+    lifecycle.webModes([
+      { webApp: 'web', mode: 'dev', notes: [] },
+      {
+        webApp: 'admin',
+        mode: 'local',
+        notes: [{ reason: 'taken_over', message: 'taken over from bob' }],
+      },
+      {
+        webApp: 'docs',
+        mode: 'deployed',
+        reason: 'build_output_entry',
+        why: 'w',
+        notes: [],
+      },
+    ])
+    lifecycle.ready({ readyMs: 10, attachMs: 5 })
+    expect(state.records.filter((r) => r.type !== 'function.mode')).toEqual([
+      {
+        type: 'web_app.mode',
+        web_app: 'web',
+        mode: 'dev',
+        reason: undefined,
+        why: undefined,
+        notes: undefined,
+      },
+      {
+        type: 'web_app.mode',
+        web_app: 'admin',
+        mode: 'local',
+        reason: undefined,
+        // The why dev status gives it.
+        why: 'on its local URL only (--local-only); its real URL serves the deployed code; taken over from bob',
+        notes: ['taken_over'],
+      },
+      {
+        type: 'web_app.mode',
+        web_app: 'docs',
+        mode: 'deployed',
+        reason: 'build_output_entry',
+        why: 'w',
+        notes: undefined,
+      },
+      {
+        type: 'session.ready',
+        functions: { dev: 1, deployed: 0, skipped: 0 },
+        web_apps: { dev: 1, local: 1, deployed: 1, skipped: 0 },
+        ready_ms: 10,
+        attach_ms: 5,
+      },
+    ])
+    expect(lifecycle.webRows.map((row) => row.webApp)).toEqual([
+      'web',
+      'admin',
+      'docs',
+    ])
+  })
+
+  test('a session without web apps writes no web_apps in session.ready', () => {
+    const state = memoryState()
+    const lifecycle = createSessionLifecycle({ state })
+    lifecycle.modes([{ function: 'api', mode: 'dev', notes: [] }])
+    lifecycle.webModes([])
+    lifecycle.ready({ readyMs: 1, attachMs: 1 })
+    expect(state.records.at(-1)).toEqual({
+      type: 'session.ready',
+      functions: { dev: 1, deployed: 0, skipped: 0 },
+      ready_ms: 1,
+      attach_ms: 1,
+    })
+  })
+
+  test('a web app the session lost changes its row', () => {
+    const state = memoryState()
+    const lifecycle = createSessionLifecycle({ state })
+    lifecycle.webModes([
+      { webApp: 'web', mode: 'dev', notes: [] },
+      { webApp: 'admin', mode: 'local', notes: [] },
+    ])
+    lifecycle.webAppLost({ webApp: 'web', state: 'taken_over', why: 'x' })
+    lifecycle.webAppLost({ webApp: 'admin', state: 'detached', why: 'y' })
+    expect(lifecycle.webRows).toEqual([
+      {
+        webApp: 'web',
+        mode: 'skipped',
+        reason: 'taken_over',
+        why: 'x',
+        notes: [],
+      },
+      {
+        webApp: 'admin',
+        mode: 'deployed',
+        reason: 'detached',
+        why: 'y',
+        notes: [],
+      },
+    ])
   })
 
   test('a failed start keeps no URL in its message', () => {

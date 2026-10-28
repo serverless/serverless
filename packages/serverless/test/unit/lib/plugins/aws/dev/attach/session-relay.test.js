@@ -24,7 +24,9 @@ import {
 import { countingTimers } from './fakes.js'
 import { manualClock } from '../relay/manual-clock.js'
 import {
+  KIND,
   createOpener,
+  createSealer,
   topicsOf,
 } from '../../../../../../../lib/plugins/aws/dev/relay/protocol.js'
 
@@ -524,6 +526,128 @@ describe("the relay's part of a running session", () => {
     await run.stop()
     expect(records).toHaveLength(1)
     expect(clock.live()).toBe(0)
+  })
+  test('with web apps, requests go to the web relay, paced on the same connection, and the functions keep the rest', async () => {
+    const logger = recordingLogger()
+    const timers = countingTimers()
+    const topics = topicsOf('s_0123456789ab')
+    const seal = createSealer({ key })
+    const open = createOpener({ key })
+    const published = []
+    let receiver = null
+    const reconnects = []
+    const connection = {
+      credentials: { current: () => ({ accessKeyId: 'AKID' }) },
+      transport: {
+        publish: async (message) => {
+          published.push({
+            ...message,
+            frame: open(message.topic, message.payload),
+          })
+          return true
+        },
+      },
+      setReceiver: (fn) => {
+        receiver = fn
+      },
+      onReconnected: (fn) => reconnects.push(fn),
+    }
+    const dispatched = []
+    let finish
+    const run = await openRelayRun({
+      connection,
+      openSideChannel: async () => ({ enabled: false, reason: 'off' }),
+      provider: {},
+      serverless: {},
+      sessionId: 's_0123456789ab',
+      sessionKey: key,
+      s3: 's3 client',
+      deployedNames: new Map([['svc-dev-api', 'api']]),
+      logger,
+      timers,
+      web: {
+        functions: new Map([['svc-dev-web', 'web']]),
+        credentials: { update: () => {} },
+        dispatch: async (request) => {
+          dispatched.push(request)
+          await new Promise((resolve) => {
+            finish = resolve
+          })
+          return { status: 204, headers: {}, body: [] }
+        },
+      },
+    })
+    expect(run.web).toBeTruthy()
+    const toFunctions = []
+    run.relay.connection.setReceiver((topic, payload) =>
+      toFunctions.push(payload),
+    )
+    const request = (id, fields = {}) =>
+      seal(topics.up, {
+        kind: KIND.REQUEST,
+        env: 'e-web',
+        fn: 'svc-dev-web',
+        id,
+        sentAt: Date.now(),
+        method: 'GET',
+        path: '/',
+        headers: {},
+        ...fields,
+      })
+    const invoke = seal(topics.up, { kind: KIND.INVOKE, env: 'e-fn', id: 'i1' })
+    receiver(topics.up, invoke)
+    receiver(
+      topics.up,
+      request('r1', { environment: { AWS_ACCESS_KEY_ID: 'ASIAX' } }),
+    )
+    expect(toFunctions).toEqual([invoke])
+    await waitFor(() => dispatched.length === 1)
+    expect(
+      published.map((m) => [m.topic, m.frame.header.kind, m.priority]),
+    ).toEqual([[topics.down('e-web'), KIND.ACCEPTED, 'acceptance']])
+    // The stop's start takes no new request; the drain waits for the one accepted.
+    run.quiet()
+    receiver(topics.up, request('r2'))
+    await waitFor(() => published.some((m) => m.frame.header.id === 'r2'))
+    expect(
+      published.find((m) => m.frame.header.id === 'r2').frame.header.kind,
+    ).toBe(KIND.NOT_IN_DEV)
+    const draining = run.drain(5_000)
+    finish()
+    await draining
+    expect(
+      published
+        .filter((m) => m.frame.header.id === 'r1')
+        .map((m) => m.frame.header.kind),
+    ).toEqual([KIND.ACCEPTED, KIND.RESPONSE_START, KIND.STREAM_END])
+    expect(reconnects).toHaveLength(2)
+    await run.stop()
+    expect(timers.live()).toBe(0)
+  })
+
+  test('without web apps the connection is handed on as it is', async () => {
+    const connection = {
+      credentials: { current: () => ({}) },
+      setReceiver: () => {
+        throw new Error('not expected')
+      },
+    }
+    const run = await openRelayRun({
+      connection,
+      openSideChannel: async () => ({ enabled: false, reason: 'off' }),
+      provider: {},
+      serverless: {},
+      sessionId: 's_0123456789ab',
+      sessionKey: key,
+      s3: 's3 client',
+      deployedNames: new Map(),
+      logger: recordingLogger(),
+      timers: countingTimers(),
+    })
+    expect(run.relay.connection).toBe(connection)
+    expect(run.web).toBeNull()
+    await run.drain(1)
+    await run.stop()
   })
 })
 

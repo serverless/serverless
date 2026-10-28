@@ -68,6 +68,61 @@ describe('the agent hint of serverless dev', () => {
     ).toBe(AGENT_HINT)
   })
 
+  test('a service whose only compute is web apps gets the hint, which says stop restores its web apps', () => {
+    expect(
+      hintFor({
+        config: { service: 'orders', webApps: { web: { entry: 'app.js' } } },
+      }),
+    ).toBe(
+      'Running under an AI agent: start with "serverless dev --detach", then use "serverless dev wait" and "serverless dev stop" (which restores your web apps).',
+    )
+  })
+
+  test.each([
+    ['agents', { ai: { agents: { bot: {} } } }],
+    ['sandboxes', { sandboxes: { box: {} } }],
+  ])(
+    '--mode functions with %s and web apps gets the hint: it runs the web apps',
+    (_, extra) => {
+      expect(
+        hintFor({
+          options: { mode: 'functions' },
+          config: { service: 'orders', webApps: { web: {} }, ...extra },
+        }),
+      ).toBe(
+        'Running under an AI agent: start with "serverless dev --detach", then use "serverless dev wait" and "serverless dev stop" (which restores your web apps).',
+      )
+    },
+  )
+
+  test.each([
+    ['agents', { ai: { agents: { bot: {} } } }],
+    ['sandboxes', { sandboxes: { box: {} } }],
+  ])(
+    'no hint for a service with %s and web apps but no functions (not functions mode)',
+    (_, extra) => {
+      expect(
+        hintFor({
+          config: { service: 'orders', webApps: { web: {} }, ...extra },
+        }),
+      ).toBeNull()
+    },
+  )
+
+  test('a service with functions, agents and web apps gets the hint', () => {
+    expect(
+      hintFor({
+        config: {
+          ...config,
+          ai: { agents: { bot: {} } },
+          webApps: { web: {} },
+        },
+      }),
+    ).toBe(
+      'Running under an AI agent: start with "serverless dev --detach", then use "serverless dev wait" and "serverless dev stop" (which restores your functions and web apps).',
+    )
+  })
+
   test.each([
     ['a person', { isAgent: () => false }],
     ['--help', { options: { help: true } }],

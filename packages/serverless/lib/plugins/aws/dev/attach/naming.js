@@ -70,6 +70,16 @@ export const ENV = Object.freeze({
   // The relay's: the per-session AES-256-GCM key (base64) and the AWS IoT Core data endpoint.
   SESSION_KEY: 'SLS_DEV_SESSION_KEY',
   IOT_ENDPOINT: 'SLS_DEV_IOT_ENDPOINT',
+  // A web app's Dev Mode revisions: the revision `main` goes back to, the revision's role
+  // (`dev`, the bridge; `clone`, the copy of the deployed revision the fallback endpoint serves)
+  // and the fallback endpoint's URL.
+  RESTORE_REVISION: 'SLS_DEV_RESTORE_REVISION',
+  REVISION_ROLE: 'SLS_DEV_REVISION_ROLE',
+  FALLBACK_URL: 'SLS_DEV_FALLBACK_URL',
+  // The fallback endpoint's auth type, `main`'s: `ApplicationManaged` (forwarded unsigned) or
+  // `IamAuth` (signed), and the web function's name (AWS sets no variable with it).
+  FALLBACK_AUTH: 'SLS_DEV_FALLBACK_AUTH',
+  WEB_FUNCTION: 'SLS_DEV_WEB_FUNCTION',
 })
 export const DEVMODE_VARIABLE_NAMES = Object.freeze(Object.values(ENV))
 /** What the exec wrapper exports to the bridge process; never part of a function's configuration. */
@@ -78,6 +88,52 @@ export const WRAPPER_VARIABLE_NAMES = Object.freeze([
   'SLS_DEV_BRIDGE_PORT',
 ])
 export const UNDO_RECORD_VERSION = '1'
+
+/**
+ * A web app's Dev Mode endpoints: the fallback serves the clone of the deployed revision (requests
+ * the machine does not take); the local one serves the dev revision of a `--local-only` web app.
+ */
+export const FALLBACK_ENDPOINT = 'sls-dev-fallback'
+export const LOCAL_ENDPOINT = 'sls-dev-local'
+export const DEV_MODE_ENDPOINTS = Object.freeze([
+  FALLBACK_ENDPOINT,
+  LOCAL_ENDPOINT,
+])
+/** Lambda Web's limit: 32,768 bytes of the UTF-8 JSON of a revision's environment variables. */
+export const WEB_ENV_LIMIT_BYTES = 32_768
+/** The bridge file a web app's dev revision starts (`AWS_LAMBDA_NODEJS_ENTRYPOINT`). */
+export const WEB_BRIDGE_ENTRY = 'sls-dev-web-bridge.mjs'
+/**
+ * The path the CLI requests on a `--local-only` web app's endpoint `sls-dev-local` so that its dev
+ * revision hands over the role credentials: the relay answers it itself (204), it never reaches the
+ * local server, and it is never recorded.
+ */
+export const CREDENTIALS_PATH = '/__serverless-dev/credentials'
+/** The licences of the third-party code WEB_BRIDGE_ENTRY bundles, next to it in the zip. */
+export const WEB_BRIDGE_NOTICES = 'sls-dev-THIRD_PARTY_NOTICES'
+/**
+ * The zip that holds WEB_BRIDGE_ENTRY and WEB_BRIDGE_NOTICES at its root: a web app's dev
+ * revision's code.
+ */
+export const WEB_BRIDGE_ZIP = 'sls-dev-web-bridge.zip'
+
+/**
+ * Where the web bridge zip lives, seen from the module directory `moduleDir`: in the source tree
+ * `dev/web/bridge/dist/` (`npm run build:devmode:web-bridge -w @serverless/framework`), in the
+ * released CLI the same layout under `<package>/lib/...`, as for the layer zips.
+ */
+export const webBridgeArtifactPathFrom = (moduleDir) =>
+  path.join(
+    isReleasedBundleDir(moduleDir)
+      ? path.join(moduleDir, '../lib/plugins/aws/dev/attach')
+      : moduleDir,
+    '../web/bridge/dist',
+    WEB_BRIDGE_ZIP,
+  )
+
+/** The web bridge zip for this running CLI. */
+export const webBridgeArtifactPath = () =>
+  webBridgeArtifactPathFrom(path.dirname(fileURLToPath(import.meta.url)))
 
 /** Lambda's limit: 4096 bytes of the compact JSON of the variables map. */
 export const ENV_LIMIT_BYTES = 4096
@@ -91,7 +147,7 @@ export const ENV_LIMIT_BYTES = 4096
  * followed by a name of letters and digits that starts with a capital letter.
  */
 export const BROKER_POLICY_NAME = 'serverless-dev-broker'
-export const BROKER_POLICY_VERSION = 1
+export const BROKER_POLICY_VERSION = 2
 export const BROKER_TRUST_SID = 'ServerlessDevModeBridge'
 
 const TEST_SUFFIX = /^[a-z0-9]{1,12}$/

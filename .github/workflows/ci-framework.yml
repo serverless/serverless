@@ -117,6 +117,9 @@ jobs:
       - name: 'Build: Dev Mode Layers'
         working-directory: ./packages/serverless
         run: npm run build:devmode:layer
+      - name: 'Build: Dev Mode Web Bridge'
+        working-directory: ./packages/serverless
+        run: npm run build:devmode:web-bridge
       - name: 'Build: MCP Entry'
         working-directory: ./packages/serverless
         run: npm run build:mcp:entry

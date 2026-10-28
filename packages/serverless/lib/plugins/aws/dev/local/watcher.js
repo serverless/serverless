@@ -1,7 +1,8 @@
 /**
  * Watches the service directory for code changes. Dependencies, build output, VCS data, Python
- * caches and virtualenvs, coverage and test files are never watched. A write counts once it has
- * been stable for 300 ms, a burst of changes is one reload, and changes that arrive during a
+ * caches and virtualenvs, coverage and test files are never watched. With web apps in the session,
+ * their output directories do not reload the functions either (webAppOutput). A write counts once
+ * it has been stable for 300 ms, a burst of changes is one reload, and changes that arrive during a
  * reload cause exactly one more. The configuration file is reported on its own: code reloads do
  * not apply it. A failing reload never stops the watching.
  */
@@ -106,20 +107,67 @@ export const handlerModulesOf = ({
   return modules
 }
 
+const holds = (dir, file, paths) =>
+  file === dir ||
+  file.startsWith(dir.endsWith(paths.sep) ? dir : dir + paths.sep)
+
+/** The service root's directories, besides dot-directories, a web app session leaves out. */
+const WEB_APP_ROOT_DIRECTORIES = Object.freeze(['dist', 'build'])
+
+/**
+ * The rule of a session with web apps, whose dev servers write their dot-directories (`.next`,
+ * `.nuxt`, `.svelte-kit`, …) on almost every request, wherever in the service their app lives: a
+ * dot-directory at any depth of the service directory, and the service directory's `dist` and
+ * `build`, with what they hold, unless a configured handler module lives inside. A path's last name
+ * is a directory only when chokidar's `stats` says so: a dot file such as `.env` still counts.
+ */
+const webAppOutput = ({
+  serviceDir,
+  file,
+  stats,
+  handlerModules,
+  platform,
+}) => {
+  const paths = pathsOf(platform)
+  const service = pathKey(serviceDir, platform)
+  const parts = paths
+    .relative(service, pathKey(file, platform))
+    .split(paths.sep)
+  const handlers = [...(handlerModules ?? [])]
+  return parts.some((name, index) => {
+    const output =
+      name.startsWith('.') ||
+      (index === 0 && WEB_APP_ROOT_DIRECTORIES.includes(name))
+    if (!output) return false
+    if (index === parts.length - 1 && !stats?.isDirectory?.()) return false
+    const dir = paths.join(service, ...parts.slice(0, index + 1))
+    return !handlers.some((handler) => holds(dir, handler, paths))
+  })
+}
+
 /**
  * Whether a file is never watched. A configured handler module (`handlerModules`, from
- * handlerModulesOf) is watched whatever its name, also when it looks like a test file.
+ * handlerModulesOf) is watched whatever its name, also when it looks like a test file. In a
+ * session with web apps (`webApps`), their output directories are left out too (see webAppOutput).
  */
 export const isIgnored = ({
   serviceDir,
   file,
+  stats,
   handlerModules,
+  webApps = false,
   platform = process.platform,
 }) => {
   const paths = pathsOf(platform)
   const relative = paths.relative(serviceDir, file).split(paths.sep).join('/')
   if (!relative || outside(relative, paths)) return false
   if (relative.split('/').some((part) => IGNORED_DIRECTORIES.includes(part))) {
+    return true
+  }
+  if (
+    webApps &&
+    webAppOutput({ serviceDir, file, stats, handlerModules, platform })
+  ) {
     return true
   }
   if (handlerModules?.size) {
@@ -138,6 +186,8 @@ export const createWatcher = ({
   configFiles = [],
   // Watched whatever their names (see isIgnored).
   handlerModules,
+  // Whether the session runs web apps: their rule applies (see isIgnored).
+  webApps = false,
   onChange,
   onConfigChange,
   onError = () => {},
@@ -179,8 +229,15 @@ export const createWatcher = ({
   }
 
   const watcher = watch(serviceDir, {
-    ignored: (file) =>
-      isIgnored({ serviceDir, file, handlerModules, platform }),
+    ignored: (file, stats) =>
+      isIgnored({
+        serviceDir,
+        file,
+        stats,
+        handlerModules,
+        webApps,
+        platform,
+      }),
     ignoreInitial: true,
     followSymlinks: false,
     // chokidar 4 has no fsevents; polling avoids EMFILE on large macOS projects.

@@ -127,9 +127,9 @@ export const healthOf =
 
 /**
  * A client for the live session of `serviceDir`, or null when there is none:
- * `{ record, health(), status(), stop({ keep }), replay(requestId, { timeoutMs }), touch() }`,
- * each resolving `{ status, body }` whatever the HTTP status (a 404 or 409 replay too); each
- * rejects only when the connection fails or its time limit passes.
+ * `{ record, health(), status(), stop({ keep }), replay(requestId, { timeoutMs, kind }),
+ * touch() }`, each resolving `{ status, body }` whatever the HTTP status (a 404 or 409 replay
+ * too); each rejects only when the connection fails or its time limit passes.
  */
 export const connectToSession = async ({
   serviceDir,
@@ -154,8 +154,14 @@ export const connectToSession = async ({
     status: () => call('GET', '/v1/status', undefined, timeoutMs),
     stop: ({ keep = false } = {}) =>
       call('POST', '/v1/stop', { keep }, timeoutMs),
-    replay: (requestId, { timeoutMs: waitMs = 0 } = {}) =>
-      call('POST', '/v1/replay', { request_id: requestId }, waitMs),
+    // `kind: 'request'` replays a web app request; an invocation names no kind.
+    replay: (requestId, { timeoutMs: waitMs = 0, kind } = {}) =>
+      call(
+        'POST',
+        '/v1/replay',
+        { request_id: requestId, ...(kind && { kind }) },
+        waitMs,
+      ),
     touch: () => call('POST', '/v1/touch', undefined, timeoutMs),
   }
   // true: this session; false: another one answers; null: no answer.

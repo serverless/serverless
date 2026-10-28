@@ -52,6 +52,14 @@ import {
 } from '../attach/session-preflight.js'
 import { GLOBAL_TIMERS, defaultOwner } from '../attach/session-support.js'
 import { buildAttachVariables } from '../attach/undo-record.js'
+import {
+  readWebApps,
+  runsHere,
+  selectSessionWebApps,
+  webAppsOf,
+} from '../attach/session-web.js'
+import { classifyWebApp } from '../web/eligibility.js'
+import { resolveStartSource } from '../web/start-sources.js'
 import { healthOf } from '../control/client.js'
 import { detectLocalRuntimes } from '../local/adapters/index.js'
 import { processAlive } from '../local/leftovers.js'
@@ -92,6 +100,7 @@ export const CHECK_LABELS = Object.freeze({
   broker_role: 'IAM role',
   stack: 'Stack',
   functions: 'Functions',
+  web_apps: 'Web apps',
   layers: 'Lambda layers',
 })
 
@@ -260,6 +269,8 @@ export const planSession = async ({
     region,
     plan: null,
     rows: [],
+    // The web app rows, for a service with web apps.
+    webRows: [],
     preflight,
   }
   const pass = (check, fields = {}) =>
@@ -303,6 +314,9 @@ export const planSession = async ({
     only: [].concat(options.function ?? []),
     skip: [].concat(options['skip-function'] ?? []),
   })
+  // An unknown web app name is refused as the session refuses it.
+  const webApps = webAppsOf(serverless, provider)
+  const webSelection = selectSessionWebApps({ webApps, options })
 
   const running = await Promise.resolve()
     .then(() => connect({ serviceDir: serverless.serviceDir, fs }))
@@ -538,15 +552,61 @@ export const planSession = async ({
   }
   planned.rows = rows
   const devRows = rows.filter((row) => row.mode === 'dev')
-  if (devRows.length) {
-    pass('functions', {
-      message: `${devRows.length} of ${out.functionsWord(keys.length)} can run in Dev Mode`,
-    })
+  // The web apps, read as the session reads them (no Direct Messaging: a web app another session
+  // holds is judged by its owner alone).
+  let webRows = []
+  let webDenied = null
+  if (webApps.length) {
+    try {
+      ;({ rows: webRows, denied: webDenied } = deployFirst
+        ? { rows: webRowsBeforeDeploy({ webApps, webSelection, serverless }) }
+        : await readWebApps({
+            lambdaWeb: clients.lambdaWeb,
+            webApps,
+            selection: webSelection,
+            serviceDir: serverless.serviceDir,
+            liveness: { cover: async () => {}, known: undefined },
+            context: {
+              sessionId: DRY_RUN_SESSION,
+              owner,
+              takeOver: Boolean(options['take-over']),
+            },
+          }))
+    } catch (error) {
+      fail('web_apps', failureOf(error, scope))
+      return planned
+    }
+  }
+  planned.webRows = webRows
+  const webHere = webRows.filter(runsHere)
+  if (webDenied && !devRows.length) {
+    // Web apps alone, and their web functions may not be read: the session does not start.
+    fail(
+      'web_apps',
+      failureOf(webDenied, scope, {
+        action: 'lambda:ListWebFunctionEndpoints',
+        why: `in ${region} to read the web functions of the web apps`,
+      }),
+    )
+  } else if (devRows.length || webHere.length) {
+    if (keys.length) {
+      pass('functions', {
+        message: `${devRows.length} of ${out.functionsWord(keys.length)} can run in Dev Mode`,
+      })
+    }
+    if (webApps.length) {
+      pass('web_apps', {
+        ...(webDenied && { reason: 'web_apps_unreadable' }),
+        message: webDenied
+          ? 'the web functions could not be read: web apps run the deployed code, functions run here'
+          : `${webHere.length} of ${out.webAppsWord(webApps.length)} can run in Dev Mode`,
+      })
+    }
   } else {
-    fail('functions', {
+    // A service of web apps alone has no functions check: its web apps fail.
+    fail(keys.length ? 'functions' : 'web_apps', {
       reason: 'nothing_to_attach',
-      message:
-        'No function in this service can run in Dev Mode. The table says why for each one.',
+      message: `No function${webApps.length ? ' or web app' : ''} in this service can run in Dev Mode. The table says why for each one.`,
     })
   }
   const missingLayers = []
@@ -581,9 +641,37 @@ export const planSession = async ({
     brokerPolicy,
     missingLayers,
     devRows: deployFirst ? [] : devRows,
+    webRows: deployFirst ? [] : webRows,
+    widenBroker: Boolean(broker) && !broker.widened && webHere.length > 0,
   })
   return planned
 }
+
+/**
+ * The web app rows of a stage not deployed yet: what serverless.yml and this machine rule out;
+ * the others are attached after the first deployment, as the functions are.
+ */
+const webRowsBeforeDeploy = ({ webApps, webSelection, serverless }) =>
+  webApps.map(({ key, config }) => {
+    const selection = webSelection.get(key)
+    const start = selection.selected
+      ? resolveStartSource({
+          key,
+          webApp: config,
+          serviceDir: serverless.serviceDir,
+        })
+      : null
+    const row = classifyWebApp({
+      key,
+      config,
+      deployed: {},
+      selection,
+      startSource: start?.source ?? null,
+    })
+    return runsHere(row)
+      ? { ...row, why: 'attached after the first deployment' }
+      : row
+  })
 
 /** The plan as JSON: machine codes only; the human text lives in `renderPlan`. */
 export const planJson = (plan) =>
@@ -593,12 +681,31 @@ export const planJson = (plan) =>
       action: change.action,
       fields: [...CHANGE_FIELDS],
     })),
+    // What each web app that runs here gets: revisions and endpoints created, and where `main`
+    // sends its traffic (`dev_revision`, or `unchanged` for --local-only).
+    ...(plan.webChanges?.length && {
+      web_app_changes: plan.webChanges.map((change) => ({
+        web_app: change.webApp,
+        mode: change.mode,
+        revisions: change.revisions,
+        endpoints: change.endpoints,
+        main: change.main,
+      })),
+    }),
     account_setup: plan.accountSetup,
     first_deploy: plan.deployFirst,
   }
 
 export const functionJson = (row) => ({
   name: row.function,
+  mode: row.mode,
+  ...(row.reason && { reason: row.reason }),
+  ...(row.why && { why: row.why }),
+  ...(row.notes?.length && { notes: row.notes.map((note) => note.reason) }),
+})
+
+export const webAppJson = (row) => ({
+  name: row.webApp,
   mode: row.mode,
   ...(row.reason && { reason: row.reason }),
   ...(row.why && { why: row.why }),
@@ -613,6 +720,9 @@ export const dryRunResult = (planned) => {
   const fields = {
     plan: planJson(planned.plan),
     functions: planned.rows.map(functionJson),
+    ...(planned.webRows?.length && {
+      web_apps: planned.webRows.map(webAppJson),
+    }),
     preflight: planned.preflight,
   }
   const failing = planned.preflight.find((check) => !check.ok)
@@ -650,8 +760,9 @@ export const renderDryRun = (planned) => {
     ? out.renderPlan({ plan: planned.plan, region: planned.region })
     : ''
   if (planText) lines.push(['notice', planText], blank)
-  if (planned.rows.length) {
-    lines.push(['notice', out.renderModeTable(planned.rows)], blank)
+  const webRows = planned.webRows ?? []
+  if (planned.rows.length || webRows.length) {
+    lines.push(['notice', out.renderModeTable(planned.rows, webRows)], blank)
   }
   const width = Math.max(
     ...planned.preflight.map((check) => CHECK_LABELS[check.check].length),

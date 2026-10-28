@@ -110,7 +110,7 @@ describe('the idle timeout of a detached session', () => {
     ).toBeNull()
   })
 
-  test('invocation and reload records count as activity; nothing else does', () => {
+  test('invocation, web request and reload records count as activity; nothing else does', () => {
     const touch = jest.fn()
     const events = {
       emit: jest.fn(() => ({ seq: 1, cursor: 's_x:1' })),
@@ -120,6 +120,8 @@ describe('the idle timeout of a detached session', () => {
     for (const type of [
       'invocation.start',
       'invocation.end',
+      'request.start',
+      'request.end',
       'reload.start',
       'reload.end',
     ]) {
@@ -127,8 +129,9 @@ describe('the idle timeout of a detached session', () => {
     }
     tracked.emit('connection.lost', { reason: 'x' })
     tracked.emit('function.mode', {})
-    expect(touch).toHaveBeenCalledTimes(4)
-    expect(events.emit).toHaveBeenCalledTimes(6)
+    tracked.emit('server.exited', {})
+    expect(touch).toHaveBeenCalledTimes(6)
+    expect(events.emit).toHaveBeenCalledTimes(9)
     expect(tracked.lastCursor()).toBe('s_x:1')
   })
 

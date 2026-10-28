@@ -51,6 +51,7 @@ import { envelope, errorResult, restoreAfterStopNext } from './envelope.js'
 import { cliCommand, shownPath } from './cli-names.js'
 import { endStatusOf } from './session-end.js'
 import { statusModeTable, statusTableWorthShowing } from './status.js'
+import { selectSessionWebApps, webAppsOf } from '../attach/session-web.js'
 import {
   PRESENCE_POLL_MS,
   TOUCH_INTERVAL_MS,
@@ -119,8 +120,53 @@ export const sessionProcessEnv = (env) => {
   return options.length ? { ...rest, NODE_OPTIONS: options.join(' ') } : rest
 }
 
+/**
+ * What `dev stop` restores for a session not ready yet, as its stop hint will say it: the web apps
+ * the options select (none skipped), and the functions unless the service has web apps alone. A
+ * service that cannot be read for it is named by its functions.
+ */
+export const restoresOfService = ({ serverless, provider, options = {} }) => {
+  try {
+    const webApps = webAppsOf(serverless, provider)
+    const selected = [
+      ...selectSessionWebApps({ webApps, options }).values(),
+    ].filter((webApp) => webApp.selected).length
+    const allFunctions = serverless?.service?.getAllFunctions
+    const functions =
+      typeof allFunctions === 'function'
+        ? allFunctions.call(serverless.service).length > 0
+        : true
+    return out.restoresWhat({
+      functions: functions || selected === 0,
+      webApps: selected > 0,
+    })
+  } catch {
+    return out.restoresWhat()
+  }
+}
+
 // A file of the session as it is reached from where the CLI runs, in the result and its lines.
 const relative = (name) => shownPath(['.serverless', 'dev', name].join('/'))
+
+/**
+ * The detached start's last line: what to wait for (an invocation, a web app request, or either
+ * when both kinds run here) and what `dev stop` restores.
+ */
+const nextLine = (functions, webApps) => {
+  const functionsHere = functions.some((fn) => fn.mode === 'dev')
+  const webAppsHere = webApps.some(
+    (webApp) => webApp.mode === 'dev' || webApp.mode === 'local',
+  )
+  const invocation = `"${cliCommand('dev wait --for invocation')}" waits for an invocation`
+  const request = `"${cliCommand('dev wait --for request')}"`
+  const waits =
+    webAppsHere && functionsHere
+      ? `${invocation}, ${request} for a web app request`
+      : webAppsHere
+        ? `${request} waits for a web app request`
+        : invocation
+  return `Next: ${waits}; "${cliCommand('dev stop')}" restores ${out.restoresWhat({ functions: functions.length > 0, webApps: webApps.length > 0 })} and ends the session.`
+}
 
 export const runDetach = async ({
   serverless,
@@ -261,7 +307,7 @@ export const runDetach = async ({
         },
         {
           command: cliCommand('dev stop'),
-          when: 'to stop it and restore your functions',
+          when: `to stop it and restore ${restoresOfService({ serverless, provider, options })}`,
         },
       ],
     }
@@ -272,7 +318,7 @@ export const runDetach = async ({
       ['aside', filesLine(fields)],
       [
         'aside',
-        `Next: "${cliCommand('dev wait --for ready')}" waits until it is ready; "${cliCommand('dev stop')}" restores your functions and ends the session.`,
+        `Next: "${cliCommand('dev wait --for ready')}" waits until it is ready; "${cliCommand('dev stop')}" restores ${restoresOfService({ serverless, provider, options })} and ends the session.`,
       ],
     ])
   }
@@ -371,6 +417,7 @@ export const runDetach = async ({
   }
   const report = ({ record, status }, alreadyRunning) => {
     const functions = status?.functions ?? []
+    const webApps = status?.web_apps ?? []
     const kept = alreadyRunning
       ? out.keptSettingsLine({ record, options })
       : null
@@ -385,25 +432,35 @@ export const runDetach = async ({
       events_file: relative(record.events_file ?? FILES.events),
       cursor: status?.cursor,
       functions,
+      ...(webApps.length && { web_apps: webApps }),
     }
     const devCount = functions.filter((fn) => fn.mode === 'dev').length
+    const counts = out.runningCounts({
+      devCount,
+      total: functions.length,
+      ...(webApps.length && {
+        webApps: {
+          running: webApps.filter(
+            (webApp) => webApp.mode === 'dev' || webApp.mode === 'local',
+          ).length,
+          total: webApps.length,
+        },
+      }),
+    })
     const lines = [
       alreadyRunning
         ? ['notice', out.alreadyRunningLine(record)]
         : [
             'success',
-            `Dev Mode on in the background · ${devCount} of ${out.functionsWord(functions.length)} ${style.aside(`(session ${record.session_id}, pid ${record.pid})`)}`,
+            `Dev Mode on in the background · ${counts} ${style.aside(`(session ${record.session_id}, pid ${record.pid})`)}`,
           ],
       ...(kept ? [['notice', kept]] : []),
-      ...(statusTableWorthShowing(functions)
-        ? [['blankLine'], ['notice', statusModeTable(functions)]]
+      ...(statusTableWorthShowing(functions, webApps)
+        ? [['blankLine'], ['notice', statusModeTable(functions, webApps)]]
         : []),
       ['blankLine'],
       ['aside', filesLine(fields)],
-      [
-        'aside',
-        `Next: "${cliCommand('dev wait --for invocation')}" waits for an invocation; "${cliCommand('dev stop')}" restores your functions and ends the session.`,
-      ],
+      ['aside', nextLine(functions, webApps)],
     ]
     return done(fields, lines)
   }

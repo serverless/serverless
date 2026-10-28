@@ -6,9 +6,9 @@
  * anything else gets 403. JSON bodies are capped at CONTROL_BODY_LIMIT.
  *
  * GET /v1/health → { session_id, state }; GET /v1/status → the `dev status` fields;
- * POST /v1/stop { keep } → 202 { stopping: true }; POST /v1/replay { request_id } → 200 with the
- * replay's fields, 404 or 409 { reason, message }; POST /v1/touch → 204. Status, replay and touch
- * count as activity (`handlers.touch`).
+ * POST /v1/stop { keep } → 202 { stopping: true }; POST /v1/replay { request_id, kind? } → 200
+ * with the replay's fields, 404 or 409 { reason, message }; POST /v1/touch → 204. Status, replay
+ * and touch count as activity (`handlers.touch`).
  */
 import http from 'http'
 import nodeFs from 'fs'
@@ -44,14 +44,22 @@ const pathOf = (url) => String(url ?? '').split('?')[0]
 
 /**
  * A replay handler's error as its answer: the request id names nothing kept (404) or more than one
- * request (409), or the session refuses the replay (409, reason 'error').
+ * request (409), the request's body was cut in its file or never read (409), its web app does not
+ * run here (409), or the session refuses the replay (409, reason 'error').
  */
+// Refusals whose reason the command reports as it is.
+const PASSED_ON = new Set([
+  'ambiguous_request_id',
+  'request_body_truncated',
+  'request_body_not_captured',
+  'web_app_not_local',
+])
 const replayRefusal = (error) => {
   const message = String(error?.message ?? error)
   if (error?.reason === 'invocation_not_found') {
     return { status: 404, body: { reason: error.reason, message } }
   }
-  if (error?.reason === 'ambiguous_request_id') {
+  if (PASSED_ON.has(error?.reason)) {
     return { status: 409, body: { reason: error.reason, message } }
   }
   return { status: 409, body: { reason: 'error', message } }
@@ -112,7 +120,10 @@ export const startControlServer = async ({
       try {
         return {
           status: 200,
-          body: await handlers.replay({ request_id: body.request_id }),
+          body: await handlers.replay({
+            request_id: body.request_id,
+            ...(body.kind === 'request' && { kind: 'request' }),
+          }),
         }
       } catch (error) {
         return replayRefusal(error)

@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework - Dev Mode
-description: Run the code on your machine for real invocations of your deployed AWS Lambda functions, with no emulation and no redeploy, from a terminal or an AI coding agent.
+description: Run the code on your machine for real invocations of your deployed AWS Lambda functions and real requests to your web apps, with no emulation and no redeploy, from a terminal or an AI coding agent.
 short_title: Dev Mode
 keywords:
   [
@@ -8,6 +8,8 @@ keywords:
     'Dev Mode',
     'serverless dev',
     'AWS Lambda',
+    'AWS Lambda Web Functions',
+    'Web apps',
     'Local development',
     'TypeScript',
     'Python',
@@ -27,6 +29,8 @@ keywords:
 
 Use it when you want to work against real events and real resources without waiting for a deployment on each change. Functions in other runtimes, container images and Lambda@Edge keep running their deployed code (see [Functions and modes](#functions-and-modes)).
 
+The same session runs the service's [web apps](./web-apps.md): each web app's server starts on your machine with the deployed environment and IAM role, requests to its real URL reach that server, and a local URL on `localhost` serves it with your framework's hot reload. See [Web Apps](#web-apps).
+
 Dev Mode works for a person in a terminal and for scripts and AI coding agents. An agent starts a session in the background, waits for invocations, reads what each one received and returned, replays them, and stops the session, with one JSON result per command. See [Using Dev Mode from an AI agent](#using-dev-mode-from-an-ai-agent).
 
 ---
@@ -35,14 +39,14 @@ Dev Mode works for a person in a terminal and for scripts and AI coding agents. 
 
 - **A deployed stage that is not `prod` or `production`.** A stage that was never deployed is deployed first, as a normal deployment (the Dashboard records no deployment for it). With `--approve`, Dev Mode asks twice on such a stage: once before the deployment and once before attaching. The first session of a never-deployed stage needs your usual deploy permissions.
 - **Node.js 18.19, 20.6 or later on your machine** for Node.js and TypeScript handlers, and 20.6 or later for [MCP server](./mcp.md#dev-mode) functions. **Python 3.9 or later** for Python handlers. See [Runtimes on your machine](#runtimes-on-your-machine).
-- **AWS permissions** on the stage's functions, the Dev Mode layers, AWS IoT Core, STS, CloudFormation and the deployment bucket, and, for the first session in an account and region, permission to create one IAM role. See [Your permissions](#your-permissions).
+- **AWS permissions** on the stage's functions, the Dev Mode layers, AWS IoT Core, STS, CloudFormation and the deployment bucket, and, for the first session in an account and region, permission to create one IAM role. Web apps add permissions on their web functions. See [Your permissions](#your-permissions).
 - **Outbound HTTPS** from your machine to AWS and AWS IoT Core, and from any function in a VPC to AWS IoT Core, STS and S3. See [Networking and proxies](#networking-and-proxies).
 
 > **Note:** Dev Mode refuses the `prod` and `production` stages (`stage_protected`). Use a personal or development stage.
 
 Before the first session, `serverless dev --dry-run` runs the read-only checks a session runs and prints the changes it would make, touching nothing. The checks are: the stage, the Serverless sign-in, a session already running here, your AWS identity, the AWS IoT Core endpoint and an HTTPS connection to it, the IAM role, the stack, each function's configuration and the layers.
 
-The first session in an account and region creates the IAM role. AWS can take up to 3 minutes before functions can use a new role. Until then some invocations run the deployed code, and the session prints `The new IAM role can take up to 3 minutes to work; …`. A session that finds the role created less than 3 minutes earlier, for example by a first start that ended before it was ready, says in its set-up line that it uses the role and how old it is (`Set up Dev Mode in <region>: using IAM role <role name> (created 2 min ago)`) and prints the same note.
+The first session in an account and region creates the IAM role. AWS can take up to 3 minutes before functions and web apps can use a new role. Until then some invocations and web app requests run the deployed code, and the session prints `The new IAM role can take up to 3 minutes to work; …`, naming invocations, web app requests or both, by what the session runs here. A session that finds the role created less than 3 minutes earlier, for example by a first start that ended before it was ready, says in its set-up line that it uses the role and how old it is (`Set up Dev Mode in <region>: using IAM role <role name> (created 2 min ago)`) and prints the same note.
 
 In a region where the account has never used AWS IoT Core, AWS creates the account's AWS IoT Core endpoint when Dev Mode first looks it up, and its host name can take a few minutes to resolve. The first session waits up to 2 minutes for it, with the spinner showing `Waiting for AWS IoT Core in <region> to become reachable`. If the name still does not resolve, the session ends with `DEV_MODE_IOT_UNREACHABLE` and says to run the command again in a few minutes. `serverless dev --dry-run` does not wait: its `iot_connect` check fails with the same message, which says to run the command again in a few minutes.
 
@@ -55,7 +59,9 @@ Developers need, in the stage's account and region:
 - `iot:DescribeEndpoint`, `iot:Connect`, `iot:Subscribe`, `iot:Receive` and `iot:Publish` for the session's AWS IoT Core topics;
 - `sts:GetCallerIdentity`, `cloudformation:DescribeStacks` on the stage's stack, and `iam:GetRole` on the IAM role.
 
-The first session in an account and region also creates that role, which needs `iam:CreateRole` and `iam:PutRolePolicy`. Optional permissions add payloads above one message (S3), liveness checks of other developers' sessions (`iot:SendDirectMessage`) and the listing of an HTTP API named by `provider.httpApi.id`. Dev Mode never passes a role to a function, so it needs no `iam:PassRole`.
+The first session in an account and region also creates that role, which needs `iam:CreateRole` and `iam:PutRolePolicy`. Optional permissions add payloads above one message (S3), liveness checks of other developers' sessions (`iot:SendDirectMessage`) and the listing of an HTTP API named by `provider.httpApi.id`. Dev Mode never passes a role to a function, so functions need no `iam:PassRole`.
+
+A service with [web apps](#web-apps) also needs, on their web functions, the actions that read, create and delete revisions and endpoints and move an endpoint's traffic, `iam:PassRole` on each web app's execution role (AWS requires it to create a revision), and `s3:GetObject` and `s3:GetObjectVersion` on the deployment bucket's objects. The first session with web apps in an account and region also updates the IAM role's trust policy, which needs `iam:UpdateAssumeRolePolicy` once. `--local-only` adds `lambda:InvokeWebFunctionEndpoint` on the Dev Mode endpoint `sls-dev-local`.
 
 The full policy, with what each optional permission adds and what happens without it, is in the [reference's Permissions section](../cli-reference/dev.md#permissions).
 
@@ -67,7 +73,7 @@ In accounts where developers cannot create IAM roles, an administrator runs `ser
 serverless dev setup --region eu-west-1 --permissions-boundary arn:aws:iam::<account-id>:policy/<boundary> --path /serverless/
 ```
 
-`dev setup` also runs outside a service directory, with no Serverless sign-in needed first; see [`dev setup`](../cli-reference/dev.md#dev-setup) for how it picks the region and credentials there. The role's trust policy is strict: Dev Mode uses the role only with the trust policy it wrote. A role whose trust policy an administrator changed is refused with `DEV_MODE_BROKER_MODIFIED`, naming the difference; delete the role and run `serverless dev setup` again. See [IAM permissions boundaries](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html) for how a boundary limits the role, and [`dev setup`](../cli-reference/dev.md#dev-setup) in the reference for the actions and resources a boundary has to allow.
+On a role an earlier version of the Framework created, `dev setup` also updates the trust policy so web apps can use the role (see [Web apps and the IAM role](#web-apps-and-the-iam-role)). `dev setup` also runs outside a service directory, with no Serverless sign-in needed first; see [`dev setup`](../cli-reference/dev.md#dev-setup) for how it picks the region and credentials there. The role's trust policy is strict: Dev Mode uses the role only with the trust policy it wrote. A role whose trust policy an administrator changed is refused with `DEV_MODE_BROKER_MODIFIED`, naming the difference; delete the role and run `serverless dev setup` again. See [IAM permissions boundaries](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html) for how a boundary limits the role, and [`dev setup`](../cli-reference/dev.md#dev-setup) in the reference for the actions and resources a boundary has to allow.
 
 ### Networking and proxies
 
@@ -142,8 +148,8 @@ Set up Dev Mode in us-east-1: created IAM role serverless-dev-broker-us-east-1, 
 ✔ Dev Mode on · 2 of 2 functions (17.3s)
 
 endpoints:
-  POST - https://a1b2c3d4e5.execute-api.us-east-1.amazonaws.com/node
-  POST - https://a1b2c3d4e5.execute-api.us-east-1.amazonaws.com/python
+  POST /node    https://a1b2c3d4e5.execute-api.us-east-1.amazonaws.com/node
+  POST /python  https://a1b2c3d4e5.execute-api.us-east-1.amazonaws.com/python
 
 The new IAM role can take up to 3 minutes to work; until then some invocations run the deployed code.
 Press h for keys, Ctrl+C or q to restore your functions and exit.
@@ -169,9 +175,9 @@ If a function does not run on your machine, a table after the ready line says wh
 
 ## Stopping and Recovering
 
-**Stopping.** Press Ctrl+C or `q`, run `serverless dev stop` from another terminal, or send a stop signal (SIGINT, SIGTERM or SIGHUP). The session restores every function and prints the progress. A session started with `--detach` also stops after 60 minutes without activity by default; `--idle-timeout` changes it or turns it off (see [Detached sessions](../cli-reference/dev.md#detached-sessions)). The last line is one of:
+**Stopping.** Press Ctrl+C or `q`, run `serverless dev stop` from another terminal, or send a stop signal (SIGINT, SIGTERM or SIGHUP). The session restores every function and web app and prints the progress. A session started with `--detach` also stops after 60 minutes without activity by default; `--idle-timeout` changes it or turns it off (see [Detached sessions](../cli-reference/dev.md#detached-sessions)). The last line is one of:
 
-- `✔ Dev Mode off · N functions restored (…)`
+- `✔ Dev Mode off · N functions restored (…)`, naming web apps too when the session ran some (`✔ Dev Mode off · 1 function and 2 web apps restored (…)`)
 - `Restore incomplete · …` — a function could not be restored; run the restore it names.
 - `Left N functions in Dev Mode (--on-exit keep).` — you asked to keep them.
 - `Exiting without waiting. Not restored: …` — after a second Ctrl+C or SIGTERM.
@@ -186,7 +192,9 @@ serverless dev restore --stage <stage> --region <region>
 
 > **Note:** Pass the stage and region the session ran on, and `--aws-profile` too if the session was started with one. `serverless dev restore` on its own restores the service's default stage with the default credentials. See [`dev restore`](../cli-reference/dev.md#dev-restore).
 
-**`serverless deploy` during a session** restores the session's functions after packaging. If the build fails, the functions stay attached until the next command. `serverless package`, `serverless deploy` and `serverless deploy function` empty `.serverless/` but keep `.serverless/dev/`, so a session's record survives a deployment.
+Web apps a killed session left are restored the same way, except by `serverless deploy function`, which deploys functions only; `serverless remove` deletes them with their Dev Mode revisions and endpoints (see [Stopping and restoring web apps](#stopping-and-restoring-web-apps)).
+
+**`serverless deploy` during a session** restores the session's functions and web apps after packaging. If the build fails, the functions stay attached until the next command. `serverless package`, `serverless deploy` and `serverless deploy function` empty `.serverless/` but keep `.serverless/dev/`, so a session's record survives a deployment.
 
 ---
 
@@ -204,7 +212,7 @@ serverless dev restore --stage <stage> --region <region>
 serverless.yml changed: run "serverless deploy" for environment, IAM, events or functions; restart "serverless dev" for a new handler path.
 ```
 
-A changed handler path applies from the next `serverless dev`. To change configuration, stop the session, deploy, and start it again.
+A changed handler path applies from the next `serverless dev`. To change configuration, stop the session, deploy, and start it again. A session that runs web apps names them in this line too: a web app's new `dev.command` or `entry` also applies from the next `serverless dev`.
 
 **The event log and cursors.** A session writes a record of everything it does to `.serverless/dev/session.ndjson`. A _cursor_ is a position in that log (`<session id>:<sequence number>`); the `dev wait` command uses cursors to wait for an event without missing it. See [Cursors](../cli-reference/dev.md#cursors).
 
@@ -215,10 +223,11 @@ A changed handler path applies from the next `serverless dev`. To change configu
 Outside CloudFormation:
 
 - **The Lambda layers `serverless-dev-x86_64` and `serverless-dev-arm64`.** One version per CLI build, published on first use in each account and region and never deleted. A session reuses a version only when Lambda's checksum of its content (`GetLayerVersion`) matches the layer the CLI ships, and publishes a new one otherwise. Only these exact names in the function's own account and region count as Dev Mode's: a layer of that name shared from another account, or with any other suffix, stays on the function. A layer with one of these names counts only on a function that also has Dev Mode's exec wrapper or the `SLS_DEV_*` variables Dev Mode writes with it; on any other function, restores leave it in place. A session replaces such a layer when its version is one Dev Mode published (its description says so), as when something removed Dev Mode's wrapper and variables but not its layer. It does not attach a function whose layer of that name is someone else's (`layer_name_taken` in [Functions and modes](#functions-and-modes)).
-- **The IAM role `serverless-dev-broker-<region>`** with the inline policy `serverless-dev-broker`, created once per account and region (or by [`serverless dev setup`](#dev-setup-for-accounts-without-iam-role-creation)) and never deleted. The policy carries its version: the next session or `serverless dev setup` puts back a policy that is missing, that an older version of Dev Mode wrote, or that was changed, and leaves one a newer version wrote as it is.
+- **The IAM role `serverless-dev-broker-<region>`** with the inline policy `serverless-dev-broker`, created once per account and region (or by [`serverless dev setup`](#dev-setup-for-accounts-without-iam-role-creation)) and never deleted. The policy carries its version: the next session or `serverless dev setup` puts back a policy that is missing, that an older version of Dev Mode wrote, or that was changed, and leaves one a newer version wrote as it is. The first session with web apps also adds web functions to the role's trust policy (see [Web apps and the IAM role](#web-apps-and-the-iam-role)).
 - **Configuration changes** to each attached function's `$LATEST` (layers and environment variables), visible in AWS CloudTrail, AWS Config and the function's last-modified time, and removed by every restore.
 - **AWS IoT Core connections and messages:** one connection for the session and one for each warm execution environment of an attached function, and at least two messages each way per relayed invocation, billed by AWS IoT Core (see [AWS IoT Core pricing](https://aws.amazon.com/iot-core/pricing/)).
 - **Short-lived payload objects** under `serverless-dev-mode/` in the deployment bucket (see [Large payloads](#large-payloads)).
+- **For web apps,** while a session runs: two revisions and one endpoint on each web function, the change of its `main` endpoint's traffic, and the web bridge's zip in the deployment bucket, kept for later sessions (see [What a session creates for a web app](#what-a-session-creates-for-a-web-app)).
 - **Lambda's own `START`, `END` and `REPORT` log lines** for each relayed invocation, whose `Duration` includes the trip to your machine and back.
 
 ### Large payloads
@@ -298,7 +307,7 @@ Names are the function keys in `serverless.yml`; an unknown name is refused befo
 
 **The start-up table.** When a function does not run on your machine, or runs here with a note (a VPC, a take-over), a table after the ready line says which and why. Functions an earlier session of yours left in Dev Mode (`reattached`) do not bring the table back; `--debug` names them. What the session changes on each function is printed with `--debug`; [`--approve`](../cli-reference/dev.md#options) prints it in full before it asks, and [`--dry-run`](../cli-reference/dev.md#options) prints it with every check.
 
-**Endpoints.** After the ready line, the session lists the stage's endpoints in the lines `serverless deploy` and `serverless info` print for them. The routes of `http` and `httpApi` events, a WebSocket API's URL, a CloudFront distribution and function URLs come under `endpoint:` (one) or `endpoints:`, the first 10 and then how many more. The [MCP servers](./mcp.md) come under `mcp:`, a single server on one line. They come from the deployed stack, read when the session starts or after the deployment it starts with. The routes of an HTTP API that `provider.httpApi.id` names are listed at the URL AWS gives for it, as in `serverless info`. A detached session writes them to its log; `serverless dev status` lists them all.
+**Endpoints.** After the ready line, the session lists the stage's endpoints under `endpoints:`, the endpoints `serverless deploy` and `serverless info` print, one per line as a label and the URL, with the URLs lined up: each route of an `http` or `httpApi` event by its method and path (`GET /hello`), a WebSocket API's URL (`WebSocket`), a CloudFront distribution (`CloudFront`) and each function URL by its function's name; the first 10, then how many more. The [web apps](#web-apps) that run on your machine follow under `web apps:`, and the [MCP servers](./mcp.md) under `mcp:`, each by its name. A section with nothing to list is left out. They come from the deployed stack, read when the session starts or after the deployment it starts with. The routes of an HTTP API that `provider.httpApi.id` names are listed at the URL AWS gives for it, as in `serverless info`. A detached session writes them to its log; `serverless dev status` lists them all.
 
 **Event labels.** Each invocation is labelled for a person: `POST /node`, `SQS JobsQueue`, `S3 uploads ObjectCreated:Put`, `mcp tools/call add`, and `schedule` with the rule's name. A name that starts with the stack's name and ends in a CloudFormation-style suffix is shortened to the part in between: `my-service-alice-JobsQueue-i0PzaO617EMJ` shows as `JobsQueue`, and a FIFO queue keeps `.fifo`. Any other name keeps its last part, such as an account id (`uploads-123456789012`) or the lowercase suffix of a bucket CloudFormation named. Event records, invocation files and `--json` results keep the full label, such as `aws:apigateway:v2:post:/node`, and the `v` key shows it with each event and response. The exact shortening rule is under [Event records](../cli-reference/dev.md#event-records).
 
@@ -317,17 +326,17 @@ Each invocation prints a start line (`→ λ <function> ── <event> · <reque
 - **SNS, S3 and EventBridge:** Lambda retries the asynchronous event (up to 2 more times by default).
 - **A direct invoke, and anything else:** the function error (`X-Amz-Function-Error: Unhandled`); an asynchronous invocation is retried instead (up to 2 more times by default). For a stream: the chunks sent before the error, then the error in the stream's last event (`InvokeWithResponseStream`); a buffered Invoke gets the chunks and no error.
 
-`--detailed` also prints each invocation's event and response (with credentials redacted, as in the [invocation files](#the-files-dev-mode-writes)).
+`--detailed` also prints each invocation's event and response (with credentials redacted, as in the [invocation files](#the-files-dev-mode-writes)), and for each web app request its headers, and the first 2 KB of its body and of the response with the response's status and headers (redacted as in the request files). The bodies show only when the session keeps request files; a session that could not write its records shows the headers alone.
 
 ### Keys
 
-In an interactive terminal, single keys control the session: `h` shows them, `r` rebuilds and restarts the handler processes, `v` shows or hides each invocation's event and response, `s` shows the session, and `q` restores your functions and exits. The [Keys](../cli-reference/dev.md#keys) table in the reference has each key's exact effect and when keys are off (in CI, under an AI agent, without a terminal, or with `--no-keys`).
+In an interactive terminal, single keys control the session: `h` shows them, `r` rebuilds and restarts the handler processes and starts the web apps' servers again, `v` shows or hides each invocation's event and response and each web request's details, `s` shows the session, and `q` restores your functions and exits. The [Keys](../cli-reference/dev.md#keys) table in the reference has each key's exact effect and when keys are off (in CI, under an AI agent, without a terminal, or with `--no-keys`).
 
 ### Reloading
 
 The session watches the service directory once it is on. Its first scan takes at most 5 seconds, and saves before then are not seen. Saving any file the watcher sees rebuilds and reloads every function the session runs on your machine, whichever file changed: an invocation already running finishes on the old code, and the next one runs the new code. When a build fails, the session prints the error and which functions it affects; those functions keep running the last good build until the file is fixed, and the other functions reload.
 
-The watcher ignores `.serverless`, `node_modules`, `.git`, `__pycache__`, `.venv`, `venv`, `.pytest_cache`, `.mypy_cache` and `coverage`, and test files (`*.test.*`, `*.spec.*`, `*_test.py`). A function's configured handler module is watched even when its file name looks like a test file; a handler inside one of the ignored directories is not watched, so keep handlers outside them.
+The watcher ignores `.serverless`, `node_modules`, `.git`, `__pycache__`, `.venv`, `venv`, `.pytest_cache`, `.mypy_cache` and `coverage`, and test files (`*.test.*`, `*.spec.*`, `*_test.py`). A function's configured handler module is watched even when its file name looks like a test file; a handler inside one of the ignored directories is not watched, so keep handlers outside them. When the session also runs [web apps](#web-apps), saves in dot-directories at any depth of the service directory (such as `.next`, `.nuxt`, `.svelte-kit` or `.output`, where dev servers write as they serve, also `apps/web/.nuxt` for a web app run from a subdirectory), and in the service directory's `dist` and `build`, do not reload the functions, unless a function's handler module is inside that directory. A function that imports code a tool writes there, without its handler being there, keeps running the code it loaded until another watched file changes.
 
 Where a dev build of TypeScript or bundled JavaScript writes, and what it leaves in `.serverless/build/`, is under [Dev builds](../cli-reference/dev.md#dev-builds).
 
@@ -402,7 +411,174 @@ What a key holder inside the account could still do is under [Residual cases](#r
 
 ### The files Dev Mode writes
 
-A session keeps its record in `.serverless/dev/` in the service directory: the session file and its control token, the event logs, a detached session's log, and one JSON file per invocation with the real event and response bodies. The files, their formats, what the invocation files redact and how many are kept are under [Files](../cli-reference/dev.md#files) in the reference. Keep `.serverless/` out of version control. To clear the record, delete `.serverless/dev/` only when no session runs here: `serverless dev status --json` says `"state": "off"` (stop a running session with `serverless dev stop` first).
+A session keeps its record in `.serverless/dev/` in the service directory: the session file and its control token, the event logs, a detached session's log, one JSON file per invocation with the real event and response bodies, and one per web app request (see [Request records](#request-records)). The files, their formats, what the invocation files redact and how many are kept are under [Files](../cli-reference/dev.md#files) in the reference. Keep `.serverless/` out of version control. To clear the record, delete `.serverless/dev/` only when no session runs here: `serverless dev status --json` says `"state": "off"` (stop a running session with `serverless dev stop` first).
+
+---
+
+## Web Apps
+
+A session runs the service's [web apps](./web-apps.md) alongside its functions. Each web app's server starts on your machine with the deployed environment and the web app's execution-role credentials. Requests to the web app's real URL, and to a custom domain in front of it, reach that server and get its response. Webhooks, OAuth callbacks, mobile clients and your teammates therefore exercise your working copy, as they do for functions. A local URL on `localhost` serves the same server directly, with your framework's hot reload.
+
+```yml
+webApps:
+  site:
+    entry: .next/standalone/server.js
+    dev:
+      command: next dev --hostname 127.0.0.1 # a build-output entry needs a command to run on your machine
+  api:
+    entry: src/server.ts # a source entry runs from source and restarts on save
+```
+
+```text
+✔ Dev Mode on · 2 of 2 web apps (14.1s)
+
+web apps:
+  site  https://abc123example.lambda-web.us-east-1.on.aws
+        http://localhost:52341
+  api   https://def456example.lambda-web.us-east-1.on.aws
+        http://localhost:52357
+
+Press h for keys, Ctrl+C or q to restore your web apps and exit.
+```
+
+Under `web apps:`, each web app that runs on your machine is listed by its name. The first URL is its real URL, now served from your machine, followed by each custom domain that serves it; the last is its local URL on `localhost`, with your framework's hot reload. A `--local-only` web app is listed with its local URL alone, marked `(local only)`: its real URL keeps serving the deployed code. A web app that does not run on your machine is not listed there. On the real URL, pages load from your machine too; refresh to see changes (see [The local URL and hot reload](#the-local-url-and-hot-reload)).
+
+In a service with functions too, the ready line names both (`Dev Mode on · 1 of 1 function and 2 of 2 web apps`), and a start-up table follows when some function or web app does not run on your machine. Web apps are named there `<name> (web app)`.
+
+### How a request reaches your machine
+
+A web function's revision is fixed once it is created, so instead of changing the deployed revision, for each web app the session:
+
+1. creates a copy of the revision the endpoint `main` serves (the _clone_), and the Dev Mode endpoint `sls-dev-fallback` on it;
+2. creates a _dev revision_ with the deployed revision's execution role, environment variables, timeout, concurrency, network and KMS settings, whose code is the Framework's small web bridge instead of your app;
+3. moves all of `main`'s traffic to the dev revision.
+
+The bridge hands each request to your machine over AWS IoT Core, the way the bridge in a function hands it an invocation. Your machine sends it to the local server and streams the response back. A request your machine does not take within about 3 seconds (up to about 6 seconds while a new execution environment still connects) goes to `sls-dev-fallback`, which runs the deployed code, so callers always get an answer: while the CLI is stopped, asleep or offline, while the local server is not listening, and when the session is stopping.
+
+`sls-dev-fallback` has the same access type as `main`: with a public `main` it is public too, at a URL of its own that serves the deployed code while the session runs; with `url.authorizer: aws_iam` it needs signed requests, which the bridge signs with the session's IAM role. Revisions and endpoints take a few seconds each to become active, which is most of a web app's start-up time, and requests in the first seconds after the ready line can still reach the deployed revision.
+
+A web app with `vpc` (its own or `provider.vpc`) needs outbound access from that network to AWS IoT Core and AWS STS, as [functions in a VPC](#networking-and-proxies) do; without it, its requests run the deployed code. Bodies over 64 KiB travel through Amazon S3, so the network also needs access to S3 for them (see [Large requests and responses](#large-requests-and-responses)).
+
+The local server gets each request with `Host` set to its own address on `127.0.0.1`, and the real host in `X-Forwarded-Host`, `X-Forwarded-Proto` and `X-Forwarded-For`, as behind a reverse proxy.
+
+### Starting the server on your machine
+
+The server starts from the first of these that applies:
+
+- **`dev.command`.** `webApps.<name>.dev.command` is a command line run in your shell (`cmd.exe` on Windows), from the service directory, like an npm script: `node_modules/.bin` of the service directory and of the directories above it come first on `PATH`. Use it for frameworks with their own dev server (`next dev`, `vite`, `nuxt dev`), which reload on their own. See [`serverless.yml` reference](./serverless.yml.md#web-apps-lambda-web-functions).
+- **`entry`, from source.** An `entry` that is a source file in the service directory runs with the Node.js that runs the CLI, TypeScript through the tsx loader, with source maps on, and restarts whenever a file in the service directory changes. When that Node.js has a different major version than the web function's deployed runtime, the session says so once before it is on, as it does for a function (`Node.js on this machine is 26.12.1; web app site is deployed on nodejs24.x. Results can differ: use Node.js 24 to match.`). The deployed `NODE_OPTIONS` apply as they do for a function's handler (see [Runtimes on your machine](#runtimes-on-your-machine)); what is left out is named in the debug output (`--debug`). Each restart is a reload: the session prints `⟳ Reloaded web <name> (<time>)` once the server listens again, and writes `reload.start` and `reload.end` records with `web_apps`, so `serverless dev wait --for reload --web-app <name>` returns once the new code serves. The esbuild build does not run, so build-only settings such as esbuild aliases and `define` apply only through a `dev.command` that applies them. A web app deployed from `package.artifact` runs this way when its `entry` path is a source file in the service directory.
+
+An `entry` under `.next/`, `.output/`, `dist/`, `build/` or `.serverless/` (in any case on macOS and Windows), or of a web app with `build: false`, is a build output: without `dev.command`, the web app keeps its deployed code, with the reason `build_output_entry` and the text `entry .next/standalone/server.js is a build output; set webApps.site.dev.command (for example: next dev)`.
+
+The Framework picks a free port on `127.0.0.1`, keeps it for the session, and sets `PORT` to it and `HOSTNAME` to `127.0.0.1`. A command that does not read `PORT` gets it as an argument, for example `vite --port $PORT` (`vite --port %PORT%` with `cmd.exe`). Likewise a command that does not read `HOSTNAME` gets the host as an argument: `next dev` reads `PORT` but listens on every network interface unless it is started with `--hostname 127.0.0.1`, so use `next dev --hostname 127.0.0.1` to keep the server, which serves with the web app's role credentials, reachable from this machine only. The server counts as running once its port accepts connections:
+
+- A server not listening within 30 seconds gets the note `local_server_down` (`site's server on this machine isn't listening on port 52341; requests run the deployed code until it is.`). Its port is tried every second after that, and requests to the real URL run the deployed code until it listens.
+- A server that exits is started again after 1 second, then after a delay that doubles with each exit in a row, up to 30 seconds. Requests to the real URL run the deployed code meanwhile.
+- The server's output appears in the session's terminal, or in `.serverless/dev/session.log` for a detached session, each line after `web <name> │` so that the lines of several web apps, and of functions beside them, can be told apart; blank lines are left out. Stopping the session stops the server and every process it started.
+
+### What the server gets
+
+Like a function's handler (see [What a handler gets from your machine](#what-a-handler-gets-from-your-machine)), the server gets the deployed revision's environment variables, read from AWS when the session starts, plus `AWS_REGION`, `AWS_DEFAULT_REGION`, `PORT` and `HOSTNAME` (and `AWS_LAMBDA_HTTP_ENDPOINT`, set to `127.0.0.1:<port>`, for a web app deployed from `package.artifact`, whose server reads it as it does on Lambda), and from your machine only the settings listed there. Your own AWS keys and profiles are hidden: the AWS SDKs find the web app's execution-role credentials through a credentials endpoint on `127.0.0.1`, as handlers do. The bridge brings the credentials with the first request of each execution environment, and the session keeps the newest. Until the first request arrives, the server has no role credentials. Run `serverless deploy` after changing a web app's environment variables or IAM permissions, as for functions.
+
+### The local URL and hot reload
+
+The local URL is a listener on `localhost` in front of the server: on `127.0.0.1`, and on `::1` where the machine has IPv6, so `localhost` reaches it whichever address it resolves to. It is printed as `http://localhost:<port>` because dev servers accept hot reload connections from a `localhost` page by default; Next.js, for one, refuses them from a page on `127.0.0.1` unless `allowedDevOrigins` names it. When another process holds the port on `::1`, `localhost` could reach that process, so the session prints `http://127.0.0.1:<port>` instead. It passes WebSocket upgrades through, so your framework's hot reload works there. It answers only requests for `127.0.0.1`, `localhost` or `[::1]` with its port: a LAN address or a tunnel to it gets HTTP 403, so other machines and DNS-rebinding pages cannot reach your server through it. While the server is not running, it answers 503 `web app <name> is not running on this machine`.
+
+On the real URL, pages load from your machine too, and a refresh shows your changes. Hot reload does not reach a browser there: Web Functions serve HTTP only, so a WebSocket connection cannot open through them. The session answers each WebSocket handshake on the real URL (a request with `Upgrade: websocket` or a `Sec-WebSocket-Key` header) with HTTP 426 and the text `A web function serves HTTP only, so this WebSocket connection cannot open here. Hot reload works on the local URL of serverless dev.`, without sending it to your machine or to the deployed code, so a page's hot reload client retrying in the background costs no web function invocation on your machine and prints nothing in the session. Each request on the real URL also travels to your machine and back, so do UI work on the local URL and use the real URL for what needs it: webhooks, OAuth callbacks, mobile clients, custom domains and paths, and end-to-end tests.
+
+### `--local-only`
+
+`--local-only <web app>` (repeatable) runs a web app's server on your machine only. Its real URL keeps serving the deployed code, and `main` is not changed: the web app's mode is `local`, with the text `on its local URL only (--local-only); its real URL serves the deployed code`. A `--local-only` web app needs one revision and one endpoint: the session creates a dev revision and the IAM-auth Dev Mode endpoint `sls-dev-local` on it, and no clone. Use it when callers of the real URL should keep getting the deployed code, for example on a stage that teammates also use.
+
+To give the server the execution role's credentials, the CLI calls `sls-dev-local` once at start, signed with your own credentials, and again every 30 minutes. The endpoint serves only that call: any other request to `sls-dev-local` is answered with 503 and never reaches your machine. That call needs `lambda:InvokeWebFunctionEndpoint` on the endpoint. Without it, the server runs without role credentials: the session prints `The web app <name> runs on this machine without its role's credentials: …` once, and the web app's row carries the note `no_role_credentials`.
+
+### Choosing web apps
+
+Every web app of the service runs on your machine by default.
+
+- `--web-app <name>` (repeatable) runs only the named web apps on your machine; the others serve their deployed code (`not selected (--web-app)`).
+- `--skip-web-app <name>` (repeatable) keeps the named web apps on their deployed code.
+- `--local-only <name>` (repeatable) runs a web app on its local URL only, as above; it selects the web app even when `--web-app` does not name it.
+
+These options are independent of `--function` and `--skip-function`. Names are the keys under `webApps`; an unknown name is refused before anything changes (`DEV_MODE_UNKNOWN_WEB_APP`), and a name given to both `--local-only` and `--skip-web-app` is refused with `DEV_MODE_OPTION_CONFLICT`. `--take-over` takes web apps another live session holds, as it does functions.
+
+### Web app modes
+
+A web app gets one of four modes. `dev`: its real URL reaches your machine. `local`: it runs on your machine on its local URL only (`--local-only`). `deployed` and `skipped` mean what they mean for functions, and always carry a reason:
+
+- `not_selected` (`deployed`): `not selected (--web-app)` or `not selected (--skip-web-app)`.
+- `not_deployed` (`skipped`): `not deployed yet (run serverless deploy)`.
+- `build_output_entry` (`deployed`): its `entry` is a build output and it has no `dev.command` (see [Starting the server on your machine](#starting-the-server-on-your-machine)).
+- `owned_by_other_session` (`skipped`): another live Dev Mode session holds it; `--take-over` takes it.
+- `revision_quota` (`deployed`): for example `49 revisions, the AWS limit is 50; Dev Mode needs 2`. Delete revisions the web function no longer uses, then start the session again.
+- `endpoint_quota` (`deployed`): `10 endpoints, the AWS limit is 10; Dev Mode needs 1`.
+- `lambda_web_denied` (`deployed`): your AWS credentials may not read its web function. With functions in the service, the session runs them and warns once; with web apps alone, it stops with `DEV_MODE_WEB_ACCESS_DENIED`.
+- `broker_update_denied` (`deployed`): the IAM role does not serve web apps yet (see [Web apps and the IAM role](#web-apps-and-the-iam-role)).
+- `attach_failed` (`deployed`): `attach failed: <message>`; the session runs on and exits with code 3. `not_attached` (`deployed`): the session stopped while it attached the web app.
+
+A web app in `dev` or `local` mode can carry the notes `local_server_down` and `no_role_credentials` (above), and `reattached` or `taken_over`, as functions do. While a session runs, it checks its web apps about once a minute, and the event log records a web app that left Dev Mode as `web_app.lost` with one of the states `detached` (`main`, or `sls-dev-local` for a `--local-only` web app, no longer serves the session's dev revision, for example after a deploy from another machine), `taken_over` (with the `owner` of the session that took it over), `taken_over_by_you` (another session of yours) or `function_deleted`.
+
+### What a session creates for a web app
+
+Per web app, while the session runs: the clone and the dev revision (only the dev revision with `--local-only`), the endpoint `sls-dev-fallback` (or `sls-dev-local`), and `main`'s traffic on the dev revision. The revisions carry `SLS_DEV_*` environment variables and the description `Serverless Dev Mode <clone|dev> for session <id>`. The web bridge's zip is uploaded once to the deployment bucket under `serverless-dev-mode/<service>/<stage>/bridge/` and reused by later sessions; `serverless remove` deletes it with the stage's other Dev Mode objects. Nothing is deployed with CloudFormation, and the stack's template is unchanged: while a session runs, `main` differs from what the stack set.
+
+AWS allows 50 revisions and 10 endpoints per web function. A session needs 2 revisions and 1 endpoint per web app (1 and 1 with `--local-only`), and deletes them when it ends.
+
+### Stopping and restoring web apps
+
+Every way a session stops restores its web apps as it restores its functions: `main` goes back to the revision it served before, then the Dev Mode endpoints and revisions are deleted. The rows and lines that name functions name web apps too, as `<name> (web app)`.
+
+- **A `main` that split traffic between two revisions,** such as a canary, goes back to the revision that had the larger share, with all of the traffic.
+- **`--on-exit keep` and `serverless dev stop --keep`** leave the attached web apps in Dev Mode, as they leave functions. With no session to answer, their real URLs serve the deployed code through `sls-dev-fallback`. A web app whose attach had not finished is cleaned up.
+- **`serverless deploy` and `serverless rollback --timestamp`** first restore web apps a session left in Dev Mode, found from AWS alone: a session on another machine, a killed session, and revisions an interrupted start left behind. An unchanged deploy would otherwise leave `main` on a dev revision. When the deploy's credentials may not read the web functions' endpoints and revisions, the command prints `Dev Mode check of web apps skipped: it needs lambda:ListWebFunctionEndpoints and lambda:GetWebFunctionRevision …` and goes on.
+- **`serverless remove`** needs no restore: deleting a web function deletes its Dev Mode endpoints and revisions too.
+- **`serverless dev restore`** restores web apps along with functions; `--web-app <name>` restores only those web apps.
+- **A second Ctrl+C** exits at once and names the web apps it left (`Not restored: site (web app)`). The next `serverless dev`, `serverless deploy`, `serverless rollback --timestamp` or `serverless dev restore` removes what it left, including a clone created before its endpoint.
+
+### Web apps and the IAM role
+
+The bridge in a dev revision reaches AWS IoT Core through the same IAM role functions use, `serverless-dev-broker-<region>`. Web functions assume roles with an identity of their own, so the role's trust policy lists web functions (`web-function/*` of the account and region) beside functions, and its permission policy (version 2) lets the bridge send requests to the endpoint `sls-dev-fallback` (`lambda:InvokeWebFunctionEndpoint`).
+
+- A role created by a session with web apps, or by `serverless dev setup`, has both. A session without web apps creates the role with the version 2 permission policy and the trust policy earlier versions write, for functions only, so teammates on those versions keep using it.
+- On a role whose trust policy lists functions only, the first session with web apps updates the trust policy, which needs `iam:UpdateAssumeRolePolicy`; the update rewrites only Dev Mode's own statement and keeps statements that only deny, which an administrator may add. It also puts back the version 2 permission policy (`iam:PutRolePolicy`). An administrator can do both with `serverless dev setup --region <region>` instead. A role whose trust policy changed now can take up to 3 minutes to work for web apps, and the session says so: `The IAM role's updated trust policy can take up to 3 minutes to work; until then some web app requests run the deployed code.`
+- When the trust policy cannot be updated, the session prints `Dev Mode needs to let web apps use the IAM role <name>, and your credentials can't update its trust policy (iam:UpdateAssumeRolePolicy). Ask an administrator to run "serverless dev setup --region <region>".` With functions in the service, they run on your machine and the web apps keep their deployed code (`broker_update_denied`); with web apps alone, the session stops with `DEV_MODE_BROKER_UPDATE_DENIED`.
+- Sessions without web apps leave the role's trust policy as it is. When they may not update the permission policy from version 1, they run on it and print `The IAM role <name> has the permission policy of an earlier version of Dev Mode, which serves functions. An administrator can update it with "serverless dev setup --region <region>".`
+
+Earlier versions of the Framework accept only the trust policy they wrote, and stop with `DEV_MODE_BROKER_MODIFIED` on a role whose trust policy lists web functions. Teams that share an AWS account and region upgrade the Framework together. Deleting the role, as that error suggests, does not help: the next session with web apps updates the trust policy again.
+
+### Large requests and responses
+
+A request body up to 64 KiB, and the first 64 KiB of a response body, travel in AWS IoT Core messages. Larger bodies travel through the stage's deployment bucket, under `serverless-dev-mode/`, sealed with the session key and deleted once read, as large function payloads do (see [Large payloads](#large-payloads)). Dev Mode sets no size limit of its own beyond the platform's. Event streams (`text/event-stream`) always travel in messages, in order, as your server writes them. When the session cannot use the deployment bucket, requests with bodies over 64 KiB run the deployed code, and responses travel in messages.
+
+### Environment size
+
+Lambda limits a web function revision's environment variables to 32 KB (32,768 bytes, counted as JSON), and the dev revision adds Dev Mode's own variables to the deployed ones. A web app whose variables would then exceed the limit is not attached: its row is `attach_failed`, with the error `DEV_MODE_WEB_APP_ENVIRONMENT_TOO_LARGE`, which names both sizes.
+
+### Costs
+
+A web app's dev revision and fallback are billed as web app requests, like the deployed code ([AWS Lambda pricing](https://aws.amazon.com/lambda/pricing/)). The relay adds AWS IoT Core messages, metered in 5 KB increments and counted when published and when delivered ([AWS IoT Core pricing](https://aws.amazon.com/iot-core/pricing/)), and an S3 PUT and GET for each body over 64 KiB ([Amazon S3 pricing](https://aws.amazon.com/s3/pricing/)). What drives the cost is the number of requests and the bytes that go through the real URL; the local URL adds nothing. At us-east-1 list prices in October 2026, a `next dev` page of about 30 requests costs about $0.0002 to load through the real URL, so a developer who loads 500 such pages on each of 20 working days adds about $2 a month.
+
+### Reading a request
+
+Each request that runs on your machine prints one line when it ends, with `web <name>` where an invocation shows `λ <function>`, and no blank line between requests, since a page load is many requests:
+
+```text
+← web api ── GET /orders?page=2 (200) 21ms · 3f2a9c1e
+← web api ── POST /orders (201) 8ms · local · 77e0b3aa
+← web api ── GET /health (deployed code) ── its local server could not be reached (api's local server refused the connection) 4ms · 5c4d3e2f
+```
+
+The line names the method and the path, with the values of signed-URL query parameters shown as `[redacted]` as in the request's file, your server's status code, the duration, the source when it is not the real URL (`local` for the local URL, `replay` for [`serverless dev replay`](../cli-reference/dev.md#dev-replay)) and the first 8 characters of the request id, which `serverless dev requests` and `serverless dev replay` take. A request still running after 1 second (a stream, a slow page) also prints an arrival line then, such as `→ web api ── GET /events · 9a8b7c6d`. In place of a status code the line can show:
+
+- `(deployed code)`: the request came through the real URL and your server did not take it, so the deployed code answered it. The reason follows.
+- `(not run)`: a request to the local URL, or a replay, while the server was not running; the listener answered 503, and a replay's result has the outcome `not_run`.
+- `✕`: the request failed after it reached your server, with the status sent, if any, and the reason.
+
+A request that the bridge sends to `sls-dev-fallback` without reaching your machine (while the CLI is stopped, asleep or offline, or when the request is not taken in time) prints nothing here; the deployed code's logs have it. So does a request that arrives while your server is not listening (it has the note `local_server_down`, or it is starting again): the session refuses it before taking it, and the bridge sends it to `sls-dev-fallback`. It has no request file either. `(deployed code)` is for a request the session took and then could not hand to your server, for example because the server stopped listening in between. Lines keep within the terminal's width and follow its colour rule as invocation lines do (see [What the session prints](#what-the-session-prints)): a long path, and then a long reason, is cut from its end, unless `--detailed` is on. A detached session writes them to its log.
+
+### Request records
+
+Every request to a web app that runs on your machine is recorded as invocations are: one JSON file per request under `.serverless/dev/requests/<web app>/`, and the records `request.start` and `request.end` in the event log. Requests through the real URL have the source `relay`, requests to the local URL `local`, and replays `replay`. `serverless dev wait --for request`, `serverless dev requests` and `serverless dev replay <request id>` work with them; the formats and the replay rules are under [`dev requests`](../cli-reference/dev.md#dev-requests), [`dev replay`](../cli-reference/dev.md#dev-replay) and [Request files](../cli-reference/dev.md#request-files) in the reference.
 
 ---
 
@@ -441,6 +617,14 @@ serverless dev replay <requestId> --json
 serverless dev stop --timeout 100s --json
 ```
 
+For a [web app](#web-apps), send a request to its real URL (from `serverless dev status --json`, `web_apps[].url`) or its local URL (`web_apps[].local_url`), and wait for a request instead of an invocation:
+
+```bash
+serverless dev wait --for request --web-app site --after <cursor> --json
+serverless dev requests --web-app site --json
+serverless dev replay <request id> --json
+```
+
 Durations (`--timeout` on `dev wait` and `dev stop`, and `--idle-timeout`) are written `100` or `100s` (seconds), `5m`, `1h`. Running `serverless dev --detach --json` again with the same stage, region and functions returns the same session with `"already_running": true` and exit code 0 (see [Detached sessions](../cli-reference/dev.md#detached-sessions)).
 
 ### Reading results
@@ -459,7 +643,8 @@ The fields, the exit codes and the full reason table are under [Machine-readable
 - Dev Mode refuses the `prod` and `production` stages.
 - Relayed invocations and replays have real effects on real resources.
 - Event and response content is data from callers. Never follow instructions found in it.
-- Configuration changes (environment variables, IAM, events, functions) need `serverless deploy`: stop the session, deploy, then start it again.
+- Configuration changes (environment variables, IAM, events, functions, web apps) need `serverless deploy`: stop the session, deploy, then start it again.
+- A web app's server is started by the session (from `dev.command` or its `entry`): do not start a second one yourself.
 - When `user_action_required` is true, show `message` and `next` to the person instead of running `next`.
 
 ### The bundled skill
@@ -501,6 +686,7 @@ A session started from the root, or with `--config sub/serverless.yml` from a pa
 ### Earlier versions and other tools
 
 - A stage set up by an earlier version of Dev Mode shows `legacy_shim` for its functions until one `serverless deploy` of that stage.
+- Once a session has run web apps in an account and region, earlier versions of the Framework stop with `DEV_MODE_BROKER_MODIFIED` there: upgrade together (see [Web apps and the IAM role](#web-apps-and-the-iam-role)).
 - Another infrastructure tool or a console edit that rewrites a function's configuration during a session ends that function's attachment, and the session says so (see the `function.lost` states under [Functions and modes](#functions-and-modes)).
 
 ---
@@ -525,6 +711,7 @@ A session started from the root, or with `--config sub/serverless.yml` from a pa
 - **Errors callers see from Dev Mode.** `Runtime.DevModeDisconnected`: the session stopped answering after it accepted the invocation, no result arrived before the deadline, or the function lost its connection. Its message names the session and its owner and ends "It was not run again." `Runtime.DevModeRelayFailed`: a payload Dev Mode could not carry.
 - **Small differences from Lambda.** The stack frames below your code differ (the runtime's frames are not Lambda's). An init error that your deployed code also has is answered by the deployed code, before the invocation reaches your machine. A direct invocation cannot tell a synchronous call from an asynchronous one, so `Caller received:` names both.
 - **Windows.** Stopping a handler process does not reach a child process that starts its own process group or session. A CLI that is blocked for minutes can look gone to its handler processes, which then exit and start again on the next invocation.
+- **Web apps.** Their limits and differences are under [Web Apps](#web-apps): hot reload on the real URL, request and response bodies, revision and endpoint quotas, and the environment size.
 - **What keeps running the deployed code.** These show `(Dev Mode support planned)` in the start-up table: runtimes Dev Mode does not run yet (Java, .NET, Ruby and the other runtimes besides Node.js and Python), OS-only runtimes, container images, functions invoked through an alias or version (provisioned concurrency, SnapStart, durable functions), and Managed Instances. Lambda@Edge functions run their deployed code. A region without AWS IoT Core is refused at start (`region_no_broker`; see [AWS IoT Core endpoints](https://docs.aws.amazon.com/general/latest/gr/iot-core.html)).
 
 ### Residual cases
@@ -559,6 +746,16 @@ The CLI error codes, each with its `--json` reason, cause and fix, are under [Er
 **A Python handler fails with an import error** (`Runtime.ImportModuleError`) on your machine while the deployed code works: its dependencies were built for Lambda's Linux. Create a `.venv` in the service directory and install the dependencies there.
 
 **A function in a VPC never runs on your machine.** It has no route to AWS IoT Core, AWS STS and Amazon S3. Add a NAT gateway or interface VPC endpoints for them (see [Networking and proxies](#networking-and-proxies)).
+
+**A web app shows `build_output_entry`.** Its `entry` is a build output (`.next/`, `dist/`, …). Set `webApps.<name>.dev.command` to the framework's dev server, for example `next dev --hostname 127.0.0.1` (see [Starting the server on your machine](#starting-the-server-on-your-machine)).
+
+**A web app has the note `local_server_down`, and its real URL serves the deployed code.** Its server did not listen on the port the Framework set in `PORT` within 30 seconds, or exited. Read its output in the terminal (or `.serverless/dev/session.log`), and make the command use `PORT`, for example `vite --port $PORT`.
+
+**A page on the real URL does not hot reload.** Expected: hot reload works on the local URL. Refresh the page on the real URL to see changes (see [The local URL and hot reload](#the-local-url-and-hot-reload)).
+
+**The local URL answers 403 from another device.** It answers only `127.0.0.1`, `localhost` and `[::1]` on this machine. Use the real URL from other devices.
+
+**`DEV_MODE_BROKER_UPDATE_DENIED`.** Your credentials may not update the IAM role's trust policy for web apps. An administrator runs `serverless dev setup --region <region>` once (see [Web apps and the IAM role](#web-apps-and-the-iam-role)).
 
 **`serverless dev setup` at the root of a Compose project.** Run it in a service's directory instead; it also runs outside any service directory (see [`dev setup`](../cli-reference/dev.md#dev-setup)).
 

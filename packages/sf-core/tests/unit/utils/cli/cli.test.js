@@ -139,6 +139,24 @@ describe('CLI Utils', () => {
       }
     })
 
+    it('should normalize web app options to arrays for dev, dev wait and dev requests', () => {
+      for (const command of [['dev'], ['dev', 'wait'], ['dev', 'requests']]) {
+        const options = normalizeDevSelectors(command, {
+          'web-app': 'web',
+          'skip-web-app': 'admin',
+          'local-only': 'api',
+        })
+        expect(options['web-app']).toEqual(['web'])
+        expect(options['skip-web-app']).toEqual(['admin'])
+        expect(options['local-only']).toEqual(['api'])
+      }
+      const many = normalizeDevSelectors(['dev'], {
+        'local-only': ['api', 'web'],
+      })
+      expect(many['local-only']).toEqual(['api', 'web'])
+      expect(many).not.toHaveProperty('web-app')
+    })
+
     it('should merge -f into --function for dev, never overwrite it', () => {
       const options = normalizeDevSelectors(['dev'], {
         function: ['api', 'billing'],
@@ -178,6 +196,8 @@ describe('CLI Utils', () => {
         function: ['api', 'billing'],
         f: 'worker',
         'skip-function': 'report',
+        'web-app': 'web',
+        'local-only': 'api',
       })
       const snapshot = JSON.parse(JSON.stringify(once))
       normalizeDevSelectors(['dev'], once)

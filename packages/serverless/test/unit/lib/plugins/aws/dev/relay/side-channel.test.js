@@ -12,6 +12,7 @@ import {
   START_SWEEP_MS,
   SWEEP_OLDER_THAN_MS,
   URL_TTL_SECONDS,
+  bridgePrefix,
   createSideChannel,
   encryptionOf,
   objectTopic,
@@ -468,10 +469,17 @@ describe('the S3 side channel', () => {
       version: 'f',
       lastModified: old,
     })
+    // The web bridge zip dev revisions are created from outlives every session.
+    const bridgeZip = `${bridgePrefix({ service: 'svc', stage: 'dev' })}0123456789abcdef.zip`
+    expect(bridgeZip).toBe(
+      'serverless-dev-mode/svc/dev/bridge/0123456789abcdef.zip',
+    )
+    s3.objects.set(bridgeZip, { body: '', version: 'g', lastModified: old })
     expect(
       await side.sweep({ scope: stage, olderThanMs: SWEEP_OLDER_THAN_MS }),
     ).toBe(3)
     expect([...s3.objects.keys()].sort()).toEqual([
+      bridgeZip,
       `${side.prefix}new`,
       'serverless-dev-mode/svc/dev2/s_x/z',
       'serverless/svc/dev/1-artifact/x.zip',
@@ -487,6 +495,7 @@ describe('the S3 side channel', () => {
     )
     expect(await side.sweep()).toBe(1)
     expect([...s3.objects.keys()].sort()).toEqual([
+      bridgeZip,
       'serverless-dev-mode/svc/dev2/s_x/z',
       'serverless/svc/dev/1-artifact/x.zip',
     ])

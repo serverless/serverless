@@ -766,3 +766,62 @@ export const handlerEnvironment = ({
   }
   return { env, dropped }
 }
+
+/** What a handler gets that a web app's server does not: it is no Lambda runtime client. */
+const HANDLER_ONLY = Object.freeze([
+  'AWS_LAMBDA_RUNTIME_API',
+  'LAMBDA_TASK_ROOT',
+  '_HANDLER',
+])
+
+/**
+ * The environment of a web app's server on this machine: the deployed revision's variables
+ * (`deployed`, plus `known`, the values Lambda sets that the deployed configuration tells, as
+ * knownLambdaValues gives them) through the same filters as a handler's (functionVariables and
+ * handlerEnvironment), with the role credentials served from the loopback endpoint `credentials`
+ * and never this machine's own, without the Runtime API and handler variables; and `PORT` and
+ * `HOSTNAME` the server listens on. A prebuilt zip's server reads `AWS_LAMBDA_HTTP_ENDPOINT`
+ * (`<host>:<port>`) instead, so it gets that too. `configFiles` are the session's empty AWS and
+ * boto config files (runtime-resources.js), which keep the SDKs off this machine's profiles.
+ */
+export const webAppEnvironment = ({
+  machine = {},
+  deployed = {},
+  known = {},
+  credentials,
+  configFiles,
+  port,
+  hostname = '127.0.0.1',
+  prebuiltZip = false,
+  serviceDir,
+  platform = process.platform,
+}) => {
+  const { variables } = functionVariables({ deployed, known })
+  const { env, dropped } = handlerEnvironment({
+    machine,
+    forwarded: variables,
+    credentials,
+    configFiles,
+    taskRoot: serviceDir,
+    serviceDir,
+    platform,
+  })
+  const caseless = platform === 'win32'
+  const same = (a, b) =>
+    caseless ? a.toUpperCase() === b.toUpperCase() : a === b
+  const remove = (name) => {
+    for (const existing of Object.keys(env)) {
+      if (same(existing, name)) delete env[existing]
+    }
+  }
+  const set = (name, value) => {
+    remove(name)
+    env[name] = String(value)
+  }
+  for (const name of HANDLER_ONLY) remove(name)
+  remove('AWS_LAMBDA_HTTP_ENDPOINT')
+  set('PORT', port)
+  set('HOSTNAME', hostname)
+  if (prebuiltZip) set('AWS_LAMBDA_HTTP_ENDPOINT', `${hostname}:${port}`)
+  return { env, dropped }
+}

@@ -94,6 +94,48 @@ describe('invoke --web-app', () => {
     expect(request).not.toHaveBeenCalled()
   })
 
+  it('names the request a Dev Mode session here ran on the working copy, as invoke --function does', async () => {
+    global.fetch = jest.fn(async () => respond('ok'))
+    const { plugin, logger } = makePlugin({
+      options: { 'web-app': 'api', path: 'orders', method: 'post', data: '{}' },
+    })
+    plugin.findHandledRequest = jest.fn(async () => ({
+      requestId: 'c1d2e3f4-0000-4000-8000-000000000001',
+      file: '.serverless/dev/requests/api/1790000000-c1d2e3f4.json',
+    }))
+    await plugin.hooks['invoke:invoke']()
+    expect(plugin.findHandledRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        service: 'shop',
+        stage: 'dev',
+        region: 'us-east-1',
+        webApp: 'api',
+        method: 'post',
+        path: '/orders',
+        sentAt: expect.any(Number),
+      }),
+    )
+    expect(logger.aside).toHaveBeenCalledWith(
+      'Dev Mode: handled by your working copy · request c1d2e3f4 · .serverless/dev/requests/api/1790000000-c1d2e3f4.json',
+    )
+    expect(written()).toBe('ok\n')
+  })
+
+  it('says nothing more when no session ran it, and a failed lookup is a debug line', async () => {
+    global.fetch = jest.fn(async () => respond('ok'))
+    const { plugin, logger } = makePlugin({ options: { 'web-app': 'api' } })
+    plugin.findHandledRequest = jest.fn(async () => {
+      throw new Error('EACCES')
+    })
+    await plugin.hooks['invoke:invoke']()
+    expect(logger.debug).toHaveBeenCalledWith(
+      'Dev Mode could not tell whether it ran this request: EACCES',
+    )
+    expect(logger.aside).not.toHaveBeenCalledWith(
+      expect.stringContaining('Dev Mode:'),
+    )
+  })
+
   it('names the web apps when the name is unknown', async () => {
     const { plugin } = makePlugin({
       options: { 'web-app': 'nope' },

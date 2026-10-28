@@ -18,6 +18,7 @@ import {
   ACCOUNT,
   fakeIam,
   fakeLambda,
+  fakeLambdaWeb,
   fakeLog,
   fakeProgress,
   fakeProvider,
@@ -26,6 +27,7 @@ import {
   testSessionId,
 } from './fakes.js'
 import { droppedConnections } from './dropped-connections.js'
+import { attachWebApp } from '../../../../../../../lib/plugins/aws/dev/web/attach.js'
 import { runWithoutColor } from '../without-color.js'
 import { runnable } from '../commands/runnable.js'
 
@@ -171,6 +173,86 @@ test('dev setup on an existing role says what it changed', async () => {
   expect(text).toContain(BOUNDARY)
 })
 
+describe('dev setup and a role an earlier release created', () => {
+  const AT = {
+    identity: { accountId: ACCOUNT, partition: 'aws' },
+    region: 'us-east-1',
+  }
+  const EXT = 'cd'.repeat(16)
+  const narrowRole = () => {
+    const iam = fakeIam()
+    iam.roles.set(NAME, {
+      RoleName: NAME,
+      Path: '/',
+      Arn: `arn:aws:iam::${ACCOUNT}:role/${NAME}`,
+      AssumeRolePolicyDocument: JSON.stringify(
+        buildTrustPolicy({ ...AT, externalId: EXT, web: false }),
+      ),
+    })
+    iam.policies.set(
+      `${NAME}/serverless-dev-broker`,
+      buildPermissionPolicy({ ...AT, version: 1 }),
+    )
+    return iam
+  }
+
+  test('its trust is widened to web functions, with its ExternalId, and the summary says so', async () => {
+    const s = setup({}, narrowRole())
+    await s.run()
+    expect(
+      s.iam.calls.filter(([op]) => op === 'updateAssumeRolePolicy'),
+    ).toHaveLength(1)
+    expect(JSON.parse(s.iam.roles.get(NAME).AssumeRolePolicyDocument)).toEqual(
+      buildTrustPolicy({ ...AT, externalId: EXT }),
+    )
+    expect(s.iam.policies.get(`${NAME}/serverless-dev-broker`)).toEqual(
+      buildPermissionPolicy(AT),
+    )
+    expect(s.logger.text()).toContain(
+      `Dev Mode is set up in us-east-1: IAM role arn:aws:iam::${ACCOUNT}:role/${NAME} (already existed; updated its trust policy for web apps, re-applied its permission policy serverless-dev-broker)`,
+    )
+    // Run again: the trust is left as it is.
+    s.iam.calls.length = 0
+    await s.run()
+    expect(
+      s.iam.calls.filter(([op]) => op === 'updateAssumeRolePolicy'),
+    ).toEqual([])
+  })
+
+  test('a denied trust update names what dev setup needs', async () => {
+    const iam = narrowRole()
+    iam.updateAssumeRolePolicyError = denied('iam:UpdateAssumeRolePolicy')
+    const error = await setup({}, iam)
+      .run()
+      .catch((e) => e)
+    expect(error.code).toBe('DEV_SETUP_ACCESS_DENIED')
+    expect(error.message).toContain(
+      '(not authorized to perform: iam:UpdateAssumeRolePolicy)',
+    )
+    expect(error.message).toContain(
+      'iam:UpdateAssumeRolePolicy on the IAM role',
+    )
+  })
+
+  test('widening keeps a deny statement an administrator added', async () => {
+    const iam = narrowRole()
+    const role = iam.roles.get(NAME)
+    const deny = {
+      Effect: 'Deny',
+      Principal: { AWS: '*' },
+      Action: 'sts:AssumeRole',
+      Condition: { Bool: { 'aws:SecureTransport': 'false' } },
+    }
+    const doc = JSON.parse(role.AssumeRolePolicyDocument)
+    doc.Statement.push(deny)
+    role.AssumeRolePolicyDocument = JSON.stringify(doc)
+    await setup({}, iam).run()
+    expect(
+      JSON.parse(iam.roles.get(NAME).AssumeRolePolicyDocument).Statement,
+    ).toEqual([buildTrustPolicy({ ...AT, externalId: EXT }).Statement[0], deny])
+  })
+})
+
 describe('dev setup and the version of the permission policy', () => {
   const AT = {
     identity: { accountId: ACCOUNT, partition: 'aws' },
@@ -201,14 +283,14 @@ describe('dev setup and the version of the permission policy', () => {
   })
 
   test('without iam:GetRolePolicy, nothing is written and the error names it', async () => {
-    const iam = await withPolicy(buildPermissionPolicy({ ...AT, version: 2 }))
+    const iam = await withPolicy(buildPermissionPolicy({ ...AT, version: 3 }))
     iam.getRolePolicyError = denied('iam:GetRolePolicy')
     const error = await setup({}, iam)
       .run()
       .catch((e) => e)
     expect(error.code).toBe('DEV_SETUP_ACCESS_DENIED')
     expect(error.message).toContain(
-      `"serverless dev setup" needs iam:GetRole, iam:GetRolePolicy, iam:CreateRole and iam:PutRolePolicy on the IAM role arn:aws:iam::${ACCOUNT}:role/${NAME},`,
+      `"serverless dev setup" needs iam:GetRole, iam:GetRolePolicy, iam:CreateRole, iam:PutRolePolicy and iam:UpdateAssumeRolePolicy on the IAM role arn:aws:iam::${ACCOUNT}:role/${NAME},`,
     )
     expect(puts(iam)).toEqual([])
   })
@@ -225,7 +307,7 @@ describe('dev setup and the version of the permission policy', () => {
   })
 
   test('a newer version is kept, and the summary says so', async () => {
-    const theirs = buildPermissionPolicy({ ...AT, version: 2 })
+    const theirs = buildPermissionPolicy({ ...AT, version: 3 })
     const iam = await withPolicy(theirs)
     const s = setup({ 'permissions-boundary': BOUNDARY }, iam)
     await s.run()
@@ -244,7 +326,7 @@ describe('dev setup and the version of the permission policy', () => {
       .catch((e) => e)
     expect(error.code).toBe('DEV_SETUP_ACCESS_DENIED')
     expect(error.message).toContain(
-      `"serverless dev setup" needs iam:GetRole, iam:GetRolePolicy, iam:CreateRole and iam:PutRolePolicy on the IAM role arn:aws:iam::${ACCOUNT}:role/${NAME},`,
+      `"serverless dev setup" needs iam:GetRole, iam:GetRolePolicy, iam:CreateRole, iam:PutRolePolicy and iam:UpdateAssumeRolePolicy on the IAM role arn:aws:iam::${ACCOUNT}:role/${NAME},`,
     )
     expect(error.message).not.toContain('DeleteRolePolicy')
   })
@@ -261,7 +343,7 @@ test('a denied dev setup names the role with the path it has or would have, and 
     .catch((e) => e)
   expect(existing.message).toBe(
     'Your AWS credentials cannot set up Dev Mode in us-east-1 (not authorized to perform: iam:PutRolePolicy).\n' +
-      `"serverless dev setup" needs iam:GetRole, iam:GetRolePolicy, iam:CreateRole and iam:PutRolePolicy on the IAM role arn:aws:iam::${ACCOUNT}:role/serverless/${NAME}, plus iam:PutRolePermissionsBoundary when --permissions-boundary is given.\n` +
+      `"serverless dev setup" needs iam:GetRole, iam:GetRolePolicy, iam:CreateRole, iam:PutRolePolicy and iam:UpdateAssumeRolePolicy on the IAM role arn:aws:iam::${ACCOUNT}:role/serverless/${NAME}, plus iam:PutRolePermissionsBoundary when --permissions-boundary is given.\n` +
       'Run it again with the credentials of an AWS administrator.',
   )
   // A role it would create under --path: the ARN it would have.
@@ -317,7 +399,10 @@ test('dev setup writes the trust policy for the partition of the caller', async 
   expect(
     JSON.parse(role.AssumeRolePolicyDocument).Statement[0].Condition.ArnLike,
   ).toEqual({
-    'lambda:SourceFunctionArn': `arn:aws-us-gov:lambda:us-gov-west-1:${ACCOUNT}:function:*`,
+    'lambda:SourceFunctionArn': [
+      `arn:aws-us-gov:lambda:us-gov-west-1:${ACCOUNT}:function:*`,
+      `arn:aws-us-gov:lambda:us-gov-west-1:${ACCOUNT}:web-function/*`,
+    ],
   })
 })
 
@@ -508,14 +593,13 @@ const restoreSetup = ({
   options = {},
   stage = 'dev',
   region = 'us-east-1',
+  functions = { api: {}, worker: {} },
 } = {}) => {
-  const serverless = fakeServerless({
-    stage,
-    functions: { api: {}, worker: {} },
-  })
+  const serverless = fakeServerless({ stage, functions })
   const lambda = fakeLambda({
-    [`svc-${stage}-api`]: {},
-    [`svc-${stage}-worker`]: {},
+    ...Object.fromEntries(
+      Object.keys(functions).map((key) => [`svc-${stage}-${key}`, {}]),
+    ),
     'other-app-fn': attachedConfig('bob@desk'),
     ...live,
   })
@@ -2046,4 +2130,537 @@ test('the finite commands get their hooks from the handlers given', () => {
   expect(hooks['dev:wait:wait']).toBe(handlers.wait)
   expect(hooks['dev:requests:requests']).toBe(handlers.requests)
   expect(hooks['dev:replay:replay']).toBe(handlers.replay)
+})
+
+describe('web apps', () => {
+  const WEB_REVISION = {
+    buildConfig: {
+      codeConfig: { s3Object: { bucket: 'deploy-bucket', key: 'web.zip' } },
+      runtimeConfig: { runtime: 'nodejs24.x' },
+    },
+    serviceConfig: {
+      executionRoleArn: `arn:aws:iam::${ACCOUNT}:role/svc-dev-lambdaRole`,
+      environmentVariables: {
+        AWS_LAMBDA_NODEJS_ENTRYPOINT: 'server.js',
+        TABLE: 'orders',
+      },
+    },
+  }
+  const deployedWeb = () => ({
+    revisions: { 'rev-cfn': WEB_REVISION },
+    endpoints: {
+      main: {
+        authType: 'ApplicationManaged',
+        revisionWeights: [{ revisionId: 'rev-cfn', weight: 100 }],
+      },
+    },
+  })
+  // A stage with the function worker and the web apps api and admin, all deployed.
+  const webSetup = ({
+    webApps = ['api', 'admin'],
+    deployed = webApps,
+    options,
+    live,
+  } = {}) => {
+    const s = restoreSetup({ functions: { worker: {} }, options, live })
+    s.serverless.service.webApps = Object.fromEntries(
+      webApps.map((key) => [key, { entry: 'server.js' }]),
+    )
+    const lambdaWeb = fakeLambdaWeb(
+      Object.fromEntries(
+        deployed.map((key) => [`svc-dev-${key}`, deployedWeb()]),
+      ),
+    )
+    s.deps.clients.lambdaWeb = lambdaWeb
+    return { ...s, lambdaWeb }
+  }
+  // What a session leaves on a web app it attached, as attachWebApp makes it.
+  const attachedBy = (
+    lambdaWeb,
+    key,
+    { id = testSessionId(2), owner = 'bob@desk', localOnly = false } = {},
+  ) =>
+    attachWebApp({
+      lambdaWeb,
+      functionName: `svc-dev-${key}`,
+      bridge: {
+        bucket: 'deploy-bucket',
+        key: 'serverless-dev-mode/bridge.zip',
+      },
+      session: {
+        id,
+        owner,
+        attachedAt: 1790000000,
+        broker: {
+          arn: `arn:aws:iam::${ACCOUNT}:role/b`,
+          externalId: 'e'.repeat(32),
+        },
+        key: 'c2Vzc2lvbi1rZXk=',
+        iotEndpoint: 'abc-ats.iot.us-east-1.amazonaws.com',
+      },
+      localOnly,
+    })
+  const web = (lambdaWeb, key) => lambdaWeb.state.get(`svc-dev-${key}`)
+  const mainOf = (lambdaWeb, key) =>
+    web(lambdaWeb, key).endpoints.get('main').revisionWeights
+  const deployedOnly = (lambdaWeb, key) => {
+    expect(mainOf(lambdaWeb, key)).toEqual([
+      { revisionId: 'rev-cfn', weight: 100 },
+    ])
+    expect([...web(lambdaWeb, key).endpoints.keys()]).toEqual(['main'])
+    expect([...web(lambdaWeb, key).revisions.keys()]).toEqual(['rev-cfn'])
+  }
+  const stillAttached = (lambdaWeb, key) =>
+    expect(mainOf(lambdaWeb, key)[0].revisionId).not.toBe('rev-cfn')
+  const shown = (logger) =>
+    logger.lines.filter((line) => !['debug', 'progress'].includes(line.level))
+  const tempDirs = []
+  afterAll(() => {
+    for (const dir of tempDirs) fs.rmSync(dir, { recursive: true, force: true })
+  })
+
+  test('deploy restores a web app left on a dev revision by another machine (no .serverless/dev)', async () => {
+    const s = webSetup()
+    await attachedBy(s.lambdaWeb, 'api')
+    // A CI runner's checkout: Dev Mode never ran here.
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sls-dev-ci-'))
+    tempDirs.push(dir)
+    s.serverless.serviceDir = dir
+    const hooks = devModeCommandHooks({
+      commandName: 'deploy',
+      handlers: {
+        setup: async () => {},
+        restore: async () => {},
+        restoreStage: (verb) => () => restoreStageBeforeCommand({ ...s, verb }),
+        restoreFunction: async () => {},
+      },
+    })
+    await hooks['before:deploy:deploy']()
+    deployedOnly(s.lambdaWeb, 'api')
+    deployedOnly(s.lambdaWeb, 'admin')
+    expect(shown(s.logger)).toEqual([
+      {
+        level: 'notice',
+        text: 'Restored the web app api from Dev Mode (bob@desk)',
+      },
+    ])
+    expect(s.logger.lines).toContainEqual({
+      level: 'debug',
+      text: 'If a "serverless dev" session is still running on this stage, it no longer has this web app: start it again after the deploy.',
+    })
+  })
+
+  test('unchanged deploy after a session: main is restored before deploy runs', async () => {
+    const s = webSetup({ live: { 'svc-dev-worker': attachedConfig() } })
+    await attachedBy(s.lambdaWeb, 'api', { owner: 'alice@mbp' })
+    await attachedBy(s.lambdaWeb, 'admin', { owner: 'alice@mbp' })
+    // The deploy itself runs after the hook: by then main serves the deployed revision.
+    await restoreStageBeforeCommand({ ...s, verb: 'deploy' })
+    deployedOnly(s.lambdaWeb, 'api')
+    deployedOnly(s.lambdaWeb, 'admin')
+    expect(s.lambda.state.get('svc-dev-worker').Environment.Variables).toEqual({
+      TABLE: 'orders',
+    })
+    expect(shown(s.logger)).toEqual([
+      {
+        level: 'notice',
+        text: 'Restored 1 function and the web apps api and admin from Dev Mode (alice@mbp, 10 min ago)',
+      },
+    ])
+  })
+
+  test('remove does not call lambdaWeb', async () => {
+    const s = webSetup()
+    await attachedBy(s.lambdaWeb, 'api')
+    s.lambdaWeb.calls.length = 0
+    await restoreStageBeforeCommand({ ...s, verb: 'removal' })
+    expect(s.lambdaWeb.calls).toEqual([])
+    expect(s.logger.lines).toEqual([])
+  })
+
+  test('rollback restores web apps once its deployment is found', async () => {
+    const s = webSetup()
+    await attachedBy(s.lambdaWeb, 'api')
+    const checked = []
+    s.deps.rollbackTargetExists = async ({ timestamp }) => {
+      checked.push(timestamp)
+      return true
+    }
+    await restoreStageBeforeCommand({ ...s, verb: 'rollback', timestamp: '1' })
+    expect(checked).toEqual(['1'])
+    deployedOnly(s.lambdaWeb, 'api')
+  })
+
+  test('a rollback to a timestamp with no deployment leaves web apps alone', async () => {
+    const s = webSetup()
+    await attachedBy(s.lambdaWeb, 'api')
+    s.deps.rollbackTargetExists = async () => false
+    await restoreStageBeforeCommand({ ...s, verb: 'rollback', timestamp: '1' })
+    stillAttached(s.lambdaWeb, 'api')
+  })
+
+  test('a service without web apps makes no Lambda Web call', async () => {
+    const s = restoreSetup({ live: { 'svc-dev-api': attachedConfig() } })
+    s.deps.clients.lambdaWeb = fakeLambdaWeb()
+    await restoreStageBeforeCommand({ ...s, verb: 'deploy' })
+    await runDevRestore(s)
+    expect(s.deps.clients.lambdaWeb.calls).toEqual([])
+  })
+
+  // A clone an attach left when it stopped before the clone's endpoint existed: no endpoint
+  // serves it.
+  const orphanClone = (lambdaWeb, key, id = testSessionId(2)) =>
+    web(lambdaWeb, key).revisions.set('rev-orphan', {
+      ...structuredClone(WEB_REVISION),
+      revisionId: 'rev-orphan',
+      state: 'Active',
+      description: `Serverless Dev Mode clone for session ${id}`,
+      serviceConfig: {
+        ...structuredClone(WEB_REVISION.serviceConfig),
+        environmentVariables: {
+          ...WEB_REVISION.serviceConfig.environmentVariables,
+          SLS_DEV_REVISION_ROLE: 'clone',
+        },
+      },
+    })
+
+  test('deploy removes a Dev Mode revision no endpoint serves, left by an attach that stopped', async () => {
+    const s = webSetup({ webApps: ['api'] })
+    orphanClone(s.lambdaWeb, 'api')
+    await restoreStageBeforeCommand({ ...s, verb: 'deploy' })
+    deployedOnly(s.lambdaWeb, 'api')
+  })
+
+  test('dev restore refused for a running session names the web apps it restores', async () => {
+    const s = webSetup({ webApps: ['api'] })
+    await expect(
+      runDevRestore({
+        ...s,
+        deps: {
+          ...s.deps,
+          sessionHere: async () => ({
+            session_id: testSessionId(1),
+            pid: 4123,
+            stage: 'dev',
+            region: 'us-east-1',
+            control: null,
+          }),
+        },
+      }),
+    ).rejects.toMatchObject({
+      code: 'DEV_MODE_SESSION_RUNNING',
+      message: `A Dev Mode session of this stage is running here (session ${testSessionId(1)}, pid 4123); it restores its functions and web apps when it stops. Stop it first with "serverless dev stop".`,
+    })
+  })
+
+  test('dev restore removes a Dev Mode revision no endpoint serves', async () => {
+    const s = webSetup({ webApps: ['api'] })
+    orphanClone(s.lambdaWeb, 'api')
+    expect(await runDevRestore(s)).toBe(0)
+    deployedOnly(s.lambdaWeb, 'api')
+    expect(s.logger.text()).toMatch(/Dev Mode off · 1 web app restored \(/)
+  })
+
+  test('a first deploy of web apps is checked quietly', async () => {
+    const s = webSetup({ deployed: [] })
+    await restoreStageBeforeCommand({ ...s, verb: 'deploy' })
+    expect(s.logger.lines).toEqual([])
+    expect(s.lambdaWeb.calls.map(([method]) => method)).toEqual([
+      'listEndpoints',
+      'listEndpoints',
+    ])
+  })
+
+  test('a web app the check cannot restore is a warning, as for a function, and the command goes on', async () => {
+    const s = webSetup()
+    const { cloneRevisionId } = await attachedBy(s.lambdaWeb, 'api')
+    // main moved by hand to Dev Mode's clone: Dev Mode cannot tell which revision to put back.
+    await s.lambdaWeb.updateEndpointWeights({
+      functionName: 'svc-dev-api',
+      endpointName: 'main',
+      revisionId: cloneRevisionId,
+    })
+    await expect(
+      restoreStageBeforeCommand({ ...s, verb: 'deploy' }),
+    ).resolves.toBeUndefined()
+    expect(levels(s.logger)).not.toContain('error')
+    const warnings = shown(s.logger).map((line) => line.level)
+    expect(new Set(warnings)).toEqual(new Set(['warning']))
+    const text = s.logger.text()
+    expect(text).toContain('Restore incomplete · 0 of 1 web app restored (')
+    expect(text).toContain(
+      `1 web app not restored: api (The endpoint main of the web function svc-dev-api serves ${cloneRevisionId}, a Dev Mode clone of a deployed revision`,
+    )
+    expect(text).toContain(
+      'It runs the deployed code until restored: run "serverless dev restore --stage dev --region us-east-1 --web-app api".',
+    )
+  })
+
+  test('a check denied the Lambda Web reads skips the web apps only, with a debug line', async () => {
+    const s = webSetup({ live: { 'svc-dev-worker': attachedConfig() } })
+    await attachedBy(s.lambdaWeb, 'api')
+    s.lambdaWeb.failures.listEndpoints = [
+      Object.assign(
+        new Error(
+          'User is not authorized to perform: lambda:ListWebFunctionEndpoints',
+        ),
+        { name: 'AccessDeniedException', $metadata: { httpStatusCode: 403 } },
+      ),
+    ]
+    await restoreStageBeforeCommand({ ...s, verb: 'deploy' })
+    expect(s.lambda.state.get('svc-dev-worker').Environment.Variables).toEqual({
+      TABLE: 'orders',
+    })
+    stillAttached(s.lambdaWeb, 'api')
+    expect(shown(s.logger)).toEqual([
+      {
+        level: 'notice',
+        text: 'Restored 1 function from Dev Mode (alice@mbp, 10 min ago)',
+      },
+    ])
+    expect(s.logger.lines).toContainEqual({
+      level: 'debug',
+      text: 'Dev Mode check of web apps skipped: it needs lambda:ListWebFunctionEndpoints and lambda:GetWebFunctionRevision (User is not authorized to perform: lambda:ListWebFunctionEndpoints). If a Dev Mode session attached web apps of this stage, they stay attached after this deployment; run "serverless dev restore --stage dev --region us-east-1" to detach them.',
+    })
+
+    const ran = webSetup()
+    await attachedBy(ran.lambdaWeb, 'api')
+    ran.lambdaWeb.failures.listEndpoints = [new Error('socket hang up')]
+    await restoreStageBeforeCommand({
+      ...ran,
+      verb: 'deploy',
+      devModeRanHere: true,
+    })
+    expect(shown(ran.logger)).toEqual([
+      {
+        level: 'warning',
+        text: 'Could not check the web apps of this stage for Dev Mode configuration (socket hang up). If web apps still have it, run "serverless dev restore --stage dev --region us-east-1".',
+      },
+    ])
+  })
+
+  test('a restore that fails on one side waits for the other, and reports the failure once', async () => {
+    const s = webSetup({
+      live: { 'svc-dev-worker': attachedConfig() },
+      options: {},
+    })
+    await attachedBy(s.lambdaWeb, 'api')
+    // The function's restore is held; the web app's fails at once on expired credentials.
+    let release
+    const held = new Promise((resolve) => (release = resolve))
+    let updateStarted
+    const started = new Promise((resolve) => (updateStarted = resolve))
+    const update = s.lambda.updateFunctionConfiguration
+    s.lambda.updateFunctionConfiguration = async (params) => {
+      updateStarted()
+      await held
+      return update(params)
+    }
+    s.lambdaWeb.failures.updateEndpointWeights = [expired()]
+    let settled = false
+    const hook = restoreStageBeforeCommand({
+      ...s,
+      verb: 'deploy',
+      devModeRanHere: true,
+    }).then(() => {
+      settled = true
+    })
+    await started
+    for (let i = 0; i < 20; i += 1) await new Promise(setImmediate)
+    expect(settled).toBe(false)
+    release()
+    await hook
+    expect(s.lambda.state.get('svc-dev-worker').Environment.Variables).toEqual({
+      TABLE: 'orders',
+    })
+    expect(shown(s.logger)).toEqual([
+      {
+        level: 'notice',
+        text: 'Restored 1 function from Dev Mode (alice@mbp, 10 min ago)',
+      },
+      {
+        level: 'warning',
+        text: 'Could not check this stage for Dev Mode configuration: AWS rejected the credentials (The security token included in the request is expired). If functions or web apps still have it, run "serverless dev restore --stage dev --region us-east-1".',
+      },
+    ])
+
+    // dev restore waits for both too, then ends with the credentials error.
+    const again = webSetup({ live: { 'svc-dev-worker': attachedConfig() } })
+    await attachedBy(again.lambdaWeb, 'api')
+    let releaseAgain
+    const heldAgain = new Promise((resolve) => (releaseAgain = resolve))
+    const updateAgain = again.lambda.updateFunctionConfiguration
+    let updated = false
+    again.lambda.updateFunctionConfiguration = async (params) => {
+      await heldAgain
+      const result = await updateAgain(params)
+      updated = true
+      return result
+    }
+    again.lambdaWeb.failures.updateEndpointWeights = [expired()]
+    const run = runDevRestore(again).catch((e) => e)
+    for (let i = 0; i < 20; i += 1) await new Promise(setImmediate)
+    releaseAgain()
+    const error = await run
+    expect(error.name).toBe('ExpiredTokenException')
+    expect(updated).toBe(true)
+  })
+
+  test('a web app restore that fails on credentials alone names the web apps', async () => {
+    const s = webSetup()
+    await attachedBy(s.lambdaWeb, 'api')
+    s.lambdaWeb.failures.updateEndpointWeights = [expired()]
+    await restoreStageBeforeCommand({
+      ...s,
+      verb: 'deploy',
+      devModeRanHere: true,
+    })
+    expect(shown(s.logger)).toEqual([
+      {
+        level: 'warning',
+        text: 'Could not check the web apps of this stage for Dev Mode configuration: AWS rejected the credentials (The security token included in the request is expired). If web apps still have it, run "serverless dev restore --stage dev --region us-east-1".',
+      },
+    ])
+  })
+
+  test('dev restore --web-app api restores only api', async () => {
+    const s = webSetup({
+      options: { 'web-app': ['api'] },
+      live: { 'svc-dev-worker': attachedConfig() },
+    })
+    await attachedBy(s.lambdaWeb, 'api')
+    await attachedBy(s.lambdaWeb, 'admin')
+    expect(await runDevRestore(s)).toBe(0)
+    deployedOnly(s.lambdaWeb, 'api')
+    stillAttached(s.lambdaWeb, 'admin')
+    expect(updated(s.lambda)).toEqual([])
+    expect(s.logger.lines.slice(0, 2)).toEqual([
+      {
+        level: 'aside',
+        text: 'Web apps with Dev Mode configuration on stage "dev":',
+      },
+      { level: 'aside', text: '  api  (web app, bob@desk)' },
+    ])
+    expect(s.logger.text()).toMatch(/Dev Mode off · 1 web app restored \(/)
+  })
+
+  test('dev restore restores the functions and the web apps of the stage, and counts both', async () => {
+    const s = webSetup({
+      options: { json: true },
+      live: { 'svc-dev-worker': attachedConfig() },
+    })
+    const printed = []
+    s.deps.stdout = { write: (text) => printed.push(text) }
+    await attachedBy(s.lambdaWeb, 'api')
+    expect(await runDevRestore(s)).toBe(0)
+    deployedOnly(s.lambdaWeb, 'api')
+    expect(updated(s.lambda)).toEqual(['svc-dev-worker'])
+    expect(s.logger.lines.slice(0, 3).map((line) => line.text)).toEqual([
+      'Functions and web apps with Dev Mode configuration on stage "dev":',
+      '  svc-dev-worker  (alice@mbp, attached 10 min ago)',
+      '  api  (web app, bob@desk)',
+    ])
+    const result = JSON.parse(printed.join(''))
+    expect(result.message).toBe(
+      'Dev Mode off · 1 function and 1 web app restored.',
+    )
+    expect(result.restore).toEqual({
+      restored: 2,
+      unchanged: 0,
+      skipped: 0,
+      missing: 0,
+      failed: 0,
+    })
+    // The web apps on their own, beside the counts that include them.
+    expect(result.web_apps).toEqual({
+      restored: 1,
+      unchanged: 0,
+      skipped: 0,
+      missing: 0,
+      failed: 0,
+    })
+  })
+
+  test('dev restore --json with nothing to do counts the web apps apart too', async () => {
+    const s = webSetup({ options: { json: true } })
+    const printed = []
+    s.deps.stdout = { write: (text) => printed.push(text) }
+    expect(await runDevRestore(s)).toBe(0)
+    expect(JSON.parse(printed.join('')).web_apps).toEqual({
+      restored: 0,
+      unchanged: 0,
+      skipped: 0,
+      missing: 0,
+      failed: 0,
+    })
+  })
+
+  test('dev restore --function leaves the web apps alone', async () => {
+    const s = webSetup({ options: { function: ['worker'] } })
+    await attachedBy(s.lambdaWeb, 'api')
+    s.lambdaWeb.calls.length = 0
+    expect(await runDevRestore(s)).toBe(0)
+    expect(s.lambdaWeb.calls).toEqual([])
+    stillAttached(s.lambdaWeb, 'api')
+  })
+
+  test('dev restore with nothing to do names the web apps too', async () => {
+    const s = webSetup()
+    expect(await runDevRestore(s)).toBe(0)
+    expect(s.logger.text()).toBe(
+      'No function or web app on stage "dev" has Dev Mode configuration.',
+    )
+    const one = webSetup({ options: { 'web-app': ['api'] } })
+    await runDevRestore(one)
+    expect(one.logger.text()).toBe(
+      'Web app api on stage "dev" has no Dev Mode configuration.',
+    )
+  })
+
+  test('dev restore refuses a web app that is not in the service', async () => {
+    const s = webSetup({ options: { 'web-app': ['nope'] } })
+    const error = await runDevRestore(s).catch((e) => e)
+    expect(error.code).toBe('DEV_MODE_UNKNOWN_WEB_APP')
+    expect(error.message).toBe(
+      'Web app "nope" is not in this service. Web apps: api, admin.',
+    )
+    expect(s.lambdaWeb.calls).toEqual([])
+  })
+
+  test('dev restore of a web app it cannot restore exits 3, and next retries that web app only', async () => {
+    const s = webSetup({ options: { json: true } })
+    const printed = []
+    s.deps.stdout = { write: (text) => printed.push(text) }
+    const { cloneRevisionId } = await attachedBy(s.lambdaWeb, 'api')
+    await s.lambdaWeb.updateEndpointWeights({
+      functionName: 'svc-dev-api',
+      endpointName: 'main',
+      revisionId: cloneRevisionId,
+    })
+    expect(await runDevRestore(s)).toBe(3)
+    const result = JSON.parse(printed.join(''))
+    expect(result.reason).toBe('restore_incomplete')
+    expect(result.restore.failed).toBe(1)
+    expect(result.web_apps.failed).toBe(1)
+    expect(result.next).toEqual([
+      {
+        command:
+          'serverless dev restore --stage dev --region us-east-1 --web-app api',
+        when: 'to try again the web apps that were not restored',
+      },
+    ])
+  })
+
+  test('a person running dev restore without the Lambda Web reads gets an error naming them', async () => {
+    const s = webSetup()
+    s.lambdaWeb.failures.listEndpoints = [
+      Object.assign(new Error('User is not authorized'), {
+        name: 'AccessDeniedException',
+        $metadata: { httpStatusCode: 403 },
+      }),
+    ]
+    const error = await runDevRestore(s).catch((e) => e)
+    expect(error.code).toBe('DEV_RESTORE_ACCESS_DENIED')
+    expect(error.message).toContain('lambda:ListWebFunctionEndpoints')
+  })
 })

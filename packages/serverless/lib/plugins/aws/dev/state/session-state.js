@@ -10,32 +10,45 @@ import { devDirOf, FILES, ownLogPidOf } from './paths.js'
 import { claimSession } from './session-file.js'
 import { openEventLog, scrubLine } from './events.js'
 import { processAlive } from '../local/leftovers.js'
+import { webAppWhy } from '../attach/output.js'
 
 const sortedUnique = (values) =>
   [...new Set([].concat(values ?? []).map(String))].sort()
 
-/** The function selection a session records: `--function` and `--skip-function`, sorted. */
-export const selectionOf = (options = {}) => ({
-  only: sortedUnique(options.function),
-  skip: sortedUnique(options['skip-function']),
+/**
+ * The selection a session records: `--function` and `--skip-function`, sorted, and, when any is
+ * given, the web app selectors (`web_apps`: `--web-app`, `--skip-web-app`, `--local-only`).
+ */
+export const selectionOf = (options = {}) => {
+  const webApps = {
+    only: sortedUnique(options['web-app']),
+    skip: sortedUnique(options['skip-web-app']),
+    local_only: sortedUnique(options['local-only']),
+  }
+  return {
+    only: sortedUnique(options.function),
+    skip: sortedUnique(options['skip-function']),
+    ...(Object.values(webApps).some((names) => names.length) && {
+      web_apps: webApps,
+    }),
+  }
+}
+
+/** A recorded selection as the options it came from. */
+const optionsOf = (selection) => ({
+  function: selection?.only,
+  'skip-function': selection?.skip,
+  'web-app': selection?.web_apps?.only,
+  'skip-web-app': selection?.web_apps?.skip,
+  'local-only': selection?.web_apps?.local_only,
 })
 
-/** Whether two sessions cover the same thing: stage, region and function selection. */
+/** Whether two sessions cover the same thing: stage, region, function and web app selection. */
 export const sameScope = (a, b) =>
   a?.stage === b?.stage &&
   a?.region === b?.region &&
-  JSON.stringify(
-    selectionOf({
-      function: a?.selection?.only,
-      'skip-function': a?.selection?.skip,
-    }),
-  ) ===
-    JSON.stringify(
-      selectionOf({
-        function: b?.selection?.only,
-        'skip-function': b?.selection?.skip,
-      }),
-    )
+  JSON.stringify(selectionOf(optionsOf(a?.selection))) ===
+    JSON.stringify(selectionOf(optionsOf(b?.selection)))
 
 export const newSessionRecord = ({
   sessionId,
@@ -184,6 +197,24 @@ export const restoreCounts = (result) =>
     ]),
   )
 
+/**
+ * The counts of the web apps in a restore result (its entries with `webApp`), or null when it has
+ * none: `restoreCounts` counts them with the functions.
+ */
+export const webAppRestoreCounts = (result) => {
+  const web = Object.fromEntries(
+    Object.keys(EMPTY_RESTORE).map((key) => [
+      key,
+      Array.isArray(result?.[key])
+        ? result[key].filter((entry) => entry?.webApp)
+        : [],
+    ]),
+  )
+  return Object.values(web).some((entries) => entries.length)
+    ? restoreCounts(web)
+    : null
+}
+
 /** A mode-table row as its `function.mode` record: notes by their codes. */
 export const modeRecordOf = (row) => ({
   function: row.function,
@@ -192,6 +223,37 @@ export const modeRecordOf = (row) => ({
   why: row.why,
   notes: row.notes?.length ? row.notes.map((note) => note.reason) : undefined,
 })
+
+/**
+ * A web app row as its `web_app.mode` record: notes by their codes, `why` as `dev status` has it.
+ */
+export const webAppModeRecordOf = (row) => ({
+  web_app: row.webApp,
+  mode: row.mode,
+  reason: row.reason,
+  why: webAppWhy(row) || undefined,
+  notes: row.notes?.length ? row.notes.map((note) => note.reason) : undefined,
+})
+
+/** How many web apps run in each mode, for `session.ready`'s `web_apps`. */
+export const webAppModeCounts = (rows) =>
+  Object.fromEntries(
+    ['dev', 'local', 'deployed', 'skipped'].map((mode) => [
+      mode,
+      rows.filter((row) => row.mode === mode).length,
+    ]),
+  )
+
+/**
+ * The mode of a web app the session lost, by the state the attachment check found: taken by
+ * another session, it is in Dev Mode elsewhere; otherwise its real URL serves the deployed code.
+ */
+const LOST_WEB_APP_MODES = {
+  taken_over: 'skipped',
+  taken_over_by_you: 'skipped',
+  detached: 'deployed',
+  function_deleted: 'deployed',
+}
 
 export const modeCounts = (rows) => ({
   dev: rows.filter((row) => row.mode === 'dev').length,
@@ -227,12 +289,17 @@ export const createSessionLifecycle = ({ state, now = Date.now }) => {
   let stopping = false
   let ended = false
   let rows = []
+  let webRows = []
   return {
     get isReady() {
       return ready
     },
     get rows() {
       return rows
+    },
+    /** The web app rows (`webModes`), none for a service without web apps. */
+    get webRows() {
+      return webRows
     },
     starting: (fields) => events.emit('session.starting', fields),
     modes(finalRows) {
@@ -256,11 +323,44 @@ export const createSessionLifecycle = ({ state, now = Date.now }) => {
       )
       events.emit('function.lost', { function: name, state: lostState })
     },
+    /** The final web app table: one `web_app.mode` record per web app of the service. */
+    webModes(finalRows) {
+      webRows = finalRows
+      for (const row of finalRows) {
+        events.emit('web_app.mode', webAppModeRecordOf(row))
+      }
+    },
+    /**
+     * A web app the attachment check found changed (`detached`, `function_deleted`, `taken_over`,
+     * or `taken_over_by_you` for another session of the same owner), by its key, with the `owner`
+     * of the session that took it over; `why` the table's text for it. Its row changes too.
+     */
+    webAppLost({ webApp, state: lostState, owner, why }) {
+      webRows = webRows.map((row) =>
+        row.webApp === webApp
+          ? {
+              webApp,
+              mode: LOST_WEB_APP_MODES[lostState] ?? row.mode,
+              reason: lostState,
+              why,
+              notes: [],
+            }
+          : row,
+      )
+      events.emit('web_app.lost', {
+        web_app: webApp,
+        state: lostState,
+        ...(lostState === 'taken_over' &&
+          owner &&
+          owner !== 'unknown' && { owner }),
+      })
+    },
     ready({ readyMs, attachMs }) {
       if (ready || ended) return
       ready = true
       events.emit('session.ready', {
         functions: modeCounts(rows),
+        ...(webRows.length && { web_apps: webAppModeCounts(webRows) }),
         ready_ms: Math.round(readyMs),
         attach_ms: Math.round(attachMs),
       })
@@ -286,12 +386,14 @@ export const createSessionLifecycle = ({ state, now = Date.now }) => {
       })
       sessionFile.update({ state: 'stopping' })
     },
-    ended({ exitCode, restore = EMPTY_RESTORE, kept = false }) {
+    ended({ exitCode, restore = EMPTY_RESTORE, webApps = null, kept = false }) {
       if (ended) return
       ended = true
       events.emit('session.ended', {
         exit_code: exitCode,
         restore: { ...EMPTY_RESTORE, ...restore },
+        // The web apps among them, for a session that restored or failed to restore any.
+        ...(webApps && { web_apps: { ...EMPTY_RESTORE, ...webApps } }),
         kept,
       })
       events.close()

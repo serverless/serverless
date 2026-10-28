@@ -102,7 +102,7 @@ Targeted suites include: `simple:nodejs`, `simple:python`, `simple:compose`, `si
 
 Conventions: each suite pairs `<name>.test.js` with a sibling `fixture/` directory holding the service under test — **one fixture directory per test file**, since jest parallelizes test files with no worker cap and two files deploying from one directory would race over `.serverless/`, `node_modules/` and any staged artifact; reuse the shared helpers in `packages/sf-core/tests/utils/` (`runSfCore.js`, `testUtils.js` — e.g. `fetchWithRetry` for eventually-consistent endpoints) rather than hand-rolling CLI invocation. Fixtures must not list legacy bundler plugins (`serverless-esbuild`, `serverless-webpack`, `serverless-plugin-typescript`, `serverless-bundle`) — those throw `PLUGIN_TYPESCRIPT_CONFLICT` unless `build.esbuild: false` is set.
 
-`serverless dev` from source and the Dev Mode tests need the gitignored layer zips built first: `npm run build:devmode:layer -w @serverless/framework` (needs Go; CI does this as a separate step).
+`serverless dev` from source and the Dev Mode tests need the gitignored layer zips built first: `npm run build:devmode:layer -w @serverless/framework` (needs Go; CI does this as a separate step). Web apps in `serverless dev` also need the web bridge zip: `npm run build:devmode:web-bridge -w @serverless/framework`.
 
 New integration tests must be self-cleaning (deploy → exercise → teardown, even on failure), use unique stack names so parallel runs are safe, and contain no secrets or account IDs in fixtures or assertions.
 

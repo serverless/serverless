@@ -9,9 +9,11 @@ import { isDevModeLayerArn, layerName } from './naming.js'
 import { layerArnsOf, variablesOf } from './undo-record.js'
 import { ensureLayerVersion } from './layer.js'
 import {
+  brokerPolicyIsPrevious,
   brokerPolicyNeedsRepair,
   createBroker,
   putBrokerPolicy,
+  widenBrokerTrust,
 } from './broker.js'
 import { CONTROL_PLANE_PARALLELISM, attachFunction } from './attach.js'
 import * as out from './output.js'
@@ -71,8 +73,14 @@ export const detectRuntimes = async ({
 
 /**
  * Creates the broker role when it does not exist (`session.broker` then holds it) and puts back
- * its permission policy when the plan said it was missing or from an earlier version. Returns the
- * broker (`created: true` when it was created now).
+ * its permission policy when the plan said it was missing or from an earlier version. With
+ * `webApps` (the session runs web apps), a role whose trust lists functions only is widened to
+ * web functions; a session with functions only leaves the role as it is. Returns the broker
+ * (`created: true` when it was created now, `widened: true` when its trust lists web functions)
+ * and whether the permission policy was put back (`policyRepaired`).
+ *
+ * A session without web apps whose credentials may not put the policy back runs with the previous
+ * version's policy, which serves functions, and says so through `logger`.
  */
 export const ensureAccountSetup = async ({
   broker,
@@ -82,7 +90,9 @@ export const ensureAccountSetup = async ({
   region,
   clients,
   main,
+  logger,
   session,
+  webApps = false,
 }) => {
   if (!broker) {
     main.notice(`Creating IAM role ${brokerName}`)
@@ -91,6 +101,7 @@ export const ensureAccountSetup = async ({
       name: brokerName,
       identity,
       region,
+      web: webApps,
     })
     if (!broker) {
       throw new ServerlessError(
@@ -101,19 +112,48 @@ export const ensureAccountSetup = async ({
     }
     session.broker = broker
   }
+  if (webApps && !broker.widened) {
+    main.notice(`Updating IAM role ${brokerName}`)
+    await widenBrokerTrust({
+      iam: clients.iam,
+      name: brokerName,
+      identity,
+      region,
+      externalId: broker.externalId,
+    })
+    broker = { ...broker, widened: true }
+  }
   if (brokerPolicyNeedsRepair(brokerPolicy)) {
     // Its creation stopped before the permission policy was written, or an earlier version wrote
     // one that grants more; the plan said so.
     main.notice(`Repairing IAM role ${brokerName}`)
-    await putBrokerPolicy({
-      iam: clients.iam,
-      name: brokerName,
-      arn: broker.arn,
-      identity,
-      region,
-    })
+    try {
+      await putBrokerPolicy({
+        iam: clients.iam,
+        name: brokerName,
+        arn: broker.arn,
+        identity,
+        region,
+      })
+    } catch (error) {
+      if (
+        webApps ||
+        error?.code !== 'DEV_MODE_BROKER_CREATE_DENIED' ||
+        !(await brokerPolicyIsPrevious({
+          iam: clients.iam,
+          name: brokerName,
+          identity,
+          region,
+        }))
+      ) {
+        throw error
+      }
+      logger.notice(out.previousBrokerPolicyLine({ name: brokerName, region }))
+      return { broker, policyRepaired: false }
+    }
+    return { broker, policyRepaired: true }
   }
-  return { broker }
+  return { broker, policyRepaired: false }
 }
 
 /**

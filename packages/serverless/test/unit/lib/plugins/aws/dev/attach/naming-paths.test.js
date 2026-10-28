@@ -3,6 +3,7 @@ import {
   ARCHITECTURES,
   isReleasedBundleDir,
   layerArtifactPathFrom,
+  webBridgeArtifactPathFrom,
 } from '../../../../../../../lib/plugins/aws/dev/attach/naming.js'
 
 test('the source tree keeps the zips next to the attach module', () => {
@@ -43,6 +44,36 @@ test('layerArtifactPathFrom resolves the bundled location from <package>/dist', 
       'layer',
       'dist',
       'serverless-dev-x86_64.zip',
+    ),
+  )
+})
+
+test('the web bridge zip sits in dev/web/bridge/dist, from the source tree and from <package>/dist', () => {
+  const sourceDir = path.join('/repo', 'lib', 'plugins', 'aws', 'dev', 'attach')
+  expect(webBridgeArtifactPathFrom(sourceDir)).toBe(
+    path.join(
+      '/repo',
+      'lib',
+      'plugins',
+      'aws',
+      'dev',
+      'web',
+      'bridge',
+      'dist',
+      'sls-dev-web-bridge.zip',
+    ),
+  )
+  expect(webBridgeArtifactPathFrom(path.join('/pkg', 'dist'))).toBe(
+    path.join(
+      '/pkg',
+      'lib',
+      'plugins',
+      'aws',
+      'dev',
+      'web',
+      'bridge',
+      'dist',
+      'sls-dev-web-bridge.zip',
     ),
   )
 })

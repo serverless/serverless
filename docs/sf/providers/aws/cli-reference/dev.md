@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Dev
-description: The dev command runs the code on your machine for real invocations of your deployed AWS Lambda functions, and its subcommands control and inspect that session.
+description: The dev command runs the code on your machine for real invocations of your deployed AWS Lambda functions and real requests to your web apps, and its subcommands control and inspect that session.
 short_title: Commands - Dev
 keywords:
   [
@@ -13,6 +13,8 @@ keywords:
     'Serverless CLI',
     'AWS Lambda Testing',
     'AWS IoT Core',
+    'AWS Lambda Web Functions',
+    'Web apps',
     'AI agents',
     'Python',
   ]
@@ -26,7 +28,7 @@ keywords:
 
 # AWS - Dev
 
-`serverless dev` attaches the Node.js and Python functions of a deployed stage to your machine, so their real invocations run the code in your working copy, with no emulation and no redeploy. Its subcommands report on the session, wait for its events, list and replay the invocations it ran, stop it, and restore functions a session left behind. The [Dev Mode guide](../guide/dev-mode.md) explains how it works, the runtimes, security and limits; this page is the reference for each command, its options, exit codes and `--json` results, the [error codes](#errors), the [permissions](#permissions) and the [formats of the session's files](#files).
+`serverless dev` attaches the Node.js and Python functions of a deployed stage to your machine, so their real invocations run the code in your working copy, with no emulation and no redeploy, and runs the stage's [web apps](../guide/dev-mode.md#web-apps) on your machine, with their real URLs relayed there. Its subcommands report on the session, wait for its events, list and replay the invocations and requests it ran, stop it, and restore functions and web apps a session left behind. The [Dev Mode guide](../guide/dev-mode.md) explains how it works, the runtimes, security and limits; this page is the reference for each command, its options, exit codes and `--json` results, the [error codes](#errors), the [permissions](#permissions) and the [formats of the session's files](#files).
 
 ## Usage
 
@@ -35,26 +37,30 @@ serverless dev                       # the default stage, in this terminal
 serverless dev --stage alice         # your personal stage
 serverless dev --detach --json       # in the background, for scripts and AI agents
 serverless dev --dry-run             # the checks and the changes, with nothing changed
+serverless dev --local-only site     # the web app site on its local URL only
 ```
 
 ## Options
 
-| Option                      | Description                                                                                                                                                                                                                                        |
-| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--stage`, `-s`             | The stage to attach. Dev Mode refuses `prod` and `production` (`stage_protected`).                                                                                                                                                                 |
-| `--region`, `-r`            | The region of the stage.                                                                                                                                                                                                                           |
-| `--aws-profile`             | The AWS profile to use.                                                                                                                                                                                                                            |
-| `--function`, `-f`          | Attach only this function (repeatable); the others run their deployed code.                                                                                                                                                                        |
-| `--skip-function`           | Keep this function on its deployed code (repeatable).                                                                                                                                                                                              |
-| `--take-over`               | Also attach functions another live session holds, including another session of yours in a different terminal.                                                                                                                                      |
-| `--approve`                 | Show the changes and ask for confirmation before changing any function. Needs an interactive terminal; on a stage that was never deployed, it asks twice (before the deployment and before attaching). Declining changes nothing more and exits 0. |
-| `--on-exit keep\|remove`    | Instead of restoring on exit: `keep` leaves the functions in Dev Mode (exit 0, or 3 when some function could not be attached); `remove` restores them and then removes the service, with confirmation.                                             |
-| `--detailed`                | Print each invocation's event and response.                                                                                                                                                                                                        |
-| `--detach`                  | Start the session in the background and return once it is ready (at most 100 seconds). [`serverless dev stop`](#dev-stop) ends it. See [Detached sessions](#detached-sessions).                                                                    |
-| `--idle-timeout <duration>` | With `--detach` only: stop and restore after this long without activity, such as `30m` or `2h` (default `60m`). `0` turns it off; any other value under a minute is refused.                                                                       |
-| `--json`                    | With `--detach` or `--dry-run` only: print one JSON result on standard output, human text on standard error. `--json`, `--json=true` and `--json=1` turn it on; `--json=false` and `--json=0` leave it off.                                        |
-| `--dry-run`                 | Run the read-only checks and print the changes a session would make, changing nothing. See [Dry-run results](#dry-run-results).                                                                                                                    |
-| `--no-keys`                 | Turn off the single-key commands in a terminal (see [Keys](#keys)).                                                                                                                                                                                |
+| Option                      | Description                                                                                                                                                                                                                                                   |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--stage`, `-s`             | The stage to attach. Dev Mode refuses `prod` and `production` (`stage_protected`).                                                                                                                                                                            |
+| `--region`, `-r`            | The region of the stage.                                                                                                                                                                                                                                      |
+| `--aws-profile`             | The AWS profile to use.                                                                                                                                                                                                                                       |
+| `--function`, `-f`          | Attach only this function (repeatable); the others run their deployed code.                                                                                                                                                                                   |
+| `--skip-function`           | Keep this function on its deployed code (repeatable).                                                                                                                                                                                                         |
+| `--web-app`                 | Run only this web app on your machine (repeatable); the other web apps serve their deployed code. Independent of `--function`.                                                                                                                                |
+| `--skip-web-app`            | Keep this web app on its deployed code (repeatable).                                                                                                                                                                                                          |
+| `--local-only`              | Run this web app on its local URL only (repeatable); its real URL keeps serving the deployed code. See [`--local-only`](../guide/dev-mode.md#--local-only).                                                                                                   |
+| `--take-over`               | Also attach functions and web apps another live session holds, including another session of yours in a different terminal.                                                                                                                                    |
+| `--approve`                 | Show the changes and ask for confirmation before changing any function or web app. Needs an interactive terminal; on a stage that was never deployed, it asks twice (before the deployment and before attaching). Declining changes nothing more and exits 0. |
+| `--on-exit keep\|remove`    | Instead of restoring on exit: `keep` leaves the functions and web apps in Dev Mode (exit 0, or 3 when some function or web app could not be attached); `remove` restores them and then removes the service, with confirmation.                                |
+| `--detailed`                | Print each invocation's event and response, and each web app request's headers, and the head of its body and of the response with the response's status and headers.                                                                                          |
+| `--detach`                  | Start the session in the background and return once it is ready (at most 100 seconds). [`serverless dev stop`](#dev-stop) ends it. See [Detached sessions](#detached-sessions).                                                                               |
+| `--idle-timeout <duration>` | With `--detach` only: stop and restore after this long without activity, such as `30m` or `2h` (default `60m`). `0` turns it off; any other value under a minute is refused.                                                                                  |
+| `--json`                    | With `--detach` or `--dry-run` only: print one JSON result on standard output, human text on standard error. `--json`, `--json=true` and `--json=1` turn it on; `--json=false` and `--json=0` leave it off.                                                   |
+| `--dry-run`                 | Run the read-only checks and print the changes a session would make, changing nothing. See [Dry-run results](#dry-run-results).                                                                                                                               |
+| `--no-keys`                 | Turn off the single-key commands in a terminal (see [Keys](#keys)).                                                                                                                                                                                           |
 
 Durations (`--idle-timeout`, and `--timeout` on `dev wait` and `dev stop`): `100` or `100s` (seconds), `5m`, `1h`.
 
@@ -87,19 +93,19 @@ A foreground `serverless dev --json` is refused with:
 
 **Signals.** The first Ctrl+C, `q`, or one stop signal (SIGINT, SIGTERM or SIGHUP) restores the functions and prints the progress; any other stop signal within 500 ms of the first counts as the same stop. A second Ctrl+C (or SIGTERM) after that exits at once and names the functions it left attached, with the exit codes above. A hang-up (SIGHUP) starts a restore but never forces an exit. A Ctrl+C, SIGTERM or hang-up before a session's first change in AWS (while it checks AWS or waits at its `--approve` question) ends it at once, with `session.ended` saying nothing was restored. A stop ends with one of these lines, followed only by details about individual functions: `Dev Mode off …`; `Restore incomplete · …` when a function could not be restored; `Left N functions in Dev Mode (--on-exit keep).` when you asked to keep them; or `Exiting without waiting. Not restored: …` after a forced exit.
 
-**Option combinations.** These are refused with exit 1 (`DEV_MODE_INVALID_OPTION_COMBINATION`): `--json` without `--detach` or `--dry-run`, `--detach` with `--dry-run`, `--detach` with `--on-exit remove`, `--idle-timeout` without `--detach`, and `--detach`, `--dry-run` or `--idle-timeout` in the agents or sandboxes modes.
+**Option combinations.** These are refused with exit 1 (`DEV_MODE_INVALID_OPTION_COMBINATION`): `--json` without `--detach` or `--dry-run`, `--detach` with `--dry-run`, `--detach` with `--on-exit remove`, `--idle-timeout` without `--detach`, and `--detach`, `--dry-run` or `--idle-timeout` in the agents or sandboxes modes. A web app given to both `--local-only` and `--skip-web-app` is refused with `DEV_MODE_OPTION_CONFLICT` (reason `invalid_option_combination`), and a name that is not under `webApps` with `DEV_MODE_UNKNOWN_WEB_APP`, before anything changes. The agents and sandboxes modes leave web apps out, and ignore the web app options as they ignore `--function`.
 
 ## Keys
 
-In an interactive terminal, a running session takes these keys, in lower or upper case. They are off in CI, under an AI agent, when standard input or output is not a terminal, in a terminal that reports a width of zero columns, and with `--no-keys`. The start-up line is then `Press Ctrl+C to restore your functions and exit.` With [`SLS_INTERACTIVE_SETUP_ENABLE`](README.md#non-interactive-use-ci-and-ai-agents) set, they are on wherever standard input is a terminal, except in a zero-width terminal or with `--no-keys`.
+In an interactive terminal, a running session takes these keys, in lower or upper case. They are off in CI, under an AI agent, when standard input or output is not a terminal, in a terminal that reports a width of zero columns, and with `--no-keys`. The start-up line is then `Press Ctrl+C to restore your functions and exit.`, or, with web apps running on your machine, `Press Ctrl+C to restore your functions and web apps and exit.` (`your web apps` when no function is attached). With [`SLS_INTERACTIVE_SETUP_ENABLE`](README.md#non-interactive-use-ci-and-ai-agents) set, they are on wherever standard input is a terminal, except in a zero-width terminal or with `--no-keys`.
 
-| Key        | Action                                                                                                                                                                                                                                                 |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `h` or `?` | Show the keys, on one line.                                                                                                                                                                                                                            |
-| `r`        | Rebuild and restart the handler processes now (repeated presses make one rebuild).                                                                                                                                                                     |
-| `v`        | Show or hide details: each invocation's full label, event and response.                                                                                                                                                                                |
-| `s`        | Show the session in two lines: its state, service, stage, functions and invocation counts, then the functions with a warm handler process and the last invocation. Then the function table, when some function runs its deployed code or has a reason. |
-| `q`        | Restore your functions and exit, like the first Ctrl+C.                                                                                                                                                                                                |
+| Key        | Action                                                                                                                                                                                                                                                                                                             |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `h` or `?` | Show the keys, on one line.                                                                                                                                                                                                                                                                                        |
+| `r`        | Rebuild and restart the handler processes now (repeated presses make one rebuild), and start each web app's server again.                                                                                                                                                                                          |
+| `v`        | Show or hide details: each invocation's full label, event and response, and each web request's full method and path, headers, and body and response heads. One setting for both.                                                                                                                                   |
+| `s`        | Show the session in two lines: its state, service, stage, functions, web apps, and invocation and web request counts, then the functions with a warm handler process, the last invocation and the last web request. Then the function table, when some function or web app runs its deployed code or has a reason. |
+| `q`        | Restore your functions and web apps and exit, like the first Ctrl+C.                                                                                                                                                                                                                                               |
 
 Ctrl+C works as without keys: the first restores and exits, a second exits without waiting.
 
@@ -109,9 +115,11 @@ Ctrl+C works as without keys: the first restores and exits, a second exits witho
 serverless dev status [--json]
 ```
 
-Shows whether Dev Mode is on in this service directory: the session, its functions and their modes, the invocation counts, how long ago the last invocation was, and the endpoints. The endpoints come as `serverless deploy` and `serverless info` print them: every endpoint under `endpoint:` (one) or `endpoints:`, then the [MCP servers](../guide/mcp.md) under `mcp:`. It reads the session's files and asks the running session; it makes no AWS call. It reports Dev Mode sessions for functions and MCP servers: a `serverless dev` session for [sandboxes](../guide/sandboxes.md#local-development-serverless-dev) is not shown here. With no session, it reports state `off` (or `failed` when the last start failed) and exits 0. When the last session ended without its final record, or ended without restoring every function (its message says how many), the result comes with `serverless dev restore --stage <stage> --region <region>` as the next step, as `dev stop` and `dev wait` give it.
+Shows whether Dev Mode is on in this service directory: the session, its functions and their modes, the invocation counts, how long ago the last invocation was, and the endpoints. The endpoints are listed as the start-up lists them (see [What the session prints](../guide/dev-mode.md#what-the-session-prints)): every endpoint under `endpoints:`, the web apps that run on your machine under `web apps:`, then the [MCP servers](../guide/mcp.md) under `mcp:`. It reads the session's files and asks the running session; it makes no AWS call. It reports Dev Mode sessions for functions and MCP servers: a `serverless dev` session for [sandboxes](../guide/sandboxes.md#local-development-serverless-dev) is not shown here. With no session, it reports state `off` (or `failed` when the last start failed) and exits 0. When the last session ended without its final record, or ended without restoring every function (its message says how many), the result comes with `serverless dev restore --stage <stage> --region <region>` as the next step, as `dev stop` and `dev wait` give it.
 
 `--json` fields: `state` (`starting`, `on`, `stopping`, `off` or `failed`), `session_id`, `pid`, `owner`, `service`, `stage`, `region`, `detached`, `started_at`, `ready_at`, `idle_timeout_s`, `invocations` (`total`, `errors`), `last_invocation` (`request_id`, `function`, `outcome`, `ts`), `functions` (`name`, `mode`, `reason`, `why`, `notes`; each `reason`, such as `timeout_too_short` or `handler_not_in_service`, is listed in [Functions and modes](../guide/dev-mode.md#functions-and-modes); a function the session lost while it ran has the `function.lost` state as its `reason`, and its `mode` changes as that section describes), `endpoints` (`method`, `url`, `function`, and `mcp: true` on an MCP server's entry, whose `method` is `ANY`) and `cursor`, the last record's.
+
+For a service with web apps, `web_apps` lists each one: `name`, `mode` (`dev`, `local`, `deployed` or `skipped`), `reason`, `why`, `notes` (note codes, such as `local_server_down` and `no_role_credentials`), `url` (the real URL) and `local_url` (the local URL, while its server runs here). The modes and reasons are under [Web app modes](../guide/dev-mode.md#web-app-modes). The table lists web apps after the functions, as `<name> (web app)`, and a `web apps:` section follows the endpoints: each web app that runs on your machine with its real URL and its local URL, as the start-up lists them. `requests` (`total`, `failed`: those not answered by the local server) and `last_request` (`request_id`, `web_app`, `outcome`, `ts`) count the web app requests that ran on this machine, as `invocations` and `last_invocation` count invocations; the text prints them on a `web requests` line, and a session of web apps alone prints no invocation line. A service without web apps has no `web_apps`, `requests` or `last_request` field.
 
 ```text
 Dev Mode on · session s_8aa6ea24e76c · pid 2824 · stage alice · us-east-1 · detached
@@ -123,28 +131,33 @@ crm       dev
 
 1 invocation · last: node b2958894 ok, 12 s ago
 
-endpoint: POST - https://<api-id>.execute-api.us-east-1.amazonaws.com/node
-mcp: crm → https://<rest-api-id>.execute-api.us-east-1.amazonaws.com/alice/crm/mcp
+endpoints:
+  POST /node  https://<api-id>.execute-api.us-east-1.amazonaws.com/node
+mcp:
+  crm  https://<rest-api-id>.execute-api.us-east-1.amazonaws.com/alice/crm/mcp
 ```
 
 ## `dev wait`
 
 ```bash
-serverless dev wait --for ready|invocation|reload|ended [--function <name>] [--after <cursor>] [--timeout <duration>] [--json]
+serverless dev wait --for ready|invocation|request|reload|ended [--function <name>] [--web-app <name>] [--after <cursor>] [--timeout <duration>] [--json]
 ```
 
 Waits until the session in this directory reaches a point, then prints that event record and its cursor.
 
-| Option             | Description                                                                                                                                                             |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--for`            | `ready` (the session is on), `invocation` (the end of the next invocation, whatever its outcome), `reload` (the end of the next reload) or `ended` (the session's end). |
-| `--function`, `-f` | Only an invocation or reload of this function (repeatable). A name that is not in `serverless.yml` is refused at once.                                                  |
-| `--after`          | Only records after this cursor (from a `--json` result), including ones written before the command started.                                                             |
-| `--timeout`        | How long to wait: `100s` by default, at most `1h` (see [Durations](#options)).                                                                                          |
-| `--json`           | Print one JSON result: `event` (the matched record) and `cursor` (its cursor, so `--after` it continues right after it).                                                |
+| Option             | Description                                                                                                                                                                                                              |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--for`            | `ready` (the session is on), `invocation` (the end of the next invocation, whatever its outcome), `request` (the end of the next web app request), `reload` (the end of the next reload) or `ended` (the session's end). |
+| `--function`, `-f` | Only an invocation or reload of this function (repeatable). A name that is not in `serverless.yml` is refused at once.                                                                                                   |
+| `--web-app`        | Only a request to or a reload of this web app (repeatable), with `--for request` or `--for reload`. A name that is not under `webApps` is refused at once (`DEV_MODE_UNKNOWN_WEB_APP`).                                  |
+| `--after`          | Only records after this cursor (from a `--json` result), including ones written before the command started.                                                                                                              |
+| `--timeout`        | How long to wait: `100s` by default, at most `1h` (see [Durations](#options)).                                                                                                                                           |
+| `--json`           | Print one JSON result: `event` (the matched record) and `cursor` (its cursor, so `--after` it continues right after it).                                                                                                 |
 
 - `ready` returns the `session.ready` record at once when the session is already on; on a start that failed, it returns the `session.failed` record with status `error`.
-- `invocation` and `reload` wait for the next `invocation.end` or `reload.end` after now, or after `--after`. An invocation matches on its end, whatever its outcome.
+- `invocation`, `request` and `reload` wait for the next `invocation.end`, `request.end` or `reload.end` after now, or after `--after`. An invocation or a request matches on its end, whatever its outcome. A request matches whatever its source: the real URL (`relay`), the local URL (`local`) or a `replay`.
+- A reload is a function rebuild (`functions` in its record) or a web app server started again (`web_apps`): an `entry` web app's server on a save, and every web app's server on the `r` key. `--for reload` without a filter matches either; with `--function` or `--web-app` it matches a reload of one of them. A web app run from `dev.command` reloads its own code and writes no reload record on a save. A web app's `reload.end` has `ok: false` when its server does not listen again within 30 seconds, so it arrives that long after the save. In a session with functions and web apps, give `--function` or `--web-app`: an `entry` web app's server also starts again on a save of a function's file, and the first reload of either kind would match.
+- `--web-app` with `--for invocation`, `ready` or `ended`, and `--function` with `--for request`, are refused with `invalid_option_combination`, since they could never match.
 - `ended` returns the terminal record — `session.failed` for a failed start, otherwise `session.ended` — and exits with that end's code: 0 for a clean end, 1 for an error, 3 for `restore_incomplete` or `attach_incomplete`. With no session running, it returns the last session's end when the log has one, else `session_not_running`.
 - With `--after`, a matching record already in the log is returned even if the session has ended since; `ready` and `ended` return the earlier record when that state is already reached.
 - A wait that ends because the session ended is `session_ended`, with the `session.ended` record as `event`.
@@ -196,6 +209,33 @@ A matched invocation:
 }
 ```
 
+A matched web app request (`--for request --web-app site`):
+
+```json
+{
+  "v": 1,
+  "status": "ok",
+  "cursor": "s_8aa6ea24e76c:11",
+  "event": {
+    "v": 1,
+    "seq": 11,
+    "ts": "2026-10-05T19:02:10.481Z",
+    "session_id": "s_8aa6ea24e76c",
+    "type": "request.end",
+    "web_app": "site",
+    "request_id": "9a8b7c6d-1e2f-4a3b-8c9d-0e1f2a3b4c5d",
+    "source": "relay",
+    "method": "POST",
+    "path": "/api/orders",
+    "outcome": "answered",
+    "status_code": 201,
+    "duration_ms": 21,
+    "bytes": 74,
+    "file": ".serverless/dev/requests/site/1791226930-9a8b7c6d-1e2f-4a3b-8c9d-0e1f2a3b4c5d.json"
+  }
+}
+```
+
 A session file whose session does not answer (its process is gone, or its control endpoint does not answer within 2 seconds, asked twice 250 ms apart) counts as not running: the result is `restore_incomplete`, with the restore as the next step. What a suggested restore carries is under [The result](#the-result).
 
 ## `dev stop`
@@ -204,13 +244,13 @@ A session file whose session does not answer (its process is gone, or its contro
 serverless dev stop [--keep] [--timeout <duration>] [--json]
 ```
 
-Stops the session running in this service directory, started with `--detach` or running in another terminal, and restores its functions. It reaches the session through the session's control endpoint, the same way on every platform and without a signal, then waits for `session.ended` and prints the restore.
+Stops the session running in this service directory, started with `--detach` or running in another terminal, and restores its functions and web apps. It reaches the session through the session's control endpoint, the same way on every platform and without a signal, then waits for `session.ended` and prints the restore.
 
-| Option      | Description                                                                                                                   |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `--keep`    | Leave the functions in Dev Mode, like `--on-exit keep`.                                                                       |
-| `--timeout` | How long to wait for the restore (default `7m`; see [Durations](#options)).                                                   |
-| `--json`    | Print one JSON result: `restore` (`restored`, `unchanged`, `skipped`, `missing`, `failed`), `kept`, `exit_code` and `cursor`. |
+| Option      | Description                                                                                                                                                        |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--keep`    | Leave the functions and web apps in Dev Mode, like `--on-exit keep`.                                                                                               |
+| `--timeout` | How long to wait for the restore (default `7m`; see [Durations](#options)).                                                                                        |
+| `--json`    | Print one JSON result: `restore` (`restored`, `unchanged`, `skipped`, `missing`, `failed`, web apps counted with the functions), `kept`, `exit_code` and `cursor`. |
 
 Exit codes:
 
@@ -255,21 +295,29 @@ With `--json`:
 ## `dev requests`
 
 ```bash
-serverless dev requests [--function <name>] [--limit <n>] [--json]
+serverless dev requests [--function <name>] [--web-app <name>] [--limit <n>] [--json]
 ```
 
-Lists the latest invocations Dev Mode ran on your machine, newest first, with the file that holds each one's event, response or error, and log lines. It reads `.serverless/dev/invocations`, so it also works after the session ended. The list holds every stage run from the service's directory, and each row names its stage (empty for invocations recorded before files named it).
+Lists the latest invocations and web app requests Dev Mode ran on your machine, newest first, with the file that holds each one's event, response or error, and log lines. It reads `.serverless/dev/invocations` and `.serverless/dev/requests`, so it also works after the session ended. The list holds every stage run from the service's directory, and each row names its stage (empty for invocations recorded before files named it).
 
-| Option             | Description                                                                                                                                                                             |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--function`, `-f` | Only this function (repeatable).                                                                                                                                                        |
-| `--limit`          | How many to list: `20` by default, at most 500.                                                                                                                                         |
-| `--json`           | Print one JSON result: `requests` (`ts`, `function`, `stage` (`null` for an invocation recorded before files named it), `request_id`, `outcome`, `duration_ms`, `status_code`, `file`). |
+| Option             | Description                                                                         |
+| ------------------ | ----------------------------------------------------------------------------------- |
+| `--function`, `-f` | Only invocations of this function (repeatable).                                     |
+| `--web-app`        | Only requests to this web app (repeatable). With `--function` too, both are listed. |
+| `--limit`          | How many to list: `20` by default, at most 500.                                     |
+| `--json`           | Print one JSON result: `requests`, each with `kind` (below).                        |
+
+- An invocation (`"kind": "invocation"`) has `ts`, `function`, `stage` (`null` for an invocation recorded before files named it), `request_id`, `outcome`, `duration_ms`, `status_code` and `file`.
+- A web app request (`"kind": "request"`) has `ts`, `web_app`, `stage`, `request_id`, `source` (`relay` for the real URL, `local` for the local URL, or `replay`), `method`, `path` (signed-URL query values redacted), `outcome` (`answered`, `failed` or `not_run`), `status_code` (`null` for `not_run`, and when no status arrived), `duration_ms` and `file`.
+
+In the table, a web app request shows its web app and route, such as `site POST /api/orders`, under `Function or web app`.
 
 ```text
 When                    Function  Stage  Request   Outcome  Status  Duration  File
 less than a minute ago  node      alice  2c5f38df  ok               2 ms      .serverless/dev/invocations/node/1791193547-2c5f38df-5238-4e00-9d0b-3287d2e003b2.json
 ```
+
+In a terminal too narrow for the table, the `File` column is left out (`--json` has each file), and then long names and routes are cut with `…`. Piped or redirected, the table is printed whole.
 
 Exit 0, or 1 for an invalid `--limit` (`invalid_option_value`).
 
@@ -300,22 +348,40 @@ Exit codes:
 - `1` — `invocation_not_found`, `ambiguous_request_id`, `stage_mismatch`, `invalid_option_value` (no id), `session_not_running`, or a replay the session refused.
 - `124` — still running after the function's timeout plus 30 seconds.
 
+### Replaying a web app request
+
+`serverless dev replay <request id>` with the id of a web app request (from `dev requests`) sends the recorded request again to the web app's server on your machine, through the running session. No caller receives the response, and the replay has real effects. The id rules are the same; an id that matches both an invocation and a web app request is `ambiguous_request_id`.
+
+- The replay sends what the request file holds. The file keeps no credentials, so the replay leaves out the headers and query parameters it redacted (see [Request files](#request-files)), and its result says which: `"note": "redacted_values_omitted"` and `omitted` (their names).
+- It is refused, exit 1, for a request whose body was over 1 MiB, which the file cut (`request_body_truncated`), and for one whose body this machine never read, for example because the local server was not running (`request_body_not_captured`): the server would get another request. It is refused with `web_app_not_local` when the web app does not run on your machine in this session (`deployed`, `skipped`, or a session without web apps).
+- A request recorded on another stage is `stage_mismatch`, whose `next` stops this session, starts one for that stage and replays there.
+- The replay's request file has `replay_of` and `"source": "replay"`.
+- `--json` fields: `kind` (`request`), `request_id` (the replay's), `replay_of`, `web_app`, `method`, `path`, `outcome`, `status_code`, `duration_ms`, `outcome_reason` (when the request did not get an answer), `response` (the file's `response`, when it fits in 64 KB; else `response_omitted: true`), `file`, and `note` and `omitted` as above.
+- Exit 124 when the server has not answered within 15 minutes and 30 seconds.
+
+```text
+Replayed 9a8b7c6d on site (POST /api/orders) as 4f3e2d1c (no caller received it): answered · 201 · 18 ms
+.serverless/dev/requests/site/1791227012-4f3e2d1c-5b6a-4978-8d9c-1a2b3c4d5e6f.json
+The file keeps no credentials, so the replay left out authorization and cookie.
+```
+
 ## `dev restore`
 
 ```bash
-serverless dev restore [--function <name>] [--json]
+serverless dev restore [--function <name>] [--web-app <name>] [--json]
 ```
 
-Removes the Dev Mode configuration from the functions of a stage: what a session that did not exit cleanly, or one with `--on-exit keep`, left on them, whoever attached it. It restores the stage `--stage` names, else the service's default stage, with the default credentials unless `--aws-profile` is given, so pass the stage, region and profile the session ran on. It refuses with `session_running` only while a live session of this directory runs on the same stage and region; stop that session with `serverless dev stop` instead, which restores its functions. A `next` step of `dev stop`, `dev wait` or `dev status` can be this command; run it with `--json`, like every `next` step.
+Removes the Dev Mode configuration from the functions of a stage, and restores its web apps: what a session that did not exit cleanly, or one with `--on-exit keep`, left on them, whoever attached it. A web app's `main` endpoint goes back to the revision it served before, and Dev Mode's endpoints and revisions are deleted, including revisions an interrupted start left with no endpoint. It restores the stage `--stage` names, else the service's default stage, with the default credentials unless `--aws-profile` is given, so pass the stage, region and profile the session ran on. It refuses with `session_running` only while a live session of this directory runs on the same stage and region; stop that session with `serverless dev stop` instead, which restores its functions. A `next` step of `dev stop`, `dev wait` or `dev status` can be this command; run it with `--json`, like every `next` step.
 
-| Option             | Description                                                                                                                                    |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--function`, `-f` | Restore only this function (repeatable).                                                                                                       |
-| `--json`           | Print one JSON result: `restore` (`restored`, `unchanged`, `skipped`, `missing`, `failed`, counted as `dev stop` counts them) and `exit_code`. |
+| Option             | Description                                                                                                                                                                                                                                         |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--function`, `-f` | Restore only this function (repeatable). Without `--web-app`, web apps are left as they are.                                                                                                                                                        |
+| `--web-app`        | Restore only this web app (repeatable). Without `--function`, functions are left as they are.                                                                                                                                                       |
+| `--json`           | Print one JSON result: `restore` (`restored`, `unchanged`, `skipped`, `missing`, `failed`, counted as `dev stop` counts them, web apps included), for a service with web apps `web_apps` (the same counts for the web apps alone), and `exit_code`. |
 
 - Exit 0 when every function with Dev Mode configuration was restored, and when no function had any.
-- Exit 3 (`restore_incomplete`) when some function could not be restored, for example when AWS throttled the update or refused `lambda:UpdateFunctionConfiguration` for it. The message names each one and why. `next` restores only those functions again, with one `--function` each and the `--stage`, `--region`, `--aws-profile` and `--config` the command ran with; when the message says access was denied, that permission is needed first.
-- Exit 1 for `session_running` (`next`: `serverless dev stop`, or the restore to run after Ctrl+C in the session's terminal when no command can reach it), `permission_denied` (`lambda:GetFunction` is missing, so the functions cannot be read), `credentials_expired`, and the CLI's other errors. These change nothing; the result counts nothing.
+- Exit 3 (`restore_incomplete`) when some function or web app could not be restored, for example when AWS throttled the update or refused `lambda:UpdateFunctionConfiguration` for it. The message names each one and why. `next` restores only those again, with one `--function` or `--web-app` each and the `--stage`, `--region`, `--aws-profile` and `--config` the command ran with; when the message says access was denied, that permission is needed first.
+- Exit 1 for `session_running` (`next`: `serverless dev stop`, or the restore to run after Ctrl+C in the session's terminal when no command can reach it), `permission_denied` (`lambda:GetFunction` is missing, so the functions cannot be read, or the Lambda Web actions in [Permissions](#permissions), so the web apps cannot be), `credentials_expired`, and the CLI's other errors. These change nothing; the result counts nothing.
 
 The result has no `cursor`: `dev restore` works outside any session's event log. `exit_code` is the exit code the command ends with.
 
@@ -348,7 +414,7 @@ The result has no `cursor`: `dev restore` works outside any session's event log.
 serverless dev setup [--permissions-boundary <arn>] [--path <path>]
 ```
 
-Creates the IAM role Dev Mode uses in an AWS account and region, for accounts where developers cannot create IAM roles. An administrator runs it once per region. See [`dev setup` for accounts without IAM role creation](../guide/dev-mode.md#dev-setup-for-accounts-without-iam-role-creation) in the guide for what the role is and how its trust policy is checked.
+Creates the IAM role Dev Mode uses in an AWS account and region, for accounts where developers cannot create IAM roles. An administrator runs it once per region. On a role an earlier version of the Framework created, it updates the trust policy so web apps can use the role (`iam:UpdateAssumeRolePolicy`) and puts back the current permission policy; its result then reads `IAM role <arn> (already existed; updated its trust policy for web apps, re-applied its permission policy serverless-dev-broker)`. See [`dev setup` for accounts without IAM role creation](../guide/dev-mode.md#dev-setup-for-accounts-without-iam-role-creation) in the guide for what the role is and how its trust policy is checked.
 
 | Option                   | Description                                                            |
 | ------------------------ | ---------------------------------------------------------------------- |
@@ -393,10 +459,17 @@ A permissions boundary given with `--permissions-boundary` must allow what the r
       "Effect": "Allow",
       "Action": "iot:SendDirectMessage",
       "Resource": "arn:aws:iot:<region>:<account-id>:client/sls-dev-*-cli"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "lambda:InvokeWebFunctionEndpoint",
+      "Resource": "arn:aws:lambda:<region>:<account-id>:web-function/*/endpoint/sls-dev-fallback"
     }
   ]
 }
 ```
+
+The last statement is the one the web bridge uses to send a request to the deployed code of an IAM-auth web app (see [How a request reaches your machine](../guide/dev-mode.md#how-a-request-reaches-your-machine)). The role's trust policy lets Lambda functions and web functions of the account and region assume it (`lambda:SourceFunctionArn` like `arn:aws:lambda:<region>:<account-id>:function:*` or `arn:aws:lambda:<region>:<account-id>:web-function/*`), with an ExternalId.
 
 The role's own policy narrows these further: it denies `iot:Connect` with a client id that ends in `-cli`, and allows `iot:SendDirectMessage` only on topics `sls-dev/*/ping`.
 
@@ -431,8 +504,9 @@ It fails with `DEV_SETUP_AWS_CREDENTIALS_MISSING` when no AWS credentials load: 
 }
 ```
 
+- **Web apps.** For a service with web apps, the result also has `web_apps`, with the fields of [`dev status`](#dev-status) (`name`, `mode`, `reason`, `why`, `notes`, `url`, `local_url`).
 - **A second start.** Running it again with the same stage, region and functions returns the same session with `"already_running": true` and exit code 0, as long as that session answers; a session that is already stopping answers `session_running`. The running session keeps the settings it started with: when the new start gives another `--idle-timeout`, or `--take-over` or `--on-exit`, the result's `message` says that they apply only to a new session, which `serverless dev stop` and a new start give.
-- **Idle timeout.** A detached session stops and restores its functions after 60 minutes without activity. `--idle-timeout <duration>` (such as `30m` or `2h`) changes it, `0` turns it off, and any other value under one minute is refused. Activity is an invocation starting or ending, a reload, a watched file change, a request from `dev status`, `dev requests` or `dev replay`, and an open `dev wait` (except `--for ended`). A session with an invocation running is never idle.
+- **Idle timeout.** A detached session stops and restores its functions and web apps after 60 minutes without activity. `--idle-timeout <duration>` (such as `30m` or `2h`) changes it, `0` turns it off, and any other value under one minute is refused. Activity is an invocation or a web app request starting or ending, a reload, a watched file change, a request from `dev status`, `dev requests` or `dev replay`, and an open `dev wait` (except `--for ended`). A web app request counts when it runs on this machine, from the real URL, the local URL or a replay. A session with an invocation running is never idle; a web app request running here keeps it from being idle for at most the web app's deployed timeout (15 minutes when the revision sets none), so an open event stream or long poll does not keep it on longer than an invocation could.
 - **`--approve` with `--detach`** asks for confirmation before the session starts, when a person is at an interactive terminal; otherwise it returns `approval_needs_terminal` and changes nothing. A declined confirmation returns `status: "ok"`, `state: "off"` and the message `Nothing was changed.`, with exit code 0.
 - **`--on-exit keep`** applies when the session stops, by `dev stop` or at the idle timeout. `--on-exit remove` is refused with `--detach` (`invalid_option_combination`): removing the service asks for confirmation at a terminal, which a background session does not have.
 
@@ -445,6 +519,8 @@ Dev Mode: handled by your working copy · request b2958894 · .serverless/dev/in
 ```
 
 `invoke` can wait up to 2 seconds for the invocation file and then add nothing, for example when the session is stopping or restoring, or when the call ran the deployed code.
+
+`serverless invoke --web-app <name>` adds the same line for a request the session ran on your working copy, naming its request file (`.serverless/dev/requests/<name>/…`). The response carries no id of the session's request, so the line names the newest request to that web app through its real URL with the same method and path that ended after the call was sent.
 
 ## Machine-readable output
 
@@ -507,10 +583,13 @@ Every `--json` result is one JSON object with these fields, plus the command's o
 | `network_blocked`            | `action_required` | Your machine cannot reach AWS or AWS IoT Core. Ask for the host to be allowed. When `message` says the AWS IoT Core endpoint cannot be resolved yet (the account's first use of AWS IoT Core in the region), run the command again in a few minutes instead.                                                                                                         |
 | `broker_missing`             | `action_required` | The IAM role does not exist yet. In `--dry-run`: informational, the first session creates it.                                                                                                                                                                                                                                                                        |
 | `layers_missing`             | `error`           | The CLI's layer files are missing. In `--dry-run`: informational, the session publishes them.                                                                                                                                                                                                                                                                        |
-| `nothing_to_attach`          | `error`           | No function can run in Dev Mode. Read each function's reason.                                                                                                                                                                                                                                                                                                        |
+| `nothing_to_attach`          | `error`           | No function or web app can run in Dev Mode. Read each one's reason.                                                                                                                                                                                                                                                                                                  |
+| `request_body_truncated`     | `error`           | `dev replay` of a web app request whose body was over 1 MiB: its file keeps only the first 1 MiB, so it is not replayed. Pick another request.                                                                                                                                                                                                                       |
+| `request_body_not_captured`  | `error`           | `dev replay` of a web app request whose body this machine never read (the local server was not running, or the body could not be read): it is not replayed. Pick another request.                                                                                                                                                                                    |
+| `web_app_not_local`          | `error`           | `dev replay` of a request to a web app that does not run on your machine in this session. Start a session that runs it.                                                                                                                                                                                                                                              |
 | `error`                      | `error`           | Any other error. Read `message`.                                                                                                                                                                                                                                                                                                                                     |
 
-`replayed_redacted_event` is a note, not a reason: see [`dev replay`](#dev-replay). The reasons a function is `deployed` or `skipped` are in [Functions and modes](../guide/dev-mode.md#functions-and-modes); the CLI error codes behind each reason are under [Errors](#errors).
+`replayed_redacted_event` and `redacted_values_omitted` are notes, not reasons: see [`dev replay`](#dev-replay) and [Replaying a web app request](#replaying-a-web-app-request). `web_apps_unreadable` is the reason of a passing `--dry-run` check (see [Dry-run results](#dry-run-results)). The reasons a function is `deployed` or `skipped` are in [Functions and modes](../guide/dev-mode.md#functions-and-modes), and the reasons a web app is `deployed` or `skipped` in [Web app modes](../guide/dev-mode.md#web-app-modes); the CLI error codes behind each reason are under [Errors](#errors).
 
 ### Cursors
 
@@ -524,57 +603,79 @@ A cursor is `<session_id>:<seq>`, the position of a record in the session's even
 - `functions` lists each function's `name`, `mode`, `reason`, `why` and `notes`.
 - `preflight` lists the checks (`stage`, `signin`, `session`, `aws_identity`, `iot_endpoint`, `iot_connect`, `broker_role`, `stack`, `functions`, `layers`), each with `check`, `ok` and, where it applies, `reason`, `message` and `host`. A failing check has `"user_action_required": true` exactly when its reason is one a person must act on (`action_required` in the reason table).
 - On a stage that was never deployed, the dry run covers the deployment only: it skips the layer check, and the plan says that the first session deploys the stage first.
+- For a service with web apps, it reads their web functions as a session would and changes nothing:
+  - `web_apps` lists each web app's `name`, `mode`, `reason`, `why` and `notes`;
+  - `plan.web_app_changes` holds one entry per web app that would run here: `web_app`, `mode`, `revisions` (`["clone", "dev"]`, or `["dev"]` with `--local-only`), `endpoints` (`["sls-dev-fallback"]` or `["sls-dev-local"]`) and `main` (`dev_revision`, or `unchanged` with `--local-only`);
+  - `plan.account_setup` includes `widen_broker_trust` when the IAM role's trust policy does not list web functions yet;
+  - the check `web_apps` (`N of M web apps can run in Dev Mode`) fails with `permission_denied` when the web functions may not be read and the service has no functions; with functions, it passes with the reason `web_apps_unreadable`, and the web apps' rows say `lambda_web_denied`. A service with web apps alone has no `functions` check.
 
 ## Errors
 
 Each row is a CLI error code and the `reason` it has in `--json` results.
 
-| Code                                  | Reason                       | Cause, and fix                                                                                                                                                                                                                                                                                                  |
-| ------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `AUTH_REQUIRED`                       | `signin_required`            | Not signed in; no JSON is printed. Run `serverless login`, or set a license key.                                                                                                                                                                                                                                |
-| `AWS_CREDENTIALS_MISSING`             | `aws_credentials_missing`    | No AWS credentials found. Configure them (see [AWS Credentials](../guide/credentials.md)).                                                                                                                                                                                                                      |
-| `AWS_CREDENTIALS_NOT_FOUND`           | `aws_credentials_missing`    | The profile's credentials were not found. Check the profile, or pass `--aws-profile`.                                                                                                                                                                                                                           |
-| `AWS_CREDENTIALS_EXPIRED`             | `credentials_expired`        | The credentials expired. Sign in again with `serverless login aws --aws-profile <name>`, or `serverless login aws sso` for an SSO profile.                                                                                                                                                                      |
-| `DEV_MODE_APPROVE_NEEDS_TERMINAL`     | `approval_needs_terminal`    | `--approve` needs an interactive terminal; nothing changed. Run it in one, or without `--approve`.                                                                                                                                                                                                              |
-| `DEV_MODE_AWS_CREDENTIALS_INVALID`    | `credentials_expired`        | AWS rejected the credentials Dev Mode used. The message names where they come from (a Serverless Dashboard Provider, an `aws` resolver in `serverless.yml`, an AWS profile or keys in the environment, as `serverless deploy` does) and what to do.                                                             |
-| `DEV_MODE_AWS_IDENTITY_UNKNOWN`       | `aws_credentials_missing`    | The account of the credentials is unknown. Check them with `aws sts get-caller-identity`.                                                                                                                                                                                                                       |
-| `DEV_MODE_AWS_UNREACHABLE`            | `network_blocked`            | AWS cannot be reached in the region. Check the network, DNS and proxy settings.                                                                                                                                                                                                                                 |
-| `DEV_MODE_BROKER_BOUNDARY_INVALID`    | `error`                      | IAM refused `--permissions-boundary`. Pass the ARN of an existing managed policy.                                                                                                                                                                                                                               |
-| `DEV_MODE_BROKER_CREATE_DENIED`       | `permission_denied`          | You cannot create or update the IAM role. An administrator runs `serverless dev setup` once in the region.                                                                                                                                                                                                      |
-| `DEV_MODE_BROKER_FOREIGN`             | `error`                      | A role with the Dev Mode role's name was not created by Dev Mode. Rename or delete it.                                                                                                                                                                                                                          |
-| `DEV_MODE_BROKER_MODIFIED`            | `error`                      | The role's trust policy was changed. Delete the role and run `serverless dev setup` again.                                                                                                                                                                                                                      |
-| `DEV_MODE_BROKER_READ_DENIED`         | `permission_denied`          | `iam:GetRole` on the role was denied (at start and in `--dry-run`), or `iam:GetRolePolicy` was denied where Dev Mode must read the role's permission policy before it writes one (`serverless dev setup` on an existing role). Allow it. A session without `iam:GetRolePolicy` takes the policy to be in place. |
-| `DEV_MODE_BROKER_UNAVAILABLE`         | `error`                      | Someone else was creating the role at the same moment. Run `serverless dev` again.                                                                                                                                                                                                                              |
-| `DEV_MODE_CONFIG_FILE_UNREADABLE`     | `error`                      | The service configuration file could not be read. Check the file.                                                                                                                                                                                                                                               |
-| `DEV_MODE_IDENTITY_ACCESS_DENIED`     | `permission_denied`          | `sts:GetCallerIdentity` was denied. Allow it.                                                                                                                                                                                                                                                                   |
-| `DEV_MODE_IOT_ACCESS_DENIED`          | `permission_denied`          | `iot:DescribeEndpoint` was denied. Allow it.                                                                                                                                                                                                                                                                    |
-| `DEV_MODE_IOT_CONNECT_DENIED`         | `permission_denied`          | AWS IoT Core refused your machine (see below).                                                                                                                                                                                                                                                                  |
-| `DEV_MODE_IOT_UNREACHABLE`            | `network_blocked`            | AWS IoT Core cannot be reached. Check the network and `HTTPS_PROXY`. In a region where the account has never used AWS IoT Core, its new endpoint's host name can take a few minutes to resolve: the session waits up to 2 minutes, then says to run the command again in a few minutes.                         |
-| `DEV_MODE_LAYER_ACCESS_DENIED`        | `permission_denied`          | Listing or publishing the `serverless-dev-*` layers was denied. Allow it.                                                                                                                                                                                                                                       |
-| `DEV_MODE_LAYER_MISSING`              | `layers_missing`             | The CLI installation lacks its Dev Mode layer files. Reinstall the Serverless Framework.                                                                                                                                                                                                                        |
-| `DEV_MODE_LOCAL_COMMAND_NO_AWS`       | `error`                      | A plugin of the service asked for AWS credentials during `dev status`, `dev stop`, `dev wait`, `dev requests` or `dev replay`, which read only the local session and use no AWS credentials. The plugin has to skip its AWS calls for these commands: tell its author.                                          |
-| `DEV_MODE_LOCAL_RUNTIME_FAILED`       | `error`                      | The runtime that runs handlers on your machine could not start. Read the message.                                                                                                                                                                                                                               |
-| `DEV_MODE_NOTHING_TO_ATTACH`          | `nothing_to_attach`          | No function can run in Dev Mode. The function table says why for each.                                                                                                                                                                                                                                          |
-| `DEV_MODE_REGION_NO_BROKER`           | `region_no_broker`           | The region has no AWS IoT Core. Use a stage in another region.                                                                                                                                                                                                                                                  |
-| `DEV_MODE_STACK_ACCESS_DENIED`        | `permission_denied`          | `cloudformation:DescribeStacks` was denied. Allow it on the stage's stack.                                                                                                                                                                                                                                      |
-| `DEV_MODE_STAGE_PROTECTED`            | `stage_protected`            | Dev Mode does not run on `prod` or `production`. Use a personal stage.                                                                                                                                                                                                                                          |
-| `DEV_MODE_UNKNOWN_FUNCTION`           | `error`                      | A function name is not in `serverless.yml`. Use the function's key.                                                                                                                                                                                                                                             |
-| `DEV_MODE_UPDATE_TIMEOUT`             | `error`                      | A configuration update did not finish in time. Check the function, then run the command again.                                                                                                                                                                                                                  |
-| `DEV_MODE_CONTROL_UNAVAILABLE`        | `control_unavailable`        | A session started with `--detach` could not open its local control endpoint. Run `serverless dev` in a terminal.                                                                                                                                                                                                |
-| `DEV_MODE_RECORD_UNAVAILABLE`         | `error`                      | A `--detach` session could not write its record: `--detach` answers `detach_failed`, with the message in its log tail.                                                                                                                                                                                          |
-| `DEV_MODE_SESSION_RUNNING`            | `session_running`            | Another session runs here. Stop it with `serverless dev stop`, or use its stage and functions.                                                                                                                                                                                                                  |
-| `DEV_MODE_INVALID_OPTION_COMBINATION` | `invalid_option_combination` | Options that do not go together (see [Exit codes](#exit-codes)). Drop one.                                                                                                                                                                                                                                      |
-| `DEV_MODE_INVALID_DURATION`           | `invalid_option_value`       | `--timeout` or `--idle-timeout` is not a duration such as `100` or `100s` (seconds), `5m` or `1h`, or is out of range.                                                                                                                                                                                          |
-| `DEV_MODE_INVALID_WAIT_FOR`           | `invalid_option_value`       | `dev wait --for` is not `ready`, `invocation`, `reload` or `ended`.                                                                                                                                                                                                                                             |
-| `DEV_MODE_INVALID_LIMIT`              | `invalid_option_value`       | `dev requests --limit` is not a whole number from 1 to 500.                                                                                                                                                                                                                                                     |
-| `INVALID_DEV_MODE_OPTION`             | `error`                      | `--mode` is not `functions`, `agents` or `sandboxes`.                                                                                                                                                                                                                                                           |
-| `INVALID_DEV_ON_EXIT_OPTION`          | `error`                      | `--on-exit` is not `keep` or `remove`.                                                                                                                                                                                                                                                                          |
-| `DEV_RESTORE_ACCESS_DENIED`           | `permission_denied`          | `dev restore` cannot read or update the functions. Allow `lambda:GetFunction` and `lambda:UpdateFunctionConfiguration`.                                                                                                                                                                                         |
-| `DEV_SETUP_ACCESS_DENIED`             | `permission_denied`          | `dev setup` cannot create the role, or read or write its permission policy. Run it with an administrator's credentials.                                                                                                                                                                                         |
-| `DEV_SETUP_AWS_CREDENTIALS_MISSING`   | `aws_credentials_missing`    | `dev setup` outside a service loaded no credentials. Pass `--aws-profile`, or sign in with `serverless login aws`.                                                                                                                                                                                              |
-| `DEV_SETUP_CONCURRENT`                | `error`                      | Someone else was creating the role at the same moment. Run `serverless dev setup` again.                                                                                                                                                                                                                        |
-| `DEV_SETUP_INVALID_PATH`              | `error`                      | `--path` does not start and end with `/`. Pass a path such as `/serverless/`.                                                                                                                                                                                                                                   |
-| `DEV_SETUP_PATH_MISMATCH`             | `error`                      | The role exists with another IAM path. Delete it, then run `serverless dev setup --path` again.                                                                                                                                                                                                                 |
+| Code                                     | Reason                       | Cause, and fix                                                                                                                                                                                                                                                                                                  |
+| ---------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AUTH_REQUIRED`                          | `signin_required`            | Not signed in; no JSON is printed. Run `serverless login`, or set a license key.                                                                                                                                                                                                                                |
+| `AWS_CREDENTIALS_MISSING`                | `aws_credentials_missing`    | No AWS credentials found. Configure them (see [AWS Credentials](../guide/credentials.md)).                                                                                                                                                                                                                      |
+| `AWS_CREDENTIALS_NOT_FOUND`              | `aws_credentials_missing`    | The profile's credentials were not found. Check the profile, or pass `--aws-profile`.                                                                                                                                                                                                                           |
+| `AWS_CREDENTIALS_EXPIRED`                | `credentials_expired`        | The credentials expired. Sign in again with `serverless login aws --aws-profile <name>`, or `serverless login aws sso` for an SSO profile.                                                                                                                                                                      |
+| `DEV_MODE_APPROVE_NEEDS_TERMINAL`        | `approval_needs_terminal`    | `--approve` needs an interactive terminal; nothing changed. Run it in one, or without `--approve`.                                                                                                                                                                                                              |
+| `DEV_MODE_AWS_CREDENTIALS_INVALID`       | `credentials_expired`        | AWS rejected the credentials Dev Mode used. The message names where they come from (a Serverless Dashboard Provider, an `aws` resolver in `serverless.yml`, an AWS profile or keys in the environment, as `serverless deploy` does) and what to do.                                                             |
+| `DEV_MODE_AWS_IDENTITY_UNKNOWN`          | `aws_credentials_missing`    | The account of the credentials is unknown. Check them with `aws sts get-caller-identity`.                                                                                                                                                                                                                       |
+| `DEV_MODE_AWS_UNREACHABLE`               | `network_blocked`            | AWS cannot be reached in the region. Check the network, DNS and proxy settings.                                                                                                                                                                                                                                 |
+| `DEV_MODE_BROKER_BOUNDARY_INVALID`       | `error`                      | IAM refused `--permissions-boundary`. Pass the ARN of an existing managed policy.                                                                                                                                                                                                                               |
+| `DEV_MODE_BROKER_CREATE_DENIED`          | `permission_denied`          | You cannot create or update the IAM role. An administrator runs `serverless dev setup` once in the region.                                                                                                                                                                                                      |
+| `DEV_MODE_BROKER_FOREIGN`                | `error`                      | A role with the Dev Mode role's name was not created by Dev Mode. Rename or delete it.                                                                                                                                                                                                                          |
+| `DEV_MODE_BROKER_MODIFIED`               | `error`                      | The role's trust policy was changed. Delete the role and run `serverless dev setup` again.                                                                                                                                                                                                                      |
+| `DEV_MODE_BROKER_READ_DENIED`            | `permission_denied`          | `iam:GetRole` on the role was denied (at start and in `--dry-run`), or `iam:GetRolePolicy` was denied where Dev Mode must read the role's permission policy before it writes one (`serverless dev setup` on an existing role). Allow it. A session without `iam:GetRolePolicy` takes the policy to be in place. |
+| `DEV_MODE_BROKER_UNAVAILABLE`            | `error`                      | Someone else was creating the role at the same moment. Run `serverless dev` again.                                                                                                                                                                                                                              |
+| `DEV_MODE_CONFIG_FILE_UNREADABLE`        | `error`                      | The service configuration file could not be read. Check the file.                                                                                                                                                                                                                                               |
+| `DEV_MODE_IDENTITY_ACCESS_DENIED`        | `permission_denied`          | `sts:GetCallerIdentity` was denied. Allow it.                                                                                                                                                                                                                                                                   |
+| `DEV_MODE_IOT_ACCESS_DENIED`             | `permission_denied`          | `iot:DescribeEndpoint` was denied. Allow it.                                                                                                                                                                                                                                                                    |
+| `DEV_MODE_IOT_CONNECT_DENIED`            | `permission_denied`          | AWS IoT Core refused your machine (see below).                                                                                                                                                                                                                                                                  |
+| `DEV_MODE_IOT_UNREACHABLE`               | `network_blocked`            | AWS IoT Core cannot be reached. Check the network and `HTTPS_PROXY`. In a region where the account has never used AWS IoT Core, its new endpoint's host name can take a few minutes to resolve: the session waits up to 2 minutes, then says to run the command again in a few minutes.                         |
+| `DEV_MODE_LAYER_ACCESS_DENIED`           | `permission_denied`          | Listing or publishing the `serverless-dev-*` layers was denied. Allow it.                                                                                                                                                                                                                                       |
+| `DEV_MODE_LAYER_MISSING`                 | `layers_missing`             | The CLI installation lacks its Dev Mode layer files. Reinstall the Serverless Framework.                                                                                                                                                                                                                        |
+| `DEV_MODE_LOCAL_COMMAND_NO_AWS`          | `error`                      | A plugin of the service asked for AWS credentials during `dev status`, `dev stop`, `dev wait`, `dev requests` or `dev replay`, which read only the local session and use no AWS credentials. The plugin has to skip its AWS calls for these commands: tell its author.                                          |
+| `DEV_MODE_LOCAL_RUNTIME_FAILED`          | `error`                      | The runtime that runs handlers on your machine could not start. Read the message.                                                                                                                                                                                                                               |
+| `DEV_MODE_NOTHING_TO_ATTACH`             | `nothing_to_attach`          | No function or web app can run in Dev Mode. The table says why for each one.                                                                                                                                                                                                                                    |
+| `DEV_MODE_REGION_NO_BROKER`              | `region_no_broker`           | The region has no AWS IoT Core. Use a stage in another region.                                                                                                                                                                                                                                                  |
+| `DEV_MODE_STACK_ACCESS_DENIED`           | `permission_denied`          | `cloudformation:DescribeStacks` was denied. Allow it on the stage's stack.                                                                                                                                                                                                                                      |
+| `DEV_MODE_STAGE_PROTECTED`               | `stage_protected`            | Dev Mode does not run on `prod` or `production`. Use a personal stage.                                                                                                                                                                                                                                          |
+| `DEV_MODE_UNKNOWN_FUNCTION`              | `error`                      | A function name is not in `serverless.yml`. Use the function's key.                                                                                                                                                                                                                                             |
+| `DEV_MODE_UPDATE_TIMEOUT`                | `error`                      | A configuration update did not finish in time. Check the function, then run the command again.                                                                                                                                                                                                                  |
+| `DEV_MODE_BROKER_UPDATE_DENIED`          | `permission_denied`          | The IAM role's trust policy does not list web functions yet, and your credentials may not update it (`iam:UpdateAssumeRolePolicy`). An administrator runs `serverless dev setup --region <region>`. With functions in the service, the session runs them and the web apps keep their deployed code.             |
+| `DEV_MODE_WEB_ACCESS_DENIED`             | `permission_denied`          | A service with web apps alone, whose web functions your credentials may not read (`lambda:ListWebFunctionEndpoints`, `lambda:ListWebFunctionRevisions`, `lambda:GetWebFunctionRevision`). Allow them.                                                                                                           |
+| `DEV_MODE_UNKNOWN_WEB_APP`               | `error`                      | A web app name given to `--web-app`, `--skip-web-app`, `--local-only` or `dev wait --web-app` is not under `webApps`. Use the web app's key.                                                                                                                                                                    |
+| `DEV_MODE_OPTION_CONFLICT`               | `invalid_option_combination` | A web app is given to both `--local-only` and `--skip-web-app`. Use one of them.                                                                                                                                                                                                                                |
+| `DEV_MODE_REVISION_FAILED`               | `error`                      | AWS Lambda could not activate a revision Dev Mode created for a web app; the message gives Lambda's reason. Check the web app's configuration, then run the command again.                                                                                                                                      |
+| `DEV_MODE_REVISION_TIMEOUT`              | `error`                      | A revision Dev Mode created for a web app did not become active within 60 seconds. Check the web function in the AWS Lambda console, then run the command again.                                                                                                                                                |
+| `DEV_MODE_REVISION_NOT_FOUND`            | `error`                      | A revision Dev Mode created was deleted while it waited for it. Run the command again.                                                                                                                                                                                                                          |
+| `DEV_MODE_ENDPOINT_FAILED`               | `error`                      | AWS Lambda could not activate a Dev Mode endpoint (`sls-dev-fallback` or `sls-dev-local`); the message gives Lambda's reason. Check the web function, then run the command again.                                                                                                                               |
+| `DEV_MODE_ENDPOINT_TIMEOUT`              | `error`                      | A Dev Mode endpoint did not become active within 60 seconds. Check the web function in the AWS Lambda console, then run the command again.                                                                                                                                                                      |
+| `DEV_MODE_ENDPOINT_NOT_FOUND`            | `error`                      | A Dev Mode endpoint was deleted while Dev Mode waited for it. Run the command again.                                                                                                                                                                                                                            |
+| `DEV_MODE_ENDPOINT_DELETING`             | `error`                      | A Dev Mode endpoint of that name is being deleted, for example by an earlier session's restore. Run the command again once it is gone.                                                                                                                                                                          |
+| `DEV_MODE_WEB_APP_ENVIRONMENT_TOO_LARGE` | `error`                      | The web app's environment variables and Dev Mode's own would exceed Lambda's 32 KB limit for a revision; the message names both sizes. Remove variables the web app does not need.                                                                                                                              |
+| `DEV_MODE_WEB_REVISION_NOT_FOUND`        | `error`                      | The revision the web app's `main` endpoint serves was not found. Deploy the service, then run the command again.                                                                                                                                                                                                |
+| `DEV_MODE_WEB_APP_STILL_ATTACHED`        | `error`                      | The web app's `main` endpoint still serves a Dev Mode revision. Run `serverless dev restore`, then run the command again.                                                                                                                                                                                       |
+| `DEV_MODE_WEB_RESTORE_REVISION_GONE`     | `error`                      | The revision `main` served before Dev Mode no longer exists, so `main` still serves the Dev Mode revision. Deploy the service, then run `serverless dev restore`.                                                                                                                                               |
+| `DEV_MODE_WEB_BRIDGE_MISSING`            | `error`                      | The CLI installation lacks the Dev Mode web bridge. Reinstall the Serverless Framework.                                                                                                                                                                                                                         |
+| `DEV_MODE_WEB_APP_NOT_LOCAL`             | `web_app_not_local`          | `dev replay` of a request to a web app that does not run on your machine in this session.                                                                                                                                                                                                                       |
+| `DEV_MODE_CONTROL_UNAVAILABLE`           | `control_unavailable`        | A session started with `--detach` could not open its local control endpoint. Run `serverless dev` in a terminal.                                                                                                                                                                                                |
+| `DEV_MODE_RECORD_UNAVAILABLE`            | `error`                      | A `--detach` session could not write its record: `--detach` answers `detach_failed`, with the message in its log tail.                                                                                                                                                                                          |
+| `DEV_MODE_SESSION_RUNNING`               | `session_running`            | Another session runs here. Stop it with `serverless dev stop`, or use its stage and functions.                                                                                                                                                                                                                  |
+| `DEV_MODE_INVALID_OPTION_COMBINATION`    | `invalid_option_combination` | Options that do not go together (see [Exit codes](#exit-codes)). Drop one.                                                                                                                                                                                                                                      |
+| `DEV_MODE_INVALID_DURATION`              | `invalid_option_value`       | `--timeout` or `--idle-timeout` is not a duration such as `100` or `100s` (seconds), `5m` or `1h`, or is out of range.                                                                                                                                                                                          |
+| `DEV_MODE_INVALID_WAIT_FOR`              | `invalid_option_value`       | `dev wait --for` is not `ready`, `invocation`, `request`, `reload` or `ended`.                                                                                                                                                                                                                                  |
+| `DEV_MODE_INVALID_LIMIT`                 | `invalid_option_value`       | `dev requests --limit` is not a whole number from 1 to 500.                                                                                                                                                                                                                                                     |
+| `INVALID_DEV_MODE_OPTION`                | `error`                      | `--mode` is not `functions`, `agents` or `sandboxes`.                                                                                                                                                                                                                                                           |
+| `INVALID_DEV_ON_EXIT_OPTION`             | `error`                      | `--on-exit` is not `keep` or `remove`.                                                                                                                                                                                                                                                                          |
+| `DEV_RESTORE_ACCESS_DENIED`              | `permission_denied`          | `dev restore` cannot read or update the functions, or read the web apps. Allow `lambda:GetFunction` and `lambda:UpdateFunctionConfiguration`, and for web apps the Lambda Web actions the message names (see [Permissions](#permissions)).                                                                      |
+| `DEV_SETUP_ACCESS_DENIED`                | `permission_denied`          | `dev setup` cannot create the role, read or write its permission policy, or update its trust policy for web apps (`iam:UpdateAssumeRolePolicy`). Run it with an administrator's credentials.                                                                                                                    |
+| `DEV_SETUP_AWS_CREDENTIALS_MISSING`      | `aws_credentials_missing`    | `dev setup` outside a service loaded no credentials. Pass `--aws-profile`, or sign in with `serverless login aws`.                                                                                                                                                                                              |
+| `DEV_SETUP_CONCURRENT`                   | `error`                      | Someone else was creating the role at the same moment. Run `serverless dev setup` again.                                                                                                                                                                                                                        |
+| `DEV_SETUP_INVALID_PATH`                 | `error`                      | `--path` does not start and end with `/`. Pass a path such as `/serverless/`.                                                                                                                                                                                                                                   |
+| `DEV_SETUP_PATH_MISMATCH`                | `error`                      | The role exists with another IAM path. Delete it, then run `serverless dev setup --path` again.                                                                                                                                                                                                                 |
 
 `DEV_MODE_IOT_CONNECT_DENIED` has two causes, and its message says which. AWS IoT Core refused the signed connection (HTTP 403): the credentials expired or are invalid, or this machine's clock is more than 5 minutes off; refresh the credentials and check the clock. Or it refused the connection or the subscription: your credentials need `iot:Connect` on client `sls-dev-*`, and `iot:Subscribe`, `iot:Receive` and `iot:Publish` on topics `sls-dev/*`.
 
@@ -625,7 +726,8 @@ Developers need these permissions in the stage's account and region (replace the
         "iam:GetRolePolicy",
         "iam:CreateRole",
         "iam:PutRolePolicy",
-        "iam:PutRolePermissionsBoundary"
+        "iam:PutRolePermissionsBoundary",
+        "iam:UpdateAssumeRolePolicy"
       ],
       "Resource": "arn:aws:iam::<account-id>:role/*serverless-dev-broker-*"
     },
@@ -663,6 +765,43 @@ Developers need these permissions in the stage's account and region (replace the
       "Effect": "Allow",
       "Action": ["s3:ListBucketVersions", "s3:ListBucket"],
       "Resource": "arn:aws:s3:::<deployment-bucket>"
+    },
+    {
+      "Sid": "DevModeWebApps",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:ListWebFunctionEndpoints",
+        "lambda:GetWebFunctionEndpoint",
+        "lambda:CreateWebFunctionEndpoint",
+        "lambda:UpdateWebFunctionEndpoint",
+        "lambda:DeleteWebFunctionEndpoint",
+        "lambda:ListWebFunctionRevisions",
+        "lambda:GetWebFunctionRevision",
+        "lambda:CreateWebFunctionRevision",
+        "lambda:DeleteWebFunctionRevision"
+      ],
+      "Resource": [
+        "arn:aws:lambda:<region>:<account-id>:web-function/<service>-<stage>-*",
+        "arn:aws:lambda:<region>:<account-id>:web-function/<service>-<stage>-*/*"
+      ]
+    },
+    {
+      "Sid": "DevModeWebAppRoles",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::<account-id>:role/<service>-<stage>-*-lambdaRole"
+    },
+    {
+      "Sid": "DevModeWebAppCode",
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:GetObjectVersion"],
+      "Resource": "arn:aws:s3:::<deployment-bucket>/*"
+    },
+    {
+      "Sid": "DevModeLocalOnly",
+      "Effect": "Allow",
+      "Action": "lambda:InvokeWebFunctionEndpoint",
+      "Resource": "arn:aws:lambda:<region>:<account-id>:web-function/<service>-<stage>-*/endpoint/sls-dev-local"
     }
   ]
 }
@@ -675,21 +814,30 @@ Developers need these permissions in the stage's account and region (replace the
 - The S3 permissions are optional: without them, payloads above one message are not relayed (see [Limits and known differences](../guide/dev-mode.md#limits-and-known-differences)), and the session prints why. `s3:ListBucket` is used when `s3:ListBucketVersions` is denied. A deployment bucket encrypted with an AWS KMS key also needs `kms:GenerateDataKey` and `kms:Decrypt` on that key.
 - A service whose `provider.httpApi.id` names an existing HTTP API also uses `apigateway:GET` on that API (and `cloudformation:ListExports` for an `Fn::ImportValue`), as `serverless info` does, to list its endpoints. Both are optional: without them, those endpoints are not listed.
 - The first session of a never-deployed stage deploys it, which needs your usual deploy permissions.
-- Dev Mode never passes a role to a function, so it needs no `iam:PassRole`.
+- Dev Mode never passes a role to a function, so functions need no `iam:PassRole`.
+- The `DevModeWebApps`, `DevModeWebAppRoles`, `DevModeWebAppCode` and `DevModeLocalOnly` statements are for services with [web apps](../guide/dev-mode.md#web-apps); a service without web apps makes no Lambda Web call.
+  - `DevModeWebApps`: what a session does on each web function (read its endpoints and revisions, create and delete the Dev Mode revisions and endpoints, move `main`'s traffic and back), and what `dev restore` does. The web function names above assume the default `<service>-<stage>-<web app>`; adjust them for a custom `name`.
+  - `DevModeWebAppRoles`: AWS requires `iam:PassRole` on the execution role to create a revision ([Web Function permissions](https://docs.aws.amazon.com/lambda/latest/dg/web-functions-permissions.html#web-functions-permissions-execution-role-additional)), and the Dev Mode revisions use the web app's own. The resource above covers the roles the Framework names by default (`<service>-<stage>-<region>-lambdaRole` and `<service>-<stage>-<web app>-<region>-lambdaRole`, or the name without `-lambdaRole` when the full name exceeds 64 characters, which the resource above then does not match); name the role a web app's `role` or `iam.role.name` sets.
+  - `DevModeWebAppCode`: creating a revision also reads its code from the deployment bucket ([caller permissions](https://docs.aws.amazon.com/lambda/latest/dg/web-functions-code-s3.html#web-functions-code-s3-caller-permissions)): the deployed code for the clone, and the web bridge, which the session uploads under `serverless-dev-mode/` with the `DevModePayloadObjects` permissions. Without them, the web apps keep their deployed code, and the session's warning (`Web apps run the deployed code: …`) or the web app's row (`attach_failed`) gives AWS's reason.
+  - A web app with `kmsKeyArn` also needs the AWS KMS permissions AWS lists for creating a revision with a customer managed key, and one with `vpc` needs `lambda:PassNetworkConnector` on its network connector ([permissions for networking](https://docs.aws.amazon.com/lambda/latest/dg/web-functions-permissions.html#web-functions-permissions-networking)).
+  - `DevModeLocalOnly` is optional: `--local-only` uses it to give the server the execution role's credentials. Without it, the server runs without them, and its row says `no_role_credentials`.
+  - `iam:UpdateAssumeRolePolicy` is needed once per account and region, by the first session with web apps on a role an earlier version of the Framework created, or by `serverless dev setup` there.
+- When a session cannot read the web functions, a service with functions runs them and its web apps keep their deployed code (`lambda_web_denied`); a service with web apps alone stops with `DEV_MODE_WEB_ACCESS_DENIED`.
 
 ## Files
 
 A session keeps its record in `.serverless/dev/` in the service directory. On Linux and macOS, a session creates that folder and the folders under it readable by their owner only (mode 0700), and tightens a folder an earlier session left wider when it next writes in it:
 
-| File                                                                      | Content                                                                                                 |
-| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `.serverless/dev/session.json`                                            | The running session (below). Mode 0600; removed after `Dev Mode off`.                                   |
-| `.serverless/dev/control.token`                                           | The token of the session's control endpoint. Mode 0600; removed with `session.json`.                    |
-| `.serverless/dev/session.lock`                                            | Held for a moment while a start or a session changes `session.json`.                                    |
-| `.serverless/dev/session.ndjson`                                          | The event records of the current or last session.                                                       |
-| `.serverless/dev/session.<session_id>.ndjson`                             | The records of an earlier session, renamed when the next one starts; the last five are kept.            |
-| `.serverless/dev/session.log`                                             | The output of a session started with `--detach`. Mode 0600.                                             |
-| `.serverless/dev/invocations/<function>/<unix seconds>-<request id>.json` | One file per invocation (below). Characters outside `A-Z a-z 0-9 . _ -` in the function key become `_`. |
+| File                                                                      | Content                                                                                                     |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `.serverless/dev/session.json`                                            | The running session (below). Mode 0600; removed after `Dev Mode off`.                                       |
+| `.serverless/dev/control.token`                                           | The token of the session's control endpoint. Mode 0600; removed with `session.json`.                        |
+| `.serverless/dev/session.lock`                                            | Held for a moment while a start or a session changes `session.json`.                                        |
+| `.serverless/dev/session.ndjson`                                          | The event records of the current or last session.                                                           |
+| `.serverless/dev/session.<session_id>.ndjson`                             | The records of an earlier session, renamed when the next one starts; the last five are kept.                |
+| `.serverless/dev/session.log`                                             | The output of a session started with `--detach`. Mode 0600.                                                 |
+| `.serverless/dev/invocations/<function>/<unix seconds>-<request id>.json` | One file per invocation (below). Characters outside `A-Z a-z 0-9 . _ -` in the function key become `_`.     |
+| `.serverless/dev/requests/<web app>/<unix seconds>-<request id>.json`     | One file per web app request (see [Request files](#request-files)), its directory named as a function's is. |
 
 All these formats are versioned (`"v": 1`): fields may be added in later versions, and none is renamed or removed. Readers ignore fields they do not know. `serverless package`, `serverless deploy` and `serverless deploy function` keep `.serverless/dev/` when they empty `.serverless/`. When to delete the record is under [The files Dev Mode writes](../guide/dev-mode.md#the-files-dev-mode-writes) in the guide.
 
@@ -701,7 +849,7 @@ Invocation files redact credentials:
 - the `X-Amzn-Oidc-Accesstoken`, `X-Amzn-Oidc-Data` and `X-Amzn-Oidc-Identity` headers an Application Load Balancer with OIDC or Amazon Cognito authentication forwards, matched in any case;
 - HTTP API cookies, an API key in a REST API event's request context, a TOKEN authorizer's token and an HTTP API Lambda authorizer's identity source.
 
-Query strings, bodies and handler log lines are kept as they are. Dev Mode keeps the last 500 invocation files per function and at most 200 MB in all, removing the oldest first.
+Query strings, bodies and handler log lines are kept as they are. Dev Mode keeps the last 500 invocation files per function, the last 500 request files per web app, and at most 200 MB of both in all, removing the oldest first.
 
 ### `session.json`
 
@@ -737,7 +885,7 @@ Of a session that is on:
 
 - `state` is `starting`, `on` or `stopping`. While `state` is `starting`, `ready_at` is `null` and `control` can be `null` for a moment, until the control endpoint listens. A reader treats such a file whose `pid` is alive as a live session that is still starting, for at most one minute after `started_at`. Past that minute, or in any other state, a file without `control` is stale.
 - `control_unavailable` is `true` when a session in a terminal could not open its control endpoint (`control` stays `null`): no command can reach that session. A session started with `--detach` never runs without its endpoint: it ends its start with `control_unavailable` and `--detach` answers `detach_failed`. While its `pid` is alive, a new start refuses with `session_running` and `dev stop` signals nothing; stop it with Ctrl+C in its terminal, then run `serverless dev restore --stage <stage> --region <region>` with its stage and region if it left functions in Dev Mode.
-- `selection` holds the `--function` (`only`) and `--skip-function` (`skip`) names, sorted. Two starts are the same session when `stage`, `region` and `selection` are equal.
+- `selection` holds the `--function` (`only`) and `--skip-function` (`skip`) names, sorted, and, when any web app option was given, `web_apps` with the `--web-app` (`only`), `--skip-web-app` (`skip`) and `--local-only` (`local_only`) names. Two starts are the same session when `stage`, `region` and `selection` are equal.
 - `log_file` is `"session.log"` for a detached session, else `null`; `idle_timeout_s` is `null` when there is no idle timeout.
 - `aws_profile` is present only when the session was started with `--aws-profile`; it holds that profile's name, and the restores the session's commands suggest carry it.
 - A session whose control endpoint does not answer within 2 seconds, asked twice 250 ms apart, counts as not running (see [`dev stop`](#dev-stop)).
@@ -750,18 +898,24 @@ Of a session that is on:
 | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `session.starting`          | `service`, `stage`, `region`, `aws_profile` (only when started with `--aws-profile`), `owner`, `pid`, `detached`, `selection`                                                                        |
 | `function.mode`             | `function`, `mode`, `reason`, `why`, `notes` (note codes): one per function once attached                                                                                                            |
-| `session.ready`             | `functions` (`dev`, `deployed`, `skipped` counts), `ready_ms`, `attach_ms`                                                                                                                           |
+| `web_app.mode`              | `web_app`, `mode` (`dev`, `local`, `deployed`, `skipped`), `reason`, `why`, `notes`: one per web app of the service                                                                                  |
+| `session.ready`             | `functions` (`dev`, `deployed`, `skipped` counts), `web_apps` (`dev`, `local`, `deployed`, `skipped` counts, for a service with web apps), `ready_ms`, `attach_ms`                                   |
 | `session.failed`            | `reason`, `message`, `exit_code`: the start ended before the session was ready                                                                                                                       |
 | `invocation.start`          | `function`, `request_id`, `label`, `new_worker`, `source` (`caller` or `replay`)                                                                                                                     |
 | `invocation.end`            | `function`, `request_id`, `source`, `outcome` (`ok`, `error`, `timeout`, `worker_exited`), `status_code`, `error_type`, `duration_ms`, `file` (`null` when the invocation file could not be written) |
 | `invocation.passed_through` | `function`, `count`, `reason` (`late`, `paced`, `refused`, `clock_off`, `offline`, `worker_limit`), `at_least`                                                                                       |
-| `reload.start`              | `files` (a count), `functions`                                                                                                                                                                       |
-| `reload.end`                | `ok`, `functions`, `ms`, `error` (one line)                                                                                                                                                          |
+| `reload.start`              | `files` (a count), `functions` for a rebuild, or `web_apps` for a web app server started again                                                                                                       |
+| `reload.end`                | `ok`, `functions` or `web_apps`, `ms`, `error` (one line). A web app's `ok` is whether its server listens again.                                                                                     |
 | `connection.lost`           | `reason` (one line)                                                                                                                                                                                  |
 | `connection.restored`       | `offline_ms`                                                                                                                                                                                         |
 | `credentials.expired`       | —                                                                                                                                                                                                    |
 | `credentials.refreshed`     | —                                                                                                                                                                                                    |
 | `function.lost`             | `function`, `state` (see [Functions and modes](../guide/dev-mode.md#functions-and-modes))                                                                                                            |
+| `web_app.lost`              | `web_app`, `state` (`detached`, `taken_over`, `taken_over_by_you`, `function_deleted`; see [Web app modes](../guide/dev-mode.md#web-app-modes)), `owner` (with `taken_over`)                         |
+| `server.started`            | `web_app`, `port` (the server's own), `source` (`config` for `dev.command`, `entry`): a web app's server process started                                                                             |
+| `server.exited`             | `web_app`, `code`, `signal`: a web app's server process ended, whatever ended it                                                                                                                     |
+| `request.start`             | `web_app`, `request_id`, `method`, `path`, `source` (`relay`, `local`, `replay`)                                                                                                                     |
+| `request.end`               | `web_app`, `request_id`, `source`, `method`, `path`, `outcome` (`answered`, `failed`, `not_run`), `status_code`, `duration_ms`, `bytes` (response body bytes sent), `reason`, `file`                 |
 | `session.stopping`          | `trigger` (`signal`, `stop_command`, `idle_timeout`, `hotkey`, `error`), `signal`                                                                                                                    |
 | `session.ended`             | `exit_code`, `restore` (`restored`, `unchanged`, `skipped`, `missing`, `failed`), `kept`: always the last record                                                                                     |
 
@@ -848,6 +1002,58 @@ An invocation file of an HTTP API request (header values and bodies shortened):
 - `redacted` lists what was replaced (the list above). The function's environment, its credentials and the session key are never written.
 - A replay's file also has `replay_of` and `"source": "replay"`. A `dev replay` result leaves out a response over 64 KB (65,536 bytes), with `"response_omitted": true`; the file has it.
 
+### Request files
+
+A request file of a request to a web app through its real URL (header values and bodies shortened):
+
+```json
+{
+  "v": 1,
+  "request_id": "9a8b7c6d-1e2f-4a3b-8c9d-0e1f2a3b4c5d",
+  "web_app": "site",
+  "stage": "alice",
+  "source": "relay",
+  "started_at": "2026-10-05T19:02:10.460Z",
+  "duration_ms": 21,
+  "outcome": "answered",
+  "status_code": 201,
+  "reason": null,
+  "request": {
+    "method": "POST",
+    "path": "/api/orders?view=summary",
+    "headers": {
+      "authorization": "[redacted]",
+      "content-type": "application/json",
+      "host": "abc123example.lambda-web.us-east-1.on.aws",
+      "x-forwarded-proto": "https"
+    },
+    "body": "<the request body>",
+    "body_encoding": "text",
+    "body_truncated": false,
+    "body_bytes": 41,
+    "body_captured": true
+  },
+  "response": {
+    "status_code": 201,
+    "headers": {
+      "content-type": "application/json",
+      "set-cookie": ["[redacted]"]
+    },
+    "body": "<the response body>",
+    "body_encoding": "text",
+    "body_truncated": false,
+    "body_bytes": 74
+  },
+  "redacted": ["request.headers.authorization", "response.headers.set-cookie"]
+}
+```
+
+- `source` is `relay` (the real URL), `local` (the local URL) or `replay`; a replay's file also has `replay_of`.
+- `outcome` is `answered` (the server answered; `status_code` is its status), `failed` (the server's answer broke off, or it could not be reached for another reason, or the session stopped first; `reason` says which) or `not_run` (the request did not run on your machine, for example because the server was not running: through the real URL, the deployed code answered it). `status_code` is `null` for `not_run`, and when no status arrived. `response` is `null` when no answer arrived.
+- Bodies are kept as they were sent, up to 1 MiB each: valid UTF-8 as text (`body_encoding` `text`), anything else as base64 (`base64`). A longer body is cut, with `body_truncated` set; `body_bytes` keeps the full size. `body_captured` is `false`, with `body` and `body_bytes` `null`, when this machine never read the request's body, for example when the server was not running; such a request is not replayed.
+- `headers` are the request's headers as they reached your machine, before the session set `Host` for the local server. The headers listed for invocation files are redacted, matched in any case, and `x-amz-date` too. In `path`, the query values of a signed URL (`X-Amz-Signature`, `X-Amz-Credential`, `X-Amz-Security-Token`) and the tokens a sign-in callback can carry (`access_token`, `id_token`, `refresh_token`, `token`, `client_secret`) are redacted, matched in any case; an authorization `code` is kept. `redacted` lists each, as `request.headers.<name>`, `response.headers.<name>` or `request.query.<name>`. Bodies are not redacted.
+- The request a `--local-only` web app's credentials come from is never recorded.
+
 ### Dev builds
 
 A dev build of TypeScript or bundled JavaScript writes to `.serverless/build/`, staging each build in `.serverless/build-dev-staging-<build id>-<n>/` (a new one for each build) and moving it in once every function built. A session's first dev build empties `.serverless/build/` first, keeping only the lockfiles, and writes there the `package.json` the deployed artifact has, as a deploy build does. That file decides how Node.js loads the build's `.js` files; with `bundle: false` the build ends with a copy of the service's own, which has the same `type`, `imports` and `exports`. Unlike a deploy build, it installs no dependencies: it also removes the `node_modules` a deploy installed there, so code in the build resolves its dependencies from the service directory, and the next deploy installs them again. Each later dev build removes the files the one before it moved in and it no longer has, such as the output of a deleted source file or a removed `package.patterns` file. A build that fails changes nothing.
@@ -885,6 +1091,25 @@ serverless dev --stage alice --on-exit keep
 serverless dev restore --stage alice
 ```
 
+Run the web app `site` on its local URL only, and only the web app `api` of the others:
+
+```bash
+serverless dev --stage alice --local-only site --web-app api
+```
+
+Wait for the next request to a web app, and replay it:
+
+```bash
+serverless dev wait --for request --web-app api --after <cursor> --json
+serverless dev replay <request id> --json
+```
+
+Restore one web app a session left behind:
+
+```bash
+serverless dev restore --stage alice --web-app api
+```
+
 The loop an AI agent runs:
 
 ```bash
@@ -899,6 +1124,10 @@ serverless dev stop --timeout 100s --json
 ## Sandboxes (Lambda MicroVMs)
 
 For [sandboxes](../guide/sandboxes.md), `serverless dev --sandbox <name>` (or `--mode sandboxes`) runs the sandbox locally as a Docker container — a different mechanism from the functions session described above. It builds the sandbox's `Dockerfile` and starts a local, SDK-compatible AWS Lambda MicroVMs control plane that launches instances as Docker containers on demand, streams their logs, and hot-reloads on file changes. The commands, the requirements (a Docker daemon, a local `artifact` directory), the execution-role emulation behind `--[no-]assume-role` and the control-plane port are described under [Local development](../guide/sandboxes.md#local-development-serverless-dev) in the sandboxes guide.
+
+## Web apps
+
+`serverless dev` runs the [web apps](../guide/web-apps.md) of the service on your machine in the same session as its functions: each one's server starts from `webApps.<name>.dev.command`, or from its `entry` run from source, with the deployed environment and the web app's execution-role credentials, and its real URL reaches that server while the session runs. The [Web Apps section of the Dev Mode guide](../guide/dev-mode.md#web-apps) describes how a request reaches your machine, the local URL and hot reload, `--local-only`, the modes and reasons, what a session creates in AWS, the limits and the costs. On this page: the options under [Options](#options), the `web_apps` fields of [`dev status`](#dev-status), `dev wait --for request`, the web app rows of [`dev requests`](#dev-requests), [Replaying a web app request](#replaying-a-web-app-request), `dev restore --web-app`, the [permissions](#permissions) and the [request files](#request-files).
 
 ## MCP servers
 

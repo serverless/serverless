@@ -2,7 +2,7 @@ import { expect, test } from '@jest/globals'
 import { createStopControl } from '../../../../../../../lib/plugins/aws/dev/attach/session-stop.js'
 import { fakeLog, fakeProcess, recordingProgress } from './fakes.js'
 
-const control = () => {
+const control = ({ unsettled = () => [], keepOnExit } = {}) => {
   const proc = fakeProcess()
   const logger = fakeLog()
   // The stop's spinner lands in the logger's lines.
@@ -16,7 +16,8 @@ const control = () => {
     main,
     stoppingText: (request) => `Stopping (${request.trigger})`,
     isDeploying: () => false,
-    unsettled: () => [],
+    unsettled,
+    keepOnExit,
     stage: 'dev',
     now,
   })
@@ -90,4 +91,35 @@ test('a requested stop is the first stop: a Ctrl+C after the merge window exits 
   expect(proc.exits).toEqual([0])
   expect(logger.text().match(/Stopping/g)).toHaveLength(1)
   stops.done()
+})
+
+test('a forced exit names what it leaves: not restored, or left in Dev Mode when the stop keeps it', async () => {
+  const left = () => ['svc-dev-api', 'web (web app)']
+  const cases = [
+    [{}, { trigger: 'hotkey' }, 'Not restored'],
+    [{}, { trigger: 'stop_command', keep: true }, 'Left in Dev Mode'],
+    [{ keepOnExit: true }, { trigger: 'hotkey' }, 'Left in Dev Mode'],
+  ]
+  for (const [options, request, said] of cases) {
+    const { proc, logger, stops, advance } = control({
+      unsettled: left,
+      ...options,
+    })
+    stops.handleStops()
+    stops.request(request)
+    advance(600)
+    proc.emit('SIGINT', 'SIGINT')
+    expect(proc.exits).toEqual([3])
+    expect(logger.lines.filter((line) => line.level === 'warning')).toEqual([
+      {
+        level: 'warning',
+        text: `Exiting without waiting. ${said}: svc-dev-api, web (web app).`,
+      },
+      {
+        level: 'warning',
+        text: 'They run the deployed code until the next serverless dev, deploy, remove or dev restore.',
+      },
+    ])
+    stops.done()
+  }
 })

@@ -85,8 +85,26 @@ export const refusedLine = (count, code) =>
   `${count} invocation${count === 1 ? ' ran the deployed code: AWS IoT Core refused the acceptance this machine sent for it' : 's ran the deployed code: AWS IoT Core refused the acceptances this machine sent for them'} (reason code ${hex(code)}${REFUSAL_NAMES[code] ? `, ${REFUSAL_NAMES[code]}` : ''}).`
 
 /** After a session created the IAM role: the account setup line before it named the role. */
-export const newBrokerLine = () =>
-  'The new IAM role can take up to 3 minutes to work; until then some invocations run the deployed code.'
+/**
+ * After the session created the IAM role, or (`widened`) widened its trust for web apps: what runs
+ * the deployed code meanwhile (`functions`, `webApps`: what the session runs here).
+ */
+export const newBrokerLine = ({
+  widened = false,
+  functions = true,
+  webApps = false,
+} = {}) => {
+  // A widened trust serves only the web apps: function invocations already work.
+  const what = widened
+    ? 'web app requests'
+    : [
+        ...(functions ? ['invocations'] : []),
+        ...(webApps ? ['web app requests'] : []),
+      ].join(' and ') || 'invocations'
+  return widened
+    ? `The IAM role's updated trust policy can take up to 3 minutes to work; until then some ${what} run the deployed code.`
+    : `The new IAM role can take up to 3 minutes to work; until then some ${what} run the deployed code.`
+}
 
 export const sideChannelOffLine = (reason) =>
   `Payloads above 126 KB cannot be relayed in this session: ${reason}. Larger events run the deployed code, and larger results fail with Runtime.DevModeRelayFailed.`

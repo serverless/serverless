@@ -47,6 +47,11 @@ const REGISTRY = new Set([
   'layers_missing',
   'nothing_to_attach',
   'replayed_redacted_event',
+  // Replays of web app requests.
+  'request_body_truncated',
+  'request_body_not_captured',
+  'web_app_not_local',
+  'redacted_values_omitted',
   'invalid_option_value',
   'error',
 ])
@@ -84,6 +89,42 @@ describe('reasonOf', () => {
     expect(reasonOf({ code: 'DEV_MODE_SESSION_RUNNING' })).toBe(
       'session_running',
     )
+  })
+
+  test('names every web app error code: denials a person must grant, the rest errors', () => {
+    const web = {
+      DEV_MODE_BROKER_UPDATE_DENIED: 'permission_denied',
+      DEV_MODE_WEB_ACCESS_DENIED: 'permission_denied',
+      DEV_MODE_UNKNOWN_WEB_APP: 'error',
+      DEV_MODE_OPTION_CONFLICT: 'invalid_option_combination',
+      DEV_MODE_REVISION_FAILED: 'error',
+      DEV_MODE_REVISION_TIMEOUT: 'error',
+      DEV_MODE_REVISION_NOT_FOUND: 'error',
+      DEV_MODE_ENDPOINT_FAILED: 'error',
+      DEV_MODE_ENDPOINT_TIMEOUT: 'error',
+      DEV_MODE_ENDPOINT_NOT_FOUND: 'error',
+      DEV_MODE_ENDPOINT_DELETING: 'error',
+      DEV_MODE_WEB_APP_ENVIRONMENT_TOO_LARGE: 'error',
+      DEV_MODE_WEB_REVISION_NOT_FOUND: 'error',
+      DEV_MODE_WEB_APP_STILL_ATTACHED: 'error',
+      DEV_MODE_WEB_RESTORE_REVISION_GONE: 'error',
+      DEV_MODE_WEB_BRIDGE_MISSING: 'error',
+      DEV_MODE_WEB_APP_NOT_LOCAL: 'web_app_not_local',
+    }
+    for (const [code, reason] of Object.entries(web)) {
+      // Registered, not only defaulted: the published table lists each code with its reason.
+      expect([code, REASONS[code]]).toEqual([code, reason])
+      expect(reasonOf({ code })).toBe(reason)
+    }
+    const denied = errorResult({
+      code: 'DEV_MODE_BROKER_UPDATE_DENIED',
+      message: 'm',
+    })
+    expect(denied.status).toBe('action_required')
+    expect(denied.user_action_required).toBe(true)
+    expect(
+      errorResult({ code: 'DEV_MODE_REVISION_TIMEOUT', message: 'm' }),
+    ).toEqual({ status: 'error', reason: 'error', message: 'm' })
   })
 
   test("an error's own reason wins; an unknown code is 'error'", () => {

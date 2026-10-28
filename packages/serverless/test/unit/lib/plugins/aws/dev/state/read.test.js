@@ -315,6 +315,7 @@ describe('listRequests and findInvocation', () => {
     expect(listRequests({ dir, limit: 2 })).toEqual([
       {
         ts: '2026-10-05T10:42:30.000Z',
+        kind: 'invocation',
         function: 'listOrders',
         stage: null,
         request_id: '77e0b3aa-0000-4000-8000-000000000002',

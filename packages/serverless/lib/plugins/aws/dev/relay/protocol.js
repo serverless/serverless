@@ -24,6 +24,20 @@ export const PROTOCOL_VERSION = 1
 export const MAX_MESSAGE_BYTES = 129_024
 /** Stream data frames carry at most this much of the body each. */
 export const STREAM_CHUNK_BYTES = 100 * 1024
+/**
+ * A web app's request and response bodies travel inline in frames of at most this much body each;
+ * a larger request body goes through S3 (upload_url_request, then `request` with `s3`).
+ */
+export const WEB_BODY_BYTES = 64 * 1024
+/**
+ * The execution role's credentials a web bridge forwards (`environment`), and the only variables
+ * the machine takes from it: what the web app's local server runs with.
+ */
+export const ENVIRONMENT_NAMES = Object.freeze([
+  'AWS_ACCESS_KEY_ID',
+  'AWS_SECRET_ACCESS_KEY',
+  'AWS_SESSION_TOKEN',
+])
 const PREFIX_BYTES = 17
 const NONCE_BYTES = 12
 const TAG_BYTES = 16
@@ -55,6 +69,15 @@ export const KIND = Object.freeze({
    * not be reached; its body is JSON: { since, counts: [{ fn, reason, n }] }.
    */
   PASSED: 'passed',
+  /**
+   * A web app's HTTP request, bridge to CLI: { env, fn, id, sentAt, method, path, headers,
+   * environment?, s3?: { key, versionId } }, its body inline when there is no `s3`. The CLI answers
+   * `accepted`, then `response_start` ({ id, status, headers }), `stream_data` frames ({ id, n },
+   * n from 0) and `stream_end` ({ id, count, s3?: { key, get, delete } }); or `not_in_dev`, or
+   * `need_environment`, as for an invoke.
+   */
+  REQUEST: 'request',
+  RESPONSE_START: 'response_start',
 })
 
 /**

@@ -10,6 +10,7 @@ reference's Errors section:
 - Starting
 - While a session runs
 - Stopping and restoring
+- Web apps
 - Handlers on this machine
 
 ## Starting
@@ -145,6 +146,13 @@ control endpoint did not answer within 2 s.
 **Fix:** run the restore in `next` with `--json`; it names the session's stage and region,
 and `--aws-profile` when the session had one. A plain `serverless dev restore` there means the
 session's start is no longer on record: add its stage and region.
+
+## Web apps
+
+A web app's real URL serving the deployed code, missing hot reload, a 403
+from its local URL, `local_server_down`, `build_output_entry` and the
+`DEV_MODE_WEB_*`, `DEV_MODE_REVISION_*` and `DEV_MODE_ENDPOINT_*` errors:
+[web-apps.md](web-apps.md) → Troubleshooting.
 
 ## Handlers on this machine
 
