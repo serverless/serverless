@@ -457,7 +457,7 @@ The bridge hands each request to your machine over AWS IoT Core, the way the bri
 
 `sls-dev-fallback` has the same access type as `main`: with a public `main` it is public too, at a URL of its own that serves the deployed code while the session runs; with `url.authorizer: aws_iam` it needs signed requests, which the bridge signs with the session's IAM role. Revisions and endpoints take a few seconds each to become active, which is most of a web app's start-up time, and requests in the first seconds after the ready line can still reach the deployed revision.
 
-A web app with `vpc` (its own or `provider.vpc`) needs outbound access from that network to AWS IoT Core, AWS STS and Amazon S3, as [functions in a VPC](#networking-and-proxies) do; without it, its requests run the deployed code.
+A web app with `vpc` (its own or `provider.vpc`) needs outbound access from that network to AWS IoT Core and AWS STS, as [functions in a VPC](#networking-and-proxies) do; without it, its requests run the deployed code. Bodies over 64 KiB travel through Amazon S3, so the network also needs access to S3 for them (see [Large requests and responses](#large-requests-and-responses)).
 
 The local server gets each request with `Host` set to its own address on `127.0.0.1`, and the real host in `X-Forwarded-Host`, `X-Forwarded-Proto` and `X-Forwarded-For`, as behind a reverse proxy.
 
