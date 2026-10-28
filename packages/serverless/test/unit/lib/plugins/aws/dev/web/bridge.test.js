@@ -624,10 +624,13 @@ describe('the web bridge', () => {
       topics.down(request.header.env),
       topics.gone,
     ])
-    expect(options.url).toMatch(new RegExp(`^wss://${ENDPOINT}/mqtt\\?`))
-    expect(new URL(options.url).searchParams.get('X-Amz-Security-Token')).toBe(
-      'broker-token',
-    )
+    const url = new URL(options.url)
+    expect([url.protocol, url.host, url.pathname]).toEqual([
+      'wss:',
+      ENDPOINT,
+      '/mqtt',
+    ])
+    expect(url.searchParams.get('X-Amz-Security-Token')).toBe('broker-token')
     expect(assumed).toEqual([
       expect.objectContaining({
         RoleArn: ENV.SLS_DEV_BROKER_ROLE_ARN,
