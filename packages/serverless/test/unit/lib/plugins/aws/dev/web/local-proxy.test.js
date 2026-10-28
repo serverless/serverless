@@ -72,7 +72,10 @@ describe('startLocalProxy', () => {
     'answers on every loopback address it is given, on one port',
     async () => {
       const port = await listen(
-        http.createServer((req, res) => res.end(`ok ${req.url}`)),
+        http.createServer((req, res) => {
+          res.setHeader('content-type', 'text/plain')
+          res.end(`ok ${req.url}`)
+        }),
       )
       const { proxy } = await proxyFor({
         port,
@@ -138,6 +141,7 @@ describe('startLocalProxy', () => {
       http.createServer((req, res) => {
         seen = req.headers
         res.setHeader('set-cookie', ['a=1', 'b=2'])
+        res.setHeader('content-type', 'text/plain')
         res.end(`you asked for ${req.url}`)
       }),
     )

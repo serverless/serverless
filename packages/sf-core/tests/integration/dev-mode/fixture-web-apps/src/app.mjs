@@ -13,6 +13,14 @@ const readBody = async (req) => {
   return Buffer.concat(chunks)
 }
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+// The deployed fixture is public while the suite runs: query numbers are capped at what it asks
+// for, with room to spare.
+const bounded = (value, fallback, max) => {
+  const number = value == null ? fallback : Number(value)
+  return Number.isFinite(number) && number >= 0
+    ? Math.min(number, max)
+    : fallback
+}
 
 /**
  * The fixture's web server, as `app` answers: where it ran (Lambda or this machine), what the
@@ -55,7 +63,9 @@ export const startServer = (app) => {
         })
       }
       if (url.pathname === '/bytes') {
-        const body = patternBytes(Number(url.searchParams.get('size')))
+        const body = patternBytes(
+          bounded(url.searchParams.get('size'), 0, 5_000_000),
+        )
         res.writeHead(200, {
           'content-type': 'application/octet-stream',
           'content-length': body.length,
@@ -64,8 +74,8 @@ export const startServer = (app) => {
         return res.end(body)
       }
       if (url.pathname === '/events') {
-        const count = Number(url.searchParams.get('count') ?? 10)
-        const gapMs = Number(url.searchParams.get('gapMs') ?? 200)
+        const count = bounded(url.searchParams.get('count'), 10, 50)
+        const gapMs = bounded(url.searchParams.get('gapMs'), 200, 1000)
         res.writeHead(200, {
           'content-type': 'text/event-stream',
           'cache-control': 'no-cache',
