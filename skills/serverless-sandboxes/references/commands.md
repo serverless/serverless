@@ -108,10 +108,12 @@ serverless rollback --timestamp <ts>
 ```
 
 Both work for sandboxes with no special casing — they use the same
-deployment-history mechanism as the rest of the Framework. Because
-artifacts are content-addressed, old images are not deleted as new ones are
-deployed; they accumulate and remain available to roll back to until
-`serverless remove` tears down the stack.
+deployment-history mechanism as the rest of the Framework. Each deploy keeps
+the sandbox zips that a remaining deployment points to, so every deployment
+`deploy list` shows can be rolled back; rolling back builds a new image
+version from that deployment's zip. Older image versions stay until
+`serverless prune` (or `custom.prune`) deletes them, or `serverless remove`
+tears down the stack.
 
 ### `serverless remove`
 
