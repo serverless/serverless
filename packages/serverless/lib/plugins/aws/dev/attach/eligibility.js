@@ -288,7 +288,7 @@ export const classifyByConfig = ({
  * sessions hold nothing and another developer's hold theirs. A session the check has no answer
  * for attached after this session looked, so it was running moments ago: it keeps them.
  */
-const isHeld = (liveness, session, mine) => {
+export const isHeld = (liveness, session, mine) => {
   if (!liveness) return !mine
   const state = liveness.get(session)
   if (state === 'gone') return false

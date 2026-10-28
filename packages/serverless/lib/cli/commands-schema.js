@@ -238,7 +238,8 @@ commands.set('dev', {
       type: 'string',
     },
     detailed: {
-      usage: 'Show complete invocation events and responses',
+      usage:
+        'Show complete invocation events and responses, and web request and response details',
       type: 'boolean',
     },
     mode: {
@@ -279,17 +280,32 @@ commands.set('dev', {
       usage: 'Keep this function on its deployed code (repeatable)',
       type: 'multiple',
     },
+    'web-app': {
+      usage:
+        'Run only this web app on this machine (repeatable); the others serve their deployed code',
+      type: 'multiple',
+    },
+    'skip-web-app': {
+      usage: 'Keep this web app on its deployed code (repeatable)',
+      type: 'multiple',
+    },
+    'local-only': {
+      usage:
+        'Run this web app on localhost only; its real URL keeps serving the deployed code (repeatable)',
+      type: 'multiple',
+    },
     'take-over': {
-      usage: 'Also attach functions that are in Dev Mode for another developer',
+      usage:
+        'Also attach functions and web apps that are in Dev Mode for another developer',
       type: 'boolean',
     },
     approve: {
-      usage: 'Ask for confirmation before changing any function',
+      usage: 'Ask for confirmation before changing any function or web app',
       type: 'boolean',
     },
     'on-exit': {
       usage:
-        'What to do on exit instead of restoring: "keep" leaves functions in Dev Mode, "remove" restores and then removes the service (with confirmation)',
+        'What to do on exit instead of restoring: "keep" leaves functions and web apps in Dev Mode, "remove" restores and then removes the service (with confirmation)',
       type: 'string',
     },
     json: {
@@ -329,11 +345,15 @@ commands.set('dev', {
 
 commands.set('dev restore', {
   usage:
-    'Remove Dev Mode configuration from the functions of a stage (left by a session that did not exit cleanly, or by --on-exit keep)',
+    'Remove Dev Mode configuration from the functions and web apps of a stage (left by a session that did not exit cleanly, or by --on-exit keep)',
   options: {
     function: {
       usage: 'Only this function (repeatable)',
       shortcut: 'f',
+      type: 'multiple',
+    },
+    'web-app': {
+      usage: 'Only this web app (repeatable)',
       type: 'multiple',
     },
     json: {
@@ -366,7 +386,7 @@ commands.set('dev setup', {
 
 commands.set('dev status', {
   usage:
-    'Show whether Dev Mode is on in this service directory: its functions, invocations and endpoints',
+    'Show whether Dev Mode is on in this service directory: its functions, web apps, invocations, web requests and endpoints',
   options: {
     json: {
       usage: 'Print one JSON result on stdout (text goes to stderr)',
@@ -380,10 +400,11 @@ commands.set('dev status', {
 
 commands.set('dev stop', {
   usage:
-    'Stop the Dev Mode session running in this service directory and restore its functions',
+    'Stop the Dev Mode session running in this service directory and restore its functions and web apps',
   options: {
     keep: {
-      usage: 'Leave the functions in Dev Mode (as "--on-exit keep" does)',
+      usage:
+        'Leave the functions and web apps in Dev Mode (as "--on-exit keep" does)',
       type: 'boolean',
     },
     timeout: {
@@ -403,15 +424,20 @@ commands.set('dev stop', {
 
 commands.set('dev wait', {
   usage:
-    'Wait until the Dev Mode session in this directory is ready, runs an invocation, reloads or ends, then print that event',
+    'Wait until the Dev Mode session in this directory is ready, runs an invocation or a web app request, reloads or ends, then print that event',
   options: {
     for: {
-      usage: 'What to wait for: "ready", "invocation", "reload" or "ended"',
+      usage:
+        'What to wait for: "ready", "invocation", "request", "reload" or "ended"',
       type: 'string',
     },
     function: {
       usage: 'Only an invocation or reload of this function (repeatable)',
       shortcut: 'f',
+      type: 'multiple',
+    },
+    'web-app': {
+      usage: 'Only a request to or a reload of this web app (repeatable)',
       type: 'multiple',
     },
     after: {
@@ -436,11 +462,15 @@ commands.set('dev wait', {
 
 commands.set('dev requests', {
   usage:
-    'List the latest invocations Dev Mode ran on this machine, newest first, with the file that holds each one',
+    'List the latest invocations and web app requests Dev Mode ran on this machine, newest first, with the file that holds each one',
   options: {
     function: {
       usage: 'Only this function (repeatable)',
       shortcut: 'f',
+      type: 'multiple',
+    },
+    'web-app': {
+      usage: 'Only requests to this web app (repeatable)',
       type: 'multiple',
     },
     limit: {
@@ -459,7 +489,7 @@ commands.set('dev requests', {
 
 commands.set('dev replay', {
   usage:
-    'Run a recorded invocation again on this machine through the running session; no caller receives the result',
+    'Run a recorded invocation or web app request again on this machine through the running session; no caller receives the result',
   positionals: {
     requestId: {
       usage:

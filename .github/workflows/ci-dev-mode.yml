@@ -41,6 +41,8 @@ permissions:
 #     stage's Dev Mode payload objects, which the suite's teardown checks;
 #   - `runSfCore.js` and `testStageName.js` deploy and name every stack the suite
 #     creates.
+#   - `lib/plugins/aws/web-apps/**` deploys the web apps a session runs, and gives it
+#     their function names and settings.
 #   - the sf-core router, framework runner and CLI parser (`router.js`,
 #     `runners/framework.js`, `utils/cli/cli.js`) route and prepare every Dev Mode
 #     command: its options, positionals and the commands that read only local state.
@@ -68,6 +70,7 @@ on:
       - 'packages/serverless/lib/plugins/aws/info/endpoints.js'
       - 'packages/serverless/lib/plugins/aws/mcp/**'
       - 'packages/serverless/lib/plugins/aws/remove/lib/bucket.js'
+      - 'packages/serverless/lib/plugins/aws/web-apps/**'
       - 'packages/serverless/lib/plugins/esbuild/**'
       - 'packages/serverless/lib/plugins/dev.js'
       - 'packages/serverless/lib/utils/dev-build-request.js'
@@ -101,6 +104,7 @@ on:
       - 'packages/serverless/lib/plugins/aws/info/endpoints.js'
       - 'packages/serverless/lib/plugins/aws/mcp/**'
       - 'packages/serverless/lib/plugins/aws/remove/lib/bucket.js'
+      - 'packages/serverless/lib/plugins/aws/web-apps/**'
       - 'packages/serverless/lib/plugins/esbuild/**'
       - 'packages/serverless/lib/plugins/dev.js'
       - 'packages/serverless/lib/utils/dev-build-request.js'
@@ -171,6 +175,9 @@ jobs:
       - name: 'Build: Dev Mode Layers'
         working-directory: ./packages/serverless
         run: npm run build:devmode:layer
+      - name: 'Build: Dev Mode Web Bridge'
+        working-directory: ./packages/serverless
+        run: npm run build:devmode:web-bridge
       # The suite deploys an MCP server, whose handler is this prebuilt entry.
       - name: 'Build: MCP Entry'
         working-directory: ./packages/serverless
@@ -236,6 +243,9 @@ jobs:
       - name: 'Build: Dev Mode Layers'
         working-directory: ./packages/serverless
         run: npm run build:devmode:layer
+      - name: 'Build: Dev Mode Web Bridge'
+        working-directory: ./packages/serverless
+        run: npm run build:devmode:web-bridge
       # Only the tests get AWS credentials: installing and building need none.
       - name: 'Setup: AWS Credentials'
         uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0

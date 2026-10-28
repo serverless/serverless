@@ -27,6 +27,7 @@ know.
 | `session.<session_id>.ndjson`                             | An earlier session's records; the last five are kept.                                      |
 | `session.log`                                             | The output of a session started with `--detach`. Mode 0600.                                |
 | `invocations/<function>/<unix seconds>-<request id>.json` | One file per invocation; the last 500 per function and 200 MB in all are kept.             |
+| `requests/<web app>/<unix seconds>-<request id>.json`     | One file per web app request ([web-apps.md](web-apps.md)); 500 per web app, in the 200 MB. |
 
 Characters outside `A-Z a-z 0-9 . _ -` in a function key become `_` in the
 path. Keep `.serverless/` out of version control.
@@ -65,24 +66,30 @@ too long is cut and the record gets `"truncated": true`. No handler log line
 and no event or response body is written here. Fields that do not apply are
 left out.
 
-| `type`                      | Fields                                                                                                           |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `session.starting`          | `service`, `stage`, `region`, `aws_profile` (with `--aws-profile`), `owner`, `pid`, `detached`, `selection`      |
-| `function.mode`             | `function`, `mode`, `reason`, `why`, `notes`: one per function once attached                                     |
-| `session.ready`             | `functions` (`dev`, `deployed`, `skipped` counts), `ready_ms`, `attach_ms`                                       |
-| `session.failed`            | `reason`, `message`, `exit_code`: the start ended before the session was ready                                   |
-| `invocation.start`          | `function`, `request_id`, `label`, `new_worker`, `source` (`caller`, `replay`)                                   |
-| `invocation.end`            | `function`, `request_id`, `source`, `outcome`, `status_code`, `error_type`, `duration_ms`, `file`                |
-| `invocation.passed_through` | `function`, `count`, `reason` (`late`, `paced`, `refused`, `clock_off`, `offline`, `worker_limit`), `at_least`   |
-| `reload.start`              | `files` (a count), `functions`                                                                                   |
-| `reload.end`                | `ok`, `functions`, `ms`, `error` (one line)                                                                      |
-| `connection.lost`           | `reason`                                                                                                         |
-| `connection.restored`       | `offline_ms`                                                                                                     |
-| `credentials.expired`       | —                                                                                                                |
-| `credentials.refreshed`     | —                                                                                                                |
-| `function.lost`             | `function`, `state` (below)                                                                                      |
-| `session.stopping`          | `trigger` (`signal`, `stop_command`, `idle_timeout`, `hotkey`, `error`), `signal`                                |
-| `session.ended`             | `exit_code`, `restore` (`restored`, `unchanged`, `skipped`, `missing`, `failed`), `kept`: always the last record |
+| `type`                      | Fields                                                                                                                  |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `session.starting`          | `service`, `stage`, `region`, `aws_profile` (with `--aws-profile`), `owner`, `pid`, `detached`, `selection`             |
+| `function.mode`             | `function`, `mode`, `reason`, `why`, `notes`: one per function once attached                                            |
+| `web_app.mode`              | `web_app`, `mode` (`dev`, `local`, `deployed`, `skipped`), `reason`, `why`, `notes`                                     |
+| `session.ready`             | `functions` (`dev`, `deployed`, `skipped` counts), `web_apps` (with `local`), `ready_ms`, `attach_ms`                   |
+| `session.failed`            | `reason`, `message`, `exit_code`: the start ended before the session was ready                                          |
+| `invocation.start`          | `function`, `request_id`, `label`, `new_worker`, `source` (`caller`, `replay`)                                          |
+| `invocation.end`            | `function`, `request_id`, `source`, `outcome`, `status_code`, `error_type`, `duration_ms`, `file`                       |
+| `invocation.passed_through` | `function`, `count`, `reason` (`late`, `paced`, `refused`, `clock_off`, `offline`, `worker_limit`), `at_least`          |
+| `reload.start`              | `files` (a count), `functions`, or `web_apps` for a web app server started again                                        |
+| `reload.end`                | `ok`, `functions` or `web_apps`, `ms`, `error` (one line)                                                               |
+| `connection.lost`           | `reason`                                                                                                                |
+| `connection.restored`       | `offline_ms`                                                                                                            |
+| `credentials.expired`       | —                                                                                                                       |
+| `credentials.refreshed`     | —                                                                                                                       |
+| `function.lost`             | `function`, `state` (below)                                                                                             |
+| `web_app.lost`              | `web_app`, `state` (`detached`, `taken_over`, `taken_over_by_you`, `function_deleted`), `owner` (with `taken_over`)     |
+| `server.started`            | `web_app`, `port`, `source` (`config`, `entry`)                                                                         |
+| `server.exited`             | `web_app`, `code`, `signal`                                                                                             |
+| `request.start`             | `web_app`, `request_id`, `method`, `path`, `source` (`relay`, `local`, `replay`)                                        |
+| `request.end`               | `web_app`, `request_id`, `source`, `method`, `path`, `outcome`, `status_code`, `duration_ms`, `bytes`, `reason`, `file` |
+| `session.stopping`          | `trigger` (`signal`, `stop_command`, `idle_timeout`, `hotkey`, `error`), `signal`                                       |
+| `session.ended`             | `exit_code`, `restore` (`restored`, `unchanged`, `skipped`, `missing`, `failed`), `kept`: always the last record        |
 
 - `outcome`: `ok`, `error`, `timeout`, `worker_exited`. `file` is `null` when
   the invocation file could not be written.
@@ -226,14 +233,21 @@ the session key are never written.
 | `stage_protected`            | `error`           | `prod` or `production`. Use your personal stage (rule 8 of the skill).                                                                                                                                                                              |
 | `region_no_broker`           | `error`           | The region has no AWS IoT Core. Use a stage in another region.                                                                                                                                                                                      |
 | `layers_missing`             | `error`           | The CLI's layer files are missing: reinstall the Framework. In `--dry-run`, informational.                                                                                                                                                          |
-| `nothing_to_attach`          | `error`           | No function can run in Dev Mode. Read each function's `reason`.                                                                                                                                                                                     |
+| `nothing_to_attach`          | `error`           | No function or web app can run in Dev Mode. Read each one's `reason`.                                                                                                                                                                               |
+| `request_body_truncated`     | `error`           | Replay of a web app request whose body was over 1 MiB (cut in its file). Pick another request.                                                                                                                                                      |
+| `request_body_not_captured`  | `error`           | Replay of a web app request whose body was never read here. Pick another request.                                                                                                                                                                   |
+| `web_app_not_local`          | `error`           | Replay of a request to a web app that does not run here in this session.                                                                                                                                                                            |
 | `error`                      | `error`           | Anything else, for example an unknown `--function` name. Read `message`.                                                                                                                                                                            |
 
 `--dry-run`'s `session` check passes with reason `already_running` when a
-session with the same scope runs here. `replayed_redacted_event` is a `note`
-of `dev replay`, not a reason.
+session with the same scope runs here; its `web_apps` check can pass with
+`web_apps_unreadable` (web functions not readable; the functions still run).
+`replayed_redacted_event` and `redacted_values_omitted` are `note`s of
+`dev replay`, not reasons.
 
 ## Function modes, reasons, notes and lost states
+
+Web app modes, reasons and notes: [web-apps.md](web-apps.md).
 
 Modes: `dev` (runs here), `deployed` (the deployed code answers), `skipped`
 (not attached and not changed). `deployed` and `skipped` always carry a

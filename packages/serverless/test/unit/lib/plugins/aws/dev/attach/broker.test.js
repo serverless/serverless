@@ -9,7 +9,10 @@ import {
   policyVersionOf,
   putBrokerPolicy,
   readExternalId,
+  trustIsWidened,
+  trustPolicyDifferences,
   updateBrokerPolicy,
+  widenBrokerTrust,
 } from '../../../../../../../lib/plugins/aws/dev/attach/broker.js'
 import { ACCOUNT, fakeIam } from './fakes.js'
 
@@ -313,8 +316,14 @@ test('identityFrom reads the partition from the caller ARN', () => {
 })
 
 test('the trust policy is the one verified live: any Lambda function of this account and region that knows the ExternalId', () => {
+  // The form earlier releases wrote; `web` (the default) adds web functions to the source patterns.
   expect(
-    buildTrustPolicy({ identity, region: 'us-east-1', externalId: 'ext' }),
+    buildTrustPolicy({
+      identity,
+      region: 'us-east-1',
+      externalId: 'ext',
+      web: false,
+    }),
   ).toEqual({
     Version: '2012-10-17',
     Statement: [
@@ -346,25 +355,25 @@ test('the permission policy allows only what a bridge does, whoever assumes the 
     Version: '2012-10-17',
     Statement: [
       {
-        Sid: 'DevModeBrokerV1Connect',
+        Sid: 'DevModeBrokerV2Connect',
         Effect: 'Allow',
         Action: 'iot:Connect',
         Resource: `${iot}:client/sls-dev-*`,
       },
       {
-        Sid: 'DevModeBrokerV1NoCliClientId',
+        Sid: 'DevModeBrokerV2NoCliClientId',
         Effect: 'Deny',
         Action: 'iot:Connect',
         Resource: `${iot}:client/sls-dev-*-cli`,
       },
       {
-        Sid: 'DevModeBrokerV1PublishUp',
+        Sid: 'DevModeBrokerV2PublishUp',
         Effect: 'Allow',
         Action: 'iot:Publish',
         Resource: `${iot}:topic/sls-dev/*/up`,
       },
       {
-        Sid: 'DevModeBrokerV1SubscribeDownGone',
+        Sid: 'DevModeBrokerV2SubscribeDownGone',
         Effect: 'Allow',
         Action: 'iot:Subscribe',
         Resource: [
@@ -373,7 +382,7 @@ test('the permission policy allows only what a bridge does, whoever assumes the 
         ],
       },
       {
-        Sid: 'DevModeBrokerV1ReceiveDownGone',
+        Sid: 'DevModeBrokerV2ReceiveDownGone',
         Effect: 'Allow',
         Action: 'iot:Receive',
         Resource: [
@@ -382,11 +391,17 @@ test('the permission policy allows only what a bridge does, whoever assumes the 
         ],
       },
       {
-        Sid: 'DevModeBrokerV1PingCli',
+        Sid: 'DevModeBrokerV2PingCli',
         Effect: 'Allow',
         Action: 'iot:SendDirectMessage',
         Resource: `${iot}:client/sls-dev-*-cli`,
         Condition: { StringLike: { 'iot:Topic': 'sls-dev/*/ping' } },
+      },
+      {
+        Sid: 'DevModeBrokerV2InvokeFallback',
+        Effect: 'Allow',
+        Action: 'lambda:InvokeWebFunctionEndpoint',
+        Resource: `arn:aws:lambda:us-east-1:${ACCOUNT}:web-function/*/endpoint/sls-dev-fallback`,
       },
     ],
   })
@@ -398,8 +413,10 @@ test('the permission policy names the caller partition', () => {
     region: 'cn-north-1',
   })
   expect(
-    doc.Statement.flatMap((s) => [].concat(s.Resource)).every((r) =>
-      r.startsWith(`arn:aws-cn:iot:cn-north-1:${ACCOUNT}:`),
+    doc.Statement.flatMap((s) => [].concat(s.Resource)).every(
+      (r) =>
+        r.startsWith(`arn:aws-cn:iot:cn-north-1:${ACCOUNT}:`) ||
+        r.startsWith(`arn:aws-cn:lambda:cn-north-1:${ACCOUNT}:`),
     ),
   ).toBe(true)
 })
@@ -438,6 +455,7 @@ test('createBroker writes the trust policy once and the current permission polic
     externalId: 'ab'.repeat(16),
     path: '/',
     created: true,
+    widened: true,
   })
   expect(iam.policies.has(`${NAME}/serverless-dev-broker`)).toBe(true)
   // A role created now has no earlier policy to look for.
@@ -581,12 +599,13 @@ describe('the permission policy carries its version in its statement ids', () =>
   test('every Sid is DevModeBroker, the version and a name, letters and digits only', () => {
     const sids = buildPermissionPolicy(AT).Statement.map((s) => s.Sid)
     expect(sids).toEqual([
-      'DevModeBrokerV1Connect',
-      'DevModeBrokerV1NoCliClientId',
-      'DevModeBrokerV1PublishUp',
-      'DevModeBrokerV1SubscribeDownGone',
-      'DevModeBrokerV1ReceiveDownGone',
-      'DevModeBrokerV1PingCli',
+      'DevModeBrokerV2Connect',
+      'DevModeBrokerV2NoCliClientId',
+      'DevModeBrokerV2PublishUp',
+      'DevModeBrokerV2SubscribeDownGone',
+      'DevModeBrokerV2ReceiveDownGone',
+      'DevModeBrokerV2PingCli',
+      'DevModeBrokerV2InvokeFallback',
     ])
     expect(sids.every((sid) => /^[A-Za-z0-9]+$/.test(sid))).toBe(true)
     expect(buildPermissionPolicy({ ...AT, version: 7 }).Statement[0].Sid).toBe(
@@ -595,14 +614,14 @@ describe('the permission policy carries its version in its statement ids', () =>
   })
 
   test('policyVersionOf reads the highest version any statement id carries, from its prefix only', () => {
-    expect(policyVersionOf(buildPermissionPolicy(AT))).toBe(1)
+    expect(policyVersionOf(buildPermissionPolicy(AT))).toBe(2)
     expect(policyVersionOf(buildPermissionPolicy({ ...AT, version: 12 }))).toBe(
       12,
     )
     // Mixed markers: the highest counts, so a later version is never taken for an older one.
     const mixed = buildPermissionPolicy(AT)
-    mixed.Statement[1].Sid = 'DevModeBrokerV2NoCliClientId'
-    expect(policyVersionOf(mixed)).toBe(2)
+    mixed.Statement[1].Sid = 'DevModeBrokerV3NoCliClientId'
+    expect(policyVersionOf(mixed)).toBe(3)
     // Digits in the rest of a statement id are the statement's name, not the version.
     const digits = buildPermissionPolicy({ ...AT, version: 3 })
     digits.Statement.push({
@@ -614,7 +633,7 @@ describe('the permission policy carries its version in its statement ids', () =>
     // A statement without the marker does not hide the others'.
     const foreign = buildPermissionPolicy(AT)
     foreign.Statement[0].Sid = 'Connect'
-    expect(policyVersionOf(foreign)).toBe(1)
+    expect(policyVersionOf(foreign)).toBe(2)
     const none = buildPermissionPolicy(AT)
     for (const statement of none.Statement) statement.Sid = 'Connect'
     expect(policyVersionOf(none)).toBeNull()
@@ -630,7 +649,7 @@ describe('the permission policy carries its version in its statement ids', () =>
     const theirs = buildPermissionPolicy(AT)
     theirs.Statement.push({
       ...theirs.Statement[2],
-      Sid: 'DevModeBrokerV2S3Get',
+      Sid: 'DevModeBrokerV3S3Get',
     })
     iam.policies.set(`${NAME}/serverless-dev-broker`, theirs)
     expect(await brokerPolicyState({ iam, name: NAME, ...AT })).toBe('newer')
@@ -891,7 +910,7 @@ describe('putBrokerPolicy', () => {
       buildPermissionPolicy(AT),
     )
     const newer = seed(ours())
-    const theirs = buildPermissionPolicy({ ...AT, version: 2 })
+    const theirs = buildPermissionPolicy({ ...AT, version: 3 })
     newer.policies.set(`${NAME}/serverless-dev-broker`, theirs)
     const broker = await createBroker({
       iam: newer,
@@ -902,5 +921,168 @@ describe('putBrokerPolicy', () => {
     expect(broker).toMatchObject({ created: false })
     expect(writes(newer)).toEqual(['createRole'])
     expect(newer.policies.get(`${NAME}/serverless-dev-broker`)).toEqual(theirs)
+  })
+})
+
+describe('web apps: the trust policy also lets Lambda web functions assume the role', () => {
+  const WEB = `arn:aws:lambda:us-east-1:${ACCOUNT}:web-function/*`
+  const narrow = () => buildTrustPolicy({ ...AT, externalId: EXT, web: false })
+  const role = (doc) => ({
+    AssumeRolePolicyDocument: encodeURIComponent(JSON.stringify(doc)),
+  })
+
+  test('trust policy lists function and web-function patterns', () => {
+    expect(
+      buildTrustPolicy({ ...AT, externalId: EXT }).Statement[0].Condition
+        .ArnLike,
+    ).toEqual({ 'lambda:SourceFunctionArn': [SOURCE, WEB] })
+    expect(narrow().Statement[0].Condition.ArnLike).toEqual({
+      'lambda:SourceFunctionArn': SOURCE,
+    })
+    expect(
+      buildTrustPolicy({
+        identity: { accountId: ACCOUNT, partition: 'aws-cn' },
+        region: 'cn-north-1',
+        externalId: EXT,
+      }).Statement[0].Condition.ArnLike['lambda:SourceFunctionArn'],
+    ).toEqual([
+      `arn:aws-cn:lambda:cn-north-1:${ACCOUNT}:function:*`,
+      `arn:aws-cn:lambda:cn-north-1:${ACCOUNT}:web-function/*`,
+    ])
+  })
+
+  test('narrow and widened trust both pass trustPolicyDifferences', async () => {
+    const widened = buildTrustPolicy({ ...AT, externalId: EXT })
+    // IAM may return the list in any order.
+    const reordered = withStatement((s) => {
+      s.Condition.ArnLike['lambda:SourceFunctionArn'] = [WEB, SOURCE]
+      return s
+    })
+    for (const doc of [narrow(), widened, reordered]) {
+      expect(trustPolicyDifferences({ role: role(doc), ...AT })).toEqual([])
+    }
+    expect(trustIsWidened(role(narrow()))).toBe(false)
+    expect(trustIsWidened(role(widened))).toBe(true)
+    expect(trustIsWidened(role(reordered))).toBe(true)
+    expect(
+      await getBroker({ iam: seed(narrow()), name: NAME, ...AT }),
+    ).toMatchObject({ externalId: EXT, widened: false })
+    expect(
+      await getBroker({ iam: seed(widened), name: NAME, ...AT }),
+    ).toMatchObject({ externalId: EXT, widened: true })
+  })
+
+  test('a third ArnLike value is still refused', async () => {
+    for (const values of [
+      [SOURCE, WEB, `arn:aws:lambda:us-east-1:${ACCOUNT}:other/*`],
+      [WEB],
+      [SOURCE, `arn:aws:lambda:us-east-1:210987654321:web-function/*`],
+    ]) {
+      const iam = seed(
+        withStatement((s) => {
+          s.Condition.ArnLike['lambda:SourceFunctionArn'] = values
+          return s
+        }),
+      )
+      const error = await getBroker({ iam, name: NAME, ...AT }).catch((e) => e)
+      expect(error.code).toBe('DEV_MODE_BROKER_MODIFIED')
+      expect(error.message).toContain('lambda:SourceFunctionArn')
+      expect(writes(iam)).toEqual([])
+    }
+  })
+
+  test('createBroker writes the widened trust', async () => {
+    const iam = fakeIam()
+    const broker = await createBroker({
+      iam,
+      name: NAME,
+      ...AT,
+      randomBytes: fixedBytes,
+    })
+    expect(broker.widened).toBe(true)
+    expect(JSON.parse(iam.roles.get(NAME).AssumeRolePolicyDocument)).toEqual(
+      buildTrustPolicy({ ...AT, externalId: EXT }),
+    )
+  })
+
+  test('widenBrokerTrust writes the widened trust with the same ExternalId', async () => {
+    const iam = seed(narrow())
+    await widenBrokerTrust({ iam, name: NAME, ...AT, externalId: EXT })
+    expect(writes(iam)).toEqual(['updateAssumeRolePolicy'])
+    expect(JSON.parse(iam.roles.get(NAME).AssumeRolePolicyDocument)).toEqual(
+      buildTrustPolicy({ ...AT, externalId: EXT }),
+    )
+    expect(await getBroker({ iam, name: NAME, ...AT })).toMatchObject({
+      externalId: EXT,
+      widened: true,
+    })
+  })
+
+  test('widenBrokerTrust rewrites only its own statement and keeps the deny statements an administrator added', async () => {
+    const deny = {
+      Effect: 'Deny',
+      Principal: { AWS: '*' },
+      Action: 'sts:AssumeRole',
+      Condition: { Bool: { 'aws:SecureTransport': 'false' } },
+    }
+    const doc = narrow()
+    doc.Statement.push(deny)
+    const iam = seed(doc)
+    await widenBrokerTrust({ iam, name: NAME, ...AT, externalId: EXT })
+    expect(
+      JSON.parse(iam.roles.get(NAME).AssumeRolePolicyDocument).Statement,
+    ).toEqual([buildTrustPolicy({ ...AT, externalId: EXT }).Statement[0], deny])
+    expect(await getBroker({ iam, name: NAME, ...AT })).toMatchObject({
+      widened: true,
+    })
+  })
+
+  test('widen AccessDenied throws DEV_MODE_BROKER_UPDATE_DENIED with the exact message', async () => {
+    const iam = seed(narrow())
+    iam.updateAssumeRolePolicyError = Object.assign(
+      new Error('not authorized to perform: iam:UpdateAssumeRolePolicy'),
+      { name: 'AccessDenied' },
+    )
+    await expect(
+      widenBrokerTrust({ iam, name: NAME, ...AT, externalId: EXT }),
+    ).rejects.toMatchObject({
+      code: 'DEV_MODE_BROKER_UPDATE_DENIED',
+      message: `Dev Mode needs to let web apps use the IAM role ${NAME}, and your credentials can't update its trust policy (iam:UpdateAssumeRolePolicy). Ask an administrator to run "serverless dev setup --region us-east-1".`,
+    })
+  })
+
+  test('widen with expired credentials is reported as such', async () => {
+    const iam = seed(narrow())
+    iam.updateAssumeRolePolicyError = Object.assign(
+      new Error('The security token expired'),
+      { name: 'ExpiredTokenException', $metadata: { httpStatusCode: 403 } },
+    )
+    await expect(
+      widenBrokerTrust({ iam, name: NAME, ...AT, externalId: EXT }),
+    ).rejects.toMatchObject({ code: 'DEV_MODE_AWS_CREDENTIALS_INVALID' })
+  })
+
+  test('the permission policy lets a bridge invoke the Dev Mode endpoints of web functions', () => {
+    expect(
+      buildPermissionPolicy(AT).Statement.find(
+        (s) => s.Sid === 'DevModeBrokerV2InvokeFallback',
+      ),
+    ).toEqual({
+      Sid: 'DevModeBrokerV2InvokeFallback',
+      Effect: 'Allow',
+      Action: 'lambda:InvokeWebFunctionEndpoint',
+      Resource: `arn:aws:lambda:us-east-1:${ACCOUNT}:web-function/*/endpoint/sls-dev-fallback`,
+    })
+    // Version 1 is the policy as version 1 wrote it: without the web function endpoint.
+    expect(
+      buildPermissionPolicy({ ...AT, version: 1 }).Statement.map((s) => s.Sid),
+    ).toEqual([
+      'DevModeBrokerV1Connect',
+      'DevModeBrokerV1NoCliClientId',
+      'DevModeBrokerV1PublishUp',
+      'DevModeBrokerV1SubscribeDownGone',
+      'DevModeBrokerV1ReceiveDownGone',
+      'DevModeBrokerV1PingCli',
+    ])
   })
 })

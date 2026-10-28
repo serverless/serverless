@@ -214,6 +214,42 @@ describe('the control endpoint', () => {
     })
   })
 
+  test('a web request replay names its kind to the handler; a cut body is refused with its reason', async () => {
+    const message = 'The body of request r1 was larger than 1 MiB.'
+    const bodies = []
+    const { server } = await start({
+      replay: async (body) => {
+        bodies.push(body)
+        throw coded('request_body_truncated', message)
+      },
+    })
+    expect(
+      await request(server.url, {
+        method: 'POST',
+        path: '/v1/replay',
+        body: '{"request_id":"r1","kind":"request"}',
+      }),
+    ).toEqual({
+      status: 409,
+      body: { reason: 'request_body_truncated', message },
+    })
+    expect(bodies).toEqual([{ request_id: 'r1', kind: 'request' }])
+    for (const reason of ['request_body_not_captured', 'web_app_not_local']) {
+      const other = await start({
+        replay: async () => {
+          throw coded(reason, 'refused')
+        },
+      })
+      expect(
+        await request(other.server.url, {
+          method: 'POST',
+          path: '/v1/replay',
+          body: '{"request_id":"r1","kind":"request"}',
+        }),
+      ).toEqual({ status: 409, body: { reason, message: 'refused' } })
+    }
+  })
+
   test.each([
     ['no token', { Authorization: '' }],
     ['a wrong token', { Authorization: `Bearer ${'b'.repeat(64)}` }],

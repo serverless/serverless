@@ -26,6 +26,7 @@ import { exitCodeOf } from '../../../../../../../lib/plugins/aws/dev/commands/en
 import { iotSocketOptions } from '../../../../../../../lib/plugins/aws/dev/relay/network.js'
 import {
   buildPermissionPolicy,
+  buildTrustPolicy,
   createBroker,
 } from '../../../../../../../lib/plugins/aws/dev/attach/broker.js'
 import { layerDescription } from '../../../../../../../lib/plugins/aws/dev/attach/layer.js'
@@ -37,6 +38,7 @@ import {
   fakeIam,
   fakeIot,
   fakeLambda,
+  fakeLambdaWeb,
   fakeProvider,
   fakeServerless,
 } from '../attach/fakes.js'
@@ -106,17 +108,21 @@ const setup = ({
   connect = async () => null,
   provider = fakeProvider({ stage }),
   options = {},
+  webApps,
+  lambdaWeb = fakeLambdaWeb(),
 } = {}) => {
   const serviceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sls-dev-t-'))
   dirs.push(serviceDir)
   const lambda = fakeLambda(live)
   const iam = fakeIam()
   const serverless = { ...fakeServerless({ stage, functions }), serviceDir }
+  if (webApps) serverless.service.webApps = webApps
   const deps = {
     clients: {
       lambda: readOnly(lambda, READS.lambda),
       iam: readOnly(iam, READS.iam),
       iot: readOnly(iot, READS.iot),
+      lambdaWeb,
     },
     stackExists: async () => stackExists,
     readArtifact: async (arch) => artifact(arch),
@@ -128,7 +134,16 @@ const setup = ({
     now: () => Date.parse('2026-10-05T10:40:00.000Z'),
     fs,
   }
-  return { serverless, provider, options, deps, lambda, iam, serviceDir }
+  return {
+    serverless,
+    provider,
+    options,
+    deps,
+    lambda,
+    iam,
+    lambdaWeb,
+    serviceDir,
+  }
 }
 const writes = ({ lambda, iam }) => [
   ...lambda.calls.filter(([op]) => !READS.lambda.includes(op)),
@@ -1114,4 +1129,285 @@ describe('the connection check to AWS IoT Core', () => {
       await new Promise((resolve) => proxy.close(resolve))
     }
   }, 30_000)
+})
+
+describe('serverless dev --dry-run with web apps', () => {
+  /** A deployed web function: `main` on the revision CloudFormation made. */
+  const deployedWebFunction = () => ({
+    revisions: {
+      'rev-cfn': {
+        description: 'deployed',
+        buildConfig: { runtimeConfig: { runtime: 'nodejs24.x' } },
+        serviceConfig: { environmentVariables: { TABLE: 'orders' } },
+      },
+    },
+    endpoints: {
+      main: {
+        authType: 'ApplicationManaged',
+        revisionWeights: [{ revisionId: 'rev-cfn', weight: 100 }],
+      },
+    },
+  })
+  const WEB_APPS = {
+    web: { dev: { command: 'npm run dev' } },
+    admin: { dev: { command: 'npm run admin' } },
+  }
+  const WEB_WRITES = [
+    'createRevision',
+    'createEndpoint',
+    'updateEndpointWeights',
+    'deleteEndpoint',
+    'deleteRevision',
+  ]
+
+  test('dry-run prints planned revisions and endpoints and changes nothing', async () => {
+    const run = setup({
+      webApps: WEB_APPS,
+      lambdaWeb: fakeLambdaWeb({
+        'svc-dev-web': deployedWebFunction(),
+        'svc-dev-admin': deployedWebFunction(),
+      }),
+      options: { 'local-only': ['admin'] },
+    })
+    const { result, human } = await runDevDryRun(run)
+    expect(exitCodeOf(result)).toBe(0)
+    expect(result.plan.web_app_changes).toEqual([
+      {
+        web_app: 'web',
+        mode: 'dev',
+        revisions: ['clone', 'dev'],
+        endpoints: ['sls-dev-fallback'],
+        main: 'dev_revision',
+      },
+      {
+        web_app: 'admin',
+        mode: 'local',
+        revisions: ['dev'],
+        endpoints: ['sls-dev-local'],
+        main: 'unchanged',
+      },
+    ])
+    expect(result.web_apps).toEqual([
+      { name: 'web', mode: 'dev' },
+      { name: 'admin', mode: 'local' },
+    ])
+    expect(checks(result.preflight)).toEqual(
+      expect.arrayContaining([
+        ['functions', true, undefined],
+        ['web_apps', true, undefined],
+      ]),
+    )
+    const text = human.map(([, line]) => line ?? '').join('\n')
+    expect(text).toContain(
+      'These changes will be made to 2 web apps (no CloudFormation deploy):\n  • web: create revisions clone and dev, and the endpoint sls-dev-fallback on the clone; main sends its traffic to the dev revision\n  • admin (--local-only): create a dev revision and the endpoint sls-dev-local; main is not changed',
+    )
+    expect(text).toMatch(/admin \(web app\)\s+local/)
+    expect(text).toMatch(/Web apps\s+2 of 2 web apps can run in Dev Mode/)
+    // Reads only: no Lambda Web write, no function or role change.
+    expect(
+      run.lambdaWeb.calls.filter(([op]) => WEB_WRITES.includes(op)),
+    ).toEqual([])
+    expect(run.lambdaWeb.calls.length).toBeGreaterThan(0)
+    expect(writes(run)).toEqual([])
+    expect(
+      [...run.lambdaWeb.state.values()].map((web) => [
+        [...web.revisions.keys()],
+        [...web.endpoints.keys()],
+      ]),
+    ).toEqual([
+      [['rev-cfn'], ['main']],
+      [['rev-cfn'], ['main']],
+    ])
+  })
+
+  test('a service of web apps alone passes without a functions check; an undeployed web app is named', async () => {
+    const run = setup({
+      functions: {},
+      live: {},
+      webApps: WEB_APPS,
+      lambdaWeb: fakeLambdaWeb({ 'svc-dev-web': deployedWebFunction() }),
+    })
+    const { result } = await runDevDryRun(run)
+    expect(exitCodeOf(result)).toBe(0)
+    expect(result.preflight.map(({ check }) => check)).not.toContain(
+      'functions',
+    )
+    expect(result.web_apps).toEqual([
+      { name: 'web', mode: 'dev' },
+      {
+        name: 'admin',
+        mode: 'skipped',
+        reason: 'not_deployed',
+        why: 'not deployed yet (run serverless deploy)',
+      },
+    ])
+  })
+
+  test('nothing that can run: the check names functions and web apps', async () => {
+    const run = setup({
+      functions: { report: { runtime: 'java21' } },
+      live: { 'svc-dev-report': { Runtime: 'java21' } },
+      webApps: { web: {} },
+      lambdaWeb: fakeLambdaWeb(),
+    })
+    const { result } = await runDevDryRun(run)
+    expect(result).toMatchObject({
+      status: 'error',
+      reason: 'nothing_to_attach',
+      message:
+        'No function or web app in this service can run in Dev Mode. The table says why for each one.',
+    })
+  })
+
+  const denied = () =>
+    Object.assign(new Error('User is not authorized'), {
+      name: 'AccessDeniedException',
+      $metadata: { httpStatusCode: 403 },
+    })
+  const deniedWeb = () => {
+    const lambdaWeb = fakeLambdaWeb({ 'svc-dev-web': deployedWebFunction() })
+    lambdaWeb.failures.listEndpoints = [denied(), denied(), denied()]
+    lambdaWeb.failures.getEndpoint = [denied(), denied(), denied()]
+    return lambdaWeb
+  }
+
+  test('web functions it may not read: web apps alone fail the web_apps check; beside functions it passes, noted', async () => {
+    const alone = await runDevDryRun(
+      setup({
+        functions: {},
+        live: {},
+        webApps: { web: { dev: { command: 'npm run dev' } } },
+        lambdaWeb: deniedWeb(),
+      }),
+    )
+    // A person must grant the permission: action_required, as every denial.
+    expect(alone.result).toMatchObject({
+      status: 'action_required',
+      reason: 'permission_denied',
+    })
+    expect(alone.result.message).toContain('lambda:ListWebFunctionEndpoints')
+    expect(checks(alone.result.preflight).at(-1)).toEqual([
+      'web_apps',
+      false,
+      'permission_denied',
+    ])
+    const mixed = await runDevDryRun(
+      setup({
+        webApps: { web: { dev: { command: 'npm run dev' } } },
+        lambdaWeb: deniedWeb(),
+      }),
+    )
+    expect(exitCodeOf(mixed.result)).toBe(0)
+    expect(
+      mixed.result.preflight.find(({ check }) => check === 'web_apps'),
+    ).toEqual({
+      check: 'web_apps',
+      ok: true,
+      reason: 'web_apps_unreadable',
+      message:
+        'the web functions could not be read: web apps run the deployed code, functions run here',
+    })
+    expect(mixed.result.web_apps).toEqual([
+      expect.objectContaining({
+        name: 'web',
+        mode: 'deployed',
+        reason: 'lambda_web_denied',
+      }),
+    ])
+    expect(mixed.result.plan).not.toHaveProperty('web_app_changes')
+  })
+
+  test('a stage not deployed yet: web apps are attached after the first deployment, and none is read', async () => {
+    const lambdaWeb = fakeLambdaWeb()
+    const { result } = await runDevDryRun(
+      setup({
+        stackExists: false,
+        webApps: {
+          web: { dev: { command: 'npm run dev' } },
+          docs: { entry: '.next/standalone/server.js' },
+          admin: { dev: { command: 'npm run admin' } },
+        },
+        options: { 'skip-web-app': ['admin'] },
+        lambdaWeb,
+      }),
+    )
+    expect(exitCodeOf(result)).toBe(0)
+    expect(lambdaWeb.calls).toEqual([])
+    expect(result.web_apps).toEqual([
+      { name: 'web', mode: 'dev', why: 'attached after the first deployment' },
+      expect.objectContaining({
+        name: 'docs',
+        mode: 'deployed',
+        reason: 'build_output_entry',
+      }),
+      {
+        name: 'admin',
+        mode: 'deployed',
+        reason: 'not_selected',
+        why: 'not selected (--skip-web-app)',
+      },
+    ])
+    expect(result.plan.first_deploy).toBe(true)
+    expect(result.plan).not.toHaveProperty('web_app_changes')
+  })
+
+  test('a role whose trust lists functions only is planned to be widened for the web apps', async () => {
+    const run = setup({
+      webApps: { web: { dev: { command: 'npm run dev' } } },
+      lambdaWeb: fakeLambdaWeb({ 'svc-dev-web': deployedWebFunction() }),
+    })
+    const name = 'serverless-dev-broker-us-east-1'
+    const at = {
+      identity: { accountId: ACCOUNT, partition: 'aws' },
+      region: 'us-east-1',
+    }
+    await createBroker({ iam: run.iam, name, ...at })
+    const role = run.iam.roles.get(name)
+    role.AssumeRolePolicyDocument = JSON.stringify(
+      buildTrustPolicy({ ...at, externalId: 'ab'.repeat(16), web: false }),
+    )
+    run.iam.calls.length = 0
+    const { result, human } = await runDevDryRun(run)
+    expect(result.plan.account_setup).toEqual(
+      expect.arrayContaining([{ action: 'widen_broker_trust', name }]),
+    )
+    expect(human.map(([, text]) => text).join('\n')).toContain(
+      `  • let web apps use IAM role ${name} (adds their web functions to its trust policy)`,
+    )
+    expect(writes(run)).toEqual([])
+    // A role that already serves web apps, or web apps that do not run here: no widening.
+    const skipped = await runDevDryRun({
+      ...run,
+      options: { 'skip-web-app': ['web'] },
+    })
+    expect(
+      skipped.result.plan.account_setup.map((step) => step.action),
+    ).not.toContain('widen_broker_trust')
+  })
+
+  test('web apps alone, none of which can run: the web_apps check fails', async () => {
+    const { result } = await runDevDryRun(
+      setup({
+        functions: {},
+        live: {},
+        webApps: { web: { dev: { command: 'npm run dev' } } },
+        lambdaWeb: fakeLambdaWeb(),
+      }),
+    )
+    expect(checks(result.preflight).at(-1)).toEqual([
+      'web_apps',
+      false,
+      'nothing_to_attach',
+    ])
+    expect(result.message).toBe(
+      'No function or web app in this service can run in Dev Mode. The table says why for each one.',
+    )
+  })
+
+  test('a functions-only service has no web app fields in its result', async () => {
+    const { result } = await runDevDryRun(setup())
+    expect(result).not.toHaveProperty('web_apps')
+    expect(result.plan).not.toHaveProperty('web_app_changes')
+    expect(result.preflight.map(({ check }) => check)).not.toContain('web_apps')
+  })
 })

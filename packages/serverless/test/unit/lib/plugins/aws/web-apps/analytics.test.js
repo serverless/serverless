@@ -133,6 +133,17 @@ describe('buildWebAppsAnalytics', () => {
     })
   })
 
+  test('analytics counts devCommand', () => {
+    expect(
+      buildWebAppsAnalytics({
+        webApps: {
+          a: { entry: 'a.js', dev: { command: 'npm run dev' } },
+          b: { entry: 'b.js' },
+        },
+      }).webApps.explicit,
+    ).toEqual({ devCommand: 1 })
+  })
+
   test('bundled follows the esbuild selection rules for each web app', () => {
     const serviceDir = serviceDirWith('a.ts', 'b.js', 'c.ts')
     const webApps = {

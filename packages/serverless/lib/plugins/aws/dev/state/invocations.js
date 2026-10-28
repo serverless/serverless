@@ -2,14 +2,14 @@
  * The record of every invocation that runs on this machine: one JSON file per invocation under
  * `.serverless/dev/invocations/<function>/<unix seconds>-<request id>.json` (redacted, bodies cut
  * at BODY_INLINE_BYTES, at most INVOCATION_FILES_PER_FUNCTION files per function and
- * INVOCATION_BYTES_PER_SERVICE in all, oldest removed first), `invocation.start` and
- * `invocation.end` records in the event log, and, in memory only, the raw events of the latest
- * invocations for `dev replay`. It has the invocation output's interface (`start`, `log`, `end`,
- * `workerExited`) and runs beside it. Never written: the function's environment, credentials, the
- * Lambda-Runtime headers other than the request id and deadline, and the session key.
+ * INVOCATION_BYTES_PER_SERVICE in all with the web request files, oldest removed first),
+ * `invocation.start` and `invocation.end` records in the event log, and, in memory only, the raw
+ * events of the latest invocations for `dev replay`. It has the invocation output's interface
+ * (`start`, `log`, `end`, `workerExited`) and runs beside it. Never written: the function's
+ * environment, credentials, the Lambda-Runtime headers other than the request id and deadline, and
+ * the session key.
  */
 import nodeFs from 'fs'
-import path from 'path'
 import {
   FILES,
   REQUEST_ID_PREFIX_MIN,
@@ -18,16 +18,9 @@ import {
   invocationRecordPath,
 } from './paths.js'
 import { cutText } from './events.js'
-import { invocationFilesIn } from './read.js'
+import { RECORD_BYTES_PER_SERVICE, createRecordFiles } from './record-files.js'
 import { redactEvent, redactResponse } from './redact.js'
-import {
-  LINKED_DIR_CODE,
-  ensureRealDir,
-  isRealDir,
-  isRegularFile,
-  temporaryNameOf,
-  writeNewFile,
-} from './real-dir.js'
+import { LINKED_DIR_CODE } from './real-dir.js'
 import { TIMED_OUT } from '../local/replies.js'
 import {
   callerReceived,
@@ -39,7 +32,8 @@ import {
 } from '../local/invocation-output.js'
 
 export const INVOCATION_FILES_PER_FUNCTION = 500
-export const INVOCATION_BYTES_PER_SERVICE = 200 * 1024 * 1024
+// Shared with the web request files (record-files.js).
+export const INVOCATION_BYTES_PER_SERVICE = RECORD_BYTES_PER_SERVICE
 export const BODY_INLINE_BYTES = 1024 * 1024
 export const LOG_LINES_PER_INVOCATION = 1_000
 export const LOG_BYTES_PER_INVOCATION = 256 * 1024
@@ -195,34 +189,6 @@ const statusCodeOf = ({
   return errorStatusCode(event)
 }
 
-const byAge = (a, b) => a.seconds - b.seconds || a.name.localeCompare(b.name)
-
-/**
- * The files already kept (the readers' scan, with sizes), oldest first:
- * `{ fnDir, name, seconds, bytes }`. Only regular files count (never a link).
- */
-const scanKept = (fs, dir) => {
-  const kept = []
-  for (const item of invocationFilesIn({ dir, fs })) {
-    try {
-      const stats = fs.lstatSync(
-        path.join(dir, FILES.invocations, item.fnDir, item.name),
-      )
-      if (!stats.isFile()) continue
-      const size = stats.size
-      kept.push({
-        fnDir: item.fnDir,
-        name: item.name,
-        seconds: item.seconds,
-        bytes: size,
-      })
-    } catch {
-      // Removed meanwhile.
-    }
-  }
-  return kept.sort(byAge)
-}
-
 /**
  * `dir` is the session's `.serverless/dev` directory; `events` its event log; `functions` maps each
  * function key to `{ name, memoryMb }` (its deployed name and memory, for the file's `context`);
@@ -242,15 +208,23 @@ export const createInvocationRecorder = ({
   onError = () => {},
   // Called once, with a line, when a directory of the record is a link (nothing is recorded then).
   onWarning = () => {},
+  // The shared record files (record-files.js); one of its own otherwise.
+  files = null,
 }) => {
   const limit = { ...DEFAULT_LIMITS, ...limits }
-  const root = path.join(dir, FILES.invocations)
   const running = new Map()
   // Raw events for replay, oldest first (a Map keeps insertion order).
   const raw = new Map()
   let rawBytes = 0
-  let kept = null
-  let keptBytes = 0
+  // The files of the record, shared with the session's request recorder when it passes them.
+  const store =
+    files ??
+    createRecordFiles({
+      dir,
+      fs,
+      bytesPerService: limit.bytesPerService,
+      onError,
+    })
   let last = null
   const totals = { total: 0, errors: 0 }
   // Replays this session runs (`serverless dev replay`): request id → the id it replays.
@@ -281,101 +255,18 @@ export const createInvocationRecorder = ({
     }
   }
 
-  /**
-   * Removes a kept file: only a regular file, in a function directory that is a real one. Returns
-   * whether it no longer counts: deleted, already gone, or not a file of the record. A file that
-   * could not be deleted (one another process holds open, on Windows) stays counted, and a later
-   * prune tries it again.
-   */
-  const remove = (item) => {
-    const file = path.join(root, item.fnDir, item.name)
-    try {
-      if (
-        isRealDir({ dir, sub: [FILES.invocations, item.fnDir], fs }) &&
-        isRegularFile(fs, file)
-      ) {
-        fs.rmSync(file, { force: true })
-      }
-    } catch (error) {
-      if (error?.code !== 'ENOENT') {
-        onError(error)
-        return false
-      }
-    }
-    keptBytes -= item.bytes
-    return true
-  }
-  /**
-   * Keeps at most `filesPerFunction` files per function and `bytesPerService` in all, oldest
-   * first, and never the file just `written`: its record names it (an invocation that started
-   * before another may end after it).
-   */
-  const prune = (written) => {
-    const others = kept.filter((item) => item !== written)
-    const ofFunction = others.filter((item) => item.fnDir === written.fnDir)
-    const over = new Set(
-      ofFunction.slice(
-        0,
-        Math.max(0, ofFunction.length + 1 - limit.filesPerFunction),
-      ),
-    )
-    const removed = new Set()
-    for (const item of over) if (remove(item)) removed.add(item)
-    for (const item of others) {
-      if (keptBytes <= limit.bytesPerService) break
-      if (over.has(item)) continue
-      if (remove(item)) removed.add(item)
-    }
-    kept = kept.filter((item) => !removed.has(item))
-  }
-
   /** Writes the file (whole or not at all) and returns its record path, or null. */
   const write = ({ functionKey, startedAtMs, requestId, content }) => {
-    let temporary = null
-    // The kept file this write replaces, once it was removed to make way (see below).
-    let removed = null
     try {
-      if (!kept) {
-        // Files of earlier sessions count too: read once, then kept up to date here.
-        kept = scanKept(fs, dir)
-        keptBytes = kept.reduce((sum, item) => sum + item.bytes, 0)
-      }
-      const fnDir = fnDirOf(functionKey)
       const name = invocationFileName({ startedAtMs, requestId })
-      const folder = ensureRealDir({
-        dir,
-        sub: [FILES.invocations, fnDir],
-        fs,
-      })
-      const file = path.join(folder, name)
-      const text = `${JSON.stringify(content, null, 2)}\n`
-      temporary = temporaryNameOf(file)
-      writeNewFile(fs, temporary, text)
-      try {
-        fs.renameSync(temporary, file)
-      } catch {
-        // Windows does not replace an existing file in a rename (an asynchronous retry keeps
-        // its request id and may start in the same second).
-        fs.rmSync(file, { force: true })
-        removed = { fnDir, name }
-        fs.renameSync(temporary, file)
-      }
-      temporary = null
-      const previous = kept.findIndex(
-        (item) => item.fnDir === fnDir && item.name === name,
-      )
-      if (previous !== -1) keptBytes -= kept.splice(previous, 1)[0].bytes
-      const size = Buffer.byteLength(text)
-      const written = {
-        fnDir,
+      store.write({
+        tree: FILES.invocations,
+        group: fnDirOf(functionKey),
         name,
         seconds: Math.floor(startedAtMs / 1000),
-        bytes: size,
-      }
-      kept.push(written)
-      keptBytes += size
-      kept.sort(byAge)
-      prune(written)
+        content,
+        perGroup: limit.filesPerFunction,
+      })
       return invocationRecordPath({ functionKey, fileName: name })
     } catch (error) {
       if (error?.code !== LINKED_DIR_CODE) onError(error)
@@ -384,21 +275,6 @@ export const createInvocationRecorder = ({
         onWarning(
           `Dev Mode keeps no invocation files: ${error.message}. Replace the link with a directory to keep them.`,
         )
-      }
-      // The file it replaced is gone even though this one could not take its place.
-      const gone = removed
-        ? kept.findIndex(
-            (item) =>
-              item.fnDir === removed.fnDir && item.name === removed.name,
-          )
-        : -1
-      if (gone !== -1) keptBytes -= kept.splice(gone, 1)[0].bytes
-      if (temporary) {
-        try {
-          fs.rmSync(temporary, { force: true })
-        } catch {
-          // The write already failed and onError has it.
-        }
       }
       return null
     }

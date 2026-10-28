@@ -275,6 +275,45 @@ describe('webApps schema', () => {
     ).toMatch(/unrecognized property 'logFormat'/)
   })
 
+  it('accepts dev.command string', async () => {
+    expect(
+      await validate({
+        api: { entry: 'src/server.ts', dev: { command: 'npm run dev' } },
+      }),
+    ).toBeNull()
+  })
+
+  it('rejects dev without command', async () => {
+    expect(
+      await validate({ api: { entry: 'src/server.ts', dev: {} } }),
+    ).toMatch(/webApps\.api\.dev.*command/)
+  })
+
+  it('rejects empty dev.command', async () => {
+    expect(
+      await validate({ api: { entry: 'src/server.ts', dev: { command: '' } } }),
+    ).toMatch(/webApps\.api\.dev\.command/)
+  })
+
+  it('rejects a dev.command of only whitespace', async () => {
+    expect(
+      await validate({
+        api: { entry: 'src/server.ts', dev: { command: ' \t ' } },
+      }),
+    ).toMatch(/webApps\.api\.dev\.command/)
+  })
+
+  it('rejects unknown key under dev (dev.port)', async () => {
+    expect(
+      await validate({
+        api: {
+          entry: 'src/server.ts',
+          dev: { command: 'npm run dev', port: 3000 },
+        },
+      }),
+    ).toMatch(/unrecognized property 'port'/)
+  })
+
   it('rejects an unknown web app key', async () => {
     expect(
       await validate({ api: { entry: 'src/server.ts', memorySize: 1024 } }),

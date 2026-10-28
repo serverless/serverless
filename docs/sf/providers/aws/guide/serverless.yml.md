@@ -1728,7 +1728,7 @@ sandboxes:
 
 ## Web Apps (Lambda Web Functions)
 
-Run HTTP servers (Express, Fastify, Hono, Next.js) as [AWS Lambda Web Functions](./web-apps.md) alongside your Lambda functions. The `webApps` top-level property defines one or more web apps, each an HTTP server that listens on `process.env.PORT`. `serverless deploy` packages each one (bundling TypeScript with esbuild), deploys it with its own HTTPS endpoint and log groups, and prints the endpoint URL; `serverless invoke --web-app <name>` and `serverless logs --web-app <name>` operate on it. Web apps inherit `provider.environment`, `iam`, `vpc`, `tags`, `kmsKeyArn`, `logRetentionInDays`, `logDataProtectionPolicy`, the `provider.logs.lambda` log levels, an explicitly set `provider.timeout`, and `provider.runtime` when it is `nodejs24.x` or newer. See the [complete documentation](./web-apps.md) for all options.
+Run HTTP servers (Express, Fastify, Hono, Next.js) as [AWS Lambda Web Functions](./web-apps.md) alongside your Lambda functions. The `webApps` top-level property defines one or more web apps, each an HTTP server that listens on `process.env.PORT`. `serverless deploy` packages each one (bundling TypeScript with esbuild), deploys it with its own HTTPS endpoint and log groups, and prints the endpoint URL; `serverless invoke --web-app <name>` and `serverless logs --web-app <name>` operate on it, and `serverless dev` runs it on your machine. Web apps inherit `provider.environment`, `iam`, `vpc`, `tags`, `kmsKeyArn`, `logRetentionInDays`, `logDataProtectionPolicy`, the `provider.logs.lambda` log levels, an explicitly set `provider.timeout`, and `provider.runtime` when it is `nodejs24.x` or newer. See the [complete documentation](./web-apps.md) for all options.
 
 ```yml
 # serverless.yml
@@ -1813,6 +1813,11 @@ webApps:
       # optional, a prebuilt zip deployed as it is (the server reads AWS_LAMBDA_HTTP_ENDPOINT itself);
       # a local path or an s3://bucket/key URI, downloaded when packaging
       artifact: build/orders.zip
+    # optional, how serverless dev runs the web app on your machine (default: entry, run from source)
+    dev:
+      # required with dev: a command line run in your shell from the service directory, like an npm script;
+      # PORT and HOSTNAME are set (next dev takes the host as --hostname). Needed when entry is a build output
+      command: next dev --hostname 127.0.0.1
     # optional, the web app's endpoint: true (public, the default) or its settings; false is not accepted
     url:
       # optional, aws_iam requires SigV4-signed requests (default: public)

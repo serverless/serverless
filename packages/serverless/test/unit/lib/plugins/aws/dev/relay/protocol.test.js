@@ -7,6 +7,7 @@ import {
   MAX_MESSAGE_BYTES,
   PROTOCOL_VERSION,
   STREAM_CHUNK_BYTES,
+  WEB_BODY_BYTES,
   bridgeClientId,
   createOpener,
   createSealer,
@@ -35,6 +36,7 @@ describe('the relay wire format', () => {
     expect(MAX_MESSAGE_BYTES).toBe(129024)
     expect(STREAM_CHUNK_BYTES).toBe(102400)
     expect(FRAME_OVERHEAD_BYTES).toBe(33)
+    expect(WEB_BODY_BYTES).toBe(65536)
     expect(Object.isFrozen(KIND)).toBe(true)
     expect(KIND).toEqual({
       INVOKE: 'invoke',
@@ -53,7 +55,33 @@ describe('the relay wire format', () => {
       GONE: 'gone',
       PAYLOAD: 'payload',
       PASSED: 'passed',
+      REQUEST: 'request',
+      RESPONSE_START: 'response_start',
     })
+  })
+
+  test('a web request and its response start fit one message with room for the headers', () => {
+    const request = {
+      kind: KIND.REQUEST,
+      env: 'e0123456789ab',
+      fn: 'svc-dev-web',
+      id: 'r0123456789abcdef',
+      sentAt: 1_700_000_000_000,
+      method: 'POST',
+      path: '/upload',
+      headers: { 'content-type': 'application/octet-stream' },
+    }
+    expect(fitsOneMessage(request, Buffer.alloc(WEB_BODY_BYTES))).toBe(true)
+    const seal = createSealer({ key: Buffer.alloc(32, 1) })
+    const open = createOpener({ key: Buffer.alloc(32, 1) })
+    const start = {
+      kind: KIND.RESPONSE_START,
+      id: request.id,
+      status: 200,
+      headers: { 'set-cookie': ['a=1', 'b=2'] },
+    }
+    const opened = open('t', seal('t', start))
+    expect(opened.header).toEqual(start)
   })
 
   test('the shared vector of a count report decodes to its header and body', () => {

@@ -1,7 +1,7 @@
 {
   "serverless-dev-mode": {
-    "version": 1,
-    "hash": "774e180426c86c7ce645e6749c1ceb29b48a653a88997e07d6ed5b54798fa06e"
+    "version": 2,
+    "hash": "0bd0807b7b6fa1856954223c482d572ac3e9f62d6c1751fb3cdd1f8fa42bacf4"
   },
   "serverless-framework": {
     "version": 5,

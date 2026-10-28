@@ -4,6 +4,9 @@
  * once and never edited per session: any IAM principal of this account whose credentials Lambda
  * issued to a function in this region, and who knows the per-broker ExternalId (attached
  * functions carry it). Its own permissions are what a bridge does (see `buildPermissionPolicy`).
+ * Web functions (web apps) have their own ARNs: the trust lists them too, as a role created now
+ * does; a role an earlier release created lists functions only, and is widened once, by the first
+ * session with web apps (see `widenBrokerTrust`) or by "serverless dev setup".
  *
  * The principal is "*", so the conditions are the only guard: an existing role is used only when
  * its trust policy still means exactly what Dev Mode wrote (see `trustPolicyDifferences`).
@@ -45,7 +48,21 @@ export const identityFrom = ({ accountId, callerArn }) => {
   }
 }
 
-export const buildTrustPolicy = ({ identity, region, externalId }) => ({
+/** The `lambda:SourceFunctionArn` the trust lists: functions, and web functions with `web`. */
+const sourceArns = ({ identity, region, web }) => {
+  const lambda = `arn:${identity.partition}:lambda:${region}:${identity.accountId}`
+  return web
+    ? [`${lambda}:function:*`, `${lambda}:web-function/*`]
+    : `${lambda}:function:*`
+}
+
+/** The trust policy; `web: false` is the one earlier releases wrote, for functions only. */
+export const buildTrustPolicy = ({
+  identity,
+  region,
+  externalId,
+  web = true,
+}) => ({
   Version: '2012-10-17',
   Statement: [
     {
@@ -59,7 +76,7 @@ export const buildTrustPolicy = ({ identity, region, externalId }) => ({
           'sts:ExternalId': externalId,
         },
         ArnLike: {
-          'lambda:SourceFunctionArn': `arn:${identity.partition}:lambda:${region}:${identity.accountId}:function:*`,
+          'lambda:SourceFunctionArn': sourceArns({ identity, region, web }),
         },
       },
     },
@@ -74,10 +91,12 @@ export const buildTrustPolicy = ({ identity, region, externalId }) => ({
  * and asks Direct Messaging whether the session's CLI (`sls-dev-<session>-cli`) is connected, on
  * the session's `ping` topic. So the role can never take a CLI's client id, receive `up` (other
  * functions' events and credentials), or publish on `down`, `gone` or `ping`. AWS IoT Core checks
- * iot:Receive per delivered message, whatever filter matched it.
+ * iot:Receive per delivered message, whatever filter matched it. From version 2, a web app's
+ * bridge sends the requests the machine does not take to the web function's Dev Mode endpoint
+ * `sls-dev-fallback`.
  *
  * Every statement id carries the policy's version (see BROKER_POLICY_NAME); `version` stands in
- * another version in tests.
+ * another version in tests, and version 1 is the policy as version 1 wrote it.
  */
 export const buildPermissionPolicy = ({
   identity,
@@ -85,6 +104,7 @@ export const buildPermissionPolicy = ({
   version = BROKER_POLICY_VERSION,
 }) => {
   const iot = `arn:${identity.partition}:iot:${region}:${identity.accountId}`
+  const lambda = `arn:${identity.partition}:lambda:${region}:${identity.accountId}`
   const sid = (name) => `${SID_PREFIX}${version}${name}`
   return {
     Version: '2012-10-17',
@@ -132,10 +152,23 @@ export const buildPermissionPolicy = ({
         Resource: `${iot}:client/sls-dev-*-cli`,
         Condition: { StringLike: { 'iot:Topic': 'sls-dev/*/ping' } },
       },
+      ...(version >= 2
+        ? [
+            {
+              Sid: sid('InvokeFallback'),
+              Effect: 'Allow',
+              Action: 'lambda:InvokeWebFunctionEndpoint',
+              Resource: `${lambda}:web-function/*/endpoint/sls-dev-fallback`,
+            },
+          ]
+        : []),
     ],
   }
 }
 
+/** The broker role's IAM description, as Dev Mode creates it. */
+export const BROKER_ROLE_DESCRIPTION =
+  'Serverless Framework Dev Mode: lets Lambda functions attached to a Dev Mode session reach AWS IoT Core.'
 const SID_PREFIX = 'DevModeBrokerV'
 // The version is the digits right after the prefix, up to the statement's name, which starts with
 // a capital letter; whatever the name holds after that (digits too) is not the version.
@@ -171,6 +204,15 @@ const statementsOf = (role) =>
   list(parseDocument(role.AssumeRolePolicyDocument ?? '{}').Statement)
 const externalIdsOf = (statement) =>
   sortedValues(statement?.Condition?.StringEquals?.['sts:ExternalId'])
+
+const sourceArnsOf = (statement) =>
+  sortedValues(statement?.Condition?.ArnLike?.['lambda:SourceFunctionArn'])
+
+/** Whether the broker's trust lets web functions assume it, besides functions. */
+export const trustIsWidened = (role) =>
+  sourceArnsOf(statementsOf(role).find((s) => s.Sid === BROKER_TRUST_SID)).some(
+    (arn) => arn.includes(':web-function/'),
+  )
 
 export const readExternalId = (role) => {
   const ours = statementsOf(role).find((s) => s.Sid === BROKER_TRUST_SID)
@@ -223,16 +265,21 @@ const allowsAssuming = (statement) =>
 
 /**
  * How the broker's trust policy differs from the one Dev Mode writes, in plain words; empty when
- * it is the same policy. Statements that only deny are tolerated: they can only narrow access.
+ * it is the same policy. Both forms Dev Mode writes are the same policy here: functions only, as
+ * earlier releases wrote it, and with web functions too. Statements that only deny are tolerated:
+ * they can only narrow access.
  */
 export const trustPolicyDifferences = ({ role, identity, region }) => {
   const statements = statementsOf(role)
   const ours = statements.find((s) => s.Sid === BROKER_TRUST_SID)
   const ids = externalIdsOf(ours)
+  // Compared with the form whose source patterns it lists; anything else with the widened one.
+  const narrow = sortedValues(sourceArns({ identity, region, web: false }))
   const expected = buildTrustPolicy({
     identity,
     region,
     externalId: ids[0] ?? null,
+    web: !same(sourceArnsOf(ours), narrow),
   }).Statement[0]
   const differences = []
   if (ours.Effect !== 'Allow') {
@@ -380,6 +427,7 @@ export const getBroker = async ({
     externalId: readExternalId(role),
     path: role.Path,
     created: false,
+    widened: trustIsWidened(role),
     createdAt: role.CreateDate ? new Date(role.CreateDate) : undefined,
   }
 }
@@ -469,6 +517,40 @@ const readBrokerPolicyState = async ({ iam, name, identity, region }) => {
     )
     ? 'present'
     : 'outdated'
+}
+
+/**
+ * Whether the broker's permission policy is the previous version's, as that version wrote it: it
+ * serves functions, so a session without web apps can run with it. False when IAM will not say.
+ */
+export const brokerPolicyIsPrevious = async ({
+  iam,
+  name,
+  identity,
+  region,
+}) => {
+  let raw
+  try {
+    raw = await iam.getRolePolicy(name, BROKER_POLICY_NAME)
+  } catch (error) {
+    if (isCredentialError(error)) throw credentialsInvalidError(error)
+    if (isAccessDenied(error)) return false
+    throw error
+  }
+  const stored = raw ? parsedOrNull(raw) : null
+  return (
+    policyVersionOf(stored) === BROKER_POLICY_VERSION - 1 &&
+    same(
+      policyMeaning(stored),
+      policyMeaning(
+        buildPermissionPolicy({
+          identity,
+          region,
+          version: BROKER_POLICY_VERSION - 1,
+        }),
+      ),
+    )
+  )
 }
 
 /** Whether a session puts the permission policy in place (`putBrokerPolicy`) before attaching. */
@@ -579,8 +661,7 @@ export const createBroker = async ({
     role = await iam.createRole({
       RoleName: name,
       Path: path,
-      Description:
-        'Serverless Framework Dev Mode: lets Lambda functions attached to a Dev Mode session reach AWS IoT Core.',
+      Description: BROKER_ROLE_DESCRIPTION,
       AssumeRolePolicyDocument: JSON.stringify(
         buildTrustPolicy({ identity, region, externalId }),
       ),
@@ -630,5 +711,54 @@ export const createBroker = async ({
   }
   // A role created now has no earlier policy.
   await putBrokerPolicy({ iam, name, arn: role.Arn, identity, region })
-  return { name, arn: role.Arn, externalId, path: role.Path, created: true }
+  return {
+    name,
+    arn: role.Arn,
+    externalId,
+    path: role.Path,
+    created: true,
+    widened: true,
+  }
+}
+
+/**
+ * Lets web functions assume an existing broker whose trust lists functions only: rewrites the
+ * Dev Mode statement as the widened one with the role's own ExternalId, so attached functions keep
+ * working, and keeps every other statement (deny statements an administrator added) as it is.
+ */
+export const widenBrokerTrust = async ({
+  iam,
+  name,
+  identity,
+  region,
+  externalId,
+}) => {
+  try {
+    const widened = buildTrustPolicy({ identity, region, externalId })
+    const role = await iam.getRole(name)
+    const current = role ? parseDocument(role.AssumeRolePolicyDocument) : {}
+    const statements = list(current.Statement)
+    const document = statements.some((s) => s.Sid === BROKER_TRUST_SID)
+      ? {
+          ...current,
+          Statement: statements.map((s) =>
+            s.Sid === BROKER_TRUST_SID ? widened.Statement[0] : s,
+          ),
+        }
+      : widened
+    await iam.updateAssumeRolePolicy({
+      RoleName: name,
+      PolicyDocument: JSON.stringify(document),
+    })
+  } catch (error) {
+    if (isCredentialError(error)) throw credentialsInvalidError(error)
+    if (isAccessDenied(error)) {
+      throw new ServerlessError(
+        `Dev Mode needs to let web apps use the IAM role ${name}, and your credentials can't update its trust policy (iam:UpdateAssumeRolePolicy). Ask an administrator to run "serverless dev setup --region ${region}".`,
+        'DEV_MODE_BROKER_UPDATE_DENIED',
+        originalOf(error),
+      )
+    }
+    throw error
+  }
 }

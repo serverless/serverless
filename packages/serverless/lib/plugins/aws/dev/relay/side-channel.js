@@ -53,6 +53,12 @@ export const objectTopic = (key) => `s3/${key}`
 export const stagePrefix = ({ service, stage }) =>
   `${SIDE_CHANNEL_ROOT}/${service}/${stage}/`
 
+/**
+ * The web bridge zips of one service and stage (one per build, named after its SHA-256): code
+ * that dev revisions are created from, kept across sessions, so a sweep never takes them.
+ */
+export const bridgePrefix = (scope) => `${stagePrefix(scope)}bridge/`
+
 // The header each PutObject encryption field travels in, for the presigned PUT the bridge sends:
 // the fields the shared mapping sets once SSE-C is refused.
 const ENCRYPTION_HEADERS = {
@@ -127,6 +133,7 @@ export const createSideChannel = ({
   const encryption = encryptionOf(deploymentBucket)
   if (encryption.refused) return disabledSideChannel(encryption.refused)
   const stageScope = stagePrefix({ service, stage })
+  const bridgeScope = bridgePrefix({ service, stage })
   const prefix = `${stageScope}${sessionId}/`
   const seal = createSealer({ key, randomBytes })
   const newKey = () => `${prefix}${randomBytes(16).toString('hex')}`
@@ -435,7 +442,8 @@ export const createSideChannel = ({
     },
     /**
      * Deletes every version and delete marker under `scope` older than `olderThanMs`: this
-     * session's prefix (the default) or its stage's, never anything wider. Returns the count.
+     * session's prefix (the default) or its stage's, never anything wider, and never the stage's
+     * web bridge zips (`bridgePrefix`). Returns the count.
      * `abortSignal`, when it aborts, ends the S3 request under way and the sweep with it.
      */
     async sweep({ scope = prefix, olderThanMs = 0, abortSignal } = {}) {
@@ -455,6 +463,7 @@ export const createSideChannel = ({
             .filter(
               (entry) =>
                 entry.Key?.startsWith(scope) &&
+                !entry.Key.startsWith(bridgeScope) &&
                 new Date(entry.LastModified).getTime() <= cutoff,
             )
             .map(({ Key, VersionId }) =>

@@ -37,9 +37,10 @@ export const refuseProtectedStage = (stage) => {
   }
 }
 
-export const nothingToAttachError = () =>
+/** `webApps`: the service has web apps, so the message names them too. */
+export const nothingToAttachError = ({ webApps = false } = {}) =>
   new ServerlessError(
-    'No function in this service can run in Dev Mode. The table above says why for each one.',
+    `No function${webApps ? ' or web app' : ''} in this service can run in Dev Mode. The table above says why for each one.`,
     'DEV_MODE_NOTHING_TO_ATTACH',
     { stack: false },
   )

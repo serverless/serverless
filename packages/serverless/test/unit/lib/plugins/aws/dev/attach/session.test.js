@@ -35,6 +35,7 @@ import {
 } from '../../../../../../../lib/plugins/aws/dev/local/hotkeys.js'
 import { handlerEnvironment } from '../../../../../../../lib/plugins/aws/dev/local/environment.js'
 import { STOP_HINT } from '../../../../../../../lib/plugins/aws/dev/attach/output.js'
+import { formatServiceOutputs } from '../../../../../../../lib/cli/write-service-outputs.js'
 import { layerDescription } from '../../../../../../../lib/plugins/aws/dev/attach/layer.js'
 import { buildPermissionPolicy } from '../../../../../../../lib/plugins/aws/dev/attach/broker.js'
 import { fakeTty } from '../local/tty.js'
@@ -155,7 +156,7 @@ const start = ({
   // What the keys reach in the laptop runtime.
   const laptop = {
     reloadNow: jest.fn(async () => {}),
-    toggleDetailed: jest.fn(() => true),
+    setDetailed: jest.fn((on) => on),
     runtime: {
       workers: () => [{ functionKey: 'api', pid: 4242, busy: false }],
     },
@@ -3219,8 +3220,31 @@ describe('a broker role whose permission policy is another version', () => {
     expect(await s.result).toBe(0)
   })
 
+  test('without iam:PutRolePolicy, a session runs its functions with the previous version and says so', async () => {
+    const { lambda, iam } = await brokerWith(
+      buildPermissionPolicy({ ...AT, version: 1 }),
+    )
+    iam.putRolePolicyError = Object.assign(
+      new Error('not authorized to perform: iam:PutRolePolicy'),
+      { name: 'AccessDenied' },
+    )
+    const s = start({ ...four, lambda, iam })
+    await s.whenReady
+    expect(updates(lambda)).toHaveLength(2)
+    expect(iam.policies.get(`${NAME}/serverless-dev-broker`)).toEqual(
+      buildPermissionPolicy({ ...AT, version: 1 }),
+    )
+    const text = s.logger.text()
+    expect(text).toContain(
+      `The IAM role ${NAME} has the permission policy of an earlier version of Dev Mode, which serves functions. An administrator can update it with "serverless dev setup --region us-east-1".`,
+    )
+    expect(text).not.toContain(`repaired IAM role ${NAME}`)
+    s.proc.emit('SIGINT', 'SIGINT')
+    expect(await s.result).toBe(0)
+  })
+
   test('a newer version is left as it is, with a debug line', async () => {
-    const theirs = buildPermissionPolicy({ ...AT, version: 2 })
+    const theirs = buildPermissionPolicy({ ...AT, version: 3 })
     const { lambda, iam } = await brokerWith(theirs)
     const s = start({ ...four, lambda, iam })
     await s.whenReady
@@ -4705,6 +4729,17 @@ describe('the session record', () => {
     plugins: [{ validated: { servers: [{ name: 'crm' }] } }],
   }
 
+  // The endpoint lines of `dev status` in an earlier CLI version: d86fb3f's `endpointLines`, as
+  // it was, over the same section renderer. It reads `endpoint_text` as strings.
+  const earlierStatusLines = ({ endpoints = [], mcp = [] } = {}) => {
+    const sections = []
+    if (endpoints.length === 1) sections.push(['endpoint', endpoints[0]])
+    if (endpoints.length > 1) sections.push(['endpoints', endpoints])
+    if (mcp.length === 1) sections.push(['mcp', mcp[0]])
+    if (mcp.length > 1) sections.push(['mcp', mcp])
+    return formatServiceOutputs(sections)
+  }
+
   test('the start names the endpoints and the MCP servers right after the ready line, and dev status lists both', async () => {
     const serviceDir = tempServiceDir()
     const s = start({
@@ -4720,8 +4755,8 @@ describe('the session record', () => {
     const ready = lines.findIndex((text) => text.startsWith('Dev Mode on ·'))
     expect(ready).toBeGreaterThan(-1)
     expect(lines.slice(ready + 1, ready + 3)).toEqual([
-      `endpoint: GET - ${REST}/items`,
-      `mcp: crm → ${REST}/crm/mcp`,
+      `endpoints:\n  GET /items  ${REST}/items`,
+      `mcp:\n  crm  ${REST}/crm/mcp`,
     ])
     const session = await connectToSession({ serviceDir })
     const { body } = await session.status()
@@ -4729,6 +4764,21 @@ describe('the session record', () => {
       { method: 'GET', url: `${REST}/items`, function: 'api' },
       { method: 'ANY', url: `${REST}/crm/mcp`, function: 'crm', mcp: true },
     ])
+    // The lines `deploy` and `info` print, in the shape an earlier CLI's `dev status` reads
+    // (strings, as d86fb3f's session wrote them), and the rows this CLI prints.
+    expect(body.endpoint_text).toEqual({
+      endpoints: [`GET - ${REST}/items`],
+      mcp: [`crm → ${REST}/crm/mcp`],
+    })
+    expect(earlierStatusLines(body.endpoint_text)).toEqual([
+      `endpoint: GET - ${REST}/items`,
+      `mcp: crm → ${REST}/crm/mcp`,
+    ])
+    expect(body.endpoint_rows).toEqual({
+      endpoints: [{ label: 'GET /items', url: `${REST}/items` }],
+      webAppUrls: [],
+      mcp: [{ name: 'crm', url: `${REST}/crm/mcp` }],
+    })
     s.proc.emit('SIGINT', 'SIGINT')
     expect(await s.result).toBe(0)
   })
@@ -4748,13 +4798,13 @@ describe('the session record', () => {
     await s.whenReady
     expect(s.serverless.pluginManager.spawned).toEqual(['deploy'])
     expect(s.logger.text()).toContain(
-      `endpoint: GET - ${REST}/items\nmcp: crm → ${REST}/crm/mcp`,
+      `endpoints:\n  GET /items  ${REST}/items\nmcp:\n  crm  ${REST}/crm/mcp`,
     )
     s.proc.emit('SIGINT', 'SIGINT')
     expect(await s.result).toBe(0)
   })
 
-  test('a REST API root and a function URL read as serverless info prints them, at the start and in dev status', async () => {
+  test('a REST API root and a function URL: the route by its method and path, the function URL by its function, at the start and in dev status', async () => {
     const FUNCTION_URL = 'https://xyz.lambda-url.us-east-1.on.aws/'
     const serviceDir = tempServiceDir()
     const s = start({
@@ -4772,7 +4822,7 @@ describe('the session record', () => {
       deps: { stackExists: undefined },
     })
     await s.whenReady
-    const block = `endpoints:\n  GET - ${REST}\n  web: ${FUNCTION_URL}`
+    const block = `endpoints:\n  GET /  ${REST}\n  web    ${FUNCTION_URL}`
     expect(s.logger.text()).toContain(block)
     const { result, human } = await runDevStatus({ serviceDir })
     expect(humanText(human)).toContain(block)
@@ -4830,7 +4880,7 @@ describe('the session record', () => {
       })
       await s.whenReady
       expect(asked).toEqual([{ ApiId: 'ext789' }])
-      const block = `endpoint: GET - ${EXTERNAL}/orders`
+      const block = `endpoints:\n  GET /orders  ${EXTERNAL}/orders`
       expect(s.logger.text()).toContain(block)
       const { result, human } = await runDevStatus({ serviceDir })
       expect(humanText(human)).toContain(block)
@@ -5916,7 +5966,7 @@ describe('keys at a terminal', () => {
     expect(s.logger.text()).toContain(KEY_HELP)
     expect(s.logger.text()).toContain(DETAILED_ON)
     expect(s.laptop.reloadNow).toHaveBeenCalledTimes(1)
-    expect(s.laptop.toggleDetailed).toHaveBeenCalledTimes(1)
+    expect(s.laptop.setDetailed.mock.calls).toEqual([[true]])
     // The in-memory record holds no stage, so the status line has none; two functions do not
     // run here, so the table follows.
     expect(s.logger.text()).toContain(

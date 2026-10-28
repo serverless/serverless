@@ -34,6 +34,8 @@ export const createRestore = ({
   signalled,
   isExiting = () => false,
   onExiting = () => {},
+  // The session's web apps (session-web.js createWebAttach), restored alongside the functions.
+  webApps = null,
 }) => {
   // Restore runs at most once per session: a failure after it (a failed --on-exit remove) must
   // not restore and report a second time. `beforeReport()` runs after the functions are restored
@@ -55,7 +57,8 @@ export const createRestore = ({
   }
   const restoreOnce = async (beforeReport) => {
     const names = [...touched]
-    if (names.length === 0) {
+    const webKeys = webApps?.pending() ?? []
+    if (names.length === 0 && webKeys.length === 0) {
       await settle(beforeReport)
       if (signalled()) {
         main.remove()
@@ -64,13 +67,16 @@ export const createRestore = ({
       return { failed: [] }
     }
     const restoreStarted = now()
-    const progressOf = (done) =>
+    let webDone = 0
+    let functionsDone = 0
+    const progressOf = () =>
       out.restoringProgress({
-        done,
-        total: names.length,
+        done: functionsDone + webDone,
+        total: names.length + webKeys.length,
         stopping: Boolean(signalled()),
+        webApps: webKeys.length,
       })
-    main.notice(progressOf(0))
+    main.notice(progressOf())
     // A forced exit names what is still attached and exits: from then on no update starts (one
     // already sent finishes), so that list stays true.
     const lambda = {
@@ -80,24 +86,44 @@ export const createRestore = ({
           ? Promise.reject(new Error('Dev Mode is exiting'))
           : clients.lambda.updateFunctionConfiguration(params),
     }
-    const result = await within(
-      restoreFunctions({
-        lambda,
-        names,
-        onlySession: sessionId,
-        sleep,
-        now,
-        onProgress: ({ done, total, name, outcome }) => {
-          if (outcome.status !== 'failed') settled.add(name)
-          main.notice(progressOf(done))
-        },
-      }),
-      restoreTimeoutMs,
-      timers,
-    )
+    const functionsRestored = restoreFunctions({
+      lambda,
+      names,
+      onlySession: sessionId,
+      sleep,
+      now,
+      onProgress: ({ done, total, name, outcome }) => {
+        if (outcome.status !== 'failed') settled.add(name)
+        functionsDone = done
+        main.notice(progressOf())
+      },
+    })
+    // Web apps go back at the same time; the result is the functions', then the web apps'.
+    const restored = webKeys.length
+      ? Promise.all([
+          functionsRestored,
+          webApps.restore({
+            onProgress: ({ done }) => {
+              webDone = done
+              main.notice(progressOf())
+            },
+          }),
+        ]).then(([functions, web]) =>
+          Object.fromEntries(
+            Object.keys(functions).map((key) => [
+              key,
+              [...functions[key], ...(web[key] ?? [])],
+            ]),
+          ),
+        )
+      : functionsRestored
+    const result = await within(restored, restoreTimeoutMs, timers)
     main.remove()
     if (result === TIMED_OUT) {
-      const left = names.filter((name) => !settled.has(name))
+      const left = [
+        ...names.filter((name) => !settled.has(name)),
+        ...(webApps?.pending() ?? []).map(out.webAppName),
+      ]
       for (const line of out.restoreTimeoutLines(left, restoreTimeoutMs)) {
         logger.warning(line)
       }

@@ -1,5 +1,8 @@
 import { expect, test } from '@jest/globals'
-import { endpointsOf } from '../../../../../../../lib/plugins/aws/dev/control/endpoints.js'
+import {
+  endpointLabelOf,
+  endpointsOf,
+} from '../../../../../../../lib/plugins/aws/dev/control/endpoints.js'
 
 const serviceWith = (functions) => ({
   getAllFunctions: () => Object.keys(functions),
@@ -150,5 +153,28 @@ test('an HTTP API that provider.httpApi.id names lists its routes at the URL AWS
       url: 'https://ext.execute-api.us-east-1.amazonaws.com/orders',
       function: 'orders',
     },
+  ])
+})
+
+test('the start-up lines label a route by its method and path, a function URL by its function, and the other endpoints by their kind', () => {
+  const url = 'https://abc.execute-api.us-east-1.amazonaws.com/dev'
+  expect(
+    [
+      { kind: 'route', method: 'GET', path: '/hello', url: `${url}/hello` },
+      { kind: 'route', method: 'GET', path: '/', url },
+      { kind: 'route', method: 'ANY', path: '*', url },
+      { kind: 'other', url: 'wss://w.execute-api.us-east-1.amazonaws.com/dev' },
+      { kind: 'other', url: 'tcp://other.example' },
+      { kind: 'cloudfront', url: 'd111.cloudfront.net' },
+      { kind: 'function', name: 'stream', url: 'https://s.lambda-url.on.aws/' },
+    ].map(endpointLabelOf),
+  ).toEqual([
+    'GET /hello',
+    'GET /',
+    'ANY *',
+    'WebSocket',
+    '',
+    'CloudFront',
+    'stream',
   ])
 })

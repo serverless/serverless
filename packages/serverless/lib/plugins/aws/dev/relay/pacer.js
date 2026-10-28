@@ -14,6 +14,16 @@ export const MESSAGES_PER_SECOND = 45
 export const BYTES_PER_SECOND = 800 * 1024
 export const BYTE_BURST = 256 * 1024
 export const MAX_IN_FLIGHT = 50
+/**
+ * The pacing of a web app's relay on each end: a page load is many responses of up to 64 KiB
+ * frames at once, and AWS IoT Core lost frames of such loads at the functions' rate while it
+ * delivered them all at this one.
+ */
+export const WEB_PACING = Object.freeze({
+  messagesPerSecond: 45,
+  bytesPerSecond: 400 * 1024,
+  byteBurst: 128 * 1024,
+})
 
 export const createPacer = ({
   send, // (item) => Promise<void>: publishes one message
@@ -136,6 +146,7 @@ export const createPacer = ({
         const item = {
           topic,
           payload,
+          priority,
           deadline,
           expirySeconds,
           onDropped,

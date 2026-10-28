@@ -2,8 +2,8 @@ import { describe, expect, it, jest } from '@jest/globals'
 import getStackInfo from '../../../../../../lib/plugins/aws/info/get-stack-info.js'
 import display from '../../../../../../lib/plugins/aws/info/display.js'
 import {
-  endpointLinesOf,
   externalHttpApiEndpointOf,
+  stackEndpointEntriesOf,
 } from '../../../../../../lib/plugins/aws/info/endpoints.js'
 
 // `info --json` prints gatheredData as is, so every endpoint in it is a plain
@@ -111,16 +111,17 @@ describe('info endpoints', () => {
   })
 })
 
-// The same lines, from the helpers Dev Mode uses for its start-up lines and `dev status`.
-describe('info endpoint lines, from the stack outputs alone', () => {
+// The same endpoints as entries, from the helper Dev Mode uses for its start-up lines and
+// `dev status`.
+describe('info endpoint entries, from the stack outputs alone', () => {
   const FUNCTION_URL = 'https://xyz.lambda-url.us-east-1.on.aws/'
   const naming = plugin({ outputs: [] }).provider.naming
-  const linesOf = ({ functions, outputs }) => {
+  const entriesOf = ({ functions, outputs }) => {
     const { serverless } = plugin({ outputs, functions })
-    return endpointLinesOf({ serverless, outputs, naming })
+    return stackEndpointEntriesOf({ serverless, outputs, naming })
   }
 
-  it('are the lines displayEndpoints sets', async () => {
+  it('are the endpoints displayEndpoints lists, in its order', async () => {
     const functions = {
       root: { events: [{ http: 'GET /' }] },
       legacy: { events: [{ http: { method: 'post', path: '/a//b/' } }] },
@@ -149,18 +150,30 @@ describe('info endpoint lines, from the stack outputs alone', () => {
       'CloudFront - d111.cloudfront.net',
       `web: ${FUNCTION_URL}`,
     ])
-    expect(linesOf({ functions, outputs })).toEqual(displayed)
+    expect(entriesOf({ functions, outputs })).toEqual([
+      { kind: 'route', method: 'GET', path: '/', url: REST },
+      { kind: 'route', method: 'POST', path: '/a/b', url: `${REST}/a/b` },
+      {
+        kind: 'route',
+        method: 'GET',
+        path: '/orders/{id}',
+        url: `${HTTP_API}/orders/{id}`,
+      },
+      { kind: 'other', url: WEBSOCKET },
+      { kind: 'cloudfront', url: 'd111.cloudfront.net' },
+      { kind: 'function', name: 'web', url: FUNCTION_URL },
+    ])
   })
 
-  it('a lone function URL is a bare URL, as info prints it', () => {
+  it('a lone function URL keeps its name as an entry', () => {
     expect(
-      linesOf({
+      entriesOf({
         functions: { web: { url: true, events: [] } },
         outputs: [
           { OutputKey: 'webLambdaFunctionUrl', OutputValue: FUNCTION_URL },
         ],
       }),
-    ).toEqual([FUNCTION_URL])
+    ).toEqual([{ kind: 'function', name: 'web', url: FUNCTION_URL }])
   })
 })
 
@@ -211,13 +224,20 @@ describe('the HTTP API that provider.httpApi.id names', () => {
     const displayed = info.serverless.serviceOutputs.get('endpoint')
     expect(displayed).toBe(`GET - ${EXTERNAL_HTTP_API}/orders/{id}`)
     expect(
-      endpointLinesOf({
+      stackEndpointEntriesOf({
         serverless: info.serverless,
         outputs: [],
         naming: info.provider.naming,
         externalHttpApiEndpoint: EXTERNAL_HTTP_API,
       }),
-    ).toEqual([displayed])
+    ).toEqual([
+      {
+        kind: 'route',
+        method: 'GET',
+        path: '/orders/{id}',
+        url: `${EXTERNAL_HTTP_API}/orders/{id}`,
+      },
+    ])
   })
 
   it('a failed lookup still fails info as before', async () => {
@@ -298,12 +318,18 @@ describe('info endpoints: web apps', () => {
       'api: https://shop.example.com/api',
     ])
     expect(
-      endpointLinesOf({
+      stackEndpointEntriesOf({
         serverless: info.serverless,
         outputs,
         naming: info.provider.naming,
       }),
-    ).toEqual(displayed)
+    ).toEqual([
+      { kind: 'function', name: 'web', url: FUNCTION_URL },
+      { kind: 'webApp', name: 'shop', url: WEB_URL },
+      { kind: 'webApp', name: 'shop', url: 'https://shop.example.com' },
+      { kind: 'webApp', name: 'api', url: API_URL },
+      { kind: 'webApp', name: 'api', url: 'https://shop.example.com/api' },
+    ])
   })
 
   it('a lone web app endpoint prints as the bare URL', async () => {
@@ -313,12 +339,12 @@ describe('info endpoints: web apps', () => {
     info.displayEndpoints()
     expect(info.serverless.serviceOutputs.get('endpoint')).toBe(API_URL)
     expect(
-      endpointLinesOf({
+      stackEndpointEntriesOf({
         serverless: info.serverless,
         outputs,
         naming: info.provider.naming,
       }),
-    ).toEqual([API_URL])
+    ).toEqual([{ kind: 'webApp', name: 'api', url: API_URL }])
   })
 
   it('a lone function URL keeps its name when a web app is listed too', async () => {

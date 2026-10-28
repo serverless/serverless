@@ -15,6 +15,7 @@ import {
   countingTimers,
   fakeLog,
   fakeProvider,
+  fakeServerless,
   humanText,
 } from '../attach/fakes.js'
 import { runWithoutColor } from '../without-color.js'
@@ -120,6 +121,8 @@ const launch = ({
     dirs.push(made)
     return made
   })(),
+  // The service's configuration, as the Framework has it (web apps, functions).
+  config,
 } = {}) => {
   const spawn = jest.fn(() => child)
   const timers = countingTimers()
@@ -127,7 +130,9 @@ const launch = ({
   // The session as the control endpoint shows it, once there is one.
   const live = { client: null }
   const promise = runDetach({
-    serverless: { serviceDir: service, service: { service: 'orders' } },
+    serverless: config
+      ? { ...config, serviceDir: service }
+      : { serviceDir: service, service: { service: 'orders' } },
     provider: fakeProvider({ stage }),
     options: { detach: true, json: true, ...options },
     logger,
@@ -439,6 +444,60 @@ describe('serverless dev --detach', () => {
     const { result } = await running.promise
     expect(result.already_running).toBe(true)
     expect(result.message).toBeUndefined()
+  })
+
+  test('a running session with web apps reports them, counts them and names them in its table', async () => {
+    const webApps = [
+      {
+        name: 'web',
+        mode: 'dev',
+        url: 'https://main-web.example',
+        local_url: 'http://127.0.0.1:52001',
+      },
+      {
+        name: 'docs',
+        mode: 'skipped',
+        reason: 'not_deployed',
+        why: 'not deployed yet (run serverless deploy)',
+      },
+    ]
+    const running = launch({
+      deps: {
+        connect: async () =>
+          clientOf(sessionRecord({ state: 'on' }), {
+            state: 'on',
+            functions: FUNCTIONS,
+            web_apps: webApps,
+            cursor: `${SESSION}:9`,
+          }),
+      },
+    })
+    const { result, human } = await running.promise
+    expect(result.web_apps).toEqual(webApps)
+    expect(humanText(human)).toMatch(/docs \(web app\)\s+skipped/)
+    expect(human).toContainEqual([
+      'aside',
+      'Next: "serverless dev wait --for invocation" waits for an invocation, "serverless dev wait --for request" for a web app request; "serverless dev stop" restores your functions and web apps and ends the session.',
+    ])
+  })
+
+  test('a running session of web apps alone suggests waiting for a web app request', async () => {
+    const running = launch({
+      deps: {
+        connect: async () =>
+          clientOf(sessionRecord({ state: 'on' }), {
+            state: 'on',
+            functions: [],
+            web_apps: [{ name: 'web', mode: 'dev' }],
+            cursor: `${SESSION}:9`,
+          }),
+      },
+    })
+    const { human } = await running.promise
+    expect(human).toContainEqual([
+      'aside',
+      'Next: "serverless dev wait --for request" waits for a web app request; "serverless dev stop" restores your web apps and ends the session.',
+    ])
   })
 
   test('a running foreground session is already_running with no log file', async () => {
@@ -1102,6 +1161,42 @@ describe('serverless dev --detach', () => {
       ],
     ])
     expect(timersLeft).toBe(0)
+  })
+
+  test('a session still starting names what its stop restores: web apps that will run, functions', async () => {
+    const serviceOf = (functions, webApps) => {
+      const serverless = fakeServerless({ functions })
+      serverless.service.webApps = webApps
+      return serverless
+    }
+    const stopWhen = async ({ config, options }) => {
+      const { session, promise } = launch({
+        config,
+        options,
+        deps: { waitMs: 1_000 },
+      })
+      await session.started()
+      const { result, human } = await promise
+      return [result.next[1].when, human.at(-1)[1]]
+    }
+    // Web apps alone.
+    expect(await stopWhen({ config: serviceOf({}, { web: {} }) })).toEqual([
+      'to stop it and restore your web apps',
+      'Next: "serverless dev wait --for ready" waits until it is ready; "serverless dev stop" restores your web apps and ends the session.',
+    ])
+    // Functions and web apps; with every web app skipped, functions alone.
+    const mixed = serviceOf({ api: {} }, { web: {} })
+    expect((await stopWhen({ config: mixed }))[0]).toBe(
+      'to stop it and restore your functions and web apps',
+    )
+    expect(
+      (
+        await stopWhen({
+          config: mixed,
+          options: { 'skip-web-app': ['web'] },
+        })
+      )[0],
+    ).toBe('to stop it and restore your functions')
   })
 
   test('--approve without a terminal is approval_needs_terminal; nothing is planned or started', async () => {

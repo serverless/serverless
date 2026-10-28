@@ -2,7 +2,8 @@
  * `serverless dev stop [--keep] [--timeout <duration>] [--json]`: asks the session running in this
  * service directory (detached or in another terminal) to stop over its control endpoint, the same
  * way a first Ctrl+C does, then waits until its log says `session.ended` and reports the restore.
- * With `--keep` the session leaves its functions in Dev Mode (`--on-exit keep`). No session: exit 0.
+ * With `--keep` the session leaves its functions and web apps in Dev Mode (`--on-exit keep`). No
+ * session: exit 0.
  *
  * Only a session it can identify is stopped. A session file whose endpoint does not answer names a
  * session that is gone (its pid may be another process by now): nothing is signalled, and the
@@ -26,8 +27,10 @@ import { connectToSession } from '../control/client.js'
 import { processAlive } from '../local/leftovers.js'
 import { GLOBAL_TIMERS } from '../attach/session-support.js'
 import {
-  functionsWord,
+  attachedKindsOf,
+  countWord,
   restoredLine,
+  restoresWhat,
   sessionUnreachableLine,
 } from '../attach/output.js'
 import { durationText, parseDuration } from './duration.js'
@@ -133,25 +136,47 @@ const waitForEndpoint = async ({
   }
 }
 
+/** What some attach at a session's start did not do, by the kinds its records name. */
+const somethingNotAttached = (records) => {
+  const has = (type) => records.some((record) => record.type === type)
+  if (!has('web_app.mode')) return 'some function could not be attached'
+  return has('function.mode')
+    ? 'some function or web app could not be attached'
+    : 'some web app could not be attached'
+}
+
 /**
  * The result of a session that ended: from its `session.ended` and (on an error) `session.failed`.
  * `scope` is its session file: the restore it suggests names that session's stage and region.
  */
 const endedResult = (ended, sessionId, records, scope) => {
   const restore = { ...EMPTY_RESTORE, ...ended.restore }
-  const kept = Boolean(ended.kept)
+  // The web apps among them, when the session had any to restore.
+  const webApps = ended.web_apps && { ...EMPTY_RESTORE, ...ended.web_apps }
+  /**
+   * How many were `key` (restored, failed), in words: the web apps named apart from the functions.
+   */
+  const counted = (key) =>
+    countWord({
+      functions: restore[key] - (webApps?.[key] ?? 0),
+      webApps: webApps?.[key] ?? 0,
+    })
   const fields = {
     restore,
-    kept,
+    ...(webApps && { web_apps: webApps }),
+    kept: Boolean(ended.kept),
     exit_code: ended.exit_code,
     cursor: formatCursor(sessionId, ended.seq),
   }
+  const kept = fields.kept
+  // What it attached, as its records name it: `its functions`, `its web apps` or both.
+  const its = restoresWhat(attachedKindsOf(records), 'its')
   const reason = endReasonOf({ ended })
   if (reason === 'restore_incomplete') {
     return {
       status: 'error',
       reason: 'restore_incomplete',
-      message: `Dev Mode stopped, but ${functionsWord(restore.failed)} could not be restored.`,
+      message: `Dev Mode stopped, but ${counted('failed')} could not be restored.`,
       next: [restoreNext(scope)],
       ...fields,
     }
@@ -176,16 +201,16 @@ const endedResult = (ended, sessionId, records, scope) => {
       status: 'error',
       reason: 'attach_incomplete',
       message: kept
-        ? 'Dev Mode stopped and left its functions in Dev Mode; at its start some function could not be attached.'
-        : 'Dev Mode stopped and restored its functions; at its start some function could not be attached.',
+        ? `Dev Mode stopped and left ${its} in Dev Mode; at its start ${somethingNotAttached(records)}.`
+        : `Dev Mode stopped and restored ${its}; at its start ${somethingNotAttached(records)}.`,
       ...fields,
     }
   }
   return {
     status: 'ok',
     message: kept
-      ? 'Dev Mode stopped and left its functions in Dev Mode.'
-      : `Dev Mode off · ${functionsWord(restore.restored)} restored.`,
+      ? `Dev Mode stopped and left ${its} in Dev Mode.`
+      : `Dev Mode off · ${counted('restored')} restored.`,
     ...fields,
   }
 }
@@ -210,7 +235,10 @@ const doneEnded = (result) =>
   done(
     result,
     result.status === 'ok' && !result.kept
-      ? restoredLine({ count: result.restore.restored })
+      ? restoredLine({
+          count: result.restore.restored,
+          webApps: result.web_apps?.restored,
+        })
       : result.message,
   )
 
@@ -301,7 +329,7 @@ const stopSession = async ({
     if (ended) return doneEnded(endedResult(ended, sessionId, records, scope))
     return failed(
       'restore_incomplete',
-      `The Dev Mode session here (pid ${pid}) ended without restoring its functions.`,
+      `The Dev Mode session here (pid ${pid}) ended without restoring ${restoresWhat(attachedKindsOf(records), 'its')}.`,
       { next: [restoreNext(scope)] },
     )
   }
@@ -432,7 +460,7 @@ const stopSession = async ({
   }
   spinner.notice(
     keep
-      ? 'Stopping Dev Mode (functions stay in Dev Mode)'
+      ? `Stopping Dev Mode (${restoresWhat(attachedKindsOf(seen()), '').trim()} stay in Dev Mode)`
       : 'Restoring and stopping Dev Mode',
   )
   const outcome = await waitForEnd({
@@ -456,7 +484,7 @@ const stopSession = async ({
     return done({
       status: 'error',
       reason: 'restore_incomplete',
-      message: `The Dev Mode session here (pid ${pid}) ended without saying it restored its functions.`,
+      message: `The Dev Mode session here (pid ${pid}) ended without saying it restored ${restoresWhat(attachedKindsOf(seen()), 'its')}.`,
       next: [restoreNext(scope)],
       ...quiet,
       exit_code: null,

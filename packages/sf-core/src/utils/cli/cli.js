@@ -194,12 +194,13 @@ const normalizeRepeatableOptions = (command, options) => {
 }
 
 /**
- * "dev" and "dev restore": --function/-f and --skip-function are repeatable ("multiple" in the
- * Framework command schema), so a single value becomes a one-item array. -f is merged into
- * --function: mapping the shortcut to its full name would replace the values given with
- * --function instead of adding to them. Call it with the command that runs, once any Compose
- * service name is removed: before that, "serverless dev invoke -f hello" in a project with a
- * service named "dev" would look like Dev Mode. A second call changes nothing.
+ * "dev" and its subcommands: --function/-f, --skip-function, --web-app, --skip-web-app and
+ * --local-only are repeatable ("multiple" in the Framework command schema), so a single value
+ * becomes a one-item array. -f is merged into --function: mapping the shortcut to its full name
+ * would replace the values given with --function instead of adding to them. Call it with the
+ * command that runs, once any Compose service name is removed: before that, "serverless dev
+ * invoke -f hello" in a project with a service named "dev" would look like Dev Mode. A second
+ * call changes nothing.
  */
 const normalizeDevSelectors = (command, options) => {
   if (command[0] === 'dev') {
@@ -209,8 +210,13 @@ const normalizeDevSelectors = (command, options) => {
       options.function = [...values('function'), ...values('f')]
       delete options.f
     }
-    if (options['skip-function'] !== undefined) {
-      options['skip-function'] = values('skip-function')
+    for (const key of [
+      'skip-function',
+      'web-app',
+      'skip-web-app',
+      'local-only',
+    ]) {
+      if (options[key] !== undefined) options[key] = values(key)
     }
   }
   return options

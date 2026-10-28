@@ -89,7 +89,7 @@ The workflow triggers on pushes to `main` that touch `packages/sf-core/**`, `pac
   - Check out the repository.
   - Set up Node.js 24.x and install dependencies.
   - **Build Process:**
-    - Build the Dev Mode layer zips (`npm run build:devmode:layer`, needs Go).
+    - Build the Dev Mode layer zips (`npm run build:devmode:layer`, needs Go) and the web bridge zip (`npm run build:devmode:web-bridge`).
     - Build the code using the npm build script.
   - **AWS Configuration:**
     - Configure AWS credentials using the GitHub Actions role.
@@ -120,7 +120,7 @@ The workflow triggers on pushes to `main` that touch `packages/sf-core/**`, `pac
   - Check out the repository.
   - Set up Node.js 24.x and install dependencies.
   - **Build Process:**
-    - Build the Dev Mode layer zips (`npm run build:devmode:layer`, needs Go).
+    - Build the Dev Mode layer zips (`npm run build:devmode:layer`, needs Go) and the web bridge zip (`npm run build:devmode:web-bridge`).
     - Build the code using the npm build script.
   - **AWS Configuration:**
     - Configure AWS credentials using the production deployment role.

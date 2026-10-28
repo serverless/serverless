@@ -6,6 +6,7 @@ import {
   HANDLED_WAIT_MS,
   LOCAL_LOG_HEADING,
   findHandledInvocation,
+  findHandledRequest,
   handledLine,
   localLogLines,
   requestIdOf,
@@ -286,5 +287,136 @@ describe('the lines invoke prints', () => {
       '(no log lines)',
     ])
     expect(localLogLines({})).toEqual(['(no log lines)'])
+  })
+})
+
+describe('findHandledRequest', () => {
+  /** This directory's session running the web app `site` in `mode`, with `ends` request.end records. */
+  const webService = ({ mode = 'dev', ends = [] } = {}) => {
+    const serviceDir = service({ modes: {} })
+    const file = path.join(serviceDir, '.serverless', 'dev', 'session.ndjson')
+    const extra = [
+      { type: 'web_app.mode', web_app: 'site', mode },
+      ...ends.map((end) => ({ type: 'request.end', web_app: 'site', ...end })),
+    ].map((record, index) => ({
+      v: 1,
+      seq: 10 + index,
+      session_id: 's_3f2a9c1e0b4d',
+      ts: '2026-10-05T10:41:00.000Z',
+      ...record,
+    }))
+    fs.appendFileSync(
+      file,
+      extra.map((record) => JSON.stringify(record)).join('\n') + '\n',
+    )
+    return serviceDir
+  }
+  const find = (serviceDir, over = {}) =>
+    findHandledRequest({
+      serviceDir,
+      service: 'orders',
+      stage: 'dev',
+      region: 'us-east-1',
+      webApp: 'site',
+      method: 'get',
+      path: '/orders?X-Amz-Signature=abc',
+      sentAt: Date.parse('2026-10-05T10:40:59.000Z'),
+      waitMs: 0,
+      ...over,
+    })
+  const END = {
+    request_id: 'c1d2e3f4-0000-4000-8000-000000000001',
+    source: 'relay',
+    outcome: 'answered',
+    status_code: 200,
+    method: 'GET',
+    path: '/orders?X-Amz-Signature=[redacted]',
+    file: '.serverless/dev/requests/site/1790000000-c1d2e3f4.json',
+  }
+
+  test('finds the relayed request the call made: same web app, method and path, ended after it was sent', async () => {
+    const serviceDir = webService({
+      ends: [
+        {
+          ...END,
+          request_id: 'aaaaaaaa-0000-4000-8000-000000000001',
+          method: 'POST',
+        },
+        {
+          ...END,
+          request_id: 'bbbbbbbb-0000-4000-8000-000000000002',
+          source: 'local',
+        },
+        END,
+      ],
+    })
+    expect(await find(serviceDir)).toEqual({
+      requestId: END.request_id,
+      file: END.file,
+    })
+  })
+
+  test('nothing for a request that ended before the call, a web app not in mode dev, or no session', async () => {
+    expect(
+      await find(webService({ ends: [END] }), {
+        sentAt: Date.parse('2026-10-05T10:41:01.000Z'),
+      }),
+    ).toBeNull()
+    expect(await find(webService({ mode: 'local', ends: [END] }))).toBeNull()
+    expect(
+      await find(webService({ ends: [END] }), { stage: 'prod' }),
+    ).toBeNull()
+  })
+
+  test('a request the deployed code answered, or that failed before the local server answered, is not handled here', async () => {
+    const notRun = {
+      ...END,
+      request_id: 'dddddddd-0000-4000-8000-000000000004',
+      outcome: 'not_run',
+      status_code: null,
+    }
+    const failedEarly = {
+      ...END,
+      request_id: 'eeeeeeee-0000-4000-8000-000000000005',
+      outcome: 'failed',
+      status_code: null,
+    }
+    expect(await find(webService({ ends: [notRun] }))).toBeNull()
+    expect(await find(webService({ ends: [failedEarly] }))).toBeNull()
+    // The newest answered one is still found past them.
+    expect(await find(webService({ ends: [END, notRun] }))).toEqual({
+      requestId: END.request_id,
+      file: END.file,
+    })
+    // A response that broke after the local server answered was handled here.
+    const brokeLate = { ...END, outcome: 'failed', status_code: 200 }
+    expect(await find(webService({ ends: [brokeLate] }))).toEqual({
+      requestId: END.request_id,
+      file: END.file,
+    })
+  })
+
+  test('waits for the record up to its limit', async () => {
+    const clock = manualClock(0)
+    const serviceDir = webService()
+    const found = find(serviceDir, {
+      waitMs: HANDLED_WAIT_MS,
+      timers: clock.timers,
+    })
+    await clock.advance(100)
+    fs.appendFileSync(
+      path.join(serviceDir, '.serverless', 'dev', 'session.ndjson'),
+      JSON.stringify({
+        v: 1,
+        seq: 99,
+        session_id: 's_3f2a9c1e0b4d',
+        ts: '2026-10-05T10:41:00.000Z',
+        type: 'request.end',
+        web_app: 'site',
+        ...END,
+      }) + '\n',
+    )
+    await clock.advance(100)
+    expect(await found).toEqual({ requestId: END.request_id, file: END.file })
   })
 })

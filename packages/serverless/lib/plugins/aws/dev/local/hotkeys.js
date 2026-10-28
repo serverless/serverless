@@ -7,11 +7,19 @@
  * the keys stop (the session stops them when its stop begins), at exit, and after a crash.
  */
 import readline from 'readline'
-import { functionsWord, timestampAgo } from '../attach/output.js'
+import {
+  functionsWord,
+  restoresWhat,
+  timestampAgo,
+  webAppsWord,
+} from '../attach/output.js'
 import { statusModeTable, statusTableWorthShowing } from '../commands/status.js'
 
 export const KEYS_HINT =
   'Press h for keys, Ctrl+C or q to restore your functions and exit.'
+/** KEYS_HINT for a session that also (or only) runs web apps (output.js restoresWhat). */
+export const keysHint = (what) =>
+  `Press h for keys, Ctrl+C or q to restore ${restoresWhat(what)} and exit.`
 export const KEY_HELP = 'Keys: r rebuild · v details · s status · q quit'
 export const DETAILED_ON = 'Details on'
 export const DETAILED_OFF = 'Details off'
@@ -110,6 +118,16 @@ export const startHotkeys = ({
   }
 }
 
+/** The web apps of a status result in the s key's summary: `2 web apps`, or `1 of 2 web apps`. */
+const webAppsCount = (webApps) => {
+  const running = webApps.filter(
+    (webApp) => webApp.mode === 'dev' || webApp.mode === 'local',
+  ).length
+  return running === webApps.length
+    ? webAppsWord(running)
+    : `${running} of ${webAppsWord(webApps.length)}`
+}
+
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`
 
 /**
@@ -124,9 +142,14 @@ export const statusKeyLines = ({
   nowMs = Date.now(),
 }) => {
   const functions = status.functions ?? []
+  const webApps = status.web_apps ?? []
   const { total = 0, errors = 0 } = status.invocations ?? {}
+  const requests = status.requests ?? { total: 0, failed: 0 }
   const devCount = functions.filter((fn) => fn.mode === 'dev').length
   const last = status.last_invocation
+  const lastRequest = status.last_request
+  // A session of web apps alone names no invocations and no handler processes.
+  const withFunctions = functions.length > 0 || !webApps.length
   const warm = [...new Set(workers.map((worker) => worker.functionKey))]
   const summary = [
     `Dev Mode ${status.state ?? 'on'}`,
@@ -134,19 +157,44 @@ export const statusKeyLines = ({
     // write its record has neither in its status.
     ...(status.service ? [status.service] : []),
     ...(status.stage ? [status.stage] : []),
-    devCount === functions.length
-      ? functionsWord(devCount)
-      : `${devCount} of ${functionsWord(functions.length)}`,
-    `${plural(total, 'invocation')}, ${errors ? plural(errors, 'error') : 'no errors'}`,
+    ...(functions.length || !webApps.length
+      ? [
+          devCount === functions.length
+            ? functionsWord(devCount)
+            : `${devCount} of ${functionsWord(functions.length)}`,
+        ]
+      : []),
+    ...(webApps.length ? [webAppsCount(webApps)] : []),
+    ...(withFunctions
+      ? [
+          `${plural(total, 'invocation')}, ${errors ? plural(errors, 'error') : 'no errors'}`,
+        ]
+      : []),
+    ...(webApps.length
+      ? [
+          `${plural(requests.total, 'web request')}${requests.failed ? ` (${requests.failed} not ok)` : ''}`,
+        ]
+      : []),
   ].join(' · ')
-  const ago = last ? timestampAgo(last.ts, nowMs) : null
-  const details = `  warm: ${warm.length ? warm.join(', ') : 'none'} · last: ${
-    last
-      ? `${last.function} ${last.outcome}${ago ? `, ${ago}` : ''}`
-      : 'none yet'
-  }`
-  const table = statusTableWorthShowing(functions)
-    ? statusModeTable(functions)
+  const agoOf = (item) => {
+    const ago = item ? timestampAgo(item.ts, nowMs) : null
+    return ago ? `, ${ago}` : ''
+  }
+  const details = `  ${[
+    ...(withFunctions
+      ? [
+          `warm: ${warm.length ? warm.join(', ') : 'none'}`,
+          `last: ${last ? `${last.function} ${last.outcome}${agoOf(last)}` : 'none yet'}`,
+        ]
+      : []),
+    ...(webApps.length
+      ? [
+          `last request: ${lastRequest ? `${lastRequest.web_app} ${lastRequest.outcome}${agoOf(lastRequest)}` : 'none yet'}`,
+        ]
+      : []),
+  ].join(' · ')}`
+  const table = statusTableWorthShowing(functions, webApps)
+    ? statusModeTable(functions, webApps)
     : null
   return [summary, details, table]
 }

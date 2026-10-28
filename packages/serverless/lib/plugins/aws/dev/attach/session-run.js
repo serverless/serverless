@@ -7,32 +7,69 @@
 import { DRAIN_MS, openRelayRun } from './session-relay.js'
 import { removeService } from './session-restore.js'
 import * as out from './output.js'
-import { EMPTY_RESTORE, restoreCounts } from '../state/session-state.js'
+import {
+  EMPTY_RESTORE,
+  restoreCounts,
+  webAppRestoreCounts,
+} from '../state/session-state.js'
 import { newBrokerLine } from '../relay/messages.js'
 import { versionMismatches } from '../local/adapters/index.js'
 import { versionMismatchLine } from '../local/messages.js'
 import { mcpServersOf } from '../local/mcp.js'
 import { createInvocationRecorder } from '../state/invocations.js'
+import { recordFilesOf } from '../state/record-files.js'
 import {
   DETAILED_OFF,
   DETAILED_ON,
   KEYS_HINT,
   KEY_HELP,
   hotkeysEnabled,
+  keysHint,
   statusKeyLines,
 } from '../local/hotkeys.js'
+
+/**
+ * What the ready lines say of the service's web apps (`webApps`: `{ rows, state, urlOf, total }`,
+ * the final web app rows, the state of their servers by key, a web app's real URL and how many the
+ * service has; null without web apps): the rows as the table shows them, how many run here, and
+ * those that run here with their mode, the URL on this machine and their real URL, for the `web
+ * apps:` lines (`out.endpointLines`).
+ */
+const readyWebApps = (webApps) => {
+  if (!webApps) return null
+  const running = webApps.rows.filter(
+    (row) => row.mode === 'dev' || row.mode === 'local',
+  )
+  return {
+    rows: webApps.rows.map((row) =>
+      out.withLiveNotes(row, webApps.state?.get(row.webApp)),
+    ),
+    counts: { running: running.length, total: webApps.total },
+    running: running.map((row) => ({
+      name: row.webApp,
+      mode: row.mode,
+      localUrl: webApps.state?.get(row.webApp)?.localUrl,
+      url: webApps.urlOf?.(row.webApp),
+    })),
+  }
+}
 
 /**
  * What a running session holds: its AWS IoT Core connection, the relay's part of the session and
  * the laptop runtime, each set once it exists, whether its stop began, and the steps that end
  * them, each run at most once and never throwing.
  */
-export const createRunState = ({ logger, ctx }) => {
+export const createRunState = ({ logger, ctx, detailed = false }) => {
   const { lifecycle, stops } = ctx
   const run = {
     relayConnection: null,
     relayRun: null,
     laptop: null,
+    // The web apps' servers and local listeners (session-web.js createWebRuntime), when any run.
+    web: null,
+    // Detailed output (`--detailed`, the `v` key), for the invocations' lines and the web
+    // requests'.
+    detailed: Boolean(detailed),
   }
   // How the stop came, for its `session.stopping` record: a signal, a request (`dev stop`, the
   // idle timeout, a hotkey), or null before any stop.
@@ -51,6 +88,8 @@ export const createRunState = ({ logger, ctx }) => {
     run.relayConnection?.quiet?.()
     run.relayRun?.quiet()
     run.laptop?.stopAccepting?.()
+    // A Ctrl+C reaches the web apps' servers on Windows first: none is started again after it.
+    if (info?.trigger === 'signal') void run.web?.stopServers()
   }
   // Ends the laptop runtime once (on every exit path; a failure is a debug line).
   let laptopStopped = null
@@ -66,13 +105,19 @@ export const createRunState = ({ logger, ctx }) => {
       : Promise.resolve()
     return laptopStopped
   }
-  // Before "Dev Mode off": the accepted invocations finish, or are ended when they outlive the
-  // drain, so nothing runs on this machine after the line.
+  // Before "Dev Mode off": the accepted invocations and web requests finish. Invocations that
+  // outlive the drain are ended with the laptop runtime; web requests that outlive it are aborted
+  // (their local server's response is no longer read) and their callers are answered by the bridge
+  // once the session's goodbye ("gone") arrives.
   run.finishLaptop = async () => {
     try {
-      await run.laptop?.drain?.(DRAIN_MS)
+      await Promise.all([
+        run.laptop?.drain?.(DRAIN_MS),
+        run.relayRun?.drain?.(DRAIN_MS),
+      ])
     } finally {
       await run.stopLaptop()
+      await run.web?.stop()
     }
   }
   // Every exit path ends here: the laptop runtime, then the goodbye and disconnect, then the
@@ -80,6 +125,7 @@ export const createRunState = ({ logger, ctx }) => {
   run.teardown = async () => {
     run.beginStop()
     await run.stopLaptop()
+    await run.web?.stop()
     await run.relayConnection?.stop()
     await run.relayRun?.stop()
   }
@@ -89,7 +135,9 @@ export const createRunState = ({ logger, ctx }) => {
 /**
  * Warns about local interpreter versions that differ from the deployed runtimes, opens the
  * relay's part of the session and starts the laptop runtime (its first build runs there), into
- * `run`.
+ * `run`. With `web` (web apps run here: `{ runtime, relay, start }`, see session-web.js), the
+ * relay gets the web apps' part (`relay`), and their servers and local listeners start
+ * (`runtime.start(start)`); a session of web apps alone starts no laptop runtime.
  */
 export const startRunning = async ({
   run,
@@ -112,6 +160,7 @@ export const startRunning = async ({
   ctx,
   // The session's spinner, which shows while it stops and restores.
   spinner,
+  web = null,
 }) => {
   const devKeys = rows
     .filter((row) => row.mode === 'dev')
@@ -138,7 +187,63 @@ export const startRunning = async ({
     timers,
     now,
     record: (type, fields) => ctx.state.events.emit(type, fields),
+    ...(web && { web: web.relay }),
   })
+  if (web) run.web = web.runtime
+  if (devKeys.length || !web) {
+    await startFunctions({
+      run,
+      devKeys,
+      lives,
+      localRuntimes,
+      deployedName,
+      startLaptop,
+      provider,
+      serverless,
+      options,
+      logger,
+      timers,
+      now,
+      processRef,
+      ctx,
+      spinner,
+      webApps: Boolean(web),
+      webStarts: web
+        ? (web.start?.rows ?? [])
+            .map((row) => web.start.details?.get(row.webApp)?.start)
+            .filter(Boolean)
+        : [],
+    })
+  }
+  // Without functions here, the web apps' part tells of a configuration file save.
+  if (web) {
+    await web.runtime.start({
+      ...web.start,
+      watchConfig: devKeys.length === 0,
+    })
+  }
+}
+
+/** The laptop runtime of the attached functions (`devKeys`), into `run.laptop`. */
+const startFunctions = async ({
+  run,
+  devKeys,
+  lives,
+  localRuntimes,
+  deployedName,
+  startLaptop,
+  provider,
+  serverless,
+  options,
+  logger,
+  timers,
+  now,
+  processRef,
+  ctx,
+  spinner,
+  webApps = false,
+  webStarts = [],
+}) => {
   // Every invocation that runs here gets its file and records (when the session has a record).
   const { state, live } = ctx
   const mcp = mcpServersOf(serverless)
@@ -149,6 +254,13 @@ export const startRunning = async ({
           dir: state.dir,
           now,
           events: state.events,
+          // Shared with the web request recorder: one limit for both kinds of files.
+          files: recordFilesOf(state, {
+            onError: (error) =>
+              logger.debug(
+                `Dev Mode could not remove an old request file: ${error?.message ?? error}`,
+              ),
+          }),
           functions: new Map(
             devKeys.map((key) => [
               key,
@@ -182,11 +294,13 @@ export const startRunning = async ({
     // The reload spinner leaves the terminal in its normal mode: the keys take it back.
     onSpinnerDone: () => live.reclaimKeys?.(),
     spinner,
+    webApps,
+    webStarts,
   })
 }
 
 /**
- * Prints the ready lines (with the service's endpoints, `endpointText`, as `deploy` prints them),
+ * Prints the ready lines (with the service's endpoints, `endpointRows`, see endpointListsOf),
  * then waits for
  * a stop while the attached functions are watched every
  * watchIntervalMs (the watch also keeps the process alive meanwhile). A person at a terminal gets
@@ -195,12 +309,14 @@ export const startRunning = async ({
  */
 export const waitForStop = async ({
   rows,
-  endpointText,
+  endpointRows,
   attachedCount,
   total,
   started,
   attachStarted,
   brokerIsNew,
+  // The session widened the role's trust for web apps now (an existing role).
+  brokerWidened = false,
   watch,
   watchIntervalMs,
   stops,
@@ -213,7 +329,10 @@ export const waitForStop = async ({
   options = {},
   processRef = process,
   startKeys,
+  // The service's web apps (see readyWebApps); null without any.
+  webApps = null,
 }) => {
+  const web = readyWebApps(webApps)
   const leftovers = rows.filter(
     (row) =>
       row.mode === 'dev' &&
@@ -232,13 +351,18 @@ export const waitForStop = async ({
       devCount: attachedCount,
       total,
       seconds: (now() - started) / 1000,
+      ...(web && { webApps: web.counts }),
     }),
   )
-  if (out.tableWorthShowing(rows)) {
+  const webRows = web?.rows ?? []
+  if (out.tableWorthShowing(rows, webRows)) {
     gap()
-    logger.notice(out.renderModeTable(rows))
+    logger.notice(out.renderModeTable(rows, webRows))
   }
-  const sections = out.endpointLines(endpointText)
+  const sections = out.endpointLines({
+    ...endpointRows,
+    webApps: web?.running ?? [],
+  })
   if (sections.length) gap()
   for (const section of sections) logger.notice(section)
   ctx.lifecycle.ready({
@@ -246,7 +370,15 @@ export const waitForStop = async ({
     attachMs: now() - attachStarted,
   })
   gap()
-  if (brokerIsNew) logger.aside(newBrokerLine())
+  if (brokerIsNew || brokerWidened) {
+    logger.aside(
+      newBrokerLine({
+        widened: brokerWidened && !brokerIsNew,
+        functions: attachedCount > 0,
+        webApps: Boolean(web?.counts.running),
+      }),
+    )
+  }
   const keysOn =
     typeof startKeys === 'function' &&
     hotkeysEnabled({
@@ -254,7 +386,13 @@ export const waitForStop = async ({
       stdin: processRef.stdin,
       isInteractive: logger.isInteractive(),
     })
-  logger.aside(keysOn ? KEYS_HINT : out.STOP_HINT)
+  // What a stop restores: the functions attached, the web apps that run here.
+  const restores = web?.counts.running
+    ? { functions: attachedCount > 0, webApps: true }
+    : null
+  if (restores)
+    logger.aside(keysOn ? keysHint(restores) : out.stopHint(restores))
+  else logger.aside(keysOn ? KEYS_HINT : out.STOP_HINT)
   const watchTimer = timers.setInterval(watch.check, watchIntervalMs)
   let keys = null
   try {
@@ -299,11 +437,15 @@ const startSessionKeys = ({
       logger,
       actions: {
         help: () => logger.aside(KEY_HELP),
-        reload: () => run.laptop?.reloadNow?.(),
-        detailed: () =>
-          logger.notice(
-            run.laptop?.toggleDetailed?.() ? DETAILED_ON : DETAILED_OFF,
-          ),
+        // The functions rebuild and reload; the web apps' servers start again.
+        reload: () =>
+          Promise.all([run.laptop?.reloadNow?.(), run.web?.reloadAll?.()]),
+        // One setting for the invocations' lines and the web requests'.
+        detailed: () => {
+          run.detailed = !run.detailed
+          run.laptop?.setDetailed?.(run.detailed)
+          logger.notice(run.detailed ? DETAILED_ON : DETAILED_OFF)
+        },
         status: async () => {
           const [summary, details, table] = statusKeyLines({
             status: await ctx.live.status(),
@@ -352,18 +494,28 @@ export const endSession = async ({
   logger,
   ctx,
   isExiting,
+  // With --on-exit keep: removes what the web app attaches that did not finish created, and
+  // resolves how many could not be removed (none without web apps).
+  keepAttachedWebApps = async () => 0,
+  // How many web apps stay attached with --on-exit keep.
+  keptWebApps = () => 0,
 }) => {
   run.beginStop()
   // `dev stop --keep` asks for what `--on-exit keep` does.
   if (options['on-exit'] === 'keep' || stops.trigger()?.keep === true) {
     await run.finishLaptop()
-    if (attached.size) logger.success(out.keptLine(attached.size))
+    const notRemoved = await keepAttachedWebApps()
+    const webApps = keptWebApps()
+    if (attached.size || webApps) {
+      logger.success(out.keptLine(attached.size, webApps))
+    }
     ctx.ending.kept = true
     ctx.ending.restore = { ...EMPTY_RESTORE }
-    return attachFailed ? 3 : 0
+    return attachFailed || notRemoved ? 3 : 0
   }
   const result = await restoreAttached({ beforeReport: run.finishLaptop })
   ctx.ending.restore = restoreCounts(result)
+  ctx.ending.webApps = webAppRestoreCounts(result)
   if (options['on-exit'] === 'remove' && result.failed.length === 0) {
     await removeService({
       serverless,

@@ -34,6 +34,11 @@ import {
 import { readAttachment, variablesOf } from './undo-record.js'
 import { TIMED_OUT, within } from './session-support.js'
 import { coalescePassedThrough, scrubLine } from '../state/events.js'
+import {
+  createUpRouter,
+  createWebPublish,
+  createWebRelay,
+} from '../web/relay.js'
 
 /** How long a stop waits for invocations this machine already accepted to send their results. */
 export const DRAIN_MS = 10_000
@@ -177,8 +182,12 @@ export const startRelayConnection = async ({
  * payloads above one message (said once when it cannot be used), and the warnings about
  * invocations that ran the deployed code (this machine too slow to take them, its clock moved, or
  * the bridges could not reach it).
- * `quiet()` (when the session's stop begins) ends the warnings and their timer; `stop()` also
- * empties the session's prefix in the bucket. Neither throws.
+ * With `web` (web apps attached), the web apps' relay too (../web/relay.js): it gets the session's
+ * `request` frames and its web bridges' upload URL requests, the functions' relay (which the
+ * laptop runtime sets with `relay.connection.setReceiver`) everything else.
+ * `quiet()` (when the session's stop begins) ends the warnings and their timer, and the web relay
+ * takes no new request; `drain(ms)` waits for the web requests already accepted; `stop()` also
+ * empties the session's prefix in the bucket. None throws.
  */
 export const openRelayRun = async ({
   connection,
@@ -198,6 +207,9 @@ export const openRelayRun = async ({
   record,
   // How long the requests left to the deployed code are summed before their record is written.
   passedWindowMs = 1_000,
+  // Web apps attached: `{ functions, dispatch, credentials, recorder, isServing }`, as
+  // createWebRelay takes them (`functions`: web function name -> web app key).
+  web,
 }) => {
   const sideChannel = await openSideChannel({
     provider,
@@ -263,6 +275,35 @@ export const openRelayRun = async ({
     timers,
   })
   connection.onReconnected?.(() => away.reconnected())
+  let webRelay = null
+  let webPublish = null
+  let relayConnection = connection
+  if (web) {
+    webPublish = createWebPublish({
+      publish: (message) => connection.transport.publish(message),
+      now,
+      timers,
+    })
+    webRelay = createWebRelay({
+      ...web,
+      sessionId,
+      key: sessionKey,
+      sideChannel,
+      publish: webPublish.publish,
+      now,
+      timers,
+      logger,
+    })
+    const router = createUpRouter({
+      sessionId,
+      key: sessionKey,
+      web: webRelay,
+    })
+    connection.setReceiver(router.receive)
+    connection.onReconnected?.(() => webRelay.reconnected())
+    // The functions' relay receives through the router.
+    relayConnection = { ...connection, setReceiver: router.setOthers }
+  }
   let quiet = false
   const silence = () => {
     quiet = true
@@ -272,11 +313,12 @@ export const openRelayRun = async ({
     refused.stop()
     passed?.stop()
     away.stop()
+    webRelay?.stopAccepting()
   }
   let stopping = null
   return {
     relay: {
-      connection,
+      connection: relayConnection,
       sessionId,
       sessionKey,
       deployedNames,
@@ -302,9 +344,14 @@ export const openRelayRun = async ({
       },
     },
     quiet: silence,
+    /** The web apps' relay, when web apps are attached. */
+    web: webRelay,
+    /** Waits up to `ms` for the web requests already accepted to send their responses. */
+    drain: (ms) => webRelay?.drain(ms) ?? Promise.resolve(),
     stop() {
       stopping ??= (async () => {
         silence()
+        webPublish?.close()
         if (!sideChannel.enabled) return
         // Ended when it outlasts sweepMs: its S3 request is aborted, so nothing it started keeps
         // the process alive after "Dev Mode off".

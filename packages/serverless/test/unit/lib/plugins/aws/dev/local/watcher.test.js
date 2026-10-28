@@ -63,6 +63,26 @@ describe('isIgnored', () => {
       true,
     ],
     ['.git', path.join(serviceDir, '.git', 'HEAD'), true],
+    [
+      'without web apps, .next as before',
+      path.join(serviceDir, '.next', 'server', 'app', 'page.js'),
+      false,
+    ],
+    [
+      'without web apps, .output as before',
+      path.join(serviceDir, '.output', 'server', 'index.mjs'),
+      false,
+    ],
+    [
+      'dist, which may hold handlers',
+      path.join(serviceDir, 'dist', 'handler.js'),
+      false,
+    ],
+    [
+      'build, which may hold handlers',
+      path.join(serviceDir, 'build', 'handler.js'),
+      false,
+    ],
     ['.venv', path.join(serviceDir, '.venv', 'lib', 'x.py'), true],
     ['__pycache__', path.join(serviceDir, 'app', '__pycache__', 'x.pyc'), true],
     ['a test file', path.join(serviceDir, 'src', 'a.test.js'), true],
@@ -89,6 +109,109 @@ describe('isIgnored', () => {
     ],
   ])('%s', (name, file, expected) => {
     expect(isIgnored({ serviceDir, file })).toBe(expected)
+  })
+})
+
+describe("web apps' output directories", () => {
+  const ignored = (parts, { webApps = true, functions = [], stats } = {}) =>
+    isIgnored({
+      serviceDir,
+      file: path.join(serviceDir, ...parts),
+      handlerModules: handlerModulesOf({ serviceDir, functions }),
+      webApps,
+      stats,
+    })
+
+  test.each([
+    ['.next', 'server', 'app', 'page.js'],
+    ['.output', 'server', 'index.mjs'],
+    ['.nuxt', 'dist', 'server', 'x.mjs'],
+    ['.svelte-kit', 'generated', 'root.js'],
+    ['.astro', 'content.d.ts'],
+    ['dist', 'assets', 'index.js'],
+    ['build', 'index.html'],
+  ])(
+    'with web apps, writes under %s at the service root do not reload the functions',
+    (...parts) => {
+      expect(ignored(parts)).toBe(true)
+    },
+  )
+
+  test('dot-directories at any depth, dist and build at the service root only', () => {
+    expect(ignored(['src', '.cache', 'a.js'])).toBe(true)
+    expect(ignored(['src', 'dist', 'a.js'])).toBe(false)
+    expect(ignored(['src', '.env'])).toBe(false)
+    expect(ignored(['distribution', 'a.js'])).toBe(false)
+    expect(ignored(['handler.js'])).toBe(false)
+    // A dot file is no directory: `.env` still reloads.
+    expect(ignored(['.env'])).toBe(false)
+    // A dot-directory itself is left out once chokidar says it is one.
+    expect(ignored(['.nuxt'], { stats: { isDirectory: () => true } })).toBe(
+      true,
+    )
+  })
+
+  test('a web app in a subdirectory of the service: its dot-directories, not its dist', () => {
+    expect(ignored(['apps', 'web', '.nuxt', 'dist', 'x.mjs'])).toBe(true)
+    expect(ignored(['apps', 'web', 'pages', 'index.vue'])).toBe(false)
+    expect(ignored(['apps', 'web', 'dist', 'x.js'])).toBe(false)
+  })
+
+  test('a directory that holds a function handler reloads the functions', () => {
+    const nitro = { functions: [{ handler: '.output/server/index.handler' }] }
+    expect(ignored(['.output', 'server', 'index.mjs'], nitro)).toBe(false)
+    expect(ignored(['.output', 'server', 'chunks', 'x.mjs'], nitro)).toBe(false)
+    expect(ignored(['.next', 'x.js'], nitro)).toBe(true)
+    const built = { functions: [{ handler: '.build/handler.main' }] }
+    expect(ignored(['.build', 'handler.js'], built)).toBe(false)
+    expect(ignored(['.build', 'lib', 'db.js'], built)).toBe(false)
+    const dist = { functions: [{ handler: 'dist/handler.api' }] }
+    expect(ignored(['dist', 'lib', 'db.js'], dist)).toBe(false)
+    expect(ignored(['build', 'index.html'], dist)).toBe(true)
+    // At any depth, per dot-directory.
+    const nested = { functions: [{ handler: 'src/.generated/api.main' }] }
+    expect(ignored(['src', '.generated', 'api.js'], nested)).toBe(false)
+    expect(ignored(['src', '.generated', '.cache', 'x'], nested)).toBe(true)
+    expect(ignored(['src', '.cache', 'x.js'], nested)).toBe(true)
+  })
+
+  test('without web apps a Nitro-style handler under .output reloads, as before', () => {
+    expect(
+      isIgnored({
+        serviceDir,
+        file: path.join(serviceDir, '.output', 'server', 'index.mjs'),
+        handlerModules: handlerModulesOf({
+          serviceDir,
+          functions: [{ handler: '.output/server/index.handler' }],
+        }),
+      }),
+    ).toBe(false)
+    expect(ignored(['apps', 'web', '.nuxt', 'x.mjs'], { webApps: false })).toBe(
+      false,
+    )
+  })
+
+  test("a web app's entry still reloads the functions", () => {
+    expect(ignored(['app.mjs'])).toBe(false)
+  })
+
+  test('the always-ignored directories stay ignored, a handler or not', () => {
+    expect(
+      ignored(['.serverless', 'build', 'a.js'], {
+        functions: [{ handler: '.serverless/build/a.handler' }],
+      }),
+    ).toBe(true)
+  })
+
+  test("the watcher applies the web apps' rule it is given, with chokidar's stats", () => {
+    const { watch } = fakeChokidar()
+    start({ watch, webApps: true })
+    const { ignored: ignoredFn } = watch.mock.calls[0][1]
+    expect(ignoredFn(path.join(serviceDir, 'dist', 'a.js'))).toBe(true)
+    expect(
+      ignoredFn(path.join(serviceDir, '.vite'), { isDirectory: () => true }),
+    ).toBe(true)
+    expect(ignoredFn(path.join(serviceDir, 'src', 'a.js'))).toBe(false)
   })
 })
 
@@ -424,6 +547,60 @@ describe('createWatcher', () => {
     // Once ready resolves, the first save is seen.
     expect(await watcher.ready()).toBe(true)
     fs.writeFileSync(path.join(dir, 'node_modules', 'x', 'index.js'), 'changed')
+    fs.writeFileSync(
+      path.join(dir, 'handler.mjs'),
+      'export const handler = () => 2\n',
+    )
+    expect(await waitFor(() => changes.length > 0, 5_000)).toBe(true)
+    expect(new Set(changes)).toEqual(new Set([path.join(dir, 'handler.mjs')]))
+  })
+
+  test('without web apps, sees a handler rebuilt under .output (chokidar, polling)', async () => {
+    const dir = write(tempDir(), {
+      '.output/server/index.mjs': 'export const handler = () => 1\n',
+    })
+    const changes = []
+    const watcher = start({
+      serviceDir: dir,
+      handlerModules: handlerModulesOf({
+        serviceDir: dir,
+        functions: [{ handler: '.output/server/index.handler' }],
+      }),
+      onChange: async (files) => changes.push(...files),
+      debounceMs: 50,
+    })
+    expect(await watcher.ready()).toBe(true)
+    write(dir, {
+      '.output/server/index.mjs': 'export const handler = () => 2\n',
+    })
+    expect(await waitFor(() => changes.length > 0, 5_000)).toBe(true)
+    expect(changes).toEqual([path.join(dir, '.output', 'server', 'index.mjs')])
+  })
+
+  test("with web apps, does not see a web framework's dev server writing its output (chokidar, polling)", async () => {
+    const dir = write(tempDir(), {
+      'handler.mjs': 'export const handler = () => 1\n',
+      '.next/server/app/page.js': '',
+      '.nuxt/dist/x.mjs': '',
+      'apps/web/.nuxt/dist/y.mjs': '',
+    })
+    const changes = []
+    const watcher = start({
+      serviceDir: dir,
+      webApps: true,
+      onChange: async (files) => changes.push(...files),
+      debounceMs: 50,
+    })
+    expect(await watcher.ready()).toBe(true)
+    write(dir, {
+      '.next/server/app/page.js': 'changed',
+      '.next/cache/webpack/new.pack': 'new',
+      '.nuxt/dist/x.mjs': 'changed',
+      '.svelte-kit/generated/root.js': 'new',
+      'apps/web/.nuxt/dist/y.mjs': 'changed',
+    })
+    await sleep(POLL_INTERVAL_MS * 4)
+    expect(changes).toEqual([])
     fs.writeFileSync(
       path.join(dir, 'handler.mjs'),
       'export const handler = () => 2\n',

@@ -136,6 +136,21 @@ const webAppConfigSchema = {
       // `type: 'string'` branch would rewrite `false` to the string "false".
       anyOf: [{ const: false }, { type: 'string' }],
     },
+    dev: {
+      description: `Dev Mode settings.`,
+      type: 'object',
+      properties: {
+        command: {
+          description: `Command that starts this web app's server on your machine in serverless dev, run in your shell like an npm script. The Framework sets PORT and HOSTNAME.`,
+          type: 'string',
+          minLength: 1,
+          // Not only whitespace.
+          pattern: '\\S',
+        },
+      },
+      required: ['command'],
+      additionalProperties: false,
+    },
     url: {
       description: `The web app's endpoint: \`true\` (public, the default) or its settings. A web app always has an endpoint, so \`false\` is not accepted.`,
       anyOf: [

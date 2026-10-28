@@ -1,10 +1,11 @@
 /**
  * The idle timeout of a detached session (`serverless dev --detach`): after `timeoutMs` without
- * activity it calls `onIdle` once. Activity is `touch()`: an invocation starting or ending, a
- * reload or a watched file change (its reload records), a request to the session's control
- * endpoint, and an open `serverless dev wait`, which touches every 30 s (a wait for the session's
- * end does not: it leaves the session free to stop). While `isBusy()` (an invocation is still
- * running) the session is not idle. A session in a terminal has no idle timeout.
+ * activity it calls `onIdle` once. Activity is `touch()`: an invocation or a web app request
+ * starting or ending, a reload or a watched file change (its reload records), a request to the
+ * session's control endpoint, and an open `serverless dev wait`, which touches every 30 s (a wait
+ * for the session's end does not: it leaves the session free to stop). While `isBusy()` (an
+ * invocation or a web app request is still running) the session is not idle. A session in a
+ * terminal has no idle timeout.
  */
 import { ServerlessError } from '@serverless/util'
 import { durationText, parseDuration } from '../commands/duration.js'
@@ -15,6 +16,8 @@ export const MIN_IDLE_TIMEOUT_MS = 60_000
 export const IDLE_ACTIVITY_TYPES = new Set([
   'invocation.start',
   'invocation.end',
+  'request.start',
+  'request.end',
   'reload.start',
   'reload.end',
 ])
@@ -42,8 +45,9 @@ export const idleTimeoutOf = (options = {}) => {
   return parseIdleTimeout(options['idle-timeout']) || null
 }
 
-export const idleStopLine = (ms) =>
-  `No activity for ${durationText(ms)}: Dev Mode stops and restores your functions (--idle-timeout).`
+/** `what`: what the stop restores, as output.js restoresWhat says it. */
+export const idleStopLine = (ms, what = 'your functions') =>
+  `No activity for ${durationText(ms)}: Dev Mode stops and restores ${what} (--idle-timeout).`
 
 /** The idle timer of a session that has none. */
 export const NO_IDLE = Object.freeze({ start() {}, touch() {}, stop() {} })

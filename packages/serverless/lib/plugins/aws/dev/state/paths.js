@@ -33,6 +33,7 @@ export const FILES = Object.freeze({
   events: 'session.ndjson',
   log: 'session.log',
   invocations: 'invocations',
+  requests: 'requests',
 })
 
 /**
@@ -94,6 +95,20 @@ export const invocationRecordPath = ({
   fnDir = fnDirOf(functionKey),
   fileName,
 }) => [...DEV_DIR_SEGMENTS, FILES.invocations, fnDir, fileName].join('/')
+
+/** The directory of a web app's request files, named after its key in serverless.yml. */
+export const webAppDirOf = (webAppKey) => safeName(webAppKey)
+
+/** `<unix seconds>-<request id>.json`, as an invocation file is named. */
+export const requestFileName = invocationFileName
+export const parseRequestFileName = parseInvocationFileName
+
+/** A web request file as records and results name it (see `invocationRecordPath`). */
+export const requestRecordPath = ({
+  webAppKey,
+  appDir = webAppDirOf(webAppKey),
+  fileName,
+}) => [...DEV_DIR_SEGMENTS, FILES.requests, appDir, fileName].join('/')
 
 export const fromRecordPath = (serviceDir, recordPath) =>
   path.join(serviceDir, ...String(recordPath).split('/'))

@@ -86,6 +86,28 @@ const recordOriginal = (wrapper, otherLayerArns) => {
   return record
 }
 
+/** `variables` without any of Dev Mode's. */
+export const withoutDevModeVariables = (variables) => {
+  const rest = { ...variables }
+  for (const name of DEVMODE_VARIABLE_NAMES) delete rest[name]
+  return rest
+}
+
+/**
+ * The session's part of the undo record, the same for a function and a web app's dev revision:
+ * the bridge reads these to reach the session.
+ */
+export const sessionVariables = (session) => ({
+  [ENV.VERSION]: UNDO_RECORD_VERSION,
+  [ENV.SESSION]: session.id,
+  [ENV.OWNER]: session.owner,
+  [ENV.ATTACHED_AT]: String(session.attachedAt),
+  [ENV.BROKER_ROLE_ARN]: session.broker.arn,
+  [ENV.BROKER_EXTERNAL_ID]: session.broker.externalId,
+  [ENV.SESSION_KEY]: session.key,
+  [ENV.IOT_ENDPOINT]: session.iotEndpoint,
+})
+
 /**
  * Variables for an attached function, derived from its live variables. When the live wrapper is
  * already ours (a crashed session, a re-attach, a take-over), the recorded original is kept.
@@ -101,19 +123,10 @@ export const buildAttachVariables = ({ live, otherLayerArns, session }) => {
   } else if (liveWrapper !== undefined) {
     original = recordOriginal(liveWrapper, otherLayerArns)
   }
-  const variables = { ...live }
-  for (const name of DEVMODE_VARIABLE_NAMES) delete variables[name]
   return {
-    ...variables,
+    ...withoutDevModeVariables(live),
     [EXEC_WRAPPER]: WRAPPER_PATH,
-    [ENV.VERSION]: UNDO_RECORD_VERSION,
-    [ENV.SESSION]: session.id,
-    [ENV.OWNER]: session.owner,
-    [ENV.ATTACHED_AT]: String(session.attachedAt),
-    [ENV.BROKER_ROLE_ARN]: session.broker.arn,
-    [ENV.BROKER_EXTERNAL_ID]: session.broker.externalId,
-    [ENV.SESSION_KEY]: session.key,
-    [ENV.IOT_ENDPOINT]: session.iotEndpoint,
+    ...sessionVariables(session),
     ...original,
   }
 }

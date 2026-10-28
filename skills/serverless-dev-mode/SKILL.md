@@ -1,16 +1,18 @@
 ---
 name: serverless-dev-mode
 description: >-
-  Runs a deployed stage's Lambda invocations locally with Serverless Framework
-  Dev Mode (`serverless dev`): Node.js, TypeScript and Python handler edits
-  meet real events with no redeploy. Use whenever a task drives a Dev Mode
-  session, reads `.serverless/dev/`, asks why a recent request or invocation
-  failed where that folder exists, or meets a Dev Mode reason or
+  Runs a deployed stage's Lambda invocations and web app requests locally with
+  Serverless Framework Dev Mode (`serverless dev`): Node.js, TypeScript and
+  Python handler edits, and web app servers (`webApps`, `dev.command`,
+  `--local-only`), meet real events and real-URL requests with no redeploy.
+  Use whenever a task drives a Dev Mode session, runs a web app against a
+  deployed stage, reads `.serverless/dev/`, asks why a recent request or
+  invocation failed where that folder exists, or meets a Dev Mode reason or
   `Runtime.DevMode*` error, even if Dev Mode is not named. Not for `--sandbox`
   or `--mode agents` sessions.
 metadata:
   managed-by: serverless-framework
-  version: '1'
+  version: '2'
   author: Serverless Inc.
 ---
 
@@ -23,8 +25,14 @@ role, and the result goes back to the caller. An edit applies on the next
 invocation, with no redeploy. Stopping the session restores every function to
 its deployed configuration. Each function gets a mode: `dev` (runs here),
 `deployed` (the deployed code answers; a `reason` says why) or `skipped` (not
-attached and not changed; a `reason` says why). This is the functions mode of
-`serverless dev`; `--sandbox` and `--mode agents` run other kinds of sessions.
+attached and not changed; a `reason` says why). The same session runs the
+service's web apps (`webApps`): each server starts here with the deployed
+environment and role, the web app's real URL reaches it, and a local URL on
+`localhost` serves it with hot reload; their modes add `local`
+(`--local-only`: the real URL keeps the deployed code). Web apps:
+[references/web-apps.md](references/web-apps.md). This is the functions mode
+of `serverless dev`; `--sandbox` and `--mode agents` run other kinds of
+sessions.
 
 ## The loop
 
@@ -35,8 +43,9 @@ serverless dev status --json          # state, functions, endpoints, and a curso
 serverless dev wait --for invocation --function <fn> --after <cursor> --json
 serverless dev requests --function <fn> --json   # newest first; each item names its file
 # read that file: the event (credentials redacted), response, error, logs
-# edit the code; the session rebuilds and reloads on save:
-serverless dev wait --for reload --after <cursor> --json
+# edit the code; the session rebuilds and reloads on save (with web apps in
+# the session too, add --function <fn>: their servers also restart on saves):
+serverless dev wait --for reload --function <fn> --after <cursor> --json
 serverless dev replay <requestId> --json         # the same event again, on this machine
 serverless dev stop --timeout 100s --json   # restores the functions; returns when done
 ```
@@ -51,12 +60,19 @@ serverless dev stop --timeout 100s --json   # restores the functions; returns wh
 - A wait matches the end of an invocation whatever its outcome: read
   `event.outcome` (`ok`, `error`, `timeout`, `worker_exited`) and open
   `event.file`.
-- `serverless invoke` prints
+- `serverless invoke` (`--function` or `--web-app`) prints
   `Dev Mode: handled by your working copy · request <id> · <file>` on stderr
   when the session ran it; stdout and the exit code are unchanged. Without
   that line, the deployed code answered or the session was stopping.
 - `dev replay` takes the full request id or a unique prefix of at least 8
   characters.
+- For a web app, send the request to its real URL or its local URL
+  (`dev status --json`: `web_apps[].url`, `web_apps[].local_url`), then
+  `serverless dev wait --for request --web-app <app> --after <cursor> --json`;
+  `dev requests --web-app <app> --json` and `dev replay <request id> --json`
+  work on its requests (files under `.serverless/dev/requests/`). After an
+  edit to an `entry` web app, `dev wait --for reload --web-app <app>` returns
+  once its server listens again.
 
 ## Reading results
 
@@ -102,7 +118,7 @@ Every reason and what to do about it:
    `serverless dev` from a tool call: it runs until stopped.
 3. Before you finish the task, end the session with
    `serverless dev stop --timeout 100s --json`, unless the person asked to
-   keep it running. It restores the functions. Never kill the session's
+   keep it running. It restores the functions and web apps. Never kill the session's
    process, not even when `dev stop` exits 124 or a tool call times out: run
    the same `dev stop --timeout 100s --json` again, or
    `serverless dev wait --for ended --timeout 100s --json`. A session that
@@ -138,9 +154,12 @@ Every reason and what to do about it:
    names (a README or contributing note, a default stage made from the user
    name in `serverless.yml` such as `${env:USER}`, a documented `.env`); ask
    only when it does not say.
-9. Changes to environment variables, IAM, events or functions need
+9. Changes to environment variables, IAM, events, functions or web apps need
    `serverless deploy`: stop the session, deploy, start it again. Code
    changes need nothing.
+10. The session starts each web app's server (from `dev.command` or its
+    `entry`) on a port it picks. Never start a second server for it
+    yourself; read its output in the session's log.
 
 Red flags — stop and re-read the rules when you are about to:
 
@@ -182,13 +201,27 @@ Red flags — stop and re-read the rules when you are about to:
 - `dev restore` refuses (`session_running`) only while a session of the same
   stage and region runs in this directory: stop that one instead.
 - Up to 3 minutes after the first session in an AWS account and region
-  creates the IAM role, some invocations run the deployed code.
+  creates the IAM role (or, for web apps, updates its trust policy), some
+  invocations and web app requests run the deployed code.
 - Handlers run on this machine's Node.js and Python, not the deployed
   runtime: a Python handler uses the active virtualenv or the service's
   `.venv` first, so install its requirements there
   ([references/runtimes.md](references/runtimes.md)).
 - `--function` names are the function keys in `serverless.yml`; another name
-  is refused before anything changes.
+  is refused before anything changes. `--web-app`, `--skip-web-app` and
+  `--local-only` take `webApps` keys, independently of `--function`.
+- A web app with `build_output_entry` (an `entry` under `.next/`, `dist/`, …)
+  runs its deployed code until `webApps.<app>.dev.command` names its dev
+  server (`next dev --hostname 127.0.0.1`: `next dev` ignores `HOSTNAME`).
+  One with the note `local_server_down` has a server not
+  listening on `PORT`: requests to its real URL run the deployed code.
+- Hot reload works on the local URL only; on the real URL a refresh shows
+  changes. The local URL answers `127.0.0.1`, `localhost` and `[::1]`
+  only (403 for any other host).
+- A web request replays from its file: redacted headers and signed-URL query
+  values are left out (`"note": "redacted_values_omitted"`), and a body over
+  1 MiB or never read is refused (`request_body_truncated`,
+  `request_body_not_captured`).
 
 ## References
 
@@ -202,6 +235,9 @@ Red flags — stop and re-read the rules when you are about to:
 - [references/runtimes.md](references/runtimes.md) — read when a handler
   behaves differently here than deployed: Node.js, TypeScript, Python,
   credentials, environment, timeouts.
+- [references/web-apps.md](references/web-apps.md) — read before running a
+  service with `webApps` in Dev Mode, or when a web app row, a request file or
+  a local URL is unfamiliar.
 - `serverless agent docs providers/aws/guide/dev-mode` and
   `serverless agent docs providers/aws/cli-reference/dev` — the full
   documentation.

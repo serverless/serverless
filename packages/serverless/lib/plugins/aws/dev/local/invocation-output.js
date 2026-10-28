@@ -216,7 +216,7 @@ const graphemes = new Intl.Segmenter()
  * `text` cut to `max` terminal columns, the last one an ellipsis. A wide character (CJK, most
  * emoji) takes two columns, and a character made of several code points is never split.
  */
-const cut = (text, max) => {
+export const cut = (text, max) => {
   if (stringWidth(text) <= max) return text
   if (max < 1) return ''
   let kept = ''

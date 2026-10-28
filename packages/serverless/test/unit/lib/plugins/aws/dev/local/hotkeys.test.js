@@ -230,6 +230,75 @@ describe('hotkeys', () => {
     ])
   })
 
+  test('the s key counts web apps beside the functions, or alone, and lists them in its table', () => {
+    const status = (functions, webApps) => ({
+      state: 'on',
+      session_id: 's_x',
+      service: 'orders',
+      stage: 'alice',
+      invocations: { total: 0, errors: 0 },
+      functions,
+      web_apps: webApps,
+    })
+    expect(
+      statusKeyLines({
+        status: status(
+          [{ name: 'api', mode: 'dev' }],
+          [
+            { name: 'web', mode: 'dev' },
+            {
+              name: 'docs',
+              mode: 'skipped',
+              reason: 'not_deployed',
+              why: 'not deployed yet',
+            },
+          ],
+        ),
+        nowMs: 0,
+      }),
+    ).toEqual([
+      'Dev Mode on · orders · alice · 1 function · 1 of 2 web apps · 0 invocations, no errors · 0 web requests',
+      '  warm: none · last: none yet · last request: none yet',
+      [
+        'Name            Mode     Why',
+        'api             dev',
+        'web (web app)   dev',
+        'docs (web app)  skipped  not deployed yet',
+      ].join('\n'),
+    ])
+    expect(
+      statusKeyLines({
+        status: status([], [{ name: 'web', mode: 'dev' }]),
+        nowMs: 0,
+      })[0],
+    ).toBe('Dev Mode on · orders · alice · 1 web app · 0 web requests')
+  })
+
+  test('the s key counts the web requests and names the last one', () => {
+    expect(
+      statusKeyLines({
+        status: {
+          state: 'on',
+          service: 'orders',
+          stage: 'alice',
+          functions: [],
+          web_apps: [{ name: 'web', mode: 'dev' }],
+          requests: { total: 4, failed: 1 },
+          last_request: {
+            request_id: 'c1d2e3f4-0000-4000-8000-000000000001',
+            web_app: 'web',
+            outcome: 'answered',
+            ts: '2026-10-05T10:41:16.512Z',
+          },
+        },
+        nowMs: Date.parse('2026-10-05T10:41:19.512Z'),
+      }).slice(0, 2),
+    ).toEqual([
+      'Dev Mode on · orders · alice · 1 web app · 4 web requests (1 not ok)',
+      '  last request: web answered, 3 s ago',
+    ])
+  })
+
   test('the s key shows why a function that runs here has a note', () => {
     const [, , table] = statusKeyLines({
       status: {

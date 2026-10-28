@@ -2,8 +2,12 @@
  * The finite Dev Mode commands and the hooks other commands run: `serverless dev setup`,
  * `serverless dev restore`, and the restore that `deploy`, `remove`, `rollback` and
  * `deploy function` run first. Those four never fail because of it: a denied check is a debug
- * line, any other problem a warning where a session ran (a debug line elsewhere).
+ * line, any other problem a warning where a session ran (a debug line elsewhere). Web apps are
+ * restored before `deploy` and `rollback` too, found from AWS alone; `remove` deletes their web
+ * functions, and Dev Mode's revisions and endpoints with them, and `deploy function` never deploys
+ * a web app.
  */
+import pLimit from 'p-limit'
 import {
   log,
   progress as defaultProgress,
@@ -27,11 +31,15 @@ import {
 } from './aws.js'
 import { credentialSourceOf } from '../relay/messages.js'
 import {
+  CONTROL_PLANE_PARALLELISM,
   findAttachedFunctions,
   restoreFunction,
   restoreFunctions,
 } from './attach.js'
 import { selectFunctions } from './eligibility.js'
+import { findAttachedWebApps, restoreWebApp } from '../web/attach.js'
+import { selectWebApps } from '../web/eligibility.js'
+import { webAppsOf } from './session-web.js'
 import { deploymentExists } from '../../utils/deployment-exists.js'
 import * as out from './output.js'
 import {
@@ -41,6 +49,7 @@ import {
   brokerPolicyIsNewer,
   putBrokerBoundary,
   putBrokerPolicy,
+  widenBrokerTrust,
 } from './broker.js'
 import { devDirOf, devModeRanIn } from '../state/paths.js'
 import { isSessionLive, readSession } from '../state/session-file.js'
@@ -65,6 +74,7 @@ const DENIED_CODES = new Set([
   'DEV_MODE_BROKER_CREATE_DENIED',
   'DEV_MODE_BROKER_READ_DENIED',
   'DEV_MODE_BROKER_UNAVAILABLE',
+  'DEV_MODE_BROKER_UPDATE_DENIED',
 ])
 
 /**
@@ -74,7 +84,7 @@ const DENIED_CODES = new Set([
 const setupDenied = ({ region, name, arn, identity, error }) =>
   new ServerlessError(
     `Your AWS credentials cannot set up Dev Mode in ${region} (${error.originalMessage ?? error.message}).\n` +
-      `"serverless dev setup" needs iam:GetRole, iam:GetRolePolicy, iam:CreateRole and iam:PutRolePolicy on the IAM role ${arn ?? `"${name}" under any IAM path (${brokerRolePattern(identity)})`}, plus iam:PutRolePermissionsBoundary when --permissions-boundary is given.\n` +
+      `"serverless dev setup" needs iam:GetRole, iam:GetRolePolicy, iam:CreateRole, iam:PutRolePolicy and iam:UpdateAssumeRolePolicy on the IAM role ${arn ?? `"${name}" under any IAM path (${brokerRolePattern(identity)})`}, plus iam:PutRolePermissionsBoundary when --permissions-boundary is given.\n` +
       'Run it again with the credentials of an AWS administrator.',
     'DEV_SETUP_ACCESS_DENIED',
     {
@@ -152,6 +162,17 @@ const ensureBroker = async ({
         region,
       })
   if (boundary) await putBrokerBoundary({ iam, name, boundary })
+  // A role an earlier release created trusts functions only: web apps need it widened.
+  const widen = !existing.widened
+  if (widen) {
+    await widenBrokerTrust({
+      iam,
+      name,
+      identity,
+      region,
+      externalId: existing.externalId,
+    })
+  }
   if (!policyPut && !keep) {
     await putBrokerPolicy({ iam, name, arn: existing.arn, identity, region })
   }
@@ -162,7 +183,8 @@ const ensureBroker = async ({
   const boundarySet = boundary
     ? `${written ? '' : ','} and set the permissions boundary ${boundary}`
     : ''
-  return `IAM role ${existing.arn} (already existed; ${policy}${boundarySet})`
+  const trust = widen ? 'updated its trust policy for web apps, ' : ''
+  return `IAM role ${existing.arn} (already existed; ${trust}${policy}${boundarySet})`
 }
 
 export const runDevSetup = async ({ provider, options = {}, deps = {} }) => {
@@ -232,6 +254,76 @@ export const runDevSetup = async ({ provider, options = {}, deps = {} }) => {
 const deployedNames = (serverless, keys) =>
   keys.map((key) => serverless.service.getFunction(key).name)
 
+const NOTHING_RESTORED = Object.freeze({
+  restored: [],
+  unchanged: [],
+  skipped: [],
+  missing: [],
+  failed: [],
+})
+/**
+ * Waits for every promise in `promises` to settle, so no AWS call is left running when the command
+ * goes on. `values` has each one's value, `fallback` for one that failed; `failed[i]` says whether
+ * it did; `error` is the one to report: rejected credentials first, else the first failure.
+ */
+const settleAll = async (promises, fallback) => {
+  const settled = await Promise.allSettled(promises)
+  const errors = settled
+    .filter(({ status }) => status === 'rejected')
+    .map(({ reason }) => reason)
+  return {
+    values: settled.map(({ status, value }) =>
+      status === 'fulfilled' ? value : fallback,
+    ),
+    failed: settled.map(({ status }) => status === 'rejected'),
+    error: errors.find(isCredentialError) ?? errors[0],
+  }
+}
+/** Two restore results (`restoreFunctions`' shape) as one: the functions' entries first. */
+const mergeResults = (functions, webApps) =>
+  Object.fromEntries(
+    Object.keys(NOTHING_RESTORED).map((key) => [
+      key,
+      [...(functions[key] ?? []), ...(webApps[key] ?? [])],
+    ]),
+  )
+/**
+ * Restores the web apps in `found` (entries of `findAttachedWebApps`), whichever session left
+ * them, at most CONTROL_PLANE_PARALLELISM at a time. The result has the shape of
+ * `restoreFunctions`' result, each entry `{ name: key, webApp: true, message? }`. Expired
+ * credentials stop it.
+ */
+const restoreWebApps = async ({
+  lambdaWeb,
+  found,
+  sleep,
+  now,
+  onProgress = () => {},
+}) => {
+  const limit = pLimit(CONTROL_PLANE_PARALLELISM)
+  let done = 0
+  const outcomes = await Promise.all(
+    found.map(({ key, functionName }) =>
+      limit(async () => {
+        const outcome = await restoreWebApp({
+          lambdaWeb,
+          functionName,
+          sleep,
+          now,
+        })
+        done += 1
+        onProgress({ done, total: found.length })
+        return { key, ...outcome }
+      }),
+    ),
+  )
+  const result = mergeResults(NOTHING_RESTORED, {})
+  for (const { key, state, message } of outcomes) {
+    result[state].push({ name: key, webApp: true, ...(message && { message }) })
+  }
+  return result
+}
+
 /**
  * Dev Mode's clients for a command: `deps.clients` when given, else new ones with the retry
  * option `retry` (the full policy by default), the waits of `deps.sleep` and, when given,
@@ -262,6 +354,13 @@ const restoreDenied = ({ region, error }) =>
     'DEV_RESTORE_ACCESS_DENIED',
     originalOf(error),
   )
+const webRestoreDenied = ({ region, error }) =>
+  new ServerlessError(
+    `Your AWS credentials cannot read the web apps of this service in ${region} (${withoutPeriod(error.message)}).\n` +
+      '"serverless dev restore" needs lambda:ListWebFunctionEndpoints, lambda:GetWebFunctionEndpoint, lambda:GetWebFunctionRevision, lambda:UpdateWebFunctionEndpoint, lambda:DeleteWebFunctionEndpoint, lambda:ListWebFunctionRevisions and lambda:DeleteWebFunctionRevision on the web functions of this service.',
+    'DEV_RESTORE_ACCESS_DENIED',
+    originalOf(error),
+  )
 
 /**
  * The record of the live session in `serviceDir`, or null. A session still starting (its control
@@ -287,11 +386,15 @@ const withExitCode = (result) => ({ ...result, exit_code: exitCodeOf(result) })
 
 /**
  * `serverless dev restore`: puts every function of the stage that has Dev Mode configuration back
- * on its deployed configuration, whoever attached it. Allowed on any stage; refused while a
+ * on its deployed configuration, and every web app whose endpoints Dev Mode changed back on its
+ * deployed revision (deleting Dev Mode's endpoints and revisions), whoever attached it. --function
+ * limits it to those functions, --web-app to those web apps. Allowed on any stage; refused while a
  * session of the same stage and region runs in this service directory. Returns the exit code:
- * 0, or 3 when a function could not be restored. The text goes through the logger (stderr); with
- * `--json`, stdout also gets one result: `restore` (the counts, as `dev stop` gives them) and
- * `exit_code`. An error is that result too, then thrown as without `--json`: nothing was changed.
+ * 0, or 3 when a function or web app could not be restored. The text goes through the logger
+ * (stderr); with `--json`, stdout also gets one result: `restore` (the counts, as `dev stop` gives
+ * them; web apps counted with the functions), for a service with web apps `web_apps` (the same
+ * counts for its web apps alone), and `exit_code`. An error is that result too, then
+ * thrown as without `--json`: nothing was changed.
  */
 export const runDevRestore = async ({
   serverless,
@@ -314,7 +417,16 @@ export const runDevRestore = async ({
   return printResult({ json, result: withExitCode(result), logger, stdout })
 }
 
-const RESTORE_AGAIN_WHEN = 'to try again the functions that were not restored'
+/**
+ * Why the retry a failed restore suggests runs, naming what failed: functions, web apps or both.
+ */
+const restoreAgainWhen = (failed) => {
+  const webApps = failed.some((entry) => entry.webApp)
+  const functions = failed.some((entry) => !entry.webApp)
+  let what = 'functions'
+  if (webApps) what = functions ? 'functions and web apps' : 'web apps'
+  return `to try again the ${what} that were not restored`
+}
 
 /** The work of `dev restore` and its text: resolves its result, or throws having changed nothing. */
 const restoreStage = async ({ serverless, provider, options, deps }) => {
@@ -337,7 +449,10 @@ const restoreStage = async ({ serverless, provider, options, deps }) => {
       new ServerlessError(
         unreachable
           ? out.sessionUnreachableLine(running)
-          : out.restoreRefusedLine(running),
+          : out.restoreRefusedLine(running, {
+              functions: serverless.service.getAllFunctions().length > 0,
+              webApps: webAppsOf(serverless, provider).length > 0,
+            }),
         'DEV_MODE_SESSION_RUNNING',
         { stack: false },
       ),
@@ -352,47 +467,127 @@ const restoreStage = async ({ serverless, provider, options, deps }) => {
   }
   const keys = serverless.service.getAllFunctions()
   const only = [].concat(options.function ?? [])
+  const onlyWebApps = [].concat(options['web-app'] ?? [])
   const selection = selectFunctions({ names: keys, only })
-  const { lambda } = clientsFor(provider, deps)
+  const webApps = webAppsOf(serverless, provider)
+  const webSelection = selectWebApps({
+    names: webApps.map(({ key }) => key),
+    only: onlyWebApps,
+  })
+  // --function limits the restore to those functions, --web-app to those web apps; neither: all.
+  const everything = only.length === 0 && onlyWebApps.length === 0
+  const functionKeys =
+    everything || only.length
+      ? keys.filter((key) => selection.get(key).selected)
+      : []
+  const wantedWebApps =
+    everything || onlyWebApps.length
+      ? webApps.filter(({ key }) => webSelection.get(key).selected)
+      : []
+  const { lambda, lambdaWeb } = clientsFor(provider, deps)
   const spinner = progress.get('main')
   spinner.notice(`Looking for Dev Mode configuration on stage "${stage}"`)
   let found
+  let webFound
   try {
-    found = await findAttachedFunctions({
-      lambda,
-      names: deployedNames(
-        serverless,
-        keys.filter((key) => selection.get(key).selected),
-      ),
-    })
-  } catch (error) {
-    if (isAccessDenied(error)) throw restoreDenied({ region, error })
-    throw error
+    const lookups = await settleAll(
+      [
+        findAttachedFunctions({
+          lambda,
+          names: deployedNames(serverless, functionKeys),
+        }).catch((error) => {
+          throw isAccessDenied(error) ? restoreDenied({ region, error }) : error
+        }),
+        wantedWebApps.length
+          ? findAttachedWebApps({ lambdaWeb, webApps: wantedWebApps }).catch(
+              (error) => {
+                throw isAccessDenied(error)
+                  ? webRestoreDenied({ region, error })
+                  : error
+              },
+            )
+          : [],
+      ],
+      [],
+    )
+    if (lookups.error) throw lookups.error
+    ;[found, webFound] = lookups.values
   } finally {
     spinner.remove()
   }
-  if (found.length === 0) {
-    const message = out.nothingToRestoreLine({ stage, only })
+  const total = found.length + webFound.length
+  if (total === 0) {
+    const message = out.nothingToRestoreLine({
+      stage,
+      only,
+      onlyWebApps,
+      hasWebApps: webApps.length > 0,
+    })
     logger.notice(message)
-    return { status: 'ok', message, restore: { ...EMPTY_RESTORE } }
+    return {
+      status: 'ok',
+      message,
+      restore: { ...EMPTY_RESTORE },
+      ...(webApps.length && { web_apps: { ...EMPTY_RESTORE } }),
+    }
   }
-  logger.aside(out.restoringStageLine({ stage }))
+  logger.aside(
+    out.restoringStageLine({
+      stage,
+      functions: found.length > 0,
+      webApps: webFound.length > 0,
+    }),
+  )
   for (const entry of found) {
     logger.aside(out.restoreCandidateLine(entry, now()))
   }
+  for (const entry of webFound) logger.aside(out.webAppCandidateLine(entry))
   logger.blankLine?.()
   const started = now()
   let result
+  const done = { functions: 0, webApps: 0 }
+  const showProgress = () =>
+    spinner.notice(
+      out.restoringProgress({
+        done: done.functions + done.webApps,
+        total,
+        webApps: webFound.length,
+      }),
+    )
   try {
-    spinner.notice(out.restoringProgress({ done: 0, total: found.length }))
-    result = await restoreFunctions({
-      lambda,
-      names: found.map((entry) => entry.name),
-      sleep,
-      now,
-      onProgress: ({ done, total }) =>
-        spinner.notice(out.restoringProgress({ done, total })),
-    })
+    showProgress()
+    const restores = await settleAll(
+      [
+        found.length
+          ? restoreFunctions({
+              lambda,
+              names: found.map((entry) => entry.name),
+              sleep,
+              now,
+              onProgress: (progressed) => {
+                done.functions = progressed.done
+                showProgress()
+              },
+            })
+          : NOTHING_RESTORED,
+        webFound.length
+          ? restoreWebApps({
+              lambdaWeb,
+              found: webFound,
+              sleep,
+              now,
+              onProgress: (progressed) => {
+                done.webApps = progressed.done
+                showProgress()
+              },
+            })
+          : NOTHING_RESTORED,
+      ],
+      NOTHING_RESTORED,
+    )
+    // Both restores have settled: a failure (expired credentials) ends the command as before.
+    if (restores.error) throw restores.error
+    result = mergeResults(...restores.values)
   } finally {
     spinner.remove()
   }
@@ -408,26 +603,44 @@ const restoreStage = async ({ serverless, provider, options, deps }) => {
     logger[level](text)
   }
   const restore = restoreCounts(result)
+  // A service with web apps: their own counts too (`restore` counts them with the functions).
+  const webCounts = webApps.length && {
+    web_apps: restoreCounts(
+      Object.fromEntries(
+        Object.entries(result).map(([key, entries]) => [
+          key,
+          Array.isArray(entries)
+            ? entries.filter((entry) => entry.webApp)
+            : entries,
+        ]),
+      ),
+    ),
+  }
   if (result.failed.length) {
     return {
       status: 'error',
       reason: 'restore_incomplete',
       message: out.notRestoredLine(result.failed),
-      // The retry the text suggests: only the functions that failed, so it never widens to
-      // functions the command was not asked to restore (a --function selection, or ones restored).
+      // The retry the text suggests: only what failed, so it never widens to functions or web
+      // apps the command was not asked to restore (a selection, or ones restored).
       next: [
         {
           command: out.retryRestoreCommand(result.failed, { keyOf, scope }),
-          when: RESTORE_AGAIN_WHEN,
+          when: restoreAgainWhen(result.failed),
         },
       ],
       restore,
+      ...webCounts,
     }
   }
   return {
     status: 'ok',
-    message: `${out.restoredLine({ count: out.restoredCount(result) })}.`,
+    message: `${out.restoredLine({
+      count: out.restoredCount(result),
+      webApps: result.restored.filter((entry) => entry.webApp).length,
+    })}.`,
     restore,
+    ...webCounts,
   }
 }
 
@@ -532,6 +745,13 @@ const rollbackWillRun = async ({
 }
 
 /**
+ * A check of the web apps denied the Lambda Web reads is skipped, as a function check denied
+ * lambda:GetFunction is (see skippedLine). `cause` goes in the debug line only.
+ */
+const webSkippedLine = ({ verb, scope, cause }) =>
+  `Dev Mode check of web apps skipped: it needs lambda:ListWebFunctionEndpoints and lambda:GetWebFunctionRevision${cause ? ` (${withoutPeriod(cause)})` : ''}. If a Dev Mode session attached web apps of this stage, they stay attached after this ${verb === 'deploy' ? 'deployment' : verb}; run "${restoreCommand(scope)}" to detach them.`
+
+/**
  * Runs before `deploy`, `remove` and `rollback` (`verb`: "deploy", "removal", "rollback"):
  * restores every function of the stage that still has Dev Mode configuration, including the
  * functions of a session that may still be running. Never throws, and prints nothing when there
@@ -541,6 +761,13 @@ const rollbackWillRun = async ({
  * only when there is something to restore. A check that could not run is a warning only when
  * `devModeRanHere` (by default, whether `.serverless/dev/` is in the service directory now), and
  * a debug line otherwise; a throttled one stops at the first function it could not read.
+ *
+ * Before `deploy` and `rollback`, the service's web apps are checked and restored the same way,
+ * from AWS alone (a deploy from CI or another machine has no `.serverless/dev/`): one endpoint
+ * listing per web app, none for a service without web apps, and a web function that does not
+ * exist yet has nothing to restore. The web apps and the functions are checked side by side; a
+ * check of one that could not run never stops the restore of the other. Before `remove`, web apps
+ * are not read: deleting a web function deletes Dev Mode's revisions and endpoints with it.
  */
 export const restoreStageBeforeCommand = async ({
   serverless,
@@ -559,58 +786,7 @@ export const restoreStageBeforeCommand = async ({
   } = deps
   // Its own spinner line, next to the command's (`Packaging`, say).
   const spinner = progress.get('dev-restore')
-  try {
-    const { lambda } = clientsFor(provider, deps, PRE_COMMAND_CLIENTS)
-    const found = await findAttachedFunctions({
-      lambda,
-      names: deployedNames(serverless, serverless.service.getAllFunctions()),
-      stopAtFailure: true,
-    })
-    if (found.length === 0) return
-    if (
-      verb === 'rollback' &&
-      !(await rollbackWillRun({
-        serverless,
-        provider,
-        timestamp,
-        logger,
-        check,
-      }))
-    ) {
-      return
-    }
-    logger.debug(out.runningSessionLine({ verb, count: found.length }))
-    spinner.notice(out.restoringBeforeCommandProgress(found.length))
-    const started = now()
-    let result
-    try {
-      result = await restoreFunctions({
-        lambda,
-        names: found.map((entry) => entry.name),
-        sleep,
-        now,
-      })
-    } finally {
-      spinner.remove()
-    }
-    // The command keeps its own outcome line: this one is a notice, a failed restore a warning.
-    // When something else restored every function in the meantime, nothing was done here: the
-    // line is a debug line.
-    const count = out.restoredCount(result)
-    for (const [level, text] of out.restoreReportLines({
-      result,
-      seconds: (now() - started) / 1000,
-      scope: scopeOf(provider),
-      nameOf: functionKeyOf(serverless.service),
-      outcome: [
-        count ? 'notice' : 'debug',
-        out.restoredBeforeCommandLine({ found, count, nowMs: now() }),
-      ],
-    })) {
-      logger[level === 'error' ? 'warning' : level](text)
-    }
-  } catch (error) {
-    spinner.remove()
+  const functionsUnchecked = (error) => {
     if (isAccessDenied(error)) {
       const skipped = { verb, scope: scopeOf(provider) }
       reportUnchecked({
@@ -626,6 +802,144 @@ export const restoreStageBeforeCommand = async ({
       ranHere: devModeRanHere,
       text: `Could not check this stage for Dev Mode configuration${checkProblem(error)}. If functions still have it, run "${restoreCommand(scopeOf(provider))}".`,
     })
+  }
+  const webAppsUnchecked = (error) => {
+    if (isAccessDenied(error)) {
+      const skipped = { verb, scope: scopeOf(provider) }
+      reportUnchecked({
+        logger,
+        ranHere: devModeRanHere,
+        text: webSkippedLine(skipped),
+        debugText: webSkippedLine({ ...skipped, cause: error.message }),
+      })
+      return
+    }
+    reportUnchecked({
+      logger,
+      ranHere: devModeRanHere,
+      text: `Could not check the web apps of this stage for Dev Mode configuration${checkProblem(error)}. If web apps still have it, run "${restoreCommand(scopeOf(provider))}".`,
+    })
+  }
+  // Both the functions and the web apps were being restored.
+  const stageUnchecked = (error) =>
+    reportUnchecked({
+      logger,
+      ranHere: devModeRanHere,
+      text: `Could not check this stage for Dev Mode configuration${checkProblem(error)}. If functions or web apps still have it, run "${restoreCommand(scopeOf(provider))}".`,
+    })
+  try {
+    const { lambda, lambdaWeb } = clientsFor(
+      provider,
+      deps,
+      PRE_COMMAND_CLIENTS,
+    )
+    const webApps = verb === 'removal' ? [] : webAppsOf(serverless, provider)
+    const [functionsLookup, webAppsLookup] = await Promise.allSettled([
+      findAttachedFunctions({
+        lambda,
+        names: deployedNames(serverless, serverless.service.getAllFunctions()),
+        stopAtFailure: true,
+      }),
+      webApps.length ? findAttachedWebApps({ lambdaWeb, webApps }) : [],
+    ])
+    if (functionsLookup.status === 'rejected') {
+      functionsUnchecked(functionsLookup.reason)
+    }
+    if (webAppsLookup.status === 'rejected') {
+      webAppsUnchecked(webAppsLookup.reason)
+    }
+    const found = functionsLookup.value ?? []
+    const webFound = webAppsLookup.value ?? []
+    if (found.length === 0 && webFound.length === 0) return
+    if (
+      verb === 'rollback' &&
+      !(await rollbackWillRun({
+        serverless,
+        provider,
+        timestamp,
+        logger,
+        check,
+      }))
+    ) {
+      return
+    }
+    logger.debug(
+      out.runningSessionLine({
+        verb,
+        count: found.length,
+        webApps: webFound.length,
+      }),
+    )
+    spinner.notice(
+      out.restoringBeforeCommandProgress(found.length, webFound.length),
+    )
+    const started = now()
+    let restores
+    try {
+      // Both settle before the command goes on: neither is left running while it deploys.
+      restores = await settleAll(
+        [
+          found.length
+            ? restoreFunctions({
+                lambda,
+                names: found.map((entry) => entry.name),
+                sleep,
+                now,
+              })
+            : NOTHING_RESTORED,
+          webFound.length
+            ? restoreWebApps({ lambdaWeb, found: webFound, sleep, now })
+            : NOTHING_RESTORED,
+        ],
+        NOTHING_RESTORED,
+      )
+    } finally {
+      spinner.remove()
+    }
+    // A restore that failed (expired credentials) is reported once, after what the other did.
+    const report = () => {
+      if (!restores.error) return
+      if (webFound.length === 0) functionsUnchecked(restores.error)
+      else if (found.length === 0) webAppsUnchecked(restores.error)
+      else stageUnchecked(restores.error)
+    }
+    const [functionsFailed, webAppsFailed] = restores.failed
+    if (
+      !(found.length && !functionsFailed) &&
+      !(webFound.length && !webAppsFailed)
+    ) {
+      report()
+      return
+    }
+    const result = mergeResults(...restores.values)
+    // The command keeps its own outcome line: this one is a notice, a failed restore a warning.
+    // When something else restored everything in the meantime, nothing was done here: the line
+    // is a debug line.
+    const count = out.restoredCount(result)
+    const restoredWebApps = webFound.filter(({ key }) =>
+      result.restored.some((entry) => entry.webApp && entry.name === key),
+    )
+    for (const [level, text] of out.restoreReportLines({
+      result,
+      seconds: (now() - started) / 1000,
+      scope: scopeOf(provider),
+      nameOf: functionKeyOf(serverless.service),
+      outcome: [
+        count ? 'notice' : 'debug',
+        out.restoredBeforeCommandLine({
+          found,
+          count: count - restoredWebApps.length,
+          nowMs: now(),
+          webApps: restoredWebApps,
+        }),
+      ],
+    })) {
+      logger[level === 'error' ? 'warning' : level](text)
+    }
+    report()
+  } catch (error) {
+    spinner.remove()
+    functionsUnchecked(error)
   }
 }
 
