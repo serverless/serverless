@@ -242,6 +242,26 @@ describe('zipService', () => {
       expect(isExcluded(updated.exclude, 'dev-pkg')).toBe(true)
     })
 
+    it('excludes dev-only dependencies when the service dir is a symlink', async () => {
+      // `npm ls` reports real paths, so a service dir reached through a
+      // symlink must still map them back to service-relative globs.
+      scaffoldProject()
+      const linkPath = `${serviceDir}-link`
+      fs.symlinkSync(serviceDir, linkPath, 'junction')
+      packagePlugin.serverless.serviceDir = linkPath
+
+      try {
+        const updated = await packagePlugin.excludeDevDependencies(params)
+
+        expect(updated.exclude).toContain(
+          path.join('node_modules', 'dev-pkg', '**'),
+        )
+        expect(isExcluded(updated.exclude, 'prod-pkg')).toBe(false)
+      } finally {
+        fs.unlinkSync(linkPath)
+      }
+    })
+
     it('does not execute shell metacharacters injected via the temp path', async () => {
       if (os.platform() === 'win32') {
         // POSIX-shell payload; temp-path handling is exercised on *nix.
