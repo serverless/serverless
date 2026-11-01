@@ -16,7 +16,7 @@ test = [
 
 [project.optional-dependencies]
 s3 = [
-  "boto3==1.43.114",
+  "boto3==1.43.121",
 ]
 
 [tool.uv.sources]
