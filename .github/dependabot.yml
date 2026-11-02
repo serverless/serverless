@@ -103,6 +103,12 @@ updates:
       - dependency-name: 'globby'
         # globby v15 drops support for Node.js 18
         versions: ['>= 15.0.0']
+      - dependency-name: 'glob'
+        # glob v14 depends on minimatch v11, which drops support for Node.js 18
+        versions: ['>= 14.0.0']
+      - dependency-name: 'minimatch'
+        # minimatch v11 drops support for Node.js 18
+        versions: ['>= 11.0.0']
       - dependency-name: 'chokidar'
         # chokidar v5 drops support for Node.js 18
         versions: ['>= 5.0.0']
