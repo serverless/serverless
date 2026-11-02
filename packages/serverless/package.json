@@ -76,7 +76,7 @@
     "fs-extra": "^11.4.1",
     "get-stdin": "^9.0.0",
     "get-tsconfig": "^4.14.3",
-    "glob": "^13.0.6",
+    "glob": "^14.0.3",
     "globby": "^14.1.0",
     "graphql": "^16.14.2",
     "https-proxy-agent": "^8.0.0",
