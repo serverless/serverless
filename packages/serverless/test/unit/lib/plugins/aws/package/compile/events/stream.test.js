@@ -1014,6 +1014,16 @@ describe('AwsCompileStreamEvents', () => {
         ).toThrow(/startingPositionTimestamp/)
       })
 
+      it('should throw when startingPositionTimestamp is null', () => {
+        expect(() =>
+          compileEventSourceMapping({
+            arn: kinesisArn,
+            startingPosition: 'AT_TIMESTAMP',
+            startingPositionTimestamp: null,
+          }),
+        ).toThrow(/startingPositionTimestamp/)
+      })
+
       it('should throw when startingPositionTimestamp is missing for a Kinesis stream with a consumer', () => {
         expect(() =>
           compileEventSourceMapping({
