@@ -16,6 +16,7 @@ import {
   SANDBOX_DEFAULT_EXCLUDE_DIRS,
   selectSandboxFiles,
 } from '../packaging/files.js'
+import validatePort from '../../utils/validate-port.js'
 
 // Directories whose changes never rebuild the image: the build output, git
 // metadata, coverage reports and the directories a sandbox artifact leaves out.
@@ -174,7 +175,7 @@ class SandboxesDevMode {
     // Stable, customizable control-plane port — the address the SDK/launcher target. Constant by
     // default so the endpoint doesn't change between runs (unlike the per-instance proxy ports,
     // which are dynamic); override with --port. Defaults to 9100.
-    const controlPlanePort = Number(this.options.port) || 9100
+    const controlPlanePort = validatePort(this.options.port, 9100)
     this.ctx = {
       name,
       cfg,
