@@ -119,7 +119,7 @@ const route = async ({ command, options, versions, compose }) => {
   let runnerResult, runnerError
   // A command that ends the process itself (Dev Mode's second Ctrl+C, or a restore that ran out of
   // time) still sends its analysis event, with the code it exits with (see forced-exit).
-  const stopForcedExitEvent = onForcedExit((forcedExitCode) => {
+  const stopForcedExitEvent = onForcedExit((forcedExitCode, forced) => {
     const eventRunner = reportingRunner()
     return sendAnalysisAndUsageEvent({
       authenticatedData: eventRunner?.authenticatedData,
@@ -138,6 +138,7 @@ const route = async ({ command, options, versions, compose }) => {
         eventRunner?.authenticatedData?.accessKeyV1 ||
         eventRunner?.authenticatedData?.accessKeyV2,
       exitCode: forcedExitCode,
+      exitReason: forced?.exitReason,
     })
   })
   try {
@@ -156,6 +157,7 @@ const route = async ({ command, options, versions, compose }) => {
   }
   // A command that ends with a non-zero code without throwing (Dev Mode's exit 3) did not succeed.
   const exitCode = runnerResult?.exitCode
+  const exitReason = runnerResult?.exitReason
 
   // Save service state
   if (runner?.state && runnerResult?.state) {
@@ -210,6 +212,7 @@ const route = async ({ command, options, versions, compose }) => {
         runnerError,
       },
       exitCode,
+      exitReason,
     })
   } catch (error) {
     // Send analysis event with error
@@ -225,6 +228,7 @@ const route = async ({ command, options, versions, compose }) => {
       error,
       compose,
       exitCode,
+      exitReason,
     })
     // Swallow the finalization error
   }
@@ -416,6 +420,8 @@ const createUsageEvent = ({
  * @param {Object} [params.runnerSpecificDetails] - Additional runner-specific details.
  * @param {Array} [params.notifications] - Notifications from BFF with shown status.
  * @param {number} [params.exitCode] - The exit code the command set without throwing; non-zero means it did not succeed.
+ * @param {string} [params.exitReason] - Why that exit code is not zero, as a CLI error code (e.g. DEV_MODE_ATTACH_INCOMPLETE):
+ *   the event's `error.code` when there is no error, with a fixed name and message.
  * @returns {Object|null} The created analysis event or null if the license key is used. The
  *   event's `agent` property (a known agent name or "other") is present only when an AI coding
  *   agent was detected.
@@ -436,6 +442,7 @@ export const createAnalysisEvent = ({
   runnerSpecificDetails,
   notifications,
   exitCode,
+  exitReason,
 }) => {
   if (licenseKey) {
     // If a license key is used, we do not send analysis events
@@ -476,6 +483,14 @@ export const createAnalysisEvent = ({
       code: error.code,
       originalMessage: error.originalMessage,
       originalName: error.originalName,
+    }
+  } else if (exitCode && typeof exitReason === 'string' && exitReason) {
+    // A non-zero exit without an error (Dev Mode's exit 3): only its code says why. The name and
+    // message are fixed, so the event carries nothing about the user or the service.
+    analysisEvent.error = {
+      name: 'ExitCode',
+      message: `The command ended with exit code ${exitCode}.`,
+      code: exitReason,
     }
   }
 
@@ -676,6 +691,7 @@ const finalize = async ({
   configData: { config, configFilePath, configFileRaw },
   runnerData: { runner, runnerResult, runnerError },
   exitCode,
+  exitReason,
 }) => {
   const progressMain = progress.get('main')
   progressMain.notice('Finalizing')
@@ -705,6 +721,7 @@ const finalize = async ({
     runnerResult,
     accessKey,
     exitCode,
+    exitReason,
   }
   let queueError
   try {
@@ -799,6 +816,7 @@ const handleFinalizationError = async ({
   error,
   compose,
   exitCode,
+  exitReason,
 }) => {
   const logger = log.get('core:router:finalization-error-handler')
   try {
@@ -829,6 +847,7 @@ const handleFinalizationError = async ({
       })(),
       notifications: authenticatedData?.notifications,
       exitCode,
+      exitReason,
     })
     if (analysisEvent) {
       platformEventClient.addToPublishBatch({
@@ -911,6 +930,7 @@ function queueAnalysisEvent({
   options,
   runnerError,
   exitCode,
+  exitReason,
 }) {
   const analysisEvent = createAnalysisEvent({
     licenseKey: authenticatedData?.accessKeyV2,
@@ -931,6 +951,7 @@ function queueAnalysisEvent({
     runnerSpecificDetails: runner.getAnalysisEventDetails(),
     notifications: authenticatedData?.notifications,
     exitCode,
+    exitReason,
   })
 
   if (analysisEvent) {

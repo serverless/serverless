@@ -796,6 +796,8 @@ test('dev restore --function limits it, and a failure exits 3', async () => {
     Object.assign(new Error('Rate exceeded'), { name: 'ServiceException' }),
   )
   expect(await runDevRestore(s)).toBe(3)
+  // Why, for the CLI's analysis event.
+  expect(s.serverless.exitReason).toBe('DEV_MODE_RESTORE_INCOMPLETE')
   const text = s.logger.text()
   expect(text).toContain(
     '1 function not restored: svc-dev-worker (Rate exceeded).',

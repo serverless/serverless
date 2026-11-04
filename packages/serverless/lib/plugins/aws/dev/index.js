@@ -22,6 +22,7 @@ import {
   jsonRequested,
   printResult,
 } from './commands/envelope.js'
+import { recordExitReason } from './commands/exit-reason.js'
 
 const logger = log.get('sls:dev')
 // The commands that restore the stage, or the function, before their own work.
@@ -496,6 +497,7 @@ class AwsDev {
       human,
       logger,
     })
+    recordExitReason(this.serverless, exitCode, result?.reason)
     if (exitCode !== 0) this.setExitCode(exitCode)
   }
 
@@ -503,7 +505,8 @@ class AwsDev {
    * A Dev Mode command that ends non-zero without throwing (exit 3: a function not attached or not
    * restored) ends with that code. Every Dev Mode hook sets its code here and nowhere else:
    * `process.exitCode` is what the shell sees, and `serverless.exitCode` is what the CLI reports
-   * the command (in Compose, this service) as not succeeded by.
+   * the command (in Compose, this service) as not succeeded by. Why an exit 3 happened is
+   * `serverless.exitReason` (./commands/exit-reason.js), set where the reason is known.
    */
   setExitCode(exitCode) {
     process.exitCode = exitCode
