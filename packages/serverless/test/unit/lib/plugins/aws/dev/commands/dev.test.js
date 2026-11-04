@@ -204,4 +204,70 @@ describe('strict option combinations', () => {
     expect(child.runSession).toHaveBeenCalledTimes(1)
     expect(runDetach).toHaveBeenCalledTimes(1)
   })
+
+  test('a foreground session that exits 3 leaves the reason the session recorded', async () => {
+    const serverless = { serviceDir: '/service' }
+    const exitCode = await runDevCommand({
+      serverless,
+      provider: {},
+      options: {},
+      logger: Object.assign(fakeLog(), { logoDevMode: jest.fn() }),
+      deps: {
+        runSession: async ({ serverless: sls }) => {
+          sls.exitReason = 'DEV_MODE_ATTACH_INCOMPLETE'
+          return 3
+        },
+      },
+    })
+    expect(exitCode).toBe(3)
+    expect(serverless.exitReason).toBe('DEV_MODE_ATTACH_INCOMPLETE')
+  })
+
+  test.each([
+    ['attach_incomplete', 'DEV_MODE_ATTACH_INCOMPLETE'],
+    ['restore_incomplete', 'DEV_MODE_RESTORE_INCOMPLETE'],
+  ])(
+    '--detach for a session that ended %s before it was ready: exit 3 with its reason for the CLI',
+    async (reason, exitReason) => {
+      const serverless = { serviceDir: '/service' }
+      const exitCode = await runDevCommand({
+        serverless,
+        provider: {},
+        options: { detach: true, json: true },
+        logger: fakeLog(),
+        deps: {
+          runDetach: async () => ({
+            result: envelope({ status: 'error', reason, message: 'ended' }),
+            human: 'ended',
+          }),
+          stdout: stdout(),
+        },
+      })
+      expect(exitCode).toBe(3)
+      expect(serverless.exitReason).toBe(exitReason)
+    },
+  )
+
+  test('--detach that fails another way exits 1 with no reason recorded', async () => {
+    const serverless = { serviceDir: '/service' }
+    const exitCode = await runDevCommand({
+      serverless,
+      provider: {},
+      options: { detach: true, json: true },
+      logger: fakeLog(),
+      deps: {
+        runDetach: async () => ({
+          result: envelope({
+            status: 'error',
+            reason: 'detach_failed',
+            message: 'no',
+          }),
+          human: 'no',
+        }),
+        stdout: stdout(),
+      },
+    })
+    expect(exitCode).toBe(1)
+    expect(serverless.exitReason).toBeUndefined()
+  })
 })
