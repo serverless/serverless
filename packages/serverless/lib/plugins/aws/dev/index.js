@@ -16,6 +16,7 @@ import { runDevWait } from './commands/wait.js'
 import { runDevRequests } from './commands/requests.js'
 import { runDevReplay } from './commands/replay.js'
 import { setCliNames } from './commands/cli-names.js'
+import validatePort from '../utils/validate-port.js'
 import {
   errorResult,
   jsonNeedsFinite,
@@ -290,7 +291,7 @@ class AwsDev {
     }
 
     // Get the port
-    const port = this.options.port ? parseInt(this.options.port, 10) : 8080
+    const port = validatePort(this.options.port, 8080)
 
     // Get deployed role ARN and other IDs from CloudFormation stack
     const mainProgress = progress.get('main')
