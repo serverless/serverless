@@ -79,10 +79,11 @@ export class AwsRoute53Client {
     )
 
     const existingRecord =
-      listResourceRecordSetsResponse.ResourceRecordSets?.find((record) => {
-        record.Name === `${resourceRecord?.Name}.` &&
-          record.Type === resourceRecord?.Type
-      })
+      listResourceRecordSetsResponse.ResourceRecordSets?.find(
+        (record) =>
+          record.Name === `${resourceRecord?.Name}.` &&
+          record.Type === resourceRecord?.Type,
+      )
 
     if (existingRecord) {
       return
