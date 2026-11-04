@@ -114,7 +114,7 @@
     "@aws-sdk/client-ssm": "3.1154.0",
     "@hono/aws-lambda": "^1.0.1",
     "@modelcontextprotocol/hono": "2.0.2",
-    "@modelcontextprotocol/server": "2.3.1",
+    "@modelcontextprotocol/server": "2.4.0",
     "@types/jest": "^30.0.0",
     "cross-env": "^10.1.0",
     "hono": "^4.13.14",
