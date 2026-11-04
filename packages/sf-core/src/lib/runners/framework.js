@@ -290,6 +290,7 @@ export class TraditionalRunner extends Runner {
       coreCloudFormationTemplate,
       analyticsMetrics,
       exitCode,
+      exitReason,
     } = await runFramework({
       accessKeyV1: authenticatedData.accessKeyV1,
       accessKeyV2: authenticatedData.accessKeyV2,
@@ -331,8 +332,10 @@ export class TraditionalRunner extends Runner {
       authenticatedData,
       state,
       serviceUniqueId,
-      // A command that ended with a non-zero code without throwing (Dev Mode's exit 3).
+      // A command that ended with a non-zero code without throwing (Dev Mode's exit 3), and why,
+      // as a CLI error code when the command gave one.
       ...(exitCode && { exitCode }),
+      ...(exitCode && exitReason && { exitReason }),
     }
   }
 
@@ -895,6 +898,7 @@ const runFramework = async ({
       serverless.service?.provider?.coreCloudFormationTemplate,
     analyticsMetrics,
     exitCode: serverless.exitCode,
+    exitReason: serverless.exitReason,
   }
 }
 

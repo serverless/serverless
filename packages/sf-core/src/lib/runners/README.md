@@ -22,7 +22,11 @@ The `Runner` class defines two types of functions:
 - **`shouldRun`**: Returns a boolean indicating whether the runner should be invoked based on the configuration file.
 - **`getCliSchema`**: Returns the CLI schema for the runner. The schema is used to generate help messages and validate
   command line arguments. See [CLI schema](#cli-schema) for more information.
-- **`run`**: Executes the runner.
+- **`run`**: Executes the runner. A command that ends with a non-zero exit code without throwing (Dev Mode's exit 3)
+  returns it as `exitCode`: the analysis event then reports `actionSucceeded: false`. It may also return `exitReason`,
+  a CLI error code saying why (e.g. `DEV_MODE_ATTACH_INCOMPLETE`), which the analysis event reports as `error.code`
+  with a fixed `error.name` (`ExitCode`) and message. A command that ends the process itself through `forcedExit`
+  (`@serverless/util/src/forced-exit`) passes the same `exitReason` there.
 - **`getServiceUniqueId`**: Returns the unique identifier of the service that the runner is deploying. Used for usage
   tracking and as a key in state storage.
 

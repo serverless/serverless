@@ -17,6 +17,7 @@ import {
   jsonRequested,
   printResult,
 } from './envelope.js'
+import { recordExitReason } from './exit-reason.js'
 
 const combinationError = (message) =>
   new ServerlessError(message, 'DEV_MODE_INVALID_OPTION_COMBINATION', {
@@ -82,7 +83,9 @@ export const runDevCommand = async ({
   } = deps
   const finish = ({ result, human }) => {
     printResult({ json: jsonRequested(options), result, human, logger, stdout })
-    return exitCodeOf(result)
+    const exitCode = exitCodeOf(result)
+    recordExitReason(serverless, exitCode, result?.reason)
+    return exitCode
   }
   try {
     validateDevOptions(options)
