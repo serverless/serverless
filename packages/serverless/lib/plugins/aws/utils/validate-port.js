@@ -6,7 +6,7 @@ const DEFAULT_MAX_PORT = 65535
 export default function validatePort(value, defaultPort) {
   if (value === undefined) return defaultPort
 
-  const port = Number(value)
+  const port = typeof value === 'boolean' ? NaN : Number(value)
   if (
     !Number.isInteger(port) ||
     port < DEFAULT_MIN_PORT ||

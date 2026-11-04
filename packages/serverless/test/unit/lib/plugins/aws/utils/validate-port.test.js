@@ -10,7 +10,7 @@ describe('validatePort', () => {
     expect(validatePort('65535', 8080)).toBe(65535)
   })
 
-  test.each(['0', '-1', '1.5', '65536', 'abc', '9000junk'])(
+  test.each([true, false, '0', '-1', '1.5', '65536', 'abc', '9000junk'])(
     'rejects invalid port %s',
     (value) => {
       expect(() => validatePort(value, 8080)).toThrow(
