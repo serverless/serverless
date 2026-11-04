@@ -1,7 +1,8 @@
 // A terminal for the CLI's spinner that can go away: stderr animates, and standard input takes raw
 // mode until `hangUp()`, after which every change of its mode fails the way a terminal that was
 // closed fails it (EIO on Linux, ENOTTY on macOS). Node reports that failure as an 'error' event on
-// standard input, which throws when nothing listens.
+// standard input, which throws when nothing listens. It is a Unix terminal on every platform the
+// tests run on: on Windows the spinner never changes the mode of standard input.
 import { setGlobalRendererSettings } from '@serverless/util/src/logger/index.js'
 
 const STDERR_KEYS = [
@@ -27,6 +28,7 @@ const restoreOwn = (target, saved) => {
 export const fakeTerminal = ({ code = 'ENOTTY' } = {}) => {
   const savedStderr = saveOwn(process.stderr, STDERR_KEYS)
   const savedStdin = saveOwn(process.stdin, STDIN_KEYS)
+  const savedProcess = saveOwn(process, ['platform'])
   const terminal = {
     written: [],
     hungUp: false,
@@ -54,6 +56,7 @@ export const fakeTerminal = ({ code = 'ENOTTY' } = {}) => {
     terminal.written.push(String(chunk))
     return true
   })
+  if (process.platform === 'win32') define(process, 'platform', 'linux')
   define(process.stdin, 'isTTY', true)
   define(process.stdin, 'resume', () => process.stdin)
   define(process.stdin, 'pause', () => process.stdin)
@@ -74,6 +77,7 @@ export const fakeTerminal = ({ code = 'ENOTTY' } = {}) => {
   terminal.restore = () => {
     restoreOwn(process.stderr, savedStderr)
     restoreOwn(process.stdin, savedStdin)
+    restoreOwn(process, savedProcess)
   }
   return terminal
 }
