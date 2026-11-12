@@ -2,6 +2,8 @@ module github.com/serverless/serverless/dev-mode-bridge
 
 go 1.27.3
 
+toolchain go1.27.4
+
 require (
 	github.com/aws/aws-sdk-go-v2 v1.47.4
 	github.com/aws/aws-sdk-go-v2/credentials v1.20.10
