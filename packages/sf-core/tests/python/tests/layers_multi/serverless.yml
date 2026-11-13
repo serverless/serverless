@@ -1,0 +1,20 @@
+service: sls-py-req-layers-multi
+
+provider:
+  name: aws
+  runtime: python3.13
+
+custom:
+  pythonRequirements:
+    layers:
+      pydantic:
+        requirementsFile: requirements/pydantic.txt
+      ulid:
+        requirementsFile: requirements/ulid.txt
+
+functions:
+  api:
+    handler: handler.api
+    layers:
+      - Ref: PydanticLambdaLayer
+      - Ref: UlidLambdaLayer

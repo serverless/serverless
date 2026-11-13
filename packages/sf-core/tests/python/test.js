@@ -283,6 +283,27 @@ test('layer-only service (no functions) still produces lambda layer', async () =
   expect(layerZip.some((p) => p.startsWith('python/six'))).toBeTruthy() // six is packaged into the layer zip
 })
 
+test('multiple named requirement layers each built from their own requirements file', async () => {
+  process.chdir('tests/layers_multi')
+  sls(['package'], { env: {} })
+  const cfn = JSON.parse(
+    await readFile(
+      '.serverless/cloudformation-template-update-stack.json',
+      'utf8',
+    ),
+  )
+  expect(cfn.Resources?.PydanticLambdaLayer).toBeTruthy() // PydanticLambdaLayer resource exists
+  expect(cfn.Resources?.UlidLambdaLayer).toBeTruthy() // UlidLambdaLayer resource exists
+  expect(cfn.Outputs?.PydanticLambdaLayerQualifiedArn).toBeTruthy() // pydantic qualified ARN output exists
+  expect(cfn.Outputs?.UlidLambdaLayerQualifiedArn).toBeTruthy() // ulid qualified ARN output exists
+  const pydZip = await listZipFiles(
+    '.serverless/pythonRequirements-pydantic.zip',
+  )
+  expect(pydZip.some((p) => p.startsWith('python/pydantic'))).toBeTruthy() // pydantic packaged under python/
+  const ulidZip = await listZipFiles('.serverless/pythonRequirements-ulid.zip')
+  expect(ulidZip.some((p) => p.startsWith('python/ulid'))).toBeTruthy() // ulid packaged under python/
+})
+
 test('py3.13 packages have the same hash', async () => {
   process.chdir('tests/base')
   sls(['package'], { env: {} })
