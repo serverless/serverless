@@ -117,7 +117,7 @@
     "@modelcontextprotocol/server": "2.4.0",
     "@types/jest": "^30.0.0",
     "cross-env": "^10.1.0",
-    "hono": "^4.13.14",
+    "hono": "^4.13.18",
     "jest": "^30.5.2"
   },
   "scripts": {
