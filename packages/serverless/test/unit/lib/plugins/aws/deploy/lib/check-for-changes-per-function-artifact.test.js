@@ -65,6 +65,9 @@ describe('checkIfDeploymentIsNecessary with per-function artifacts', () => {
 
   const buildCtx = ({ functionArtifact, hasImageFunction = false }) => ({
     ...checkForChangesMixin,
+    // The stack holds the newest deployment directory.
+    stackStatus: 'UPDATE_COMPLETE',
+    stackLastUpdatedTime: new Date(),
     provider: {
       naming: { getServiceStateFileName: () => 'serverless-state.json' },
     },

@@ -116,7 +116,7 @@ export default {
             }
 
             const stackStatus = data.Stacks[0].StackStatus
-            // Read by checkForChanges for a service without functions.
+            // Read by checkForChanges.
             this.stackStatus = stackStatus
             this.stackLastUpdatedTime =
               data.Stacks[0].LastUpdatedTime ?? data.Stacks[0].CreationTime
