@@ -399,7 +399,9 @@ export default {
    * real stack update moves it. That is the always-deploy behaviour these
    * services had before; it never leaves a wrong state. Zip-packaged
    * functions avoid it: their S3Key names the deployment directory, so each
-   * deploy updates the stack.
+   * deploy updates the stack. A service whose functions all use `image` does
+   * not, so it shares the cost; it also keeps redeploying while the stack
+   * stays in a rollback status that a CloudFormation no-op does not clear.
    */
   isStackBehindDeploymentObjects(objects) {
     if (!STABLE_STACK_STATUSES.has(this.stackStatus)) return true

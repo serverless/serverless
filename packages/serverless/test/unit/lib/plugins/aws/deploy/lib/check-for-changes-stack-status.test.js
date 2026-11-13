@@ -318,6 +318,21 @@ describe('checkIfDeploymentIsNecessary stack checks', () => {
       },
     )
 
+    it('deploys when the stack did not exist before this deploy', async () => {
+      const ctx = buildCtx({
+        stackStatus: undefined,
+        stackLastUpdatedTime: undefined,
+        functions: ['hello'],
+      })
+
+      await ctx.checkIfDeploymentIsNecessary(
+        remoteObjects(),
+        functionsUpdatedAt,
+      )
+
+      expect(ctx.serverless.service.provider.shouldNotDeploy).toBe(false)
+    })
+
     it('deploys when an object is newer than the last stack update', async () => {
       // A deploy uploaded its directory and failed before the stack update;
       // a later `serverless deploy function` then modified the function.
