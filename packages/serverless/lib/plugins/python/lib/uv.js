@@ -42,14 +42,32 @@ async function getUvVersion(pluginInstance) {
   }
 }
 
+function assertManifestFile(filePath, label) {
+  if (!fse.existsSync(filePath) || !fse.statSync(filePath).isFile()) {
+    throw new ServerlessError(
+      `Python Requirements: ${label} path does not point to a file: ${filePath}`,
+      'PYTHON_REQUIREMENTS_INVALID_MANIFEST_PATH',
+      { stack: false },
+    )
+  }
+}
+
 async function uvToRequirements(pluginInstance) {
   const { servicePath, options, serverless, log, progress } = pluginInstance
 
   if (!options.useUv) return
 
-  const moduleProjectPath = servicePath
-  const uvLockPath = path.join(moduleProjectPath, 'uv.lock')
-  if (!fse.existsSync(uvLockPath)) return
+  const moduleProjectPath = options.uvFilePath
+    ? path.dirname(options.uvFilePath)
+    : servicePath
+  const uvLockPath =
+    options.uvFilePath ?? path.join(moduleProjectPath, 'uv.lock')
+
+  if (options.uvFilePath) {
+    assertManifestFile(options.uvFilePath, 'uv')
+  } else if (!fse.existsSync(uvLockPath)) {
+    return
+  }
 
   let generateRequirementsProgress
   if (progress && log) {
