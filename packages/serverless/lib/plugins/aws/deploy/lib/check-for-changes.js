@@ -352,9 +352,12 @@ export default {
         )
         return
       }
-    } else if (this.isStackBehindDeploymentObjects(objects)) {
-      // A service without functions has no function modification date, so
-      // the stack stands in for it.
+    }
+    // A rolled-back deploy can rewrite functions after its upload, so their
+    // modification dates alone do not show that the stack holds the newest
+    // deployment directory. For a service without functions the stack is
+    // the only such signal.
+    if (this.isStackBehindDeploymentObjects(objects)) {
       logger.debug('stack not updated since the last upload - deploy')
       return
     }
@@ -378,8 +381,7 @@ export default {
   },
 
   /**
-   * For a service without functions: whether the stack may not reflect the
-   * newest deployment directory, because the stack did not exist before this
+   * Whether the stack may not reflect the newest deployment directory, because the stack did not exist before this
    * deploy, its status is not a stable one (a rollback, or a failure kept by
    * `disableRollback`), or an object was uploaded after the stack was last
    * updated (a deploy that failed after the upload but before the stack
@@ -391,11 +393,13 @@ export default {
    * newer than it. An object counts as newer only when even the earliest write
    * time its LastModified allows is at or after the stack time.
    *
-   * Known cost: a deploy that changes only the state file is a CloudFormation
-   * no-op, so the stack time does not move past its upload, and later
-   * unchanged deploys keep redeploying until a real stack update moves it.
-   * That is the always-deploy behaviour these services had before; it never
-   * leaves a wrong state.
+   * Known cost: for a service without functions, a deploy that changes only
+   * the state file is a CloudFormation no-op, so the stack time does not move
+   * past its upload, and later unchanged deploys keep redeploying until a
+   * real stack update moves it. That is the always-deploy behaviour these
+   * services had before; it never leaves a wrong state. Zip-packaged
+   * functions avoid it: their S3Key names the deployment directory, so each
+   * deploy updates the stack.
    */
   isStackBehindDeploymentObjects(objects) {
     if (!STABLE_STACK_STATUSES.has(this.stackStatus)) return true

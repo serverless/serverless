@@ -28,10 +28,12 @@ const normalizeFiles = (
 const sha256 = (buffer) =>
   crypto.createHash('sha256').update(buffer).digest('base64')
 
-// A service whose only compute lives outside `functions` (web apps,
-// sandboxes): `getFunctionsEarliestLastModifiedDate` returns null, so the
-// stack's status and last update time stand in for it.
-describe('checkIfDeploymentIsNecessary for a service without functions', () => {
+// The stack's status and last update time tell whether the stack holds the
+// newest deployment directory. A service whose only compute lives outside
+// `functions` (web apps, sandboxes) has no function modification date
+// (`getFunctionsEarliestLastModifiedDate` returns null), so for it they are
+// the only such signal.
+describe('checkIfDeploymentIsNecessary stack checks', () => {
   let tempDir
   let serverlessDir
   let template
@@ -265,17 +267,72 @@ describe('checkIfDeploymentIsNecessary for a service without functions', () => {
     expect(ctx.serverless.service.provider.shouldNotDeploy).toBe(false)
   })
 
-  it('keeps the LastModified guard for a service with functions', async () => {
-    const ctx = buildCtx({
-      stackStatus: 'UPDATE_COMPLETE',
-      functions: ['hello'],
+  describe('for a service with functions', () => {
+    // A function is modified after the upload of the deployment directory
+    // it runs, by the stack update that applied it or by its rollback.
+    const functionsUpdatedAt = new Date('2026-10-15T00:00:03Z')
+
+    it('keeps the LastModified guard', async () => {
+      const ctx = buildCtx({
+        stackStatus: 'UPDATE_COMPLETE',
+        functions: ['hello'],
+      })
+
+      await ctx.checkIfDeploymentIsNecessary(
+        remoteObjects(),
+        new Date('2026-10-15T00:00:00Z'),
+      )
+
+      expect(ctx.serverless.service.provider.shouldNotDeploy).toBe(false)
     })
 
-    await ctx.checkIfDeploymentIsNecessary(
-      remoteObjects(),
-      new Date('2026-10-15T00:00:00Z'),
+    it('skips an unchanged service whose stack holds the last deploy', async () => {
+      const ctx = buildCtx({
+        stackStatus: 'UPDATE_COMPLETE',
+        functions: ['hello'],
+      })
+
+      await ctx.checkIfDeploymentIsNecessary(
+        remoteObjects(),
+        functionsUpdatedAt,
+      )
+
+      expect(ctx.serverless.service.provider.shouldNotDeploy).toBe(true)
+    })
+
+    it.each([
+      'UPDATE_ROLLBACK_COMPLETE',
+      // `provider.disableRollback: true` keeps a failed deploy's state.
+      'UPDATE_FAILED',
+    ])(
+      'deploys again after a deploy that updated functions and left the stack in %s',
+      async (stackStatus) => {
+        const ctx = buildCtx({ stackStatus, functions: ['hello'] })
+
+        await ctx.checkIfDeploymentIsNecessary(
+          remoteObjects(),
+          functionsUpdatedAt,
+        )
+
+        expect(ctx.serverless.service.provider.shouldNotDeploy).toBe(false)
+      },
     )
 
-    expect(ctx.serverless.service.provider.shouldNotDeploy).toBe(false)
+    it('deploys when an object is newer than the last stack update', async () => {
+      // A deploy uploaded its directory and failed before the stack update;
+      // a later `serverless deploy function` then modified the function.
+      const ctx = buildCtx({
+        stackStatus: 'UPDATE_COMPLETE',
+        stackLastUpdatedTime: new Date('2026-10-14T00:00:00Z'),
+        functions: ['hello'],
+      })
+
+      await ctx.checkIfDeploymentIsNecessary(
+        remoteObjects(),
+        functionsUpdatedAt,
+      )
+
+      expect(ctx.serverless.service.provider.shouldNotDeploy).toBe(false)
+    })
   })
 })
