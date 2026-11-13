@@ -72,13 +72,13 @@ A foreground `serverless dev --json` is refused with:
 
 `serverless dev` also runs other kinds of sessions, with their own options:
 
-| Option               | Description                                                                                                                                            |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `--mode`, `-m`       | `functions` (default), `agents` (AI agents on Amazon Bedrock AgentCore) or `sandboxes` (AWS Lambda MicroVMs). Detected from the service when left out. |
-| `--agent`, `-a`      | The agent to run in the agents mode (default: the first runtime agent). See [Agents Dev Mode](../guide/agents/dev.md).                                 |
-| `--sandbox`          | The sandbox to run in the sandboxes mode. See [Sandboxes](#sandboxes-lambda-microvms).                                                                 |
-| `--port`, `-p`       | The local port: the agent container (agents, default 8080) or the MicroVMs control plane (sandboxes, default 9100).                                    |
-| `--[no-]assume-role` | Sandboxes: run the container as the sandbox's execution role (default), or with your own AWS credentials.                                              |
+| Option               | Description                                                                                                                                             |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--mode`, `-m`       | `functions` (default), `agents` (AI agents on Amazon Bedrock AgentCore) or `sandboxes` (AWS Lambda MicroVMs). Detected from the service when left out.  |
+| `--agent`, `-a`      | The agent to run in the agents mode (default: the first runtime agent). See [Agents Dev Mode](../guide/agents/dev.md).                                  |
+| `--sandbox`          | The sandbox to run in the sandboxes mode. See [Sandboxes](#sandboxes-lambda-microvms).                                                                  |
+| `--port`, `-p`       | The local port: the agent container (agents, default 8080) or the MicroVMs control plane (sandboxes, default 9100). Must be an integer from 1 to 65535. |
+| `--[no-]assume-role` | Sandboxes: run the container as the sandbox's execution role (default), or with your own AWS credentials.                                               |
 
 `--detach`, `--dry-run` and `--idle-timeout` work only in the functions mode.
 
