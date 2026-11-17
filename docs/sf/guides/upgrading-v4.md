@@ -77,7 +77,7 @@ To estimate pricing, multiply the Credit price by the number of estimated Servic
 
 If a Service Instance is interacted with using Serverless Framework CLI version 4 at any point (including instances initially deployed using versions 3 or earlier), it will be counted towards usage. To stop a Service Instance from counting towards your usage, run the `serverless remove` CLI command using version 4.
 
-Usage is measured at the end of each month. A Service Instance counts towards usage for a month if it is still deployed at the end of that month, or if it was removed during that month after being deployed for 10 days or more. A Service Instance that you remove within 10 days of deployment, and before the end of the month, is not counted. This rule prevents charges for temporary Service Instances used for testing or previews, as long as you remove them before the month ends.
+Usage is measured at the end of each month. A Service Instance counts towards usage for a month if it is still deployed at the end of that month, or if it was removed during that month after being deployed for 10 days or more. A Service Instance that you remove less than 10 days after deployment, and before the end of the month, is not counted. To avoid charges for a temporary Service Instance used for testing or previews, remove it less than 10 days after deployment and before the end of the month. An instance removed after 10 days or more counts for that month, even if you remove it before the month ends.
 
 For greater clarity, subscriptions are **not** priced based on:
 
