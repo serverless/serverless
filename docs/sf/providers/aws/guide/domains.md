@@ -1,27 +1,29 @@
 <!--
-title: Custom Domains
-description: Easily configure custom domains for your APIs with the Serverless Framework.
-short_title: Domains
+title: Custom Domains for APIs and Web Apps
+description: 'Serve API Gateway APIs and web apps on your own domain with provider.domain: ACM certificates, Route 53 records, base paths, edge and regional endpoints.'
+short_title: Custom Domains
 keywords:
   [
     'Serverless Framework',
-    'AWS Lambda',
-    'API Gateway',
-    'Custom Domains',
-    'Route53',
-    'ACM',
-    'SSL Certificates',
+    'API Gateway custom domain',
+    'Route 53',
+    'ACM certificate',
+    'base path mapping',
+    'serverless-domain-manager',
   ]
 -->
 
-# Custom Domains
+<!-- DOCS-SITE-LINK:START automatically generated  -->
 
-The Serverless Framework v4 provides built-in support for configuring custom domains for your APIs and [web apps](./web-apps.md). This feature automatically handles SSL certificate creation, Route53 DNS configuration, and API Gateway domain mapping. For web apps, it serves the domain through Amazon CloudFront; see [Web Apps](#web-apps).
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/domains)
 
-> **Acknowledgement:**
-> Big shout out to [Amplify Education](https://amplify.com/) for creating and maintaining [the original Serverless Domain Manager plugin](https://github.com/amplify-education/serverless-domain-manager). The custom domains feature in the Serverless Framework v4 was made possible thanks to their hard work and contributions to the community.
+<!-- DOCS-SITE-LINK:END -->
 
-## Quick Start
+# Custom Domains for APIs and Web Apps
+
+The `provider.domain` and `provider.domains` keys serve the service's API Gateway APIs (HTTP, REST and WebSocket) and [web apps](./web-apps.md) on your own domain name, such as `api.example.com`. On `serverless deploy`, the Framework finds or requests the ACM certificate, creates the API Gateway custom domain, creates the Route 53 DNS records, and maps the domain to the API. Web apps are served through Amazon CloudFront instead; see [Web apps](#web-apps). The feature is built in: no plugin is needed.
+
+This `serverless.yml` serves an HTTP API at `https://api.example.com`:
 
 ```yaml
 # serverless.yml
@@ -29,12 +31,12 @@ service: my-service
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs24.x
   domain: api.example.com
 
 functions:
   hello:
-    handler: src/hello.handler
+    handler: handler.hello
     events:
       - httpApi:
           path: /
@@ -45,41 +47,62 @@ functions:
 serverless deploy
 ```
 
-### Notes:
+The deploy output lists the domain, its target (the API Gateway domain name) and the target's hosted zone ID:
 
-- If your domain is registered and managed in Route53, the Framework will automatically handle domain setup, SSL certificate creation, and DNS configuration for you. If your domain is registered with a third-party registrar, you can still use it—just follow the [Third-Party Registrar Setup](#third-party-registrar-setup) instructions to complete a few manual DNS steps.
-- After deployment, it may take 2-5 minutes for your custom domain to become fully accessible due to DNS propagation and SSL certificate activation.
-
-## Usage
-
-### Basic Usage
-
-#### Single Domain
-
-```yaml
-# serverless.yml
-service: my-service
-
-provider:
-  name: aws
-  runtime: nodejs20.x
-  domain: api.example.com
-
-functions:
-  hello:
-    handler: src/hello.handler
-    events:
-      - httpApi:
-          path: /
-          method: get
+```text
+domain:
+  name: api.example.com
+  target: d-abcdefghij.execute-api.us-east-1.amazonaws.com
+  zone id: Z1UJRXOUMOOFQ8
 ```
 
-#### Multiple Stages
+The fully automatic setup needs the domain's DNS in a Route 53 hosted zone that the deploy credentials (or `route53Profile`) can read and change. For a domain whose DNS is elsewhere, see [Third-party registrar setup](#third-party-registrar-setup). A new domain can take several minutes to become reachable while DNS changes propagate.
+
+## How the Framework sets up a domain
+
+For each domain entry, `serverless deploy` runs these steps:
+
+1. Before the stack deploy, the Framework finds an ACM certificate for the domain, or requests one and adds its DNS validation records to Route 53 (see [Certificates](#certificates)).
+2. It creates the API Gateway custom domain, with the tags in `provider.stackTags` and `provider.tags`. When the domain exists, it updates `securityPolicy` and `accessMode` if you set them and they differ; it leaves the other settings of an existing domain unchanged.
+3. Unless `createRoute53Record` is `false`, it creates or updates the Route 53 alias records that point the domain at API Gateway.
+4. It waits up to `autoDomainWaitFor` seconds (default 120) for a new domain to exist, then deploys the stack, including the API.
+5. After the stack deploy, it creates or updates the API mapping between the domain, the base path and the API's stage.
+
+Steps 1 to 4 run only when `autoDomain` is `true` (the default). `serverless deploy function` doesn't run any of them.
+
+`serverless remove` deletes the API mapping, then the custom domain and, unless `createRoute53Record` is `false`, its Route 53 records. It keeps the domain when `autoDomain` is `false`, or when `preserveExternalPathMappings` is `true` and other APIs still map to the domain. ACM certificates and their validation records are never deleted, so a later deploy reuses the certificate.
+
+The Framework calls API Gateway and ACM with the deploy credentials and Region, and Route 53 with the `route53Profile` and `route53Region` settings when they are set. Without `route53Profile`, `serverless deploy` calls Route 53 with the deploy credentials, while `serverless remove` uses the AWS SDK's default credential chain (environment variables, the default profile) to delete the records.
+
+## Domain entries
+
+`provider.domain` takes one entry and `provider.domains` a list; you can set both. An entry is a domain name, or an object with `name` and the other [domain settings](#domain-settings).
+
+### Single domain
 
 ```yaml
-# serverless.yml
-service: my-service
+provider:
+  name: aws
+  domain: api.example.com
+```
 
+The object form sets more options:
+
+```yaml
+provider:
+  name: aws
+  domain:
+    name: api.example.com
+    basePath: v1
+    apiType: http
+    endpointType: regional
+```
+
+### Domain per stage
+
+To use a different domain in each stage, set the domain with a [stage parameter](../../../guides/parameters.md):
+
+```yaml
 params:
   dev:
     domain: api.example.dev
@@ -88,99 +111,16 @@ params:
 
 provider:
   name: aws
-  runtime: nodejs20.x
   domain: ${param:domain}
-
-functions:
-  hello:
-    handler: src/hello.handler
-    events:
-      - httpApi:
-          path: /
-          method: get
 ```
 
-#### Multiple Domains
+### Multiple domains
+
+A service can serve the same API on several domains, and each API type on its own domain. A service has at most one API of each type, so `apiType` selects the API:
 
 ```yaml
-# serverless.yml
-service: my-service
-
 provider:
   name: aws
-  runtime: nodejs20.x
-  domains:
-    - api.example.com
-    - api-v2.example.com
-
-functions:
-  hello:
-    handler: src/hello.handler
-    events:
-      - httpApi:
-          path: /
-          method: get
-```
-
-### Advanced Usage
-
-```yaml
-service: your-service
-provider:
-  name: aws
-  runtime: nodejs20.x
-  domain:
-    name: api.example.com
-    basePath: v1
-    apiType: http
-    endpointType: regional
-
-functions:
-  hello:
-    handler: src/hello.handler
-    events:
-      - httpApi:
-          path: /users
-          method: get
-
-  websocket:
-    handler: src/websocket.handler
-    events:
-      - websocket:
-          route: $connect
-```
-
-## Domain Configuration Options
-
-### String Format (Simple)
-
-For basic setups, you can specify a domain as a simple string:
-
-```yaml
-provider:
-  domain: api.example.com
-```
-
-### Object Format (Advanced)
-
-For more control, use the object format:
-
-```yaml
-provider:
-  domain:
-    name: api.example.com # Required: Your custom domain name
-    basePath: v1 # Optional: Base path for API mapping
-    apiType: http # Optional: API type (http, rest, websocket)
-    endpointType: regional # Optional: Endpoint type (regional, edge)
-    accessMode: strict # Optional: REST only (single-level basePath)
-```
-
-### Multiple Domains
-
-You can configure multiple domains for the same service:
-
-```yaml
-provider:
   domains:
     - name: api.example.com
       apiType: http
@@ -190,189 +130,102 @@ provider:
       basePath: v1
     - name: websocket.example.com
       apiType: websocket
+    - name: admin.example.com
+      apiType: rest
+      basePath: admin
 ```
 
-## Configuration Reference
-
-Below are all available configuration options for custom domains:
-
-| Option                         | Type           | Required | Description                                                                                                                                                                                                                     |
-| ------------------------------ | -------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`                         | string         | Yes      | Your custom domain name (e.g., `api.example.com`)                                                                                                                                                                               |
-| `basePath`                     | string         | No       | Base path for API mapping (e.g., `v1`, `api`)                                                                                                                                                                                   |
-| `apiType`                      | string         | No       | API type: `http`, `rest`, or `websocket`. Defaults to `http`. Please note that Serverless Framework Services can only have 1 of each API Type. Therefore, when you specify `apiType` it will be auto-mapped to the correct one. |
-| `endpointType`                 | string         | No       | Endpoint type: `regional` or `edge`. Defaults to `regional`                                                                                                                                                                     |
-| `certificateArn`               | string         | No       | ARN of existing ACM certificate. If not provided, a new certificate will be created                                                                                                                                             |
-| `certificateName`              | string         | No       | Name of existing ACM certificate to use instead of creating a new one                                                                                                                                                           |
-| `createRoute53Record`          | boolean        | No       | Whether to create Route53 DNS records. Set to `false` for third-party registrars. Defaults to `true`                                                                                                                            |
-| `createRoute53IPv6Record`      | boolean        | No       | Whether to create IPv6 (AAAA) Route53 records. Defaults to `true`. Set it to `true` explicitly to also create the domain with IPv6 support. See [IPv6](#ipv6)                                                                   |
-| `hostedZoneId`                 | string         | No       | Route53 hosted zone ID. If not provided, will be automatically detected                                                                                                                                                         |
-| `hostedZonePrivate`            | boolean        | No       | Whether to use a private hosted zone. Defaults to `false`                                                                                                                                                                       |
-| `route53Profile`               | string         | No       | AWS profile to use for Route53 operations                                                                                                                                                                                       |
-| `route53Region`                | string         | No       | AWS region for Route53 operations                                                                                                                                                                                               |
-| `route53Params`                | object         | No       | Additional parameters to pass to Route53 API calls                                                                                                                                                                              |
-| `splitHorizonDns`              | boolean        | No       | Enable split-horizon DNS for private hosted zones                                                                                                                                                                               |
-| `securityPolicy`               | string         | No       | Security policy for the domain. For domain flows routed through API Gateway V2, use `TLS_1_2`                                                                                                                                   |
-| `accessMode`                   | string         | No       | API Gateway endpoint access mode: `basic` or `strict` (REST domains managed by API Gateway V1 only)                                                                                                                             |
-| `tlsTruststoreUri`             | string         | No       | S3 URI of the truststore for mutual TLS authentication                                                                                                                                                                          |
-| `tlsTruststoreVersion`         | string         | No       | Version of the TLS truststore                                                                                                                                                                                                   |
-| `enabled`                      | boolean/string | No       | Whether the domain is enabled. Can be a boolean or a condition string                                                                                                                                                           |
-| `allowPathMatching`            | boolean        | No       | Allow path-based routing for the domain                                                                                                                                                                                         |
-| `preserveExternalPathMappings` | boolean        | No       | Preserve existing path mappings not managed by Serverless Framework                                                                                                                                                             |
-| `webApp`                       | string         | No       | Name of a web app under `webApps` to serve on this domain through CloudFront instead of an API Gateway API. See [Web Apps](#web-apps)                                                                                           |
-
-### Example with Advanced Configuration
+An entry can also hold one configuration per API type, under the keys `http`, `rest` and `websocket`; each is a full entry with its own `name`:
 
 ```yaml
 provider:
   name: aws
-  runtime: nodejs20.x
   domain:
-    name: api.example.com
-    basePath: v1
-    apiType: rest
-    endpointType: regional
-    certificateArn: arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012
-    createRoute53Record: true
-    hostedZoneId: Z1PA6795UKMFR9
-    securityPolicy: TLS_1_2
-    accessMode: strict
-    enabled: true
-    allowPathMatching: false
-    preserveExternalPathMappings: false
-    route53Params:
-      TTL: 300
-      Comment: 'Custom domain for API'
-
-functions:
-  hello:
-    handler: src/hello.handler
-    events:
-      - http:
-          path: /users
-          method: get
+    http:
+      name: api.example.com
+    websocket:
+      name: ws.example.com
 ```
 
-## API Types
+## API types
 
-The Serverless Framework supports different API types for custom domains:
+`apiType` selects the API the domain maps to: `http` (the [`httpApi` event](../events/http-api.md)), `rest` (the [`http` event](../events/apigateway.md)) or `websocket` (the [`websocket` event](../events/websocket.md)). When you omit it, the Framework detects the API type from the APIs the service creates: the type of its only API, or `http` when it creates none. For an existing API set with `provider.apiGateway.restApiId` or `websocketApiId`, set `apiType`. A service with more than one API type needs `apiType` on every entry; without it the deploy stops with `Multiple API types detected in CloudFormation template`.
 
-### HTTP API (Default)
+The domain maps to the API the service creates, or to the API in `provider.apiGateway.restApiId` or `provider.apiGateway.websocketApiId`. For HTTP APIs the mapping always targets the `$default` stage, so leave `stage` unset: with `stage` and a `basePath` set, `serverless remove` doesn't find the mapping and skips deleting it. For REST and WebSocket APIs it targets the service stage, or the stage in the entry's `stage` key.
 
-```yaml
-service: my-service
+## Base path mapping
 
-provider:
-  domain:
-    name: api.example.com
-    apiType: http
-
-functions:
-  hello:
-    handler: src/hello.handler
-    events:
-      - httpApi:
-          path: /
-          method: get
-```
-
-### REST API
+`basePath` maps the API under a path of the domain:
 
 ```yaml
-service: my-service
-
 provider:
-  domain:
-    name: api.example.com
-    apiType: rest
-
-functions:
-  hello:
-    handler: src/hello.handler
-    events:
-      - http:
-          path: /
-          method: get
-```
-
-### WebSocket API
-
-```yaml
-service: my-service
-
-provider:
-  domain:
-    name: websocket.example.com
-    apiType: websocket
-
-functions:
-  connect:
-    handler: src/websocket.connect
-    events:
-      - websocket:
-          route: $connect
-
-  disconnect:
-    handler: src/websocket.disconnect
-    events:
-      - websocket:
-          route: $disconnect
-
-  default:
-    handler: src/websocket.default
-    events:
-      - websocket:
-          route: $default
-```
-
-## Base Path Mapping
-
-You can configure a base path to map your API to a specific path on your domain:
-
-```yaml
-service: my-service
-
-provider:
+  name: aws
   domain:
     name: api.example.com
     basePath: v1
 
 functions:
   users:
-    handler: src/users.handler
+    handler: handler.users
     events:
       - httpApi:
           path: /users
           method: get
 ```
 
-This configuration will make your API available at `https://api.example.com/v1/users`.
+The API is then available at `https://api.example.com/v1/users`. API Gateway strips the base path before the request reaches the API: the route is `/users`, and requests to `/v1/users` match it. Without `basePath`, the API is mapped at the root of the domain.
 
-API Gateway strips the base path before the request reaches your API: the route above is `/users`, and requests to `/v1/users` match it. On entries with `webApp`, `basePath` routes by path instead and forwards the path unchanged; see [Routing web apps by path](#routing-web-apps-by-path).
+The Framework removes leading and trailing slashes from `basePath`. `ping` and `sping` are reserved by API Gateway; the Framework prints a warning for them. A REST API with a multi-level base path, such as `v1/users`, is managed through API Gateway's V2 APIs, which limits `securityPolicy` and `accessMode` (see [Security policy and access mode](#security-policy-and-access-mode)).
 
-## Endpoint Types
+On entries with `webApp`, `basePath` routes by path instead and forwards the path unchanged; see [Routing web apps by path](#routing-web-apps-by-path).
 
-### Regional (Recommended)
+## Endpoint types
 
-Regional endpoints are optimized for requests from the same AWS region:
+`endpointType` is `regional` (the default) or `edge`:
+
+- `regional`: API Gateway serves the domain in the service's Region. The ACM certificate must be in that Region.
+- `edge`: API Gateway serves the domain through an edge-optimized endpoint backed by Amazon CloudFront. Edge endpoints are available for REST APIs only; `edge` with `apiType: http` or `websocket` stops the deploy. The ACM certificate must be in `us-east-1`, whatever Region the service deploys to.
 
 ```yaml
 provider:
+  name: aws
+  domain:
+    name: api.example.com
+    apiType: rest
+    endpointType: edge
+```
+
+## Certificates
+
+When an entry has no `certificateArn`, the Framework looks up an ACM certificate in the service's Region (`regional`) or in `us-east-1` (`edge`):
+
+- It considers certificates that are issued or pending validation, with RSA or ECDSA keys, whose names cover the domain: the exact name, or a wildcard one level above it (`*.example.com` covers `api.example.com`).
+- An exact name wins over a wildcard, an issued certificate over a pending one, and then the latest expiry.
+- With `certificateName`, it instead picks a certificate whose primary domain name equals `certificateName`, and never requests one.
+
+When no certificate matches and the domain is in a Route 53 hosted zone, the Framework requests a certificate for the domain name only, with DNS validation, adds the validation records to the hosted zone and waits up to 10 minutes for the certificate to be issued. ACM renews it automatically. When the domain isn't in a Route 53 hosted zone, the deploy stops; create the certificate yourself (see [Third-party registrar setup](#third-party-registrar-setup)).
+
+## DNS records
+
+Unless `createRoute53Record` is `false`, the Framework creates Route 53 alias records named after the domain that point at the API Gateway domain name: an A record and, unless `createRoute53IPv6Record` is `false`, an AAAA record.
+
+The Framework finds the hosted zone by name: the zone with the longest name that equals the domain or ends its parent domain (`example.com` for `api.example.com`). It considers public and private zones; `hostedZonePrivate: true` or `false` limits the lookup to one kind, and `hostedZoneId` skips the lookup. With `splitHorizonDns: true`, the Framework creates the records in both the public and the private zone of the domain.
+
+To route traffic between deployments of the same domain in several Regions, set `route53Params`:
+
+```yaml
+provider:
+  name: aws
   domain:
     name: api.example.com
     endpointType: regional
+    route53Params:
+      routingPolicy: latency # simple (default), latency or weighted
+      setIdentifier: api-${aws:region} # default: the API Gateway domain name
+      healthCheckId: abcdef12-3456-7890-abcd-ef1234567890 # optional
 ```
 
-### Edge
-
-Edge endpoints use CloudFront for global distribution:
-
-```yaml
-provider:
-  domain:
-    name: api.example.com
-    endpointType: edge
-```
+`latency` and `weighted` routing need a regional endpoint. A latency record's Region is `route53Region` when set, otherwise the deploy Region. A weighted record uses `weight` (default `200`). Other keys under `route53Params` are ignored.
 
 ## IPv6
 
@@ -380,76 +233,93 @@ Custom domains accept IPv4 traffic by default. To make a domain reachable over I
 
 ```yaml
 provider:
+  name: aws
   domain:
     name: api.example.com
     createRoute53IPv6Record: true
 ```
 
-The Framework then creates the domain with the dualstack IP address type, so it accepts both IPv4 and IPv6 traffic. Unless `createRoute53Record` is `false`, it also adds A and AAAA records for the domain.
+The Framework then creates the domain with the dualstack IP address type, so it accepts both IPv4 and IPv6 traffic, and adds A and AAAA records unless `createRoute53Record` is `false`.
 
 - The setting applies when the Framework creates the domain. To add IPv6 to a domain that already exists, [change its IP address type in API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/rest-custom-domain-ip-address-type.html). Later deploys keep the type the domain has.
 - Clients that support IPv6 connect over it once the domain accepts it. If a resource policy or AWS WAF rule allows or blocks callers by IP address, make sure it also covers their IPv6 addresses.
 
-## Multiple Domain Configurations
+## Security policy and access mode
 
-For complex applications, you can configure different domains for different purposes:
+`securityPolicy` sets the TLS versions and ciphers the domain accepts: `TLS_1_0`, `TLS_1_2` (the default) or an enhanced policy starting with `SecurityPolicy_`, such as `SecurityPolicy_TLS13_1_3_2025_09`. AWS lists the policies in [supported security policies](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-security-policies-list.html).
+
+`accessMode` (`basic` or `strict`) sets the endpoint access mode that enhanced policies require. These rules apply:
+
+- Domains managed through API Gateway's V2 APIs accept only `securityPolicy: TLS_1_2` and no `accessMode`. That is every `http` and `websocket` domain, and a `rest` domain with a multi-level `basePath` such as `v1/test`.
+- `accessMode` requires an enhanced `SecurityPolicy_*` policy.
+- When the domain exists, the Framework updates only the `securityPolicy` and `accessMode` you set. For a V2 domain it sends the certificate from `certificateArn`, or the domain's current certificate, with the update.
 
 ```yaml
-service: my-service
-
 provider:
   name: aws
-  runtime: nodejs20.x
-  domains:
-    - name: api.example.com
-      apiType: http
-      basePath: v1
-    - name: websocket.example.com
-      apiType: websocket
-    - name: admin.example.com
-      apiType: rest
-      basePath: admin
-
-functions:
-  # HTTP API functions
-  getUsers:
-    handler: src/users.get
-    events:
-      - httpApi:
-          path: /users
-          method: get
-
-  # WebSocket functions
-  connect:
-    handler: src/websocket.connect
-    events:
-      - websocket:
-          route: $connect
-
-  # REST API functions
-  adminPanel:
-    handler: src/admin.panel
-    events:
-      - http:
-          path: /dashboard
-          method: get
+  domain:
+    name: api.example.com
+    apiType: rest
+    basePath: v1
+    securityPolicy: SecurityPolicy_TLS13_1_3_2025_09
+    accessMode: strict
 ```
 
-### Security Policy and Reconciliation Notes
+## Domain settings
 
-Keep these rules in mind when configuring domain security:
+Every setting of a domain entry follows. `enabled`, `autoDomain`, `createRoute53Record`, `createRoute53IPv6Record`, `preserveExternalPathMappings` and `splitHorizonDns` also accept the strings `"true"`, `"false"`, `"1"` and `"0"`, which helps with variables; any other string stops the deploy with `domains: Ambiguous boolean config`. The configuration schema accepts a string only for `enabled`, so for the others a string gets a configuration warning, or stops the deploy when `configValidationMode` is `error`.
 
-- `accessMode` is only supported for REST domains managed through API Gateway V1.
-- `accessMode` (`basic` or `strict`) requires an enhanced `securityPolicy` value that starts with `SecurityPolicy_`.
-- `accessMode` is not supported for `http` or `websocket` APIs.
-- For domain flows routed through API Gateway V2, use `TLS_1_2` for `securityPolicy`.
-- REST domains with multi-level `basePath` values (for example, `v1/test`) are managed through API Gateway V2, so the same `TLS_1_2` guidance applies.
-- When a custom domain already exists, Serverless Framework reconciles only explicitly configured `securityPolicy` and `accessMode` values. Omitted fields are left unchanged.
-- For API Gateway V2 `securityPolicy` reconciliation, Serverless resolves certificate context from `certificateArn` in config or from the existing domain before sending the update request.
+| Setting                        | Type    | Default                | Description                                                                                                                                                                                                                              |
+| ------------------------------ | ------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                         | string  | Required               | The domain name, such as `api.example.com`.                                                                                                                                                                                              |
+| `basePath`                     | string  | None (the root)        | The path the API is mapped under. See [Base path mapping](#base-path-mapping).                                                                                                                                                           |
+| `apiType`                      | string  | Detected               | `http`, `rest` or `websocket`. See [API types](#api-types).                                                                                                                                                                              |
+| `stage`                        | string  | The service stage      | REST and WebSocket APIs: the API stage the mapping targets. HTTP API mappings always target `$default`.                                                                                                                                  |
+| `endpointType`                 | string  | `regional`             | `regional` or `edge` (REST APIs only).                                                                                                                                                                                                   |
+| `certificateArn`               | string  | Looked up              | The ARN of the ACM certificate to use. See [Certificates](#certificates).                                                                                                                                                                |
+| `certificateName`              | string  | None                   | The primary domain name of the ACM certificate to use instead of matching `name`. A certificate is never requested when this is set.                                                                                                     |
+| `createRoute53Record`          | boolean | `true`                 | Creates the Route 53 alias records. Set `false` for DNS outside Route 53.                                                                                                                                                                |
+| `createRoute53IPv6Record`      | boolean | `true`                 | Creates the AAAA record. An explicit `true` also creates the domain as dualstack. See [IPv6](#ipv6).                                                                                                                                     |
+| `hostedZoneId`                 | string  | Looked up              | The Route 53 hosted zone for the records.                                                                                                                                                                                                |
+| `hostedZonePrivate`            | boolean | Both kinds             | Looks up only private (`true`) or only public (`false`) hosted zones.                                                                                                                                                                    |
+| `splitHorizonDns`              | boolean | `false`                | Creates the records in both the public and the private hosted zone. Ignored when `hostedZoneId` is set or `hostedZonePrivate` is `true`.                                                                                                 |
+| `route53Profile`               | string  | The deploy credentials | An AWS profile from your AWS shared config and credentials files, for Route 53 calls: hosted zone lookup, alias records and certificate validation records. Without it, `serverless remove` uses the AWS SDK's default credential chain. |
+| `route53Region`                | string  | The deploy Region      | The Region of the Route 53 client, and of latency records.                                                                                                                                                                               |
+| `route53Params`                | object  | Simple routing         | `routingPolicy` (`simple`, `latency` or `weighted`), `setIdentifier`, `weight` (default `200`) and `healthCheckId`. See [DNS records](#dns-records).                                                                                     |
+| `securityPolicy`               | string  | `TLS_1_2`              | `TLS_1_0`, `TLS_1_2` or a `SecurityPolicy_*` policy. See [Security policy and access mode](#security-policy-and-access-mode).                                                                                                            |
+| `accessMode`                   | string  | None                   | `basic` or `strict`. REST domains with a single-level base path and an enhanced `securityPolicy` only.                                                                                                                                   |
+| `tlsTruststoreUri`             | string  | None                   | The S3 URI of the truststore for mutual TLS, such as `s3://bucket-name/truststore.pem`. Regional endpoints only; the object must exist.                                                                                                  |
+| `tlsTruststoreVersion`         | string  | None                   | The S3 object version ID of the truststore.                                                                                                                                                                                              |
+| `enabled`                      | boolean | `true`                 | With `false`, the Framework ignores the entry.                                                                                                                                                                                           |
+| `autoDomain`                   | boolean | `true`                 | Creates or updates the domain before each deploy and deletes it on remove. With `false`, the domain must already exist; the Framework manages only the API mapping.                                                                      |
+| `autoDomainWaitFor`            | string  | `'120'`                | Seconds to wait for a new domain to exist before the stack deploy.                                                                                                                                                                       |
+| `allowPathMatching`            | boolean | `false`                | Finds the existing API mapping to update by `basePath` instead of by API ID, for example to move a domain from a REST API to an HTTP API.                                                                                                |
+| `preserveExternalPathMappings` | boolean | `false`                | On `serverless remove`, keeps the domain when API mappings of other APIs still use it.                                                                                                                                                   |
+| `webApp`                       | string  | None                   | The name of a web app under `webApps` to serve on this domain through CloudFront. See [Web apps](#web-apps).                                                                                                                             |
 
-## Web Apps
+## Third-party registrar setup
 
-An entry with `webApp` serves one of the service's [web apps](./web-apps.md) on the hostname. The Framework puts an Amazon CloudFront distribution in front of the web app, finds or requests an ACM certificate in `us-east-1` (CloudFront's certificate Region, whatever Region the service deploys to), and creates Route53 A and AAAA alias records for the distribution.
+For a domain whose DNS isn't in Route 53, create the certificate and the DNS record yourself:
+
+1. In AWS Certificate Manager, request a public certificate for the domain in the service's Region (in `us-east-1` for `endpointType: edge`), with DNS validation.
+2. Add the validation CNAME records that ACM shows at your DNS provider, and wait for the certificate status to be **Issued**.
+3. In `serverless.yml`, set `createRoute53Record: false`. Optionally set the certificate's ARN in `certificateArn`; without it, the Framework finds the certificate by name:
+
+   ```yaml
+   provider:
+     name: aws
+     domain:
+       name: api.example.com
+       certificateArn: arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012
+       createRoute53Record: false
+   ```
+
+4. Run `serverless deploy`. The deploy output lists the domain's `target`, such as `d-abcdefghij.execute-api.us-east-1.amazonaws.com`.
+5. At your DNS provider, create a CNAME record for the domain with the `target` as its value. A zone apex, such as `example.com`, can't hold a CNAME record: for an apex domain, create your DNS provider's ALIAS, ANAME or flattened CNAME record that points to the `target` instead.
+
+## Web apps
+
+An entry with `webApp` serves one of the service's [web apps](./web-apps.md) on the hostname. The Framework puts an Amazon CloudFront distribution in front of the web app, finds or requests an ACM certificate in `us-east-1` (CloudFront's certificate Region, whatever Region the service deploys to), and creates Route 53 A and AAAA alias records for the distribution.
 
 ```yaml
 service: shop
@@ -503,153 +373,39 @@ The two kinds of entries treat `basePath` differently:
 - Hostnames are case-insensitive: `Shop.Example.com` and `shop.example.com` name the same hostname, and the Framework uses the lowercase form.
 - Certificate and DNS settings (`certificateArn`, `certificateName`, `createRoute53Record`, `createRoute53IPv6Record`, `hostedZoneId`, `hostedZonePrivate`, `splitHorizonDns`, `route53Profile`, `route53Region`, `route53Params`) apply to the whole hostname. Set them on the entry without `basePath`; an entry with `basePath` may only repeat the same values, and a different value stops the deploy.
 - The API Gateway options (`apiType`, `endpointType`, `securityPolicy`, `accessMode`, `allowPathMatching`, `preserveExternalPathMappings`, `autoDomain`, `autoDomainWaitFor`, `tlsTruststoreUri`, `tlsTruststoreVersion`, `rest`, `http`, `websocket`) are not accepted on entries with `webApp`.
-- For a domain whose DNS is not in Route53, set `createRoute53Record: false` and create or import an ACM certificate in `us-east-1` that covers the hostname; the deploy finds it by hostname, or you can name it in `certificateArn`. Then point a CNAME record at the distribution's domain name, which `serverless info --verbose` prints as a stack output ending in `CloudFrontDistributionDomainName`.
+- For a domain whose DNS is not in Route 53, set `createRoute53Record: false` and create or import an ACM certificate in `us-east-1` that covers the hostname; the deploy finds it by hostname, or you can name it in `certificateArn`. Then point a CNAME record at the distribution's domain name, which `serverless info --verbose` prints as a stack output ending in `CloudFrontDistributionDomainName`.
 - A web app served on a domain cannot set `url.authorizer`: its endpoint requires the signed requests CloudFront sends, and unsigned direct requests get HTTP 403. Authenticate users in the app.
 
 Behind CloudFront, a response must start within the web app's `timeout` plus 5 seconds, and never later than 120 seconds. See [Custom domains](./web-apps.md#custom-domains) in the web apps guide for the timeout, retry and header details.
 
-## Prerequisites
+## Troubleshooting custom domains
 
-### Route53 Hosted Zone
+### `Could not find an in-date certificate for '...'`
 
-Your domain must have a Route53 hosted zone configured in your AWS account. The Serverless Framework will automatically:
-
-1. Create an ACM SSL certificate for your domain
-2. Validate the certificate using DNS validation
-3. Create the necessary Route53 DNS records
-4. Map the domain to your API Gateway
-
-### Domain Ownership
-
-You must own the domain and have it configured with Route53 as the DNS provider.
-
-## Third-Party Registrar Setup
-
-If your domain is registered with a third-party registrar (not Route53), you'll need to manually create and configure the SSL certificate and DNS records.
-
-### Step 1: Create SSL Certificate Manually
-
-1. Go to AWS Certificate Manager (ACM) in your AWS console
-2. Request a new certificate for your domain
-3. Choose DNS validation method
-4. Add the validation CNAME records to your domain registrar's DNS settings
-5. Wait for the certificate to be validated and issued
-6. Copy the certificate ARN
-
-### Step 2: Configure Serverless Framework
-
-Use the certificate ARN and disable automatic Route53 record creation:
-
-```yaml
-service: my-service
-
-provider:
-  name: aws
-  runtime: nodejs20.x
-  domain:
-    name: api.example.com
-    certificateArn: arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012
-    createRoute53Record: false
-    apiType: http
-    endpointType: regional
-
-functions:
-  hello:
-    handler: src/hello.handler
-    events:
-      - httpApi:
-          path: /
-          method: get
+```text
+Unable to create domain 'api.example.com':
+Could not find an in-date certificate for 'api.example.com'.
 ```
 
-### Step 3: Create DNS Records Manually
+No issued or pending ACM certificate in the lookup Region covers the domain, and the Framework didn't request one: the domain has no Route 53 hosted zone, or `certificateName` is set. For an `edge` endpoint, the message adds that the certificate must be in `us-east-1`. Create the certificate in the right Region (see [Certificates](#certificates)), or move the domain's DNS to a Route 53 hosted zone.
 
-After deploying your service, you'll need to create DNS records in your registrar:
+### `Could not find hosted zone '...'`
 
-1. Deploy your service: `serverless deploy`
-2. Note the API Gateway domain name from the deployment output
-3. In your registrar's DNS settings, create:
-   - **Type**: CNAME (or A/AAAA if using alias records)
-   - **Name**: Your subdomain (e.g., `api` for `api.example.com`)
-   - **Value**: The API Gateway domain name (e.g., `d-1234567890.execute-api.us-east-1.amazonaws.com`)
-
-### Configuration Options for Third-Party Registrars
-
-| Option                | Required | Description                                                 |
-| --------------------- | -------- | ----------------------------------------------------------- |
-| `certificateArn`      | Yes      | ARN of the manually created ACM certificate                 |
-| `createRoute53Record` | Yes      | Set to `false` to prevent automatic Route53 record creation |
-| `name`                | Yes      | Your custom domain name                                     |
-| `apiType`             | No       | API type (http, rest, websocket) - defaults to http         |
-| `endpointType`        | No       | Endpoint type (regional, edge) - defaults to regional       |
-| `basePath`            | No       | Base path for API mapping                                   |
-| `accessMode`          | No       | `basic` or `strict` (REST + single-level basePath only)     |
-
-### Example with Multiple Domains
-
-```yaml
-provider:
-  name: aws
-  runtime: nodejs20.x
-  domains:
-    - name: api.example.com
-      certificateArn: arn:aws:acm:us-east-1:123456789012:certificate/api-cert-12345
-      createRoute53Record: false
-      apiType: http
-    - name: websocket.example.com
-      certificateArn: arn:aws:acm:us-east-1:123456789012:certificate/ws-cert-12345
-      createRoute53Record: false
-      apiType: websocket
+```text
+Unable to create domain 'api.example.com':
+Could not find hosted zone 'api.example.com'
 ```
 
-## SSL Certificates
+The Framework found no Route 53 hosted zone for the domain or its parent domain with the credentials it uses for Route 53 (`route53Profile`, or the deploy credentials). Set `hostedZoneId`, check `hostedZonePrivate`, or set `createRoute53Record: false` and create the DNS record yourself.
 
-The Serverless Framework automatically handles SSL certificate creation and validation:
+### The domain doesn't respond after deploy
 
-- **Certificate Creation**: ACM certificates are automatically created for your domains
-- **DNS Validation**: Certificate validation is performed using Route53 DNS records
-- **Auto-Renewal**: ACM handles certificate renewal automatically
+DNS changes can take time to reach your resolver, and API Gateway can take several minutes to initialize a new domain. Check that the alias records exist in the hosted zone and that `dig api.example.com` returns them, and that the API mapping in API Gateway points to the right API and stage.
 
-## Deployment Process
+## Related
 
-When you deploy a service with custom domains, the framework will:
+- [HTTP API events](../events/http-api.md), [REST API events](../events/apigateway.md) and [WebSocket API events](../events/websocket.md)
+- [Web apps](./web-apps.md)
+- [Custom domain names in API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-custom-domains.html)
 
-1. **Create API Gateway**: Deploy your API Gateway (HTTP API, REST API, or WebSocket API)
-2. **Request Certificate**: Create an ACM certificate for your domain
-3. **DNS Validation**: Add DNS validation records to Route53
-4. **Domain Mapping**: Create the custom domain in API Gateway
-5. **Route Configuration**: Add Route53 A/AAAA records pointing to the API Gateway
-
-## Limitations
-
-- Custom domains are only supported for services deployed to AWS
-- Your domain must be managed by Route53
-- Certificate validation can take several minutes
-- Edge endpoint custom domains require certificates in the `us-east-1` region
-
-## Troubleshooting
-
-### Certificate Validation Issues
-
-If certificate validation fails:
-
-1. Ensure your domain has a Route53 hosted zone
-2. Verify DNS propagation using tools like `dig` or `nslookup`
-3. Check that the validation records were created correctly
-
-### Domain Not Accessible
-
-If your domain is not accessible after deployment:
-
-1. Wait for DNS propagation (can take up to 48 hours)
-2. Verify the Route53 records were created
-3. Check API Gateway domain configuration
-4. Ensure your functions are deployed correctly
-
-### Multiple Region Deployments
-
-When deploying to multiple regions with the same domain:
-
-1. Use regional endpoints to avoid conflicts
-2. Consider using different subdomains per region
-3. Use Route53 routing policies for traffic distribution
+The built-in custom domains feature is based on the [Serverless Domain Manager plugin](https://github.com/amplify-education/serverless-domain-manager) by Amplify Education.

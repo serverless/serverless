@@ -1,155 +1,144 @@
 <!--
-title: Serverless Framework - AppSync - CLI Commands
-description: CLI commands for AWS AppSync with the Serverless Framework.
-short_title: AppSync - CLI Commands
+title: AppSync CLI Commands
+description: Use serverless appsync commands to validate the schema, export introspection, flush the cache, read logs and manage the custom domain.
+short_title: AppSync CLI Commands
 keywords:
   [
     'Serverless Framework',
-    'AppSync',
-    'CLI',
-    'Commands',
-    'GraphQL',
-    'AWS',
+    'serverless appsync',
+    'AppSync CLI',
+    'AppSync introspection',
+    'AppSync flush cache',
+    'AppSync logs',
   ]
 -->
 
-# Commands
+<!-- DOCS-SITE-LINK:START automatically generated  -->
 
-The AppSync integration provides some useful commands to explore and manage your API.
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/appsync/commands)
 
-## `validate-schema`
+<!-- DOCS-SITE-LINK:END -->
 
-This commands allows you to validate your GraphQL schema.
+# AppSync CLI commands
 
-```bash
-sls appsync validate-schema
-```
+The `serverless appsync` commands work with the AppSync API of the service in the current directory: they validate its schema, export its introspection schema, flush its cache, open its consoles, print its logs and manage its custom domain. They are available when `serverless.yml` has an `appSync` block.
 
-## `get-introspection`
-
-Allows you to extract the introspection of the schema as a JSON or SDL.
-
-**Options**
-
-- `--format` or `-f`: the format in which to extract the schema. `JSON` or `SDL`. Defaults to `JSON`
-- `--output` or `-o`: a file where to output the schema. If not specified, prints to stdout
+To check the schema before deploying:
 
 ```bash
-sls appsync get-introspection
+serverless appsync validate-schema
 ```
 
-## `flush-cache`
+`get-introspection`, `flush-cache`, `console`, `cloudwatch`, `logs`, `domain assoc` and `domain disassoc` read the API ID from the service's deployed CloudFormation stack, so deploy the service first; they stop with `AppSync Api not found in stack. Did you forget to deploy?` when the stack has no API. All commands take the usual `--stage`, `--region` and `--aws-profile` options to select the stack and the AWS credentials.
 
-If your API uses the server-side [Caching](caching.md), this command flushes the cache.
+## Validate the schema
+
+`serverless appsync validate-schema` checks the `appSync` configuration and the GraphQL schema files locally, with the AppSync directives and scalars predefined, and makes no AWS calls:
 
 ```bash
-sls appsync flush-cache
+serverless appsync validate-schema
 ```
 
-## `console`
+A valid schema prints `AppSync schema valid`. An invalid one stops the command with `Invalid GraphQL schema:` followed by each error.
 
-Opens a new browser tab to the AWS console page of this API.
+Problems in the `appSync` configuration follow `configValidationMode`: with the default `warn`, the command prints `Invalid AppSync Configuration` as a warning and still prints `AppSync schema valid` when the schema is valid. To make `validate-schema` stop on configuration problems, for example in CI, set `configValidationMode: error` at the top level of `serverless.yml`.
+
+## Export the introspection schema
+
+`serverless appsync get-introspection` downloads the deployed API's schema from AppSync and prints it, or writes it to a file:
 
 ```bash
-sls appsync console
+serverless appsync get-introspection --format SDL --output schema.deployed.graphql
 ```
 
-## `cloudwatch`
+| Option     | Shortcut | Value                      | Default | Description                                                                                    |
+| ---------- | -------- | -------------------------- | ------- | ---------------------------------------------------------------------------------------------- |
+| `--format` | `-f`     | `JSON` or `SDL` (any case) | `JSON`  | The output format: an introspection result in JSON, or GraphQL schema language.                |
+| `--output` | `-o`     | file path                  | stdout  | The file to write, relative to the current working directory. An existing file is overwritten. |
 
-Opens a new browser tab to the CloudWatch logs page of this API.
+## Flush the cache
+
+`serverless appsync flush-cache` deletes every entry in the API's [server-side cache](./caching.md), so the next requests read from the data sources:
 
 ```bash
-sls appsync cloudwatch
+serverless appsync flush-cache --stage prod
 ```
 
-## `logs`
+It prints `Cache flushed successfully`. The API must have a cache (`appSync.caching`).
 
-Outputs the logs of the AppSync API to stdout.
+## Open the AppSync console
 
-**Options**
-
-- `--startTime`: Starting time. You can use human-friendly relative times. e.g. `30m`, `1h`, etc. Default: `10m` (10 minutes ago)
-- `--tail` or `-t`: Keep streaming new logs.
-- `--interval` or `-i`: Tail polling interval in milliseconds. Default: `1000`.
-- `--filter` or `-f`: A filter pattern to apply to the logs stream.
+`serverless appsync console` opens the API's page in the AWS AppSync console, in the default browser:
 
 ```bash
-sls appsync logs --filter '86771d0c-c0f3-4f54-b048-793a233e3ed9'
+serverless appsync console
 ```
 
-## `domain`
+## Open the CloudWatch logs console
 
-Manage the domain for this AppSync API.
-
-## Create the domain
-
-Before associating a domain to an API, you must first create it. You can do so using the following command.
-
-**Options**
-
-- `--quiet` or `-q`: Don't return an error if the operation fails
-- `--stage`: The stage to use
+`serverless appsync cloudwatch` opens the API's log group (`/aws/appsync/apis/<api id>`) in the CloudWatch console, in the default browser:
 
 ```bash
-sls appsync domain create
+serverless appsync cloudwatch
 ```
 
-## Delete the domain
+The `console` and `cloudwatch` commands print nothing; on a machine without a browser, such as CI, they have no effect.
 
-Deletes a domain from AppSync.
+## Print the API logs
 
-**Options**
-
-- `--quiet` or `-q`: Don't return an error if the operation fails
-- `--yes` or `-y`: Automatic yes to prompts
-- `--stage`: The stage to use
+`serverless appsync logs` prints events from the API's log group, `/aws/appsync/apis/<api id>`, one per line as `<ISO timestamp><tab><message>`. The API needs [logging](./general-config.md#appsync-logging) turned on:
 
 ```bash
-sls appsync domain delete
+serverless appsync logs --startTime 1h --filter ERROR
 ```
 
-If an API is associated to it, you will need to [disassociate](#disassociate-the-api-from-the-domain) it first.
+| Option        | Shortcut | Value                                                       | Default | Description                                                                                     |
+| ------------- | -------- | ----------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------- |
+| `--startTime` | None     | ISO 8601 date-time, or a duration such as `30m`, `2h`, `1d` | `10m`   | The earliest event to print. A duration counts back from now; a number without a unit is hours. |
+| `--filter`    | `-f`     | CloudWatch Logs filter pattern                              | None    | Prints only matching events, such as a request ID.                                              |
+| `--tail`      | `-t`     | None                                                        | Off     | Keeps polling for new events until you stop the command.                                        |
+| `--interval`  | `-i`     | milliseconds                                                | `1000`  | With `--tail`, the time between polls.                                                          |
 
-## Create a route53 record
+Without `--tail`, the command prints one page of results (up to 10,000 events or 1 MB) and exits.
 
-If you use Route53 for your hosted zone, you can also create the required CNAME record for your custom domain.
+## Manage the custom domain
 
-- `--quiet` or `-q`: Don't return an error if the operation fails
-- `--stage`: The stage to use
+The `serverless appsync domain` commands create, associate and remove the [custom domain](./custom-domain.md) of the API outside CloudFormation. Use them with `domain.useCloudFormation: false` in `serverless.yml`; they read the domain settings (`name`, `certificateArn`, `hostedZoneId`, `hostedZoneName`) from the `appSync.domain` block.
+
+To set up a domain and point it at this stage's API, run:
 
 ```bash
-sls appsync domain create-record
+serverless appsync domain create --stage prod
+serverless appsync domain assoc --stage prod
+serverless appsync domain create-record --stage prod
 ```
 
-## Delete the route53 record
+When `domain.useCloudFormation` isn't `false`, each `domain` command first warns that it can cause drift from the CloudFormation stack and asks `Do you want to continue? y/N`. Some commands ask again before a destructive step. The questions read from the terminal, so in CI and other runs without a terminal pass `--yes` (`-y`), which answers yes to every question. Answering no at the drift question exits with code 0 and changes nothing.
 
-- `--quiet` or `-q`: Don't return an error if the operation fails
-- `--yes` or `-y`: Automatic yes to prompts
-- `--stage`: The stage to use
+| Command                | What it does in AWS                                                                                                                          | Options            |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| `domain create`        | Creates the AppSync domain name with `certificateArn`, or with an issued `us-east-1` ACM certificate for `name` or its wildcard.             | `--quiet`, `--yes` |
+| `domain assoc`         | Associates the domain with this stage's API and waits until the association succeeds. Asks before replacing an association with another API. | `--yes`            |
+| `domain create-record` | Creates a Route 53 `A` alias record for `name` pointing at the domain, and waits until it is in sync.                                        | `--quiet`, `--yes` |
+| `domain delete-record` | Deletes that Route 53 record, after a confirmation.                                                                                          | `--quiet`, `--yes` |
+| `domain disassoc`      | Removes the domain's association with this stage's API, after a confirmation, and waits until it is gone.                                    | `--force`, `--yes` |
+| `domain delete`        | Deletes the AppSync domain name, after a confirmation. Disassociate the API first.                                                           | `--quiet`, `--yes` |
 
-```bash
-sls appsync domain delete-record
-```
+The domain options:
 
-## Associate the API to the domain
+| Option    | Shortcut | Description                                                                                                                                    |
+| --------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--yes`   | `-y`     | Answers yes to every confirmation question.                                                                                                    |
+| `--quiet` | `-q`     | Logs an error instead of failing the command, for example when the domain already exists or `No certificate found for domain api.example.com.` |
+| `--force` | `-f`     | With `disassoc`: removes the association even when the domain points at an API from another stage or stack.                                    |
 
-Associate the API in this stack to the domain.
+`create-record` and `delete-record` find the hosted zone by `hostedZoneId`, else by `hostedZoneName`, else by the parent domain of `name`. `create-record` needs the domain to exist, and otherwise stops with `Domain api.example.com not found`.
 
-- `--quiet` or `-q`: Don't return an error if the operation fails
-- `--stage`: The stage to use
+**Warning:** `domain delete` and `domain disassoc` take the custom domain offline for every client that uses it.
 
-```bash
-sls appsync domain assoc --stage dev
-```
+## Related pages
 
-You can associate an API to a domain that already has another API attached to it. The old API will be replaced by the new one.
-
-## Disassociate the API from the domain
-
-- `--quiet` or `-q`: Don't return an error if the operation fails
-- `--yes` or `-y`: Automatic yes to prompts
-- `--stage`: The stage to use
-
-```bash
-sls appsync domain disassoc --stage dev
-```
+- [AppSync custom domain](./custom-domain.md)
+- [AppSync caching](./caching.md)
+- [AppSync API configuration](./general-config.md)
+- [AppSync overview](./README.md)

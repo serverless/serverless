@@ -1,17 +1,15 @@
 <!--
-title: Serverless Framework Commands - AWS Lambda - Agent Inspect
-description: Give an AI coding agent the live AWS configuration of a deployed service's resources in one read-only call.
-short_title: Commands - Agent Inspect
+title: serverless agent inspect
+description: Read the live AWS configuration of a deployed service's resources in one read-only call, as JSON for AI coding agents, by category or AWS service.
+short_title: agent inspect
 keywords:
   [
-    'Serverless',
-    'Framework',
-    'AWS',
-    'Lambda',
-    'Agent Inspect',
-    'AI Agents',
-    'CloudFormation',
-    'IAM Policy',
+    'serverless agent inspect',
+    'AI coding agents',
+    'deployed AWS resources',
+    'CloudFormation stack resources',
+    'Lambda configuration',
+    'IAM policy',
   ]
 -->
 
@@ -21,73 +19,97 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# AWS - Agent Inspect
+# serverless agent inspect
 
-`serverless agent inspect` gives an AI coding agent the live AWS
-configuration of a deployed service's resources in one read-only call. An
-agent debugging or operating a service from a terminal would otherwise have
-to issue dozens of separate `aws describe-*` calls and reassemble the
-logical-to-physical mapping itself; `agent inspect` does that in a single
-command, organized by the same logical model the framework uses in
-`serverless.yml`.
-
-By default it returns a cheap categorized index — every deployed resource
-with its logical ID, physical ID, type, and status — with no per-resource
-AWS calls. You expand only the categories or services you actually need,
-which keeps the call fast and the output bounded.
-
-This command is entirely **read-only**: it never creates, modifies, or
-deletes anything, and it never invokes a function.
-
-## Usage
-
-The bare command returns the index:
+`serverless agent inspect` returns the live AWS configuration of a deployed service's resources as one JSON document, organized by the categories `serverless.yml` uses (functions, APIs, events, IAM, storage). It reads the service's CloudFormation stack and calls only read-only AWS APIs: it never creates, changes or deletes a resource, and never invokes a function. Use it when an AI coding agent debugs or operates a deployed service, instead of many `aws describe-*` calls; use [`serverless info`](./info.md) for the human summary of endpoints and functions.
 
 ```bash
 serverless agent inspect
 ```
 
-Expand a category to get the full, raw AWS configuration for every resource
-in it:
+Without selection options, `serverless agent inspect` returns the index: every resource in the stack with its logical ID, physical ID, type and status, from one paginated `ListStackResources` call. Expand the categories or AWS services you need from there:
 
 ```bash
 serverless agent inspect --functions
 ```
 
-Expand by AWS service instead of (or in addition to) category:
+Run it in the service directory: it needs `serverless.yml` and the AWS credentials a deploy uses.
+
+## Options
+
+`serverless agent inspect` accepts these options:
+
+| Option                                                                                                                                   | Alias | Value                     | Default                             | Required | Description                                                                                  |
+| ---------------------------------------------------------------------------------------------------------------------------------------- | ----- | ------------------------- | ----------------------------------- | -------- | -------------------------------------------------------------------------------------------- |
+| `--functions`, `--api`, `--events`, `--iam`, `--storage`, `--observability`, `--cdn`, `--identity`, `--iot`, `--sandboxes`, `--web-apps` |       | flag                      | off                                 | No       | Expand every resource in the category. Combine as many as you need.                          |
+| `--all`                                                                                                                                  |       | flag                      | off                                 | No       | Expand every category.                                                                       |
+| `--aws-services`                                                                                                                         |       | comma-separated tokens    | none                                | No       | Expand every resource of these AWS services, such as `lambda,iam,s3`.                        |
+| `--name`                                                                                                                                 |       | CloudFormation logical ID | none                                | No       | Scope to this resource (repeatable). Alone, it selects the resource without a category flag. |
+| `--format`                                                                                                                               |       | `json` or `yaml`          | `json`                              | No       | Output format. JSON is pretty-printed.                                                       |
+| `--stage`                                                                                                                                | `-s`  | string                    | `provider.stage`, else `dev`        | No       | The stage of the deployed service.                                                           |
+| `--region`                                                                                                                               | `-r`  | string                    | `provider.region`, else `us-east-1` | No       | The AWS Region of the deployed service.                                                      |
+| `--aws-profile`                                                                                                                          |       | string                    | `provider.profile`                  | No       | The AWS profile whose credentials the command uses.                                          |
+| `--config`                                                                                                                               | `-c`  | file path                 | `serverless.yml`                    | No       | The service configuration file.                                                              |
+
+`serverless agent inspect` also accepts the options every command takes: `--param="key=value"` (repeatable), `--org`, `--app`, `--verbose`, `--debug` and `--help` (`-h`).
+
+## How serverless agent inspect selects resources
+
+Resources are selected along two axes, category flags and `--aws-services`. When both are given, the result is their union: `--functions --aws-services s3` expands every function and every S3 bucket.
+
+### Category flags
+
+The category flags group resources the way `serverless.yml` does:
+
+| Flag              | Covers                                                                                                                                     |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--functions`     | Lambda functions (with their versions, aliases, function URLs, resource policies and event source mappings) and layers                     |
+| `--api`           | API Gateway REST APIs, API Gateway HTTP and WebSocket APIs, and Application Load Balancer target groups and listener rules                 |
+| `--events`        | SNS topics, EventBridge rules and buses, Custom Event Bus subscribers and buses, Scheduler schedules, SQS queues, Kinesis stream consumers |
+| `--iam`           | IAM roles (trust policy, inline and attached policies)                                                                                     |
+| `--storage`       | S3 buckets, DynamoDB tables                                                                                                                |
+| `--observability` | CloudWatch log groups (with metric and subscription filters), alarms, dashboards                                                           |
+| `--cdn`           | CloudFront distributions and cache policies                                                                                                |
+| `--identity`      | Cognito user pools (with their clients)                                                                                                    |
+| `--iot`           | IoT topic rules and provisioning templates                                                                                                 |
+| `--sandboxes`     | Lambda MicroVM images ([Sandboxes](../guide/sandboxes.md)); network connectors appear in the index only                                    |
+| `--web-apps`      | Lambda Web Functions ([web apps](../guide/web-apps.md)): each function, its revisions and its endpoints                                    |
+| `--all`           | Every category above                                                                                                                       |
+
+A resource belongs to the category of its own type, not to the feature that created it: a function's execution role is under `--iam`, and its log group and alarms are under `--observability`.
+
+### The --aws-services option
+
+`--aws-services` selects by AWS service, as a comma-separated list:
 
 ```bash
-serverless agent inspect --aws-services lambda,iam
+serverless agent inspect --aws-services lambda,iam,s3
 ```
 
-Category flags and `--aws-services` combine as a **union** — this returns
-every Lambda resource plus every S3 resource:
+The tokens are `lambda`, `iam`, `apigateway`, `apigatewayv2`, `sns`, `eventbridge` (alias `events`), `eventbridgev2`, `scheduler`, `s3`, `dynamodb`, `sqs`, `logs`, `elbv2` (alias `alb`), `cloudfront`, `cognito-idp` (alias `cognito`), `iot`, `kinesis`, `cloudwatch`, `lambda-microvms` (aliases `microvms` and `sandboxes`) and `lambda-web`. Tokens are matched case-insensitively, and spaces and empty entries are ignored. An unknown token stops the command with an error that lists the valid tokens.
+
+`eventbridge` covers EventBridge rules and Custom Event Bus - Classic buses (`AWS::Events::*`); `eventbridgev2` covers Custom Event Bus subscribers and buses (`AWS::EventsV2::*`), which EventBridge serves through a separate API. `--events` covers both. `lambda-microvms` covers MicroVM images only.
+
+### The --name option
+
+`--name` takes a CloudFormation logical ID, as the index lists it, such as `CreateOrderLambdaFunction`. It is repeatable and case-sensitive:
+
+- With no category flag and no `--aws-services`, `--name` selects the named resources directly.
+- With a category flag or `--aws-services`, `--name` narrows that selection to the named resources; a named resource outside it isn't added.
 
 ```bash
-serverless agent inspect --functions --aws-services s3
+serverless agent inspect --name CreateOrderLambdaFunction
 ```
 
-Narrow to one or more named resources with repeatable `--name`:
+`--name` is checked against the whole stack, nested stacks included, and stops the command with an error when the logical ID doesn't exist (the error lists the valid IDs), when the resource's type isn't described on its own (the `other` bucket), or when the same logical ID exists in a parent and a nested stack. In that last case, the index lists both resources, each with its `stack`. An expanded result is keyed by logical ID within each category, so a category or `--aws-services` selection that includes both resources returns only one of them.
 
-```bash
-serverless agent inspect --name createOrder --name getOrder
-```
+## Output of serverless agent inspect
 
-Get human-friendly YAML instead of JSON:
+`serverless agent inspect` writes exactly one document to standard output, pretty-printed JSON or, with `--format yaml`, YAML. Progress and warnings go to standard error. Categories come in a fixed order (`functions`, `iam`, `api`, `events`, `storage`, `observability`, `identity`, `iot`, `cdn`, `sandboxes`, `web-apps`, then `other`) and resources are sorted by logical ID, so the output is byte-stable across runs against unchanged infrastructure.
 
-```bash
-serverless agent inspect --functions --format yaml
-```
+### Index result
 
-Expand every supported category in one call:
-
-```bash
-serverless agent inspect --all
-```
-
-### Sample index output
-
-A trimmed example of the bare-command envelope:
+The index has `"mode": "index"`, a `hint` listing the expansion options, and every category key, even when empty. A trimmed index:
 
 ```json
 {
@@ -104,7 +126,9 @@ A trimmed example of the bare-command envelope:
         "physicalId": "orders-api-dev-createOrder",
         "type": "AWS::Lambda::Function",
         "status": "UPDATE_COMPLETE",
-        "awsService": "lambda"
+        "category": "functions",
+        "awsService": "lambda",
+        "stack": "orders-api-dev"
       }
     ],
     "iam": [
@@ -113,7 +137,9 @@ A trimmed example of the bare-command envelope:
         "physicalId": "orders-api-dev-us-east-1-lambdaRole",
         "type": "AWS::IAM::Role",
         "status": "CREATE_COMPLETE",
-        "awsService": "iam"
+        "category": "iam",
+        "awsService": "iam",
+        "stack": "orders-api-dev"
       }
     ],
     "other": []
@@ -121,150 +147,48 @@ A trimmed example of the bare-command envelope:
 }
 ```
 
-Every category key is always present, even when empty, so the shape is
-stable across services. Resources of a type `agent inspect` doesn't
-describe (e.g. Step Functions state machines, WAF web ACLs, custom
-resources) still show up, listed under `other` with just their ID, type,
-and status.
+`stack` names the stack the resource is in; resources of nested stacks are listed with their nested stack's name. The `other` bucket holds what isn't described on its own, with `category: "other"` and `awsService: null`: sub-resources described as part of their parent (Lambda permissions, versions and aliases, API Gateway methods, SNS subscriptions) and types outside the command's registry (for example Step Functions state machines, WAF web ACLs and custom resources).
 
-## Options
+### Expanded result
 
-- `--functions`, `--api`, `--events`, `--iam`, `--storage`,
-  `--observability`, `--cdn`, `--identity`, `--iot`, `--sandboxes`,
-  `--web-apps` Expand a resource category (combinable; see the Selection model
-  section below).
-- `--all` Expand every category.
-- `--aws-services` Comma-separated AWS service names to expand (see the
-  Selection model section below).
-- `--name` Logical ID of a single resource to inspect. Repeatable.
-- `--format` Output format: `json` (default, pretty-printed) or `yaml`.
-- `--stage` The stage of the deployed service to inspect. Defaults to the
-  resolved stage from your configuration, or `dev`.
-- `--region` The region of the deployed service to inspect. Defaults to the
-  provider region, or `us-east-1`.
-- `--aws-profile` The AWS profile to authenticate with, overriding the
-  default resolution order.
+An expanded result has `service`, `stage`, `region`, `stackName` and `resources`, with no `mode`. `resources` is keyed by category, only the categories with selected resources, then by logical ID. Each resource holds the AWS SDK responses, one key per call: for a function, `configuration` (`GetFunction`), `functionUrlConfig`, `resourcePolicy`, `eventInvokeConfig`, `versions`, `aliases` and `eventSourceMappings`. Optional settings that aren't configured, such as a function URL, are left out. With `--functions` and without `--iam`, each function also has its execution role under `role`.
 
-## Selection model
+The responses are passed through without field curation, with these changes only:
 
-Resources are selected along two independent axes that both filter the same
-internal resource registry. Either axis, or both together, may be used —
-when both are given, the result is their **union**, not their intersection.
+- `$metadata` is removed.
+- List calls that page with `NextToken`, `nextToken`, `Marker` and `IsTruncated` (IAM), or `position` (API Gateway) are read to the last page: the pages are merged and the tokens removed. A function's `versions`, `aliases` and `eventSourceMappings` hold the first page AWS Lambda returns; when Lambda has more, the response keeps its `NextMarker`.
+- Dates are ISO-8601 strings.
+- IAM policy documents are URL-decoded and parsed into objects; JSON strings such as Lambda, S3 and SQS `Policy`, SQS `RedrivePolicy` and CloudWatch `DashboardBody` are parsed too.
+- `Code.Location`, the presigned download URL of a function's deployment package, is removed: it carries credentials and changes on every call.
 
-### Axis 1: category flags
+### Results for a stage that isn't deployed
 
-Coarse, framework-shaped groupings. Combine as many as you like.
+When the stack doesn't exist, `serverless agent inspect` exits 0 with `"mode": "not-deployed"`, an empty `resources` and a `hint` such as `No deployed stack found for stage "dev" in us-east-1. Run "serverless deploy --stage dev --region us-east-1" first, then re-run inspect.`
 
-| Flag              | Covers                                                                                                                             |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `--functions`     | Lambda functions (+ versions/aliases/URLs/permissions/event source mappings), layers                                               |
-| `--api`           | API Gateway REST, API Gateway HTTP/WebSocket, and Application Load Balancer front doors                                            |
-| `--events`        | SNS topics, EventBridge rules/buses, Custom Event Bus subscribers/buses, Scheduler schedules, SQS queues, Kinesis stream consumers |
-| `--iam`           | IAM roles (assume-role policy, inline + attached policies)                                                                         |
-| `--storage`       | S3 buckets, DynamoDB tables                                                                                                        |
-| `--observability` | CloudWatch log groups (+ filters), alarms, dashboards                                                                              |
-| `--cdn`           | CloudFront distributions + cache policies                                                                                          |
-| `--identity`      | Cognito user pools (+ clients)                                                                                                     |
-| `--iot`           | IoT topic rules + provisioning templates                                                                                           |
-| `--sandboxes`     | Lambda MicroVM images (Sandboxes); network connectors appear in the index only                                                     |
-| `--web-apps`      | Lambda Web Functions (web apps): each function, its current revision and its endpoint                                              |
-| `--all`           | Every category above                                                                                                               |
+## Errors and exit codes
 
-A resource's supporting infrastructure is categorized by its own type, not
-lumped under the parent feature — a function's execution role appears under
-`--iam`, and its log group and alarms appear under `--observability`, not
-under `--functions`.
+`serverless agent inspect` exits 0 on success, also when some resources could not be described. A resource whose describe failed keeps the keys of the calls that succeeded and gets an `error` string naming the failed call, such as `AccessDenied error calling GetPolicy: ...`; a resource without a physical ID (a failed or in-progress create) is `{ "error": "not deployed / no physical id" }`.
 
-### Axis 2: `--aws-services`
+A fatal error exits non-zero. When it occurs while the command runs, the command first writes one error document to standard output:
 
-Fine-grained selection by AWS SDK service name, as a comma-separated list:
-
-```bash
-serverless agent inspect --aws-services lambda,iam,s3
+```json
+{
+  "error": {
+    "code": "AGENT_INSPECT_UNKNOWN_NAME",
+    "message": "Unknown --name \"CreateOrder\". Valid logical IDs: CreateOrderLambdaFunction, IamRoleLambdaExecution, ServerlessDeploymentBucket.",
+    "region": "us-east-1",
+    "stage": "dev"
+  }
+}
 ```
 
-Supported tokens: `lambda`, `iam`, `apigateway`, `apigatewayv2`, `sns`,
-`eventbridge` (alias `events`), `eventbridgev2`, `scheduler`, `s3`,
-`dynamodb`, `sqs`, `logs`, `elbv2` (alias `alb`), `cloudfront`, `cognito-idp`
-(alias `cognito`), `iot`, `kinesis`, `cloudwatch`, `lambda-microvms` (aliases
-`microvms`/`sandboxes`), `lambda-web`.
+`profile` is added when `--aws-profile` is given. The codes are `AGENT_INSPECT_UNKNOWN_AWS_SERVICE`, `AGENT_INSPECT_UNKNOWN_NAME`, `AGENT_INSPECT_AMBIGUOUS_NAME`, `AGENT_INSPECT_NAME_NOT_DESCRIBABLE`, `AGENT_INSPECT_UNKNOWN_FORMAT` (the document is then JSON), `AGENT_INSPECT_UNSUPPORTED_PROVIDER`, and, for an AWS call that fails, `AWS_<SERVICE>_<METHOD>_<AWS ERROR CODE>`, such as `AWS_CLOUD_FORMATION_LIST_STACK_RESOURCES_ACCESS_DENIED` for a denied `cloudformation:ListStackResources`, or `AWS_CREDENTIALS_NOT_FOUND` when no AWS credentials are found. An error that carries no code is `AGENT_INSPECT_ERROR`.
 
-An unknown token produces a structured error listing the supported service
-names — it never silently ignores a typo. Whitespace and trailing commas
-are trimmed, and tokens are matched case-insensitively.
+Errors from the CLI's checks before the command runs, such as an unknown option, a missing `serverless.yml` or `serverless agent inspect` at a [Compose](../../../guides/compose.md) root, print a message on standard error and nothing on standard output. In a Compose project, inspect one service from the root with `serverless <service> agent inspect`, or run the command in the service's directory.
 
-`eventbridge` expands EventBridge rules and Custom Event Bus - Classic buses
-(`AWS::Events::*`). `eventbridgev2` expands Custom Event Bus subscribers and
-buses (`AWS::EventsV2::*`), which EventBridge serves through a separate API.
-`--events` covers both.
+## IAM permissions for serverless agent inspect
 
-The `lambda-microvms` token expands MicroVM images only; network connectors
-have no describe operation and appear in the index only (see Notes below).
-
-### `--name`
-
-`--name <logicalId>` is repeatable (`--name A --name B` unions the two).
-Combined with an axis flag, it narrows the selection to just that resource
-within the expanded category. Used **alone**, with no axis flags, it
-auto-selects that resource's registry entry — you don't need to also pass
-its category or service:
-
-```bash
-serverless agent inspect --name createOrder
-```
-
-An unknown logical ID produces a structured error listing the valid IDs in
-the stack. A `--name` that matches a resource type outside the registry
-(the `other` bucket) errors explaining that the type isn't describable.
-
-`--name` is resolved against the full stack index (including nested
-stacks) before any category narrowing. If the same logical ID exists in
-both a parent and a nested child stack, `--name` errors as ambiguous even
-when a category flag would single one of them out — select by category or
-`--aws-services` instead in that case.
-
-## Output contract
-
-- **Format:** pretty-printed JSON by default; `--format yaml` gives a
-  human-friendly alternate. JSON is the default because it's lossless for
-  IAM policy documents, ARNs, and numeric-looking IDs, and it's what an
-  agent (and `jq`) expects.
-- Exactly **one JSON (or YAML) document** is written to stdout — nothing
-  else. Progress and warnings go to stderr only.
-- Top level is keyed by category, then by logical resource name, with the
-  resource's merged raw AWS SDK response(s) underneath. There is no field
-  curation — you get what the underlying `Describe*`/`Get*` calls return
-  (with a small set of mechanical normalizations: `$metadata` stripped,
-  dates as ISO-8601 strings, and IAM/JSON policy documents decoded and
-  parsed into objects instead of left as URL-encoded strings).
-- **Exit code 0** on success, including when individual resources failed to
-  describe — those show up as `{ "error": "..." }` in their slot rather
-  than aborting the run. Partial data is a successful inspect. A stack that
-  hasn't been deployed is also exit 0: the result has `"mode": "not-deployed"`
-  and a `hint` with the deploy command.
-- **Non-zero exit** only for fatal problems. Errors the command itself
-  detects — an unknown `--aws-services` token, an unknown `--name`, a
-  `--name` on a non-describable type, an unknown `--format`, or a non-AWS
-  provider — emit a single structured JSON error object on stdout before the
-  non-zero exit. Errors caught by the CLI's general validation before the
-  command runs — an unknown flag, or `serverless agent inspect` at a
-  Serverless Compose root — also exit non-zero, but print a human-readable
-  message on stderr with nothing on stdout. In a Compose project, inspect one
-  service from the root with `serverless <service> agent inspect`, or run it
-  in the service's directory.
-- **Deterministic ordering:** categories appear in a fixed order and
-  resources are sorted by logical ID, so output is byte-stable across runs
-  against unchanged infrastructure — useful if you want to diff or cache
-  results.
-
-## IAM permissions
-
-`agent inspect` only calls read-only `Describe*`/`Get*`/`List*` AWS APIs —
-never anything that creates, modifies, or deletes a resource. The policy
-below is the minimal set of actions it needs, generated directly from the
-command's internal resource registry (the same table that decides which SDK
-calls each resource type triggers), so it can't drift out of sync with what
-the command actually calls.
+`serverless agent inspect` calls only read-only `Describe*`, `Get*` and `List*` AWS APIs. This policy covers every call it makes:
 
 ```json
 {
@@ -435,74 +359,55 @@ the command actually calls.
 }
 ```
 
-Notes on this policy:
+- **API Gateway** authorizes its control-plane APIs by HTTP method, not by operation, for both REST (`apigateway`) and HTTP and WebSocket (`apigatewayv2`) APIs. Every call `serverless agent inspect` makes there is a `GET`, so `apigateway:GET` on the API Gateway management resources is the one action needed.
+- The `events:` actions cover both EventBridge APIs: Custom Event Bus subscribers and buses (`eventbridgev2`) are read with `events:DescribeSubscriber` and `events:DescribeEventBus`.
+- `cloudformation:ListStackResources` and `sts:GetCallerIdentity` are used on every run, for stack discovery and credential resolution.
+- `lambda:GetWebFunction`, `lambda:GetWebFunctionRevision` and `lambda:GetWebFunctionEndpoint` describe web apps; `lambda:GetMicrovmImage` describes Sandboxes MicroVM images. Network connectors have no describe operation, so they need no action.
+- To narrow the policy, scope each action to the ARNs of the resource types it supports, splitting statements where they differ, and keep `"*"` for actions without resource-level permissions, such as `logs:DescribeLogGroups`. The [Service Authorization Reference](https://docs.aws.amazon.com/service-authorization/latest/reference/reference_policies_actions-resources-contextkeys.html) lists the resource types of each action.
 
-- **API Gateway is one action, not one per operation.** Both the REST
-  (`apigateway`) and HTTP/WebSocket (`apigatewayv2`) control planes are
-  authorized through the `execute-api`/`apigateway` IAM action namespace by
-  HTTP verb, not by SDK operation name — every read call `agent inspect`
-  makes against either API type is an HTTP `GET`, so `apigateway:GET` is the
-  correct (and only) action needed, scoped to the API Gateway management
-  resource ARN pattern shown above. There is no `apigateway:GetRestApi` or
-  `apigateway:GetResources` action to grant individually.
-- The `events:` actions cover both EventBridge APIs. Custom Event Bus
-  subscribers and buses (`eventbridgev2`) are read with
-  `events:DescribeSubscriber` and `events:DescribeEventBus`, in the same
-  `events:` IAM namespace as rules and Classic buses.
-- `sts:GetCallerIdentity` and `cloudformation:ListStackResources` are
-  included because credential resolution and stack discovery run
-  unconditionally, before any category or service is selected.
-- `lambda:GetWebFunction`, `lambda:GetWebFunctionRevision` and
-  `lambda:GetWebFunctionEndpoint` describe web apps (Lambda Web Functions,
-  their revisions and their endpoints).
-- `lambda:GetMicrovmImage` describes Sandboxes MicroVM images
-  (`AWS::Lambda::MicrovmImage`). Network connectors have no describe
-  operation, so no action is needed for them — see Notes and limitations
-  below.
-- Tighten the `Resource` field to your account/stack's specific ARNs if you
-  want a narrower policy than the wildcard shown here — `agent inspect`
-  itself doesn't require account-wide access, this is simply the broadest
-  form that's guaranteed to work regardless of resource naming.
+## Limits of serverless agent inspect
 
-## Notes and limitations
+- **Only resources in the service's CloudFormation stack are described.** A resource the service references but doesn't own, such as a REST API imported with `provider.apiGateway.restApiId` or a shared Application Load Balancer listener, isn't expanded. Its ARN or ID still appears where an in-stack resource references it, such as a Lambda permission.
+- **The output is raw AWS data and can be sensitive.** A function's configuration includes its environment variables in plain text, as `aws lambda get-function` returns them. Handle the output as you would any AWS describe output, and don't send it where your service's secrets don't belong.
+- **Sandboxes network connectors** (`AWS::Lambda::NetworkConnector`) appear in the index with their logical ID, physical ID, type and status, and are never expanded. The images, execution and build roles, log groups, alarms and dashboards are described under `--sandboxes`, `--iam` and `--observability`.
+- **CloudWatch log groups are looked up by prefix**, since the AWS API has no exact-name lookup. When one log group's name is a prefix of another's (`/aws/lambda/foo` and `/aws/lambda/foo-bar`), both can appear in that resource's `logGroups` result.
 
-- **Only resources inside the service's CloudFormation stack are
-  described.** A resource your service references but doesn't own — for
-  example a REST API imported via `provider.apiGateway.restApiId`, or a
-  shared Application Load Balancer listener — is not in the stack, so
-  `agent inspect` does not expand it. Its ARN or ID still appears wherever
-  the in-stack resource that references it would normally show one (e.g. a
-  Lambda permission), just not as its own expanded entry.
-- **Output is raw AWS data and may be sensitive.** Because there's no field
-  curation, a Lambda function's configuration includes its environment
-  variables in plaintext — the same data `aws lambda get-function` would
-  return. Treat `agent inspect` output with the same care you'd give any
-  other AWS describe call's output, and don't pipe it somewhere that isn't
-  trusted with your service's secrets. (One exception to the pass-through:
-  the short-lived presigned deployment-package download URL that
-  `GetFunction` returns in `Code.Location` is stripped, both because it's a
-  credential-bearing URL and to keep output byte-stable across runs.)
-- **Sandboxes (Lambda MicroVMs).** MicroVM images
-  (`AWS::Lambda::MicrovmImage`) are describable via `--sandboxes` or
-  `--aws-services lambda-microvms`. Network connectors
-  (`AWS::Lambda::NetworkConnector`) have no describe operation in the AWS
-  SDK, so they appear in the index — logical ID, physical ID, type, status —
-  but are never expanded. Supporting resources (execution/build IAM roles,
-  log groups, alarms, dashboards) are describable under `--iam` and
-  `--observability` as usual.
-- **CloudWatch log group lookup is prefix-based, not exact.** The
-  underlying AWS API has no exact-name lookup for a single log group, only
-  a prefix match. If one of your log groups' names is itself a prefix of a
-  sibling's (for example `/aws/lambda/foo` and `/aws/lambda/foo-bar`), both
-  may appear in that resource's `logGroups` result.
-- For AWS service-level semantics and full field reference of any given
-  `Describe*`/`Get*` call, see the [AWS SDK and API
-  documentation](https://docs.aws.amazon.com/) for that service —
-  `agent inspect` passes through what AWS returns.
+For the fields of each AWS response, see the API reference of that AWS service.
 
-## More agent tooling
+## Examples
 
-To teach an AI coding agent how to work with your service in the first
-place, install the Framework's bundled [Agent
-Skills](../../../guides/agent-skills.md) with
-[`serverless agent skills install`](agent-skills-install.md).
+### Expand the functions of a stage
+
+```bash
+serverless agent inspect --functions --stage prod --region eu-west-1
+```
+
+### Expand functions and S3 buckets
+
+```bash
+serverless agent inspect --functions --aws-services s3
+```
+
+### Inspect two resources by logical ID
+
+```bash
+serverless agent inspect --name CreateOrderLambdaFunction --name OrdersDynamoDbTable
+```
+
+### Get YAML instead of JSON
+
+```bash
+serverless agent inspect --functions --format yaml
+```
+
+### Expand every category
+
+```bash
+serverless agent inspect --all
+```
+
+## Related commands
+
+- [`serverless info`](./info.md): print the service's endpoints, functions and stack outputs.
+- [`serverless agent setup`](./agent-setup.md): install the Agent Skills and check the credentials an agent will use.
+- [`serverless logs`](./logs.md): read a function's logs.

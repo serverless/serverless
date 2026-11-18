@@ -1,47 +1,71 @@
 <!--
-title: Serverless Framework - AppSync - Caching
-description: How to configure caching for AWS AppSync with the Serverless Framework.
-short_title: AppSync - Caching
+title: AppSync Caching
+description: 'Turn on the AppSync server-side cache in serverless.yml with appSync.caching: caching behavior, instance type, TTL and flushing.'
+short_title: AppSync Caching
 keywords:
   [
     'Serverless Framework',
-    'AppSync',
-    'Caching',
-    'GraphQL',
-    'AWS',
+    'AppSync caching',
+    'AppSync server-side cache',
+    'AppSync per-resolver caching',
   ]
 -->
 
-# Caching
+<!-- DOCS-SITE-LINK:START automatically generated  -->
 
-AppSync supports [server-side data caching](https://docs.aws.amazon.com/appsync/latest/devguide/enabling-caching.html). You can find the caching configuration under the `appSync.caching` attribute.
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/appsync/caching)
 
-## Quick start
+<!-- DOCS-SITE-LINK:END -->
+
+# AppSync caching
+
+The `appSync.caching` block creates an AppSync [server-side cache](https://docs.aws.amazon.com/appsync/latest/devguide/enabling-caching.html) for the API, which returns cached resolver results instead of calling the data source again. Use it for read-heavy fields whose data can be a few seconds or minutes stale. AWS bills the cache instance by the hour while it exists, whether or not requests use it.
+
+This configuration creates a small cache and caches only the resolvers that opt in:
 
 ```yaml
 appSync:
-  name: my-api
+  name: blog-api
   caching:
-    behavior: 'PER_RESOLVER_CACHING'
-    type: 'SMALL'
-    ttl: 3600
-    atRestEncryption: false
-    transitEncryption: false
+    behavior: PER_RESOLVER_CACHING
+    type: SMALL
+    ttl: 300
+  resolvers:
+    Query.getPost:
+      kind: UNIT
+      dataSource: postsTable
+      code: resolvers/getPost.js
+      caching:
+        ttl: 60
+        keys:
+          - '$context.arguments.id'
 ```
 
-## Configuration
+The `$context.arguments.id` key shares each cached post among all callers, which suits data that every caller may read. For a resolver whose result depends on the caller, such as one that checks ownership, add an identity field such as `$context.identity.sub` to `keys`, or omit `keys` to use AppSync's default keys, which include `$context.identity`.
 
-- `behavior`: `FULL_REQUEST_CACHING` or `PER_RESOLVER_CACHING`
-- `type`: The type of the Redis instance. `SMALL`, `MEDIUM`, `LARGE`, `XLARGE`, `LARGE_2X`, `LARGE_4X`, `LARGE_8X`, `LARGE_12X`. Defaults to `SMALL`
-- `ttl`: The default TTL of the cache in seconds. Defaults to `3600`. Maximum is `3600`
-- `enabled`: Boolean. Whether caching is enabled. Defaults to `true` when the `caching` definition is present.
-- `atRestEncryption`: Boolean. Whether to encrypt the data at rest. Defaults to `false`
-- `transitEncryption`: Boolean. Whether to encrypt the data in transit. Defaults to `false`
+## Caching keys
 
-## Per resolver caching
+| Key                 | Type                                                                                    | Default    | Description                                                                                                                                                                                                           |
+| ------------------- | --------------------------------------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `behavior`          | `FULL_REQUEST_CACHING` or `PER_RESOLVER_CACHING`                                        | Required   | `FULL_REQUEST_CACHING` caches every resolver in a request, keyed on `$context.arguments` and `$context.identity`. `PER_RESOLVER_CACHING` caches only resolvers that set [`caching`](./resolvers.md#resolver-caching). |
+| `type`              | `SMALL`, `MEDIUM`, `LARGE`, `XLARGE`, `LARGE_2X`, `LARGE_4X`, `LARGE_8X` or `LARGE_12X` | `T2_SMALL` | The cache instance type. The default is a legacy instance type that AWS discourages, so set `type` explicitly. `LARGE_8X` isn't available in every Region.                                                            |
+| `ttl`               | integer, 1–3600                                                                         | `3600`     | Seconds a cached result is kept, for resolvers that don't set their own `ttl`.                                                                                                                                        |
+| `enabled`           | boolean                                                                                 | `true`     | Set to `false` to delete the cache while keeping the block.                                                                                                                                                           |
+| `atRestEncryption`  | boolean                                                                                 | `false`    | Encrypts cached data at rest. AWS has deprecated this setting; changing it replaces the cache.                                                                                                                        |
+| `transitEncryption` | boolean                                                                                 | `false`    | Encrypts traffic to the cache. AWS has deprecated this setting; changing it replaces the cache.                                                                                                                       |
 
-See [Resolver caching](resolvers.md#caching)
+Per-resolver TTLs and cache keys are set on each resolver; see [Resolver caching](./resolvers.md#resolver-caching).
 
-## Flushing the cache
+## Flush the AppSync cache
 
-You can use the [flush-cache command](commands.md#flush-cache) to easily flush the cache.
+To empty the cache without waiting for entries to expire, run [`serverless appsync flush-cache`](./commands.md#flush-the-cache) in the service directory:
+
+```bash
+serverless appsync flush-cache --stage dev
+```
+
+## Related pages
+
+- [AppSync resolvers](./resolvers.md)
+- [AppSync CLI commands](./commands.md)
+- [AppSync API configuration](./general-config.md)

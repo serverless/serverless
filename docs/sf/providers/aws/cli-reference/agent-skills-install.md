@@ -1,14 +1,13 @@
 <!--
-title: Serverless Framework Commands - Agent Skills Install
-description: Install Serverless Framework Agent Skills — instruction files that teach AI coding agents how to work with your service.
-short_title: Commands - Agent Skills Install
+title: serverless agent skills install
+description: Install or update the Serverless Framework Agent Skills in a service directory and your home directory, so AI coding agents load them.
+short_title: agent skills install
 keywords:
   [
-    'Serverless',
-    'Framework',
+    'serverless agent skills install',
     'Agent Skills',
-    'AI Agents',
-    'Claude Code',
+    'AI coding agents',
+    'Claude Code skills',
     'Codex',
     'Cursor',
   ]
@@ -20,40 +19,73 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Agent Skills Install
+# serverless agent skills install
 
-Install (or refresh) the Agent Skills bundled with the Serverless Framework
-CLI: the user-level `serverless-framework` skill into your home directory and,
-in a service directory, the project skills into the service. Skills are instruction files that teach AI
-coding agents — Claude Code, Codex, Cursor, and any agent supporting the
-[open Agent Skills standard](https://agentskills.io) — how to work with your
-service. The command is idempotent: re-running it updates already-installed
-skills in place.
-
-The set of bundled skills varies by CLI version. On a version that bundles
-none yet, the command reports
-`No skills are bundled with this CLI version.` and installs nothing.
+`serverless agent skills install` writes the [Agent Skills](../../../guides/agent-skills.md) bundled with the Serverless Framework CLI to disk: the project skills into the service directory, and the user-level `serverless-framework` skill into your home directory. Skills are instruction files that AI coding agents (Claude Code, Codex, Cursor and other agents that read the [open Agent Skills format](https://agentskills.io)) load when a task involves their feature. Use it to install or refresh skills only; [`serverless agent setup`](./agent-setup.md) installs the same skills and also reports whether sign-in and AWS credentials are ready.
 
 ```bash
 serverless agent skills install
 ```
 
-Run it in your service directory (where `serverless.yml` lives) to install
-the project skills there; anywhere else it installs only the user-level skill.
-By default the command detects which agent directories you or your team already use and
-writes only those; with no signal it creates both `.claude/skills/` and
-`.agents/skills/`. See the [Agent Skills guide](../../../guides/agent-skills.md)
-for the full behavior, automatic updates, and customization.
+Run it in the service directory, where `serverless.yml` is. Anywhere else, `serverless agent skills install` installs only the user-level skill.
 
 ## Options
 
-- `--dir` Target directory to install into: `claude` (`.claude/skills/`) or
-  `agents` (`.agents/skills/`). Repeatable, and accepts a comma-separated
-  list. Omit it to let the command detect the right targets.
+`serverless agent skills install` accepts this option:
+
+| Option  | Alias | Value                                               | Default  | Required | Description                                                                                                                                           |
+| ------- | ----- | --------------------------------------------------- | -------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--dir` |       | `claude` or `agents`; repeatable or comma-separated | detected | No       | Write only to these skill directories, for the project skills and the user-level skill: `claude` is `.claude/skills/`, `agents` is `.agents/skills/`. |
+
+Any other `--dir` value exits 1 with `Unknown --dir value "<value>". Valid values: claude, agents`. `serverless agent skills install` also accepts `--config` (`-c`), `--debug` and `--help` (`-h`).
+
+## Files serverless agent skills install writes
+
+Each skill is a folder named after the skill, with its `SKILL.md` and reference files, inside a skills directory:
+
+- **Project skills** go into `.claude/skills/` and `.agents/skills/` in the service directory (at a [Compose](../../../guides/compose.md) root, beside `serverless-compose.yml`). Without `--dir`, the first rule that matches picks the directories:
+  1. the skills directories that already hold Framework-managed skills;
+  2. else, the service's `.claude/` and `.agents/` directories that exist;
+  3. else, the agents found in your home directory: `~/.claude` selects `.claude/skills/`; `~/.agents`, `~/.codex` or `~/.cursor` select `.agents/skills/`;
+  4. else, both.
+- **The user-level `serverless-framework` skill** goes into `~/.claude/skills/` and `~/.agents/skills/`: with `--dir`, the directories it names; without it, those of the agents found in your home directory (the markers in rule 3), or both when none is found. When the environment has no home directory, the user-level install is skipped and the output says so.
+
+Commit the project skills so teammates' agents get them. `serverless deploy` and `serverless package` leave `.claude/skills/serverless-*` and `.agents/skills/serverless-*` out of the function package.
+
+## Re-running and customized skills
+
+`serverless agent skills install` is safe to re-run. For each skill and directory, it:
+
+- installs the skill when its folder is missing;
+- updates the skill when the bundled version is newer than the installed `metadata.version`;
+- leaves the skill as it is when it is up to date;
+- skips the skill when its `SKILL.md` has no `metadata.managed-by: serverless-framework` line, which marks a skill you customized.
+
+It never deletes files and never installs an older version. Newer CLI versions also update the managed skills they find on their own; see [Automatic updates](../../../guides/agent-skills.md#automatic-updates). To uninstall, delete the skill folders.
+
+## Output of serverless agent skills install
+
+`serverless agent skills install` writes its report to standard error: each project directory, then one line per skill it added (`+`) or updated (`↑`), and one per customized skill it skipped. User-level lines name the directory with `user:`. A first run in a service:
+
+```text
+Target: .claude/skills
+  + serverless-dev-mode v2 (.claude/skills)
+  + serverless-mcp v4 (.claude/skills)
+  + serverless-sandboxes v6 (.claude/skills)
+  + serverless-upgrade v1 (.claude/skills)
+  + serverless-framework v5 (user: ~/.claude/skills)
+Skills auto-update when you use a newer CLI. To customize a skill, remove its metadata.managed-by line. To uninstall, delete the skill folders.
+```
+
+Outside a service directory, the report adds `project skills: no serverless.yml in this directory; run this command in a service directory to install them there`. A CLI version that bundles no skills prints `No skills are bundled with this CLI version.` and writes nothing.
+
+## Non-interactive use
+
+`serverless agent skills install` never prompts and needs no sign-in, so it runs the same in CI and under an AI agent. It exits 0 when it finishes. It exits 1 for an invalid `--dir` value, and before it runs when the service's configuration file can't be loaded, for example a `serverless.yml` that doesn't parse (`CONFIGURATION_PARSE_ERROR`).
 
 ## Examples
 
-### Install into detected agent directories
+### Install into the detected agent directories
 
 ```bash
 serverless agent skills install
@@ -65,14 +97,14 @@ serverless agent skills install
 serverless agent skills install --dir claude
 ```
 
-### Install into both directories explicitly
-
-```bash
-serverless agent skills install --dir claude --dir agents
-```
-
-or equivalently:
+### Install into both skill directories
 
 ```bash
 serverless agent skills install --dir claude,agents
 ```
+
+## Related commands
+
+- [`serverless agent setup`](./agent-setup.md): install the skills and report the environment status.
+- [`serverless agent skills list and read`](./agent-skills-read.md): see a bundled skill without installing it.
+- [Agent Skills](../../../guides/agent-skills.md): how agents load the skills, and how to customize one.

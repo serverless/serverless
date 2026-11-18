@@ -1,69 +1,107 @@
 <!--
-title: Serverless Framework - AppSync - Substitutions
-description: How to substitute dynamic values into AWS AppSync mapping templates and JS resolvers with the Serverless Framework.
-short_title: AppSync - Substitutions
+title: AppSync Substitutions
+description: Replace placeholders in AppSync JavaScript resolvers and VTL templates with values from serverless.yml at deploy time.
+short_title: AppSync Substitutions
 keywords:
   [
     'Serverless Framework',
-    'AppSync',
-    'Substitutions',
-    'Mapping Templates',
-    'GraphQL',
-    'AWS',
+    'AppSync substitutions',
+    'AppSync mapping template variables',
+    'AppSync resolver table name',
   ]
 -->
 
-> ⚠️ Substitutions are deprecated. Use [environment variables](general-config.md) instead.
+<!-- DOCS-SITE-LINK:START automatically generated  -->
 
-# Substitutions
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/appsync/substitutions)
 
-Substitutions replace variables in your VTL mapping templates or JS resolvers with dynamic values.
+<!-- DOCS-SITE-LINK:END -->
 
-They are useful for injecting resource names or ARNs from your infrastructure, such as a DynamoDB table name, or values like the stage or region.
+# AppSync substitutions
 
-## Usage
+Substitutions replace placeholders in AppSync resolver and pipeline function code with values from `serverless.yml` when you deploy, such as a DynamoDB table name, an ARN, the stage or the Region. Substitutions are deprecated: use [AppSync environment variables](./general-config.md#appsync-environment-variables) instead, which resolvers read from `ctx.env` at run time without rewriting the code.
 
-Substitutions are defined as key-value pairs under `appSync.substitutions`, `appSync.resolvers.[resolverName].substitutions` or `appSync.pipelineFunctions.[functionName].substitutions`.
-
-Global substitutions are available to all mapping templates. Resolver and pipeline function substitutions are only available where they are defined, and take precedence over global substitutions with the same name.
-
-In VTL mapping templates, reference a substitution as `${name}`. In JS resolvers, reference it as a string wrapped in `#`, such as `'#name#'`. At deployment time, each reference is replaced with its value.
+This configuration defines a global substitution with the table name and uses it in a JavaScript resolver:
 
 ```yaml
 appSync:
-  name: my-api
-  substitutions: # global substitutions
-    postsTable: !Ref Posts
-    region: !Ref AWS::Region
-    foo: bar
-
+  name: blog-api
+  substitutions:
+    postsTable: !Ref PostsTable
   resolvers:
-    Query.user:
-      dataSource: my-table
-      substitutions: # resolver substitutions
-        someVariable: someValue
+    Query.getPosts:
+      kind: UNIT
+      dataSource: postsTable
+      code: resolvers/getPosts.js
 ```
 
-VTL mapping template:
+In JavaScript, a placeholder is the substitution's name between `#` characters, inside a string. `resolvers/getPosts.js` reads several posts by ID:
 
-```vtl
+```javascript
+import { util } from '@aws-appsync/utils'
+
+export function request(ctx) {
+  return {
+    operation: 'BatchGetItem',
+    tables: {
+      '#postsTable#': {
+        keys: ctx.args.ids.map((id) => util.dynamodb.toMapValues({ id })),
+      },
+    },
+  }
+}
+
+export function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type)
+  }
+  return ctx.result.data['#postsTable#']
+}
+```
+
+When DynamoDB processes only part of the batch, AppSync sets `ctx.error` and returns `null` for each unprocessed key; the response handler raises that error, so clients don't mistake an unread post for a missing one.
+
+## Where substitutions are defined
+
+Substitutions are maps of names to values at three levels:
+
+- `appSync.substitutions`: available to every resolver and pipeline function.
+- `appSync.resolvers.<resolver>.substitutions`: available to that resolver only.
+- `appSync.pipelineFunctions.<function>.substitutions`: available to that pipeline function only.
+
+When a resolver or pipeline function defines a name that is also global, its own value wins. Names contain letters, digits, `_` and `-`. Values are strings or CloudFormation intrinsic functions such as `!Ref` and `!GetAtt`; CloudFormation resolves intrinsic values during the deploy.
+
+## Placeholder syntax
+
+The placeholder syntax depends on the runtime of the file:
+
+| File                                 | Placeholder | Example           |
+| ------------------------------------ | ----------- | ----------------- |
+| JavaScript or TypeScript `code`      | `#name#`    | `'#postsTable#'`  |
+| VTL `request` or `response` template | `${name}`   | `"${postsTable}"` |
+
+The Framework replaces only placeholders whose name is defined at one of the three levels; other text, including VTL references such as `${ctx.args.id}`, stays unchanged. In JavaScript files, the replacement runs on the bundled code, after esbuild.
+
+This VTL request template uses the same `postsTable` substitution:
+
+```text
+#set($keys = [])
+#foreach($id in $ctx.args.ids)
+  $util.qr($keys.add({ "id": $util.dynamodb.toDynamoDB($id) }))
+#end
 {
-    "version" : "2018-05-29",
-    "operation" : "BatchPutItem",
-    "tables" : {
-        "${postsTable}": [...]
+  "version": "2018-05-29",
+  "operation": "BatchGetItem",
+  "tables": {
+    "${postsTable}": {
+      "keys": $util.toJson($keys)
     }
+  }
 }
 ```
 
-JS resolver:
+## Related pages
 
-```js
-const tableName = '#postsTable#'
-return {
-  operation: 'BatchGetItem',
-  tables: {
-    [tableName]: { keys },
-  },
-}
-```
+- [AppSync environment variables](./general-config.md#appsync-environment-variables)
+- [AppSync resolvers](./resolvers.md)
+- [AppSync pipeline functions](./pipeline-functions.md)

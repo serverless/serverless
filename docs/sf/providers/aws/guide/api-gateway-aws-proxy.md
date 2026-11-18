@@ -1,941 +1,198 @@
 <!--
-title: Serverless Framework - API Gateway AWS Proxy
-description: How to configure API Gateway AWS Proxy with the Serverless Framework.
-short_title: API Gateway AWS Proxy
+title: API Gateway Service Proxies
+description: Connect an API Gateway REST API route straight to Kinesis, SQS, S3, SNS, DynamoDB or EventBridge, with no Lambda function in between.
+short_title: API Gateway Service Proxies
 keywords:
   [
     'Serverless Framework',
-    'API Gateway',
-    'AWS proxy',
+    'API Gateway AWS service integration',
+    'API Gateway service proxy',
+    'apiGatewayServiceProxies',
     'Kinesis',
     'SQS',
     'S3',
     'SNS',
     'DynamoDB',
     'EventBridge',
-    'CORS',
   ]
 -->
 
-# API Gateway AWS Service Proxy Integration
+<!-- DOCS-SITE-LINK:START automatically generated  -->
 
-Built-in support for API Gateway's AWS service proxy integration in the Serverless Framework. You can directly connect API Gateway to AWS services without Lambda.
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/api-gateway-aws-proxy)
 
-Huge thanks to the [serverless-operations](https://github.com/serverless-operations) team and all community contributors for the original [`serverless-apigateway-service-proxy`](https://github.com/serverless-operations/serverless-apigateway-service-proxy) plugin - these capabilities now ship in the Framework by default.
+<!-- DOCS-SITE-LINK:END -->
 
-- [Migration from the community plugin](#migration-from-the-community-plugin)
-- [Supported AWS services](#supported-aws-services)
-- [How to use](#how-to-use)
-  - [Kinesis](#kinesis)
-  - [SQS](#sqs)
-    - [Customizing request parameters](#customizing-request-parameters)
-    - [Customizing responses](#customizing-responses)
-  - [S3](#s3)
-    - [Customizing request parameters](#customizing-request-parameters-1)
-    - [Customizing request templates](#customizing-request-templates)
-    - [Customize the Path Override in API Gateway](#customize-the-path-override-in-api-gateway)
-      - [Can use greedy, for deeper Folders](#can-use-greedy-for-deeper-folders)
-    - [Customizing responses](#customizing-responses-1)
-    - [Allow Binary Types](#allow-binary-type)
-  - [SNS](#sns)
-    - [Customizing responses](#customizing-responses-2)
-  - [DynamoDB](#dynamodb)
-    - [Customizing responses](#customizing-responses-3)
-  - [EventBridge](#eventbridge)
-- [Common API Gateway features](#common-api-gateway-features)
-  - [Enabling CORS](#enabling-cors)
-  - [Adding Authorization](#adding-authorization)
-  - [Enabling API Token Authentication](#enabling-api-token-authentication)
-  - [Using a Custom IAM Role](#using-a-custom-iam-role)
-  - [Customizing API Gateway parameters](#customizing-api-gateway-parameters)
-    - [Customizing request body mapping templates](#customizing-request-body-mapping-templates)
-      - [Kinesis](#kinesis-1)
-      - [SQS](#sqs-1)
-      - [SNS](#sns-1)
+# API Gateway Service Proxies
 
-## Migration from the community plugin
+API Gateway service proxies connect a route of your service's REST API straight to an AWS service, with no Lambda function in between: API Gateway calls Amazon Kinesis Data Streams, Amazon SQS, Amazon S3, Amazon SNS, Amazon DynamoDB or Amazon EventBridge itself, through an [AWS service integration](https://docs.aws.amazon.com/apigateway/latest/developerguide/getting-started-aws-proxy.html). Use one when a route only forwards the request to that service, such as queueing a message or storing a record; use an [`http` event](../events/apigateway.md) when code has to run first.
 
-Migrating from the community plugin? This feature is included by default in the Framework. There is nothing to install.
-
-Remove it from the `plugins` section of `serverless.yml` and from your dependencies. Keep your existing `custom.apiGatewayServiceProxies` configuration; the built-in integration continues to honor it.
-
-## Supported AWS services
-
-Here is the list of services that this built-in integration currently supports.
-
-- Kinesis Streams
-- SQS
-- S3
-- SNS
-- DynamoDB
-- EventBridge
-
-## How to use
-
-Define settings of the AWS services you want to integrate under `custom > apiGatewayServiceProxies` and run `serverless deploy`.
-
-### Kinesis
-
-Sample syntax for Kinesis proxy in `serverless.yml`.
+Declare the proxies under `custom.apiGatewayServiceProxies` in `serverless.yml`. This service accepts a message on `POST /messages` and queues it:
 
 ```yaml
+# serverless.yml
+service: my-service
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  region: us-east-1
+
 custom:
   apiGatewayServiceProxies:
-    - kinesis: # partitionkey is set apigateway requestid by default
-        path: /kinesis
+    - sqs:
+        path: /messages
         method: post
-        streamName: { Ref: 'YourStream' }
-        cors: true
-    - kinesis:
-        path: /kinesis
-        method: post
-        partitionKey: 'hardcordedkey' # use static partitionkey
-        streamName: { Ref: 'YourStream' }
-        cors: true
-    - kinesis:
-        path: /kinesis/{myKey} # use path parameter
-        method: post
-        partitionKey:
-          pathParam: myKey
-        streamName: { Ref: 'YourStream' }
-        cors: true
-    - kinesis:
-        path: /kinesis
-        method: post
-        partitionKey:
-          bodyParam: data.myKey # use body parameter
-        streamName: { Ref: 'YourStream' }
-        cors: true
-    - kinesis:
-        path: /kinesis
-        method: post
-        partitionKey:
-          queryStringParam: myKey # use query string param
-        streamName: { Ref: 'YourStream' }
-        cors: true
-    - kinesis: # PutRecords
-        path: /kinesis
-        method: post
-        action: PutRecords
-        streamName: { Ref: 'YourStream' }
+        queueName: { 'Fn::GetAtt': ['MessagesQueue', 'QueueName'] }
         cors: true
 
 resources:
   Resources:
-    YourStream:
+    MessagesQueue:
+      Type: AWS::SQS::Queue
+```
+
+Run `serverless deploy`. After the deployment, the CLI lists each proxy's method and URL:
+
+```text
+Serverless API Gateway Service Proxy Outputs
+endpoints:
+  POST - https://abc123def4.execute-api.us-east-1.amazonaws.com/dev/messages
+```
+
+Send a message:
+
+```bash
+curl https://abc123def4.execute-api.us-east-1.amazonaws.com/dev/messages \
+  -H 'Content-Type: application/json' -d '{"orderId": "o-1"}'
+```
+
+The request body becomes the SQS message body, and the response carries the result of SQS's `SendMessage` call.
+
+## How service proxies work
+
+- **One REST API.** Proxies are routes on the service's API Gateway REST API, the same API that `http` events use, at `https://<api-id>.execute-api.<region>.amazonaws.com/<stage>/<path>`. Settings under `provider.apiGateway`, such as an existing `restApiId` or `binaryMediaTypes`, apply to them too.
+- **One route per proxy.** Each list item is one method on one path. Two items with the same `path` and `method` compile to the same API Gateway method, and only one of them is deployed.
+- **One IAM role per service type.** API Gateway calls the AWS service with an IAM role. The Framework creates one role per service type that has a proxy without `roleArn`, with only the actions that service type needs on the resources you name (see [Use your own IAM role](#use-your-own-iam-role)).
+- **Mapping templates.** The Framework writes the [mapping templates](https://docs.aws.amazon.com/apigateway/latest/developerguide/models-mappings.html) that turn the request into the AWS API call. You can add or replace them per content type (see [Customize request templates](#customize-request-templates)).
+- **Status codes.** The service's answer reaches the client as `200`, `400` or `500` (S3 also `206`), with the service's response body unless you set a [response template](#customize-responses).
+
+## Settings every proxy takes
+
+Each list item has one key, the service type (`kinesis`, `sqs`, `s3`, `sns`, `dynamodb` or `eventbridge`), with these settings under it beside the service's own:
+
+| Setting               | Type                                                                | Default                      | Description                                                                                                                                          |
+| --------------------- | ------------------------------------------------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `path`                | string                                                              | Required                     | The route's path, such as `/messages` or `/items/{id}`. Path parameters use `{name}`, and `{name+}` matches the rest of the path.                    |
+| `method`              | `get`, `post`, `put`, `patch`, `options`, `head`, `delete` or `any` | Required                     | The route's HTTP method, in any case.                                                                                                                |
+| `cors`                | boolean or object                                                   | No CORS                      | Adds an `OPTIONS` preflight and CORS headers. See [Enable CORS](#enable-cors).                                                                       |
+| `private`             | boolean                                                             | `false`                      | Requires an API key. See [Require an API key](#require-an-api-key).                                                                                  |
+| `authorizationType`   | `NONE`, `AWS_IAM`, `CUSTOM` or `COGNITO_USER_POOLS` (uppercase)     | `NONE`                       | How API Gateway authorizes callers. See [Require authorization](#require-authorization).                                                             |
+| `authorizerId`        | string or `Ref`                                                     | None                         | The authorizer for `CUSTOM` or `COGNITO_USER_POOLS`.                                                                                                 |
+| `authorizationScopes` | list                                                                | None                         | OAuth scopes for `COGNITO_USER_POOLS`.                                                                                                               |
+| `roleArn`             | ARN string or `Fn::GetAtt` of a role's `Arn`                        | A role the Framework creates | The role API Gateway uses to call the service. DynamoDB proxies don't use it.                                                                        |
+| `acceptParameters`    | map of method request parameter to boolean                          | None                         | Method request parameters the route accepts; the boolean says whether each is required. See [Accept request parameters](#accept-request-parameters). |
+| `request`             | object                                                              | None                         | Your own request mapping templates. See [Customize request templates](#customize-request-templates).                                                 |
+| `response`            | object or list                                                      | None                         | Your own response templates. See [Customize responses](#customize-responses).                                                                        |
+
+An invalid proxy stops `serverless package` and `serverless deploy` with the validation message, for example `"sns.request.template" is required`.
+
+## Send records to Kinesis
+
+A `kinesis` proxy writes the request to an Amazon Kinesis data stream with `PutRecord`, or with `PutRecords` when `action: PutRecords` is set:
+
+```yaml
+custom:
+  apiGatewayServiceProxies:
+    - kinesis:
+        path: /records
+        method: post
+        streamName: { Ref: 'RecordsStream' }
+
+resources:
+  Resources:
+    RecordsStream:
       Type: AWS::Kinesis::Stream
       Properties:
         ShardCount: 1
 ```
 
-Sample request after deploying.
-
 ```bash
-curl https://xxxxxxx.execute-api.us-east-1.amazonaws.com/dev/kinesis -d '{"message": "some data"}'  -H 'Content-Type:application/json'
+curl https://abc123def4.execute-api.us-east-1.amazonaws.com/dev/records \
+  -H 'Content-Type: application/json' -d '{"message": "some data"}'
 ```
 
-### SQS
+The Kinesis settings:
 
-Sample syntax for SQS proxy in `serverless.yml`.
+- `streamName` (required): the stream's name, as a string or a `Ref` to an `AWS::Kinesis::Stream`.
+- `action`: `PutRecord` (default) or `PutRecords`.
+- `partitionKey`: the record's partition key. Default: the API Gateway request id (`$context.requestId`). Set a fixed string, or an object with one of `pathParam`, `queryStringParam` or `bodyParam` (a dotted path into the JSON body, such as `data.myKey`).
+
+With `PutRecord`, the whole request body is the record's data. This route takes the partition key from the path:
+
+```yaml
+custom:
+  apiGatewayServiceProxies:
+    - kinesis:
+        path: /records/{myKey}
+        method: post
+        streamName: { Ref: 'RecordsStream' }
+        partitionKey:
+          pathParam: myKey
+```
+
+With `PutRecords`, the body carries a `records` array, and each record gives its own `data` and `partition-key`; `partitionKey` is not used:
+
+```yaml
+custom:
+  apiGatewayServiceProxies:
+    - kinesis:
+        path: /records/batch
+        method: post
+        action: PutRecords
+        streamName: { Ref: 'RecordsStream' }
+```
+
+```bash
+curl https://abc123def4.execute-api.us-east-1.amazonaws.com/dev/records/batch \
+  -H 'Content-Type: application/json' \
+  -d '{"records": [{"data": "first", "partition-key": "a"}, {"data": "second", "partition-key": "b"}]}'
+```
+
+A Kinesis proxy takes `response` with `template` only (see [Customize responses](#customize-responses)).
+
+## Send messages to SQS
+
+An `sqs` proxy sends the request body as a message to an Amazon SQS queue with `SendMessage`. `queueName` (required) is the queue's name, as a string or as `{ 'Fn::GetAtt': ['<QueueLogicalId>', 'QueueName'] }`; the queue is in the stage's account and region. The example at the top of this page is a complete SQS proxy.
+
+To set message attributes, map them in `requestParameters`, the [API Gateway integration request parameters](https://docs.aws.amazon.com/apigateway/latest/developerguide/request-response-data-mappings.html). This route adds the caller's Amazon Cognito identity to each message:
 
 ```yaml
 custom:
   apiGatewayServiceProxies:
     - sqs:
-        path: /sqs
+        path: /messages
         method: post
-        queueName: { 'Fn::GetAtt': ['SQSQueue', 'QueueName'] }
-        cors: true
-
-resources:
-  Resources:
-    SQSQueue:
-      Type: 'AWS::SQS::Queue'
-```
-
-Sample request after deploying.
-
-```bash
-curl https://xxxxxx.execute-api.us-east-1.amazonaws.com/dev/sqs -d '{"message": "testtest"}' -H 'Content-Type:application/json'
-```
-
-#### Customizing request parameters
-
-If you'd like to pass additional data to the integration request, you can do so by including your custom [API Gateway request parameters](https://docs.aws.amazon.com/apigateway/latest/developerguide/request-response-data-mappings.html) in `serverless.yml` like so:
-
-```yml
-custom:
-  apiGatewayServiceProxies:
-    - sqs:
-        path: /queue
-        method: post
-        queueName: !GetAtt MyQueue.QueueName
-        cors: true
-
+        queueName: { 'Fn::GetAtt': ['MessagesQueue', 'QueueName'] }
         requestParameters:
           'integration.request.querystring.MessageAttribute.1.Name': "'cognitoIdentityId'"
           'integration.request.querystring.MessageAttribute.1.Value.StringValue': 'context.identity.cognitoIdentityId'
           'integration.request.querystring.MessageAttribute.1.Value.DataType': "'String'"
-          'integration.request.querystring.MessageAttribute.2.Name': "'cognitoAuthenticationProvider'"
-          'integration.request.querystring.MessageAttribute.2.Value.StringValue': 'context.identity.cognitoAuthenticationProvider'
-          'integration.request.querystring.MessageAttribute.2.Value.DataType': "'String'"
 ```
 
-The alternative way to pass `MessageAttribute` parameters is via a request body mapping template.
+A value in single quotes inside the string (`"'String'"`) is a fixed value; a value without them is a mapping expression.
 
-#### Customizing request body mapping templates
+### SQS request templates
 
-See the [SQS section](#sqs-1) under [Customizing request body mapping templates](#customizing-request-body-mapping-templates)
-
-#### Customizing responses
-
-##### Simplified response template customization
-
-You can get a simple customization of the responses by providing a template for the possible responses. The template is assumed to be `application/json`.
-
-```yml
-custom:
-  apiGatewayServiceProxies:
-    - sqs:
-        path: /queue
-        method: post
-        queueName: !GetAtt MyQueue.QueueName
-        cors: true
-        response:
-          template:
-            # `success` is used when the integration response is 200
-            success: |-
-              { "message: "accepted" }
-            # `clientError` is used when the integration response is 400
-            clientError: |-
-              { "message": "there is an error in your request" }
-            # `serverError` is used when the integration response is 500
-            serverError: |-
-              { "message": "there was an error handling your request" }
-```
-
-##### Full response customization
-
-If you want more control over the integration response, you can
-provide an array of objects for the `response` value:
-
-```yml
-custom:
-  apiGatewayServiceProxies:
-    - sqs:
-        path: /queue
-        method: post
-        queueName: !GetAtt MyQueue.QueueName
-        cors: true
-        response:
-          - statusCode: 200
-            selectionPattern: '2\d{2}'
-            responseParameters: {}
-            responseTemplates:
-              application/json: |-
-                { "message": "accepted" }
-```
-
-The object keys correspond to the API Gateway [integration response](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-apitgateway-method-integration-integrationresponse.html#cfn-apigateway-method-integration-integrationresponse-responseparameters) object.
-
-### S3
-
-Sample syntax for S3 proxy in `serverless.yml`.
+An SQS request template replaces the Framework's query-string mapping, so it builds the whole `SendMessage` call, `Action` and `MessageBody` included. With a template, the Framework sets the integration's `Content-Type` to `application/x-www-form-urlencoded` and the pass-through behavior to `NEVER`, and drops every `integration.request.querystring.*` entry of `requestParameters`; headers the client sent reach SQS only through the template. Key the template by the content type clients send, usually `application/json`. This one sends to a FIFO queue:
 
 ```yaml
-custom:
-  apiGatewayServiceProxies:
-    - s3:
-        path: /s3
-        method: post
-        action: PutObject
-        bucket:
-          Ref: S3Bucket
-        key: static-key.json # use static key
-        cors: true
-
-    - s3:
-        path: /s3/{myKey} # use path param
-        method: get
-        action: GetObject
-        bucket:
-          Ref: S3Bucket
-        key:
-          pathParam: myKey
-        cors: true
-
-    - s3:
-        path: /s3
-        method: delete
-        action: DeleteObject
-        bucket:
-          Ref: S3Bucket
-        key:
-          queryStringParam: key # use query string param
-        cors: true
-
-resources:
-  Resources:
-    S3Bucket:
-      Type: 'AWS::S3::Bucket'
-```
-
-Sample request after deploying.
-
-```bash
-curl https://xxxxxx.execute-api.us-east-1.amazonaws.com/dev/s3 -d '{"message": "testtest"}' -H 'Content-Type:application/json'
-```
-
-#### Customizing request parameters
-
-Similar to the [SQS](#sqs) support, you can customize the default request parameters `serverless.yml` like so:
-
-```yml
-custom:
-  apiGatewayServiceProxies:
-    - s3:
-        path: /s3
-        method: post
-        action: PutObject
-        bucket:
-          Ref: S3Bucket
-        cors: true
-
-        requestParameters:
-          # if requestParameters has a 'integration.request.path.object' property you should remove the key setting
-          'integration.request.path.object': 'context.requestId'
-          'integration.request.header.cache-control': "'public, max-age=31536000, immutable'"
-```
-
-#### Customizing request templates
-
-If you'd like use custom [API Gateway request templates](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-override-request-response-parameters.html), you can do so like so:
-
-```yml
-custom:
-  apiGatewayServiceProxies:
-    - s3:
-        path: /s3
-        method: get
-        action: GetObject
-        bucket:
-          Ref: S3Bucket
-        request:
-          template:
-            application/json: |
-              #set ($specialStuff = $context.request.header.x-special)
-              #set ($context.requestOverride.path.object = $specialStuff.replaceAll('_', '-'))
-              {}
-```
-
-Note that if the client does not provide a `Content-Type` header in the request, [ApiGateway defaults to `application/json`](https://docs.aws.amazon.com/apigateway/latest/developerguide/integration-passthrough-behaviors.html).
-
-#### Customize the Path Override in API Gateway
-
-Added the new customization parameter that lets the user set a custom Path Override in API Gateway other than the `{bucket}/{object}`
-This parameter is optional and if not set, will fall back to `{bucket}/{object}`
-The Path Override will add `{bucket}/` automatically in front
-
-Please keep in mind, that key or path.object still needs to be set at the moment (maybe this will be made optional later on with this)
-
-Usage (With 2 Path Parameters (folder and file and a fixed file extension)):
-
-```yaml
-custom:
-  apiGatewayServiceProxies:
-    - s3:
-        path: /s3/{folder}/{file}
-        method: get
-        action: GetObject
-        pathOverride: '{folder}/{file}.xml'
-        bucket:
-          Ref: S3Bucket
-        cors: true
-
-        requestParameters:
-          # if requestParameters has a 'integration.request.path.object' property you should remove the key setting
-          'integration.request.path.folder': 'method.request.path.folder'
-          'integration.request.path.file': 'method.request.path.file'
-          'integration.request.path.object': 'context.requestId'
-          'integration.request.header.cache-control': "'public, max-age=31536000, immutable'"
-```
-
-This will result in API Gateway setting the Path Override attribute to `{bucket}/{folder}/{file}.xml`
-So for example if you navigate to the API Gateway endpoint `/language/en` it will fetch the file in S3 from `{bucket}/language/en.xml`
-
-##### Can use greedy, for deeper Folders
-
-The aforementioned example can also be shortened by a greedy approach. Thanks to @taylorreece for mentioning this.
-
-```yaml
-custom:
-  apiGatewayServiceProxies:
-    - s3:
-        path: /s3/{myPath+}
-        method: get
-        action: GetObject
-        pathOverride: '{myPath}.xml'
-        bucket:
-          Ref: S3Bucket
-        cors: true
-
-        requestParameters:
-          # if requestParameters has a 'integration.request.path.object' property you should remove the key setting
-          'integration.request.path.myPath': 'method.request.path.myPath'
-          'integration.request.path.object': 'context.requestId'
-          'integration.request.header.cache-control': "'public, max-age=31536000, immutable'"
-```
-
-This will translate for example `/s3/a/b/c` to `a/b/c.xml`
-
-#### Customizing responses
-
-You can get a simple customization of the responses by providing a template for the possible responses. The template is assumed to be `application/json`.
-
-```yml
-custom:
-  apiGatewayServiceProxies:
-    - s3:
-        path: /s3
-        method: post
-        action: PutObject
-        bucket:
-          Ref: S3Bucket
-        key: static-key.json
-        response:
-          template:
-            # `success` is used when the integration response is 200
-            success: |-
-              { "message: "accepted" }
-            # `clientError` is used when the integration response is 400
-            clientError: |-
-              { "message": "there is an error in your request" }
-            # `serverError` is used when the integration response is 500
-            serverError: |-
-              { "message": "there was an error handling your request" }
-```
-
-#### Allow Binary Type
-
-In order to allow the browser to recognize binary type (e.g. images), add the following.
-
-```yml
-#provider.apiGateway.binaryMediaTypes
-provider:
-  apiGateway:
-    binaryMediaTypes: '*/*'
-```
-
-### SNS
-
-Sample syntax for SNS proxy in `serverless.yml`.
-
-```yaml
-custom:
-  apiGatewayServiceProxies:
-    - sns:
-        path: /sns
-        method: post
-        topicName: { 'Fn::GetAtt': ['SNSTopic', 'TopicName'] }
-        cors: true
-
-resources:
-  Resources:
-    SNSTopic:
-      Type: AWS::SNS::Topic
-```
-
-Sample request after deploying.
-
-```bash
-curl https://xxxxxx.execute-api.us-east-1.amazonaws.com/dev/sns -d '{"message": "testtest"}' -H 'Content-Type:application/json'
-```
-
-#### Customizing responses
-
-##### Simplified response template customization
-
-You can get a simple customization of the responses by providing a template for the possible responses. The template is assumed to be `application/json`.
-
-```yml
-custom:
-  apiGatewayServiceProxies:
-    - sns:
-        path: /sns
-        method: post
-        topicName: { 'Fn::GetAtt': ['SNSTopic', 'TopicName'] }
-        cors: true
-        response:
-          template:
-            # `success` is used when the integration response is 200
-            success: |-
-              { "message": "accepted" }
-            # `clientError` is used when the integration response is 400
-            clientError: |-
-              { "message": "there is an error in your request" }
-            # `serverError` is used when the integration response is 500
-            serverError: |-
-              { "message": "there was an error handling your request" }
-```
-
-##### Full response customization
-
-If you want more control over the integration response, you can
-provide an array of objects for the `response` value:
-
-```yml
-custom:
-  apiGatewayServiceProxies:
-    - sns:
-        path: /sns
-        method: post
-        topicName: { 'Fn::GetAtt': ['SNSTopic', 'TopicName'] }
-        cors: true
-        response:
-          - statusCode: 200
-            selectionPattern: '2\d{2}'
-            responseParameters: {}
-            responseTemplates:
-              application/json: |-
-                { "message": "accepted" }
-```
-
-The object keys correspond to the API Gateway [integration response](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-apitgateway-method-integration-integrationresponse.html#cfn-apigateway-method-integration-integrationresponse-responseparameters) object.
-
-##### Content Handling and Pass Through Behaviour customization
-
-If you want to work with binary fata, you can not specify `contentHandling` and `PassThrough` inside the `request` object.
-
-```yml
-custom:
-  apiGatewayServiceProxies:
-    - sns:
-        path: /sns
-        method: post
-        topicName: { 'Fn::GetAtt': ['SNSTopic', 'TopicName'] }
-        request:
-          contentHandling: CONVERT_TO_TEXT
-          passThrough: WHEN_NO_TEMPLATES
-```
-
-The allowed values correspond with the API Gateway Method integration for [ContentHandling](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-apitgateway-method-integration.html#cfn-apigateway-method-integration-contenthandling) and [PassthroughBehavior](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-apitgateway-method-integration.html#cfn-apigateway-method-integration-passthroughbehavior)
-
-### DynamoDB
-
-Sample syntax for DynamoDB proxy in `serverless.yml`. Currently, the supported [DynamoDB Operations](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Operations.html) are `PutItem`, `GetItem` and `DeleteItem`.
-
-```yaml
-custom:
-  apiGatewayServiceProxies:
-    - dynamodb:
-        path: /dynamodb/{id}/{sort}
-        method: put
-        tableName: { Ref: 'YourTable' }
-        hashKey: # set pathParam or queryStringParam as a partitionkey.
-          pathParam: id
-          attributeType: S
-        rangeKey: # required if also using sort key. set pathParam or queryStringParam.
-          pathParam: sort
-          attributeType: S
-        action: PutItem # specify action to the table what you want
-        condition: attribute_not_exists(Id) # optional Condition Expressions parameter for the table
-        cors: true
-    - dynamodb:
-        path: /dynamodb
-        method: get
-        tableName: { Ref: 'YourTable' }
-        hashKey:
-          queryStringParam: id # use query string parameter
-          attributeType: S
-        rangeKey:
-          queryStringParam: sort
-          attributeType: S
-        action: GetItem
-        cors: true
-    - dynamodb:
-        path: /dynamodb/{id}
-        method: delete
-        tableName: { Ref: 'YourTable' }
-        hashKey:
-          pathParam: id
-          attributeType: S
-        action: DeleteItem
-        cors: true
-
-resources:
-  Resources:
-    YourTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: YourTable
-        AttributeDefinitions:
-          - AttributeName: id
-            AttributeType: S
-          - AttributeName: sort
-            AttributeType: S
-        KeySchema:
-          - AttributeName: id
-            KeyType: HASH
-          - AttributeName: sort
-            KeyType: RANGE
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
-```
-
-Sample request after deploying.
-
-```bash
-curl -XPUT https://xxxxxxx.execute-api.us-east-1.amazonaws.com/dev/dynamodb/<hashKey>/<sortkey> \
- -d '{"name":{"S":"john"},"address":{"S":"xxxxx"}}' \
- -H 'Content-Type:application/json'
-```
-
-#### Customizing responses
-
-##### Simplified response template customization
-
-You can get a simple customization of the responses by providing a template for the possible responses. The template returns the same kind of response for both `application/json` and `application/x-www-form-urlendcoded`.
-
-```yml
-custom:
-  apiGatewayServiceProxies:
-    - dynamodb:
-        path: /dynamodb
-        method: get
-        tableName: { Ref: 'YourTable' }
-        hashKey:
-          queryStringParam: id # use query string parameter
-          attributeType: S
-        rangeKey:
-          queryStringParam: sort
-          attributeType: S
-        action: GetItem
-        cors: true
-        response:
-          template:
-            # `success` is used when the integration response is 200
-            success: |-
-              #set($item = $input.path('$.Item')){ "Item": $item }
-            # `clientError` is used when the integration response is 400
-            clientError: |-
-              { "message": "there is an error in your request" }
-            # `serverError` is used when the integration response is 500
-            serverError: |-
-              { "message": "there was an error handling your request" }
-```
-
-##### Full response customization
-
-If you want more control over the integration response, you can
-provide an array of objects for the `response` value:
-
-```yml
-custom:
-  apiGatewayServiceProxies:
-    - dynamodb:
-        path: /dynamodb
-        method: get
-        tableName: { Ref: 'YourTable' }
-        hashKey:
-          queryStringParam: id # use query string parameter
-          attributeType: S
-        rangeKey:
-          queryStringParam: sort
-          attributeType: S
-        action: GetItem
-        cors: true
-        response:
-          - statusCode: 200
-            selectionPattern: '2\d{2}'
-            responseParameters: {}
-            responseTemplates:
-              application/json: |-
-                #set($item = $input.path('$.Item')){ "Item": $item }
-```
-
-### EventBridge
-
-Sample syntax for EventBridge proxy in `serverless.yml`.
-
-```yaml
-custom:
-  apiGatewayServiceProxies:
-    - eventbridge: # source and detailType are hardcoded; detail defaults to POST body
-        path: /eventbridge
-        method: post
-        source: 'hardcoded_source'
-        detailType: 'hardcoded_detailType'
-        eventBusName: { Ref: 'YourBusName' }
-        cors: true
-    - eventbridge: # source and detailType as path parameters
-        path: /eventbridge/{detailTypeKey}/{sourceKey}
-        method: post
-        detailType:
-          pathParam: detailTypeKey
-        source:
-          pathParam: sourceKey
-        eventBusName: { Ref: 'YourBusName' }
-        cors: true
-    - eventbridge: # source, detail, and detailType as body parameters
-        path: /eventbridge/{detailTypeKey}/{sourceKey}
-        method: post
-        detailType:
-          bodyParam: data.detailType
-        source:
-          bodyParam: data.source
-        detail:
-          bodyParam: data.detail
-        eventBusName: { Ref: 'YourBusName' }
-        cors: true
-
-resources:
-  Resources:
-    YourBus:
-      Type: AWS::Events::EventBus
-      Properties:
-        Name: YourEventBus
-```
-
-Sample request after deploying.
-
-```bash
-curl https://xxxxxxx.execute-api.us-east-1.amazonaws.com/dev/eventbridge -d '{"message": "some data"}'  -H 'Content-Type:application/json'
-```
-
-## Common API Gateway features
-
-### Enabling CORS
-
-To set CORS configurations for your HTTP endpoints, simply modify your event configurations as follows:
-
-```yml
-custom:
-  apiGatewayServiceProxies:
-    - kinesis:
-        path: /kinesis
-        method: post
-        streamName: { Ref: 'YourStream' }
-        cors: true
-```
-
-Setting cors to true assumes a default configuration which is equivalent to:
-
-```yml
-custom:
-  apiGatewayServiceProxies:
-    - kinesis:
-        path: /kinesis
-        method: post
-        streamName: { Ref: 'YourStream' }
-        cors:
-          origin: '*'
-          headers:
-            - Content-Type
-            - X-Amz-Date
-            - Authorization
-            - X-Api-Key
-            - X-Amz-Security-Token
-            - X-Amz-User-Agent
-          allowCredentials: false
-```
-
-Configuring the cors property sets Access-Control-Allow-Origin, Access-Control-Allow-Headers, Access-Control-Allow-Methods,Access-Control-Allow-Credentials headers in the CORS preflight response.
-To enable the Access-Control-Max-Age preflight response header, set the maxAge property in the cors object:
-
-```yml
-custom:
-  apiGatewayServiceProxies:
-    - kinesis:
-        path: /kinesis
-        method: post
-        streamName: { Ref: 'YourStream' }
-        cors:
-          origin: '*'
-          maxAge: 86400
-```
-
-If you are using CloudFront or another CDN for your API Gateway, you may want to setup a Cache-Control header to allow for OPTIONS request to be cached to avoid the additional hop.
-
-To enable the Cache-Control header on preflight response, set the cacheControl property in the cors object:
-
-```yml
-custom:
-  apiGatewayServiceProxies:
-    - kinesis:
-        path: /kinesis
-        method: post
-        streamName: { Ref: 'YourStream' }
-        cors:
-          origin: '*'
-          headers:
-            - Content-Type
-            - X-Amz-Date
-            - Authorization
-            - X-Api-Key
-            - X-Amz-Security-Token
-            - X-Amz-User-Agent
-          allowCredentials: false
-          cacheControl: 'max-age=600, s-maxage=600, proxy-revalidate' # Caches on browser and proxy for 10 minutes and doesnt allow proxy to serve out of date content
-```
-
-### Adding Authorization
-
-You can pass in any supported authorization type:
-
-```yml
-custom:
-  apiGatewayServiceProxies:
-    - sqs:
-        path: /sqs
-        method: post
-        queueName: { 'Fn::GetAtt': ['SQSQueue', 'QueueName'] }
-        cors: true
-
-        # optional - defaults to 'NONE'
-        authorizationType: 'AWS_IAM' # can be one of ['NONE', 'AWS_IAM', 'CUSTOM', 'COGNITO_USER_POOLS']
-
-        # when using 'CUSTOM' authorization type, one should specify authorizerId
-        # authorizerId: { Ref: 'AuthorizerLogicalId' }
-        # when using 'COGNITO_USER_POOLS' authorization type, one can specify a list of authorization scopes
-        # authorizationScopes: ['scope1','scope2']
-
-resources:
-  Resources:
-    SQSQueue:
-      Type: 'AWS::SQS::Queue'
-```
-
-Source: [AWS::ApiGateway::Method docs](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigateway-method.html#cfn-apigateway-method-authorizationtype)
-
-### Enabling API Token Authentication
-
-You can indicate whether the method requires clients to submit a valid API key using `private` flag:
-
-```yml
-custom:
-  apiGatewayServiceProxies:
-    - sqs:
-        path: /sqs
-        method: post
-        queueName: { 'Fn::GetAtt': ['SQSQueue', 'QueueName'] }
-        cors: true
-        private: true
-
-resources:
-  Resources:
-    SQSQueue:
-      Type: 'AWS::SQS::Queue'
-```
-
-which is the same syntax used in Serverless framework.
-
-Source: [Serverless: Setting API keys for your Rest API](https://serverless.com/framework/docs/providers/aws/events/apigateway/#setting-api-keys-for-your-rest-api)
-
-Source: [AWS::ApiGateway::Method docs](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigateway-method.html#cfn-apigateway-method-apikeyrequired)
-
-### Using a Custom IAM Role
-
-By default, the Framework will generate a role with the required permissions for each service type that is configured.
-
-You can configure your own role by setting the `roleArn` attribute:
-
-```yaml
-custom:
-  apiGatewayServiceProxies:
-    - sqs:
-        path: /sqs
-        method: post
-        queueName: { 'Fn::GetAtt': ['SQSQueue', 'QueueName'] }
-        cors: true
-        roleArn: # Optional. A default role is created when not configured
-          Fn::GetAtt: [CustomS3Role, Arn]
-
-resources:
-  Resources:
-    SQSQueue:
-      Type: 'AWS::SQS::Queue'
-    CustomS3Role:
-      # Custom Role definition
-      Type: 'AWS::IAM::Role'
-```
-
-### Customizing API Gateway parameters
-
-You can specify which [parameters the API Gateway method accepts](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigateway-method.html#cfn-apigateway-method-requestparameters).
-
-A common use case is to pass custom data to the integration request:
-
-```yaml
-custom:
-  apiGatewayServiceProxies:
-    - sqs:
-        path: /sqs
-        method: post
-        queueName: { 'Fn::GetAtt': ['SqsQueue', 'QueueName'] }
-        cors: true
-        acceptParameters:
-          'method.request.header.Custom-Header': true
-        requestParameters:
-          'integration.request.querystring.MessageAttribute.1.Name': "'custom-Header'"
-          'integration.request.querystring.MessageAttribute.1.Value.StringValue': 'method.request.header.Custom-Header'
-          'integration.request.querystring.MessageAttribute.1.Value.DataType': "'String'"
-resources:
-  Resources:
-    SqsQueue:
-      Type: 'AWS::SQS::Queue'
-```
-
-Any published SQS message will have the `Custom-Header` value added as a message attribute.
-
-### Customizing request body mapping templates
-
-#### Kinesis
-
-If you'd like to add content types or customize the default templates, you can do so by including your custom [API Gateway request mapping template](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html) in `serverless.yml` like so:
-
-```yml
-# Required for using Fn::Sub
-plugins:
-  - serverless-cloudformation-sub-variables
-
-custom:
-  apiGatewayServiceProxies:
-    - kinesis:
-        path: /kinesis
-        method: post
-        streamName: { Ref: 'MyStream' }
-        request:
-          template:
-            text/plain:
-              Fn::Sub:
-                - |
-                  #set($msgBody = $util.parseJson($input.body))
-                  #set($msgId = $msgBody.MessageId)
-                  {
-                      "Data": "$util.base64Encode($input.body)",
-                      "PartitionKey": "$msgId",
-                      "StreamName": "#{MyStreamArn}"
-                  }
-                - MyStreamArn:
-                    Fn::GetAtt: [MyStream, Arn]
-```
-
-> It is important that the mapping template will return a valid `application/json` string
-
-Source: [How to connect SNS to Kinesis for cross-account delivery via API Gateway](https://theburningmonk.com/2019/07/how-to-connect-sns-to-kinesis-for-cross-account-delivery-via-api-gateway/)
-
-#### SQS
-
-Customizing SQS request templates requires us to force all requests to use an `application/x-www-form-urlencoded` style body. The Framework sets the `Content-Type` header to `application/x-www-form-urlencoded` for you, but API Gateway will still look for the template under the `application/json` request template type, so that is where you need to configure your request body in `serverless.yml`:
-
-```yml
 custom:
   apiGatewayServiceProxies:
     - sqs:
         path: /{version}/event/receiver
         method: post
-        queueName: { 'Fn::GetAtt': ['SqsQueue', 'QueueName'] }
+        queueName: { 'Fn::GetAtt': ['EventsQueue', 'QueueName'] }
         request:
           template:
             application/json: |-
@@ -949,70 +206,530 @@ custom:
               &MessageBody=$util.urlEncode($input.body)
 ```
 
-Note that the `##` at the end of each line is an empty comment. In VTL this has the effect of stripping the newline from the end of the line (as it is commented out), which makes API Gateway read all the lines in the template as one line.
+The `##` at the end of each line is an empty Velocity comment: it removes the line break, so API Gateway sends the lines as one form-encoded string. A `requestParameters` entry for `integration.request.header.Content-Type` replaces the form content type, and SQS then can't read the call.
 
-Be careful when mixing additional `requestParameters` into your SQS endpoint as you may overwrite the `integration.request.header.Content-Type` and stop the request template from being parsed correctly. You may also unintentionally create conflicts between parameters passed using `requestParameters` and those in your request template. Typically you should only use the request template if you need to manipulate the incoming request body in some way.
+## Read and write S3 objects
 
-Your custom template must also set the `Action` and `MessageBody` parameters, as these will not be added for you by the Framework integration.
+An `s3` proxy calls `GetObject`, `PutObject` or `DeleteObject` on an Amazon S3 bucket:
 
-When using a custom request body, headers sent by a client will no longer be passed through to the SQS queue (`PassthroughBehavior` is automatically set to `NEVER`). You will need to pass through headers sent by the client explicitly in the request body. Also, any custom querystring parameters in the `requestParameters` array will be ignored. These also need to be added via the custom request body.
-
-#### SNS
-
-Similar to the [Kinesis](#kinesis-1) support, you can customize the default request mapping templates in `serverless.yml` like so:
-
-```yml
-# Required for using Fn::Sub
-plugins:
-  - serverless-cloudformation-sub-variables
-
+```yaml
 custom:
   apiGatewayServiceProxies:
-    - kinesis:
-        path: /sns
+    - s3:
+        path: /files/{fileKey}
+        method: get
+        action: GetObject
+        bucket: { Ref: 'FilesBucket' }
+        key:
+          pathParam: fileKey
+    - s3:
+        path: /files
+        method: delete
+        action: DeleteObject
+        bucket: { Ref: 'FilesBucket' }
+        key:
+          queryStringParam: key
+
+resources:
+  Resources:
+    FilesBucket:
+      Type: AWS::S3::Bucket
+```
+
+The S3 settings:
+
+- `action` (required): `GetObject`, `PutObject` or `DeleteObject`.
+- `bucket` (required): the bucket's name, as a string or a `Ref` to an `AWS::S3::Bucket`.
+- `key`: the object key, as a fixed string or an object with one of `pathParam` or `queryStringParam`. Required, except with a `request.template` (the template sets the object path) or when `requestParameters` sets `integration.request.path.object`; in that second case, leave `key` out.
+- `pathOverride`: the object path after `{bucket}/`, instead of `{object}`. See [Build the object path from several parameters](#build-the-object-path-from-several-parameters).
+- `requestParameters`: integration request parameters, merged over the Framework's.
+
+`GetObject` passes the `Range` header through, answers a partial read with `206`, and returns the object's `Content-Type`. To serve binary objects such as images, list their media types in [`provider.apiGateway.binaryMediaTypes`](../events/apigateway.md#binary-media-types):
+
+```yaml
+provider:
+  name: aws
+  apiGateway:
+    binaryMediaTypes:
+      - '*/*'
+```
+
+### Write objects to a bucket with ACLs disabled
+
+`PutObject` stores the request body with the request's `Content-Type`, and sends the canned ACL `authenticated-read` in the `x-amz-acl` header. A bucket with ACLs disabled, the S3 default for new buckets, refuses an upload with that ACL with `400 AccessControlListNotSupported` (see [Object Ownership](https://docs.aws.amazon.com/AmazonS3/latest/userguide/about-object-ownership.html)). For such a bucket, set the header to `bucket-owner-full-control` in `requestParameters`:
+
+```yaml
+custom:
+  apiGatewayServiceProxies:
+    - s3:
+        path: /files
         method: post
-        topicName: { 'Fn::GetAtt': ['SNSTopic', 'TopicName'] }
+        action: PutObject
+        bucket: { Ref: 'FilesBucket' }
+        key: static-key.json
+        requestParameters:
+          'integration.request.header.x-amz-acl': "'bucket-owner-full-control'"
+```
+
+To name each object after the request id instead of a fixed key, map `integration.request.path.object` and leave `key` out:
+
+```yaml
+custom:
+  apiGatewayServiceProxies:
+    - s3:
+        path: /files
+        method: post
+        action: PutObject
+        bucket: { Ref: 'FilesBucket' }
+        requestParameters:
+          'integration.request.path.object': 'context.requestId'
+          'integration.request.header.x-amz-acl': "'bucket-owner-full-control'"
+          'integration.request.header.cache-control': "'public, max-age=31536000, immutable'"
+```
+
+### Build the object path from several parameters
+
+`pathOverride` sets the S3 path after `{bucket}/`; the default is `{object}`. Each `{name}` in it needs a matching `integration.request.path.<name>` entry in `requestParameters`. `key` or `integration.request.path.object` is still required, even when `pathOverride` doesn't use it. This route serves `/files/language/en` from the object `language/en.xml`:
+
+```yaml
+custom:
+  apiGatewayServiceProxies:
+    - s3:
+        path: /files/{folder}/{file}
+        method: get
+        action: GetObject
+        pathOverride: '{folder}/{file}.xml'
+        bucket: { Ref: 'FilesBucket' }
+        requestParameters:
+          'integration.request.path.folder': 'method.request.path.folder'
+          'integration.request.path.file': 'method.request.path.file'
+          'integration.request.path.object': 'context.requestId'
+```
+
+A greedy path parameter covers any depth. This route serves `/files/a/b/c` from `a/b/c.xml`:
+
+```yaml
+custom:
+  apiGatewayServiceProxies:
+    - s3:
+        path: /files/{myPath+}
+        method: get
+        action: GetObject
+        pathOverride: '{myPath}.xml'
+        bucket: { Ref: 'FilesBucket' }
+        requestParameters:
+          'integration.request.path.myPath': 'method.request.path.myPath'
+          'integration.request.path.object': 'context.requestId'
+```
+
+### S3 request templates
+
+An S3 request template can set the object path from the request with `$context.requestOverride`. With a template, the pass-through behavior is `NEVER`, and `key` is optional:
+
+```yaml
+custom:
+  apiGatewayServiceProxies:
+    - s3:
+        path: /files
+        method: get
+        action: GetObject
+        bucket: { Ref: 'FilesBucket' }
+        request:
+          template:
+            application/json: |
+              #set ($specialStuff = $context.request.header.x-special)
+              #set ($context.requestOverride.path.object = $specialStuff.replaceAll('_', '-'))
+              {}
+```
+
+API Gateway picks the template by the request's `Content-Type`, and uses `application/json` when the client sends none (see [pass-through behavior](https://docs.aws.amazon.com/apigateway/latest/developerguide/integration-passthrough-behaviors.html)).
+
+## Publish to SNS
+
+An `sns` proxy publishes the request body as the message of an Amazon SNS topic. `topicName` (required) is the topic's name, as a string or as `{ 'Fn::GetAtt': ['<TopicLogicalId>', 'TopicName'] }`; the topic is in the stage's account and region:
+
+```yaml
+custom:
+  apiGatewayServiceProxies:
+    - sns:
+        path: /notifications
+        method: post
+        topicName: { 'Fn::GetAtt': ['NotificationsTopic', 'TopicName'] }
+
+resources:
+  Resources:
+    NotificationsTopic:
+      Type: AWS::SNS::Topic
+```
+
+An SNS request template replaces the Framework's template for its content type and returns a form-encoded `Publish` call. Reference the topic with `Fn::Sub`; `Ref` of a topic is its ARN:
+
+```yaml
+custom:
+  apiGatewayServiceProxies:
+    - sns:
+        path: /notifications
+        method: post
+        topicName: { 'Fn::GetAtt': ['NotificationsTopic', 'TopicName'] }
         request:
           template:
             application/json:
-              Fn::Sub:
-                - "Action=Publish&Message=$util.urlEncode('This is a fixed message')&TopicArn=$util.urlEncode('#{MyTopicArn}')"
-                - MyTopicArn: { Ref: MyTopic }
+              Fn::Sub: "Action=Publish&Message=$util.urlEncode('This is a fixed message')&TopicArn=$util.urlEncode('${NotificationsTopic}')"
 ```
 
-> It is important that the mapping template will return a valid `application/x-www-form-urlencoded` string
+SNS proxies also take two integration settings inside `request`, beside its required `template`; the other proxy types ignore them:
 
-Source: [Connect AWS API Gateway directly to SNS using a service integration](https://www.alexdebrie.com/posts/aws-api-gateway-service-proxy/)
+- `contentHandling`: `CONVERT_TO_BINARY` or `CONVERT_TO_TEXT`, for binary payloads (see [ContentHandling](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-apitgateway-method-integration.html#cfn-apigateway-method-integration-contenthandling)).
+- `passThrough`: `WHEN_NO_MATCH`, `NEVER` (default) or `WHEN_NO_TEMPLATES` (see [PassthroughBehavior](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-apitgateway-method-integration.html#cfn-apigateway-method-integration-passthroughbehavior)).
 
-### Custom response body mapping templates
+```yaml
+custom:
+  apiGatewayServiceProxies:
+    - sns:
+        path: /notifications
+        method: post
+        topicName: { 'Fn::GetAtt': ['NotificationsTopic', 'TopicName'] }
+        request:
+          contentHandling: CONVERT_TO_TEXT
+          passThrough: WHEN_NO_TEMPLATES
+          template:
+            application/json:
+              Fn::Sub: "Action=Publish&Message=$util.urlEncode($input.body)&TopicArn=$util.urlEncode('${NotificationsTopic}')"
+```
 
-You can customize the response body by providing mapping templates for success, server errors (5xx) and client errors (4xx).
+## Read and write DynamoDB items
 
-> Templates must be in JSON format. If a template isn't provided, the integration response will be returned as-is to the client.
+A `dynamodb` proxy calls `PutItem`, `GetItem` or `DeleteItem` on an Amazon DynamoDB table, with the key taken from the path or the query string:
 
-#### Kinesis Example
+```yaml
+custom:
+  apiGatewayServiceProxies:
+    - dynamodb:
+        path: /items/{id}/{sort}
+        method: put
+        action: PutItem
+        tableName: { Ref: 'ItemsTable' }
+        hashKey:
+          pathParam: id
+          attributeType: S
+        rangeKey:
+          pathParam: sort
+          attributeType: S
+        condition: attribute_not_exists(id)
+    - dynamodb:
+        path: /items
+        method: get
+        action: GetItem
+        tableName: { Ref: 'ItemsTable' }
+        hashKey:
+          queryStringParam: id
+          attributeType: S
+        rangeKey:
+          queryStringParam: sort
+          attributeType: S
+    - dynamodb:
+        path: /items/{id}/{sort}
+        method: delete
+        action: DeleteItem
+        tableName: { Ref: 'ItemsTable' }
+        hashKey:
+          pathParam: id
+          attributeType: S
+        rangeKey:
+          pathParam: sort
+          attributeType: S
 
-```yml
+resources:
+  Resources:
+    ItemsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: sort
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+          - AttributeName: sort
+            KeyType: RANGE
+```
+
+The DynamoDB settings:
+
+- `action` (required): `PutItem`, `GetItem` or `DeleteItem`.
+- `tableName` (required): the table's name, as a string or a `Ref` to an `AWS::DynamoDB::Table`.
+- `hashKey` (required) and `rangeKey` (for a table with a sort key): one of `pathParam` or `queryStringParam`, and `attributeType`, the key's DynamoDB type (`S`, `N` or `B`). The key attribute's name is the parameter's name: `pathParam: id` reads and writes the attribute `id`, so name the parameters after the table's key attributes.
+- `condition`: a [condition expression](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.ConditionExpressions.html) for `PutItem` and `DeleteItem`.
+- `requestParameters`: integration request parameters.
+
+A `PutItem` body lists the item's other attributes in DynamoDB's attribute-value format:
+
+```bash
+curl -X PUT https://abc123def4.execute-api.us-east-1.amazonaws.com/dev/items/1/a \
+  -H 'Content-Type: application/json' -d '{"name": {"S": "john"}, "address": {"S": "Main Street 1"}}'
+```
+
+Without a `response`, a `GetItem` answers with the item's attributes as a flat JSON object, such as `{"id":"1","sort":"a","name":"john"}`. DynamoDB proxies always use the role the Framework creates for them; `roleArn` has no effect.
+
+## Put events on EventBridge
+
+An `eventbridge` proxy puts one event on an Amazon EventBridge event bus with `PutEvents`:
+
+```yaml
+custom:
+  apiGatewayServiceProxies:
+    - eventbridge:
+        path: /events
+        method: post
+        source: 'my-service'
+        detailType: 'OrderPlaced'
+        eventBusName: { Ref: 'OrdersBus' }
+    - eventbridge:
+        path: /events/{detailTypeKey}/{sourceKey}
+        method: post
+        detailType:
+          pathParam: detailTypeKey
+        source:
+          pathParam: sourceKey
+        eventBusName: { Ref: 'OrdersBus' }
+    - eventbridge:
+        path: /events/body
+        method: post
+        detailType:
+          bodyParam: data.detailType
+        source:
+          bodyParam: data.source
+        detail:
+          bodyParam: data.detail
+        eventBusName: { Ref: 'OrdersBus' }
+
+resources:
+  Resources:
+    OrdersBus:
+      Type: AWS::Events::EventBus
+      Properties:
+        Name: orders
+```
+
+The EventBridge settings:
+
+- `eventBusName` (required): the bus's name, as a string or a `Ref` to an `AWS::Events::EventBus`.
+- `source` (required): the event's source, as a fixed string or an object with one of `pathParam`, `queryStringParam` or `bodyParam`.
+- `detailType`: the event's detail type, in the same forms. Default: the API Gateway request id.
+- `detail`: `bodyParam`, a dotted path into the JSON body. Default: the whole request body.
+
+EventBridge proxies take no `response` setting.
+
+## Customize request templates
+
+Every proxy type accepts `request.template`, a map of content type to [mapping template](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html). For Kinesis, SNS, DynamoDB and EventBridge, the Framework writes templates for `application/json` and `application/x-www-form-urlencoded`; a template you give for one of those types replaces it, and a template for another type is added. SQS and S3 templates work differently: see [SQS request templates](#sqs-request-templates) and [S3 request templates](#s3-request-templates).
+
+A template can reference resources of the stack with `Fn::Sub`. The Framework leaves `${Name}` placeholders that name no variable source, such as `${RecordsStream}` or `${AWS::Region}`, for CloudFormation to fill in. This Kinesis template takes the partition key from the body:
+
+```yaml
 custom:
   apiGatewayServiceProxies:
     - kinesis:
-        path: /kinesis
+        path: /records
         method: post
-        streamName: { Ref: 'MyStream' }
+        streamName: { Ref: 'RecordsStream' }
+        request:
+          template:
+            text/plain:
+              Fn::Sub: |
+                #set($msgBody = $util.parseJson($input.body))
+                #set($msgId = $msgBody.MessageId)
+                {
+                    "Data": "$util.base64Encode($input.body)",
+                    "PartitionKey": "$msgId",
+                    "StreamName": "${RecordsStream}"
+                }
+```
+
+A Kinesis template returns the JSON body of the Kinesis API call; an SNS or SQS template returns a form-encoded string.
+
+## Customize responses
+
+`response.template` sets the response body for three outcomes, as `application/json` templates:
+
+```yaml
+custom:
+  apiGatewayServiceProxies:
+    - sqs:
+        path: /messages
+        method: post
+        queueName: { 'Fn::GetAtt': ['MessagesQueue', 'QueueName'] }
         response:
           template:
-            success: |
-              {
-                "success": true
-              }
-            serverError: |
-              {
-                "success": false,
-                "errorMessage": "Server Error"
-              }
-            clientError: |
-              {
-                "success": false,
-                "errorMessage": "Client Error"
-              }
+            success: |-
+              { "message": "accepted" }
+            clientError: |-
+              { "message": "there is an error in your request" }
+            serverError: |-
+              { "message": "there was an error handling your request" }
 ```
+
+- `success` answers a `200` from the service, `clientError` a `400` and `serverError` a `500`. For S3, `success` answers any `2xx` (including `206`), `clientError` any `4xx` and `serverError` any `5xx`.
+- Without a template for an outcome, the service's response body reaches the client as it is.
+- For SQS, SNS and DynamoDB, the templates apply only when `success` is set.
+- Kinesis and S3 proxies take this form only; EventBridge proxies take no `response`.
+
+For SQS, SNS and DynamoDB, `response` can instead be a list of [integration responses](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-apitgateway-method-integration-integrationresponse.html), each with `statusCode`, `selectionPattern` (a regular expression over the service's status code; default: the `statusCode`), `responseParameters` and `responseTemplates`:
+
+```yaml
+custom:
+  apiGatewayServiceProxies:
+    - dynamodb:
+        path: /items
+        method: get
+        action: GetItem
+        tableName: { Ref: 'ItemsTable' }
+        hashKey:
+          queryStringParam: id
+          attributeType: S
+        rangeKey:
+          queryStringParam: sort
+          attributeType: S
+        response:
+          - statusCode: 200
+            selectionPattern: '2\d{2}'
+            responseParameters: {}
+            responseTemplates:
+              application/json: |-
+                #set($item = $input.path('$.Item')){ "Item": $item }
+```
+
+## Enable CORS
+
+`cors: true` adds an `OPTIONS` preflight on the proxy's path and sets `Access-Control-Allow-Origin` on its responses. It is the same as this object:
+
+```yaml
+custom:
+  apiGatewayServiceProxies:
+    - sqs:
+        path: /messages
+        method: post
+        queueName: { 'Fn::GetAtt': ['MessagesQueue', 'QueueName'] }
+        cors:
+          origin: '*'
+          headers:
+            - Content-Type
+            - X-Amz-Date
+            - Authorization
+            - X-Api-Key
+            - X-Amz-Security-Token
+            - X-Amz-User-Agent
+          allowCredentials: false
+```
+
+The `cors` object takes:
+
+- `origin` (a string) or `origins` (a list), not both. Default: `*`.
+- `headers`: the allowed request headers. Default: the six in the preceding example.
+- `methods`: the allowed methods; `OPTIONS` and the proxy's own method are always added.
+- `allowCredentials`: sets `Access-Control-Allow-Credentials`. Default: `false`.
+- `maxAge`: seconds browsers may cache the preflight answer (`Access-Control-Max-Age`), at least `1`.
+- `cacheControl`: the preflight answer's `Cache-Control` header, so a CDN in front of the API can cache it, such as `'max-age=600, s-maxage=600, proxy-revalidate'`.
+
+Proxies that share a `path` share one preflight, which combines their headers, methods and origins; for `maxAge` and `cacheControl`, the last proxy that sets them wins.
+
+The preflight takes no authorization and no API key, whatever the route's `authorizationType` and `private` settings. With `origin`, the preflight and the route's responses carry that origin in `Access-Control-Allow-Origin`. With `origins`, the preflight answers with the caller's `Origin` when it matches an entry (`*` in an entry matches any characters), and the route's responses carry all entries joined by commas. Browsers accept only one origin in `Access-Control-Allow-Origin`, so with two or more `origins` entries, browsers reject the route's responses even though the preflight succeeds. For routes that browsers call, set a single `origin`, or `*` for requests without credentials.
+
+## Require authorization
+
+`authorizationType` sets how API Gateway authorizes callers of the route:
+
+```yaml
+custom:
+  apiGatewayServiceProxies:
+    - sqs:
+        path: /messages
+        method: post
+        queueName: { 'Fn::GetAtt': ['MessagesQueue', 'QueueName'] }
+        authorizationType: COGNITO_USER_POOLS
+        authorizerId: { Ref: 'MessagesAuthorizer' }
+        authorizationScopes:
+          - messages/write
+```
+
+- `NONE` (default): no authorization.
+- `AWS_IAM`: callers sign requests with AWS credentials (Signature Version 4).
+- `CUSTOM` or `COGNITO_USER_POOLS`: set `authorizerId` to the authorizer's ID, or to a `Ref` to an `AWS::ApiGateway::Authorizer` you declare under `resources`. With `authorizationScopes`, the type must be `COGNITO_USER_POOLS`.
+
+See [AuthorizationType](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigateway-method.html#cfn-apigateway-method-authorizationtype) for what each type checks.
+
+## Require an API key
+
+`private: true` makes the route require an API key in the `x-api-key` header. Declare the keys and usage plan under `provider.apiGateway`, as for `http` events (see [Setting API keys for your Rest API](../events/apigateway.md#setting-api-keys-for-your-rest-api)):
+
+```yaml
+custom:
+  apiGatewayServiceProxies:
+    - sqs:
+        path: /messages
+        method: post
+        queueName: { 'Fn::GetAtt': ['MessagesQueue', 'QueueName'] }
+        private: true
+```
+
+The Framework creates the API keys and usage plans of `provider.apiGateway` when it compiles the service's `http` events, for the whole stage of the REST API. A service whose functions have no `http` event gets no API key or usage plan from `provider.apiGateway.apiKeys`, even with `private: true` proxies. The `OPTIONS` preflight that `cors` adds needs no API key (see [Enable CORS](#enable-cors)).
+
+## Use your own IAM role
+
+Without `roleArn`, API Gateway calls the service with a role the Framework creates for that service type. Each role trusts `apigateway.amazonaws.com`, allows `logs:CreateLogGroup`, `logs:CreateLogStream` and `logs:PutLogEvents`, and allows these actions on the resources the proxies of that type name:
+
+| Service type  | Role logical ID               | Actions                                                   | Resources                                                   |
+| ------------- | ----------------------------- | --------------------------------------------------------- | ----------------------------------------------------------- |
+| `kinesis`     | `ApigatewayToKinesisRole`     | `kinesis:PutRecord`, `kinesis:PutRecords`                 | Each `streamName`, in the stage's account and region        |
+| `sqs`         | `ApigatewayToSqsRole`         | `sqs:SendMessage`                                         | Each `queueName`, in the stage's account and region         |
+| `s3`          | `ApigatewayToS3Role`          | `s3:<action>*` for each `action`, such as `s3:GetObject*` | The objects of each `bucket` (`<bucket ARN>/*`)             |
+| `sns`         | `ApigatewayToSnsRole`         | `sns:Publish`                                             | Each `topicName`, in the stage's account and region         |
+| `dynamodb`    | `ApigatewayToDynamodbRole`    | Each proxy's `action`, such as `dynamodb:PutItem`         | That proxy's `tableName`, in the stage's account and region |
+| `eventbridge` | `ApigatewayToEventBridgeRole` | `events:PutEvents`                                        | Each `eventBusName`, in the stage's account and region      |
+
+A service with an `sqs` proxy and an `s3` proxy, for example, gets `ApigatewayToSqsRole` and `ApigatewayToS3Role`. The Framework creates no role for a service type whose proxies all set `roleArn`, except for DynamoDB, which always gets its role.
+
+To use your own role, set `roleArn` to its ARN or to `Fn::GetAtt` of its `Arn`. The role must trust `apigateway.amazonaws.com` and allow the service action. DynamoDB proxies always use the Framework's role.
+
+```yaml
+custom:
+  apiGatewayServiceProxies:
+    - sqs:
+        path: /messages
+        method: post
+        queueName: { 'Fn::GetAtt': ['MessagesQueue', 'QueueName'] }
+        roleArn: { 'Fn::GetAtt': ['MessagesProxyRole', 'Arn'] }
+```
+
+## Accept request parameters
+
+`acceptParameters` declares the [method request parameters](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigateway-method.html#cfn-apigateway-method-requestparameters) a route accepts, so `requestParameters` can map them. This route adds a request header to each SQS message as a message attribute:
+
+```yaml
+custom:
+  apiGatewayServiceProxies:
+    - sqs:
+        path: /messages
+        method: post
+        queueName: { 'Fn::GetAtt': ['MessagesQueue', 'QueueName'] }
+        acceptParameters:
+          'method.request.header.Custom-Header': true
+        requestParameters:
+          'integration.request.querystring.MessageAttribute.1.Name': "'custom-Header'"
+          'integration.request.querystring.MessageAttribute.1.Value.StringValue': 'method.request.header.Custom-Header'
+          'integration.request.querystring.MessageAttribute.1.Value.DataType': "'String'"
+```
+
+S3 proxies declare the method request parameters their `requestParameters` use without `acceptParameters`.
+
+## Migrate from serverless-apigateway-service-proxy
+
+The Framework includes the community plugin [`serverless-apigateway-service-proxy`](https://github.com/serverless-operations/serverless-apigateway-service-proxy), with thanks to its authors and contributors. To migrate, remove the plugin from `plugins` in `serverless.yml` and from your dependencies, and keep `custom.apiGatewayServiceProxies` as it is. `Fn::Sub` in templates needs no `serverless-cloudformation-sub-variables` plugin (see [Customize request templates](#customize-request-templates)).
+
+## Related
+
+- [API Gateway REST API events](../events/apigateway.md): routes that invoke a Lambda function, and the `provider.apiGateway` settings proxies share.
+- [Set up an AWS service integration](https://docs.aws.amazon.com/apigateway/latest/developerguide/getting-started-aws-proxy.html) in the API Gateway developer guide.

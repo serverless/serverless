@@ -1,15 +1,15 @@
 <!--
-title: Serverless Framework - AWS Lambda Functions
-description: How to configure AWS Lambda functions in the Serverless Framework
-short_title: AWS Lambda Functions
+title: AWS Lambda Functions
+description: 'Configure AWS Lambda functions in serverless.yml: handler, runtime, memory, URLs, container images, VPC, environment, logs, versions and async invocation.'
+short_title: Functions
 keywords:
   [
     'Serverless Framework',
-    'AWS Lambda',
-    'function configuration',
+    'AWS Lambda functions',
+    'serverless.yml functions',
     'handler',
     'runtime',
-    'permissions',
+    'Lambda function URL',
     'environment variables',
   ]
 -->
@@ -22,268 +22,212 @@ keywords:
 
 # AWS Lambda Functions
 
-If you are using AWS as a provider, all _functions_ inside the service are AWS Lambda functions.
+Each entry under `functions` in `serverless.yml` is an AWS Lambda function: an exported handler that Lambda calls once per event or request. This page lists the settings a function takes, where each one can be set (per function, or service-wide under `provider`), and what the Framework creates in AWS for it. To run a standard HTTP server such as Express, Fastify, Hono or Next.js instead, use a [web app](./web-apps.md) (see [Web apps or functions?](./web-apps.md#web-apps-or-functions)).
 
-## Event Functions or Web Functions?
+The smallest service with one function:
 
-Functions under `functions` are what AWS calls Lambda Event Functions: an exported handler that Lambda calls once per event or HTTP request. To run a standard HTTP server instead (Express, Fastify, Hono, Next.js), with many concurrent requests per execution environment, define it under `webApps` as a [web app](./web-apps.md), which deploys as an AWS Lambda Web Function. See [Web apps or functions?](./web-apps.md#web-apps-or-functions) for how the two compare.
-
-## Configuration
-
-All of the Lambda functions in your serverless service can be found in `serverless.yml` under the `functions` property.
-
-```yml
+```yaml
 # serverless.yml
-service: myService
+service: my-service
 
 provider:
   name: aws
-  runtime: nodejs14.x
-  runtimeManagement: auto # optional, set how Lambda controls all functions runtime. AWS default is auto; this can either be 'auto' or 'onFunctionUpdate'. For 'manual', see example in hello function below (syntax for both is identical)
-  memorySize: 512 # optional, in MB, default is 1024
-  timeout: 10 # optional, in seconds, default is 6
-  versionFunctions: false # optional, default is true
-  tracing:
-    lambda: true # optional, enables tracing for all functions (can be true (true equals 'Active') 'Active' or 'PassThrough')
+  runtime: nodejs24.x
 
 functions:
   hello:
-    handler: handler.hello # required, handler set in AWS Lambda
-    name: ${sls:stage}-lambdaName # optional, Deployed Lambda name
-    description: Description of what the lambda function does # optional, Description to publish to AWS
-    runtime: python3.11 # optional overwrite, default is provider runtime
-    runtimeManagement:
-      mode: manual # syntax required for manual, mode property also supports 'auto' or 'onFunctionUpdate' (see provider.runtimeManagement)
-      arn: <aws runtime arn> # required when mode is manual
-    memorySize: 512 # optional, in MB, default is 1024
-    timeout: 10 # optional, in seconds, default is 6
-    # Provision a minimum number of concurrent executions. Optional.
-    provisionedConcurrency: # Could also be a simple integer instead of an object.
-      alias: active # The provisioned concurrency alias name. Optional. Default is "provisioned".
-      executions: 3 # Required if you specify provisionedConcurrency as an object.
-    reservedConcurrency: 5 # optional, reserved concurrency limit for this function. By default, AWS uses account concurrency limit
-    tracing: PassThrough # optional, overwrite, can be 'Active' or 'PassThrough'
+    handler: handler.hello
 ```
-
-`provider.runtime` sets the runtime for every function in the service, and a function's own `runtime` overrides it for that function. Every current [AWS Lambda managed runtime identifier](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html) is accepted, including the Amazon Linux 2023 Java runtimes `java8.al2023`, `java11.al2023` and `java17.al2023`, which are the migration path off the Amazon Linux 2 Java runtimes. Identifiers AWS has released in public preview — `nodejs26.x` and `python3.15` at the time of writing — are accepted too, but AWS support and SLAs do not cover them until AWS makes them generally available.
-
-When a function uses a runtime AWS has already deprecated, `package` and `deploy` print a warning naming the functions, the deprecation date, and the dates Lambda stops allowing new functions and updates on that runtime, with a link to the current list of supported runtimes. The warning also covers functions that get the default runtime because neither the function nor `provider` sets one.
-
-The `handler` property points to the file and module containing the code you want to run in your function.
 
 ```javascript
-// handler.js
-module.exports.functionOne = function (event, context, callback) {}
+// handler.mjs
+export const hello = async (event) => {
+  return { message: 'Hello from Lambda' }
+}
 ```
 
-You can add as many functions as you want within this property.
+`handler` is the file path without its extension, a dot, and the exported function name: `handler.hello` runs the `hello` export of `handler.mjs` (or `handler.js`) next to `serverless.yml`. Run `serverless deploy` from the service directory to create the function; to trigger it from an AWS event source, add [events](./events.md).
 
-```yml
+## Configuration
+
+The basic function settings, with their defaults:
+
+```yaml
 # serverless.yml
-
-service: myService
+service: my-service
 
 provider:
   name: aws
-  runtime: nodejs14.x
+  runtime: nodejs24.x # default runtime for every function
+  memorySize: 512 # MB, default 1024
+  timeout: 10 # seconds, default 6
+  architecture: arm64 # default x86_64
 
 functions:
-  functionOne:
-    handler: handler.functionOne
-    description: optional description for your Lambda
-  functionTwo:
-    handler: handler.functionTwo
-  functionThree:
-    handler: handler.functionThree
+  hello:
+    handler: handler.hello # required unless the function uses `image`
+    name: ${sls:stage}-hello # deployed name, default <service>-<stage>-<function key>
+    description: Says hello # up to 256 characters
+    runtime: python3.14 # overrides provider.runtime
+    memorySize: 1024 # overrides provider.memorySize
+    timeout: 30 # overrides provider.timeout
 ```
 
-Your functions can either inherit their settings from the `provider` property.
+| Key            | Type    | Default                                | Allowed values                           |
+| -------------- | ------- | -------------------------------------- | ---------------------------------------- |
+| `handler`      | string  | Required (unless `image`)              | `<file path without extension>.<export>` |
+| `name`         | string  | `<service>-<stage>-<key>`              | Any valid Lambda function name           |
+| `description`  | string  | None                                   | Up to 256 characters                     |
+| `runtime`      | string  | `provider.runtime`, else `nodejs20.x`  | A Lambda runtime identifier              |
+| `memorySize`   | integer | `provider.memorySize`, else 1024       | 128 to 10240 (MB)                        |
+| `timeout`      | integer | `provider.timeout`, else 6             | 1 to 900 (seconds)                       |
+| `architecture` | string  | `provider.architecture`, else `x86_64` | `x86_64`, `arm64`                        |
 
-```yml
+For a setting that exists both on the function and under `provider`, the function's own value wins, and `provider` supplies the value for functions that don't set one. `environment`, `tags` and the `logs` keys are merged key by key instead (see [Environment variables](#environment-variables), [Tags](#tags) and [Log format and log levels](#log-format-and-log-levels)).
+
+### Runtime
+
+`provider.runtime` sets the runtime for every function, and a function's own `runtime` overrides it. When neither is set, the function uses `nodejs20.x`, a runtime AWS has deprecated, so set a runtime explicitly. Every [AWS Lambda managed runtime identifier](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html) is accepted, including the Amazon Linux 2023 Java runtimes `java8.al2023`, `java11.al2023` and `java17.al2023`. The schema also accepts `nodejs26.x` and `python3.15`; AWS support and SLAs cover a runtime only once AWS makes it generally available, which the runtimes page shows.
+
+When a function uses a runtime AWS has deprecated, `serverless package` and `serverless deploy` print a warning that names the functions, the deprecation date and the dates Lambda stops allowing new functions and updates on that runtime, with a link to the list of supported runtimes. The warning covers functions that get the default runtime too. Container image functions are not checked, because their runtime comes from the image.
+
+### Memory size limits
+
+`memorySize` accepts 128 to 10240 MB. A function with `capacityProvider` ([Lambda Managed Instances](./managed-instances.md)) defaults to 2048 MB instead of 1024, needs at least 2048 MB, and accepts up to 32768 MB; a value outside those ranges stops packaging with an error.
+
+### Functions in separate files
+
+`functions` also takes a list, which lets you keep functions in separate files. Each file holds function entries keyed by name:
+
+```yaml
 # serverless.yml
-service: myService
-
-provider:
-  name: aws
-  runtime: nodejs14.x
-  memorySize: 512 # will be inherited by all functions
-
-functions:
-  functionOne:
-    handler: handler.functionOne
-```
-
-Or you can specify properties at the function level.
-
-```yml
-# serverless.yml
-service: myService
-
-provider:
-  name: aws
-  runtime: nodejs14.x
-
-functions:
-  functionOne:
-    handler: handler.functionOne
-    memorySize: 512 # function specific
-```
-
-You can specify an array of functions, which is useful if you separate your functions in to different files:
-
-```yml
-# serverless.yml
----
 functions:
   - ${file(./foo-functions.yml)}
   - ${file(./bar-functions.yml)}
 ```
 
-```yml
+```yaml
 # foo-functions.yml
 getFoo:
-  handler: handler.foo
+  handler: handler.getFoo
 deleteFoo:
-  handler: handler.foo
+  handler: handler.deleteFoo
 ```
 
-## Permissions
+## Execution role permissions
 
-Every AWS Lambda function needs permission to interact with other AWS infrastructure resources within your account. These permissions are set via an AWS IAM Role. You can set permission policy statements within this role via the `provider.iam.role.statements` property.
+Every Lambda function runs with an IAM execution role. By default, the Framework creates one role for the service and adds the permissions the function's own settings need (logs, event sources, VPC access, and the others named on this page). To let your code call other AWS services, add statements under `provider.iam.role.statements`:
 
-```yml
-# serverless.yml
-service: myService
-
-provider:
-  name: aws
-  runtime: nodejs14.x
-  iam:
-    role:
-      statements: # permissions for all of your functions can be set here
-        - Effect: Allow
-          Action: # Gives permission to DynamoDB tables in a specific region
-            - dynamodb:DescribeTable
-            - dynamodb:Query
-            - dynamodb:Scan
-            - dynamodb:GetItem
-            - dynamodb:PutItem
-            - dynamodb:UpdateItem
-            - dynamodb:DeleteItem
-          Resource: 'arn:aws:dynamodb:us-east-1:*:*'
-
-functions:
-  functionOne:
-    handler: handler.functionOne
-    memorySize: 512
-```
-
-Another example:
-
-```yml
-# serverless.yml
-service: myService
+```yaml
 provider:
   name: aws
   iam:
     role:
       statements:
-        - Effect: 'Allow'
+        - Effect: Allow
           Action:
-            - 's3:ListBucket'
-          # You can put CloudFormation syntax in here.  No one will judge you.
-          # Remember, this all gets translated to CloudFormation.
+            - dynamodb:GetItem
+            - dynamodb:PutItem
           Resource:
-            {
-              'Fn::Join':
-                [
-                  '',
-                  ['arn:aws:s3:::', { 'Ref': 'ServerlessDeploymentBucket' }],
-                ],
-            }
-        - Effect: 'Allow'
-          Action:
-            - 's3:PutObject'
-          Resource:
-            Fn::Join:
-              - ''
-              - - 'arn:aws:s3:::'
-                - 'Ref': 'ServerlessDeploymentBucket'
-                - '/*'
+            Fn::GetAtt: [UsersTable, Arn]
 
-functions:
-  functionOne:
-    handler: handler.functionOne
-    memorySize: 512
+resources:
+  Resources:
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
 ```
 
-You can also use an existing IAM role by adding your IAM Role ARN in the `iam.role` property. For example:
+Statements are copied into the CloudFormation template, so `Ref`, `Fn::GetAtt`, `Fn::Join` and other intrinsics work in `Resource`.
 
-```yml
-# serverless.yml
-service: new-service
-provider:
-  name: aws
-  iam:
-    role: arn:aws:iam::YourAccountNumber:role/YourIamRole
-```
+To use an existing role instead, set `provider.iam.role` to its ARN, or set `role` on a function. The Framework doesn't change a role you supply: it must already grant everything the function needs, including the permissions this page says the Framework adds. Per-function roles, custom roles and the full list of added permissions are in [IAM permissions for functions](./iam.md).
 
-See the documentation about [IAM](./iam.md) for function level IAM roles.
+## Reserved concurrency
 
-## Lambda Function URLs
-
-A [Lambda Function URL](https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-urls.html) is a simple solution to create HTTP endpoints with AWS Lambda. Function URLs are ideal for getting started with AWS Lambda, or for single-function applications like webhooks or APIs built with web frameworks.
-
-You can create a function URL via the `url` property in the function configuration in `serverless.yml`. By setting `url` to `true`, as shown below, the URL will be public without CORS configuration.
+A function's `reservedConcurrency` sets its [reserved concurrency](https://docs.aws.amazon.com/lambda/latest/dg/configuration-concurrency.html): the maximum number of concurrent executions, set aside from the account's unreserved concurrency. It takes an integer of 0 or more, and `0` stops every invocation of the function. Without it, the function draws on the account's unreserved pool. The setting applies to the function as a whole, so changing it doesn't publish a new version.
 
 ```yaml
 functions:
-  func:
-    handler: index.handler
+  worker:
+    handler: handler.worker
+    reservedConcurrency: 5
+```
+
+## Provisioned concurrency
+
+A function's `provisionedConcurrency` keeps a number of execution environments initialized. Set it to an integer, or to an object with `executions` (required) and `alias` (default `provisioned`):
+
+```yaml
+functions:
+  api:
+    handler: handler.api
+    provisionedConcurrency:
+      executions: 3
+      alias: live
+```
+
+The Framework publishes a version even when versioning is turned off, and creates an alias that holds the provisioned concurrency. The function's event sources and its function URL invoke that alias. `provisionedConcurrency` can't be combined with `snapStart`: packaging stops with an error.
+
+## Lambda function URLs
+
+A [Lambda function URL](https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-urls.html) is an HTTPS endpoint for one function, without API Gateway. Set `url: true` on the function for a public URL without CORS:
+
+```yaml
+functions:
+  api:
+    handler: handler.api
     url: true
 ```
 
-Alternatively, you can configure it as an object, and provide values for `authorizer`, `cors` and `invokeMode` options.
+`serverless deploy` prints the URL, and the stack holds it in an output. Without `authorizer`, the URL accepts requests without AWS credentials, and the Framework adds the resource-based permissions a public URL needs. When the function has `snapStart`, `provisionedConcurrency` or `durableConfig`, the URL targets the alias those settings create.
 
-The `authorizer` property can be set to `aws_iam` to enable AWS IAM authorization on your function URL.
+The object form of `url` takes these keys:
+
+| Key          | Type            | Default    | Allowed values                                                     |
+| ------------ | --------------- | ---------- | ------------------------------------------------------------------ |
+| `authorizer` | string          | None       | `aws_iam`                                                          |
+| `cors`       | boolean, object | No CORS    | `true`, or an object (see [Function URL CORS](#function-url-cors)) |
+| `invokeMode` | string          | `BUFFERED` | `BUFFERED`, `RESPONSE_STREAM`                                      |
+
+### Function URL authorization
+
+With `authorizer: aws_iam`, the URL accepts only requests signed with AWS credentials that allow both `lambda:InvokeFunctionUrl` and `lambda:InvokeFunction` on the function. A caller in another AWS account also needs both actions granted in the function's resource-based policy; see [Using the AWS_IAM auth type](https://docs.aws.amazon.com/lambda/latest/dg/urls-auth.html#urls-auth-iam).
 
 ```yaml
 functions:
-  func:
-    handler: index.handler
+  api:
+    handler: handler.api
     url:
       authorizer: aws_iam
 ```
 
-When using IAM authorization, the URL will only accept HTTP requests with AWS credentials allowing `lambda:InvokeFunctionUrl` (similar to [API Gateway IAM authentication](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-access-control-iam.html)).
+### Function URL CORS
 
-You can also configure [CORS headers](https://developer.mozilla.org/docs/Web/HTTP/CORS) so that your function URL can be called from other domains in browsers. Setting `cors` to `true` will allow all domains via the following CORS headers:
+With `cors: true`, browsers on any origin can call the URL. The Framework sets these headers:
 
-```yaml
-functions:
-  func:
-    handler: index.handler
-    url:
-      cors: true
-```
+| Header                         | Value                                                                                       |
+| ------------------------------ | ------------------------------------------------------------------------------------------- |
+| `Access-Control-Allow-Origin`  | `*`                                                                                         |
+| `Access-Control-Allow-Headers` | `Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token, X-Amzn-Trace-Id` |
+| `Access-Control-Allow-Methods` | `*`                                                                                         |
 
-| Header                       | Value                                                                    |
-| :--------------------------- | :----------------------------------------------------------------------- |
-| Access-Control-Allow-Origin  | \*                                                                       |
-| Access-Control-Allow-Headers | Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token |
-| Access-Control-Allow-Methods | \*                                                                       |
-
-You can also additionally adjust your CORS configuration by setting `allowedOrigins`, `allowedHeaders`, `allowedMethods`, `allowCredentials`, `exposedResponseHeaders`, and `maxAge` properties as shown in example below.
+To change them, set `cors` to an object. Keys you leave out keep the defaults in the preceding table; set `allowedOrigins`, `allowedHeaders` or `allowedMethods` to `null` to remove that header.
 
 ```yaml
 functions:
-  func:
-    handler: index.handler
+  api:
+    handler: handler.api
     url:
       cors:
         allowedOrigins:
-          - https://url1.com
-          - https://url2.com
+          - https://app.example.com
         allowedHeaders:
           - Content-Type
           - Authorization
@@ -291,242 +235,191 @@ functions:
           - GET
         allowCredentials: true
         exposedResponseHeaders:
-          - Special-Response-Header
-        maxAge: 6000 # In seconds
+          - X-Request-Id
+        maxAge: 6000 # seconds
 ```
 
-In the table below you can find how the `cors` properties map to CORS headers
+| `cors` key               | Header                             | Constraint         |
+| ------------------------ | ---------------------------------- | ------------------ |
+| `allowedOrigins`         | `Access-Control-Allow-Origin`      | 1 to 100 items     |
+| `allowedHeaders`         | `Access-Control-Allow-Headers`     | 1 to 100 items     |
+| `allowedMethods`         | `Access-Control-Allow-Methods`     | 1 to 6 items       |
+| `allowCredentials`       | `Access-Control-Allow-Credentials` | Boolean            |
+| `exposedResponseHeaders` | `Access-Control-Expose-Headers`    | 1 to 100 items     |
+| `maxAge`                 | `Access-Control-Max-Age`           | Integer, 0 or more |
 
-| Configuration property | CORS Header                      |
-| :--------------------- | :------------------------------- |
-| allowedOrigins         | Access-Control-Allow-Origin      |
-| allowedHeaders         | Access-Control-Allow-Headers     |
-| allowedMethods         | Access-Control-Allow-Methods     |
-| allowCredentials       | Access-Control-Allow-Credentials |
-| exposedResponseHeaders | Access-Control-Expose-Headers    |
-| maxAge                 | Access-Control-Max-Age           |
+### Function URL response streaming
 
-It is also possible to remove the values in CORS configuration that are set by default by setting them to `null` instead.
+`invokeMode: RESPONSE_STREAM` streams the response; the value is case-insensitive.
 
 ```yaml
 functions:
-  func:
-    handler: index.handler
-    url:
-      cors:
-        allowedHeaders: null
-```
-
-The `invokeMode` property can be set to `RESPONSE_STREAM` to enable streaming response. If not specified, `BUFFERED` invoke mode is assumed.
-
-```yaml
-functions:
-  func:
-    handler: index.handler
+  api:
+    handler: handler.api
     url:
       invokeMode: RESPONSE_STREAM
 ```
 
 ## Referencing container image as a target
 
-Alternatively lambda environment can be configured through docker images. Image published to AWS ECR registry can be referenced as lambda source (check [AWS Lambda – Container Image Support](https://aws.amazon.com/blogs/aws/new-for-aws-lambda-container-image-support/)). In addition, you can also define your own images that will be built locally and uploaded to AWS ECR registry.
+A function can run a [container image](https://docs.aws.amazon.com/lambda/latest/dg/images-create.html) instead of a zip package. Set `image` instead of `handler`: setting both, or neither, stops packaging with an error. `runtime` and `runtimeManagement` are ignored for image functions, because the image carries the runtime.
 
-Serverless will create an ECR repository for your image, but it currently does not manage updates to it. An ECR repository is created only for new services or the first time that a function configured with an `image` is deployed. In service configuration, you can configure the ECR repository to scan for CVEs via the `provider.ecr.scanOnPush` property, which is `false` by default. (See [documentation](https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html))
+`image` takes one of three forms:
 
-To bound how much the repository grows over time, set `provider.ecr.maxImages` to a positive integer. The framework will attach an ECR [lifecycle policy](https://docs.aws.amazon.com/AmazonECR/latest/userguide/LifecyclePolicies.html) that expires older, superseded image versions once their count exceeds the configured value. Currently-tagged images — the live digest for every entry under `provider.ecr.images` — are never expired, so updating one image many times will not break another function's image that has not changed. Pick a value that comfortably covers the published Lambda function versions you might still need to roll back to, since they reference older image digests that the lifecycle rule may expire once the tag has moved on. The deployer principal needs `ecr:PutLifecyclePolicy` permission on the repository.
+- The key of an image under `provider.ecr.images`.
+- An existing ECR image URI: `<account>.dkr.ecr.<region>.amazonaws.com/<repository>@<digest>` or `<account>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>`.
+- An object with `name` (a key under `provider.ecr.images`) or `uri`, plus the optional overrides `workingDirectory` (a string), `command` and `entryPoint` (lists of strings in exec form).
 
-In service configuration, images can be configured via `provider.ecr.images`. To define an image that will be built locally, you need to specify `path` property, which should point to valid docker context directory. Optionally, you can also set `file` to specify Dockerfile that should be used when building an image. It is also possible to define images that already exist in AWS ECR repository. In order to do that, you need to define `uri` property, which should follow `<account>.dkr.ecr.<region>.amazonaws.com/<repository>@<digest>` or `<account>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>` format.
+```yaml
+provider:
+  name: aws
+  ecr:
+    images:
+      app:
+        path: ./ # Docker build context holding the Dockerfile
 
-Additionally, you can define arguments that will be passed to the `docker build` command via the following properties:
+functions:
+  hello:
+    image: app
+  report:
+    image:
+      name: app
+      command:
+        - report.handler
+  existing:
+    image: 123456789012.dkr.ecr.us-east-1.amazonaws.com/my-repo@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38
+```
 
-- `buildArgs`: With the `buildArgs` property, you can define arguments that will be passed to `docker build` command with `--build-arg` flag. They might be later referenced via `ARG` within your `Dockerfile`. (See [Documentation](https://docs.docker.com/engine/reference/builder/#arg))
-- `buildOptions`: With the `buildOptions` property, you can define options that will be passed to the `docker build` command. (See [Documentation](https://docs.docker.com/engine/reference/commandline/image_build/#options))
-- `cacheFrom`: The `cacheFrom` property can be used to specify which images to use as a source for layer caching in the `docker build` command with `--cache-from` flag. (See [Documentation](https://docs.docker.com/engine/reference/builder/#usage))
-- `platform`: The `platform` property can be used to specify the architecture target in the `docker build` command with the `--platform` flag. If not specified, Docker will build for your computer's architecture by default. AWS Lambda typically uses `x86` architecture unless otherwise specified in the Lambda's runtime settings. In order to avoid runtime errors when building on an ARM-based machine (e.g. Apple M1 Mac), `linux/amd64` must be used here. The options for this flag are `linux/amd64` (`x86`-based Lambdas), `linux/arm64` (`arm`-based Lambdas), or `windows/amd64`. (See [Documentation](https://docs.docker.com/engine/reference/builder/#from))
-- `provenance`: The `provenance` property can be used to specify the provenance attestations of the image. (See [Documentation](https://docs.docker.com/build/metadata/attestations/slsa-provenance))
+### Image definitions under `provider.ecr.images`
 
-When `uri` is defined for an image, `buildArgs`, `buildOptions`, `cacheFrom`, and `platform` cannot be defined.
+Each entry under `provider.ecr.images` is either an object with `uri` (an existing image) or an object that the Framework builds with `docker build` and pushes:
 
-Example configuration
+| Key            | Type            | Description                                                                                                          |
+| -------------- | --------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `path`         | string          | Docker build context, relative to the service directory.                                                             |
+| `file`         | string          | Dockerfile relative to `path`. Default `Dockerfile`.                                                                 |
+| `buildArgs`    | object          | Passed as `--build-arg KEY=value`.                                                                                   |
+| `buildOptions` | list of strings | Extra options passed to `docker build`.                                                                              |
+| `cacheFrom`    | list of strings | Passed as `--cache-from`.                                                                                            |
+| `platform`     | string          | Passed as `--platform`, for example `linux/amd64` or `linux/arm64`. Without it, Docker builds for the local machine. |
+| `provenance`   | string          | Passed as `--provenance`.                                                                                            |
 
-```yml
-service: service-name
+An entry with `uri` can't also set `path`, `buildArgs`, `buildOptions`, `cacheFrom`, `platform` or `provenance`. Building needs Docker on the machine that runs `serverless deploy`.
+
+Build the image for the function's `architecture` (`x86_64` unless set). On an arm64 machine, such as an Apple silicon Mac, set `platform: linux/amd64` for an `x86_64` function.
+
+```yaml
 provider:
   name: aws
   ecr:
     scanOnPush: true
     maxImages: 10
     images:
-      baseimage:
-        path: ./path/to/context
-        file: Dockerfile.dev
+      app:
+        path: ./app
+        file: Dockerfile.prod
         buildArgs:
-          STAGE: ${opt:stage}
+          STAGE: ${sls:stage}
         cacheFrom:
           - my-image:latest
         platform: linux/amd64
-      anotherimage:
-        uri: 000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38
 ```
 
-When configuring functions, images should be referenced via `image` property, which can point to an image already defined in `provider.ecr.images` or directly to an existing AWS ECR image, following the same format as `uri` above.
-Both `handler` and `runtime` properties are not supported when `image` is used.
+### The ECR repository for built images
 
-Example configuration:
+The first deploy that builds an image with `path` creates an ECR repository named `serverless-<service>-<stage>` (lowercased) in the deployment account and Region; images referenced by `uri` need no repository. `serverless deploy` runs `docker login` against it when needed; depending on your Docker configuration, the login token may be stored unencrypted (see the credential store section of [`docker login`](https://docs.docker.com/reference/cli/docker/login/)). `serverless remove` deletes the repository.
 
-```yml
-service: service-name
-provider:
-  name: aws
-  ecr:
-    images:
-      baseimage:
-        path: ./path/to/context
+- `provider.ecr.scanOnPush` (boolean, default `false`) turns on [image scanning](https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html). It applies only when the Framework creates the repository; changing it later doesn't update an existing repository.
+- `provider.ecr.maxImages` (integer, 1 or more, no default) adds an ECR [lifecycle policy](https://docs.aws.amazon.com/AmazonECR/latest/userguide/LifecyclePolicies.html) that expires untagged, superseded images once their count passes the value. The current image of each `provider.ecr.images` entry stays tagged and is never expired. The policy is written each time an image is built while `maxImages` is set; removing `maxImages` leaves the policy on the repository. Older Lambda versions still reference older image digests, so pick a value that covers the versions you might roll back to. The deploying identity needs `ecr:PutLifecyclePolicy`.
 
-functions:
-  hello:
-    image: 000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38
-  world:
-    image: baseimage
-```
-
-It is also possible to provide additional image configuration via `workingDirectory`, `entryPoint` and `command` properties of to `functions[].image`. The `workingDirectory` accepts path in form of string, where both `entryPoint` and `command` needs to be defined as a list of strings, following "exec form" format. In order to provide additional image config properties, `functions[].image` has to be defined as an object, and needs to define either `uri` pointing to an existing AWS ECR image or `name` property, which references image already defined in `provider.ecr.images`.
-
-Example configuration:
-
-```yml
-service: service-name
-provider:
-  name: aws
-  ecr:
-    images:
-      baseimage:
-        path: ./path/to/context
-
-functions:
-  hello:
-    image:
-      uri: 000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38
-      workingDirectory: /workdir
-      command:
-        - executable
-        - flag
-      entryPoint:
-        - executable
-        - flag
-  world:
-    image:
-      name: baseimage
-      command:
-        - command
-      entryPoint:
-        - executable
-        - flag
-```
-
-During the first deployment when locally built images are used, Framework will automatically create a dedicated ECR repository to store these images, with name `serverless-<service>-<stage>`. By default the Framework keeps every pushed image in place, since previously published function versions may still point at older digests; opt in to automatic expiry with `provider.ecr.maxImages` (see above). During `sls remove`, the created ECR repository will be removed. During deployment, Framework will attempt to `docker login` to ECR if needed. Depending on your local configuration, docker authorization token might be stored unencrypted. Please refer to documentation for more details: https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+Without `maxImages`, the repository keeps every pushed image.
 
 ## Instruction set architecture
 
-By default, Lambda functions are run by 64-bit x86 architecture CPUs. However, [using arm64 architecture](https://docs.aws.amazon.com/lambda/latest/dg/foundation-arch.html) (AWS Graviton2 processor) may result in better pricing and performance.
+Lambda functions run on x86_64 processors unless you choose [arm64](https://docs.aws.amazon.com/lambda/latest/dg/foundation-arch.html) (AWS Graviton). Set `architecture` under `provider` for every function, or on one function:
 
-To switch all functions to AWS Graviton2 processor, configure `architecture` at `provider` level as follows:
-
-```yml
+```yaml
 provider:
-  ...
+  name: aws
   architecture: arm64
+
+functions:
+  legacy:
+    handler: handler.legacy
+    architecture: x86_64 # overrides provider.architecture
 ```
 
-To toggle instruction set architecture per function individually, set it directly at `functions[]` context:
+Native dependencies and container images must be built for the architecture the function runs on.
+
+## Durable functions
+
+[Lambda durable functions](https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html) coordinate multi-step work that can run for long periods. Turn one on with `durableConfig`:
 
 ```yaml
 functions:
-  hello:
-    ...
-    architecture: arm64
-```
-
-## Durable Functions
-
-[AWS Lambda Durable Functions](https://aws.amazon.com/blogs/aws/build-multi-step-applications-and-ai-workflows-with-aws-lambda-durable-functions/) allow you to build applications that coordinate multiple steps reliably over extended periods.
-
-To enable durable execution for a function, configure the `durableConfig` property:
-
-```yml
-functions:
-  myDurableFunction:
+  orderWorkflow:
     handler: handler.main
-    runtime: nodejs22.x
+    runtime: nodejs24.x
     durableConfig:
-      executionTimeout: 3600 # Required. Maximum execution time in seconds (up to 366 days)
-      retentionPeriodInDays: 14 # Optional. How long to retain execution history (1-90 days, default: 14)
+      executionTimeout: 3600 # required, seconds, 1 to 31622400 (366 days)
+      retentionPeriodInDays: 14 # optional, 1 to 90; Lambda's default is 14
 ```
 
-**Note:** Durable Functions are supported for Node.js 22+, Python 3.13+, Java 17+, .NET 8+, OS-only runtimes from `provided.al2023` (for example Go), and container images. Node.js and Python runtimes include the durable execution SDK for development; Java, .NET and Go are compiled languages, so their durable execution SDK must be included in your deployment package; for Go, it is built into the `bootstrap` binary (see the [AWS supported runtimes page](https://docs.aws.amazon.com/lambda/latest/dg/durable-supported-runtimes.html)). Enabling `durableConfig` will automatically enable function versioning (`versionFunctions: true`) and publish an `AWS::Lambda::Alias` named `durable` (or use the SnapStart or provisioned-concurrency alias when the function has one) pointing at the latest version, because AWS rejects unqualified invocations of durable functions. All event-source integrations (schedule, EventBridge, SNS, API Gateway, etc.) target this alias so invocations succeed without further configuration. Setting `versionFunction: false` together with `durableConfig` is rejected.
+- Supported runtimes: Node.js 22 and later, Python 3.13 and later, Java 17 and later, .NET 8 and later, OS-only runtimes from `provided.al2023` (for example Go), and container images. Any other runtime stops packaging with an error. Node.js and Python runtimes include the durable execution SDK; for Java, .NET and Go, include it in your package (for Go, it is built into the `bootstrap` binary). See [supported runtimes](https://docs.aws.amazon.com/lambda/latest/dg/durable-supported-runtimes.html).
+- Lambda rejects unqualified invocations of durable functions, so the Framework always versions the function and publishes an alias named `durable` (or uses the SnapStart or provisioned concurrency alias when the function has one). Event sources and the function URL invoke that alias. `versionFunction: false` on the same function stops packaging with an error.
+- On the execution roles the Framework creates, it attaches the `AWSLambdaBasicDurableExecutionRolePolicy` managed policy. A role you supply needs those permissions too.
+- Durability is fixed when Lambda creates the function: adding or removing `durableConfig` on a deployed function needs a new function name, or removing the function, deploying, and adding it back. Changing `executionTimeout` or `retentionPeriodInDays` updates the function in place.
 
-A Go function runs on `provided.al2023` with a `bootstrap` binary. Build it and zip it before deploying:
+A Go function runs on `provided.al2023` with a `bootstrap` binary that you build and zip before deploying:
 
 ```bash
 GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -tags lambda.norpc -o bootstrap main.go
-mkdir -p bin && zip bin/myDurableGoFunction.zip bootstrap
+mkdir -p bin && zip bin/orderWorkflow.zip bootstrap
 ```
 
-A function-level `artifact` is used when the service packages functions individually:
-
-```yml
+```yaml
 package:
   individually: true
 
 functions:
-  myDurableGoFunction:
+  orderWorkflow:
     handler: bootstrap
     runtime: provided.al2023
     architecture: arm64
     package:
-      artifact: bin/myDurableGoFunction.zip # a zip holding the bootstrap binary
+      artifact: bin/orderWorkflow.zip
     durableConfig:
       executionTimeout: 3600
 ```
 
-Durability is set when a function is created: adding `durableConfig` to a deployed function, or removing it, needs a new function name (or removing the function from the service, deploying, and adding it back). Changing `executionTimeout` or `retentionPeriodInDays` updates the function in place.
-
 To start a durable execution and read its ARN, see [invoking durable functions](../cli-reference/invoke.md#durable-functions).
 
-When using the default IAM role, the `AWSLambdaBasicDurableExecutionRolePolicy` managed policy is automatically attached to grant necessary permissions. If you provide a custom role, you must ensure it has the required permissions.
+## Runtime management
 
-## Runtime Management
+[Runtime management](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html) controls when Lambda moves a function to a new runtime version. Set `runtimeManagement` under `provider` for every function, or on one function:
 
-[Runtime Management](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html) allows for fine-grained control of the runtime being used for a lambda function in the rare event of compatibility issues with a function.
+- `auto` (Lambda's default): Lambda updates the runtime automatically.
+- `onFunctionUpdate`: Lambda updates the runtime when you deploy a change to the function.
+- `manual`: the function stays on the runtime version you name. Only the object form takes it, with `arn` set to the runtime version ARN.
 
-If you wish to keep `runtimeManagement` set to `auto`, that's the default so you don't need to specify it explicitly. If you wish for the runtime to only be updated when the function is redeployed, set it to `onFunctionUpdate`.
-
-To configure runtime management for all functions, configure `runtimeManagement` at `provider` level as follows:
-
-```yml
+```yaml
 provider:
-  ...
+  name: aws
   runtimeManagement: onFunctionUpdate
-```
 
-To toggle instruction set architecture per function individually, set it directly at `functions[]` context:
-
-```yml
 functions:
-  hello:
-    ...
+  pinned:
+    handler: handler.pinned
     runtimeManagement:
       mode: manual
-      arn: <aws runtime arn>
+      arn: arn:aws:lambda:us-east-1::runtime:RUNTIME_VERSION_ID
 ```
 
-Finally, `auto` and `onFunctionUpdate` can be set as the `mode` property as well for completeness (and to allow for the scenario where this value comes from another variable source, for example).
+Replace `RUNTIME_VERSION_ID` with the runtime version from the function's Lambda console page or from `aws lambda get-runtime-management-config`. The object form also accepts `mode: auto` and `mode: onFunctionUpdate`. Container image functions ignore `runtimeManagement`.
 
 ## SnapStart
 
-[Lambda SnapStart](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html) reduces cold-start latency: when a function version is published, Lambda runs the initialization code once, takes a snapshot of the initialized execution environment, and later restores new environments from that snapshot instead of initializing again.
-
-Enable it per function with `snapStart: true`. It works for functions deployed as `.zip` packages and for functions deployed as container images.
+[Lambda SnapStart](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html) reduces cold-start latency: when a version is published, Lambda runs the initialization code once, snapshots the initialized environment, and restores later environments from the snapshot. Turn it on per function with `snapStart: true`, for zip packages and for container images:
 
 ```yaml
 functions:
@@ -541,61 +434,45 @@ functions:
 
 ### Supported runtimes and images
 
-AWS supports SnapStart for Java 11 and later, Python 3.12 and later, and .NET 8 and later, both as managed runtimes and as the corresponding AWS base images for container images. Functions on those need nothing beyond `snapStart: true`.
+AWS supports SnapStart for Java 11 and later, Python 3.12 and later, and .NET 8 and later, as managed runtimes and as the matching AWS base images. Those functions need nothing beyond `snapStart: true`.
 
-A container image built on any other base — the AWS base images for Node.js, Ruby or `provided.al2023`, or a custom base image — must declare that it is safe to snapshot, either by adding this label in its Dockerfile:
+A container image on any other base (the AWS base images for Node.js, Ruby or `provided.al2023`, or a custom base) must declare that it is safe to snapshot, with this Dockerfile label or with the [SnapStart runtime hooks](https://docs.aws.amazon.com/lambda/latest/dg/snapstart-runtime-hooks-custom.html):
 
 ```dockerfile
 LABEL com.amazonaws.lambda.feature.snapstart="Allow"
 ```
 
-or by implementing the [SnapStart runtime hooks](https://docs.aws.amazon.com/lambda/latest/dg/snapstart-runtime-hooks-custom.html). Before adding the label, make sure the code does not create state during initialization that must be unique per environment, such as random seeds, unique IDs or cached credentials; see [Handling uniqueness](https://docs.aws.amazon.com/lambda/latest/dg/snapstart-uniqueness.html).
+Before adding the label, make sure initialization doesn't create state that must be unique per environment, such as random seeds, unique IDs or cached credentials; see [Handling uniqueness](https://docs.aws.amazon.com/lambda/latest/dg/snapstart-uniqueness.html).
 
-If an image has neither the label nor the hooks, publishing the function version fails during deployment and the deploy output includes:
+### SnapStart deploy error for images without the label
+
+When an image has neither the label nor the hooks, publishing the version fails during deployment and the deploy output includes:
 
 ```text
 Resource of type 'AWS::Lambda::Version' with identifier '...' did not stabilize. Status Reason is An error occurred during function initialization.
 ```
 
-The same message appears when the function's own initialization code throws, so check the function's CloudWatch logs as well. On a first deployment the failed stack is rolled back together with its log group; to read the initialization logs in that case, deploy once without `snapStart`.
-
-A complete container-image service declares the image under [`provider.ecr.images`](#referencing-container-image-as-a-target) and references it by that key from the function:
-
-```yaml
-provider:
-  name: aws
-  ecr:
-    images:
-      app:
-        path: ./ # Docker build context holding the Dockerfile
-
-functions:
-  hello:
-    image: app
-    snapStart: true
-```
-
-The image has to be built for the architecture the function runs on (`architecture`, `x86_64` unless set). Docker builds for the machine's own architecture, so an image built on an arm64 machine matches `architecture: arm64`; to deploy it as `x86_64` from such a machine, set `platform: linux/amd64` on the image entry.
+The same message appears when the function's own initialization code throws, so check the function's CloudWatch logs too. On a first deployment, the failed stack is rolled back together with its log group; to read the initialization logs, deploy once without `snapStart`.
 
 ### How invocations reach the snapshot
 
-SnapStart applies only to published versions, never to `$LATEST`. Whenever a deploy changes the function's code, image or configuration, the Framework publishes a new version and points an alias named `snapstart` at it; a deploy that changes nothing keeps the current version. Every event source configured on the function invokes that alias. Invoking the unqualified function name — for example `serverless invoke -f api` or a direct `Invoke` call without a qualifier — runs a regular cold start. To exercise the snapshot by hand, invoke the `snapstart` alias or the version number.
+SnapStart applies to published versions only, never to `$LATEST`. When a deploy changes the function's code, image or configuration, the Framework publishes a version and points an alias named `snapstart` at it; a deploy that changes nothing keeps the current version. Every event source on the function invokes that alias. Invoking the unqualified function name, for example with `serverless invoke -f api`, runs a regular cold start; invoke the `snapstart` alias or a version number to exercise the snapshot.
 
-### Limitations
+### SnapStart limitations
 
-AWS does not support SnapStart together with provisioned concurrency, Amazon EFS file systems, S3 Files, or ephemeral storage larger than 512 MB. The Framework rejects `snapStart` combined with `provisionedConcurrency`, or with `ephemeralStorageSize` above 512, when packaging the service; the remaining combinations are rejected by AWS during deployment. SnapStart is not available in every AWS Region; see the [AWS SnapStart documentation](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html) for the current list.
+AWS doesn't support SnapStart together with provisioned concurrency, Amazon EFS, S3 Files, or ephemeral storage above 512 MB. The Framework stops packaging when `snapStart` is combined with `provisionedConcurrency` or with `ephemeralStorageSize` above 512; AWS rejects the other combinations during deployment. SnapStart is not available in every AWS Region; see the [AWS SnapStart documentation](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html).
 
 ### Cost of retained versions
 
-For every runtime except the Java managed runtimes, AWS charges for caching each published version's snapshot for as long as that version exists, plus a charge per restore; see [Lambda pricing](https://aws.amazon.com/lambda/pricing/). With the default `versionFunctions: true`, the Framework keeps the previous version in place when it publishes a new one, so each deploy that changes a SnapStart function retains another billed snapshot. Set `provider.versionFunctions: false` to have the superseded version deleted on deploy. Deletion starts with the deploy after the one that applies the change, and versions retained before the change stay until you delete them, for example with `aws lambda delete-function --function-name <name>:<version>`. See [Versioning Deployed Functions](#versioning-deployed-functions).
+For every runtime except the Java managed runtimes, AWS charges for caching each published version's snapshot for as long as the version exists, plus a charge per restore; see [Lambda pricing](https://aws.amazon.com/lambda/pricing/). With versioning on (the default), each deploy that changes a SnapStart function keeps the previous version, and its snapshot. With `provider.versionFunctions: false` (or `versionFunction: false` on the function), the function is still versioned, and the superseded version is deleted on deploy. Deletion starts with the deploy after the one that applies the setting; versions kept before that stay until you delete them, for example with `aws lambda delete-function --function-name FUNCTION_NAME:VERSION`.
 
-### Examples
+### SnapStart examples
 
 - [Container image with SnapStart (Node.js)](https://github.com/serverless/examples/tree/v4/aws-node-container-snapstart)
 
-## Recursive Loop Detection
+## Recursive loop detection
 
-By default, AWS Lambda [detects and stops recursive invocation loops](https://docs.aws.amazon.com/lambda/latest/dg/invocation-recursion.html) between supported AWS services. To allow recursive loops for a function, set `recursiveLoop` to `allow`. To explicitly enforce termination (the default behavior), set it to `terminate`. The value is case-insensitive.
+Lambda [detects and stops recursive invocation loops](https://docs.aws.amazon.com/lambda/latest/dg/invocation-recursion.html) between supported AWS services. To let a function's loops run, set `recursiveLoop: allow`; `terminate` is Lambda's default. The value is case-insensitive.
 
 ```yaml
 functions:
@@ -604,115 +481,46 @@ functions:
     recursiveLoop: allow
 ```
 
-## VPC Configuration
+## VPC configuration
 
-You can add VPC configuration to a specific function in `serverless.yml` by adding a `vpc` object property in the function configuration. This object should contain the `securityGroupIds` and `subnetIds` array properties needed to construct VPC for this function. Optionally, you can also enable IPv6 outbound connections for dual-stack subnets with the `ipv6AllowedForDualStack` property. Here's an example configuration:
+To run functions in a [VPC](https://docs.aws.amazon.com/lambda/latest/dg/configuration-vpc.html), set `vpc` with `securityGroupIds` (up to 5) and `subnetIds` (up to 16), both required. Under `provider`, it applies to every function; a function's own `securityGroupIds` and `subnetIds` replace the provider's. `ipv6AllowedForDualStack` (boolean, default `false`) allows IPv6 outbound traffic on dual-stack subnets; a function that doesn't set it takes the provider value.
 
-```yml
-# serverless.yml
-service: service-name
-provider: aws
+```yaml
+provider:
+  name: aws
+  vpc:
+    securityGroupIds:
+      - sg-0123456789abcdef0
+    subnetIds:
+      - subnet-0123456789abcdef0
+      - subnet-0fedcba9876543210
 
 functions:
-  hello:
-    handler: handler.hello
+  users: # uses provider.vpc
+    handler: handler.users
+  reports: # its own VPC settings
+    handler: handler.reports
     vpc:
-      # Enable IPv6 outbound connections for this function when using dual-stack subnets. Optional. (default: false)
       ipv6AllowedForDualStack: true
       securityGroupIds:
-        - securityGroupId1
-        - securityGroupId2
+        - sg-0aaaaaaaaaaaaaaaa
       subnetIds:
-        - subnetId1
-        - subnetId2
-```
-
-Or if you want to apply VPC configuration to all functions in your service, you can add the configuration to the higher level `provider` object, and overwrite these service level config at the function level. For example:
-
-```yml
-# serverless.yml
-service: service-name
-provider:
-  name: aws
-  vpc:
-    # Enable IPv6 outbound connections for all functions when using dual-stack subnets. Optional. (default: false)
-    ipv6AllowedForDualStack: true
-    securityGroupIds:
-      - securityGroupId1
-      - securityGroupId2
-    subnetIds:
-      - subnetId1
-      - subnetId2
-
-functions:
-  hello: # this function will overwrite the service level vpc config above
-    handler: handler.hello
-    vpc:
-      securityGroupIds:
-        - securityGroupId1
-        - securityGroupId2
-      subnetIds:
-        - subnetId1
-        - subnetId2
-  users: # this function will inherit the service level vpc config above
-    handler: handler.users
-```
-
-Then, when you run `serverless deploy`, VPC configuration will be deployed along with your lambda function.
-
-If you have a provider VPC set but wish to have specific functions with no VPC, you can set the `vpc` value for these functions to `~` (null). For example:
-
-```yml
-# serverless.yml
-service: service-name
-provider:
-  name: aws
-  vpc:
-    securityGroupIds:
-      - securityGroupId1
-      - securityGroupId2
-    subnetIds:
-      - subnetId1
-      - subnetId2
-
-functions:
-  hello: # this function will have no vpc configured
-    handler: handler.hello
+        - subnet-0bbbbbbbbbbbbbbbb
+  public: # no VPC
+    handler: handler.public
     vpc: ~
-  users: # this function will inherit the service level vpc config above
-    handler: handler.users
 ```
 
-**VPC IAM permissions**
+- `vpc: ~` (null) on a function keeps it out of the provider VPC. The schema accepts only an object for a function's `vpc`, so use `~` rather than `false`.
+- Functions with `capacityProvider` never get a VPC configuration of their own; the capacity provider sets their networking.
+- To create network interfaces, a function in a VPC needs the AWS managed policy `AWSLambdaVPCAccessExecutionRole`. The Framework attaches it to the execution roles it creates. A role you supply through `provider.iam.role` or a function's `role` isn't changed: add the policy to its `ManagedPolicyArns`.
+- A function in a VPC reaches the internet, and AWS services without a VPC endpoint, only through a NAT gateway: place the NAT gateway in a public subnet, and route internet-bound traffic from the function's private subnets to it. See [Enable internet access for VPC-connected Lambda functions](https://docs.aws.amazon.com/lambda/latest/dg/configuration-vpc-internet.html) and [VPC endpoints](https://docs.aws.amazon.com/vpc/latest/privatelink/create-interface-endpoint.html).
 
-The Lambda function execution role must have permissions to create, describe and delete [Elastic Network Interfaces](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_ElasticNetworkInterfaces.html) (ENI). When VPC configuration is provided the default AWS `AWSLambdaVPCAccessExecutionRole` will be associated with your Lambda execution role. In case custom roles are provided be sure to include the proper [ManagedPolicyArns](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html#cfn-iam-role-managepolicyarns). For more information please check [configuring a Lambda Function for Amazon VPC Access](http://docs.aws.amazon.com/lambda/latest/dg/vpc.html)
+## Environment variables
 
-**VPC Lambda Internet Access**
+`environment` sets [environment variables](https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html) on a function. `provider.environment` sets them for every function, and the two are merged key by key: a function gets every provider variable, and its own value wins for a key both set. [MCP servers](./mcp.md), [agents](./agents/README.md), [sandboxes](./sandboxes.md) and [web apps](./web-apps.md) inherit `provider.environment` the same way.
 
-By default, when a Lambda function is executed inside a VPC, it loses internet access and some resources inside AWS may become unavailable. In order for S3 resources and [DynamoDB](https://serverless.com/dynamodb/) resources to be available for your Lambda function running inside the VPC, a VPC end point needs to be created. For more information please check [VPC Endpoint for Amazon S3](https://aws.amazon.com/blogs/aws/new-vpc-endpoint-for-amazon-s3/).
-In order for other services such as Kinesis streams to be made available, a NAT Gateway needs to be configured inside the subnets that are being used to run the Lambda, for the VPC used to execute the Lambda. For more information, please check [Enable Outgoing Internet Access within VPC](https://medium.com/@philippholly/aws-lambda-enable-outgoing-internet-access-within-vpc-8dd250e11e12)
-
-## Environment Variables
-
-You can add environment variable configuration to a specific function in `serverless.yml` by adding an `environment` object property in the function configuration. This object should contain a key-value pairs of string to string:
-
-```yml
-# serverless.yml
-service: service-name
-provider: aws
-
-functions:
-  hello:
-    handler: handler.hello
-    environment:
-      TABLE_NAME: tableName
-```
-
-Or if you want to apply environment variable configuration to all functions in your service, you can add the configuration to the higher level `provider` object. Environment variables configured at the function level are merged with those at the provider level, so your function with specific environment variables will also have access to the environment variables defined at the provider level. If an environment variable with the same key is defined at both the function and provider levels, the function-specific value overrides the provider-level default value. The same provider-level defaults are inherited by [MCP servers](./mcp.md), [agents](./agents/README.md) and [sandboxes](./sandboxes.md). For example:
-
-```yml
-# serverless.yml
-service: service-name
+```yaml
 provider:
   name: aws
   environment:
@@ -720,277 +528,254 @@ provider:
     TABLE_NAME: tableName1
 
 functions:
-  hello:
-    # this function will have SYSTEM_NAME=mySystem and TABLE_NAME=tableName1 from the provider-level environment config above
+  hello: # SYSTEM_NAME=mySystem, TABLE_NAME=tableName1
     handler: handler.hello
-  users:
-    # this function will have SYSTEM_NAME=mySystem from the provider-level environment config above
-    # but TABLE_NAME will be tableName2 because this more specific config will override the default above
+  users: # SYSTEM_NAME=mySystem, TABLE_NAME=tableName2
     handler: handler.users
     environment:
       TABLE_NAME: tableName2
 ```
 
-If you want your function's environment variables to have the same values from your machine's environment variables, please read the documentation about [Referencing Environment Variables](../../../guides/variables/env-vars.md).
+Variable names must match `^[A-Za-z_][a-zA-Z0-9_]*$`. Values are strings or CloudFormation intrinsics. To copy a value from your machine's environment at deploy time, use an [environment variable reference](../../../guides/variables/env-vars.md) such as `${env:TABLE_NAME}`. To encrypt the values with your own key, see [KMS keys](#kms-keys).
 
 ## Tags
 
-Using the `tags` configuration makes it possible to add `key` / `value` tags to your functions.
+`tags` adds tags to a function. `provider.tags` tags every function, and the two are merged key by key, with the function's value winning:
 
-Those tags will appear in your AWS console and make it easier for you to group functions by tag or find functions with a common tag.
-
-```yml
-functions:
-  hello:
-    handler: handler.hello
-    tags:
-      foo: bar
-```
-
-Or if you want to apply tags configuration to all functions in your service, you can add the configuration to the higher level `provider` object. Tags configured at the function level are merged with those at the provider level, so your function with specific tags will get the tags defined at the provider level. If a tag with the same key is defined at both the function and provider levels, the function-specific value overrides the provider-level default value. For example:
-
-```yml
-# serverless.yml
-service: service-name
+```yaml
 provider:
   name: aws
   tags:
-    foo: bar
-    baz: qux
+    team: payments
+    environment: production
 
 functions:
-  hello:
-    # this function will inherit the service level tags config above
+  hello: # team=payments, environment=production
     handler: handler.hello
-  users:
-    # this function will overwrite the foo tag and inherit the baz tag
+  users: # team=accounts, environment=production
     handler: handler.users
     tags:
-      foo: quux
+      team: accounts
 ```
 
-Real-world use cases where tagging your functions is helpful include:
+## Lambda layers
 
-- Cost estimations (tag functions with an environment tag: `environment: Production`)
-- Keeping track of legacy code (e.g. tag functions which use outdated runtimes: `runtime: nodejs0.10`)
-- ...
+`layers` attaches [Lambda layers](https://docs.aws.amazon.com/lambda/latest/dg/chapter-layers.html) to a function, as a list of layer version ARNs (Lambda allows at most 5 per function):
 
-## Layers
-
-Using the `layers` configuration makes it possible for your function to use
-[Lambda Layers](https://aws.amazon.com/blogs/aws/new-for-aws-lambda-use-any-programming-language-and-share-common-components/)
-
-```yml
+```yaml
 functions:
   hello:
     handler: handler.hello
     layers:
-      - arn:aws:lambda:region:XXXXXX:layer:LayerName:Y
+      - arn:aws:lambda:us-east-1:123456789012:layer:shared-utils:3
 ```
 
-Layers can be used in combination with `runtime: provided` to implement your own custom runtime on
-AWS Lambda.
+`provider.layers` sets layers for every function. A function's own `layers` replaces `provider.layers` for that function; the two lists are not merged. To publish layers from the same service and reference them, see [AWS Lambda layers](./layers.md).
 
-To publish Lambda Layers, check out the [Layers](./layers.md) documentation.
+## Log group resources
 
-## Log Group Resources
+The Framework creates a CloudWatch Logs log group named `/aws/lambda/<function name>` for each function, so `serverless remove` deletes it with the stack and the execution role can be scoped to it. It creates none for a function when:
 
-By default, the framework will create LogGroups for your Lambdas. This makes it easy to clean up your log groups in the case you remove your service, and make the lambda IAM permissions much more specific and secure.
+- the function sets `disableLogs: true`, or
+- `logs.logGroup` is set on the function, or `provider.logs.lambda.logGroup` is set; that log group is yours to manage.
 
-You can opt out of the default behavior by setting `disableLogs: true`
+`logRetentionInDays` on a function, or `provider.logRetentionInDays` for every function, sets the retention. Allowed values are the CloudWatch Logs retention periods: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 2192, 2557, 2922, 3288 and 3653 days. Without it, the log group keeps logs indefinitely.
 
-You can also specify the duration for CloudWatch log retention by setting `logRetentionInDays`.
+`logDataProtectionPolicy` on a function, or under `provider`, sets the log group's [data protection policy](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/mask-sensitive-log-data-start.html); `Name`, `Version` and `Statement` are required.
 
-You can specify the DataProtectionPolicy for the LogGroup by setting `logDataProtectionPolicy`. On how to define the policy consult the [aws docs](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/mask-sensitive-log-data-start.html).
-
-```yml
+```yaml
 functions:
-  hello:
-    handler: handler.hello
+  quiet:
+    handler: handler.quiet
     disableLogs: true
-  goodBye:
-    handler: handler.goodBye
+  audited:
+    handler: handler.audited
     logRetentionInDays: 14
     logDataProtectionPolicy:
       Name: data-protection-policy
+      Version: '2021-06-01'
+      Statement:
+        - Sid: audit-policy
+          DataIdentifier:
+            - arn:aws:dataprotection::aws:data-identifier/EmailAddress
+          Operation:
+            Audit:
+              FindingsDestination: {}
+        - Sid: redact-policy
+          DataIdentifier:
+            - arn:aws:dataprotection::aws:data-identifier/EmailAddress
+          Operation:
+            Deidentify:
+              MaskConfig: {}
+```
+
+### Log format and log levels
+
+A function's `logs` object, or `provider.logs.lambda` for every function, sets Lambda's [advanced logging controls](https://docs.aws.amazon.com/lambda/latest/dg/monitoring-cloudwatchlogs-advanced.html). Each key set on the function wins over the same key under `provider.logs.lambda`.
+
+| Key                   | Allowed values                                               | Notes                                                            |
+| --------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------- |
+| `logFormat`           | `JSON`, `Text`                                               | Lambda's default is `Text`.                                      |
+| `applicationLogLevel` | `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`, `FATAL`, any case | Applied only when the effective `logFormat` is `JSON`.           |
+| `systemLogLevel`      | `DEBUG`, `INFO`, `WARN`, any case                            | Applied only when the effective `logFormat` is `JSON`.           |
+| `logGroup`            | An existing log group name                                   | The Framework then creates no log group for the function.        |
+| `logGroupClass`       | `standard`, `infrequent_access`, any case                    | See [Infrequent Access log class](#infrequent-access-log-class). |
+
+```yaml
+functions:
+  hello:
+    handler: handler.hello
+    logs:
+      logFormat: JSON
+      applicationLogLevel: INFO
+      systemLogLevel: WARN
 ```
 
 ### Infrequent Access log class
 
-You can select the CloudWatch Logs [log group class](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatch_Logs_Log_Classes.html) by setting `logs.logGroupClass`. Valid values are `standard` (the default) and `infrequent_access`; both are matched case-insensitively. The Infrequent Access class costs roughly 50% less per GB ingested and is suited to log groups used primarily for storage and on-demand troubleshooting rather than for real-time querying or alarms.
+`logs.logGroupClass` selects the CloudWatch Logs [log group class](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatch_Logs_Log_Classes.html): `standard` (default) or `infrequent_access`, in any case. Infrequent Access costs less per GB ingested and suits logs used for storage and on-demand troubleshooting rather than real-time queries or alarms. Set it on a function, or under `provider.logs.lambda` for every function; a function's value wins, so a function can opt back into `standard`.
 
-```yml
-functions:
-  archived:
-    handler: handler.archived
-    logs:
-      logGroupClass: infrequent_access
-```
-
-You can also set it for every function at once on the provider:
-
-```yml
+```yaml
 provider:
+  name: aws
   logs:
     lambda:
       logGroupClass: infrequent_access
+
+functions:
+  archived:
+    handler: handler.archived # infrequent_access from provider
+  live:
+    handler: handler.live
+    logs:
+      logGroupClass: standard
 ```
 
-Function-level configuration takes precedence over the provider-level value, so individual functions can opt back into `standard` even when the provider default is `infrequent_access`.
+For a function with `infrequent_access`, the Framework:
 
-When `logGroupClass: infrequent_access` is set for a function, the framework:
+- keeps creating the standard log group `/aws/lambda/<function name>`, so history there is preserved when you migrate an existing service;
+- creates a second log group `/aws/lambda/<function name>-ia` with the Infrequent Access class and `DeletionPolicy: Retain`, so its data survives `serverless remove`;
+- points the function's logging configuration at the `-ia` log group.
 
-- Continues to create the standard log group at `/aws/lambda/{functionName}`, so any historical logs there are preserved when migrating an existing service.
-- Additionally creates an Infrequent Access log group at `/aws/lambda/{functionName}-ia` with `LogGroupClass: INFREQUENT_ACCESS`.
-- Sets `LoggingConfig.LogGroup` on the Lambda function so new invocations write to the Infrequent Access log group.
-- Marks the Infrequent Access log group with `DeletionPolicy: Retain` so its data survives a stack removal.
+Behaviour to plan for:
 
-The Infrequent Access class supports a reduced subset of CloudWatch Logs features — review the [AWS log class comparison](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatch_Logs_Log_Classes.html) before opting in.
+- `serverless logs -f <function>` stops with the error `LOGS_INFREQUENT_ACCESS_NOT_SUPPORTED` for such a function; read its logs with CloudWatch Logs Insights.
+- AWS doesn't change the class of an existing log group. When you remove `logGroupClass` and deploy, the stack stops managing the `-ia` log group, and `DeletionPolicy: Retain` keeps it and its logs in AWS.
+- Turning `infrequent_access` back on for the same function then fails with `ResourceAlreadyExistsException`, because the retained log group still exists. Delete the retained log group (its history is lost), or [import it](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resource-import.html) into the stack, before deploying.
+- `logGroupClass` can't be combined with `logs.logGroup` or `provider.logs.lambda.logGroup`: packaging stops with `FUNCTION_LOG_GROUP_CLASS_CUSTOM_LOG_GROUP_CONFLICT`. Set the class on that log group yourself.
 
-**Framework behavior notes:**
+Review the [AWS log class comparison](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatch_Logs_Log_Classes.html) for the CloudWatch Logs features Infrequent Access doesn't offer.
 
-- `sls logs -f <function>` cannot read an Infrequent Access log group and fails fast with a clear error. Read these logs through CloudWatch Logs Insights instead.
-- AWS does not allow the class of an existing log group to be changed in place. If you later remove `logGroupClass` from your configuration, the framework stops emitting the Infrequent Access log group resource. Because of `DeletionPolicy: Retain`, the AWS log group and its logs are preserved, but the resource is no longer tracked by your stack.
+## Versioning deployed functions
 
-> **⚠️ Re-enabling Infrequent Access on a previously-orphaned group will fail.** Once an Infrequent Access log group has been retained out of the stack (by removing `logGroupClass` and redeploying), a subsequent attempt to re-enable `infrequent_access` for the same function deploys with `ResourceAlreadyExistsException` — CloudFormation tries to create a log group with a name that already exists in AWS but is no longer managed by the stack. Recover by either deleting the orphaned group from CloudWatch (loses the retained history) or importing it back into the stack with [`aws cloudformation create-change-set --change-set-type IMPORT`](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resource-import.html) (keeps it). Plan toggling between classes accordingly.
+By default, the Framework publishes a new [function version](https://docs.aws.amazon.com/lambda/latest/dg/configuration-versions.html) on each deploy that changes the function's code or configuration; a deploy that changes neither keeps the current version. The stack gets a version resource and an output with the latest version for each function, and you can invoke a version by its qualified ARN, for example `arn:aws:lambda:us-east-1:123456789012:function:my-service-dev-hello:3`.
 
-`logGroupClass` cannot be combined with `logs.logGroup` or `provider.logs.lambda.logGroup` — when you supply a custom log group name you also own its class. Set `LogGroupClass` directly on that externally-managed log group.
+To stop publishing versions for every function, set `provider.versionFunctions: false`. To override the provider setting for one function, set `versionFunction` (singular) on it:
 
-## Versioning Deployed Functions
-
-By default, the framework creates function versions for every deploy. This behavior is optional, and can be turned off in cases where you don't invoke past versions by their qualifier. If you would like to do this, you can invoke your functions as `arn:aws:lambda:....:function/myFunc:3` to invoke version 3 for example.
-
-Old versions are kept until you prune them with the built-in [`prune`](./prune.md) command or `custom.prune.automatic`. The Framework can't tell whether an older version is still invoked, so it never deletes versions on its own; `prune` keeps the number of versions you choose and every version an alias points to. This feature adds to the number of total stack outputs and resources because a function version is a separate resource from the function it refers to.
-
-For functions with `snapStart` enabled, every retained version also keeps a cached snapshot that AWS bills for outside the Java managed runtimes; see [Cost of retained versions](#cost-of-retained-versions).
-
-To turn off function versioning, set the provider-level option `versionFunctions`.
-
-```yml
-provider:
-  versionFunctions: false
-```
-
-## Dead Letter Queue (DLQ)
-
-When AWS lambda functions fail, they are [retried](http://docs.aws.amazon.com/lambda/latest/dg/retries-on-errors.html). If the retries also fail, AWS has a feature to send information about the failed request to a SNS topic or SQS queue, called the [Dead Letter Queue](http://docs.aws.amazon.com/lambda/latest/dg/dlq.html), which you can use to track and diagnose and react to lambda failures.
-
-You can setup a dead letter queue for your serverless functions with the help of a SNS topic and the `onError` config parameter.
-
-**Note:** You can only provide one `onError` config per function.
-
-### DLQ with SNS
-
-The SNS topic needs to be created beforehand and provided as an `arn` on the function level.
-
-```yml
-service: service
-
+```yaml
 provider:
   name: aws
-  runtime: nodejs14.x
+  versionFunctions: false
 
 functions:
   hello:
     handler: handler.hello
-    onError: arn:aws:sns:us-east-1:XXXXXX:test # Ref, Fn::GetAtt and Fn::ImportValue are supported as well
+    versionFunction: true
 ```
 
-### DLQ with SQS
+- Functions with `snapStart`, `provisionedConcurrency` or `durableConfig` are always versioned. `durableConfig` with `versionFunction: false` stops packaging with an error.
+- Superseded versions are kept: the Framework can't tell whether an older version is still invoked. Remove them with the [`prune`](./prune.md) command or `custom.prune.automatic`, which keep the number of versions you choose and every version an alias points to.
+- The exception is a `snapStart` or `provisionedConcurrency` function with versioning turned off: it is still versioned, and its superseded version is deleted on deploy. For the snapshot cost of retained SnapStart versions, see [Cost of retained versions](#cost-of-retained-versions).
 
-Although Dead Letter Queues support both SNS topics and SQS queues, the `onError` config currently only supports SNS topic arns due to a race condition when using SQS queue arns and updating the IAM role.
+## Dead letter queue (DLQ)
 
-We're working on a fix so that SQS queue arns will be supported in the future.
+Lambda [retries failed asynchronous invocations](https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-error-handling.html) and can then send the event to a dead-letter queue. A function's `onError` sets that target to an existing SNS topic:
 
-## KMS Keys
+```yaml
+functions:
+  hello:
+    handler: handler.hello
+    onError: arn:aws:sns:us-east-1:123456789012:failed-events
+```
 
-[AWS Lambda](https://serverless.com/aws-lambda/) uses [AWS Key Management Service (KMS)](https://aws.amazon.com/kms/) to encrypt your environment variables at rest.
+- A plain-string `onError` must be an SNS topic ARN. A CloudFormation intrinsic (`Ref`, `Fn::GetAtt`, `Fn::ImportValue`, `Fn::Join`, `Fn::Sub` and others) is passed through as it is.
+- For a plain-string ARN, the Framework adds `sns:Publish` on the topic to the execution role it creates. For an intrinsic, the shared role gets no permission, so add `sns:Publish` yourself; per-function roles get it in both cases. A role you supply is never changed.
+- To send failed events to an SQS queue, use [`destinations.onFailure`](#destinations), which accepts SQS queues.
 
-The `kmsKeyArn` config variable enables you a way to define your own KMS key which should be used for encryption.
+## KMS keys
 
-```yml
-service:
-  name: service-name
+Lambda encrypts environment variables at rest. To use your own [AWS KMS](https://aws.amazon.com/kms/) key, set `kmsKeyArn` under `provider` for every function, or on one function, which overrides the provider value:
 
+```yaml
 provider:
   name: aws
-  kmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
+  kmsKeyArn: arn:aws:kms:us-east-1:123456789012:key/11111111-2222-3333-4444-555555555555
   environment:
     TABLE_NAME: tableName1
 
 functions:
-  hello: # this function will OVERWRITE the service level environment config above
+  hello: # uses its own key
     handler: handler.hello
-    kmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
-    environment:
-      TABLE_NAME: tableName2
-  goodbye: # this function will INHERIT the service level environment config above
+    kmsKeyArn: arn:aws:kms:us-east-1:123456789012:key/66666666-7777-8888-9999-000000000000
+  goodbye: # uses the provider key
     handler: handler.goodbye
 ```
 
-### Secrets using environment variables and KMS
+When `kmsKeyArn` is a plain-string ARN, the Framework adds `kms:Decrypt` on the key to the execution role it creates. For a CloudFormation intrinsic, or a role you supply, add the permission yourself. To keep secrets out of environment variables, see AWS's guidance on [securing environment variables](https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars-encryption.html).
 
-When storing secrets in environment variables, AWS [strongly suggests](http://docs.aws.amazon.com/lambda/latest/dg/env_variables.html#env-storing-sensitive-data) encrypting sensitive information. AWS provides a [tutorial](http://docs.aws.amazon.com/lambda/latest/dg/tutorial-env_console.html) on using KMS for this purpose.
+## AWS X-Ray tracing
 
-## AWS X-Ray Tracing
+`provider.tracing.lambda` turns on [AWS X-Ray tracing](https://docs.aws.amazon.com/lambda/latest/dg/services-xray.html) for every function. Both it and a function's `tracing` accept `Active`, `PassThrough` or a boolean, where `true` means `Active`. A function's `Active`, `PassThrough` or `true` overrides the provider setting, and its `false` keeps the provider setting. To stop Lambda from sampling one function's requests while the provider setting is on, set that function's `tracing` to `PassThrough`:
 
-You can enable [AWS X-Ray Tracing](https://docs.aws.amazon.com/xray/latest/devguide/aws-xray.html) on your Lambda functions through the optional `tracing` config variable:
-
-```yml
-service: myService
-
+```yaml
 provider:
   name: aws
-  runtime: nodejs14.x
   tracing:
     lambda: true
-```
 
-You can also set this variable on a per-function basis. This will override the provider level setting if present:
-
-```yml
 functions:
   hello:
     handler: handler.hello
-    tracing: Active
-  goodbye:
-    handler: handler.goodbye
     tracing: PassThrough
 ```
 
+When tracing is on, the Framework adds `xray:PutTraceSegments` and `xray:PutTelemetryRecords` to the execution role it creates; a role you supply needs them too. For API Gateway tracing, see `provider.tracing.apiGateway` in the [REST API events](../events/apigateway.md) page.
+
 ## Asynchronous invocation
 
-When intention is to invoke function asynchronously you may want to configure following additional settings:
+These settings apply when a function is invoked [asynchronously](https://docs.aws.amazon.com/lambda/latest/dg/invocation-async.html), for example by Amazon S3, Amazon SNS or EventBridge.
 
 ### Destinations
 
-[destination targets](https://docs.aws.amazon.com/lambda/latest/dg/invocation-async.html#invocation-async-destinations)
+`destinations` sends the result of an asynchronous invocation to [a destination](https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-retain-records.html): `onSuccess` and `onFailure` each take a target.
 
-Target can be the other lambdas you also deploy with a service or other qualified target (externally managed lambda, EventBridge event bus, SQS queue or SNS topic) which you can address via its ARN or reference
+- A string that starts with `arn:` is the ARN of a Lambda function, SQS queue, SNS topic or EventBridge event bus.
+- Any other string is the key of a function in this service.
+- The object form takes `arn` and `type` (`function`, `sns`, `sqs` or `eventBus`); both are required. `arn` takes a CloudFormation intrinsic (`Ref`, `Fn::GetAtt`, `Fn::ImportValue`, `Fn::Join`, `Fn::Sub`, `Fn::Base64` or `Fn::ToJsonString`), and `type` tells the Framework which permission to add. For a plain ARN, use the string form.
 
-```yml
+```yaml
 functions:
   asyncHello:
     handler: handler.asyncHello
     destinations:
       onSuccess: otherFunctionInService
-      onFailure: arn:aws:sns:us-east-1:xxxx:some-topic-name
-  asyncGoodBye:
-    handler: handler.asyncGoodBye
+      onFailure: arn:aws:sns:us-east-1:123456789012:failed-events
+  asyncGoodbye:
+    handler: handler.asyncGoodbye
     destinations:
       onFailure:
-        # For the case using CF intrinsic function for `arn`, to ensure target execution permission exactly, you have to specify `type` from 'sns', 'sqs', 'eventBus', 'function'.
-        type: sns
+        type: sqs
         arn:
-          Ref: SomeTopicName
+          Fn::GetAtt: [FailedEventsQueue, Arn]
 ```
 
-### Maximum Event Age and Maximum Retry Attempts
+The Framework adds the permission to reach the target (`lambda:InvokeFunction`, `sqs:SendMessage`, `sns:Publish` or `events:PutEvents`) to the execution role it creates. A role you supply through `provider.iam.role` or a function's `role` isn't changed.
 
-`maximumEventAge` accepts values between 60 seconds and 6 hours, provided in seconds.
-`maximumRetryAttempts` accepts values between 0 and 2.
+### Maximum event age and maximum retry attempts
 
-```yml
+`maximumEventAge` (seconds, 60 to 21600) is how long Lambda keeps an event in the asynchronous queue. `maximumRetryAttempts` (0 to 2) is how many times Lambda retries after an error.
+
+```yaml
 functions:
   asyncHello:
     handler: handler.asyncHello
@@ -998,89 +783,59 @@ functions:
     maximumRetryAttempts: 1
 ```
 
-## File System Configuration
+## File system configuration
 
-You can mount file systems on Lambda functions by adding a `fileSystemConfig` property in the function configuration in `serverless.yml`. Both [Amazon EFS](https://docs.aws.amazon.com/lambda/latest/dg/configuration-filesystem.html) and [Amazon S3 Files](https://docs.aws.amazon.com/lambda/latest/dg/configuration-filesystem-s3files.html) are supported.
+`fileSystemConfig` mounts a file system in the function: [Amazon EFS](https://docs.aws.amazon.com/lambda/latest/dg/configuration-filesystem.html) or [Amazon S3 Files](https://docs.aws.amazon.com/lambda/latest/dg/configuration-filesystem-s3files.html). It takes:
 
-`fileSystemConfig` should be an object that contains the `arn` and `localMountPath` properties. The `arn` property should reference an existing access point (EFS or S3 Files), where the `localMountPath` should specify the absolute path under which the file system will be mounted. A VPC configuration is required for both file system types.
+- `arn` (required): the ARN of an existing EFS or S3 Files access point, or a CloudFormation `Fn::GetAtt`, `Fn::Join` or `Fn::ImportValue`.
+- `localMountPath` (required): where to mount it, matching `/mnt/<name>`.
+- `type`: `efs` or `s3files`. The Framework detects it from a plain-string ARN; a CloudFormation reference is treated as `efs` unless you set `type: s3files`.
 
-### EFS Example
+The function needs a VPC (its own `vpc` or `provider.vpc`): without one, packaging stops with `LAMBDA_FILE_SYSTEM_CONFIG_MISSING_VPC`. `fileSystemConfig` can't be combined with `capacityProvider`.
 
-```yml
-# serverless.yml
-service: service-name
-provider: aws
-
+```yaml
 functions:
-  hello:
-    handler: handler.hello
+  efsReader:
+    handler: handler.efsReader
     fileSystemConfig:
-      localMountPath: /mnt/example
-      arn: arn:aws:elasticfilesystem:us-east-1:111111111111:access-point/fsap-0d0d0d0d0d0d0d0d0
+      localMountPath: /mnt/data
+      arn: arn:aws:elasticfilesystem:us-east-1:123456789012:access-point/fsap-0d0d0d0d0d0d0d0d0
     vpc:
       securityGroupIds:
-        - securityGroupId1
+        - sg-0123456789abcdef0
       subnetIds:
-        - subnetId1
-```
-
-### S3 Files Example
-
-```yml
-functions:
-  hello:
-    handler: handler.hello
-    fileSystemConfig:
-      localMountPath: /mnt/s3data
-      arn: arn:aws:s3files:us-east-1:111111111111:file-system/fs-0abcdef1234567890/access-point/fsap-0abcdef1234567890
-    vpc:
-      securityGroupIds:
-        - securityGroupId1
-      subnetIds:
-        - subnetId1
-```
-
-The file system type is automatically detected from the ARN. When using CloudFormation references for the ARN, specify the `type` field explicitly:
-
-```yml
-functions:
-  hello:
-    handler: handler.hello
+        - subnet-0123456789abcdef0
+  s3Reader:
+    handler: handler.s3Reader
     fileSystemConfig:
       localMountPath: /mnt/s3data
       arn: !GetAtt MyS3FilesAccessPoint.AccessPointArn
       type: s3files
     vpc:
       securityGroupIds:
-        - securityGroupId1
+        - sg-0123456789abcdef0
       subnetIds:
-        - subnetId1
+        - subnet-0123456789abcdef0
 ```
 
-The framework automatically adds the required IAM permissions: `elasticfilesystem:ClientMount` and `elasticfilesystem:ClientWrite` for EFS, or `s3files:ClientMount` and `s3files:ClientWrite` for S3 Files.
-
-> **Note:** Optionally, for the best S3 Files read performance on functions with 512 MB or more memory, add `s3:GetObject` and `s3:GetObjectVersion` permissions for your S3 bucket via `provider.iam.role.statements`.
+The Framework adds the mount permissions to the execution role it creates: `elasticfilesystem:ClientMount` and `elasticfilesystem:ClientWrite` for EFS, `s3files:ClientMount` and `s3files:ClientWrite` for S3 Files. A role you supply needs them too. For the best S3 Files read performance on functions with 512 MB or more memory, also grant `s3:GetObject` and `s3:GetObjectVersion` on the bucket through `provider.iam.role.statements`.
 
 ## Ephemeral storage
 
-By default, Lambda [allocates 512 MB of ephemeral storage](https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-common.html#configuration-ephemeral-storage) in functions under the `/tmp` directory.
+Lambda gives each function 512 MB of [ephemeral storage](https://docs.aws.amazon.com/lambda/latest/dg/configuration-ephemeral-storage.html) in `/tmp`. To change it, set `ephemeralStorageSize` in MB, from 512 to 10240:
 
-You can increase its size via the `ephemeralStorageSize` property. It should be a numerical value in MBs, between 512 and 10240.
-
-```yml
+```yaml
 functions:
-  helloEphemeral:
-    handler: handler.handler
+  imageProcessor:
+    handler: handler.imageProcessor
     ephemeralStorageSize: 1024
 ```
 
-## Tenant Isolation
+## Tenant isolation
 
-AWS Lambda's [tenant isolation mode](https://aws.amazon.com/blogs/compute/building-multi-tenant-saas-applications-with-aws-lambdas-new-tenant-isolation-mode/) enables you to build secure multi-tenant applications by providing per-tenant compute and memory isolation. When enabled, Lambda creates separate execution environments for each tenant, preventing data leakage and resource contention between tenants.
+Lambda's [tenant isolation mode](https://docs.aws.amazon.com/lambda/latest/dg/tenant-isolation.html) runs separate execution environments for each tenant of a multi-tenant application. Set `tenancy.mode` to `per_tenant` (any case):
 
-To enable tenant isolation for your Lambda function, set the `tenancy.mode` property to `per_tenant`:
-
-```yml
+```yaml
 functions:
   multiTenantFunction:
     handler: handler.handler
@@ -1088,18 +843,12 @@ functions:
       mode: per_tenant
 ```
 
-### Integrating with API Gateway
+Lambda reads the tenant ID from the `X-Amz-Tenant-Id` header of each invocation. AWS restricts mapping that header in HTTP APIs, so pass it through a [REST API](../events/apigateway.md) (`http` event) with a request parameter mapping. `X-Amz-Tenant-Id` is `required: false`, because API Gateway fills it from the mapping:
 
-When using tenant isolation mode, Lambda expects the tenant ID to be passed using the `X-Amz-Tenant-Id` HTTP header. You can configure API Gateway to inject this header into the Lambda invocation request with a value obtained from client request properties such as HTTP headers, query parameters, or path parameters.
-
-#### REST API Example
-
-For REST API, use `request.parameters` to map an incoming custom header to `X-Amz-Tenant-Id`:
-
-```yml
+```yaml
 functions:
   restApiFunction:
-    handler: index.handler
+    handler: handler.handler
     tenancy:
       mode: per_tenant
     events:
@@ -1109,26 +858,18 @@ functions:
           request:
             parameters:
               headers:
-                'My-Tenant-Id': true # Client must send this header
+                'My-Tenant-Id': true # the client sends this header
                 'X-Amz-Tenant-Id':
-                  required: false # Not required from client
+                  required: false
                   mappedValue: 'method.request.header.My-Tenant-Id'
 ```
 
-**Important notes:**
+`mappedValue` can name any [API Gateway mapping source](https://docs.aws.amazon.com/apigateway/latest/developerguide/rest-api-parameter-mapping-sources.html): headers, query strings, path parameters or context variables. To take the tenant ID from a Lambda authorizer, return it in the authorizer's `context` and map `context.authorizer.tenantId`:
 
-- **HTTP API does not support request parameter mapping on `X-Amz-Tenant-Id`**: AWS restricts operations on the `X-Amz-Tenant-Id` header ("Operations on header x-amz-tenant-id are restricted"), preventing header mapping for tenant isolation in HTTP API. Use REST API instead.
-- Set `X-Amz-Tenant-Id` as `required: false` since the client doesn't send it directly—API Gateway generates it from the mapping.
-- The `mappedValue` can reference various sources from the incoming request, such as headers, query strings, path parameters, or context variables. See the [API Gateway parameter mapping sources documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/rest-api-parameter-mapping-sources.html) for all available mapping options.
-
-#### Using Lambda Authorizers
-
-When using Lambda Authorizers, you can obtain the tenant ID from authorization context information returned by the authorizer, such as principal ID or JWT claim. The authorizer returns context values that can be mapped to the `X-Amz-Tenant-Id` header.
-
-```yml
+```yaml
 functions:
   authorizedFunction:
-    handler: index.handler
+    handler: handler.handler
     tenancy:
       mode: per_tenant
     events:
@@ -1136,7 +877,7 @@ functions:
           path: /api/resource
           method: get
           authorizer:
-            name: myAuthorizer
+            name: tenantAuthorizer
             resultTtlInSeconds: 0
             identitySource: method.request.header.Authorization
           request:
@@ -1144,19 +885,15 @@ functions:
               headers:
                 'X-Amz-Tenant-Id':
                   required: false
-                  mappedValue: 'context.authorizer.tenantId' # Maps from authorizer context
-
-  myAuthorizer:
+                  mappedValue: 'context.authorizer.tenantId'
+  tenantAuthorizer:
     handler: authorizer.handler
 ```
 
-In your authorizer function, return the tenant ID in the context:
-
 ```javascript
-// authorizer.handler
-exports.handler = async (event) => {
-  // Your authorization logic here
-  const tenantId = extractTenantIdFromToken(event.authorizationToken)
+// authorizer.mjs
+export const handler = async (event) => {
+  const tenantId = getTenantId(event.authorizationToken) // your token parsing
 
   return {
     principalId: 'user123',
@@ -1170,29 +907,56 @@ exports.handler = async (event) => {
         },
       ],
     },
-    context: {
-      tenantId: tenantId, // This can be mapped to X-Amz-Tenant-Id
-    },
+    context: { tenantId },
   }
 }
 ```
 
-See the [API Gateway documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-lambda-authorizer-output.html) for more details on Lambda authorizer output format.
+See [Lambda authorizer output](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-lambda-authorizer-output.html) for the authorizer response format.
 
-## Lambda Hashing Algorithm migration
+## CloudFormation condition and dependencies
 
-**Note** Below migration guide is intended to be used if you are using the latest version of the Framework and you still have `provider.lambdaHashingVersion` property set to `20200924` in your configuration file. In the latest version of the framework, Lambda version hashes are generated using an improved algorithm that fixes determinism issues. If you are still using the old hashing algorithm, you can follow the [guide to upgrade to the latest version](../../../guides/upgrading-v4.md).
+A function's `condition` names a CloudFormation [condition](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/conditions-section-structure.html) that decides whether the function resource is created; define the condition under `resources.Conditions`. `dependsOn` takes a list of logical IDs the function resource depends on.
 
-Please keep in mind that these changes require two deployments with manual configuration adjustment between them. It also creates two additional versions and temporarily overrides descriptions of your functions. Migration will need to be done separately for each of your environments/stages.
+```yaml
+functions:
+  hello:
+    handler: handler.hello
+    condition: IsProduction
+    dependsOn:
+      - UsersTable
 
-1. Run `sls deploy` with additional `--enforce-hash-update` flag: that flag will override the description for Lambda functions, which will force the creation of new versions.
-2. Remove `provider.lambdaHashingVersion` setting from your configuration: your service will now always deploy with the new Lambda version hashes (which is the new default in v3).
-3. Run `sls deploy`, this time without additional `--enforce-hash-update` flag: that will restore the original descriptions on all Lambda functions.
+resources:
+  Conditions:
+    IsProduction:
+      Fn::Equals: ['${sls:stage}', 'prod']
+```
 
-Now your whole service is fully migrated to the new Lambda Hashing Algorithm.
+## Other function settings
 
-If you do not want to temporarily override descriptions of your functions or would like to avoid creating unnecessary versions of your functions, you might want to use one of the following approaches:
+These function keys are documented with the feature they belong to:
 
-- Ensure that code for all your functions will change during deployment, remove `provider.lambdaHashingVersion` from your configuration, and run `sls deploy`. Due to the fact that all functions have code changed, all your functions will be migrated to new hashing algorithm. Please note that the change can be caused by e.g. upgrading a dependency used by all your functions so you can pair it with regular chores.
-- Add a dummy file that will be included in deployment artifacts for all your functions, remove `provider.lambdaHashingVersion` from your configuration, and run `sls deploy`. Due to the fact that all functions have code changed, all your functions will be migrated to new hashing algorithm.
-- If it is safe in your case (e.g. it's only development sandbox), you can also tear down the whole service by `sls remove`, remove `provider.lambdaHashingVersion` from your configuration, and run `sls deploy`. Newly recreated environment will be using new hashing algorithm.
+- `events`: the [event sources](./events.md) that invoke the function.
+- `role` and `iam`: a custom execution role, or a [per-function IAM role](./iam.md#per-function-iam-roles).
+- `package`: per-function [packaging](./packaging.md#packaging-functions-separately).
+- `build`: `false` to exclude the function from the [esbuild build](./building.md).
+- `capacityProvider`: run the function on [Lambda Managed Instances](./managed-instances.md).
+- `httpApi.payload`: the default payload format of the function's [HTTP API events](../events/http-api.md).
+- `awsKmsKeyArn`: deprecated; use `kmsKeyArn`.
+
+## Lambda hashing algorithm migration
+
+This section applies only to a service that still sets `provider.lambdaHashingVersion: 20200924`. The property is deprecated, and every package or deploy with that value prints a deprecation warning. Without it, the Framework computes version hashes with the current algorithm. Migrating changes every function's version hash, so plan two deploys per stage:
+
+1. Run `serverless deploy --enforce-hash-update`. The flag sets a temporary description on every function, which forces a new version with the new hash.
+2. Remove `provider.lambdaHashingVersion` from `serverless.yml`.
+3. Run `serverless deploy` without the flag. The original descriptions come back.
+
+This creates two extra versions per function. To avoid them, migrate in a deploy that changes every function's code anyway (for example a dependency upgrade, or a file added to every artifact), with `provider.lambdaHashingVersion` removed; or, for a stage you can recreate, run `serverless remove`, remove the property, and deploy again.
+
+## Related pages
+
+- [Events](./events.md): connect functions to AWS event sources.
+- [IAM permissions for functions](./iam.md): execution roles and the permissions the Framework adds.
+- [Packaging](./packaging.md) and [Building](./building.md): what goes into a function's artifact.
+- [serverless.yml reference](./serverless.yml.md): every function key in one file.

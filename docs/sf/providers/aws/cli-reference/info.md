@@ -1,17 +1,14 @@
 <!--
-title: Serverless Framework Commands - AWS Lambda - Info
-description: Display information about your deployed service and AWS Lambda functions, events, and resources it contains.
-short_title: Commands - Info
+title: serverless info
+description: Print a deployed service's endpoints, functions, layers, API keys and stack outputs, as text or JSON, with serverless info.
+short_title: info
 keywords:
   [
-    'Serverless',
-    'Framework',
-    'AWS',
-    'Lambda',
-    'Info',
-    'Service Information',
-    'CloudFormation',
-    'Stack Outputs',
+    'serverless info',
+    'Serverless Framework CLI',
+    'service endpoints',
+    'CloudFormation stack outputs',
+    'serverless info --json',
   ]
 -->
 
@@ -21,9 +18,9 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# AWS - Info
+# serverless info
 
-Displays information about the deployed service.
+`serverless info` prints what a deployed stage of a service exposes: its endpoints, functions, layers, API Gateway API keys and, on request, its CloudFormation stack outputs. It reads the stack and changes nothing. Use it to look up URLs after a deployment or from a script with `--json`; [`serverless deploy`](./deploy.md) prints the same summary when it finishes.
 
 ```bash
 serverless info
@@ -31,47 +28,60 @@ serverless info
 
 ## Options
 
-- `--stage` or `-s` The stage in your service you want to display information about.
-- `--region` or `-r` The region in your stage that you want to display information about.
-- `--aws-profile` The AWS profile you want to use.
-- `--json` Output the information in JSON format.
-- `--verbose` Shows displays any Stack Output.
+`serverless info` accepts these options:
 
-## Provided lifecycle events
+| Option          | Alias | Value     | Default                             | Required | Description                                                      |
+| --------------- | ----- | --------- | ----------------------------------- | -------- | ---------------------------------------------------------------- |
+| `--stage`       | `-s`  | string    | `provider.stage`, else `dev`        | No       | Stage to describe.                                               |
+| `--region`      | `-r`  | string    | `provider.region`, else `us-east-1` | No       | AWS Region of that stage.                                        |
+| `--aws-profile` |       | string    | `provider.profile`                  | No       | AWS profile whose credentials the command uses.                  |
+| `--config`      | `-c`  | file path | `serverless.yml`                    | No       | Service configuration file to use.                               |
+| `--verbose`     |       | flag      | off                                 | No       | Add a `Stack Outputs:` section with every CloudFormation output. |
+| `--json`        |       | flag      | off                                 | No       | Print the information as JSON on standard output.                |
+| `--conceal`     |       | flag      | off                                 | No       | Print API key names without their values in the text output.     |
 
-- `info:info`
+`serverless info` also accepts the options every command takes: `--param="key=value"` (repeatable), `--org`, `--app`, `--debug` and `--help` (`-h`). For an AWS SAM or CloudFormation project, it takes `--stack`; see [AWS SAM and CloudFormation](../../../guides/sam.md).
 
-## Examples
+`--conceal` applies to the text output only: the `--json` output always contains the API key values.
 
-### AWS
+## Output of serverless info
 
-On AWS the info plugin uses the `Outputs` section of the CloudFormation stack and the AWS SDK to gather the necessary information.
-See the example below for an example output.
-
-**Example:**
-
-```bash
-$ serverless info
-
-Service Information
-service: my-serverless-service
-stage: dev
-region: us-east-1
-api keys:
-  myKey: some123valid456api789key1011for1213api1415gateway
-endpoints:
-  GET - https://dxaynpuzd4.execute-api.us-east-1.amazonaws.com/dev/users
-functions:
-  my-serverless-service-dev-hello
-```
-
-#### Web apps
-
-Each [web app](../guide/web-apps.md) is listed under `endpoints` by name with its endpoint URL, followed by each custom domain that serves it:
+`serverless info` prints one line or section per item:
 
 ```text
-$ serverless info
+service: my-service
+stage: dev
+region: us-east-1
+stack: my-service-dev
+api keys:
+  myKey: abc123exampleapikeyvalue
+endpoint: GET - https://abc123example.execute-api.us-east-1.amazonaws.com/dev/users
+functions:
+  hello: my-service-dev-hello
+```
 
+The `endpoint` heading becomes `endpoints` when the service has several. Each endpoint line has one of these forms:
+
+- `<METHOD> - <url>`: a route of an `http` (REST API) or `httpApi` (HTTP API) event.
+- `<url>`: a WebSocket API.
+- `CloudFront - <domain>`: the CloudFront distribution of `cloudFront` events.
+- `<name>: <url>`: a [function URL](../guide/functions.md#lambda-function-urls) or a web app; just `<url>` when it is the service's only endpoint.
+
+When the stack has 450 or more resources, the command also prints a warning about the CloudFormation limit of 500 resources per stack.
+
+When the stage isn't deployed, the command stops with:
+
+```text
+Service "my-service" is not deployed to stage "dev" in us-east-1. Deploy it with "serverless deploy --stage dev --region us-east-1".
+```
+
+`serverless info` is read-only and safe to re-run.
+
+## Web app endpoints in serverless info
+
+`serverless info` lists each [web app](../guide/web-apps.md) under `endpoints` by name with its endpoint URL, followed by each custom domain that serves it:
+
+```text
 service: shop
 stage: dev
 region: us-east-1
@@ -85,81 +95,108 @@ endpoints:
 
 A service whose only endpoint is one web app's prints it as `endpoint: <url>`. With a custom domain, `--verbose` also shows the CloudFront distribution's domain name and ID as stack outputs.
 
-#### Verbose
+## Stack outputs with serverless info --verbose
 
-When using the `--verbose` flag, the `info` command will also append all Stack Outputs to the output:
+`serverless info --verbose` adds every output of the CloudFormation stack, including the ones you define under `resources.Outputs`:
 
-```bash
-$ serverless info --verbose
-
-Service Information
-service: my-serverless-service
+```text
+service: my-service
 stage: dev
 region: us-east-1
-api keys:
-  myKey: some123valid456api789key1011for1213api1415gateway
-endpoints:
-  GET - https://dxaynpuzd4.execute-api.us-east-1.amazonaws.com/dev/users
+stack: my-service-dev
+endpoint: GET - https://abc123example.execute-api.us-east-1.amazonaws.com/dev/users
 functions:
-  my-serverless-service-dev-hello
-
-Stack Outputs
-CloudFrontUrl: d2d10e2tyk1pei.cloudfront.net
-ScreenshotBucket: dev-svdgraaf-screenshots
-ServiceEndpoint: https://12341jc801.execute-api.us-east-1.amazonaws.com/dev
-ServerlessDeploymentBucketName: lambda-screenshots-dev-serverlessdeploymentbucket-15b7pkc04f98a
+  hello: my-service-dev-hello
+Stack Outputs:
+  HelloLambdaFunctionQualifiedArn: arn:aws:lambda:us-east-1:123456789012:function:my-service-dev-hello:3
+  ServiceEndpoint: https://abc123example.execute-api.us-east-1.amazonaws.com/dev
+  ServerlessDeploymentBucketName: serverless-framework-deployments-us-east-1-d7b2bf38-2784
 ```
 
-#### JSON
+## JSON output with serverless info --json
 
-When using the `--json` flag, the `info` command will output the information in JSON format:
+`serverless info --json` prints one JSON document on standard output, while progress and log lines go to standard error, so you can redirect it to a file or pipe it to `jq`:
 
 ```bash
-$ serverless info --json
+serverless info --json > info.json
+```
 
+The document has the same information as the text output, plus the resource count and every stack output with its export name:
+
+```json
 {
+  "inputs": {
+    "compose": {}
+  },
   "info": {
     "functions": [
       {
         "name": "hello",
-        "deployedName": "my-serverless-service-dev-hello"
+        "deployedName": "my-service-dev-hello"
       }
     ],
     "layers": [],
-    "endpoints": [
-      "https://mnpgyjhfqj.execute-api.us-east-1.amazonaws.com"
-    ],
-    "service": "my-serverless-service",
+    "agents": [],
+    "endpoints": ["https://abc123example.execute-api.us-east-1.amazonaws.com"],
+    "service": "my-service",
     "stage": "dev",
     "region": "us-east-1",
-    "stack": "my-serverless-service-dev",
+    "stack": "my-service-dev",
     "resourceCount": 4,
     "apiKeys": []
   },
   "outputs": [
     {
       "OutputKey": "HelloLambdaFunctionQualifiedArn",
-      "OutputValue": "arn:aws:lambda:us-east-1:012345678901:function:my-serverless-service-dev-hello:26",
+      "OutputValue": "arn:aws:lambda:us-east-1:123456789012:function:my-service-dev-hello:26",
       "Description": "Current Lambda function version",
-      "ExportName": "sls-my-serverless-service-dev-hello-HelloLambdaFunctionQualifiedArn"
+      "ExportName": "sls-my-service-dev-HelloLambdaFunctionQualifiedArn"
     },
     {
       "OutputKey": "ServerlessDeploymentBucketName",
       "OutputValue": "serverless-framework-deployments-us-east-1-d7b2bf38-2784",
-      "ExportName": "sls-my-serverless-service-dev-ServerlessDeploymentBucketName"
-    },
-    {
-      "OutputKey": "HttpApiId",
-      "OutputValue": "mnpgyjhfqj",
-      "Description": "Id of the HTTP API",
-      "ExportName": "sls-my-serverless-service-dev-HttpApiId"
+      "ExportName": "sls-my-service-dev-ServerlessDeploymentBucketName"
     },
     {
       "OutputKey": "HttpApiUrl",
-      "OutputValue": "https://mnpgyjhfqj.execute-api.us-east-1.amazonaws.com",
+      "OutputValue": "https://abc123example.execute-api.us-east-1.amazonaws.com",
       "Description": "URL of the HTTP API",
-      "ExportName": "sls-my-serverless-service-dev-HttpApiUrl"
+      "ExportName": "sls-my-service-dev-HttpApiUrl"
     }
   ]
 }
 ```
+
+In a service with web apps, `info` also has a `webApps` list of `{ "name", "url" }` entries.
+
+## Run serverless info in CI
+
+`serverless info` has no prompts of its own. In CI, sign in with `SERVERLESS_ACCESS_KEY` or `SERVERLESS_LICENSE_KEY` (see [Non-interactive use](./README.md#non-interactive-use-ci-and-ai-agents)) and read values from the JSON output:
+
+```bash
+serverless info --stage prod --json | jq -r '.info.endpoints[0]'
+```
+
+## Provided lifecycle events
+
+- `info:info`
+
+## Examples
+
+### Show the stack outputs of a stage
+
+```bash
+serverless info --stage prod --region eu-central-1 --verbose
+```
+
+### Print the service information without API key values
+
+```bash
+serverless info --conceal
+```
+
+## Related commands
+
+- [`serverless deploy`](./deploy.md) deploys the service and prints the same summary.
+- [`serverless agent inspect`](./agent-inspect.md) shows the deployed resources in more detail.
+- [`serverless remove`](./remove.md) deletes the deployed stage.

@@ -1,8 +1,16 @@
 <!--
-title: Serverless Framework - AWS Lambda Events - HTTP API (API Gateway v2)
-short_title: AWS Lambda Events - HTTP API
-description: Deploying HTTP APIs with AWS Lambda and API Gateway v2 via the Serverless Framework
-keywords: ['Serverless Framework', 'AWS Lambda', 'HTTP API', 'API Gateway v2']
+title: HTTP API Events (API Gateway v2)
+description: 'Expose Lambda functions over HTTP with the httpApi event and Amazon API Gateway HTTP APIs: routes, CORS, JWT, Lambda and IAM authorizers, logs.'
+short_title: HTTP API
+keywords:
+  [
+    'Serverless Framework',
+    'AWS Lambda HTTP API',
+    'API Gateway v2',
+    'httpApi event',
+    'HTTP API JWT authorizer',
+    'HTTP API CORS',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -11,22 +19,44 @@ keywords: ['Serverless Framework', 'AWS Lambda', 'HTTP API', 'API Gateway v2']
 
 <!-- DOCS-SITE-LINK:END -->
 
-# HTTP API (API Gateway v2)
+# HTTP API Events (API Gateway v2)
 
-API Gateway lets you deploy HTTP APIs. It comes [in two versions](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html):
+The `httpApi` event exposes a Lambda function at an HTTP route of an [Amazon API Gateway HTTP API](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api.html) (API Gateway v2). The Framework creates one HTTP API per service, or uses an [existing HTTP API](#reuse-an-http-api-from-another-service), and a route for each event. HTTP APIs cost less than REST APIs and have fewer features; for API keys, usage plans, request validation or mapping templates, use the [`http` event and a REST API](./apigateway.md). AWS compares the two in [Choose between REST APIs and HTTP APIs](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html).
 
-- v1, also called **REST API**
-- v2, also called **HTTP API**, which is faster and cheaper than v1
+This `serverless.yml` creates an HTTP API with a `GET /hello` route:
 
-Despite their confusing name, both versions allow deploying any HTTP API (like REST, GraphQL, etc.). Read the full comparison [in the AWS documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html).
+```yaml
+# serverless.yml
+service: my-service
 
-This guide documents using API Gateway **v2 HTTP API** via the `httpApi` event.
+provider:
+  name: aws
+  runtime: nodejs24.x
 
-To use API Gateway **v1 REST API** instead, follow the [API Gateway REST API guide](apigateway.md).
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - httpApi:
+          method: GET
+          path: /hello
+```
 
-## Event Definition
+```javascript
+// handler.mjs
+export const hello = async (event) => {
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ message: 'Hello', path: event.rawPath }),
+  }
+}
+```
 
-### General setup
+`serverless deploy` and `serverless info` print the API's URL under `endpoints`. The URL is also in the `HttpApiUrl` stack output, and the API ID in `HttpApiId`. The Framework deploys the API's `$default` stage with automatic deployment, so the URL has no stage path: `https://<api-id>.execute-api.<region>.amazonaws.com/hello`.
+
+## Routes
+
+A route is an HTTP method and a path. The `httpApi` event takes a route as a string, `'<METHOD> <path>'`, or as `method` and `path` keys:
 
 ```yaml
 functions:
@@ -42,23 +72,11 @@ functions:
           path: /post/just/to/this/path
 ```
 
-### Catch-alls
+`method` is `GET`, `POST`, `PUT`, `PATCH`, `OPTIONS`, `HEAD`, `DELETE`, `ANY` or `*`, in any case; `*` is the same as `ANY`. `path` starts with `/`. Two events with the same method and path stop the deploy with `Duplicate route '<METHOD> <path>' configuration in function <function> for httpApi event in serverless.yml`.
 
-```yaml
-functions:
-  catchAllAny:
-    handler: index.catchAllAny
-    events:
-      - httpApi: '*'
-  catchAllMethod:
-    handler: handler.catchAllMethod
-    events:
-      - httpApi:
-          method: '*'
-          path: /any/method
-```
+### Path parameters
 
-### Parameters
+A path segment in braces is a path parameter. The function receives its value in `event.pathParameters`:
 
 ```yaml
 functions:
@@ -70,34 +88,54 @@ functions:
           path: /get/for/any/{param}
 ```
 
-### Endpoints timeout
+A greedy parameter such as `{proxy+}` matches the rest of the path.
 
-The default and maximal API Gateway timeout is used: 30s. Ensure to keep function timeout below 29s. Otherwise, you may observe successful lambda invocations reported with `503` status code.
+### Catch-all routes
 
-### CORS Setup
+`httpApi: '*'` creates the API's `$default` route, which receives every request that no other route matches. `method: '*'` matches any method on one path:
 
-With HTTP API we may configure CORS headers that'll be effective for all configured endpoints.
+```yaml
+functions:
+  catchAllAny:
+    handler: handler.catchAllAny
+    events:
+      - httpApi: '*'
+  catchAllMethod:
+    handler: handler.catchAllMethod
+    events:
+      - httpApi:
+          method: '*'
+          path: /any/method
+```
 
-Default CORS configuration can be turned on with:
+## Endpoint timeout
+
+The Framework sets the integration timeout of every route to 30 seconds, the HTTP API maximum, which can't be increased. A function that runs longer still completes, but the client gets an error response. The Framework prints a warning when a function with `httpApi` events has a `timeout` of 30 seconds or more; keep the function `timeout` below 30.
+
+## CORS setup
+
+HTTP APIs answer CORS preflight requests themselves, with one configuration for all routes. To turn on CORS with the defaults, set `provider.httpApi.cors` to `true`:
 
 ```yaml
 provider:
+  name: aws
   httpApi:
     cors: true
 ```
 
-It'll result with headers as:
+`cors: true` sends these headers:
 
-| Header                       | Value                                                                                                       |
-| :--------------------------- | :---------------------------------------------------------------------------------------------------------- |
-| Access-Control-Allow-Origin  | \*                                                                                                          |
-| Access-Control-Allow-Headers | Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token, X-Amz-User-Agent, X-Amzn-Trace-Id |
-| Access-Control-Allow-Methods | OPTIONS, _(...all defined in endpoints)_                                                                    |
+| Header                         | Value                                                                                                                     |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `Access-Control-Allow-Origin`  | `*`                                                                                                                       |
+| `Access-Control-Allow-Headers` | `Content-Type`, `X-Amz-Date`, `Authorization`, `X-Api-Key`, `X-Amz-Security-Token`, `X-Amz-User-Agent`, `X-Amzn-Trace-Id` |
+| `Access-Control-Allow-Methods` | `OPTIONS` and the methods of the service's routes; an `ANY` route adds every method                                       |
 
-If there's a need to fine tune CORS headers, then each can be configured individually as follows:
+To set the headers yourself, use the object form:
 
 ```yaml
 provider:
+  name: aws
   httpApi:
     cors:
       allowedOrigins:
@@ -114,35 +152,36 @@ provider:
       maxAge: 6000 # In seconds
 ```
 
-### JWT Authorizers
+In the object form, `allowedOrigins` defaults to `*`, `allowedHeaders` to the headers of `cors: true`, and `allowedMethods` to `OPTIONS` plus the methods of the service's routes. `allowCredentials` defaults to `false`, and `maxAge` is an integer of 0 or more.
 
-One of the available ways to restrict access to configured HTTP API endpoints is to use JWT Authorizers.
+## JWT authorizers
 
-_For deep details on that follow [AWS documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-jwt-authorizer.html)_
+A JWT authorizer validates a JSON Web Token, such as one from an Amazon Cognito user pool, before API Gateway invokes the function. AWS describes the checks in [Control access to HTTP APIs with JWT authorizers](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-jwt-authorizer.html).
 
-To ensure endpoints (as configured in `serverless.yml`) are backed with authorizers, follow below steps.
-
-#### 1. Configure authorizers on `provider.httpApi.authorizers`
+Define the authorizer under `provider.httpApi.authorizers`:
 
 ```yaml
 provider:
+  name: aws
   httpApi:
     authorizers:
       someJwtAuthorizer:
         type: jwt
         identitySource: $request.header.Authorization
-        issuerUrl: https://cognito-idp.${region}.amazonaws.com/${cognitoPoolId}
+        issuerUrl: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_EXAMPLE
         audience:
-          - ${client1Id}
-          - ${client2Id}
+          - 1example23456789
+          - 2example34567890
 ```
 
-#### 2. Configure endpoints which are expected to have restricted access:
+`identitySource`, `issuerUrl` and `audience` are required. `type: jwt` is optional: an authorizer without `type` is a JWT authorizer. `name` sets the authorizer's name in API Gateway (default: the key under `authorizers`). For a Cognito user pool, `issuerUrl` is `https://cognito-idp.<region>.amazonaws.com/<user pool ID>` and `audience` lists the app client IDs. API Gateway matches `audience` against the token's `aud` claim, or its `client_id` claim when the token has no `aud`, so the app client IDs match both Cognito ID tokens and access tokens.
+
+Then reference it in the `httpApi` event's `authorizer`, with the scopes the route requires:
 
 ```yaml
 functions:
   someFunction:
-    handler: index.handler
+    handler: handler.someFunction
     events:
       - httpApi:
           method: POST
@@ -154,15 +193,15 @@ functions:
               - user.email
 ```
 
-### Lambda (Request) Authorizers
+A route with `scopes` accepts a token whose `scope` or `scp` claim contains at least one of them. `authorizer: someJwtAuthorizer` (a string) is the same as `authorizer: { name: someJwtAuthorizer }`. A name that isn't defined under `provider.httpApi.authorizers` stops the deploy with `Event references not configured authorizer '<name>'`.
 
-Another way to restrict access to your HTTP API endpoints is to use a custom Lambda Authorizers.
+After API Gateway validates the token, the function receives its claims in `event.requestContext.authorizer.jwt.claims` (payload format `'2.0'`), for example the Cognito user ID in `event.requestContext.authorizer.jwt.claims.sub`.
 
-_For deep details on that follow [AWS documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-lambda-authorizer.html)_
+## Lambda (request) authorizers
 
-#### Using function from existing service as an authorizer
+A Lambda authorizer runs a function that decides whether API Gateway invokes the route. AWS describes the request and response formats in [Control access to HTTP APIs with AWS Lambda authorizers](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-lambda-authorizer.html).
 
-In order to use function that is a part of your `serverless.yml` service configuration as a custom authorizer, you have to first reference it by name when configuring your authorizer. In the following example, we have a function called `authorizerFunc` that is used to define `customAuthorizer` that is later used by function `hello` to restrict access to its endpoints.
+To use a function of the service as the authorizer, define the authorizer with `type: request` and the function's name in `functionName`:
 
 ```yaml
 provider:
@@ -182,14 +221,11 @@ functions:
           path: /hello
           authorizer:
             name: customAuthorizer
-
   authorizerFunc:
     handler: authorizer.handler
 ```
 
-#### Using function defined outside of your service as an authorizer
-
-It is also possible to use an existing Lambda function as a custom authorizer. In order to do that, you have to reference it's ARN when configuring your authorizer. In the following example, `customAuthorizer` references external function and is later used by function `hello` to restrict access to its endpoints.
+To use a function outside the service, give its ARN in `functionArn` instead:
 
 ```yaml
 provider:
@@ -198,34 +234,28 @@ provider:
     authorizers:
       customAuthorizer:
         type: request
-        functionArn: arn:aws:lambda:us-east-1:11111111111:function:external-authorizer
-
-functions:
-  hello:
-    handler: handler.hello
-    events:
-      - httpApi:
-          method: get
-          path: /hello
-          authorizer:
-            name: customAuthorizer
+        functionArn: arn:aws:lambda:us-east-1:123456789012:function:external-authorizer
 ```
 
-#### Detailed authorizer configuration
+The Framework creates the permission that lets API Gateway invoke the authorizer function, unless `managedExternally` is `true`.
 
-Examples presented above use minimal authorizer configuration. Below you can find all possible configuration options for custom authorizers.
+### Lambda authorizer settings
 
-- `type` - Should be set to `request` for custom Lambda authorizers.
-- `name` - Optional. Custom name for created authorizer
-- `functionName` - Name of function defined in the same service to be used as authorizer function. Cannot be defined when `functionArn` is set.
-- `functionArn` - ARN of the function to be used as authorizer function. It accepts CloudFormation intrinsic functions. Cannot be defined when `functionName` is set.
-- `resultTtlInSeconds` - Optional. Time to live for cached authorizer results, accepts values from 0 (no caching) to 3600 (1 hour). When set to non-zero value, `identitySource` must be defined as well.
-- `enableSimpleResponses` - Optional. Flag that specifies if authorizer function will return authorization responses in simple format. Defaults to `false`.
-- `payloadVersion` - Optional. Version of payload that will be sent to authorizer function. Defaults to `'2.0'`.
-- `identitySource` - Optional. One or more mapping expressions of the request parameters in form of e.g `$request.header.Auth`. Specified values are verified to be non-empty and not null by authorizer. It is a required property when `resultTtlInSeconds` is non-zero as `identitySource` is additionally used as cache key for authorizer responses caching.
-- `managedExternally` - Optional. Flag that specifies if the authorizer function is fully managed externally (e.g. exists in another AWS account). When that flag is set to `true`, creation of permission resource for the authorizer function will be skipped.
+A `request` authorizer under `provider.httpApi.authorizers` accepts these keys:
 
-Below you can find configuration example with example values set.
+| Key                     | Default       | Description                                                                                                                                                                                                                                                                                                                                                        |
+| ----------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `type`                  | Required      | `request`.                                                                                                                                                                                                                                                                                                                                                         |
+| `functionName`          | -             | A function of the service. A name that isn't a function of the service stops the deploy.                                                                                                                                                                                                                                                                           |
+| `functionArn`           | -             | The ARN of any function; accepts CloudFormation intrinsic functions. Set exactly one of `functionName` and `functionArn`.                                                                                                                                                                                                                                          |
+| `name`                  | The key       | The authorizer's name in API Gateway.                                                                                                                                                                                                                                                                                                                              |
+| `identitySource`        | None          | One or more [identity sources](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-lambda-authorizer.html#http-api-lambda-authorizer.identity-sources), such as `$request.header.Auth`. API Gateway returns 401 without invoking the authorizer when one is missing. Required when `resultTtlInSeconds` is above 0, because it is the cache key. |
+| `resultTtlInSeconds`    | API Gateway's | Seconds to cache the authorizer's result, 0 (no caching) to 3600.                                                                                                                                                                                                                                                                                                  |
+| `enableSimpleResponses` | `false`       | Lets the function return `{ "isAuthorized": true }` instead of an IAM policy.                                                                                                                                                                                                                                                                                      |
+| `payloadVersion`        | `'2.0'`       | The event format sent to the authorizer, `'1.0'` or `'2.0'`.                                                                                                                                                                                                                                                                                                       |
+| `managedExternally`     | `false`       | With `true`, the Framework doesn't create the invoke permission, for example for a function in another AWS account. The permission must exist before you deploy.                                                                                                                                                                                                   |
+
+This example sets all of them:
 
 ```yaml
 provider:
@@ -234,8 +264,7 @@ provider:
     authorizers:
       customAuthorizer:
         type: request
-        functionName: authorizerFunc # Mutually exclusive with `functionArn`
-        functionArn: arn:aws:lambda:us-east-1:11111111111:function:external-authorizer # Mutually exclusive with `functionName`
+        functionArn: arn:aws:lambda:us-east-1:123456789012:function:external-authorizer
         name: customAuthorizerName
         resultTtlInSeconds: 300
         enableSimpleResponses: true
@@ -243,21 +272,14 @@ provider:
         identitySource:
           - $request.header.Auth
           - $request.header.Authorization
-        managedExternally: true # Applicable only when using externally defined authorizer functions to prevent creation of permission resource
+        managedExternally: true
 ```
 
-### AWS IAM Authorization
+## AWS IAM authorization
 
-It is also possible to secure your HTTP API endpoints by taking advantage of AWS IAM Policies.
-
-_For deep details on that follow [AWS documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-control-access-using-iam-policies-to-invoke-api.html)_
-
-In order to do that, you need to set `authorizer` with `type: aws_iam` on `httpApi` event, as seen on the example below:
+To require callers to sign requests with AWS credentials ([IAM authorization](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-access-control-iam.html)), set the `httpApi` event's `authorizer.type` to `aws_iam`:
 
 ```yaml
-provider:
-  name: aws
-
 functions:
   hello:
     handler: handler.hello
@@ -269,19 +291,20 @@ functions:
             type: aws_iam
 ```
 
-### Access logs
+With `type: aws_iam`, the authorizer takes no other keys; `name`, `id` or `scopes` stop the deploy. Callers need `execute-api:Invoke` on the route.
 
-**Note:** If `logs.httpApi` is not set at all, HTTP API logging will be disabled.
+## Access logs
 
-Deployed stage can have access logging enabled, for that just turn on logs for HTTP API in provider settings as follows:
+To turn on access logs for the API's stage, set `provider.logs.httpApi` to `true`:
 
 ```yaml
 provider:
+  name: aws
   logs:
     httpApi: true
 ```
 
-Default logs format is:
+Without `logs.httpApi`, the stage has no access logs. The Framework creates the log group `/aws/http-api/<stack name>` (by default `/aws/http-api/<service>-<stage>`) and points the stage's access logs at it. The log group keeps logs for `provider.logRetentionInDays` days when that is set, and indefinitely otherwise. HTTP API access logs don't use the account-level CloudWatch role that REST API execution logs need; the identity that deploys needs the CloudWatch Logs permissions in [Configure logging for HTTP APIs](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-logging.html). The default format is:
 
 ```json
 {
@@ -296,122 +319,33 @@ Default logs format is:
 }
 ```
 
-It can be overridden via `format` setting:
+To change it, set `format` to a string with the [variables for access logs](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-logging-variables.html) you need:
 
 ```yaml
 provider:
+  name: aws
   logs:
     httpApi:
       format: '{ "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime" }'
 ```
 
-See [AWS HTTP API Logging](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-logging-variables.html) documentation for more info on variables that can be used
+## Event payload format
 
-### Reusing HTTP API in different services
-
-We may attach configured endpoints to HTTP API created externally. For that provide HTTP API id in provider settings as follows:
+HTTP APIs send Lambda functions events in [payload format](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-lambda.html) `'2.0'` by default. Format `'1.0'` adds `multiValueHeaders` and `multiValueQueryStringParameters`, and its response format differs. To change the format for every function, set `provider.httpApi.payload`:
 
 ```yaml
 provider:
-  httpApi:
-    id: xxxx # id of externally created HTTP API to which endpoints should be attached.
-```
-
-You can use AWS Fn::ImportValue function as well to reference an HTTP API created within another Cloud Formation stack and whose id is exported.
-
-```yaml
-provider:
-  httpApi:
-    id:
-      Fn::ImportValue: xxxx # name of the exported value representing the external HTTP API id
-```
-
-In such case no API and stage resources are created, therefore extending HTTP API with CORS, access logs settings or authorizers is not supported.
-
-## HTTP API URL
-
-When deploying functions with `httpApi` events, the URL of the HTTP API will be displayed in the `serverless deploy` and `serverless info` output.
-
-The URL is also exported as a CloudFormation output under the `HttpApiUrl` output.
-
-## Shared Authorizer
-
-For external HTTP API you can use shared authorizer in similar manner to RestApi. When using shared Lambda custom authorizer, you need to set `type` to `request`. Example configuration could look like:
-
-```yml
-httpApi:
-    id: xxxx # Required
-
-functions:
-  createUser:
-     ...
-    events:
-      - httpApi:
-          path: /users
-          ...
-          authorizer:
-            # Type of referenced authorizer
-            type: jwt
-            # Provide authorizerId
-            id:
-              Ref: ApiGatewayAuthorizer  # or hard-code Authorizer ID
-            scopes: # Optional - List of Oauth2 scopes
-              - myapp/myscope
-
-  deleteUser:
-     ...
-    events:
-      - httpApi:
-          path: /users/{userId}
-          ...
-          authorizer:
-            # Type of referenced authorizer
-            type: jwt
-            # Provide authorizerId
-            id:
-              Ref: ApiGatewayAuthorizer  # or hard-code Authorizer ID
-            scopes: # Optional - List of Oauth2 scopes
-              - myapp/anotherscope
-
-resources:
-  Resources:
-    ApiGatewayAuthorizer:
-      Type: AWS::ApiGatewayV2::Authorizer
-      Properties:
-        ApiId:
-          Ref: YourApiGatewayName
-        AuthorizerType: JWT
-        IdentitySource:
-          - $request.header.Authorization
-        JwtConfiguration:
-          Audience:
-            - Ref: YourCognitoUserPoolClientName
-          Issuer:
-            Fn::Join:
-              - ""
-              - - "https://cognito-idp."
-                - "${opt:region, self:provider.region}"
-                - ".amazonaws.com/"
-                - Ref: YourCognitoUserPoolName
-```
-
-### Event / payload format
-
-HTTP API offers only a 'proxy' option for Lambda integration where an event submitted to the function contains the details of HTTP request such as headers, query string parameters etc.
-There are two formats for this event available (see [Working with AWS Lambda proxy integrations for HTTP APIs](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-lambda.html)), with the default being 2.0. It is possible to downgrade to 1.0 version by specifying `payload`. The payload version could be configured globally as:
-
-```yaml
-provider:
+  name: aws
   httpApi:
     payload: '1.0'
 ```
 
-The payload version can also be specified at the function level with httpApi.payload property and it will take precedence over the payload version configured at the provider level. It can be configured as:
+To change it for one function, set `httpApi.payload` on the function; it takes precedence over `provider.httpApi.payload`:
 
 ```yaml
 functions:
   hello:
-    handler: index.handler
+    handler: handler.hello
     httpApi:
       payload: '1.0'
     events:
@@ -420,104 +354,145 @@ functions:
           method: GET
 ```
 
-### Detailed Metrics
+Allowed values are `'1.0'` and `'2.0'`, as strings.
 
-With HTTP API we may configure detailed metrics that can be used setup monitoring and alerting in Cloudwatch.
+## Detailed metrics
 
-Detailed Metrics can be turned on with:
+To turn on [detailed CloudWatch metrics](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-metrics.html) for each route (default: off), set `provider.httpApi.metrics`:
 
 ```yaml
 provider:
+  name: aws
   httpApi:
     metrics: true
 ```
 
-### Tags
+## Tags
 
-When using HTTP API, it is possible to tag the corresponding API Gateway resources. By setting `provider.httpApi.useProviderTags` to `true`, all tags defined on `provider.tags` will be applied to API Gateway and API Gateway Stage.
+The Framework applies `provider.tags` to the HTTP API it creates and to the API's stage:
 
 ```yaml
 provider:
+  name: aws
   tags:
     project: myProject
-  httpApi:
-    useProviderTags: true
 ```
 
-In the above example, the tag project: myProject will be applied to API Gateway and API Gateway Stage.
+With `provider.tags` set, tags added to the API outside the Framework are removed on the next deploy. `provider.httpApi.useProviderTags` is deprecated and has no effect; remove it.
 
-_Note: If the API Gateway has any existing tags applied outside of Serverless Framework, they will be removed during deployment._
+## API name
 
-### Disable Default Endpoint
+The Framework names the HTTP API `<stage>-<service>`. To name it `<service>-<stage>`, set `provider.httpApi.shouldStartNameWithService` to `true`. To choose the name, set `provider.httpApi.name`, which takes precedence:
 
-By default, clients can invoke your API with the default https://{api_id}.execute-api.{region}.amazonaws.com endpoint. To require that clients use a custom domain name to invoke your API, disable the default endpoint.
-
-```yml
+```yaml
 provider:
+  name: aws
+  httpApi:
+    name: my-custom-api-name
+```
+
+## Disable default endpoint
+
+Clients can call the API at its `execute-api` URL. To allow calls only through a [custom domain](#custom-domains), set `provider.httpApi.disableDefaultEndpoint` to `true`:
+
+```yaml
+provider:
+  name: aws
   httpApi:
     disableDefaultEndpoint: true
 ```
 
-### Service Naming
+## Reuse an HTTP API from another service
 
-You can use the `shouldStartNameWithService` option to change the naming scheme for HTTP API from the default `${stage}-${service}` to `${service}-${stage}`.
+To add the service's routes to an HTTP API that another service or stack manages, set `provider.httpApi.id` to the API's ID:
 
-```yml
+```yaml
 provider:
+  name: aws
   httpApi:
-    shouldStartNameWithService: true
+    id: a1b2c3d4e5
+```
+
+`id` also accepts `Fn::ImportValue` with the name of a CloudFormation export that holds the ID:
+
+```yaml
+provider:
+  name: aws
+  httpApi:
+    id:
+      Fn::ImportValue: my-shared-http-api-id
+```
+
+The Framework then creates the routes, integrations and permissions, but not the API, its stage, or the `HttpApiId` and `HttpApiUrl` outputs. The routes reach clients through a stage of that API with automatic deployment, or after you deploy that API's stage yourself. The API-level settings stop the deploy with an error: `provider.httpApi.cors` with `Cannot setup CORS rules for externally configured HTTP API`, `provider.httpApi.authorizers` with `Cannot setup authorizers for externally configured HTTP API`, and `provider.logs.httpApi` with `Cannot setup access logs for externally configured HTTP API`.
+
+## Shared authorizer
+
+With `provider.httpApi.id`, a route can use an authorizer that already exists on that API: set the `httpApi` event's `authorizer.id` to the authorizer's ID and `type` to `jwt` or `request`. Without `type`, the route uses it as a JWT authorizer. `authorizer.id` without `provider.httpApi.id` stops the deploy with `Event references external authorizer '<id>', but httpApi is part of the current stack.`
+
+This example creates a JWT authorizer on the shared API under `resources` and uses it for two routes:
+
+```yaml
+provider:
+  name: aws
+  httpApi:
+    id: a1b2c3d4e5
+
+functions:
+  createUser:
+    handler: users.create
+    events:
+      - httpApi:
+          path: /users
+          method: post
+          authorizer:
+            type: jwt
+            id:
+              Ref: ApiGatewayAuthorizer # or the authorizer ID
+            scopes: # Optional
+              - myapp/myscope
+  deleteUser:
+    handler: users.delete
+    events:
+      - httpApi:
+          path: /users/{userId}
+          method: delete
+          authorizer:
+            type: jwt
+            id:
+              Ref: ApiGatewayAuthorizer
+            scopes:
+              - myapp/anotherscope
+
+resources:
+  Resources:
+    ApiGatewayAuthorizer:
+      Type: AWS::ApiGatewayV2::Authorizer
+      Properties:
+        ApiId: a1b2c3d4e5
+        Name: shared-jwt
+        AuthorizerType: JWT
+        IdentitySource:
+          - $request.header.Authorization
+        JwtConfiguration:
+          Audience:
+            - 1example23456789
+          Issuer: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_EXAMPLE
 ```
 
 ## Custom domains
 
-API Gateway generates URLs for HTTP APIs in the following format:
-
-```
-https://<random>.execute-api.<region>.amazonaws.com/
-```
-
-It is possible to replace those URLs by a custom domain.
-
-Step 1, create an HTTPS certificate in AWS ACM:
-
-- Open [AWS ACM](https://console.aws.amazon.com/acm/home) (AWS Certificate Manager)
-- Switch to the region of your application
-- Click "Request a certificate"
-- Select "Request a public certificate" and continue
-- Add your domain and continue
-- Choose the domain validation of your choice:
-  - Email validation will require you to click a link you will receive in an email sent to admin@your-domain.com
-  - Domain validation will require you to add CNAME entries to your DNS configuration
-- Validate the domain via the method chosen above
-
-Step 2, set up the custom domain in API Gateway:
-
-- Open [API Gateway's "Custom Domain" configuration](https://console.aws.amazon.com/apigateway/main/publish/domain-names)
-- Switch to the region of your application
-- Click "Create"
-- Enter your domain name, select the certificate you created above and validate the page
-- After the domain is created, click the "API mappings" tab
-- Click "Configure API mappings" and "Add new mapping"
-- Select your HTTP API and the `$default` stage
-- Click "Save"
-
-Step 3, configure the DNS of the domain:
-
-- If using Route53:
-  - Open the Hosted Zone in the [Route53 console](https://console.aws.amazon.com/route53/v2/hostedzones)
-  - Click "Create record"
-  - Select "Record type" of type "A"
-  - "Route traffic to": select "Alias", and then select your API Gateway
-  - Finish the record creation
-- If using any other domain registrar
-  - Open the "Configurations" tab on the custom domain name you just created
-  - Note the "API Gateway domain name" which should look like this: `d-1234567890.execute-api.us-east-1.amazonaws.com`
-  - Create a CNAME entry to point your domain name to the API Gateway domain
-
-Once a custom domain is set up, you can [disable the default API Gateway endpoint](#disable-default-endpoint):
+API Gateway serves an HTTP API at `https://<api-id>.execute-api.<region>.amazonaws.com/`. To serve it at your own domain name, set `provider.domain`; the Framework reuses or requests the ACM certificate and creates the API Gateway custom domain, the API mapping and the Route 53 records:
 
 ```yaml
 provider:
-  httpApi:
-    disableDefaultEndpoint: true
+  name: aws
+  domain: api.example.com
 ```
+
+The domain maps to the `$default` stage of the HTTP API that the service creates, not to an API set with `provider.httpApi.id`. When the service also has `http` (REST) or `websocket` events, use the object form, `domain: { name: api.example.com, apiType: http }`, as [API types](../guide/domains.md#api-types) shows; without `apiType` the deploy stops with `Multiple API types detected in CloudFormation template`. [Custom domains](../guide/domains.md) explains the certificate lookup, DNS outside Route 53 and every option. To set the domain up yourself instead, create an ACM certificate in the service's Region, create the [custom domain name](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-custom-domain-names.html) in API Gateway with an API mapping to the API's `$default` stage, then point a DNS record at the domain's API Gateway domain name (`d-<id>.execute-api.<region>.amazonaws.com`).
+
+## Related
+
+- [HTTP API settings in the `serverless.yml` reference](../guide/serverless.yml.md#api-gateway-v2-http-api)
+- [REST API events](./apigateway.md): the `http` event and API Gateway v1.
+- [Custom domains](../guide/domains.md)

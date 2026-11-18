@@ -1,16 +1,15 @@
 <!--
-title: Serverless Framework - Parameters
-description: Learn how to use parameters in Serverless Framework for adaptable configurations, secure secret storage, and shared configuration values. This guide covers CLI parameters, stage-specific parameters, and Serverless Dashboard parameters.
-short_title: Serverless Parameters
+title: Parameters
+description: Set parameters per stage in serverless.yml, pass them with --param or store them in the Dashboard, and read them with ${param:...}.
+short_title: Parameters
 keywords:
   [
     'Serverless Framework',
     'parameters',
-    'configuration',
-    'CLI parameters',
     'stage parameters',
-    'Serverless Dashboard',
-    'secure secrets',
+    'param variable',
+    'CLI parameters',
+    'Serverless Dashboard parameters',
   ]
 -->
 
@@ -22,121 +21,142 @@ keywords:
 
 # Parameters
 
-Parameters can be defined in `serverless.yml`, [Serverless Dashboard](https://app.serverless.com) or passed via CLI with `--param="<key>=<value>"` flag. They can be used for example to:
+Parameters are named values that `serverless.yml` reads with `${param:<name>}`. Use them to give each stage its own settings (a domain, a table size, an API key), to keep secrets out of `serverless.yml` by storing them in the Serverless Framework Dashboard, and to pass values between services in [Serverless Compose](./compose.md). A parameter can come from `stages` in `serverless.yml`, the `--param` option, the Dashboard or Compose; [Inheritance and overriding](#inheritance-and-overriding) gives the order.
 
-- adapt the configuration based on the stage
-- store secrets securely
-- share configuration values between team members
+This `serverless.yml` sets a `domain` parameter for every stage and overrides it for `prod`:
+
+```yaml
+# serverless.yml
+service: my-service
+
+stages:
+  default:
+    params:
+      domain: ${sls:stage}.preview.example.com
+  prod:
+    params:
+      domain: example.com
+
+provider:
+  name: aws
+  runtime: nodejs24.x
+  environment:
+    APP_DOMAIN: ${param:domain}
+```
+
+`serverless deploy --stage prod` sets `APP_DOMAIN` to `example.com`; `serverless deploy --stage dev` sets it to `dev.preview.example.com`.
+
+## Stage parameters
+
+Stage parameters live in `serverless.yml` under `stages.<stage>.params`, where `<stage>` is a stage name (letters, digits and hyphens) or `default`. Parameters under `default` apply to every stage; a parameter under a stage's own key wins over the `default` one for that stage.
+
+```yaml
+# serverless.yml
+stages:
+  default:
+    params:
+      tableReadCapacity: 1
+  prod:
+    params:
+      tableReadCapacity: 10
+```
+
+The current stage is `--stage`, else `provider.stage`, else `dev`. Values can be any YAML type (strings, numbers, lists, objects) and can use other variables, such as `${env:...}` or `${ssm:...}`. A stage key can also hold `observability` and `resolvers` settings besides `params`.
 
 ## CLI parameters
 
-Parameters can be passed directly via CLI `--param` flag, following the pattern `--param="<key>=<value>"`:
+To set a parameter for one command, pass `--param="<key>=<value>"`, once per parameter:
 
+```bash
+serverless deploy --param="domain=example.com" --param="key=value"
 ```
-serverless deploy --param="domain=myapp.com" --param="key=value"
-```
-
-Parameters can then be used via the `${param:XXX}` variables:
 
 ```yaml
+# serverless.yml
 provider:
   environment:
     APP_DOMAIN: ${param:domain}
     KEY: ${param:key}
 ```
 
-## Stage parameters
+The key is everything before the first `=`; the value is everything after it and may contain `=`. Trailing whitespace is trimmed, and the value is always a string. A value without `=`, with nothing before the first `=`, or with nothing after it, stops the command with:
 
-`stages` allows you to set Parameters and other configuration details in a Stage-specific way. This is the new, preferred method for defining Parameters, which was launched in V.4. We'll be launching many features for the `stages` property, so we recommend embracing it.
-
-Parameters can be defined **for each stage** in `serverless.yml` under the `stages.<stage>.params` key:
-
-```yaml
-stages:
-  prod:
-    params:
-      domain: myapp.com
-  dev:
-    params:
-      domain: preview.myapp.com
-```
-
-Use the `default` key to define parameters that apply to all stages by default:
-
-```yaml
-stages:
-  default:
-    params:
-      domain: ${sls:stage}.preview.myapp.com
-  prod:
-    params:
-      domain: myapp.com
-  dev:
-    params:
-      domain: preview.myapp.com
-```
-
-Parameters can then be used via the `${param:XXX}` variables:
-
-```yaml
-provider:
-  environment:
-    APP_DOMAIN: ${param:domain}
-```
-
-The variable will be resolved based on the current stage.
-
-## Params property
-
-You can also set stage-specific parameters using the `params` top-level property, as show below. However, using the `stages` top-level property as shown above is the preferred and recommended way of setting parameters in the Serverless Framework V4.
-
-```yml
-# serverless.yml
-
-params:
-  default:
-    domain: ${sls:stage}.myapi.com
-  prod:
-    domain: myapi.com
-  dev:
-    domain: dev.myapi.com
+```text
+Encountered invalid "--param" CLI option value: "<value>". Supported format: "--param='<key>=<val>'"
 ```
 
 ## Serverless Dashboard parameters
 
-[Serverless Dashboard](https://www.serverless.com/secrets) lets you create and manage parameters, which is perfect for storing secrets securely or sharing configuration values across team members.
+The [Serverless Framework Dashboard](https://app.serverless.com) stores parameters for a service (all its stages) or for one instance of it (one stage and region). Use Dashboard parameters for secrets and for values your team shares: the Dashboard stores them encrypted and decrypts them when the CLI fetches them for a command, or when you view them in the Dashboard.
 
-On top of that, Dashboard parameters can be stored on the service (applies to all stages) or on a specific instance (applies to a specific stage).
-
-Dashboard parameters are treated as sensitive values, they are always encrypted at rest, and only decrypted during deployment or to view them in the dashboard.
-
-Just like any other parameter, they can be used in `serverless.yml` via the `${param:XXX}` variables:
+Read them like any other parameter:
 
 ```yaml
+# serverless.yml
+org: myorg
+app: my-app
+service: my-service
+
 provider:
   environment:
     STRIPE_SECRET_KEY: ${param:stripeSecret}
 ```
 
+The CLI fetches Dashboard parameters only when both of these are true:
+
+- `org`, `app` and `service` are set in `serverless.yml`. In a Compose project, the org of the Compose run can stand in for `org`.
+- The CLI is signed in with `serverless login` or an Access Key (`SERVERLESS_ACCESS_KEY`). With a License Key, a service that sets `app` stops with an error that starts with `This Service is enabled for Serverless Framework Dashboard because the "app" property is set.`
+
+The CLI fetches the parameters of the service and of the instance that matches the app, the service, the stage (`--stage`, else `provider.stage`, else `dev`) and the region (`--region`, else `provider.region`, else `us-east-1`). An instance parameter replaces a service parameter of the same name. The region for this lookup doesn't come from `AWS_REGION` or an `aws` resolver's `region`, which can set the region a deploy goes to; set `provider.region` or pass `--region` so the two agree.
+
 ### Creating Serverless Dashboard parameters
 
-Parameters can be created in the [Dashboard](https://app.serverless.com/) at the service level (applies to all stages) or instance level (stage-specific).
+Create parameters in the [Dashboard](https://app.serverless.com/) on the service (all stages) or on an instance (one stage and region):
 
-To manage parameters on a service, go to the **apps** section of the dashboard, and select **settings** under the **...** menu.
+- To manage a service's parameters, go to the **apps** section, open the **...** menu of the service and select **settings**.
+- To manage an instance's parameters, go to the **app** section, select the instance and open the **params** tab.
 
-To manage parameters on an instance, go to the **app** section of the dashboard, select the instance, and go to the **params** tab.
+## Compose parameters
+
+In a [Serverless Compose](./compose.md) project, `serverless-compose.yml` can pass parameters to its services: to all of them per stage under `stages.<stage>.params`, or to one service under `services.<name>.params`, including outputs of other services. The service reads them with `${param:<name>}`. They are passed only when the command runs through Compose.
 
 ## Inheritance and overriding
 
-Parameters can be defined in `serverless.yml` per stage, as well as in Serverless Dashboard on the service or the instance (stage). Here is the priority used to resolve a `${param:XXX}` variable:
+When several sources set the same parameter, `${param:<name>}` takes the first one found in this order:
 
-- First, look in params passed with `--param` CLI flag
-- If not found, then look in `stages.<stage>.params` in `serverless.yml`
-- If not found, then look in `stages.default.params` in `serverless.yml`
-- If not found, then look in the instance's parameters in the Dashboard
-- If not found, then look in the service's parameters in the Dashboard
-- If not found, throw an error, or use the fallback value if one was provided: `${param:XXX, 'default value'}`
+1. `--param` on the command line.
+2. `stages.<stage>.params` in `serverless.yml`, or `params.<stage>` (deprecated).
+3. `stages.default.params` in `serverless.yml`, or `params.default` (deprecated).
+4. Dashboard parameters, an instance parameter before a service parameter.
+5. Parameters passed by [Serverless Compose](./compose.md).
 
-This gives you flexibility to mix `serverless.yml` parameters as well as secure Serverless Dashboard parameters.
+When no source sets the parameter, the variable's fallback value is used (`${param:domain, 'example.com'}`). Without a fallback, the command stops with an error that starts with:
 
-This is especially useful in development when deploying to ephemeral stages (e.g. "feature-x"). The stage might not have any parameter, therefore it will default to the parameters set on the service. However, in other stages, like "prod", or "staging", you may override the service-level parameters with stage-level parameters to use values unique to that stage.
+```text
+Cannot resolve '...' variable at '...'. No value is available for this variable, and no default value was provided.
+```
+
+This order lets you combine sources. For example, set a shared value on the service in the Dashboard; a new stage such as `feature-x` uses it, and `prod` or `staging` override it with `stages.<stage>.params` or an instance parameter.
+
+Parameters under `stages.default.params` in `serverless.yml` also win over Dashboard parameters, so a `default` value hides a Dashboard parameter of the same name in every stage. For a value that applies only when the Dashboard has none, use the variable's fallback instead: `${param:stripeSecret, 'dev-placeholder'}`.
+
+## The params property
+
+Deprecated: use `stages.<stage>.params` instead. The top-level `params` property sets parameters per stage, with `default` for all stages:
+
+```yaml
+# serverless.yml
+params:
+  default:
+    domain: ${sls:stage}.example.com
+  prod:
+    domain: example.com
+```
+
+`params` still resolves, at the same place in the order as its `stages` counterpart ([Inheritance and overriding](#inheritance-and-overriding)), and the CLI prints no warning for it. A `serverless.yml` can't set both top-level `params` and `stages`: with both, every command stops with an error that starts with `"params" and "stages" cannot be used together in the top-level of serverless.yml.` To migrate, move each `params.<stage>` block to `stages.<stage>.params`; see [Upgrading to v4](./upgrading-v4.md#updated-stages-syntax).
+
+## Related
+
+- [Variables](./variables/README.md): the other variable sources `serverless.yml` can read.
+- [Serverless Compose](./compose.md): pass parameters and outputs between services.
+- [Dashboard Providers](./dashboard/providers.md): AWS credentials from the Dashboard, looked up for the same instance.
