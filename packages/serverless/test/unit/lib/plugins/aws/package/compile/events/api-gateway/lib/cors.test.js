@@ -848,7 +848,8 @@ describe('#compileCors()', () => {
     // The generated fallback gets its own logical ID (the user's ID is
     // taken) and the negated condition, so each environment gets one
     // response and never both
-    const generated = template.Resources.ApiGatewayGatewayResponseDefault4XXCors1
+    const generated =
+      template.Resources.ApiGatewayGatewayResponseDefault4XXCors1
     expect(generated).toBeDefined()
     expect(generated.Condition).toBe('NotIsProd')
     expect(template.Conditions.NotIsProd).toEqual({

@@ -259,9 +259,7 @@ export default {
           params['gatewayresponse.header.Access-Control-Allow-Methods'],
           mergedConfig.methods,
         )
-        if (
-          params['gatewayresponse.header.Access-Control-Allow-Credentials']
-        ) {
+        if (params['gatewayresponse.header.Access-Control-Allow-Credentials']) {
           mergedConfig.allowCredentials = true
         }
         const maxAge = unquoteHeaderParam(
