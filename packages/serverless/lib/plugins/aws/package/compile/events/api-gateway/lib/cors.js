@@ -237,7 +237,12 @@ export default {
     // REST API. A previous call may already have emitted gateway responses
     // for this API, so merge with those instead of replacing them: the first
     // emitted origin wins and the header and method sets are unioned, so the
-    // CORS configuration of every path survives.
+    // CORS configuration of every path survives. Previously emitted values
+    // come first, preserving the order of the earlier synthesis.
+    const previousHeaders = []
+    const previousMethods = []
+    let previousOrigin
+    let previousMaxAge
     for (const resource of Object.values(template.Resources)) {
       if (
         resource &&
@@ -250,14 +255,14 @@ export default {
         const origin = unquoteHeaderParam(
           params['gatewayresponse.header.Access-Control-Allow-Origin'],
         )
-        if (origin) mergedConfig.origin = origin
+        if (origin && !previousOrigin) previousOrigin = origin
         unionHeaderParamValues(
           params['gatewayresponse.header.Access-Control-Allow-Headers'],
-          mergedConfig.headers,
+          previousHeaders,
         )
         unionHeaderParamValues(
           params['gatewayresponse.header.Access-Control-Allow-Methods'],
-          mergedConfig.methods,
+          previousMethods,
         )
         if (params['gatewayresponse.header.Access-Control-Allow-Credentials']) {
           mergedConfig.allowCredentials = true
@@ -265,8 +270,18 @@ export default {
         const maxAge = unquoteHeaderParam(
           params['gatewayresponse.header.Access-Control-Max-Age'],
         )
-        if (maxAge && !mergedConfig.maxAge) mergedConfig.maxAge = maxAge
+        if (maxAge && !previousMaxAge) previousMaxAge = maxAge
       }
+    }
+    if (previousOrigin) mergedConfig.origin = previousOrigin
+    mergedConfig.headers = [
+      ...new Set([...previousHeaders, ...mergedConfig.headers]),
+    ]
+    mergedConfig.methods = [
+      ...new Set([...previousMethods, ...mergedConfig.methods]),
+    ]
+    if (previousMaxAge && !mergedConfig.maxAge) {
+      mergedConfig.maxAge = previousMaxAge
     }
 
     // A static gateway response cannot echo a request origin the way the
@@ -414,14 +429,21 @@ export default {
     // response into the occupying resource when the custom resources are
     // merged, changing its RestApiId while keeping the generated headers.
     // Reuse the ID when it already holds the response this call would emit
-    // (e.g. an earlier `compileCors` call for the same REST API).
+    // (e.g. an earlier `compileCors` call for the same REST API). The
+    // preferred ID is also treated as occupied when a user-defined resource
+    // already covers this response type for the same API under a different
+    // logical ID, so the generated response gets its own ID instead of
+    // sitting next to the user's resource for the same type.
+    const userCoversType = Object.values(userResources).some(isSameResponse)
     let logicalId = baseLogicalId
     let attempt = 0
     for (;;) {
       const templateResource = templateResources[logicalId]
       const userResource = userResources[logicalId]
       if (templateResource === undefined && userResource === undefined) {
-        return logicalId
+        if (logicalId !== baseLogicalId || !userCoversType) {
+          return logicalId
+        }
       }
       if (
         templateResource !== undefined &&
