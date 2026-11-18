@@ -310,7 +310,10 @@ describe('#compileCors()', () => {
     expect(resources.ApiGatewayGatewayResponseDefault4XX).toBeUndefined()
     // Other types are still synthesized
     expect(resources.ApiGatewayGatewayResponseDefault5XX).toBeDefined()
-    expect(resources.ApiGatewayGatewayResponseUnauthorized).toBeDefined()
+    // ... except the specific 4xx types, which API Gateway already covers
+    // with the user-defined DEFAULT_4XX fallback; synthesizing them would
+    // bypass the user's custom response template
+    expect(resources.ApiGatewayGatewayResponseUnauthorized).toBeUndefined()
   })
 
   it('should not create GatewayResponse resources when corsPreflight is not defined', () => {
