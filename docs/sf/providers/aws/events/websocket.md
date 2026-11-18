@@ -1,18 +1,15 @@
 <!--
-title: Serverless Framework - AWS Lambda Events - Websocket
-description: Setting up AWS Websockets with AWS Lambda via the Serverless Framework
-short_title: AWS Lambda Events - Websocket
+title: WebSocket API Events
+description: 'Run AWS Lambda functions on Amazon API Gateway WebSocket API routes with the websocket event: authorizers, messages to clients, logs and tags.'
+short_title: WebSocket API
 keywords:
   [
-    'Serverless',
-    'Framework',
-    'AWS',
-    'Lambda',
-    'Events',
-    'AWS Websockets',
-    'Serverless AWS Websockets',
-    'AWS Lambda Event Sources',
-    'AWS Websockets Lambda Trigger',
+    'Serverless Framework',
+    'AWS Lambda WebSocket',
+    'API Gateway WebSocket API',
+    'websocket event',
+    'postToConnection',
+    'WebSocket $connect authorizer',
   ]
 -->
 
@@ -22,126 +19,186 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Websocket
+# WebSocket API Events
 
-[Websockets](https://www.w3.org/TR/websockets/) make it possible to add support for a bi-directional communication channel between clients and servers. Connection channels are kept alive and are re-used to exchange messages back-and-forth.
+The `websocket` event connects a Lambda function to a route of an [Amazon API Gateway WebSocket API](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-overview.html). Clients keep a connection open and exchange messages in both directions; API Gateway invokes the function for each route. The Framework creates one WebSocket API per service, with a stage named after the service stage, unless you attach the routes to an [existing WebSocket API](#use-an-existing-websocket-api).
 
-The Serverless Framework makes it possible to setup an [API Gateway powered](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-overview.html) Websocket backend with the help of the `websocket` event.
+This `serverless.yml` handles connects, disconnects and every message:
 
-## Event Definition
+```yaml
+# serverless.yml
+service: my-service
 
-### Simple
+provider:
+  name: aws
+  runtime: nodejs24.x
 
-The following code will setup a websocket with a `$connect` route key:
-
-```yml
 functions:
-  connectHandler:
-    handler: handler.connectHandler
+  connectionHandler:
+    handler: handler.connectionHandler
     events:
       - websocket: $connect
+      - websocket: $disconnect
+  defaultHandler:
+    handler: handler.defaultHandler
+    events:
+      - websocket: $default
 ```
 
-### Extended
+The handlers return a status code; `event.requestContext.connectionId` identifies the client:
 
-This code will setup a websocket with a `$disconnect` route key:
+```javascript
+// handler.mjs
+export const connectionHandler = async (event) => {
+  console.log(event.requestContext.eventType, event.requestContext.connectionId)
+  return { statusCode: 200 }
+}
 
-```yml
+export const defaultHandler = async (event) => {
+  console.log(event.requestContext.connectionId, event.body)
+  return { statusCode: 200 }
+}
+```
+
+After `serverless deploy`, the `ServiceEndpointWebsocket` stack output holds the URL clients connect to, `wss://<api-id>.execute-api.<region>.amazonaws.com/<stage>`. `serverless info --verbose` prints it.
+
+## Routes
+
+A `websocket` event takes a route key, as a string (`websocket: $connect`) or as `route` in an object (`websocket: { route: $connect }`). API Gateway has three predefined routes and any number of custom routes:
+
+- `$connect`: a client opens a connection.
+- `$disconnect`: the connection closed. API Gateway invokes it on a best-effort basis.
+- `$default`: a message matched no other route.
+- A custom route, such as `foo`: a message whose route selection value is `foo`.
+
+The route selection expression decides which value of a message selects the route. It defaults to `$request.body.action`, so this function receives messages like `{"action": "foo"}`:
+
+```yaml
 functions:
-  disconnectHandler:
-    handler: handler.disconnectHandler
+  customFooHandler:
+    handler: handler.fooHandler
     events:
       - websocket:
-          route: $disconnect
+          route: foo
 ```
 
-This code will setup a [RouteResponse](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-route-response.html), enabling you to respond to websocket messages by using the `body` parameter of your handler's callback response:
+## WebSocket API settings
 
-```yml
+These `provider` keys configure the WebSocket API the Framework creates:
+
+| Key                                     | Default                        | Description                                                                                                                       |
+| --------------------------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| `websocketsApiName`                     | `<stage>-<service>-websockets` | The API's name.                                                                                                                   |
+| `websocketsApiRouteSelectionExpression` | `$request.body.action`         | The [route selection expression](https://docs.aws.amazon.com/apigateway/latest/developerguide/websocket-api-develop-routes.html). |
+| `websocketsDescription`                 | `Serverless Websockets`        | The description of the API, its stage and its deployments.                                                                        |
+
+```yaml
+provider:
+  name: aws
+  websocketsApiName: custom-websockets-api-name
+  websocketsApiRouteSelectionExpression: $request.body.route
+  websocketsDescription: Custom Serverless Websockets
+```
+
+## Respond to a ws-client message
+
+To send the function's response back to the client that sent the message, set the `websocket` event's `routeResponseSelectionExpression` to `$default`, the only value it accepts. The Framework then creates a [route response](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-route-response.html), and API Gateway sends the `body` of the function's return value to the client:
+
+```yaml
 functions:
-  helloHandler:
-    handler: handler.helloHandler
+  sayHelloHandler:
+    handler: handler.sayHello
     events:
       - websocket:
           route: hello
           routeResponseSelectionExpression: $default
 ```
 
-## Routes
-
-The API-Gateway provides [4 types of routes](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-overview.html) which relate to the lifecycle of a ws-client:
-
-- `$connect` called on connect of a ws-client
-- `$disconnect` called on disconnect of a ws-client (may not be called in some situations)
-- `$default` called if there is no handler to use for the event
-- custom routes - called if the route name is specified for a handler
-
-### Example serverless.yaml
-
-This Serverless yaml will specify handlers for the `$connect`, `$disconnect`, `$default` and the custom `foo` event.
-
-```yml
-service: serverless-ws-test
-
-provider:
-  name: aws
-  runtime: nodejs14.x
-  websocketsApiName: custom-websockets-api-name
-  websocketsApiRouteSelectionExpression: $request.body.action # custom routes are selected by the value of the action property in the body
-  websocketsDescription: Custom Serverless Websockets
-
-functions:
-  connectionHandler:
-    handler: handler.connectionHandler
-    events:
-      - websocket:
-          route: $connect
-      - websocket:
-          route: $disconnect
-  defaultHandler:
-    handler: handler.defaultHandler
-    events:
-      - websocket: $default #simple event definition without extra route property
-  customFooHandler:
-    handler: handler.fooHandler
-    events:
-      - websocket:
-          route: foo # will trigger if $request.body.action === "foo"
+```javascript
+// handler.mjs
+export const sayHello = async (event) => {
+  const body = JSON.parse(event.body)
+  return {
+    statusCode: 200,
+    body: `Hello, ${body.name}`,
+  }
+}
 ```
 
-## Using Authorizers
+## Send a message to a ws-client
 
-You can enable an authorizer for your connect route by specifying the `authorizer` key in the websocket event definition.
+To send a message to a client at any time, call the [`@connections` API](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-how-to-call-websocket-api-connections.html) with the client's `connectionId`. A function that sends messages to other clients needs their `connectionId`, so store it, for example in DynamoDB from the `$connect` handler.
 
-**Note:** AWS only supports authorizers for the `$connect` route.
+This handler sends the received event back to the client that sent it, with the AWS SDK for JavaScript v3:
 
-```yml
+```javascript
+// handler.mjs
+import {
+  ApiGatewayManagementApiClient,
+  PostToConnectionCommand,
+} from '@aws-sdk/client-apigatewaymanagementapi'
+
+export const defaultHandler = async (event) => {
+  const { domainName, stage, connectionId } = event.requestContext
+  const client = new ApiGatewayManagementApiClient({
+    endpoint: `https://${domainName}/${stage}`,
+  })
+
+  await client.send(
+    new PostToConnectionCommand({
+      ConnectionId: connectionId,
+      Data: JSON.stringify(event),
+    }),
+  )
+
+  return { statusCode: 200 }
+}
+```
+
+When clients connect through a [custom domain name](../guide/domains.md), `domainName` is that domain, and the endpoint has no stage: use `https://${domainName}`, followed by the domain's [`basePath`](../guide/domains.md#base-path-mapping) when it sets one, such as `https://${domainName}/admin`.
+
+Calling the `@connections` API needs `execute-api:ManageConnections`. The Framework adds that permission, on `arn:<partition>:execute-api:*:*:*/@connections/*`, in these cases:
+
+- When the Framework creates the WebSocket API, it adds the permission to the IAM role it generates for the service, which every function without its own role uses.
+- A function with a role the Framework generates for it alone (per-function IAM roles) gets the permission when the function has a `websocket` event, also with an existing WebSocket API.
+
+The Framework adds nothing to a role you provide with `provider.iam.role` or a function's `role`, and nothing to the service role when the routes go to an existing WebSocket API. In those cases, and for a function without a `websocket` event of its own, add the permission to the function's role. See [IAM permissions for functions](../guide/iam.md).
+
+## Using authorizers
+
+To authorize clients when they connect, set `authorizer` on the `websocket` event of the `$connect` route. API Gateway supports authorizers only on `$connect`; the Framework doesn't check the route, so set it there.
+
+The `authorizer` takes the name of a function in the service:
+
+```yaml
 functions:
   connectHandler:
     handler: handler.connectHandler
     events:
       - websocket:
           route: $connect
-          authorizer: auth # references the auth function below
+          authorizer: auth
   auth:
     handler: handler.auth
 ```
 
-Or, if your authorizer function is not managed by this service, you can provide an arn instead:
+For a function that isn't in the service, give its ARN instead:
 
-```yml
+```yaml
 functions:
   connectHandler:
     handler: handler.connectHandler
     events:
       - websocket:
           route: $connect
-          authorizer: arn:aws:lambda:us-east-1:1234567890:function:auth
+          authorizer: arn:aws:lambda:us-east-1:123456789012:function:auth
 ```
 
-By default, the `identitySource` property is set to `route.request.header.Auth`, meaning that your request must include the auth token in the `Auth` header of the request. You can overwrite this by specifying your own `identitySource` configuration:
+The Framework creates a Lambda `REQUEST` authorizer and the permission that lets API Gateway invoke the authorizer function, for both forms. The authorizer reads the `Auth` header (`route.request.header.Auth`) by default; a connection request without it gets HTTP 401 without invoking the function.
 
-```yml
+To read other values, use the object form with `name` or `arn` and `identitySource`. API Gateway invokes the authorizer only when every identity source is present, so this example needs both the `Auth` header and the `Auth` query string parameter:
+
+```yaml
 functions:
   connectHandler:
     handler: handler.connectHandler
@@ -153,16 +210,13 @@ functions:
             identitySource:
               - 'route.request.header.Auth'
               - 'route.request.querystring.Auth'
-
   auth:
     handler: handler.auth
 ```
 
-With the above configuration, you can now must pass the auth token in both the `Auth` query string as well as the `Auth` header.
+With a string `arn`, the authorizer's name is the last part of the ARN, also when `name` is set. When `arn` is a CloudFormation intrinsic function instead of a string, `name` is required; without it the deploy stops with `Websocket Authorizer: Non-string "arn" needs to be accompanied with "name"`.
 
-You can also supply an ARN instead of the name when using the object syntax for the authorizer:
-
-```yml
+```yaml
 functions:
   connectHandler:
     handler: handler.connectHandler
@@ -170,157 +224,81 @@ functions:
       - websocket:
           route: $connect
           authorizer:
-            arn: arn:aws:lambda:us-east-1:1234567890:function:auth
+            arn: arn:aws:lambda:us-east-1:123456789012:function:auth
             identitySource:
               - 'route.request.header.Auth'
               - 'route.request.querystring.Auth'
-
-  auth:
-    handler: handler.auth
 ```
 
-## Send a message to a ws-client
+## Use an existing WebSocket API
 
-To send a message to a ws-client the [@connection](https://docs.amazonaws.cn/en_us/apigateway/latest/developerguide/apigateway-how-to-call-websocket-api-connections.html) command is used.
+To attach the routes to a WebSocket API that another service or stack manages, set `provider.apiGateway.websocketApiId` to its ID, or to a CloudFormation intrinsic function such as `Fn::ImportValue`:
 
-It uses the URL of the websocket API and most importantly the `connectionId` of the ws-client's connection. If you want to send a message to a ws-client from another function, you need this `connectionId` to address the ws-client.
-
-Example on how to respond with the complete `event` to the same ws-client:
-
-```js
-const sendMessageToClient = (url, connectionId, payload) =>
-  new Promise((resolve, reject) => {
-    const apigatewaymanagementapi = new AWS.ApiGatewayManagementApi({
-      apiVersion: '2018-11-29',
-      endpoint: url,
-    })
-    apigatewaymanagementapi.postToConnection(
-      {
-        ConnectionId: connectionId, // connectionId of the receiving ws-client
-        Data: JSON.stringify(payload),
-      },
-      (err, data) => {
-        if (err) {
-          console.log('err is', err)
-          reject(err)
-        }
-        resolve(data)
-      },
-    )
-  })
-
-module.exports.defaultHandler = async (event, context) => {
-  const domain = event.requestContext.domainName
-  const stage = event.requestContext.stage
-  const connectionId = event.requestContext.connectionId
-  const callbackUrlForAWS = util.format(
-    util.format('https://%s/%s', domain, stage),
-  ) //construct the needed url
-  await sendMessageToClient(callbackUrlForAWS, connectionId, event)
-
-  return {
-    statusCode: 200,
-  }
-}
+```yaml
+provider:
+  name: aws
+  apiGateway:
+    websocketApiId: a1b2c3d4e5
 ```
 
-## Respond to a ws-client message
-
-To respond to a websocket message from your handler function, [Route Responses](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-route-response.html) can be used. Set the `routeResponseSelectionExpression` option to enable this. This option allows you to respond to a websocket message using the `body` parameter.
-
-```yml
-functions:
-  sayHelloHandler:
-    handler: handler.sayHello
-    events:
-      - websocket:
-          route: hello
-          routeResponseSelectionExpression: $default
-```
-
-```js
-module.exports.helloHandler = async (event, context) => {
-  const body = JSON.parse(event.body)
-  return {
-    statusCode: 200,
-    body: `Hello, ${body.name}`,
-  }
-}
-```
+The Framework then creates the routes, integrations and a deployment, but not the API or a stage. The deployment goes to the stage named after the service stage (for example `dev`), which must already exist on the API. `provider.logs.websocket` and `provider.websocket.useProviderTags` have no effect, and the service role doesn't get `execute-api:ManageConnections` (see [Send a message to a ws-client](#send-a-message-to-a-ws-client)).
 
 ## Logs
 
-Use the following configuration to enable Websocket logs:
+To turn on logging for the WebSocket API's stage, set `provider.logs.websocket` to `true`:
 
-```yml
-# serverless.yml
+```yaml
 provider:
   name: aws
   logs:
     websocket: true
 ```
 
-The log streams will be generated in a dedicated log group which follows the naming schema `/aws/websocket/{service}-{stage}`.
+Without `logs.websocket`, the stage has no logging. With it, the Framework turns on both access logs and execution logs. Access logs go to the log group `/aws/websocket/<service>-<stage>`, which keeps logs for `provider.logRetentionInDays` days when that is set.
 
-The default log level will be INFO. You can change this to error with the following:
+The object form changes these settings:
 
-```yml
-# serverless.yml
+```yaml
 provider:
   name: aws
   logs:
     websocket:
       level: ERROR
-```
-
-Valid values are INFO, ERROR.
-
-You can specify your own [format for API Gateway Access Logs](https://docs.aws.amazon.com/apigateway/latest/developerguide/websocket-api-logging.html) by including your preferred string in the `format` property:
-
-```yml
-# serverless.yml
-provider:
-  name: aws
-  logs:
-    websocket:
-      format: '{ "requestId":"$context.requestId",   "ip": "$context.identity.sourceIp" }'
-```
-
-**Note:** If `logs.websocket` is not set at all, WebSocket API logging will be disabled.
-
-When `logs.websocket` is set (either to `true` or as an object), both access and execution logging are enabled by default. If you want to disable one or both of them, you can do so with the following:
-
-```yml
-# serverless.yml
-provider:
-  name: aws
-  logs:
-    websocket:
-      accessLogging: false
-      executionLogging: false
-```
-
-By default, the full requests and responses data will be logged. If you want to disable like so:
-
-```yml
-# serverless.yml
-provider:
-  name: aws
-  logs:
-    websocket:
+      format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp" }'
+      accessLogging: true
+      executionLogging: true
       fullExecutionData: false
 ```
 
+| Key                 | Default                | Description                                                                                                       |
+| ------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `level`             | `INFO`                 | Execution log level, `INFO` or `ERROR`. With `executionLogging: false`, the level is `OFF`.                       |
+| `format`            | The Framework's format | The [access log format](https://docs.aws.amazon.com/apigateway/latest/developerguide/websocket-api-logging.html). |
+| `accessLogging`     | `true`                 | Writes access logs to the log group.                                                                              |
+| `executionLogging`  | `true`                 | Writes execution logs.                                                                                            |
+| `fullExecutionData` | `true`                 | Logs full request and response data in execution logs.                                                            |
+
+Any other `level` stops the deploy with `provider.logs.websocket.level is set to an invalid value`.
+
+API Gateway writes logs only with a CloudWatch Logs role set for the account in the Region. With `logs.websocket` set, the Framework sets up that role with a custom resource, as it does for REST API logs. `logs.websocket` has no `role` or `roleManagedExternally` keys: `provider.logs.restApi.role` and `provider.logs.restApi.roleManagedExternally` control the setup for both (see [REST API logs](./apigateway.md#logs)).
+
 ## Tags
 
-When using Websocket API, it is possible to tag the corresponding API Gateway resources. By setting `provider.websocket.useProviderTags` to `true`, all tags defined on `provider.tags` will be applied to API Gateway and API Gateway Stage.
+To apply `provider.tags` to the WebSocket API, set `provider.websocket.useProviderTags` to `true`:
 
 ```yaml
 provider:
+  name: aws
   tags:
     project: myProject
   websocket:
     useProviderTags: true
 ```
 
-In the above example, the tag project: myProject will be applied to API Gateway and API Gateway Stage.
+The tags go to the WebSocket API (`AWS::ApiGatewayV2::Api`); the stage isn't tagged. Without `useProviderTags`, the WebSocket API gets no tags, and when `provider.tags` is set the Framework prints a deprecation notice (`AWS_WEBSOCKET_API_USE_PROVIDER_TAGS`) suggesting `useProviderTags: true`.
+
+## Related
+
+- [WebSocket settings in the `serverless.yml` reference](../guide/serverless.yml.md#websocket-api)
+- [Custom domains](../guide/domains.md): serve the WebSocket API on your own domain name.
+- [HTTP API events](./http-api.md): request-response HTTP endpoints.

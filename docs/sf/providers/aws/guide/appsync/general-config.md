@@ -1,123 +1,118 @@
 <!--
-title: Serverless Framework - AppSync - General Configuration
-description: General configuration options for AWS AppSync with the Serverless Framework.
-short_title: AppSync - General Configuration
+title: AppSync API Configuration
+description: 'Configure the API-wide appSync keys: schema files, logging, X-Ray, visibility, query limits, environment variables, tags and esbuild.'
+short_title: AppSync General Configuration
 keywords:
   [
     'Serverless Framework',
-    'AppSync',
-    'Configuration',
-    'GraphQL',
-    'AWS',
+    'AWS AppSync configuration',
+    'AppSync schema',
+    'AppSync logging',
+    'AppSync environment variables',
   ]
 -->
 
-# General configuration
+<!-- DOCS-SITE-LINK:START automatically generated  -->
 
-## Quick start
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/appsync/general-config)
+
+<!-- DOCS-SITE-LINK:END -->
+
+# AppSync API configuration
+
+The top-level `appSync` block in `serverless.yml` holds one AppSync GraphQL API per service. This page covers the keys that apply to the whole API: its name, schema files, logging, tracing, visibility, query limits, environment variables, tags and the esbuild options for JavaScript resolvers. Data sources, resolvers, authentication and the other features have their own pages, linked from the [AppSync overview](./README.md).
+
+The following `appSync` block sets the API-wide keys alongside the required `name` and `authentication`:
 
 ```yaml
-service: my-app
-
-provider:
-  name: aws
-
 appSync:
-  name: my-api
-
+  name: blog-api
+  schema: schema.graphql
   authentication:
     type: API_KEY
-
-  apiKeys:
-    - name: myKey
-      expiresAfter: 1M
-
-  dataSources:
-    my-table:
-      type: AMAZON_DYNAMODB
-      description: 'My table'
-      config:
-        tableName: my-table
-
-  resolvers:
-    Query.user:
-      dataSource: my-table
+  xrayEnabled: true
+  introspection: false
+  queryDepthLimit: 10
+  resolverCountLimit: 500
+  logging:
+    level: ERROR
+    retentionInDays: 14
+  environment:
+    POSTS_TABLE: !Ref PostsTable
+  tags:
+    team: blog
 ```
 
-## Configuration
+## AppSync API-wide keys
 
-- `name`: The name of this AppSync API
-- `schema`: The filename of the schema file. Defaults to `schema.graphql`. [Read more](#Schema)
-- `authentication`: See [Authentication](authentication.md)
-- `additionalAuthentications`: See [Authentication](authentication.md)
-- `apiKeys`: See [API Keys](API-keys.md)
-- `domain`: See [Custom domains](custom-domain.md)
-- `dataSources`: See [DataSources](dataSources.md)
-- `resolvers`: See [Resolvers](resolvers.md)
-- `pipelineFunctions`: See [Pipeline functions](pipeline-functions.md)
-- `environment`: A list of environment variables for the API. See [Official Documentation](https://docs.aws.amazon.com/appsync/latest/devguide/environment-variables.html)
-- `caching`: See [Cacing](caching.md)
-- `waf`: See [Web Application Firefall](WAF.md)
-- `logging`: See [Logging](#Logging)
-- `xrayEnabled`: Boolean. Enable or disable X-Ray tracing.
-- `visibility`: Optional. `GLOBAL` or `PRIVATE`. **Changing this value requires the replacement of the API.**
-- `introspection`: Boolean. Whether to enable introspection or not. Defaults to `true`.
-- `queryDepthLimit`: Optional. The maximum amount of nested level allowed per query. Must be between 1 and 75. If not specified: unlimited.
-- `resolverCountLimit`: Optional. The maximum number of resolvers a query can process. Must be between 1 and 1000. If not specified: unlimited.
-- `tags`: A key-value pair for tagging this AppSync API
-- `esbuild`: Custom esbuild options, or `false` See [Esbuild](#Esbuild)
+All keys sit directly under `appSync`. Keys not listed on this page or the linked pages are rejected with `invalid (unknown) property`.
 
-## Schema
+| Key                         | Type                      | Default                         | Description                                                                                                                                                                                                      |
+| --------------------------- | ------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                      | string                    | Required                        | The name of the AppSync API.                                                                                                                                                                                     |
+| `authentication`            | object                    | Required                        | The default authorization mode. See [AppSync authentication](./authentication.md).                                                                                                                               |
+| `schema`                    | string or list of strings | `schema.graphql`                | Schema file paths or glob patterns, relative to the service directory. See [GraphQL schema files](#graphql-schema-files).                                                                                        |
+| `xrayEnabled`               | boolean                   | `false`                         | Enables AWS X-Ray tracing for the API.                                                                                                                                                                           |
+| `visibility`                | `GLOBAL` or `PRIVATE`     | `GLOBAL` (AppSync default)      | `PRIVATE` makes the API reachable only from a VPC endpoint. AppSync sets visibility when it creates the API, so changing this value on a deployed API replaces the API, with a new API ID and new endpoint URLs. |
+| `introspection`             | boolean                   | `true`                          | Set to `false` to reject GraphQL introspection queries.                                                                                                                                                          |
+| `queryDepthLimit`           | integer, 1–75             | No limit                        | The maximum number of nested levels in a query.                                                                                                                                                                  |
+| `resolverCountLimit`        | integer, 1–1000           | AppSync default (10000)         | The maximum number of resolvers one request can invoke.                                                                                                                                                          |
+| `environment`               | map of strings            | None                            | Environment variables for resolvers and functions. See [AppSync environment variables](#appsync-environment-variables).                                                                                          |
+| `tags`                      | map of strings            | None                            | Tags for the API. The same tags apply to the WAF web ACL the Framework creates.                                                                                                                                  |
+| `logging`                   | object                    | No logging                      | Field-level logging to CloudWatch Logs. See [AppSync logging](#appsync-logging).                                                                                                                                 |
+| `esbuild`                   | object or `false`         | esbuild with the defaults below | Options for bundling JavaScript and TypeScript resolvers. See [esbuild options for JavaScript resolvers](#esbuild-options-for-javascript-resolvers).                                                             |
+| `additionalAuthentications` | list                      | None                            | Additional authorization modes. See [AppSync authentication](./authentication.md).                                                                                                                               |
+| `apiKeys`                   | list                      | None                            | See [AppSync API keys](./API-keys.md).                                                                                                                                                                           |
+| `dataSources`               | map, or list of maps      | None                            | See [AppSync data sources](./dataSources.md).                                                                                                                                                                    |
+| `resolvers`                 | map, or list of maps      | None                            | See [AppSync resolvers](./resolvers.md).                                                                                                                                                                         |
+| `pipelineFunctions`         | map, or list of maps      | None                            | See [AppSync pipeline functions](./pipeline-functions.md).                                                                                                                                                       |
+| `substitutions`             | map                       | None                            | See [AppSync substitutions](./substitutions.md).                                                                                                                                                                 |
+| `caching`                   | object                    | No cache                        | See [AppSync caching](./caching.md).                                                                                                                                                                             |
+| `domain`                    | object                    | None                            | See [AppSync custom domain](./custom-domain.md).                                                                                                                                                                 |
+| `waf`                       | object                    | None                            | See [AppSync WAF](./WAF.md).                                                                                                                                                                                     |
 
-There are different ways to define your schema. By default the schema is found in the `schema.graphql` file. The path of the file is relative to the service directory (where your `serverless.yml` file is).
+The Framework checks the `appSync` block against its schema before packaging. With the default `configValidationMode: warn`, an invalid block prints `Invalid AppSync Configuration` followed by each problem as a warning and the command continues; with `configValidationMode: error`, the command stops; with `off`, nothing is printed.
+
+## GraphQL schema files
+
+The `appSync.schema` key names the GraphQL schema file, relative to the service directory (the directory that holds `serverless.yml`). Without it, the Framework reads `schema.graphql`:
 
 ```yaml
 appSync:
-  name: my-api
-  schema: 'mySchema.graphql'
+  name: blog-api
+  schema: api/schema.graphql
 ```
 
-### Multiple files
-
-You can specify more than one file as (an array). This is useful if you want to organize your schema into several files.
+To split the schema across files, list them, or use glob patterns:
 
 ```yaml
 appSync:
-  name: my-api
+  name: blog-api
   schema:
-    - 'schemas/user.graphql'
-    - 'schemas/posts.graphql'
+    - schemas/base.graphql
+    - schemas/users/*.graphql
 ```
 
-You can also specify glob expressions to avoid specifying each individual file.
+Before deploying, the Framework validates the schema, with the AppSync directives and scalars (such as `@aws_iam`, `@aws_subscribe` and `AWSDateTime`) predefined. To run the same check without deploying, use [`serverless appsync validate-schema`](./commands.md#validate-the-schema).
 
-```yaml
-appSync:
-  name: my-api
-  schema: 'schemas/*.graphql' # include all graphql files in the `schemas` directory
-```
+### Merging schema files
 
-### Schema stitching
-
-All the schema files will be merged together before the schema is sent to AppSync. If types are present (extended) in several files, you will need to use [Object extension](https://spec.graphql.org/October2021/#sec-Object-Extensions)
+With several schema files, the Framework merges them into one schema before sending it to AppSync. Declare `Query` and `Mutation` once, then add fields to them with [object extensions](https://spec.graphql.org/October2021/#sec-Object-Extensions) in the other files:
 
 ```graphql
-# base.graphql
-
-# You must create the types before you can extend them.
+# schemas/base.graphql
 type Query
 type Mutation
 ```
 
 ```graphql
-# users.graphql
-
+# schemas/users.graphql
 extend type Query {
-  getUser(id: ID!): User!
+  getUser(id: ID!): User
 }
 
 extend type Mutation {
-  createUser(user: UserInput!): User!
+  createUser(name: String!): User
 }
 
 type User {
@@ -126,97 +121,65 @@ type User {
 }
 ```
 
-```graphql
-# posts.graphql
+The merged schema that AppSync receives has a single `Query` type with `getUser` and a single `Mutation` type with `createUser`.
 
-extend type Query {
-  getPost(id: ID!): Post!
-}
+The merge keeps descriptions written with three double quotes (`"""`) and `&` between implemented interfaces, drops `#` comments, and sorts the type definitions alphabetically. A schema from a single file is sent unchanged, so to keep `#` comments, put the whole schema in one file.
 
-extend type Mutation {
-  createPost(post: PostInput!): Post!
-}
+## AppSync logging
 
-type Post {
-  id: ID!
-  title: String
-  author: User!
-}
-```
-
-This will result into the following schema:
-
-```graphql
-type Query {
-  getUser(id: ID!): User!
-  getPost(id: ID!): Post!
-}
-
-type Mutation {
-  createUser(user: UserInput!): User!
-  createPost(post: PostInput!): Post!
-}
-
-type User {
-  id: ID!
-  name: String!
-}
-
-type Post {
-  id: ID!
-  title: String
-  author: User!
-}
-```
-
-### Limitations and compatibility
-
-AppSync is currently using an older version of the [Graphql Specs](https://spec.graphql.org/).
-The Framework intends to use modern schemas for future-proofing. Incompatibilities will either be dropped or attempted to be fixed.
-
-**Descriptions**
-
-[Descriptions](https://spec.graphql.org/October2021/#sec-Descriptions) with three double quotes (`"""`) are not supported by AppSync and will be removed.
-
-Old-style descriptions (using `#`) are supported by AppSync but will be removed by the [stitching procedure](#schema-stitching) which does not support them\*. Comments are also not supported on [enums](https://spec.graphql.org/October2021/#sec-Enums) by AppSync.
-
-\* If you want to retain `#` comments, the workaround is to skip schema stitching by putting your whole schema into one single file.
-
-**Multiple interfaces**
-
-Types can implement multiple [interfaces](https://spec.graphql.org/October2021/#sec-Interfaces) using an ampersand `&` in GraphQL, but AppSync uses the old comma (`,`) separator. `&` is the only separator supported, but it will automatically be replaced with a `,`.
-
-## Logging
+The `appSync.logging` block sends AppSync field-level logs to CloudWatch Logs:
 
 ```yaml
 appSync:
-  name: my-api
+  name: blog-api
   logging:
     level: ERROR
     retentionInDays: 14
 ```
 
-- `level`: `ERROR`, `NONE`, `INFO`, `DEBUG` or `ALL`
-- `enabled`: Boolean, Optional. Defaults to `true` when `logging` is present.
-- `excludeVerboseContent`: Boolean, Optional. Exclude or not verbose content (headers, response headers, context, and evaluated mapping templates), regardless of field logging level. Defaults to `false`.
-- `retentionInDays`: Optional. Number of days to retain the logs. Defaults to [`provider.logRetentionInDays`](https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml#general-function-settings).
-- `roleArn`: Optional. The role ARN to use for AppSync to write into CloudWatch. If not specified, a new role is created by default.
+| Key                     | Type                                      | Default                       | Description                                                                                                                                                                |
+| ----------------------- | ----------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `level`                 | `NONE`, `ERROR`, `INFO`, `DEBUG` or `ALL` | Required                      | The field log level. `INFO` includes messages your resolvers write with `console.log`, `DEBUG` also includes `console.debug` messages, and `ALL` adds field-level tracing. |
+| `enabled`               | boolean                                   | `true`                        | Set to `false` to keep the block but turn logging off.                                                                                                                     |
+| `excludeVerboseContent` | boolean                                   | `false`                       | Leaves headers, context and evaluated mapping templates out of the logs, at any level.                                                                                     |
+| `retentionInDays`       | integer                                   | `provider.logRetentionInDays` | Days to keep the logs. When neither is set, the logs never expire.                                                                                                         |
+| `roleArn`               | string or intrinsic                       | A role the Framework creates  | The IAM role AppSync assumes to write the logs.                                                                                                                            |
 
-## Esbuild
+With logging enabled, the Framework creates the log group `/aws/appsync/apis/<api id>` with the retention above. Without `roleArn`, it also creates an IAM role that AppSync assumes, allowed `logs:CreateLogGroup`, `logs:CreateLogStream` and `logs:PutLogEvents` on that log group only. With `enabled: false`, the Framework creates no log group, no role and no log configuration. [`serverless appsync logs`](./commands.md#print-the-api-logs) prints the log group's events.
 
-By default, the Framework uses esbuild in order to bundle Javascript resolvers. TypeScript files are also transpiled into compatible JavaScript. This option allows you to pass custom options that must be passed to the esbuild command.
+## AppSync environment variables
 
-⚠️ Use these options carefully. Some options are not compatible with AWS AppSync. For more details about using esbuild with AppSync, see the [official guidelines](https://docs.aws.amazon.com/appsync/latest/devguide/resolver-reference-overview-js.html#additional-utilities)
+The `appSync.environment` map sets [AppSync environment variables](https://docs.aws.amazon.com/appsync/latest/devguide/environment-variables.html), which JavaScript resolvers read from `ctx.env` and VTL templates from `$ctx.env`. Values are strings or CloudFormation intrinsic functions:
 
-Set this option to `false` to disable esbuild completely. You code will be sent as-is to AppSync.
-
-Example:
-
-Override the target and disable sourcemap.
-
-```yml
+```yaml
 appSync:
+  name: blog-api
+  environment:
+    POSTS_TABLE: !Ref PostsTable
+    STAGE: ${sls:stage}
+```
+
+A JavaScript resolver then reads `ctx.env.POSTS_TABLE`. AppSync allows up to 50 variables per API; keys start with a letter, are at least two characters long and contain only letters, numbers and `_`; values are up to 512 characters and are always strings. For secrets, read them at run time from AWS Secrets Manager or Parameter Store instead.
+
+## esbuild options for JavaScript resolvers
+
+The Framework bundles every JavaScript or TypeScript resolver and pipeline function `code` file with esbuild into one ESM file, as AppSync requires. The `appSync.esbuild` block passes extra options to esbuild:
+
+```yaml
+appSync:
+  name: blog-api
   esbuild:
-    target: 'es2020',
+    target: es2020
     sourcemap: false
 ```
+
+Without the block, the Framework uses `target: esnext`, `sourcemap: inline`, `sourcesContent: false` and `treeShaking: true`. It always sets `platform: node`, `format: esm`, `bundle: true`, `write: false`, the entry point and `external: ['@aws-appsync/utils']`, and ignores those keys in `appSync.esbuild`. Some esbuild options produce code the `APPSYNC_JS` runtime rejects; see the AWS guidance on [bundling, TypeScript and source maps](https://docs.aws.amazon.com/appsync/latest/devguide/additional-utilities.html).
+
+To send each file to AppSync unchanged, set `esbuild: false`. Each `code` file must then be a single JavaScript ESM file whose only imports are `@aws-appsync/*` modules.
+
+## Related pages
+
+- [AppSync overview](./README.md)
+- [AppSync resolvers](./resolvers.md)
+- [AppSync CLI commands](./commands.md)
+- [Serverless.yml reference](../serverless.yml.md)

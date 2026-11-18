@@ -1,8 +1,15 @@
 <!--
-title: Serverless Framework Commands - AWS Lambda - Prune
-description: Clean up old Lambda function, layer and sandbox image versions
-short_title: Commands - Prune
-keywords: ['Serverless', 'Framework', 'AWS Lambda', 'prune', 'cleanup', 'versions']
+title: serverless prune
+description: Delete old Lambda function versions, layer versions and sandbox image versions of a deployed service, keeping the newest ones, with serverless prune.
+short_title: prune
+keywords:
+  [
+    'serverless prune',
+    'Serverless Framework CLI',
+    'delete old Lambda versions',
+    'Lambda layer versions',
+    'sandbox image versions',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -11,34 +18,84 @@ keywords: ['Serverless', 'Framework', 'AWS Lambda', 'prune', 'cleanup', 'version
 
 <!-- DOCS-SITE-LINK:END -->
 
-# AWS - Prune
+# serverless prune
 
-The `prune` command removes old versions of deployed Lambda functions, layers and [sandbox](../guide/sandboxes.md) images, keeping only the specified number of most recent versions.
+`serverless prune` deletes the old published versions of a deployed service's Lambda functions, and the old image versions of its [sandboxes](../guide/sandboxes.md), keeping the `--number` newest of each. With `--includeLayers` it also prunes layer versions, and with `--includeArtifacts` it deletes deployment artifacts that no remaining version uses. Run it by hand with this command; to prune after every deploy, set `custom.prune` as the [version pruning guide](../guide/prune.md) describes.
 
 ```bash
-serverless prune -n <number>
+serverless prune --number 3
 ```
+
+**Warning:** Deleted versions can't be restored, and [`serverless rollback function`](./rollback-function.md) can't restore code from a deleted version. Preview the run with `--dryRun --verbose` first.
 
 ## Options
 
-- `--number` or `-n` **Required.** Number of previous versions to keep.
-- `--stage` or `-s` The stage to prune.
-- `--region` or `-r` The region to prune.
-- `--function` or `-f` Limit pruning to a specific function.
-- `--layer` or `-l` Limit pruning to a specific layer.
-- `--sandbox` Limit pruning to the image versions of a specific sandbox.
-- `--includeLayers` or `-i` Include layers in pruning.
-- `--includeArtifacts` or `-a` Also mark deployment artifacts that no longer back any function or layer version, and delete sandbox zips that no remaining deployment points to (zips uploaded within the last hour are kept). Skipped on `--function`, `--layer` and `--sandbox` scoped runs.
-- `--dryRun` or `-d` Preview what would be deleted without deleting.
-- `--verbose` Enable detailed output.
+`serverless prune` accepts these options:
 
-## Layer Version Protection
+| Option               | Alias | Value     | Default                                       | Required | Description                                                                                                          |
+| -------------------- | ----- | --------- | --------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------- |
+| `--number`           | `-n`  | number    |                                               | Yes      | Number of versions to keep besides `$LATEST`, aliased versions and a sandbox's live version.                         |
+| `--function`         | `-f`  | string    | All functions                                 | No       | Prune only this function, as named under `functions`. Sandboxes are left alone.                                      |
+| `--layer`            | `-l`  | string    |                                               | No       | Prune only this layer, as named under `layers`. Without `--includeLayers`, ignored when `--function` is set.         |
+| `--sandbox`          |       | string    |                                               | No       | Prune only this sandbox's image versions, as named under `sandboxes`.                                                |
+| `--includeLayers`    | `-i`  | boolean   | `false`                                       | No       | Also prune layer versions. See [What serverless prune deletes](#what-serverless-prune-deletes) for each combination. |
+| `--includeArtifacts` | `-a`  | boolean   | `custom.prune.includeArtifacts`, else `false` | No       | Also delete unused deployment artifacts. See [Deployment artifacts](#deployment-artifacts). Skipped on scoped runs.  |
+| `--dryRun`           | `-d`  | boolean   | `false`                                       | No       | Delete nothing. With `--verbose`, list what would be deleted.                                                        |
+| `--verbose`          |       | boolean   | `false`                                       | No       | Print each version deleted, kept or selected.                                                                        |
+| `--stage`            | `-s`  | string    | `provider.stage`, else `dev`                  | No       | Stage to prune.                                                                                                      |
+| `--region`           | `-r`  | string    | `provider.region`, else `us-east-1`           | No       | AWS Region of the stage.                                                                                             |
+| `--aws-profile`      |       | string    | `provider.profile`                            | No       | AWS profile whose credentials the command uses.                                                                      |
+| `--config`           | `-c`  | file path | `serverless.yml`                              | No       | Service configuration file to use.                                                                                   |
 
-When pruning layers, a layer version that is still attached to an existing version of one of this service's own functions is retained, even if it falls outside the retained `--number`. This is derived from your local service configuration. Attachments from other services or accounts cannot be detected and remain your responsibility to manage.
+The command also accepts the options every command takes: `--param="key=value"` (repeatable), `--org`, `--app`, `--debug` and `--help` (`-h`).
 
-## Sandbox Image Versions
+## What serverless prune deletes
 
-For each sandbox, `prune` keeps the image's live version plus `--number` older versions, and never deletes a version that a MicroVM still uses or that is still building. See [Sandbox image versions](../guide/prune.md#sandbox-image-versions).
+`serverless prune` chooses what to prune from the scope options:
+
+| Options                                       | Pruned                                                                              |
+| --------------------------------------------- | ----------------------------------------------------------------------------------- |
+| None                                          | Every function, and every sandbox's image versions.                                 |
+| `--includeLayers`                             | Every function and every layer, and every sandbox's image versions.                 |
+| `--function`                                  | That function.                                                                      |
+| `--function` with `--includeLayers`           | That function and every layer.                                                      |
+| `--layer`                                     | That layer.                                                                         |
+| `--layer` with `--includeLayers`              | That layer and every function.                                                      |
+| `--function` with `--layer`                   | That function; `--layer` is ignored.                                                |
+| `--function`, `--layer` and `--includeLayers` | That function and that layer.                                                       |
+| `--sandbox`                                   | That sandbox's image versions; `--includeLayers` is ignored.                        |
+| `--sandbox` with `--function` or `--layer`    | What the same options prune without `--sandbox`, and that sandbox's image versions. |
+
+For each function, the command keeps `$LATEST`, every version a Lambda alias points to, and the `--number` newest other versions, and deletes the rest. Aliased versions don't count toward `--number`. A Lambda@Edge version that Lambda can't delete because it is replicated is skipped with a warning.
+
+## Layer versions
+
+For each layer, `serverless prune` keeps the `--number` newest versions. An older version that is still attached to an existing version of one of this service's functions is kept too, even when the same run deletes that function version; the next run then deletes the layer version. Attachments from other services or accounts can't be detected, so a layer used only outside this service loses its old versions.
+
+## Sandbox image versions
+
+For each sandbox, `serverless prune` keeps the image's live version plus `--number` older successful versions, and never deletes a version that a MicroVM still uses or that is still building. Failed versions are deleted without counting toward `--number`. A sandbox that isn't deployed is skipped. Pruning sandbox image versions needs `lambda:GetMicrovmImage`, `lambda:ListMicrovmImageVersions`, `lambda:GetMicrovmImageVersion`, `lambda:ListMicrovms` and `lambda:DeleteMicrovmImageVersion`; without them, the command stops with an error that names them. See [Sandbox image versions](../guide/prune.md#sandbox-image-versions) in the pruning guide.
+
+## Deployment artifacts
+
+With `--includeArtifacts`, or with `custom.prune.includeArtifacts: true` in `serverless.yml`, after pruning versions, `serverless prune` looks at the stage's deployment folders in the deployment bucket that are older than the newest `provider.deploymentBucket.maxPreviousDeploymentArtifacts` (default `5`). A folder whose code no remaining function or layer version uses is deleted with plain S3 delete requests. Any folder the command can't prove unused is kept. For a service with sandboxes, sandbox zips that no remaining deployment points to are deleted, except zips uploaded within the last hour. The sweep is skipped on runs scoped with `--function`, `--layer` or `--sandbox`. See [Artifact retention in reference mode](../../../guides/deployment-bucket.md#artifact-retention-in-reference-mode).
+
+**Warning:** On a versioned bucket (the Framework-managed deployment bucket, and any bucket used with `codeStorageMode: reference`), the delete requests write delete markers and the object versions stay recoverable. On an unversioned bucket (an in-stack deployment bucket without `deploymentBucket.versioning: true`, or a bucket you name that has versioning off), the deletion is permanent. Run with `--dryRun --verbose` first.
+
+## Side effects and CI use
+
+- `serverless prune` deletes function versions, layer versions and sandbox image versions in AWS, and with `--includeArtifacts` deletes objects in the deployment bucket. Without `--includeLayers`, re-running it with the same `--number` deletes nothing more until new versions are published. With `--includeLayers`, a re-run can delete layer versions that the previous run kept (see [Layer versions](#layer-versions)); preview each run with `--dryRun --verbose`.
+- The command does not prompt, so it runs unattended in CI. Run it with `--dryRun --verbose` first to see the candidates.
+- Pruning functions calls `lambda:ListVersionsByFunction`, `lambda:ListAliases` and `lambda:DeleteFunction`; pruning layers calls `lambda:ListLayerVersions` and `lambda:DeleteLayerVersion`.
+
+Each step prints a line when it finishes:
+
+```text
+✔ Pruning of functions complete
+✔ Pruning of sandbox image versions complete
+```
+
+With `--verbose`, the command also prints each version it deletes, such as `Deleting function version my-service-dev-hello:2.`; with `--dryRun --verbose`, each candidate, such as `my-service-dev-hello:2 selected for deletion.`
 
 ## Provided lifecycle events
 
@@ -46,31 +103,31 @@ For each sandbox, `prune` keeps the image's live version plus `--number` older v
 
 ## Examples
 
-### Keep 3 most recent versions
+### Keep the 3 newest versions of every function
 
 ```bash
 serverless prune -n 3
 ```
 
-### Dry-run to preview deletions
+### Preview what a prune run would delete
 
 ```bash
 serverless prune -n 3 --dryRun --verbose
 ```
 
-### Prune a specific function
+### Prune one function
 
 ```bash
 serverless prune -n 5 -f myFunction
 ```
 
-### Prune including layers
+### Prune functions and layers
 
 ```bash
 serverless prune -n 3 --includeLayers
 ```
 
-### Prune only a specific layer
+### Prune one layer
 
 ```bash
 serverless prune -n 3 -l myLayer
@@ -82,10 +139,14 @@ serverless prune -n 3 -l myLayer
 serverless prune -n 3 --sandbox mySandbox
 ```
 
-### Also mark unreferenced deployment artifacts
+### Also delete unused deployment artifacts
 
 ```bash
 serverless prune -n 3 --includeArtifacts
 ```
 
-See [Artifact retention in reference mode](../../../guides/deployment-bucket#artifact-retention-in-reference-mode) for how this interacts with self-managed code storage.
+## Related commands
+
+- [`serverless deploy list functions`](./deploy-list.md) lists the versions of each function.
+- [`serverless rollback function`](./rollback-function.md) restores a function's code from one of its versions.
+- [`serverless rollback`](./rollback.md) restores a whole earlier deployment.

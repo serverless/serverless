@@ -1,14 +1,14 @@
 <!--
-title: Serverless Framework - Testing
-short_title: Testing with the Serverless Framework
-description: Recommendations and best practices for testing AWS Lambda Functions with the Serverless Framework
+title: Testing Lambda Functions
+description: Structure Lambda functions for unit tests, and run integration tests against a deployed stage with serverless invoke and Dev Mode.
+short_title: Testing
 keywords:
   [
     'Serverless Framework',
-    'AWS Lambda',
-    'testing',
+    'AWS Lambda testing',
     'unit tests',
     'integration tests',
+    'serverless invoke',
   ]
 -->
 
@@ -18,95 +18,151 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Testing
+# Testing Lambda Functions
 
-While the Serverless Architecture introduces a lot of simplicity when it comes to serving business logic, some of its characteristics present challenges for testing. They are:
+Lambda functions are easiest to test when the business logic lives in plain modules and the handler only translates the Lambda event into a call to that logic. Unit tests then run the logic with stubs for databases and other services, and integration tests run the deployed functions in a test stage, with `serverless invoke` or [Dev Mode](./dev-mode.md). This page shows that structure for a Node.js function and the Framework commands for each kind of test.
 
-- The Serverless Architecture is an integration of separate, distributed services, which must be tested both independently, and together.
-- The Serverless Architecture is dependent on internet/cloud services, which are hard to emulate locally.
-- The Serverless Architecture can feature event-driven, asynchronous workflows, which are hard to emulate entirely.
+A service's functions depend on AWS services that are hard to emulate locally, often run asynchronously from events, and work together across several functions, so test at two levels:
 
-To get through these challenges, and to keep the [test pyramid](http://martinfowler.com/bliki/TestPyramid.html) in mind, keep the following principles in mind:
+- **Unit tests** for the business logic, without AWS: fast, and most of your tests.
+- **Integration tests** against real AWS resources in a dedicated stage: fewer, and they check the event wiring, IAM permissions and configuration that unit tests can't.
 
-- Write your business logic so that it is separate from your FaaS provider (e.g., AWS Lambda), to keep it provider-independent, reusable and more easily testable.
-- When your business logic is written separately from the FaaS provider, you can write traditional Unit Tests to ensure it is working properly.
-- Write Integration Tests to verify integrations with other services are working correctly.
+## Separate business logic from the handler
 
-## A Poor Example
-
-Here is an example in Node.js of how to follow the practices above. The job this Function should perform is to save a user in a database and then send a welcome email:
+This handler saves a user and sends a welcome email, with the database and mailer calls inside the handler:
 
 ```javascript
-const db = require('db').connect()
-const mailer = require('mailer')
+// handler.mjs
+import { connect } from './db.mjs'
+import { sendWelcomeEmail } from './mailer.mjs'
 
-module.exports.saveUser = (event, context, callback) => {
+const db = connect()
+
+export const saveUser = async (event) => {
   const user = {
     email: event.email,
     created_at: Date.now(),
   }
 
-  db.saveUser(user, function (err) {
-    if (err) {
-      callback(err)
-    } else {
-      mailer.sendWelcomeEmail(event.email)
-      callback()
-    }
-  })
+  await db.saveUser(user)
+  await sendWelcomeEmail(event.email)
 }
 ```
 
-There are two main problems with this function:
-
-- The business logic is not separate from the FaaS Provider. It's bounded to how AWS Lambda passes incoming data (Lambda's `event` object).
-- Testing this function will rely on separate services. Specifically, running a database instance and a mail server.
-
-## Writing Testable AWS Lambda Functions
-
-Let's refactor the above example to separate the business logic from the FaaS Provider.
+A test for this handler needs a real database and mail server, and the logic is tied to the shape of Lambda's `event`. Move the logic into a class that receives its dependencies:
 
 ```javascript
-class Users {
+// users.mjs
+export class Users {
   constructor(db, mailer) {
     this.db = db
     this.mailer = mailer
   }
 
-  save(email, callback) {
+  async save(email) {
     const user = {
-      email: email,
+      email,
       created_at: Date.now(),
     }
 
-    this.db.saveUser(user, function (err) {
-      if (err) {
-        callback(err)
-      } else {
-        this.mailer.sendWelcomeEmail(email)
-        callback()
-      }
-    })
+    await this.db.saveUser(user)
+    await this.mailer.sendWelcomeEmail(email)
   }
 }
-
-module.exports = Users
 ```
 
+The handler then only creates the dependencies and passes the event's data to the logic:
+
 ```javascript
-const db = require('db').connect()
-const mailer = require('mailer')
-const Users = require('users')
+// handler.mjs
+import { connect } from './db.mjs'
+import * as mailer from './mailer.mjs'
+import { Users } from './users.mjs'
 
-let users = new Users(db, mailer)
+const users = new Users(connect(), mailer)
 
-module.exports.saveUser = (event, context, callback) => {
-  users.save(event.email, callback)
+export const saveUser = async (event) => {
+  await users.save(event.email)
 }
 ```
 
-Now, the above class keeps business logic separate. Further, the code responsible for setting up dependencies, injecting them, calling business logic functions and interacting with AWS Lambda is in its own file, which will be changed less often. This way, the business logic is not provider dependent, easier to re-use, and easier to test.
+The handler changes only when the event or the wiring changes, and `Users` can be reused from other handlers. Lambda's `nodejs24.x` runtime runs async handlers only; callback-based handlers (`(event, context, callback)`) run on Node.js 22 and earlier ([Lambda Node.js handler](https://docs.aws.amazon.com/lambda/latest/dg/nodejs-handler.html)).
 
-Further, this code doesn't require running any external services. Instead of a real `db` and `mailer` services, we can pass mocks and assert if `saveUser` and `sendWelcomeEmail` has been called with proper arguments.
+## Unit test the business logic
 
-Unit Tests can easily be written to cover the above class. An integration test can be added by invoking the function (`serverless invoke`) with fixture email address, check if user is actually saved to DB and check if email was received to see if everything is working together.
+A unit test passes stubs for the database and the mailer, and checks the calls. This test uses Node.js's built-in test runner:
+
+```javascript
+// users.test.mjs
+import { test, mock } from 'node:test'
+import assert from 'node:assert/strict'
+import { Users } from './users.mjs'
+
+test('save stores the user and sends a welcome email', async () => {
+  const db = { saveUser: mock.fn(async () => {}) }
+  const mailer = { sendWelcomeEmail: mock.fn(async () => {}) }
+
+  await new Users(db, mailer).save('test@example.com')
+
+  assert.equal(db.saveUser.mock.calls[0].arguments[0].email, 'test@example.com')
+  assert.deepEqual(mailer.sendWelcomeEmail.mock.calls[0].arguments, [
+    'test@example.com',
+  ])
+})
+```
+
+Run it with:
+
+```bash
+node --test
+```
+
+## Integration test a deployed stage
+
+Integration tests run against a stage that holds only test data. The service's `serverless.yml` maps the function key `saveUser` to the `saveUser` export of `handler.mjs`:
+
+```yaml
+# serverless.yml
+service: users
+
+provider:
+  name: aws
+  runtime: nodejs24.x
+
+functions:
+  saveUser:
+    handler: handler.saveUser
+```
+
+The deployed handler imports `db.mjs` and `mailer.mjs`, your modules that connect to the database and the mail service; the unit test doesn't need them. `--stage test` deploys a separate stack, but it doesn't change the database or mail service those modules connect to. Before the first invocation, set both connections per stage, for example as environment variables from [stage parameters](./services.md#stage-parameters), and check that the `test` stage's values point to a test database and a test mail service.
+
+To deploy a `test` stage, invoke the function with a fixture and remove the stage afterwards:
+
+```bash
+serverless deploy --stage test
+```
+
+```bash
+serverless invoke --stage test --function saveUser --data '{"email":"test@example.com"}'
+```
+
+Then check the result where it lands: the user in the test database and the email in a test inbox. The function's logs are available with `serverless logs --stage test --function saveUser`. To delete the stage and its resources:
+
+```bash
+serverless remove --stage test
+```
+
+For events other than direct invocation, trigger the real source: send a request to the stage's HTTP endpoint, put a message on its queue or upload an object to its bucket, and check the outcome.
+
+## Run functions on your machine
+
+Two commands run your code locally while you develop and debug:
+
+- [`serverless invoke local`](../cli-reference/invoke-local.md) runs a function's handler on your machine with an event you pass, without deploying. Calls to AWS services use your local credentials, not the function's IAM role.
+- [`serverless dev`](./dev-mode.md) runs the code in your working copy for real invocations of a deployed stage, with the deployed function's environment variables and IAM role, so you can debug against real events without redeploying.
+
+## Related
+
+- [`serverless invoke`](../cli-reference/invoke.md)
+- [Dev Mode](./dev-mode.md)
+- [Testing serverless functions and applications](https://docs.aws.amazon.com/lambda/latest/dg/testing-guide.html) in the AWS Lambda developer guide

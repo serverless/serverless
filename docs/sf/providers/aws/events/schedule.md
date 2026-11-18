@@ -1,19 +1,13 @@
 <!--
-title: Serverless Framework - AWS Lambda Events - Scheduled & Recurring
-description: Setting up Scheduled, Recurring, CRON Task Events with AWS Lambda via the Serverless Framework
-short_title: AWS Lambda Events - Schedule
+title: Schedule Events
+description: Run a Lambda function on a rate or cron schedule with the schedule event, through EventBridge rules or EventBridge Scheduler with time zones.
+short_title: Schedule
 keywords:
   [
-    'Serverless',
-    'Framework',
-    'AWS',
-    'Lambda',
-    'Events',
-    'AWS Lambda Schedule',
-    'Serverless Framework Schedule',
-    'AWS Lambda CRON Tasks',
-    'AWS Lambda Scheduled Events',
-    'AWS Lambda Recurring Events',
+    'Serverless Framework',
+    'AWS Lambda cron',
+    'AWS Lambda scheduled function',
+    'EventBridge Scheduler',
   ]
 -->
 
@@ -23,75 +17,54 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Schedule
+# Schedule Events
 
-The following config will attach a schedule event and causes the function `crawl` to be called every 2 hours. The configuration allows you to attach multiple schedules to the same function. You can either use the `rate` or `cron` syntax. Take a look at the [AWS schedule syntax documentation](http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html) for more details.
+The `schedule` event runs a Lambda function on a schedule, written as a `rate(...)` or `cron(...)` expression. By default, the Framework creates an Amazon EventBridge scheduled rule on the default event bus; with `method: scheduler`, it creates an EventBridge Scheduler schedule instead, which adds time zones and a higher quota.
+
+This `serverless.yml` runs `crawl` every 2 hours, and also every day at 12:00 UTC:
 
 ```yaml
+# serverless.yml
+service: my-service
+
+provider:
+  name: aws
+  runtime: nodejs24.x
+
 functions:
   crawl:
-    handler: crawl
+    handler: handler.crawl
     events:
       - schedule: rate(2 hours)
       - schedule: cron(0 12 * * ? *)
 ```
 
-## Enabling / Disabling
+On a scheduled rule, the handler receives an EventBridge `Scheduled Event`:
 
-**Note:** `schedule` events are enabled by default.
+```javascript
+// handler.mjs
+export const crawl = async (event) => {
+  console.log(event['detail-type'], event.time)
+}
+```
 
-This will create and attach a schedule event for the `aggregate` function which is disabled. If enabled it will call
-the `aggregate` function every 10 minutes.
+A function can have several `schedule` events, and each one creates its own rule or schedule.
+
+## Rate and cron expressions
+
+The `schedule` event takes a rate or a cron expression:
+
+- `rate(value unit)`: `value` is a positive integer and `unit` is `minute`, `hour` or `day` for a value of 1, and `minutes`, `hours` or `days` for larger values: `rate(1 hour)`, `rate(5 minutes)`.
+- `cron(minutes hours day-of-month month day-of-week year)`: six fields, and one of day-of-month and day-of-week is `?`: `cron(0 12 * * ? *)`, `cron(0 0/4 ? * MON-FRI *)`.
+
+Scheduled rules evaluate cron expressions in UTC. To run on a local time, use EventBridge Scheduler with a `timezone`; see [Use EventBridge Scheduler](#use-eventbridge-scheduler). For the full syntax, see [Schedule expressions for rules](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-scheduled-rule-pattern.html).
+
+To set other options, use the object form, with the expression in `rate`. `rate` also takes a list of expressions, which creates one rule or schedule per expression with the same settings. This function runs at different times on weekdays and on weekends, with the same input:
 
 ```yaml
 functions:
-  aggregate:
-    handler: statistics.handler
-    events:
-      - schedule:
-          rate: rate(10 minutes)
-          enabled: false
-          input:
-            key1: value1
-            key2: value2
-            stageParams:
-              stage: dev
-      - schedule:
-          rate: cron(0 12 * * ? *)
-          enabled: false
-          inputPath: '$.stageVariables'
-      - schedule:
-          rate: rate(2 hours)
-          enabled: true
-          inputTransformer:
-            inputPathsMap:
-              eventTime: '$.time'
-            inputTemplate: '{"time": <eventTime>, "key1": "value1"}'
-```
-
-## Specify Name and Description
-
-Name and Description can be specified for a schedule event. These are not required properties.
-
-```yaml
-events:
-  - schedule:
-      name: your-scheduled-rate-event-name
-      description: 'your scheduled rate event description'
-      rate: rate(2 hours)
-```
-
-## Specify multiple schedule expressions
-
-An array of schedule expressions (i.e. using either `rate` or `cron` syntax) can be specified, in order to avoid repeating other configuration variables.
-This is specially useful in situations in which there's no other way than using multiple cron expressions to schedule a function.
-
-This will trigger the function at certain times on weekdays and on different times on weekends, using the same input:
-
-```yaml
-functions:
-  foo:
-    handler: foo.handler
+  report:
+    handler: handler.report
     events:
       - schedule:
           rate:
@@ -102,28 +75,107 @@ functions:
             key2: value2
 ```
 
-## Use AWS::Scheduler::Schedule instead of AWS::Event::Rule
+## Pass input to the function
 
-**Note**: `scheduler` does not accept the `inputPath` or `inputTransformer` options. If you need these, use the default `eventBus` option
+By default, the function receives the scheduled event. The `schedule` event takes one of three keys to change it:
 
-AWS has account-wide limits on the number of `AWS::Event::Rule` triggers per bus (300 events), and all Lambda schedules go into a single bus with no way to override it.
-This can lead to a situation where large projects hit the limit with no ability to schedule more events.
+- `input`: an object, or a JSON string of up to 8,192 characters, passed to the function instead of the event. When the object has a `body` key whose value is a JSON string, the Framework parses that string, so the function receives `body` as an object.
+- `inputPath`: a JSONPath into the scheduled event, up to 256 characters; the function receives that part of it.
+- `inputTransformer`: `inputPathsMap` maps names to JSONPaths in the event, and `inputTemplate` (required, up to 8,192 characters) builds the input from them.
 
-However, `AWS::Scheduler::Schedule` has much higher limits (1,000,000 events), and is configured identically.
-`method` can be set in order to migrate to this trigger type seamlessly. It also allows you to specify a timezone to run your event based on local time.
-The default method is `eventBus`, which configures an `AWS::Event::Rule`.
+EventBridge accepts one of them per target, so set only one per `schedule` event. Each event in this example uses one of them:
 
 ```yaml
 functions:
-  foo:
-    handler: foo.handler
+  aggregate:
+    handler: handler.aggregate
+    events:
+      - schedule:
+          rate: rate(10 minutes)
+          input:
+            key1: value1
+            stageParams:
+              stage: dev
+      - schedule:
+          rate: cron(0 12 * * ? *)
+          inputPath: '$.detail'
+      - schedule:
+          rate: rate(2 hours)
+          inputTransformer:
+            inputPathsMap:
+              eventTime: '$.time'
+            inputTemplate: '{"time": <eventTime>, "key1": "value1"}'
+```
+
+With `method: scheduler`, only `input` is available; `inputPath` and `inputTransformer` stop packaging.
+
+## Name, description and state
+
+The `schedule` event's `name` and `description` set the rule's or schedule's name and description, and `enabled: false` creates it disabled:
+
+```yaml
+functions:
+  aggregate:
+    handler: handler.aggregate
+    events:
+      - schedule:
+          name: my-service-${sls:stage}-aggregate
+          description: Aggregates statistics every 2 hours
+          rate: rate(2 hours)
+          enabled: false
+```
+
+- `name`: up to 64 letters, digits, `.`, `-` and `_`. Without it, CloudFormation generates a name. `name` can't be set when `rate` lists more than one expression. Names are unique per account and Region, so include the stage to deploy several stages to one Region.
+- `description`: up to 512 characters.
+- `enabled`: default `true`.
+
+## Use EventBridge Scheduler
+
+Set the `schedule` event's `method` to `scheduler` to create an `AWS::Scheduler::Schedule` instead of an `AWS::Events::Rule`. EventBridge Scheduler evaluates cron expressions in the time zone set in `timezone`:
+
+```yaml
+functions:
+  report:
+    handler: handler.report
     events:
       - schedule:
           method: scheduler
-          rate:
-            - cron(0 0/4 ? * MON-FRI *)
+          rate: cron(0 9 ? * MON-FRI *)
           timezone: America/New_York
           input:
             key1: value1
-            key2: value2
 ```
+
+- `method`: `eventBus` (the default) or `scheduler`. Changing it replaces the rule with a schedule, or the reverse, on the next deploy.
+- `timezone`: an IANA time zone name, such as `America/New_York`. It is accepted only with `method: scheduler`; without it, Scheduler uses UTC.
+- With `scheduler`, the `schedule` event takes `input`, `name`, `description` and `enabled`, but not `inputPath` or `inputTransformer`. The schedule goes in the account's default schedule group, with no flexible time window.
+
+Scheduled rules count against EventBridge's default quota of 300 rules per event bus in each account and Region (100 in some Regions), and they always go on the default bus. EventBridge Scheduler has a default quota of 10,000,000 schedules per Region. See [EventBridge quotas](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-quota.html) and [EventBridge Scheduler quotas](https://docs.aws.amazon.com/scheduler/latest/UserGuide/scheduler-quotas.html).
+
+## Permissions for schedule events
+
+With `method: eventBus`, the Framework adds an `AWS::Lambda::Permission` that lets `events.amazonaws.com` invoke the function, limited to the rule's ARN.
+
+With `method: scheduler`, EventBridge Scheduler invokes the function with the function's execution role. The Framework adds `scheduler.amazonaws.com` to the role's trust policy and `lambda:InvokeFunction` on the function, its versions and aliases to the role's policy. When the function uses a role of your own, set in `provider.iam.role` as an ARN or in the function's `role`, add both to that role. See [Set up the execution role](https://docs.aws.amazon.com/scheduler/latest/UserGuide/setting-up.html#setting-up-execution-role).
+
+## `schedule` event options
+
+The `schedule` event takes an expression string, or an object with these keys:
+
+| Key                | Type                      | Default                       | Allowed values                                                      |
+| ------------------ | ------------------------- | ----------------------------- | ------------------------------------------------------------------- |
+| `rate`             | String or list of strings | Required                      | `rate(...)` or `cron(...)` expressions                              |
+| `method`           | String                    | `eventBus`                    | `eventBus`, `scheduler`                                             |
+| `enabled`          | Boolean                   | `true`                        | `true`, `false`                                                     |
+| `name`             | String                    | Generated by CloudFormation   | Up to 64 letters, digits, `.`, `-`, `_`; one `rate` expression only |
+| `description`      | String                    | Not set                       | Up to 512 characters                                                |
+| `input`            | Object or JSON string     | Not set (the scheduled event) | A string of up to 8,192 characters                                  |
+| `inputPath`        | String                    | Not set                       | A JSONPath of up to 256 characters; `eventBus` only                 |
+| `inputTransformer` | Object                    | Not set                       | `inputTemplate` (required) and `inputPathsMap`; `eventBus` only     |
+| `timezone`         | String                    | Not set (UTC)                 | An IANA time zone name; `scheduler` only                            |
+
+## Related
+
+- [EventBridge events](./event-bridge.md#scheduled-rules), for schedules defined with the `eventBridge` event
+- [`serverless.yml` reference: Schedule](../guide/serverless.yml.md#schedule)
+- [EventBridge Scheduler schedule types](https://docs.aws.amazon.com/scheduler/latest/UserGuide/schedule-types.html)

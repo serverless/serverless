@@ -1,17 +1,16 @@
 <!--
-title: Serverless Framework - AWS Lambda Events
-description: Configuring AWS Lambda function events in the Serverless Framework
+title: AWS Lambda Events
+description: The event sources that can trigger your Lambda functions in serverless.yml, from HTTP APIs and queues to schedules and streams, with a link to each event page.
 short_title: AWS Lambda Events
 keywords:
   [
     'Serverless Framework',
-    'AWS Lambda',
-    'events',
-    'triggers',
+    'AWS Lambda events',
+    'Lambda triggers',
+    'event sources',
     'API Gateway',
+    'SQS',
     'S3',
-    'SNS',
-    'function configuration',
   ]
 -->
 
@@ -23,65 +22,62 @@ keywords:
 
 # AWS Lambda Events
 
-Simply put, events are the things that trigger your functions to run.
+Events are what trigger your Lambda functions: an HTTP request, a message on a queue, a file upload, a schedule. You list them under each function's `events` in `serverless.yml`, and on `serverless deploy` the Framework creates the event source or connects an existing one, and gives it permission to invoke the function. This page lists every event type, with a link to its page.
 
-If you are using AWS as your provider, all `events` in the service are anything in AWS that can trigger an AWS Lambda function, like an S3 bucket upload, an SNS topic, and HTTP endpoints created via [API Gateway](https://serverless.com/amazon-api-gateway/).
+A function can have several events, of the same or different types:
 
-Upon deployment, the framework will deploy any infrastructure required for an event (e.g., an API Gateway endpoint) and configure your `function` to listen to it.
-
-Infrastructure which is created to support events in the `events` list may be
-referenced using CloudFormation intrinsic functions like `Fn::GetAtt` or
-`Fn::Ref` (or their shorthand counterparts). For details on referencing created
-resources in AWS, see the [AWS CloudFormation Resource Reference](./resources.md#aws-cloudformation-resource-reference) section on the
-[AWS - Resources](./resources.md) page.
-
-## Configuration
-
-Events belong to each Function and can be found in the `events` property in `serverless.yml`.
-
-```yml
-# 'functions' in serverless.yml
+```yaml
+# serverless.yml
 functions:
-  createUser: # Function name
-    handler: handler.createUser # Reference to file handler.js & exported function 'createUser'
-    events: # All events associated with this function
-      - httpApi: 'POST /users/create'
+  createUser:
+    handler: handler.createUser
+    events:
+      - httpApi: 'POST /users'
+      - sqs:
+          arn: arn:aws:sqs:us-east-1:123456789012:new-users
 ```
 
-Events are objects, which can contain event-specific information.
+Each event is an object whose single key is the event type; its value holds that event's settings. The resources the Framework creates for events have predictable logical IDs, listed in the [AWS CloudFormation resource reference](./resources.md#aws-cloudformation-resource-reference), so you can refer to them with `Ref` and `Fn::GetAtt` or change them with `resources.extensions`.
 
-The `events` property is an array, because it's possible for functions to be triggered by multiple events, as shown.
+## HTTP and WebSocket events
 
-You can set multiple Events per Function, as long as that is supported by AWS.
+- [HTTP API (`httpApi`)](../events/http-api.md): serve HTTP endpoints from an API Gateway HTTP API, with JWT and Lambda authorizers and CORS.
+- [REST API (`http`)](../events/apigateway.md): serve HTTP endpoints from an API Gateway REST API, for API keys, usage plans, request validation and other REST API features.
+- [WebSocket API (`websocket`)](../events/websocket.md): handle connect, disconnect and message routes of an API Gateway WebSocket API.
+- [Application Load Balancer (`alb`)](../events/alb.md): route requests from an existing Application Load Balancer listener to a function.
 
-```yml
-# 'functions' in serverless.yml
-functions:
-  createUser: # Function name
-    handler: handler.users # Reference to file handler.js & exported function 'users'
-    events: # All events associated with this function
-      - httpApi: 'POST /users/create'
-      - httpApi: 'PUT /users/update'
-      - httpApi: 'DELETE /users/delete'
-```
+## Storage and messaging events
 
-## Types
+- [S3 (`s3`)](../events/s3.md): run a function on S3 bucket notifications, such as object uploads, for a new or an existing bucket.
+- [SNS (`sns`)](../events/sns.md): subscribe a function to an SNS topic, with filter policies and dead-letter queues.
+- [SQS (`sqs`)](../events/sqs.md): process messages from an existing SQS queue in batches.
+- [Amazon MQ for ActiveMQ (`activemq`)](../events/activemq.md): consume messages from an Amazon MQ ActiveMQ broker queue.
+- [Amazon MQ for RabbitMQ (`rabbitmq`)](../events/rabbitmq.md): consume messages from an Amazon MQ RabbitMQ broker queue.
 
-The Serverless Framework supports all of the AWS Lambda events and more. Instead of listing them here, we've put them in a separate section, since they have a lot of configurations and functionality.
+## Stream events
 
-## PathParameters
+- [Kinesis and DynamoDB streams (`stream`)](../events/streams.md): process records from a Kinesis data stream or a DynamoDB table stream.
+- [Amazon MSK (`msk`)](../events/msk.md): consume records from topics of an Amazon Managed Streaming for Apache Kafka cluster.
+- [Self-managed Apache Kafka (`kafka`)](../events/kafka.md): consume records from topics of a Kafka cluster you run.
 
-HTTP events can be configured to pass in path parameters to your lambda function. [See the API Gateway event for more details.](../events/apigateway.md#request-parameters)
+## Schedule and event bus events
 
-```yml
-# 'functions' in serverless.yml
-functions:
-  createUser: # Function name
-    handler: handler.users # Reference to file handler.js & exported function 'users'
-    events: # All events associated with this function
-      - httpApi: 'GET /users/{id}'
-```
+- [Schedule (`schedule`)](../events/schedule.md): run a function on a `rate` or `cron` schedule.
+- [EventBridge (`eventBridge`)](../events/event-bridge.md): run a function for events on an EventBridge event bus that match a pattern.
+- [CloudWatch Events (`cloudwatchEvent`)](../events/cloudwatch-event.md): run a function for AWS service events on the default event bus, such as EC2 state changes.
+- [CloudWatch Logs (`cloudwatchLog`)](../events/cloudwatch-log.md): process log events from a CloudWatch Logs log group through a subscription filter.
 
-## Deploying
+## Other events
 
-To deploy or update your Functions, Events and Infrastructure, run `serverless deploy`.
+- [Cognito User Pool (`cognitoUserPool`)](../events/cognito-user-pool.md): customize sign-up, sign-in and messages with Cognito User Pool triggers.
+- [CloudFront (`cloudFront`)](../events/cloudfront.md): run a function as Lambda@Edge on CloudFront viewer and origin requests and responses.
+- [IoT (`iot`)](../events/iot.md): run a function for MQTT messages that match an AWS IoT topic rule.
+- [IoT Fleet Provisioning (`iotFleetProvisioning`)](../events/iot-fleet-provisioning.md): validate devices with a pre-provisioning hook of an AWS IoT provisioning template.
+- [Alexa Skill (`alexaSkill`)](../events/alexa-skill.md): handle requests from an Alexa custom skill.
+- [Alexa Smart Home (`alexaSmartHome`)](../events/alexa-smart-home.md): handle directives from an Alexa smart home skill.
+
+## Related
+
+- [Functions](./functions.md) for the rest of a function's configuration
+- [`serverless.yml` reference](./serverless.yml.md) for every event's keys
+- [Invoking Lambda functions](https://docs.aws.amazon.com/lambda/latest/dg/lambda-invocation.html) in the AWS Lambda developer guide

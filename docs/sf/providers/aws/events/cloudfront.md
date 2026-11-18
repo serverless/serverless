@@ -1,8 +1,15 @@
 <!--
-title: Serverless Framework - AWS Lambda Events - CloudFront
-short_title: AWS Lambda Events - CloudFront
-description: Setting up CloudFront with AWS Lambda@Edge via the Serverless Framework
-keywords: ['Serverless Framework', 'AWS Lambda', 'CloudFront', 'Lambda@Edge']
+title: CloudFront Lambda@Edge Events
+description: 'Run Lambda@Edge functions on CloudFront requests and responses with the cloudFront event: event types, origins, path patterns and cache policies.'
+short_title: CloudFront (Lambda@Edge)
+keywords:
+  [
+    'Serverless Framework',
+    'Lambda@Edge',
+    'CloudFront Lambda trigger',
+    'CloudFront cache behavior',
+    'CloudFront cache policy',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -11,253 +18,283 @@ keywords: ['Serverless Framework', 'AWS Lambda', 'CloudFront', 'Lambda@Edge']
 
 <!-- DOCS-SITE-LINK:END -->
 
-# CloudFront
+# CloudFront Lambda@Edge Events
 
-[Amazon CloudFront](https://aws.amazon.com/cloudfront) is a content delivery network (CDN) service that allows Lambda functions to be executed at edge locations.
+The `cloudFront` event runs a Lambda function as a Lambda@Edge function: CloudFront invokes it at its edge locations when it receives a viewer request, forwards a request to the origin, receives the origin's response, or returns a response to the viewer. The Framework creates one Amazon CloudFront distribution for the service, with an origin and a cache behavior for each `cloudFront` event, and associates the function's published version with the behavior.
 
-Distribution configuration contains origins and behaviors which are used to define how to cache and deliver content from other services.
-
-Origin is the endpoint definition of the service that is delivered, e.g. S3 bucket or a website.
-
-Behavior defines how the Amazon CloudFront acts when the request hits the service. That is where Lambda@Edge functions are also defined.
-
-Lambda@Edge has four options when the Lambda function is triggered
-
-- `viewer-request`, when the CloudFront first receives the request from the client
-- `origin-request`, before the request to the origin service
-- `origin-response`, when CloudFront receives the response from the origin service
-- `viewer-response`, before the response returned to the client
-
-**NOTE:** Deployments and removals can take up to 30 minutes due to the CloudFront CDN propagation.
-
-**IMPORTANT:** Due to current [Lambda@Edge limitations](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-edge-delete-replicas.html) it's necessary to set the `DeletionPolicy` to `Retain` for AWS Lambda functions which use the `cloudFront` event. The Serverless Framework will do this automatically for you. However bear in mind that **you have to delete those AWS Lambda functions manually** once you've removed the service via `serverless remove`.
-
-**MEMORY AND TIMEOUT LIMITS:** According to [AWS Limits on Lambda@Edge](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html#limits-lambda-at-edge) the limits for viewer-request and viewer-response are 128MB memory and 5 seconds timeout and for origin-request and origin-response are 3008MB memory and 30 seconds timeout.
-
-**RUNTIME LIMITS:** According to [AWS Requirements on Lambda@Edge](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-requirements-limits.html) the runtimes supported by Lambda@Edge functions are: `Python 3.9`, `Python 3.8`, `Python 3.7`, `Node.js 16.x`, `Node.js 14.x`, `Node.js 12.x`, `Node.js 10.x`.
-
-**FUNCTION SIZE LIMITS:** According to [AWS Quotas on CloudFront](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html#limits-functions), Lambda@Edge functions mustn't exceed the maximum size of 10KB. An easy way of reducing the size of a function is through bundling and minification via e.g. the plugin [serverless-esbuild](https://www.serverless.com/plugins/serverless-esbuild).
-
-## Simple event definition
-
-This will enable your Lambda@Edge function to be called by a CloudFront.
+Lambda@Edge functions must be deployed to `us-east-1`. This `serverless.yml` adds a response header to every object served from an S3 bucket:
 
 ```yaml
+# serverless.yml
+service: my-service
+
+provider:
+  name: aws
+  runtime: nodejs24.x
+  region: us-east-1
+
 functions:
-  myLambdaAtEdge:
-    handler: myLambdaAtEdge.handler
+  addHeader:
+    handler: handler.addHeader
     events:
       - cloudFront:
           eventType: viewer-response
-          origin: s3://bucketname.s3.amazonaws.com/files
+          origin: s3://amzn-s3-demo-bucket.s3.amazonaws.com/files
 ```
 
-Example handler function that returns timestamp in the response headers. More examples can be found from [AWS documentation](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-examples.html).
+The handler receives the CloudFront event in `event.Records[0].cf` and returns the response to send:
 
 ```javascript
-// index.handler
-'use strict'
-
-module.exports.handler = (event, context, callback) => {
+// handler.mjs
+export const addHeader = async (event) => {
   const response = event.Records[0].cf.response
-  const headers = response.headers
-
-  headers['x-serverless-time'] = [
+  response.headers['x-serverless-time'] = [
     { key: 'x-serverless-time', value: Date.now().toString() },
   ]
-
-  return callback(null, response)
+  return response
 }
 ```
 
-For more specific setup, origin can be a object, which uses CloudFormation yaml syntax.
-The `DomainName` and `CustomOriginConfig` or `S3OriginConfig` are required, for more details about origin setup visit [AWS documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-origin.html).
+After `serverless deploy`, the stack outputs `CloudFrontDistribution` (the distribution ID) and `CloudFrontDistributionDomainName` (the `*.cloudfront.net` domain that serves the content). CloudFront replicates the function to its edge locations, so deploys and removals of a service with a `cloudFront` event take longer than for other services. For the event structure and more handler examples, see [Lambda@Edge example functions](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-examples.html).
+
+## cloudFront event options
+
+The `cloudFront` event accepts these keys:
+
+| Key               | Type                                                                       | Default                           | Description                                                                                       |
+| ----------------- | -------------------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `eventType`       | `viewer-request`, `origin-request`, `origin-response` or `viewer-response` | Required                          | When CloudFront invokes the function                                                              |
+| `origin`          | URL string or origin object                                                | Required                          | The origin the behavior forwards requests to                                                      |
+| `pathPattern`     | string                                                                     | No pattern: the default behavior  | The request paths the behavior matches, such as `/images/*`                                       |
+| `isDefaultOrigin` | boolean                                                                    | `false`                           | Makes this event's origin the target of the default behavior when the service has several origins |
+| `includeBody`     | boolean                                                                    | Not set                           | Exposes the request body to the function                                                          |
+| `behavior`        | object                                                                     | `ViewerProtocolPolicy: allow-all` | Cache behavior settings, in CloudFormation syntax                                                 |
+| `cachePolicy`     | object with `id` or `name`                                                 | Managed `CachingOptimized` policy | The cache policy for the behavior                                                                 |
+
+## Event types
+
+The `cloudFront` event's `eventType` sets the point in the request flow where CloudFront invokes the function:
+
+- `viewer-request`: after CloudFront receives a request from a viewer, before it checks its cache.
+- `origin-request`: before CloudFront forwards a request to the origin, on a cache miss.
+- `origin-response`: after CloudFront receives the response from the origin.
+- `viewer-response`: before CloudFront returns the response to the viewer.
+
+Each behavior runs at most one function per event type. To run functions at several points for the same requests, give their events the same `origin` and `pathPattern`; the Framework joins them into one behavior:
 
 ```yaml
 functions:
-  myLambdaAtEdge:
-    handler: myLambdaAtEdge.handler
+  rewriteRequest:
+    handler: handler.rewriteRequest
+    events:
+      - cloudFront:
+          eventType: viewer-request
+          origin: https://example.com/framework
+  addHeader:
+    handler: handler.addHeader
+    events:
+      - cloudFront:
+          eventType: viewer-response
+          origin: https://example.com/framework
+```
+
+For what each event type can read and change, see [CloudFront events that can trigger a Lambda@Edge function](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-cloudfront-trigger-events.html).
+
+## Origins
+
+The `cloudFront` event's `origin` takes a URL string or an origin object. In a URL string, the scheme selects the origin type and the path becomes the origin path:
+
+- `s3://amzn-s3-demo-bucket.s3.amazonaws.com/files`: an S3 origin for the bucket, with origin path `/files`.
+- `https://example.com/framework`, or any other scheme: a custom origin with `OriginProtocolPolicy: match-viewer`.
+
+For other origin settings, use an origin object in CloudFormation syntax. `DomainName` is required, together with exactly one of `CustomOriginConfig` or `S3OriginConfig`:
+
+```yaml
+functions:
+  addHeader:
+    handler: handler.addHeader
     events:
       - cloudFront:
           eventType: viewer-response
           pathPattern: /docs*
           origin:
-            DomainName: serverless.com
+            DomainName: example.com
             OriginPath: /framework
             CustomOriginConfig:
-              OriginProtocolPolicy: match-viewer
+              OriginProtocolPolicy: https-only
 ```
 
-One of the CloudFront requirements is to include an empty `pathPattern` in the setup.
-If there is no behavior with an empty `pathPattern` in the serverless configuration, serverless will create an additional behavior with an empty `pathPattern` pointing to the defined origin.
-If there are more than one different origins, it needs to be defined as a default using `isDefaultOrigin` flag.
+The origin object accepts these properties:
+
+- `DomainName`: required; a string or a CloudFormation intrinsic function.
+- `CustomOriginConfig`: `OriginProtocolPolicy` (required: `http-only`, `match-viewer` or `https-only`), `HTTPPort` and `HTTPSPort` (0–65535), `OriginKeepaliveTimeout` and `OriginReadTimeout` (1–60 seconds), `OriginSSLProtocols` (a list of `SSLv3`, `TLSv1`, `TLSv1.1`, `TLSv1.2`).
+- `S3OriginConfig`: optional `OriginAccessIdentity` (`origin-access-identity/cloudfront/ID`).
+- `OriginAccessControlId`, `OriginPath`, `OriginCustomHeaders` (a list of `HeaderName` and `HeaderValue`), `ConnectionAttempts` (1–3) and `ConnectionTimeout` (1–10 seconds).
+
+Events with an equal origin share it in the distribution. See [AWS::CloudFront::Distribution Origin](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-cloudfront-distribution-origin.html).
+
+## Path patterns and the default behavior
+
+A CloudFront distribution needs a default behavior, which has no path pattern. The `cloudFront` event without `pathPattern` defines it. When no event omits `pathPattern`, the Framework adds a default behavior that forwards to the service's origin, with the settings of the first behavior and no function.
+
+When the events use more than one origin, set `isDefaultOrigin: true` on one event to choose the default behavior's origin:
 
 ```yaml
 functions:
-  myLambdaAtEdge:
-    handler: myLambdaAtEdge.handler
+  files:
+    handler: handler.files
     events:
       - cloudFront:
           eventType: viewer-response
           pathPattern: /files*
           isDefaultOrigin: true
-          origin: s3://bucketname.s3.amazonaws.com/files
-  mySecondLambdaAtEdge:
-    handler: mySecondLambdaAtEdge.handler
+          origin: s3://amzn-s3-demo-bucket.s3.amazonaws.com/files
+  docs:
+    handler: handler.docs
     events:
       - cloudFront:
           eventType: viewer-response
           pathPattern: /docs*
-          origin:
-            DomainName: serverless.com
-            OriginPath: /framework
-            CustomOriginConfig:
-              OriginProtocolPolicy: match-viewer
+          origin: https://example.com/framework
 ```
 
-To define functions to each event type, the same origin joins the functions to the same behavior.
+The `cloudFront` event's `pathPattern` accepts letters, digits, `_ . * ? $ / ~ " ' @ : + -` and `&amp;`. Every behavior needs a unique path pattern, so two events with different origins and no `pathPattern` stop packaging (see [Troubleshooting CloudFront events](#troubleshooting-cloudfront-events)). For the pattern syntax, see [Path pattern](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/DownloadDistValuesCacheBehavior.html#DownloadDistValuesPathPattern).
+
+To use one function in several behaviors, add an event for each behavior:
 
 ```yaml
 functions:
-  myLambdaAtEdgeViewerRequest:
-    handler: myLambdaAtEdgeViewerRequest.handler
-    events:
-      - cloudFront:
-          eventType: viewer-request
-          origin: ${self:custom.origins.myWebsiteOrigin}
-  myLambdaAtEdgeViewerResponse:
-    handler: myLambdaAtEdgeViewerResponse.handler
+  addHeader:
+    handler: handler.addHeader
     events:
       - cloudFront:
           eventType: viewer-response
-          origin: ${self:custom.origins.myWebsiteOrigin}
-
-custom:
-  origins:
-    myWebsiteOrigin:
-      DomainName: serverless.com
-      OriginPath: /framework
-      CustomOriginConfig:
-        OriginProtocolPolicy: match-viewer
-```
-
-To use the same function in multiple behaviors, add multiple events into same function.
-
-```yaml
-functions:
-  myLambdaAtEdge:
-    handler: myLambdaAtEdge.handler
-    events:
-      - cloudFront:
-          eventType: viewer-response
-          includeBody: true
-          origin: s3://bucketname.s3.amazonaws.com/files
+          origin: s3://amzn-s3-demo-bucket.s3.amazonaws.com/files
       - cloudFront:
           eventType: viewer-response
           pathPattern: /docs*
-          origin:
-            DomainName: serverless.com
-            OriginPath: /framework
-            CustomOriginConfig:
-              OriginProtocolPolicy: match-viewer
+          origin: https://example.com/framework
 ```
 
-### Cache Behavior configuration
+## Cache behavior configuration
 
-The default values for behaviors as generated by the serverless are
-
-```yaml
-ViewerProtocolPolicy: allow-all
-```
-
-For more specific behavior setup, behavior object can be set, which uses CloudFormation yaml syntax.
-More information about behavior setup visit [AWS documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-cachebehavior.html).
+The `cloudFront` event's `behavior` sets the CloudFront cache behavior for the event's path pattern, in CloudFormation syntax. Without `behavior`, the Framework uses `ViewerProtocolPolicy: allow-all`. This example redirects HTTP to HTTPS and allows all HTTP methods:
 
 ```yaml
 functions:
-  myLambdaAtEdge:
-    handler: myLambdaAtEdge.handler
+  addHeader:
+    handler: handler.addHeader
     events:
       - cloudFront:
           eventType: viewer-response
-          origin: s3://bucketname.s3.amazonaws.com/files
+          origin: s3://amzn-s3-demo-bucket.s3.amazonaws.com/files
           behavior:
-            ViewerProtocolPolicy: https-only
+            ViewerProtocolPolicy: redirect-to-https
             AllowedMethods:
-              - 'GET'
-              - 'HEAD'
-              - 'OPTIONS'
-              - 'PUT'
-              - 'PATCH'
-              - 'POST'
-              - 'DELETE'
+              - GET
+              - HEAD
+              - OPTIONS
+              - PUT
+              - PATCH
+              - POST
+              - DELETE
             CachedMethods:
-              - 'GET'
-              - 'HEAD'
-              - 'OPTIONS'
+              - GET
+              - HEAD
+              - OPTIONS
 ```
 
-### Cache Policy configuration
+The `behavior` object accepts these properties:
 
-For more specific cache behavior setup, you can use CloudFront Cache Policy.
-Use provider level `cloudFront.cachePolicies` property to define your policies, which uses CloudFormation yaml syntax. For more information about behavior setup visit [AWS documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudfront-cachepolicy.html).
+- `ViewerProtocolPolicy`: `allow-all`, `redirect-to-https` or `https-only`.
+- `AllowedMethods`: `[GET, HEAD]`, `[GET, HEAD, OPTIONS]` or all seven methods. `CachedMethods`: `[GET, HEAD]` or `[GET, HEAD, OPTIONS]`.
+- `CachePolicyId`, `OriginRequestPolicyId`, `ResponseHeadersPolicyId`, `FieldLevelEncryptionId`: policy and configuration IDs.
+- `Compress`, `SmoothStreaming`: booleans.
+- `TrustedKeyGroups`, `TrustedSigners`: lists for signed URLs and cookies.
+- `ForwardedValues`, `MinTTL`, `MaxTTL`, `DefaultTTL`: legacy cache settings, used instead of a cache policy.
 
-You can then reference your policy within your event using its name.
+See [AWS::CloudFront::Distribution CacheBehavior](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-cloudfront-distribution-cachebehavior.html).
 
-```yml
+## Cache policies
+
+The Framework attaches the AWS managed `CachingOptimized` cache policy (`658327ea-f89d-4fab-a63d-7e88639e58f6`) to each behavior unless the event sets `cachePolicy`, or its `behavior` sets `CachePolicyId`, `ForwardedValues`, `MinTTL`, `MaxTTL` or `DefaultTTL`.
+
+To attach another managed or existing cache policy, set the `cloudFront` event's `cachePolicy.id`:
+
+```yaml
+functions:
+  addHeader:
+    handler: handler.addHeader
+    events:
+      - cloudFront:
+          eventType: viewer-response
+          origin: s3://amzn-s3-demo-bucket.s3.amazonaws.com/files
+          cachePolicy:
+            id: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # Managed-CachingDisabled
+```
+
+To create a cache policy in the service, define it under `provider.cloudFront.cachePolicies` and reference it by key with `cachePolicy.name`. The Framework creates an `AWS::CloudFront::CachePolicy` named `<service>-<stage>-<key>`:
+
+```yaml
 provider:
+  name: aws
+  runtime: nodejs24.x
+  region: us-east-1
   cloudFront:
     cachePolicies:
-      myCachePolicy:
+      shortLived:
         MinTTL: 0
-        MaxTTL: 86000
-        DefaultTTL: 3600
-        ...
+        DefaultTTL: 60
+        MaxTTL: 3600
+        ParametersInCacheKeyAndForwardedToOrigin:
+          CookiesConfig:
+            CookieBehavior: none
+          EnableAcceptEncodingGzip: true
+          HeadersConfig:
+            HeaderBehavior: whitelist
+            Headers:
+              - authorization
+          QueryStringsConfig:
+            QueryStringBehavior: all
 
 functions:
-  myLambdaAtEdge:
-    handler: myLambdaAtEdge.handler
+  addHeader:
+    handler: handler.addHeader
     events:
       - cloudFront:
           eventType: viewer-response
-          origin: s3://bucketname.s3.amazonaws.com/files
+          origin: s3://amzn-s3-demo-bucket.s3.amazonaws.com/files
           cachePolicy:
-            name: myCachePolicy
+            name: shortLived
 ```
 
-This configuration will create a Cache Policy named `servicename-stage-myCachePolicy`.
+- Each policy takes the CloudFormation `CachePolicyConfig` properties except `Name`. `MinTTL`, `DefaultTTL`, `MaxTTL` and `ParametersInCacheKeyAndForwardedToOrigin` are required; inside it, `CookiesConfig`, `EnableAcceptEncodingGzip`, `HeadersConfig` and `QueryStringsConfig` are required. `Comment` and `EnableAcceptEncodingBrotli` are optional.
+- `CookieBehavior` and `QueryStringBehavior` accept `none`, `whitelist`, `allExcept` or `all`; `HeaderBehavior` accepts `none` or `whitelist`.
+- `cachePolicy` takes either `id` or `name`. `cachePolicy` wins over `behavior.CachePolicyId` when both are set.
+- A policy under `provider.cloudFront.cachePolicies` that no event references is still created, and the Framework prints a warning.
 
-You can reference [AWS Managed Policies](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html#managed-cache-policies-list) using an `id` property instead of `name`
+See [Use managed cache policies](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html) and [CachePolicyConfig](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-cloudfront-cachepolicy-cachepolicyconfig.html).
 
-```yml
+## Request body access
+
+To read or replace the request body in a `viewer-request` or `origin-request` function, set the `cloudFront` event's `includeBody: true`:
+
+```yaml
 functions:
-  myLambdaAtEdge:
-    handler: myLambdaAtEdge.handler
+  inspectBody:
+    handler: handler.inspectBody
     events:
       - cloudFront:
-          eventType: viewer-response
-          origin: s3://bucketname.s3.amazonaws.com/files
-          cachePolicy:
-            id: 658327ea-f89d-4fab-a63d-7e88639e58f6 # references AWS Managed Policy named Managed-CachingOptimized
+          eventType: origin-request
+          includeBody: true
+          origin: https://example.com/framework
 ```
 
-It is also possible to reference policies with `behavior.CachePolicyId` property. When both `cachePolicy.id` and `behavior.CachePolicyId` are specified, setting from `cachePolicy.id` will be used. Similarily, when `cachePolicy.name` and `behavior.CachePolicyId` are specified, setting from `cachePolicy.name` will be used.
+CloudFront passes the body base64-encoded and truncates it at 40 KB for viewer requests and 1 MB for origin requests. See [Restrictions on the request body with the include body option](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-at-edge-function-restrictions.html#lambda-at-edge-restrictions-request-body).
 
-```yml
-functions:
-  myLambdaAtEdge:
-    handler: myLambdaAtEdge.handler
-    events:
-      - cloudFront:
-          eventType: viewer-response
-          origin: s3://bucketname.s3.amazonaws.com/files
-          behavior:
-            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # references AWS Managed Policy named Managed-CachingOptimized
-```
+## Distribution settings
 
-### CloudFront Distribution configurations
-
-Amazon CloudFront distribution configurations can be set in the resources block of the serverless.yml, by defining `CloudFrontDistribution`.
+The Framework names the distribution resource `CloudFrontDistribution`. To set distribution properties that the `cloudFront` event doesn't cover, such as a custom domain or a price class, extend the resource under `resources`:
 
 ```yaml
 resources:
@@ -268,27 +305,81 @@ resources:
         DistributionConfig:
           PriceClass: PriceClass_100
           Aliases:
-            - mysite.example.com
+            - www.example.com
           ViewerCertificate:
-            AcmCertificateArn: arn:aws:acm:us-east-1:000000000000:certificate/eb96757c-c78e-4843-bb17-2f09747b6f0d
+            AcmCertificateArn: arn:aws:acm:us-east-1:123456789012:certificate/eb96757c-c78e-4843-bb17-2f09747b6f0d
             SslSupportMethod: sni-only
 ```
 
-## Current gotchas
+The Framework merges these properties into the distribution it generates. For more about extending generated resources, see [Override AWS CloudFormation resources](../guide/resources.md#override-aws-cloudformation-resource).
 
-CloudFront behaviors have to have unique path pattern that catches the request.
+## Lambda@Edge function requirements
 
-So following setup **is not valid** because it assumes that behaviors for both events have an empty path pattern.
+Functions with a `cloudFront` event follow the Lambda@Edge rules, and the Framework applies some of them:
+
+- **Region**: the service must deploy to `us-east-1`.
+- **Memory and timeout**: for `viewer-request` and `viewer-response` events, the Framework accepts a function `memorySize` of at most 128 MB and a `timeout` of at most 5 seconds; for `origin-request` and `origin-response` events, at most 10,240 MB and 30 seconds. When the function doesn't set `memorySize` or `timeout`, the Framework sets 128 MB and 5 seconds; `provider.memorySize` and `provider.timeout` don't apply to these functions.
+- **Versions**: the Framework publishes a numbered version of each function and associates that version with the distribution.
+- **Removed settings**: the Framework removes the VPC configuration and environment variables from these functions, because Lambda@Edge doesn't support them.
+- **Other unsupported features**: layers, the `arm64` architecture, X-Ray tracing, provisioned concurrency, dead-letter queues and container images. Keep these out of functions with a `cloudFront` event.
+- **Size**: at most 50 MB compressed, including libraries.
+- **Runtimes**: the latest Node.js and Python runtimes.
+
+See [Restrictions on Lambda@Edge](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-at-edge-function-restrictions.html) and [Quotas on Lambda@Edge](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html#limits-lambda-at-edge).
+
+## IAM permissions for Lambda@Edge
+
+For a `cloudFront` event, the Framework adds to the default execution role:
+
+- `edgelambda.amazonaws.com` as a trusted principal, next to `lambda.amazonaws.com`.
+- `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents` and `logs:TagResource` on log groups in all Regions, because Lambda@Edge writes logs in the Region closest to where the function runs.
+
+It also adds a `lambda:InvokeFunction` permission for `edgelambda.amazonaws.com`, limited to the distribution, on each function version. When the functions use a custom `role`, add the trust relationship and the log permissions to that role; see [Set up IAM permissions and roles for Lambda@Edge](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-edge-permissions.html).
+
+## Remove a service with Lambda@Edge functions
+
+AWS deletes a Lambda@Edge function only after CloudFront has deleted its replicas, which takes a few hours after the distribution is removed. The Framework therefore sets `DeletionPolicy: Retain` on every function with a `cloudFront` event. `serverless remove` deletes the distribution and the rest of the stack, keeps those functions, and prints:
+
+```text
+Don't forget to manually remove your Lambda@Edge functions once the CloudFront distribution removal is successfully propagated!
+```
+
+After CloudFront has removed the replicas, delete the functions in the Lambda console or with `aws lambda delete-function`. See [Delete Lambda@Edge functions and replicas](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-edge-delete-replicas.html).
+
+## Troubleshooting CloudFront events
+
+### `Found more than one behavior with the same PathPattern`
+
+This happens when two `cloudFront` events have the same `pathPattern`, or none, but different origins. Each behavior needs a unique path pattern. Give one of the events a `pathPattern`:
 
 ```yaml
 functions:
-  myLambdaAtEdge:
-    handler: myLambdaAtEdge.handler
+  addHeader:
+    handler: handler.addHeader
     events:
       - cloudFront:
           eventType: viewer-request
-          origin: s3://bucketname.s3.amazonaws.com/files
+          origin: s3://amzn-s3-demo-bucket.s3.amazonaws.com/files
       - cloudFront:
           eventType: viewer-request
-          origin: s3://bucketname.s3.amazonaws.com/other
+          pathPattern: /other*
+          origin: s3://amzn-s3-demo-bucket.s3.amazonaws.com/other
 ```
+
+### `Found more than one origin but none of the cloudfront event has "isDefaultOrigin" defined`
+
+This happens when every `cloudFront` event has a `pathPattern` and the events use more than one origin. Set `isDefaultOrigin: true` on the event whose origin should serve the default behavior. Setting it on events with different origins stops packaging with `Found more than one cloudfront event with "isDefaultOrigin" defined`.
+
+### `The event type of a function association must be unique in the cache behavior`
+
+This happens when two events with the same `origin` and `pathPattern` use the same `eventType`. A behavior runs one function per event type: change the `eventType` or the `pathPattern` of one event.
+
+### `CloudFront associated functions have to be deployed to the us-east-1 region.`
+
+This happens when the service deploys to another Region. Set `provider.region: us-east-1`, or deploy with `--region us-east-1`. Keep functions that must run in another Region in a separate service.
+
+## Related
+
+- [Lambda@Edge in the CloudFront Developer Guide](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-at-the-edge.html)
+- [CloudFront settings in the serverless.yml reference](../guide/serverless.yml.md#cloudfront)
+- [AWS Lambda functions](../guide/functions.md)

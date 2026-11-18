@@ -1,8 +1,15 @@
 <!--
-title: Serverless Framework Commands - AWS Lambda - Logs
-description: View logs of your AWS Lambda Function or AgentCore agent within your terminal using the Serverless Framework.
-short_title: Commands - Logs
-keywords: ['Serverless', 'Framework', 'logs', 'AWS Lambda', 'CloudWatch', 'AgentCore', 'AI Agents']
+title: serverless logs
+description: Print or tail the CloudWatch logs of a deployed Lambda function, AgentCore agent, sandbox or web app in your terminal with serverless logs.
+short_title: logs
+keywords:
+  [
+    'serverless logs',
+    'Serverless Framework CLI',
+    'Lambda CloudWatch logs',
+    'tail Lambda logs',
+    'AgentCore agent logs',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -11,148 +18,102 @@ keywords: ['Serverless', 'Framework', 'logs', 'AWS Lambda', 'CloudWatch', 'Agent
 
 <!-- DOCS-SITE-LINK:END -->
 
-# AWS - Logs
+# serverless logs
 
-Lets you watch the logs of a specific function, agent, sandbox, or web app.
+`serverless logs` prints a deployed Lambda function's log events from Amazon CloudWatch Logs, from the last 10 minutes by default, and with `--tail` keeps printing new ones. It only reads logs. It shows what the code deployed in AWS logged; to run a stage's invocations on your machine and see their output there, use [`serverless dev`](./dev.md). The same command reads the logs of [AgentCore Runtime agents](../guide/agents/README.md), [sandboxes](../guide/sandboxes.md) and [web apps](../guide/web-apps.md).
 
 ```bash
-# Lambda function logs
-serverless logs -f hello
-
-# Agent logs
-serverless logs -a myAgent
-
-# Sandbox (Lambda MicroVM) logs
-serverless logs --sandbox mySandbox
-
-# Web app (Lambda Web Function) logs
-serverless logs --web-app myWebApp
-
-# Optionally tail the logs with --tail or -t
-serverless logs -f hello -t
-serverless logs -a myAgent -t
+serverless logs --function hello
 ```
 
-This command returns as many log events as can fit in 1MB (up to 10,000 log events). You can use the `--filter` option to ensure the logs you're looking for are included.
+The command prints the start of the time range, then each event, with the `START`, `END` and `REPORT` lines condensed:
+
+```text
+Logs Start Time: 2026-10-30 14:02:11
+
+START - 8f2c1c55-0f1e-4f1a-9d47-3d1f3e6a2b10 - Version: $LATEST
+2026-10-30 14:05:42.118 - 8f2c1c55-0f1e-4f1a-9d47-3d1f3e6a2b10 -
+INFO	Processing order 1042
+END - 8f2c1c55-0f1e-4f1a-9d47-3d1f3e6a2b10
+REPORT - 8f2c1c55-0f1e-4f1a-9d47-3d1f3e6a2b10
+Duration: 2.31 ms	Billed Duration: 3 ms	Memory Size: 1024 MB	Max Memory Used: 68 MB
+```
+
+Log events reach CloudWatch Logs a few seconds after an invocation, so run the command again when the latest invocation is missing.
 
 ## Options
 
-- `--function` or `-f` The function you want to fetch the logs for. **Required when not using `--agent`.**
-- `--agent` or `-a` The agent name (for AgentCore Runtime agents). **Required when not using `--function`.** Cannot be used together with `--function`.
-- `--sandbox` The sandbox name (for [AWS Lambda MicroVMs](../guide/sandboxes.md)). Use instead of `--function` / `--agent` to fetch a sandbox's CloudWatch logs. Defaults to the last 10 minutes; use `--startTime` to widen the window. **`--tail` does not stream/follow sandbox logs** — it prints a one-time notice and falls back to the same one-shot window.
-- `--web-app` The web app name (for [AWS Lambda Web Functions](../guide/web-apps.md)). Use instead of `--function` / `--agent` / `--sandbox`. Reads the web app's `/aws/lambda/web/<function-name>.local` log group, where lines arrive first, and supports `--startTime`, `--filter`, `--tail` and `--interval` as for functions. The caller needs `logs:DescribeLogStreams` and `logs:FilterLogEvents` on that log group.
-- `--stage` or `-s` The stage you want to view the function logs for. If not provided, the plugin will use the default stage listed in `serverless.yml`. If that doesn't exist either it'll just fetch the logs from the `dev` stage.
-- `--region` or `-r` The region you want to view the function logs for. If not provided, the plugin will use the default region listed in `serverless.yml`. If that doesn't exist either it'll just fetch the logs from the `us-east-1` region.
-- `--aws-profile` The AWS profile you want to use.
-- `--startTime` A specific unit in time to start fetching logs from (ie: `2010-10-20` or `1469705761`). Without this, the default time is the past 10 minutes. Here's a list of the supported string formats:
+`serverless logs` accepts these options. One of `--function`, `--agent`, `--sandbox` or `--web-app` is required, and they can't be combined:
 
-```bash
+| Option          | Alias | Value                       | Default                             | Required    | Description                                                                                 |
+| --------------- | ----- | --------------------------- | ----------------------------------- | ----------- | ------------------------------------------------------------------------------------------- |
+| `--function`    | `-f`  | string                      |                                     | One of four | Function whose logs to print, as named under `functions` in `serverless.yml`.               |
+| `--agent`       | `-a`  | string                      |                                     | One of four | Agent whose logs to print, as named under `ai.agents`. See [Agent logs](#agent-logs).       |
+| `--sandbox`     |       | string                      |                                     | One of four | Sandbox whose logs to print, as named under `sandboxes`. See [Sandbox logs](#sandbox-logs). |
+| `--web-app`     |       | string                      |                                     | One of four | Web app whose logs to print, as named under `webApps`. See [Web app logs](#web-app-logs).   |
+| `--startTime`   |       | `30m`, `2h`, `3d` or a date | `10m`; `15s` with `--tail`          | No          | Start of the time range. See [Time range and filters](#time-range-and-filters).             |
+| `--filter`      |       | string                      |                                     | No          | CloudWatch Logs filter pattern; only matching events are printed.                           |
+| `--tail`        | `-t`  | boolean                     | `false`                             | No          | Keep printing new events until you stop the command.                                        |
+| `--interval`    | `-i`  | milliseconds                | `1000`                              | No          | With `--tail`, how often to poll for new events.                                            |
+| `--stage`       | `-s`  | string                      | `provider.stage`, else `dev`        | No          | Stage of the deployed function.                                                             |
+| `--region`      | `-r`  | string                      | `provider.region`, else `us-east-1` | No          | AWS Region of the deployed function.                                                        |
+| `--aws-profile` |       | string                      | `provider.profile`                  | No          | AWS profile whose credentials the command uses.                                             |
+| `--config`      | `-c`  | file path                   | `serverless.yml`                    | No          | Service configuration file to use.                                                          |
+
+The command also accepts the options every command takes: `--param="key=value"` (repeatable), `--org`, `--app`, `--verbose`, `--debug` and `--help` (`-h`).
+
+## Time range and filters
+
+The `serverless logs` `--startTime` option accepts a relative time or a date:
+
+```text
 30m                   # since 30 minutes ago
 2h                    # since 2 hours ago
 3d                    # since 3 days ago
 
-2013-02-08            # A calendar date part
-2013-W06-5            # A week date part
-2013-039              # An ordinal date part
-
+2013-02-08            # A calendar date
 20130208              # Basic (short) full date
-2013W065              # Basic (short) week, weekday
-2013W06               # Basic (short) week only
-2013050               # Basic (short) ordinal date
-
 2013-02-08T09         # An hour time part separated by a T
-20130208T080910,123   # Short date and time up to ms, separated by comma
-20130208T080910.123   # Short date and time up to ms
+2013-02-08T09:10:11   # Date and time up to seconds
+2013-02-08T09:10:11Z  # Date and time with a time zone
 20130208T080910       # Short date and time up to seconds
-20130208T0809         # Short date and time up to minutes
-20130208T08           # Short date and time, hours only
 ```
 
-- `--filter` You can specify a filter string to filter the log output. This is useful if you want to get the `error` logs for example.
-- `--tail` or `-t` You can optionally tail the logs and keep listening for new logs in your terminal session by passing this option.
-- `--interval` or `-i` If you choose to tail the output, you can control the interval at which the framework polls the logs with this option. The default is `1000`ms.
+A date without a time zone is read as UTC. Relative times take only minutes (`m`), hours (`h`) and days (`d`).
 
-## Examples
+`--filter` takes a [CloudWatch Logs filter pattern](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html); a single term such as `ERROR` matches the events that contain it.
 
-### AWS
+Without `--tail`, the command makes one request: it prints one page of results, as many events as fit in 1 MB, up to 10,000 ([`FilterLogEvents`](https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_FilterLogEvents.html)), from the 50 log streams with the most recent events. To see older events in a busy log group, narrow the range with `--startTime` or the events with `--filter`. Neither option changes which streams are read, so an event in a stream outside those 50 isn't printed; to search every stream of the log group, use [CloudWatch Logs Insights](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html). When nothing matches, the command prints `No logs found from start time: <time>`.
 
-**Note:** There's a small lag between invoking the function and actually having the log event registered in CloudWatch. So it takes a few seconds for the logs to show up right after invoking the function.
+## Follow logs with --tail
+
+With `--tail`, `serverless logs` polls every `--interval` milliseconds (default `1000`) and prints events newer than the last one it printed, starting 15 seconds back unless `--startTime` is set. Each poll looks up the most recent log streams again, so streams from new execution environments are picked up. The command runs until you stop it, for example with Ctrl+C.
+
+## Agent logs
+
+`serverless logs --agent` reads the `/aws/bedrock-agentcore/runtimes/<runtime-id>-DEFAULT` log group of a deployed [AgentCore Runtime agent](../guide/agents/README.md), finding the runtime ID in the stack's outputs. It takes `--startTime`, `--filter`, `--tail` and `--interval` as for functions. Until the agent has been invoked, the command stops with `No existing log streams for the agent. The agent may not have been invoked yet.` or a missing log group error.
 
 ```bash
-serverless logs -f hello
+serverless logs --agent myAgent --tail
 ```
 
-This will fetch the logs from last 10 minutes as startTime was not given.
+## Sandbox logs
+
+`serverless logs --sandbox` reads the `/aws/lambda-microvms/<service>-<name>-<stage>` log group of a [sandbox](../guide/sandboxes.md) and prints every event since `--startTime` (default 10 minutes), across all pages. It takes `--startTime` and `--filter`; `--interval` is not used, and `--tail` prints the same window followed by the notice that following is not available for sandbox logs. Before the sandbox has been built or run, the command stops with `Log group '<name>' not found. The sandbox may not have been built or run yet.`
 
 ```bash
-serverless logs -f hello --startTime 5h
+serverless logs --sandbox mySandbox --startTime 1h
 ```
 
-This will fetch the logs that happened in the past 5 hours.
+## Web app logs
+
+`serverless logs --web-app` reads a [web app](../guide/web-apps.md)'s `/aws/lambda/web/<function-name>.local` log group, where its lines arrive first, and takes `--startTime`, `--filter`, `--tail` and `--interval` as for functions. `<function-name>` is `<service>-<stage>-<name>` unless the web app sets `name`. Before the web app has logged anything, for example right after its first deploy, the command stops with `No logs yet for web app "api". Send it a request, then run this command again.`
 
 ```bash
-serverless logs -f hello --startTime 1469694264
+serverless logs --web-app api --tail
 ```
 
-This will fetch the logs that happened starting at epoch `1469694264`.
-
-```bash
-serverless logs -f hello -t
-```
-
-Serverless will tail the CloudWatch log output and print new log messages coming in starting from 10 seconds ago.
-
-```bash
-serverless logs -f hello --filter serverless
-```
-
-This will fetch only the logs that contain the string `serverless`
-
-### Agents
-
-**Note:** Agent logs come from CloudWatch log groups created by Bedrock AgentCore. The agent must have been invoked at least once for logs to be available.
-
-```bash
-serverless logs -a myAgent
-```
-
-This will fetch agent logs from the last 10 minutes.
-
-```bash
-serverless logs -a myAgent --startTime 1h
-```
-
-This will fetch agent logs from the past hour.
-
-```bash
-serverless logs -a myAgent -t
-```
-
-Tail the agent's CloudWatch log output and print new log messages as they arrive.
-
-```bash
-serverless logs -a myAgent --filter "ERROR"
-```
-
-This will fetch only the agent logs that contain the string `ERROR`.
-
-### Web apps
-
-```bash
-serverless logs --web-app api
-```
-
-This will fetch the web app's logs from the last 10 minutes.
-
-```bash
-serverless logs --web-app api -t
-```
-
-Tail the web app's logs and print new lines as they arrive.
-
-Before the web app has logged anything, for example right after its first deploy, the command stops with `No logs yet for web app "api". Send it a request, then run this command again.`
-
-The command reads `/aws/lambda/web/<function-name>.local`, where `<function-name>` is `<service>-<stage>-<name>` unless the web app sets `name`. The identity running it needs this permission:
+The identity running the command needs this permission; a grant on the `/aws/lambda/web/<function-name>` log group does not cover the `.local` one:
 
 ```json
 {
@@ -162,4 +123,53 @@ The command reads `/aws/lambda/web/<function-name>.local`, where `<function-name
 }
 ```
 
-A grant on the `/aws/lambda/web/<function-name>` log group does not cover the `.local` one. See [Logs](../guide/web-apps.md#logs) in the web apps guide.
+See [Logs](../guide/web-apps.md#logs) in the web apps guide.
+
+## Side effects and CI use
+
+- `serverless logs` only reads CloudWatch Logs and is safe to re-run. For a function it calls `logs:DescribeLogStreams` and `logs:FilterLogEvents` on the function's log group.
+- The command does not prompt. Without `--tail` it returns after one read, so it suits scripts and CI; with `--tail` it runs until it is stopped.
+- Before the function has logged anything, the command stops with `No existing streams for the function`.
+- A function whose log group uses the `INFREQUENT_ACCESS` log class stops the command with an error, because that log class does not support the CloudWatch Logs APIs the command uses; read those logs with [CloudWatch Logs Insights](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html).
+
+## Provided lifecycle events
+
+- `logs:logs`
+
+## Examples
+
+### Print the last 5 hours of a function's logs
+
+```bash
+serverless logs --function hello --startTime 5h
+```
+
+### Print a function's logs from a UTC date and time
+
+```bash
+serverless logs --function hello --startTime 2026-10-30T08:00:00
+```
+
+### Print only the events that contain a term
+
+```bash
+serverless logs --function hello --filter ERROR
+```
+
+### Follow a function's logs in a specific stage
+
+```bash
+serverless logs --function hello --stage prod --tail
+```
+
+### Follow logs with a 5-second polling interval
+
+```bash
+serverless logs --function hello --tail --interval 5000
+```
+
+## Related commands
+
+- [`serverless invoke`](./invoke.md) invokes a deployed function; its `--log` option prints that invocation's log.
+- [`serverless metrics`](./metrics.md) prints a function's invocation, error and duration metrics.
+- [`serverless dev`](./dev.md) runs a stage's invocations on your machine.

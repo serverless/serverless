@@ -1,9 +1,14 @@
 <!--
-title: Serverless Framework - AWS Lambda Events - CloudWatch Log
-short_title: AWS Lambda Events - CloudWatch Log
-description: Setting up AWS CloudWatch Logs with AWS Lambda via the Serverless Framework
+title: CloudWatch Logs Subscription Events
+description: 'Process CloudWatch Logs log events in a Lambda function with the cloudwatchLog event: log group subscriptions, filter patterns and limits.'
+short_title: CloudWatch Log
 keywords:
-  ['Serverless Framework', 'AWS Lambda', 'CloudWatch Logs', 'log stream']
+  [
+    'Serverless Framework',
+    'CloudWatch Logs Lambda trigger',
+    'log subscription filter',
+    'filter pattern',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -12,64 +17,97 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# CloudWatch Log
+# CloudWatch Logs Subscription Events
 
-## Simple event definition
+The `cloudwatchLog` event sends the log events of an Amazon CloudWatch Logs log group to a Lambda function as they arrive, for example to forward logs or react to errors. The Framework creates a subscription filter on the log group and a permission for CloudWatch Logs to invoke the function. The `cloudwatchLog` event doesn't create the log group: it must exist and be in the same AWS account and Region as the service.
 
-This will enable your Lambda function to be called by a Log Stream.
+This `serverless.yml` sends every log event of the `/aws/lambda/orders` log group to the `processLogs` function:
 
-```yml
+```yaml
+# serverless.yml
+service: my-service
+
+provider:
+  name: aws
+  runtime: nodejs24.x
+
 functions:
-  myCloudWatchLog:
-    handler: myCloudWatchLog.handler
+  processLogs:
+    handler: handler.processLogs
     events:
-      - cloudwatchLog: '/aws/lambda/hello'
+      - cloudwatchLog: /aws/lambda/orders
 ```
 
-**WARNING**: If you specify several CloudWatch Log events for one AWS Lambda function you'll only see the first subscription in the AWS Lambda Web console. This is a known AWS problem but it's only graphical, you should be able to view your CloudWatch Log Group subscriptions in the CloudWatch Web console.
+CloudWatch Logs delivers the log events base64-encoded and gzip-compressed in `event.awslogs.data`:
+
+```javascript
+// handler.mjs
+import { gunzipSync } from 'node:zlib'
+
+export const processLogs = async (event) => {
+  const payload = JSON.parse(
+    gunzipSync(Buffer.from(event.awslogs.data, 'base64')).toString('utf8'),
+  )
+  for (const logEvent of payload.logEvents) {
+    console.log(payload.logGroup, logEvent.timestamp, logEvent.message)
+  }
+}
+```
+
+## cloudwatchLog event options
+
+The `cloudwatchLog` event takes the log group name as a string, or an object with these keys:
+
+| Key        | Type   | Default                | Description                                                         |
+| ---------- | ------ | ---------------------- | ------------------------------------------------------------------- |
+| `logGroup` | string | Required               | The log group name; letters, digits and `/ # - _ .`                 |
+| `filter`   | string | Empty: every log event | The filter pattern that selects the log events sent to the function |
 
 ## Specifying a filter
 
-Here's an example how you can specify a filter rule.
+The `cloudwatchLog` event's `filter` sends only the log events that match a CloudWatch Logs filter pattern. This example sends only JSON log events whose `level` field is `ERROR`:
 
-For more information about the filter pattern syntax, see [Filter and Pattern Syntax](http://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html)
-
-```yml
+```yaml
 functions:
-  myCloudWatchLog:
-    handler: myCloudWatchLog.handler
+  processLogs:
+    handler: handler.processLogs
     events:
       - cloudwatchLog:
-          logGroup: '/aws/lambda/hello'
-          filter: '{$.userIdentity.type = Root}'
+          logGroup: /aws/lambda/orders
+          filter: '{ $.level = "ERROR" }'
 ```
 
-### Example
+Quote the whole pattern in YAML, because patterns often contain `{`, `:` or `"`. A term pattern such as `'ERROR -ARGUMENTS'` matches log events that contain `ERROR` and not `ARGUMENTS`. For the pattern syntax, see [Filter pattern syntax for metric filters, subscription filters, filter log events, and Live Tail](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html).
 
-Update your `serverless.yml` file as follows and run `serverless deploy`.
+## Subscription filter limits
 
-```yml
+A service can have at most two `cloudwatchLog` events for the same log group, across all its functions. A third stops packaging:
+
+```text
+Only 2 subscription filters can be configured per log group. You're attempting to configure more subscription filters than allowed for "/aws/lambda/orders".
+```
+
+Subscription filters that other tools or stacks create on the same log group also count toward the log group's AWS quota, and AWS rejects a subscription filter beyond it at deploy time. See [CloudWatch Logs quotas](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/cloudwatch_limits_cwl.html).
+
+To subscribe one function to several log groups, add a `cloudwatchLog` event for each:
+
+```yaml
 functions:
-  hello1:
-    handler: handler.hello1
+  processLogs:
+    handler: handler.processLogs
     events:
-      - cloudwatchLog: '/aws/lambda/hello1'
-  hello2:
-    handler: handler.hello2
-    events:
-      - cloudwatchLog: '/aws/lambda/hello2'
+      - cloudwatchLog: /aws/lambda/orders
+      - cloudwatchLog: /aws/lambda/payments
 ```
 
-Next up, edit `serverless.yml` and swap out the `logGroup` names. After that run `serverless deploy` again (the deployment will fail).
+Don't subscribe a function to its own log group without a filter that excludes the function's own output: each invocation writes log events that would invoke the function again.
 
-```yml
-functions:
-  hello1:
-    handler: handler.hello1
-    events:
-      - cloudwatchLog: '/aws/lambda/hello2'
-  hello2:
-    handler: handler.hello2
-    events:
-      - cloudwatchLog: '/aws/lambda/hello1'
-```
+## Permissions for CloudWatch Logs subscriptions
+
+For each function with `cloudwatchLog` events, the Framework adds one `lambda:InvokeFunction` permission for the `logs.<region>.amazonaws.com` principal. It's limited to the function's log group in the service's account and Region; for several log groups, to the log groups whose names start with the longest prefix their names share. The function's execution role needs no extra permissions to receive log events.
+
+## Related
+
+- [Subscription filters with AWS Lambda](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/SubscriptionFilters.html#LambdaFunctionExample)
+- [CloudWatch settings in the serverless.yml reference](../guide/serverless.yml.md#cloudwatch)
+- [Log group resources for functions](../guide/functions.md#log-group-resources)

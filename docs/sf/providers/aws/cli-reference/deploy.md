@@ -1,18 +1,15 @@
 <!--
-title: Serverless Framework Commands - AWS Lambda - Deploy
-description: Deploy your service to the specified provider
-short_title: Commands - Deploy
+title: serverless deploy
+description: Deploy a whole service to AWS through CloudFormation with serverless deploy, and the options for stages, packages, CI and S3 uploads.
+short_title: deploy
 keywords:
   [
-    'Serverless',
-    'Framework',
-    'AWS',
-    'Lambda',
-    'Deploy',
-    'Serverless AWS Lambda Commands',
-    'AWS Lambda Deployment',
+    'serverless deploy',
     'Serverless Framework CLI',
-    'Serverless Deploy',
+    'deploy AWS Lambda',
+    'CloudFormation deployment',
+    'serverless deploy --stage',
+    'serverless deploy --package',
   ]
 -->
 
@@ -22,65 +19,125 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# AWS - deploy
+# serverless deploy
 
-The `sls deploy` command deploys your entire service via CloudFormation. Run this command when you have made infrastructure changes (i.e., you edited `serverless.yml`). Use `serverless deploy function -f myFunction` when you have made code changes and you want to quickly upload your updated code to AWS Lambda or just change function configuration.
+`serverless deploy` packages a service and deploys it to AWS as one CloudFormation stack: its Lambda functions, events, IAM roles and the resources in `serverless.yml`. Run it after a change to events, IAM, resources or other stack configuration, and in CI. To update one function's code and configuration during development, without CloudFormation, use [`serverless deploy function`](./deploy-function.md) instead; it doesn't update events, IAM roles or other resources.
 
 ```bash
 serverless deploy
 ```
+
+Without `--stage` and `--region`, the command deploys to `provider.stage` and `provider.region` from `serverless.yml`, or to stage `dev` in `us-east-1` when those are not set.
 
 ## Options
 
-- `--config` or `-c` Name of your configuration file, if other than `serverless.yml|.yaml|.js|.json`.
-- `--stage` or `-s` The stage in your service that you want to deploy to.
-- `--region` or `-r` The region in that stage that you want to deploy to.
-- `--aws-profile` The AWS profile you want to use.
-- `--package` or `-p` path to a pre-packaged directory and skip packaging step. The service directory itself or a directory that contains it is not accepted.
-- `--verbose` Shows all stack events during deployment, and display any Stack Output.
-- `--force` Forces a deployment to take place.
-- `--function` or `-f` Invoke `deploy function` (see above). Convenience shortcut - cannot be used with `--package`.
-- `--conceal` Hides secrets from the output (e.g. API Gateway key values).
-- `--aws-s3-accelerate` Enables S3 Transfer Acceleration making uploading artifacts much faster. You can read more about it [here](http://docs.aws.amazon.com/AmazonS3/latest/dev/transfer-acceleration.html). It requires additional `s3:PutAccelerateConfiguration` permissions. **Note: When using Transfer Acceleration, additional data transfer charges may apply.**
-- `--no-aws-s3-accelerate` Explicitly disables S3 Transfer Acceleration. It also requires additional `s3:PutAccelerateConfiguration` permissions.
-- `--enable-legacy-deployment-bucket` Enables the legacy v3 deployment bucket behavior of creating a stack deployment bucket rather than using the global deployment bucket.
+`serverless deploy` accepts these options:
 
-## Artifacts
+| Option                              | Alias | Value     | Default                             | Required | Description                                                                                                                                                                                   |
+| ----------------------------------- | ----- | --------- | ----------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--stage`                           | `-s`  | string    | `provider.stage`, else `dev`        | No       | Stage to deploy to.                                                                                                                                                                           |
+| `--region`                          | `-r`  | string    | `provider.region`, else `us-east-1` | No       | AWS Region to deploy to.                                                                                                                                                                      |
+| `--aws-profile`                     |       | string    | `provider.profile`                  | No       | AWS profile whose credentials the command uses.                                                                                                                                               |
+| `--config`                          | `-c`  | file path | `serverless.yml`                    | No       | Service configuration file to use (`serverless.yml`, `.yaml`, `.json`, `.js`, `.mjs`, `.cjs` or `.ts`).                                                                                       |
+| `--package`                         | `-p`  | directory | `package.path`, else `.serverless`  | No       | Deploy a directory created by [`serverless package`](./package.md), relative to the current working directory, and skip packaging. Without it, the command packages into `.serverless` first. |
+| `--verbose`                         |       | flag      | off                                 | No       | Print each CloudFormation stack event during the deployment, and the stack outputs after it.                                                                                                  |
+| `--force`                           |       | flag      | off                                 | No       | Deploy even when nothing changed since the latest deployment.                                                                                                                                 |
+| `--conceal`                         |       | flag      | off                                 | No       | Print API Gateway API key names without their values.                                                                                                                                         |
+| `--aws-s3-accelerate`               |       | flag      | off                                 | No       | Enable [S3 Transfer Acceleration](https://docs.aws.amazon.com/AmazonS3/latest/userguide/transfer-acceleration.html) on the service stack's own deployment bucket and upload through it.       |
+| `--no-aws-s3-accelerate`            |       | flag      | none                                | No       | Suspend S3 Transfer Acceleration on the service stack's own deployment bucket.                                                                                                                |
+| `--enable-legacy-deployment-bucket` |       | flag      | off                                 | No       | Use a deployment bucket created and owned by the service's stack instead of the region's shared deployment bucket.                                                                            |
+| `--minify-template`                 |       | flag      | off                                 | No       | Write the compiled CloudFormation template in `.serverless` without whitespace.                                                                                                               |
+| `--enforce-hash-update`             |       | flag      | off                                 | No       | Override every function's description so each one publishes a new version. Only for [migrating the Lambda hashing algorithm](../guide/functions.md#lambda-hashing-algorithm-migration).       |
 
-After the `serverless deploy` command runs, the framework runs `serverless package` in the background first then deploys the generated package.
+`serverless deploy` also accepts the options every command takes: `--param="key=value"` (repeatable) for the `${param:...}` variable source, `--org` and `--app` for the Dashboard, `--debug` and `--help` (`-h`).
 
-## Examples
+The two S3 Transfer Acceleration flags change the bucket that the service's stack owns, which the service uses with `--enable-legacy-deployment-bucket`, `provider.enableLegacyDeploymentBucket: true`, the `ENABLE_LEGACY_DEPLOYMENT_BUCKET` environment variable, or a stack deployed with such a bucket before. They need the `s3:PutAccelerateConfiguration` permission, and AWS charges for accelerated transfers. With `provider.deploymentBucket` set, `--aws-s3-accelerate` stops the deployment with an error.
 
-### Deployment without stage and region options
+`serverless deploy` has no `--function` option; to deploy one function, run [`serverless deploy function`](./deploy-function.md). For an AWS SAM or CloudFormation project, `serverless deploy` takes `--stack` and `--bucket`; see [AWS SAM and CloudFormation](../../../guides/sam.md).
 
-```bash
-serverless deploy
-```
+## What serverless deploy changes in AWS
 
-This is the simplest deployment usage possible. With this command Serverless will deploy your service to the defined
-provider in the default stage (`dev`) to the default region (`us-east-1`).
+A run of `serverless deploy` does this, in order:
 
-### Deployment with stage and region options
+1. Packages the service into `.serverless`, unless `--package` or `package.path` names an existing package.
+2. Looks up the CloudFormation stack `<service>-<stage>` (or `provider.stackName`). When it doesn't exist yet, the stack is created in step 5 with the full template; with a stack-owned deployment bucket, it is created here, with just the bucket.
+3. Compares the compiled template, the service state and every code package with the latest deployment stored in the deployment bucket. When all of them match, it stops and prints `No changes to deploy. Deployment skipped.`
+4. Uploads the template, the state file and the code packages to a new folder `<deploymentPrefix>/<service>/<stage>/<timestamp>/` in the deployment bucket.
+5. Updates the stack, directly or through a change set (`provider.deploymentMethod`; see [Deployment method](../guide/deploying.md#deployment-method)), and waits for CloudFormation to finish.
+6. Deletes the oldest deployment folders, keeping the newest `provider.deploymentBucket.maxPreviousDeploymentArtifacts` (default `5`). With `codeStorageMode: reference` it keeps them all; [`serverless prune --includeArtifacts`](./prune.md) removes them.
 
-```bash
-serverless deploy --stage production --region eu-central-1
-```
+Unless `provider.versionFunctions` is `false`, each deployed function change publishes a new Lambda version. The kept deployment folders are what [`serverless deploy list`](./deploy-list.md) shows and [`serverless rollback`](./rollback.md) restores. For the bucket itself, see [Deployment bucket](../../../guides/deployment-bucket.md).
 
-With this example we've defined that we want our service to be deployed to the `production` stage in the region
-`eu-central-1`.
+`serverless deploy` is safe to re-run: with no changes the deployment is skipped, and with changes the stack is updated to match `serverless.yml`.
 
-### Deployment from a pre-packaged directory
+## Run serverless deploy in CI
 
-```bash
-serverless deploy --package /path/to/package/directory
-```
+In CI, and whenever no one is at a terminal, the CLI skips sign-in prompts: a run without credentials stops with a message that names the keys to set. Set `SERVERLESS_ACCESS_KEY` or `SERVERLESS_LICENSE_KEY` and provide AWS credentials; see [Deploy in your own CI/CD](../../../guides/dashboard/cicd/running-in-your-own-cicd.md) for which key to use, and [Non-interactive use](./README.md#non-interactive-use-ci-and-ai-agents).
 
-With this example, the packaging step will be skipped and the framework will start deploying the package from the `/path/to/package/directory` directory.
+To build once and deploy the same package, run `serverless package --package <dir>` in one step and `serverless deploy --package <dir>` in a later one:
 
-### Environment variables
+- Run both from the service directory: `serverless deploy --package` still loads `serverless.yml`, then deploys the templates, state file and code packages from `<dir>`.
+- Carry `<dir>` between the steps at the same path relative to the working directory.
+- Use the same stage, region and AWS account in both steps. The package names the deployment bucket of that account and region.
 
-- `SLS_AWS_MONITORING_FREQUENCY` allows the adjustment of the deployment monitoring frequency time in ms, default is `5000`.
+`--force` works with `--package` and deploys the package even when it matches the latest deployment.
+
+`SLS_AWS_MONITORING_FREQUENCY` sets how often, in milliseconds, the command polls CloudFormation for stack events (default `5000`):
 
 ```bash
 SLS_AWS_MONITORING_FREQUENCY=10000 serverless deploy
 ```
+
+## Output of serverless deploy
+
+A successful deployment prints the stack name, then the service's endpoints and functions (trimmed):
+
+```text
+Deploying "my-service" to stage "dev" (us-east-1)
+
+✔ Service deployed to stack my-service-dev (45s)
+
+endpoint: GET - https://abc123example.execute-api.us-east-1.amazonaws.com/hello
+functions:
+  hello: my-service-dev-hello (1.2 kB)
+```
+
+With `--verbose`, the output also has a `Stack Outputs:` section. [`serverless info`](./info.md) prints the same summary for a deployed service without deploying.
+
+## Provided lifecycle events
+
+- `deploy:deploy`
+- `deploy:finalize`
+
+## Examples
+
+### Deploy to a specific stage and region
+
+```bash
+serverless deploy --stage prod --region eu-central-1
+```
+
+This deploys the stack `my-service-prod` in `eu-central-1`, separate from the stacks of other stages.
+
+### Deploy a package built earlier
+
+```bash
+serverless deploy --package ./artifacts
+```
+
+This skips packaging and deploys the contents of `./artifacts`, created with `serverless package --package ./artifacts`.
+
+### Deploy when nothing changed
+
+```bash
+serverless deploy --force
+```
+
+This uploads a new deployment and updates the stack even when the package matches the latest deployment.
+
+## Related commands
+
+- [`serverless package`](./package.md) builds the package without deploying it.
+- [`serverless diff`](./diff.md) shows what a deployment would change.
+- [`serverless info`](./info.md) prints the deployed service's endpoints and functions.
+- [`serverless remove`](./remove.md) deletes the deployed stack.

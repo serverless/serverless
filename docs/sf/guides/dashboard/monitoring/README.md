@@ -1,208 +1,196 @@
 <!--
-title: Serverless Framework - Monitoring & Observability - Overview & Setup
-description: An overview and setup guide for Serverless Framework's Monitoring & Observability features, including metrics, traces, logs, and more.
-short_title: Serverless Dashboard Observability - Overview & Setup
-keywords:
-  [
-    'Serverless Framework',
-    'Monitoring',
-    'Observability',
-    'Setup',
-    'Metrics',
-    'Traces',
-    'Logs',
-  ]
+title: Dashboard Monitoring and Observability
+description: Turn on Serverless Framework Dashboard metrics, traces and logs for Lambda functions with stages.observability or an AWS account integration.
+short_title: Monitoring
+keywords: ['Serverless Framework', 'Dashboard', 'Observability', 'Monitoring', 'Lambda traces', 'Lambda metrics', 'stages observability']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/monitoring/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/dashboard/monitoring)
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Monitoring & Observability
+# Dashboard monitoring and observability
 
-Easily monitor and observe AWS Lambda functions with Serverless Framework. Access Metrics, Traces, Logs, Errors, and more, across all AWS accounts and Serverless Framework Services.
+Serverless Framework Dashboard observability collects metrics, traces, logs and errors from AWS Lambda functions in your connected AWS accounts, and alerts on new errors and warnings. Turn it on per service and stage with `stages.<stage>.observability` in `serverless.yml`, or per function in the Dashboard for any function in a connected AWS account, whatever tool deployed it.
 
-Works with or without deploying through Serverless Framework. Just connect your AWS account.
+To instrument every function of a service in the `prod` stage, set `observability: true` for that stage and deploy:
 
-## Features
-
-- A global view of Metrics, Traces, Logs, and Errors across all AWS accounts.
-- Easily search through data via powerful filters.
-- Instant error alerts.
-- Auto-sample trace data to save costs.
-- Detect code-defined API routes, like in Express.js.
-- No set-up or complex instrumentation required.
-
-## Set-Up
-
-Currently Serverless Framework Monitoring & Observability supports the Node.js 12+ and Python 3.8+ AWS Lambda runtimes only, and only AWS Commercial Regions (not GovCloud or China Regions).
-
-To enable Serverless Framework Monitoring & Observability, first create a Serverless Framework account [here](https://app.serverless.com).
-
-Next, you must connect your AWS account(s) directly to Serverless Framework's platform via an IAM Role. The permissions for this IAM Role are available in the [Dashboard Github Repo](https://github.com/serverless/dashboard), for your review.
-
-There are two ways to connect your AWS account(s), _via Serverless Framework CLI_, and _via Serverless Framework Dashboard UI_.
-
-Please note, enabling Serverless Framework's Monitoring & Observability features will create a few resources on AWS accounts they're connected to, adding minimal costs to your AWS accounts.
-
-### Set-Up Via Serverless Framework Dashboard UI
-
-The most convenient way to set up Monitoring & Observability for multiple AWS accounts or accounts with many AWS Lambda functions is to do so via the Serverless Framework Dashboard UI.
-
-In the navigation bar on the left, click on the "Settings" icon, and then click on the "Integrations" tab. Here is where you connect AWS accounts.
-
-In a separate browser window, log into the AWS Account via the browser that you wish to connect to. You will need to have permission to create IAM Roles with the [required permissions](https://github.com/serverless/dashboard) for Monitoring & Observability.
-
-In the "Integrations" view, click the "Add Integrations" button. This launches a quick process that opens a new browser window containing AWS Console's AWS CloudFormation Stack Create view. This window is pre-loaded with an AWS CloudFormation Stack Template that contains an AWS IAM Role with all of the permissions Serverless Framework's Monitoring & Observability features need. At the bottom of this page, click "Create".
-
-While the CloudFormation Stack is creating, go back to the Serverless Framework Dashboard. The Integration view should have detected your Stack is being created and this view will continue to update in real-time until the integration is completed. No other steps are required on your behalf.
-
-Repeat this step to connect as many AWS accounts that you'd like to enable Monitoring & Observability for.
-
-Once an AWS account is connected, you will need to choose the AWS Lambda functions you wish to enable Monitoring & Observability on. You should see a newly created AWS Integration in the "Integrations" view. We recommend giving that AWS Account a name (e.g. "production", "development") so it's easier to remember and find in Dashboard's query filters. On the Integration, click the "Edit" button, and you will see all of the AWS Lambda functions within that AWS account.
-
-Click the "Instrument" toggle on individual AWS Lambda functions, or click the toggle in the table header to enable instrumentation on all of the functions within that page (you'll have to repeat this on each page if you have multiple pages of AWS Lambda functions). Click "Save". This will instrument the AWS Lambda functions in the background. You can go through each page and continue to instrument AWS Lambda functions since instrumentation happens asynchronously.
-
-Go to the Metrics or Explorer view. Make sure your AWS Lambda functions are being invoked. After a few minutes, you should see data appear.
-
-Please note, Metrics, Traces and more typically can take up to 10 minutes before they are visible in Serverless Framework Dashboard, after an AWS account has been integrated.
-
-### Set-Up Via Serverless Framework CLI
-
-You can use the Serverless Framework CLI to enable Monitoring & Observability. This approach will automatically connect the Serverless Framework Platform to an AWS account and enable monitoring on all of the AWS Lambda functions for the selected stages within the Serverless Framework Service.
-
-However, if you want to connect multiple AWS accounts and/or enable monitoring on all AWS Lambda functions within an AWS account, setting it up via the Serverless Framework Dashboard UI is more convenient, as you can accomplish this in a few clicks.
-
-Within the working directory of a Serverless Framework Service, ensure the Service is first connected to the Serverless Framework Dashboard. This can be confirmed by the presence of an org and app properties within the serverless.yml file. If the Service is not connected to the Dashboard, run the `serverless` command within the working directory of the Serverless Framework Service. Once your service is connected to the Serverless Dashboard, you can control your observability instrumentation settings under the stages property in your serverless.yml file:
-
-```yml
-# Ensure these properties are present to connect to the Dashboard
-org: my-org
+```yaml
+# serverless.yml
+org: myorg
 app: my-app
+service: my-service
 
-# Control observability instrumentation settings under stages
+provider:
+  name: aws
+  runtime: nodejs22.x # a runtime with trace support
+  region: us-east-1
+
 stages:
-  dev:
-    observability: true # Turn on observability in the dev stage
   prod:
-    observability: true # Turn on observability in the prod stage
-  default:
-    observability: false # Turn off observability in all other stages
+    observability: true
+
+functions:
+  hello:
+    handler: handler.hello
 ```
 
-Now, whenever you deploy, observability will be enabled or disabled according to the stage you are deploying to. In the above example, observability will be enabled in the dev and prod stages but disabled in all other stages.
+```bash
+serverless deploy --stage prod
+```
 
-After deployment, confirm everything worked within the Serverless Framework Dashboard. Go to "Settings" > "Integrations," and you should see the AWS account that was recently integrated. We highly recommend giving that account a name so it's easier to remember and find in the Dashboard's query filters.
+Trace instrumentation applies to the Node.js and Python runtimes listed in [Supported AWS Lambda runtimes](#supported-aws-lambda-runtimes). After the functions are instrumented and invoked, their data appears on the [Metrics](./metrics.md) and [Traces](./traces.md) pages of the Dashboard.
 
-If you click on the "Edit" button on that Integration, you should see all of the AWS Lambda functions in the account, indicating which ones are enabled and which are disabled.
+## Prerequisites
 
-Please note, Metrics, Traces and more typically can take up to 10 minutes before they are visible in Serverless Framework Dashboard, after an AWS account has been integrated.
+- A Serverless Framework account. The CLI must be signed in with `serverless login`, or have an Access Key in `SERVERLESS_ACCESS_KEY`; a License Key can't use Dashboard features. In CI, use an Access Key of the org named in `serverless.yml`: a key of another org stops the command with `The provided Access Key is not for the Org "myorg". Please provide an Access Key for the "myorg" Org.`
+- `org` and `app` set in `serverless.yml`. If the app doesn't exist in the org yet, the Dashboard creates it the first time the CLI runs with that `app` value. See [Dashboard overview and setup](../README.md).
+- For the first deploy to an AWS account: AWS credentials that can create a CloudFormation stack with named IAM roles (`CAPABILITY_NAMED_IAM`) in `us-east-1`. The roles and their permissions are in the [IAM role template](https://github.com/serverless/console/blob/main/instrumentation/aws/iam-role-cfn-template.yaml).
+- Functions on a [supported runtime](#supported-aws-lambda-runtimes) in a [supported Region](#supported-aws-regions).
 
-## Advanced Instrumentation Using The SDK
+## Turn on observability in serverless.yml
 
-In addition to the out-of-the-box instrumentation provided by Serverless Framework Dashboard, you can customize instrumentation using the Serverless SDK for richer use cases, such as:
+The `observability` setting under `stages` turns Dashboard instrumentation on or off for one stage of a service. It applies to every function of the service; there is no per-function setting. A stage's own value takes precedence over the value under `stages.default`:
 
-- Capturing handled errors so that they are reported elegantly in Serverless Framework Dashboard.
-- Capturing custom Trace Spans.
-- Capturing Error and Warnings Events.
-- Adding Custom Tags to Traces for better searchability.
-- Integrating with structured logging libraries.
+```yaml
+# serverless.yml
+org: myorg
+app: my-app
+service: my-service
 
-See the SDK documentation for Node and Python for details:
+stages:
+  prod:
+    observability: true
+  dev:
+    observability: true
+  default:
+    observability: false
+```
 
-- [Full NodeJS Documentation](./sdk/nodejs.md)
-- [Full Python Documentation](./sdk/python.md)
+`stages.<stage>.observability` accepts these values:
 
-## Supported AWS Lambda Runtimes
+| Value                                        | Effect                                                                    |
+| -------------------------------------------- | ------------------------------------------------------------------------- |
+| `true`, `dashboard` or `provider: dashboard` | Instruments the service's functions for the Dashboard on deploy.          |
+| `false`                                      | Removes Dashboard instrumentation from the service's functions on deploy. |
+| Not set (and not set under `default`)        | The deploy doesn't change Dashboard instrumentation.                      |
 
-Serverless Framework's Monitoring & Observability features currently support the following AWS Lambda Runtimes:
+The same setting selects other observability providers; see [observability](../../observability/README.md). Without `app` in `serverless.yml`, `true` or `false` stops the deploy with:
 
-- nodejs14.x
-- nodejs16.x
-- nodejs18.x
-- python3.8
-- python3.9
-- python3.10
-- python3.11
+```text
+To instrument your service, you must set the "app" property in your config file.
+```
+
+### What serverless deploy does with observability turned on
+
+`serverless deploy` (not `serverless deploy function`) runs these steps with the deployment's AWS credentials and Region:
+
+1. Looks up the AWS account of the credentials in the Dashboard org.
+2. If the account isn't connected yet, creates the `Serverless-Inc-Role-Stack` CloudFormation stack in `us-east-1` from the Dashboard's template and waits for it, then prints that the integration is almost done and that you will receive an email when it is ready.
+3. After the CloudFormation deploy, asks the Dashboard to instrument every function of the service in the deployment's Region, in batches of 50, skipping functions that are already instrumented. It waits up to 3 minutes per batch and lists the functions it couldn't instrument, with the reason. On the deploy that connects the account, instrumentation continues in the background instead.
+
+The steps don't prompt, so they run in CI and for AI agents. Running the deploy again only instruments functions that aren't instrumented yet. If `Serverless-Inc-Role-Stack` already exists in the account but the account is connected to a different org, the CLI prints this warning and doesn't instrument the functions:
+
+```text
+The AWS account with the ID "123456789012", already has a Serverless Framework Observability integration into a different Serverless Framework Organization. Serverless Framework Observability will not be successfully set-up due to this. Please remove the other integration from the other AWS account first.
+```
+
+## Connect an AWS account in the Dashboard
+
+Connecting an AWS account in the Dashboard lets you instrument any Lambda function in it, including functions deployed with other tools:
+
+1. In the [Dashboard](https://app.serverless.com), open **Settings** and then **Integrations**.
+2. Sign in to the AWS account in another browser tab, as a user who can create a CloudFormation stack with IAM roles.
+3. In **Integrations**, select **Add Integration**. The AWS Console opens the CloudFormation quick-create page for `Serverless-Inc-Role-Stack` in `us-east-1`. Select **Create stack**.
+4. Return to the Dashboard and wait for the integration to finish.
+5. On the integration, select **Edit**, turn on **Instrument** for the functions to monitor, and select **Save**. Instrumentation runs in the background.
+
+Give each integration a name (for example `production`) so it's easy to find in the Dashboard filters. Repeat these steps for each AWS account. Data from invocations before a function was instrumented isn't collected; invoke the functions after instrumenting them.
+
+## Supported AWS Lambda runtimes
+
+The Dashboard adds trace instrumentation (the SDK Layer and its environment variables) to functions on these runtimes:
+
+- `nodejs12.x`, `nodejs14.x`, `nodejs16.x`, `nodejs18.x`, `nodejs20.x`, `nodejs22.x`
+- `python3.8`, `python3.9`, `python3.10`, `python3.11`
+
+For functions on `go1.x`, `provided` and `provided.al2`, the Dashboard collects logs only. Functions on other runtimes, such as `nodejs24.x` or `python3.12`, appear in the integration's function list, and instrumenting them, from `serverless deploy` or in the Dashboard, adds no Layer, environment variables or log subscription filter to them. For which runtimes AWS still supports, see [Lambda runtimes](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html).
 
 ## Supported AWS Regions
 
-Serverless Framework's Monitoring & Observability features currently support all of the Commercial AWS Regions. They do not support GovCloud or reginos in China.
+Dashboard observability covers functions in these AWS Regions: `us-east-1`, `us-east-2`, `us-west-1`, `us-west-2`, `af-south-1`, `ap-east-1`, `ap-south-1`, `ap-northeast-1`, `ap-northeast-2`, `ap-northeast-3`, `ap-southeast-1`, `ap-southeast-2`, `ap-southeast-3`, `ca-central-1`, `eu-central-1`, `eu-west-1`, `eu-west-2`, `eu-west-3`, `eu-south-1`, `eu-north-1`, `me-south-1` and `sa-east-1`.
 
-## How Integration Works
+## What the AWS account integration creates
 
-Serverless Framework's Monitoring & Observability features use a few approaches to thoroughly collect all Metrics, Traces, Errors and more from your AWS Lambda functions. This is all done via an AWS IAM Role that is created when you integrate your AWS account with Serverless Framework's Platform. The permissions for this AWS IAM Role are kept in [Github here](https://github.com/serverless/dashboard), so that you can easily review what's required. You can remove this IAM Role at any time. But we recommend hitting "Remove" on the Integration within the Dashboard because it will automatically un-instrument the AWS account and AWS Lambda functions, in addition to deleting the IAM Role.
+The `Serverless-Inc-Role-Stack` CloudFormation stack in `us-east-1` contains these IAM roles:
 
-The first thing an AWS account integration does is create a Kinesis Firehose within your AWS account connected to a Cloudwatch Logs Subscription to each of your AWS Lambda functions which publish logs into that Firehose. The Serverless Framework Platform ingests log data from that Kinesis Firehose. This helps us collect Logs and more from your AWS Lambda functions. During each invocation, the Serverless Framework logs a compressed payload containing Trace information within your AWS Cloudwatch Logs. This can be identified easily because it starts with `SERVERLESS_TELEMETRY`.
+- `ServerlessRole`: the Dashboard assumes it, with an External ID unique to the integration, to read and instrument resources.
+- `ServerlessMonitoringRole`: used by the CloudWatch metric stream, Kinesis Data Firehose and CloudWatch Logs in your account to deliver data.
+- `ServerlessEventSubscriptionExecutionRole`: used by EventBridge to deliver AWS events to the Dashboard.
 
-While the Serverless Framework does ingest Logs, it does not store them. Instead, it merely scans them for specific pieces of information, and a payload that the Serverless Framework SDK creates containing Trace data. Log storage is not something Serverless Framework Dashboard provides at this time.
+Every action the roles allow is listed, with a comment and a link to AWS documentation, in the [IAM role template](https://github.com/serverless/console/blob/main/instrumentation/aws/iam-role-cfn-template.yaml).
 
-Next, an AWS Lambda Layer and AWS Lambda Environment variables are added to each AWS Lambda function that has the "Instrument" toggle enabled. When "Intrument" is enabled these are added automatically. When you disable this toggle, the AWS Lambda Layer and Environment Variables are automatically removed.
+The integration creates a CloudTrail trail in `us-east-1` and EventBridge rules that send Lambda change events to the Dashboard. In each Region with Lambda functions, it creates a CloudWatch metric stream for `AWS/Lambda` and `AWS/ApiGateway` metrics and Kinesis Data Firehose delivery streams for metrics and logs, with S3 buckets that hold data the streams couldn't deliver. For each instrumented function, it adds:
 
-Our AWS Lambda Layer is designed as an Internal Extension that uses the Wrapper Script `AWS_LAMBDA_EXEC_WRAPPER` environment variable to wrap your code with our SDK. Please note that if another tool is wrapping your AWS Lambda function code, we **will** overwrite it, and the other tool will no longer work.
+- A CloudWatch Logs subscription filter named `serverless_logs-filter` on the function's log group. It forwards the Lambda `START`, `END` and `REPORT` lines, the SDK's telemetry lines, and lines that contain errors or timeouts.
+- For a [supported runtime](#supported-aws-lambda-runtimes), a Lambda Layer whose name starts with `sls-sdk-node` or `sls-sdk-python`, and the environment variables `SLS_ORG_ID` and `AWS_LAMBDA_EXEC_WRAPPER` (`/opt/sls-sdk-node/exec-wrapper.sh` or `/opt/sls-sdk-python/exec_wrapper.py`).
 
-Our AWS Lambda Layer is not an External Extension. Through extensive research and benchmarking, we've consistently found that adding observability tooling through AWS Lambda External Extensions almost always results in meaningful performance and cost penalties (cold starts, added invocation duration and added post-processing duration) for your AWS Lambda function. We do not recommend doing this for other tools that you may incorporate. Our Lambda Layer has been _heavily_ optimized to add no latency to cold-starts, duration to your invocations, or duration to post-processing.
+The Layer is an internal extension that wraps your handler through the Lambda [wrapper script](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-modify.html#runtime-wrapper) setting. Instrumentation replaces any other value of `AWS_LAMBDA_EXEC_WRAPPER` on the function. At the end of each invocation, the SDK in the Layer writes the trace to the function's log as a line that starts with `SERVERLESS_TELEMETRY.`.
 
-Additionally, our integration will listen to CloudTrail events and will automatically check to ensure our AWS Lambda Layer and Environment Variables are still attached every time each function has been updated. This only happens for AWS Lambda functions with "Instrument" enabled. This allows you to use any deployment tool with Serverless Framework's Observability & Monitoring features. It also ensures that if you set "Instrument", we guarantee those AWS Lambda functions will be instrumented, mitigating deployment and configuration mistakes.
+The Dashboard changes the Layer and environment variables with the Lambda API, outside of CloudFormation, so they aren't in the service's CloudFormation template, and a CloudFormation update of a function can remove them. The integration receives the `CreateFunction`, `UpdateFunctionCode`, `UpdateFunctionConfiguration` and `DeleteFunction` events, including the ones a `serverless deploy` causes, checks the changed function, and instruments it again when its instrumentation is on but missing or outdated. Logs shown in the Dashboard are read from the function's CloudWatch Logs log group in your account.
 
-## How Trace Sampling Works
+## How trace sampling works
 
-Serverless Framework Dashboard trace sampling is designed to sample at a default rate of 20% for high volume lambda functions, and disable sampling at lower volumes. This is achieved by disabling trace sampling on invocations where the average duration between invocations in the same AWS Lambda function container is less than one per second for 5 consecutive invocations.
+The SDK decides at the end of each invocation, in each Lambda execution environment, whether to send the full trace. A sampled-out trace keeps the `aws.lambda`, `aws.lambda.initialization` and `aws.lambda.invocation` spans, so metrics stay complete, and drops the other spans, the captured errors and warnings, and the custom tags.
 
-These are some common use cases in which trace sampling will be disabled:
+The SDK sends the full trace when any of these is true:
 
-- After a cold start the first 5 invocations will not be sampled.
-- There are less than 1.0 invocations per second on average with consistent (not spiky) invocations.
-- There are far less than 1.0 invocations per second on average, and there is a spike of up to 5 invocations in less than 5 seconds.
-- Invocation generates an error or warning events are never sampled.
-- Sampling is disabled using the `SLS_DISABLE_TRACE_SAMPLING` environment variable.
+- The execution environment has recorded fewer than 5 gaps between invocations, for example right after a cold start.
+- The average of the last 5 gaps between invocations is longer than 1 second in the Node.js SDK, or longer than 1 millisecond in the Python SDK.
+- The invocation ends with an error, or captures an error event. Captured warnings don't prevent sampling.
+- `SLS_SDK_DEBUG` is set on the function.
+- The Python SDK sees `SLS_DISABLE_TRACE_SAMPLING` set on the function.
 
-On average trace sampling will be disabled in most cases where there are fewer than 2.5 million invocations per month, but may vary depending on the distribution of invocations, cold start rates, and error/warning rates.
+Otherwise, the Node.js SDK sends the full trace for 20% of invocations. For API Gateway and function URL requests it sends 10%, and also sends the full trace of the request that follows a sent one.
 
-## Disabling Monitoring & Observability
+## Turn off observability for a service
 
-### Disabling An AWS Account
+To remove Dashboard instrumentation from a service's functions in a stage, set `observability: false` for that stage and deploy:
 
-If you wish to disable the Monitoring & Observability features for an entire AWS account, go into the "Settings" > "Integrations" view and click "Remove" on the AWS account you wish to disconnect. Upon disconnect, Serverless Framework's Platform will automatically remove instrumentation from all AWS Lambda functions (Layers, Environment Variables), remove any resources created by the Serverless Framework Platform upon integration, and destroy the CloudFormation Stack containing the AWS IAM Role used to integrate into the account.
-
-Please note that if you remove an Integration, if you immediately create a new Integration, this may cause the new Integration to take up to 20 minutes to fully work again due to AWS Resource quirks.
-
-### Disabling A Service
-
-To disable Serverless Framework's Monitoring & Observability features within a specific Serverless Framework Service, you can do so under the stages property. This action will prevent your AWS Lambda functions from being instrumented, and un-instrument them if they are already instrumented.
-
-```yml
-org: my-org
+```yaml
+# serverless.yml
+org: myorg
 app: my-app
+service: my-service
 
 stages:
   prod:
     observability: false
 ```
 
-Please note, if you have an Observability Integration already established with one or multiple AWS accounts, you will have to delete those via the [Serverless Framework Dashboard](https://app.serverless.com)
+The next `serverless deploy --stage prod` removes the Layer, the environment variables and the log subscription filter from the service's functions in the deployment's Region. The AWS account integration stays connected; to remove it, use **Remove** on the integration in the Dashboard.
 
-### Disabling Trace Sampling
+## Disconnect an AWS account
 
-Trace Sampling happens automatically. It is measured individually for each AWS Lambda function (it's not account wide), and kicks in when your AWS Lambda function does 1-2 million invocations a month, or when it receives a burst of invocations.
+To stop observability for a whole AWS account, open **Settings** and then **Integrations** in the Dashboard and select **Remove** on the account. The Dashboard removes the instrumentation from the account's functions, removes the resources it created, and deletes `Serverless-Inc-Role-Stack`. Deleting the stack yourself leaves the functions instrumented.
 
-To disable Trace Sample, you can set the following Environment Variable in your `serverless.yml`:
+## Turn off trace sampling
 
-```YAML
+To send every full trace from a function that uses the Python SDK, set `SLS_DISABLE_TRACE_SAMPLING` on it. Any non-empty value, including `false`, turns sampling off. Set it for all functions under `provider.environment`, or for one function under its `environment`:
+
+```yaml
 provider:
   environment:
-    SLS_DISABLE_TRACE_SAMPLING
+    SLS_DISABLE_TRACE_SAMPLING: true
 ```
 
-You can also set the `environment` property on individual functions in `serverless.yml`
+The Node.js SDK (`@serverless/aws-lambda-sdk` 0.15.15) reads `SLS_DISABLE_TRACE_SAMPLING` but applies sampling regardless of its value.
 
-### Disabling AWS Span Collection
+## Turn off AWS SDK spans
 
-Serverless Framework will instrument the use of the AWS SDK to show use of AWS services by your Lambda function. This information provides a valuable visualization of what is happening inside your Lambda function, including how long calls to services like DynamoDB, S3 and others are taking.
-
-If you wish to disable AWS Span collection, set the following Environment Variable in your `serverless.yml`:
+The SDK records each AWS SDK request as an `aws.sdk.<service>.<operation>` span, with its duration and tags such as the table, queue or topic name. To stop recording these spans, set `SLS_DISABLE_AWS_SDK_MONITORING` to any non-empty value, for all functions or per function:
 
 ```yaml
 provider:
@@ -210,13 +198,9 @@ provider:
     SLS_DISABLE_AWS_SDK_MONITORING: true
 ```
 
-You can also set the `environment` property on individual functions in `serverless.yml`
+## Turn off HTTP spans
 
-### Disabling HTTP Span Collection
-
-Serverless Framework will instrument the use of HTTP(s) by your Lambda function. Much like the AWS Spans, HTTP(s) spans will provide a visualization of the external communication that your function is invoking, including the duration of those sessions.
-
-If you wish to disable Http Span collection, set the following Environment Variable in your `serverless.yml`:
+The SDK records each outgoing HTTP and HTTPS request as a span with its method, host, path and status code. To stop recording these spans, set `SLS_DISABLE_HTTP_MONITORING` to any non-empty value, for all functions or per function:
 
 ```yaml
 provider:
@@ -224,4 +208,17 @@ provider:
     SLS_DISABLE_HTTP_MONITORING: true
 ```
 
-You can also set the `environment` property on individual functions in `serverless.yml`.
+## Capture errors, tags and custom spans with the SDK
+
+The SDK in the Layer instruments functions without code changes. To capture handled errors and warnings, add tags to traces, create custom spans or set the endpoint of a request, call the SDK from your handler:
+
+- [Dashboard observability SDKs](./sdk/README.md)
+- [Node.js SDK](./sdk/nodejs.md)
+- [Python SDK](./sdk/python.md)
+
+## Related pages
+
+- [Dashboard metrics](./metrics.md)
+- [Dashboard traces](./traces.md)
+- [Troubleshoot Dashboard observability](./troubleshoot.md)
+- [Dashboard overview and setup](../README.md)

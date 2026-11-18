@@ -1,14 +1,14 @@
 <!--
-title: Serverless Framework - AWS Lambda Events - Managed Streaming for Apache Kafka (MSK)
-short_title: AWS Lambda Events - MSK
-description: Setting up AWS MSK Events with AWS Lambda via the Serverless Framework
+title: Amazon MSK Events
+description: 'Trigger a Lambda function from an Amazon MSK (Managed Streaming for Apache Kafka) topic with the msk event: authentication, batching, filters, provisioned mode.'
+short_title: MSK
 keywords:
   [
     'Serverless Framework',
-    'AWS Lambda',
-    'MSK',
-    'Managed Streaming for Apache Kafka',
-    'AWS',
+    'AWS Lambda MSK trigger',
+    'Amazon Managed Streaming for Apache Kafka',
+    'MSK event source mapping',
+    'Kafka',
   ]
 -->
 
@@ -18,158 +18,268 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# MSK
+# Amazon MSK Events
 
-[Amazon Managed Streaming for Apache Kafka (Amazon MSK)](https://aws.amazon.com/msk/) is a fully managed streaming service that uses Apache Kafka.
-Amazon MSK can be used as event source for Lambda, which allows Lambda service to internally poll it for new messages and invoke corresponding Lambda functions.
+The `msk` event triggers a Lambda function with records from a topic on an Amazon MSK (Amazon Managed Streaming for Apache Kafka) cluster. The Framework creates a Lambda event source mapping: Lambda polls the topic, invokes the function with batches of records, and commits the offsets. The `msk` event connects to an existing cluster and topic; for a Kafka cluster outside Amazon MSK, use the [`kafka` event](./kafka.md).
 
-## Simple event definition
+The `msk` event requires the cluster's `arn` and the `topic`. This `serverless.yml` consumes the `orders` topic:
 
-In the following example, we specify that the `compute` function should be triggered whenever there are new messages available to consume from defined Kafka `topic`.
+```yaml
+# serverless.yml
+service: my-service
 
-In order to configure `msk` event, you have to provide two required properties: `arn`, which represents an ARN of MSK cluster and `topic` to consume messages from.
+provider:
+  name: aws
+  runtime: nodejs24.x
 
-The ARN for the MSK cluster can be specified as a string, the reference to the ARN resource by a logical ID, or the import of an ARN that was exported by a different service or CloudFormation stack.
-
-```yml
 functions:
   compute:
     handler: handler.compute
     events:
-      # These are all possible formats
       - msk:
-          arn: arn:aws:kafka:region:XXXXXX:cluster/MyCluster/xxxx-xxxxx-xxxx
-          topic: mytopic
+          arn: arn:aws:kafka:us-east-1:123456789012:cluster/MyCluster/a1b2c3d4-5678-90ab-cdef-11111EXAMPLE-1
+          topic: orders
+```
+
+The handler receives the records in `event.records`, an object keyed by `<topic>-<partition>` (for example `orders-0`) whose values are arrays of records, each with its message in `value` as a base64-encoded string. The `.mjs` extension makes the handler an ES module:
+
+```javascript
+// handler.mjs
+export const compute = async (event) => {
+  for (const records of Object.values(event.records)) {
+    for (const record of records) {
+      const message = Buffer.from(record.value, 'base64').toString('utf8')
+      console.log(record.topic, record.partition, record.offset, message)
+    }
+  }
+}
+```
+
+Without `saslScram512`, Lambda connects with IAM authentication when the cluster has it enabled, or without authentication; IAM authentication needs extra permissions (see [Authentication](#authentication)). The function itself needs no `vpc` settings: the event source mapping connects through the cluster's subnets and security groups, which must allow that traffic; see [Configuring your Amazon MSK cluster and Amazon VPC network for Lambda](https://docs.aws.amazon.com/lambda/latest/dg/with-msk-cluster-network.html).
+
+## msk event options
+
+The `msk` event accepts these keys:
+
+| Key                         | Type                                       | Default                      | Description                                                               |
+| --------------------------- | ------------------------------------------ | ---------------------------- | ------------------------------------------------------------------------- |
+| `arn`                       | cluster ARN, `Ref` or `Fn::ImportValue`    | Required                     | The MSK cluster                                                           |
+| `topic`                     | string                                     | Required                     | The topic to consume                                                      |
+| `saslScram512`              | Secrets Manager secret ARN                 | Not set                      | Authenticate with SASL/SCRAM-SHA-512, the SCRAM mechanism Amazon MSK uses |
+| `consumerGroupId`           | string, up to 200 characters               | Not set                      | The Kafka consumer group to join                                          |
+| `startingPosition`          | `TRIM_HORIZON`, `LATEST` or `AT_TIMESTAMP` | `TRIM_HORIZON`               | Where Lambda starts reading                                               |
+| `startingPositionTimestamp` | number, Unix time in seconds               | Required with `AT_TIMESTAMP` | The time to start reading from                                            |
+| `batchSize`                 | number, `1`–`10000`                        | `100`                        | The largest number of records in one invocation                           |
+| `maximumBatchingWindow`     | integer, `1`–`300` seconds                 | 500 ms (AWS)                 | How long Lambda gathers records before it invokes the function            |
+| `filterPatterns`            | list of 1–10 patterns                      | No filter                    | Patterns a record must match to reach the function                        |
+| `enabled`                   | boolean                                    | `true`                       | Whether Lambda polls the topic                                            |
+| `provisionedPollers`        | object, or `false`                         | Not set: on-demand mode      | Provisioned mode settings                                                 |
+
+## Cluster ARN formats
+
+The `msk` event's `arn` takes the cluster ARN as a string, a `Ref` to an `AWS::MSK::Cluster` resource in the same service, or an `Fn::ImportValue` of an ARN that another stack exports. Other intrinsic functions, such as `Fn::GetAtt`, aren't accepted:
+
+```yaml
+functions:
+  compute:
+    handler: handler.compute
+    events:
+      # A literal ARN
       - msk:
-          arn:
-            Fn::ImportValue: MyExportedMSKClusterArn
-          topic: mytopic
+          arn: arn:aws:kafka:us-east-1:123456789012:cluster/MyCluster/a1b2c3d4-5678-90ab-cdef-11111EXAMPLE-1
+          topic: orders
+      # An ARN exported by another CloudFormation stack
+      - msk:
+          arn: !ImportValue MyExportedMSKClusterArn
+          topic: payments
+      # A cluster declared in this service's resources
       - msk:
           arn: !Ref MyMSKCluster
-          topic: mytopic
+          topic: refunds
 ```
 
-## Setting the BatchSize, MaximumBatchingWindow and StartingPosition
+## Authentication
 
-For the MSK event integration, you can set the `batchSize`, which effects how many messages can be processed in a single Lambda invocation. The default `batchSize` is 100, and the max `batchSize` is 10000.
-Likewise `maximumBatchingWindow` can be set to determine the amount of time the Lambda spends gathering records before invoking the function. The default is 0, but **if you set `batchSize` to more than 10, you must set `maximumBatchingWindow` to at least 1**. The maximum is 300.
-In addition, you can also configure `startingPosition`, which controls the position at which Lambda should start consuming messages from the topic. It supports three possible values, `TRIM_HORIZON`, `LATEST` and `AT_TIMESTAMP`, with `TRIM_HORIZON` being the default.
-When `startingPosition` is configured as `AT_TIMESTAMP`, `startingPositionTimestamp` is also mandatory and is specified in Unix time seconds.
+The `msk` event supports these Amazon MSK authentication methods:
 
-In the following example, we specify that the `compute` function should have an `msk` event configured with `batchSize` of 1000, `maximumBatchingWindow` to 30 seconds and `startingPosition` equal to `LATEST`.
+- **SASL/SCRAM**: set `saslScram512` to the ARN of a Secrets Manager secret that you have associated with the cluster in Amazon MSK; the Framework doesn't create or associate the secret. Amazon MSK requires the secret's name to start with `AmazonMSK_` and the secret to be encrypted with a customer managed KMS key.
+- **IAM**: omit `saslScram512`. When IAM authentication is enabled on the cluster, Lambda uses it.
+- **Unauthenticated**: omit `saslScram512` on a cluster without IAM authentication.
 
-```yml
+```yaml
 functions:
   compute:
     handler: handler.compute
     events:
       - msk:
-          arn: arn:aws:kafka:region:XXXXXX:cluster/MyCluster/xxxx-xxxxx-xxxx
-          topic: mytopic
+          arn: arn:aws:kafka:us-east-1:123456789012:cluster/MyCluster/a1b2c3d4-5678-90ab-cdef-11111EXAMPLE-1
+          topic: orders
+          saslScram512: arn:aws:secretsmanager:us-east-1:123456789012:secret:AmazonMSK_MySecret-AbCdEf
+```
+
+SASL/SCRAM and IAM authentication need permissions that the Framework doesn't add; see [IAM permissions for MSK events](#iam-permissions-for-msk-events). For the methods and how Lambda chooses between them, see [Configuring Amazon MSK cluster authentication methods in Lambda](https://docs.aws.amazon.com/lambda/latest/dg/msk-cluster-auth.html).
+
+## Starting position and consumer group
+
+The `msk` event's `startingPosition` sets where a new event source mapping starts reading:
+
+- `TRIM_HORIZON` (the default): the oldest record in the topic.
+- `LATEST`: just after the newest record. Lambda can miss records written while it creates or updates the mapping.
+- `AT_TIMESTAMP`: the position at the time in `startingPositionTimestamp`, in Unix time seconds.
+
+```yaml
+functions:
+  compute:
+    handler: handler.compute
+    events:
+      - msk:
+          arn: arn:aws:kafka:us-east-1:123456789012:cluster/MyCluster/a1b2c3d4-5678-90ab-cdef-11111EXAMPLE-1
+          topic: orders
+          consumerGroupId: orders-processor
+          startingPosition: AT_TIMESTAMP
+          startingPositionTimestamp: 1767225600
+```
+
+The `msk` event's `consumerGroupId` sets the Kafka consumer group that Lambda joins:
+
+- It must be unique among your Kafka event sources, and it can't be changed after the event source mapping is created.
+- If the group already exists in the cluster, Lambda starts from the group's committed offsets and ignores `startingPosition`.
+- Other active consumers in the group receive part of the topic's records, and Lambda receives the rest.
+
+See [Customizable consumer group ID](https://docs.aws.amazon.com/lambda/latest/dg/kafka-consumer-group-id.html) and [Starting positions](https://docs.aws.amazon.com/lambda/latest/dg/kafka-starting-positions.html).
+
+## Batch size and batching window
+
+The `msk` event's `batchSize` sets the largest number of records in one invocation, and `maximumBatchingWindow` sets how many seconds Lambda gathers records before it invokes the function:
+
+```yaml
+functions:
+  compute:
+    handler: handler.compute
+    events:
+      - msk:
+          arn: arn:aws:kafka:us-east-1:123456789012:cluster/MyCluster/a1b2c3d4-5678-90ab-cdef-11111EXAMPLE-1
+          topic: orders
           batchSize: 1000
           maximumBatchingWindow: 30
-          startingPosition: LATEST
 ```
 
-Optionally, you can provide the following properties:
+- `batchSize`: `1` to `10000`; AWS uses `100` when it isn't set.
+- `maximumBatchingWindow`: `1` to `300` seconds. When it isn't set, AWS uses a 500 ms window. The Framework doesn't pass `0`, so `0` also leaves the 500 ms default in place on a new event source mapping. AWS can't return an existing mapping to 500 ms once its window has been 1 second or more: removing `maximumBatchingWindow` or setting `0` doesn't restore it. To restore the 500 ms default, remove the event and deploy, then add the event back without `maximumBatchingWindow` and deploy again, which creates a new mapping. Without `consumerGroupId`, each mapping gets a consumer group of its own, so the new mapping doesn't continue from the old mapping's offsets: with `LATEST` it skips the records produced between the two deployments, and with `TRIM_HORIZON` it processes again every record still in the topic. When the event sets `consumerGroupId` and that group still exists in the cluster, the new mapping continues from the group's committed offsets; see [Starting position and consumer group](#starting-position-and-consumer-group).
 
-- `consumerGroupId` - the consumer group id to use for consuming messages
+Lambda invokes the function when the batch is full, when the window ends, or when the batch reaches the 6 MB payload limit, whichever comes first. See [Batching behavior](https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventsourcemapping.html#invocation-eventsourcemapping-batching).
 
-For example:
+## Filter patterns
 
-```yml
+The `msk` event's `filterPatterns` passes only the records that match at least one pattern. MSK event source mappings filter on the `value` key, which holds the message; a pattern on message fields matches only messages that are valid JSON. This example passes only messages whose field `status` is `paid`:
+
+```yaml
 functions:
   compute:
     handler: handler.compute
     events:
       - msk:
-          arn: arn:aws:kafka:region:XXXXXX:cluster/MyCluster/xxxx-xxxxx-xxxx
-          topic: mytopic
-          batchSize: 1000
-          maximumBatchingWindow: 30
-          startingPosition: LATEST
-          consumerGroupId: MyConsumerGroupId
-```
-
-## Enabling and disabling MSK event
-
-The `msk` event also supports `enabled` parameter, which is used to control if the event source mapping is active. Setting it to `false` will pause polling for and processing new messages.
-
-In the following example, we specify that the `compute` function's `msk` event should be disabled.
-
-```yml
-functions:
-  compute:
-    handler: handler.compute
-    events:
-      - msk:
-          arn: arn:aws:kafka:region:XXXXXX:cluster/MyCluster/xxxx-xxxxx-xxxx
-          topic: mytopic
-          enabled: false
-```
-
-## Enabling authentication
-
-In order to authenticate to the `msk` you can set the `saslScram512`, which sets the authentication protocol.
-
-```yml
-functions:
-  compute:
-    handler: handler.compute
-    events:
-      - msk:
-          arn: arn:aws:kafka:region:XXXXXX:cluster/MyCluster/xxxx-xxxxx-xxxx
-          topic: mytopic
-          saslScram512: arn:aws:secretsmanager:region:XXXXXX:secret:AmazonMSK_xxxxxx
-```
-
-## Setting filter patterns
-
-This configuration allows customers to filter event before lambda invocation. It accepts up to 5 filter criterion by default and up to 10 with quota extension. If one event matches at least 1 pattern, lambda will process it.
-
-For more details and examples of filter patterns, please see the [AWS event filtering documentation](https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventfiltering.html)
-
-Note: Serverless only sets this property if you explicitly add it to the `msk` configuration (see an example below). The following example will only process records that are published in the MSK cluster where field `a` is equal to 1 or 2.
-
-```yml
-functions:
-  compute:
-    handler: handler.compute
-    events:
-      - msk:
-          arn: arn:aws:kafka:region:XXXXXX:cluster/MyCluster/xxxx-xxxxx-xxxx
-          topic: mytopic
+          arn: arn:aws:kafka:us-east-1:123456789012:cluster/MyCluster/a1b2c3d4-5678-90ab-cdef-11111EXAMPLE-1
+          topic: orders
           filterPatterns:
             - value:
-                a: [1]
+                status: ['paid']
 ```
 
-## IAM Permissions
+This pattern passes records whose JSON value has `"status": "paid"`; list several values to match any of them (`status: ['paid', 'refunded']`), and match numbers without quotes (`quantity: [1, 2]`). A pattern on fields doesn't apply to a value that isn't JSON; to filter plain-string messages, match the whole value, as in `value: [{ prefix: 'ERROR' }]`.
 
-The Serverless Framework will automatically configure the most minimal set of IAM permissions for you. However you can still add additional permissions if you need to. Read the official [AWS documentation](https://docs.aws.amazon.com/lambda/latest/dg/with-msk.html) for more information about IAM Permissions for MSK events.
+- Lambda drops records that match no pattern and commits their offsets, so the function never receives them.
+- AWS allows 5 patterns per event source mapping by default, and up to 10 with a quota increase; the Framework accepts up to 10.
+
+For the pattern syntax, see [Event filtering with Kafka event sources](https://docs.aws.amazon.com/lambda/latest/dg/kafka-filtering.html).
 
 ## Provisioned mode
 
-[Provisioned mode](https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventsourcemapping.html#invocation-eventsourcemapping-provisioned-mode) gives the event source mapping a dedicated pool of event pollers with minimum and maximum bounds, for consistent low-latency processing. Configure it with `provisionedPollers`:
+Provisioned mode gives the event source mapping a dedicated pool of event pollers between a minimum and a maximum, for consistent low-latency processing. To use it, set the `msk` event's `provisionedPollers`:
 
-```yml
+```yaml
 functions:
   compute:
     handler: handler.compute
     events:
       - msk:
-          arn: arn:aws:kafka:region:XXXXXX:cluster/MyCluster/xxxx-xxxxx-xxxx
-          topic: mytopic
+          arn: arn:aws:kafka:us-east-1:123456789012:cluster/MyCluster/a1b2c3d4-5678-90ab-cdef-11111EXAMPLE-1
+          topic: orders
           provisionedPollers:
-            min: 1 # optional, 1-200, AWS default 1
-            max: 100 # optional, 1-2000, AWS default 200
-            group: shared-capacity # optional poller group name
+            min: 1
+            max: 100
+            group: shared-capacity
 ```
 
-Provisioned mode incurs additional AWS charges per event poller — the `min` value is an always-on cost. See [AWS Lambda pricing](https://aws.amazon.com/lambda/pricing/).
+- `min`: integer, `1` to `200`; AWS uses `1` when it isn't set.
+- `max`: integer, `1` to `2000`, at least `min`; AWS uses `200` when it isn't set. Lambda caps it at the topic's partition count.
+- `group`: up to 128 letters, digits, hyphens and underscores. Up to 100 event source mappings in the same VPC that share a group name share event poller capacity, which lowers cost; the `max` values in a group add up to at most 2,000. Removing `group` takes the mapping out of its group on the next deploy and keeps its `min` and `max`.
 
-`group` (letters, digits, hyphens and underscores, up to 128 characters) groups up to 100 event source mappings within the event source's VPC to share Event Poller Unit capacity, reducing provisioned-mode cost; the aggregate `max` across a group cannot exceed 2,000.
+Provisioned mode adds a charge per event poller, and `min` pollers run all the time; see [AWS Lambda pricing](https://aws.amazon.com/lambda/pricing/).
 
-Deleting the `group` line removes the mapping from its poller group on the next deploy; its own `min` and `max` are unaffected.
+**Important:** Removing `provisionedPollers` from `serverless.yml`, or running `serverless rollback` to a deployment without it, leaves provisioned mode on for the deployed mapping, and its pollers keep running. To turn provisioned mode off, deploy once with `provisionedPollers: false`. Use `false` only for a mapping that already exists; for a new mapping, omit the key.
 
-**Disabling provisioned mode:** removing `provisionedPollers` from your configuration does **not** disable it — provisioned mode stays active on the deployed event source mapping, so the pollers (and their cost) remain. The same applies to `rollback` to an older deployment. To actually disable it, deploy once with `provisionedPollers: false`. `false` clears provisioned mode on an existing mapping; it cannot be used on a mapping that is being created for the first time — for new mappings, simply omit the key.
+See [Provisioned mode for Kafka event source mappings](https://docs.aws.amazon.com/lambda/latest/dg/kafka-scaling-modes.html#kafka-provisioned-mode).
+
+## Disable the event source mapping
+
+To stop Lambda from polling the topic without removing the mapping, set the `msk` event's `enabled: false`:
+
+```yaml
+functions:
+  compute:
+    handler: handler.compute
+    events:
+      - msk:
+          arn: arn:aws:kafka:us-east-1:123456789012:cluster/MyCluster/a1b2c3d4-5678-90ab-cdef-11111EXAMPLE-1
+          topic: orders
+          enabled: false
+```
+
+## IAM permissions for MSK events
+
+For `msk` events, the Framework adds these permissions to the execution role it generates (the service's shared role, or each function's role with `provider.iam.role.mode: perFunction`). When the function uses a role of your own, set in `provider.iam.role` as an ARN, in `provider.role` or in the function's `role`, add them to that role:
+
+- `kafka:DescribeCluster` and `kafka:GetBootstrapBrokers` on each cluster ARN.
+- `ec2:CreateNetworkInterface`, `ec2:DescribeNetworkInterfaces`, `ec2:DescribeVpcs`, `ec2:DeleteNetworkInterface`, `ec2:DescribeSubnets` and `ec2:DescribeSecurityGroups`.
+
+Depending on the cluster, add these permissions with `provider.iam.role.statements`, or to your own role:
+
+- **SASL/SCRAM**: `secretsmanager:GetSecretValue` on the `saslScram512` secret and `kms:Decrypt` on the secret's KMS key (the key ARN).
+- **IAM authentication**: `kafka-cluster:Connect`, `kafka-cluster:DescribeGroup`, `kafka-cluster:AlterGroup`, `kafka-cluster:DescribeTopic` and `kafka-cluster:ReadData` on the cluster, its topics and its consumer groups.
+- **MSK Serverless**: `kafka:DescribeClusterV2` on the cluster.
+
+This example adds the SASL/SCRAM permissions:
+
+```yaml
+provider:
+  name: aws
+  runtime: nodejs24.x
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action: secretsmanager:GetSecretValue
+          Resource: arn:aws:secretsmanager:us-east-1:123456789012:secret:AmazonMSK_MySecret-AbCdEf
+        - Effect: Allow
+          Action: kms:Decrypt
+          Resource: arn:aws:kms:us-east-1:123456789012:key/1234abcd-12ab-34cd-56ef-1234567890ab
+```
+
+See [Lambda execution role permissions for Amazon MSK](https://docs.aws.amazon.com/lambda/latest/dg/with-msk-permissions.html) and [IAM permissions for functions](../guide/iam.md).
+
+## Troubleshooting MSK events
+
+### `You must specify startingPositionTimestamp for function: ... when startingPosition is AT_TIMESTAMP.`
+
+This happens when `startingPosition` is `AT_TIMESTAMP` without `startingPositionTimestamp`. Add the start time in Unix time seconds.
+
+### `The "msk" event of function "..." has "provisionedPollers.min" (...) greater than "max" (...).`
+
+This happens when `provisionedPollers.min` is larger than `provisionedPollers.max`. Lower `min` or raise `max`.
+
+## Related
+
+- [Self-managed Apache Kafka events](./kafka.md)
+- [MSK settings in the serverless.yml reference](../guide/serverless.yml.md#msk)
+- [Using Lambda with Amazon MSK](https://docs.aws.amazon.com/lambda/latest/dg/with-msk.html)

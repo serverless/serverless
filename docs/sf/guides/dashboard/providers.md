@@ -1,229 +1,250 @@
 <!--
-title: Serverless Framework Dashboard - Providers
-description: How to manage cloud service provider credentials in the Serverless Framework Dashboard
-short_title: Serverless Dashboard - Providers
+title: Dashboard Providers
+description: Store AWS credentials as Providers in the Serverless Framework Dashboard and link them to services and stages, so commands deploy with them.
+short_title: Providers
 keywords:
-  ['Serverless Framework', 'Dashboard', 'Providers', 'AWS', 'Azure', 'GCP']
+  [
+    'Serverless Framework',
+    'Dashboard',
+    'Providers',
+    'AWS credentials',
+    'IAM role',
+    'AWS account per stage',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/providers/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/dashboard/providers)
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Providers
+# Dashboard Providers
 
-The Serverless Framework is used to create, manage, monitor and troubleshoot serverless infrastructure such as AWS Lambda, DynamoDB Tables, or API Gateway endpoints. Any infrastructure you provision using Serverless Framework requires credentials to that cloud service provider.
+A Provider stores access to an AWS account in the Serverless Framework Dashboard, usually as an IAM role that the Dashboard assumes. When a service is linked to a Provider, the Serverless Framework CLI gets short-lived AWS credentials from the Dashboard for each command, instead of reading credentials on your machine. Use Providers to deploy each stage to its own AWS account, to keep long-lived AWS keys off developer machines and CI/CD, and to share account access across a team without passing credentials around.
 
-Providers enable you to securely manage the accounts to the cloud service providers like Azure, AWS, and GCP in the Serverless Framework Dashboard.
+To deploy with a Provider, link it to the service in the Dashboard (or make it the organization's default), then set `org`, `app` and `service` in `serverless.yml`:
 
-Your organization admin can add a provider to the organization in the Dashboard using AWS Access Roles to generate short-lived credentials per deployment. Developers in your organization can use the providers by linking them to their services and they will automatically use the credentials from the providers for deployments.
+```yaml
+# serverless.yml
+org: myorg
+app: my-app
+service: my-service
 
-There are many benefits to using providers over managing accounts manually:
-
-- Decouple credential management from development/deployment
-- Automatically use the correct accounts when deploying to different stages
-- No need to store credentials locally
-- No need to share credentials out of band (e.g. sending slack messages)
-- Some providers, like AWS Access Roles, provide an additional layer of security as credentials are generated per deployment and have a short TTL.
-
-## Adding providers in the dashboard
-
-To use providers you must add the providers to your organization and then link the provider to a service. Optionally you can link the provider to an instance instead if you need to use different providers for different stages or regions.
-
-### Adding providers to your organization
-
-To add a provider to your organization go the **Org Settings** section of the [dashboard](https://app.serverless.com). Under the **Providers** tab, click **Add** and follow the instructions.
-
-It is recommended that you deploy your Serverless Framework apps to different accounts for each stage. To accomplish this we recommend adding a `dev` and `prod` provider to decouple the prod environment from all other environments.
-
-### Setting a default organization provider
-
-A Provider at the organization level can also be designated as the default provider for the organization. This provider will be used in any deployments where the service or instance do not have a provider set.
-
-To set the organization default, go to the **orgs** section of the dashboard, and select the **providers** tab, under the **...** menu of the provider select **set as default**.
-
-### Adding a provider to a service
-
-Adding the providers to the organization alone will not be sufficient, you must also link that provider with the service.
-
-To add a provider to a service, go to the **apps** section of the dashboard, and select **settings** under the **...** menu of the service for which you would like to use providers. On the service settings page navigate to the **providers** tab. From there you can click **add provider** which will allow you to add the providers from the organization into your service.
-
-### Adding a provider to an instance
-
-If your service is deployed to the same account for each stage and region, then you do not need to configure providers per instance. However, if you have multiple providers, like one for each stages or regions, then you can add a provider to each instance.
-
-To add a provider to an instance, navigate to the instance details page for that service instance, go to the **providers** tab, from the **add providers** dropdown you can add any provider from the organization into the instance.
-
-### Inheritance and overriding
-
-If you are deploying a traditional Serverless Framework app, an instance of the service is created for that stage and region. If you are using a Component-based service, then an instance is created for each stage of the service.
-
-Serverless Framework, on deployment, will use the provider associated with the Instance, Service, or Organization Default Provider, in priority order. In other words, the providers are inherited and can be overridden at each level.
-
-The organization default provider enables you to deploy using that organization default provider without needing to set a provider at the service or instance level. Similarly, setting a provider at the service level enables you to create new instances and deploy right away without needing to set a provider on the instance.
-
-#### Different accounts per stage
-
-This inheritance model is useful for deploying to different accounts for each stage. For example, if you have a `dev` and `prod` account, then you can setup providers to deploy to `dev` by default, and use the `prod` account for only the `prod` instances.
-
-To accomplish this, you can add the `dev` provider to the service, and then add the `prod` provider to the instances which deploy to the `prod` stage.
-
-If you deploy to a new stage, like `int`, it will then use the `dev` provider from the service.
-
-#### Preview account for CI/CD preview deployments
-
-If you are using the Serverless CI/CD service or any 3rd party CI/CD service, you may be deploying to unique stages to isolate the preview deployments from PRs from all other deployments.
-
-To accomplish this, you can create two providers, `preview`, and `prod`, for two different accounts. Add the `preview` provider to the service, and add the `prod` provider to the instances for the `prod` stage.
-
-Now if you deploy to a preview stage, like `feature-x` it will automatically use the provider from the service, `preview`. If you merge your changes and deploy them to the `prod` stage, it will automatically use the `prod` provider as it is associated with that stage.
-
-## Using providers in serverless.yml
-
-To use providers with serverless.yml you do not need to do anything. Upon deployment the Serverless Framework will retrieve the necessary credentials from the provider associated with the instance or service, and it will use those credentials to deploy.
-
-If the providers are not found, then the Serverless Framework will look for credentials locally.
-
-## Using a Custom IAM Role and Policy
-
-Creating a provider with an IAM Role and default policy using the provided Cloud Formation template is the easiest and most secure way to enable Serverless Framework to deploy from CI/CD, monitor your services, and deploy a range of resources to your AWS account using short-lived credentials. However, advanced IAM users may want to create a custom IAM Role and Policy with more restrictive permissions.
-
-Please be aware that this policy is used to _provision_ your Serverless applications to your AWS account(s). The lambda function will also require a role, which is created by the Serverless Framework during deployments, hence why `iam:CreateRole` is required.
-
-Using a custom policy provides additional control and granularity, but it will require your organization to manage and maintain the policy and role to ensure it provides both minimal and sufficient access for Serverless Framework deployments to work correctly.
-
-Below is a sample IAM Policy you can use to get started. This policy works with the Serverless Framework dashboard to enable all the functionality, and deploy a basic Node.js Lambda function.
-
-If you are create a custom IAM Role with this policy, you will need to add a Trust relationship to the AWS Account with ID 377024778620 (arn:aws:iam::377024778620:root) in order for the Serverless Framework to Assume the Role with the provided policy.
-
-**Sample IAM Policy**
-
+provider:
+  name: aws
+  runtime: nodejs24.x
+  region: us-east-1
 ```
+
+Sign in and deploy; the CLI uses the Provider's credentials:
+
+```bash
+serverless login
+serverless deploy
+```
+
+## Add a provider to your organization
+
+To add a provider, go to the **Org Settings** section of the [Dashboard](https://app.serverless.com), open the **Providers** tab, click **Add** and follow the instructions. To control the role's permissions yourself, see [Use a custom IAM role and policy](#use-a-custom-iam-role-and-policy).
+
+You can also create a provider from the CLI. When you run `serverless` (the onboarding command) signed in with a Dashboard account, no AWS credentials are found on your machine and your organization has no default provider, choose **Create AWS IAM Role (Easy & Recommended)**. The CLI prints a link to a pre-filled AWS CloudFormation quick-create page: open it while signed in to the AWS account you want to deploy to, acknowledge that the stack creates IAM resources, and create the stack. The stack creates the IAM role, and the CLI waits until the provider appears in your organization.
+
+To keep production apart from other environments, deploy each stage to its own AWS account: for example, add a `dev` provider and a `prod` provider.
+
+### Set a default organization provider
+
+The organization's default provider applies to every service and instance that has no provider of its own, when the service meets the conditions in [Use providers in serverless.yml](#use-providers-in-serverlessyml). To set it, go to the **orgs** section of the Dashboard, open the **providers** tab, and in the provider's **...** menu select **set as default**.
+
+## Link a provider to a service or an instance
+
+A provider in your organization applies to a service only when you link it, or when it is the organization default.
+
+- **Service:** go to the **apps** section of the Dashboard, open the **...** menu of the service, select **settings**, open the **providers** tab and click **add provider**. The provider applies to every stage and region of the service.
+- **Instance:** an instance is one stage and region of a service. Open the instance's details page, go to the **providers** tab and add a provider from the **add providers** dropdown. Link providers to instances when stages or regions deploy to different AWS accounts.
+
+## Which provider a command uses
+
+For each command, the CLI asks the Dashboard for the provider of the service instance, identified by the app, the service, the stage and the region:
+
+- The stage is `--stage`, else `provider.stage`, else `dev`.
+- The region is `--region`, else `provider.region`, else `us-east-1`. `AWS_REGION` and an `aws` resolver's `region` can set the region a deploy goes to but not this lookup, so set `provider.region` or pass `--region` when you link providers to instances.
+
+The Dashboard returns the first provider it finds in this order:
+
+1. The provider linked to the instance.
+2. The provider linked to the service.
+3. The organization's default provider.
+
+An instance's provider replaces the service's. A new stage has no instance provider until you link one, so it uses the service's provider, else the organization default.
+
+### Deploy each stage to its own account
+
+To deploy `dev` and other stages to one account and `prod` to another, link a `dev` provider to the service and a `prod` provider to the instances of the `prod` stage. A new stage such as `int` then deploys with the `dev` provider.
+
+### Deploy CI/CD previews to a preview account
+
+CI/CD services often deploy each pull request to its own stage, such as `feature-x`. To keep those previews out of production, create a `preview` provider and a `prod` provider for two accounts. Link `preview` to the service and `prod` to the instances of the `prod` stage. Preview stages then deploy with `preview`, and deploys to `prod` use the `prod` provider.
+
+## Use providers in serverless.yml
+
+A provider applies to a command when all of these are true:
+
+- `org`, `app` and `service` are set in `serverless.yml`. In a Compose project, the org of the Compose run can stand in for `org`.
+- The CLI is signed in with `serverless login`, or uses an Access Key (`SERVERLESS_ACCESS_KEY`) in CI/CD. Dashboard features, including providers, aren't available with a [License Key](../license-keys.md).
+- The Dashboard has a provider for the instance, the service or the organization.
+
+When a provider applies, its credentials take precedence over credentials on your machine, including `provider.profile`, `AWS_PROFILE` and keys set on an `aws` resolver. To use other credentials anyway, set `dashboard: false` on the `aws` resolver that provides deployment credentials; see [Using Serverless Dashboard Providers with Resolvers](../../providers/aws/guide/credentials.md#using-serverless-dashboard-providers-with-resolvers).
+
+When no provider applies, the CLI uses the AWS credentials on your machine; see [AWS Credentials](../../providers/aws/guide/credentials.md).
+
+For an IAM role provider, the Dashboard assumes the role for each command and returns temporary credentials that expire after 30 minutes.
+
+## Use a custom IAM role and policy
+
+The CloudFormation template that the Dashboard and the CLI offer creates the IAM role for you. To control the role's permissions yourself, create the role in your AWS account and add it to the Dashboard as a provider.
+
+Give the role this trust policy, so the Dashboard can assume it:
+
+```json
 {
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "lambda:CreateFunction",
-                "logs:DeleteSubscriptionFilter",
-                "s3:CreateBucket",
-                "iam:CreateRole",
-                "lambda:GetFunctionConfiguration",
-                "cloudformation:DescribeStackResource",
-                "iam:PutRolePolicy",
-                "s3:GetObject*",
-                "cloudformation:DescribeStackEvents",
-                "s3:DeleteBucketWebsite",
-                "logs:GetLogEvents",
-                "cloudformation:UpdateStack",
-                "lambda:ListLayerVersions",
-                "lambda:ListLayers",
-                "lambda:DeleteFunction",
-                "events:RemoveTargets",
-                "logs:FilterLogEvents",
-                "lambda:GetAlias",
-                "s3:DeleteObject",
-                "s3:ListBucket",
-                "apigateway:GET",
-                "cloudformation:ListStackResources",
-                "iam:GetRole",
-                "events:DescribeRule",
-                "lambda:ListFunctions",
-                "lambda:InvokeFunction",
-                "lambda:GetEventSourceMapping",
-                "lambda:ListAliases",
-                "iam:DeleteRole",
-                "iam:UpdateAssumeRolePolicy",
-                "s3:DeleteBucketPolicy",
-                "logs:CreateLogGroup",
-                "logs:TagResource",
-                "cloudformation:DescribeStacks",
-                "lambda:UpdateFunctionCode",
-                "s3:PutObject",
-                "cloudformation:DeleteStack",
-                "lambda:ListEventSourceMappings",
-                "lambda:PublishVersion",
-                "logs:PutSubscriptionFilter",
-                "apigateway:POST",
-                "cloudformation:ValidateTemplate",
-                "lambda:ListVersionsByFunction",
-                "lambda:GetLayerVersion",
-                "s3:DeleteObjectVersion",
-                "events:PutRule",
-                "lambda:GetAccountSettings",
-                "lambda:GetLayerVersionPolicy",
-                "s3:PutEncryptionConfiguration",
-                "apigateway:DELETE",
-                "iam:PassRole",
-                "lambda:ListTags",
-                "iam:DeleteRolePolicy",
-                "apigateway:PATCH",
-                "s3:DeleteBucket",
-                "logs:DescribeLogGroups",
-                "logs:DeleteLogGroup",
-                "apigateway:PUT",
-                "lambda:GetFunction",
-                "lambda:UpdateFunctionConfiguration",
-                "events:PutTargets",
-                "events:CreateSubscriber",
-                "events:UpdateSubscriber",
-                "events:DeleteSubscriber",
-                "events:DescribeSubscriber",
-                "events:ListSubscribers",
-                "events:ListTagsForResource",
-                "events:TagResource",
-                "events:UntagResource",
-                "lambda:AddPermission",
-                "cloudformation:CreateStack",
-                "s3:PutBucketPolicy",
-                "sts:GetCallerIdentity",
-                "lambda:RemovePermission",
-                "s3:GetBucketLocation",
-                "lambda:GetPolicy"
-            ],
-            "Resource": "*"
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::DASHBOARD_ACCOUNT_ID:root"
+      },
+      "Action": "sts:AssumeRole",
+      "Condition": {
+        "StringEquals": {
+          "sts:ExternalId": "ServerlessFramework-ORG_ID"
         }
-    ]
-}
-```
-
-The `events:` subscriber actions deploy `eventBridge` events on a Custom Event Bus. Their subscribers deliver through a role the Framework generates, `<service>-<stage>-<region>-eventBridge`, which the deploying identity passes to EventBridge. If you scope `iam:PassRole` rather than granting it on every resource, allow it on that role for EventBridge only, and keep a separate grant for the functions' execution roles:
-
-```
-{
-    "Effect": "Allow",
-    "Action": "iam:PassRole",
-    "Resource": "arn:aws:iam::111122223333:role/*-eventBridge",
-    "Condition": {
-        "StringEquals": { "iam:PassedToService": "events.amazonaws.com" }
+      }
     }
+  ]
 }
 ```
 
-See [Deploy permissions](../../providers/aws/events/event-bridge.md#deploy-permissions) and [The delivery role](../../providers/aws/events/event-bridge.md#the-delivery-role).
+The principal is the Serverless, Inc. AWS account that assumes the role. Replace `DASHBOARD_ACCOUNT_ID` with the account in the `Principal` of the trust policy in the CloudFormation template the Dashboard provides when you add an AWS IAM Role provider. Replace `ORG_ID` with the **Org ID** shown in the Dashboard under **Org Settings** > **General**. The Dashboard passes `ServerlessFramework-<your Org ID>` as the external ID whenever it assumes the role, so the `sts:ExternalId` condition lets it assume the role only on behalf of your organization.
 
-## Migration from Deployment Profile
+The role needs the permissions to deploy your services. The Framework creates an IAM role for your functions during deploys, so the policy includes `iam:CreateRole` and `iam:PassRole`. A narrower policy is yours to maintain as your services add AWS resources.
 
-Prior to the January 11th, 2021 release, deployment profiles supported setting AWS Access Role ARNs and managing parameters. Support for using AWS Access Roles for deployments has moved from deployment profiles to Providers. Support for managing Parameters has moved from deployment profiles to services and instances.
+This sample policy deploys a basic Node.js function and covers the Dashboard's features. It includes the SSM and S3 actions for the region's shared [deployment bucket](../deployment-bucket.md): `ssm:GetParameter` and `s3:CreateBucket` on every deploy, `ssm:PutParameter` and `s3:PutBucketVersioning` when the Framework creates the bucket, and `s3:GetBucketVersioning` while it waits for a bucket another deploy is creating.
 
-**Deployment profiles will be deprecated on February 28th, 2021**. Migration from deployment profiles to providers and parameters will be automatic; however, there are two required action items to use the new features.
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "lambda:CreateFunction",
+        "logs:DeleteSubscriptionFilter",
+        "s3:CreateBucket",
+        "iam:CreateRole",
+        "lambda:GetFunctionConfiguration",
+        "cloudformation:DescribeStackResource",
+        "iam:PutRolePolicy",
+        "s3:GetObject*",
+        "cloudformation:DescribeStackEvents",
+        "s3:DeleteBucketWebsite",
+        "logs:GetLogEvents",
+        "cloudformation:UpdateStack",
+        "lambda:ListLayerVersions",
+        "lambda:ListLayers",
+        "lambda:DeleteFunction",
+        "events:RemoveTargets",
+        "logs:FilterLogEvents",
+        "lambda:GetAlias",
+        "s3:DeleteObject",
+        "s3:ListBucket",
+        "apigateway:GET",
+        "cloudformation:ListStackResources",
+        "iam:GetRole",
+        "events:DescribeRule",
+        "lambda:ListFunctions",
+        "lambda:InvokeFunction",
+        "lambda:GetEventSourceMapping",
+        "lambda:ListAliases",
+        "iam:DeleteRole",
+        "iam:UpdateAssumeRolePolicy",
+        "s3:DeleteBucketPolicy",
+        "logs:CreateLogGroup",
+        "logs:TagResource",
+        "cloudformation:DescribeStacks",
+        "lambda:UpdateFunctionCode",
+        "s3:PutObject",
+        "cloudformation:DeleteStack",
+        "lambda:ListEventSourceMappings",
+        "lambda:PublishVersion",
+        "logs:PutSubscriptionFilter",
+        "apigateway:POST",
+        "cloudformation:ValidateTemplate",
+        "lambda:ListVersionsByFunction",
+        "lambda:GetLayerVersion",
+        "s3:DeleteObjectVersion",
+        "events:PutRule",
+        "lambda:GetAccountSettings",
+        "lambda:GetLayerVersionPolicy",
+        "s3:PutEncryptionConfiguration",
+        "apigateway:DELETE",
+        "iam:PassRole",
+        "lambda:ListTags",
+        "iam:DeleteRolePolicy",
+        "apigateway:PATCH",
+        "s3:DeleteBucket",
+        "logs:DescribeLogGroups",
+        "logs:DeleteLogGroup",
+        "apigateway:PUT",
+        "lambda:GetFunction",
+        "lambda:UpdateFunctionConfiguration",
+        "events:PutTargets",
+        "events:CreateSubscriber",
+        "events:UpdateSubscriber",
+        "events:DeleteSubscriber",
+        "events:DescribeSubscriber",
+        "events:ListSubscribers",
+        "events:ListTagsForResource",
+        "events:TagResource",
+        "events:UntagResource",
+        "lambda:AddPermission",
+        "cloudformation:CreateStack",
+        "s3:PutBucketPolicy",
+        "sts:GetCallerIdentity",
+        "lambda:RemovePermission",
+        "s3:GetBucketLocation",
+        "lambda:GetPolicy",
+        "ssm:GetParameter",
+        "ssm:PutParameter",
+        "s3:PutBucketVersioning",
+        "s3:GetBucketVersioning"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+```
 
-### Action Items
+### Scope `iam:PassRole` for EventBridge
 
-- You **MUST** upgrade to use the Enterprise Plugin version 4.4.1 or higher.
-- You **MUST** relink your AWS Account via the providers UI by no later than February 28th, 2021.
+The sample's `events:` subscriber actions deploy `eventBridge` events on a custom event bus. Their subscribers deliver through a role the Framework generates, `<service>-<stage>-<region>-eventBridge`, which the deploying identity passes to EventBridge. If you scope `iam:PassRole` rather than allowing it on every resource, allow it on that role for EventBridge only, and keep a separate statement for the functions' execution roles:
 
-### Automatic Migration
+```json
+{
+  "Effect": "Allow",
+  "Action": "iam:PassRole",
+  "Resource": "arn:aws:iam::123456789012:role/*-eventBridge",
+  "Condition": {
+    "StringEquals": { "iam:PassedToService": "events.amazonaws.com" }
+  }
+}
+```
 
-Parameters and Providers were migrated automatically from deployment profiles on January 31st, 2021.
+Replace `123456789012` with your AWS account ID. See [Deploy permissions](../../providers/aws/events/event-bridge.md#deploy-permissions) and [The delivery role](../../providers/aws/events/event-bridge.md#the-delivery-role).
 
-The automatic migration replaced deployment profiles with providers by performing the following:
+## Related
 
-- **A new provider will be created for each deployment profile using the same AWS Access Role ARN**. If the deployment profile doesn’t contain an AWS Access Role ARN, it will be skipped.
-- **A provider will be added to each service for the corresponding default stage in the app**. The provider will be the provider corresponding to the deployment profile which was associated with the default stage of the parent app. For example, if `app1` has `service1` and the _`default`_ stage of `app1` links to the `dev` deployment profile, then the `dev` provider will be added to `service1`. This is repeated for all services in all apps.
-- **A provider will be added to each instance for the corresponding stage in the app**. The provider will be the provider corresponding to the deployment profile which was associated with the stage of the instance. For example, if `app1` has `service1` and `app1` has a stage `prod` linked to the `prod` deployment profile, then the `prod` provider will be added to the `service1` instances deployed to the `prod` stage.
-- **Parameters from the deployment profile associated with the default stage in the app will be copied to the service**.
-- **Parameters from the deployment profile associated with a stage in an app will be copied to the instance**.
+- [AWS Credentials](../../providers/aws/guide/credentials.md): every way to give the Framework AWS credentials.
+- [Parameters](../parameters.md): Dashboard parameters, looked up for the same instance.
+- [CI/CD](./cicd/README.md): deploy from the Dashboard's CI/CD with providers.

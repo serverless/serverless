@@ -1,169 +1,241 @@
 <!--
-title: Serverless Framework - SDK - Node.js
-description: How to use the Serverless Framework Node.js SDK for monitoring and observability.
-short_title: Serverless Observability - Node.js SDK
-keywords:
-  ['Serverless Framework', 'SDK', 'Node.js', 'Monitoring', 'Observability']
+title: Dashboard Node.js SDK
+description: Capture handled errors and warnings, add tags, create custom spans and map stack traces in Lambda functions with the Dashboard Node.js SDK.
+short_title: Node.js SDK
+keywords: ['Serverless Framework', 'Dashboard', 'SDK', 'Node.js', '@serverless/sdk', 'captureError', 'Observability']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/sdk/nodejs/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/dashboard/monitoring/sdk/nodejs)
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Node.js SDK
+# Dashboard Node.js SDK
 
-Serverless Dashboard, when Instrumentation is enabled on an AWS Lambda function,
-will hook into the AWS Lambda runtime environment and automatically report
-metrics, traces, spans, and events. To capture handled errors, warnings, and to
-set custom tags, the SDK library must be added and instrumented in your AWS
-Lambda function handler.
+The Serverless Framework Dashboard Node.js SDK, `@serverless/sdk`, lets a Lambda handler send more than the automatic instrumentation collects: handled errors and warnings, tags, custom spans and the request endpoint. The SDK API takes effect in functions that the Dashboard instruments; see [Dashboard monitoring and observability](../README.md).
 
-## Key terms
+Install the package in your service:
 
-- An **Event** is an instance of an error, warning, or notice that is captured
-  as a part of a Trace. Multiple events can be captured in a single trace.
-- A **Captured Error** is an instance of an error that is sent to Serverless
-  Dashboard as an Event. It can be viewed in the Trace Explorer Details.
-- A **Captured Warning** is one instance of a string in Node.js that is sent to
-  Serverless Dashboard as an Event, much like a Captured Error.
-- A **Tag** is a key/value-pair that can be set on the Trace or an individual
-  Event, and sent to Serverless Dashboard. Tags can be viewed on the Trace
-  Explorer Details.
-
-## Installation
-
-### Install the package
-
-When Tracing is enabled in Serverless Dashboard, an AWS Lambda Layer is added
-to your AWS Lambda function with the `@serverless/sdk` package. While the AWS
-Lambda layer is added by Serverless Dashboard, it is possible for the layer to
-be removed temporarily if you deploy manually or with some infrastructure as
-code tools. As such, we recommend bundling the SDK with your handler to avoid
-unresolved references to the SDK.
-
-```
-npm install @serverless/sdk --save
-# or
-yarn add @serverless/sdk
+```bash
+npm install @serverless/sdk
 ```
 
-### Using a bundler
-
-If you use a bundler, like esbuild, the AWS Lambda Layer for Serverless
-Dashboard will instrument native Node.js APIs like `http` and `console`, and
-APIs available on the runtime like the AWS SDK; however, if the handler bundles
-APIs, like `express` or the AWS SDK, then Serverless Dashboard will not be able
-to auto-instrument. To enable auto-instrumentation for these APIs, you will need
-to manually add the AWS-specific auto-instrumentation library and initiate
-auto-instrumentation.
-
-Install the `@serverless/aws-lambda-sdk` package locally. This replaces the need
-for the `@serverless/sdk` package, so you do not need both.
-
-```
-npm install @serverless/aws-lambda-sdk --save
-# or
-yarn add @serverless/aws-lambda-sdk
-```
-
-Use the following methods to instrument the AWS client libraries and Express.js.
+This handler tags the trace with the order ID and reports a handled error without failing the invocation:
 
 ```javascript
-const express = require('express')
-const serverlessSdk = require('@serverless/aws-lambda-sdk')
+// handler.mjs
+import serverlessSdk from '@serverless/sdk'
 
-// Instrument AWS SDK v2
-serverlessSdk.instrumentation.awsSdkV2.install(AWS)
+const loadOrder = async (orderId) => {
+  if (!orderId) throw new Error('Missing orderId')
+  return { orderId }
+}
 
-// Instrument AWS SDK v3 client
-serverlessSdk.instrumentation.awsSdkV3Client.install(client)
-
-// Instruments Express.js
-const expressApp = express()
-// Ensure you install the SDK instrumentation before
-// installing any express middleware
-serverlessSdk.instrumentation.expressApp.install(expressApp)
+export const handler = async (event) => {
+  serverlessSdk.setTag('order.id', String(event.orderId ?? 'none'))
+  try {
+    const order = await loadOrder(event.orderId)
+    return { statusCode: 200, body: JSON.stringify(order) }
+  } catch (error) {
+    serverlessSdk.captureError(error)
+    return { statusCode: 400, body: error.message }
+  }
+}
 ```
 
-Additionally, in some instrumentation cases, it's important to ensure that
-the bundler doesn't change the function names, as span names and tags are
-resolved from them. In [esbuild](https://esbuild.github.io/) this can be ensured
-with [`--keep-names`](https://esbuild.github.io/api/#keep-names) option.
+In `serverless.yml`, point the function at this handler with `handler: handler.handler`. The error appears as a **Caught Error** event on the invocation's trace in the [Trace Explorer](../traces.md), with the `order.id` tag on the trace.
 
-### Enable Instrumentation
+## Install and import the SDK
 
-The SDK will merely generate the necessary Tags, Spans, and Events; however,
-you must [Enable Instrumentation](../README.md#set-up-via-serverless-framework-dashboard-ui)
-for each of your functions for Serverless Dashboard to ingest the data.
+The Dashboard's Lambda Layer (named `sls-sdk-node-v<version>`) already contains the SDK. Install `@serverless/sdk` in your service too, so `import serverlessSdk from '@serverless/sdk'` resolves when the Layer is missing, for example after a deploy and before the Dashboard instruments the function again. In an instrumented function, the import returns the SDK instance the Layer loaded before your handler, whether your copy of the package is installed in `node_modules` or bundled. In a function without the Layer, the SDK sends nothing to the Dashboard; its API calls don't throw, and `captureError` and `captureWarning` still print their [log lines](#structured-log-output-of-captured-events).
 
-## Usage
+The SDK's terms:
 
-The package does not require any configuration as the credentials are
-automatically set on the AWS Lambda function environment variables when Tracing
-is enabled in Serverless Dashboard.
+- **Event**: an error or warning captured during an invocation. A trace can have several.
+- **Captured error** and **captured warning**: events your handler reports.
+- **Tag**: a key/value pair set on the trace or on one event.
+- **Span**: a timed step of the invocation, shown on the trace timeline.
 
-To use the Serverless SDK you must require the `@serverless/sdk` method in your
-AWS Lambda function handler.
+## Instrument AWS SDK clients and Express in ES modules and bundles
+
+The SDK Layer instruments Node.js `http`, `https` and `console` in every handler. It instruments AWS SDK v3 clients and Express automatically only when they are loaded with CommonJS `require`. The Express instrumentation, automatic or installed in code, applies to Express 4: Express 5 has no `app.lazyrouter` method, so `expressApp.install` throws `Passed argument is not an instance of express app` when it gets an Express 5 app. When your handler is an ES module that imports them, or bundles them (the Framework's built-in esbuild bundles by default), install the instrumentation in your code with `@serverless/aws-lambda-sdk`, which includes everything in `@serverless/sdk`:
+
+```bash
+npm install @serverless/aws-lambda-sdk
+```
+
+Pass each AWS SDK client and the Express 4 app to the SDK before you use them. This example also needs Express 4, `serverless-http` and the DynamoDB client:
+
+```bash
+npm install express@4 serverless-http @aws-sdk/client-dynamodb
+```
 
 ```javascript
-const serverlessSdk = require('@serverless/sdk')
+// handler.mjs
+import express from 'express'
+import serverlessHttp from 'serverless-http'
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import serverlessSdk from '@serverless/aws-lambda-sdk'
+
+const dynamodb = new DynamoDBClient({})
+serverlessSdk.instrumentation.awsSdkV3Client.install(dynamodb)
+
+const app = express()
+// Install the instrumentation before adding middleware
+serverlessSdk.instrumentation.expressApp.install(app)
+app.get('/health', (req, res) => res.json({ ok: true }))
+
+export const handler = serverlessHttp(app)
 ```
 
-### Setting up Source Maps
+Span names and tags of instrumented middleware come from function names. If you minify the bundle, keep the names with esbuild's `keepNames` option, set in an esbuild [config file](../../../../providers/aws/guide/building.md#esbuild):
 
-Source maps are files that map code between the original source code and its
-transformed or compiled version. When code is minified, transpiled, or bundled,
-with popular tools like TypeScript, ESBuild, or Babel, it often becomes
-difficult to read the transpiled code, and therefore the stack traces in Errors.
-
-Serverless Framework Dashboard supports capturing errors using Source Maps, but
-a few steps are required to generate the Source Map files, include them in the
-package, and configure Node to use them with captured Errors in the Serverless
-SDK.
-
-If you are on a version of the Serverless Framework prior to 3.36.0, you will
-need to remove the Dashboard SDK Wrapper by setting `disableWrapping`.
-
-```yaml
-custom:
-  enterprise:
-    disableWrapping: true
+```javascript
+// esbuild.config.js
+export default () => ({
+  keepNames: true,
+})
 ```
 
-#### Generate the source map files
+## Capture handled errors
 
-You will need to configure your transpiler/bundler to generate the Source Map
-files (`.js.map`). We recommend using the [serverless-esbuild](https://www.serverless.com/plugins/serverless-esbuild)
-Serverless Plugin to add support for ESBuild. Once you add the plugin, add the
-`sourcemap` configuration option in `serverless.yml`.
+To report an error that your handler catches, without failing the invocation, pass it to `captureError`:
+
+```javascript
+try {
+  await loadOrder(event.orderId)
+} catch (error) {
+  serverlessSdk.captureError(error)
+}
+```
+
+The SDK also captures every `console.error` call as an error:
+
+```javascript
+console.error(error)
+```
+
+When `console.error` gets a single `Error`, the event uses that error's stack trace; with strings or several arguments, the event uses the stack trace of the `console.error` call. The SDK also captures JSON log lines with an `ERROR` level, or a numeric level above 40, as errors, for example from Pino, Winston or Powertools for AWS Lambda. To turn off `console` and JSON log capture, set `SLS_DISABLE_NODE_CONSOLE_MONITORING`.
+
+## Capture warnings
+
+To report a warning, pass a string to `captureWarning`:
+
+```javascript
+serverlessSdk.captureWarning('Order total is above the review limit')
+```
+
+The SDK also captures every `console.warn` call, and JSON log lines with a `WARN` level or a numeric level from 31 to 40, as warnings. The event uses the stack trace of the call.
+
+Keep warning messages free of per-invocation values such as user IDs, emails or request IDs, so the Dashboard groups the same warning together; put those values in tags instead.
+
+## Add tags to traces and events
+
+To tag the trace of the current invocation, call `setTag`:
+
+```javascript
+serverlessSdk.setTag('user.id', 'bd86489cf036')
+```
+
+To tag a single captured error or warning, pass `tags` in the options:
+
+```javascript
+serverlessSdk.captureError(error, { tags: { 'user.id': '1b8b4c6b4b14' } })
+serverlessSdk.captureWarning('Slow downstream response', {
+  tags: { 'user.id': 'eb661c69405c' },
+})
+```
+
+The Node.js SDK's tag rules:
+
+- **Name**: letters, digits, `.`, `-` and `_`, 1 to 256 characters.
+- **Value**: a string, number, boolean, `Date`, or an array of strings or of numbers; at most 32,766 bytes.
+- **Scope**: trace tags apply to the current invocation; the SDK clears them after it. Tags passed to `captureError` or `captureWarning` apply to that event only.
+- **Duplicates**: setting a tag again in the same invocation with a different value is rejected.
+
+An invalid tag doesn't throw; the SDK skips it and records an **SDK Error** event on the trace. Tags are searchable with the **Custom Tags** filter of the [Trace Explorer](../traces.md#filter-traces-in-the-trace-explorer) and [Metrics](../metrics.md#filter-metrics).
+
+## Group errors and warnings with a fingerprint
+
+The Dashboard groups errors by a fingerprint derived from the stack trace, and warnings by one derived from the message. To group them your own way, pass `fingerprint`:
+
+```javascript
+serverlessSdk.captureError(error, { fingerprint: 'order-load-failed' })
+```
+
+## Structured log output of captured events
+
+`captureError` and `captureWarning` also print the event to the function's log as one JSON line, so it's readable in CloudWatch Logs and searchable with CloudWatch Logs Insights:
+
+```json
+{
+  "source": "serverlessSdk",
+  "type": "ERROR_TYPE_CAUGHT_USER",
+  "name": "Error",
+  "message": "Missing orderId",
+  "stack": "at loadOrder (file:///var/task/handler.mjs:5:23)\nat Module.handler (file:///var/task/handler.mjs:12:25)"
+}
+```
+
+Captured warnings print the same shape with `"type": "WARNING_TYPE_USER"` and no `name`; a `fingerprint` key is added when you pass one. To stop printing these lines, set `SLS_DISABLE_CAPTURED_EVENTS_STDOUT` to any non-empty value.
+
+## Create custom spans
+
+A custom span records how long a part of your handler takes. Span names are dot-separated tokens of lowercase letters, digits and underscores, each starting with a letter, for example `load_order` or `orders.load`. An invalid name records an **SDK Error** event, and `createSpan` returns an object whose `close()` does nothing.
+
+To time a block, create the span and close it:
+
+```javascript
+const span = serverlessSdk.createSpan('load_order')
+await loadOrder(event.orderId)
+span.close()
+```
+
+To close the span automatically, pass a function. `createSpan` returns the function's result; for an `async` function it returns the promise, and closes the span when the promise settles:
+
+```javascript
+const order = await serverlessSdk.createSpan('load_order', async () =>
+  loadOrder(event.orderId),
+)
+```
+
+A span created while another custom span is open becomes its child:
+
+```javascript
+const parent = serverlessSdk.createSpan('checkout')
+const child = serverlessSdk.createSpan('checkout.load_order') // child of checkout
+await loadOrder(event.orderId)
+child.close()
+parent.close()
+```
+
+Close child spans before their parent. Spans still open when the invocation ends are closed with it, and the SDK records an **SDK Warning** event that names them.
+
+Custom spans, trace tags and captured warnings appear only on traces the SDK sends in full. When the invocations in an execution environment are on average 1 second apart or less, the Node.js SDK sends only some traces in full; see [How trace sampling works](../README.md#how-trace-sampling-works).
+
+## Set the endpoint of a request
+
+For API Gateway and function URL requests, the trace records the request path. When one function routes many paths, for example an Express app behind `/{proxy+}`, the SDK records the route that Express matched. To set the endpoint yourself, call `setEndpoint`:
+
+```javascript
+serverlessSdk.setEndpoint('/orders/{id}')
+```
+
+## Map stack traces with source maps
+
+Bundled or minified code produces stack traces that point at the bundle. To see your source lines in captured errors, generate source maps and run Node.js with `--enable-source-maps`.
+
+The Framework's built-in esbuild does both by default: `build.esbuild.sourcemap` defaults to `true`, the `.js.map` files are packaged with each handler, and `NODE_OPTIONS=--enable-source-maps` is added to the bundled functions:
 
 ```yaml
-plugins:
-  - serverless-esbuild
-
-custom:
+build:
   esbuild:
-    bundle: true
     minify: true
     sourcemap: true
 ```
 
-#### Package the Source Map files
-
-In the Serverless Framework, by default, all files and directories in your
-service directory, including the generated `.js.map` files, get packaged except
-for those specified in `.gitignore` and `.npmignore`. If you use
-`package.include` or `package.exclude` in the `serverless.yml`, then ensure that
-`*.js.map` files are included.
-
-### Configure Node to use the Source Maps
-
-Node 14+ natively supports Source Maps in Error objects by modifying the stack
-trace handler. To use this feature you must pass the `--enable-source-maps`
-CLI option to `node`. You can do this in your `serverless.yml` by setting the
-`NODE_OPTIONS` environment variable.
+If you set `sourcemap` as an object, `NODE_OPTIONS` is added only with `setNodeOptions: true`; see [esbuild](../../../../providers/aws/guide/building.md#esbuild). With another build tool, package the `.js.map` files (don't exclude them in `package.patterns`) and set the variable yourself:
 
 ```yaml
 provider:
@@ -171,219 +243,9 @@ provider:
     NODE_OPTIONS: --enable-source-maps
 ```
 
-### Capturing Errors
+## Related pages
 
-The most common use case for the Serverless SDK is to capture handled errors.
-There are two mechanisms for capturing handled errors.
-
-#### Using captureError
-
-```javascript
-try {
-  // an error is thrown
-} catch (ex) {
-  serverlessSdk.captureError(ex)
-}
-```
-
-#### Using console.error
-
-```javascript
-try {
-  // an error is thrown
-} catch (ex) {
-  console.error(ex)
-}
-```
-
-The Serverless SDK automatically instruments the `console.error` method to
-capture errors. This makes instrumentation much easier as you may already be
-using `console.error` to display the errors.
-
-This method can be used to capture `Error` objects, as well as any combination
-of strings. If only an `Error` object is provided, then the stack trace in
-Dashboard will show the stack trace of the error object. If a string, or a
-combination of a string and `Error`, are provided, then the stack trace of the
-`console.error` will be captured.
-
-### Capturing Warnings
-
-#### Using captureWarning
-
-```javascript
-serverlessSdk.captureWarning('Something bad will happen soon')
-```
-
-#### Using console.warn
-
-```javascript
-console.warn('My Warning')
-```
-
-The Serverless SDK automatically instruments the `console.warn` method to
-capture warnings. This makes instrumentation easier as you may already be using
-`console.warn` to display warnings.
-
-This method only supports capturing strings.
-
-We recommend avoiding using unique instance values for the strings. For example,
-if you need to include a userId, email, request ID, or any ID that may be unique
-to the individual invocation, we recommend using Tagging instead.
-
-This method will capture the stack trace of the `console.warn` call so it
-is easy to identify in Serverless Dashboard.
-
-### Tagging
-
-#### Setting Tags on the Trace
-
-```javascript
-serverlessSdk.setTag('userId', 'bd86489cf036')
-```
-
-Using the `setTag` method will create Tags associated with the entire Trace.
-You'll be able to see the Tags on the Trace Details page in the Trace Explorer.
-
-All Tags set with `setTag` are also inherited by all the Captured Errors and
-Captured Warnings.
-
-Tag keys may only contain alphanumeric, `.`, `-`, and `_` characters. Tag values
-may contain any string value. Invalid tag keys will not throw errors, instead,
-an SDK error will be made available in Trace Details.
-
-#### Settings Tags with console.error and console.warn
-
-```javascript
-serverlessSdk.setTag('userId', 'bd86489cf036')
-console.warn('warning message')
-console.error(new Error('some error'))
-```
-
-Using `setTag` sets the Tag values on both the Trace and all Captured Errors
-and Captured Warnings. Captured Errors and Captured Warnings can be created
-using the `console.error` and `console.warn` methods. Therefore, Tags set with
-`setTag` will apply to all Captured Errors and Captured Warnings created using
-`console.error` and `console.warn`.
-
-#### Setting Tags on Captured Errors
-
-```javascript
-serverlessSdk.captureError(ex, { tags: { userId: '1b8b4c6b4b14' } })
-```
-
-Tags can also be set on the individual error. If you previously set a Tag using
-`setTag` then the Tags set on `captureError` will override the Tags on the
-Captured Error, while keeping the Tag on the trace unmodified.
-
-Tag keys on `captureError` are validated the same way as tag keys on `setTag`.
-
-#### Setting Tags on Captured Warnings
-
-```javascript
-serverlessSdk.captureWarning('warning message', {
-  tags: { userId: 'eb661c69405c' },
-})
-```
-
-Tags can also be added on the individual Captured Warnings, just like Captured
-Errors.
-
-Tag keys on `captureWarning` are validated the same way as tag keys on
-`setTag`.
-
-### Structured Logs with captureError and captureWarning
-
-The `captureWarning` and `captureError` methods will send the content to
-Serverless Framework Dashboard in a binary format. To enable human-readability these
-methods will also output a structured-log JSON string, like the one shown
-below.
-
-This string is easier to read, and can also be used with other tools like
-CloudWatch Log Insights to parse and search.
-
-```javascript
-{
-  "source": "serverlessSdk",
-  "type": "ERROR_TYPE_CAUGHT_USER",
-  "message": "User not found",
-  "stackTrace": "...",
-  "tags": {
-    "userId": "eb661c69405c"
-   }
-}
-```
-
-To disable the output of the structured logs with `captureError` and
-`captureWarning`, set this environment variable in the runtime.
-
-```bash
-SLS_DISABLE_CAPTURED_EVENTS_STDOUT=true
-```
-
-### Creating Custom Spans
-
-Spans are part of the Trace that show when something started and stopped. Spans
-can be nested and they can contain Events. Spans are automatically created by
-the Serverless SDK for AWS and HTTP requests. These methods show you how you can
-create your own custom spans and nest them.
-
-#### Create a Custom Span
-
-```javascript
-const customSpan1 = serverlessSdk.createSpan('mySpan')
-// do some work
-customSpan1.close()
-```
-
-#### Creating a Custom Span with a callback
-
-Instead of creating a span and stopping it using `close()`, you can also pass a
-callback method to `createSpan` to automatically start/stop the span when the
-callback starts/stops.
-
-```javascript
-serverlessSdk.createSpan('mySpan', () => {
-  // do some work
-})
-```
-
-This also supports `async` callbacks.
-
-```javascript
-serverlessSdk.createSpan('mySpan', async () => {
-  // do some work
-})
-```
-
-#### Creating Nested Spans
-
-Spans can also be nested by calling the `createSpan` method on a Span.
-
-```javascript
-const span1 = serverlessSdk.createSpan('span1')
-const span2 = span1.createSpan('span2')
-// do some work
-span2.close()
-// do additional work
-span1.close()
-```
-
-Child spans must be stopped via `close()` before the parent Span is stopped. If
-a parent span is stopped, then all child spans will be stopped.
-
-### Setting a custom endpoint
-
-When using a mono-lambda architecture, in which a single lambda function with a
-framework like Express.js is routed from a single API Gateway endpoint, the
-request on API Gateway is captured as a proxy endpoint. As a result, the request
-may appear as `/{proxy+}` instead of the intended path. The Serverless SDK
-automatically instruments frameworks like Express.js, KOA, etc. to capture the
-correct endpoint. This enables you to filter for HTTP requests using the
-inteded path.
-
-In some cases, it may be necessary to manually set the endpoint. In such cases
-you can use the `setEndpoint` method to customize the endpoint path.
-
-```javascript
-serverlessSdk.setEndpoint('/my/custom/endpoint')
-```
+- [Dashboard observability SDKs](./README.md)
+- [Python SDK](./python.md)
+- [Dashboard traces](../traces.md)
+- [Dashboard monitoring and observability](../README.md)

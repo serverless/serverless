@@ -154,6 +154,7 @@
   },
   "Dashboard": {
     "Overview": "guides/dashboard",
+    "Concepts": "guides/dashboard/concepts",
     "Monitoring & Observability": {
       "Overview": "guides/dashboard/monitoring",
       "Metrics": "guides/dashboard/monitoring/metrics",
