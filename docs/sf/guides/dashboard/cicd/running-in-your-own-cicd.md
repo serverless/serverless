@@ -86,7 +86,7 @@ What the workflow does, and what to change:
 - Set `provider.region` in `serverless.yml`, or pass `--region`. The deploy falls back to the `AWS_REGION` that `aws-region` exports only when neither is set, and the Dashboard Provider and parameter lookup doesn't read `AWS_REGION` at all ([AWS credentials in a pipeline](#aws-credentials-in-a-pipeline)).
 - A service in a subdirectory: keep the workflow at the root (GitHub reads workflows only from `.github/workflows`), and set `defaults.run.working-directory` to the service directory, plus `cache-dependency-path` to its `package-lock.json`.
 - To sign in with a License Key instead, store it as `SERVERLESS_LICENSE_KEY` and pass that variable to the deploy step.
-- When the packaged service matches the last deploy, a re-run prints `No changes to deploy. Deployment skipped.` and leaves the stack as it is. `serverless deploy --force` deploys anyway.
+- When the packaged service matches the last deploy and that deploy completed, a re-run prints `No changes to deploy. Deployment skipped.` and leaves the stack as it is. After a deploy that failed or rolled back, a re-run deploys again. `serverless deploy --force` deploys anyway.
 
 The workflow uses the current major versions of [actions/checkout](https://github.com/actions/checkout), [actions/setup-node](https://github.com/actions/setup-node) and [aws-actions/configure-aws-credentials](https://github.com/aws-actions/configure-aws-credentials).
 

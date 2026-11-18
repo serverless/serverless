@@ -61,7 +61,7 @@ A run of `serverless deploy` does this, in order:
 
 1. Packages the service into `.serverless`, unless `--package` or `package.path` names an existing package.
 2. Looks up the CloudFormation stack `<service>-<stage>` (or `provider.stackName`). When it doesn't exist yet, the stack is created in step 5 with the full template; with a stack-owned deployment bucket, it is created here, with just the bucket.
-3. Compares the compiled template, the service state and every code package with the latest deployment stored in the deployment bucket. When all of them match, it stops and prints `No changes to deploy. Deployment skipped.`
+3. Compares the compiled template, the service state and every code package with the latest deployment stored in the deployment bucket. When all of them match and the last deploy completed (it didn't fail or roll back), it stops and prints `No changes to deploy. Deployment skipped.`
 4. Uploads the template, the state file and the code packages to a new folder `<deploymentPrefix>/<service>/<stage>/<timestamp>/` in the deployment bucket.
 5. Updates the stack, directly or through a change set (`provider.deploymentMethod`; see [Deployment method](../guide/deploying.md#deployment-method)), and waits for CloudFormation to finish.
 6. Deletes the oldest deployment folders, keeping the newest `provider.deploymentBucket.maxPreviousDeploymentArtifacts` (default `5`). With `codeStorageMode: reference` it keeps them all; [`serverless prune --includeArtifacts`](./prune.md) removes them.

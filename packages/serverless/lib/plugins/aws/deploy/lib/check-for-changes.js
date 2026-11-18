@@ -381,12 +381,13 @@ export default {
   },
 
   /**
-   * Whether the stack may not reflect the newest deployment directory, because the stack did not exist before this
-   * deploy, its status is not a stable one (a rollback, or a failure kept by
-   * `disableRollback`), or an object was uploaded after the stack was last
-   * updated (a deploy that failed after the upload but before the stack
-   * update, such as a rejected template or change set). Uses the status and
-   * time `createStack` read from describeStacks.
+   * Whether the stack may not reflect the newest deployment directory,
+   * because the stack did not exist before this deploy, its status is not a
+   * stable one (a rollback, or a failure kept by `disableRollback`), or an
+   * object was uploaded after the stack was last updated (a deploy that
+   * failed after the upload but before the stack update, such as a rejected
+   * template or change set). Uses the status and time `createStack` read
+   * from describeStacks.
    *
    * S3 reports LastModified in whole seconds, up to a second after the write,
    * so an upload made in the same second the stack update started can look

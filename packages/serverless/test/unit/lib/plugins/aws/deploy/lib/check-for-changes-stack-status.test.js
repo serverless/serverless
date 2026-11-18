@@ -40,7 +40,9 @@ describe('checkIfDeploymentIsNecessary stack checks', () => {
   let stateObject
 
   beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'check-for-changes-nofn-'))
+    tempDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'check-for-changes-stack-status-'),
+    )
     serverlessDir = path.join(tempDir, '.serverless')
     fs.mkdirSync(path.join(serverlessDir, 'webapps'), { recursive: true })
     fs.mkdirSync(path.join(serverlessDir, 'sandboxes'), { recursive: true })
