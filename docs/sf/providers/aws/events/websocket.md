@@ -155,7 +155,7 @@ export const defaultHandler = async (event) => {
 }
 ```
 
-When clients connect through a [custom domain name](../guide/domains.md), `domainName` is that domain, and the endpoint has no stage: use `https://${domainName}`.
+When clients connect through a [custom domain name](../guide/domains.md), `domainName` is that domain, and the endpoint has no stage: use `https://${domainName}`, followed by the domain's [`basePath`](../guide/domains.md#base-path-mapping) when it sets one, such as `https://${domainName}/admin`.
 
 Calling the `@connections` API needs `execute-api:ManageConnections`. The Framework adds that permission, on `arn:<partition>:execute-api:*:*:*/@connections/*`, in these cases:
 

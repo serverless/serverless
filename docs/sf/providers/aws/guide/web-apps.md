@@ -211,6 +211,8 @@ export default nextConfig
 }
 ```
 
+The script uses `cp` and the `if` of a POSIX shell. npm runs scripts with `cmd.exe` on Windows, so there set npm's [`script-shell`](https://docs.npmjs.com/cli/v11/using-npm/config#script-shell) to a POSIX shell, such as the `bash.exe` of Git for Windows.
+
 Deploy the standalone directory as [prebuilt output](#prebuilt-output) (`entry: .next/standalone/server.js`, `build: false`, the two patterns), then run `npm run build` and `serverless deploy`. The [Next.js example](https://github.com/serverless/examples/tree/v4/aws-node-nextjs-web-app) is a complete app.
 
 ## Endpoint and access

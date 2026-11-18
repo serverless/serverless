@@ -48,7 +48,7 @@ Without `--stage` and `--region`, the command removes the stage in `provider.sta
 
 `serverless remove` does this, in order:
 
-1. Deletes the service's objects under `<deploymentPrefix>/<service>/<stage>/` in the deployment bucket (in the shared or stack-owned bucket, their earlier object versions too), and the stage's Dev Mode payloads. Deleting earlier versions needs the `s3:ListBucketVersions` permission. Without it, the command deletes only the current objects, so in a versioned bucket the earlier versions stay.
+1. Deletes the service's objects under `<deploymentPrefix>/<service>/<stage>/` in the deployment bucket (in the shared or stack-owned bucket, their earlier object versions too, and in a bucket set in `provider.deploymentBucket` when `provider.deploymentBucket.versioning` is `true`), and the stage's Dev Mode payloads. Deleting earlier versions needs the `s3:ListBucketVersions` permission. Without it, the command deletes only the current objects, so in a versioned bucket the earlier versions stay.
 2. Deletes the CloudFormation stack `<service>-<stage>` (or `provider.stackName`) and waits for the deletion to finish. A deployment bucket that the stack owns is deleted with it.
 3. Deletes the ECR repository `serverless-<service>-<stage>` and its images, when the service has one.
 

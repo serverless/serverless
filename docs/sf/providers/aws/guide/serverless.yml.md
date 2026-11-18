@@ -2497,7 +2497,8 @@ ai:
       # OR object form with explicit name or ARN:
       function:
         name: myFunction # function name in this service
-        arn: arn:aws:lambda:us-east-1:123456789012:function:external-fn # external ARN
+        # OR the ARN of an external function (takes precedence over name):
+        # arn: arn:aws:lambda:us-east-1:123456789012:function:external-fn
 
       # Tool schema (required for function tools): describes the tools the Lambda exposes.
       # An inline list, or the path of a JSON file with the list

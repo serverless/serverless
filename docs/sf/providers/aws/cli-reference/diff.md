@@ -125,7 +125,7 @@ Functions in neither list are unchanged, or are image or `package.disable` funct
 ## Side effects and CI use
 
 - Without `--package`, `serverless diff` packages the service first, which writes the package directory as [`serverless package`](./package.md) does. In AWS it only reads: `cloudformation:GetTemplate` on the stack and `lambda:GetFunction` on each deployed function. It is safe to re-run.
-- The exit code is `0` whether or not there are differences; it is non-zero only when the command can't finish, for example when credentials are missing, the packaged template can't be read, or `lambda:GetFunction` is denied. To fail a CI step on changes, read the JSON output. In this Bash step, `pipefail` keeps a failed `serverless diff` from passing when `jq` reads empty input:
+- The exit code is `0` whether or not there are differences; it is non-zero only when the command can't finish, for example when credentials are missing, the packaged template can't be read, or `lambda:GetFunction` is denied. To fail a CI step on resource or function code changes, read the JSON output; changes to other template sections, such as `Outputs`, appear only in the text output. In this Bash step, `pipefail` keeps a failed `serverless diff` from passing when `jq` reads empty input:
 
   ```bash
   set -o pipefail

@@ -319,6 +319,8 @@ functions:
 
 Both functions share one deployment package, so they show the same size. Replace the URL in the following commands with the one from your output.
 
+The two routes have no authorization: anyone with the URL can add and list customers, so store only test data in this API. To restrict who can call the routes, add an authorizer, such as a [JWT authorizer](./providers/aws/events/http-api.md#jwt-authorizers).
+
 Add a customer:
 
 ```bash
