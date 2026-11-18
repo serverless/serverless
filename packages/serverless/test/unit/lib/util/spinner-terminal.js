@@ -1,8 +1,12 @@
 // A terminal for the CLI's spinner that can go away: stderr animates, and standard input takes raw
 // mode until `hangUp()`, after which every change of its mode fails the way a terminal that was
-// closed fails it (EIO on Linux, ENOTTY on macOS). Node reports that failure as an 'error' event on
-// standard input, which throws when nothing listens. It is a Unix terminal on every platform the
-// tests run on: on Windows the spinner never changes the mode of standard input.
+// closed fails it (EIO on Linux, ENOTTY on macOS): Node reports that failure as an 'error' event on
+// standard input, with `code`, `errno` and `syscall` set and the message `setRawMode <code>`, and the
+// event throws that error when nothing listens. `failNextModeChange(error)` makes the next change
+// of mode throw `error` instead, as any other failure would. The tests run it as a Unix terminal on
+// every platform: on Windows the spinner's stdin handling never puts standard input in raw mode,
+// but it still takes it out of raw mode when the spinner stops.
+import { constants } from 'node:os'
 import { setGlobalRendererSettings } from '@serverless/util/src/logger/index.js'
 
 const STDERR_KEYS = [
@@ -38,6 +42,9 @@ export const fakeTerminal = ({ code = 'ENOTTY' } = {}) => {
     hangUp: () => {
       terminal.hungUp = true
     },
+    failNextModeChange: (error) => {
+      terminal.nextFailure = error
+    },
   }
   const define = (target, key, value) =>
     Object.defineProperty(target, key, {
@@ -61,11 +68,21 @@ export const fakeTerminal = ({ code = 'ENOTTY' } = {}) => {
   define(process.stdin, 'resume', () => process.stdin)
   define(process.stdin, 'pause', () => process.stdin)
   define(process.stdin, 'setRawMode', (flag) => {
+    if (terminal.nextFailure) {
+      const error = terminal.nextFailure
+      terminal.nextFailure = undefined
+      terminal.modes.push({ raw: Boolean(flag), ok: false })
+      throw error
+    }
     if (terminal.hungUp && Boolean(flag) !== terminal.raw) {
       terminal.modes.push({ raw: Boolean(flag), ok: false })
       const error = new Error(`setRawMode ${code}`)
+      error.errno = -constants.errno[code]
       error.code = code
       error.syscall = 'setRawMode'
+      // Node's own error throws from the 'error' event as it is. This one is made in the test's
+      // context, where emitting it with no listener would throw a wrapper of it instead.
+      if (process.stdin.listenerCount('error') === 0) throw error
       process.stdin.emit('error', error)
       return process.stdin
     }

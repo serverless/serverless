@@ -163,31 +163,43 @@ const createSpinner = (text) =>
   })
 
 /**
+ * Whether an error from starting or stopping the spinner comes from a terminal that can no longer
+ * take raw mode: Node's own error for the failed mode change (its `syscall` is `setRawMode`; EIO on
+ * Linux, ENOTTY on macOS), or the error ora's stdin handling throws once such a failure has left it
+ * half-way ("`stop` called more times than `start`").
+ */
+const isRawModeError = (error) =>
+  error?.syscall === 'setRawMode' ||
+  /stop\W*called more times than\W*start/.test(String(error?.message))
+
+/**
  * Starts or stops the spinner (`action(spinner)`). A terminal that went away (its window closed
  * while a long command such as `serverless dev` keeps running) still reads as a terminal, but
  * putting it in or out of raw mode fails (ENOTTY on macOS, EIO on Linux). The spinner's stdin
  * handling is then left half-way: every later stop would throw "`stop` called more times than
  * `start`", and so would every line printed after it. So the spinner is replaced, once, by one that
  * leaves standard input alone (no terminal remains to read keys from), with the same text, and the
- * action runs on it.
+ * action runs on it. Any other error is thrown as it is, and the spinner keeps reading standard
+ * input.
  */
 const runSpinner = (action) => {
   try {
     action(renderer.spinner._spinner)
     return
   } catch (error) {
-    if (!spinnerDiscardsStdin) throw error
+    if (!spinnerDiscardsStdin || !isRawModeError(error)) throw error
   }
   spinnerDiscardsStdin = false
   const failed = renderer.spinner._spinner
+  renderer.spinner._spinner = createSpinner(failed.text)
   try {
     // Its animation goes (a start that failed may have hidden the cursor, a stop may not have
     // cleared its line); its stdin handling may fail again.
     failed.stop()
-  } catch {
+  } catch (error) {
     // The spinner that replaces it never touches standard input.
+    if (!isRawModeError(error)) throw error
   }
-  renderer.spinner._spinner = createSpinner(failed.text)
   action(renderer.spinner._spinner)
 }
 
