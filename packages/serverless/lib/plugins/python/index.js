@@ -10,6 +10,8 @@
  */
 
 /* jshint ignore:start */
+import path from 'path'
+import { ServerlessError } from '@serverless/util'
 import {
   addVendorHelper,
   packRequirements,
@@ -21,6 +23,23 @@ import { installAllRequirements } from './lib/pip.js'
 import { pipfileToRequirements } from './lib/pipenv.js'
 import { uvToRequirements } from './lib/uv.js'
 import { cleanup, cleanupCache } from './lib/clean.js'
+
+function normalizeToolFlag(rawValue, servicePath, toolName) {
+  if (typeof rawValue === 'string') {
+    const trimmed = rawValue.trim()
+    if (!trimmed) {
+      throw new ServerlessError(
+        `Python Requirements: use${toolName} must be a boolean or a non-empty path.`,
+        'PYTHON_REQUIREMENTS_INVALID_TOOL_OPTION',
+      )
+    }
+    const filePath = path.isAbsolute(trimmed)
+      ? trimmed
+      : path.resolve(servicePath, trimmed)
+    return { enabled: true, filePath }
+  }
+  return { enabled: Boolean(rawValue), filePath: undefined }
+}
 
 class ServerlessPythonRequirements {
   /**
@@ -124,6 +143,19 @@ class ServerlessPythonRequirements {
         options.layer = {}
       }
     }
+    for (const [flag, key] of [
+      ['usePipenv', 'pipenvFilePath'],
+      ['usePoetry', 'poetryFilePath'],
+      ['useUv', 'uvFilePath'],
+    ]) {
+      const { enabled, filePath } = normalizeToolFlag(
+        options[flag],
+        this.servicePath,
+        flag.replace('use', ''),
+      )
+      options[flag] = enabled
+      options[key] = filePath
+    }
     return options
   }
 
@@ -201,6 +233,21 @@ class ServerlessPythonRequirements {
             description: `Python module directory containing the function handler.
 @remarks Used by the bundled Python requirements integration.`,
             type: 'string',
+          },
+        },
+      })
+    }
+
+    if (this.serverless.configSchemaHandler?.defineCustomProperties) {
+      this.serverless.configSchemaHandler.defineCustomProperties({
+        properties: {
+          pythonRequirements: {
+            type: ['boolean', 'object'],
+            properties: {
+              usePipenv: { type: ['boolean', 'string'] },
+              usePoetry: { type: ['boolean', 'string'] },
+              useUv: { type: ['boolean', 'string'] },
+            },
           },
         },
       })
@@ -381,4 +428,5 @@ ServerlessPythonRequirements.shouldLoad = ({ serverless, log }) => {
   return true
 }
 
+export { normalizeToolFlag }
 export default ServerlessPythonRequirements
