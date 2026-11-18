@@ -173,6 +173,8 @@ test('a finite command that ends in an error sets the exit code for the shell an
   expect(process.exitCode).toBe(1)
   // The CLI reads it to report the command as not succeeded.
   expect(serverless.exitCode).toBe(1)
+  // Only an incomplete attach or restore (exit 3) has a reason of its own.
+  expect(serverless.exitReason).toBeUndefined()
 })
 
 test('dev stop runs through the finite-command helper and sets exit 3 for the shell and the CLI', async () => {
@@ -184,6 +186,8 @@ test('dev stop runs through the finite-command helper and sets exit 3 for the sh
   )
   expect(process.exitCode).toBe(3)
   expect(serverless.exitCode).toBe(3)
+  // Why, for the CLI's analysis event: the result's reason as a CLI error code.
+  expect(serverless.exitReason).toBe('DEV_MODE_RESTORE_INCOMPLETE')
 })
 
 test('dev wait runs through the finite-command helper and a timeout exits 124', async () => {

@@ -1,8 +1,16 @@
 <!--
-title: Serverless Framework - AWS Lambda Events - Self-managed Apache Kafka
-short_title: AWS Lambda Events - Kafka
-description: Setting up AWS self-managed Apache Kafka Events with AWS Lambda via the Serverless Framework
-keywords: ['Serverless Framework', 'AWS Lambda', 'Kafka', 'Apache Kafka', 'AWS']
+title: Self-Managed Apache Kafka Events
+description: 'Trigger a Lambda function from a self-managed Apache Kafka topic with the kafka event: authentication, VPC access, batching, filters and provisioned mode.'
+short_title: Kafka
+keywords:
+  [
+    'Serverless Framework',
+    'AWS Lambda Kafka trigger',
+    'self-managed Apache Kafka',
+    'Kafka event source mapping',
+    'SASL/SCRAM',
+    'mTLS',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -11,216 +19,296 @@ keywords: ['Serverless Framework', 'AWS Lambda', 'Kafka', 'Apache Kafka', 'AWS']
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Kafka
+# Self-Managed Apache Kafka Events
 
-A self-managed Apache Kafka cluster can be used as an event source for AWS Lambda.
+The `kafka` event triggers a Lambda function with records from a topic on a self-managed Apache Kafka cluster: a cluster you run yourself or with a provider other than Amazon MSK. The Framework creates a Lambda event source mapping: Lambda polls the topic, invokes the function with batches of records, and commits the offsets. The `kafka` event connects to an existing cluster and topic; for an Amazon MSK cluster, use the [`msk` event](./msk.md).
 
-In order to configure lambda to trigger via `kafka` events, you must provide three required properties:
+The `kafka` event requires `accessConfigurations`, `bootstrapServers` and `topic`. This `serverless.yml` consumes the `orders` topic, authenticating with SASL/SCRAM credentials stored in AWS Secrets Manager:
 
-- `accessConfigurations` which defines the chosen [authentication](#authentication) method configuration
-- `topic` to consume messages from
-- `bootstrapServers` - an array of bootstrap server addresses for your Kafka cluster
+```yaml
+# serverless.yml
+service: my-service
 
-Optionally, you can provide the following properties:
+provider:
+  name: aws
+  runtime: nodejs24.x
 
-- `consumerGroupId` - the consumer group id to use for consuming messages
+functions:
+  compute:
+    handler: handler.compute
+    events:
+      - kafka:
+          accessConfigurations:
+            saslScram512Auth: arn:aws:secretsmanager:us-east-1:123456789012:secret:MyBrokerSecret
+          bootstrapServers:
+            - broker1.example.com:9092
+            - broker2.example.com:9092
+          topic: orders
+```
+
+The handler receives the records grouped by topic and partition in `event.records`, each with its message in `value` as a base64-encoded string:
+
+```javascript
+// handler.mjs
+export const compute = async (event) => {
+  for (const records of Object.values(event.records)) {
+    for (const record of records) {
+      const message = Buffer.from(record.value, 'base64').toString('utf8')
+      console.log(record.topic, record.partition, record.offset, message)
+    }
+  }
+}
+```
+
+Lambda must reach the brokers: either they have public endpoints, or you give the event source mapping access to the cluster's VPC (see [VPC access](#vpc-access)).
+
+## kafka event options
+
+The `kafka` event accepts these keys:
+
+| Key                         | Type                                       | Default                      | Description                                                    |
+| --------------------------- | ------------------------------------------ | ---------------------------- | -------------------------------------------------------------- |
+| `accessConfigurations`      | object                                     | Required                     | Authentication and VPC settings; at least one key              |
+| `bootstrapServers`          | list of `host:port` strings                | Required                     | The cluster's bootstrap brokers                                |
+| `topic`                     | string                                     | Required                     | The topic to consume                                           |
+| `consumerGroupId`           | string, up to 200 characters               | Not set                      | The Kafka consumer group to join                               |
+| `startingPosition`          | `TRIM_HORIZON`, `LATEST` or `AT_TIMESTAMP` | `TRIM_HORIZON`               | Where Lambda starts reading                                    |
+| `startingPositionTimestamp` | number, Unix time in seconds               | Required with `AT_TIMESTAMP` | The time to start reading from                                 |
+| `batchSize`                 | number, `1`–`10000`                        | `100`                        | The largest number of records in one invocation                |
+| `maximumBatchingWindow`     | number, `0`–`300` seconds                  | 500 ms                       | How long Lambda gathers records before it invokes the function |
+| `filterPatterns`            | list of 1–10 patterns                      | No filter                    | Patterns a record must match to reach the function             |
+| `enabled`                   | boolean                                    | `true`                       | Whether Lambda polls the topic                                 |
+| `provisionedPollers`        | object, or `false`                         | Not set: on-demand mode      | Provisioned mode settings                                      |
 
 ## Authentication
 
-You must authenticate your Lambda with a self-managed Apache Kafka cluster using one of;
+The `kafka` event's `accessConfigurations` holds the authentication method and, optionally, VPC access. Each authentication key takes the ARN of a Secrets Manager secret (one value or a list):
 
-- VPC - subnet(s) and security group
-- SASL SCRAM/PLAIN - AWS Secrets Manager secret containing credentials
-- Mutual TLS (mTLS) - AWS Secrets Manager secret containing client certificate, private key, and optionally a CA certificate
+| Key                        | Authentication                  | Secret contents                                                                                      |
+| -------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `saslScram512Auth`         | SASL/SCRAM with SHA-512         | The username and password                                                                            |
+| `saslScram256Auth`         | SASL/SCRAM with SHA-256         | The username and password                                                                            |
+| `saslPlainAuth`            | SASL/PLAIN, over TLS            | The username and password                                                                            |
+| `clientCertificateTlsAuth` | Mutual TLS                      | `certificate` (PEM chain) and `privateKey` (PKCS #8), plus `privateKeyPassword` for an encrypted key |
+| `serverRootCaCertificate`  | Server certificate verification | `certificate`: the root CA certificate that signed the brokers' certificates                         |
 
-You can provide this configuration via `accessConfigurations`
+The secret ARNs must have the form `arn:aws:secretsmanager:<region>:<account>:secret:<name>`. For the secret formats, see [Configuring cluster authentication methods](https://docs.aws.amazon.com/lambda/latest/dg/kafka-cluster-auth.html).
 
-You must provide at least one method, but it is possible to use VPC in parallel with other methods. For example, you may choose to authenticate via mTLS or SASL/SCRAM, and also place your Lambda and cluster within a VPC.
+### SASL/SCRAM and SASL/PLAIN
 
-Valid options for `accessConfigurations` are:
+To authenticate with a username and password, store them in a Secrets Manager secret and set the key that matches the cluster's mechanism. The example at the top of this page uses `saslScram512Auth`. Lambda supports SASL/SCRAM over TLS only, and SASL/PLAIN needs a TLS connection to protect the clear-text credentials.
+
+### Mutual TLS
+
+To authenticate with a client certificate, set `clientCertificateTlsAuth`. When the brokers' certificates are signed by a private CA, also set `serverRootCaCertificate`:
 
 ```yaml
-saslPlainAuth: arn:aws:secretsmanager:us-east-1:01234567890:secret:SaslPlain
-saslScram256Auth: arn:aws:secretsmanager:us-east-1:01234567890:secret:SaslScram256
-saslScram512Auth: arn:aws:secretsmanager:us-east-1:01234567890:secret:SaslScram512
-clientCertificateTlsAuth: arn:aws:secretsmanager:us-east-1:01234567890:secret:ClientCertificateTLS
-serverRootCaCertificate: arn:aws:secretsmanager:us-east-1:01234567890:secret:ServerRootCaCertificate
-vpcSubnet:
-  - subnet-0011001100
-  - subnet-0022002200
-vpcSecurityGroup: sg-0123456789
-```
-
-For more information see:
-
-- [AWS Documentation - Using Lambda with self-managed Apache Kafka](https://docs.aws.amazon.com/lambda/latest/dg/with-kafka.html#smaa-authentication)
-
-- [AWS Documentation - AWS::Lambda::EventSourceMapping SourceAccessConfiguration](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-eventsourcemapping-sourceaccessconfiguration.html)
-
-- [Confluent documentation - Authentication with SASL/PLAIN](https://docs.confluent.io/platform/current/kafka/authentication_sasl/authentication_sasl_plain.html)
-
-- [Confluent documentation - Authentication with SASL/SCRAM](https://docs.confluent.io/platform/current/kafka/authentication_sasl/authentication_sasl_scram.html)
-
-- [Confluent documentation Encryption and Authentication with SSL](https://docs.confluent.io/platform/current/kafka/authentication_ssl.html)
-
-## Basic Example: SASL/SCRAM
-
-In the following example, we specify that the `compute` function should be triggered whenever there are new messages available to consume from Kafka topic `MySelfManagedKafkaTopic` from self-hosted cluster at `xyz.com`. The cluster has been authenticated using SASL/SCRAM, the credentials are stored at secret `MyBrokerSecretName`
-
-```yml
 functions:
   compute:
     handler: handler.compute
     events:
       - kafka:
           accessConfigurations:
-            saslScram512Auth: arn:aws:secretsmanager:us-east-1:01234567890:secret:MyBrokerSecretName
-          topic: MySelfManagedKafkaTopic
-          consumerGroupId: MyConsumerGroupId
+            clientCertificateTlsAuth: arn:aws:secretsmanager:us-east-1:123456789012:secret:ClientCertificate
+            serverRootCaCertificate: arn:aws:secretsmanager:us-east-1:123456789012:secret:ServerRootCa
           bootstrapServers:
-            - abc3.xyz.com:9092
-            - abc2.xyz.com:9092
+            - broker1.example.com:9093
+          topic: orders
 ```
 
-## Example: Using mTLS
+### VPC access
 
-In this example, the lambda event source is a self-managed Apache kafka cluster authenticated via mTLS. The value of `clientCertificateTlsAuth` is an arn of a secret containing the client certificate and privatekey required for the mTLS handshake. The value of `serverRootCaCertificate` is an arn of a secret containing the Certificate Authority (CA) Certificate. This is optional, you only need to provide if your cluster requires it.
+When the brokers are in a VPC, set the `kafka` event's `vpcSubnet` and `vpcSecurityGroup` in `accessConfigurations`, together. Each takes an ID or a list of IDs, without the `subnet:` or `security_group:` prefix that the AWS API uses:
 
-```yml
+```yaml
 functions:
   compute:
     handler: handler.compute
     events:
       - kafka:
           accessConfigurations:
-            clientCertificateTlsAuth: arn:aws:secretsmanager:us-east-1:01234567890:secret:ClientCertificateTLS
-            serverRootCaCertificate: arn:aws:secretsmanager:us-east-1:01234567890:secret:ServerRootCaCertificate
-          topic: MySelfManagedMTLSKafkaTopic
-          consumerGroupId: MyConsumerGroupId
-          bootstrapServers:
-            - abc3.xyz.com:9092
-            - abc2.xyz.com:9092
-```
-
-## Using VPC configurations
-
-You can also specify VPC configurations for your event source. The values will be automatically transformed into their corresponding URI values, so it not required to specify the URI prefix. For example, `subnet-0011001100` will be automatically mapped to the value `subnet:subnet-0011001100`.
-
-```yml
-functions:
-  compute:
-    handler: handler.compute
-    events:
-      - kafka:
-          accessConfigurations:
+            saslScram512Auth: arn:aws:secretsmanager:us-east-1:123456789012:secret:MyBrokerSecret
             vpcSubnet:
               - subnet-0011001100
               - subnet-0022002200
             vpcSecurityGroup: sg-0123456789
-          topic: mytopic
           bootstrapServers:
-            - abc3.xyz.com:9092
-            - abc2.xyz.com:9092
+            - broker1.internal.example.com:9092
+          topic: orders
 ```
 
-## Enabling and disabling Kafka event trigger
+Lambda creates network interfaces in these subnets to reach the brokers, so the security group must allow traffic to the brokers' ports. In the default on-demand mode, the event source mapping also needs AWS PrivateLink VPC endpoints for Lambda, AWS STS and, with secrets, Secrets Manager, or a NAT gateway; provisioned mode doesn't. See [Configuring self-managed Apache Kafka cluster network access](https://docs.aws.amazon.com/lambda/latest/dg/with-kafka-cluster-network.html).
 
-The `kafka` event also supports `enabled` parameter, which is used to control if the event source mapping is active. Setting it to `false` will pause polling for and processing new messages.
+## Starting position and consumer group
 
-In the following example, we specify that the `compute` function's `kafka` event should be disabled.
+The `kafka` event's `startingPosition` sets where a new event source mapping starts reading:
 
-```yml
+- `TRIM_HORIZON` (the default): the oldest record in the topic.
+- `LATEST`: just after the newest record. Lambda can miss records written while it creates or updates the mapping.
+- `AT_TIMESTAMP`: the position at the time in `startingPositionTimestamp`, in Unix time seconds.
+
+```yaml
 functions:
   compute:
     handler: handler.compute
     events:
       - kafka:
           accessConfigurations:
-            saslScram512Auth: arn:aws:secretsmanager:us-east-1:01234567890:secret:MyBrokerSecretName
-          topic: AWSKafkaTopic
+            saslScram512Auth: arn:aws:secretsmanager:us-east-1:123456789012:secret:MyBrokerSecret
           bootstrapServers:
-            - abc3.xyz.com:9092
-            - abc2.xyz.com:9092
-          enabled: false
+            - broker1.example.com:9092
+          topic: orders
+          consumerGroupId: orders-processor
+          startingPosition: AT_TIMESTAMP
+          startingPositionTimestamp: 1767225600
 ```
 
-## Setting filter patterns
+The `kafka` event's `consumerGroupId` sets the Kafka consumer group that Lambda joins:
 
-This configuration allows to filter events before they are passed to a Lambda function for processing. By default, it accepts up to 5 filter criteria, but this can be increased to a maximum of 10 with a quota extension. If an event matches at least one of the specified filter patterns, the Lambda function will process it. For more information, see the [AWS Event Filtering](https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventfiltering.html).
+- It must be unique among your Kafka event sources, and it can't be changed after the event source mapping is created.
+- If the group already exists in the cluster, Lambda starts from the group's committed offsets and ignores `startingPosition`.
+- Other active consumers in the group receive part of the topic's records, and Lambda receives the rest.
 
-The following example demonstrates using this property to only process records that are published in the Kafka cluster where field `eventName` is equal to `INSERT`.
+See [Customizable consumer group ID](https://docs.aws.amazon.com/lambda/latest/dg/kafka-consumer-group-id.html) and [Starting positions](https://docs.aws.amazon.com/lambda/latest/dg/kafka-starting-positions.html).
 
-```yml
+## Batch size and batching window
+
+The `kafka` event's `batchSize` sets the largest number of records in one invocation, and `maximumBatchingWindow` sets how many seconds Lambda gathers records before it invokes the function:
+
+```yaml
 functions:
   compute:
     handler: handler.compute
     events:
       - kafka:
           accessConfigurations:
-            saslScram512Auth: arn:aws:secretsmanager:us-east-1:01234567890:secret:MyBrokerSecretName
-          topic: MySelfManagedKafkaTopic
+            saslScram512Auth: arn:aws:secretsmanager:us-east-1:123456789012:secret:MyBrokerSecret
           bootstrapServers:
-            - abc3.xyz.com:9092
-            - abc2.xyz.com:9092
-          filterPatterns:
-            - eventName: INSERT
-```
-
-## IAM Permissions
-
-The Serverless Framework will automatically configure the most minimal set of IAM permissions for you. However you can still add additional permissions if you need to. Read the official [AWS documentation](https://docs.aws.amazon.com/lambda/latest/dg/kafka-smaa.html) for more information about IAM Permissions for Kafka events.
-
-## Setting the BatchSize, MaximumBatchingWindow and StartingPosition
-
-You can set the `batchSize`, which effects how many messages can be processed in a single Lambda invocation. The default `batchSize` is 100, and the max `batchSize` is 10000.
-Likewise `maximumBatchingWindow` can be set to determine the amount of time the Lambda spends gathering records before invoking the function. The default is 0, but **if you set `batchSize` to more than 10, you must set `maximumBatchingWindow` to at least 1**. The maximum is 300.
-In addition, you can also configure `startingPosition`, which controls the position at which Lambda should start consuming messages from the topic. It supports three possible values, `TRIM_HORIZON`, `LATEST` and `AT_TIMESTAMP`, with `TRIM_HORIZON` being the default.
-When `startingPosition` is configured as `AT_TIMESTAMP`, `startingPositionTimestamp` is also mandatory.
-
-In the following example, we specify that the `compute` function should have a `kafka` event configured with `batchSize` of 1000, `maximumBatchingWindow` of 30 seconds and `startingPosition` equal to `LATEST`.
-
-```yml
-functions:
-  compute:
-    handler: handler.compute
-    events:
-      - kafka:
-          accessConfigurations:
-            saslScram512Auth: arn:aws:secretsmanager:us-east-1:01234567890:secret:MyBrokerSecretName
-          topic: MySelfManagedKafkaTopic
-          bootstrapServers:
-            - abc3.xyz.com:9092
-            - abc2.xyz.com:9092
+            - broker1.example.com:9092
+          topic: orders
           batchSize: 1000
           maximumBatchingWindow: 30
-          startingPosition: LATEST
 ```
+
+- `batchSize`: `1` to `10000`; AWS uses `100` when it isn't set.
+- `maximumBatchingWindow`: `1` to `300` seconds. When it isn't set, AWS uses a 500 ms window. The Framework doesn't pass `0`, so `0` also leaves the 500 ms default in place on a new event source mapping. AWS can't return an existing mapping to 500 ms once its window has been 1 second or more: removing `maximumBatchingWindow` or setting `0` doesn't restore it. To restore the 500 ms default, remove the event and deploy, then add the event back without `maximumBatchingWindow` and deploy again, which creates a new mapping. The new mapping starts reading as described in [Starting position and consumer group](#starting-position-and-consumer-group).
+
+Lambda invokes the function when the batch is full, when the window ends, or when the batch reaches the 6 MB payload limit, whichever comes first. See [Batching behavior](https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventsourcemapping.html#invocation-eventsourcemapping-batching).
+
+## Filter patterns
+
+The `kafka` event's `filterPatterns` passes only the records that match at least one pattern. Kafka event source mappings filter on the `value` key, which holds the message; a pattern on message fields matches only messages that are valid JSON. This example passes only messages whose `eventName` is `INSERT`:
+
+```yaml
+functions:
+  compute:
+    handler: handler.compute
+    events:
+      - kafka:
+          accessConfigurations:
+            saslScram512Auth: arn:aws:secretsmanager:us-east-1:123456789012:secret:MyBrokerSecret
+          bootstrapServers:
+            - broker1.example.com:9092
+          topic: orders
+          filterPatterns:
+            - value:
+                eventName:
+                  - INSERT
+```
+
+- Lambda drops records that match no pattern and commits their offsets, so the function never receives them.
+- AWS allows 5 patterns per event source mapping by default, and up to 10 with a quota increase; the Framework accepts up to 10.
+
+For the pattern syntax, see [Event filtering with Kafka event sources](https://docs.aws.amazon.com/lambda/latest/dg/kafka-filtering.html).
 
 ## Provisioned mode
 
-[Provisioned mode](https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventsourcemapping.html#invocation-eventsourcemapping-provisioned-mode) gives the event source mapping a dedicated pool of event pollers with minimum and maximum bounds, for consistent low-latency processing. Configure it with `provisionedPollers`:
+Provisioned mode gives the event source mapping a dedicated pool of event pollers between a minimum and a maximum, for consistent low-latency processing. To use it, set the `kafka` event's `provisionedPollers`:
 
-```yml
+```yaml
 functions:
   compute:
     handler: handler.compute
     events:
       - kafka:
           accessConfigurations:
-            saslScram512Auth: arn:aws:secretsmanager:us-east-1:01234567890:secret:MyBrokerSecretName
+            saslScram512Auth: arn:aws:secretsmanager:us-east-1:123456789012:secret:MyBrokerSecret
           bootstrapServers:
-            - abc3.xyz.com:9092
-          topic: MyTopic
+            - broker1.example.com:9092
+          topic: orders
           provisionedPollers:
-            min: 1 # optional, 1-200, AWS default 1
-            max: 100 # optional, 1-2000, AWS default 200
-            group: shared-capacity # optional poller group name
+            min: 1
+            max: 100
+            group: shared-capacity
 ```
 
-Provisioned mode incurs additional AWS charges per event poller — the `min` value is an always-on cost. See [AWS Lambda pricing](https://aws.amazon.com/lambda/pricing/).
+- `min`: integer, `1` to `200`; AWS uses `1` when it isn't set.
+- `max`: integer, `1` to `2000`, at least `min`; AWS uses `200` when it isn't set. Lambda caps it at the topic's partition count.
+- `group`: up to 128 letters, digits, hyphens and underscores. Up to 100 event source mappings in the same VPC that share a group name share event poller capacity, which lowers cost; the `max` values in a group add up to at most 2,000. Removing `group` takes the mapping out of its group on the next deploy and keeps its `min` and `max`.
 
-`group` (letters, digits, hyphens and underscores, up to 128 characters) groups up to 100 event source mappings within the event source's VPC to share Event Poller Unit capacity, reducing provisioned-mode cost; the aggregate `max` across a group cannot exceed 2,000.
+Provisioned mode adds a charge per event poller, and `min` pollers run all the time; see [AWS Lambda pricing](https://aws.amazon.com/lambda/pricing/).
 
-Deleting the `group` line removes the mapping from its poller group on the next deploy; its own `min` and `max` are unaffected.
+**Important:** Removing `provisionedPollers` from `serverless.yml`, or running `serverless rollback` to a deployment without it, leaves provisioned mode on for the deployed mapping, and its pollers keep running. To turn provisioned mode off, deploy once with `provisionedPollers: false`. Use `false` only for a mapping that already exists; for a new mapping, omit the key.
 
-**Disabling provisioned mode:** removing `provisionedPollers` from your configuration does **not** disable it — provisioned mode stays active on the deployed event source mapping, so the pollers (and their cost) remain. The same applies to `rollback` to an older deployment. To actually disable it, deploy once with `provisionedPollers: false`. `false` clears provisioned mode on an existing mapping; it cannot be used on a mapping that is being created for the first time — for new mappings, simply omit the key.
+See [Provisioned mode for Kafka event source mappings](https://docs.aws.amazon.com/lambda/latest/dg/kafka-scaling-modes.html#kafka-provisioned-mode).
+
+## Disable the event source mapping
+
+To stop Lambda from polling the topic without removing the mapping, set the `kafka` event's `enabled: false`. Setting it back to `true` resumes from the committed offsets:
+
+```yaml
+functions:
+  compute:
+    handler: handler.compute
+    events:
+      - kafka:
+          accessConfigurations:
+            saslScram512Auth: arn:aws:secretsmanager:us-east-1:123456789012:secret:MyBrokerSecret
+          bootstrapServers:
+            - broker1.example.com:9092
+          topic: orders
+          enabled: false
+```
+
+## IAM permissions for Kafka events
+
+For `kafka` events, the Framework adds these permissions to the execution role it generates (the service's shared role, or each function's role with `provider.iam.role.mode: perFunction`). When the function uses a role of your own, set in `provider.iam.role` as an ARN, in `provider.role` or in the function's `role`, add them to that role:
+
+- `secretsmanager:GetSecretValue` on each secret in `accessConfigurations`.
+- With `vpcSubnet` and `vpcSecurityGroup`: `ec2:CreateNetworkInterface`, `ec2:DescribeNetworkInterfaces`, `ec2:DescribeVpcs`, `ec2:DeleteNetworkInterface`, `ec2:DescribeSubnets` and `ec2:DescribeSecurityGroups`.
+
+When a secret is encrypted with a customer managed KMS key, add `kms:Decrypt` on that key yourself:
+
+```yaml
+provider:
+  name: aws
+  runtime: nodejs24.x
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action: kms:Decrypt
+          Resource: arn:aws:kms:us-east-1:123456789012:key/1234abcd-12ab-34cd-56ef-1234567890ab
+```
+
+See [Lambda execution role permissions for Kafka](https://docs.aws.amazon.com/lambda/latest/dg/with-kafka-permissions.html) and [IAM permissions for functions](../guide/iam.md).
+
+## Troubleshooting Kafka events
+
+### `You must specify at least one "vpcSecurityGroup" accessConfiguration for function: ...`
+
+This happens when `accessConfigurations` has `vpcSubnet` without `vpcSecurityGroup`; the message names `vpcSubnet` for the opposite case. Set both keys.
+
+### `You must specify startingPositionTimestamp for function: ... when startingPosition is AT_TIMESTAMP.`
+
+This happens when `startingPosition` is `AT_TIMESTAMP` without `startingPositionTimestamp`. Add the start time in Unix time seconds.
+
+### `The "kafka" event of function "..." has "provisionedPollers.min" (...) greater than "max" (...).`
+
+This happens when `provisionedPollers.min` is larger than `provisionedPollers.max`. Lower `min` or raise `max`.
+
+## Related
+
+- [Amazon MSK events](./msk.md)
+- [Kafka settings in the serverless.yml reference](../guide/serverless.yml.md#kafka)
+- [Using Lambda with self-managed Apache Kafka](https://docs.aws.amazon.com/lambda/latest/dg/with-kafka.html)

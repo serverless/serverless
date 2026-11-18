@@ -1,4 +1,5 @@
 import { jest } from '@jest/globals'
+import { onForcedExit } from '@serverless/util/src/forced-exit/index.js'
 import { EventEmitter } from 'events'
 import fs from 'fs'
 import os from 'os'
@@ -6030,5 +6031,133 @@ describe('keys at a terminal', () => {
     s.proc.emit('SIGINT', 'SIGINT')
     await s.result.catch(() => {})
     expect(s.proc.stdin.modes.at(-1)).toBe(false)
+  })
+})
+
+describe('why a session exits 3, for the CLI analysis event', () => {
+  // The CLI's forced-exit handler: it gets the code and the reason the exit gives.
+  let forced
+  let disposeForced = () => {}
+  beforeEach(() => {
+    forced = []
+    disposeForced = onForcedExit(async (code, { exitReason }) => {
+      forced.push({ code, exitReason })
+    })
+  })
+  afterEach(() => disposeForced())
+
+  test('a clean end records no reason', async () => {
+    const s = start({ ...four })
+    await s.whenReady
+    s.proc.emit('SIGINT', 'SIGINT')
+    expect(await s.result).toBe(0)
+    expect(s.serverless.exitReason).toBeUndefined()
+    expect(forced).toEqual([])
+  })
+
+  test('a function that could not be attached, with everything restored: DEV_MODE_ATTACH_INCOMPLETE', async () => {
+    const s = start({ ...four, options: { 'on-exit': 'keep' } })
+    const real = s.lambda.updateFunctionConfiguration
+    s.lambda.updateFunctionConfiguration = async (params) => {
+      if (
+        params.FunctionName === 'svc-dev-worker' &&
+        params.Environment?.Variables?.SLS_DEV_SESSION
+      ) {
+        throw Object.assign(new Error('refused'), {
+          name: 'InvalidParameterValueException',
+        })
+      }
+      return real(params)
+    }
+    await s.whenReady
+    s.proc.emit('SIGINT', 'SIGINT')
+    expect(await s.result).toBe(3)
+    expect(s.serverless.exitReason).toBe('DEV_MODE_ATTACH_INCOMPLETE')
+    expect(forced).toEqual([])
+  })
+
+  test('a function that could not be restored: DEV_MODE_RESTORE_INCOMPLETE', async () => {
+    const lambda = fakeLambda({ 'svc-dev-api': {} })
+    const s = start({ functions: { api: {} }, lambda })
+    await s.whenReady
+    lambda.updateErrors.push(
+      Object.assign(new Error('Rate exceeded'), { name: 'ServiceException' }),
+    )
+    s.proc.emit('SIGINT', 'SIGINT')
+    expect(await s.result).toBe(3)
+    expect(s.serverless.exitReason).toBe('DEV_MODE_RESTORE_INCOMPLETE')
+  })
+
+  test('an unexpected error with a failed restore: DEV_MODE_RESTORE_INCOMPLETE', async () => {
+    const lambda = fakeLambda({ 'svc-dev-api': {} })
+    const s = start({
+      functions: { api: {} },
+      lambda,
+      deps: {
+        onReady: () => {
+          lambda.updateErrors.push(
+            Object.assign(new Error('Rate exceeded'), {
+              name: 'ServiceException',
+            }),
+          )
+          throw new Error('surprise')
+        },
+      },
+    })
+    expect(await s.result).toBe(3)
+    expect(s.serverless.exitReason).toBe('DEV_MODE_RESTORE_INCOMPLETE')
+  })
+
+  test('a second Ctrl+C with functions still attached: the forced exit gives DEV_MODE_FORCED_STOP', async () => {
+    const clock = handClock()
+    const s = start({ ...four, deps: { now: clock.now, elapsed: clock.now } })
+    await s.whenReady
+    s.proc.emit('SIGINT', 'SIGINT')
+    clock.advance(501)
+    s.proc.emit('SIGINT', 'SIGINT')
+    await s.result
+    await new Promise((resolve) => setImmediate(resolve))
+    expect(forced).toEqual([{ code: 3, exitReason: 'DEV_MODE_FORCED_STOP' }])
+    expect(s.proc.exits).toEqual([3])
+  })
+
+  test('a second Ctrl+C during the first deployment exits 0 and gives no reason', async () => {
+    const clock = handClock()
+    const s = start({
+      ...four,
+      stackExists: false,
+      deps: { now: clock.now, elapsed: clock.now },
+    })
+    let finishDeploy
+    let deploying
+    const deployStarted = new Promise((resolve) => {
+      deploying = resolve
+    })
+    s.serverless.pluginManager.spawn = () =>
+      new Promise((resolve) => {
+        finishDeploy = resolve
+        s.proc.emit('SIGINT', 'SIGINT')
+        clock.advance(501)
+        s.proc.emit('SIGINT', 'SIGINT')
+        deploying()
+      })
+    await deployStarted
+    await new Promise((resolve) => setImmediate(resolve))
+    expect(forced).toEqual([{ code: 0, exitReason: undefined }])
+    expect(s.proc.exits).toEqual([0])
+    finishDeploy()
+    expect(await s.result).toBe(0)
+  })
+
+  test('a restore past its time limit: the forced exit gives DEV_MODE_RESTORE_TIMEOUT', async () => {
+    const s = start({ ...four, deps: { restoreTimeoutMs: 20 } })
+    await s.whenReady
+    s.lambda.updateFunctionConfiguration = () => new Promise(() => {})
+    s.proc.emit('SIGINT', 'SIGINT')
+    expect(await s.result).toBe(3)
+    expect(forced).toEqual([
+      { code: 3, exitReason: 'DEV_MODE_RESTORE_TIMEOUT' },
+    ])
+    expect(s.proc.exits).toEqual([3])
   })
 })

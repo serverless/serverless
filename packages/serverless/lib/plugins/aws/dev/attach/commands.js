@@ -65,6 +65,7 @@ import {
   restoreAfterStopNext,
   restoreCommand,
 } from '../commands/envelope.js'
+import { recordExitReason } from '../commands/exit-reason.js'
 import { EMPTY_RESTORE, restoreCounts } from '../state/session-state.js'
 
 const defaultLogger = log.get('sls:dev')
@@ -414,7 +415,14 @@ export const runDevRestore = async ({
     }
     throw error
   }
-  return printResult({ json, result: withExitCode(result), logger, stdout })
+  const exitCode = printResult({
+    json,
+    result: withExitCode(result),
+    logger,
+    stdout,
+  })
+  recordExitReason(serverless, exitCode, result?.reason)
+  return exitCode
 }
 
 /**

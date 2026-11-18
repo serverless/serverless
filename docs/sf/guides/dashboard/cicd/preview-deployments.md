@@ -1,52 +1,79 @@
 <!--
-title: Serverless Dashboard - CI/CD Preview Deployments
-description: Learn how to enable and configure preview deployments for pull requests in Serverless Framework.
-short_title: Serverless Dashboard - Preview Deployments
+title: Preview Deployments for Pull Requests
+description: Deploy every pull request to its own stage with Serverless CI/CD preview deployments, and remove the stage when the branch is merged or deleted.
+short_title: Preview Deployments
 keywords:
   [
     'Serverless Framework',
-    'CI/CD',
-    'Preview Deployments',
-    'Pull Requests',
-    'Stage',
-    'Branch',
+    'Serverless CI/CD',
+    'Preview deployments',
+    'Pull requests',
+    'Ephemeral stages',
   ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://serverless.com/framework/docs/guides/cicd/preview-deployments/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/dashboard/cicd/preview-deployments)
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Preview Deployment
+# Preview deployments for pull requests
 
-Preview deployments enable you to deploy on every pull request. As a part of the pull request review process, it is helpful to have an instance of your serverless application deployed. A pull request will trigger the deployment and all subsequent commits on that branch will also be deployed.
+A preview deployment in [Serverless CI/CD](./README.md) deploys a service for each pull request, so reviewers can try the change before it is merged. Opening a pull request starts a build, every later commit to the pull request's branch deploys again, and the stage can be removed automatically when the branch is merged or deleted. For a fixed branch-to-stage mapping, use [branch deployments](./branch-deployments.md).
 
-To enable preview deployments, check "Enable preview deploys" in the "preview deploys" section of the CI/CD Settings.
+## Turn on preview deployments
 
-You must also select the "target pull request branch", a branch from your Github repository. Only pull requests to this branch will be deployed.
+To deploy pull requests:
 
-## Using branch name as stages
+1. In the Dashboard, open the service's CI/CD settings (the service's **...** menu, then **settings**).
+2. In **preview deploys**, check **Enable preview deploys**.
+3. Select the **target pull request branch**. Only pull requests into this branch of the GitHub or Bitbucket repository are deployed.
+4. Optional: check **Destroy stage and resources when branch is deleted** ([Remove preview deployments](#remove-preview-deployments)).
 
-Each deployment must target a specific stage and use a specific deployment profile. By default, the stage value will be set to the name of the branch.
+## Stage name for each pull request
 
-In the "preview deploys" section, under "advanced settings", you can change the "stage" option. The default is "use branch name as stage", but you can also select a specific stage to target as well. However, if you use any option other than "use branch name as stage", then two different pull requests will be deployed to the same stage.
+The **stage** option, under **advanced settings** in **preview deploys**, sets the stage that preview builds deploy to:
 
-The deployment profile associated with the "default" stage in your application will be used if you select "use branch name as stage". If you select a specific stage, then the deployment profile associated with that stage will be used.
+- **use branch name as stage** (default): each pull request deploys to a stage named after its branch, so pull requests from branches with different stage names don't overwrite each other.
+- A specific stage: every pull request deploys to that one stage, and each preview build replaces the previous pull request's deployment.
 
-As development teams, we often have multiple pull requests and branches open at once. If we deploy those branches to the same stage then the deployments will override each other.
+A stage name can contain only letters, digits and hyphens, so Serverless CI/CD replaces the other characters of a branch name with `-`. The branch `feature/ph-api` deploys to the stage `feature-ph-api`. Branches whose names differ only in those characters, such as `feature/api` and `feature-api`, deploy to the same stage, and each preview build replaces the other's deployment; give open pull requests branch names that map to different stages.
 
-To avoid this collision, you have the convenient option to "use branch name as stage", which ensures that each pull request will deploy to a unique stage. Since the stage is not pre-configured and may not yet exist at the time of deployment, the default deployment profile will be used. In this case, ensure that the default deployment profile is configured with an [AWS Access Role](../../../guides/dashboard/providers.md).
+A branch named after an existing stage deploys to that stage: a pull request from a branch named `prod` deploys to the `prod` stage, with the Provider linked to the `prod` instance. Don't open pull requests from branches named after long-lived stages such as `prod` or `staging`.
 
-If you use the "use branch name as stage", you may also want to reference the branch name in your configuration using [Variables](/framework/docs/guides/variables/). Since the stage name matches the branch name, you can use the `${sls:stage}` variable in your `serverless.yml` to reference the stage name, which will match the branch name.
+To use the stage name in `serverless.yml`, for example to name a resource after the branch, use the `${sls:stage}` [variable](../../variables/core.md). In `serverless.yml`:
 
-Branch names may also include characters such as `/` which are invalid characters for stage names. Invalid characters are replaced with `-` in Serverless CI/CD. For example, a branch `feature/ph-api` will be normalized as `feature-ph-api`.
+```yaml
+provider:
+  name: aws
+  runtime: nodejs24.x
+  environment:
+    TABLE_NAME: my-service-${sls:stage}
+```
 
-## Automatically deleting preview deployments (recommended)
+## AWS account for preview deployments
 
-The recommended method for deleting preview service instances is to select "Destroy stage and resources when branch is deleted". If the changes in the PR are accepted then they will be merged and then the branch is deleted. If the changes are rejected the branch is also deleted. Whenever the branch is deleted, Serverless Framework will automatically run `sls remove` on this service instance.
+A preview deployment takes its AWS credentials from a Dashboard [Provider](../providers.md): the Provider linked to the service instance (the stage and Region), else the Provider linked to the service, else the org's default Provider.
 
-## Manually deleting preview deployments
+With **use branch name as stage**, each branch is a new stage with no Provider of its own, so preview builds use the service's Provider or the org default. Link a Provider for a preview AWS account to the service, and link the production Provider to the `prod` instance only ([Preview account for CI/CD preview deployments](../providers.md#deploy-cicd-previews-to-a-preview-account)). With a specific stage, a Provider linked to that stage's instance takes precedence.
 
-Alternatively you can delete service via the CLI. To delete the service instance you must run `sls remove` from the CLI in the repository containing the `serverless.yml` file. The `org`, `app`, `stage`, and `region` must all match the service instance you intend to delete.
+## Remove preview deployments
+
+With **Destroy stage and resources when branch is deleted** checked, Serverless CI/CD runs a destroy build when the pull request's branch is merged or deleted. The destroy build removes the stage's stack and resources, the equivalent of `serverless remove`.
+
+**Warning:** The destroy build removes the stage even while other open pull requests deploy to it. With a specific stage, every pull request deploys to that one stage, so leave **Destroy stage and resources when branch is deleted** unchecked when preview builds use a specific stage. With **use branch name as stage**, branches whose names map to the same stage, such as `feature/api` and `feature-api`, share one deployment, and merging or deleting either branch removes it.
+
+To remove a preview deployment yourself, run `serverless remove` in the directory that contains the service's `serverless.yml`, with the stage and Region of the preview deployment:
+
+```bash
+serverless remove --stage feature-ph-api --region us-east-1
+```
+
+The `org`, `app`, stage and Region must match the service instance you remove. The command uses your own AWS credentials, or the Dashboard Provider when `serverless.yml` sets `org` and `app`, a Provider is linked to the instance or the service or set as the org default, and you are signed in with an Access Key or `serverless login`.
+
+## Related
+
+- [Branch deployments](./branch-deployments.md): deploy long-lived stages from fixed branches.
+- [Providers](../providers.md): AWS accounts per service, instance and org.
+- [Deploy a stage per pull request with GitHub Actions](./running-in-your-own-cicd.md#deploy-a-stage-per-pull-request-with-github-actions): the same pattern in your own pipeline.

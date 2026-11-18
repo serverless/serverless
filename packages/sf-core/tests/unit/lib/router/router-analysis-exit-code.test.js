@@ -34,3 +34,38 @@ test('the exit code is not a field of the event', () => {
     'exitCode',
   )
 })
+
+test('a non-zero exit without an error reports its reason as the error code, with a fixed name and message', () => {
+  const event = createAnalysisEvent({
+    ...base,
+    exitCode: 3,
+    exitReason: 'DEV_MODE_ATTACH_INCOMPLETE',
+  })
+  expect(event.actionSucceeded).toBe(false)
+  expect(event.error).toEqual({
+    name: 'ExitCode',
+    message: 'The command ended with exit code 3.',
+    code: 'DEV_MODE_ATTACH_INCOMPLETE',
+  })
+})
+
+test('an error is reported as before, whatever the exit reason; a reason without a non-zero exit adds nothing', () => {
+  const error = Object.assign(new Error('boom'), { code: 'SOME_CODE' })
+  expect(
+    createAnalysisEvent({
+      ...base,
+      error,
+      exitCode: 3,
+      exitReason: 'DEV_MODE_ATTACH_INCOMPLETE',
+    }).error,
+  ).toMatchObject({ name: 'Error', message: 'boom', code: 'SOME_CODE' })
+  for (const exitCode of [0, undefined]) {
+    const event = createAnalysisEvent({
+      ...base,
+      exitCode,
+      exitReason: 'DEV_MODE_ATTACH_INCOMPLETE',
+    })
+    expect(event.actionSucceeded).toBe(true)
+    expect(event).not.toHaveProperty('error')
+  }
+})

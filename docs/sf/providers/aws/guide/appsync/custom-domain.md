@@ -1,107 +1,144 @@
 <!--
-title: Serverless Framework - AppSync - Custom Domains
-description: How to configure custom domains for AWS AppSync with the Serverless Framework.
-short_title: AppSync - Custom Domains
+title: AppSync Custom Domain
+description: Give an AppSync GraphQL API a custom domain name from serverless.yml, with the certificate and Route 53 record managed by CloudFormation or the CLI.
+short_title: AppSync Custom Domain
 keywords:
   [
     'Serverless Framework',
-    'AppSync',
-    'Custom Domains',
-    'GraphQL',
-    'AWS',
+    'AppSync custom domain',
+    'AppSync domain name',
+    'AppSync ACM certificate',
+    'AppSync Route 53',
   ]
 -->
 
-# Custom Domains
+<!-- DOCS-SITE-LINK:START automatically generated  -->
 
-AppSync supports associating your API to a [custom domain](https://aws.amazon.com/blogs/mobile/introducing-custom-domain-names-for-aws-appsync-apis/).
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/appsync/custom-domain)
 
-The configuration for custom domain can be found under the `appSync.domain` attribute.
+<!-- DOCS-SITE-LINK:END -->
 
-## Quick start
+# AppSync custom domain
+
+The `appSync.domain` block gives an AppSync API a [custom domain name](https://docs.aws.amazon.com/appsync/latest/devguide/custom-domain-name.html), such as `api.example.com`, for both its GraphQL and real-time endpoints. By default the Framework manages the domain in the service's CloudFormation stack: the AppSync domain, its association with the API, an ACM certificate and a Route 53 alias record. To move a domain between APIs or stacks, for example for blue/green deployments, manage it with [CLI commands](#manage-the-domain-with-cli-commands) instead.
+
+This configuration uses an existing certificate and creates the domain and its Route 53 record:
 
 ```yaml
 appSync:
-  name: my-api
+  name: blog-api
+  domain:
+    name: api.example.com
+    certificateArn: arn:aws:acm:us-east-1:123456789012:certificate/a1b2c3d4-5678-90ab-cdef-EXAMPLE11111
+    hostedZoneId: Z111111QQQQQQQ
+```
+
+AppSync requires the ACM certificate to be in `us-east-1`, whatever Region the API is in. After the deploy, the endpoints on the custom domain appear in the deploy and `serverless info` output alongside the AppSync ones:
+
+```text
+appsync endpoints:
+  graphql: https://abcdefghijklmnopqrstuvwxyz.appsync-api.eu-west-1.amazonaws.com/graphql
+  graphql: https://api.example.com/graphql
+  realtime: wss://abcdefghijklmnopqrstuvwxyz.appsync-realtime-api.eu-west-1.amazonaws.com/graphql
+  realtime: wss://api.example.com/graphql/realtime
+```
+
+## Custom domain keys
+
+| Key                 | Type                | Default                                    | Description                                                                                                                                               |
+| ------------------- | ------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`              | string              | Required                                   | The fully qualified domain name, in lowercase, such as `api.example.com`.                                                                                 |
+| `certificateArn`    | string or intrinsic | A certificate the Framework creates        | The ARN of an ACM certificate in `us-east-1` that covers `name`. See [Domain certificate](#domain-certificate).                                           |
+| `hostedZoneId`      | string or intrinsic | None                                       | The Route 53 hosted zone for the certificate's DNS validation records and the alias record. Required with CloudFormation when `certificateArn` isn't set. |
+| `hostedZoneName`    | string              | `name` without its first label, plus a dot | The hosted zone for the alias record, by name with a trailing dot (`example.com.`). Ignored when `hostedZoneId` is set.                                   |
+| `route53`           | boolean             | `true`                                     | Creates a Route 53 `A` alias record for `name`. Set to `false` when the domain's DNS isn't in Route 53, and create the record yourself.                   |
+| `useCloudFormation` | boolean             | `true`                                     | Manages the domain in the CloudFormation stack. Set to `false` to manage it with the CLI commands.                                                        |
+| `retain`            | boolean             | `false`                                    | Keeps the domain, association, certificate and record when they leave the CloudFormation template or the stack is removed.                                |
+| `enabled`           | boolean             | `true`                                     | Set to `false` to skip the domain while keeping the block.                                                                                                |
+
+With `useCloudFormation` left at `true`, set `certificateArn` or `hostedZoneId`; otherwise the `appSync` validation reports `when using CloudFormation, you must provide either certificateArn or hostedZoneId.`
+
+## Domain certificate
+
+When `certificateArn` isn't set, the Framework creates an ACM certificate for `name`, validated by DNS records in `hostedZoneId`:
+
+```yaml
+provider:
+  name: aws
+  region: us-east-1
+
+appSync:
+  name: blog-api
   domain:
     name: api.example.com
     hostedZoneId: Z111111QQQQQQQ
 ```
 
-## Configuration
+The Framework creates the certificate in the Region the service deploys to, so this works only for services deployed to `us-east-1`. For services in other Regions, create the certificate in `us-east-1` and set `certificateArn`.
 
-- `name`: Required. The fully qualified domain name to associate this API to.
-- `certificateArn`: Optional. A valid certificate ARN for the domain name. See [Certificate](#certificate).
-- `useCloudFormation`: Boolean. Optional. Whether to use CloudFormation or CLI commands to manage the domain. See [Using CloudFormation or CLI commands](#using-cloudformation-vs-the-cli-commands). Defaults to `true`.
-- `retain`: Boolean, optional. Whether to retain the domain and domain association when they are removed from CloudFormation. Defaults to `false`. See [Ejecting from CloudFormation](#ejecting-from-cloudformation)
-- `hostedZoneId`: Boolean, conditional. The Route53 hosted zone id where to create the certificate validation and/or AppSync Alias records. Required if `useCloudFormation` is `true` and `certificateArn` is not provided.
-- `hostedZoneName`: The hosted zone name where to create the route53 Alias record. If `certificateArn` is provided, it takes precedence over `hostedZoneName`.
-- `route53`: Boolean. Wether to create the Route53 Alias record for this domain. Set to `false` if you don't use Route53. Defaults to `true`.
+A change that needs a different certificate replaces the AppSync domain resource, and CloudFormation can't replace a custom-named resource in place. The deploy then stops with:
 
-## Certificate
-
-If `useCloudFormation` is `true` and a valid `certificateArn` is not provided, a certificate will be created for the provided domain `name` using CloudFormation. You must provide the `hostedZoneId`
-where the DNS validation records for the certificate will be created.
-
-⚠️ Any change that requires a change of certificate attached to the domain requires a replacement of the AppSync domain resource. CloudFormation will usually fail with the following error when that happens:
-
-```bash
+```text
 CloudFormation cannot update a stack when a custom-named resource requires replacing. Rename api.example.com and update the stack again.
 ```
 
-If `useCloudFormation` is `false`, when creating the domain with the `domain create` command, the Framework will try to find an existing certificate that
-matches the given domain. If no valid certificate is found, an error will be thrown. No certificate will be auto-generated.
+To switch certificates, deploy with a different domain `name`, or remove the domain and deploy again.
 
-## Using CloudFormation vs the CLI commands
+## Manage the domain with CLI commands
 
-There are two ways to manage your custom domain:
+With `useCloudFormation: false`, the Framework leaves the domain out of the stack, and the [`serverless appsync domain` commands](./commands.md#manage-the-custom-domain) create and associate it. Use this when several APIs take turns on one domain, such as blue/green deployments from different stages or stacks: associating the domain with one API detaches it from the other.
 
-- using CloudFormation (default)
-- using the CLI [commands](commands.md#domain)
+```yaml
+appSync:
+  name: blog-api
+  domain:
+    name: api.example.com
+    useCloudFormation: false
+```
 
-If `useCloudFormation` is set to `true`, the domain, domain association, and optionally, the domain certificate will be automatically created and managed by CloudFormation. However, in some cases you might not want that.
+Then create the domain, associate it with this stage's API and create the Route 53 record:
 
-For example, if you want to use blue/green deployments, you might need to associate APIs from different stacks to the same domain. In that case, the only way to do it is to use the CLI.
+```bash
+serverless appsync domain create --stage prod
+serverless appsync domain assoc --stage prod
+serverless appsync domain create-record --stage prod
+```
 
-For more information about managing domains with the CLI, see the [Commands](commands.md#domain) section.
+`domain create` looks for an issued ACM certificate in `us-east-1` for exactly `name`, then for its wildcard (`*.example.com`), unless `certificateArn` is set. It doesn't create a certificate.
 
-## Ejecting from CloudFormation
+## Eject the domain from CloudFormation
 
-If you started to manage your domain through CloudFormation and want to eject from it, follow the following steps:
+To move a domain that CloudFormation manages to the CLI commands without taking it offline:
 
-1. Set `retain` to `true`
-
-To avoid breaking your API if it is already on production, you first need to tell CloudFormation to retain the domain and any association with an existing API. For that, you can set the `retain` attribute to `true`. **You will then need to re-deploy to make sure that CloudFormation takes the change into account.**
-
-2. Set `useCloudFormation` to `false`
-
-You can now set `useCloudFormation` to `false` and **deploy one more time**. The domain and domain association resources will be removed from the CloudFormation template, but the resources will be retained (see point 1.)
-
-3. Manage your domain using the CLI
-
-You can now manage your domain using the CLI [commands](commands.md#domain)
+1. Set `retain: true` and deploy. CloudFormation now keeps the domain, association, certificate and record when they leave the template.
+2. Set `useCloudFormation: false` and deploy again. The resources leave the stack and stay in your account.
+3. Manage the domain with the [CLI commands](./commands.md#manage-the-custom-domain).
 
 ## Domain names per stage
 
-You can use different domains by stage easily thanks to [Serverless Framework Stage Parameters](https://www.serverless.com/framework/docs/guides/parameters)
+To use a different domain in each stage, set the domain and certificate as [stage parameters](../../../../guides/parameters.md):
 
 ```yaml
 params:
   prod:
     domain: api.example.com
-    domainCert: arn:aws:acm:us-east-1:123456789012:certificate/7e14a3b2-f7a5-4da5-8150-4a03ede7158c
-
+    domainCert: arn:aws:acm:us-east-1:123456789012:certificate/a1b2c3d4-5678-90ab-cdef-EXAMPLE11111
   staging:
     domain: qa.example.com
-    domainCert: arn:aws:acm:us-east-1:123456789012:certificate/61d7d798-d656-4630-9ff9-d77a7d616dbe
-
+    domainCert: arn:aws:acm:us-east-1:123456789012:certificate/a1b2c3d4-5678-90ab-cdef-EXAMPLE22222
   default:
     domain: ${sls:stage}.example.com
-    domainCert: arn:aws:acm:us-east-1:123456789012:certificate/44211071-e102-4bf4-b7b0-06d0b78cd667
+    domainCert: arn:aws:acm:us-east-1:123456789012:certificate/a1b2c3d4-5678-90ab-cdef-EXAMPLE33333
 
 appSync:
-  name: my-api
+  name: blog-api
   domain:
     name: ${param:domain}
     certificateArn: ${param:domainCert}
 ```
+
+## Related pages
+
+- [AppSync CLI commands](./commands.md#manage-the-custom-domain)
+- [Stage parameters](../../../../guides/parameters.md)
+- [Configuring custom domain names in AWS AppSync](https://docs.aws.amazon.com/appsync/latest/devguide/custom-domain-name.html)

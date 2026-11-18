@@ -1,69 +1,118 @@
 <!--
-title: Serverless Framework Dashboard - Setup & Overview
-description: An overview and set-up guide for Serverless Framework Dashboard
-short_title: Serverless Dashboard - Setup & Overview
-keywords: ['Serverless Framework', 'Dashboard', 'Setup', 'Overview']
+title: Dashboard Overview and Setup
+description: Connect a Serverless Framework service to the Dashboard with org and app to record deployments, share parameters and outputs, and monitor functions.
+short_title: Dashboard
+keywords: ['Serverless Framework', 'Serverless Dashboard', 'org', 'app', 'Setup', 'Observability']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/dashboard/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/dashboard)
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Serverless Framework Dashboard
+# Dashboard overview and setup
 
-The [Serverless Framework Dashboard](https://app.serverless.com/) is a SaaS solution that augments the Serverless Framework CLI to provide a powerful, unified experience to develop, deploy, test, secure and monitor your serverless applications, across all AWS accounts.
+The [Serverless Framework Dashboard](https://app.serverless.com/) is the web app that works with the `serverless` CLI: it records your deployments, stores parameters and outputs that services share, hands out AWS credentials, and monitors your AWS Lambda functions. A service uses the Dashboard when its `serverless.yml` sets `org` and `app`.
 
-The aim of the Serverless Framework and its Dashboard is to offer a seamless, integrated development experience for you and your team throughout the entire lifecycle of your serverless applications. We hope it's a breath of fresh air compared to the complexity of interacting with the AWS Console across several accounts, directly.
+To connect a service, add `org` and `app` next to `service` and deploy:
 
-## Features
+```yaml
+# serverless.yml
+org: myorg
+app: my-app
+service: my-service
 
-- **Deployments:** Easily see all Serverless Framework deployments made by you and your team, via CI/CD or local installations of the CLI, across all of your AWS accounts, in one place. Quickly check who made the deployment, what the status is, how it may have failed, see git metadata, serverless.yml, outputs, and much more.
+provider:
+  name: aws
+  runtime: nodejs24.x
+  region: us-east-1
 
-- **Secrets:** Set and share secrets in one place, for use within your Serverless Framework `serverless.yml` files. This works across all AWS accounts, so it's ideal for making secrets easy to use without wrestling with AWS permissions to access them. Secrets are encrypted and secure by default.
-
-- **Observability:** The richest and slickest observability solution for AWS Lambda on the market. We've spent years crafting an observability solution that developers love, specializing in AWS Lambda. Set-up requires zero effort and you will instantly get rich Metrics, Traces, Logs and Alerts, just deploy with the Serverless Framework. The Observability features also support non-Serverless Framework deployed AWS Lambda functions. Simply connect your AWS accounts and you'll be able to instrument all of the AWS Lambda functions in them.
-
-- **Providers:** Providers make it easy to manage deployment access to your AWS accounts. Each Provider connects to 1 AWS account, and you can assign it to specific Services, Stages, or set a Provider as a default across an entire AWS account. This enables your team to never have to deal with local AWS credentials. Providers use an AWS IAM Role to connect to your account and provide short-term credentials for every deployment, which is more secure by default.
-
-- **CI/CD:** CI/CD optimized for Serverless Framework that works out-of-the-box. Simply connect it to Github or BitBucket to enable automated deployments. Set up preview deployments for branches, and much more.
-
-## Minimum Version Requirements
-
-To use Serverless Framework Dashboard, you must be using Serverless Framework CLI version 1.48.0 or later.
-
-For Serverless Framework's new Observability offering, you must use version 3.35.0 or later.
-
-## Set-Up
-
-If you don't already have a Serverless Framework account, create a new account at [https://app.serverless.com](https://app.serverless.com).
-
-If you don't have existing Serverless Framework Services, follow the [Getting Started with the Serverless Framework and AWS](../../getting-started.md) guide. This will help you get a Serverless Framework Service deployed to AWS, and enabled with the Dashboard.
-
-If you have existing Serverless Framework Services, in the directory with your Service's `serverless.yml` file, run the `serverless` command. This will walk you through the setup process, including setting up your AWS account credentials and creating an organization and application from the Dashboard. Once completed, you'll notice that the `org` and `app` fields will be added to your `serverless.yml` to indicate the org/app to which this service belongs.
-
-You can also add the configuration manually to your `serverless.yml` files within your Serverless Framework Services to connect to the Dashboard.
-
-```YAML
-
-org: # Your Serverless Framework Org name (e.g. acme-inc)
-app: # A parent namespce for this Service and related Services App name (e.g. mobile-app), to improve Serverless Framework Dashboard organization
-
+functions:
+  hello:
+    handler: handler.hello
 ```
 
-You must deploy your Service with the above configuration in your YAML file to have it show in the Dashboard. Run serverless deploy to do this.
+```bash
+serverless deploy
+```
 
-If you want to enable Observability (metrics, traces, logs) for your AWS Lambda functions within Serverless Framework Dashboard, you will have to add the following in the stages block of your serverless.yml:
+After the deploy, the service, its stage and Region appear under the app in the Dashboard. The CLI must be signed in with a Serverless Framework account, or have an Access Key in `SERVERLESS_ACCESS_KEY`: a License Key can't use Dashboard features.
 
-```yml
+## Dashboard features
+
+- **Deployments**: `serverless deploy` and `serverless remove` record each deployment, with its stage, Region, AWS account, CloudFormation stack status and outputs, for services that set `org`, `app` and `service`.
+- **Parameters**: store parameters and secrets per service or per stage and read them with `${param:...}`. See [Serverless Dashboard parameters](../parameters.md#serverless-dashboard-parameters).
+- **Outputs**: publish values from one service and read them in another with `${output:...}`. See [Dashboard outputs](./output-variables.md).
+- **Providers**: let deployments use AWS credentials that the Dashboard issues from an IAM role, instead of local credentials. See [Dashboard providers](./providers.md).
+- **Observability**: metrics, traces, logs and alerts for Lambda functions, including functions not deployed with the Framework. See [Dashboard monitoring and observability](./monitoring/README.md).
+- **CI/CD**: build and deploy services from a Git repository. See [Dashboard CI/CD](./cicd/README.md).
+
+## Account and key requirements
+
+Dashboard features apply to a service when `org`, `app` and `service` are all set in `serverless.yml`. Commands for such a service need one of these:
+
+- A Serverless Framework account signed in with `serverless login`. The session is saved in `~/.serverlessrc`.
+- An Access Key in the `SERVERLESS_ACCESS_KEY` environment variable, for CI and other runs without a browser. Create one under [Access Keys](https://app.serverless.com/settings/accessKeys) in the Dashboard.
+
+With a License Key, a service that sets `app` stops with this error:
+
+```text
+This Service is enabled for Serverless Framework Dashboard because the "app" property is set. However, you are using a License Key and Dashboard features are not available when using License Keys. Please remove "app" and any other Dashboard features to continue using this Service.
+```
+
+To keep using a License Key, remove `app` from `serverless.yml`. For how the CLI signs in and picks an org, see [serverless login](../../providers/aws/cli-reference/login.md).
+
+## Connect an existing service with the serverless command
+
+To add `org` and `app` interactively, run `serverless` with no arguments in the directory that holds `serverless.yml`:
+
+```bash
+serverless
+```
+
+The `serverless` command:
+
+1. Signs you in, if the CLI isn't signed in yet.
+2. Adds `org: <your default org>` at the top of `serverless.yml`, if no `org` is set.
+3. When you are signed in with an account, lists the apps in the org and adds the app you create or select as `app`. You can also skip this step.
+4. Removes `frameworkVersion` from `serverless.yml`.
+5. Checks that AWS credentials are available for deploying.
+
+The command edits only `serverless.yml` and `serverless.yaml` files; for `serverless.ts`, `serverless.js` or `serverless.json`, add `org` and `app` yourself. To choose the values without the prompts, pass them as options:
+
+```bash
+serverless --org myorg --app my-app
+```
+
+The command prompts in the terminal. In CI or for AI agents, set `org` and `app` in `serverless.yml` and `SERVERLESS_ACCESS_KEY` in the environment instead.
+
+## Org and app values
+
+The `org` property is the name of your Dashboard org: lowercase letters and digits, 2 to 39 characters. The `app` property groups services in the org: lowercase letters, digits and single hyphens, 2 to 39 characters, not starting or ending with a hyphen. Both are top-level properties of `serverless.yml`, so they apply to the whole service. For what orgs, apps and instances are, see [Dashboard orgs, apps and members](./concepts.md).
+
+## Turn on observability for a service
+
+To send metrics and traces of a service's functions to the Dashboard, set `observability` for the stages you want under `stages` in `serverless.yml`:
+
+```yaml
+# serverless.yml
+org: myorg
+app: my-app
+service: my-service
+
 stages:
   prod:
-    observability: true # turn on observability in the "prod" Stage.
-  dev:
-    observability: true # turn on observability in the "dev" Stage.
+    observability: true
   default:
-    observability: false # turn off observability for all other Stages.
+    observability: false
 ```
 
-To set up Observability, Serverless Framework will automatically create an AWS IAM Role within the AWS account you deployed to, giving Serverless Inc permission to AWS Cloudwatch and more. [You can transparently see the permissions this role requires in Github](https://github.com/serverless/console/blob/main/instrumentation/aws/iam-role-cfn-template.yaml)
+On the first `serverless deploy` with observability on, the CLI connects the AWS account to the Dashboard by creating the `Serverless-Inc-Role-Stack` CloudFormation stack in `us-east-1`. Supported runtimes, the IAM roles in that stack and the other setup options are in [Dashboard monitoring and observability](./monitoring/README.md).
+
+## Related pages
+
+- [Dashboard orgs, apps and members](./concepts.md)
+- [Dashboard outputs](./output-variables.md)
+- [Dashboard monitoring and observability](./monitoring/README.md)
+- [Serverless Dashboard parameters](../parameters.md#serverless-dashboard-parameters)

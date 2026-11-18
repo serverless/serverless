@@ -57,7 +57,7 @@ test('a handler gets the exit code, and the process exits once it settled', asyn
   dispose = onForcedExit(handler)
   const exiting = forcedExit({ code: 3, processRef, timers })
   await new Promise((resolve) => setImmediate(resolve))
-  expect(handler).toHaveBeenCalledWith(3)
+  expect(handler).toHaveBeenCalledWith(3, { exitReason: undefined })
   expect(processRef.exits).toEqual([])
   expect(forcedExitPending()).toBe(exiting)
   release()
@@ -115,9 +115,25 @@ test('a removed handler is not run, and removing an earlier one keeps the curren
   removeEarlier()
   await forcedExit({ code: 3, processRef, timers: handTimers() })
   expect(earlier).not.toHaveBeenCalled()
-  expect(current).toHaveBeenCalledWith(3)
+  expect(current).toHaveBeenCalledWith(3, { exitReason: undefined })
   dispose()
   await forcedExit({ code: 0, processRef })
   expect(current).toHaveBeenCalledTimes(1)
   expect(processRef.exits).toEqual([3, 0])
+})
+
+test('a handler gets the reason the exit gives', async () => {
+  const processRef = fakeProcess()
+  const handler = jest.fn()
+  dispose = onForcedExit(handler)
+  await forcedExit({
+    code: 3,
+    exitReason: 'DEV_MODE_FORCED_STOP',
+    processRef,
+    timers: handTimers(),
+  })
+  expect(handler).toHaveBeenCalledWith(3, {
+    exitReason: 'DEV_MODE_FORCED_STOP',
+  })
+  expect(processRef.exits).toEqual([3])
 })

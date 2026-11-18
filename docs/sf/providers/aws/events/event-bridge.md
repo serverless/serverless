@@ -1,14 +1,8 @@
 <!--
-title: Serverless Framework - AWS Lambda Events - Event Bridge
-short_title: AWS Lambda Events - EventBridge
-description: Setting up AWS EventBridge Events with AWS Lambda via the Serverless Framework
-keywords:
-  [
-    'Serverless Framework',
-    'AWS Lambda',
-    'EventBridge',
-    'event-driven architecture',
-  ]
+title: EventBridge Events
+short_title: EventBridge
+description: 'Trigger a Lambda function from Amazon EventBridge with the eventBridge event: rules, schedules and Custom Event Bus subscribers.'
+keywords: ['Serverless Framework', 'AWS Lambda EventBridge trigger', 'EventBridge Custom Event Bus']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -17,86 +11,54 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# EventBridge Event
+# EventBridge Events
 
-The [EventBridge](https://aws.amazon.com/eventbridge/) makes it possible to connect applications using data from external sources (e.g. own applications, SaaS) or AWS services. The `eventBridge` event types helps setting up AWS Lambda functions to react to events coming in via the EventBridge.
+The `eventBridge` event invokes a Lambda function for events on an [Amazon EventBridge](https://aws.amazon.com/eventbridge/) event bus. On the default bus or a Custom Event Bus - Classic, the Framework creates an EventBridge rule that matches events with a pattern or runs on a schedule. On a Custom Event Bus, it creates a subscriber; see [Custom Event Bus](#custom-event-bus).
 
-EventBridge offers two kinds of custom event bus: the Custom Event Bus - Classic, which routes events with rules, and the Custom Event Bus, which routes events to subscribers. The sections up to [Custom Event Bus](#custom-event-bus) describe rules on the default bus and on Custom Event Bus - Classic buses. When `eventBus` is a Custom Event Bus, the same `eventBridge` event creates a subscriber instead; see [Custom Event Bus](#custom-event-bus).
+This `serverless.yml` invokes `myFunction` when an EC2 instance enters the `pending` state:
 
-_Note_: Prior to `2.27.0` version of the Framework, `eventBridge` resources were provisioned with Custom Resources. With `2.27.0` an optional support for native CloudFormation was introduced and can be turned on by setting `provider.eventBridge.useCloudFormation: true`. It is recommended to migrate to native CloudFormation as it's by default with v3. It also adds the ability to define `eventBus` with CF intrinsic functions as values.
+```yaml
+# serverless.yml
+service: my-service
 
-## Setting up a scheduled event
+provider:
+  name: aws
+  runtime: nodejs24.x
 
-```yml
 functions:
   myFunction:
-    handler: index.handler
-    events:
-      - eventBridge:
-          schedule: rate(10 minutes)
-          input:
-            key1: value1
-```
-
-## Enabling / Disabling
-
-**Note:** `eventBridge` events are enabled by default. Use `enabled: false` to disable the rule.
-
-```yml
-functions:
-  myFunction:
-    handler: index.handler
-    events:
-      - eventBridge:
-          enabled: false
-          schedule: rate(10 minutes)
-          input:
-            key1: value1
-```
-
-## Setting a custom name and description
-
-**Note:** `eventBridge` events by default are named with the lambda function's name with a suffix for the rule position. Set the `name` property within `eventBridge` to change this functionality.
-
-A description can also be specified. These are not required properties.
-
-```yml
-functions:
-  myFunction:
-    handler: index.handler
-    events:
-      - eventBridge:
-          name: event-bridge-custom-name
-          description: a description of my eventBridge event's purpose
-          schedule: rate(10 minutes)
-          input:
-            key1: value1
-```
-
-## Setting up event pattern matching
-
-```yml
-functions:
-  myFunction:
-    handler: index.handler
+    handler: handler.main
     events:
       - eventBridge:
           pattern:
             source:
-              - aws.cloudformation
+              - aws.ec2
             detail-type:
-              - AWS API Call via CloudTrail
+              - EC2 Instance State-change Notification
             detail:
-              eventSource:
-                - cloudformation.amazonaws.com
+              state:
+                - pending
 ```
 
-Here is an example that uses "[prefix matching](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-event-patterns-content-based-filtering.html#eb-filtering-prefix-matching)" to filter EventBridge events produced by S3 (the bucket must have the [EventBridge notification enabled](https://docs.aws.amazon.com/AmazonS3/latest/userguide/enable-event-notifications-eventbridge.html)):
+The handler receives one event per call:
 
-```yml
+```javascript
+// handler.mjs
+export const main = async (event) => {
+  console.log(event.source, event['detail-type'], event.detail)
+}
+```
+
+An `eventBridge` event on a Classic bus needs `pattern` or `schedule`.
+
+## Event patterns
+
+The `eventBridge` event's `pattern` is the rule's event pattern. Its top-level keys are the fields of the event envelope: `version`, `id`, `detail-type`, `source`, `account`, `time`, `region`, `resources`, `detail` and `$or`. This pattern uses [prefix matching](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-event-patterns-content-based-filtering.html#eb-filtering-prefix-matching) to match S3 objects created under `uploads/` in the `photos` bucket, which needs [EventBridge notifications enabled](https://docs.aws.amazon.com/AmazonS3/latest/userguide/enable-event-notifications-eventbridge.html):
+
+```yaml
 functions:
   myFunction:
-    handler: index.handler
+    handler: handler.main
     events:
       - eventBridge:
           pattern:
@@ -113,18 +75,38 @@ functions:
                   - prefix: 'uploads/'
 ```
 
-## Using a different Event Bus
+For the pattern syntax, see [Amazon EventBridge event patterns](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-event-patterns.html).
 
-The `eventBridge` event source will use the `default` event bus (the one AWS uses internally) when none is explicitly specified.
+## Scheduled rules
 
-The Serverless Framework will create the `eventBus` for your if you provide a name for it. Otherwise, if literal `arn` or reference to an existing event bus name via CF intrinsic function is provided, Framework will attach to it.
+The `eventBridge` event's `schedule` takes a `rate(...)` or `cron(...)` expression and runs the function on that schedule:
 
-### Creating an event bus
-
-```yml
+```yaml
 functions:
   myFunction:
-    handler: index.handler
+    handler: handler.main
+    events:
+      - eventBridge:
+          schedule: rate(10 minutes)
+```
+
+Scheduled rules run on the default event bus only, so don't combine `schedule` with `eventBus`. The [`schedule` event](./schedule.md) creates the same scheduled rules and can also use EventBridge Scheduler, with time zones and higher quotas.
+
+## Using a different Event Bus
+
+Without `eventBus`, or with `eventBus: default`, the rule is created on the default event bus, which receives AWS service events. The `eventBridge` event's `eventBus` selects another bus:
+
+- A name, such as `custom-saas-events`: the Framework creates a Custom Event Bus - Classic (`AWS::Events::EventBus`) with that name and the rule on it.
+- A literal ARN of an existing Classic or partner bus, such as `arn:aws:events:us-east-1:123456789012:event-bus/custom-private-events`: the Framework creates the rule on that bus.
+- `Ref` to an `AWS::Events::EventBus` resource, `Fn::GetAtt` of its `Name`, or `Fn::ImportValue` of a bus name: the Framework creates the rule on that bus. Reference a Classic bus by name, because the Framework builds the ARN in the Lambda permission from the bus name.
+- A Custom Event Bus ARN or reference: the Framework creates a subscriber; see [How the Framework recognizes a Custom Event Bus](#how-the-framework-recognizes-a-custom-event-bus).
+
+This event creates a bus named `custom-saas-events` and a rule on it:
+
+```yaml
+functions:
+  myFunction:
+    handler: handler.main
     events:
       - eventBridge:
           eventBus: custom-saas-events
@@ -133,150 +115,113 @@ functions:
               - saas.external
 ```
 
-### Re-using an existing event bus
+To attach a rule to a Classic bus declared in the service's `resources`, set `eventBus: !GetAtt EventBusResource.Name`.
 
-If you want to reuse an existing event bus, you can define it with literal `arn` or with a reference to an existing event bus name via CF intrinsic functions. Referencing via intrinsic functions is available only if you use native CloudFormation support with `provider.eventBridge.useCloudFormation: true` setting:
+## Event input
 
-```yml
-provider:
-  eventBridge:
-    useCloudFormation: true
-```
+By default, the function receives the matched event. The `eventBridge` event takes one of three keys to change it:
 
-Using literal `arn`:
+- `input`: an object, passed to the function as JSON instead of the event.
+- `inputPath`: a JSONPath into the event, up to 256 characters; the function receives that part of it.
+- `inputTransformer`: `inputPathsMap` maps names to JSONPaths in the event, and `inputTemplate` (required, up to 8,192 characters) builds the input from them.
 
-```yml
-- eventBridge:
-    eventBus: arn:aws:events:us-east-1:12345:event-bus/custom-private-events
-    pattern:
-      source:
-        - custom.private
-    inputTransformer:
-      inputPathsMap:
-        eventTime: '$.time'
-      inputTemplate: '{"time": <eventTime>, "key1": "value1"}'
-```
+Setting more than one stops packaging. With `inputPath: '$.detail'`, the function receives only the event's `detail`. These events use `input` and `inputTransformer`:
 
-Using reference to event bus' name via `GetAtt` CF intrinsic function:
-
-```yml
-- eventBridge:
-    eventBus: !GetAtt EventBusResource.Name
-    pattern:
-      source:
-        - custom.private
-    inputTransformer:
-      inputPathsMap:
-        eventTime: '$.time'
-      inputTemplate: '{"time": <eventTime>, "key1": "value1"}'
-```
-
-_Note_: A Custom Event Bus - Classic is referenced by name with CF intrinsic functions, because the Framework builds the `SourceArn` of the `AWS::Lambda::Permission` resource from the bus name. `!GetAtt <resource>.EventBusArn` references a Custom Event Bus; see [Custom Event Bus](#custom-event-bus).
-
-Using reference to event bus' name via `Ref` CF intrinsic functions:
-
-```yml
-- eventBridge:
-    eventBus: !Ref EventBusResource
-    pattern:
-      source:
-        - custom.private
-    inputTransformer:
-      inputPathsMap:
-        eventTime: '$.time'
-      inputTemplate: '{"time": <eventTime>, "key1": "value1"}'
-```
-
-## Using different input types
-
-You can specify different input types which will produce different input values ​​for the Lambda function.
-
-```yml
+```yaml
 functions:
   myFunction:
-    handler: index.handler
+    handler: handler.main
     events:
       - eventBridge:
           pattern:
             source:
-              - 'aws.ec2'
-            detail-type:
-              - 'EC2 Instance State-change Notification'
-            detail:
-              state:
-                - pending
+              - aws.ec2
           input:
             key1: value1
-            key2: value2
-            stageParams:
-              stage: dev
       - eventBridge:
           pattern:
             source:
-              - 'aws.ec2'
-            detail-type:
-              - 'EC2 Instance State-change Notification'
-            detail:
-              state:
-                - pending
-          inputPath: '$.stageVariables'
-      - eventBridge:
-          pattern:
-            source:
-              - 'aws.ec2'
-            detail-type:
-              - 'EC2 Instance State-change Notification'
-            detail:
-              state:
-                - pending
+              - aws.ec2
           inputTransformer:
             inputPathsMap:
               eventTime: '$.time'
             inputTemplate: '{"time": <eventTime>, "key1": "value1"}'
 ```
 
-## Adding a DLQ to an event rule
+See [Amazon EventBridge input transformation](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-transform-target-input.html).
 
-DeadLetterQueueArn is not available for custom resources, only for native CloudFormation.
+## Rule name, description and state
 
-```yml
+The Framework names each rule `<deployed function name>-rule-<index>`, where the index is the event's position in the function's `events` list, counting from 1. A name longer than 64 characters is shortened and suffixed with a hash. The `eventBridge` event's `name` sets the rule name instead, `description` sets its description, and `enabled: false` creates the rule disabled:
+
+```yaml
 functions:
   myFunction:
-    handler: index.handler
+    handler: handler.main
     events:
       - eventBridge:
-          eventBus: custom-saas-events
-          pattern:
-            source:
-              - saas.external
-          deadLetterQueueArn:
-            Fn::GetAtt:
-              - QueueName
-              - Arn
+          name: event-bridge-custom-name
+          description: Runs the nightly report
+          enabled: false
+          schedule: rate(10 minutes)
 ```
 
-## Adding a retry policy to an event rule
+- `name`: up to 64 letters, digits, `.`, `-` and `_`, unique per bus. Include the stage in a fixed name to deploy several stages to one Region.
+- `description`: up to 512 characters.
+- `enabled`: default `true`.
 
-RetryPolicy is not available for custom resources, only for native CloudFormation.
+## Retry policy and dead-letter queue
 
-```yml
+The `eventBridge` event's `retryPolicy` limits how long and how often EventBridge retries a failed delivery to the function, and `deadLetterQueueArn` sets an SQS queue for the events it can't deliver:
+
+- `retryPolicy.maximumEventAge`: integer, 60 to 86,400 seconds.
+- `retryPolicy.maximumRetryAttempts`: integer, 0 to 185.
+- Without `retryPolicy`, EventBridge retries a rule's failed delivery for up to 24 hours and up to 185 times. A Custom Event Bus subscriber has shorter defaults; see [Settings on a Custom Event Bus](#settings-on-a-custom-event-bus).
+
+The Framework doesn't add a queue policy to the dead-letter queue. Add one that allows `events.amazonaws.com` to call `sqs:SendMessage`, limited to the rule's ARN:
+
+```yaml
 functions:
   myFunction:
-    handler: index.handler
+    handler: handler.main
     events:
       - eventBridge:
           eventBus: custom-saas-events
           pattern:
             source:
               - saas.external
-          deadLetterQueueArn:
-            Fn::GetAtt:
-              - QueueName
-              - Arn
           retryPolicy:
             maximumEventAge: 3600
             maximumRetryAttempts: 3
+          deadLetterQueueArn: !GetAtt RuleDlq.Arn
+
+resources:
+  Resources:
+    RuleDlq:
+      Type: AWS::SQS::Queue
+    RuleDlqPolicy:
+      Type: AWS::SQS::QueuePolicy
+      Properties:
+        Queues:
+          - !Ref RuleDlq
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: events.amazonaws.com
+              Action: sqs:SendMessage
+              Resource: !GetAtt RuleDlq.Arn
+              Condition:
+                ArnLike:
+                  aws:SourceArn: !Sub arn:${AWS::Partition}:events:${AWS::Region}:${AWS::AccountId}:rule/custom-saas-events/*
 ```
+
+On the default bus, the rule ARN has no bus segment (`rule/<rule name>`). See [Retry policies](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-rule-retry-policy.html) and [Using dead-letter queues](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-rule-dlq.html).
+
+## Permissions for EventBridge rules
+
+For each rule, the Framework adds an `AWS::Lambda::Permission` that lets `events.amazonaws.com` invoke the function, limited to the rule's ARN. `provider.eventBridge.useCloudFormation` is deprecated with either value; remove it from `serverless.yml`.
 
 ## Custom Event Bus
 
@@ -298,7 +243,7 @@ functions:
 
 ### Choosing a bus
 
-AWS recommends the Custom Event Bus for new applications: "For new applications, start with the Custom Event Bus" ([Amazon EventBridge event bus (default and Classic)](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-event-bus.html)). Custom Event Bus - Classic stays available, and both run side by side. Classic, or the default bus, still fits these cases:
+AWS recommends the Custom Event Bus for new applications ([Amazon EventBridge event bus (default and Classic)](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-event-bus.html)). Custom Event Bus - Classic stays available, and both run side by side. Classic, or the default bus, still fits these cases:
 
 | Case                                    | Why Classic or the default bus fits                                                                                                                                                                                                                                                                                                   |
 | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -372,15 +317,15 @@ The [compose-eventbridge-custom-bus](https://github.com/serverless/examples/tree
 
 A Custom Event Bus is referenced by its ARN, which contains `:event-busv2/` and ends in a generated ID. The Framework decides from the `eventBus` value at packaging time:
 
-| `eventBus` value                                                                    | Example                                                                                     | Creates                  |
-| ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------ |
-| Literal ARN containing `:event-busv2/`                                              | `arn:aws:events:us-east-1:111122223333:event-busv2/orders/a1b2c3d4e5f6g7h8i9j0k1l2m`        | Subscriber               |
-| Framework variable that resolves to such an ARN                                     | `${param:ordersBusArn}`, `${ssm:/platform/orders-bus-arn}`, `${cf:events-dev.OrdersBusArn}` | Subscriber               |
-| Compose output passed as a parameter                                                | `${service:events.OrdersBusArn}` through `params`                                           | Subscriber               |
-| `Ref` to a resource of type `AWS::EventsV2::EventBus` in this service's `resources` | `!Ref OrdersBus`                                                                            | Subscriber               |
-| `Fn::GetAtt` of the `EventBusArn` attribute                                         | `!GetAtt OrdersBus.EventBusArn`                                                             | Subscriber               |
-| Bare name, `default`, or no `eventBus`                                              | `orders`                                                                                    | Rule, as described above |
-| `Fn::ImportValue`, `Ref` to anything else, or `Fn::GetAtt` of `Name`                | `!ImportValue orders-bus-arn`, `!Ref OrdersBusArnParameter`                                 | Rule, as described above |
+| `eventBus` value                                                                    | Example                                                                                     | Creates    |
+| ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ---------- |
+| Literal ARN containing `:event-busv2/`                                              | `arn:aws:events:us-east-1:111122223333:event-busv2/orders/a1b2c3d4e5f6g7h8i9j0k1l2m`        | Subscriber |
+| Framework variable that resolves to such an ARN                                     | `${param:ordersBusArn}`, `${ssm:/platform/orders-bus-arn}`, `${cf:events-dev.OrdersBusArn}` | Subscriber |
+| Compose output passed as a parameter                                                | `${service:events.OrdersBusArn}` through `params`                                           | Subscriber |
+| `Ref` to a resource of type `AWS::EventsV2::EventBus` in this service's `resources` | `!Ref OrdersBus`                                                                            | Subscriber |
+| `Fn::GetAtt` of the `EventBusArn` attribute                                         | `!GetAtt OrdersBus.EventBusArn`                                                             | Subscriber |
+| Bare name, `default`, or no `eventBus`                                              | `orders`                                                                                    | Rule       |
+| `Fn::ImportValue`, `Ref` to anything else, or `Fn::GetAtt` of `Name`                | `!ImportValue orders-bus-arn`, `!Ref OrdersBusArnParameter`                                 | Rule       |
 
 Framework variables resolve before packaging, so the Framework sees the literal ARN. CloudFormation intrinsic functions resolve during the deploy, so the Framework recognizes only the two forms in the table; see [Referencing the bus through other intrinsic functions](#referencing-the-bus-through-other-intrinsic-functions).
 
@@ -569,7 +514,6 @@ Without the share, CloudFormation reports the subscriber's creation as a bare `A
 ### Limits
 
 - A subscriber's filter can change 24 times in any rolling 24 hours, and the limit can't be raised. Each deploy that changes a `pattern` counts once; a deploy that keeps the same `pattern` doesn't. A team that iterates on filters can work in a personal stage, or publish the varying value in the event and filter on it once. See [Updating, pausing, and resuming a subscriber](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-custom-bus-update.html).
-- A synchronous subscriber waits at most 30 seconds for the function, as described in [Settings on a Custom Event Bus](#settings-on-a-custom-event-bus).
 - EventBridge creates or deletes one subscriber at a time on a bus, across all accounts, so the subscriber create and delete rates apply per bus. See [Subscribing to events on a Custom Event Bus](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-custom-bus-subscribers.html).
 - By default, a bus takes up to 10,000 subscribers, across every account it is shared with. The quota is adjustable; see [Custom Event Bus quotas](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-quota.html#eb-custom-bus-quotas).
 
@@ -583,4 +527,9 @@ The Framework recognizes a Custom Event Bus from a literal ARN, from `Ref` to an
 
 ## Examples
 
-- [compose-eventbridge-custom-bus](https://github.com/serverless/examples/tree/v4/compose-eventbridge-custom-bus): a Compose project with a Custom Event Bus in a stateful service, a FIFO consumer, a batching consumer with a dead-letter queue, and a producer.
+- [compose-eventbridge-custom-bus](https://github.com/serverless/examples/tree/v4/compose-eventbridge-custom-bus): a Compose project with a Custom Event Bus, FIFO and batching consumers, and a producer.
+
+## Related
+
+- [Schedule events](./schedule.md), for rate and cron schedules with EventBridge Scheduler
+- [`serverless.yml` reference: EventBridge](../guide/serverless.yml.md#eventbridge)

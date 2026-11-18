@@ -1,8 +1,15 @@
 <!--
-title: Serverless Framework - Plugins - Custom commands
-description: How to create custom Serverless Framework commands via a plugin
-short_title: Serverless Plugins - Custom commands
-keywords: ['Serverless Framework', 'Plugins', 'Custom Commands']
+title: Custom Commands in Plugins
+description: Add a serverless <command> CLI command from a plugin, with options, shortcuts, defaults, subcommands and lifecycle event hooks.
+short_title: Custom Commands
+keywords:
+  [
+    'Serverless Framework custom command',
+    'plugin commands',
+    'lifecycleEvents',
+    'command options',
+    'plugin CLI',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -13,113 +20,217 @@ keywords: ['Serverless Framework', 'Plugins', 'Custom Commands']
 
 # Custom commands
 
-Serverless Framework plugins can define custom CLI commands.
+A Serverless Framework plugin can add its own CLI commands, such as `serverless greet`. The plugin defines the command, its options and its lifecycle events in the `commands` object, and runs code for those events in `hooks`. Use a custom command for a task that isn't part of `package` or `deploy`; to add steps to those commands, hook into their events instead ([Create a plugin](./creating-plugins.md#lifecycle-events-and-hooks)).
 
-These commands can then be called by users, for example: `serverless my-command`.
-
-```javascript
-class MyPlugin {
-  constructor() {
-    this.commands = {
-      'my-command': {
-        lifecycleEvents: ['resources', 'functions'],
-      },
-    }
-  }
-}
-
-module.exports = MyPlugin
-```
-
-A CLI _Command_ that can be called by a user, e.g. `serverless foo`. A Command has no logic, but simply defines the CLI configuration (e.g. command, parameters) and the _Lifecycle Events_ for the command. Every command defines its own lifecycle events.
-
-## Lifecycle events
-
-By default, a command has no logic. Use _lifecycle event hooks_ to add logic when the command runs:
+This plugin adds `serverless greet` with a `--name` option:
 
 ```javascript
-class MyPlugin {
-  constructor() {
-    this.commands = {
-      'my-command': {
-        lifecycleEvents: ['run'],
-      },
-    }
-
-    this.hooks = {
-      'my-command:run': () => {
-        // Do something
-      },
-    }
-  }
-}
-```
-
-For each event, an additional `before` and `after` event is created:
-
-```js
-this.hooks = {
-  'before:my-command:run': () => {
-    // Before my command runs
-  },
-  'my-command:run': () => {
-    // My command runs
-  },
-  'after:my-command:run': () => {
-    // After
-  },
-}
-```
-
-Note that a command can define multiple events: these will be called sequentially.
-
-## Command options
-
-Commands can have CLI options:
-
-- either passed with a double dash (`--`): `serverless my-command --function functionName`.
-- or as a shortcut with a single dash (`-`): `serverless my-command -f functionName`.
-
-Options can be specified in the command definition. The value of the CLI option can be retrieved via the `options` parameter of the plugin:
-
-```javascript
-class MyPlugin {
-  constructor(serverless, options) {
+// greet-plugin.mjs
+export default class GreetPlugin {
+  constructor(serverless, options, { log }) {
     this.options = options
+    this.log = log
 
     this.commands = {
-      'my-command': {
-        // The 'usage' property is used to display the 'serverless --help' output
-        usage: 'This is my new custom command!',
+      greet: {
+        usage: 'Print a greeting',
         lifecycleEvents: ['run'],
         options: {
-          // Define the '--function' option with the '-f' shortcut
-          function: {
-            usage:
-              'Specify the function you want to handle (e.g. "--function myFunction")',
-            shortcut: 'f',
-            required: true,
-            type: 'string', // Possible values: 'string', 'boolean', 'multiple'
+          name: {
+            usage: 'Name to greet (for example "--name Ada")',
+            shortcut: 'n',
+            type: 'string',
+            default: 'world',
           },
         },
       },
     }
 
     this.hooks = {
-      'my-command:run': () => this.run(),
+      'greet:run': () => this.run(),
     }
   }
 
   run() {
-    console.log('The option was: ', this.options.function)
+    this.log.notice(`Hello, ${this.options.name}!`)
   }
 }
 ```
 
-If an option is not required, a `default` property can be set in the option definition.
+List the plugin in `serverless.yml`:
 
-## Command naming
+```yaml
+# serverless.yml
+service: my-service
 
-Command names must be unique across all plugins. For example instead of defining a custom `deploy` command, name it `my-company-deploy` instead.
+provider:
+  name: aws
+  runtime: nodejs24.x
 
-If a plugin defines a command name that conflicts with Serverless Framework core or another plugin, the CLI will exit with an error.
+plugins:
+  - ./greet-plugin.mjs
+```
+
+Run the command in the service directory:
+
+```bash
+serverless greet -n Ada
+```
+
+```text
+Hello, Ada!
+```
+
+Plugin commands exist only in a service directory whose `serverless.yml` lists the plugin. Elsewhere, the CLI stops with `No configuration file found`.
+
+## Command definition
+
+Each key of `commands` is a command name, and its value defines the command:
+
+| Property          | Type     | Description                                                                                                     |
+| ----------------- | -------- | --------------------------------------------------------------------------------------------------------------- |
+| `usage`           | string   | Help text shown by `serverless --help` and `serverless <command> --help`                                        |
+| `lifecycleEvents` | string[] | Events the command runs, in order. A command without lifecycle events does nothing                              |
+| `options`         | object   | The command's CLI options ([Command options](#command-options))                                                 |
+| `commands`        | object   | Subcommands, defined the same way ([Subcommands](#subcommands))                                                 |
+| `type`            | string   | `entrypoint` for a command only other plugins can start; `container` for a command that only groups subcommands |
+
+## Lifecycle events of a custom command
+
+A command has no logic of its own: the plugin adds it with hooks on the command's lifecycle events. The event name is `<command>:<event>`, and the Framework adds a `before:` and an `after:` event for each:
+
+```javascript
+// greet-plugin.mjs, inside the constructor
+this.commands = {
+  greet: {
+    usage: 'Print a greeting',
+    lifecycleEvents: ['prepare', 'run'],
+  },
+}
+
+this.hooks = {
+  'before:greet:prepare': () => this.log.verbose('Before prepare'),
+  'greet:prepare': () => this.prepare(),
+  'greet:run': () => this.run(),
+  'after:greet:run': () => this.log.verbose('Done'),
+}
+```
+
+`serverless greet` runs `before:greet:prepare`, `greet:prepare`, `after:greet:prepare`, `before:greet:run`, `greet:run` and `after:greet:run`, awaiting each hook. Other plugins can hook into the same events.
+
+## Command options
+
+Options are passed with two dashes (`--name Ada`) or, with a `shortcut`, with one dash (`-n Ada`). The plugin reads them from the `options` constructor parameter, under the option's full name.
+
+| Property   | Type    | Description                                                                                                                 |
+| ---------- | ------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `usage`    | string  | Help text for the option                                                                                                    |
+| `type`     | string  | Required. `string`, `boolean` or `multiple`. A `multiple` option collects repeated values into an array (`--tag a --tag b`) |
+| `shortcut` | string  | One-letter alias used with a single dash                                                                                    |
+| `required` | boolean | When `true`, the command stops if the option is missing                                                                     |
+| `default`  | any     | Value used when the option is missing. A `boolean` option passed without a value also gets it                               |
+
+The Framework applies `default` values when the command runs, after plugin constructors, so read options in hooks.
+
+The Framework checks options before it runs the command. These are the errors it stops with:
+
+```text
+Option "name" is required for the "greet" command. Run "serverless greet --help" for more info.
+Option "name" is of type "string" but expected type "undefined".
+Unrecognized option "nmae". Run "serverless greet --help" for a list of all available options.
+```
+
+The second error appears when an option without `type` is passed, so give every option a `type`.
+
+Every command also accepts the Framework's common options: `--stage` (`-s`), `--region` (`-r`), `--aws-profile`, `--config` (`-c`), `--param`, `--org`, `--app`, `--verbose`, `--debug`, `--help` (`-h`) and `--version` (`-v`). The common option replaces a command option with the same name.
+
+## Subcommands
+
+A command can group subcommands under `commands`. The subcommand's events join the command names with colons:
+
+```javascript
+// tools-plugin.mjs
+export default class ToolsPlugin {
+  constructor(serverless, options, { log }) {
+    this.commands = {
+      tools: {
+        type: 'container',
+        commands: {
+          report: {
+            usage: 'Print a report',
+            lifecycleEvents: ['run'],
+          },
+        },
+      },
+    }
+
+    this.hooks = {
+      'tools:report:run': () => log.notice('Report'),
+    }
+  }
+}
+```
+
+`serverless tools report` runs `tools:report:run`. A `container` command such as `tools` has no lifecycle events of its own.
+
+## Commands that only plugins start
+
+A command with `type: 'entrypoint'` is hidden from the CLI. A plugin starts it from a hook with `serverless.pluginManager.spawn()`, which runs the command's whole lifecycle and waits for it:
+
+```javascript
+// tools-plugin.mjs
+export default class ToolsPlugin {
+  constructor(serverless, options, { log }) {
+    this.serverless = serverless
+
+    this.commands = {
+      tools: {
+        usage: 'Run tools',
+        lifecycleEvents: ['run'],
+        commands: {
+          cleanup: {
+            type: 'entrypoint',
+            lifecycleEvents: ['run'],
+          },
+        },
+      },
+    }
+
+    this.hooks = {
+      'tools:run': () => this.serverless.pluginManager.spawn('tools:cleanup'),
+      'tools:cleanup:run': () => log.notice('Cleaned up'),
+    }
+  }
+}
+```
+
+`spawn()` also starts core commands, such as `spawn('package')`.
+
+## Command names shared by several plugins
+
+When two plugins, or a plugin and the Framework, define the same command, the Framework merges the definitions:
+
+- Options from both are available. When both define an option with the same name, the definition loaded first is kept.
+- The lifecycle events of the plugin loaded last replace the earlier ones when it defines any.
+- Hooks of both plugins run for the events in the merged lifecycle. A hook on an event that was replaced stays registered but never runs: when the first plugin defines the lifecycle event `run` and the second defines `clean`, the merged command has only `clean`, and hooks on `run` never run.
+
+A plugin can use this to add an option to a core command:
+
+```javascript
+// my-plugin.mjs, inside the constructor
+this.commands = {
+  deploy: {
+    options: {
+      notify: { usage: 'Send a notification after deploying', type: 'boolean' },
+    },
+  },
+}
+```
+
+To add a separate command, give it a distinct name, such as `my-company-deploy` instead of `deploy`.
+
+## Related pages
+
+- [Create a plugin](./creating-plugins.md): the plugin class, lifecycle hooks and configuration
+- [Plugins](./README.md): install, load and order plugins
+- [CLI output](./cli-output.md): logs, progress and text output

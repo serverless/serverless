@@ -126,6 +126,8 @@ import {
   reasonOf,
   restoreAfterStopNext,
 } from '../commands/envelope.js'
+import { endReasonOf } from '../commands/session-end.js'
+import { recordExitReason } from '../commands/exit-reason.js'
 import { FILES, SESSION_LOG_ENV, devDirOf } from '../state/paths.js'
 import { LINKED_DIR_CODE } from '../state/real-dir.js'
 import { sessionStatusFields } from '../commands/status.js'
@@ -1487,13 +1489,22 @@ export const runDevSession = async ({
         cursor: state.events.lastCursor(),
       }),
   }
-  const end = (exitCode) =>
+  const end = (exitCode) => {
+    const restore = ending.restore ?? ending.soFar?.() ?? EMPTY_RESTORE
+    // Why an exit 3 happened, by the rule `dev stop` and `dev wait` report the end with, for the
+    // CLI's analysis event. A forced exit reports its own reason (session-stop, session-restore).
+    recordExitReason(
+      serverless,
+      exitCode,
+      endReasonOf({ ended: { exit_code: exitCode, restore } }),
+    )
     lifecycle.ended({
       exitCode,
-      restore: ending.restore ?? ending.soFar?.() ?? EMPTY_RESTORE,
+      restore,
       webApps: ending.restore ? ending.webApps : ending.webSoFar?.(),
       kept: ending.kept,
     })
+  }
   // From the claim until the session's own stop handling goes in, right before its first change in
   // AWS, a Ctrl+C, SIGTERM or hang-up ends it at once: nothing was changed, so its last record says
   // nothing was restored, and its record goes. Where the exit does not end the process, the stop

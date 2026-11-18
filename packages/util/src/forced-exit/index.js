@@ -1,8 +1,9 @@
 /**
  * A command that ends the process itself, without returning to the CLI (Dev Mode's second Ctrl+C,
  * or a restore that ran out of time), calls `forcedExit` instead of `process.exit`. The CLI
- * registers one handler for the command it runs (`onForcedExit`): it gets the exit code and sends
- * what the end of the command would have sent. The exit waits for it at most FORCED_EXIT_WAIT_MS;
+ * registers one handler for the command it runs (`onForcedExit`): it gets the exit code (and the
+ * exit's reason, when the command gives one) and sends what the end of the command would have
+ * sent. The exit waits for it at most FORCED_EXIT_WAIT_MS;
  * without a handler it exits at once.
  */
 
@@ -13,7 +14,8 @@ let handler = null
 let pending = null
 
 /**
- * Registers the handler a forced exit runs, `(exitCode) => Promise`, replacing any other. Returns
+ * Registers the handler a forced exit runs, `(exitCode, { exitReason }) => Promise`, replacing any
+ * other. Returns
  * a function that removes it again (if it is still the one registered).
  */
 export const onForcedExit = (fn) => {
@@ -28,10 +30,12 @@ export const forcedExitPending = () => pending
 
 /**
  * Exits with `code`, after the registered handler finished or FORCED_EXIT_WAIT_MS passed. A
- * second call while one is under way waits for the first. Never rejects.
+ * second call while one is under way waits for the first. Never rejects. `exitReason` is why the
+ * exit is not 0, as a CLI error code (e.g. DEV_MODE_FORCED_STOP), for the handler to report.
  */
 export const forcedExit = ({
   code,
+  exitReason,
   processRef = process,
   waitMs = FORCED_EXIT_WAIT_MS,
   timers = { setTimeout, clearTimeout },
@@ -47,7 +51,7 @@ export const forcedExit = ({
     timer = timers.setTimeout(resolve, waitMs)
   })
   const sent = Promise.resolve()
-    .then(() => run(code))
+    .then(() => run(code, { exitReason }))
     .catch(() => {})
   pending = Promise.race([sent, waited]).then(() => {
     timers.clearTimeout(timer)

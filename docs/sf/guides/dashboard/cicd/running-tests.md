@@ -1,71 +1,72 @@
 <!--
-title: Serverless Dashboard - Running tests
-description: Learn how to configure and run tests for your Serverless Framework services using Serverless Dashboard CI/CD.
-short_title: Serverless Dashboard - Testing
+title: Run Tests in Serverless CI/CD
+description: 'Run a service''s Node.js or Python tests before every Serverless CI/CD deploy: the test command, the package.json test script and Python dependencies.'
+short_title: Run Tests
 keywords:
   [
     'Serverless Framework',
-    'CI/CD',
-    'Testing',
-    'Node.js',
-    'Python',
-    'NPM',
-    'Serverless Dashboard',
+    'Serverless CI/CD',
+    'npm test',
+    'pytest',
+    'Node.js tests',
+    'Python tests',
   ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://serverless.com/framework/docs/guides/cicd/running-tests/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/dashboard/cicd/running-tests)
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Running Tests
+# Run tests in Serverless CI/CD
 
-The Serverless Framework will automatically run tests for each deployment by running `npm test`. The tests must pass, return `0`, before the service is deployed. If the tests fail, then the service will not be deployed.
+Every [Serverless CI/CD](./README.md) build runs a test step after it installs dependencies and before it deploys. The test step runs the test command configured in the service's CI/CD settings, `npm test` by default. When the command exits with a code other than `0`, the build stops and the service is not deployed.
 
-The tests only run if a `test` script is present in the `package.json` file, like in the example below:
+## Add a test script for Node.js
 
-```json
-{
-  "name": "my-serverless-project",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC"
-}
-```
-
-The tests will be skipped if the `npm test` command returns `Error: no test specified`. This is the response from `npm` if no `test` script is defined. It is also the default value of the `test` script when you initialize a new package.json via `npm init`.
-
-## Running Node tests
-
-If you are using Node for your runtime, then all the dependencies will automatically be installed using `npm install` before tests are run.
-
-Update the `tests` script to run your node test suite (e.g. `mocha`).
-
-## Running Python tests
-
-If you are using Python we recommend using the [serverless-python-requirements](https://github.com/UnitedIncome/serverless-python-requirements) plugin to install the dependencies from `requirements.txt`.
-
-If you are not using the serverless-python-requirements plugin, then you can install the requirements by adding the `postinstall` script to `package.json`.
+With the default `npm test` command, the test step runs the `test` script of the `package.json` in the service directory. For a Node.js service, point it at your test runner:
 
 ```json
 {
-  "name": "demo-python",
+  "name": "my-service",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
-    "postinstall": "pip3 install -r requirements.txt",
-    "test": "pytest"
-  },
-  "devDependencies": {
-    "serverless-python-requirements": "^5.0.1"
+    "test": "node --test"
   }
 }
 ```
 
-You must update the `test` script in `package.json` to run your Python tests suite (e.g. `pytest`).
+The build installs the packages listed in `package.json` with npm before the test step, so a test runner such as `mocha` or `vitest` listed there is available to the script.
+
+The test step is skipped when `package.json` has no `test` script, and when the script is the placeholder that `npm init` writes (`echo "Error: no test specified" && exit 1`).
+
+## Run Python tests
+
+For a Python service, add a `package.json` next to `serverless.yml` whose `test` script runs your Python tests. The build's install step runs npm, not pip, so install the Python requirements in a `postinstall` script, which npm runs at the end of the install step:
+
+```json
+{
+  "name": "my-python-service",
+  "version": "1.0.0",
+  "scripts": {
+    "postinstall": "pip3 install -r requirements.txt",
+    "test": "pytest"
+  }
+}
+```
+
+List `pytest` in `requirements.txt`, or install it in the same `postinstall` script.
+
+These installed packages exist only in the build environment. The Framework's built-in [Python Support](../../../providers/aws/guide/python.md) bundles the packages from `requirements.txt` into the deployment package when `custom.pythonRequirements` is set in `serverless.yml`.
+
+## Change the test command
+
+To run something other than `npm test`, set the test command in the service's CI/CD settings. npm runs the `pretest` and `posttest` scripts only for `npm test` or `npm run test`; another command, such as `npm run test:unit` or `npx vitest`, runs without them ([Custom scripts](./custom-scripts.md)).
+
+## Related
+
+- [Custom scripts](./custom-scripts.md): run commands before or after install, test and deploy.
+- [Private packages](./private-packages.md): install test dependencies from a private npm registry.
+- [Serverless CI/CD](./README.md): what each build runs.

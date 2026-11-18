@@ -6,6 +6,7 @@
 // Subpath import: tests that load every plugin mock '@serverless/util' wholesale.
 import { forcedExit } from '@serverless/util/src/forced-exit/index.js'
 import { restoreFunctions } from './attach.js'
+import { EXIT_REASONS } from '../commands/exit-reason.js'
 import * as out from './output.js'
 import { OFF_UNCHANGED, TIMED_OUT, within } from './session-support.js'
 
@@ -129,7 +130,12 @@ export const createRestore = ({
       }
       onExiting(3)
       // The CLI sends what the end of the command sends, then exits; nothing after this runs.
-      await forcedExit({ code: 3, processRef, timers })
+      await forcedExit({
+        code: 3,
+        exitReason: EXIT_REASONS.RESTORE_TIMEOUT,
+        processRef,
+        timers,
+      })
       return { failed: left, timedOut: true }
     }
     await settle(beforeReport)

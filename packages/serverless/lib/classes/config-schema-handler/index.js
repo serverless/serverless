@@ -84,7 +84,7 @@ class ConfigSchemaHandler {
           [
             `You're relying on provider "${this.serverless.service.provider.name}" defined by a plugin which doesn't provide a validation schema for its config.`,
             `Please report the issue at its bug tracker linking: ${style.link(
-              'https://www.serverless.com/framework/docs/providers/aws/guide/plugins#extending-validation-schema',
+              'https://www.serverless.com/framework/docs/guides/plugins/custom-configuration#extending-the-validation-schema',
             )}`,
             'You may turn off this message with "configValidationMode: off" setting',
             '',

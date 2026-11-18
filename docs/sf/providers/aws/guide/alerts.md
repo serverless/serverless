@@ -1,151 +1,191 @@
 <!--
-title: CloudWatch Alerts & Alarms
-description: Easily configuration CloudWatch alerts & alarms with the Serverless Framework.
-short_title: Build Config
+title: CloudWatch Alarms for Lambda Functions
+description: Create CloudWatch alarms, SNS notifications and dashboards for your Lambda functions with the built-in custom.alerts settings.
+short_title: Alerts
 keywords:
   [
     'Serverless Framework',
     'AWS Lambda',
-    'CloudWatch',
-    'CloudWatch Alerts',
-    'Observability',
+    'CloudWatch alarms',
+    'CloudWatch alerts',
+    'SNS notifications',
+    'CloudWatch dashboard',
   ]
 -->
 
-# Configuring CloudWatch Alerts
+<!-- DOCS-SITE-LINK:START automatically generated  -->
 
-Configuring CloudWatch alerts & alarms is now built into the Serverless Framework v4. Huge thanks to ACloudGuru for their [original CloudWatch Alerts plugin](https://github.com/ACloudGuru/serverless-plugin-aws-alerts/), which is now archived/deprecated.
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/alerts)
 
-## Usage
+<!-- DOCS-SITE-LINK:END -->
 
-### Basic Usage
+# CloudWatch Alarms for Lambda Functions
+
+The Serverless Framework's built-in alerts create Amazon CloudWatch alarms for every Lambda function in your service, SNS topics that notify you when an alarm fires, and optional CloudWatch dashboards. Configure them under `custom.alerts` in `serverless.yml`; no plugin is needed. For an alarm on something other than your functions' metrics or logs, add an `AWS::CloudWatch::Alarm` resource in [`resources`](./resources.md) instead.
+
+To email yourself when any function in the `prod` stage reports an error or is throttled, add:
 
 ```yaml
 # serverless.yml
+service: my-service
+
+provider:
+  name: aws
+  runtime: nodejs24.x
 
 custom:
   alerts:
     stages:
-      - production
+      - prod
     topics:
       alarm:
-        topic: ${self:service}-${opt:stage}-alerts-alarm
+        topic: ${self:service}-${sls:stage}-alerts-alarm
         notifications:
           - protocol: email
-            endpoint: name@domain.com # Change this to your email address
+            endpoint: ops@example.com
     alarms:
       - functionErrors
       - functionThrottles
+
+functions:
+  hello:
+    handler: handler.hello
 ```
 
-### Advanced Usage
+Deploying to `prod` creates two alarms per function and an SNS topic named `my-service-prod-alerts-alarm` with an email subscription; AWS sends a confirmation email to `ops@example.com` that must be accepted before notifications arrive. Replace the address with yours.
+
+## Built-in alarm definitions
+
+The Framework includes four alarm definitions for the standard Lambda metrics. List them by name under `custom.alerts.alarms`:
+
+| Name                  | Metric (`AWS/Lambda`) | Statistic | Threshold | Fires when                                |
+| --------------------- | --------------------- | --------- | --------- | ----------------------------------------- |
+| `functionErrors`      | `Errors`              | `Sum`     | `1`       | At least 1 error in a 60-second period    |
+| `functionThrottles`   | `Throttles`           | `Sum`     | `1`       | At least 1 throttle in a 60-second period |
+| `functionInvocations` | `Invocations`         | `Sum`     | `100`     | 100 or more invocations in 60 seconds     |
+| `functionDuration`    | `Duration`            | `Average` | `500`     | Average duration of 500 ms or more        |
+
+Every built-in definition uses `period: 60`, `evaluationPeriods: 1`, `datapointsToAlarm: 1`, `comparisonOperator: GreaterThanOrEqualToThreshold` and `treatMissingData: missing`.
+
+## Change a built-in alarm definition
+
+To change one setting of a built-in alarm, set it under `custom.alerts.definitions` with the alarm's name. Your keys are merged over the built-in definition, so the rest stays as listed in [Built-in alarm definitions](#built-in-alarm-definitions):
 
 ```yaml
-service: your-service
-provider:
-  name: aws
-  runtime: nodejs12.x
-
-plugins:
-  - serverless-plugin-aws-alerts
-
 custom:
   alerts:
-    stages: # Optionally - select which stages to deploy alarms to
-      - production
-      - staging
-
-    dashboards: true
-
-    nameTemplate: $[functionName]-$[metricName]-Alarm # Optionally - naming template for alarms, can be overwritten in definitions
-    prefixTemplate: $[stackName] # Optionally - override the alarm name prefix
-
-    topics:
-      ok: ${self:service}-${opt:stage}-alerts-ok
-      alarm: ${self:service}-${opt:stage}-alerts-alarm
-      insufficientData: ${self:service}-${opt:stage}-alerts-insufficientData
-    definitions: # these defaults are merged with your definitions
+    definitions:
       functionErrors:
-        period: 300 # override period
-      customAlarm:
-        actionsEnabled: false # Indicates whether actions should be executed during any changes to the alarm state. The default is TRUE
-        description: 'My custom alarm'
+        period: 300
+        treatMissingData: notBreaching
+    alarms:
+      - functionErrors
+```
+
+## Add a custom alarm definition
+
+To alarm on another metric, define the alarm under `custom.alerts.definitions` and list its name under `alarms`. This example alarms when a function's 95th percentile duration reaches 3 seconds:
+
+```yaml
+custom:
+  alerts:
+    definitions:
+      slowFunction:
+        description: 'p95 duration of 3 seconds or more'
         namespace: 'AWS/Lambda'
-        nameTemplate: $[functionName]-Duration-IMPORTANT-Alarm # Optionally - naming template for the alarms, overwrites globally defined one
-        prefixTemplate: $[stackName] # Optionally - override the alarm name prefix, overwrites globally defined one
-        metric: duration
-        threshold: 200
-        statistic: Average
+        metric: Duration
+        threshold: 3000
+        statistic: p95
         period: 300
         evaluationPeriods: 1
         datapointsToAlarm: 1
         comparisonOperator: GreaterThanOrEqualToThreshold
     alarms:
-      - functionThrottles
-      - functionErrors
-      - functionInvocations
-      - functionDuration
-
-functions:
-  foo:
-    handler: foo.handler
-    alarms: # merged with function alarms
-      - customAlarm
-      - name: fooAlarm # creates new alarm or overwrites some properties of the alarm (with the same name) from definitions
-        namespace: 'AWS/Lambda'
-        actionsEnabled: false
-        metric: errors # define custom metrics here
-        threshold: 1
-        statistic: Minimum
-        period: 60
-        evaluationPeriods: 1
-        datapointsToAlarm: 1
-        comparisonOperator: GreaterThanOrEqualToThreshold
+      - slowFunction
 ```
 
-## Anomaly Detection Alarms
+Metric names are case-sensitive and must match CloudWatch's (`Duration`, not `duration`). The [alarm definition keys](#alarm-definition-keys) list every setting. Each alarm in `custom.alerts.alarms` is created once per function, with the function's name as the `FunctionName` dimension.
 
-You can create alarms using [CloudWatch AnomalyDetection](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Anomaly_Detection.html) to alarm when data is outside a number of standard deviations of normal, rather than at a static threshold.
-When using anomaly detection alarms the threshold property specifies the "Anomaly Detection Threshold" seen in the AWS console.
+## Configure alarms for one function
 
-Default alarms can also be updated to be anomaly detection alarms by adding the `type: anomalyDetection` property.
+To add alarms to one function, list them under the function's `alarms`. An entry is a definition name, or an object with `name` and any [alarm definition keys](#alarm-definition-keys); when the name matches a definition, the object's keys are merged over it:
 
 ```yaml
+custom:
+  alerts:
+    alarms:
+      - functionErrors
+      - functionInvocations
+
 functions:
-  foo:
-    handler: foo.handler
+  checkout:
+    handler: handler.checkout
     alarms:
-      - name: fooAlarm
-        type: anomalyDetection
-        namespace: 'AWS/Lambda'
-        metric: Invocations
-        threshold: 2
-        statistic: Sum
-        period: 60
-        evaluationPeriods: 1
-        datapointsToAlarm: 1
-        comparisonOperator: LessThanLowerOrGreaterThanUpperThreshold
-  bar:
-    handler: bar.handler
-    alarms:
+      - functionThrottles
       - name: functionErrors
-        threshold: 2
-        type: anomalyDetection
-        comparisonOperator: LessThanLowerOrGreaterThanUpperThreshold
+        threshold: 5
       - name: functionInvocations
-        threshold: 2
-        type: anomalyDetection
-        comparisonOperator: LessThanLowerOrGreaterThanUpperThreshold
+        enabled: false
 ```
 
-## Multiple topic definitions
+The `checkout` function gets a throttle alarm, an errors alarm with a threshold of 5 instead of the service-wide one, and no invocations alarm (`enabled: false`). A function-level alarm with the same name as a service-wide alarm replaces it for that function.
 
-You can define several topics for alarms. For example you want to have topics for critical alarms
-reaching your pagerduty, and different topics for noncritical alarms, which just send you emails.
+## Send alarm notifications to SNS topics
 
-In each alarm definition you have to specify which topics you want to use. In following example
-you get an email for each function error, pagerduty gets alarm only if there are more than 20
-errors in 60s
+The topics under `custom.alerts.topics` receive the alarm's state changes:
+
+- `alarm`: the alarm enters the `ALARM` state.
+- `ok`: the alarm returns to `OK`.
+- `insufficientData`: the alarm enters `INSUFFICIENT_DATA`.
+
+A topic value is either a topic name or an existing topic. For a name, the Framework creates an SNS topic with that name in your stack (logical ID `AwsAlertsAlarm`, `AwsAlertsOk` or `AwsAlertsInsufficientData`). To subscribe endpoints to a topic the Framework creates, use the object form with `topic` and `notifications`:
+
+```yaml
+custom:
+  alerts:
+    topics:
+      ok: ${self:service}-${sls:stage}-alerts-ok
+      alarm:
+        topic: ${self:service}-${sls:stage}-alerts-alarm
+        notifications:
+          - protocol: email
+            endpoint: ops@example.com
+          - protocol: https
+            endpoint: https://hooks.example.com/alarms
+```
+
+Each notification is an SNS subscription with a `protocol` (`email`, `email-json`, `http`, `https`, `sms`, `sqs`, `lambda`, `application` or `firehose`) and an `endpoint`; see [Subscribe in the Amazon SNS API reference](https://docs.aws.amazon.com/sns/latest/api/API_Subscribe.html) for the endpoint format of each protocol.
+
+## Use an existing SNS topic for alarms
+
+To send alarms to a topic that already exists, give its ARN, or a CloudFormation intrinsic function that returns the ARN. The Framework then creates no topic, and `notifications` is not used:
+
+```yaml
+custom:
+  alerts:
+    topics:
+      alarm:
+        topic: arn:aws:sns:${aws:region}:${aws:accountId}:monitoring-${sls:stage}
+      ok:
+        topic:
+          Fn::ImportValue: monitoring-ok-topic-arn
+      insufficientData:
+        topic:
+          Ref: InsufficientDataTopic
+
+resources:
+  Resources:
+    InsufficientDataTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: insufficient-data
+```
+
+A string that starts with `arn:` is used as-is; any object (`Ref`, `Fn::ImportValue`, `Fn::Join`, `Fn::GetAtt`) is passed to CloudFormation unchanged.
+
+## Route alarms to different topic groups
+
+To send critical alarms to a paging service and other alarms to email, define named topic groups under `topics`, each with its own `ok`, `alarm` and `insufficientData` topics, and select groups per alarm with `okActions`, `alarmActions` and `insufficientDataActions`:
 
 ```yaml
 custom:
@@ -153,24 +193,22 @@ custom:
     topics:
       critical:
         ok:
-          topic: ${self:service}-${opt:stage}-critical-alerts-ok
+          topic: ${self:service}-${sls:stage}-critical-ok
           notifications:
             - protocol: https
-              endpoint: https://events.pagerduty.com/integration/.../enqueue
+              endpoint: https://events.example.com/integration/PAGING_KEY/enqueue
         alarm:
-          topic: ${self:service}-${opt:stage}-critical-alerts-alarm
+          topic: ${self:service}-${sls:stage}-critical-alarm
           notifications:
             - protocol: https
-              endpoint: https://events.pagerduty.com/integration/.../enqueue
-
+              endpoint: https://events.example.com/integration/PAGING_KEY/enqueue
       nonCritical:
         alarm:
-          topic: ${self:service}-${opt:stage}-nonCritical-alerts-alarm
+          topic: ${self:service}-${sls:stage}-noncritical-alarm
           notifications:
             - protocol: email
-              endpoint: alarms@email.com
-
-    definitions: # these defaults are merged with your definitions
+              endpoint: ops@example.com
+    definitions:
       criticalFunctionErrors:
         namespace: 'AWS/Lambda'
         metric: Errors
@@ -198,77 +236,11 @@ custom:
       - nonCriticalFunctionErrors
 ```
 
-## SNS Topics
+Replace `PAGING_KEY` with the integration key of your paging service. Every alarm also notifies the topics set directly under `topics` (`ok`, `alarm`, `insufficientData`), in addition to the groups it lists. Group topics accept the same forms as the top-level ones: a name, an ARN or an intrinsic function.
 
-If topic name is specified, plugin assumes that topic does not exist and will create it. To use existing topics, specify ARNs or use CloudFormation (e.g. Fn::ImportValue, Fn::Join and Ref) to refer to existing topics.
+## Alarm on a log pattern
 
-#### ARN support
-
-```yaml
-custom:
-  alerts:
-    topics:
-      alarm:
-        topic: arn:aws:sns:${self:region}:${self::accountId}:monitoring-${opt:stage}
-```
-
-#### CloudFormation support
-
-```yaml
-custom:
-  alerts:
-    topics:
-      alarm:
-        topic:
-          Fn::ImportValue: ServiceMonitoring:monitoring-${opt:stage, 'dev'}
-      ok:
-        topic:
-          Fn::Join:
-            - ':'
-            - - arn:aws:sns
-              - Ref: AWS::Region
-              - Ref: AWS::AccountId
-              - example-ok-topic
-      insufficientData:
-        topic:
-          Ref: ExampleInsufficientdataTopic
-
-resources:
-  Resources:
-    ExampleInsufficientdataTopic:
-      Type: AWS::SNS::Topic
-      Properties:
-        DisplayName: example-insufficientdata-topic
-        Subscription:
-          - Endpoint: me@example.com
-            Protocol: EMAIL
-```
-
-## SNS Notifications
-
-You can configure subscriptions to your SNS topics within your `serverless.yml`. For each subscription, you'll need to specify a `protocol` and an `endpoint`.
-
-The following example will send email notifications to `me@example.com` for all messages to the Alarm topic:
-
-```yaml
-custom:
-  alerts:
-    topics:
-      alarm:
-        topic: ${self:service}-${opt:stage}-alerts-alarm
-        notifications:
-          - protocol: email
-            endpoint: me@example.com
-```
-
-You can configure notifications to send to webhook URLs, to SMS devices, to other Lambda functions, and more. Check out the AWS docs [here](http://docs.aws.amazon.com/sns/latest/api/API_Subscribe.html) for configuration options.
-
-## Metric Log Filters
-
-You can monitor a log group for a function for a specific pattern. Do this by adding the pattern key.
-You can learn about custom patterns at: http://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html
-
-The following would create a custom metric log filter based alarm named `barExceptions`. Any function that included this alarm would have its logs scanned for the pattern `exception Bar` and if found would trigger an alarm.
+To alarm when a function logs a matching line, add `pattern` to an alarm definition. The value uses the [CloudWatch Logs filter pattern syntax](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html):
 
 ```yaml
 custom:
@@ -277,13 +249,13 @@ custom:
       barExceptions:
         metric: barExceptions
         threshold: 0
-        statistic: Minimum
+        statistic: Sum
         period: 60
         evaluationPeriods: 1
         comparisonOperator: GreaterThanThreshold
         pattern: 'exception Bar'
-      bunyanErrors:
-        metric: bunyanErrors
+      jsonErrors:
+        metric: jsonErrors
         threshold: 0
         statistic: Sum
         period: 60
@@ -291,206 +263,223 @@ custom:
         datapointsToAlarm: 1
         comparisonOperator: GreaterThanThreshold
         pattern: '{$.level > 40}'
+    alarms:
+      - barExceptions
+      - jsonErrors
 ```
 
-> Note: For custom log metrics, namespace property will automatically be set to stack name (e.g. `fooservice-dev`).
+For each function with a pattern alarm, the Framework adds two metric filters to the function's log group: one records `1` for each log event that matches the pattern, the other records `0` for every log event. The metric's namespace is the stack name (for example `my-service-prod`), its name is the `metric` value followed by the function's logical ID (`BarExceptionsHelloLambdaFunction`), and the alarm has no dimensions, so `namespace`, `dimensions` and `omitDefaultDimension` don't apply. Use `statistic: Sum` for a pattern alarm: because the second filter records `0` for every log event, `Minimum` is `0` in any period with log lines.
 
-## Custom Naming
+## Anomaly detection alarms
 
-You can define custom naming template for the alarms. `nameTemplate` property under `alerts` configures naming template for all the alarms, while placing `nameTemplate` under alarm definition configures (overwrites) it for that specific alarm only. Naming template provides interpolation capabilities, where supported placeholders are:
-
-- `$[functionName]` - function name (e.g. `helloWorld`)
-- `$[functionId]` - function logical id (e.g. `HelloWorldLambdaFunction`)
-- `$[metricName]` - metric name (e.g. `Duration`)
-- `$[metricId]` - metric id (e.g. `BunyanErrorsHelloWorldLambdaFunction` for the log based alarms, `$[metricName]` otherwise)
-
-> Note: All the alarm names are prefixed with stack name (e.g. `fooservice-dev`).
-
-## Default Definitions
-
-The plugin provides some default definitions that you can simply drop into your application. For example:
+To alarm when a metric leaves its expected band instead of crossing a fixed value, set `type: anomalyDetection`. The alarm uses [CloudWatch anomaly detection](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Anomaly_Detection.html); `threshold` sets the band width in standard deviations, and `comparisonOperator` must be `LessThanLowerOrGreaterThanUpperThreshold`, `LessThanLowerThreshold` or `GreaterThanUpperThreshold`:
 
 ```yaml
-alerts:
-  alarms:
-    - functionErrors
-    - functionThrottles
-    - functionInvocations
-    - functionDuration
+functions:
+  foo:
+    handler: handler.foo
+    alarms:
+      - name: fooInvocationsAnomaly
+        type: anomalyDetection
+        namespace: 'AWS/Lambda'
+        metric: Invocations
+        threshold: 2
+        statistic: Sum
+        period: 60
+        evaluationPeriods: 1
+        datapointsToAlarm: 1
+        comparisonOperator: LessThanLowerOrGreaterThanUpperThreshold
+  bar:
+    handler: handler.bar
+    alarms:
+      - name: functionErrors
+        type: anomalyDetection
+        threshold: 2
+        comparisonOperator: LessThanLowerOrGreaterThanUpperThreshold
 ```
 
-If these definitions do not quite suit i.e. the threshold is too high, you can override a setting without
-creating a completely new definition.
+The `bar` function turns the built-in `functionErrors` alarm into an anomaly detection alarm by overriding three keys.
 
-```yaml
-alerts:
-  definitions: # these defaults are merged with your definitions
-    functionErrors:
-      period: 300 # override period
-      treatMissingData: notBreaching # override treatMissingData
-```
+## Percentile statistics
 
-The default definitions are below.
-
-```yaml
-definitions:
-  functionInvocations:
-    namespace: 'AWS/Lambda'
-    metric: Invocations
-    threshold: 100
-    statistic: Sum
-    period: 60
-    evaluationPeriods: 1
-    datapointsToAlarm: 1
-    comparisonOperator: GreaterThanOrEqualToThreshold
-    treatMissingData: missing
-  functionErrors:
-    namespace: 'AWS/Lambda'
-    metric: Errors
-    threshold: 1
-    statistic: Sum
-    period: 60
-    evaluationPeriods: 1
-    datapointsToAlarm: 1
-    comparisonOperator: GreaterThanOrEqualToThreshold
-    treatMissingData: missing
-  functionDuration:
-    namespace: 'AWS/Lambda'
-    metric: Duration
-    threshold: 500
-    statistic: Average
-    period: 60
-    evaluationPeriods: 1
-    comparisonOperator: GreaterThanOrEqualToThreshold
-    treatMissingData: missing
-  functionThrottles:
-    namespace: 'AWS/Lambda'
-    metric: Throttles
-    threshold: 1
-    statistic: Sum
-    period: 60
-    evaluationPeriods: 1
-    datapointsToAlarm: 1
-    comparisonOperator: GreaterThanOrEqualToThreshold
-    treatMissingData: missing
-```
-
-## Disabling default alarms for specific functions
-
-Default alarms can be disabled on a per-function basis:
+`statistic` accepts `SampleCount`, `Average`, `Sum`, `Minimum`, `Maximum` and percentiles such as `p95` or `p99.9`. For a percentile, the Framework sets the alarm's extended statistic and passes `evaluateLowSampleCountPercentile` (`evaluate` or `ignore`), which controls how the alarm treats periods with too few data points:
 
 ```yaml
 custom:
   alerts:
-    alarms:
-      - functionThrottles
-      - functionErrors
-      - functionInvocations
-      - functionDuration
-
-functions:
-  bar:
-    handler: bar.handler
-    alarms:
-      - name: functionInvocations
-        enabled: false
+    definitions:
+      functionDuration:
+        statistic: p95
+        threshold: 100
+        evaluateLowSampleCountPercentile: ignore
 ```
 
-## Additional dimensions
+See [CloudWatch statistics definitions](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Statistics-definitions.html) for the percentile syntax.
 
-The plugin allows users to provide custom dimensions for the alarm. Dimensions are provided in a list of key/value pairs {Name: foo, Value:bar}
-The plugin will always apply dimension of {Name: FunctionName, Value: ((FunctionName))}, except if the parameter `omitDefaultDimension: true` is passed. For example:
+## Alarm dimensions
+
+Every metric alarm gets the dimension `FunctionName` set to the function's name. To alarm on a metric with other dimensions, add `dimensions` as a list of `Name` and `Value` pairs; to drop the `FunctionName` dimension, set `omitDefaultDimension: true`:
 
 ```yaml
-alarms: # merged with function alarms
-  - name: fooAlarm
-    namespace: 'AWS/Lambda'
-    metric: errors # define custom metrics here
-    threshold: 1
-    statistic: Minimum
-    period: 60
-    evaluationPeriods: 1
-    comparisonOperator: GreaterThanThreshold
-    omitDefaultDimension: true
-    dimensions:
-      - Name: foo
-        Value: bar
+custom:
+  alerts:
+    definitions:
+      queueBacklog:
+        namespace: 'AWS/SQS'
+        metric: ApproximateNumberOfMessagesVisible
+        threshold: 1000
+        statistic: Maximum
+        period: 60
+        evaluationPeriods: 5
+        comparisonOperator: GreaterThanThreshold
+        omitDefaultDimension: true
+        dimensions:
+          - Name: QueueName
+            Value: my-queue
 ```
 
-```json
-'Dimensions': [
-                {
-                    'Name': 'foo',
-                    'Value': 'bar'
-                },
-            ]
-```
+The alarm is still created once per function that lists it, so with `omitDefaultDimension: true` list it on one function rather than under `custom.alerts.alarms`.
 
-## Using Percentile Statistic for a Metric
+## Alarm names
 
-Statistic not only supports SampleCount, Average, Sum, Minimum or Maximum as defined in CloudFormation [here](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html#cfn-cloudwatch-alarms-statistic), but also percentiles. This is possible by leveraging [ExtendedStatistic](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html#cfn-cloudwatch-alarms-extendedstatistic) under the hood. This plugin will automatically choose the correct key for you. See an example below:
+Without `nameTemplate` or `prefixTemplate`, the Framework leaves the alarm name to CloudFormation, which generates one from the stack name and logical ID. To set names, add `nameTemplate` under `custom.alerts` for all alarms, or in an alarm definition for that alarm only:
 
 ```yaml
-definitions:
-  functionDuration:
-    namespace: 'AWS/Lambda'
-    metric: Duration
-    threshold: 100
-    statistic: 'p95'
-    period: 60
-    evaluationPeriods: 1
-    datapointsToAlarm: 1
-    comparisonOperator: GreaterThanThreshold
-    treatMissingData: missing
-    evaluateLowSampleCountPercentile: ignore
+custom:
+  alerts:
+    nameTemplate: $[functionName]-$[metricName]-Alarm
+    prefixTemplate: $[stackName]
 ```
 
-## Using a Separate CloudFormation Stack
+`nameTemplate` supports these placeholders:
 
-If your Serverless CloudFormation stack is growing too large and you're running out of resources,
-you can configure the plugin to deploy a separate stack for the CloudWatch resources. The default
-behaviour is to create a stack with a "-alerts" suffix in the stack name.
+- `$[functionName]`: the function's name in `serverless.yml`, for example `helloWorld`.
+- `$[functionId]`: the function's logical ID, for example `HelloWorldLambdaFunction`.
+- `$[metricName]`: the alarm's `metric`, for example `Duration`.
+- `$[metricId]`: for a log pattern alarm, the metric name plus the function's logical ID (`BunyanErrorsHelloWorldLambdaFunction`); otherwise the same as `$[metricName]`.
 
-    custom:
-      alerts:
-        externalStack: true
+The name is the prefix, a hyphen and the template. `prefixTemplate` defaults to `$[stackName]` (for example `my-service-prod`), which is its only placeholder; `prefixTemplate: ''` removes the prefix. With only `prefixTemplate` set, the template is `$[functionName]-$[metricName]`, where the metric name is the alarm's name.
 
-You can customize the name suffix:
+## Deploy alerts only on some stages
 
-    custom:
-      alerts:
-        externalStack:
-          nameSuffix: Alerts
+`custom.alerts.stages` lists the stages that get alerts. On any other stage, the Framework adds no alarms, topics or dashboards and logs:
 
-The separate stack will be automatically deployed after you've deployed your main Serverless
-stack. It will also be automatically removed if you remove your main stack.
+```text
+Warning: Not deploying alerts on stage dev
+```
 
-You can also enable the external stack on the command line with `sls deploy --alerts-external-stack`
-which is equivalent to adding `externalStack: true` to the configuration.
+Without `stages`, alerts deploy on every stage.
 
-## Dashboards
+## Create CloudWatch dashboards
 
-The plugin can create dashboards automatically for basic metrics.
-
-Default setup for a single dashboard:
+To create a CloudWatch dashboard with your functions' invocations, errors, throttles and duration, and API Gateway requests and latency, set `dashboards`:
 
 ```yaml
-dashboards: true
+custom:
+  alerts:
+    dashboards: true
 ```
 
-Create a vertical dashboard:
+`dashboards` accepts these values:
+
+- `true`: one dashboard from the `default` template.
+- A template name, `default` or `vertical` (the `vertical` template adds iterator age): one dashboard from that template.
+- A list of template names, for example `[default, vertical]`: one dashboard per template.
+- An object with `stages` (required) and `templates` (default `default`): dashboards only on the listed stages.
 
 ```yaml
-dashboards: vertical
+custom:
+  alerts:
+    dashboards:
+      stages:
+        - prod
+      templates:
+        - default
+        - vertical
 ```
 
-Create dashboards only in specified stages:
+The `default` dashboard is named `<service>-<stage>-<region>`; other templates append `-<template>`.
+
+## Deploy alarms in a separate stack
+
+To keep the alarms, topics and dashboards out of your service's stack, for example when that stack nears the CloudFormation resource quota, set `externalStack: true`:
 
 ```yaml
-dashboards:
-  stages:
-    - production
-    - staging
-  templates:
-    - default
+custom:
+  alerts:
+    externalStack: true
 ```
+
+After `serverless deploy` updates the service's stack, the Framework deploys a second stack named after the service's stack with `-alerts` appended (for example `my-service-prod-alerts`). `serverless remove` deletes it before the service's stack, and a deploy with no alarms or dashboards left deletes it. The stack is tagged with `STAGE` and the service's `provider.stackTags`.
+
+To change the suffix or add to the external stack, use the object form:
+
+```yaml
+custom:
+  alerts:
+    externalStack:
+      nameSuffix: -monitoring
+      deployParameters:
+        - ParameterKey: Environment
+          ParameterValue: ${sls:stage}
+      resources:
+        Parameters:
+          Environment:
+            Type: String
+```
+
+- `nameSuffix`: appended to the service's stack name. Default `-alerts`.
+- `resources`: template sections merged into the external stack: `Description`, `Metadata`, `Parameters`, `Mappings`, `Conditions`, `Transform`, `Resources` and `Outputs`.
+- `deployParameters`: a list of `ParameterKey` and `ParameterValue` pairs passed when the stack is created or updated.
+
+The external stack refers to your functions by name through stack parameters that the Framework adds.
+
+## Configuration reference for custom.alerts
+
+| Key              | Type                           | Default        | Description                                                                                                     |
+| ---------------- | ------------------------------ | -------------- | --------------------------------------------------------------------------------------------------------------- |
+| `stages`         | list of strings                | every stage    | Stages that get alerts; see [Deploy alerts only on some stages](#deploy-alerts-only-on-some-stages).            |
+| `topics`         | object                         | none           | SNS topics for alarm state changes and named topic groups.                                                      |
+| `definitions`    | object                         | built-in four  | Alarm definitions by name, merged over the built-in ones.                                                       |
+| `alarms`         | list of names or alarm objects | none           | Alarms created for every function.                                                                              |
+| `nameTemplate`   | string                         | none           | Alarm name template for all alarms; see [Alarm names](#alarm-names).                                            |
+| `prefixTemplate` | string                         | `$[stackName]` | Alarm name prefix for all alarms.                                                                               |
+| `dashboards`     | boolean, string, list, object  | none           | CloudWatch dashboards; see [Create CloudWatch dashboards](#create-cloudwatch-dashboards).                       |
+| `externalStack`  | boolean or object              | `false`        | Deploy alerts in a separate stack; see [Deploy alarms in a separate stack](#deploy-alarms-in-a-separate-stack). |
+
+Functions accept `alarms` (a list of definition names or alarm objects) at `functions.<name>.alarms`.
+
+## Alarm definition keys
+
+An alarm definition, in `custom.alerts.definitions`, `custom.alerts.alarms` or a function's `alarms`, accepts these keys. The CloudWatch keys map to the [`AWS::CloudWatch::Alarm` resource](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-cloudwatch-alarm.html), which lists the allowed values.
+
+| Key                                                    | Default                    | Description                                                                          |
+| ------------------------------------------------------ | -------------------------- | ------------------------------------------------------------------------------------ |
+| `name`                                                 | none                       | Required in an alarm object; selects the definition to merge with.                   |
+| `type`                                                 | `static`                   | `static` or `anomalyDetection`.                                                      |
+| `enabled`                                              | `true`                     | `false` removes the alarm, for example for one function.                             |
+| `namespace`                                            | none                       | Metric namespace, for example `AWS/Lambda`. Ignored with `pattern`.                  |
+| `metric`                                               | none                       | Metric name, case-sensitive.                                                         |
+| `threshold`                                            | none                       | Threshold, or the band width in standard deviations for `anomalyDetection`.          |
+| `statistic`                                            | none                       | `SampleCount`, `Average`, `Sum`, `Minimum`, `Maximum` or a percentile such as `p95`. |
+| `period`                                               | none                       | Period in seconds.                                                                   |
+| `evaluationPeriods`                                    | none                       | Number of periods to evaluate.                                                       |
+| `datapointsToAlarm`                                    | none                       | Number of breaching data points that trigger the alarm.                              |
+| `comparisonOperator`                                   | none                       | For example `GreaterThanOrEqualToThreshold`.                                         |
+| `treatMissingData`                                     | `missing`                  | `breaching`, `notBreaching`, `ignore` or `missing`.                                  |
+| `evaluateLowSampleCountPercentile`                     | none                       | `evaluate` or `ignore`; percentile statistics only.                                  |
+| `actionsEnabled`                                       | `true`                     | `false` keeps the alarm but sends no notifications.                                  |
+| `description`                                          | none                       | Alarm description.                                                                   |
+| `pattern`                                              | none                       | CloudWatch Logs filter pattern; makes it a log pattern alarm.                        |
+| `dimensions`                                           | none                       | List of `Name` and `Value` pairs.                                                    |
+| `omitDefaultDimension`                                 | `false`                    | `true` drops the `FunctionName` dimension.                                           |
+| `okActions`, `alarmActions`, `insufficientDataActions` | none                       | Names of topic groups to notify.                                                     |
+| `nameTemplate`, `prefixTemplate`                       | the `custom.alerts` values | Alarm name for this alarm.                                                           |
+
+## Related
+
+- [Using Amazon CloudWatch alarms](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/AlarmThatSendsEmail.html) in the CloudWatch user guide
+- [AWS infrastructure resources](./resources.md) for alarms on resources other than functions
+- [Functions](./functions.md) for function configuration
+
+The built-in alerts are derived from the [serverless-plugin-aws-alerts](https://github.com/ACloudGuru/serverless-plugin-aws-alerts/) plugin by A Cloud Guru.

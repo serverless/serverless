@@ -10,6 +10,7 @@
 // Subpath import: tests that load every plugin mock '@serverless/util' wholesale.
 import { forcedExit } from '@serverless/util/src/forced-exit/index.js'
 import * as out from './output.js'
+import { EXIT_REASONS } from '../commands/exit-reason.js'
 import { installStopHandlers } from './signals.js'
 import { GLOBAL_TIMERS, guardStreams } from './session-support.js'
 
@@ -89,7 +90,12 @@ export const createStopControl = ({
         }
         const code = left.length ? 3 : 0
         onExiting(code)
-        return forcedExit({ code, processRef, timers })
+        return forcedExit({
+          code,
+          ...(code && { exitReason: EXIT_REASONS.FORCED_STOP }),
+          processRef,
+          timers,
+        })
       },
       onError: (error) =>
         logger.error(out.stopFailedLine(error, scope, restoring())),

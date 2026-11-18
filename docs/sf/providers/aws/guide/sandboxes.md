@@ -1,14 +1,14 @@
 <!--
-title: Serverless Framework - Sandboxes (AWS Lambda MicroVMs)
-description: How to define, deploy, and invoke sandboxes (AWS Lambda MicroVMs) with the Serverless Framework
+title: Sandboxes (AWS Lambda MicroVMs)
+description: 'Deploy container workloads as AWS Lambda MicroVMs with the sandboxes property: Dockerfile builds, hooks, VPC, IAM, invoke, logs and local dev.'
 short_title: Sandboxes
 keywords:
   [
     'Serverless Framework',
-    'AWS Lambda',
-    'MicroVMs',
-    'Sandboxes',
-    'Lambda MicroVMs',
+    'AWS Lambda MicroVMs',
+    'Lambda MicroVM sandbox',
+    'sandboxes',
+    'Dockerfile',
   ]
 -->
 
@@ -20,460 +20,306 @@ keywords:
 
 # Sandboxes (AWS Lambda MicroVMs)
 
-AWS Lambda MicroVMs let you run arbitrary container workloads inside isolated virtual machines managed by the Lambda data plane. Unlike standard Lambda functions, each MicroVM runs a full container image built from a `Dockerfile` you provide, exposes one or more HTTP ports to callers, and supports lifecycle hooks that fire at boot, suspend, and resume.
+Sandboxes run a container image as [AWS Lambda MicroVMs](https://docs.aws.amazon.com/lambda/latest/dg/lambda-microvms-guide.html): isolated virtual machines, each started from a snapshot of your image, with its own HTTPS endpoint, that suspend when idle and resume with their memory and disk intact. You define them under the top-level `sandboxes` key in `serverless.yml`; `serverless deploy` builds the MicroVM image from your `Dockerfile`, and your code or `serverless invoke --sandbox` launches instances of it.
 
-**When to use MicroVMs instead of standard Lambda:**
+Use a sandbox instead of a Lambda function when:
 
-- Your workload requires OS-level isolation or privileged capabilities (`osCapabilities`).
-- You need to serve requests on a persistent HTTP port (e.g., a long-lived web server).
-- Your application startup is expensive and benefits from suspension/resumption rather than cold starts.
-- You want to bring an existing containerised service to the Lambda data plane without restructuring it as a handler function.
+- The workload is a container or a long-lived server, not a handler function.
+- Each user, session or tenant needs its own isolated instance, such as an AI agent's code-execution environment.
+- Startup is expensive, and suspending and resuming an instance beats a cold start.
+- The process needs OS capabilities that functions don't grant (`osCapabilities`).
 
-The Serverless Framework v4 `sandboxes` top-level property handles deployment and runtime invocation. `serverless deploy` registers the MicroVM image with AWS, building it when the artifact changes — the artifact is content-addressed, so re-deploying an unchanged sandbox reuses the existing image instead of rebuilding. `serverless invoke --sandbox <name>` starts a fresh instance, runs your request, and terminates the instance when done (see [Invoking a Sandbox](#invoking-a-sandbox)). Logs are accessible via `serverless logs --sandbox <name>` (see [Logs](#logs)).
+For HTTP servers that share execution environments across requests, see [Web Apps](./web-apps.md); for event-driven handlers, [Functions](./functions.md).
 
-`serverless dev --sandbox` supports running sandboxes locally (see [Local development](#local-development-serverless-dev)). For functions, see [Dev Mode](./dev-mode.md).
+## Quick start
 
----
+Prerequisites: Serverless Framework v4 and AWS credentials for a Region where Lambda MicroVMs are available. The image builds on AWS, so deploying needs no Docker; [`serverless dev`](#local-development-serverless-dev) needs a Docker daemon.
 
-## Quick Start
+1. Create `serverless.yml`:
 
-**1. Write a minimal `serverless.yml`:**
+   ```yaml
+   # serverless.yml
+   service: my-sandbox-service
 
-```yml
-service: my-sandbox-service
-frameworkVersion: '4'
+   provider:
+     name: aws
+     region: us-east-1
 
-provider:
-  name: aws
-  region: us-east-1
+   sandboxes:
+     echo:
+       artifact: ./app # a directory that contains a Dockerfile
+   ```
 
-sandboxes:
-  echo: # sandbox name — used in CloudFormation logical IDs
-    artifact: ./app # local directory that contains a Dockerfile
-```
+2. Create `app/Dockerfile`:
 
-**2. Create `./app/Dockerfile`** (path relative to `serverless.yml`):
+   ```dockerfile
+   FROM public.ecr.aws/docker/library/node:24-slim
+   WORKDIR /app
+   COPY server.mjs .
+   EXPOSE 8080
+   CMD ["node", "server.mjs"]
+   ```
 
-```dockerfile
-FROM public.ecr.aws/docker/library/node:22-slim
-WORKDIR /app
-COPY server.mjs .
-EXPOSE 8080
-CMD ["node", "server.mjs"]
-```
+3. Create `app/server.mjs`, a server on port 8080, where MicroVM endpoints send requests by default:
 
-And a minimal `./app/server.mjs` to answer requests on port 8080:
+   ```javascript
+   import http from 'node:http'
 
-```js
-import http from 'node:http'
+   http
+     .createServer((req, res) => {
+       res.writeHead(200, { 'Content-Type': 'application/json' })
+       res.end(JSON.stringify({ ok: true, path: req.url }))
+     })
+     .listen(8080, '0.0.0.0')
+   ```
 
-http
-  .createServer((req, res) => {
-    res.writeHead(200, { 'Content-Type': 'application/json' })
-    res.end(JSON.stringify({ ok: true, path: req.url }))
-  })
-  .listen(8080, '0.0.0.0')
-```
+4. Deploy. The Framework zips `app/`, uploads it to the deployment bucket, and creates the MicroVM image, which Lambda builds from the `Dockerfile`:
 
-**3. Deploy:**
+   ```bash
+   serverless deploy
+   ```
 
-```bash
-serverless deploy
-```
+   ```text
+   ✔ Service deployed to stack my-sandbox-service-dev (98s)
 
-The framework zips `./app`, uploads it to the deployment bucket, resolves the latest al2023 base image, and creates (or updates) an `AWS::Lambda::MicrovmImage` CloudFormation resource.
+   sandboxes:
+     echo: my-sandbox-service-echo-dev
+   dashboard: https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards/dashboard/my-sandbox-service-dev-sandboxes
+   ```
 
-> **If the image build fails or reports `NotStabilized`**, inspect the underlying build record for the specific reason:
->
-> ```bash
-> aws lambda-microvms list-microvm-image-builds \
->   --image-identifier <image-arn> --image-version <version> \
->   --query 'items[].[architecture,buildState,stateReason]' --output table
-> ```
->
-> `stateReason` names one of three causes:
->
-> - **`CONTAINER_BUILD_FAILED`** — your `Dockerfile` doesn't build. Reproduce locally with `docker build` against the same artifact directory, and check the build logs in the sandbox's log group (`/aws/lambda-microvms/<image-name>`).
-> - **`DISK_STORAGE_FULL`** — the built image exceeds the disk allotted for the sandbox's `minimumMemory` tier. Trim image layers (smaller base image, fewer installed packages, multi-stage builds) or raise `minimumMemory` to move to a larger disk tier.
-> - **`INTERNAL_PLATFORM_ERROR`** — a platform-side failure unrelated to your artifact. Retry the deploy.
+5. Launch an instance, send it a request, and terminate it:
 
----
+   ```bash
+   serverless invoke --sandbox echo
+   ```
 
-## Artifact
+   ```text
+   {"ok":true,"path":"/"}
+   ```
 
-The `artifact` property tells the framework where to find your container source. It accepts two forms:
+To delete the image, its roles and log group, terminate any running instances and then run `serverless remove`.
+
+## Package the container
+
+The `artifact` key of a sandbox is a local directory with a `Dockerfile`, or an `s3://` URI of a zip built elsewhere. Lambda builds the image for ARM64 on the `al2023` base image, which the Framework resolves to its latest version when it packages the service. That lookup calls AWS, so `serverless package` needs AWS credentials for a service with sandboxes.
 
 ### Local directory
 
-```yml
+A relative `artifact` path is resolved from the service directory:
+
+```yaml
 sandboxes:
   api:
-    artifact: ./docker/api # path resolved relative to serverless.yml
+    artifact: ./docker/api
 ```
 
-The directory must exist and must contain a `Dockerfile`. The framework zips the directory's files, selected as described in [Choosing the files](#choosing-the-files), computes a SHA-256 content hash, and uploads the zip to the deployment bucket at:
+The Framework zips the directory's files (see [Choosing the files](#choosing-the-files)) and uploads the zip to the deployment bucket under a content hash:
 
-```
+```text
 <deploymentPrefix>/<service>/<stage>/sandboxes/<name>-<sha256>.zip
 ```
 
-`<deploymentPrefix>` is `provider.deploymentPrefix` (default `serverless`). The S3 key is content-addressed: re-deploying without changing the selected files reuses the same key and the existing image. A change to any selected file rebuilds the image. Each deploy keeps the zips that a remaining deployment points to and deletes the rest; see [Image versions and cleanup](#image-versions-and-cleanup).
-
-`serverless package` writes the zip to `.serverless/sandboxes/<name>-<sha256>.zip` (under the `--package` directory when you pass one) and lists what `serverless deploy` uploads in `.serverless/sandboxes-uploads.json`. List the zip, for example with `unzip -l`, to see exactly which files a sandbox ships.
+`<deploymentPrefix>` is `provider.deploymentPrefix` (default `serverless`). Deploying again without changing the selected files reuses the key and the image; a change to any selected file builds a new image version. `serverless package` writes the zip to `.serverless/sandboxes/<name>-<sha256>.zip` (under `--package` when given) and lists the uploads in `.serverless/sandboxes-uploads.json`; run `unzip -l` on the zip to see what a sandbox ships.
 
 ### Choosing the files
 
 The zip holds every file in the artifact directory except:
 
-- anything named `node_modules`, `.venv`, `venv`, `__pycache__`, `.pytest_cache` or `.mypy_cache`, at any depth (local dependencies and caches), including a plain file with one of these names. Names that only start with them, such as `node_modules.txt` or `node_modules_backup/`, are kept;
-- the [default exclusions](./packaging.md#patterns) of function packaging (`.git`, `.serverless`, the service configuration file, `.env*` with `useDotenv`, …). As for functions, they are matched from the service directory, so they only reach the artifact when it is the service directory (`artifact: .`). In an artifact subdirectory such as `./app`, a `.git` directory, an `.env` file or a `.DS_Store` is included unless a pattern excludes it (`'!app/**/.env*'`).
+- anything named `node_modules`, `.venv`, `venv`, `__pycache__`, `.pytest_cache` or `.mypy_cache`, at any depth, including a plain file with one of these names. Names that only start with them, such as `node_modules.txt`, are kept.
+- the [default exclusions](./packaging.md#patterns) of function packaging (`.git`, `.serverless`, the service configuration file, `.env*` with `useDotenv`, and others). They are matched from the service directory, so they reach a sandbox only with `artifact: .`. In a subdirectory such as `./app`, a `.git` directory, an `.env` file or a `.DS_Store` is included unless a pattern excludes it (`'!app/**/.env*'`).
 
-The image is built on ARM64 by your `Dockerfile`, which installs dependencies itself (for example with `npm ci` or `pip install`). Dependencies installed on your machine are built for its platform, a virtualenv only works on the machine that created it, and a `COPY . .` would overwrite the dependencies the build installed. They also change the content hash, so every local install would rebuild the image.
+Your `Dockerfile` installs the dependencies (`npm ci`, `pip install`) for the ARM64 image. Dependencies installed on your machine are built for its platform, a `COPY . .` would overwrite the ones the build installed, and they would change the content hash, so every local install would rebuild the image.
 
-To choose files yourself, use `package.patterns`. They work exactly as [function patterns](./packaging.md#patterns): globs relative to the service directory, applied in order, `!` to exclude, and later patterns win. The service-level `package.patterns` apply first, then the sandbox's own:
+To choose files yourself, use `package.patterns`, which work as [function patterns](./packaging.md#patterns): globs relative to the service directory, applied in order, `!` to exclude, later patterns win. Service-level patterns apply first, then the sandbox's own:
 
-```yml
+```yaml
 package:
   patterns:
-    - '!**/docs/**' # any docs/ directory, in functions and sandboxes alike
+    - '!**/docs/**' # applies to functions and sandboxes
 
 sandboxes:
   api:
     artifact: ./app
     package:
       patterns:
-        - '!app/tests/**' # paths start at the service directory, so they name the artifact directory
-        - 'app/node_modules/**' # re-include a default exclusion, e.g. vendored dependencies
+        - '!app/tests/**' # paths start at the service directory
+        - 'app/node_modules/**' # re-include vendored dependencies
 ```
 
 - The `Dockerfile` at the root of the artifact directory is always included.
-- Service-level patterns written for your functions apply to sandboxes too. A pattern list that excludes everything and re-includes your function code (`'!**'` followed by `src/**`) leaves a sandbox with only its `Dockerfile`: re-include the sandbox's files with its own patterns (`'app/**'`).
-- `'app/**'` re-includes everything under `app/`, including the default exclusions (`node_modules`, `.venv`, `venv`, … and `.env` files), which a `COPY . .` then copies into the image. Exclude again the ones the directory holds, after it (later patterns win):
+- Service-level patterns written for functions apply to sandboxes too: `'!**'` followed by `src/**` leaves a sandbox with only its `Dockerfile`, so re-include its files with the sandbox's own patterns (`'app/**'`).
+- `'app/**'` re-includes the default exclusions too, such as `node_modules`, `.venv` and `.env` files. Exclude them again after it: `'!app/**/node_modules/**'`, `'!app/**/.venv/**'`, `'!app/**/.env*'`.
+- For a directory outside the service directory (`artifact: ../shared/app`), write the `../` path in the pattern (`'!../shared/app/tests/**'`), since `**` doesn't match paths that start with `../`.
+- A `.dockerignore` in the artifact directory still applies when the image is built, on AWS and in `serverless dev`: patterns decide what is uploaded, `.dockerignore` what the build sees.
 
-  ```yml
-  sandboxes:
-    api:
-      artifact: ./app
-      package:
-        patterns:
-          - 'app/**'
-          - '!app/**/node_modules/**'
-          - '!app/**/.venv/**'
-          - '!app/**/.env*' # .env files at any depth, app/.env included
-  ```
+### Pre-built zip in S3
 
-- For an artifact directory outside the service directory (`artifact: ../shared/app`), write the `../` path in the pattern (`'!../shared/app/tests/**'`): as for functions, `**` doesn't match paths that start with `../`. The default exclusions apply wherever the directory is.
-- A `.dockerignore` in the artifact directory still applies when the image is built, on AWS and in `serverless dev`. Patterns decide what is uploaded; `.dockerignore` decides what the build sees.
-- Patterns don't apply to an `s3://` artifact, which is used as it is.
+An `artifact` that starts with `s3://` is used as it is: the Framework uploads nothing, and `package.patterns` don't apply. The generated build role can read the object.
 
-### S3 URI passthrough
-
-```yml
+```yaml
 sandboxes:
   api:
     artifact: s3://my-bucket/builds/api-v1.2.3.zip
 ```
 
-When the value starts with `s3://` the framework passes the URI directly to CloudFormation as the `CodeArtifact.Uri`. No upload is performed.
+Container registry URIs aren't accepted as `artifact`; build the image from a `Dockerfile`, which can start `FROM` a registry image.
 
-### Snapshots and per-instance state
+## Pass configuration to instances
 
-Every instance boots from a single snapshot captured when the image is built — there is no separate boot process per instance. One consequence follows directly from that: **any value your code generates at build time is baked into the snapshot and comes out identical across every instance**, including instances resumed later from the same snapshot. UUIDs, PRNG seeds, tokens, and similar one-time values must not be generated during the build (for example, in a `ready` or `validate` hook, or at container startup before the snapshot is taken) — generate them in the `run` hook instead, or per-call from a cryptographically secure random number generator (in Node.js, `crypto.randomUUID()` or `crypto.randomBytes()`, never a `Math.random()`-seeded value).
+Every instance starts from one snapshot, taken when the image is built. A value your code creates at build time, in a `ready` or `validate` hook or at startup before the snapshot, is the same in every instance, including UUIDs, random seeds and tokens. Create such values in the `run` hook, or per call from a cryptographically secure generator such as `crypto.randomUUID()` ([MicroVM images](https://docs.aws.amazon.com/lambda/latest/dg/microvms-images.html)).
 
-Outbound TCP connections are also killed on both `run` and `resume` — the platform doesn't preserve open sockets across either transition. The AWS SDKs retry transparently through this, so calls to AWS services generally just work; for other HTTP or database clients, make sure reconnect/retry is configured rather than assuming a long-lived connection survives a resume.
+`environment` sets variables that are baked into the image, so they are identical across its instances and persist across suspend and resume. A sandbox inherits `provider.environment`, and its own keys win; values are strings or CloudFormation references, resolved at deploy:
 
-For CSPRNG guidance in other languages, see [AWS's MicroVMs image documentation](https://docs.aws.amazon.com/lambda/latest/dg/microvms-images.html).
-
----
-
-## Configuration Reference
-
-All sandboxes are defined under the top-level `sandboxes` key. Each key is the sandbox name; its value is a configuration object.
-
-<!-- prettier-ignore -->
-```yml
-sandboxes:
-  <name>:
-    # required
-    artifact: <string>
-
-    # optional
-    package:
-      patterns: [<glob>, ...] # files of a local artifact; see Choosing the files
-    minimumMemory: 512 | 1024 | 2048 | 4096 | 8192
-    description: <string>
-    environment:
-      KEY: value
-    osCapabilities:
-      - all
-    hooks: { ... }
-    vpc: { ... }
-    iam: { ... }
-    observability: # `true` (default) | `false` — or the object form shown below:
-      logs:
-        enabled: true                      # set false to disable MicroVM logging entirely
-        retentionDays: 14                  # CloudWatch-allowed value; default 14
-        logGroup: /my-org/sandboxes/<name> # optional: write logs to a custom group
-      metrics:
-        enabled: true
-        filters:                           # one CloudWatch metric (+ alarm + dashboard
-          errors: "<pattern>"              # series) per key; override `errors` or add
-          warnings: "<pattern>"            # your own keys
-      alarms:
-        notify: <SNS ARN | CFN ref>        # required when alarms block is present
-        thresholds:
-          errors:
-            threshold: 5
-            period: 300
-            evaluationPeriods: 1
-            datapointsToAlarm: 1
-            comparisonOperator: GreaterThanThreshold
-            treatMissingData: notBreaching
-      dashboard:
-        enabled: true
-    tags:
-      Key: Value
-```
-
-| Property         | Type              | Default          | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| ---------------- | ----------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `artifact`       | string            | — **(required)** | Local directory path (contains `Dockerfile`) or `s3://` URI                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `package`        | object            | —                | `patterns`: globs selecting the files of a local `artifact`, relative to the service directory. See [Choosing the files](#choosing-the-files).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| `minimumMemory`  | number            | `2048`           | Minimum memory in MiB the MicroVM is guaranteed (maps to `MinimumMemoryInMiB`) — a floor, not a cap. Must be one of: `512`, `1024`, `2048`, `4096`, `8192`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `description`    | string            | auto             | Human-readable description embedded in the CloudFormation resource.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| `environment`    | object            | `{}`             | Environment variables baked into the image snapshot at build time and available to the MicroVM process. Same shape as on a function: literal strings or CloudFormation references (`!Ref`, `!GetAtt`, `!ImportValue`, `!Sub`, …), resolved when the stack deploys. `provider.environment` is inherited — a sandbox receives every provider-level variable and its own keys override. **Identical across every instance** of that image version and persists across suspend/resume. Use it only for static, non-sensitive configuration. Per-instance data (session IDs, tenant IDs, and similar) has to travel through the launch call's `runHookPayload` instead. Real secrets shouldn't go in `environment` at all — fetch them at runtime through the execution role (Secrets Manager or SSM). See [Snapshots and per-instance state](#snapshots-and-per-instance-state). |
-| `osCapabilities` | array             | `[]`             | Additional OS capabilities granted to the container. Accepted value: `all` (case-insensitive).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| `hooks`          | object            | `{}`             | Lifecycle hook configuration. See [Hooks](#hooks).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `vpc`            | object            | —                | VPC egress configuration. See [Networking / VPC](#networking--vpc).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| `iam`            | object            | —                | IAM role customization. See [IAM](#iam).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `observability`  | boolean \| object | `true`           | Controls the owned log group, error metric filter, CloudWatch dashboard, and optional alarms. `true` (default) enables metrics and dashboard; `false` opts out of metrics and dashboard (log group is still created). Object form accepts `logs`, `metrics`, `alarms`, and `dashboard` sub-blocks. Alarms require `observability.alarms.notify` (SNS topic ARN or CloudFormation ref). See [Observability](#observability).                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `tags`           | object            | —                | Key/value tags applied to every taggable resource the sandbox creates (image, log group, IAM roles, alarms, network connector). Values must be strings.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-
-### Environment variables
-
-A sandbox inherits `provider.environment` and adds its own keys on top; each value is either a
-literal string or a CloudFormation reference resolved when the stack deploys:
-
-```yml
+```yaml
 provider:
   environment:
-    STAGE: ${sls:stage} # inherited by every function, MCP server, agent and sandbox
+    STAGE: ${sls:stage} # inherited by functions and sandboxes
+
 sandboxes:
   api:
     artifact: ./app
     environment:
-      TABLE_NAME: !Ref UsersTable # CloudFormation reference, resolved at deploy time
+      TABLE_NAME: !Ref UsersTable
 ```
 
----
+Keep `environment` to static, non-secret settings. Per-instance data, such as a session or tenant ID, travels in the `runHookPayload` of the launch call (up to 16 KB), which Lambda delivers to the `run` hook. Fetch secrets at runtime with the execution role, from Secrets Manager or SSM.
 
-## Hooks
+Outbound TCP connections are closed on `run` and `resume`. The AWS SDKs reconnect on their own; configure retries in other HTTP and database clients instead of assuming a connection survives a resume.
 
-Hooks let the MicroVM notify your application at key points in its lifecycle. Your application must run an HTTP server (default port **9000**) that handles `POST` requests at the paths the Lambda runtime calls.
+## Lifecycle hooks
 
-### Hook shape
+Hooks call your application at points in the MicroVM lifecycle. Your image runs an HTTP server on the hook port (default 9000) that answers `POST /aws/lambda-microvms/runtime/v1/<hook-name>` with HTTP 200 within the hook's timeout; any other response, or no response in time, fails that step. The exception is HTTP 503 from `ready` or `validate`, which means the app needs more time: Lambda retries the hook until it returns 200 or the timeout expires. Return the 503 at once rather than holding the request open.
 
-Each hook is either `true` (enable with defaults) or an object with an optional `timeout` override. The hook-server `port` is set once for all hooks (see the `port` key below), not per hook:
+| Hook        | When Lambda calls it                                      | AWS default timeout | `timeout` range |
+| ----------- | --------------------------------------------------------- | ------------------- | --------------- |
+| `ready`     | During the image build, until the app reports it is ready | 60 s                | 1–3600 s        |
+| `validate`  | After the image build, on an instance of the new image    | 1 s                 | 1–3600 s        |
+| `run`       | When an instance starts; traffic begins after it returns  | 1 s                 | 1–60 s          |
+| `resume`    | When an instance resumes from `SUSPENDED`                 | 1 s                 | 1–60 s          |
+| `suspend`   | Before an instance suspends                               | 1 s                 | 1–60 s          |
+| `terminate` | Before an instance terminates                             | 1 s                 | 1–60 s          |
 
-```yml
+Each hook is `true`, to use the AWS default timeout, or an object with `timeout` in seconds:
+
+```yaml
 sandboxes:
   api:
     artifact: ./app
     hooks:
-      port: 9000 # port your app listens on for hook requests (default 9000)
-
-      # Image-build hooks — called once when the MicroVM image is built.
-      # Omit `timeout` to use the AWS default; set it to override (range 1–3600s).
+      port: 9000 # one port for all hooks
       ready:
-        timeout: 120 # give a slow boot more than the 60s AWS default
-      validate:
-        timeout: 30 # AWS default is only 1s — set this for real validation work
-
-      # Runtime hooks — called on each instance lifecycle event.
-      # Omit `timeout` to use the AWS default (1s); set it to override (range 1–60s).
-      run:
-        timeout: 5
-      resume:
-        timeout: 5
+        timeout: 120
+      run: true
       suspend:
         timeout: 5
-      terminate:
-        timeout: 5
 ```
 
-The framework sets no timeout of its own — omitting `timeout` leaves the
-property unset so the AWS platform default applies (`ready` 60s; `validate`,
-`run`, `resume`, `suspend`, and `terminate` 1s each). You can enable a hook
-with just `true` to take those AWS defaults:
+- Enabling any of `run`, `resume`, `suspend` or `terminate` also enables `ready`.
+- A hook is a notification: instances run, suspend, resume and terminate whether or not you declare the hook. Declare one only to act on that step, such as flushing state on `suspend`.
+- Lambda can retry `suspend` and `terminate`, so make those handlers safe to run twice.
+- Lambda moves to the next step when the hook returns 200: a new instance receives traffic only after `run` returns, and an instance suspends after `suspend` returns. Finish the work that step depends on, such as tenant setup in `run` or required writes in `suspend`, before replying, and set a `timeout` that covers it.
 
-```yml
-hooks:
-  ready: true
-  run: true
-```
+This hook server runs your `handleHook` code to completion before it replies:
 
-### Hook categories
-
-| Category      | Hooks                                   | When called                          |
-| ------------- | --------------------------------------- | ------------------------------------ |
-| Image hooks   | `ready`, `validate`                     | During the MicroVM image build phase |
-| Runtime hooks | `run`, `resume`, `suspend`, `terminate` | On each running MicroVM instance     |
-
-> **Note:** Enabling any runtime hook (`run`, `resume`, `suspend`, or `terminate`) automatically enables the `ready` image hook as well.
-
-> **Hooks are opt-in notifications, not the lifecycle itself.** A MicroVM still runs, suspends, resumes, and terminates whether or not you declare the matching hook — enabling a hook only means your application is _notified_ at that point. If you need to act on a transition (flush state on `terminate`, re-open connections on `resume`), you must declare that hook; otherwise the transition happens silently with no callback to your code.
-
-> **Idempotency:** the platform may retry `suspend` and `terminate` hook calls under failure conditions — write handlers for those hooks so a repeated call is safe.
-
-### Hook HTTP contract
-
-The Lambda runtime posts to:
-
-```
-POST http://localhost:<port>/aws/lambda-microvms/runtime/v1/<hook-name>
-```
-
-Your server must respond with HTTP 200 within the configured timeout. A non-200 response or timeout causes the lifecycle step to fail. When you omit a hook's `timeout`, the AWS platform default applies — and those defaults are tight: `validate`, `run`, `resume`, `suspend`, and `terminate` each default to just **1 second** (`ready` gets 60). So **respond 200 promptly and do any heavy work asynchronously**, or raise the `timeout` for hooks that legitimately need longer — a handler that runs the actual workload before replying will otherwise trip the timeout and fail the step. Acknowledge first, then process. A minimal Node.js implementation:
-
-```js
+```javascript
 import http from 'node:http'
 
 http
   .createServer((req, res) => {
-    const hook = req.url.split('/').pop() // e.g. 'ready', 'run', 'suspend'
-    req.resume() // drain the request body
-    req.on('end', () => {
-      res.writeHead(200, { 'Content-Type': 'application/json' })
-      res.end('{}') // ack immediately …
-      setImmediate(() => handleHook(hook)) // … then do the real work asynchronously
+    const hook = req.url.split('/').pop() // 'ready', 'run', 'suspend', ...
+    let body = ''
+    req.on('data', (chunk) => (body += chunk))
+    req.on('end', async () => {
+      try {
+        await handleHook(hook, body) // your code; the run body carries runHookPayload
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end('{}')
+      } catch (error) {
+        console.error(error)
+        res.writeHead(500)
+        res.end()
+      }
     })
   })
   .listen(9000, '0.0.0.0')
 ```
 
----
+## Connect a sandbox to your VPC
 
-## Networking / VPC
+Instances reach the internet through AWS's `INTERNET_EGRESS` connector. To route their traffic through your VPC instead, set `vpc`; the Framework creates an `AWS::Lambda::NetworkConnector` and its operator role:
 
-By default, sandboxes have outbound internet access through AWS's managed `INTERNET_EGRESS` connector. To route MicroVM traffic through your own VPC instead, add a `vpc` block:
-
-```yml
+```yaml
 sandboxes:
   api:
     artifact: ./app
     vpc:
       subnetIds:
-        - subnet-0abc1234
-        - subnet-0def5678
+        - subnet-0a1b2c3d4e5f60718
+        - subnet-0f1e2d3c4b5a69788
       securityGroupIds:
-        - sg-0aabbccdd
-      protocol: ipv4 # 'ipv4' (default) or 'dualstack'
+        - sg-0123456789abcdef0
+      protocol: ipv4
 ```
 
-| Property           | Type     | Default          | Description                                                                                                                                                                                                                                                       |
-| ------------------ | -------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `subnetIds`        | string[] | — **(required)** | Subnet IDs for the network connector, 1 to 16. Same value shapes as a function's `vpc.subnetIds`: a list whose entries are literal ids or CloudFormation references (`!Ref`, `!ImportValue`, …), or one expression that yields the list (`!Split`, `!FindInMap`). |
-| `securityGroupIds` | string[] | — **(required)** | Security group IDs for the network connector, 1 to 5. Same value shapes as a function's `vpc.securityGroupIds`: a list of literal ids or CloudFormation references, or one expression that yields the list (`!Split`, `!FindInMap`).                              |
-| `protocol`         | string   | `ipv4`           | IP protocol: `ipv4` or `dualstack` (case-insensitive).                                                                                                                                                                                                            |
+`subnetIds` (1 to 16) and `securityGroupIds` (1 to 5) take the same value shapes as a function's `vpc`: lists of IDs or CloudFormation references, or one expression that yields the list (`!Split`, `!FindInMap`). `protocol` is `ipv4` (default) or `dualstack`. The image build always uses `INTERNET_EGRESS`, whatever `vpc` says. `serverless invoke --sandbox` attaches the connector to the instances it launches; your own launch calls pass the `<Name>ConnectorArn` stack output as an egress connector.
 
-When `vpc` is set, the framework creates an `AWS::Lambda::NetworkConnector` and an associated operator IAM role (see [IAM](#iam)). The connector ARN is exported as a CloudFormation stack output for use by the data-plane run path.
+## IAM roles for sandboxes
 
-> **Note:** Outbound internet access via `INTERNET_EGRESS` is always present during the image build phase regardless of `vpc` configuration.
+The Framework creates these roles for each sandbox:
 
----
+- **Build role** (`<Name>ImageBuildRole`), used by Lambda to build the image: `s3:GetObject` on the deployment bucket and on the bucket of an `s3://` artifact, and `logs:CreateLogGroup`, `logs:CreateLogStream` and `logs:PutLogEvents` on the sandbox's log group.
+- **Execution role** (`<Name>ExecutionRole`), assumed by running instances: the same three `logs:*` actions on the log group, and no others, so add the permissions your code needs.
+- **Connector operator role** (`<Name>ConnectorOperatorRole`, with `vpc` only), assumed by `network-connectors.lambda.amazonaws.com`: `ec2:CreateNetworkInterface` on network interfaces, subnets and security groups of the deploying account, and `ec2:CreateTags` on network interfaces it manages.
 
-## IAM
+The build and execution roles trust `lambda.amazonaws.com` with an `aws:SourceAccount` condition.
 
-### Auto-generated roles
+### Add permissions to a generated role
 
-The framework creates two IAM roles per sandbox automatically — plus a third when `vpc` is set:
+`iam.buildRole`, `iam.executionRole` and `iam.operatorRole` take `statements` (appended to the role's inline policy), `managedPolicies` (managed policy ARNs) and `permissionsBoundary` (a policy ARN):
 
-**Build role** (`AWS::IAM::Role` — `<Name>ImageBuildRole`)
-
-Permissions:
-
-- `s3:GetObject` on the deployment bucket (to fetch the artifact zip)
-- `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents` scoped to the sandbox's own log group (`/aws/lambda-microvms/<image-name>`, or the custom `observability.logs.logGroup` when set)
-
-**Execution role** (`AWS::IAM::Role` — `<Name>ExecutionRole`)
-
-Permissions:
-
-- `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents` scoped to the sandbox's own log group (same group as the build role)
-
-Both roles use a trust policy for `lambda.amazonaws.com` with an `aws:SourceAccount` condition to prevent confused-deputy attacks.
-
-**Connector operator role** (`AWS::IAM::Role` — `<Name>ConnectorOperatorRole`, only when `vpc` is set)
-
-Assumed by the `network-connectors.lambda.amazonaws.com` service to manage the network interfaces the [VPC connector](#networking--vpc) places in your subnets. Permissions:
-
-- `ec2:CreateNetworkInterface` on the deploying account's network-interface, subnet, and security-group ARNs
-- `ec2:CreateTags` on network-interface ARNs, conditioned on the connector service being the managing operator
-
-> **Extending the build role for non-default setups.** The generated build role grants `s3:GetObject` on the deployment bucket plus CloudWatch Logs — enough for the default Serverless deployment bucket (SSE-S3) and public or managed base images. Two setups need extra permissions, which you add via [`iam.buildRole.statements`](#customizing-auto-generated-roles):
->
-> - **Deployment bucket encrypted with a customer-managed KMS key** → add `kms:Decrypt` (and `kms:DescribeKey`) on the key, otherwise the build fails fetching the artifact with `AccessDenied`.
-> - **`Dockerfile` that builds `FROM` a private ECR image** → add `ecr:GetAuthorizationToken` (on `*`) plus `ecr:BatchGetImage` and `ecr:GetDownloadUrlForLayer` on the repository.
-
-### Customizing auto-generated roles
-
-Pass an `iam.buildRole`, `iam.executionRole`, or `iam.operatorRole` customization object to extend the generated role without replacing it:
-
-```yml
+```yaml
 sandboxes:
   api:
     artifact: ./app
     iam:
-      buildRole:
-        statements:
-          - Effect: Allow
-            Action: ['s3:GetObject']
-            Resource: 'arn:aws:s3:::my-other-bucket/*'
-        managedPolicies:
-          - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
-        permissionsBoundary: arn:aws:iam::123456789012:policy/MyBoundary
-
       executionRole:
         statements:
           - Effect: Allow
             Action: ['dynamodb:GetItem']
-            Resource: !GetAtt MyTable.Arn
+            Resource: !GetAtt UsersTable.Arn
+      buildRole:
+        permissionsBoundary: arn:aws:iam::123456789012:policy/MyBoundary
 ```
 
-Supported customization keys:
+The build role needs more in two setups:
 
-| Key                   | Type   | Description                                                     |
-| --------------------- | ------ | --------------------------------------------------------------- |
-| `statements`          | array  | Additional IAM policy statements appended to the inline policy. |
-| `managedPolicies`     | array  | Managed policy ARNs attached to the role.                       |
-| `permissionsBoundary` | string | ARN of a permissions boundary policy.                           |
+- A deployment bucket encrypted with a customer managed KMS key: add `kms:Decrypt` and `kms:DescribeKey` on the key, or the build can't fetch the artifact (`AccessDenied`).
+- A `Dockerfile` that starts `FROM` a private Amazon ECR image: add `ecr:GetAuthorizationToken` on `*`, and `ecr:BatchGetImage` and `ecr:GetDownloadUrlForLayer` on the repository.
 
-> **Shared VPCs (AWS RAM).** The generated operator role scopes `ec2:CreateNetworkInterface` to subnet ARNs in the deploying account. Subnets shared into your account keep the owner account's ARN, so the connector cannot create network interfaces in them. Append a statement covering exactly the shared subnets you use:
->
-> ```yml
-> sandboxes:
->   api:
->     artifact: ./app
->     vpc:
->       subnetIds: [subnet-0123456789abcdef0]
->       securityGroupIds: [sg-0123456789abcdef0]
->     iam:
->       operatorRole:
->         statements:
->           - Effect: Allow
->             Action: ec2:CreateNetworkInterface
->             Resource: arn:aws:ec2:us-east-1:111122223333:subnet/subnet-0123456789abcdef0
->             # 111122223333 = the VPC owner's account ID; grant the specific
->             # subnets from vpc.subnetIds rather than subnet/*
-> ```
->
-> Keep operator-role grants tightly scoped: unlike the build and execution roles, this role's trust policy cannot carry an `aws:SourceAccount` condition, so anything granted here should be the minimum the connector needs.
+Subnets shared into your account through AWS RAM keep their owner's ARN, which the operator role's `ec2:CreateNetworkInterface` grant doesn't cover. Add a statement for exactly those subnets; the operator role's trust policy can't carry an `aws:SourceAccount` condition, so keep its grants to the minimum:
 
-### Providing an external role
+```yaml
+sandboxes:
+  api:
+    artifact: ./app
+    vpc:
+      subnetIds: [subnet-0123456789abcdef0]
+      securityGroupIds: [sg-0123456789abcdef0]
+    iam:
+      operatorRole:
+        statements:
+          - Effect: Allow
+            Action: ec2:CreateNetworkInterface
+            Resource: arn:aws:ec2:us-east-1:111122223333:subnet/subnet-0123456789abcdef0
+```
 
-To skip role generation entirely and supply your own role, pass an ARN string or a CloudFormation intrinsic:
+Here `111122223333` is the account that owns the VPC.
 
-```yml
+### Use an existing role
+
+An ARN string, or a `Ref`, `Fn::GetAtt`, `Fn::ImportValue` or `Fn::Sub`, replaces the generated role, which the Framework then doesn't create:
+
+```yaml
 sandboxes:
   api:
     artifact: ./app
@@ -483,521 +329,280 @@ sandboxes:
         Fn::ImportValue: SharedExecutionRoleArn
 ```
 
-Supported forms: ARN string, `Ref`, `Fn::GetAtt`, `Fn::ImportValue`, `Fn::Sub`. When an external role is provided, no `AWS::IAM::Role` resource is created for that role. The same forms work for `iam.operatorRole`; an external operator role must trust `network-connectors.lambda.amazonaws.com`. Do not add an `aws:SourceAccount` condition to that trust policy — the network-connectors service does not present it, and role assumption fails at deploy time with `unable to assume the provided NetworkConnectorOperatorRole`. Note that `iam.operatorRole` (in any form) has effect only when `vpc` is set — without `vpc` there is no connector and no operator role.
+An existing operator role must trust `network-connectors.lambda.amazonaws.com` without an `aws:SourceAccount` condition, which that service doesn't present. `iam.operatorRole` applies only with `vpc`.
 
----
+## Invoking a sandbox
 
-## What the Framework Provisions
-
-For each sandbox, `serverless deploy` creates the following CloudFormation resources:
-
-"Image" marks the image and its build role; the execution role, log group, and metrics/alarms are named for what they are at runtime.
-
-| Resource                      | Type                            | Condition                                                                         |
-| ----------------------------- | ------------------------------- | --------------------------------------------------------------------------------- |
-| `<Name>Image`                 | `AWS::Lambda::MicrovmImage`     | Always                                                                            |
-| `<Name>ImageBuildRole`        | `AWS::IAM::Role`                | Unless `iam.buildRole` is an external ref                                         |
-| `<Name>ExecutionRole`         | `AWS::IAM::Role`                | Unless `iam.executionRole` is an external ref                                     |
-| `<Name>Connector`             | `AWS::Lambda::NetworkConnector` | Only when `vpc` is set                                                            |
-| `<Name>ConnectorOperatorRole` | `AWS::IAM::Role`                | Only when `vpc` is set, unless `iam.operatorRole` is an external ref              |
-| `<Name>LogGroup`              | `AWS::Logs::LogGroup`           | Always                                                                            |
-| `<Name><Filter>MetricFilter`  | `AWS::Logs::MetricFilter`       | One per `observability.metrics.filters` entry (default `errors`)                  |
-| `<Name><Filter>Alarm`         | `AWS::CloudWatch::Alarm`        | One per filter, only when `observability.alarms.notify` is set                    |
-| `SandboxesDashboard`          | `AWS::CloudWatch::Dashboard`    | One **per service** (not per sandbox), when any sandbox has the dashboard enabled |
-
-Stack outputs (use these instead of hard-coding logical IDs):
-
-| Output key               | Value                                                                                    |
-| ------------------------ | ---------------------------------------------------------------------------------------- |
-| `<Name>ImageIdentifier`  | Image identifier — pass to `RunMicrovm` / `list-microvms` as `imageIdentifier`           |
-| `<Name>ExecutionRoleArn` | ARN of the role the running MicroVM assumes (pass to `RunMicrovm` as `executionRoleArn`) |
-| `<Name>ConnectorArn`     | ARN of the egress `NetworkConnector` (only when `vpc` is set)                            |
-
-CloudWatch logs are always shipped to the owned log group `/aws/lambda-microvms/<image-name>` (default 14-day retention). See [Observability](#observability).
-
-The deploy summary — and `serverless info` — list each sandbox under a `sandboxes:` section (name → deployed image name), alongside the `dashboard` console URL when observability is on.
-
-The MicroVM image is always built on `ARM_64` architecture. The base image is resolved to the latest `al2023` version at deploy time.
-
-## Image versions and cleanup
-
-Each deploy that changes a sandbox's artifact or settings builds a new version of its MicroVM image. Launches without an `imageVersion` use the newest successful version; older versions stay available to MicroVMs that pin one. AWS limits how many versions an image can have (50 by default, the **Versions per MicroVM Image** quota), so trim old versions with [`prune`](./prune.md#sandbox-image-versions):
-
-```yml
-custom:
-  prune:
-    automatic: true # prune after every deploy
-    number: 5 # keep the live version and 5 older ones
-```
-
-Or prune once, for every sandbox or just one:
+`serverless invoke --sandbox` launches a fresh instance of the deployed image, sends it one HTTP request through the AWS proxy, prints the response body and terminates the instance, also when the request fails:
 
 ```bash
-serverless prune -n 5
-serverless prune -n 5 --sandbox echo
-```
-
-`prune` never deletes the live version, a version that a MicroVM still runs or can resume from, or a version that is still building. If a deploy reaches the limit, the error shows the `prune` command to run.
-
-The zips need no setting. A MicroVM image reads its zip only while it builds: MicroVMs launch and resume from the image's snapshot. Each deploy keeps the zips that a remaining deployment points to, so every deployment `serverless deploy list` shows can still be rolled back with `serverless rollback`, and deletes the others, except zips uploaded within the last hour, which a deploy still in progress may be using; on a versioned bucket, as for deployment folders, a delete adds a delete marker and the earlier object versions remain until a lifecycle rule expires them. The number of deployments kept is `provider.deploymentBucket.maxPreviousDeploymentArtifacts` (default `5`). Artifacts you pass as `s3://` URIs are never deleted.
-
----
-
-## Invoking a Sandbox
-
-```bash
-serverless invoke --sandbox <name> [--path <path>] [--method <method>] [--header 'Name: value'] [--data '<body>'] [--port <port>]
-```
-
-`--sandbox <name>` is required and identifies which sandbox to invoke (analogous to `--function` for Lambda invocations). The framework:
-
-1. Starts a fresh MicroVM instance using the sandbox's deployed image ARN and execution role.
-2. Polls `get-microvm` until the instance reports `RUNNING` (failing fast if it lands in a terminal state, with the platform's `stateReason`).
-3. Mints a short-lived auth token for the target port.
-4. Sends the HTTP request through the AWS proxy.
-5. Prints the response body.
-6. **Always terminates the instance** when done, regardless of success or failure.
-
-The CLI launches this one-shot instance with an injected idle policy (`maxIdleDurationSeconds: 60`, `suspendedDurationSeconds: 0`, `autoResumeEnabled: false`), so even if the invoke is interrupted mid-flight, the instance self-terminates about a minute later — nothing to configure, nothing left running.
-
-### Options
-
-| Flag                     | Default          | Description                                 |
-| ------------------------ | ---------------- | ------------------------------------------- |
-| `--sandbox <name>`       | — **(required)** | Sandbox name as defined in `serverless.yml` |
-| `--path <path>`          | `/`              | HTTP request path                           |
-| `--method <method>`      | `GET`            | HTTP method                                 |
-| `--header 'Name: value'` | —                | A request header (repeat for more headers)  |
-| `--data '<body>'`        | —                | Request body (non-GET requests)             |
-| `--port <port>`          | `8080`           | Container port to send the request to       |
-
-`--header` values must be printable ASCII, and `--header` cannot set `Host`, `X-Aws-Proxy-Auth` or `X-Aws-Proxy-Port`, which the Framework sets to reach the sandbox through the AWS proxy.
-
-The options for invoking a function or an agent, such as `--qualifier`, `--raw`, `--session-id` or `--log`, stop the command with an error, for example `✖ --qualifier is not available with --sandbox.`
-
-### Examples
-
-```bash
-# GET / on port 8080 (defaults)
-serverless invoke --sandbox echo
-
-# GET a specific path
 serverless invoke --sandbox echo --path /health
+```
 
-# POST with a JSON body
+| Flag                     | Default      | Description                                         |
+| ------------------------ | ------------ | --------------------------------------------------- |
+| `--sandbox <name>`       | **required** | The sandbox's name under `sandboxes`.               |
+| `--path <path>`          | `/`          | Request path.                                       |
+| `--method <method>`      | `GET`        | HTTP method.                                        |
+| `--header 'Name: value'` | none         | A request header; repeat the flag for more headers. |
+| `--data '<body>'`        | none         | Request body; not sent with `GET`.                  |
+| `--port <port>`          | `8080`       | Container port the request goes to.                 |
+
+```bash
 serverless invoke --sandbox echo --path /api/items --method POST --header 'Content-Type: application/json' --data '{"name":"widget"}'
-
-# Non-default container port
 serverless invoke --sandbox echo --path /metrics --port 9090
 ```
 
-> **Caller IAM prerequisite:** the identity running `invoke` must have
-> `lambda:RunMicrovm`, `lambda:GetMicrovm`, `lambda:CreateMicrovmAuthToken`,
-> `lambda:TerminateMicrovm`, `iam:PassRole` (the execution role), and
-> `lambda:PassNetworkConnector`. The framework does **not** create these permissions.
+- The command waits up to 5 minutes for the instance to reach `RUNNING`, and stops with the platform's reason when it fails or terminates instead.
+- A response status of 400 or above prints the body, then stops the command with `Sandbox 'echo' returned HTTP 500` (with the actual status).
+- The instance starts with an idle policy that terminates it about 60 seconds after its last request, so an interrupted invoke leaves nothing running.
+- `--header` takes printable ASCII and can't set `Host`, `X-Aws-Proxy-Auth` or `X-Aws-Proxy-Port`, which the Framework sets.
+- `--qualifier`, `--raw`, `--session-id`, `--log`, `--json` and the other function options stop the command, for example `✖ --qualifier is not available with --sandbox.`
 
----
+The caller needs `lambda:RunMicrovm`, `lambda:GetMicrovm`, `lambda:CreateMicrovmAuthToken`, `lambda:TerminateMicrovm`, `iam:PassRole` for the execution role, and `lambda:PassNetworkConnector` for the connectors attached to the instance. It also reads the stack outputs with `cloudformation:DescribeStacks`.
 
-## Logs
+## Logs and monitoring
+
+Each sandbox gets a log group the Framework owns, `/aws/lambda-microvms/<service>-<name>-<stage>`, with build lines and the output of every instance. It is created before the image builds, kept for 14 days by default, and deleted by `serverless remove`. Print it with:
 
 ```bash
-serverless logs --sandbox <name>
+serverless logs --sandbox echo --startTime 1h
 ```
 
-Prints the recent window of log events from the sandbox's CloudWatch log group `/aws/lambda-microvms/<image-name>`. The output includes both image-build lines and runtime lines from MicroVM instances.
+`serverless logs --sandbox` prints the last 10 minutes by default; `--startTime` (`30m`, `1h`, `2d` or a date) widens the window and `--filter` applies a CloudWatch Logs filter pattern. It prints once and exits: `--tail` prints a notice instead of following. It reads the default log group name, also when `observability.logs.logGroup` names another one.
 
-> **Note:** `serverless logs --sandbox` prints the recent log window and exits; it does not stream/follow (`--tail`).
+Monitoring is on by default. For each sandbox, the Framework adds:
 
----
+- a metric filter that counts log lines containing `error`, `exception` or `fail` (case-insensitive) into the metric `<service>-<name>-<stage>-errors` in the `ServerlessFramework/Sandboxes` namespace. Like Lambda's `Errors` metric, it has data points only when lines match. It counts what your application logs, so a process that exits silently needs a separate health check.
+- a section in one CloudWatch dashboard per service, `<service>-<stage>-sandboxes`: log volume, the filter metrics, instances started, recent logs and errors, and alarm states. `serverless deploy` and `serverless info` print its URL as `dashboard`.
 
-## Observability
+Configure it under `observability`:
 
-Observability is **on by default**. Every sandbox automatically gets a CloudWatch log group, an error metric filter, and a section in the service's CloudWatch dashboard (one dashboard per service). You do not need to add anything to `serverless.yml` to enable monitoring.
-
-When a dashboard is created, `serverless deploy` prints its console URL in the deploy summary as a `dashboard` line — and `serverless info` shows the same line — so you can open it straight from the terminal.
-
-### Log group
-
-The framework creates and owns the `AWS::Logs::LogGroup` for each sandbox — `/aws/lambda-microvms/<image-name>` — with a default retention of **14 days**. That 14-day default is the framework's choice for the group it owns, not an AWS default — a raw CloudWatch log group never expires on its own unless retention is set explicitly, so this is the framework applying a sane default on your behalf. `retentionDays` overrides it. Owning the group means retention is enforced and the group is removed when you run `serverless remove`. The group is created before the MicroVM image build runs so that retention applies from the first log event.
-
-The log group is created whenever logging is enabled (the default) — including when `observability: false`, which only opts out of the metrics/dashboard/alarms layer. To customize retention, or to turn MicroVM logging off entirely:
-
-```yml
+```yaml
 sandboxes:
   api:
     artifact: ./app
     observability:
       logs:
         retentionDays: 30
-        logGroup: /my-org/sandboxes/api # optional: write logs to a custom group
-        # enabled: false                # or disable MicroVM logging completely
-```
-
-`retentionDays` must be one of the values accepted by CloudWatch Logs (e.g. `1`, `3`, `5`, `7`, `14`, `30`, `60`, `90`, `120`, `150`, `180`, `365`, etc.).
-
-`logGroup` overrides the destination group name end-to-end: the MicroVM's `Logging` config points at it, the owned `AWS::Logs::LogGroup` is created with that name, the build/execution roles are scoped to exactly that group, and the metric filters and dashboard read from it.
-
-When `logs.enabled: false`, the MicroVM image is built with `Logging: { Disabled: true }`, the owned log group is not created, and the metric filters, alarms, and dashboard (which read from that group) are skipped.
-
-### Error metric and dashboard
-
-When observability is on (the default), the framework also creates:
-
-- An `AWS::Logs::MetricFilter` per `metrics.filters` entry. The default `errors` filter counts log lines containing `error`, `exception`, or `fail` (case-insensitive) and publishes them to a CloudWatch metric in the `ServerlessFramework/Sandboxes` namespace, named `<image-name>-errors` (custom filters use `<image-name>-<filter-key>`). Like AWS Lambda's own `Errors` metric, it is sparse — a data point is emitted only when matching lines occur — so alarms default to `treatMissingData: notBreaching`.
-- **One `AWS::CloudWatch::Dashboard` per service** (`<service>-<stage>-sandboxes`), with a section per sandbox. Each section has: log volume (incoming bytes on the left axis, events on the right), the filter-derived metrics (with a horizontal threshold band per filter when alarms are configured), a "MicroVMs created" bar chart (distinct log streams = instances), a recent-logs table, a recent-errors table, and — when alarms are set — an alarm status widget. Multiple sandboxes share the one dashboard.
-
-Set `observability: false` to opt out of both the metric filter and the dashboard. The log group is still created.
-
-```yml
-sandboxes:
-  api:
-    artifact: ./app
-    observability: false # no metric filter, no dashboard; log group still created
-```
-
-Or disable just the dashboard while keeping the metric:
-
-```yml
-sandboxes:
-  api:
-    artifact: ./app
-    observability:
-      dashboard:
-        enabled: false
-```
-
-### Alarms
-
-Alarms are **off by default** and require an explicit `notify` target. Add an `alarms` block with `notify` set to an SNS topic ARN (or a CloudFormation intrinsic that resolves to one):
-
-```yml
-sandboxes:
-  api:
-    artifact: ./app
-    observability:
+      metrics:
+        filters:
+          errors: '%[Ee][Rr][Rr][Oo][Rr]%'
+          timeouts: '%timed out%'
       alarms:
         notify: arn:aws:sns:us-east-1:123456789012:my-alerts
+        thresholds:
+          errors:
+            threshold: 10
+            period: 60
 ```
 
-This creates an `AWS::CloudWatch::Alarm` for the error metric with these defaults:
+- `metrics.filters` replaces the default filters: one metric, alarm and dashboard line per key. Include `errors` to keep error counting.
+- `alarms` creates one alarm per filter, notifying the SNS topic in `notify` (an ARN or a CloudFormation reference such as `!Ref AlertTopic`). Each alarm defaults to more than 5 matches in one 300-second period, one data point, missing data not breaching.
+- `observability: false` drops the metric filters, alarms and dashboard; the log group stays. `dashboard.enabled: false` drops only the dashboard section.
+- `logs.enabled: false` turns logging off: no log group, metrics, alarms or dashboard section.
+- `logs.logGroup` writes to a log group of another name, which the Framework creates and scopes the roles to.
 
-| Setting                | Default                            |
-| ---------------------- | ---------------------------------- |
-| Threshold              | `5` (errors per evaluation period) |
-| Period                 | `300` s                            |
-| Evaluation periods     | `1`                                |
-| Datapoints to alarm    | `1`                                |
-| Comparison             | `GreaterThanThreshold`             |
-| Missing data treatment | `notBreaching`                     |
-
-Override any of these under `alarms.thresholds.errors`:
-
-```yml
-observability:
-  alarms:
-    notify: arn:aws:sns:us-east-1:123456789012:my-alerts
-    thresholds:
-      errors:
-        threshold: 10
-        period: 60
-        evaluationPeriods: 3
-        datapointsToAlarm: 2
-```
-
-Providing an `alarms` block without `notify` is a validation error — the framework rejects the configuration rather than creating an alarm with no action.
-
-You can also use a CloudFormation reference if the SNS topic is defined elsewhere in the same stack:
-
-```yml
-observability:
-  alarms:
-    notify: !Ref AlertTopic
-```
-
-### CloudFormation resources emitted
-
-| Resource                     | Type                         | Condition                                                      |
-| ---------------------------- | ---------------------------- | -------------------------------------------------------------- |
-| `<Name>LogGroup`             | `AWS::Logs::LogGroup`        | **Always**                                                     |
-| `<Name><Filter>MetricFilter` | `AWS::Logs::MetricFilter`    | One per `metrics.filters` entry (default `errors`)             |
-| `<Name><Filter>Alarm`        | `AWS::CloudWatch::Alarm`     | One per filter, only when `alarms.notify` is set               |
-| `SandboxesDashboard`         | `AWS::CloudWatch::Dashboard` | One **per service** when any sandbox has the dashboard enabled |
-
-### How error detection works
-
-The error metric is derived from **log content** — it counts log lines matching your filter patterns (by default `error`, `exception`, or `fail`). This catches errors your application logs. To also detect a process that exits without logging anything, add a synthetic canary or a proxy-layer health check alongside the log-based metric.
-
-### Cost
-
-Metric filters are free. Each derived metric costs approximately $0.30/month. CloudWatch **dashboards are free for the first three per account**, then approximately **$3/month each**. The framework creates **one dashboard per service** (shared by all its sandboxes), so a multi-sandbox service still only adds a single dashboard. If your account already has three or more dashboards, set `observability: false` or `dashboard.enabled: false` (on every sandbox) to avoid the charge.
-
----
+Metric filters are free; the metrics, alarms and dashboard are billed as CloudWatch custom metrics, alarms and dashboards beyond the free tier ([Amazon CloudWatch pricing](https://aws.amazon.com/cloudwatch/pricing/)).
 
 ## Local development (`serverless dev`)
 
-Run a sandbox locally for a fast inner loop. `serverless dev --sandbox` builds your sandbox image
-from its `Dockerfile` and starts a local, SDK-compatible **AWS Lambda MicroVMs control-plane** (see
-[AWS API emulation](#aws-api-emulation) below) that launches MicroVM instances as Docker containers
-on demand:
+`serverless dev --sandbox` builds the sandbox's image with your local Docker daemon and starts a local, SDK-compatible Lambda MicroVMs API on `http://127.0.0.1:9100`. Each `RunMicrovm` call to it starts a fresh container from the image, so your orchestration code runs unchanged against it:
 
 ```bash
-serverless dev --sandbox app          # --sandbox optional when only one is defined
-serverless dev --mode sandboxes       # equivalent; auto-detected when the service has only sandboxes
-serverless dev --sandbox app --port 9300   # control-plane endpoint port (default 9100)
+serverless dev --sandbox echo
 ```
 
-The control-plane endpoint is **stable across runs** (default `http://127.0.0.1:9100`) and
-customizable with `--port`, so the address your code targets doesn't change between sessions. If the
-port is already in use, `dev` exits with a clear error so you can pick another; run two sandboxes at
-once by giving each its own `--port`. Press Ctrl-C to stop.
-
-The image is built from the same files a deploy uploads (see [Choosing the
-files](#choosing-the-files)): `dev` copies them into a temporary directory for each build,
-so your `package.patterns` and the default exclusions apply locally too, along with your
-`.dockerignore`.
-
-> **Note:** `dev` requires a Docker daemon and a local `artifact` directory
-> containing a `Dockerfile`. The image is built for the daemon's native CPU
-> architecture, so a daemon whose architecture differs from your machine's
-> (a VM or remote `DOCKER_HOST`) works too. A sandbox whose `artifact` is an
-> `s3://` zip cannot be run with `dev` — use a local directory for the dev loop.
-
-> The dev loop runs under the sandbox's real execution role (see [IAM
-> emulation](#iam-emulation) below). It does not reproduce the production
-> proxy/auth path or network egress isolation, so validate those against a
-> deployed sandbox.
-
-The local container receives the same merged environment as the deployed sandbox.
-CloudFormation references are resolved against your deployed CloudFormation state: `!Ref`
-from this stack's resources, `!ImportValue` from CloudFormation exports, and `!GetAtt` only
-when that attribute is also declared as a stack `Output` whose key is the logical id
-followed by the attribute name (`UsersTableArn` for `!GetAtt UsersTable.Arn`). Deploy once
-before relying on them locally — an unresolvable reference is dropped with a warning.
-
-### Hot reloading
-
-`serverless dev --sandbox <name>` watches the sandbox's build-context directory (the
-`artifact` directory — the Dockerfile and your sources). When a file changes, the image
-is rebuilt; the **next** `RunMicrovm` launches a fresh container from the updated image
-(already-running instances keep the image they started with), so you can iterate without
-re-running the command.
-
-- Changes in `.serverless`, `.git` and `coverage` directories don't rebuild the image,
-  nor do changes in the dependency and cache directories a deploy leaves out
-  (`node_modules`, `.venv`, `venv`, `__pycache__`, `.pytest_cache`, `.mypy_cache`) or
-  changes to test files (`*.test.js`, `*.spec.js`, `*_test.py`, `*.test.py`).
-- If a rebuild fails (for example, a Docker build error), running instances keep working
-  and the error is printed — the dev session stays up so you can fix the issue and save
-  again.
-- Press `Ctrl-C` to stop.
-
-### IAM emulation
-
-By default, `serverless dev --sandbox <name>` runs the local container **as the
-sandbox's deployed execution role**: it assumes that role via STS and injects the
-temporary credentials into the container, so AWS calls from your app use the same
-permissions they will have in production — real `AccessDenied` errors surface in dev
-instead of after deploy.
-
-- The sandbox must already be deployed (the execution role must exist to assume it).
-- To make the assume work, the command temporarily adds your local identity to the
-  execution role's trust policy (a statement tagged `ServerlessSandboxesLocalDevPolicy`)
-  and removes it again when you stop with `Ctrl-C`. This needs `iam:GetRole`,
-  `iam:UpdateAssumeRolePolicy`, and `sts:AssumeRole` permission.
-- If the role cannot be assumed (not deployed, missing permissions, etc.), dev prints a
-  notice and falls back to your ambient AWS credentials so the loop keeps working.
-- Pass `--no-assume-role` to skip emulation and run with your ambient credentials.
-- If `dev` is killed abruptly (e.g. `SIGKILL` rather than `Ctrl-C`), the temporary trust statement isn't removed; it's cleaned up — or reused without duplication — on the next `dev` run. Until then, your local identity remains able to assume the execution role.
-- **Caveat:** an app that reads credentials directly from the instance metadata service
-  (`169.254.169.254`) bypasses the injected credentials; only the AWS SDK default
-  credential chain picks them up.
-
-### AWS API emulation
-
-`serverless dev --sandbox <name>` starts a local, SDK-compatible **AWS Lambda MicroVMs control-plane** on
-localhost, backed by Docker. Your own orchestration code — anything that drives `LambdaMicrovmsClient` — can
-run unchanged against it: `RunMicrovm` → `GetMicrovm` → `CreateMicrovmAuthToken` → call the instance
-endpoint → `TerminateMicrovm`.
-
-On start, `dev` prints the endpoint (stable default port `9100`; change with `--port`):
-
-```
+```text
 Endpoint   http://127.0.0.1:9100   ← point your AWS SDK or CLI here
            e.g.  aws … --endpoint-url http://127.0.0.1:9100
 
 MicroVMs API ready — Ctrl-C to stop
 ```
 
-Prefer a per-command `--endpoint-url` (or a per-client `endpoint` on `LambdaMicrovmsClient`) over exporting `AWS_ENDPOINT_URL_LAMBDA_MICROVMS` globally — the environment variable is honored by every AWS client in the shell, including `serverless deploy`'s own MicroVMs calls.
+- `--sandbox` can be left out when the service has one sandbox; `--mode sandboxes` selects this mode, which is the default for a service with only sandboxes.
+- `--port` changes the endpoint port. With the port in use, the command stops; give each concurrent session its own port.
+- The image is built from the files a deploy uploads ([Choosing the files](#choosing-the-files)) and your `.dockerignore`, for the Docker daemon's own CPU architecture. A sandbox with an `s3://` artifact can't run in `dev`.
+- Saving a file in the artifact directory rebuilds the image, and the next `RunMicrovm` uses it; running containers keep their image. Changes in `.serverless`, `.git`, `coverage`, dependency and cache directories, and test files (`*.test.js`, `*.spec.js`, `*_test.py`, `*.test.py`) don't rebuild. A failed rebuild prints the error and keeps the session running.
+- Containers get the same environment as the deployed sandbox. CloudFormation references resolve from the deployed stack: `!Ref` and `!ImportValue`, and `!GetAtt` only for attributes the stack exports as an output named `<LogicalId><Attribute>` (`UsersTableArn` for `!GetAtt UsersTable.Arn`). An unresolved reference is dropped with a warning.
 
-- Each `RunMicrovm` starts a **fresh container** from the current image and returns a **unique** `endpoint`;
-  `TerminateMicrovm` stops it.
-- **Endpoint format:** locally the `endpoint` is a ready-to-use plain-HTTP URL like
-  `http://127.0.0.1:<port>` — **use it as-is**. (In production `endpoint` is a bare HTTPS hostname you
-  prepend `https://` to; locally it's HTTP so there's no TLS/cert setup and no
-  `NODE_TLS_REJECT_UNAUTHORIZED`. If your code hardcodes `https://${endpoint}`, point it at the value the
-  emulator returns instead.) Still send `X-aws-proxy-auth` + `X-aws-proxy-port` as in production.
-- **Idle lifecycle** mirrors production: the emulator honors the `idlePolicy` you pass to `RunMicrovm`
-  (`maxIdleDurationSeconds`, `suspendedDurationSeconds`, `autoResumeEnabled`). An idle instance is suspended
-  (`docker pause`) and then terminated; with `autoResumeEnabled`, traffic resumes a suspended instance. So
-  an instance you forget to terminate is reaped automatically instead of lingering.
-- The endpoint enforces the production proxy contract: it requires the `X-aws-proxy-auth` token from
-  `CreateMicrovmAuthToken` (`403` otherwise), routes by `X-aws-proxy-port` (default `8080`), strips
-  `x-aws-proxy-*`, and injects `x-amzn-requestid`.
-- **Hot reload** rebuilds the image on file changes; **new** `RunMicrovm` calls pick up the rebuild
-  (already-running instances keep their image).
-- **IAM emulation** still applies — each container runs as the assumed execution role unless
-  `--no-assume-role`.
+### Execution-role credentials in `dev`
 
-The emulator does not validate request signatures and does not emulate network isolation or service quotas.
-Because it is unauthenticated, it only answers requests addressed to `127.0.0.1`, `localhost`, `[::1]` or
-`host.docker.internal` (to call it from a Docker Desktop container) and refuses browser requests (any
-request carrying an `Origin` header) with `403`, so a web page you visit cannot launch or control your
-local sandboxes. Call it from the AWS SDK or CLI, not from browser code.
+By default, containers run as the sandbox's deployed execution role, so AWS calls get the permissions they have in production:
 
----
+- The sandbox must be deployed. The command adds your identity to the role's trust policy for the session (a statement tagged `ServerlessSandboxesLocalDevPolicy`) and removes it on Ctrl-C; after a `SIGKILL`, the next session reuses or removes it. This needs `iam:GetRole`, `iam:UpdateAssumeRolePolicy` and `sts:AssumeRole`.
+- When the role can't be assumed, the session prints a notice and uses your own credentials. `--no-assume-role` uses them from the start.
+- Only the AWS SDK credential chain sees the role's credentials; code that reads the instance metadata service (`169.254.169.254`) doesn't.
 
-## Scripting Without the CLI
+### What the local API emulates
 
-If you need to drive MicroVM instances from your own scripts or CI pipelines, the underlying AWS data-plane calls are:
+- `RunMicrovm`, `GetMicrovm`, `CreateMicrovmAuthToken`, `TerminateMicrovm`, suspend and resume, and the `idlePolicy` of each launch: an idle container is paused, then removed.
+- The proxy contract: the endpoint requires the `X-aws-proxy-auth` token (`403` otherwise), routes by `X-aws-proxy-port` (default `8080`), and adds `x-amzn-requestid`.
+- The hooks your sandbox enables, with the same timeouts as on AWS.
 
-1. **Start** — `aws lambda-microvms run-microvm --image-identifier <ImageArn> --execution-role-arn <ExecutionRoleArn> ...`
-2. **Wait** — verify readiness by sending an authenticated request to the instance's endpoint with retry/backoff (see [Eventual consistency](#eventual-consistency) below) rather than polling `get-microvm` for `state: RUNNING`
-3. **Token** — `aws lambda-microvms create-microvm-auth-token --microvm-identifier <id> --allowed-ports '[{"port":8080}]' ...`
-4. **Request** — `curl -H "X-aws-proxy-auth: <token>" -H "X-aws-proxy-port: 8080" "https://<endpoint>/hello"`
-5. **Terminate** — `aws lambda-microvms terminate-microvm --microvm-identifier <id>`
+The local `endpoint` is a full `http://127.0.0.1:<port>` URL, where AWS returns a bare hostname you prefix with `https://`; use the value as returned. The emulator doesn't check signatures, network isolation or quotas, and doesn't reproduce the production proxy's authentication path, so check those on a deployed sandbox. It answers only requests to `127.0.0.1`, `localhost`, `[::1]` or `host.docker.internal`, and refuses requests with an `Origin` header with `403`, so web pages can't drive it. Pass `--endpoint-url` per command, or `endpoint` per client, rather than exporting `AWS_ENDPOINT_URL_LAMBDA_MICROVMS`, which `serverless deploy` would also pick up.
 
-The `<ImageArn>` value is the `<Name>ImageIdentifier` CloudFormation stack output (despite the CLI flag name, it takes the image identifier). The execution role ARN is the `<Name>ExecutionRoleArn` stack output.
+## Run instances from your own code
 
-**Against the local `dev` emulator**, the same calls work — add `--endpoint-url http://127.0.0.1:9100` (or export `AWS_ENDPOINT_URL_LAMBDA_MICROVMS`). Two local differences: pass `--image-identifier local` (the emulator maps any identifier to the running sandbox, and `--execution-role-arn` is optional), and call the **`http://`** endpoint it returns — not `https://`:
+Applications launch and manage instances with the Lambda MicroVMs API (`@aws-sdk/client-lambda-microvms`, or `aws lambda-microvms`). The stack outputs `<Name>ImageIdentifier` and `<Name>ExecutionRoleArn` give the image and role to launch with. This script launches an instance, calls it, retrying for up to about 20 seconds while the instance starts, and terminates the instance whether or not the call succeeds:
 
 ```bash
-EP=http://127.0.0.1:9100
-RUN=$(aws lambda-microvms run-microvm --endpoint-url $EP --image-identifier local)
+#!/usr/bin/env bash
+set -euo pipefail
+
+RUN=$(aws lambda-microvms run-microvm --image-identifier "$IMAGE_ARN" --execution-role-arn "$ROLE_ARN" \
+  --idle-policy '{"autoResumeEnabled":true,"maxIdleDurationSeconds":900,"suspendedDurationSeconds":1800}')
 ID=$(echo "$RUN" | jq -r .microvmId); ENDPOINT=$(echo "$RUN" | jq -r .endpoint)
-TOK=$(aws lambda-microvms create-microvm-auth-token --endpoint-url $EP \
-  --microvm-identifier "$ID" --allowed-ports '[{"port":8080}]' --expiration-in-minutes 60 \
+trap 'aws lambda-microvms terminate-microvm --microvm-identifier "$ID"' EXIT
+TOKEN=$(aws lambda-microvms create-microvm-auth-token --microvm-identifier "$ID" \
+  --allowed-ports '[{"port":8080}]' --expiration-in-minutes 60 \
   --query 'authToken."X-aws-proxy-auth"' --output text)
-curl -H "X-aws-proxy-auth: $TOK" -H "X-aws-proxy-port: 8080" "$ENDPOINT/hello"
-aws lambda-microvms terminate-microvm --endpoint-url $EP --microvm-identifier "$ID"
+curl --fail --retry 10 --retry-delay 2 --retry-connrefused \
+  -H "X-aws-proxy-auth: $TOKEN" -H "X-aws-proxy-port: 8080" "https://$ENDPOINT/hello"
 ```
 
-> **Caller IAM — passing network connectors:** `run-microvm` attaches network connectors to each instance (an HTTP-ingress connector so the platform can deliver hooks and proxy requests, plus any egress connector), and the caller must be allowed to pass each one. Grant `lambda:PassNetworkConnector` for every connector ARN you attach — for example `arn:aws:lambda:<region>:aws:network-connector:aws-network-connector:HTTP_INGRESS` and `…:INTERNET_EGRESS`. A missing grant surfaces as an `AccessDeniedException` that names `PassNetworkConnector` and the specific connector; add the permission for the named connector to resolve it. This is in addition to `iam:PassRole` for the execution role.
+`IMAGE_ARN` and `ROLE_ARN` are the two stack outputs (`serverless info --verbose` prints them). Against `serverless dev`, add `--endpoint-url http://127.0.0.1:9100`, pass any `--image-identifier` (the emulator runs the session's sandbox), and use the returned endpoint without adding `https://`.
 
-### Eventual consistency
-
-After launching an instance, don't poll `get-microvm` waiting for a ready state — its `state` field is eventually consistent and can lag behind reality. Instead, verify readiness by sending an authenticated request against the instance's endpoint with retry/backoff, and treat a successful response as the readiness signal. A `502` in the first few seconds after launch is expected while the snapshot restores — retry rather than treating it as a hard failure.
-
-### Shell access
-
-To get an interactive shell inside a running instance, launch it with the `SHELL_INGRESS` connector attached — `arn:aws:lambda:<region>:aws:network-connector:aws-network-connector:SHELL_INGRESS` in the instance's ingress network connectors. Connectors are fixed at launch, so include this up front if you expect to need shell access; you can't attach it to an already-running instance.
-
-Mint a shell token:
-
-```bash
-aws lambda-microvms create-microvm-shell-auth-token \
-  --microvm-identifier <microvm-id> --expiration-in-minutes 15
-```
-
-Then connect either via the AWS console's "Connect" button on the MicroVM detail page, or any WebSocket client using subprotocols `lambda-microvms`, `lambda-microvms.authentication.<token>`, and `lambda-microvms.port.8022`.
-
-The shell lands in the same container as your application — same filesystem, processes, and network. The caller additionally needs `lambda:CreateMicrovmShellAuthToken`. Treat the token as a secret: keep the expiration short — tokens expire after at most 60 minutes.
+- **Readiness**: `get-microvm` state is eventually consistent. Treat a successful authenticated request to the endpoint as the ready signal, and retry a `502` in the first seconds after launch.
+- **Connector permissions**: launching attaches network connectors, and the caller needs `lambda:PassNetworkConnector` for each one, such as `arn:aws:lambda:us-east-1:aws:network-connector:aws-network-connector:INTERNET_EGRESS`, plus `iam:PassRole` for the execution role. A missing grant returns an `AccessDeniedException` that names the connector.
+- **Shell access**: launch with the `SHELL_INGRESS` connector among the ingress connectors (connectors are fixed at launch), mint a token with `aws lambda-microvms create-microvm-shell-auth-token --microvm-identifier <id> --expiration-in-minutes 15` (at most 60 minutes; needs `lambda:CreateMicrovmShellAuthToken`), and connect from the console's **Connect** button or a WebSocket client with the subprotocols `lambda-microvms`, `lambda-microvms.authentication.<token>` and `lambda-microvms.port.8022`. The shell runs in the application's container.
 
 ### Instance lifecycle and idle policy
 
-A running instance moves through `RUNNING → SUSPENDED → TERMINATED`. The **idle policy** you pass to `run-microvm` controls the two automatic gates between those states — they run **in sequence**, not as alternatives:
+An instance moves from `RUNNING` to `SUSPENDED` to `TERMINATED`. The launch call's `idlePolicy` sets two timers that run in sequence:
 
-<!-- prettier-ignore -->
+1. After `maxIdleDurationSeconds` (at most 28,800) without inbound requests, a `RUNNING` instance suspends: memory and disk are kept, and only snapshot storage is billed.
+2. After `suspendedDurationSeconds` in `SUSPENDED`, it terminates; `0` terminates it on suspend.
+3. With `autoResumeEnabled: true`, a request to a suspended instance resumes it; Lambda holds the request during the resume and returns `502` only if the resume fails. A terminated instance never resumes.
+
+An `idlePolicy` needs all three fields, and Lambda fills in no defaults; without `idlePolicy`, instances never suspend or terminate on their own. `maximumDurationInSeconds` (1 to 28,800, `RUNNING` and `SUSPENDED` time together) ends an instance whatever its activity.
+
+Idle means no inbound requests at the endpoint, not idle code: a worker that only polls a queue looks idle while it works. Pick the pattern by whether the instance's state is worth keeping:
+
+- **One-shot work**: do the job and exit the process, which terminates the instance. Leave out `idlePolicy`, so the timer can't suspend the busy instance.
+- **Sessions** (agent sessions, notebooks, per-user environments): launch with `autoResumeEnabled: true`, and treat `suspendedDurationSeconds` as how long a user can be away before the state is gone.
+- **Orchestrated work**: suspend and resume from outside the instance when your code knows the boundaries, with `aws lambda-microvms suspend-microvm --microvm-identifier <id>` and `resume-microvm` (`lambda:SuspendMicrovm`, `lambda:ResumeMicrovm`). An instance can't suspend itself.
+
+## Image versions and cleanup
+
+Each deploy that changes a sandbox's artifact or settings builds a new image version. Launches without an `imageVersion` use the newest active version; older versions stay for instances that pin one. AWS limits the versions per image (50 by default, the **Versions per MicroVM Image** quota), so trim them with [`prune`](./prune.md#sandbox-image-versions):
+
+```yaml
+custom:
+  prune:
+    automatic: true # after every deploy
+    number: 5 # keep the live version and 5 older ones
 ```
-            idle for maxIdleDurationSeconds          suspended for suspendedDurationSeconds
-   RUNNING ─────────────────────────────────▶ SUSPENDED ──────────────────────────────────▶ TERMINATED
-      ▲                                            │
-      └──────────── request arrives ──────────────┘   (only when autoResumeEnabled: true)
-```
-
-| Field                      | Meaning                                                                | AWS default |
-| -------------------------- | ---------------------------------------------------------------------- | ----------- |
-| `maxIdleDurationSeconds`   | How long an instance may stay idle while `RUNNING` before it suspends  | 300         |
-| `suspendedDurationSeconds` | How long an instance stays `SUSPENDED` before it terminates            | 300         |
-| `autoResumeEnabled`        | Whether inbound traffic resumes a suspended instance back to `RUNNING` | —           |
-
-> When you pass an `idlePolicy` object to `run-microvm`, the API requires all three fields above to be present — the 300/300 values shown are the console's suggested defaults, not something the API fills in automatically. Omitting the `idlePolicy` block entirely disables both automatic gates (suspension and termination) altogether.
-
-So an idle instance is reclaimed after roughly `maxIdleDurationSeconds + suspendedDurationSeconds`. Pass `maximumDurationInSeconds` as a hard ceiling that applies regardless of activity (see [Worker patterns](#worker-patterns) below for the exact limit).
-
-> **"Idle" means no inbound traffic at the MicroVM's endpoint URL — not "no code running."** AWS measures idle time by requests arriving at the endpoint, so the timer resets on each request and is unaffected by what your code is doing. A worker that does only outbound work (for example, polls a queue, runs a task, then exits) looks idle to the policy even while it is busy. For workers like that, rely on the process exiting — or on `maximumDurationInSeconds` — to end the instance, and give `maxIdleDurationSeconds` enough headroom that an actively-working instance is never suspended out from under itself.
-
-Setting `suspendedDurationSeconds: 0` skips the suspended window entirely — the instance terminates immediately on suspend instead of waiting there. And `autoResumeEnabled` only revives a `SUSPENDED` instance; it never brings back one that has already reached `TERMINATED`.
-
-### Worker patterns
-
-Which of these applies to your worker depends on one question: **will this instance be needed again, and is its in-memory/disk state worth keeping?** While suspended, full memory and disk state is preserved and compute billing stops — you pay only snapshot storage — so suspension is the tool for "yes"; exiting/terminating is the tool for "no".
-
-**One-shot — exit when done.** For a worker that handles exactly one unit of work and never needs its state again, do the work and exit the process; a process exit terminates the instance immediately regardless of idle policy. Don't lean on the idle policy here — it cuts both ways for an outbound-only worker, since the idle timer only sees inbound traffic: it never fires on its own, but it can also fire against you, suspending a busy instance mid-work once `maxIdleDurationSeconds` elapses. Omit `idlePolicy` entirely from the `run-microvm` call to turn off automatic suspension and termination altogether.
-
-**Session — suspend on idle, auto-resume on traffic.** For an instance that serves inbound requests with gaps between them (an agent session, a notebook/REPL, a per-user dev environment), suspension is the point of MicroVMs — don't exit between requests. Launch with `idlePolicy: { autoResumeEnabled: true, ... }`: after `maxIdleDurationSeconds` without inbound traffic the instance suspends, and the next inbound request resumes it automatically — the platform holds that request during the resume and delivers it once the app is back, returning `502` only if the resume itself fails. Treat `suspendedDurationSeconds` as the session-retention window: how long a user can stay away before the instance terminates and its state is gone for good.
-
-**Orchestrated — explicit suspend/resume.** When your own code knows the activity boundaries better than the idle timer does (an agent waiting on human approval, a worker paused between queue drains), drive the lifecycle directly from outside the instance:
 
 ```bash
-aws lambda-microvms suspend-microvm --microvm-identifier <id>  # state kept, compute billing stops
-aws lambda-microvms resume-microvm  --microvm-identifier <id>  # continues exactly where it left off
+serverless prune -n 5 --sandbox echo
 ```
 
-This works even for outbound-only workers whose idle timer never fires. The call must come from outside the instance — there is no self-suspend from inside a MicroVM. This requires `lambda:SuspendMicrovm` / `lambda:ResumeMicrovm` on the caller.
+`prune` keeps the live version, versions that an instance runs or can resume from, and versions still building. A deploy that reaches the limit prints the `prune` command to run.
 
-Across all three patterns, `maximumDurationInSeconds` (max **28,800** seconds, counted across `RUNNING` **and** `SUSPENDED` time combined) remains the hard ceiling — after that the instance terminates regardless of activity.
+Uploaded zips need no setting: an image reads its zip only while it builds. Each deploy keeps the zips that the deployments `serverless deploy list` shows still point to, so `serverless rollback` works, plus zips uploaded within the last hour, and deletes the rest. The number of deployments kept is `provider.deploymentBucket.maxPreviousDeploymentArtifacts` (default `5`). On a versioned bucket, a delete adds a delete marker until a lifecycle rule expires the old object versions. `s3://` artifacts are never deleted.
 
----
+## Configuration reference
 
-## Cleanup
+Sandboxes are defined under the top-level `sandboxes` key, one entry per sandbox name. The name becomes part of resource names (`<service>-<name>-<stage>`) and logical IDs (`<Name>Image`). Only `artifact` is required.
 
-Remove all sandbox resources (MicroVM image, IAM roles, network connector, and the rest of the CloudFormation stack):
+| Key                                                      | Type                | Default                                                                                                                                                     | Description                                                                                                                                                                                   |
+| -------------------------------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `artifact`                                               | string              | **required**                                                                                                                                                | A local directory with a `Dockerfile`, relative to the service directory, or an `s3://` URI of a zip.                                                                                         |
+| `package.patterns`                                       | list of globs       | none                                                                                                                                                        | Files of a local `artifact`, relative to the service directory, after the service-level patterns. See [Choosing the files](#choosing-the-files).                                              |
+| `minimumMemory`                                          | number              | `2048`                                                                                                                                                      | Memory in MiB each instance is guaranteed: `512`, `1024`, `2048`, `4096` or `8192`. A floor, not a cap; it also sets the build's disk tier.                                                   |
+| `description`                                            | string              | `<service> <name> sandbox (Serverless Framework)`                                                                                                           | The image's description.                                                                                                                                                                      |
+| `environment`                                            | map                 | `provider.environment`                                                                                                                                      | Variables baked into the image, merged over `provider.environment`. Strings or CloudFormation references. See [Pass configuration to instances](#pass-configuration-to-instances).            |
+| `osCapabilities`                                         | list                | `[]`                                                                                                                                                        | Additional OS capabilities; `all` (case-insensitive) is the accepted value.                                                                                                                   |
+| `hooks`                                                  | map                 | none                                                                                                                                                        | `port` (1–65535, default `9000`) and `ready`, `validate`, `run`, `resume`, `suspend`, `terminate`, each `true` or `{ timeout: <seconds> }`. See [Lifecycle hooks](#lifecycle-hooks).          |
+| `vpc`                                                    | map                 | none                                                                                                                                                        | `subnetIds` and `securityGroupIds` (both required), and `protocol`: `ipv4` (default) or `dualstack`. See [Connect a sandbox to your VPC](#connect-a-sandbox-to-your-vpc).                     |
+| `iam.buildRole`, `iam.executionRole`, `iam.operatorRole` | map or ARN          | generated roles                                                                                                                                             | `statements`, `managedPolicies` and `permissionsBoundary` to extend a generated role, or an ARN or intrinsic to use an existing one. See [IAM roles for sandboxes](#iam-roles-for-sandboxes). |
+| `observability`                                          | boolean or map      | `true`                                                                                                                                                      | `false` turns off metrics, alarms and the dashboard section. See [Logs and monitoring](#logs-and-monitoring).                                                                                 |
+| `observability.logs.enabled`                             | boolean             | `true`                                                                                                                                                      | `false` turns off logging and everything that reads the log group.                                                                                                                            |
+| `observability.logs.retentionDays`                       | number              | `14`                                                                                                                                                        | A CloudWatch Logs retention value: `1`, `3`, `5`, `7`, `14`, `30`, `60`, `90`, `120`, `150`, `180`, `365`, `400`, `545`, `731`, `1096`, `1827`, `2192`, `2557`, `2922`, `3288` or `3653`.     |
+| `observability.logs.logGroup`                            | string              | `/aws/lambda-microvms/<service>-<name>-<stage>`                                                                                                             | The log group name.                                                                                                                                                                           |
+| `observability.metrics.enabled`                          | boolean             | `true`                                                                                                                                                      | `false` drops the metric filters; `alarms` then can't be set.                                                                                                                                 |
+| `observability.metrics.filters`                          | map of strings      | `errors` filter                                                                                                                                             | Filter name to CloudWatch Logs filter pattern. Replaces the default filter.                                                                                                                   |
+| `observability.alarms.notify`                            | string or reference | none                                                                                                                                                        | SNS topic ARN or CloudFormation reference. Required when `alarms` is set; alarms also need metrics and logging on.                                                                            |
+| `observability.alarms.thresholds.<filter>`               | map                 | `threshold: 5`, `period: 300`, `evaluationPeriods: 1`, `datapointsToAlarm: 1`, `comparisonOperator: GreaterThanThreshold`, `treatMissingData: notBreaching` | Per-filter alarm settings.                                                                                                                                                                    |
+| `observability.dashboard.enabled`                        | boolean             | `true`                                                                                                                                                      | `false` leaves this sandbox out of the service dashboard.                                                                                                                                     |
+| `tags`                                                   | map of strings      | none                                                                                                                                                        | Tags for the image, log group, roles, alarms and connector.                                                                                                                                   |
+
+The [`serverless.yml` reference](./serverless.yml.md#aws-lambda-microvms-sandboxes) lists the same keys in one block.
+
+## Limits and behavior
+
+For each sandbox, `serverless deploy` creates:
+
+| Logical ID                                          | Type                                                | When                                                      |
+| --------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------- |
+| `<Name>Image`                                       | `AWS::Lambda::MicrovmImage`                         | Always                                                    |
+| `<Name>ImageBuildRole`, `<Name>ExecutionRole`       | `AWS::IAM::Role`                                    | Unless the role is an existing one                        |
+| `<Name>Connector`, `<Name>ConnectorOperatorRole`    | `AWS::Lambda::NetworkConnector`, `AWS::IAM::Role`   | With `vpc` (the role unless it is an existing one)        |
+| `<Name>LogGroup`                                    | `AWS::Logs::LogGroup`                               | Unless logging is off                                     |
+| `<Name><Filter>MetricFilter`, `<Name><Filter>Alarm` | `AWS::Logs::MetricFilter`, `AWS::CloudWatch::Alarm` | One per filter; alarms with `alarms.notify`               |
+| `SandboxesDashboard`                                | `AWS::CloudWatch::Dashboard`                        | One per service, when any sandbox has a dashboard section |
+
+Stack outputs: `<Name>ImageIdentifier` (the image ARN, for `RunMicrovm`), `<Name>ExecutionRoleArn`, and with `vpc`, `<Name>ConnectorArn`.
+
+- **Architecture**: images are built for ARM64 only.
+- **Duration**: an instance lives at most 28,800 seconds (8 hours), running and suspended time together.
+- **Quotas**: image versions per image (50 by default) and the account's memory across running and suspended instances per Region are Service Quotas you can raise ([scaling and concurrency](https://docs.aws.amazon.com/lambda/latest/dg/microvms-launching.html#microvms-launching-scaling)).
+- **Cost**: running instances bill compute, suspended ones snapshot storage, terminated ones nothing.
+- **Endpoints**: each instance has its own endpoint, with no load balancing across instances; every request needs an auth token.
+- **Not for** event processing (use [functions](./functions.md)) or shared HTTP servers that scale with traffic (use [web apps](./web-apps.md)).
+
+## Troubleshooting sandboxes
+
+### Image build fails or `MicrovmImage` doesn't stabilize
+
+The deploy rolls back when Lambda can't build the image. Read the build's reason:
 
 ```bash
-serverless remove
+aws lambda-microvms list-microvm-image-builds \
+  --image-identifier <image-arn> --image-version <version> \
+  --query 'items[].[architecture,buildState,stateReason]' --output table
 ```
 
-> **Note:** Terminate any running MicroVM instances before removing the stack. Active instances reference the `MicrovmImage` resource and may block deletion.
+- `CONTAINER_BUILD_FAILED`: the `Dockerfile` doesn't build. Run `docker build` on the artifact directory, and read the build lines in the log group.
+- `DISK_STORAGE_FULL`: the image is larger than the disk of the `minimumMemory` tier. Shrink it (smaller base image, multi-stage build) or raise `minimumMemory`.
+- `INTERNAL_PLATFORM_ERROR`: a platform failure unrelated to the artifact. Deploy again.
 
----
+### `sandboxes: no Dockerfile found in artifact directory ...`
 
-## Complete Example
+The local `artifact` directory has no `Dockerfile` at its root. Add one, or point `artifact` at a pre-built `s3://` zip. A missing directory gives `sandboxes: artifact directory not found: "..."`; the path is resolved from the service directory.
 
-```yml
-service: my-sandbox-service
-frameworkVersion: '4'
+### `sandboxes.<name>.artifact must be a local directory or an s3:// URI ...`
 
-provider:
-  name: aws
-  region: us-east-1
-
-sandboxes:
-  api:
-    artifact: ./app # directory with a Dockerfile
-    minimumMemory: 2048 # MiB
-    description: 'HTTP API sandbox'
-    environment:
-      LOG_LEVEL: info
-      PORT: '8080'
-    hooks:
-      port: 9000 # hook server port inside the container
-      ready: true # image-build hook with defaults
-      run:
-        timeout: 2 # runtime hook: called on each new instance
-    vpc:
-      subnetIds:
-        - subnet-0abc1234
-      securityGroupIds:
-        - sg-0aabbccdd
-      protocol: ipv4
-    iam:
-      executionRole:
-        statements:
-          - Effect: Allow
-            Action: ['dynamodb:GetItem', 'dynamodb:PutItem']
-            Resource: !GetAtt DataTable.Arn
-    tags:
-      team: platform
-      env: production
+```text
+sandboxes.api.artifact must be a local directory or an s3:// URI (ECR/other URIs are not supported by Lambda MicroVMs)
 ```
+
+`artifact` names a registry image. Use a directory with a `Dockerfile` that starts `FROM` that image.
+
+### `Access denied invoking sandbox '<name>'...`
+
+```text
+Access denied invoking sandbox 'echo'. The caller identity needs lambda:RunMicrovm, GetMicrovm, CreateMicrovmAuthToken, TerminateMicrovm, iam:PassRole and lambda:PassNetworkConnector.
+```
+
+Grant the listed actions to the identity running `serverless invoke --sandbox`, as in [Invoking a sandbox](#invoking-a-sandbox).
+
+### `unable to assume the provided NetworkConnectorOperatorRole`
+
+The operator role doesn't trust `network-connectors.lambda.amazonaws.com`, or its trust policy has an `aws:SourceAccount` condition. Fix the existing role's trust policy, or remove `iam.operatorRole` to use the generated role.
+
+### `Port 9100 is already in use for the local MicroVMs API...`
+
+Another `serverless dev --sandbox` session or another program uses the port. Stop it, or run `serverless dev --sandbox <name> --port <port>`. Without a reachable Docker daemon, the command stops with `Docker is required for 'serverless dev --sandbox'`; start Docker.
+
+## Examples
+
+- [Sandboxes examples](https://github.com/serverless/examples/tree/v4/sandboxes): a minimal sandbox, a complete one with hooks, observability, IAM and tags, and a sandbox per agent session launched by a webhook.
+
+## Related
+
+- [Web Apps](./web-apps.md): HTTP servers as AWS Lambda Web Functions.
+- [Prune](./prune.md#sandbox-image-versions): image version cleanup.
+- [`serverless invoke`](../cli-reference/invoke.md) and [`serverless logs`](../cli-reference/logs.md): the `--sandbox` options.
+- [`serverless dev`](../cli-reference/dev.md): the Dev Mode command.

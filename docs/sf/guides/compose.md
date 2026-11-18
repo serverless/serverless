@@ -1,15 +1,15 @@
 <!--
-title: 'Composing Serverless Framework Services'
-description: 'Learn how to deploy and orchestrate multiple services using Serverless Framework Compose. This guide covers setup, service dependencies, and global commands for efficient management of serverless applications.'
-short_title: Composing Services
+title: Serverless Compose
+description: Deploy several Serverless Framework services together with Serverless Compose, in dependency order, sharing outputs and parameters between them.
+short_title: Compose
 keywords:
   [
     'Serverless Framework',
-    'composing services',
+    'Serverless Compose',
+    'serverless-compose.yml',
     'multiple services',
+    'monorepo',
     'service dependencies',
-    'global commands',
-    'serverless-compose',
   ]
 -->
 
@@ -19,37 +19,22 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Composing Serverless Framework services
+# Serverless Compose
 
-Deploying multiple services in a monorepository is a very common pattern across larger teams. Serverless Framework Compose is meant to simplify deploying and orchestrating multiple services. It lets you:
+Serverless Compose deploys several services of one repository (a monorepo) with one command. A `serverless-compose.yml` file at the repository root lists the services; Compose runs a command on all of them, in parallel where it can and in dependency order where one service uses another's outputs. Use it when a project has several `serverless.yml` services that are deployed together, such as an API and the queue or database it reads. Services can be Serverless Framework services or AWS SAM and AWS CloudFormation projects.
 
-- Deploy multiple services in parallel
-- Deploy services in a specific order
-- Deploy different types of services (ie. Traditional, SAM, or CloudFormation) together.
-- Share outputs from one service to another
-- Run commands across multiple services
+Given two services in their own directories:
 
-## Setup
-
-_Note: Compose, as documented here, is available in Serverless Framework **v4.3.1** or greater ([Upgrading guide](upgrading-v4.md)). Initial version was available in v3.15.0 but that is not covered in these docs._
-
-Assuming you have an application containing multiple Serverless Framework services, for example:
-
-```
+```text
 my-app/
+  serverless-compose.yml
   service-a/
-    src/
-      ...
     serverless.yml
   service-b/
-    src/
-      ...
     serverless.yml
 ```
 
-You can create a `serverless-compose.yml` file at the root of your monorepository.
-
-In that file, you can reference existing Serverless Framework projects by their relative paths:
+List them in `serverless-compose.yml`, each with its directory relative to the file:
 
 ```yaml
 # serverless-compose.yml
@@ -61,38 +46,51 @@ services:
     path: service-b
 ```
 
-_Note: JS/TS configuration files are also supported (`serverless-compose.{yml,ts,js,json}`)._
+Then run `serverless deploy` in the directory that contains `serverless-compose.yml`, instead of running it in each service:
 
-## Usage
-
-To deploy all services, instead of running `serverless deploy` in each service, you can now deploy all services at once by running `serverless deploy` at the root:
+```bash
+serverless deploy
+```
 
 ```text
-$ serverless deploy
-
-Serverless ϟ Compose
-
-Serverless Compose enables you to deploy multiple services in one command, in parallel, or ordered by dependencies.
-Docs: https://www.serverless.com/framework/docs/guides/compose
-
 ✔ service-a
     output1: ...
-    output2: ...
 
 ✔ service-b
     output1: ...
-    output2: ...
 
 Results: 2 services succeeded, 0 failed, 0 skipped, 2 total    Time: 38s
 ```
 
-### Service dependencies and variables
+## The serverless-compose.yml file
 
-Service variables let us order deployments and inject outputs from one service
-into another. This is possible via the `service` resolver, using the
-`${service:<service-name>.<OutputKey>}` syntax. For example:
+The CLI uses Compose when the current directory contains a `serverless-compose` file in any of these formats: `serverless-compose.yml`, `.yaml`, `.json`, `.toml`, `.js`, `.mjs`, `.cjs` or `.ts`. In a directory that also contains a `serverless.yml`, the Compose file takes precedence. To use a file with another name, pass `--config <file>`; the file must have a `services` key.
+
+Compose reads these keys of `serverless-compose.yml`:
+
+| Key                         | Type             | Description                                                                                                                                                               |
+| --------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `services`                  | Object           | Required. One entry per service. The entry's key is the service's name in Compose commands and references; it doesn't have to match `service` in `serverless.yml`.        |
+| `services.<name>.path`      | String           | Required. The service's directory, relative to the directory of `serverless-compose.yml`.                                                                                 |
+| `services.<name>.params`    | Object           | Parameters passed to this service, read in its configuration as `${param:<key>}`. See [Pass parameters to one service](#pass-parameters-to-one-service).                  |
+| `services.<name>.dependsOn` | String or list   | Services to deploy before this one. See [Explicit dependencies](#explicit-dependencies).                                                                                  |
+| `stages.<stage>.params`     | Object           | Parameters passed to every service, per stage, with `default` for all stages. See [Stage parameters for all services](#stage-parameters-for-all-services).                |
+| `stages.<stage>.resolvers`  | Object           | Variable resolvers, including named `service` resolvers. See [Referencing a service deployed to a different stage](#referencing-a-service-deployed-to-a-different-stage). |
+| `state`                     | String or object | Where Compose stores service outputs. See [State](./state.md).                                                                                                            |
+| `frameworkVersion`          | String           | The Framework version range for the whole Compose run. See [Pinning to a specific version](../getting-started.md#pinning-to-a-specific-version).                          |
+| `org`                       | String           | The Serverless Framework org the Compose run signs in to, and that services without their own `org` use for Dashboard features.                                           |
+| `licenseKey`                | String           | A License Key for the Compose run. See [License Keys](./license-keys.md).                                                                                                 |
+
+Compose doesn't load plugins, and other `serverless.yml` keys have no effect in `serverless-compose.yml`. Variables in it can use sources such as `${env:...}`, `${opt:...}`, `${ssm:...}` and `${param:...}`, plus the `service` source described in [Service dependencies and variables](#service-dependencies-and-variables); variable sources that plugins add aren't available.
+
+## Service dependencies and variables
+
+The `service` variable source passes an output of one service to another and makes Compose deploy them in order. A reference has the form `${service:<service-name>.<OutputKey>}`. Available in v4.42.0 and later.
+
+In this `serverless-compose.yml`, `service-b` receives the `QueueUrl` output of `service-a` as the parameter `queueUrl`:
 
 ```yaml
+# serverless-compose.yml
 services:
   service-a:
     path: service-a
@@ -103,49 +101,44 @@ services:
       queueUrl: ${service:service-a.QueueUrl}
 ```
 
-Let's break down the example above into 3 steps:
+The reference does three things:
 
-1. `${service:service-a.QueueUrl}` will resolve to the `QueueUrl` output of the `service-a` service.
-
-   The outputs of a Serverless Framework service are resolved from its **CloudFormation outputs**. Here is how we can expose the `QueueUrl` output in the `service-a/serverless.yml` config:
+1. **Reads an output.** A service's outputs are its CloudFormation stack outputs. `service-a` exposes `QueueUrl` under `resources.Outputs`:
 
    ```yaml
    # service-a/serverless.yml
-   # ...
-
    resources:
      Resources:
        MyQueue:
          Type: AWS::SQS::Queue
-         # ...
      Outputs:
        QueueUrl:
          Value: !Ref MyQueue
    ```
 
-2. Because of the dependency introduced by the variable, `serverless deploy` will automatically **deploy `service-a` first, and then `service-b`.**
-
-3. The value will be passed to `service-b` [as a parameter](parameters.md) named `queueUrl`. Parameters can be referenced in Serverless Framework configuration via the `${param:xxx}` syntax:
+2. **Orders the deploy.** `serverless deploy` deploys `service-a` first, then `service-b`.
+3. **Passes a parameter.** `service-b` reads the value as a [parameter](./parameters.md):
 
    ```yaml
    # service-b/serverless.yml
    provider:
      environment:
-       # Here we inject the queue URL as a Lambda environment variable
        SERVICE_A_QUEUE_URL: ${param:queueUrl}
    ```
 
-With `serverless package` and `serverless print`, cross-service values are read from the state of the last deployment: `package` requires the referenced services to be deployed, while `print` displays `NOT_AVAILABLE_IN_PRINT_COMMAND` for values that do not exist yet (a failure to read the state — credentials, network — still fails `print` like any other command).
+Use service references to share API URLs, queue URLs, table names and other outputs without hardcoding resource names.
 
-Cross-service variables are a great way to share API URLs, queue URLs, database table names, and more, without having to hardcode resource names or use SSM.
+With `serverless package` and `serverless print`, service references read the outputs stored by the last `deploy`, `info` or `remove` of the referenced service (see [Shared state](#shared-state-for-service-outputs)). `package` needs the referenced services to be deployed. `print` shows `NOT_AVAILABLE_IN_PRINT_COMMAND` for a value that doesn't exist yet; a failure to read the state (credentials, network) still stops `print`.
 
-The service name is the key of the service under `services` in the compose file, used as declared — dots, hyphens, underscores and other characters included (the output key is the name of the CloudFormation output, which never contains a dot, so the last dot separates the two). The only characters a referenced service name cannot contain are the variable syntax's own delimiters: `:`, `,`, `}` and quotes. The service name cannot itself come from another service reference — it must be known before the services are ordered.
+### Service names in references
 
-The shorter `${service-a.QueueUrl}` form (without the `service:` prefix) is also supported for service names made of letters, digits, and hyphens. New configuration is best written with the `${service:...}` form shown above. A single value cannot mix the two forms — write every reference in it with `${service:...}`; a mixed value is rejected before any service is deployed.
+The service name in a reference is the service's key under `services`, used as declared: dots, hyphens, underscores and other characters included. The output key is the name of a CloudFormation output, which contains no dot, so the last dot separates the two. A referenced service name can't contain the variable syntax's delimiters (`:`, `,`, `}` and quotes), and can't itself come from another service reference, because Compose needs it to order the services.
 
-#### Building larger values
+The shorter form `${service-a.QueueUrl}`, without `service:`, also works for service names and output keys made of letters, digits and hyphens. A single value can't mix the two forms; write every reference in it with `${service:...}`. A mixed value is rejected before any service is deployed.
 
-A service reference can be part of a larger string, so a connection URL can be assembled directly in the compose parameter:
+### Build larger values from service references
+
+A service reference can be part of a larger string, so a connection URL can be assembled in the Compose parameter:
 
 ```yaml
 # serverless-compose.yml
@@ -164,17 +157,19 @@ services:
       databaseUrl: postgres://${service:orders-db.Host}:5432/orders
 ```
 
-Service references nest like any other variable: other variables can appear inside the reference (`${service:${param:dbName}.Host}`, using the parameter declared above), and a reference can sit inside another variable (`${env:${service:orders-db.EnvName}}`). In `print`, a reference nested inside another variable receives `NOT_AVAILABLE_IN_PRINT_COMMAND` when its state is not available, so the enclosing variable may not resolve; give it a fallback (`${env:${service:orders-db.EnvName}, 'n/a'}`) if `print` must succeed before the first deploy.
+Service references nest like any other variable: other variables can appear inside the reference (`${service:${param:dbName}.Host}`, with the `dbName` parameter declared under `stages`), and a reference can sit inside another variable (`${env:${service:orders-db.EnvName}}`). In `print`, a reference nested in another variable receives `NOT_AVAILABLE_IN_PRINT_COMMAND` when its state isn't available, so the enclosing variable might not resolve; give the enclosing variable a fallback (`${env:${service:orders-db.EnvName}, 'n/a'}`) if `print` must work before the first deploy.
 
-A service reference accepts a fallback like any other variable: `${service:orders-db.Host, 'localhost'}` uses `localhost` when `orders-db` has no deployed state yet or has no `Host` output (in `print`, an unavailable reference still renders `NOT_AVAILABLE_IN_PRINT_COMMAND` rather than the fallback). The fallback does not change deploy ordering — `orders-db` still deploys before the service that references it. Referencing a service that is not in the compose file, or writing a reference that is not of the form `<service-name>.<OutputKey>`, is an error even when a fallback is declared.
+### Fallback values for service references
 
-### Referencing a service deployed to a different stage
+A service reference accepts a fallback like any other variable: `${service:orders-db.Host, 'localhost'}` uses `localhost` when `orders-db` has no deployed state yet or has no `Host` output. In `print`, an unavailable reference still shows `NOT_AVAILABLE_IN_PRINT_COMMAND` rather than the fallback. The fallback doesn't change the deploy order: `orders-db` still deploys before the service that references it. A reference to a service that isn't in `serverless-compose.yml`, or one that isn't of the form `<service-name>.<OutputKey>`, is an error even with a fallback.
 
-By default, `${service:<service-name>.<OutputKey>}` reads the target service's outputs **at the stage of the current run**, and deploys that service first. This is ideal when all of your services share a single lifecycle.
+## Referencing a service deployed to a different stage
 
-Stateful services — databases, queues, topics — often have a different lifecycle: they are deployed once to a shared, long-lived stage, while the stateless application services around them are deployed to per-developer personal stages. A **named `service` resolver instance** lets an application service read a shared service's outputs from a fixed stage.
+`${service:<service-name>.<OutputKey>}` reads the referenced service's outputs at the stage of the current run, and deploys that service first. That fits services that share one lifecycle.
 
-A `service` resolver instance is declared under `stages.<stage>.resolvers.<name>`:
+Stateful services (databases, queues, topics) often have their own lifecycle: they are deployed once to a shared, long-lived stage, while the application services around them are deployed to per-developer stages. A named `service` resolver lets an application service read a shared service's outputs from a fixed stage. Available in v4.42.0 and later.
+
+Declare the resolver under `stages.<stage>.resolvers.<name>` in `serverless-compose.yml`, and reference it as `${<name>:<service-name>.<OutputKey>}`:
 
 ```yaml
 # serverless-compose.yml
@@ -200,11 +195,11 @@ services:
       ordersTopicArn: ${shared:orders-db.TopicArn}
 ```
 
-- `shared` is a `service` resolver instance pinned to the stage held in `dataStage`. `${shared:orders-db.TopicArn}` reads the `TopicArn` output of `orders-db` **as deployed to that stage**.
-- The pinned `stage` is optional — omit it to read from the current run's stage (the same behavior as the built-in `${service:...}` form). It accepts a fixed string or a variable such as `${param:...}` or `${opt:...}` — not a service reference, because the stage decides deploy ordering and must be known before the services are ordered. Here `${param:dataStage}` makes `dev` runs read `orders-db@dev` and `prod` runs read `orders-db@prod`.
-- Reading pinned outputs requires the target service to have been deployed to that stage through the Framework; the values come from the shared [State](./state) store.
+- `shared` is a `service` resolver pinned to the stage in the `dataStage` parameter. `${shared:orders-db.TopicArn}` reads the `TopicArn` output of `orders-db` as deployed to that stage: runs of stage `prod` read `orders-db` in `prod`, all other stages read it in `dev`.
+- The resolver's `stage` is optional; without it, the resolver reads the current run's stage, like `${service:...}`. It accepts a fixed string or a variable that resolves before the services are ordered, such as `${param:...}` or `${opt:...}`, but not a service reference.
+- The referenced service must have been deployed to that stage with the Framework; the values come from the [State](./state.md) store.
 
-Consumer services stay ordinary `${param:...}` readers — they don't need to know which stage the value came from:
+The consuming service reads the value as an ordinary parameter, whichever stage it came from:
 
 ```yaml
 # api/serverless.yml
@@ -213,35 +208,38 @@ provider:
     ORDERS_TOPIC_ARN: ${param:ordersTopicArn}
 ```
 
-#### Deploy ordering across stages
+### Deploy order across stages
 
-A `service` reference adds a deploy-ordering edge **only when the stage it reads is the stage of the current run.** This is what lets a single compose file serve two workflows:
+A `service` reference orders the deploy only when the stage it reads is the stage of the current run. One `serverless-compose.yml` then serves two workflows:
 
-- **Bootstrap the whole graph** — `serverless deploy --stage dev`. Here `dataStage` is also `dev`, so `${shared:...}` resolves to the run stage: `orders-db` is deployed before `api` automatically, with no `dependsOn` needed.
-- **Deploy app services to a personal stage** — `serverless deploy --service=api --stage alice`. `dataStage` is still `dev`, so the reference points at a different stage: `orders-db` is **not** deployed. Its `dev` outputs are read and injected into `api`, so the shared data service stays untouched while each developer iterates on the app in their own stage.
+- **Deploy the whole project** with `serverless deploy --stage dev`. `dataStage` is also `dev`, so `${shared:...}` reads the run's stage: `orders-db` deploys before `api`, without `dependsOn`.
+- **Deploy the application to a personal stage** with `serverless deploy --service=api --stage alice`. `dataStage` is still `dev`, so the reference reads another stage: `orders-db` isn't deployed, and its `dev` outputs are passed to `api`.
 
-The built-in `${service:...}` form always reads the run stage, so it always deploys the referenced service first — as in the [Service dependencies and variables](#service-dependencies-and-variables) example above.
+`${service:...}` always reads the run's stage, so it always deploys the referenced service first.
 
-#### Configuration reference
+### Options of the service resolver
 
-| Option  | Required |  Type  | Default           | Description                                                     |
-| ------- | :------: | :----: | ----------------- | --------------------------------------------------------------- |
-| `type`  |   Yes    | String |                   | Must be `service`.                                              |
-| `stage` |    No    | String | Current run stage | The stage whose outputs are read. A fixed string or a variable. |
+A named `service` resolver accepts these options:
 
-The `service` resolver is available in `serverless-compose.yml` only. Declaring a `type: service` resolver in a service's own `serverless.yml` is rejected. To reference the outputs of a CloudFormation stack **outside** your Compose project, use the [`aws:cf` resolver](variables/aws/cf-stack.md).
+| Option  | Required | Type   | Default           | Description                                                     |
+| ------- | -------- | ------ | ----------------- | --------------------------------------------------------------- |
+| `type`  | Yes      | String | No default        | Must be `service`.                                              |
+| `stage` | No       | String | Current run stage | The stage whose outputs are read. A fixed string or a variable. |
 
-#### Command behavior and errors
+The `service` resolver is available in `serverless-compose.yml` only; a `type: service` resolver in a service's own `serverless.yml` is rejected. To read the outputs of a CloudFormation stack outside the Compose project, use the [`cf` variable source](./variables/aws/cf-stack.md).
 
-- `serverless print` shows the resolved value of a `service` reference when the referenced service is deployed at the stage the reference reads, and renders `NOT_AVAILABLE_IN_PRINT_COMMAND` otherwise. Values come from the state of the last deployment, and `print` never fails on a reference it cannot resolve — it is designed to work on projects that have not been deployed yet.
-- `serverless remove` never needs these values.
-- Errors point straight at the fix: an unknown service name lists the valid names; a missing output lists the outputs the service does expose; and when a pinned stage has not been deployed, the message names that stage. Outside `print`, an unresolvable reference fails the run rather than being silently substituted.
+### Errors from service references
 
-### Explicit dependencies
+- `serverless print` shows the value of a `service` reference when the referenced service is deployed at the stage the reference reads, and `NOT_AVAILABLE_IN_PRINT_COMMAND` otherwise, so it works on a project that hasn't been deployed yet.
+- `serverless remove` doesn't need the referenced values.
+- The error messages name the fix: an unknown service name lists the valid names, a missing output lists the outputs the service has, and a pinned stage that hasn't been deployed is named. Outside `print`, a reference that can't be resolved stops the run.
 
-Alternatively, it is possible to specify **explicit dependencies** without variables via the `dependsOn` option. For example:
+## Explicit dependencies
+
+To deploy one service before another without passing a value between them, set `dependsOn` to a service name or a list of names:
 
 ```yaml
+# serverless-compose.yml
 services:
   service-a:
     path: service-a
@@ -260,115 +258,78 @@ services:
       - service-c
 ```
 
-As seen in the above example, it is possible to configure more than one dependency by providing `dependsOn` as a list.
+A `dependsOn` entry that names a service missing from `services` stops the command with `The service "<name>" referenced in "dependsOn" of "<service>" does not exist`. Dependencies that form a cycle stop it with `Your template has circular dependencies:` followed by the cycle.
 
-### Global commands
+## Run a command on all services
 
-On top of `serverless deploy`, the following commands can be run globally across all services:
+In the directory that contains `serverless-compose.yml`, these commands run on every service:
 
-- `serverless info` to view all services info
-- `serverless remove` to remove all services
-- `serverless print` to print all services configuration
-- `serverless package` to package all services
+- `serverless deploy` deploys the services.
+- `serverless info` shows each service's information.
+- `serverless remove` removes the services, a service before the services it depends on.
+- `serverless print` prints each service's resolved configuration.
+- `serverless package` packages the services.
 
-### Service-specific commands
+Compose runs the services in waves: each wave runs, in parallel, the services whose dependencies have finished. When a service fails, the services in the same wave finish, the later waves are skipped, and the command exits with code 1.
 
-It is possible to run commands for a specific service only. For example to deploy only a specific service:
+Options such as `--stage`, `--region` and `--aws-profile` apply to every service. Each service otherwise uses its own `serverless.yml`: its region, its AWS credentials (`provider.profile`, resolvers or a Dashboard [Provider](./dashboard/providers.md)) and its `frameworkVersion` check.
+
+## Run a command on one service
+
+To run any command on one service, including plugin commands, name the service with `--service` or put its name before the command:
 
 ```bash
 serverless deploy --service=service-a
+```
 
-# Shortcut alternative
+```bash
 serverless service-a deploy
 ```
 
-Or tail logs of a single function:
-
 ```bash
-serverless logs --service=service-a --function=index
-
-# Shortcut alternative
 serverless service-a logs --function=index
 ```
-
-All Serverless Framework commands are supported **only via service-specific commands**, including custom commands from plugins, for example:
 
 ```bash
 serverless service-a offline
 ```
 
-### Running a command on a subset of services
+The command runs on that service only. Outputs of services it depends on are read from the [shared state](#shared-state-for-service-outputs), so those services must have been deployed, or the references need a fallback.
 
-`--service` also accepts a comma-separated list, to run a command on several named services at once:
+`serverless service-a deploy` in the Compose directory and `serverless deploy` in `service-a`'s directory differ in the parameters the service receives. Parameters from `serverless-compose.yml` (`services.<name>.params` and `stages.<stage>.params`) are passed only when the command runs through Compose. Parameters from the service's own `serverless.yml`, `--param` or the Dashboard resolve either way. If the service uses Compose parameters, run its commands from the Compose directory.
+
+## Run a command on a subset of services
+
+To run `deploy`, `remove`, `info`, `print` or `package` on several services, pass a comma-separated list to `--service`:
 
 ```bash
 serverless deploy --service=service-a,service-d
 ```
 
-The command runs on **exactly** the services you name, ordered among themselves by their dependencies (`dependsOn` and `${service:...}` references) (so a dependency is deployed before the service that depends on it). Services you don't name are left untouched — they are neither deployed nor removed. Their outputs are still available for `${param:xxx}` resolution when a named service references them, so a subset can depend on services that are already deployed elsewhere.
+The command runs on exactly the services you name, ordered among themselves by their dependencies (`dependsOn` and service references). Services you don't name are neither deployed nor removed. Their outputs are still read from the [shared state](#shared-state-for-service-outputs) when a named service references them, so a subset can depend on services that are already deployed.
 
-This is useful when different services in the project have different lifecycles — for example, deploying the application services to a personal or preview stage while leaving a shared, long-lived service in place:
+Use a subset when services have different lifecycles, for example to deploy the application services to a preview stage and leave a shared service in place:
 
 ```bash
 serverless deploy --service=service-a,service-d --stage my-feature
 ```
 
-The same list works with `remove`, `info`, `print`, and `package`.
+Other commands run on one service at a time and stop with an error when given a list. When the shared service lives in a fixed stage rather than the one you deploy to, pin the reference with a named `service` resolver; see [Referencing a service deployed to a different stage](#referencing-a-service-deployed-to-a-different-stage).
 
-When the shared service lives in a fixed stage rather than the one you're deploying to, pin the reference with a named `service` resolver instead — see [Referencing a service deployed to a different stage](#referencing-a-service-deployed-to-a-different-stage).
+## Stage parameters for all services
 
-### Service-specific commands when using parameters
+To give every service the same parameters per stage, set them under `stages` in `serverless-compose.yml`. `default` applies to all stages:
 
-The `serverless service-a deploy` command is the equivalent of running `serverless deploy` in service-a's directory. Both can be used.
-
-However, if "service-a" uses `${param:xxx}` to reference parameters injected by `serverless-compose.yml`, then `serverless service-a deploy` must be used. Indeed, `${param:xxx}` cannot be resolved outside of Serverless Framework Compose.
-
-In these cases, you must run all commands from the root: `serverless service-a deploy`.
-
-## Shared State
-
-With the introduction of shared [State](./state), collaboration across teams deploying multiple services has been significantly improved.
-In earlier versions of Serverless Framework Compose, local state management was used, which had several limitations,
-especially when multiple people or CI/CD systems deployed services independently.
-
-### Key benefits of shared State:
-
-- **Improved collaboration:** Outputs are always in sync, ensuring that different team members working on different services can collaborate seamlessly. When one person deploys a service, the outputs are immediately available and consistent for everyone else.
-- **No need for output synchronization commands:** Previously, local state required manual commands like `serverless outputs`
-  and `serverless refresh-outputs` to synchronize outputs across services.
-  These commands have been deprecated because the shared State handles this automatically, keeping everything in sync in real time.
-
-### Deprecated local state
-
-The older versions of Compose relied on local state, which has now been deprecated and replaced by shared State.
-This deprecation removes the need for manual refreshes, streamlining the deployment and orchestration
-process across multiple services.
-
-For more information about shared State, please refer to [the State documentation](./state).
-
-## Configuration
-
-All Variable Resolvers are supported in `serverless-compose.yml`. For example, you can use SSM Parameters, Secrets Manager, or custom variables.
-
-For more information, see the [Variable Resolvers documentation](variables).
-
-In addition, `serverless-compose.yml` provides the `service` resolver for wiring outputs between the services in your project — see [Service dependencies and variables](#service-dependencies-and-variables).
-
-## Stage-specific configuration
-
-You can specify stage-specific configurations using the `stages` block, similar to how it's done in `serverless.yml`. Your composed services can then reference those variables in their `serverless.yml` files using the `${param:<key>}` variable, without needing to explicitly pass them as parameters in `serverless-compose.yml`.
-
-Here’s an example:
-
-```yml
+```yaml
 # serverless-compose.yml
 stages:
   dev:
     params:
-      STRIPE_API_KEY: 'stripe-api-dev-key'
+      STRIPE_API_KEY: ${ssm:/my-app/dev/stripe-api-key}
   prod:
     params:
-      STRIPE_API_KEY: 'stripe-api-prod-key'
+      STRIPE_API_KEY: ${ssm:/my-app/prod/stripe-api-key}
+
 services:
   service-a:
     path: service-a
@@ -376,69 +337,70 @@ services:
     path: service-b
 ```
 
-The `STRIPE_API_KEY` param will be resolved based on the stage you're deploying to and will automatically be available for both services to reference in their `serverless.yml` files:
+Each service reads the value for the stage it is deployed to:
 
-```yml
-# serverless.yml (for both service-a and service-b)
+```yaml
+# service-a/serverless.yml and service-b/serverless.yml
 functions:
   hello:
+    handler: handler.hello
     environment:
-      STRIPE_API_KEY: ${param:STRIPE_API_KEY} # Resolves to "stripe-api-dev-key" in dev and "stripe-api-prod-key" in prod
+      STRIPE_API_KEY: ${param:STRIPE_API_KEY}
 ```
 
-## Passing params to indvidual services
+Parameters passed by Compose are the last source a service checks: a parameter of the same name in the service's own `serverless.yml`, in `--param` or in the Dashboard wins. See [Parameters](./parameters.md#inheritance-and-overriding).
 
-The `stages` block mentioned earlier makes stage parameters available to all services. However, if you need to pass parameters to individual services that aren't outputs from other services, you can define them directly in the `params` section of the specific service:
+## Pass parameters to one service
 
-```yml
+To pass parameters to one service only, set them in that service's `params`. A key in `services.<name>.params` overrides a `stages` parameter of the same name for that service:
+
+```yaml
+# serverless-compose.yml
 services:
   service-a:
     path: service-a
     params:
-      user: ${env:USER} # You can also use environment variables here, as shown above.
-      description: 'This is a hard-coded description that you can pass to your service.'
+      user: ${env:USER}
+      description: 'A description passed to service-a'
 ```
 
-In the serverless.yml file of service-a, you can reference these parameters like this:
-
-```yml
+```yaml
 # service-a/serverless.yml
 functions:
   hello:
+    handler: handler.hello
     environment:
       USER: ${param:user}
       DESCRIPTION: ${param:description}
 ```
 
-### Differences with `serverless.yml`
+## Shared state for service outputs
 
-The `serverless-compose.yml` and `serverless.yml` files have different syntaxes and features.
+Compose stores each service's outputs in a shared State store, an Amazon S3 bucket, so that service references and single-service commands read them on any machine. `deploy`, `info` and `remove` update a service's stored outputs; `remove` clears them. Compose reads and writes the State with the AWS credentials of the Compose project. For the bucket, its permissions and a custom bucket, see [State](./state.md).
 
-Unless documented here, expect `serverless.yml` features to not be supported in `serverless-compose.yml`.
-For example, it is not possible to include plugins inside `serverless-compose.yml`.
+## Remove services
 
-You can [open feature requests](https://github.com/serverless/serverless) if you need features that aren't supported in `serverless-compose.yml`.
+**Warning:** `serverless remove` deletes each service's CloudFormation stack and the resources in it, including stateful resources, unless they have a `DeletionPolicy` of `Retain`.
 
-## Removing services
+To remove the whole project, run `serverless remove` in the directory that contains `serverless-compose.yml`. Compose runs [`serverless remove`](../providers/aws/cli-reference/remove.md) for each service, removing a service before the services it depends on.
 
-To delete the whole project (and all its services), run `serverless remove` in the same directory as `serverless-compose.yml`. This will run [`serverless remove`](../providers/aws/cli-reference/remove.md) in each service directory.
+To remove one service from the project:
 
-To delete only one service:
+1. Check that no other service references it with a service reference or `dependsOn`; those services would stop resolving its outputs.
+2. Run `serverless <service-name> remove`, once for each stage you deployed it to.
+3. Delete the service's entry from `serverless-compose.yml`.
 
-1. make sure no other service depends on it (else these services will be broken)
-2. run `serverless <service-name> remove`
-3. then remove the service from `serverless-compose.yml`
+A service you delete from `serverless-compose.yml` without running step 2 stays deployed in your AWS account.
 
-If you remove the service from `serverless-compose.yml` without doing step 1 first, the service will still be deployed in your AWS account.
+## Deploy services to different regions
 
-Remember to do this for every stage you may have previously deployed.
+Each service deploys to the region in its own `serverless.yml` (`provider.region`), so services in one Compose project can deploy to different regions, for example `frontend` to `us-east-1` and `backend` to `eu-west-3`. `--region` on a Compose command applies to every service.
 
-## FAQ
+Compose deploys each service entry once per run. To deploy the same service to several regions, run a command per region (`serverless deploy --region eu-west-3`): two entries that point at the same `path` would build into the same `.serverless/` directory in parallel and overwrite each other's package.
 
-### Multi-region deployments
+## Related
 
-> Is multi-region deployment possible via Compose?
-
-It is possible to deploy different services to different regions. For example, deploy service `frontend` to us-east-1 and service `backend` to eu-west-3.
-
-However, Compose currently does not support deploying _the same service_ to multiple regions. The reason is that each service is packaged in the `.serverless/` directory. If the same service was to be deployed in parallel to different regions, package artifacts would conflict and overwrite each others.
+- [Parameters](./parameters.md): every source of `${param:...}` values and their precedence.
+- [State](./state.md): where Compose stores service outputs.
+- [Variables](./variables/README.md): the variable sources available in `serverless-compose.yml` and `serverless.yml`.
+- [AWS SAM and CloudFormation](./sam.md): SAM and CloudFormation projects in Compose.

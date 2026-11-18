@@ -1,21 +1,14 @@
 <!--
-title: Serverless Framework - AWS Lambda Events - Kinesis & DynamoDB Streams
-description: Setting up AWS Kinesis Streams and AWS DynamoDB Streams Events with AWS Lambda via the Serverless Framework
-short_title: AWS Lambda Event - Kinesis & DynamoDB Streams
+title: DynamoDB and Kinesis Stream Events
+description: 'Trigger a Lambda function from DynamoDB Streams or Kinesis Data Streams with the stream event: batching, retries, filters and enhanced fan-out.'
+short_title: DynamoDB and Kinesis Streams
 keywords:
   [
-    'Serverless',
-    'Framework',
-    'AWS',
-    'Lambda',
-    'Events',
-    'AWS Kinesis Streams',
-    'AWS DynamoDB Streams',
-    'Serverless AWS Lambda Kinesis',
-    'Serverless AWS Lambda DynamoDB',
-    'AWS Lambda Event Sources',
-    'AWS Kinesis Lambda Trigger',
-    'AWS DynamoDB Lambda Trigger',
+    'Serverless Framework',
+    'AWS Lambda DynamoDB Streams trigger',
+    'AWS Lambda Kinesis trigger',
+    'stream event source mapping',
+    'Kinesis enhanced fan-out',
   ]
 -->
 
@@ -25,357 +18,351 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# DynamoDB / Kinesis Streams
+# DynamoDB and Kinesis Stream Events
 
-This setup specifies that the `compute` function should be triggered whenever:
+The `stream` event triggers a Lambda function with records from an Amazon DynamoDB stream or an Amazon Kinesis data stream. The Framework creates the Lambda event source mapping: Lambda reads each shard in order and invokes the function with batches of records. The `stream` event doesn't create the stream: reference an existing one, or declare it in `resources` as in the following example.
 
-1. the corresponding [DynamoDB](https://serverless.com/dynamodb/) table is modified (e.g. a new entry is added).
-2. the Lambda checkpoint has not reached the end of the Kinesis stream (e.g. a new record is added).
+This `serverless.yml` creates a DynamoDB table with a stream, and a `compute` function that receives every change to the table:
 
-The ARN for the stream can be specified as a string, the reference to the ARN of a resource by logical ID, or the import of an ARN that was exported by a different service or CloudFormation stack.
+```yaml
+# serverless.yml
+service: my-service
 
-**Note:** The `stream` event will hook up your existing streams to a Lambda function. Serverless won't create a new stream for you.
+provider:
+  name: aws
+  runtime: nodejs24.x
 
-```yml
 functions:
   compute:
     handler: handler.compute
     events:
-      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
       - stream:
           type: dynamodb
-          arn:
-            Fn::GetAtt: [MyDynamoDbTable, StreamArn]
-      - stream:
-          type: dynamodb
-          arn:
-            Fn::ImportValue: MyExportedDynamoDbStreamArnId
-      - stream:
-          type: kinesis
-          arn:
-            Fn::GetAtt:
-              - MyKinesisStream
-              - Arn
-      - stream:
-          type: kinesis
-          arn:
-            Fn::ImportValue: MyExportedKinesisStreamArnId
-      - stream:
-          type: dynamodb
-          arn:
-            Ref: MyDynamoDbTableStreamArn
-      - stream:
-          type: kinesis
-          arn:
-            Fn::Join:
-              - ':'
-              - - arn
-                - aws
-                - kinesis
-                - Ref: AWS::Region
-                - Ref: AWS::AccountId
-                - stream/MyOtherKinesisStream
-      - stream:
-          type: kinesis
-          arn: arn:aws:kinesis:region:XXXXXX:stream/foobar
-          consumer: true
-      - stream:
-          type: kinesis
-          arn: arn:aws:kinesis:region:XXXXXX:stream/foobar
-          consumer: preExistingName
+          arn: !GetAtt MyTable.StreamArn
+
+resources:
+  Resources:
+    MyTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
 ```
 
-## Setting the BatchSize and StartingPosition
+The handler receives the changes in `event.Records`:
 
-This configuration sets up a disabled Kinesis stream event for the `preprocess` function which has a batch size of `100`. The starting position is
-`LATEST`.
+```javascript
+// handler.mjs
+export const compute = async (event) => {
+  for (const record of event.Records) {
+    console.log(
+      record.eventName,
+      record.dynamodb.Keys,
+      record.dynamodb.NewImage,
+    )
+  }
+}
+```
 
-```yml
+A DynamoDB table needs `StreamSpecification` to have a stream. The stream and the function must be in the same AWS Region.
+
+## Stream ARN formats
+
+The `stream` event takes the stream ARN as a string, or as an object with an `arn` key. With a literal ARN, the Framework reads the stream type, `dynamodb` or `kinesis`, from the ARN. With a CloudFormation intrinsic function, set `type` too:
+
+```yaml
+functions:
+  compute:
+    handler: handler.compute
+    events:
+      # Literal ARNs
+      - stream: arn:aws:dynamodb:us-east-1:123456789012:table/foo/stream/1970-01-01T00:00:00.000
+      - stream: arn:aws:kinesis:us-east-1:123456789012:stream/foo
+      # A table or stream declared in this service's resources
+      - stream:
+          type: dynamodb
+          arn: !GetAtt MyDynamoDbTable.StreamArn
+      - stream:
+          type: kinesis
+          arn: !GetAtt MyKinesisStream.Arn
+      # An ARN exported by another CloudFormation stack
+      - stream:
+          type: kinesis
+          arn: !ImportValue MyExportedKinesisStreamArn
+      # A template parameter that holds the ARN
+      - stream:
+          type: dynamodb
+          arn: !Ref MyDynamoDbTableStreamArn
+      # An ARN built from the stack's Region and account
+      - stream:
+          type: kinesis
+          arn: !Join
+            - ':'
+            - - arn:aws:kinesis
+              - !Ref AWS::Region
+              - !Ref AWS::AccountId
+              - stream/MyOtherKinesisStream
+```
+
+The Framework derives the event source mapping's logical ID from the stream name, which it reads from the ARN string or from the intrinsic function: the resource name in `Fn::GetAtt`, the export name in `Fn::ImportValue`, the parameter in `Ref`, or the last element of `Fn::Join`. Use one of these forms for `arn`.
+
+## Batch size, batching window and starting position
+
+The `stream` event's `batchSize` sets the largest number of records in one invocation, `batchWindow` sets how many seconds Lambda gathers records before it invokes the function, and `startingPosition` sets where Lambda starts reading a new event source mapping:
+
+```yaml
 functions:
   preprocess:
     handler: handler.preprocess
     events:
       - stream:
-          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
+          arn: arn:aws:kinesis:us-east-1:123456789012:stream/foo
           batchSize: 100
+          batchWindow: 10
           startingPosition: LATEST
-          maximumRetryAttempts: 10
-          enabled: false
 ```
 
-### Setting the Kinesis StartingPosition
+- `batchSize`: integer, `1` to `10000`. The Framework sets `10` when it is omitted; AWS's own default is `100`.
+- `batchWindow`: integer, `0` to `300` seconds. When it isn't set, AWS uses `0`.
+- `startingPosition`: `TRIM_HORIZON` (the default, the oldest available record), `LATEST` (only new records) or `AT_TIMESTAMP` (Kinesis only, with `startingPositionTimestamp`). DynamoDB streams accept `TRIM_HORIZON` and `LATEST`.
 
-This configuration sets up a disabled Kinesis stream event for the `preprocess` function. The starting position is
-`AT_TIMESTAMP` and the timestamp value is `1000000001`.
+Lambda invokes the function when the batch is full, when the batching window ends, or when the batch reaches the 6 MB invocation payload limit, whichever comes first.
 
-```yml
+To start reading a Kinesis stream from a point in time, set `startingPosition: AT_TIMESTAMP` and `startingPositionTimestamp` in Unix time seconds. This works with or without an [enhanced fan-out consumer](#kinesis-enhanced-fan-out-consumers). The Framework stops packaging when an event sets `AT_TIMESTAMP` without `startingPositionTimestamp`:
+
+```yaml
 functions:
   preprocess:
     handler: handler.preprocess
     events:
       - stream:
-          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
+          arn: arn:aws:kinesis:us-east-1:123456789012:stream/foo
           startingPosition: AT_TIMESTAMP
           startingPositionTimestamp: 1000000001
+```
+
+## Retries and failed records
+
+By default, when the function returns an error, Lambda retries the whole batch until it succeeds or the records expire from the stream, and the shard waits meanwhile. These keys of the `stream` event limit the retries and keep the failed records:
+
+```yaml
+functions:
+  preprocess:
+    handler: handler.preprocess
+    events:
+      - stream:
+          arn: arn:aws:kinesis:us-east-1:123456789012:stream/foo
           maximumRetryAttempts: 10
-          enabled: false
-```
-
-## Setting the BatchWindow
-
-The configuration below sets up a Kinesis stream event for the `preprocess` function which has a batch window of `10`.
-
-The `batchWindow` property specifies a maximum amount of time to wait before triggering a Lambda invocation with a batch of records. Your Lambda function will be invoked when one of the following three things happens:
-
-1. The total payload size reaches 6MB;
-
-2. The `batchWindow` reaches its maximum value; or
-
-3. the `batchSize` reaches it maximum value.
-
-For more information, read the [AWS release announcement](https://aws.amazon.com/about-aws/whats-new/2019/09/aws-lambda-now-supports-custom-batch-window-for-kinesis-and-dynamodb-event-sources/) for this property.
-
-```yml
-functions:
-  preprocess:
-    handler: handler.preprocess
-    events:
-      - stream:
-          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
-          batchWindow: 10
-```
-
-## Setting BisectBatchOnFunctionError
-
-This configuration provides the ability to recursively split a failed batch and retry on a smaller subset of records, eventually isolating the metadata causing the error.
-
-**Note:** Serverless only sets this property if you explicitly add it to the stream configuration (see example below).
-
-[Related AWS documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-bisectbatchonfunctionerror)
-
-```yml
-functions:
-  preprocess:
-    handler: handler.preprocess
-    events:
-      - stream:
-          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
+          maximumRecordAgeInSeconds: 3600
           bisectBatchOnFunctionError: true
-```
-
-## Setting the MaximumRetryAttempts
-
-This configuration sets up the maximum number of times to retry when the function returns an error.
-
-**Note:** Serverless only sets this property if you explicitly add it to the stream configuration (see example below).
-
-[Related AWS documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-maximumretryattempts)
-
-```yml
-functions:
-  preprocess:
-    handler: handler.preprocess
-    events:
-      - stream:
-          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
-          batchSize: 100
-          maximumRetryAttempts: 10
-          startingPosition: LATEST
-          enabled: false
-```
-
-## Setting the MaximumRecordAgeInSeconds
-
-This configuration sets up the maximum age of a record that Lambda sends to a function for processing.
-
-**Note:** Serverless only sets this property if you explicitly add it to the stream configuration (see example below).
-
-[Related AWS documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-maximumrecordageinseconds)
-
-```yml
-functions:
-  preprocess:
-    handler: handler.preprocess
-    events:
-      - stream:
-          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
-          maximumRecordAgeInSeconds: 120
-```
-
-## Setting the OnFailure destination
-
-This configuration sets up the onFailure location for events to be sent to once it has reached the maximum number of times to retry when the function returns an error.
-
-**Note:** Serverless only sets this property if you explicitly add it to the stream configuration (see example below).
-
-[Related AWS documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-destinationconfig)
-
-The ARN for the SNS or SQS can be specified as a string, the reference to the ARN of a resource by logical ID, or the import of an ARN that was exported by a different service or CloudFormation stack.
-
-**Note:** The `destinationConfig` will hook up your existing SNS or SQS resources. Serverless won't create a new SNS or SQS for you.
-
-```yml
-functions:
-  preprocess1:
-    handler: handler.preprocess
-    events:
-      - stream:
-          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
-          batchSize: 100
-          maximumRetryAttempts: 10
-          startingPosition: LATEST
-          enabled: false
           destinations:
-            onFailure: arn:aws:sqs:region:XXXXXX:queue
+            onFailure: arn:aws:sqs:us-east-1:123456789012:failed-records
+```
 
-  preprocess2:
+- `maximumRetryAttempts`: integer, `-1` to `10000`. When it isn't set, AWS uses `-1`, which retries until the record expires.
+- `maximumRecordAgeInSeconds`: `-1`, or an integer from `60` to `604800`. When it isn't set, AWS uses `-1`, which doesn't discard records by age.
+- `bisectBatchOnFunctionError`: boolean. `true` splits a failing batch in two and retries each half, to isolate the failing record.
+- `destinations.onFailure`: an SQS queue or SNS topic that receives a record describing each batch Lambda discards. The Framework doesn't create the queue or topic.
+
+The Framework sets each of these keys only when it is present. `destinations.onFailure` takes an ARN string, or an object with `arn` and `type` (`sqs` or `sns`). With a CloudFormation intrinsic function as `arn`, `type` is required:
+
+```yaml
+functions:
+  preprocess:
     handler: handler.preprocess
     events:
       - stream:
-          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
-          batchSize: 100
+          arn: arn:aws:kinesis:us-east-1:123456789012:stream/foo
           maximumRetryAttempts: 10
-          startingPosition: LATEST
-          enabled: false
           destinations:
             onFailure:
-              arn:
-                Fn::GetAtt:
-                  - MyQueue
-                  - Arn
+              arn: !GetAtt FailedRecordsQueue.Arn
               type: sqs
-
-  preprocess3:
-    handler: handler.preprocess
-    events:
-      - stream:
-          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
-          batchSize: 100
-          maximumRetryAttempts: 10
-          startingPosition: LATEST
-          enabled: false
-          destinations:
-            onFailure:
-              arn:
-                Fn::Join:
-                  - ':'
-                  - - arn
-                    - aws
-                    - kinesis
-                    - Ref: AWS::Region
-                    - Ref: AWS::AccountId
-                    - mySnsTopic
-              type: sns
 ```
 
-## Setting the ParallelizationFactor
+See [Retaining discarded batches for a Kinesis event source](https://docs.aws.amazon.com/lambda/latest/dg/kinesis-on-failure-destination.html) and [Error handling for DynamoDB event sources](https://docs.aws.amazon.com/lambda/latest/dg/services-dynamodb-errors.html).
 
-The configuration below sets up a Kinesis stream event for the `preprocess` function which has a parallelization factor of 10 (default is 1).
+## Partial batch failures
 
-The `parallelizationFactor` property specifies the number of concurrent Lambda invocations for each shard of the Kinesis Stream.
+To retry only from the first failed record instead of the whole batch, set the `stream` event's `functionResponseType` to `ReportBatchItemFailures`:
 
-For more information, read the [AWS release announcement](https://aws.amazon.com/blogs/compute/new-aws-lambda-scaling-controls-for-kinesis-and-dynamodb-event-sources/) for this property.
-
-```yml
+```yaml
 functions:
   preprocess:
     handler: handler.preprocess
     events:
       - stream:
-          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
-          parallelizationFactor: 10
-```
-
-## Setting the FunctionResponseTypes
-
-This configuration allows customers to automatically checkpoint records that have been successfully processed for Amazon Kinesis and Amazon DynamoDB Streams.
-
-For more information, read the [AWS release announcement](https://aws.amazon.com/about-aws/whats-new/2020/12/aws-lambda-launches-checkpointing-for-amazon-kinesis-and-amazon-dynamodb-streams/)
-
-```yml
-functions:
-  preprocess:
-    handler: handler.preprocess
-    events:
-      - stream:
-          arn: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
+          arn: arn:aws:dynamodb:us-east-1:123456789012:table/foo/stream/1970-01-01T00:00:00.000
           functionResponseType: ReportBatchItemFailures
 ```
 
-## Using a Kinesis Data Streams Enhanced Fan-out
+The handler returns the sequence number of the first record it couldn't process in `batchItemFailures`. Lambda checkpoints the records before it and retries from that record:
 
-This configuration controls the optional usage of Kinesis data streams enhanced fan-out. It can only be used for Kinesis data stream events.
+```javascript
+// handler.mjs
+export const preprocess = async (event) => {
+  for (const record of event.Records) {
+    try {
+      await processRecord(record)
+    } catch (error) {
+      const sequenceNumber =
+        record.dynamodb?.SequenceNumber ?? record.kinesis?.sequenceNumber
+      return { batchItemFailures: [{ itemIdentifier: sequenceNumber }] }
+    }
+  }
+  return { batchItemFailures: [] }
+}
 
-The `consumer` property can be used to put a [stream consumer](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kinesis-streamconsumer.html) between your function's [event source mapping](https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventsourcemapping.html) and the stream it consumes.
+const processRecord = async (record) => {
+  console.log(record.eventID)
+}
+```
 
-The configuration below creates a new stream consumer.
+`ReportBatchItemFailures` is the only allowed value. See [Configuring partial batch response with Kinesis](https://docs.aws.amazon.com/lambda/latest/dg/services-kinesis-batchfailurereporting.html) and [with DynamoDB](https://docs.aws.amazon.com/lambda/latest/dg/services-ddb-batchfailurereporting.html).
 
-```yml
+## Parallelization factor
+
+The `stream` event's `parallelizationFactor` sets how many batches from each shard Lambda processes at the same time, from `1` (the default) to `10`. Records with the same partition key stay in order:
+
+```yaml
 functions:
   preprocess:
     handler: handler.preprocess
     events:
       - stream:
-          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
-          consumer: true
+          arn: arn:aws:kinesis:us-east-1:123456789012:stream/foo
+          parallelizationFactor: 10
 ```
 
-The configuration below uses the pre-existing stream consumer with the given ARN.
+## Filter patterns
 
-**Note:** When you register a consumer, Kinesis Data Streams generates an ARN for it.
-If you delete a consumer and then create a new one with the same name, it won't have the same ARN.
-That's because consumer ARNs contain the creation timestamp.
+The `stream` event's `filterPatterns` lists event filter patterns. Lambda invokes the function only with records that match at least one pattern; it skips the other records, and the stream keeps them until they expire. This mapping receives only inserted items:
 
-```yml
+```yaml
 functions:
-  preprocess:
+  handleInsertedItem:
     handler: handler.preprocess
     events:
       - stream:
-          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
-          consumer: arn:aws:kinesis:region:XXXXXX:stream/foo/consumer/foobar:1558544531
-```
-
-For more information, read this [AWS blog post](https://aws.amazon.com/blogs/compute/increasing-real-time-stream-processing-performance-with-amazon-kinesis-data-streams-enhanced-fan-out-and-aws-lambda/) or this [AWS documentation](https://docs.aws.amazon.com/streams/latest/dev/introduction-to-enhanced-consumers.html).
-
-## Setting TumblingWindowInSeconds
-
-This configuration allows customers to aggregate values in near-realtime, allowing state to by passed forward by Lambda invocations. A event source created with this property adds several new attributes to the events delivered to the Lambda function.
-
-- **window**: beginning and ending timestamps of the tumbling window;
-- **state**: an object containing state of a previous execution. Initially empty can contain up to **1mb** of data;
-- **isFinalInvokeForWindow**: indicates if this is the last execution for the tumbling window;
-- **isWindowTerminatedEarly**: happens only when the state object exceeds maximum allowed size of 1mb.
-
-For more information and examples, read the [AWS release announcement](https://aws.amazon.com/blogs/compute/using-aws-lambda-for-streaming-analytics/)
-
-Note: Serverless only sets this property if you explicitly add it to the stream configuration (see example below).
-
-```yml
-functions:
-  preprocess:
-    handler: handler.preprocess
-    events:
-      - stream:
-          arn: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
-          tumblingWindowInSeconds: 30
-```
-
-## Setting filter patterns
-
-This configuration allows customers to filter event before lambda invocation. It accepts up to 5 filter patterns by default and up to 10 with quota extension. If one event matches at least 1 pattern, lambda will process it.
-
-For more details and examples of filter patterns, please see the [AWS event filtering documentation](https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventfiltering.html)
-
-Note: Serverless only sets this property if you explicitly add it to the stream configuration (see an example below). The following example will only process inserted items in the DynamoDB table (it will skip removed and modified items).
-
-```yml
-functions:
-  handleInsertedDynamoDBItem:
-    handler: handler.preprocess
-    events:
-      - stream:
-          arn: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
+          arn: arn:aws:dynamodb:us-east-1:123456789012:table/foo/stream/1970-01-01T00:00:00.000
           filterPatterns:
             - eventName: [INSERT]
 ```
+
+- `filterPatterns`: a list of 1 to 10 pattern objects. AWS accepts 5 filters per event source mapping by default; the quota can be raised to 10.
+- A DynamoDB pattern matches the record's fields, such as `eventName` or `dynamodb.NewImage`. A Kinesis pattern matches the record's metadata, such as `partitionKey`, or the payload under `data` when the payload is JSON.
+
+See [Using event filtering with a DynamoDB event source](https://docs.aws.amazon.com/lambda/latest/dg/with-ddb-filtering.html) and [with a Kinesis event source](https://docs.aws.amazon.com/lambda/latest/dg/with-kinesis-filtering.html).
+
+## Tumbling windows
+
+The `stream` event's `tumblingWindowInSeconds` groups records into windows of `0` to `900` seconds and passes a `state` object from one invocation to the next within a window, so the function can aggregate values:
+
+```yaml
+functions:
+  aggregate:
+    handler: handler.aggregate
+    events:
+      - stream:
+          arn: arn:aws:dynamodb:us-east-1:123456789012:table/foo/stream/1970-01-01T00:00:00.000
+          tumblingWindowInSeconds: 30
+```
+
+With a tumbling window, the event carries these fields in addition to `Records`:
+
+- `window`: the start and end timestamps of the window.
+- `state`: the object the previous invocation in the window returned, empty at the start of a window, up to 1 MB.
+- `isFinalInvokeForWindow`: `true` for the last invocation of the window.
+- `isWindowTerminatedEarly`: `true` when the window ended early because `state` passed 1 MB.
+
+The handler returns `{ state }` to pass the state on. See [Using tumbling windows](https://docs.aws.amazon.com/lambda/latest/dg/services-kinesis-windows.html).
+
+## Kinesis enhanced fan-out consumers
+
+The `stream` event's `consumer` reads a Kinesis stream through an [enhanced fan-out](https://docs.aws.amazon.com/streams/latest/dev/enhanced-consumers.html) stream consumer, which gives the function its own read throughput per shard. `consumer: true` creates a consumer:
+
+```yaml
+functions:
+  preprocess:
+    handler: handler.preprocess
+    events:
+      - stream:
+          arn: arn:aws:kinesis:us-east-1:123456789012:stream/foo
+          consumer: true
+```
+
+The Framework names the consumer `<function key><stream name>Consumer`. With `provider.kinesis.consumerNamingMode: serviceSpecific`, the name adds the service and stage, `<function key><stream name><service><stage>Consumer`, so several services or stages can read the same stream. Changing the naming mode replaces the consumer.
+
+To use a consumer that already exists, set `consumer` to its ARN. A consumer's ARN contains its creation timestamp, so a consumer deleted and created again with the same name has a different ARN:
+
+```yaml
+functions:
+  preprocess:
+    handler: handler.preprocess
+    events:
+      - stream:
+          arn: arn:aws:kinesis:us-east-1:123456789012:stream/foo
+          consumer: arn:aws:kinesis:us-east-1:123456789012:stream/foo/consumer/foobar:1558544531
+```
+
+## Turn off a stream trigger
+
+To keep the event source mapping but stop Lambda from reading the stream, set the `stream` event's `enabled` to `false`:
+
+```yaml
+functions:
+  preprocess:
+    handler: handler.preprocess
+    events:
+      - stream:
+          arn: arn:aws:kinesis:us-east-1:123456789012:stream/foo
+          enabled: false
+```
+
+## `stream` event options
+
+The object form of the `stream` event accepts these keys:
+
+| Key                          | Type                            | Default                    | Allowed values                                                                              |
+| ---------------------------- | ------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------- |
+| `arn`                        | ARN string or intrinsic         | Required                   | The stream ARN, or `Fn::GetAtt`, `Fn::ImportValue`, `Ref` or `Fn::Join` that resolves to it |
+| `type`                       | String                          | Read from a literal ARN    | `dynamodb`, `kinesis`; required with an intrinsic `arn`                                     |
+| `batchSize`                  | Integer                         | `10`                       | `1` to `10000`                                                                              |
+| `batchWindow`                | Integer (seconds)               | Not set (AWS uses `0`)     | `0` to `300`                                                                                |
+| `startingPosition`           | String                          | `TRIM_HORIZON`             | `TRIM_HORIZON`, `LATEST`, `AT_TIMESTAMP` (Kinesis only)                                     |
+| `startingPositionTimestamp`  | Number (Unix seconds)           | Not set                    | Required with `AT_TIMESTAMP`                                                                |
+| `enabled`                    | Boolean                         | `true`                     | `true`, `false`                                                                             |
+| `parallelizationFactor`      | Integer                         | Not set (AWS uses `1`)     | `1` to `10`                                                                                 |
+| `maximumRetryAttempts`       | Integer                         | Not set (AWS uses `-1`)    | `-1` to `10000`                                                                             |
+| `maximumRecordAgeInSeconds`  | Integer                         | Not set (AWS uses `-1`)    | `-1`, or `60` to `604800`                                                                   |
+| `bisectBatchOnFunctionError` | Boolean                         | Not set (AWS uses `false`) | `true`, `false`                                                                             |
+| `destinations.onFailure`     | ARN string, or `arn` and `type` | Not set                    | An SQS queue or SNS topic ARN; `type` is `sqs` or `sns`                                     |
+| `functionResponseType`       | String                          | Not set                    | `ReportBatchItemFailures`                                                                   |
+| `filterPatterns`             | List of objects                 | Not set                    | 1 to 10 patterns                                                                            |
+| `tumblingWindowInSeconds`    | Integer (seconds)               | Not set                    | `0` to `900`                                                                                |
+| `consumer`                   | `true` or ARN                   | Not set                    | `true` creates a consumer; an ARN uses an existing one (Kinesis only)                       |
+
+## IAM permissions for stream events
+
+The Framework adds these permissions on each stream to the execution role it generates (the service's shared role, or each function's role with `provider.iam.role.mode: perFunction`). When the function uses a role of your own, set in `provider.iam.role` as an ARN, in `provider.role` or in the function's `role`, add them to that role:
+
+- DynamoDB stream: `dynamodb:GetRecords`, `dynamodb:GetShardIterator`, `dynamodb:DescribeStream` and `dynamodb:ListStreams`.
+- Kinesis stream: `kinesis:GetRecords`, `kinesis:GetShardIterator`, `kinesis:DescribeStream` and `kinesis:ListStreams`.
+- Kinesis stream with `consumer`: `kinesis:GetRecords`, `kinesis:GetShardIterator`, `kinesis:DescribeStreamSummary` and `kinesis:ListShards` on the stream, and `kinesis:SubscribeToShard` on the consumer.
+- `destinations.onFailure`: `sqs:ListQueues` and `sqs:SendMessage` on a queue, or `sns:Publish` on a topic.
+
+For a stream encrypted with a customer managed AWS KMS key, add `kms:Decrypt` on that key to `provider.iam.role.statements`. See [IAM permissions](../guide/iam.md).
+
+## Related
+
+- [SQS queue events](./sqs.md), for queue-based processing without shard ordering
+- [`serverless.yml` reference: Streams](../guide/serverless.yml.md#streams)
+- [Using Lambda with Kinesis Data Streams](https://docs.aws.amazon.com/lambda/latest/dg/with-kinesis.html)
+- [Using Lambda with DynamoDB](https://docs.aws.amazon.com/lambda/latest/dg/with-ddb.html)

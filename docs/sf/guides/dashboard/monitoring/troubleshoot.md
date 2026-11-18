@@ -1,128 +1,153 @@
 <!--
-title: Serverless Framework - Monitoring & Observability - Troubleshoot
-description: Troubleshooting steps for integration and instrumentation issues in Serverless Framework Dashboard.
-short_title: Serverless Dashboard Observability - Troubleshoot
-keywords:
-  [
-    'Serverless Framework',
-    'Monitoring',
-    'Observability',
-    'Troubleshoot',
-    'Integration',
-    'Instrumentation',
-  ]
+title: Troubleshoot Dashboard Observability
+description: Find out why Lambda metrics or traces are missing in the Serverless Framework Dashboard, and fix integration and instrumentation errors.
+short_title: Troubleshooting
+keywords: ['Serverless Framework', 'Dashboard', 'Observability', 'Troubleshoot', 'Integration', 'Instrumentation', 'missing traces']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/monitoring/trace-explorer/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/dashboard/monitoring/troubleshoot)
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Troubleshoot Integration And Instrumentation Issues
+# Troubleshoot Dashboard observability
 
-Serverless Framework seeks to automate all aspects of integrating into AWS accounts and instrumenting your AWS Lambda functions, saving you time and effort required when doing this manually. However, this can be a complex operation depending on how your AWS accounts and functions are configured, as well as what other tools you might have installed.
+When metrics or traces of a Lambda function are missing in the Serverless Framework Dashboard, the cause is in one of three places: the AWS account integration, the instrumentation of the function, or the SDK at run time. Check them in this order:
 
-If you do not see Metrics or Traces within Serverless Framework Dashboard, or these are missing for some AWS Lambda functions, here is a runbook with ordered steps that will help you debug issues. Please try this before reaching out to support because there are things in here we will ask for when helping solve any issues.
+1. The function is on a [supported runtime](./README.md#supported-aws-lambda-runtimes) in a [supported Region](./README.md#supported-aws-regions).
+2. The function was invoked after it was instrumented.
+3. The AWS account integration exists and shows no error.
+4. The function is instrumented, with no instrumentation error.
+5. The function writes the trace line to its logs.
+6. The SDK starts in debug mode.
 
-## Create Invocations
+The sections that follow explain each check and the errors you may see. If the steps don't resolve the issue, contact support with the support widget in the [Dashboard](https://app.serverless.com).
 
-Metrics and Traces will only show up after the Integration has been created and your AWS Lambda functions have been set to "Instrumented". After that, ensure your AWS Lambda functions have been invoked to get Metrics and Traces to appear. Metrics and Traces for invocations that happened before the Integration was fully set up will not show in Serverless Framework Dashboard.
+## Metrics and traces are missing after setup
 
-## Wait 10 Minutes
+The Dashboard only collects data from invocations that happen after the function is instrumented. Invoke the function after the integration has finished and **Instrument** is on, then reload the **Metrics** or **Traces** page.
 
-Wait at least 10 minutes for Metrics & Traces to show up after creating the Integration. Be sure to trigger AWS Lambda invocations after that 10 minute period to generate Metrics and Traces.
+When `serverless deploy` connects an AWS account for the first time, the CLI prints that the integration is almost done and that you will receive an email when it is ready; the functions are instrumented after that, in the background.
 
-If you have recently removed the Integration and have immediately created a new one in the same AWS account. It may take up to 20 minutes for the Integration to finish set-up. This is due to some resources taking a while to be deleted and then re-created on the AWS account.
+## Check that the function is instrumented
 
-## Check AWS Lambda Functions Are Instrumented
+Dashboard observability needs two things: an integration for the AWS account, and instrumentation turned on for the function.
 
-Enabling Observability requires two steps, 1) Integrating an AWS account, and 2) Enabling instrumentation on individual AWS Lambda functions.
+To check a function, open **Settings**, then **Integrations** in the Dashboard, and select **Edit** on the integration of its AWS account. The list shows the account's functions in the supported Regions. Turn on **Instrument** for the function and select **Save**, or set `observability: true` for its stage in `serverless.yml` and deploy. Functions on unsupported runtimes stay uninstrumented.
 
-To check if your AWS Lambda Function(s) has instrumentation enabled, in Serverless Framework Dashboard, go to "Settings" > "Integrations" and click the "Edit" button on the AWS Account Integration containing the AWS Lambda functions that are missing data. This view will list all AWS Lambda functions in your AWS account, across all regions.
+If a function is missing from the list although it exists in a supported Region, contact support.
 
-Next, ensure the "Instrument" toggle is enabled for the function(s) you expect to see Metrics and Traces for. If it's not enabled Metrics and Traces will not show up withing Dashboard. Enable it, then ensure your functions are invoked, and check Dashboard to see if it Metrics & Traces appear.
+## Check the integration stack
 
-If AWS Lambda functions are missing from this view, but you know they exist within your AWS account, within our _Supported AWS Regions_, please contact our support team by using the support widget within [Serverless Framework Dashboard](https://app.serverless.com).
+The integration is the `Serverless-Inc-Role-Stack` CloudFormation stack in `us-east-1` of the AWS account. Check in the CloudFormation console of `us-east-1` that the stack exists and is in `CREATE_COMPLETE` or `UPDATE_COMPLETE` state, and in **Settings**, **Integrations** that the integration shows no error.
 
-## Check The AWS Integration Cloudformation Stack Exists
+### `Creating an AWS IAM Role in your AWS account to connect Serverless Framework Observability failed`
 
-Check the AWS Integration Cloudformation Stack was created within your AWS account. The Stack Name should resemble "Serverless-Inc-Role-Stack".
+`serverless deploy` prints this error, with the reasons from the stack events, when it couldn't create `Serverless-Inc-Role-Stack`:
 
-## Check The AWS Integration Cloudformation Stack Is In us-east-1
+```text
+Creating an AWS IAM Role in your AWS account to connect Serverless Framework Observability failed:
+  - ...
+```
 
-Check the AWS Integration Cloudformation Stack was created within us-east-1 in your AWS account.
+Cause: the deployment's AWS credentials lack permission to create the stack or its IAM roles, or a resource of the stack already exists. Fix: deploy with credentials that can create a CloudFormation stack with named IAM roles (`CAPABILITY_NAMED_IAM`) in `us-east-1`, or create the integration from the Dashboard as described in [Connect an AWS account in the Dashboard](./README.md#connect-an-aws-account-in-the-dashboard).
 
-The Stack Name should resemble "Serverless-Inc-Role-Stack".
+### `The AWS account with the ID "...", already has a Serverless Framework Observability integration...`
 
-## Check For Account Integration Errors
+```text
+The AWS account with the ID "123456789012", already has a Serverless Framework Observability integration into a different Serverless Framework Organization. Serverless Framework Observability will not be successfully set-up due to this. Please remove the other integration from the other AWS account first.
+```
 
-In Serverless Framework Dashboard, go to "Settings" > "Integrations" and see if there are any errors on the AWS Account Integration. If an error occurred during integration, you should be able to see it within this view, on the AWS account integration tile.
+Cause: `Serverless-Inc-Role-Stack` exists in the AWS account, but the account is connected to another org. An AWS account can be integrated with one org. Fix: remove the integration in the other org (**Settings**, **Integrations**, **Remove**), then deploy again.
 
-If you see an error here, please contact our support team by using the support widget within [Serverless Framework Dashboard](https://app.serverless.com).
+### `Your AWS account failed to integrate with Serverless Framework Observability.`
 
-## Check for Function Instrumentation Errors
+Cause: the Dashboard couldn't finish setting up the integration; the CLI prints the Dashboard's last error after this message. Fix: check the integration in **Settings**, **Integrations** for the error and contact support with it.
 
-If within Serverless Framework Dashboard's "Settings" > "Integrations" > "Edit" view, you can see errors listed on one or multiple AWS Lambda functions, this means that the AWS Lambda function(s) were not successfully instrumented and Metrics and Traces will not appear.
+### `AWS provider credentials not found.`
 
-Here are some common errors and explanations:
+```text
+AWS provider credentials not found. Learn how to set up AWS provider credentials in our docs here: http://slss.io/aws-creds-setup.
+```
 
-**"Rate Limit Exceeded..." or "Rate Exceeded"**
+Cause: the CLI couldn't call `sts:GetCallerIdentity` with the deployment's AWS credentials to find the AWS account. Fix: set up AWS credentials for the deploy; see [AWS credentials](../../../providers/aws/guide/credentials.md).
 
-If an AWS Lambda function has an error that contains this message, it most often means that the AWS Lambda function already has a maximum amount of AWS Cloudwatch Logs Subscriptions attached to it (the limit is 2). You will need to remove 1 Subscription in order for instrumentation to work.
+## Fix function instrumentation errors
 
-To resolve this, try disabling instrumentation on each AWS Lambda function with this error via the "Instrument" toggle, then re-enabling "Instrument" by hitting the toggle. Don't forget to hit the "Save" button after you adjust the toggle.
+Functions that couldn't be instrumented show the error in the integration's function list (**Settings**, **Integrations**, **Edit**). After a deploy, the CLI lists them too:
 
-**"Code uncompressed size is greater than the max allowed size..."**
+```text
+Serverless Framework Observability instrumentation failed for the following functions:
+• my-service-prod-hello - ...
+```
 
-This means that the AWS Lambda function has hit its individual code size limit, which is a combination of your uncompressed code and Layers. The Serverless Framework SDK is around ~600KB and should never be the reason you hit that limit, unless you were right up against it. You'll have to remove some unused dependencies from your code to proceed.
+### `Rate exceeded`
 
-If there is another type of error here, please contact our support team by using the support widget within [Serverless Framework Dashboard](https://app.serverless.com).
+Cause: AWS throttled the API calls made while instrumenting the function. Fix: turn **Instrument** off for the function, select **Save**, then turn it on and select **Save** again.
 
-## Check If Traces Are Being Sampled
+### The log group already has 5 subscription filters
 
-Trace Sampling may be the reason AWS Lambda Traces are missing.
+Cause: instrumentation adds a CloudWatch Logs subscription filter to the function's log group, and a log group can have at most 5 subscription filters ([CloudWatch Logs quotas](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/cloudwatch_limits_cwl.html)). Fix: remove one of the log group's subscription filters, then turn **Instrument** off and on again.
 
-Trace Sampling happens automatically for individual AWS Lambda functions (i.e. sampling is not account-wide) if they are receiving a high volume of requests (typically 1-2 million invocations/month or a burst of invocations). If your AWS Lambda function is nowhere near 1-2 million invocations a month, or did not receive a temporary burst of invocations, you should rule out Trace Sampling as a potential issue.
+### `Code uncompressed size is greater than the max allowed size...`
 
-There is also an Environment Variable to disable Trace Sampling for an individual AWS Lambda function. It is `SLS_DISABLE_TRACE_SAMPLING`. You will have to set this manually.
+Cause: with the SDK Layer added, the function's code and Layers together, uncompressed, exceed the 250 MB [Lambda deployment package quota](https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html). Fix: remove unused dependencies or Layers from the function, deploy, and turn **Instrument** on again.
 
-## Manually Check For The Trace Payload
+### `Serverless Framework Observability could not be enabled due to too many AWS Lambda Layers...`
 
-When an AWS Lambda function is instrumented correctly with the Serverless Framework Platform, it will log a large, compressed payload in the AWS Cloudwatch Logs for your AWS Lambda function, which you can identify easily because it starts with `SERVERLESS_TELEMETRY`. This payload contains Trace data for that AWS Lambda function invocation. If this is not being published, Traces will not show up within the Serverless Framework Dashboard.
+```text
+Serverless Framework Observability could not be enabled due to too many AWS Lambda Layers. Please remove at least one Layer from this function and try again.
+```
 
-To resolve this, review the section on **Manually Checking For Instrumentation Issues**, since these instrumentation issues would most likely result in the Telemetry Payload not being logged.
+Cause: a function can use at most 5 Layers, and the function already has 5. Fix: remove one Layer from the function in `serverless.yml`, then deploy again.
 
-## Manually Check For Instrumentation Issues
+## Check whether traces are sampled
 
-If there aren't any errors reported in Serverless Framework Dashboard, look in your AWS account and inspect each AWS Lambda function not reporting Metrics and Traces for the following issues:
+When invocations of a function arrive close together, the SDK sends some traces without custom spans, captured warnings and custom tags. Traces of invocations with errors are always sent in full. If invocations of the function are more than a second apart on average, sampling isn't the cause. The rules are in [How trace sampling works](./README.md#how-trace-sampling-works).
 
-**Is the Monitoring & Observability AWS Lambda Layer attached?**
+## Check the trace line in the function's logs
 
-It should have a name that resembles this: "sls-sdk-node-v0-15-12" or "sls-sdk-python-v0-2-3". There are limits to the number of AWS Lambda Layers that can be attached to each AWS Lambda function. Perhaps Dashboard's automatic integration hit that limit. To resolve, you'll have to delete a Layer. Disable ane then re-enable the "Instrument" toggle on a function within the Serverless Framework Dashboard Integration view to have Dashboard attempt to re-instrument the function for you, which includes adding the Layer.
+An instrumented function writes its trace to its CloudWatch Logs log group at the end of each invocation, as a long line that starts with `SERVERLESS_TELEMETRY.`. If an invocation's log has no such line, the SDK didn't run: check the Layer and environment variables in [Check the function's Layer and environment variables](#check-the-functions-layer-and-environment-variables).
 
-**Is the Monitoring & Observability Wrapper Environment Variable Set?**
+## Check the function's Layer and environment variables
 
-In your AWS Lambda function's Environment Variables, is there an Environment Variable titled "AWS_LAMBDA_EXEC_WRAPPER" and is it set to "/opt/sls-sdk-node/exec-wrapper.sh" for Node.js or "/opt/sls-sdk-python/exec_wrapper.py" for Python? This is required to enable our SDK to wrap your AWS Lambda Functions and collect Metrics, Traces, etc. You may have another AWS Lambda Layer that is attempting to wrap your code also using this Environment Variable. To resolve, you'll have to ensure this is set to the above. After deleting any other library or automation that is overwriting this, you can enable the function's "Instrument" toggle in the "Integration" view to have it attempt to configure this Environment Variable correctly for you.
+When the Dashboard shows no error but a function sends no data, check its configuration in the Lambda console:
 
-We have seen this and other issues happen with the Sentry Error Management library.
+- **Layer**: the function has a Layer whose name starts with `sls-sdk-node` or `sls-sdk-python`. A function can have at most 5 Layers; if it has 5 without the SDK Layer, remove one, then turn **Instrument** off and on again.
+- **`AWS_LAMBDA_EXEC_WRAPPER`**: set to `/opt/sls-sdk-node/exec-wrapper.sh` (Node.js) or `/opt/sls-sdk-python/exec_wrapper.py` (Python). Another Layer or tool that sets its own `AWS_LAMBDA_EXEC_WRAPPER` replaces the Dashboard's; remove that setting, then turn **Instrument** off and on again.
+- **`SLS_ORG_ID`**: set to your org's ID. All environment variables of a function together can be at most 4 KB ([Lambda quotas](https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html)); if the function is at the limit, remove other variables, then turn **Instrument** off and on again.
 
-**Are Other Required Environment Variables Set?**
+A `serverless deploy` of the function resets the Layer and environment variables, and the Dashboard adds them again after the update. Code or Layers that change how the Lambda runtime starts the handler can keep the SDK from wrapping it.
 
-Additional AWS Lambda Environment Variables are required. Check to see if these exist on your AWS Lambda function:
+## Turn on SDK debug logs
 
-- SLS_ORG_ID
+To see whether the SDK starts, set `SLS_SDK_DEBUG` on the function to any non-empty value, in `serverless.yml` or in the Lambda console:
 
-It's possible that you have too many AWS Lambda function Environment Variables, or have hit the size limit that AWS allows for Environment Variables on a single AWS Lambda function. To resolve, you'll have to delete some other Environment Variables. After deleting those, you can enable the function's "Instrument" toggle in the "Integration" view to have it attempt to configure the required Environment Variables for you.
+```yaml
+functions:
+  hello:
+    handler: handler.hello
+    environment:
+      SLS_SDK_DEBUG: true
+```
 
-**Is There A Conflict With Another Tool, Layer, Library or Custom Code?**
+Invoke the function and read its logs. SDK debug lines start with `⚡ SDK:`; `⚡ SDK: Wrapper initialization` (Python) or `⚡ SDK: Invocation: start` (Node.js) shows that the SDK wrapped the handler. Debug mode also turns off trace sampling, so remove `SLS_SDK_DEBUG` when you are done.
 
-Perhaps there is an AWS Lambda Layer, Code Library or Custom Code you've written that is conflicting with successful operation of our SDK. Anything your code is doing that may conflict with the way AWS Lambda starts its runtime may be preventing our SDK from working correctly. We have seen this be more common in Python runtimes.
+If `SLS_ORG_ID` is missing, the SDK doesn't instrument the function and logs one of these:
 
-Additionally, we have seen conflicts happen with Sentry's tools. We are working on fixing these as best we can.
+```text
+Serverless SDK Warning: Cannot instrument function: Missing "SLS_ORG_ID" environment variable
+```
 
-## Add The SDK Debug Environment Variable
+```text
+Serverless SDK Error: Cannot instrument function: "orgId" not provided. Ensure "SLS_ORG_ID" environment variable is set, or pass it with the options
+```
 
-To verify that our SDK is working, add this AWS Lambda Environment Variable: `SLS_SDK_DEBUG="true"`. This can be easily added via Serverless Framework or in the AWS Lambda Console.
+Turn **Instrument** off and on again for the function to set `SLS_ORG_ID`.
 
-Once this is added, invoke the problematic AWS Lambda function and check its logs in AWS Cloudwatch Logs. If you see this log: `SDK: Wrapper initialization`, then the SDK has initiatlized correctly and all required environment variables have been set. Now, the issue is likely that you may have a tool, library or custom code that is overwriting logic in our SDK, or our Platform has an ingest issue.
+## Related pages
+
+- [Dashboard monitoring and observability](./README.md)
+- [Dashboard traces](./traces.md)
+- [Dashboard observability SDKs](./sdk/README.md)
