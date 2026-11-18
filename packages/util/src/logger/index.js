@@ -146,7 +146,7 @@ renderer.isInteractive = computeIsInteractive()
  * input has ended (a closed pipe, `< /dev/null`), a prompt would otherwise wait forever.
  * enquirer may still be working through keys it read before the end (a piped answer, about a
  * millisecond per key), so the prompt fails once nothing else is left to run, or `graceMs` after
- * the end when other work keeps Node.js running.
+ * the end, or after the last key enquirer handled since, when other work keeps Node.js running.
  */
 export const promptWithInput = (
   enquirer,
@@ -165,6 +165,7 @@ export const promptWithInput = (
     let timer
     const cleanUp = () => {
       input.removeListener('end', onEnd)
+      enquirer.removeListener?.('keypress', onKeypress)
       process.removeListener('beforeExit', fail)
       clearTimeout(timer)
     }
@@ -172,12 +173,22 @@ export const promptWithInput = (
       cleanUp()
       reject(noInput())
     }
-    const onEnd = () => {
-      process.once('beforeExit', fail)
+    const startGrace = () => {
+      clearTimeout(timer)
       timer = setTimeout(fail, graceMs)
       timer.unref()
     }
+    // A key enquirer handles after the end is part of an answer still in progress
+    const onKeypress = () => {
+      if (timer) startGrace()
+    }
+    const onEnd = () => {
+      process.once('beforeExit', fail)
+      startGrace()
+    }
     input.once('end', onEnd)
+    // Optional: stand-ins for enquirer in tests may not emit events
+    enquirer.on?.('keypress', onKeypress)
     enquirer.prompt(question).finally(cleanUp).then(resolve, reject)
   })
 }

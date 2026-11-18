@@ -93,6 +93,8 @@ export const question = (
   { input = process.stdin, output = process.stdout } = {},
 ) =>
   new Promise((resolve) => {
+    // An input that has already ended never emits "end" again
+    if (input.readableEnded) return resolve('')
     const rl = readline.createInterface({ input, output })
     // Ctrl+C or the end of the input closes the prompt without an answer,
     // which callers take as "no"

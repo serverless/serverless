@@ -22,4 +22,17 @@ describe('AppSync question', () => {
     input.end()
     await expect(answer).resolves.toBe('')
   })
+
+  it('resolves with no answer when the input ended before the question', async () => {
+    const input = new PassThrough()
+    input.end()
+    input.resume()
+    await new Promise((resolve) => input.once('end', resolve))
+    await expect(
+      question('Do you want to continue? y/N', {
+        input,
+        output: new PassThrough(),
+      }),
+    ).resolves.toBe('')
+  })
 })
