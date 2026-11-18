@@ -127,6 +127,15 @@ const getLambdaCiImageUriFromRuntime = (runtime) => {
   return undefined
 }
 
+// The error Lambda reports for an async handler whose promise never settled
+class NodeJsExit extends Error {
+  constructor() {
+    super(
+      'The Lambda runtime client detected an unexpected Node.js exit code. This is most commonly caused by a Promise that was never settled. For more information, see https://nodejs.org/docs/latest/api/process.html#exit-codes',
+    )
+  }
+}
+
 class AwsInvokeLocal {
   constructor(serverless, options, pluginUtils) {
     this.serverless = serverless
@@ -1229,7 +1238,18 @@ class AwsInvokeLocal {
     }
 
     return new Promise((resolve) => {
+      // Like Lambda, end an invocation the handler never finished once the
+      // event loop is empty: an async handler fails, any other one responds
+      // with null
+      const finishOnEmptyEventLoop = () =>
+        callback(
+          lambda.constructor?.name === 'AsyncFunction'
+            ? new NodeJsExit()
+            : null,
+        )
+
       const callback = (err, result) => {
+        process.removeListener('beforeExit', finishOnEmptyEventLoop)
         if (!hasResponded) {
           hasResponded = true
           if (err) {
@@ -1281,6 +1301,7 @@ class AwsInvokeLocal {
       }
 
       const maybeThennable = lambda(event, context, callback)
+      if (!hasResponded) process.once('beforeExit', finishOnEmptyEventLoop)
       if (maybeThennable) {
         return Promise.resolve(maybeThennable).then(
           callback.bind(this, null),

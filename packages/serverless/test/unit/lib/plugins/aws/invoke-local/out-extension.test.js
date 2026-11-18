@@ -131,3 +131,55 @@ describe('invoke local handler extension probing', () => {
     )
   })
 })
+
+describe('invoke local handler completion', () => {
+  jest.setTimeout(60_000)
+
+  afterEach(() => {
+    while (createdServiceDirs.length > 0) {
+      fs.rmSync(createdServiceDirs.pop(), { recursive: true, force: true })
+    }
+  })
+
+  test('finishes a handler that never calls back once the event loop is empty', async () => {
+    const serviceDir = makeServiceDir({
+      'handler.cjs':
+        "module.exports.hello = () => { setTimeout(() => console.log('RAN'), 50) }\n",
+    })
+
+    // Lambda responds with null, so nothing besides the handler's own log
+    await expect(invoke(serviceDir, 'handler')).resolves.toBe('RAN\nINVOKED')
+  })
+
+  test('prints the result of a handler that calls back later exactly once', async () => {
+    const serviceDir = makeServiceDir({
+      'handler.cjs':
+        "module.exports.hello = (event, context, callback) => { setTimeout(() => callback(null, 'CALLED_BACK'), 50) }\n",
+    })
+
+    const output = await invoke(serviceDir, 'handler')
+    expect(output.match(/CALLED_BACK/g)).toHaveLength(1)
+    expect(output).toContain('INVOKED')
+  })
+
+  test('finishes a non-async handler whose promise never settles, as Lambda does', async () => {
+    const serviceDir = makeServiceDir({
+      'handler.cjs':
+        "module.exports.hello = () => new Promise(() => { setTimeout(() => console.log('RAN'), 50) })\n",
+    })
+
+    await expect(invoke(serviceDir, 'handler')).resolves.toBe('RAN\nINVOKED')
+  })
+
+  test('fails an async handler whose promise never settles, as Lambda does', async () => {
+    const serviceDir = makeServiceDir({
+      'handler.cjs':
+        'module.exports.hello = async () => { await new Promise(() => {}) }\n',
+    })
+
+    const output = await invoke(serviceDir, 'handler')
+    expect(output).toContain('"errorType": "NodeJsExit"')
+    expect(output).toContain('a Promise that was never settled')
+    expect(output).toContain('HANDLER_ERROR')
+  })
+})

@@ -9,6 +9,7 @@ import Enquirer from 'enquirer'
 import chalk from 'chalk'
 import ora from 'ora'
 import { shouldDisableColors } from '../agent/index.js'
+import { ServerlessError } from '../errors/index.js'
 
 const supportsColor = chalk.supportsColor
 
@@ -139,6 +140,58 @@ function computeIsInteractive(options) {
   )
 }
 renderer.isInteractive = computeIsInteractive()
+
+/**
+ * Asks an enquirer question, failing it when there is no input left to answer with: once the
+ * input has ended (a closed pipe, `< /dev/null`), a prompt would otherwise wait forever.
+ * enquirer may still be working through keys it read before the end (a piped answer, about a
+ * millisecond per key), so the prompt fails once nothing else is left to run, or `graceMs` after
+ * the end, or after the last key enquirer handled since, when other work keeps Node.js running.
+ */
+export const promptWithInput = (
+  enquirer,
+  question,
+  input = process.stdin,
+  graceMs = 2000,
+) => {
+  const noInput = () =>
+    new ServerlessError(
+      `"${util.stripVTControlCharacters(question.message)}" needs an answer, but the input has ended. Run the command in an interactive terminal.`,
+      'PROMPT_WITHOUT_INPUT',
+      { stack: false },
+    )
+  if (input.readableEnded) return Promise.reject(noInput())
+  return new Promise((resolve, reject) => {
+    let timer
+    const cleanUp = () => {
+      input.removeListener('end', onEnd)
+      enquirer.removeListener?.('keypress', onKeypress)
+      process.removeListener('beforeExit', fail)
+      clearTimeout(timer)
+    }
+    const fail = () => {
+      cleanUp()
+      reject(noInput())
+    }
+    const startGrace = () => {
+      clearTimeout(timer)
+      timer = setTimeout(fail, graceMs)
+      timer.unref()
+    }
+    // A key enquirer handles after the end is part of an answer still in progress
+    const onKeypress = () => {
+      if (timer) startGrace()
+    }
+    const onEnd = () => {
+      process.once('beforeExit', fail)
+      startGrace()
+    }
+    input.once('end', onEnd)
+    // Optional: stand-ins for enquirer in tests may not emit events
+    enquirer.on?.('keypress', onKeypress)
+    enquirer.prompt(question).finally(cleanUp).then(resolve, reject)
+  })
+}
 // Whether progress may render as a spinner animation: the session must be interactive AND the
 // stream ora draws on (stderr) must be a terminal. When this is false, progress must take the
 // plain per-message path — a disabled ora instance never renders `.text` updates, so routing
@@ -987,7 +1040,7 @@ class Logger {
 
     const enquirer = new Enquirer()
 
-    const response = await enquirer.prompt({
+    const response = await promptWithInput(enquirer, {
       type: 'confirm',
       name: 'confirm',
       initial: initial ?? true,
@@ -1034,7 +1087,7 @@ class Logger {
 
     const enquirer = new Enquirer()
 
-    const response = await enquirer.prompt({
+    const response = await promptWithInput(enquirer, {
       type: inputType,
       name: 'input',
       message: renderer.colors.default(message),
@@ -1093,7 +1146,7 @@ class Logger {
       return map
     }, {})
 
-    const answer = await enquirer.prompt({
+    const answer = await promptWithInput(enquirer, {
       type: 'select',
       name: 'select',
       choices: choices.map((choice) => choice.name),
@@ -1133,7 +1186,7 @@ class Logger {
 
     const enquirer = new Enquirer()
 
-    const answer = await enquirer.prompt({
+    const answer = await promptWithInput(enquirer, {
       type: 'multiselect',
       name: 'multiselect',
       choices,

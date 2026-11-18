@@ -1,7 +1,6 @@
 import _ from 'lodash'
 const { upperFirst, transform, values } = _
 import { DateTime, Duration } from 'luxon'
-import { promisify } from 'util'
 import * as readline from 'readline'
 
 export const timeUnits = {
@@ -89,22 +88,22 @@ export const getWildCardDomainName = (domain) => {
   return `*.${domain.split('.').slice(1).join('.')}`
 }
 
-export const question = async (questionText) => {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  })
-  const q = promisify((questionText, cb) => {
-    rl.question(questionText, (a) => {
-      cb(null, a)
+export const question = (
+  questionText,
+  { input = process.stdin, output = process.stdout } = {},
+) =>
+  new Promise((resolve) => {
+    // An input that has already ended never emits "end" again
+    if (input.readableEnded) return resolve('')
+    const rl = readline.createInterface({ input, output })
+    // Ctrl+C or the end of the input closes the prompt without an answer,
+    // which callers take as "no"
+    rl.once('close', () => resolve(''))
+    rl.question(`${questionText}: `, (answer) => {
+      resolve(answer)
+      rl.close()
     })
-  }).bind(rl)
-
-  const answer = await q(`${questionText}: `)
-  rl.close()
-
-  return answer
-}
+  })
 
 export const confirmAction = async () => {
   const answer = await question('Do you want to continue? y/N')
