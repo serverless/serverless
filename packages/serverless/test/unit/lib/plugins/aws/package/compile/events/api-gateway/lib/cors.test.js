@@ -5,6 +5,7 @@ jest.unstable_mockModule('@serverless/util', () => ({
   getOrCreateGlobalDeploymentBucket: jest.fn(),
   log: {
     debug: jest.fn(),
+    warning: jest.fn(),
     get: jest.fn(() => ({ debug: jest.fn(), warning: jest.fn() })),
   },
   progress: { get: jest.fn() },
@@ -165,7 +166,7 @@ describe('#compileCors()', () => {
     }
   })
 
-  it('should include credentials and cache headers in gateway responses when configured', () => {
+  it('should include credentials and max-age in gateway responses when configured, but not cache headers', () => {
     awsCompileApigEvents.validated.corsPreflight = {
       'users/create': {
         origin: 'http://example.com',
@@ -191,8 +192,16 @@ describe('#compileCors()', () => {
       'gatewayresponse.header.Access-Control-Allow-Methods': "'OPTIONS,POST'",
       'gatewayresponse.header.Access-Control-Allow-Credentials': "'true'",
       'gatewayresponse.header.Access-Control-Max-Age': "'86400'",
-      'gatewayresponse.header.Cache-Control': "'max-age=600, s-maxage=600'",
     })
+    // `Cache-Control` stays on the preflight response, where it belongs: a
+    // cache honoring it on a gateway error could keep serving that error
+    // after the API recovers.
+    expect(
+      resources.ApiGatewayMethodUsersCreateOptions.Properties.Integration
+        .IntegrationResponses[0].ResponseParameters[
+        'method.response.header.Cache-Control'
+      ],
+    ).toBe("'max-age=600, s-maxage=600'")
   })
 
   it('should use the first origin when multiple origins are configured', () => {
@@ -403,7 +412,11 @@ describe('#compileCors()', () => {
     ).toBe("'http://a.example.com'")
   })
 
-  it('should use the first wildcard origin when credentials are allowed', () => {
+  it('should not synthesize gateway responses for a wildcard origin pattern', () => {
+    // A static gateway response cannot echo a request origin the way the
+    // preflight template does, so `https://*.example.com` would be emitted
+    // literally and browsers would reject it. Only a single exact origin
+    // (or `*`) can be represented by a static header.
     awsCompileApigEvents.validated.corsPreflight = {
       'users/create': {
         origins: ['https://*.example.com', 'https://example.com'],
@@ -417,15 +430,12 @@ describe('#compileCors()', () => {
       serverless.service.provider.compiledCloudFormationTemplate.Resources
 
     expect(
-      resources.ApiGatewayGatewayResponseDefault4XX.Properties
-        .ResponseParameters,
-    ).toEqual({
-      'gatewayresponse.header.Access-Control-Allow-Origin':
-        "'https://*.example.com'",
-      'gatewayresponse.header.Access-Control-Allow-Headers': "'Content-Type'",
-      'gatewayresponse.header.Access-Control-Allow-Methods': "'OPTIONS,POST'",
-      'gatewayresponse.header.Access-Control-Allow-Credentials': "'true'",
-    })
+      Object.keys(resources).filter((key) =>
+        key.startsWith('ApiGatewayGatewayResponse'),
+      ),
+    ).toHaveLength(0)
+    // The preflight method is unaffected: it echoes the concrete origin.
+    expect(resources.ApiGatewayMethodUsersCreateOptions).toBeDefined()
   })
 
   it('should use the configured external RestApiId for gateway responses', () => {
@@ -552,7 +562,7 @@ describe('#compileCors()', () => {
     expect(resources.ApiGatewayGatewayResponseDefault4XX).toBeDefined()
   })
 
-  it('should let the last maxAge and cacheControl win across paths', () => {
+  it('should let the last maxAge win across paths and keep cacheControl off gateway responses', () => {
     awsCompileApigEvents.validated.corsPreflight = {
       'users/create': {
         origin: 'http://example.com',
@@ -583,18 +593,20 @@ describe('#compileCors()', () => {
     expect(
       resources.ApiGatewayGatewayResponseDefault4XX.Properties
         .ResponseParameters['gatewayresponse.header.Cache-Control'],
-    ).toBe("'max-age=100'")
+    ).toBeUndefined()
   })
 
   it('should not duplicate gateway responses when compileCors runs twice', () => {
     // Both the REST API plugin and the API Gateway service-proxy plugin
     // compile CORS from the same shared module, so compileCors() can run
-    // twice for one REST API in a single packaging.
+    // twice for one REST API in a single packaging. The second call must
+    // merge with the first, not replace it: the first origin wins and the
+    // header and method sets are unioned.
     awsCompileApigEvents.validated.corsPreflight = {
       'users/create': {
         origin: 'http://first.example.com',
         origins: [],
-        headers: ['*'],
+        headers: ['Content-Type'],
         methods: ['OPTIONS', 'POST'],
         allowCredentials: false,
       },
@@ -605,8 +617,8 @@ describe('#compileCors()', () => {
       'users/create': {
         origin: 'http://second.example.com',
         origins: [],
-        headers: ['*'],
-        methods: ['OPTIONS', 'POST'],
+        headers: ['Authorization'],
+        methods: ['OPTIONS', 'GET'],
         allowCredentials: false,
       },
     }
@@ -619,18 +631,229 @@ describe('#compileCors()', () => {
       key.startsWith('ApiGatewayGatewayResponse'),
     )
     expect(gatewayResponseLogicalIds).toHaveLength(12)
-    // The second compile wins for the shared, per-API header values
     expect(
       resources.ApiGatewayGatewayResponseDefault4XX.Properties
-        .ResponseParameters[
-        'gatewayresponse.header.Access-Control-Allow-Origin'
-      ],
-    ).toBe("'http://second.example.com'")
+        .ResponseParameters,
+    ).toEqual({
+      'gatewayresponse.header.Access-Control-Allow-Origin':
+        "'http://first.example.com'",
+      'gatewayresponse.header.Access-Control-Allow-Headers':
+        "'Content-Type,Authorization'",
+      'gatewayresponse.header.Access-Control-Allow-Methods':
+        "'OPTIONS,POST,GET'",
+    })
     // The preflight method is not duplicated either
     expect(
       Object.keys(resources).filter(
         (key) => key === 'ApiGatewayMethodUsersCreateOptions',
       ),
     ).toHaveLength(1)
+    // The deployment waits for the generated gateway responses, so the
+    // stage is not deployed before they exist
+    for (const logicalId of gatewayResponseLogicalIds) {
+      expect(awsCompileApigEvents.apiGatewayMethodLogicalIds).toContain(
+        logicalId,
+      )
+    }
+  })
+
+  it('should keep the first origin regardless of whether it uses origin or origins', () => {
+    // Origin selection depends on path order, not on the syntax each path
+    // uses: a later path's `origins` must not override an earlier path's
+    // scalar `origin`.
+    awsCompileApigEvents.validated.corsPreflight = {
+      'users/create': {
+        origin: 'https://a.example.com',
+        origins: [],
+        headers: ['Content-Type'],
+        methods: ['OPTIONS', 'POST'],
+        allowCredentials: false,
+      },
+      'users/list': {
+        origins: ['https://b.example.com'],
+        headers: ['Content-Type'],
+        methods: ['OPTIONS', 'GET'],
+        allowCredentials: false,
+      },
+    }
+    awsCompileApigEvents.compileCors()
+    const resources =
+      serverless.service.provider.compiledCloudFormationTemplate.Resources
+
+    expect(
+      resources.ApiGatewayGatewayResponseDefault4XX.Properties
+        .ResponseParameters[
+        'gatewayresponse.header.Access-Control-Allow-Origin'
+      ],
+    ).toBe("'https://a.example.com'")
+  })
+
+  it('should not synthesize specific types when the user defined the DEFAULT fallback', () => {
+    // API Gateway falls back to DEFAULT_4XX for a throttling response when
+    // THROTTLED is not defined. Synthesizing THROTTLED without the user's
+    // custom template would silently drop their error body.
+    serverless.service.resources = {
+      Resources: {
+        GatewayResponseDefault4XX: {
+          Type: 'AWS::ApiGateway::GatewayResponse',
+          Properties: {
+            ResponseTemplates: {
+              'application/json': '{"message":"custom 4xx"}',
+            },
+            ResponseType: 'DEFAULT_4XX',
+            RestApiId: { Ref: 'ApiGatewayRestApi' },
+          },
+        },
+      },
+    }
+    awsCompileApigEvents.validated.corsPreflight = {
+      'users/create': {
+        origin: 'http://example.com',
+        origins: [],
+        headers: ['*'],
+        methods: ['OPTIONS', 'POST'],
+        allowCredentials: false,
+      },
+    }
+    awsCompileApigEvents.compileCors()
+    const resources =
+      serverless.service.provider.compiledCloudFormationTemplate.Resources
+
+    expect(resources.ApiGatewayGatewayResponseDefault4XX).toBeUndefined()
+    for (const logicalId of [
+      'ApiGatewayGatewayResponseUnauthorized',
+      'ApiGatewayGatewayResponseAccessDenied',
+      'ApiGatewayGatewayResponseInvalidApiKey',
+      'ApiGatewayGatewayResponseMissingAuthenticationToken',
+      'ApiGatewayGatewayResponseResourceNotFound',
+      'ApiGatewayGatewayResponseExpiredToken',
+      'ApiGatewayGatewayResponseThrottled',
+      'ApiGatewayGatewayResponseQuotaExceeded',
+    ]) {
+      expect(resources[logicalId]).toBeUndefined()
+    }
+    // The 5xx types are unaffected by a 4xx fallback
+    expect(resources.ApiGatewayGatewayResponseDefault5XX).toBeDefined()
+    expect(resources.ApiGatewayGatewayResponseAuthorizerFailure).toBeDefined()
+    expect(resources.ApiGatewayGatewayResponseIntegrationFailure).toBeDefined()
+  })
+
+  it('should recognize Fn::Sub and Ref to the same REST API as the same API', () => {
+    serverless.service.resources = {
+      Resources: {
+        GatewayResponseDefault4XX: {
+          Type: 'AWS::ApiGateway::GatewayResponse',
+          Properties: {
+            ResponseParameters: {
+              'gatewayresponse.header.Access-Control-Allow-Origin': "'*'",
+            },
+            ResponseType: 'DEFAULT_4XX',
+            RestApiId: { 'Fn::Sub': '${ApiGatewayRestApi}' },
+          },
+        },
+      },
+    }
+    awsCompileApigEvents.validated.corsPreflight = {
+      'users/create': {
+        origin: 'http://example.com',
+        origins: [],
+        headers: ['*'],
+        methods: ['OPTIONS', 'POST'],
+        allowCredentials: false,
+      },
+    }
+    awsCompileApigEvents.compileCors()
+    const resources =
+      serverless.service.provider.compiledCloudFormationTemplate.Resources
+
+    // The user-defined response targets this API, so it is left alone
+    expect(resources.ApiGatewayGatewayResponseDefault4XX).toBeUndefined()
+    expect(resources.ApiGatewayGatewayResponseDefault5XX).toBeDefined()
+  })
+
+  it('should allocate a distinct logical ID when the preferred ID targets another API', () => {
+    serverless.service.resources = {
+      Resources: {
+        ApiGatewayGatewayResponseDefault4XX: {
+          Type: 'AWS::ApiGateway::GatewayResponse',
+          Properties: {
+            ResponseParameters: {
+              'gatewayresponse.header.Access-Control-Allow-Origin': "'*'",
+            },
+            ResponseType: 'DEFAULT_4XX',
+            RestApiId: { Ref: 'SomeOtherApi' },
+          },
+        },
+      },
+    }
+    awsCompileApigEvents.validated.corsPreflight = {
+      'users/create': {
+        origin: 'http://example.com',
+        origins: [],
+        headers: ['*'],
+        methods: ['OPTIONS', 'POST'],
+        allowCredentials: false,
+      },
+    }
+    awsCompileApigEvents.compileCors()
+    const resources =
+      serverless.service.provider.compiledCloudFormationTemplate.Resources
+
+    // Reusing the ID would fold the generated response into the user's
+    // resource for the other API when the custom resources are merged
+    const generated = resources.ApiGatewayGatewayResponseDefault4XXCors1
+    expect(generated).toBeDefined()
+    expect(generated.Properties.ResponseType).toBe('DEFAULT_4XX')
+    expect(generated.Properties.RestApiId).toEqual({
+      Ref: 'ApiGatewayRestApi',
+    })
+    expect(generated.Properties.ResponseParameters).toEqual({
+      'gatewayresponse.header.Access-Control-Allow-Origin':
+        "'http://example.com'",
+      'gatewayresponse.header.Access-Control-Allow-Headers': "'*'",
+      'gatewayresponse.header.Access-Control-Allow-Methods': "'OPTIONS,POST'",
+    })
+  })
+
+  it('should generate a fallback under the negated condition when the user override is conditional', () => {
+    // A user-defined DEFAULT_4XX with `Condition: IsProd` does not exist in
+    // dev, so the generated fallback must exist exactly where it does not.
+    serverless.service.resources = {
+      Resources: {
+        GatewayResponseDefault4XX: {
+          Type: 'AWS::ApiGateway::GatewayResponse',
+          Condition: 'IsProd',
+          Properties: {
+            ResponseParameters: {
+              'gatewayresponse.header.Access-Control-Allow-Origin': "'*'",
+            },
+            ResponseType: 'DEFAULT_4XX',
+            RestApiId: { Ref: 'ApiGatewayRestApi' },
+          },
+        },
+      },
+    }
+    awsCompileApigEvents.validated.corsPreflight = {
+      'users/create': {
+        origin: 'http://example.com',
+        origins: [],
+        headers: ['*'],
+        methods: ['OPTIONS', 'POST'],
+        allowCredentials: false,
+      },
+    }
+    awsCompileApigEvents.compileCors()
+    const template = serverless.service.provider.compiledCloudFormationTemplate
+
+    // The generated fallback gets its own logical ID (the user's ID is
+    // taken) and the negated condition, so each environment gets one
+    // response and never both
+    const generated = template.Resources.ApiGatewayGatewayResponseDefault4XXCors1
+    expect(generated).toBeDefined()
+    expect(generated.Condition).toBe('NotIsProd')
+    expect(template.Conditions.NotIsProd).toEqual({
+      'Fn::Not': [{ Condition: 'IsProd' }],
+    })
+    expect(generated.Properties.ResponseType).toBe('DEFAULT_4XX')
   })
 })
