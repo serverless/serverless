@@ -222,6 +222,8 @@ export const hello = async (event) => {
 }
 ```
 
+Enabling CORS also configures the same headers on gateway-generated error responses. API Gateway itself produces responses such as `401` (unauthorized), `403` (invalid API key or missing authentication token), `404` (resource not found), `429` (throttled) and `5xx` errors before the request ever reaches your handler, so those responses would otherwise carry no CORS headers and browsers would block the client from reading them. To cover them, the framework creates `AWS::ApiGateway::GatewayResponse` resources (`DEFAULT_4XX`, `DEFAULT_5XX`, plus the specific `UNAUTHORIZED`, `ACCESS_DENIED`, `INVALID_API_KEY`, `MISSING_AUTHENTICATION_TOKEN`, `RESOURCE_NOT_FOUND`, `EXPIRED_TOKEN`, `THROTTLED`, `QUOTA_EXCEEDED`, `AUTHORIZER_FAILURE` and `INTEGRATION_FAILURE` types) with the same CORS headers as the preflight response. When several paths configure CORS differently, the gateway responses use the merged configuration (first origin wins when multiple origins are configured). If you already define your own `AWS::ApiGateway::GatewayResponse` for a response type in the `resources` section, the framework leaves that type alone.
+
 With the `lambda` integration, the Framework adds `Access-Control-Allow-Origin`, and `Access-Control-Allow-Credentials` when `allowCredentials` is `true`, to the method's responses. That `Access-Control-Allow-Origin` value is static: with several origins, it holds all of them joined by commas, and browsers reject a response with more than one origin. With the `lambda` integration, set one origin; to serve several origins, use `lambda-proxy` and return the request's matching `Origin` from the function.
 
 ## IAM authorization
