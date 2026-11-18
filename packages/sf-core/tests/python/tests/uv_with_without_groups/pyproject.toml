@@ -10,13 +10,13 @@ dependencies = [
 
 [dependency-groups]
 test = [
-  "pytest==9.1.1",
+  "pytest==9.2.0",
   "pytest-cov==7.1.0",
 ]
 
 [project.optional-dependencies]
 s3 = [
-  "boto3==1.43.121",
+  "boto3==1.44.0",
 ]
 
 [tool.uv.sources]
