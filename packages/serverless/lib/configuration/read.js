@@ -1,5 +1,6 @@
 import isPlainObject from 'type/plain-object/is.js'
 import path from 'path'
+import { pathToFileURL } from 'url'
 import { promises as fsp } from 'fs'
 import yaml from 'js-yaml'
 import toml from 'toml'
@@ -94,7 +95,9 @@ const parseConfigurationFile = async (configurationPath) => {
     case '.mjs':
     case '.js': {
       try {
-        const content = await import(configurationPath)
+        // A file URL, not a bare path: Node.js reads a Windows drive letter
+        // in a bare path as a URL scheme
+        const content = await import(pathToFileURL(configurationPath).href)
         // Support ES default export
         return content.default || content
       } catch (error) {
