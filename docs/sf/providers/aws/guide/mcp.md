@@ -588,12 +588,17 @@ export default createMcpHandler(() => {
         return { content: [{ type: 'text', text: 'Refund cancelled' }] }
       }
       // Present only when the client returned the sealed state and the codec
-      // verified it.
+      // verified it. Without it, the only order ID is the retry's argument,
+      // which the client controls, so the tool refuses.
       const verified = ctx.mcpReq.requestState()
+      if (verified === undefined) {
+        return {
+          content: [{ type: 'text', text: 'Refund not confirmed' }],
+          isError: true,
+        }
+      }
       return {
-        content: [
-          { type: 'text', text: `Refunded ${verified?.orderId ?? orderId}` },
-        ],
+        content: [{ type: 'text', text: `Refunded ${verified.orderId}` }],
       }
     },
   )

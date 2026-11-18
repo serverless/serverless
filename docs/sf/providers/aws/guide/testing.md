@@ -119,7 +119,24 @@ node --test
 
 ## Integration test a deployed stage
 
-Integration tests run against a stage that holds only test data. To deploy a `test` stage, invoke the function with a fixture and remove the stage afterwards:
+Integration tests run against a stage that holds only test data. The service's `serverless.yml` maps the function key `saveUser` to the `saveUser` export of `handler.mjs`:
+
+```yaml
+# serverless.yml
+service: users
+
+provider:
+  name: aws
+  runtime: nodejs24.x
+
+functions:
+  saveUser:
+    handler: handler.saveUser
+```
+
+The deployed handler imports `db.mjs` and `mailer.mjs`, your modules that connect to the database and the mail service; the unit test doesn't need them. `--stage test` deploys a separate stack, but it doesn't change the database or mail service those modules connect to. Before the first invocation, set both connections per stage, for example as environment variables from [stage parameters](./services.md#stage-parameters), and check that the `test` stage's values point to a test database and a test mail service.
+
+To deploy a `test` stage, invoke the function with a fixture and remove the stage afterwards:
 
 ```bash
 serverless deploy --stage test

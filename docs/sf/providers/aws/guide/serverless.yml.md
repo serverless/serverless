@@ -16,7 +16,7 @@ keywords:
 
 This page lists the properties of `serverless.yml`, the service configuration file of the Serverless Framework, for the `aws` provider; keys kept only for compatibility with earlier major versions are left out, apart from a few marked Deprecated. Each section is one annotated snippet: the comment above a key gives its type, default and allowed values. Use it to look up a key; to learn a feature, follow the link at the top of its section to the feature guide.
 
-Snippets show alternative forms of a key as commented-out lines marked `OR`. The Framework validates `serverless.yml` against the same schema this page follows; set [`configValidationMode`](#root-properties) to `error` to stop on unknown or misspelled keys.
+Snippets show alternative forms of a key after a comment marked `OR`. One form of each key is active and the others are commented out, so each snippet stays valid YAML. The Framework validates `serverless.yml` against the same schema this page follows; set [`configValidationMode`](#root-properties) to `error` to stop on unknown or misspelled keys.
 
 The sections:
 
@@ -57,11 +57,11 @@ licenseKey: ${ssm:/path/to/serverless-framework-license-key}
 plugins:
   - serverless-plugin-a
 # OR the object form, to load local plugins from another directory
-plugins:
-  # Directory to load local plugins from (default: .serverless_plugins in the service directory)
-  localPath: ./plugins
-  modules:
-    - serverless-plugin-a
+# plugins:
+#   # Directory to load local plugins from (default: .serverless_plugins in the service directory)
+#   localPath: ./plugins
+#   modules:
+#     - serverless-plugin-a
 
 # Free-form values to reference as ${self:custom.<key>}; plugins and built-in features read their settings here. Optional
 custom:
@@ -96,8 +96,8 @@ outputs:
 # It takes effect at the top level of serverless-compose.yml (see State); serverless.yml accepts the key without reading it.
 state: my-state-resolver
 # OR the object form
-state:
-  resolver: my-state-resolver
+# state:
+#   resolver: my-state-resolver
 
 # How configuration errors are reported: 'warn' (default), 'error' (stop the command) or 'off'
 configValidationMode: error
@@ -210,13 +210,13 @@ The Framework loads `.env` and `.env.${stage}` from the service directory automa
 # true (default): load the local .env files only
 useDotenv: true
 # OR false: load no .env files at all, local or custom
-useDotenv: false
+# useDotenv: false
 # OR one file or directory, relative to the service directory
-useDotenv: ../shared
+# useDotenv: ../shared
 # OR a list of paths; for a key set in several files, the earlier entry wins
-useDotenv:
-  - ./overrides.env # a file
-  - ../ # a directory
+# useDotenv:
+#   - ./overrides.env # a file
+#   - ../ # a directory
 ```
 
 The files each `useDotenv` value loads:
@@ -266,8 +266,8 @@ provider:
   region: us-east-1
   # Local AWS profile for deployment credentials. Optional; not with resolver
   profile: production
-  # Name of a resolver under stages.<stage>.resolvers that provides deployment credentials. Optional; not with profile
-  resolver: aws-account-1
+  # OR the name of a resolver under stages.<stage>.resolvers that provides deployment credentials. Optional; not with profile
+  # resolver: aws-account-1
   # CloudFormation stack name: letters, digits and hyphens, up to 128 (default: <service>-<stage>)
   stackName: custom-stack-name
   # Tags for functions, web apps, REST and HTTP APIs, and custom domains. Optional
@@ -311,7 +311,7 @@ provider:
     # (default: <function><stream>Consumer)
     consumerNamingMode: serviceSpecific
   # Custom domain for the service's API: certificate, Route 53 records and API mapping. Optional
-  domain: api.example.com
+  # domain: api.example.com
   # OR the object form
   domain:
     # Required. The domain name
@@ -356,7 +356,7 @@ provider:
     # API Gateway V2 domains (HTTP, WebSocket and REST with a multi-level basePath) take only TLS_1_2
     securityPolicy: TLS_1_2
     # Endpoint access mode: basic or strict. REST APIs with a single-level basePath only; needs a SecurityPolicy_* policy
-    accessMode: strict
+    # accessMode: strict
     # S3 URI of the mutual TLS truststore; regional endpoints only. Optional
     tlsTruststoreUri: s3://bucket-name/truststore.pem
     # S3 object version of the truststore. Optional
@@ -376,32 +376,32 @@ provider:
     # HTTP APIs map the $default stage unless basePath and stage are both set
     # stage: dev
   # OR several domains, as names
-  domains:
-    - api.example.com
-    - api-v2.example.com
+  # domains:
+  #   - api.example.com
+  #   - api-v2.example.com
   # OR several domains, as objects with the domain keys
-  domains:
-    - name: api.example.com
-      apiType: http
-      basePath: v1
-    - name: websocket.example.com
-      apiType: websocket
+  # domains:
+  #   - name: api.example.com
+  #     apiType: http
+  #     basePath: v1
+  #   - name: websocket.example.com
+  #     apiType: websocket
   # OR one entry per API type: http, rest or websocket keys, each holding the domain keys for that API
-  domains:
-    - rest:
-        name: api.example.com
-        stage: dev
-      websocket:
-        name: websocket.example.com
+  # domains:
+  #   - rest:
+  #       name: api.example.com
+  #       stage: dev
+  #     websocket:
+  #       name: websocket.example.com
   # OR web apps on a hostname through CloudFront (see Web Apps)
-  domains:
-    # Name of a web app under webApps; the entry without basePath receives every other path
-    - name: shop.example.com
-      webApp: web
-    # basePath routes /api and /api/* to the api web app; the path is forwarded unchanged
-    - name: shop.example.com
-      basePath: api
-      webApp: api
+  # domains:
+  #   # Name of a web app under webApps; the entry without basePath receives every other path
+  #   - name: shop.example.com
+  #     webApp: web
+  #   # basePath routes /api and /api/* to the api web app; the path is forwarded unchanged
+  #   - name: shop.example.com
+  #     basePath: api
+  #     webApp: api
 ```
 
 ### General AWS Lambda settings
@@ -524,7 +524,7 @@ provider:
     # Detailed CloudWatch metrics (default: false)
     metrics: true
     # CORS with the defaults: all origins and the common request headers. Not with id
-    cors: true
+    # cors: true
     # OR CORS settings; omitted keys keep the defaults
     cors:
       allowedOrigins:
@@ -574,8 +574,9 @@ provider:
         identitySource:
           - $request.header.Auth
           - $request.header.Authorization
-        # Skip creating the invoke permission, for a function outside the service (default: false)
-        managedExternally: true
+        # true skips creating the permission API Gateway needs to invoke the function, for a function whose
+        # invoke permission is managed outside this service (default: false)
+        managedExternally: false
 ```
 
 ### API Gateway v1 REST API
@@ -838,7 +839,7 @@ provider:
   iam:
     # An existing IAM role (ARN, name or CloudFormation reference) for the functions; the Framework then creates
     # no execution roles, shared or per function
-    role: arn:aws:iam::123456789012:role/role
+    # role: arn:aws:iam::123456789012:role/role
     # OR settings of the execution role the Framework creates
     role:
       # 'shared' (default): one role for all functions, plus a role of its own for each function that sets
@@ -1224,7 +1225,7 @@ functions:
       # Name of a function in this service, or the ARN of a function, SQS queue, SNS topic or EventBridge bus
       onSuccess: processResult
       # Same forms as onSuccess
-      onFailure: arn:aws:sqs:us-east-1:123456789012:failed-invocations
+      # onFailure: arn:aws:sqs:us-east-1:123456789012:failed-invocations
       # OR the object form, required for CloudFormation references; type: function, sns, sqs or eventBus
       onFailure:
         type: sns
@@ -1273,7 +1274,7 @@ functions:
       - httpApi:
           # HTTP method, or '*' for any method
           method: GET
-          # Path, or '*' for any path; path parameters as {param}, greedy as {param+}
+          # Path; path parameters as {param}, greedy as {param+}. '*' (the default route) only with method '*' or no method
           path: /some-get-path/{param}
           authorizer: # Optional
             # Name of an authorizer defined in 'provider.httpApi.authorizers'
@@ -1287,6 +1288,8 @@ functions:
               - user.email
       # Shorthand: 'METHOD path'
       - httpApi: 'POST /users'
+      # Default route: requests that match no other route
+      - httpApi: '*'
 ```
 
 ### API Gateway v1 REST API
@@ -1545,9 +1548,10 @@ functions:
       - sqs:
           # ARN or CloudFormation reference of an existing queue; the Framework doesn't create it
           arn: arn:aws:sqs:us-east-1:123456789012:myQueue
-          # Optional, 1-10000 (default: 10). Above 10 requires maximumBatchingWindow of at least 1
+          # Optional (default: 10). 1-10000 for a standard queue, 1-10 for a FIFO queue
+          # Above 10 requires maximumBatchingWindow of at least 1
           batchSize: 10
-          # Optional, minimum is 0 and the maximum is 300 (seconds)
+          # Optional, standard queues only, minimum is 0 and the maximum is 300 (seconds)
           maximumBatchingWindow: 10
           # (default: true)
           enabled: false
@@ -2120,7 +2124,7 @@ layers:
 
 ## AWS Lambda MicroVMs (Sandboxes)
 
-The `sandboxes` top-level property defines [Sandboxes](./sandboxes.md): container workloads that run as AWS Lambda MicroVMs, each built from a `Dockerfile` or a prebuilt `s3://` zip. `serverless deploy` creates the MicroVM image with its IAM roles, log group, metrics and dashboard, and rebuilds the image only when the artifact's content changes; `serverless invoke`, `logs` and `dev` take `--sandbox <name>`. Only `artifact` is required:
+The `sandboxes` top-level property defines [Sandboxes](./sandboxes.md): container workloads that run as AWS Lambda MicroVMs, each built from a `Dockerfile` or a prebuilt `s3://` zip. `serverless deploy` creates the MicroVM image with its IAM roles, log group, metrics and dashboard, and builds a new image version when the artifact's content or the sandbox's settings, such as `environment`, change; `serverless invoke`, `logs` and `dev` take `--sandbox <name>`. Only `artifact` is required:
 
 ```yml
 # serverless.yml
@@ -2339,7 +2343,7 @@ ai:
       #   - A string (existing IAM role ARN or logical name)
       #   - An object to customize the auto-generated role
       #   - A CloudFormation intrinsic function
-      role: arn:aws:iam::123456789012:role/my-agent-role
+      # role: arn:aws:iam::123456789012:role/my-agent-role
       # OR customize the auto-generated role:
       role:
         # Optional custom role name (max 64 chars)
@@ -2361,7 +2365,7 @@ ai:
 
       # Memory for conversation persistence.
       # Can be a string (reference to a shared memory in ai.memory) or an inline config.
-      memory: sharedMemory # reference to ai.memory.sharedMemory
+      # memory: sharedMemory # reference to ai.memory.sharedMemory
       # OR inline memory config:
       memory:
         expiration: 30 # Days until events expire (3-365)
@@ -2377,7 +2381,7 @@ ai:
       # Artifact configuration for container or code deployment
       artifact:
         # Container image: string (pre-built ECR URI) or object (build config)
-        image: 123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest
+        # image: 123456789012.dkr.ecr.us-east-1.amazonaws.com/my-agent:latest
         # OR build from source:
         image:
           # Dockerfile path relative to path (default: Dockerfile)
@@ -2425,7 +2429,7 @@ ai:
 
       # Authorizer for inbound requests to the agent runtime.
       # none and aws_iam keep the default SigV4 (IAM) authorization; custom_jwt with jwt requires a JWT instead
-      authorizer: none # none | aws_iam | custom_jwt
+      # authorizer: none # none | aws_iam | custom_jwt
       # OR object form with JWT config (required when type is custom_jwt):
       authorizer:
         type: custom_jwt
@@ -2452,9 +2456,9 @@ ai:
                   # Use matchValueString for a single value:
                   matchValueString: my-org
                   # OR matchValueStringList for multiple values (e.g., with contains_any):
-                  matchValueStringList:
-                    - org-a
-                    - org-b
+                  # matchValueStringList:
+                  #   - org-a
+                  #   - org-b
 
       # Session lifecycle settings
       lifecycle:
@@ -2489,7 +2493,7 @@ ai:
     # Tool name (logical identifier, referenced by gateways and agents)
     myLambdaTool:
       # Lambda function tool: function name defined in the functions block
-      function: myFunction
+      # function: myFunction
       # OR object form with explicit name or ARN:
       function:
         name: myFunction # function name in this service
@@ -2570,7 +2574,7 @@ ai:
     # Gateway name (logical identifier, referenced by ai.agents[].gateway)
     myGateway:
       # Authorizer for inbound requests to the gateway
-      authorizer: none # none | aws_iam | custom_jwt
+      # authorizer: none # none | aws_iam | custom_jwt
       # OR object form:
       authorizer:
         type: custom_jwt

@@ -58,7 +58,7 @@ The configuration update covers `handler`, `runtime`, `memorySize`, `timeout`, `
 
 ## How serverless deploy function relates to the stack
 
-After `serverless deploy function`, the function differs from what the CloudFormation stack last deployed. A later `serverless deploy` doesn't undo a configuration change made this way: CloudFormation changes only what differs from the template it deployed last, and when nothing else changed, the deploy is skipped. To put the function back, run `serverless deploy function` again from the configuration you want.
+After `serverless deploy function`, the function differs from what the CloudFormation stack last deployed. A later `serverless deploy` doesn't undo a configuration change made this way: CloudFormation changes only what differs from the template it deployed last, and when nothing else changed, the deploy is skipped. Running `serverless deploy function` again from the configuration you want puts back the settings that `serverless.yml` sets. It sends `vpc`, `kmsKeyArn`, `description`, `onError` and `snapStart` only when they are set, so removing one of them from `serverless.yml` leaves the deployed value in place: a VPC attached with `serverless deploy function` stays attached after you remove `vpc`.
 
 With `codeStorageMode: reference`, `serverless deploy function` stores the code in Lambda-managed storage. The next `serverless deploy` that runs returns the function to reference mode; when nothing else changed, run `serverless deploy --force`. See [Code Storage Mode](../../../guides/deployment-bucket.md#code-storage-mode-self-managed-lambda-code-storage).
 

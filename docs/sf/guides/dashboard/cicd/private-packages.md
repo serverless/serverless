@@ -56,6 +56,9 @@ The next Dashboard CI/CD deployment installs the private packages with the token
 pip reads each of its options from a `PIP_<OPTION>` environment variable ([pip environment variables](https://pip.pypa.io/en/stable/topics/configuration/#environment-variables)), so a Dashboard parameter can point pip at a private index:
 
 1. In the [Dashboard](https://app.serverless.com), create a parameter named `PIP_EXTRA_INDEX_URL` with your index URL as its value, for example `https://USERNAME:TOKEN@pypi.example.com/simple/`. Replace `USERNAME`, `TOKEN` and the host with your index's values, and percent-encode any special characters in them (`/` as `%2F`, `@` as `%40`); see [pip authentication](https://pip.pypa.io/en/stable/topics/authentication/). To replace PyPI instead of adding an index, name the parameter `PIP_INDEX_URL`.
+
+   **Warning:** With `PIP_EXTRA_INDEX_URL`, pip searches PyPI and your index with no priority and installs the highest matching version ([`--extra-index-url`](https://pip.pypa.io/en/stable/cli/pip_install/#cmdoption-extra-index-url)). A package published on PyPI under the name of one of your private packages, with a higher version, is installed and run in the build instead. To rule this out, use `PIP_INDEX_URL` with an index that serves your private packages and proxies the public packages you approve, or pin every requirement with a hash ([Secure installs](https://pip.pypa.io/en/stable/topics/secure-installs/)).
+
 2. When `dockerizePip` runs pip in Docker (`true`, or `non-linux` on a build machine that isn't Linux), pass the variable into the container. In `serverless.yml`, under `custom.pythonRequirements`, add:
 
    ```yaml
@@ -65,6 +68,8 @@ pip reads each of its options from a `PIP_<OPTION>` environment variable ([pip e
        dockerEnv:
          - PIP_EXTRA_INDEX_URL
    ```
+
+   List the name of the parameter you created in step 1: `PIP_INDEX_URL` instead of `PIP_EXTRA_INDEX_URL` when you replaced PyPI.
 
    When pip doesn't run in Docker, the Framework's Python requirements packaging runs the installer with the build's environment variables, and no `dockerEnv` entry is needed.
 

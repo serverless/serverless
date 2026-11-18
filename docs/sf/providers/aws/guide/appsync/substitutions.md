@@ -52,9 +52,14 @@ export function request(ctx) {
 }
 
 export function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type)
+  }
   return ctx.result.data['#postsTable#']
 }
 ```
+
+When DynamoDB processes only part of the batch, AppSync sets `ctx.error` and returns `null` for each unprocessed key; the response handler raises that error, so clients don't mistake an unread post for a missing one.
 
 ## Where substitutions are defined
 

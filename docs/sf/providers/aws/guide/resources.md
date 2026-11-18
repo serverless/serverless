@@ -64,7 +64,7 @@ resources:
 
 `UsersTable` is the resource's logical ID. `Ref` returns the table name and `Fn::GetAtt` its ARN; each resource type's page in the [CloudFormation resource and property reference](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-template-resource-type-ref.html) lists what `Ref` and `Fn::GetAtt` return. Without a `TableName`, CloudFormation generates a unique name, so the table can exist in several stages of the same account.
 
-**Warning:** Removing a resource from `resources`, or running `serverless remove`, deletes it with its data, unless the resource sets `DeletionPolicy: Retain`.
+**Warning:** Removing a resource from `resources`, or running `serverless remove`, deletes it with its data, as with `UsersTable` above, unless the resource sets `DeletionPolicy: Retain`. That is CloudFormation's default [`DeletionPolicy`](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-attribute-deletionpolicy.html), with two exceptions: an `AWS::RDS::DBCluster`, or an `AWS::RDS::DBInstance` without `DBClusterIdentifier`, gets a final snapshot before deletion, and an `AWS::S3::Bucket` is deleted only when it is empty, so empty a bucket before you remove it.
 
 ## Template sections in resources
 
@@ -100,7 +100,7 @@ A resource in `resources.Resources` with the same logical ID as a resource the F
 
 ## Remove a property with null
 
-CloudFormation has no way to unset a property, so the Framework removes every property set to `null`, at any depth under a resource's `Properties`, from the final template. Use it to drop a property that the Framework or a merge adds:
+CloudFormation has no way to unset a property, so the Framework removes every object property set to `null`, at any depth under a resource's `Properties`, from the final template. Use it to drop a property that the Framework or a merge adds:
 
 ```yaml
 resources:
@@ -109,6 +109,8 @@ resources:
       Properties:
         ReservedConcurrentExecutions: null
 ```
+
+A `null` item in a list stays in the template as `null`. To drop an item from a list under `Properties`, set the whole top-level property to a list without the item under `resources.extensions`, which replaces each property it sets.
 
 ## AWS CloudFormation resource reference
 

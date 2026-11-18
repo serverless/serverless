@@ -60,7 +60,7 @@ ${RESOLVER_NAME:NESTED_RESOLVER_NAME:PARAMETER_NAME}
 - `PARAMETER_NAME`: the parameter's name or path (`/my-service/dev/db-host`), its ARN, or a Secrets Manager reference (`/aws/reference/secretsmanager/SECRET_NAME`). Append `:VERSION` or `:LABEL` to read a specific parameter version or label.
 - `REGION`: the Region of the parameter; see [Read parameters from another Region](#read-parameters-from-another-region).
 - `raw`, `noDecrypt`: see [Parameter types and values](#parameter-types-and-values). With a Region, the Region comes first: in `${ssm(raw, eu-west-1):...}` the Region is ignored.
-- `${ssm:...}` is the short form of `${aws:ssm:...}`; both use the deployment credentials.
+- `${ssm:...}` is the short form of `${aws:ssm:...}`; both use the deployment credentials. When the service declares a resolver named `aws`, `${aws:ssm:...}` uses that resolver's credentials instead, while `${ssm:...}` keeps the deployment credentials, so the two can read different accounts when `provider.profile` or `provider.resolver` selects other credentials.
 - `RESOLVER_NAME`: an [AWS resolver](./README.md#configure-an-aws-resolver). Without a resolver type, `${RESOLVER_NAME:PARAMETER_NAME}` reads an SSM parameter; a name that contains `:`, such as an ARN or a `:VERSION` suffix, needs the `ssm` type: `${RESOLVER_NAME:ssm:PARAMETER_NAME}`.
 - `NESTED_RESOLVER_NAME`: a nested resolver with `type: ssm`; see [SSM resolver settings](#ssm-resolver-settings).
 

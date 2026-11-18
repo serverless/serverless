@@ -131,9 +131,22 @@ functions:
 
 - `batchSize`: integer, `1` to `10000`. The Framework sets `10` when it is omitted; AWS's own default is `100`.
 - `batchWindow`: integer, `0` to `300` seconds. When it isn't set, AWS uses `0`.
-- `startingPosition`: `TRIM_HORIZON` (the default, the oldest available record), `LATEST` (only new records) or `AT_TIMESTAMP` (Kinesis only; see [Kinesis enhanced fan-out consumers](#kinesis-enhanced-fan-out-consumers)). DynamoDB streams accept `TRIM_HORIZON` and `LATEST`.
+- `startingPosition`: `TRIM_HORIZON` (the default, the oldest available record), `LATEST` (only new records) or `AT_TIMESTAMP` (Kinesis only, with `startingPositionTimestamp`). DynamoDB streams accept `TRIM_HORIZON` and `LATEST`.
 
 Lambda invokes the function when the batch is full, when the batching window ends, or when the batch reaches the 6 MB invocation payload limit, whichever comes first.
+
+To start reading a Kinesis stream from a point in time, set `startingPosition: AT_TIMESTAMP` and `startingPositionTimestamp` in Unix time seconds. This works with or without an [enhanced fan-out consumer](#kinesis-enhanced-fan-out-consumers). The Framework stops packaging when an event sets `AT_TIMESTAMP` without `startingPositionTimestamp`:
+
+```yaml
+functions:
+  preprocess:
+    handler: handler.preprocess
+    events:
+      - stream:
+          arn: arn:aws:kinesis:us-east-1:123456789012:stream/foo
+          startingPosition: AT_TIMESTAMP
+          startingPositionTimestamp: 1000000001
+```
 
 ## Retries and failed records
 
@@ -299,20 +312,6 @@ functions:
           consumer: arn:aws:kinesis:us-east-1:123456789012:stream/foo/consumer/foobar:1558544531
 ```
 
-To start reading from a point in time, set `startingPosition: AT_TIMESTAMP` and `startingPositionTimestamp` in Unix time seconds. The Framework applies `startingPositionTimestamp` to Kinesis events that set `consumer`, and stops packaging when such an event sets `AT_TIMESTAMP` without a timestamp:
-
-```yaml
-functions:
-  preprocess:
-    handler: handler.preprocess
-    events:
-      - stream:
-          arn: arn:aws:kinesis:us-east-1:123456789012:stream/foo
-          consumer: true
-          startingPosition: AT_TIMESTAMP
-          startingPositionTimestamp: 1000000001
-```
-
 ## Turn off a stream trigger
 
 To keep the event source mapping but stop Lambda from reading the stream, set the `stream` event's `enabled` to `false`:
@@ -338,7 +337,7 @@ The object form of the `stream` event accepts these keys:
 | `batchSize`                  | Integer                         | `10`                       | `1` to `10000`                                                                              |
 | `batchWindow`                | Integer (seconds)               | Not set (AWS uses `0`)     | `0` to `300`                                                                                |
 | `startingPosition`           | String                          | `TRIM_HORIZON`             | `TRIM_HORIZON`, `LATEST`, `AT_TIMESTAMP` (Kinesis only)                                     |
-| `startingPositionTimestamp`  | Number (Unix seconds)           | Not set                    | Applied to Kinesis events with `consumer` and `AT_TIMESTAMP`                                |
+| `startingPositionTimestamp`  | Number (Unix seconds)           | Not set                    | Required with `AT_TIMESTAMP`                                                                |
 | `enabled`                    | Boolean                         | `true`                     | `true`, `false`                                                                             |
 | `parallelizationFactor`      | Integer                         | Not set (AWS uses `1`)     | `1` to `10`                                                                                 |
 | `maximumRetryAttempts`       | Integer                         | Not set (AWS uses `-1`)    | `-1` to `10000`                                                                             |

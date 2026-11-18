@@ -41,6 +41,8 @@ appSync:
           - '$context.arguments.id'
 ```
 
+The `$context.arguments.id` key shares each cached post among all callers, which suits data that every caller may read. For a resolver whose result depends on the caller, such as one that checks ownership, add an identity field such as `$context.identity.sub` to `keys`, or omit `keys` to use AppSync's default keys, which include `$context.identity`.
+
 ## Caching keys
 
 | Key                 | Type                                                                                    | Default    | Description                                                                                                                                                                                                           |

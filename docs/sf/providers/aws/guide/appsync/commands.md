@@ -41,6 +41,8 @@ serverless appsync validate-schema
 
 A valid schema prints `AppSync schema valid`. An invalid one stops the command with `Invalid GraphQL schema:` followed by each error.
 
+Problems in the `appSync` configuration follow `configValidationMode`: with the default `warn`, the command prints `Invalid AppSync Configuration` as a warning and still prints `AppSync schema valid` when the schema is valid. To make `validate-schema` stop on configuration problems, for example in CI, set `configValidationMode: error` at the top level of `serverless.yml`.
+
 ## Export the introspection schema
 
 `serverless appsync get-introspection` downloads the deployed API's schema from AppSync and prints it, or writes it to a file:

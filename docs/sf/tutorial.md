@@ -37,7 +37,7 @@ For a video walkthrough of creating and deploying a first service, watch the [Se
 ## Prerequisites
 
 - An AWS account. To create one, use the [AWS sign-up page](https://portal.aws.amazon.com/billing/signup). The identity you deploy with needs permission to create the resources in this tutorial; [AWS Credentials](./providers/aws/guide/credentials.md) lists the options.
-- Node.js 18.17 or later and npm, to install the Framework and the AWS SDK clients ([install Node.js](https://nodejs.org/en/download)). The Node.js version on your machine doesn't decide the Lambda runtime; `serverless.yml` does.
+- Node.js 20 or later and npm, to install the Framework and the AWS SDK clients ([install Node.js](https://nodejs.org/en/download)); the AWS SDK clients this tutorial installs require Node.js 20 or later. The AWS SDK for JavaScript v3 [drops support for a Node.js version](https://aws.amazon.com/blogs/developer/aws-sdk-for-javascript-aligns-with-node-js-release-schedule/) some months after that version's end of life; on an older Node.js, npm warns about the clients' supported versions, or refuses to install them when `engine-strict` is set. The Node.js version on your machine doesn't decide the Lambda runtime; `serverless.yml` does.
 - A terminal and a web browser on the same machine. Signing in to Serverless Framework and to the AWS Console opens the browser.
 - `curl`, to call the API.
 
@@ -169,7 +169,12 @@ In the `customers-api` folder, you replace the template's function with two func
        }
      }
 
-     if (!customer?.name || !customer?.email) {
+     if (
+       typeof customer?.name !== 'string' ||
+       typeof customer?.email !== 'string' ||
+       !customer.name ||
+       !customer.email
+     ) {
        return {
          statusCode: 400,
          body: JSON.stringify({ error: 'name and email are required' }),
@@ -192,7 +197,7 @@ In the `customers-api` folder, you replace the template's function with two func
 
    HTTP API passes the request body as a string, base64-encoded when `isBase64Encoded` is `true`, so the function decodes it only in that case. The table name comes from the `CUSTOMERS_TABLE` environment variable, which `serverless.yml` sets in step 5.
 
-3. Create `getCustomers.mjs`. The function returns every item in the table:
+3. Create `getCustomers.mjs`. The function returns the customers stored in the table:
 
    ```javascript
    import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
@@ -202,7 +207,10 @@ In the `customers-api` folder, you replace the template's function with two func
 
    export const handler = async () => {
      const result = await ddb.send(
-       new ScanCommand({ TableName: process.env.CUSTOMERS_TABLE }),
+       new ScanCommand({
+         TableName: process.env.CUSTOMERS_TABLE,
+         ConsistentRead: true,
+       }),
      )
 
      return {
@@ -215,7 +223,7 @@ In the `customers-api` folder, you replace the template's function with two func
    }
    ```
 
-   A `Scan` reads the whole table, which suits a tutorial; for large tables, query by key instead.
+   `ConsistentRead: true` makes the scan include every write that finished before it, such as a customer added just before. A `Scan` returns at most 1 MB of items per call, and this function returns only that first page, so `total` and `items` cover that page; that holds every customer in this tutorial. For large tables, query by key instead, or read the next pages with `LastEvaluatedKey` ([Scanning tables in DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Scan.html#Scan.Pagination)).
 
 4. Create a `package.json` in the `customers-api` folder and install the AWS SDK v3 clients:
 

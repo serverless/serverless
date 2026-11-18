@@ -82,7 +82,7 @@ resources:
     usersTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: usersTable
+        TableName: users-${sls:stage}
         AttributeDefinitions:
           - AttributeName: email
             AttributeType: S
@@ -116,7 +116,7 @@ Each service deploys as its own stack. To deploy several services together and p
 
 ## Stage-specific configuration
 
-The top-level `stages` key holds settings per stage. A key under `stages` is a stage name, and `default` applies to every stage without its own entry. Each stage takes `params`, `observability` and `resolvers`.
+The top-level `stages` key holds settings per stage. A key under `stages` is a stage name, and `default` holds fallbacks for every stage. Each stage takes `params`, `observability` and `resolvers`. A stage's own setting wins, and a setting the stage doesn't define comes from `default`: for `params` per parameter key, and for `resolvers` per resolver name.
 
 ### Stage parameters
 
@@ -203,7 +203,7 @@ It deletes the service's artifacts from the deployment bucket, the CloudFormatio
 
 The `serverless` command you install globally (for example with `npm install -g serverless`) is a launcher. In a service, it reads `frameworkVersion` from the service configuration and runs a matching Framework release, downloading it into `~/.serverless/releases/<version>` when needed. Without `frameworkVersion`, it runs the latest release and checks for a newer one every 24 hours.
 
-Pinning makes your colleagues and your CI system deploy the service with the same Framework version, whatever version of the launcher they installed.
+Pinning an exact version makes your colleagues and your CI system deploy the service with the same Framework release, whatever version of the launcher they installed. A range keeps them within the range, and each machine picks up newer matching releases when its launcher checks for them, so two machines can run different releases for a while.
 
 ### Pin a version
 

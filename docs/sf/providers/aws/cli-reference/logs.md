@@ -83,7 +83,7 @@ A date without a time zone is read as UTC. Relative times take only minutes (`m`
 
 `--filter` takes a [CloudWatch Logs filter pattern](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html); a single term such as `ERROR` matches the events that contain it.
 
-Without `--tail`, the command makes one request: it prints one page of results, as many events as fit in 1 MB, up to 10,000 ([`FilterLogEvents`](https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_FilterLogEvents.html)), from the 50 log streams with the most recent events. To see older events in a busy log group, narrow the range with `--startTime` or the events with `--filter`. When nothing matches, the command prints `No logs found from start time: <time>`.
+Without `--tail`, the command makes one request: it prints one page of results, as many events as fit in 1 MB, up to 10,000 ([`FilterLogEvents`](https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_FilterLogEvents.html)), from the 50 log streams with the most recent events. To see older events in a busy log group, narrow the range with `--startTime` or the events with `--filter`. Neither option changes which streams are read, so an event in a stream outside those 50 isn't printed; to search every stream of the log group, use [CloudWatch Logs Insights](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html). When nothing matches, the command prints `No logs found from start time: <time>`.
 
 ## Follow logs with --tail
 

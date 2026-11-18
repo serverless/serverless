@@ -176,7 +176,7 @@ The `eventBridge` event's `retryPolicy` limits how long and how often EventBridg
 
 - `retryPolicy.maximumEventAge`: integer, 60 to 86,400 seconds.
 - `retryPolicy.maximumRetryAttempts`: integer, 0 to 185.
-- Without `retryPolicy`, EventBridge retries for up to 24 hours and up to 185 times.
+- Without `retryPolicy`, EventBridge retries a rule's failed delivery for up to 24 hours and up to 185 times. A Custom Event Bus subscriber has shorter defaults; see [Settings on a Custom Event Bus](#settings-on-a-custom-event-bus).
 
 The Framework doesn't add a queue policy to the dead-letter queue. Add one that allows `events.amazonaws.com` to call `sqs:SendMessage`, limited to the rule's ARN:
 

@@ -113,7 +113,8 @@ The CLI never changes that skill again, and `agent skills install` reports it as
 
 To remove the skills, delete all Framework-managed skill folders from both skill directories, in the service and in your home directory.
 
-- A whole skill directory you delete (for example `.claude/skills`) isn't created again while the other directory still holds Framework-managed skills, not even by `agent skills install` without `--dir`.
+- A whole project skill directory you delete from the service (for example `.claude/skills`) isn't created again while the other directory still holds Framework-managed skills, not even by `agent skills install` without `--dir`.
+- A user-level skill directory you delete (for example `~/.claude/skills`) isn't created again by automatic updates. `agent setup` and `agent skills install` without `--dir` choose the user-level directories by the home-directory signals alone, so they create `~/.claude/skills` again while `~/.claude` exists, even when `~/.agents/skills` still holds Framework-managed skills. To install only into `~/.agents/skills`, pass `--dir agents`.
 - A single skill folder you delete from a directory that still holds other Framework-managed skills is installed again by the next update or `agent skills install`. To keep one skill out, take ownership of it instead ([Customizing a skill](#customizing-a-skill)).
 
 ## Dev Mode for coding agents

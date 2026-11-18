@@ -141,7 +141,9 @@ Compose never creates a bucket you name in `state`, and it creates no SSM parame
 
 ## State after `serverless remove`
 
-When `serverless remove` removes a service through Compose, Compose replaces that service's state object with an empty object (`{}`). It doesn't delete the state object or the state bucket, and the versioned bucket keeps earlier versions of the state. To delete them, empty and delete the bucket yourself; for the default bucket, also delete the `/serverless-framework/state/s3-bucket` parameter in `us-east-1`, or the next Compose run creates the bucket again under the same name.
+When `serverless remove` removes a service through Compose, Compose replaces that service's state object with an empty object (`{}`). It doesn't delete the state object or the state bucket, and the versioned bucket keeps earlier versions of the state.
+
+The default state bucket holds the state of every Compose project in the AWS account, and a bucket you name in `state` can be shared too. To delete the removed service's state, delete every version of its object, `services/<runner type>/<stack ID>/state/state.json`, and leave the rest of the bucket. Delete the bucket only after you confirm that no other Compose project stores state in it; for the default bucket, then also delete the `/serverless-framework/state/s3-bucket` parameter in `us-east-1`, or the next Compose run creates the bucket again under the same name.
 
 ## Related pages
 

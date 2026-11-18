@@ -90,7 +90,7 @@ To fix it, set the variable in the shell or a `.env` file, or add a default valu
 
 ## Secrets in env variables
 
-The value of an `${env:...}` variable is written into the configuration the Framework generates: the CloudFormation template, and the function's environment when you use the variable there. It also appears in the output of `serverless print`. Keep secrets out of build logs and templates by storing them in AWS Systems Manager Parameter Store or AWS Secrets Manager and referencing them with [SSM variables](./aws/ssm.md), or by reading them in your function code at runtime.
+The value of an `${env:...}` variable is written into the configuration the Framework generates: the CloudFormation template, and the function's environment when you use the variable there. It also appears in the output of `serverless print`. [SSM variables](./aws/ssm.md) keep a secret out of `serverless.yml` and your shell, but the Framework resolves them the same way, so their values appear in the same places. To keep a secret out of templates, build output and the function's configuration, store it in AWS Systems Manager Parameter Store or AWS Secrets Manager and read it in your function code at runtime.
 
 ## Related variable sources
 

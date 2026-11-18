@@ -267,9 +267,10 @@ Separate accounts keep experimental changes out of the account that serves your 
 
 1. In **Organizations**, choose **Add an AWS account**.
 2. Give the account a name that marks it as the development account.
-3. Use an alias email address: users of the management account get access to the new account through IAM Identity Center.
+3. Use an alias email address for the account's root user.
 4. Choose **Create AWS account**.
-5. Repeat for the production account.
+5. In **IAM Identity Center**, under **AWS accounts**, select the new account and choose **Assign users or groups**. Select the users or groups that work in this account, choose **Next**, select a permission set, choose **Next**, then **Submit**. A new account grants access only to the users and groups assigned to it.
+6. Repeat for the production account.
 
 ### Developer accounts
 

@@ -636,7 +636,7 @@ The `cors` object takes:
 
 Proxies that share a `path` share one preflight, which combines their headers, methods and origins; for `maxAge` and `cacheControl`, the last proxy that sets them wins.
 
-The preflight takes no authorization and no API key, whatever the route's `authorizationType` and `private` settings. With `origin`, the preflight and the route's responses carry that origin in `Access-Control-Allow-Origin`. With `origins`, the preflight answers with the caller's `Origin` when it matches an entry (`*` in an entry matches any characters), and the route's responses carry all entries joined by commas.
+The preflight takes no authorization and no API key, whatever the route's `authorizationType` and `private` settings. With `origin`, the preflight and the route's responses carry that origin in `Access-Control-Allow-Origin`. With `origins`, the preflight answers with the caller's `Origin` when it matches an entry (`*` in an entry matches any characters), and the route's responses carry all entries joined by commas. Browsers accept only one origin in `Access-Control-Allow-Origin`, so with two or more `origins` entries, browsers reject the route's responses even though the preflight succeeds. For routes that browsers call, set a single `origin`, or `*` for requests without credentials.
 
 ## Require authorization
 

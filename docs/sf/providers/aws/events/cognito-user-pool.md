@@ -269,6 +269,21 @@ export const customMessage = async (event) => {
 }
 ```
 
+Cognito sends the `emailSubject` and `emailMessage` a custom message function returns only when the user pool sends email through Amazon SES, with `EmailSendingAccount: DEVELOPER`. For a user pool the Framework creates, set the email configuration as in [Configure the generated user pool](#configure-the-generated-user-pool):
+
+```yaml
+resources:
+  Resources:
+    CognitoUserPoolMyUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        EmailConfiguration:
+          EmailSendingAccount: DEVELOPER
+          SourceArn: arn:aws:ses:us-east-1:123456789012:identity/no-reply@example.com
+```
+
+`SourceArn` is the ARN of an SES verified identity. See [Amazon SES email configuration](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-email.html#user-pool-email-developer).
+
 For all trigger sources and the response fields, see [Custom message Lambda trigger](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-custom-message.html).
 
 ## Permissions for Cognito triggers

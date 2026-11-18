@@ -20,7 +20,7 @@ keywords:
 
 # CloudFormation Stack Output Variables
 
-A `${cf:<stack>.<output>}` variable reads an output of a deployed AWS CloudFormation stack, such as another service or a stack created outside the Serverless Framework. To pass values between services of one [Compose](../../compose.md) project, use `${service:<service>.<Output>}` instead: it orders the deployments and can read a service deployed to another stage.
+A `${cf:<stack>.<output>}` variable reads an output of a deployed AWS CloudFormation stack, such as another service or a stack created outside the Serverless Framework. To pass values between services of one [Compose](../../compose.md) project, use `${service:<service>.<Output>}` instead: it orders the deployments and reads the service at the stage of the current run. To read a service deployed to a fixed stage, such as a shared `dev` database read from a personal stage, use a named `service` resolver ([Referencing a service deployed to a different stage](../../compose.md#referencing-a-service-deployed-to-a-different-stage)).
 
 The following `serverless.yml` reads the `QueueUrl` output of the `orders-dev` stack:
 

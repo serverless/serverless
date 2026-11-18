@@ -44,7 +44,15 @@ export default class MyPlugin {
   }
 
   checkConfig() {
-    const { bucket, minify = false } = this.serverless.service.custom.myPlugin
+    const config = this.serverless.service.custom?.myPlugin
+    if (!config) {
+      throw new this.serverless.classes.Error(
+        'Set custom.myPlugin in serverless.yml to use my-plugin',
+        'MY_PLUGIN_MISSING_CONFIG',
+        { stack: false },
+      )
+    }
+    const { bucket, minify = false } = config
     this.log.notice(`Uploading to ${bucket} (minify: ${minify})`)
   }
 }
@@ -72,6 +80,8 @@ functions:
 plugins:
   - ./my-plugin.mjs
 ```
+
+The schema validates `custom.myPlugin` only when it is set, and `service.custom` is `undefined` when `serverless.yml` has no `custom` block, so `checkConfig()` reads the block with `custom?.myPlugin` and stops the command with an error when it is missing.
 
 If `custom.myPlugin.bucket` is missing, the command prints `at 'custom.myPlugin': must have required property 'bucket'` under an `Invalid configuration encountered` warning, or stops when the service sets `configValidationMode: error` (see [How the Framework reports schema violations](#how-the-framework-reports-schema-violations)).
 

@@ -62,7 +62,7 @@ Turn on preview deployments with the branch name as the stage, so that each pull
 
 ## Tests before every deployment
 
-Dashboard CI/CD runs a test step before it deploys and deploys only when the tests pass. The test step runs the test command configured for the service in the Dashboard; [Running tests](./running-tests.md) shows the `npm test` setup, with a `test` script in `package.json`.
+Dashboard CI/CD runs a test step before it deploys and deploys only when the tests that run pass. The test step runs the test command configured for the service in the Dashboard; [Running tests](./running-tests.md) shows the `npm test` setup, with a `test` script in `package.json`. When `package.json` has no `test` script, or the script is the placeholder that `npm init` writes, the test step is skipped and the service deploys without tests.
 
 ## Notifications for failed deployments
 

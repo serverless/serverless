@@ -125,7 +125,13 @@ Functions in neither list are unchanged, or are image or `package.disable` funct
 ## Side effects and CI use
 
 - Without `--package`, `serverless diff` packages the service first, which writes the package directory as [`serverless package`](./package.md) does. In AWS it only reads: `cloudformation:GetTemplate` on the stack and `lambda:GetFunction` on each deployed function. It is safe to re-run.
-- The exit code is `0` whether or not there are differences; it is non-zero only when the command can't finish, for example when credentials are missing, the packaged template can't be read, or `lambda:GetFunction` is denied. To fail a CI step on changes, read the JSON output, for example `serverless diff --json | jq -e '.summary.create + .summary.update + .summary.remove == 0 and (.code.changed + .code.new | length) == 0'`.
+- The exit code is `0` whether or not there are differences; it is non-zero only when the command can't finish, for example when credentials are missing, the packaged template can't be read, or `lambda:GetFunction` is denied. To fail a CI step on changes, read the JSON output. In this Bash step, `pipefail` keeps a failed `serverless diff` from passing when `jq` reads empty input:
+
+  ```bash
+  set -o pipefail
+  serverless diff --json | jq -e '.summary.create + .summary.update + .summary.remove == 0 and (.code.changed + .code.new | length) == 0'
+  ```
+
 - The command does not prompt. The diff is printed without colors when `NO_COLOR` is set, when `FORCE_COLOR` is `0` or `false`, or when an AI agent runs the command.
 - When `--package` points at a directory without the packaged template, the command stops with this error:
 

@@ -331,6 +331,8 @@ appSync:
 | `ttl`  | integer, 1–3600 | `appSync.caching.ttl`, else `3600`                                                | Seconds to keep a cached result.                                                                       |
 | `keys` | list of strings | `$context.arguments`, `$context.source` and `$context.identity` (AppSync default) | The values that make up the cache key: entries from those three maps, such as `$context.arguments.id`. |
 
+The `$context.arguments.id` key shares each cached post among all callers, which suits data that every caller may read. For a resolver whose result depends on the caller, such as one that checks ownership, add an identity field such as `$context.identity.sub` to `keys`, or omit `keys` to use AppSync's default keys, which include `$context.identity`.
+
 `caching: true` caches the resolver with the API-wide TTL and AppSync's default caching keys, as when `keys` is omitted.
 
 Set `appSync.caching.type`: without it, the Framework creates a legacy `T2_SMALL` cache instance. The instance types and hourly billing are in [AppSync caching](./caching.md).

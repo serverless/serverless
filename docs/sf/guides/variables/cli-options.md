@@ -13,9 +13,9 @@ keywords: ['Serverless Framework', 'CLI Options', 'opt variable', 'Variables', '
 
 # CLI Option Variables
 
-A `${opt:<option>}` variable reads an option passed to the `serverless` command, such as `--prefix acme` in `serverless deploy --prefix acme`. Use it for values that change from one run to the next without editing `serverless.yml`.
+A `${opt:<option>}` variable reads an option passed to the `serverless` command, such as `--region eu-west-1` in `serverless deploy --region eu-west-1`. Use it for values that change from one run to the next without editing `serverless.yml`.
 
-The following `serverless.yml` names the functions after the `--prefix` option and uses `acme` when the option isn't passed:
+The following `serverless.yml` adds the Region passed with `--region` to the function names, and uses `us-east-1` when the option isn't passed:
 
 ```yaml
 # serverless.yml
@@ -28,19 +28,21 @@ provider:
 functions:
   hello:
     handler: handler.hello
-    name: ${opt:prefix, 'acme'}-hello
+    name: my-service-${opt:region, 'us-east-1'}-hello
   world:
     handler: handler.world
-    name: ${opt:prefix, 'acme'}-world
+    name: my-service-${opt:region, 'us-east-1'}-world
 ```
 
 ```bash
-serverless deploy --prefix demo
+serverless deploy --region eu-west-1
 ```
 
-With this command, the functions are named `demo-hello` and `demo-world`.
+With this command, the functions are named `my-service-eu-west-1-hello` and `my-service-eu-west-1-world`.
 
 ## Option names
+
+`${opt:...}` reads only options the command accepts: the options every command takes, such as `--stage`, `--region`, `--aws-profile` and `--param`, the command's own options, and options a plugin declares for the command. Any other option stops the command before it runs, for example `Unrecognized option "prefix". Run "serverless deploy --help" for a list of all available options.` To pass your own values on the command line, use `--param "key=value"` and read them with [`${param:key}`](../parameters.md).
 
 `<option>` is the option name exactly as typed, without the leading dashes: `--log-level debug` is `${opt:log-level}`, and `--logLevel` is a different option. The name can't be empty: `${opt:}` stops the command with a `SyntaxError`.
 

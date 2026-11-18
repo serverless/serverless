@@ -72,50 +72,53 @@ import { tool } from '@langchain/core/tools'
 import { createAgent } from 'langchain'
 import { z } from 'zod'
 
-const browser = new PlaywrightBrowser({ region: process.env.AWS_REGION })
-
-const navigate = tool(
-  async ({ url }) => {
-    await browser.navigate({ url, waitUntil: 'domcontentloaded' })
-    return `Opened ${url}`
-  },
-  {
-    name: 'navigate',
-    description: 'Open a URL in the browser.',
-    schema: z.object({ url: z.string() }),
-  },
-)
-
-const getText = tool(
-  async ({ selector }) =>
-    (await browser.getText({ selector })) || 'No text found',
-  {
-    name: 'get_text',
-    description: 'Read the text of the elements that match a CSS selector.',
-    schema: z.object({ selector: z.string() }),
-  },
-)
-
-const agent = createAgent({
-  model: new ChatBedrockConverse({
-    model: process.env.MODEL_ID,
-    region: process.env.AWS_REGION,
-  }),
-  tools: [navigate, getText],
+const model = new ChatBedrockConverse({
+  model: process.env.MODEL_ID,
+  region: process.env.AWS_REGION,
 })
+
+function createBrowserTools(browser) {
+  const navigate = tool(
+    async ({ url }) => {
+      await browser.navigate({ url, waitUntil: 'domcontentloaded' })
+      return `Opened ${url}`
+    },
+    {
+      name: 'navigate',
+      description: 'Open a URL in the browser.',
+      schema: z.object({ url: z.string() }),
+    },
+  )
+
+  const getText = tool(
+    async ({ selector }) =>
+      (await browser.getText({ selector })) || 'No text found',
+    {
+      name: 'get_text',
+      description: 'Read the text of the elements that match a CSS selector.',
+      schema: z.object({ selector: z.string() }),
+    },
+  )
+
+  return [navigate, getText]
+}
 
 const app = new BedrockAgentCoreApp({
   invocationHandler: {
     requestSchema: z.object({ prompt: z.string() }),
     async process(request) {
+      const browser = new PlaywrightBrowser({ region: process.env.AWS_REGION })
       await browser.startSession()
       try {
+        const agent = createAgent({ model, tools: createBrowserTools(browser) })
         const result = await agent.invoke({
           messages: [{ role: 'user', content: request.prompt }],
         })
         return { response: result.messages.at(-1).content }
       } finally {
-        await browser.stopSession()
+        await browser.stopSession().catch((error) => {
+          console.error('Failed to stop the browser session', error)
+        })
       }
     },
   },
@@ -124,7 +127,7 @@ const app = new BedrockAgentCoreApp({
 app.run()
 ```
 
-Set `MODEL_ID` in the agent's `environment`. The dependencies:
+Each invocation creates its own `PlaywrightBrowser`, so a session that did not stop cleanly never blocks the next invocation; AgentCore ends that session when its timeout expires, 3600 seconds by default. Set `MODEL_ID` in the agent's `environment`. The dependencies:
 
 ```json
 {

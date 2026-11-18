@@ -63,7 +63,7 @@ These installed packages exist only in the build environment. The Framework's bu
 
 ## Change the test command
 
-To run something other than `npm test`, set the test command in the service's CI/CD settings. With a different command, npm doesn't run the `pretest` and `posttest` scripts ([Custom scripts](./custom-scripts.md)).
+To run something other than `npm test`, set the test command in the service's CI/CD settings. npm runs the `pretest` and `posttest` scripts only for `npm test` or `npm run test`; another command, such as `npm run test:unit` or `npx vitest`, runs without them ([Custom scripts](./custom-scripts.md)).
 
 ## Related
 

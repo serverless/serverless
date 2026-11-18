@@ -49,7 +49,7 @@ Each provider has its own requirements: Axiom reads an API token from `AXIOM_TOK
 
 ## The `stages.<stage>.observability` setting
 
-`stages.<stage>.observability` selects the provider for one stage. It applies to every function of the service; there is no per-function setting. `stages.<stage>.observability` accepts these values:
+`stages.<stage>.observability` selects the provider for one stage. It applies to every function of the service; there is no per-function setting. With Axiom, a function with `disableLogs: true` doesn't get the Axiom extension and sends no logs to Axiom ([Axiom](./axiom.md)). `stages.<stage>.observability` accepts these values:
 
 | Value                                  | Effect                                                                                                     |
 | -------------------------------------- | ---------------------------------------------------------------------------------------------------------- |

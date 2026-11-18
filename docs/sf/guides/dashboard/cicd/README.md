@@ -29,6 +29,7 @@ A service can use Serverless CI/CD when:
 
 - **The service is in a GitHub or Bitbucket repository**, with its `serverless.yml` at the repository root or in a subdirectory (the base directory).
 - **The `service` name in `serverless.yml` matches the service** you configure in the Dashboard.
+- **`serverless.yml` sets `org`, `app` and `service`.** The Framework uses a Dashboard Provider's credentials only when all three are set.
 - **A Dashboard [Provider](../providers.md) supplies the AWS credentials.** The build has no AWS credentials of its own. It uses the Provider linked to the service instance (the stage and Region), else the Provider linked to the service, else the org's default Provider.
 - **The service uses the Node.js or Python runtime.** The build installs dependencies with npm and runs the test command before it deploys.
 

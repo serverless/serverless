@@ -188,16 +188,16 @@ Outbound TCP connections are closed on `run` and `resume`. The AWS SDKs reconnec
 
 ## Lifecycle hooks
 
-Hooks call your application at points in the MicroVM lifecycle. Your image runs an HTTP server on the hook port (default 9000) that answers `POST /aws/lambda-microvms/runtime/v1/<hook-name>` with HTTP 200 within the hook's timeout; any other response, or no response in time, fails that step.
+Hooks call your application at points in the MicroVM lifecycle. Your image runs an HTTP server on the hook port (default 9000) that answers `POST /aws/lambda-microvms/runtime/v1/<hook-name>` with HTTP 200 within the hook's timeout; any other response, or no response in time, fails that step. The exception is HTTP 503 from `ready` or `validate`, which means the app needs more time: Lambda retries the hook until it returns 200 or the timeout expires. Return the 503 at once rather than holding the request open.
 
-| Hook        | When Lambda calls it                                        | AWS default timeout | `timeout` range |
-| ----------- | ----------------------------------------------------------- | ------------------- | --------------- |
-| `ready`     | During the image build, until the app reports it is ready   | 60 s                | 1–3600 s        |
-| `validate`  | During the image build, to test the app before the snapshot | 1 s                 | 1–3600 s        |
-| `run`       | When an instance starts; traffic begins after it returns    | 1 s                 | 1–60 s          |
-| `resume`    | When an instance resumes from `SUSPENDED`                   | 1 s                 | 1–60 s          |
-| `suspend`   | Before an instance suspends                                 | 1 s                 | 1–60 s          |
-| `terminate` | Before an instance terminates                               | 1 s                 | 1–60 s          |
+| Hook        | When Lambda calls it                                      | AWS default timeout | `timeout` range |
+| ----------- | --------------------------------------------------------- | ------------------- | --------------- |
+| `ready`     | During the image build, until the app reports it is ready | 60 s                | 1–3600 s        |
+| `validate`  | After the image build, on an instance of the new image    | 1 s                 | 1–3600 s        |
+| `run`       | When an instance starts; traffic begins after it returns  | 1 s                 | 1–60 s          |
+| `resume`    | When an instance resumes from `SUSPENDED`                 | 1 s                 | 1–60 s          |
+| `suspend`   | Before an instance suspends                               | 1 s                 | 1–60 s          |
+| `terminate` | Before an instance terminates                             | 1 s                 | 1–60 s          |
 
 Each hook is `true`, to use the AWS default timeout, or an object with `timeout` in seconds:
 
@@ -217,7 +217,9 @@ sandboxes:
 - Enabling any of `run`, `resume`, `suspend` or `terminate` also enables `ready`.
 - A hook is a notification: instances run, suspend, resume and terminate whether or not you declare the hook. Declare one only to act on that step, such as flushing state on `suspend`.
 - Lambda can retry `suspend` and `terminate`, so make those handlers safe to run twice.
-- With 1-second defaults, reply 200 first and do the work afterwards, or set a longer `timeout`:
+- Lambda moves to the next step when the hook returns 200: a new instance receives traffic only after `run` returns, and an instance suspends after `suspend` returns. Finish the work that step depends on, such as tenant setup in `run` or required writes in `suspend`, before replying, and set a `timeout` that covers it.
+
+This hook server runs your `handleHook` code to completion before it replies:
 
 ```javascript
 import http from 'node:http'
@@ -225,11 +227,18 @@ import http from 'node:http'
 http
   .createServer((req, res) => {
     const hook = req.url.split('/').pop() // 'ready', 'run', 'suspend', ...
-    req.resume()
-    req.on('end', () => {
-      res.writeHead(200, { 'Content-Type': 'application/json' })
-      res.end('{}')
-      setImmediate(() => handleHook(hook)) // your code, after the reply
+    let body = ''
+    req.on('data', (chunk) => (body += chunk))
+    req.on('end', async () => {
+      try {
+        await handleHook(hook, body) // your code; the run body carries runHookPayload
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end('{}')
+      } catch (error) {
+        console.error(error)
+        res.writeHead(500)
+        res.end()
+      }
     })
   })
   .listen(9000, '0.0.0.0')
@@ -435,17 +444,21 @@ The local `endpoint` is a full `http://127.0.0.1:<port>` URL, where AWS returns 
 
 ## Run instances from your own code
 
-Applications launch and manage instances with the Lambda MicroVMs API (`@aws-sdk/client-lambda-microvms`, or `aws lambda-microvms`). The stack outputs `<Name>ImageIdentifier` and `<Name>ExecutionRoleArn` give the image and role to launch with:
+Applications launch and manage instances with the Lambda MicroVMs API (`@aws-sdk/client-lambda-microvms`, or `aws lambda-microvms`). The stack outputs `<Name>ImageIdentifier` and `<Name>ExecutionRoleArn` give the image and role to launch with. This script launches an instance, calls it, retrying for up to about 20 seconds while the instance starts, and terminates the instance whether or not the call succeeds:
 
 ```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
 RUN=$(aws lambda-microvms run-microvm --image-identifier "$IMAGE_ARN" --execution-role-arn "$ROLE_ARN" \
   --idle-policy '{"autoResumeEnabled":true,"maxIdleDurationSeconds":900,"suspendedDurationSeconds":1800}')
 ID=$(echo "$RUN" | jq -r .microvmId); ENDPOINT=$(echo "$RUN" | jq -r .endpoint)
+trap 'aws lambda-microvms terminate-microvm --microvm-identifier "$ID"' EXIT
 TOKEN=$(aws lambda-microvms create-microvm-auth-token --microvm-identifier "$ID" \
   --allowed-ports '[{"port":8080}]' --expiration-in-minutes 60 \
   --query 'authToken."X-aws-proxy-auth"' --output text)
-curl -H "X-aws-proxy-auth: $TOKEN" -H "X-aws-proxy-port: 8080" "https://$ENDPOINT/hello"
-aws lambda-microvms terminate-microvm --microvm-identifier "$ID"
+curl --fail --retry 10 --retry-delay 2 --retry-connrefused \
+  -H "X-aws-proxy-auth: $TOKEN" -H "X-aws-proxy-port: 8080" "https://$ENDPOINT/hello"
 ```
 
 `IMAGE_ARN` and `ROLE_ARN` are the two stack outputs (`serverless info --verbose` prints them). Against `serverless dev`, add `--endpoint-url http://127.0.0.1:9100`, pass any `--image-identifier` (the emulator runs the session's sandbox), and use the returned endpoint without adding `https://`.

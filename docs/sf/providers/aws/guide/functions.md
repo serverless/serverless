@@ -198,7 +198,7 @@ The object form of `url` takes these keys:
 
 ### Function URL authorization
 
-With `authorizer: aws_iam`, the URL accepts only requests signed with AWS credentials that allow `lambda:InvokeFunctionUrl`:
+With `authorizer: aws_iam`, the URL accepts only requests signed with AWS credentials that allow both `lambda:InvokeFunctionUrl` and `lambda:InvokeFunction` on the function. A caller in another AWS account also needs both actions granted in the function's resource-based policy; see [Using the AWS_IAM auth type](https://docs.aws.amazon.com/lambda/latest/dg/urls-auth.html#urls-auth-iam).
 
 ```yaml
 functions:
@@ -514,7 +514,7 @@ functions:
 - `vpc: ~` (null) on a function keeps it out of the provider VPC. The schema accepts only an object for a function's `vpc`, so use `~` rather than `false`.
 - Functions with `capacityProvider` never get a VPC configuration of their own; the capacity provider sets their networking.
 - To create network interfaces, a function in a VPC needs the AWS managed policy `AWSLambdaVPCAccessExecutionRole`. The Framework attaches it to the execution roles it creates. A role you supply through `provider.iam.role` or a function's `role` isn't changed: add the policy to its `ManagedPolicyArns`.
-- A function in a VPC reaches the internet, and AWS services without a VPC endpoint, only through a NAT gateway in its subnets. See [Enable internet access for VPC-connected Lambda functions](https://docs.aws.amazon.com/lambda/latest/dg/configuration-vpc-internet.html) and [VPC endpoints](https://docs.aws.amazon.com/vpc/latest/privatelink/create-interface-endpoint.html).
+- A function in a VPC reaches the internet, and AWS services without a VPC endpoint, only through a NAT gateway: place the NAT gateway in a public subnet, and route internet-bound traffic from the function's private subnets to it. See [Enable internet access for VPC-connected Lambda functions](https://docs.aws.amazon.com/lambda/latest/dg/configuration-vpc-internet.html) and [VPC endpoints](https://docs.aws.amazon.com/vpc/latest/privatelink/create-interface-endpoint.html).
 
 ## Environment variables
 

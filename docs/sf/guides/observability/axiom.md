@@ -113,6 +113,8 @@ To stop sending a stage's logs to Axiom, remove `observability: axiom` for that 
 - The deploy removes the extension Layer and the Axiom environment variables from the functions.
 - For the service's other log groups, the deploy creates or updates the `<dataset>-unsubscriber-axiom` stack, which removes their subscriptions to the forwarder. Without `AXIOM_TOKEN`, the deploy skips this step, and those log groups keep sending logs to Axiom.
 
+A stage without its own `observability` value uses `stages.default.observability`, so when `default` selects Axiom, removing the stage's value keeps Axiom on. In that case, remove Axiom from `default`, or set the stage's own value to another provider or to `false`, which requires `app` in `serverless.yml` ([The `stages.<stage>.observability` setting](./README.md#the-stagesstageobservability-setting)).
+
 The Framework runs the unsubscribe step on every deploy of a stage without Axiom while `AXIOM_TOKEN` is set and the service has log groups other than function log groups, also when the stage never used Axiom.
 
 Neither the deploy nor `serverless remove` deletes the dataset or the `<dataset>-forwarder-axiom`, `<dataset>-subscriber-axiom` and `<dataset>-unsubscriber-axiom` stacks, because other services can use them. Delete the stacks in CloudFormation and the dataset in Axiom when no service uses them.

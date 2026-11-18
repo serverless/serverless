@@ -101,7 +101,7 @@ The tokens are `lambda`, `iam`, `apigateway`, `apigatewayv2`, `sns`, `eventbridg
 serverless agent inspect --name CreateOrderLambdaFunction
 ```
 
-`--name` is checked against the whole stack, nested stacks included, and stops the command with an error when the logical ID doesn't exist (the error lists the valid IDs), when the resource's type isn't described on its own (the `other` bucket), or when the same logical ID exists in a parent and a nested stack. In that last case, select by category or `--aws-services` instead.
+`--name` is checked against the whole stack, nested stacks included, and stops the command with an error when the logical ID doesn't exist (the error lists the valid IDs), when the resource's type isn't described on its own (the `other` bucket), or when the same logical ID exists in a parent and a nested stack. In that last case, the index lists both resources, each with its `stack`. An expanded result is keyed by logical ID within each category, so a category or `--aws-services` selection that includes both resources returns only one of them.
 
 ## Output of serverless agent inspect
 
@@ -363,7 +363,7 @@ Errors from the CLI's checks before the command runs, such as an unknown option,
 - The `events:` actions cover both EventBridge APIs: Custom Event Bus subscribers and buses (`eventbridgev2`) are read with `events:DescribeSubscriber` and `events:DescribeEventBus`.
 - `cloudformation:ListStackResources` and `sts:GetCallerIdentity` are used on every run, for stack discovery and credential resolution.
 - `lambda:GetWebFunction`, `lambda:GetWebFunctionRevision` and `lambda:GetWebFunctionEndpoint` describe web apps; `lambda:GetMicrovmImage` describes Sandboxes MicroVM images. Network connectors have no describe operation, so they need no action.
-- To narrow the policy, replace the `Resource` wildcards with your stack's ARNs.
+- To narrow the policy, scope each action to the ARNs of the resource types it supports, splitting statements where they differ, and keep `"*"` for actions without resource-level permissions, such as `logs:DescribeLogGroups`. The [Service Authorization Reference](https://docs.aws.amazon.com/service-authorization/latest/reference/reference_policies_actions-resources-contextkeys.html) lists the resource types of each action.
 
 ## Limits of serverless agent inspect
 

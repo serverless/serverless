@@ -158,7 +158,7 @@ The onboarding command walks you through these steps:
 4. **Add the service to an App** (Dashboard sign-in only). Create or select an App, or skip. See [Apps and the Dashboard](#apps-and-the-dashboard).
 5. **Set up AWS credentials**, when none are found. See [Set up AWS credentials](#set-up-aws-credentials).
 
-The command then prints the next steps: `cd` into the directory, install dependencies when the template uses Node.js or Python (`npm install` or `pip install`), and run `serverless deploy`.
+The command then prints the next steps: `cd` into the directory, install dependencies when the template uses Node.js or Python (`npm install` or `pip install`), and run `serverless deploy`. Each template's `README.md` lists its exact install commands. For example, the Python Flask templates install their `serverless-wsgi` plugin with `npm install`, and `serverless deploy` bundles the packages listed in `requirements.txt`.
 
 The onboarding command edits `serverless.yml` (or `serverless.yaml`): it adds an `org` line when no line contains `org:`, adds the `app` line you choose when you signed in with a Dashboard account and no line starts with `app:`, and removes every line that contains `frameworkVersion:`. Run in a directory that already has a `serverless.yml` or `serverless.yaml`, the command skips the template steps and makes the same edits to that file; in a directory with `serverless-compose.yml` or `serverless-compose.yaml`, it only adds `org` there. Configuration files in other formats, such as `serverless.ts`, aren't edited.
 
@@ -279,7 +279,7 @@ To deploy a code or configuration change to one function in seconds, without a C
 serverless deploy function -f hello
 ```
 
-For more, see the [`deploy function` command](./providers/aws/cli-reference/deploy-function.md).
+`serverless deploy function` doesn't deploy changes to events or `resources`, and leaves the function's environment as it is when an `environment` value is a CloudFormation reference such as `!Ref`; deploy those changes with `serverless deploy`. For more, see the [`deploy function` command](./providers/aws/cli-reference/deploy-function.md).
 
 ## Invoke a function
 

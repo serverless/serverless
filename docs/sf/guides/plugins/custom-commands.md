@@ -208,7 +208,13 @@ export default class ToolsPlugin {
 
 ## Command names shared by several plugins
 
-When two plugins, or a plugin and the Framework, define the same command, the Framework merges the definitions: options from both are available, the lifecycle events of the plugin loaded last replace earlier ones when it defines any, and the hooks of both plugins run. A plugin can use this to add an option to a core command:
+When two plugins, or a plugin and the Framework, define the same command, the Framework merges the definitions:
+
+- Options from both are available. When both define an option with the same name, the definition loaded first is kept.
+- The lifecycle events of the plugin loaded last replace the earlier ones when it defines any.
+- Hooks of both plugins run for the events in the merged lifecycle. A hook on an event that was replaced stays registered but never runs: when the first plugin defines the lifecycle event `run` and the second defines `clean`, the merged command has only `clean`, and hooks on `run` never run.
+
+A plugin can use this to add an option to a core command:
 
 ```javascript
 // my-plugin.mjs, inside the constructor

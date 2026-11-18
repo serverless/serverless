@@ -48,7 +48,7 @@ npm runs the lifecycle scripts of the `package.json` in the service directory: `
 }
 ```
 
-npm runs `pretest` and `posttest` only for `npm test`. When the service's CI/CD settings set another test command, put the extra commands in that command instead. npm documents every lifecycle script in [npm scripts](https://docs.npmjs.com/cli/using-npm/scripts).
+npm runs `pretest` and `posttest` only when it runs the `test` script, with `npm test` or `npm run test`. When the service's CI/CD settings set a test command that doesn't run the `test` script, put the extra commands in that command instead. npm documents every lifecycle script in [npm scripts](https://docs.npmjs.com/cli/using-npm/scripts).
 
 ## Run commands around the deploy step
 

@@ -81,7 +81,7 @@ The Framework calls an exported function with one object that has these properti
 - `resolveVariable(variableString)`: an async function that resolves a variable written without the `${}`, for example `'sls:stage'`, `'file(./config.json):dbHost'` or `"opt:region, self:provider.region, 'us-east-1'"`. A variable with no value and no default rejects with an error; to get `null` instead, end the string with `, null` (`'env:API_URL, null'`).
 - `resolveConfigurationProperty(path)`: an async function that takes a property path as an array of keys (`['provider', 'region']`) and returns that property of `serverless.yml`, with its variables resolved. It rejects when the property references the variable being resolved (a circular reference).
 
-Both functions are async, so a function that calls them must be `async` and `await` them.
+Both functions return a promise. To use the value inside your function, make the function `async` and `await` the call. To return the value unchanged, return the promise directly (`export default ({ resolveVariable }) => resolveVariable('sls:stage')`): the Framework awaits a returned promise.
 
 ## Compute a value from other variables
 

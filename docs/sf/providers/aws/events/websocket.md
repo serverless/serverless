@@ -155,6 +155,8 @@ export const defaultHandler = async (event) => {
 }
 ```
 
+When clients connect through a [custom domain name](../guide/domains.md), `domainName` is that domain, and the endpoint has no stage: use `https://${domainName}`.
+
 Calling the `@connections` API needs `execute-api:ManageConnections`. The Framework adds that permission, on `arn:<partition>:execute-api:*:*:*/@connections/*`, in these cases:
 
 - When the Framework creates the WebSocket API, it adds the permission to the IAM role it generates for the service, which every function without its own role uses.

@@ -165,7 +165,7 @@ functions:
 ```
 
 - `batchSize`: `1` to `10000`; AWS uses `100` when it isn't set.
-- `maximumBatchingWindow`: `1` to `300` seconds. When it isn't set, AWS uses a 500 ms window. The Framework doesn't pass `0`, so `0` also leaves the 500 ms default in place.
+- `maximumBatchingWindow`: `1` to `300` seconds. When it isn't set, AWS uses a 500 ms window. The Framework doesn't pass `0`, so `0` also leaves the 500 ms default in place on a new event source mapping. AWS can't return an existing mapping to 500 ms once its window has been 1 second or more: removing `maximumBatchingWindow` or setting `0` doesn't restore it. To restore the 500 ms default, remove the event and deploy, then add the event back without `maximumBatchingWindow` and deploy again, which creates a new mapping. The new mapping starts reading as described in [Starting position and consumer group](#starting-position-and-consumer-group).
 
 Lambda invokes the function when the batch is full, when the window ends, or when the batch reaches the 6 MB payload limit, whichever comes first. See [Batching behavior](https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventsourcemapping.html#invocation-eventsourcemapping-batching).
 
@@ -238,12 +238,12 @@ functions:
 
 ## IAM permissions for MSK events
 
-For `msk` events, the Framework adds these permissions to the function's execution role:
+For `msk` events, the Framework adds these permissions to the execution role it generates (the service's shared role, or each function's role with `provider.iam.role.mode: perFunction`). When the function uses a role of your own, set in `provider.iam.role` as an ARN, in `provider.role` or in the function's `role`, add them to that role:
 
 - `kafka:DescribeCluster` and `kafka:GetBootstrapBrokers` on each cluster ARN.
 - `ec2:CreateNetworkInterface`, `ec2:DescribeNetworkInterfaces`, `ec2:DescribeVpcs`, `ec2:DeleteNetworkInterface`, `ec2:DescribeSubnets` and `ec2:DescribeSecurityGroups`.
 
-Depending on the cluster, add these permissions with `provider.iam.role.statements`:
+Depending on the cluster, add these permissions with `provider.iam.role.statements`, or to your own role:
 
 - **SASL/SCRAM**: `secretsmanager:GetSecretValue` on the `saslScram512` secret and `kms:Decrypt` on the secret's KMS key (the key ARN).
 - **IAM authentication**: `kafka-cluster:Connect`, `kafka-cluster:DescribeGroup`, `kafka-cluster:AlterGroup`, `kafka-cluster:DescribeTopic` and `kafka-cluster:ReadData` on the cluster, its topics and its consumer groups.

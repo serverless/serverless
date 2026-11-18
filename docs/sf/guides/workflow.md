@@ -45,7 +45,7 @@ A stage is a separate deployment of the same service: its own CloudFormation sta
 
 ## Develop against real events with Dev Mode
 
-[Dev Mode](../providers/aws/guide/dev-mode.md) (`serverless dev`) runs the Node.js (including TypeScript) and Python functions of a deployed stage on your machine. Real invocations of the stage, such as API requests, queue messages and direct invokes, run the code in your working copy, with the deployed function's environment variables and IAM role. Save a file and the next invocation runs it, with no redeploy. When the session stops, the functions return to their deployed configuration.
+[Dev Mode](../providers/aws/guide/dev-mode.md) (`serverless dev`) runs the Node.js (including TypeScript) and Python functions of a deployed stage on your machine. Real invocations of the stage, such as API requests, queue messages and direct invokes, run the code in your working copy, with the deployed function's environment variables and IAM role. Save a file and the next invocation runs it, with no redeploy. When you stop the session with Ctrl+C, `q` or `serverless dev stop`, the functions return to their deployed configuration. A session that crashed, was killed or was stopped with a second Ctrl+C leaves functions attached, running their deployed code, until `serverless dev restore`, the next `serverless dev` or a deploy restores them ([Stop a session and recover functions](../providers/aws/guide/dev-mode.md#stop-a-session-and-recover-functions)).
 
 ```bash
 serverless dev --stage alice
@@ -111,7 +111,9 @@ Remove a stage you no longer use, so it stops running and costing money:
 serverless remove --stage alice
 ```
 
-**Warning:** `serverless remove` deletes the stage's CloudFormation stack, including its functions and every resource defined in the service, such as tables and buckets, unless a resource has a `DeletionPolicy` of `Retain`. Check the stage name before you run it.
+**Warning:** `serverless remove` deletes the stage's CloudFormation stack, including its functions and every resource defined in the service, such as tables and buckets. Check the stage name before you run it.
+
+CloudFormation keeps a resource with a `DeletionPolicy` of `Retain`, and by default takes a final snapshot of an `AWS::RDS::DBCluster` and of an `AWS::RDS::DBInstance` without `DBClusterIdentifier` before deleting it ([`DeletionPolicy` attribute](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-attribute-deletionpolicy.html)). Retained resources and snapshots stay in the account and keep incurring charges until you delete them, so check for them after the stack is removed.
 
 ## Command cheat sheet
 

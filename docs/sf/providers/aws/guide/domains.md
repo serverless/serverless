@@ -315,7 +315,7 @@ For a domain whose DNS isn't in Route 53, create the certificate and the DNS rec
    ```
 
 4. Run `serverless deploy`. The deploy output lists the domain's `target`, such as `d-abcdefghij.execute-api.us-east-1.amazonaws.com`.
-5. At your DNS provider, create a CNAME record for the domain with the `target` as its value.
+5. At your DNS provider, create a CNAME record for the domain with the `target` as its value. A zone apex, such as `example.com`, can't hold a CNAME record: for an apex domain, create your DNS provider's ALIAS, ANAME or flattened CNAME record that points to the `target` instead.
 
 ## Web apps
 

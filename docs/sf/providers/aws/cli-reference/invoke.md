@@ -68,7 +68,7 @@ The command also accepts the options every command takes: `--param="key=value"` 
 2. `--path`: a `.json` or `.yml`/`.yaml` file is parsed; any other file is read as text.
 3. Standard input, when standard input is not a terminal.
 
-Unless `--raw` is set, text that is valid JSON is parsed and sent as a JSON value, and other text is sent as a JSON string. Without any of the three, the function receives `{}`.
+Unless `--raw` is set, text that is valid JSON is parsed and sent as a JSON value, and other text is sent as a JSON string. A parsed value of `false`, `0`, `null` or `""` is sent as `{}`. Without any of the three, the function receives `{}`.
 
 The client context works the same way: `--context` takes precedence over `--contextPath`, and the Framework sends the value base64-encoded in the request's client context.
 

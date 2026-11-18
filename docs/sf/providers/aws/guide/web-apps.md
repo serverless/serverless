@@ -201,12 +201,12 @@ const nextConfig = {
 export default nextConfig
 ```
 
-`outputFileTracingRoot` and `turbopack.root` keep `server.js` at `.next/standalone/server.js` when a parent directory holds another lockfile. `next build` doesn't copy `public/` and `.next/static/` into the standalone directory, so the build script does:
+`outputFileTracingRoot` and `turbopack.root` keep `server.js` at `.next/standalone/server.js` when a parent directory holds another lockfile. `next build` doesn't copy `.next/static/` and `public/` into the standalone directory, so the build script does, copying `public/` only when the app has one:
 
 ```json
 {
   "scripts": {
-    "build": "next build && cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/"
+    "build": "next build && cp -r .next/static .next/standalone/.next/ && if [ -d public ]; then cp -r public .next/standalone/; fi"
   }
 }
 ```
@@ -462,7 +462,7 @@ webApps:
 
 ## Local development
 
-`serverless dev` runs your web apps on your machine against the deployed stage, with no redeploy. Each web app's server starts with the deployed environment and execution-role credentials, requests to its real URL (and a custom domain in front of it) reach that server, and a local URL on `localhost` serves it with your framework's hot reload. Stopping the session puts the deployed code back.
+`serverless dev` runs your web apps on your machine against the deployed stage, with no redeploy. Each web app's server gets the deployed environment and the execution role's credentials, requests to its real URL (and a custom domain in front of it) reach that server, and a local URL on `localhost` serves it with your framework's hot reload. Stopping the session puts the deployed code back.
 
 ```bash
 serverless dev --stage alice
@@ -478,7 +478,7 @@ webApps:
       command: next dev --hostname 127.0.0.1
 ```
 
-`--local-only <web app>` keeps a web app's real URL on the deployed code. The request path, permissions, limits and costs are in [Web Apps in the Dev Mode guide](./dev-mode.md#web-apps), and the options in the [`serverless dev` reference](../cli-reference/dev.md). The agents and sandboxes modes of `serverless dev` leave web apps out and say so. You can also run the server as any Node.js server (`node src/server.js`, `npx tsx watch src/server.ts`, `next dev`), with your own credentials and environment and the fallback port in your code.
+`--local-only <web app>` keeps a web app's real URL on the deployed code. Its server gets the execution role's credentials only when your own AWS credentials may call `lambda:InvokeWebFunctionEndpoint` on the web app's Dev Mode endpoint `sls-dev-local`; without that permission, the server runs without role credentials, so its AWS SDK calls have none, and the web app's row carries the note `no_role_credentials` (see [`--local-only` in the Dev Mode guide](./dev-mode.md#--local-only)). The request path, permissions, limits and costs are in [Web Apps in the Dev Mode guide](./dev-mode.md#web-apps), and the options in the [`serverless dev` reference](../cli-reference/dev.md). The agents and sandboxes modes of `serverless dev` leave web apps out and say so. You can also run the server as any Node.js server (`node src/server.js`, `npx tsx watch src/server.ts`, `next dev`), with your own credentials and environment and the fallback port in your code.
 
 `serverless agent inspect --web-apps` describes the deployed web functions, revisions and endpoints as JSON for AI coding agents ([agent inspect](../cli-reference/agent-inspect.md)).
 

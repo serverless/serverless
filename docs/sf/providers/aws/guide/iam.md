@@ -73,7 +73,7 @@ provider:
 | --------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | `provider.iam.role`                     | object or string | The default execution role's settings, or an existing role to use instead (see [Custom IAM roles](#custom-iam-roles)). |
 | `provider.iam.role.mode`                | string           | `shared` (default) or `perFunction` (see [Per-function IAM roles](#per-function-iam-roles)).                           |
-| `provider.iam.role.name`                | string           | Role name, 1 to 64 characters of `A-Za-z0-9/_+=,.@-`.                                                                  |
+| `provider.iam.role.name`                | string           | Role name, 1 to 64 characters of `A-Za-z0-9_+=,.@-`. Put a slash-separated prefix in `path`.                           |
 | `provider.iam.role.path`                | string           | IAM path: `/`, or a path that starts and ends with `/`. Default `/`.                                                   |
 | `provider.iam.role.statements`          | list             | IAM policy statements added to the role's inline policy.                                                               |
 | `provider.iam.role.managedPolicies`     | list of ARNs     | Managed policies attached to the role.                                                                                 |

@@ -108,7 +108,7 @@ appSync:
 | `limit`                              | integer, at least 100  | `100`                           | Requests allowed per IP address in a 5-minute window.                                                  |
 | `aggregateKeyType`                   | `IP` or `FORWARDED_IP` | `IP`                            | Counts requests by source IP, or by the IP address in a header.                                        |
 | `forwardedIPConfig.headerName`       | string                 | Required in `forwardedIPConfig` | With `FORWARDED_IP`: the header holding the client IP.                                                 |
-| `forwardedIPConfig.fallbackBehavior` | `MATCH` or `NO_MATCH`  | Required in `forwardedIPConfig` | With `FORWARDED_IP`: whether a request without a valid header counts as matching.                      |
+| `forwardedIPConfig.fallbackBehavior` | `MATCH` or `NO_MATCH`  | Required in `forwardedIPConfig` | With `FORWARDED_IP`: whether a request with an invalid IP address in the header counts as matching.    |
 | `scopeDownStatement`                 | object                 | None                            | An AWS WAF statement, in CloudFormation's PascalCase keys, that limits which requests the rule counts. |
 | `name`                               | string                 | `Throttle`                      | The rule name.                                                                                         |
 | `priority`                           | integer                | Generated                       | See [Rules priority](#rules-priority).                                                                 |
@@ -116,11 +116,13 @@ appSync:
 
 When a `FORWARDED_IP` rule has no `forwardedIPConfig`, the Framework uses `X-Forwarded-For` as `headerName` and `MATCH` as `fallbackBehavior`. When you set `forwardedIPConfig`, set both keys; with only one of them, configuration validation reports `must be a valid WAF rule`: a warning by default, and an error that stops the command with `configValidationMode: error`.
 
-A throttle rule always blocks the requests over the limit.
+A `FORWARDED_IP` throttle rule doesn't evaluate a request that lacks the header, so `fallbackBehavior` doesn't apply and the request isn't counted. Use `FORWARDED_IP` only when a proxy you control sets the header on every request, or add a rule that blocks requests without it.
+
+A throttle rule's action is always `Block`. AWS WAF estimates request rates rather than counting them exactly, so it rate limits near `limit`, and requests over the limit can reach the API for up to several minutes before the block takes effect; see [rate-based rule caveats](https://docs.aws.amazon.com/waf/latest/developerguide/waf-rule-statement-type-rate-based-caveats.html).
 
 ## Disable introspection rule
 
-The `disableIntrospection` rule blocks GraphQL introspection queries, so that untrusted clients can't read the API's schema:
+The `disableIntrospection` rule blocks GraphQL introspection queries that read the full schema through `__schema`:
 
 ```yaml
 appSync:
@@ -130,7 +132,7 @@ appSync:
       - disableIntrospection
 ```
 
-The rule blocks every request whose body contains `__schema`, and every request whose body is larger than 8 KB, the part of the body AWS WAF inspects for AppSync. If clients send larger requests, use the [`introspection: false`](./general-config.md#appsync-api-wide-keys) API setting instead, which turns introspection off in AppSync itself. To set the rule's name, priority or `visibilityConfig`, use the object form:
+The rule blocks every request whose body contains `__schema`, and every request whose body is larger than 8 KB, the part of the body AWS WAF inspects for AppSync. A query that reads type details through `__type` without `__schema` passes the rule. To turn off all introspection, or if clients send larger requests, use the [`introspection: false`](./general-config.md#appsync-api-wide-keys) API setting instead, which turns introspection off in AppSync itself. To set the rule's name, priority or `visibilityConfig`, use the object form:
 
 ```yaml
 appSync:

@@ -19,7 +19,7 @@ keywords:
 
 # serverless print
 
-`serverless print` resolves every [variable](../../../guides/variables/README.md) in `serverless.yml` for a stage and prints the resulting configuration, so you can check what a `${...}` reference resolves to before you deploy. It deploys nothing and changes nothing; variables that read AWS, such as `${ssm:...}`, are resolved with the stage's credentials. To see the CloudFormation template the configuration produces, use [`serverless package`](./package.md); to compare it with the deployed stack, use [`serverless diff`](./diff.md).
+`serverless print` resolves every [variable](../../../guides/variables/README.md) in `serverless.yml` for a stage and prints the resulting configuration, so you can check what a `${...}` reference resolves to before you deploy. It deploys nothing; variables that read AWS, such as `${ssm:...}`, are resolved with the stage's credentials. To see the CloudFormation template the configuration produces, use [`serverless package`](./package.md); to compare it with the deployed stack, use [`serverless diff`](./diff.md).
 
 ```bash
 serverless print
@@ -108,7 +108,7 @@ serverless print --debug
 
 ## Side effects and CI use
 
-- `serverless print` changes nothing locally or in AWS and is safe to re-run. Variables that read other services, such as `${ssm:...}` or `${cf:...}`, make read calls with the stage's credentials.
+- `serverless print` deploys nothing, and the command itself changes nothing locally or in AWS. Variables that read other services, such as `${ssm:...}` or `${cf:...}`, make read calls with the stage's credentials. Code that runs while the configuration resolves, such as a [JavaScript or TypeScript resolver](../../../guides/variables/javascript.md) referenced with `${file(...)}` or a plugin, runs as written, including any files it writes or APIs it calls.
 - The command does not prompt, so it can run in CI, for example to check a stage's resolved configuration before a deploy.
 - The printed configuration contains every resolved value, including secrets read from SSM Parameter Store or Secrets Manager; don't publish it in build logs.
 

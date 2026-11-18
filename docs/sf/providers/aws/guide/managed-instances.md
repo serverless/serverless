@@ -460,7 +460,13 @@ The capacity provider is currently in use by 1 functions. To delete this capacit
 
 Cause: published versions of a function still belong to the old capacity provider after you moved the function to another one and removed the old entry from `provider.capacityProviders`.
 
-Fix: move traffic off the old versions, delete them (for example with [`serverless prune`](./prune.md)), and deploy again. A service that invokes only `$LATEST` can set `provider.versionFunctions: false`; the Framework then publishes no versions, and old capacity providers delete cleanly.
+Fix: list the versions still attached to the old capacity provider, move traffic off them, delete them (for example with [`serverless prune`](./prune.md)), and deploy again:
+
+```bash
+aws lambda list-function-versions-by-capacity-provider --capacity-provider-name my-service-dev-highMem
+```
+
+A service that invokes only `$LATEST` can set `provider.versionFunctions: false` so that the Framework publishes no new versions and later capacity provider removals delete cleanly. The setting doesn't remove versions already published, so delete those first.
 
 ## Related
 

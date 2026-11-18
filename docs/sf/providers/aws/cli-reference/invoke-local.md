@@ -118,6 +118,12 @@ Unless `--raw` is set, text that is valid JSON is parsed and passed as an object
 | Ruby    | `function_name`, `function_version`, `aws_request_id`, `invoked_function_arn`, `log_group_name`, `log_stream_name`, `memory_limit_in_mb`, `deadline_ms`, `get_remaining_time_in_millis`    | Set `function_name`, `version`, `timeout` and `memory_limit_in_mb`. Other keys are stored without a reader method, so `context.<key>` raises `NoMethodError` in the handler. `aws_request_id`, `invoked_function_arn`, `log_group_name` and `log_stream_name` are computed after the overrides, so values for them are ignored. |
 | Java    | `name`, `version`, `logGroupName`, `timeout`                                                                                                                                               | Replace the whole mock context.                                                                                                                                                                                                                                                                                                 |
 
+Without `--raw`, `serverless invoke local` parses the `--context` text as JSON only when the event is JSON text from `--data` or standard input, or when there is no event. With an event file from `--path`, or a `--data` value that isn't JSON, the `--context` text isn't parsed: a Node.js handler receives it as a string. To pass a context object with an event file, put the context in a file and pass it with `--contextPath`:
+
+```bash
+serverless invoke local --function hello --path event.json --contextPath context.json
+```
+
 ## Environment variables
 
 `serverless invoke local` sets these environment variables for a function that runs on your machine, each source overriding the ones before it:

@@ -72,7 +72,7 @@ Each `alb` event's `priority` must be unique on its listener: events of two func
 
 ## Listener rule conditions
 
-The `alb` event's `conditions` combine with AND: a request must match every condition you set. This example uses all six condition types:
+The `alb` event's `conditions` combine with AND: a request must match every condition you set. Within one condition, a list matches when any of its values matches. A listener rule takes up to five match evaluations, and one condition up to three; each value counts as one. This example matches `POST` and `PATCH` requests for `/hello` on `example.com`, four match evaluations:
 
 ```yaml
 functions:
@@ -87,9 +87,20 @@ functions:
             method:
               - POST
               - PATCH
-            host:
-              - example.com
-              - example2.com
+            host: example.com
+```
+
+This example matches a header, a query string parameter and a source IP range, three match evaluations:
+
+```yaml
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - alb:
+          listenerArn: arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/my-load-balancer/50dc6c495c0c9188/f2f7dc8efc522ab2
+          priority: 2
+          conditions:
             header:
               name: foo
               values:
@@ -97,7 +108,6 @@ functions:
             query:
               bar: 'true'
             ip:
-              - fe80:0000:0000:0000:0204:61ff:fe9d:f156/64
               - 192.168.0.0/16
 ```
 
@@ -110,7 +120,7 @@ functions:
 | `query`   | A map of query string parameter names to values, up to 128 characters each.                                             |
 | `ip`      | A list of source IP ranges in CIDR notation, IPv4 or IPv6.                                                              |
 
-AWS describes how each condition matches in [listener rule condition types](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/rule-condition-types.html).
+AWS describes how each condition matches, and the match evaluation limits, in [listener rule condition types](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/rule-condition-types.html).
 
 ## Add Cognito/custom IdP provider authentication
 
@@ -159,7 +169,7 @@ A `cognito` authorizer requires `userPoolArn`, `userPoolClientId` and `userPoolD
 
 Store the client secret outside `serverless.yml`, for example as an `${ssm:...}` variable as in the example.
 
-To protect an endpoint, name one authorizer, or a list of them, in the `alb` event's `authorizer`:
+To protect an endpoint, name one authorizer in the `alb` event's `authorizer`. A listener rule takes one authentication action, so use a separate `alb` event, with its own `priority` and conditions, for each authorizer:
 
 ```yaml
 functions:
@@ -177,12 +187,10 @@ functions:
           priority: 2
           conditions:
             path: /auth/idp
-          authorizer:
-            - myFirstAuth
-            - mySecondAuth
+          authorizer: mySecondAuth
 ```
 
-The listener rule runs the authenticate actions in the listed order, then forwards the request to the function. A name that isn't defined in `provider.alb.authorizers` stops the deploy with `No match for "<name>" in function "<function>" found in registered ALB authorizers`. Authentication works only on HTTPS listeners.
+The listener rule runs the authenticate action, then forwards the request to the function. A name that isn't defined in `provider.alb.authorizers` stops the deploy with `No match for "<name>" in function "<function>" found in registered ALB authorizers`. Authentication works only on HTTPS listeners.
 
 ## Multi-value headers
 

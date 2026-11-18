@@ -222,7 +222,7 @@ export const hello = async (event) => {
 }
 ```
 
-With the `lambda` integration, the Framework adds `Access-Control-Allow-Origin`, and `Access-Control-Allow-Credentials` when `allowCredentials` is `true`, to the method's responses.
+With the `lambda` integration, the Framework adds `Access-Control-Allow-Origin`, and `Access-Control-Allow-Credentials` when `allowCredentials` is `true`, to the method's responses. That `Access-Control-Allow-Origin` value is static: with several origins, it holds all of them joined by commas, and browsers reject a response with more than one origin. With the `lambda` integration, set one origin; to serve several origins, use `lambda-proxy` and return the request's matching `Origin` from the function.
 
 ## IAM authorization
 
@@ -781,12 +781,12 @@ response:
 
 With the `lambda` integration, API Gateway picks the response status by matching the function's error message against a pattern per status code. The Framework adds these patterns:
 
-| Status code                  | Selected when                                                                       |
-| ---------------------------- | ----------------------------------------------------------------------------------- |
-| 200                          | The function returns without an error (the default response)                        |
-| 400, 401, 403, 404, 422, 502 | The error message contains `[<code>]`, such as `[404] Not found`                    |
-| 500                          | The error message contains `[500]` or `Process exited before completing request`    |
-| 504                          | The error message contains `[504]`, or ends with `Task timed out after <n> seconds` |
+| Status code                  | Selected when                                                                                       |
+| ---------------------------- | --------------------------------------------------------------------------------------------------- |
+| 200                          | The function returns without an error, or its error matches no other pattern (the default response) |
+| 400, 401, 403, 404, 422, 502 | The error message contains `[<code>]`, such as `[404] Not found`                                    |
+| 500                          | The error message contains `[500]` or `Process exited before completing request`                    |
+| 504                          | The error message contains `[504]`, or ends with `Task timed out after <n> seconds`                 |
 
 To return `404`, throw an error with `[404]` in its message:
 
@@ -796,6 +796,8 @@ export const hello = async (event) => {
   throw new Error('[404] Not found')
 }
 ```
+
+An error whose message contains none of these patterns, such as `new Error('database unavailable')`, gets the default response, so API Gateway returns `200`. To return an error status, put one of the codes above in brackets in the message of every error the function throws, such as `[500] database unavailable`. See [Handle Lambda errors in API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/handle-errors-in-lambda-integration.html).
 
 To change the status codes, set `response.statusCodes`. Each code takes a `pattern` (a regular expression matched against the error message), and optionally `template` and `headers`. The code with `pattern: ''` is the default response; without one, the Framework adds `200` as the default:
 

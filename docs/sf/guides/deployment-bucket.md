@@ -98,7 +98,7 @@ Access denied when storing the parameter "/serverless-framework/deployment/s3-bu
 
 When `s3:GetBucketVersioning` is denied while waiting, the error starts with `Access denied when checking the S3 bucket "<bucket>" named in the SSM parameter "/serverless-framework/deployment/s3-bucket".`
 
-To deploy without these permissions, name an existing bucket in `provider.deploymentBucket.name`, or create the shared bucket and its parameter yourself.
+To deploy without these permissions, name an existing bucket in `provider.deploymentBucket.name`. Creating the shared bucket and its parameter yourself removes the need for `ssm:PutParameter`, and outside `us-east-1` for `s3:PutBucketVersioning`, but every run still needs `ssm:GetParameter` and `s3:CreateBucket`.
 
 ### Use your own bucket as the shared deployment bucket
 

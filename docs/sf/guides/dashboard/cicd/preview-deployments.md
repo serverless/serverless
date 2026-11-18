@@ -35,10 +35,12 @@ To deploy pull requests:
 
 The **stage** option, under **advanced settings** in **preview deploys**, sets the stage that preview builds deploy to:
 
-- **use branch name as stage** (default): each pull request deploys to a stage named after its branch, so open pull requests don't overwrite each other.
+- **use branch name as stage** (default): each pull request deploys to a stage named after its branch, so pull requests from branches with different stage names don't overwrite each other.
 - A specific stage: every pull request deploys to that one stage, and each preview build replaces the previous pull request's deployment.
 
-A stage name can contain only letters, digits and hyphens, so Serverless CI/CD replaces the other characters of a branch name with `-`. The branch `feature/ph-api` deploys to the stage `feature-ph-api`.
+A stage name can contain only letters, digits and hyphens, so Serverless CI/CD replaces the other characters of a branch name with `-`. The branch `feature/ph-api` deploys to the stage `feature-ph-api`. Branches whose names differ only in those characters, such as `feature/api` and `feature-api`, deploy to the same stage, and each preview build replaces the other's deployment; give open pull requests branch names that map to different stages.
+
+A branch named after an existing stage deploys to that stage: a pull request from a branch named `prod` deploys to the `prod` stage, with the Provider linked to the `prod` instance. Don't open pull requests from branches named after long-lived stages such as `prod` or `staging`.
 
 To use the stage name in `serverless.yml`, for example to name a resource after the branch, use the `${sls:stage}` [variable](../../variables/core.md). In `serverless.yml`:
 
@@ -59,6 +61,8 @@ With **use branch name as stage**, each branch is a new stage with no Provider o
 ## Remove preview deployments
 
 With **Destroy stage and resources when branch is deleted** checked, Serverless CI/CD runs a destroy build when the pull request's branch is merged or deleted. The destroy build removes the stage's stack and resources, the equivalent of `serverless remove`.
+
+**Warning:** With a specific stage, every pull request deploys to that one stage, so the destroy build of any merged or deleted branch removes it, even while other pull requests are open. Leave **Destroy stage and resources when branch is deleted** unchecked when preview builds use a specific stage.
 
 To remove a preview deployment yourself, run `serverless remove` in the directory that contains the service's `serverless.yml`, with the stage and Region of the preview deployment:
 

@@ -94,7 +94,8 @@ my-service-dev-myFunction:3 selected for deletion.
 
 Pruning sorts a function's versions newest first and keeps the `number` newest, with these exceptions:
 
-- A version that a Lambda alias points to is never deleted and doesn't count toward `number`, so aliases and traffic shifting keep working.
+- A version that a Lambda alias points to as its primary version is never deleted and doesn't count toward `number`, so aliases keep working.
+- A version that receives a share of an alias's traffic through weighted alias routing, as during a gradual traffic shift, has no such exemption. When it falls outside the `number` newest, Lambda refuses to delete it because the alias references it, and pruning stops with that error. Prune after the traffic shift completes.
 - `$LATEST` is never deleted.
 - A Lambda@Edge version that Lambda can't delete because it is replicated is skipped with a warning.
 

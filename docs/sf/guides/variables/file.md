@@ -111,6 +111,8 @@ functions:
 
 When the variable is the whole value of a property, the file's value keeps its type: a number stays a number, and an object or a list is inserted as an object or a list. When the variable is part of a longer string (`name: api-${file(./config.json):dev.memorySize}`), the value is converted to a string, and an object can't be embedded.
 
+A YAML or JSON file whose whole content is `0`, `false` or an empty string resolves to no value when it's read without a property path: the variable takes its default value, or stops the command when it has none. A property with one of these values, such as `{ "count": 0 }` read with `:count`, keeps its value.
+
 ## Variables inside a referenced file
 
 A referenced YAML or JSON file can contain variables. The Framework inserts the file's content into `serverless.yml` and then resolves the variables in it, so inside the file:
