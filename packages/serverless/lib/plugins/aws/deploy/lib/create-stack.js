@@ -116,6 +116,10 @@ export default {
             }
 
             const stackStatus = data.Stacks[0].StackStatus
+            // Read by checkForChanges for a service without functions.
+            this.stackStatus = stackStatus
+            this.stackLastUpdatedTime =
+              data.Stacks[0].LastUpdatedTime ?? data.Stacks[0].CreationTime
             if (inactiveStateNames.has(stackStatus)) {
               const errorMessage = [
                 'Service cannot be deployed as the AWS CloudFormation stack ',
@@ -134,6 +138,8 @@ export default {
       )
       .catch((e) => {
         if (e.message.indexOf('does not exist') > -1) {
+          this.stackStatus = undefined
+          this.stackLastUpdatedTime = undefined
           /**
            * If legacy deployment bucket is enabled, we don't need to set the createLater flag
            * since the ensure-valid-bucket-exists logic will create the stack

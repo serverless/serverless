@@ -25,7 +25,7 @@ const noticesName = "sls-dev-THIRD_PARTY_NOTICES"
 func main() {
 	bridge := flag.String("bridge", "", "path to the linux sls-dev-bridge binary")
 	wrapper := flag.String("wrapper", "", "path to sls-dev-wrapper")
-	notices := flag.String("notices", "", "path to sls-dev-THIRD_PARTY_NOTICES")
+	notices := flag.String("notices", "", "path to the notices cmd/notices wrote")
 	out := flag.String("out", "", "zip file to write")
 	flag.Parse()
 	if *bridge == "" || *wrapper == "" || *notices == "" || *out == "" {
@@ -75,7 +75,8 @@ func checkBridge(path string) error {
 const goSection = "== Go standard library and runtime ==\n"
 
 // checkNotices refuses a bridge that links a module the notices file does not list, or notices
-// without Go's own licence: the layer ships the licences of everything in the binary.
+// without Go's own licence: the layer ships the licences of everything in the binary. cmd/notices
+// generates the notices during the layer build, so a refusal means it missed a linked module.
 func checkNotices(bridgePath, noticesPath string) error {
 	info, err := buildinfo.ReadFile(bridgePath)
 	if err != nil {
@@ -103,7 +104,7 @@ func checkNotices(bridgePath, noticesPath string) error {
 		}
 	}
 	if len(missing) > 0 {
-		return fmt.Errorf("%s does not list %s; run in dev-mode-bridge: go run ./cmd/notices -out layer/sls-dev-THIRD_PARTY_NOTICES", noticesPath, strings.Join(missing, ", "))
+		return fmt.Errorf("%s does not list %s, which the bridge links: a bug in cmd/notices, which generates them", noticesPath, strings.Join(missing, ", "))
 	}
 	return nil
 }
@@ -136,9 +137,6 @@ func buildZip(entries []entry) ([]byte, error) {
 		}
 		if strings.HasSuffix(e.name, "wrapper") && bytes.ContainsRune(content, '\r') {
 			return nil, fmt.Errorf("%s has CR line endings; bash in Lambda cannot run it", e.source)
-		}
-		if e.name == noticesName && bytes.ContainsRune(content, '\r') {
-			return nil, fmt.Errorf("%s has CR line endings; regenerate it (go run ./cmd/notices) or check it out with LF", e.source)
 		}
 		h := &zip.FileHeader{Name: e.name, Method: zip.Deflate, Modified: epoch}
 		if e.name == noticesName {

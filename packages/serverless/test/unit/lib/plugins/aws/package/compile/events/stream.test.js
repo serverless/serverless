@@ -953,5 +953,99 @@ describe('AwsCompileStreamEvents', () => {
         eventSourceMappings[0][1].Properties.FilterCriteria.Filters,
       ).toBeDefined()
     })
+
+    describe('AT_TIMESTAMP starting position', () => {
+      const kinesisArn = 'arn:aws:kinesis:us-east-1:123456789012:stream/foo'
+
+      const compileEventSourceMapping = (stream) => {
+        awsCompileStreamEvents.serverless.service.functions = {
+          first: { events: [{ stream }] },
+        }
+
+        awsCompileStreamEvents.compileStreamEvents()
+
+        const resources =
+          awsCompileStreamEvents.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+
+        return Object.values(resources).find(
+          (resource) => resource.Type === 'AWS::Lambda::EventSourceMapping',
+        )
+      }
+
+      it('should set StartingPositionTimestamp for a Kinesis stream without a consumer', () => {
+        const eventSourceMapping = compileEventSourceMapping({
+          arn: kinesisArn,
+          startingPosition: 'AT_TIMESTAMP',
+          startingPositionTimestamp: 1688169600,
+        })
+
+        expect(eventSourceMapping.Properties.EventSourceArn).toBe(kinesisArn)
+        expect(eventSourceMapping.Properties.StartingPosition).toBe(
+          'AT_TIMESTAMP',
+        )
+        expect(eventSourceMapping.Properties.StartingPositionTimestamp).toBe(
+          1688169600,
+        )
+      })
+
+      it('should set StartingPositionTimestamp for a Kinesis stream with a consumer', () => {
+        const eventSourceMapping = compileEventSourceMapping({
+          arn: kinesisArn,
+          consumer: true,
+          startingPosition: 'AT_TIMESTAMP',
+          startingPositionTimestamp: 1688169600,
+        })
+
+        expect(eventSourceMapping.Properties.StartingPosition).toBe(
+          'AT_TIMESTAMP',
+        )
+        expect(eventSourceMapping.Properties.StartingPositionTimestamp).toBe(
+          1688169600,
+        )
+      })
+
+      it('should throw when startingPositionTimestamp is missing for a Kinesis stream without a consumer', () => {
+        expect(() =>
+          compileEventSourceMapping({
+            arn: kinesisArn,
+            startingPosition: 'AT_TIMESTAMP',
+          }),
+        ).toThrow(/startingPositionTimestamp/)
+      })
+
+      it('should throw when startingPositionTimestamp is null', () => {
+        expect(() =>
+          compileEventSourceMapping({
+            arn: kinesisArn,
+            startingPosition: 'AT_TIMESTAMP',
+            startingPositionTimestamp: null,
+          }),
+        ).toThrow(/startingPositionTimestamp/)
+      })
+
+      it('should throw when startingPositionTimestamp is missing for a Kinesis stream with a consumer', () => {
+        expect(() =>
+          compileEventSourceMapping({
+            arn: kinesisArn,
+            consumer: true,
+            startingPosition: 'AT_TIMESTAMP',
+          }),
+        ).toThrow(/startingPositionTimestamp/)
+      })
+
+      it('should not set StartingPositionTimestamp when startingPosition is not AT_TIMESTAMP', () => {
+        const eventSourceMapping = compileEventSourceMapping({
+          arn: kinesisArn,
+          startingPosition: 'LATEST',
+          startingPositionTimestamp: 1688169600,
+        })
+
+        expect(eventSourceMapping.Properties.StartingPosition).toBe('LATEST')
+        expect(
+          eventSourceMapping.Properties.StartingPositionTimestamp,
+        ).toBeUndefined()
+      })
+    })
   })
 })

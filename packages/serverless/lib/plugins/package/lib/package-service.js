@@ -8,6 +8,13 @@ import ServerlessError from '../../../serverless-error.js'
 import parseS3URI from '../../aws/utils/parse-s3-uri.js'
 import { log } from '@serverless/util'
 import { AGENT_SKILL_EXCLUDES } from './agent-skill-excludes.js'
+import { BOOTSTRAP_FILE, WEB_APPS_DIR } from '../../aws/web-apps/constants.js'
+import { getWebAppsConfig } from '../../aws/lib/web-apps.js'
+import {
+  generateBootstrap,
+  getEntryFormat,
+  normalizeEntryPath,
+} from '../../aws/web-apps/packaging/bootstrap.js'
 
 /**
  * Configuration file extensions the framework knows how to parse.
@@ -54,24 +61,97 @@ export function resolveServerlessConfigFileExcludes(serverless) {
   return present.length > 0 ? present : [base]
 }
 
+/**
+ * Web apps this plugin zips: those without `package.artifact` (shipped as
+ * supplied) that esbuild did not build (`serverless.builtWebApps`, set by the
+ * esbuild plugin before packaging).
+ *
+ * @returns {string[]} web app names
+ */
+export function getWebAppsToPackage(serverless) {
+  const builtWebApps = serverless.builtWebApps || new Set()
+  return Object.entries(getWebAppsConfig(serverless))
+    .filter(
+      ([name, webApp]) => !webApp?.package?.artifact && !builtWebApps.has(name),
+    )
+    .map(([name]) => name)
+}
+
+/** Files no artifact the framework zips ever contains, whatever the config. */
+export const DEFAULT_EXCLUDES = [
+  '.git/**',
+  '.gitignore',
+  '.DS_Store',
+  'npm-debug.log',
+  'yarn-*.log',
+  '.serverless/**',
+  '.serverless_plugins/**',
+  ...AGENT_SKILL_EXCLUDES,
+]
+
+/**
+ * The service-level `package.include` and `package.patterns`, followed by
+ * `include` (an artifact's own patterns).
+ */
+export function getPackageIncludes(serverless, include) {
+  const packageIncludes = [
+    ...(serverless.service.package.include || []),
+    ...(serverless.service.package.patterns || []),
+  ]
+  return _.union(packageIncludes, include)
+}
+
+/**
+ * The exclusions every artifact starts from: `defaults`, the service config
+ * file, the local plugins path, service-level `package.exclude`, layer paths
+ * (with `excludeLayers`), `.env*` under `useDotenv`, then `exclude`.
+ */
+export function getPackageExcludes(
+  serverless,
+  exclude,
+  excludeLayers,
+  defaults = DEFAULT_EXCLUDES,
+) {
+  const packageExcludes = serverless.service.package.exclude || []
+  // add local service plugins Path
+  const pluginsLocalPath = serverless.pluginManager.parsePluginsObject(
+    serverless.service.plugins,
+  ).localPath
+  const localPathExcludes = []
+  if (pluginsLocalPath) {
+    localPathExcludes.push(pluginsLocalPath)
+  }
+  // add layer paths
+  const layerExcludes = excludeLayers
+    ? serverless.service
+        .getAllLayers()
+        .map((layer) => `${serverless.service.getLayer(layer).path}/**`)
+    : []
+  // add defaults for exclude
+
+  const serverlessConfigFileExclude =
+    resolveServerlessConfigFileExcludes(serverless)
+
+  const configurationInput = serverless.configurationInput
+  const envFilesExclude =
+    configurationInput && configurationInput.useDotenv ? ['.env*'] : []
+
+  return _.union(
+    defaults,
+    serverlessConfigFileExclude,
+    localPathExcludes,
+    packageExcludes,
+    layerExcludes,
+    envFilesExclude,
+    exclude,
+  )
+}
+
 export default {
-  defaultExcludes: [
-    '.git/**',
-    '.gitignore',
-    '.DS_Store',
-    'npm-debug.log',
-    'yarn-*.log',
-    '.serverless/**',
-    '.serverless_plugins/**',
-    ...AGENT_SKILL_EXCLUDES,
-  ],
+  defaultExcludes: DEFAULT_EXCLUDES,
 
   getIncludes(include) {
-    const packageIncludes = [
-      ...(this.serverless.service.package.include || []),
-      ...(this.serverless.service.package.patterns || []),
-    ]
-    return _.union(packageIncludes, include)
+    return getPackageIncludes(this.serverless, include)
   },
 
   getRuntime(runtime) {
@@ -80,39 +160,11 @@ export default {
   },
 
   getExcludes(exclude, excludeLayers) {
-    const packageExcludes = this.serverless.service.package.exclude || []
-    // add local service plugins Path
-    const pluginsLocalPath = this.serverless.pluginManager.parsePluginsObject(
-      this.serverless.service.plugins,
-    ).localPath
-    const localPathExcludes = []
-    if (pluginsLocalPath) {
-      localPathExcludes.push(pluginsLocalPath)
-    }
-    // add layer paths
-    const layerExcludes = excludeLayers
-      ? this.serverless.service
-          .getAllLayers()
-          .map((layer) => `${this.serverless.service.getLayer(layer).path}/**`)
-      : []
-    // add defaults for exclude
-
-    const serverlessConfigFileExclude = resolveServerlessConfigFileExcludes(
+    return getPackageExcludes(
       this.serverless,
-    )
-
-    const configurationInput = this.serverless.configurationInput
-    const envFilesExclude =
-      configurationInput && configurationInput.useDotenv ? ['.env*'] : []
-
-    return _.union(
-      this.defaultExcludes,
-      serverlessConfigFileExclude,
-      localPathExcludes,
-      packageExcludes,
-      layerExcludes,
-      envFilesExclude,
       exclude,
+      excludeLayers,
+      this.defaultExcludes,
     )
   },
 
@@ -187,6 +239,13 @@ export default {
         if (config.package.artifact) return
         log.info(`Packaging agent "${name}"`)
         await this.packageAgent(name)
+      }),
+    )
+
+    packagePromises = packagePromises.concat(
+      getWebAppsToPackage(this.serverless).map(async (name) => {
+        log.info(`Packaging web app "${name}"`)
+        await this.packageWebApp(name)
       }),
     )
 
@@ -394,6 +453,58 @@ export default {
         ]),
         contextName: `agent "${agentName}"`,
       }),
+    )
+  },
+
+  /**
+   * Zip a web app that esbuild does not build: the service directory, selected
+   * by the service's and then the web app's package patterns, plus the
+   * generated bootstrap that starts `entry`. Written to
+   * `.serverless/webapps/<name>.zip`, which moves with the other artifacts to
+   * the package directory.
+   */
+  async packageWebApp(name) {
+    const webApp = getWebAppsConfig(this.serverless)[name]
+    const packageConfig = webApp.package || {}
+
+    const filePaths = await this.resolveFilePathsFromPatterns(
+      await this.excludeDevDependencies({
+        exclude: this.getExcludes([], true),
+        include: this.getIncludes(packageConfig.patterns || []),
+        contextName: `web app "${name}"`,
+      }),
+    )
+
+    const entryPath = normalizeEntryPath(webApp.entry)
+    if (
+      !filePaths.some((filePath) => filePath.replace(/\\/g, '/') === entryPath)
+    ) {
+      throw new ServerlessError(
+        `webApps.${name}.entry "${webApp.entry}" is not among the files packaged for this web app. Check the path and package.patterns.`,
+        'WEB_APPS_ENTRY_NOT_FOUND',
+        { stack: false },
+      )
+    }
+
+    return this.zipFiles(
+      filePaths,
+      path.join(WEB_APPS_DIR, `${name}.zip`),
+      undefined,
+      {
+        generatedEntries: [
+          {
+            name: BOOTSTRAP_FILE,
+            content: generateBootstrap({
+              entryPath,
+              entryFormat: getEntryFormat(
+                this.serverless.serviceDir,
+                entryPath,
+              ),
+              enableSourceMaps: false,
+            }),
+          },
+        ],
+      },
     )
   },
 

@@ -1,7 +1,6 @@
 service: svcprovider-api
 provider:
   name: aws
-  region: us-east-1
 resources:
   Resources:
     JobsQueueUrlParam:

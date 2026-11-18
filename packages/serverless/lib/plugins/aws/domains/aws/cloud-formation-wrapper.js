@@ -143,6 +143,30 @@ class CloudFormationWrapper {
   }
 
   /**
+   * The service stack's outputs by key.
+   * @returns {Promise<Record<string, string>>}
+   */
+  async getStackOutputs() {
+    let response
+    try {
+      response = await this.cloudFormation.send(
+        new DescribeStacksCommand({ StackName: this.stackName }),
+      )
+    } catch (err) {
+      throw new ServerlessError(
+        `Failed to describe the CloudFormation stack ${this.stackName}: ${err.message}`,
+        ServerlessErrorCodes.domains.CLOUDFORMATION_DESCRIBE_STACK_FAILED,
+        { originalMessage: err.message },
+      )
+    }
+    return Object.fromEntries(
+      (response.Stacks?.[0]?.Outputs || []).map(
+        ({ OutputKey, OutputValue }) => [OutputKey, OutputValue],
+      ),
+    )
+  }
+
+  /**
    * Gets values by names from cloudformation exports
    * @param {string[]} names
    * @returns {Promise<any>}

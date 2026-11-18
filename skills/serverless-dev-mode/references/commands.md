@@ -1,7 +1,8 @@
 # Dev Mode commands
 
 Every command, flag, `--json` field and exit code of the functions mode of
-`serverless dev`. The prose reference is
+`serverless dev`, which also runs web apps (their details:
+[web-apps.md](web-apps.md)). The prose reference is
 `serverless agent docs providers/aws/cli-reference/dev`.
 
 ## Contents
@@ -49,12 +50,15 @@ serverless dev --detach --json --stage <your stage> [--function <f>]... [--idle-
 | `--json`                    | With `--detach` or `--dry-run` only.                                                                                                                                            |
 | `--function`, `-f`          | Attach only these functions (repeatable); the others run the deployed code.                                                                                                     |
 | `--skip-function`           | Keep these functions on the deployed code (repeatable).                                                                                                                         |
+| `--web-app`                 | Run only these web apps here (repeatable); the others serve their deployed code. Independent of `--function`.                                                                   |
+| `--skip-web-app`            | Keep these web apps on the deployed code (repeatable).                                                                                                                          |
+| `--local-only`              | Run this web app on its local URL only (repeatable); its real URL keeps the deployed code.                                                                                      |
 | `--take-over`               | Also attach functions another live session holds (a teammate's, or another of yours).                                                                                           |
 | `--idle-timeout <duration>` | With `--detach` only: stop after this long without activity (default `60m`; `0` turns it off; other values under `1m` refused).                                                 |
 | `--approve`                 | Show the changes and ask first. Needs a person at a terminal, else `approval_needs_terminal` and nothing changes.                                                               |
 | `--on-exit keep\|remove`    | On stop, `keep` leaves the functions in Dev Mode (exit 0, or 3 when some function could not be attached); `remove` restores them, then removes the service (with confirmation). |
 | `--dry-run`                 | Run the read-only checks and show the plan; change nothing.                                                                                                                     |
-| `--detailed`                | Print each invocation's event and response (a person's terminal).                                                                                                               |
+| `--detailed`                | Print each invocation's event and response, and each web request's headers and body heads (a person's terminal).                                                                |
 | `--no-keys`                 | Turn off the single-key commands in a terminal.                                                                                                                                 |
 
 Refused with `invalid_option_combination` (exit 1): `--json` without
@@ -64,12 +68,15 @@ Refused with `invalid_option_combination` (exit 1): `--json` without
 deployed first.
 
 Activity that keeps a detached session from stopping itself: invocations,
-reloads, `dev status`, `dev requests`, `dev replay` and an open `dev wait`
-(except `--for ended`).
+web app requests that run on this machine, reloads, `dev status`,
+`dev requests`, `dev replay` and an open `dev wait` (except `--for ended`). A
+session with an invocation running is never idle; a web app request running
+here holds it for at most the web app's deployed timeout (15 min when unset).
 
 `--detach --json` result fields: `cursor`, `session_id`, `pid`, `state`
 (`on`), `log_file` (`.serverless/dev/session.log`), `events_file`,
 `functions` (`name`, `mode`, `reason`, `why`, `notes`), and
+`web_apps` (as in `dev status`, for a service with web apps), and
 `"already_running": true` when the same stage, region and selection was
 already running here. That session keeps its own settings: another
 `--idle-timeout`, or `--take-over` or `--on-exit`, gets a `message` saying so;
@@ -90,7 +97,9 @@ to use them, `dev stop` it and start again.
 built), `functions` (as above) and `preflight` (each with `check`, `ok`, and
 where it applies `reason`, `message`, `host`, `user_action_required`). Checks:
 `stage`, `signin`, `session`, `aws_identity`, `iot_endpoint`, `iot_connect`,
-`broker_role`, `stack`, `functions`, `layers`. `broker_missing` and
+`broker_role`, `stack`, `functions`, `layers`, and `web_apps` for a service
+with web apps (also `plan.web_app_changes`: per web app `revisions`,
+`endpoints`, `main`). `broker_missing` and
 `layers_missing` are informational here: the first session creates them. On a
 stage never deployed, it covers the deployment only. Exit 0 when every check
 passes, else 1.
@@ -107,7 +116,11 @@ Fields: `state` (`starting`, `on`, `stopping`, `off`, `failed`),
 `errors`), `last_invocation` (`request_id`, `function`, `outcome`, `ts`),
 `functions` (`name`, `mode`, `reason`, `why`, `notes`), `endpoints`
 (`method`, `url`, `function`; HTTP endpoints first, then each MCP server with
-`mcp: true` and `method` `ANY`) and `cursor` (the last record's). No session:
+`mcp: true` and `method` `ANY`), `web_apps` (`name`, `mode`, `reason`, `why`,
+`notes`, `url`, `local_url`; only for a service with web apps), `requests`
+(`total`, `failed`) and `last_request` (`request_id`, `web_app`, `outcome`,
+`ts`), both only for a service with web apps, and `cursor`
+(the last record's). No session:
 `off` (or `failed` after a failed start), exit 0, with
 `serverless dev restore --stage <stage> --region <region>` in `next` when the
 last session ended without its final record or without restoring every
@@ -121,13 +134,19 @@ default credentials. When the session's start is no longer in its event log,
 ## `dev wait`
 
 ```bash
-serverless dev wait --for ready|invocation|reload|ended [--function <f>]... [--after <cursor>] [--timeout 100s] --json
+serverless dev wait --for ready|invocation|request|reload|ended [--function <f>]... [--web-app <a>]... [--after <cursor>] [--timeout 100s] --json
 ```
 
 - `ready`: returns at once when the session is on; after a failed start,
   the `session.failed` record with status `error`.
-- `invocation`, `reload`: the next `invocation.end` / `reload.end` after now,
-  or after `--after`. With `--after`, a match already in the log is returned
+- `invocation`, `request`, `reload`: the next `invocation.end` /
+  `request.end` (a web app request) / `reload.end` after now, or after
+  `--after`. `--web-app` (repeatable) narrows `request` and `reload` (a web
+  app's server started again: an `entry` server on save, every server on `r`).
+  With functions and web apps in one session, give `reload` a `--function` or
+  `--web-app`: an `entry` server also restarts on a function file's save. A
+  web app's failed reload (`ok: false`) comes 30 s after the save.
+  With `--after`, a match already in the log is returned
   even if the session ended since.
 - `ended`: the terminal record (`session.failed`, else `session.ended`),
   with that end's exit code: 0 clean, 1 error, 3 `restore_incomplete` or
@@ -148,14 +167,17 @@ last record seen.
 ## `dev requests`
 
 ```bash
-serverless dev requests [--function <f>]... [--limit 20] --json
+serverless dev requests [--function <f>]... [--web-app <a>]... [--limit 20] --json
 ```
 
-Reads `.serverless/dev/invocations`, so it also works after the session
-ended. It lists every stage run from the service directory. Fields:
-`requests`, newest first, each with `ts`, `function`, `stage` (`null` for a
-file recorded before files named it), `request_id`, `outcome`,
-`duration_ms`, `status_code`, `file`. `--limit`:
+Reads `.serverless/dev/invocations` and `.serverless/dev/requests`, so it
+also works after the session ended. It lists every stage run from the service
+directory. Fields: `requests`, newest first, each with `kind`. An invocation
+(`invocation`) has `ts`, `function`, `stage` (`null` for a file recorded
+before files named it), `request_id`, `outcome`, `duration_ms`,
+`status_code`, `file`; a web app request (`request`), the fields in
+[web-apps.md](web-apps.md). `--function` lists only invocations, `--web-app`
+only requests. `--limit`:
 1–500 (default 20). Exit 0, or 1 for a bad `--limit`
 (`invalid_option_value`).
 
@@ -165,8 +187,9 @@ file recorded before files named it), `request_id`, `outcome`,
 serverless dev replay <requestId> --json
 ```
 
-Runs a recorded invocation again on this machine through the running
-session: same function and event, a new request id and deadline, the
+A web app request id replays that request to its local server instead
+([web-apps.md](web-apps.md)). An invocation id runs the recorded invocation
+again on this machine through the running session: same function and event, a new request id and deadline, the
 latest role credentials the session holds for the function. No caller gets
 the result; its effects are real. The id is the full request id or a unique
 prefix of at least 8 characters. The session keeps the raw event of the last
@@ -196,7 +219,8 @@ serverless dev stop [--keep] [--timeout 7m] --json
 ```
 
 Reaches the session through its control endpoint (no signal), waits for its
-end and reports the restore (`--timeout` default `7m`). Fields: `restore`
+end and reports the restore of its functions and web apps (`--timeout`
+default `7m`). Fields: `restore`
 (`restored`, `unchanged`, `skipped`, `missing`, `failed`), `kept`,
 `exit_code` (`null` when the stop failed or timed out), `cursor`. `--keep`
 leaves the functions in Dev Mode.
@@ -219,11 +243,12 @@ running session that could not open its endpoint (`control_unavailable`) gets
 ## `dev restore`
 
 ```bash
-serverless dev restore [--stage <s>] [--region <r>] [--function <f>]... --json
+serverless dev restore [--stage <s>] [--region <r>] [--function <f>]... [--web-app <a>]... --json
 ```
 
-Removes Dev Mode's configuration from the stage's functions (a killed
-session, or `--on-exit keep`). It restores the stage `--stage` names, else
+Removes Dev Mode's configuration from the stage's functions and restores its
+web apps (a killed session, or `--on-exit keep`); `--function` or `--web-app`
+limits it to those, and `web_apps` counts the web apps alone. It restores the stage `--stage` names, else
 the service's default stage: pass the session's stage and region, as the
 restore in a `next` step does. Fields: `restore` (`restored`, `unchanged`,
 `skipped`, `missing`, `failed`, counted as `dev stop` counts them) and
@@ -258,11 +283,14 @@ When the session in this directory ran the call, `invoke` adds
 `Dev Mode: handled by your working copy · request <id> · <file>` on stderr
 (with `--log`, also the log lines from this machine); stdout and the exit
 code are unchanged. It waits up to 2 s for the file and adds nothing when the
-deployed code answered or the session was stopping.
+deployed code answered or the session was stopping. `invoke --web-app <app>`
+adds the same line for a request the session ran, naming its request file:
+the newest real-URL request to that app with the call's method and path.
 
 ## Keys
 
 For a person at a terminal only (off in CI, under an AI agent, and with
-`--no-keys`): `h`/`?` keys, `r` rebuild, `v` show events, `s` status, `q`
+`--no-keys`): `h`/`?` keys, `r` rebuild (and restart web app servers), `v`
+details for invocations and web requests, `s` status (invocations and web requests), `q`
 restore and exit (like the first Ctrl+C; a second Ctrl+C exits at once,
 exit 3 if it left functions attached).

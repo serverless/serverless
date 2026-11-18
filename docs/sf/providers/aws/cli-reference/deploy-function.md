@@ -41,6 +41,8 @@ the deploy is skipped. To put the function back, run
 `codeStorageMode: reference`, this command updates the function using
 Lambda-managed storage; the next `serverless deploy` restores reference mode.
 
+`deploy function` deploys functions only. [Web apps](../guide/web-apps.md) deploy with `serverless deploy`; given a web app's name, the command stops with `"<name>" is a web app. Deploy it with serverless deploy.`
+
 ## Options
 
 - `--function` or `-f` The name of the function which should be deployed

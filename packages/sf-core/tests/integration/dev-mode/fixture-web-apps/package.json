@@ -1,0 +1,5 @@
+{
+  "name": "devmode-web-fixture",
+  "private": true,
+  "type": "module"
+}

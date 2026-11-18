@@ -1,14 +1,7 @@
-import _ from 'lodash'
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc.js'
-import wait from 'timers-ext/promise/sleep.js'
-import { style } from '@serverless/util'
 import validate from './lib/validate.js'
-import formatLambdaLogEvent from './utils/format-lambda-log-event.js'
+import { getLogStreamNames, showLogEvents } from './lib/log-streams.js'
 import { LOG_GROUP_CLASSES } from './lib/naming.js'
 import ServerlessError from '../../serverless-error.js'
-
-dayjs.extend(utc)
 
 class AwsLogs {
   constructor(serverless, options, pluginUtils) {
@@ -22,20 +15,38 @@ class AwsLogs {
 
     this.hooks = {
       'logs:logs': async () => {
-        // Ensure at least one of --function, --agent, or --sandbox is provided
+        // Ensure at least one of --function, --agent, --sandbox, or --web-app is provided
         if (
           !this.options.function &&
           !this.options.agent &&
-          !this.options.sandbox
+          !this.options.sandbox &&
+          !this.options['web-app']
         ) {
           throw new ServerlessError(
-            'One of the required options must be provided: --function (-f), --agent (-a), or --sandbox',
+            'One of the required options must be provided: --function (-f), --agent (-a), --sandbox, or --web-app',
             'LOGS_MISSING_OPTION',
+            { stack: false },
           )
         }
 
-        // Skip if --agent or --sandbox is provided (handled by their dedicated plugins)
-        if (this.options.agent || this.options.sandbox) {
+        // Checked here, in the first hook to run, so that no other target's plugin runs first
+        if (
+          this.options['web-app'] &&
+          (this.options.function || this.options.agent || this.options.sandbox)
+        ) {
+          throw new ServerlessError(
+            'Cannot combine --web-app with --function, --agent or --sandbox.',
+            'LOGS_MUTUAL_EXCLUSIVITY',
+            { stack: false },
+          )
+        }
+
+        // Skip if --agent, --sandbox or --web-app is provided (handled by their dedicated plugins)
+        if (
+          this.options.agent ||
+          this.options.sandbox ||
+          this.options['web-app']
+        ) {
           return
         }
 
@@ -76,28 +87,12 @@ class AwsLogs {
     }
   }
 
-  async getLogStreams() {
-    const params = {
+  getLogStreams() {
+    return getLogStreamNames({
+      provider: this.provider,
       logGroupName: this.options.logGroupName,
-      descending: true,
-      limit: 50,
-      orderBy: 'LastEventTime',
-    }
-
-    const reply = await this.provider.request(
-      'CloudWatchLogs',
-      'describeLogStreams',
-      params,
-    )
-    if (!reply || reply.logStreams.length === 0) {
-      throw new ServerlessError(
-        'No existing streams for the function',
-        'NO_EXISTING_LOG_STREAMS',
-        { stack: false },
-      )
-    }
-
-    return reply.logStreams.map((logStream) => logStream.logStreamName)
+      noLogStreamsMessage: 'No existing streams for the function',
+    })
   }
 
   /**
@@ -105,97 +100,16 @@ class AwsLogs {
    * @param {Array} logStreamNames - Array of log stream names
    * @returns {Promise}
    */
-  async showLogs(logStreamNames) {
-    if (!logStreamNames || !logStreamNames.length) {
-      if (this.options.tail) {
-        const newLogStreamNames = await this.getLogStreams()
-        await this.showLogs(newLogStreamNames)
-      }
-    }
-
-    const params = {
+  showLogs(logStreamNames) {
+    return showLogEvents({
+      provider: this.provider,
+      logger: this.logger,
+      progress: this.progress,
+      options: this.options,
       logGroupName: this.options.logGroupName,
-      interleaved: true,
       logStreamNames,
-      startTime: this.options.startTime,
-    }
-
-    if (this.options.filter) params.filterPattern = this.options.filter
-    if (this.options.nextToken) params.nextToken = this.options.nextToken
-    if (this.options.startTime) {
-      const since =
-        ['m', 'h', 'd'].indexOf(
-          this.options.startTime[this.options.startTime.length - 1],
-        ) !== -1
-      if (since) {
-        params.startTime = dayjs()
-          .subtract(
-            this.options.startTime.replace(/\D/g, ''),
-            this.options.startTime.replace(/\d/g, ''),
-          )
-          .valueOf()
-      } else {
-        params.startTime = dayjs.utc(this.options.startTime).valueOf()
-      }
-    } else {
-      params.startTime = dayjs().subtract(10, 'm').valueOf()
-      if (this.options.tail) {
-        params.startTime = dayjs().subtract(15, 's').valueOf()
-      }
-    }
-
-    const results = await this.provider.request(
-      'CloudWatchLogs',
-      'filterLogEvents',
-      params,
-    )
-
-    const startTimeHumanReadable = dayjs(params.startTime).format(
-      'YYYY-MM-DD HH:mm:ss',
-    )
-
-    // Remove progress before printing results
-    this.progress.remove()
-
-    // If not tailing, and no logs found, show a message
-    if (!this.options.tail && (!results.events || !results.events.length)) {
-      this.logger.aside(
-        `No logs found from start time: ${startTimeHumanReadable}`,
-      )
-      return
-    }
-
-    // If logs found
-    if (results.events && results.events.length) {
-      if (!this.options.tail) {
-        this.logger.aside(`Logs Start Time: ${startTimeHumanReadable}`)
-        this.logger.blankLine()
-      }
-
-      // Print log messages w/ custom formatting
-      results.events.forEach((e) => {
-        this.logger.notice(formatLambdaLogEvent(e.message))
-      })
-    }
-
-    if (results.nextToken) {
-      this.options.nextToken = results.nextToken
-    } else {
-      delete this.options.nextToken
-    }
-
-    if (this.options.tail) {
-      // Set listening message
-      this.progress.notice(`Listening ${style.aside(startTimeHumanReadable)}`)
-
-      if (results.events && results.events.length) {
-        this.options.startTime = _.last(results.events).timestamp + 1
-      }
-
-      await wait(this.options.interval)
-      const newLogStreamNames = await this.getLogStreams()
-      await this.showLogs(newLogStreamNames)
-    }
+      getLogStreams: () => this.getLogStreams(),
+    })
   }
 }
 

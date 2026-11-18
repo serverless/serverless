@@ -26,8 +26,9 @@ async function addPermission(config) {
   lambda.config.region = () => region
 
   let SourceArn = `arn:${partition}:events:${region}:${accountId}:rule/${ruleName}`
-  if (eventBus) {
-    const eventBusName = getEventBusName(eventBus)
+  const eventBusName = getEventBusName(eventBus)
+  // Rules on the default event bus have no bus name segment in their ARN
+  if (eventBusName && eventBusName !== 'default') {
     SourceArn = `arn:${partition}:events:${region}:${accountId}:rule/${eventBusName}/${ruleName}`
   }
   const payload = {

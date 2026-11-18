@@ -12,6 +12,10 @@ export default class Globals {
   static credentials
 
   static defaultRegion = 'us-east-1'
+
+  // The hosted zone of every CloudFront distribution's domain name, for alias records.
+  // https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-route53-recordset-aliastarget.html
+  static cloudFrontHostedZoneId = 'Z2FDTNDATAQYW2'
   static defaultBasePath = '(none)'
   static defaultStage = '$default'
 
@@ -21,6 +25,10 @@ export default class Globals {
   static endpointTypes = {
     edge: 'EDGE',
     regional: 'REGIONAL',
+  }
+
+  static ipAddressTypes = {
+    dualstack: 'dualstack',
   }
 
   static accessModes = {

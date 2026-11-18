@@ -139,6 +139,24 @@ describe('CLI Utils', () => {
       }
     })
 
+    it('should normalize web app options to arrays for dev, dev wait and dev requests', () => {
+      for (const command of [['dev'], ['dev', 'wait'], ['dev', 'requests']]) {
+        const options = normalizeDevSelectors(command, {
+          'web-app': 'web',
+          'skip-web-app': 'admin',
+          'local-only': 'api',
+        })
+        expect(options['web-app']).toEqual(['web'])
+        expect(options['skip-web-app']).toEqual(['admin'])
+        expect(options['local-only']).toEqual(['api'])
+      }
+      const many = normalizeDevSelectors(['dev'], {
+        'local-only': ['api', 'web'],
+      })
+      expect(many['local-only']).toEqual(['api', 'web'])
+      expect(many).not.toHaveProperty('web-app')
+    })
+
     it('should merge -f into --function for dev, never overwrite it', () => {
       const options = normalizeDevSelectors(['dev'], {
         function: ['api', 'billing'],
@@ -178,6 +196,8 @@ describe('CLI Utils', () => {
         function: ['api', 'billing'],
         f: 'worker',
         'skip-function': 'report',
+        'web-app': 'web',
+        'local-only': 'api',
       })
       const snapshot = JSON.parse(JSON.stringify(once))
       normalizeDevSelectors(['dev'], once)
@@ -207,6 +227,40 @@ describe('CLI Utils', () => {
       const result = extractCommandsAndOptions(argv)
 
       expect(result.options.env).toBe('FOO=bar')
+    })
+
+    it('should make invoke --header an array, also from a Compose service', () => {
+      expect(
+        extractCommandsAndOptions({
+          _: ['invoke'],
+          $0: 'serverless',
+          header: 'Content-Type: application/json',
+        }).options.header,
+      ).toEqual(['Content-Type: application/json'])
+      expect(
+        extractCommandsAndOptions({
+          _: ['invoke'],
+          $0: 'serverless',
+          header: ['A: 1', 'B: 2'],
+        }).options.header,
+      ).toEqual(['A: 1', 'B: 2'])
+      // Compose normalizes again once the service name is removed
+      const options = { header: 'A: 1' }
+      normalizeRepeatableOptions(['invoke'], options)
+      normalizeRepeatableOptions(['invoke'], options)
+      expect(options).toEqual({ header: ['A: 1'] })
+    })
+
+    it('should not normalize header for other commands', () => {
+      for (const words of [['invoke', 'local'], ['deploy']]) {
+        expect(
+          extractCommandsAndOptions({
+            _: words,
+            $0: 'serverless',
+            header: 'A: 1',
+          }).options.header,
+        ).toBe('A: 1')
+      }
     })
 
     it('should keep env as array if already an array', () => {

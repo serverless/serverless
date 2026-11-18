@@ -1,6 +1,6 @@
 {
   "type": "module",
   "dependencies": {
-    "date-fns": "^4.1.0"
+    "date-fns": "^4.4.0"
   }
 }

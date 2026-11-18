@@ -34,6 +34,7 @@ const shapeOf = (name) => {
 
 const json = { type: 'boolean' }
 const fn = { type: 'multiple', shortcut: 'f' }
+const webApp = { type: 'multiple' }
 
 const DEV_COMMANDS = {
   dev: {
@@ -48,6 +49,9 @@ const DEV_COMMANDS = {
       port: { type: 'string', shortcut: 'p' },
       function: fn,
       'skip-function': { type: 'multiple' },
+      'web-app': webApp,
+      'skip-web-app': { type: 'multiple' },
+      'local-only': { type: 'multiple' },
       'take-over': { type: 'boolean' },
       approve: { type: 'boolean' },
       'on-exit': { type: 'string' },
@@ -61,7 +65,7 @@ const DEV_COMMANDS = {
     lifecycleEvents: ['dev'],
   },
   'dev restore': {
-    options: { function: fn, json },
+    options: { function: fn, 'web-app': webApp, json },
     lifecycleEvents: ['restore'],
   },
   'dev setup': {
@@ -80,6 +84,7 @@ const DEV_COMMANDS = {
     options: {
       for: { type: 'string' },
       function: fn,
+      'web-app': webApp,
       after: { type: 'string' },
       timeout: { type: 'string' },
       json,
@@ -87,7 +92,12 @@ const DEV_COMMANDS = {
     lifecycleEvents: ['wait'],
   },
   'dev requests': {
-    options: { function: fn, limit: { type: 'string' }, json },
+    options: {
+      function: fn,
+      'web-app': webApp,
+      limit: { type: 'string' },
+      json,
+    },
     lifecycleEvents: ['requests'],
   },
   'dev replay': {

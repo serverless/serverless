@@ -8,7 +8,7 @@
 // Everything here is cold-start wiring; the decisions it composes live in
 // `./lib/`, where they can be tested without a cold start.
 import { pathToFileURL } from 'node:url'
-import { streamHandle } from 'hono/aws-lambda'
+import { streamHandle } from '@hono/aws-lambda'
 import {
   buildApp,
   readEntryEnv,

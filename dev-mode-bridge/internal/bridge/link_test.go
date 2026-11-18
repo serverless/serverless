@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/serverless/serverless/dev-mode-bridge/internal/awsauth"
 	"github.com/serverless/serverless/dev-mode-bridge/internal/mqttws"
 	"github.com/serverless/serverless/dev-mode-bridge/internal/mqttws/mqttwstest"
 	"github.com/serverless/serverless/dev-mode-bridge/internal/protocol"
@@ -273,7 +274,7 @@ func TestALostConnectionIsLoggedOnlyUnderAnInvocation(t *testing.T) {
 				case "end":
 					close(conn.done)
 				case "release":
-					l.release(conn)
+					l.release(conn, true)
 				case "broken":
 					l.broken(conn)
 				case "lost":
@@ -290,6 +291,100 @@ func TestALostConnectionIsLoggedOnlyUnderAnInvocation(t *testing.T) {
 				t.Fatal("the link kept the connection that ended")
 			}
 		})
+	}
+}
+
+// An invocation the bridge answered itself hands off only once the end of its connection is
+// logged, or after lossReportWait when no report comes (a Close came first). One the deployed code
+// answers hands off at once: the environment works until the runtime asks again, so a later report
+// is still logged, and the deployed code never waits for it.
+func TestOnlyAnAnsweredInvocationWaitsForTheEndOfItsConnectionToBeReported(t *testing.T) {
+	for _, c := range []struct {
+		name     string
+		answered bool
+		wait     time.Duration
+	}{
+		{name: "answered by the bridge", answered: true, wait: lossReportWait},
+		{name: "answered by the deployed code", answered: false, wait: 0},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			now := time.Now()
+			conn := &restingConn{done: make(chan struct{})}
+			l := &link{
+				now:       func() time.Time { return now },
+				idleAfter: time.Minute,
+				logf:      func(string, ...any) {},
+				ctx:       ctx,
+				wg:        &sync.WaitGroup{},
+				conn:      conn,
+				lastUsed:  now,
+			}
+			if _, _, err := l.get(context.Background(), time.Second); err != nil {
+				t.Fatal(err)
+			}
+			close(conn.done)
+			started := time.Now()
+			l.release(conn, c.answered)
+			// The bound is what matters; the slack above it covers a slow scheduler under -race.
+			if waited := time.Since(started); waited < c.wait || waited > c.wait+lossReportWait/2 {
+				t.Fatalf("release waited %v with no report, want about %v", waited, c.wait)
+			}
+		})
+	}
+}
+
+// An invocation the bridge answered hands off only once the line about the end of its connection
+// is written, not as soon as the loss report has begun: once it hands off, nothing is logged.
+func TestAnAnsweredInvocationHandsOffAfterTheEndOfItsConnectionIsWritten(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	var mu sync.Mutex
+	var order []string
+	note := func(event string) {
+		mu.Lock()
+		defer mu.Unlock()
+		order = append(order, event)
+	}
+	writing, write := make(chan struct{}), make(chan struct{})
+	now := time.Now()
+	conn := &restingConn{done: make(chan struct{})}
+	l := &link{
+		now:       func() time.Time { return now },
+		idleAfter: time.Minute,
+		logf: func(string, ...any) {
+			close(writing)
+			<-write
+			note("logged")
+		},
+		ctx:      ctx,
+		wg:       &sync.WaitGroup{},
+		conn:     conn,
+		lastUsed: now,
+	}
+	if _, _, err := l.get(context.Background(), time.Second); err != nil {
+		t.Fatal(err)
+	}
+	close(conn.done)
+	go l.lost(&connRef{conn: conn}, errors.New("ended"))
+	<-writing
+	released := make(chan struct{})
+	go func() {
+		defer close(released)
+		l.release(conn, true)
+		note("released")
+	}()
+	select {
+	case <-released:
+	case <-time.After(lossReportWait / 5):
+	}
+	close(write)
+	<-released
+	mu.Lock()
+	defer mu.Unlock()
+	if len(order) != 2 || order[0] != "logged" {
+		t.Fatalf("events %v: the invocation handed off before the end of its connection was written", order)
 	}
 }
 
@@ -355,7 +450,10 @@ func TestAConnectEndingWhileTheRuntimeWaitsWritesNothing(t *testing.T) {
 
 // A connection that ends while an invocation waits for its acceptance, or after it, is logged
 // with its cause exactly once, through the real MQTT client: it marks the connection done before
-// it reports the loss, so the invocation can hand off and release the link first.
+// it reports the loss, on a goroutine of its own, so the invocation can be answered before the
+// report comes. The report here comes late, as under a busy scheduler: an accepted invocation the
+// bridge answers itself still hands off only once the end is logged, since the bridge then waits
+// for the runtime's next invocation and writes nothing more.
 func TestAConnectionEndingUnderAnInvocationIsLoggedWithItsCause(t *testing.T) {
 	const cause = "the connection to AWS IoT Core ended: "
 	for _, accepted := range []bool{false, true} {
@@ -366,7 +464,7 @@ func TestAConnectionEndingUnderAnInvocationIsLoggedWithItsCause(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			timing := fastTiming()
 			timing.AcceptWindow = 20 * time.Second
-			h := newHarness(t, timing)
+			h := newHarnessWith(t, harnessOptions{timing: timing, lateLoss: lossReportWait / 5})
 			l := newLaptop(t, h.broker)
 			h.api.queue <- fakeInvocation{id: "req-1", deadline: deadlineIn(60 * time.Second), body: "{}"}
 			runtime := h.runtimeNext()
@@ -396,6 +494,35 @@ func TestAConnectionEndingUnderAnInvocationIsLoggedWithItsCause(t *testing.T) {
 			}
 		})
 	}
+}
+
+// An accepted invocation that fails because the relay panicked is answered by the bridge too: when
+// its connection had ended, it hands off only once the cause of the end is logged.
+func TestAPanicAfterTheConnectionEndedStillLogsTheCause(t *testing.T) {
+	const cause = "the connection to AWS IoT Core ended: "
+	timing := fastTiming()
+	timing.AcceptWindow = 20 * time.Second
+	h := newHarnessWith(t, harnessOptions{timing: timing, lateLoss: lossReportWait / 5, ping: func(h *harness) (awsauth.Liveness, error) {
+		if h.pings.Load() == 1 {
+			return awsauth.Live, nil
+		}
+		// The first silence check: the connection ends, then the relay panics.
+		h.relay.link.mu.Lock()
+		conn := h.relay.link.conn
+		h.relay.link.mu.Unlock()
+		h.broker.Drop(bridgeID)
+		<-conn.Done()
+		panic("liveness exploded")
+	}})
+	l := newLaptop(t, h.broker)
+	h.api.queue <- fakeInvocation{id: "req-1", deadline: deadlineIn(60 * time.Second), body: "{}"}
+	h.runtimeNext()
+	l.read(t)
+	l.send(t, protocol.Header{Kind: protocol.KindAccepted, ID: "req-1"}, nil)
+	if p := h.api.next(t); p.errorType != "Runtime.DevModeRelayFailed" {
+		t.Fatalf("posted %+v, want Runtime.DevModeRelayFailed", p)
+	}
+	waitFor(t, "the cause of the end to be logged", func() bool { return strings.Contains(h.logs.joined(), cause) })
 }
 
 // A connection that ends while the invoke is being published is logged with its cause exactly

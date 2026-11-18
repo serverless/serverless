@@ -1,8 +1,16 @@
 'use strict'
 
 import { jest } from '@jest/globals'
+import os from 'os'
 import path from 'path'
 import SandboxesDevMode from '../../../../../../../lib/plugins/aws/sandboxes/dev/index.js'
+
+// What the injected stageBuildContext returns. build() removes it afterwards,
+// so it must be a path no developer machine has: unique and never created.
+const STAGED = path.join(
+  os.tmpdir(),
+  `sbx-dev-stage-never-created-${process.pid}-${Date.now()}`,
+)
 
 function make(options, sandboxes, { fileExists = () => true } = {}) {
   const serverless = {
@@ -205,6 +213,7 @@ function makeRebuildable(overrides = {}) {
       onSignal: () => {},
       sleep: async () => {},
       createWatcher: () => ({ on() {}, close: async () => {} }),
+      stageBuildContext: () => STAGED,
     },
   )
   // Establish ctx as run() would.
@@ -270,6 +279,20 @@ test('performRebuild keeps running instances when the build fails', async () => 
   expect(d.isRebuilding).toBe(false) // flag reset for the next change
 })
 
+test('a rebuild that fails because the session is stopping reports nothing', async () => {
+  const { d } = makeRebuildable({
+    docker: {
+      buildImage: jest.fn(async () => {
+        // Ctrl-C lands mid-build; shutdown removes the build context under it.
+        d.shuttingDown = true
+        throw new Error('build context removed')
+      }),
+    },
+  })
+  await expect(d.performRebuild()).resolves.toBeUndefined()
+  expect(d.logger.error).not.toHaveBeenCalled()
+})
+
 test('performRebuild aborts cleanly when shutdown races the build step', async () => {
   // Gate build so we can inject shuttingDown before it returns.
   let releaseBuild
@@ -324,6 +347,7 @@ test('run() starts the control-plane and prints the endpoint; SIGINT+SIGTERM shu
     },
     {
       docker: { ensureIsRunning: async () => {}, buildImage: async () => {} },
+      stageBuildContext: () => STAGED,
       fileExists: () => true,
       onSignal: (sig, h) => {
         signals[sig] = h
@@ -378,6 +402,7 @@ test('honors a custom hooks.port: publishes it as a container port and passes it
     },
     {
       docker: { ensureIsRunning: async () => {}, buildImage: async () => {} },
+      stageBuildContext: () => STAGED,
       fileExists: () => true,
       onSignal: (sig, h) => {
         signals[sig] = h
@@ -424,6 +449,7 @@ test('defaults the hook port to 9000 when hooks.port is not set', async () => {
     },
     {
       docker: { ensureIsRunning: async () => {}, buildImage: async () => {} },
+      stageBuildContext: () => STAGED,
       fileExists: () => true,
       onSignal: (sig, h) => {
         signals[sig] = h
@@ -467,6 +493,7 @@ test('--port overrides the control-plane port', async () => {
     },
     {
       docker: { ensureIsRunning: async () => {}, buildImage: async () => {} },
+      stageBuildContext: () => STAGED,
       fileExists: () => true,
       onSignal: (sig, h) => {
         if (sig === 'SIGTERM') setImmediate(h)
@@ -504,6 +531,7 @@ test('run() surfaces a clear error when the control-plane port is in use', async
     },
     {
       docker: { ensureIsRunning: async () => {}, buildImage: async () => {} },
+      stageBuildContext: () => STAGED,
       fileExists: () => true,
       onSignal: () => {},
       createWatcher: () => ({ on() {}, close: async () => {} }),
@@ -541,6 +569,7 @@ test('run() builds the image before starting the control-plane', async () => {
     },
     {
       docker: { ensureIsRunning: async () => {}, buildImage },
+      stageBuildContext: () => STAGED,
       fileExists: () => true,
       onSignal: (sig, h) => {
         signals[sig] = h
@@ -555,6 +584,8 @@ test('run() builds the image before starting the control-plane', async () => {
   await new Promise((r) => setImmediate(r))
   // build must happen before startControlPlane
   expect(buildImage).toHaveBeenCalledTimes(1)
+  // …from the staged copy of the selected files, not the artifact directory
+  expect(buildImage.mock.calls[0][0].containerPath).toBe(STAGED)
   expect(startControlPlane).toHaveBeenCalledTimes(1)
   await signals.SIGINT()
   await p
@@ -583,6 +614,7 @@ function makeForPlatform(docker) {
     {
       docker,
       fileExists: () => true,
+      stageBuildContext: () => STAGED,
       onSignal: (sig, h) => {
         signals[sig] = h
       },
@@ -711,6 +743,7 @@ test('run() injects assumed-role creds into containerManager env by default', as
     },
     {
       docker: { ensureIsRunning: async () => {}, buildImage: async () => {} },
+      stageBuildContext: () => STAGED,
       fileExists: () => true,
       onSignal: (s, h) => {
         signals[s] = h
@@ -770,6 +803,7 @@ test("run() with --no-assume-role injects the framework's ambient creds into the
     },
     {
       docker: { ensureIsRunning: async () => {}, buildImage: async () => {} },
+      stageBuildContext: () => STAGED,
       fileExists: () => true,
       onSignal: (s, h) => {
         signals[s] = h
@@ -824,6 +858,7 @@ test('run() with --no-assume-role does not create IAM emulation and injects no c
     },
     {
       docker: { ensureIsRunning: async () => {}, buildImage: async () => {} },
+      stageBuildContext: () => STAGED,
       fileExists: () => true,
       onSignal: (s, h) => {
         signals[s] = h
@@ -877,6 +912,7 @@ test('run() continues with no injected creds when setUp falls back (returns null
     },
     {
       docker: { ensureIsRunning: async () => {}, buildImage: async () => {} },
+      stageBuildContext: () => STAGED,
       fileExists: () => true,
       onSignal: (s, h) => {
         signals[s] = h
@@ -1047,6 +1083,7 @@ test('run() merges provider.environment under the sandbox environment and resolv
     },
     {
       docker: { ensureIsRunning: async () => {}, buildImage: async () => {} },
+      stageBuildContext: () => STAGED,
       fileExists: () => true,
       onSignal: (s, h) => {
         signals[s] = h
@@ -1143,6 +1180,7 @@ test('run() drops an Fn::GetAtt with no matching stack output instead of passing
     },
     {
       docker: { ensureIsRunning: async () => {}, buildImage: async () => {} },
+      stageBuildContext: () => STAGED,
       fileExists: () => true,
       onSignal: (s, h) => {
         signals[s] = h
@@ -1207,6 +1245,7 @@ test('run() tolerates a provider that cannot describe the stack (no request) and
     },
     {
       docker: { ensureIsRunning: async () => {}, buildImage: async () => {} },
+      stageBuildContext: () => STAGED,
       fileExists: () => true,
       onSignal: (s, h) => {
         signals[s] = h
@@ -1228,4 +1267,122 @@ test('run() tolerates a provider that cannot describe the stack (no request) and
   expect(capturedEnv.OWN).toBe('x')
   await signals.SIGINT()
   await p
+})
+
+// ---------------------------------------------------------------------------
+// Build context: the local image is built from the same files a deploy zips.
+// ---------------------------------------------------------------------------
+test('the dev build context holds exactly the files a deploy zips, staged afresh for every build and removed after it', async () => {
+  const fs = await import('fs')
+  const os = await import('os')
+  const serviceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sbx-dev-stage-'))
+  const write = (file) => {
+    fs.mkdirSync(path.dirname(path.join(serviceDir, file)), {
+      recursive: true,
+    })
+    fs.writeFileSync(path.join(serviceDir, file), file)
+  }
+  for (const file of [
+    'app/Dockerfile',
+    'app/.dockerignore',
+    'app/src/server.mjs',
+    'app/tmp/scratch.txt',
+    'app/node_modules/a/index.js',
+  ]) {
+    write(file)
+  }
+  const list = (dir) =>
+    fs
+      .readdirSync(dir, { recursive: true, withFileTypes: true })
+      .filter((e) => e.isFile())
+      .map((e) =>
+        path
+          .relative(dir, path.join(e.parentPath ?? e.path, e.name))
+          .split(path.sep)
+          .join('/'),
+      )
+      .sort()
+  const builds = []
+  const buildImage = jest.fn(async ({ containerPath }) => {
+    builds.push({ dir: containerPath, files: list(containerPath) })
+    if (builds.length === 2) throw new Error('docker build failed')
+  })
+  const d = new SandboxesDevMode(
+    {
+      serviceDir,
+      configurationInput: {},
+      service: {
+        service: 'svc',
+        package: { patterns: ['!app/tmp/**'] },
+        getAllLayers: () => [],
+      },
+      pluginManager: { parsePluginsObject: () => ({}) },
+    },
+    { sandbox: 'api' },
+    { log: { notice() {}, blankLine() {} } },
+    { docker: { buildImage } },
+  )
+  d.ctx = { contextPath: path.join(serviceDir, 'app'), cfg: {} }
+
+  await d.build()
+  expect(builds[0].files).toEqual([
+    '.dockerignore',
+    'Dockerfile',
+    'src/server.mjs',
+  ])
+  expect(fs.existsSync(builds[0].dir)).toBe(false)
+
+  // A failed build removes its context too; the next build sees new sources.
+  fs.rmSync(path.join(serviceDir, 'app/src/server.mjs'))
+  write('app/src/other.mjs')
+  await expect(d.build()).rejects.toThrow('docker build failed')
+  expect(builds[1].files).toEqual([
+    '.dockerignore',
+    'Dockerfile',
+    'src/other.mjs',
+  ])
+  expect(fs.existsSync(builds[1].dir)).toBe(false)
+  expect(d.buildContextDir).toBeNull()
+  fs.rmSync(serviceDir, { recursive: true, force: true })
+})
+
+test('a file that disappears while the build context is staged leaves no temporary directory behind', async () => {
+  const fs = (await import('fs')).default
+  const os = (await import('os')).default
+  const serviceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sbx-dev-vanish-'))
+  const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'sbx-dev-tmp-'))
+  for (const file of ['app/Dockerfile', 'app/src/server.mjs']) {
+    fs.mkdirSync(path.dirname(path.join(serviceDir, file)), {
+      recursive: true,
+    })
+    fs.writeFileSync(path.join(serviceDir, file), file)
+  }
+  const d = new SandboxesDevMode(
+    {
+      serviceDir,
+      configurationInput: {},
+      service: { service: 'svc', package: {}, getAllLayers: () => [] },
+      pluginManager: { parsePluginsObject: () => ({}) },
+    },
+    { sandbox: 'api' },
+    { log: { notice() {}, blankLine() {} } },
+    { docker: { buildImage: jest.fn() } },
+  )
+  d.ctx = { contextPath: path.join(serviceDir, 'app'), cfg: {} }
+  // An editor's atomic save removes the file between selection and copy.
+  const copy = fs.copyFileSync
+  jest.spyOn(os, 'tmpdir').mockReturnValue(tmpRoot)
+  jest.spyOn(fs, 'copyFileSync').mockImplementation((src, dest) => {
+    if (src.endsWith('server.mjs')) {
+      throw Object.assign(new Error(`ENOENT: ${src}`), { code: 'ENOENT' })
+    }
+    return copy(src, dest)
+  })
+
+  await expect(d.build()).rejects.toThrow('ENOENT')
+  expect(fs.readdirSync(tmpRoot)).toEqual([])
+  expect(d.docker.buildImage).not.toHaveBeenCalled()
+  jest.restoreAllMocks()
+  fs.rmSync(serviceDir, { recursive: true, force: true })
+  fs.rmSync(tmpRoot, { recursive: true, force: true })
 })

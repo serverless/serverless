@@ -122,6 +122,10 @@ export const reloadedLine = ({ functions, all = functions, ms }) => {
   return `${style.aside('⟳')} Reloaded${named} ${style.aside(`(${formatDuration(ms)})`)}`
 }
 
+/** After a web app's server on this machine started again (a save, the `r` key) and listens. */
+export const webReloadedLine = ({ webApp, ms }) =>
+  `${style.aside('⟳')} Reloaded web ${webApp} ${style.aside(`(${formatDuration(ms)})`)}`
+
 const keepLastGoodBuild = (names) =>
   `${listNames(names)} keep${names.length === 1 ? 's' : ''} running the last good build`
 
@@ -192,8 +196,25 @@ export const buildFailedLines = ({
   ]
 }
 
-export const configChangedLine = (fileName) =>
-  `${fileName} changed: run "${cliCommand('deploy')}" for environment, IAM, events or functions; restart "${cliCommand('dev')}" for a new handler path.`
+/**
+ * After a save of the configuration file, which a session does not apply: `functions` and
+ * `webApps` say what the session runs here.
+ */
+export const configChangedLine = (
+  fileName,
+  { functions = true, webApps = false } = {},
+) => {
+  const deploy = functions
+    ? webApps
+      ? 'environment, IAM, events, functions or web apps'
+      : 'environment, IAM, events or functions'
+    : 'environment, IAM or web apps'
+  const restart = [
+    ...(functions ? ['a new handler path'] : []),
+    ...(webApps ? ["a web app's new dev.command or entry"] : []),
+  ].join(' or ')
+  return `${fileName} changed: run "${cliCommand('deploy')}" for ${deploy}; restart "${cliCommand('dev')}" for ${restart}.`
+}
 
 export const reloadFailedLine = (error) =>
   `Dev Mode could not reload after that change (${messageOf(error)}). Your handlers keep the code they had.`

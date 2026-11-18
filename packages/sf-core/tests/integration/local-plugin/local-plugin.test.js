@@ -5,6 +5,7 @@ import { setGlobalRendererSettings } from '@serverless/util'
 import { LambdaClient, GetFunctionCommand } from '@aws-sdk/client-lambda'
 import { jest } from '@jest/globals'
 import { getTestStageName, runSfCore } from '../../utils/runSfCore'
+import { TEST_REGION } from '../../utils/testRegion.js'
 
 /**
  * Things we need,
@@ -16,7 +17,7 @@ const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 describe('Serverless Framework Service - Local Plugin', () => {
   const configFileDirPath = path.join(__dirname, 'fixture')
-  const region = 'us-east-1'
+  const region = TEST_REGION
   const lambdaClient = new LambdaClient({ region })
   const originalEnv = process.env
   const stage = getTestStageName()
@@ -73,7 +74,7 @@ describe('Serverless Framework Service - Local Plugin', () => {
 
       expect(getFunctionResponse.Configuration).toBeDefined()
       expect(getFunctionResponse.Configuration.Description).toEqual(
-        `address-us-east-1-sfc-lplugin-${stage}`,
+        `address-${region}-sfc-lplugin-${stage}`,
       )
     }
   })
@@ -81,7 +82,7 @@ describe('Serverless Framework Service - Local Plugin', () => {
   test('Remove', async () => {
     await runSfCore({
       coreParams: {
-        options: { stage, c: configFilePath },
+        options: { stage, region, c: configFilePath },
         command: ['remove'],
       },
       jest,

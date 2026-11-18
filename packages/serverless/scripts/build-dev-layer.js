@@ -2,6 +2,8 @@
 // Builds the Dev Mode layer zips (one per Lambda architecture) from dev-mode-bridge/.
 // Needs Go (the version in dev-mode-bridge/go.mod). Runs on Linux, macOS and Windows: no make,
 // no shell. Output: lib/plugins/aws/dev/layer/dist/serverless-dev-<arch>.zip
+// The third-party notices the zips ship are generated here from go.mod and the module cache, so
+// they always list what the bridge links.
 import { execFileSync } from 'node:child_process'
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs'
 import os from 'node:os'
@@ -27,7 +29,7 @@ const BUILD_ARGS = [
   '-buildvcs=false',
   '-ldflags=-s -w -buildid=',
 ]
-// build-layer runs on this machine, whatever GOOS/GOARCH the caller has set.
+// cmd/notices and cmd/build-layer run on this machine, whatever GOOS/GOARCH the caller has set.
 const { GOOS: _goos, GOARCH: _goarch, ...hostEnv } = process.env
 
 console.log(
@@ -35,6 +37,13 @@ console.log(
 )
 const tmp = mkdtempSync(path.join(os.tmpdir(), 'sls-dev-layer-'))
 try {
+  // One notices file covers both architectures: cmd/notices lists the modules linked on each.
+  const notices = path.join(tmp, 'sls-dev-THIRD_PARTY_NOTICES')
+  execFileSync('go', ['run', './cmd/notices', '-out', notices], {
+    cwd: bridgeDir,
+    stdio: 'inherit',
+    env: hostEnv,
+  })
   ARCHITECTURES.forEach((arch, index) => {
     const bridge = path.join(tmp, arch, 'sls-dev-bridge')
     execFileSync('go', [...BUILD_ARGS, '-o', bridge, './cmd/sls-dev-bridge'], {
@@ -61,7 +70,7 @@ try {
         '-wrapper',
         path.join('layer', 'sls-dev-wrapper'),
         '-notices',
-        path.join('layer', 'sls-dev-THIRD_PARTY_NOTICES'),
+        notices,
         '-out',
         out,
       ],

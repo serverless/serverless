@@ -102,6 +102,10 @@ describe('checkIfDeploymentIsNecessary reused-layer zip exclusion', () => {
 
   const buildCtx = ({ artifactAlreadyUploaded }) => ({
     ...checkForChangesMixin,
+    // An existing stack, updated after the newest upload (as createStack
+    // records it), so a service without functions is compared by hash.
+    stackStatus: 'UPDATE_COMPLETE',
+    stackLastUpdatedTime: new Date(),
     provider: {
       naming: { getServiceStateFileName: () => 'serverless-state.json' },
       resolveLayerArtifactName: () => commonZipPath,

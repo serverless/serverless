@@ -66,10 +66,22 @@ export function isDirIncluded(compiled, dirPath, initialState = true) {
 
 export function filterPaths(compiled, paths, initialState = true) {
   const states = new Map(paths.map((p) => [p, initialState]))
+  applyPatterns(compiled, paths, states)
+  return paths.filter((p) => states.get(p))
+}
+
+/**
+ * Apply compiled patterns to `paths` on top of the states already in `states`
+ * (a Map of path → included), so several pattern lists can be applied in turn:
+ * a later list can re-include what an earlier one excluded. `keyOf` maps each
+ * path to its key in `states`, for lists that match a different form of the
+ * same file (e.g. artifact-relative paths for service-relative keys).
+ */
+export function applyPatterns(compiled, paths, states, keyOf = (p) => p) {
+  const keys = new Map(paths.map((p) => [p, keyOf(p)]))
   for (const { negated, pattern } of compiled) {
     for (const match of micromatch(paths, [pattern], { dot: true })) {
-      states.set(match, !negated)
+      states.set(keys.get(match), !negated)
     }
   }
-  return paths.filter((p) => states.get(p))
 }

@@ -144,6 +144,17 @@ describe('the relay lines', () => {
     expect(newBrokerLine()).toBe(
       'The new IAM role can take up to 3 minutes to work; until then some invocations run the deployed code.',
     )
+    expect(newBrokerLine({ functions: false, webApps: true })).toBe(
+      'The new IAM role can take up to 3 minutes to work; until then some web app requests run the deployed code.',
+    )
+    expect(newBrokerLine({ functions: true, webApps: true })).toBe(
+      'The new IAM role can take up to 3 minutes to work; until then some invocations and web app requests run the deployed code.',
+    )
+    expect(
+      newBrokerLine({ widened: true, functions: true, webApps: true }),
+    ).toBe(
+      "The IAM role's updated trust policy can take up to 3 minutes to work; until then some web app requests run the deployed code.",
+    )
     expect(sideChannelOffLine('the bucket uses SSE-C')).toMatch(
       /^Payloads above 126 KB cannot be relayed in this session: the bucket uses SSE-C\./,
     )

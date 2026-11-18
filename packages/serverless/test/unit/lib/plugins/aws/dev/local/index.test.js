@@ -13,10 +13,7 @@ import {
   waitFor,
   write,
 } from './helpers.js'
-import {
-  startLaptopRuntime,
-  terminalWidth,
-} from '../../../../../../../lib/plugins/aws/dev/local/index.js'
+import { startLaptopRuntime } from '../../../../../../../lib/plugins/aws/dev/local/index.js'
 import { countingTimers, fakeLog, recordingProgress } from '../attach/fakes.js'
 import {
   guardedLogger,
@@ -107,6 +104,7 @@ const start = async ({
   recorder,
   onSpinnerDone,
   spinner,
+  webStarts,
   scans = true,
   logger = fakeLog(),
 } = {}) => {
@@ -142,6 +140,7 @@ const start = async ({
       ...(recorder && { recorder }),
       ...(onSpinnerDone && { onSpinnerDone }),
       ...(spinner && { spinner }),
+      ...(webStarts && { webStarts }),
       deps: {
         createRuntime,
         createBuild,
@@ -167,16 +166,6 @@ const start = async ({
     runtime,
   }
 }
-
-describe('terminalWidth', () => {
-  test('is the width of a terminal both output streams are; 0 in a pipe or a log file', () => {
-    const tty = { isTTY: true, columns: 120 }
-    expect(terminalWidth({ stdout: tty, stderr: tty })).toBe(120)
-    expect(terminalWidth({ stdout: { isTTY: false }, stderr: tty })).toBe(0)
-    expect(terminalWidth({ stdout: tty, stderr: { isTTY: false } })).toBe(0)
-    expect(terminalWidth({ stdout: tty, stderr: { isTTY: true } })).toBe(0)
-  })
-})
 
 describe('startLaptopRuntime', () => {
   test('starts the runtime with one entry per function, from the deployed configuration', async () => {
@@ -696,6 +685,15 @@ describe('startLaptopRuntime', () => {
     const { laptop } = await start()
     expect(laptop.toggleDetailed()).toBe(true)
     expect(laptop.toggleDetailed()).toBe(false)
+  })
+
+  test('setDetailed sets the invocation output to the state the session gives', async () => {
+    const { laptop } = await start()
+    expect(laptop.setDetailed(true)).toBe(true)
+    expect(laptop.toggleDetailed()).toBe(false)
+    expect(laptop.setDetailed(false)).toBe(false)
+    // Nothing shows: clearing the reload spinner is harmless.
+    expect(() => laptop.clearSpinner()).not.toThrow()
   })
 
   test('a reload is recorded: its start, then its end with the functions that reloaded', async () => {
@@ -2018,6 +2016,52 @@ test.each(['serverless.yaml', 'serverless.toml', 'service.config.ts'])(
     expect(runtime.reloads).toEqual([])
   },
 )
+
+test('with web apps, their output directories do not reload the functions; their entries do', async () => {
+  const { watch } = await start({
+    webStarts: [
+      { source: 'config', command: 'next dev', cwd: serviceDir },
+      {
+        source: 'entry',
+        entryFile: path.join(serviceDir, 'server.mjs'),
+        cwd: serviceDir,
+      },
+    ],
+  })
+  const { ignored } = watch.mock.calls[0][1]
+  expect(ignored(path.join(serviceDir, '.next', 'server', 'page.js'))).toBe(
+    true,
+  )
+  expect(ignored(path.join(serviceDir, '.nuxt', 'x.mjs'))).toBe(true)
+  expect(ignored(path.join(serviceDir, 'dist', 'index.js'))).toBe(true)
+  expect(ignored(path.join(serviceDir, 'server.mjs'))).toBe(false)
+  expect(ignored(path.join(serviceDir, 'handler.js'))).toBe(false)
+})
+
+test('a web app run from a subdirectory by its dev.command: its dot-directories do not reload the functions', async () => {
+  const { watch } = await start({
+    webStarts: [
+      { source: 'config', command: 'cd apps/web && nuxt dev', cwd: serviceDir },
+    ],
+  })
+  const { ignored } = watch.mock.calls[0][1]
+  expect(
+    ignored(path.join(serviceDir, 'apps', 'web', '.nuxt', 'dist', 'x.mjs')),
+  ).toBe(true)
+  expect(ignored(path.join(serviceDir, 'apps', 'web', 'app.vue'))).toBe(false)
+})
+
+test('without web apps the functions watch as before: .next, .output, dist and build reload', async () => {
+  const { watch } = await start()
+  const { ignored } = watch.mock.calls[0][1]
+  for (const dir of ['.next', '.output', 'dist', 'build']) {
+    expect(ignored(path.join(serviceDir, dir, 'index.js'))).toBe(false)
+  }
+  expect(ignored(path.join(serviceDir, 'apps', 'web', '.nuxt', 'x.mjs'))).toBe(
+    false,
+  )
+  expect(ignored(path.join(serviceDir, '.serverless', 'a.js'))).toBe(true)
+})
 
 test('watches an explicit config path by basename inside the actual service directory', async () => {
   const serverless = fakeServerless()

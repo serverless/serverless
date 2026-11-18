@@ -134,3 +134,31 @@ describe('serverless.yml schema with the dev plugin loaded', () => {
     )
   })
 })
+
+describe('dev command options for web apps', () => {
+  let commands
+  beforeAll(async () => {
+    ;({ default: commands } =
+      await import('../../../../../../lib/cli/commands-schema.js'))
+  })
+
+  test('dev takes --web-app, --skip-web-app and --local-only, all repeatable', () => {
+    const { options } = commands.get('dev')
+    for (const name of ['web-app', 'skip-web-app', 'local-only']) {
+      expect(options[name].type).toBe('multiple')
+      expect(options[name].usage).toEqual(expect.any(String))
+    }
+  })
+
+  test('dev wait takes --web-app and waits --for request', () => {
+    const { options } = commands.get('dev wait')
+    expect(options['web-app'].type).toBe('multiple')
+    expect(options.for.usage).toContain('"request"')
+  })
+
+  test('dev requests takes --web-app', () => {
+    expect(commands.get('dev requests').options['web-app'].type).toBe(
+      'multiple',
+    )
+  })
+})

@@ -1,5 +1,9 @@
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers'
-import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
+import {
+  addProxyToAwsClient,
+  ServerlessError,
+  ServerlessErrorCodes,
+} from '@serverless/util'
 import {
   describeMissingAwsCredentials,
   isExpiredSsoSession,
@@ -48,7 +52,11 @@ export const getAwsCredentials = async ({
   }
 
   logger.debug(`Using AWS profile: ${config?.profile ?? 'default'}`)
+  // The chain creates its own SSO/STS clients. Configure their transport with
+  // the same proxy rules as service clients before the SDK constructs them.
+  const { config: clientConfig } = addProxyToAwsClient({ config: {} })
   const baseProvider = fromNodeProviderChain({
+    clientConfig,
     profile: config?.profile,
     ignoreCache: config?.ignoreCache === true,
     mfaCodeProvider: async (mfaSerial) => {

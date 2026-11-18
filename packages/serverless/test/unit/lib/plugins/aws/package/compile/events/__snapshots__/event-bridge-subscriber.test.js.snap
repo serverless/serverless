@@ -1,0 +1,1216 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`eventBridge Classic compilation compiles the custom resource template exactly as before 1`] = `
+{
+  "customResourceStatements": [
+    {
+      "name": "eventBridge",
+      "statements": [
+        {
+          "Action": [
+            "events:CreateEventBus",
+            "events:DeleteEventBus",
+          ],
+          "Effect": "Allow",
+          "Resource": {
+            "Fn::Join": [
+              ":",
+              [
+                "arn",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                "events",
+                {
+                  "Ref": "AWS::Region",
+                },
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                "event-bus/*",
+              ],
+            ],
+          },
+        },
+        {
+          "Action": [
+            "events:PutRule",
+            "events:RemoveTargets",
+            "events:PutTargets",
+            "events:DeleteRule",
+          ],
+          "Effect": "Allow",
+          "Resource": {
+            "Fn::Join": [
+              ":",
+              [
+                "arn",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                "events",
+                {
+                  "Ref": "AWS::Region",
+                },
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                "rule/*",
+              ],
+            ],
+          },
+        },
+        {
+          "Action": [
+            "lambda:AddPermission",
+            "lambda:RemovePermission",
+          ],
+          "Effect": "Allow",
+          "Resource": {
+            "Fn::Join": [
+              ":",
+              [
+                "arn",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                "lambda",
+                {
+                  "Ref": "AWS::Region",
+                },
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                "function",
+                "*",
+              ],
+            ],
+          },
+        },
+      ],
+    },
+  ],
+  "template": {
+    "Resources": {
+      "FirstCustomEventBridge1": {
+        "DependsOn": [
+          "FirstLambdaFunction",
+          "CustomDashresourceDasheventDashbridgeLambdaFunction",
+        ],
+        "Properties": {
+          "EventBridgeConfig": {
+            "EventBus": undefined,
+            "Input": undefined,
+            "InputPath": undefined,
+            "InputTransformer": undefined,
+            "Pattern": undefined,
+            "RuleName": "orders-dev-first-rule-1",
+            "Schedule": "rate(10 minutes)",
+            "State": "ENABLED",
+          },
+          "FunctionName": "orders-dev-first",
+          "ServiceToken": {
+            "Fn::GetAtt": [
+              "CustomDashresourceDasheventDashbridgeLambdaFunction",
+              "Arn",
+            ],
+          },
+        },
+        "Type": "Custom::EventBridge",
+        "Version": "1.0",
+      },
+      "FirstCustomEventBridge2": {
+        "DependsOn": [
+          "FirstLambdaFunction",
+          "CustomDashresourceDasheventDashbridgeLambdaFunction",
+        ],
+        "Properties": {
+          "EventBridgeConfig": {
+            "EventBus": "my-custom-event-bus",
+            "Input": undefined,
+            "InputPath": undefined,
+            "InputTransformer": undefined,
+            "Pattern": {
+              "source": [
+                "aws.ec2",
+              ],
+            },
+            "RuleName": "orders-dev-first-rule-2",
+            "Schedule": undefined,
+            "State": "ENABLED",
+          },
+          "FunctionName": "orders-dev-first",
+          "ServiceToken": {
+            "Fn::GetAtt": [
+              "CustomDashresourceDasheventDashbridgeLambdaFunction",
+              "Arn",
+            ],
+          },
+        },
+        "Type": "Custom::EventBridge",
+        "Version": "1.0",
+      },
+      "FirstCustomEventBridge3": {
+        "DependsOn": [
+          "FirstLambdaFunction",
+          "CustomDashresourceDasheventDashbridgeLambdaFunction",
+        ],
+        "Properties": {
+          "EventBridgeConfig": {
+            "EventBus": "arn:aws:events:us-east-1:111122223333:event-bus/my-custom-event-bus",
+            "Input": {
+              "key1": "value1",
+            },
+            "InputPath": undefined,
+            "InputTransformer": undefined,
+            "Pattern": undefined,
+            "RuleName": "orders-dev-first-rule-3",
+            "Schedule": "rate(10 minutes)",
+            "State": "ENABLED",
+          },
+          "FunctionName": "orders-dev-first",
+          "ServiceToken": {
+            "Fn::GetAtt": [
+              "CustomDashresourceDasheventDashbridgeLambdaFunction",
+              "Arn",
+            ],
+          },
+        },
+        "Type": "Custom::EventBridge",
+        "Version": "1.0",
+      },
+    },
+  },
+}
+`;
+
+exports[`eventBridge Classic compilation compiles the native CloudFormation template exactly as before 1`] = `
+{
+  "Resources": {
+    "FirstEventBridgeLambdaPermission1": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FirstLambdaFunction",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            ":",
+            [
+              "arn",
+              {
+                "Ref": "AWS::Partition",
+              },
+              "events",
+              {
+                "Ref": "AWS::Region",
+              },
+              {
+                "Ref": "AWS::AccountId",
+              },
+              {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "rule",
+                    "orders-dev-first-rule-1",
+                  ],
+                ],
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "FirstEventBridgeLambdaPermission10": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FirstLambdaFunction",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            ":",
+            [
+              "arn",
+              {
+                "Ref": "AWS::Partition",
+              },
+              "events",
+              {
+                "Ref": "AWS::Region",
+              },
+              {
+                "Ref": "AWS::AccountId",
+              },
+              {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "rule",
+                    "orders-dev-first-rule-10",
+                  ],
+                ],
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "FirstEventBridgeLambdaPermission11": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FirstLambdaFunction",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            ":",
+            [
+              "arn",
+              {
+                "Ref": "AWS::Partition",
+              },
+              "events",
+              {
+                "Ref": "AWS::Region",
+              },
+              {
+                "Ref": "AWS::AccountId",
+              },
+              {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "rule",
+                    "orders-dev-first-rule-11",
+                  ],
+                ],
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "FirstEventBridgeLambdaPermission12": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FirstLambdaFunction",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            ":",
+            [
+              "arn",
+              {
+                "Ref": "AWS::Partition",
+              },
+              "events",
+              {
+                "Ref": "AWS::Region",
+              },
+              {
+                "Ref": "AWS::AccountId",
+              },
+              {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "rule",
+                    "orders-dev-first-rule-12",
+                  ],
+                ],
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "FirstEventBridgeLambdaPermission13": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FirstLambdaFunction",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            ":",
+            [
+              "arn",
+              {
+                "Ref": "AWS::Partition",
+              },
+              "events",
+              {
+                "Ref": "AWS::Region",
+              },
+              {
+                "Ref": "AWS::AccountId",
+              },
+              {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "rule",
+                    "orders-dev-first-rule-13",
+                  ],
+                ],
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "FirstEventBridgeLambdaPermission14": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FirstLambdaFunction",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            ":",
+            [
+              "arn",
+              {
+                "Ref": "AWS::Partition",
+              },
+              "events",
+              {
+                "Ref": "AWS::Region",
+              },
+              {
+                "Ref": "AWS::AccountId",
+              },
+              {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "rule",
+                    {
+                      "Ref": "ImportedEventBus",
+                    },
+                    "orders-dev-first-rule-14",
+                  ],
+                ],
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "FirstEventBridgeLambdaPermission15": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FirstLambdaFunction",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            ":",
+            [
+              "arn",
+              {
+                "Ref": "AWS::Partition",
+              },
+              "events",
+              {
+                "Ref": "AWS::Region",
+              },
+              {
+                "Ref": "AWS::AccountId",
+              },
+              {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "rule",
+                    {
+                      "Fn::GetAtt": [
+                        "ImportedEventBus",
+                        "Name",
+                      ],
+                    },
+                    "orders-dev-first-rule-15",
+                  ],
+                ],
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "FirstEventBridgeLambdaPermission2": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FirstLambdaFunction",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            ":",
+            [
+              "arn",
+              {
+                "Ref": "AWS::Partition",
+              },
+              "events",
+              {
+                "Ref": "AWS::Region",
+              },
+              {
+                "Ref": "AWS::AccountId",
+              },
+              {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "rule",
+                    "orders-dev-first-rule-2",
+                  ],
+                ],
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "FirstEventBridgeLambdaPermission3": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FirstLambdaFunction",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            ":",
+            [
+              "arn",
+              {
+                "Ref": "AWS::Partition",
+              },
+              "events",
+              {
+                "Ref": "AWS::Region",
+              },
+              {
+                "Ref": "AWS::AccountId",
+              },
+              {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "rule",
+                    "my-custom-event-bus",
+                    "orders-dev-first-rule-3",
+                  ],
+                ],
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "FirstEventBridgeLambdaPermission4": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FirstLambdaFunction",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            ":",
+            [
+              "arn",
+              {
+                "Ref": "AWS::Partition",
+              },
+              "events",
+              {
+                "Ref": "AWS::Region",
+              },
+              {
+                "Ref": "AWS::AccountId",
+              },
+              {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "rule",
+                    "orders-dev-first-rule-4",
+                  ],
+                ],
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "FirstEventBridgeLambdaPermission5": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FirstLambdaFunction",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            ":",
+            [
+              "arn",
+              {
+                "Ref": "AWS::Partition",
+              },
+              "events",
+              {
+                "Ref": "AWS::Region",
+              },
+              {
+                "Ref": "AWS::AccountId",
+              },
+              {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "rule",
+                    "orders-dev-first-rule-5",
+                  ],
+                ],
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "FirstEventBridgeLambdaPermission6": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FirstLambdaFunction",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            ":",
+            [
+              "arn",
+              {
+                "Ref": "AWS::Partition",
+              },
+              "events",
+              {
+                "Ref": "AWS::Region",
+              },
+              {
+                "Ref": "AWS::AccountId",
+              },
+              {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "rule",
+                    "orders-dev-first-rule-6",
+                  ],
+                ],
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "FirstEventBridgeLambdaPermission7": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FirstLambdaFunction",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            ":",
+            [
+              "arn",
+              {
+                "Ref": "AWS::Partition",
+              },
+              "events",
+              {
+                "Ref": "AWS::Region",
+              },
+              {
+                "Ref": "AWS::AccountId",
+              },
+              {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "rule",
+                    "my-custom-rule",
+                  ],
+                ],
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "FirstEventBridgeLambdaPermission8": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FirstLambdaFunction",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            ":",
+            [
+              "arn",
+              {
+                "Ref": "AWS::Partition",
+              },
+              "events",
+              {
+                "Ref": "AWS::Region",
+              },
+              {
+                "Ref": "AWS::AccountId",
+              },
+              {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "rule",
+                    "orders-dev-first-rule-8",
+                  ],
+                ],
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "FirstEventBridgeLambdaPermission9": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FirstLambdaFunction",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            ":",
+            [
+              "arn",
+              {
+                "Ref": "AWS::Partition",
+              },
+              "events",
+              {
+                "Ref": "AWS::Region",
+              },
+              {
+                "Ref": "AWS::AccountId",
+              },
+              {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "rule",
+                    "orders-dev-first-rule-9",
+                  ],
+                ],
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "MyDashcustomDasheventDashbusEventBridgeEventBus": {
+      "Properties": {
+        "Name": "my-custom-event-bus",
+      },
+      "Type": "AWS::Events::EventBus",
+    },
+    "Ordersdevfirstrule10EventBridgeRule": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Description": undefined,
+        "EventBusName": undefined,
+        "EventPattern": undefined,
+        "Name": "orders-dev-first-rule-10",
+        "ScheduleExpression": "rate(10 minutes)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "FirstLambdaFunction",
+                "Arn",
+              ],
+            },
+            "Id": "orders-dev-first-rule-10-target",
+            "InputPath": "$.stageVariables",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "Ordersdevfirstrule11EventBridgeRule": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Description": undefined,
+        "EventBusName": undefined,
+        "EventPattern": undefined,
+        "Name": "orders-dev-first-rule-11",
+        "ScheduleExpression": "rate(10 minutes)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "FirstLambdaFunction",
+                "Arn",
+              ],
+            },
+            "Id": "orders-dev-first-rule-11-target",
+            "InputTransformer": {
+              "InputPathsMap": {
+                "eventTime": "$.time",
+              },
+              "InputTemplate": "{"time": <eventTime>, "key1": "value1"}",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "Ordersdevfirstrule12EventBridgeRule": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Description": undefined,
+        "EventBusName": undefined,
+        "EventPattern": undefined,
+        "Name": "orders-dev-first-rule-12",
+        "ScheduleExpression": "rate(10 minutes)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "FirstLambdaFunction",
+                "Arn",
+              ],
+            },
+            "DeadLetterConfig": {
+              "Arn": "arn:aws:sqs:us-east-1:111122223333:my-dlq",
+            },
+            "Id": "orders-dev-first-rule-12-target",
+            "RetryPolicy": {
+              "MaximumEventAgeInSeconds": 7200,
+              "MaximumRetryAttempts": 9,
+            },
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "Ordersdevfirstrule13EventBridgeRule": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Description": undefined,
+        "EventBusName": undefined,
+        "EventPattern": {
+          "$or": [
+            {
+              "detail": {
+                "eventSource": [
+                  "saas.external",
+                ],
+              },
+            },
+            {
+              "source": [
+                "aws.ec2",
+              ],
+            },
+          ],
+        },
+        "Name": "orders-dev-first-rule-13",
+        "ScheduleExpression": undefined,
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "FirstLambdaFunction",
+                "Arn",
+              ],
+            },
+            "Id": "orders-dev-first-rule-13-target",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "Ordersdevfirstrule14EventBridgeRule": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Description": undefined,
+        "EventBusName": {
+          "Ref": "ImportedEventBus",
+        },
+        "EventPattern": undefined,
+        "Name": "orders-dev-first-rule-14",
+        "ScheduleExpression": "rate(10 minutes)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "FirstLambdaFunction",
+                "Arn",
+              ],
+            },
+            "Id": "orders-dev-first-rule-14-target",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "Ordersdevfirstrule15EventBridgeRule": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Description": undefined,
+        "EventBusName": {
+          "Fn::GetAtt": [
+            "ImportedEventBus",
+            "Name",
+          ],
+        },
+        "EventPattern": {
+          "source": [
+            "aws.ec2",
+          ],
+        },
+        "Name": "orders-dev-first-rule-15",
+        "ScheduleExpression": undefined,
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "FirstLambdaFunction",
+                "Arn",
+              ],
+            },
+            "Id": "orders-dev-first-rule-15-target",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "Ordersdevfirstrule1EventBridgeRule": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Description": undefined,
+        "EventBusName": undefined,
+        "EventPattern": undefined,
+        "Name": "orders-dev-first-rule-1",
+        "ScheduleExpression": "rate(10 minutes)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "FirstLambdaFunction",
+                "Arn",
+              ],
+            },
+            "Id": "orders-dev-first-rule-1-target",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "Ordersdevfirstrule2EventBridgeRule": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Description": undefined,
+        "EventBusName": undefined,
+        "EventPattern": {
+          "detail-type": [
+            "AWS API Call via CloudTrail",
+          ],
+          "source": [
+            "aws.cloudformation",
+          ],
+        },
+        "Name": "orders-dev-first-rule-2",
+        "ScheduleExpression": undefined,
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "FirstLambdaFunction",
+                "Arn",
+              ],
+            },
+            "Id": "orders-dev-first-rule-2-target",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "Ordersdevfirstrule3EventBridgeRule": {
+      "DependsOn": "MyDashcustomDasheventDashbusEventBridgeEventBus",
+      "Properties": {
+        "Description": undefined,
+        "EventBusName": "my-custom-event-bus",
+        "EventPattern": undefined,
+        "Name": "orders-dev-first-rule-3",
+        "ScheduleExpression": "rate(10 minutes)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "FirstLambdaFunction",
+                "Arn",
+              ],
+            },
+            "Id": "orders-dev-first-rule-3-target",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "Ordersdevfirstrule4EventBridgeRule": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Description": undefined,
+        "EventBusName": undefined,
+        "EventPattern": undefined,
+        "Name": "orders-dev-first-rule-4",
+        "ScheduleExpression": "rate(10 minutes)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "FirstLambdaFunction",
+                "Arn",
+              ],
+            },
+            "Id": "orders-dev-first-rule-4-target",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "Ordersdevfirstrule5EventBridgeRule": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Description": undefined,
+        "EventBusName": undefined,
+        "EventPattern": undefined,
+        "Name": "orders-dev-first-rule-5",
+        "ScheduleExpression": "rate(10 minutes)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "FirstLambdaFunction",
+                "Arn",
+              ],
+            },
+            "Id": "orders-dev-first-rule-5-target",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "Ordersdevfirstrule6EventBridgeRule": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Description": undefined,
+        "EventBusName": undefined,
+        "EventPattern": undefined,
+        "Name": "orders-dev-first-rule-6",
+        "ScheduleExpression": "rate(10 minutes)",
+        "State": "DISABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "FirstLambdaFunction",
+                "Arn",
+              ],
+            },
+            "Id": "orders-dev-first-rule-6-target",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "Ordersdevfirstrule7EventBridgeRule": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Description": undefined,
+        "EventBusName": undefined,
+        "EventPattern": undefined,
+        "Name": "my-custom-rule",
+        "ScheduleExpression": "rate(10 minutes)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "FirstLambdaFunction",
+                "Arn",
+              ],
+            },
+            "Id": "my-custom-rule-target",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "Ordersdevfirstrule8EventBridgeRule": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Description": "My Event Rule description",
+        "EventBusName": undefined,
+        "EventPattern": undefined,
+        "Name": "orders-dev-first-rule-8",
+        "ScheduleExpression": "rate(10 minutes)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "FirstLambdaFunction",
+                "Arn",
+              ],
+            },
+            "Id": "orders-dev-first-rule-8-target",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "Ordersdevfirstrule9EventBridgeRule": {
+      "DependsOn": undefined,
+      "Properties": {
+        "Description": undefined,
+        "EventBusName": undefined,
+        "EventPattern": undefined,
+        "Name": "orders-dev-first-rule-9",
+        "ScheduleExpression": "rate(10 minutes)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "FirstLambdaFunction",
+                "Arn",
+              ],
+            },
+            "Id": "orders-dev-first-rule-9-target",
+            "Input": "{"key1":"value1"}",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+  },
+}
+`;

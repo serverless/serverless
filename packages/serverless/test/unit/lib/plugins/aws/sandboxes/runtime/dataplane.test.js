@@ -81,6 +81,42 @@ test('waitUntilRunning throws on terminal failure', async () => {
   await expect(
     waitUntilRunning(client, 'mv-1', { sleep: async () => {} }),
   ).rejects.toThrow(/boom|did not reach RUNNING/)
+  await expect(
+    waitUntilRunning(client, 'mv-1', { sleep: async () => {} }),
+  ).rejects.toMatchObject({ code: 'SANDBOX_RUN_FAILED', stack: undefined })
+})
+
+test('waitUntilRunning throws a timeout without a stack trace', async () => {
+  const client = fakeClient({ GetMicrovmCommand: { state: 'PENDING' } })
+  await expect(
+    waitUntilRunning(client, 'mv-1', {
+      sleep: async () => {},
+      timeoutMs: -1,
+    }),
+  ).rejects.toMatchObject({ code: 'SANDBOX_RUN_TIMEOUT', stack: undefined })
+})
+
+test('createAuthToken keeps the stack trace of an unexpected reply', async () => {
+  const client = fakeClient({ CreateMicrovmAuthTokenCommand: {} })
+  const error = await createAuthToken(client, 'mv-1', 8080).catch((e) => e)
+  expect(error.code).toBe('SANDBOX_AUTH_TOKEN_MISSING')
+  expect(error.stack).toEqual(expect.any(String))
+})
+
+test('resolveSandboxOutputs reports an undeployed service without a stack trace', async () => {
+  const providerWith = (reply) => ({
+    naming: { getStackName: () => 'svc-dev' },
+    request: jest.fn().mockResolvedValue(reply),
+  })
+  await expect(
+    resolveSandboxOutputs(providerWith({ Stacks: [] }), 'echo'),
+  ).rejects.toMatchObject({ code: 'SANDBOX_STACK_NOT_FOUND', stack: undefined })
+  await expect(
+    resolveSandboxOutputs(providerWith({ Stacks: [{ Outputs: [] }] }), 'echo'),
+  ).rejects.toMatchObject({
+    code: 'SANDBOX_OUTPUTS_NOT_FOUND',
+    stack: undefined,
+  })
 })
 
 test('createAuthToken returns the X-aws-proxy-auth value with camelCase input', async () => {

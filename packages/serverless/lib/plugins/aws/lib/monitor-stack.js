@@ -2,6 +2,9 @@ import wait from 'timers-ext/promise/sleep.js'
 import ServerlessError from '../../../serverless-error.js'
 import { log, progress, style } from '@serverless/util'
 import getMonitoringFrequency from '../utils/get-monitoring-frequency.js'
+import { WEB_FUNCTION_QUOTA_CONTEXT, serviceHasWebApps } from './web-apps.js'
+import { getSandboxVersionLimitContext } from '../sandboxes/utils/failure-context.js'
+import { getFunctionReplacementContext } from './function-replacement-context.js'
 
 const mainProgress = progress.get('main')
 const validStatuses = new Set([
@@ -22,6 +25,28 @@ const resourceTypeToErrorCodePostfix = (resourceType) => {
     normalizerPattern,
     '_$1',
   )}`.toUpperCase()
+}
+
+/**
+ * The lines to add to a failed resource's reason, if any: a Web Function
+ * resource that failed on a quota or limit gets the command that shows the
+ * account's Web Function quotas, a sandbox image at its version limit gets
+ * how to prune old versions, and a function that would need replacing under
+ * its custom name gets which settings are fixed at creation and how to change
+ * them.
+ */
+const getFailureContext = (serverless, event) => {
+  if (
+    serviceHasWebApps(serverless) &&
+    event.ResourceType?.startsWith('AWS::Lambda::WebFunction') &&
+    /quota|limit exceeded/i.test(event.ResourceStatusReason ?? '')
+  ) {
+    return WEB_FUNCTION_QUOTA_CONTEXT
+  }
+  return (
+    getSandboxVersionLimitContext(serverless, event) ??
+    getFunctionReplacementContext(event)
+  )
 }
 
 export default {
@@ -134,11 +159,18 @@ export default {
                         'DELETE_COMPLETE',
                       ].includes(stackStatus))))
               ) {
+                const failureContext = getFailureContext(
+                  this.serverless,
+                  stackLatestError,
+                )
+                const contextSuffix = failureContext
+                  ? `\n${failureContext}`
+                  : ''
                 const decoratedErrorMessage = `${
                   stackLatestError.ResourceStatus
                 }: ${stackLatestError.LogicalResourceId} ${style.aside(
                   `(${stackLatestError.ResourceType})`,
-                )}\n${stackLatestError.ResourceStatusReason}\n\n${style.aside(
+                )}\n${stackLatestError.ResourceStatusReason}${contextSuffix}\n\n${style.aside(
                   `View the full error: ${style.link(stackUrl)}`,
                 )}`
 
@@ -148,6 +180,7 @@ export default {
                   stackLatestError.ResourceStatusReason ||
                   stackLatestError.ResourceStatus
                 }.`
+                errorMessage += contextSuffix
                 const errorCode = (() => {
                   if (stackLatestError.ResourceStatusReason) {
                     if (

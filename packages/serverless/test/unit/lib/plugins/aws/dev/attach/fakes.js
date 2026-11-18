@@ -135,6 +135,7 @@ export const fakeIam = () => {
     createRoleError: null,
     getRolePolicyError: null,
     putRolePolicyError: null,
+    updateAssumeRolePolicyError: null,
     async getRole(name) {
       calls.push(['getRole', name])
       if (iam.getRoleError) throw iam.getRoleError
@@ -186,6 +187,14 @@ export const fakeIam = () => {
         `${params.RoleName}/${params.PolicyName}`,
         JSON.parse(params.PolicyDocument),
       )
+    },
+    async updateAssumeRolePolicy(params) {
+      calls.push(['updateAssumeRolePolicy', params.RoleName])
+      if (iam.updateAssumeRolePolicyError) {
+        throw iam.updateAssumeRolePolicyError
+      }
+      roles.get(params.RoleName).AssumeRolePolicyDocument =
+        params.PolicyDocument
     },
     async putRolePermissionsBoundary(params) {
       calls.push([
@@ -432,4 +441,269 @@ export const memoryState = ({
     },
   }
   return state
+}
+
+const webError = (name, message) => Object.assign(new Error(message), { name })
+
+/**
+ * The Lambda Web adapter (`clients.lambdaWeb` of attach/aws.js) over in-memory web functions:
+ * `fakeLambdaWeb({ 'svc-dev-api': { revisions: { 'rev-cfn': {...} }, endpoints: { main: {...} } } })`.
+ * Missing reads are null, deletes report whether something was there, lists are flat. A revision
+ * an endpoint serves cannot be deleted (409), as in AWS; with `heldAfterDelete = n`, a deleted
+ * endpoint still holds its revisions for the next n revision deletes (AWS deletes endpoints
+ * asynchronously: about 1.3 s of 409s). Waiters read the state as it is: a gone resource throws
+ * the adapter's not-found error at once, where the real waiters allow it 5 s to appear.
+ * `gate(name)` holds the next call of that method before it is applied, `gate(name, { applied:
+ * true })` after it is applied but before it returns (a create that landed in AWS and has not
+ * answered yet), so a test can act while an attach is half done.
+ */
+export const fakeLambdaWeb = (functions = {}) => {
+  const state = new Map(
+    Object.entries(functions).map(
+      ([name, { revisions = {}, endpoints = {} }]) => [
+        name,
+        {
+          revisions: new Map(
+            Object.entries(revisions).map(([revisionId, revision]) => [
+              revisionId,
+              { revisionId, state: 'Active', ...clone(revision) },
+            ]),
+          ),
+          endpoints: new Map(
+            Object.entries(endpoints).map(([endpointName, endpoint]) => [
+              endpointName,
+              {
+                endpointName,
+                domainName: `${endpointName}-${name}.web.test`,
+                state: 'Active',
+                ...clone(endpoint),
+              },
+            ]),
+          ),
+        },
+      ],
+    ),
+  )
+  const calls = []
+  const gates = new Map()
+  let next = 0
+  const fn = (name) => {
+    const found = state.get(name)
+    if (!found) throw webError('ResourceNotFoundException', `${name} not found`)
+    return found
+  }
+  const passGate = async (method) => {
+    const gate = gates.get(method)
+    if (!gate) return
+    gates.delete(method)
+    gate.reached()
+    await gate.released
+  }
+  const record = async (method, input) => {
+    calls.push([method, clone(input)])
+    await passGate(method)
+    const failure = lambdaWeb.failures[method]?.shift()
+    if (failure) throw failure
+  }
+  // Endpoints deleted lately, still holding their revisions: name -> { revisionIds, deletes }.
+  const deleting = new Map()
+  const usedBy = (web, revisionId) => [
+    ...[...web.endpoints.values()]
+      .filter((endpoint) =>
+        endpoint.revisionWeights.some((w) => w.revisionId === revisionId),
+      )
+      .map((endpoint) => endpoint.endpointName),
+    ...[...deleting]
+      .filter(([, held]) => held.revisionIds.includes(revisionId))
+      .map(([name]) => name),
+  ]
+  const lambdaWeb = {
+    state,
+    calls,
+    // Errors the next calls of a method throw, in order: `failures.createRevision = [error]`.
+    failures: {},
+    heldAfterDelete: 0,
+    /** Holds the next `method` call; resolves `reached` when it arrives. */
+    gate(method, { applied = false } = {}) {
+      let release
+      let reached
+      const gate = {
+        released: new Promise((resolve) => (release = resolve)),
+        reachedPromise: new Promise((resolve) => (reached = resolve)),
+      }
+      gate.reached = reached
+      gates.set(applied ? `${method}:applied` : method, gate)
+      return { reached: gate.reachedPromise, release: () => release() }
+    },
+    async getEndpoint({ functionName, endpointName }) {
+      await record('getEndpoint', { functionName, endpointName })
+      const endpoint = state.get(functionName)?.endpoints.get(endpointName)
+      return endpoint ? clone(endpoint) : null
+    },
+    async updateEndpointWeights({ functionName, endpointName, revisionId }) {
+      await record('updateEndpointWeights', {
+        functionName,
+        endpointName,
+        revisionId,
+      })
+      const web = fn(functionName)
+      const endpoint = web.endpoints.get(endpointName)
+      if (!endpoint) {
+        throw webError('ResourceNotFoundException', `${endpointName} not found`)
+      }
+      if (!web.revisions.has(revisionId)) {
+        throw webError('ResourceNotFoundException', `${revisionId} not found`)
+      }
+      endpoint.revisionWeights = [{ revisionId, weight: 100 }]
+      return clone(endpoint)
+    },
+    async createEndpoint({
+      functionName,
+      endpointName,
+      revisionId,
+      authType = 'IamAuth',
+    }) {
+      await record('createEndpoint', {
+        functionName,
+        endpointName,
+        revisionId,
+        authType,
+      })
+      const web = fn(functionName)
+      if (web.endpoints.has(endpointName)) {
+        throw webError('ConflictException', `${endpointName} already exists`)
+      }
+      if (!web.revisions.has(revisionId)) {
+        throw webError('ResourceNotFoundException', `${revisionId} not found`)
+      }
+      const endpoint = {
+        endpointName,
+        domainName: `${endpointName}-${functionName}.web.test`,
+        authType,
+        autoDeploymentMode: 'Disabled',
+        revisionWeights: [{ revisionId, weight: 100 }],
+        state: 'Active',
+      }
+      web.endpoints.set(endpointName, endpoint)
+      return { ...clone(endpoint), state: 'Pending' }
+    },
+    async deleteEndpoint({ functionName, endpointName }) {
+      await record('deleteEndpoint', { functionName, endpointName })
+      const endpoint = state.get(functionName)?.endpoints.get(endpointName)
+      if (!endpoint) return false
+      state.get(functionName).endpoints.delete(endpointName)
+      if (lambdaWeb.heldAfterDelete > 0) {
+        deleting.set(endpointName, {
+          revisionIds: endpoint.revisionWeights.map((w) => w.revisionId),
+          deletes: lambdaWeb.heldAfterDelete,
+        })
+      }
+      return true
+    },
+    async listEndpoints({ functionName }) {
+      await record('listEndpoints', { functionName })
+      return [...(state.get(functionName)?.endpoints.values() ?? [])].map(clone)
+    },
+    async getRevision({ functionName, revisionId }) {
+      await record('getRevision', { functionName, revisionId })
+      const revision = state.get(functionName)?.revisions.get(revisionId)
+      return revision ? clone(revision) : null
+    },
+    // The single-attempt reads of the session's periodic check.
+    async getEndpointOnce({ functionName, endpointName }) {
+      await record('getEndpointOnce', { functionName, endpointName })
+      const endpoint = state.get(functionName)?.endpoints.get(endpointName)
+      return endpoint ? clone(endpoint) : null
+    },
+    async getRevisionOnce({ functionName, revisionId }) {
+      await record('getRevisionOnce', { functionName, revisionId })
+      const revision = state.get(functionName)?.revisions.get(revisionId)
+      return revision ? clone(revision) : null
+    },
+    async createRevision({
+      functionName,
+      description,
+      kmsKeyArn,
+      buildConfig,
+      serviceConfig,
+    }) {
+      await record('createRevision', {
+        functionName,
+        description,
+        kmsKeyArn,
+        buildConfig,
+        serviceConfig,
+      })
+      const web = fn(functionName)
+      next += 1
+      const revision = {
+        revisionId: `rev-new${next}`,
+        ...(description !== undefined && { description }),
+        ...(kmsKeyArn !== undefined && { kmsKeyArn }),
+        buildConfig: clone(buildConfig),
+        serviceConfig: clone(serviceConfig),
+        state: 'Active',
+      }
+      web.revisions.set(revision.revisionId, revision)
+      return { ...clone(revision), state: 'Pending' }
+    },
+    async deleteRevision({ functionName, revisionId }) {
+      await record('deleteRevision', { functionName, revisionId })
+      const web = state.get(functionName)
+      if (!web?.revisions.has(revisionId)) return false
+      const users = usedBy(web, revisionId)
+      for (const [name, held] of deleting) {
+        held.deletes -= 1
+        if (held.deletes <= 0) deleting.delete(name)
+      }
+      if (users.length) {
+        throw webError(
+          'ConflictException',
+          `The revision ${revisionId} cannot be deleted because the endpoints [${users.join(', ')}] are using it.`,
+        )
+      }
+      return web.revisions.delete(revisionId)
+    },
+    async listRevisions({ functionName }) {
+      await record('listRevisions', { functionName })
+      return [...(state.get(functionName)?.revisions.values() ?? [])].map(
+        ({ revisionId, description, state: revisionState }) => ({
+          revisionId,
+          ...(description !== undefined && { description }),
+          state: revisionState,
+        }),
+      )
+    },
+    async waitRevisionActive({ functionName, revisionId }) {
+      await record('waitRevisionActive', { functionName, revisionId })
+      const revision = state.get(functionName)?.revisions.get(revisionId)
+      if (!revision) {
+        throw Object.assign(new Error(`${revisionId} was not found`), {
+          code: 'DEV_MODE_REVISION_NOT_FOUND',
+        })
+      }
+      return clone(revision)
+    },
+    async waitEndpointActive({ functionName, endpointName }) {
+      await record('waitEndpointActive', { functionName, endpointName })
+      const endpoint = state.get(functionName)?.endpoints.get(endpointName)
+      if (!endpoint) {
+        throw Object.assign(new Error(`${endpointName} was not found`), {
+          code: 'DEV_MODE_ENDPOINT_NOT_FOUND',
+        })
+      }
+      return clone(endpoint)
+    },
+  }
+  // `gate(name, { applied: true })`: the call is applied, its answer waits for the release.
+  for (const method of Object.keys(lambdaWeb)) {
+    const call = lambdaWeb[method]
+    if (typeof call !== 'function' || ['gate'].includes(method)) continue
+    lambdaWeb[method] = async (input) => {
+      const result = await call(input)
+      await passGate(`${method}:applied`)
+      return result
+    }
+  }
+  return lambdaWeb
 }

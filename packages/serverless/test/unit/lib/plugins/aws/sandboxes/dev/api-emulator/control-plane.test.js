@@ -740,3 +740,108 @@ test('rejects with EADDRINUSE when the requested port is already taken', async (
     await first.cp.shutdown()
   }
 })
+
+function reqWithHeaders(port, method, path, headers, body) {
+  return new Promise((resolve, reject) => {
+    const r = http.request(
+      { host: '127.0.0.1', port, method, path, headers },
+      (res) => {
+        const chunks = []
+        res.on('data', (c) => chunks.push(c))
+        res.on('end', () =>
+          resolve({
+            status: res.statusCode,
+            errorType: res.headers['x-amzn-errortype'],
+            json: JSON.parse(Buffer.concat(chunks).toString() || '{}'),
+          }),
+        )
+      },
+    )
+    r.on('error', reject)
+    if (body) r.write(body)
+    r.end()
+  })
+}
+
+test('rejects requests addressed to a non-loopback Host (DNS rebinding)', async () => {
+  const fireHook = jest.fn(async () => ({ status: 200 }))
+  const { cp, containers } = await harness({ fireHook })
+  try {
+    const run = await reqWithHeaders(
+      cp.port,
+      'POST',
+      '/microvms',
+      { host: `rebind.attacker.example:${cp.port}` },
+      JSON.stringify({ runHookPayload: 'attacker' }),
+    )
+    expect(run.status).toBe(403)
+    expect(run.errorType).toBe('AccessDeniedException')
+    expect(containers).toHaveLength(0)
+    expect(fireHook).not.toHaveBeenCalled()
+
+    const get = await reqWithHeaders(cp.port, 'GET', '/microvm-images/x', {
+      host: `rebind.attacker.example:${cp.port}`,
+    })
+    expect(get.status).toBe(403)
+  } finally {
+    await cp.shutdown()
+  }
+})
+
+test('rejects cross-site browser requests carrying an Origin header', async () => {
+  const fireHook = jest.fn(async () => ({ status: 200 }))
+  const { cp, containers } = await harness({ fireHook })
+  try {
+    const run = await reqWithHeaders(
+      cp.port,
+      'POST',
+      '/microvms',
+      {
+        host: `127.0.0.1:${cp.port}`,
+        origin: 'https://attacker.example',
+        'content-type': 'text/plain',
+      },
+      JSON.stringify({ runHookPayload: 'attacker' }),
+    )
+    expect(run.status).toBe(403)
+    expect(containers).toHaveLength(0)
+    expect(fireHook).not.toHaveBeenCalled()
+
+    const opaque = await reqWithHeaders(
+      cp.port,
+      'POST',
+      '/microvms',
+      { host: `127.0.0.1:${cp.port}`, origin: 'null' },
+      '{}',
+    )
+    expect(opaque.status).toBe(403)
+    expect(containers).toHaveLength(0)
+  } finally {
+    await cp.shutdown()
+  }
+})
+
+test.each([
+  '127.0.0.1',
+  'localhost',
+  'LOCALHOST',
+  '[::1]',
+  // Docker Desktop routes this name from a container to the host's loopback interface.
+  'host.docker.internal',
+])('accepts SDK/CLI requests addressed to local host %s', async (hostname) => {
+  const { cp, containers } = await harness()
+  try {
+    const run = await reqWithHeaders(
+      cp.port,
+      'POST',
+      '/2025-09-09/microvms',
+      { host: `${hostname}:${cp.port}`, 'content-type': 'application/json' },
+      '{}',
+    )
+    expect(run.status).toBe(200)
+    expect(run.json.state).toBe('RUNNING')
+    expect(containers).toHaveLength(1)
+  } finally {
+    await cp.shutdown()
+  }
+})

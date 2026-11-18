@@ -99,6 +99,78 @@ describe('getAwsCredentials', () => {
     expect(mockCredentialProvider.mock.calls[0][0]).toBe(providerOptions)
   })
 
+  describe('credential client proxy configuration', () => {
+    const originalEnv = { ...process.env }
+    const proxyVariables = [
+      'proxy',
+      'HTTP_PROXY',
+      'http_proxy',
+      'HTTPS_PROXY',
+      'https_proxy',
+      'NO_PROXY',
+      'no_proxy',
+      'ca',
+      'HTTPS_CA',
+      'https_ca',
+      'cafile',
+      'HTTPS_CAFILE',
+      'https_cafile',
+      'AWS_CLIENT_TIMEOUT',
+      'aws_client_timeout',
+    ]
+
+    beforeEach(() => {
+      for (const name of proxyVariables) delete process.env[name]
+    })
+
+    afterEach(() => {
+      process.env = { ...originalEnv }
+    })
+
+    const clientConfig = async () => {
+      await getAwsCredentials({ logger, dashboard, config })
+      return mockFromNodeProviderChain.mock.calls[0][0].clientConfig
+    }
+
+    it('routes credential requests through HTTPS_PROXY with the configured CA and timeout', async () => {
+      process.env.HTTPS_PROXY = 'http://proxy.example:8080'
+      process.env.HTTPS_CA = 'proxy-ca'
+      process.env.AWS_CLIENT_TIMEOUT = '1234'
+
+      const handler = (await clientConfig())?.requestHandler
+      expect(handler).toBeDefined()
+      const options = await handler.configProvider
+      expect(options.httpsAgent.proxy.href).toBe('http://proxy.example:8080/')
+      expect(options.httpsAgent.proxyRequestOptions.ca).toEqual(['proxy-ca'])
+      expect(options.httpsAgent.proxyRequestOptions.rejectUnauthorized).toBe(
+        true,
+      )
+      expect(options.connectionTimeout).toBe(1234)
+      handler.destroy()
+    })
+
+    it('falls back to HTTP_PROXY for HTTPS credential requests', async () => {
+      process.env.HTTP_PROXY = 'http://fallback.example:8080'
+      const handler = (await clientConfig())?.requestHandler
+      expect(handler).toBeDefined()
+      const options = await handler.configProvider
+      expect(options.httpsAgent.proxy.href).toBe(
+        'http://fallback.example:8080/',
+      )
+      handler.destroy()
+    })
+
+    it('keeps the SDK default handler when no proxy is configured', async () => {
+      expect((await clientConfig())?.requestHandler).toBeUndefined()
+    })
+
+    it('bypasses the proxy when NO_PROXY covers AWS endpoints', async () => {
+      process.env.HTTPS_PROXY = 'http://proxy.example:8080'
+      process.env.NO_PROXY = '.amazonaws.com'
+      expect((await clientConfig())?.requestHandler).toBeUndefined()
+    })
+  })
+
   // No credentials could be loaded: the message names what the command looked
   // for and how to set it up, in the words `serverless agent setup` uses.
   describe('when no credentials can be loaded', () => {

@@ -43,6 +43,7 @@
     },
     "Layers": "providers/aws/guide/layers",
     "Managed Instances": "providers/aws/guide/managed-instances",
+    "Web Apps (Lambda Web Functions)": "providers/aws/guide/web-apps",
     "Sandboxes (Lambda MicroVMs)": "providers/aws/guide/sandboxes",
     "MCP Servers": "providers/aws/guide/mcp",
     "Alerts": "providers/aws/guide/alerts",

@@ -1,19 +1,19 @@
 {
   "serverless-dev-mode": {
-    "version": 1,
-    "hash": "98074cdfe88902fa8799f21b8f70f278ca4c65bc2b24f85a7bee3285abde58e3"
+    "version": 2,
+    "hash": "0bd0807b7b6fa1856954223c482d572ac3e9f62d6c1751fb3cdd1f8fa42bacf4"
   },
   "serverless-framework": {
-    "version": 2,
-    "hash": "d5b803b38c2687af092d3930a8e92305162decdff0afbf12448d40df99aeec1a"
+    "version": 5,
+    "hash": "474139cf84fa26dc1b1aaaf9595a900ca034fbc70c527b4dc5cd7d8133d1e962"
   },
   "serverless-mcp": {
     "version": 4,
     "hash": "4bb3856f92b580d8e256aaf7cca979bfd9d9ca268a79b17683820749077c5216"
   },
   "serverless-sandboxes": {
-    "version": 2,
-    "hash": "622240741b92b9c13515a02081f0bbe7d9b59095dd9e99ebc8eec89f4da9b430"
+    "version": 6,
+    "hash": "912d16451d5a5c8d5946d0b15191e13beb1aca4267afcf16707b79e24da9eab9"
   },
   "serverless-upgrade": {
     "version": 1,

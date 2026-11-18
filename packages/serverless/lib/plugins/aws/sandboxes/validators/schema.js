@@ -90,6 +90,16 @@ const sandboxConfigSchema = {
   type: 'object',
   properties: {
     artifact: { type: 'string' },
+    // Same contract as `functions[].package.patterns`: globs relative to the
+    // service directory, applied after the service-level patterns. Only a
+    // local `artifact` directory is filtered; an s3:// zip is used as is.
+    package: {
+      type: 'object',
+      properties: {
+        patterns: { type: 'array', items: { type: 'string' } },
+      },
+      additionalProperties: false,
+    },
     minimumMemory: { enum: [512, 1024, 2048, 4096, 8192] },
     description: { type: 'string' },
     // Same contract as `functions[].environment`: strings or CloudFormation

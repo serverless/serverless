@@ -20,6 +20,7 @@ import {
 // Subpath import: tests that load every plugin mock '@serverless/util' wholesale.
 import { addProxyToAwsClient } from '@serverless/util/src/proxy/index.js'
 import { laptopClientId, topicsOf } from './protocol.js'
+import { iotSocketOptions } from './network.js'
 
 export const LIVENESS = Object.freeze({
   LIVE: 'live',
@@ -43,7 +44,8 @@ const defaultTimers = { setTimeout, clearTimeout }
 
 /**
  * The AWS IoT Core data plane client for the account's endpoint (`iot:Data-ATS`), through the
- * machine's proxy. One attempt per question: a retried question would only be later.
+ * machine's proxy, and directly with the time per address the session's connection gives
+ * (network.js). One attempt per question: a retried question would only be later.
  */
 export const createDirectMessagingClient = ({
   endpoint,
@@ -56,6 +58,7 @@ export const createDirectMessagingClient = ({
       endpoint: `https://${endpoint}`,
       credentials,
       maxAttempts: 1,
+      requestHandler: { httpsAgent: iotSocketOptions() },
     }),
   )
 

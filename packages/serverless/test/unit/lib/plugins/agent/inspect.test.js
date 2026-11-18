@@ -169,6 +169,7 @@ describe('AgentInspect command declaration', () => {
       'identity',
       'iot',
       'sandboxes',
+      'web-apps',
       'all',
     ]) {
       expect(opts[cat].type).toBe('boolean')
@@ -196,6 +197,7 @@ describe('index mode (no selection)', () => {
     expect(payload.mode).toBe('index')
     expect(typeof payload.hint).toBe('string')
     expect(payload.hint).toContain('--functions')
+    expect(payload.hint).toContain('--web-apps')
     expect(payload.hint).toContain('--aws-services')
     expect(payload.hint).toContain('--all')
     expect(payload.hint).toContain('--name')
@@ -281,6 +283,72 @@ describe('expand mode', () => {
     const payload = lastPayload()
     expect(payload.resources.iam.IamRoleLambdaExecution).toBeDefined()
     expect(payload.resources.functions).toBeUndefined()
+  })
+
+  describe('--web-apps', () => {
+    const FUNCTION_ARN =
+      'arn:aws:lambda:us-east-1:123456789012:web-function/orders-api-dev-web'
+    const WEB_APP_SUMMARIES = [
+      {
+        LogicalResourceId: 'WebWebFunction',
+        PhysicalResourceId: FUNCTION_ARN,
+        ResourceType: 'AWS::Lambda::WebFunction',
+        ResourceStatus: 'CREATE_COMPLETE',
+      },
+      {
+        LogicalResourceId: 'WebWebFunctionRevisionAbc123',
+        PhysicalResourceId: `${FUNCTION_ARN}/revision/r-1`,
+        ResourceType: 'AWS::Lambda::WebFunctionRevision',
+        ResourceStatus: 'CREATE_COMPLETE',
+      },
+      {
+        LogicalResourceId: 'WebWebFunctionEndpoint',
+        PhysicalResourceId: `${FUNCTION_ARN}/endpoint/live`,
+        ResourceType: 'AWS::Lambda::WebFunctionEndpoint',
+        ResourceStatus: 'CREATE_COMPLETE',
+      },
+    ]
+
+    test.each([['web-apps'], ['webApps']])(
+      'the %s option describes the function, revision and endpoint through lambda-web',
+      async (optionKey) => {
+        const { serverless } = buildHarness({
+          stackResources: [LAMBDA_SUMMARY, ...WEB_APP_SUMMARIES],
+        })
+        fakeInvoke = jest.fn(async () => ({ $metadata: {}, ok: true }))
+        await new AgentInspect(serverless, { [optionKey]: true }).inspect()
+
+        const payload = lastPayload()
+        expect(Object.keys(payload.resources['web-apps']).sort()).toEqual([
+          'WebWebFunction',
+          'WebWebFunctionEndpoint',
+          'WebWebFunctionRevisionAbc123',
+        ])
+        expect(payload.resources.functions).toBeUndefined()
+        expect(
+          fakeInvoke.mock.calls.map(([service, method, input]) => [
+            service,
+            method,
+            input,
+          ]),
+        ).toEqual(
+          expect.arrayContaining([
+            ['lambda-web', 'GetWebFunction', { functionName: FUNCTION_ARN }],
+            [
+              'lambda-web',
+              'GetWebFunctionRevision',
+              { functionName: FUNCTION_ARN, revisionId: 'r-1' },
+            ],
+            [
+              'lambda-web',
+              'GetWebFunctionEndpoint',
+              { functionName: FUNCTION_ARN, endpointName: 'live' },
+            ],
+          ]),
+        )
+        expect(fakeInvoke).toHaveBeenCalledTimes(3)
+      },
+    )
   })
 
   test('--name (alone) auto-selects the named resource', async () => {
@@ -664,7 +732,10 @@ describe('fatal errors (non-zero exit, single JSON error on stdout)', () => {
       'aws-services': 'not-a-real-service',
     })
 
-    await expect(instance.inspect()).rejects.toBeDefined()
+    await expect(instance.inspect()).rejects.toMatchObject({
+      code: 'AGENT_INSPECT_UNKNOWN_AWS_SERVICE',
+      stack: undefined,
+    })
     const payload = JSON.parse(mockWriteText.mock.calls[0][0])
     expect(payload.error.code).toBe('AGENT_INSPECT_UNKNOWN_AWS_SERVICE')
   })
@@ -677,6 +748,7 @@ describe('fatal errors (non-zero exit, single JSON error on stdout)', () => {
 
     await expect(instance.inspect()).rejects.toMatchObject({
       code: 'AGENT_INSPECT_UNKNOWN_FORMAT',
+      stack: undefined,
     })
 
     // The error document itself falls back to JSON (the requested format is

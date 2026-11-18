@@ -2,6 +2,29 @@ import path from 'path'
 import _ from 'lodash'
 import { log } from '@serverless/util'
 import ServerlessError from '../../../../serverless-error.js'
+import { bucketMessage, serviceHasWebApps } from '../../lib/web-apps.js'
+
+/**
+ * Why the service uses the in-stack deployment bucket, in the words of the
+ * setting that chose it, in the order the provider reads them; or why without
+ * a setting, when the stack already holds the bucket.
+ *
+ * @param {object} provider
+ * @param {object} serviceProvider `serverless.service.provider`
+ * @returns {string}
+ */
+const inStackBucketReason = (provider, serviceProvider) => {
+  if (provider.options?.['enable-legacy-deployment-bucket']) {
+    return 'With the --enable-legacy-deployment-bucket option, set'
+  }
+  if (process.env.ENABLE_LEGACY_DEPLOYMENT_BUCKET) {
+    return 'With the ENABLE_LEGACY_DEPLOYMENT_BUCKET environment variable, set'
+  }
+  if (serviceProvider.enableLegacyDeploymentBucket) {
+    return 'With "provider.enableLegacyDeploymentBucket", set'
+  }
+  return "This service's deployment bucket is in its CloudFormation stack, so set"
+}
 
 export default {
   generateCoreTemplate() {
@@ -133,15 +156,27 @@ export default {
 
     // Reference code storage with the legacy in-stack bucket: the bucket must
     // be versioned (Lambda pins exact object versions), and the Lambda
-    // service principal needs read access via the bucket policy.
-    if (this.provider.isReferenceCodeStorageMode()) {
+    // service principal needs read access via the bucket policy. Web apps
+    // read their code from the bucket the same way.
+    if (
+      this.provider.isReferenceCodeStorageMode() ||
+      serviceHasWebApps(this.serverless)
+    ) {
       if (
         !deploymentBucketObject ||
         deploymentBucketObject.versioning !== true
       ) {
         throw new ServerlessError(
-          '"codeStorageMode: reference" with the in-stack deployment bucket requires "deploymentBucket.versioning: true".',
+          bucketMessage(this.serverless, this.provider, {
+            reference:
+              '"codeStorageMode: reference" with the in-stack deployment bucket requires "deploymentBucket.versioning: true".',
+            webApps: `Web apps (webApps) need a versioned deployment bucket. ${inStackBucketReason(
+              this.provider,
+              this.serverless.service.provider,
+            )} "provider.deploymentBucket.versioning: true".`,
+          }),
           'REFERENCE_MODE_LEGACY_BUCKET_VERSIONING_REQUIRED',
+          { stack: false },
         )
       }
       const deploymentBucketPolicyLogicalId =
@@ -172,7 +207,12 @@ export default {
       } else {
         // skipPolicySetup removed the policy resource — the user owns it
         log.warning(
-          '"codeStorageMode: reference" with "skipPolicySetup: true": make sure your deployment bucket policy grants the Lambda service principal s3:GetObject and s3:GetObjectVersion.',
+          bucketMessage(this.serverless, this.provider, {
+            reference:
+              '"codeStorageMode: reference" with "skipPolicySetup: true": make sure your deployment bucket policy grants the Lambda service principal s3:GetObject and s3:GetObjectVersion.',
+            webApps:
+              'Web apps (webApps) with "deploymentBucket.skipPolicySetup: true": make sure your deployment bucket policy grants the Lambda service principal s3:GetObject and s3:GetObjectVersion.',
+          }),
         )
       }
     }

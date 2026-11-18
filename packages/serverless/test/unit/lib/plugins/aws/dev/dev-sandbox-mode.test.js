@@ -24,6 +24,8 @@ jest.unstable_mockModule('@serverless/util', () => ({
   },
   style: { aside: jest.fn((m) => m) },
   stringToSafeColor: jest.fn((v) => v),
+  // read by the domains code that info's endpoint lines load for web app hostnames
+  ServerlessErrorCodes: { domains: {} },
   ServerlessError: class ServerlessError extends Error {
     constructor(message, code, options = {}) {
       super(message)

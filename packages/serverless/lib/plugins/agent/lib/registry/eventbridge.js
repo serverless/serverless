@@ -1,4 +1,5 @@
-// Registry entries for the `eventbridge` AWS service (alias `events`).
+// Registry entries for the `eventbridge` AWS service (alias `events`) and
+// the `eventbridgev2` service (Custom Event Buses, AWS::EventsV2::*).
 
 /**
  * Events::Rule's PhysicalResourceId is the rule name on the default bus.
@@ -53,4 +54,39 @@ const eventBusEntry = {
   calls: [{ key: 'eventBus', method: 'DescribeEventBus', input: 'Name' }],
 }
 
-export const eventbridgeRegistryEntries = [eventRuleEntry, eventBusEntry]
+// AWS::EventsV2::* types are described through the separate EventBridge V2
+// API (@aws-sdk/client-eventbridgev2). build-clients.js picks the SDK client
+// by awsService, so these entries use their own `eventbridgev2` token: under
+// `eventbridge` their Describe* calls would reach the Classic SDK, which has
+// no DescribeSubscriber and a DescribeEventBus that takes a Name.
+//
+// PhysicalResourceId is the ARN for both types: it is each type's
+// CloudFormation primaryIdentifier (SubscriberArn / EventBusArn).
+const subscriberEntry = {
+  cfnType: 'AWS::EventsV2::Subscriber',
+  awsService: 'eventbridgev2',
+  category: 'events',
+  engineClient: 'eventbridgev2',
+  identifier: (stackResource) => stackResource.PhysicalResourceId,
+  calls: [
+    { key: 'subscriber', method: 'DescribeSubscriber', input: 'SubscriberArn' },
+  ],
+}
+
+const eventBusV2Entry = {
+  cfnType: 'AWS::EventsV2::EventBus',
+  awsService: 'eventbridgev2',
+  category: 'events',
+  engineClient: 'eventbridgev2',
+  identifier: (stackResource) => stackResource.PhysicalResourceId,
+  calls: [
+    { key: 'eventBus', method: 'DescribeEventBus', input: 'EventBusArn' },
+  ],
+}
+
+export const eventbridgeRegistryEntries = [
+  eventRuleEntry,
+  eventBusEntry,
+  subscriberEntry,
+  eventBusV2Entry,
+]

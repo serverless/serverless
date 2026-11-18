@@ -111,29 +111,36 @@ const route = async ({ command, options, versions, compose }) => {
     return
   }
 
+  // A command the runner hands to another runner (CoreRunner delegates `agent
+  // inspect` to the framework runner) is reported through that runner: it is
+  // the one that signed in and knows the service.
+  const reportingRunner = () => runner.delegatedRunner ?? runner
+
   let runnerResult, runnerError
   // A command that ends the process itself (Dev Mode's second Ctrl+C, or a restore that ran out of
   // time) still sends its analysis event, with the code it exits with (see forced-exit).
-  const stopForcedExitEvent = onForcedExit((forcedExitCode) =>
-    sendAnalysisAndUsageEvent({
-      authenticatedData: runner?.authenticatedData,
-      orgId: runner?.authenticatedData?.orgId,
+  const stopForcedExitEvent = onForcedExit((forcedExitCode, forced) => {
+    const eventRunner = reportingRunner()
+    return sendAnalysisAndUsageEvent({
+      authenticatedData: eventRunner?.authenticatedData,
+      orgId: eventRunner?.authenticatedData?.orgId,
       versionFramework: versions?.serverless_framework,
       command: eventCommand,
       commandStartTime,
       configFilePath,
-      runner,
+      runner: eventRunner,
       compose,
       resolverManager,
       options,
       runnerError: undefined,
       runnerResult: undefined,
       accessKey:
-        runner?.authenticatedData?.accessKeyV1 ||
-        runner?.authenticatedData?.accessKeyV2,
+        eventRunner?.authenticatedData?.accessKeyV1 ||
+        eventRunner?.authenticatedData?.accessKeyV2,
       exitCode: forcedExitCode,
-    }),
-  )
+      exitReason: forced?.exitReason,
+    })
+  })
   try {
     progressMain.remove()
     runnerResult = await runner.run()
@@ -150,6 +157,7 @@ const route = async ({ command, options, versions, compose }) => {
   }
   // A command that ends with a non-zero code without throwing (Dev Mode's exit 3) did not succeed.
   const exitCode = runnerResult?.exitCode
+  const exitReason = runnerResult?.exitReason
 
   // Save service state
   if (runner?.state && runnerResult?.state) {
@@ -183,6 +191,7 @@ const route = async ({ command, options, versions, compose }) => {
     await autoUpdateAgentSkills({ command, configFilePath })
   }
 
+  const eventRunner = reportingRunner()
   try {
     await finalize({
       logger,
@@ -198,11 +207,12 @@ const route = async ({ command, options, versions, compose }) => {
         configFileRaw,
       },
       runnerData: {
-        runner,
+        runner: eventRunner,
         runnerResult,
         runnerError,
       },
       exitCode,
+      exitReason,
     })
   } catch (error) {
     // Send analysis event with error
@@ -213,11 +223,12 @@ const route = async ({ command, options, versions, compose }) => {
       options,
       configFilePath,
       resolverManager,
-      authenticatedData: runner?.authenticatedData,
-      runner,
+      authenticatedData: eventRunner?.authenticatedData,
+      runner: eventRunner,
       error,
       compose,
       exitCode,
+      exitReason,
     })
     // Swallow the finalization error
   }
@@ -409,6 +420,8 @@ const createUsageEvent = ({
  * @param {Object} [params.runnerSpecificDetails] - Additional runner-specific details.
  * @param {Array} [params.notifications] - Notifications from BFF with shown status.
  * @param {number} [params.exitCode] - The exit code the command set without throwing; non-zero means it did not succeed.
+ * @param {string} [params.exitReason] - Why that exit code is not zero, as a CLI error code (e.g. DEV_MODE_ATTACH_INCOMPLETE):
+ *   the event's `error.code` when there is no error, with a fixed name and message.
  * @returns {Object|null} The created analysis event or null if the license key is used. The
  *   event's `agent` property (a known agent name or "other") is present only when an AI coding
  *   agent was detected.
@@ -429,6 +442,7 @@ export const createAnalysisEvent = ({
   runnerSpecificDetails,
   notifications,
   exitCode,
+  exitReason,
 }) => {
   if (licenseKey) {
     // If a license key is used, we do not send analysis events
@@ -469,6 +483,14 @@ export const createAnalysisEvent = ({
       code: error.code,
       originalMessage: error.originalMessage,
       originalName: error.originalName,
+    }
+  } else if (exitCode && typeof exitReason === 'string' && exitReason) {
+    // A non-zero exit without an error (Dev Mode's exit 3): only its code says why. The name and
+    // message are fixed, so the event carries nothing about the user or the service.
+    analysisEvent.error = {
+      name: 'ExitCode',
+      message: `The command ended with exit code ${exitCode}.`,
+      code: exitReason,
     }
   }
 
@@ -669,6 +691,7 @@ const finalize = async ({
   configData: { config, configFilePath, configFileRaw },
   runnerData: { runner, runnerResult, runnerError },
   exitCode,
+  exitReason,
 }) => {
   const progressMain = progress.get('main')
   progressMain.notice('Finalizing')
@@ -677,6 +700,35 @@ const finalize = async ({
   const orgId = authenticatedData?.orgId
   const accessKey =
     authenticatedData?.accessKeyV1 || authenticatedData?.accessKeyV2
+
+  // The run's analysis event is queued before any task starts, so the tasks
+  // cannot keep it from being published. A failure here or in a task is
+  // reported by the error handler as a separate failed event ("Sending events
+  // failed: ..."). A failure here does not stop the tasks: the usage event,
+  // the deployment record and the metadata are still sent.
+  const analysisParams = {
+    authenticatedData,
+    orgId,
+    versionFramework,
+    command,
+    commandStartTime,
+    configFilePath,
+    runner,
+    compose,
+    resolverManager,
+    options,
+    runnerError,
+    runnerResult,
+    accessKey,
+    exitCode,
+    exitReason,
+  }
+  let queueError
+  try {
+    queueAnalysisEvent(analysisParams)
+  } catch (error) {
+    queueError = error
+  }
 
   const tasks = []
 
@@ -694,59 +746,50 @@ const finalize = async ({
       accessKey,
     }),
   )
-  // Task 2: Publish usage and analysis events
-  tasks.push(
-    sendAnalysisAndUsageEvent({
-      authenticatedData,
-      orgId,
-      versionFramework,
-      command,
-      commandStartTime,
-      configFilePath,
-      runner,
-      compose,
-      resolverManager,
-      options,
-      runnerError,
-      runnerResult,
-      accessKey,
-      exitCode,
-    }),
-  )
+  // Task 2: Publish the usage event and every queued event
+  tasks.push(publishUsageAndQueuedEvents(analysisParams))
   // Task 3: Save meta information -- only for a service: without a config
   // file there is no service directory, and the record would land in
   // ./.serverless of wherever the command ran (keyed "unknown").
+  // The runner's metadata (the AWS account lookup among it) is read inside the
+  // task, so a failure there fails this task alone, not the whole finalize.
   if (configFilePath)
     tasks.push(
-      saveMeta({
-        logger,
-        metaObject: {
-          versionFramework,
-          servicePath: configFilePath,
-          serviceConfigFileName:
-            configFilePath && path.basename(configFilePath),
-          service: config,
-          provider: config?.provider,
-          dashboard: authenticatedData?.dashboard,
-          isWithinCompose: compose?.isWithinCompose,
-          composeOrgName: compose?.orgName,
-          error: runnerError,
-          serviceRawFile: configFileRaw,
-          command,
-          options,
-          orgId,
-          orgName: authenticatedData?.orgName,
-          userId: authenticatedData?.userId,
-          userName: authenticatedData?.userName,
-          ...(await runner.getMetadataToSave()),
-        },
-      }),
+      (async () =>
+        saveMeta({
+          logger,
+          metaObject: {
+            versionFramework,
+            servicePath: configFilePath,
+            serviceConfigFileName:
+              configFilePath && path.basename(configFilePath),
+            service: config,
+            provider: config?.provider,
+            dashboard: authenticatedData?.dashboard,
+            isWithinCompose: compose?.isWithinCompose,
+            composeOrgName: compose?.orgName,
+            error: runnerError,
+            serviceRawFile: configFileRaw,
+            command,
+            options,
+            orgId,
+            orgName: authenticatedData?.orgName,
+            userId: authenticatedData?.userId,
+            userName: authenticatedData?.userName,
+            ...(await runner.getMetadataToSave()),
+          },
+        }))(),
     )
 
   // Execute the specified tasks in parallel
   const results = await Promise.allSettled(tasks)
 
   let errors = []
+  if (queueError) {
+    const errorMessage = queueError.message || String(queueError)
+    logger.debug(`Finalization failed:`, errorMessage)
+    errors.push(errorMessage)
+  }
   // Print all errors
   results.forEach((result) => {
     if (result.status === 'rejected') {
@@ -773,6 +816,7 @@ const handleFinalizationError = async ({
   error,
   compose,
   exitCode,
+  exitReason,
 }) => {
   const logger = log.get('core:router:finalization-error-handler')
   try {
@@ -793,9 +837,17 @@ const handleFinalizationError = async ({
       runnerType: runner.constructor.runnerType,
       cliOptions: options,
       error,
-      runnerSpecificDetails: runner.getAnalysisEventDetails(),
+      // The details may be what failed: the failure is reported without them.
+      runnerSpecificDetails: (() => {
+        try {
+          return runner.getAnalysisEventDetails()
+        } catch {
+          return undefined
+        }
+      })(),
       notifications: authenticatedData?.notifications,
       exitCode,
+      exitReason,
     })
     if (analysisEvent) {
       platformEventClient.addToPublishBatch({
@@ -859,7 +911,13 @@ async function sendDeploymentEvent({
   }
 }
 
-async function sendAnalysisAndUsageEvent({
+async function sendAnalysisAndUsageEvent(params) {
+  queueAnalysisEvent(params)
+  await publishUsageAndQueuedEvents(params)
+}
+
+/** Adds the run's analysis event to the batch the next publish sends. */
+function queueAnalysisEvent({
   authenticatedData,
   orgId,
   versionFramework,
@@ -871,11 +929,9 @@ async function sendAnalysisAndUsageEvent({
   resolverManager,
   options,
   runnerError,
-  runnerResult,
-  accessKey,
   exitCode,
+  exitReason,
 }) {
-  // Create analysis event
   const analysisEvent = createAnalysisEvent({
     licenseKey: authenticatedData?.accessKeyV2,
     orgId,
@@ -895,6 +951,7 @@ async function sendAnalysisAndUsageEvent({
     runnerSpecificDetails: runner.getAnalysisEventDetails(),
     notifications: authenticatedData?.notifications,
     exitCode,
+    exitReason,
   })
 
   if (analysisEvent) {
@@ -903,31 +960,50 @@ async function sendAnalysisAndUsageEvent({
       event: analysisEvent,
     })
   }
+}
 
-  // Create usage event if no error
+/** Adds the usage event of a successful run, then publishes every queued event. */
+async function publishUsageAndQueuedEvents({
+  authenticatedData,
+  orgId,
+  versionFramework,
+  command,
+  runner,
+  runnerError,
+  runnerResult,
+  accessKey,
+}) {
+  // Create usage event if no error. A failure here is rethrown after the
+  // publish, so it does not keep the queued analysis event from being sent.
+  let usageError
   if (!runnerError) {
-    // Ensure authenticated data is available
-    if (!authenticatedData && runner.constructor.name !== 'CoreRunner') {
-      throw new ServerlessError(
-        'No authenticated data found',
-        ServerlessErrorCodes.general.AUTH_FAILED,
-      )
-    }
+    try {
+      // Ensure authenticated data is available
+      if (!authenticatedData && runner.constructor.name !== 'CoreRunner') {
+        throw new ServerlessError(
+          'No authenticated data found',
+          ServerlessErrorCodes.general.AUTH_FAILED,
+        )
+      }
 
-    const serviceUniqueId = runnerResult?.serviceUniqueId
-    if (runner.constructor.name !== 'CoreRunner' && serviceUniqueId) {
-      // Create usage event
-      const usageEvent = createUsageEvent({
-        command,
-        versionFramework,
-        serviceUniqueId,
-        details: await runner.getUsageEventDetails(),
-      })
-      instanceUsageTrackingClient.trackUsage(usageEvent)
+      const serviceUniqueId = runnerResult?.serviceUniqueId
+      if (runner.constructor.name !== 'CoreRunner' && serviceUniqueId) {
+        // Create usage event
+        const usageEvent = createUsageEvent({
+          command,
+          versionFramework,
+          serviceUniqueId,
+          details: await runner.getUsageEventDetails(),
+        })
+        instanceUsageTrackingClient.trackUsage(usageEvent)
+      }
+    } catch (error) {
+      usageError = error
     }
   }
 
   // Publish events
+  let publishError
   try {
     let user
 
@@ -946,10 +1022,14 @@ async function sendAnalysisAndUsageEvent({
       versionFramework,
     })
   } catch (error) {
-    throw new Error(
+    publishError = new Error(
       `Error publishing telemetry event batches: ${error.message}`,
     )
   }
+  // The usage error comes first: a missing sign-in fails the publish too, and
+  // the usage error names the cause.
+  if (usageError) throw usageError
+  if (publishError) throw publishError
 }
 
-export { route }
+export { route, finalize, handleFinalizationError }

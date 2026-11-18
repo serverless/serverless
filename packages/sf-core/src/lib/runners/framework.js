@@ -45,6 +45,7 @@ import {
 import { buildCommandState } from './state-utils.js'
 import { buildSandboxesAnalytics } from '@serverless/framework/lib/plugins/aws/sandboxes/analytics.js'
 import { buildMcpAnalytics } from '@serverless/framework/lib/plugins/aws/mcp/analytics.js'
+import { buildWebAppsAnalytics } from '@serverless/framework/lib/plugins/aws/web-apps/analytics.js'
 import { buildProvisionedPollersAnalytics } from '@serverless/framework/lib/plugins/aws/package/compile/events/lib/provisioned-pollers-analytics.js'
 import { Deployment } from '../platform/deployments.js'
 
@@ -73,10 +74,13 @@ export const metricsBeforeRun = ({ command, serviceUniqueId }) =>
 
 /**
  * The hint an AI agent gets as the first line of a foreground `serverless dev`, before sign-in,
- * variable resolution and any AWS call; null for every other run. Agents and sandboxes modes
- * (chosen by option, or by a configuration without functions), --help, --detach, --dry-run and
- * the session process get none. A service of a Compose project (`compose`) is named in the
- * commands, as `serverless <service> dev` runs from the project's root.
+ * variable resolution and any AWS call; null for every other run. Agents and sandboxes modes get
+ * none: chosen by option, or by a configuration without functions or MCP servers that has agents
+ * (`ai.agents`) or sandboxes, even with web apps, unless --mode functions asks for that mode. A
+ * configuration with web apps only runs in functions mode and gets the hint. The hint says what
+ * `dev stop` restores: the functions, the web apps, or both. --help, --detach, --dry-run and the
+ * session process get none. A service of a Compose project (`compose`) is named in the commands,
+ * as `serverless <service> dev` runs from the project's root.
  */
 export const devAgentHint = ({
   command,
@@ -92,11 +96,24 @@ export const devAgentHint = ({
   }
   if (options.sandbox !== undefined) return null
   if (options.mode === 'agents' || options.mode === 'sandboxes') return null
-  if (Object.keys(config?.functions ?? {}).length === 0) return null
+  const count = (value) => Object.keys(value ?? {}).length
+  // The MCP servers under `mcp.servers` are functions too: the MCP plugin adds them later.
+  const functionCount = count(config?.functions) + count(config?.mcp?.servers)
+  // Web apps run in functions mode, which a configuration without functions gets with
+  // --mode functions, or when it has no agents and no sandboxes (as the dev plugin detects the
+  // mode).
+  const webAppCount = count(config?.webApps)
+  const runsFunctionsMode =
+    functionCount > 0 ||
+    (webAppCount > 0 &&
+      (options.mode === 'functions' ||
+        (count(config?.ai?.agents) === 0 && count(config?.sandboxes) === 0)))
+  if (!runsFunctionsMode) return null
   if (!isAgent()) return null
   return agentHint(
     composeServiceOf({ compose }),
     configOf({ compose }, options),
+    { functions: functionCount > 0, webApps: webAppCount > 0 },
   )
 }
 
@@ -273,6 +290,7 @@ export class TraditionalRunner extends Runner {
       coreCloudFormationTemplate,
       analyticsMetrics,
       exitCode,
+      exitReason,
     } = await runFramework({
       accessKeyV1: authenticatedData.accessKeyV1,
       accessKeyV2: authenticatedData.accessKeyV2,
@@ -314,8 +332,10 @@ export class TraditionalRunner extends Runner {
       authenticatedData,
       state,
       serviceUniqueId,
-      // A command that ended with a non-zero code without throwing (Dev Mode's exit 3).
+      // A command that ended with a non-zero code without throwing (Dev Mode's exit 3), and why,
+      // as a CLI error code when the command gave one.
       ...(exitCode && { exitCode }),
+      ...(exitCode && exitReason && { exitReason }),
     }
   }
 
@@ -447,13 +467,21 @@ export class TraditionalRunner extends Runner {
   }
 
   getAnalysisEventDetails() {
+    // Handler and entry paths are relative to the service directory, the
+    // config file's directory.
+    const serviceDir = this.configFilePath && path.dirname(this.configFilePath)
     const details = {
       providerRuntime: this.config.provider?.runtime,
       awsCfStackId: this.serviceUniqueId,
-      isEsbuildEnabled: Esbuild.WillEsBuildRun(
-        this.config,
-        this.configFilePath,
-      ),
+      // WillEsBuildRun reads functions and webApps; a throw escaping this
+      // method would drop the billing usage event.
+      isEsbuildEnabled: (() => {
+        try {
+          return Esbuild.WillEsBuildRun(this.config, serviceDir)
+        } catch {
+          return false
+        }
+      })(),
       integrations: this.integrations,
       // Service-shape and build metrics; deriveAnalysisEnrichment is total
       // (never throws) — a throw escaping this method aborts finalization
@@ -479,6 +507,11 @@ export class TraditionalRunner extends Runner {
       // contract as the sandboxes/mcp ones: total (never throws), `{}` when
       // no event uses the key, `{ provisionedPollers: <block> }` otherwise.
       ...buildProvisionedPollersAnalytics(this.config),
+      // Web apps config-shape block, same contract as the sandboxes/mcp ones:
+      // total (never throws), `{}` when the service defines no web apps,
+      // `{ webApps: <block> }` otherwise. The service directory lets it apply
+      // esbuild's selection rules to each web app's entry.
+      ...buildWebAppsAnalytics(this.config, serviceDir),
     }
 
     // plugins
@@ -537,9 +570,19 @@ export class TraditionalRunner extends Runner {
   }
 
   async getMetadataToSave() {
-    const credentials = this.getAwsDeploymentCredentials
-      ? await this.getAwsDeploymentCredentials()
-      : null
+    // Best effort: commands that need no AWS access (print, invoke local)
+    // still save their metadata when the account cannot be resolved. The
+    // resolver of a failed account lookup throws synchronously.
+    let credentials = null
+    try {
+      credentials = this.getAwsDeploymentCredentials
+        ? await this.getAwsDeploymentCredentials()
+        : null
+    } catch (err) {
+      log
+        .get('core:runner:metadata')
+        .debug('error resolving AWS account for metadata', err)
+    }
 
     return {
       serviceProviderAwsAccountId: credentials?.accountId,
@@ -855,6 +898,7 @@ const runFramework = async ({
       serverless.service?.provider?.coreCloudFormationTemplate,
     analyticsMetrics,
     exitCode: serverless.exitCode,
+    exitReason: serverless.exitReason,
   }
 }
 

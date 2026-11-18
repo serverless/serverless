@@ -39,7 +39,8 @@ serverless agent docs providers/aws/events/schedule
 serverless agent docs guides/compose providers/aws/guide/functions
 ```
 
-With one or more paths from the index, it prints those pages as markdown.
+With one or more paths from the index, it prints those pages as markdown,
+without the metadata header and the docs-site link at the top of each page.
 Several pages are printed under `## <path>` headings. Paths are relative to
 the documentation root; the `.md` extension is optional, and a section path
 such as `guides/mcp` prints that section's overview page.

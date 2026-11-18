@@ -36,6 +36,14 @@ export default {
     }/${this.provider.getStage()}/`
   },
 
+  // Sandbox zips were stored under "serverless/" whatever the deployment
+  // prefix, so under a custom prefix that location is outside the artifacts
+  // prefix and is emptied on its own
+  getLegacySandboxPrefix() {
+    if (this.provider.getDeploymentPrefix() === 'serverless') return null
+    return `serverless/${this.serverless.service.service}/${this.provider.getStage()}/sandboxes/`
+  },
+
   // The stage's payloads of `serverless dev`, which relays those above one AWS
   // IoT Core message through the deployment bucket under
   // `<root>/<service>/<stage>/<session>/`; the trailing slash keeps sibling
@@ -257,7 +265,16 @@ export default {
   // the stack can delete it. It never fails the removal: what it cannot
   // delete stays, as it did before this cleanup existed
   async emptyDevModePrefix(bucketName) {
-    const prefix = this.getDevModePrefix()
+    await this.emptyPrefix(
+      bucketName,
+      this.getDevModePrefix(),
+      'Dev Mode payloads',
+    )
+  },
+
+  // Deletes every version and delete marker under `prefix`, falling back to
+  // the current objects when versions cannot be listed; never fails the removal
+  async emptyPrefix(bucketName, prefix, description) {
     const deletePages = async (pages, options) => {
       for await (const objects of pages) {
         if (objects.length) {
@@ -276,7 +293,7 @@ export default {
       }
     } catch (err) {
       log.debug(
-        `Could not remove the Dev Mode payloads under "${prefix}" in the deployment bucket "${bucketName}": ${err?.message ?? err}`,
+        `Could not remove the ${description} under "${prefix}" in the deployment bucket "${bucketName}": ${err?.message ?? err}`,
       )
     }
   },
@@ -304,6 +321,14 @@ export default {
         continue
       }
       await this.emptyDevModePrefix(bucketName)
+      const legacySandboxPrefix = this.getLegacySandboxPrefix()
+      if (legacySandboxPrefix) {
+        await this.emptyPrefix(
+          bucketName,
+          legacySandboxPrefix,
+          'sandbox artifacts',
+        )
+      }
       await this.emptyDeploymentBucket(bucketName)
     }
   },

@@ -40,14 +40,16 @@ const didNotStart = (failed) =>
  */
 export const endStatusOf = (record, ended, scope) => {
   const failed = record.type === 'session.failed' ? record : undefined
+  // A session of a service with web apps names them too (its end has their counts).
+  const what = ended?.web_apps ? 'function or web app' : 'function'
   switch (endReasonOf({ ended, failed })) {
     case 'restore_incomplete':
       return {
         status: 'error',
         reason: 'restore_incomplete',
         message: failed
-          ? `${didNotStart(failed)}, and it could not restore every function it had attached.`
-          : 'The Dev Mode session ended without restoring every function.',
+          ? `${didNotStart(failed)}, and it could not restore every ${what} it had attached.`
+          : `The Dev Mode session ended without restoring every ${what}.`,
         next: [restoreNext(scope)],
       }
     case 'attach_incomplete':
@@ -55,8 +57,8 @@ export const endStatusOf = (record, ended, scope) => {
         status: 'error',
         reason: 'attach_incomplete',
         message: failed
-          ? `${didNotStart(failed)}; it restored its functions.`
-          : 'The Dev Mode session ended; at its start some function could not be attached.',
+          ? `${didNotStart(failed)}; it restored ${ended?.web_apps ? 'what it had attached' : 'its functions'}.`
+          : `The Dev Mode session ended; at its start some ${what} could not be attached.`,
       }
     case 'error':
       return failed

@@ -69,6 +69,48 @@ test('resolveTarget throws SANDBOX_NOT_FOUND for an unknown name', () => {
   expect(() => inst.resolveTarget()).toThrow(/not found/i)
 })
 
+const thrownBy = (fn) => {
+  try {
+    fn()
+  } catch (error) {
+    return error
+  }
+  throw new Error('expected an error')
+}
+
+test.each([
+  ['NO_SANDBOXES_DEFINED', { sandbox: 'echo' }, {}],
+  ['SANDBOX_NAME_REQUIRED', { sandbox: true }, { echo: {} }],
+  ['SANDBOX_NOT_FOUND', { sandbox: 'nope' }, { echo: {} }],
+])(
+  'resolveTarget throws %s without a stack trace',
+  (code, options, sandboxes) => {
+    const error = thrownBy(() =>
+      makeInstance(options, sandboxes).resolveTarget(),
+    )
+    expect(error).toMatchObject({ code, stack: undefined })
+  },
+)
+
+test('--sandbox with --function throws without a stack trace', async () => {
+  const inst = makeInstance({ sandbox: 'echo', function: 'f' }, { echo: {} })
+  await expect(inst.hooks['logs:logs']()).rejects.toMatchObject({
+    code: 'LOGS_MUTUAL_EXCLUSIVITY',
+    stack: undefined,
+  })
+})
+
+test('a missing log group throws without a stack trace', async () => {
+  send.mockRejectedValueOnce(
+    Object.assign(new Error('gone'), { name: 'ResourceNotFoundException' }),
+  )
+  const inst = makeInstance({ sandbox: 'echo' }, { echo: {} })
+  await expect(inst.hooks['logs:logs']()).rejects.toMatchObject({
+    code: 'SANDBOX_LOG_GROUP_NOT_FOUND',
+    stack: undefined,
+  })
+})
+
 // I2 — --startTime is honored and passed through to FilterLogEventsCommand
 test('uses default 10-min window when --startTime is absent', async () => {
   const before = Date.now()

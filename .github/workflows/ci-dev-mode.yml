@@ -41,6 +41,8 @@ permissions:
 #     stage's Dev Mode payload objects, which the suite's teardown checks;
 #   - `runSfCore.js` and `testStageName.js` deploy and name every stack the suite
 #     creates.
+#   - `lib/plugins/aws/web-apps/**` deploys the web apps a session runs, and gives it
+#     their function names and settings.
 #   - the sf-core router, framework runner and CLI parser (`router.js`,
 #     `runners/framework.js`, `utils/cli/cli.js`) route and prepare every Dev Mode
 #     command: its options, positionals and the commands that read only local state.
@@ -68,10 +70,12 @@ on:
       - 'packages/serverless/lib/plugins/aws/info/endpoints.js'
       - 'packages/serverless/lib/plugins/aws/mcp/**'
       - 'packages/serverless/lib/plugins/aws/remove/lib/bucket.js'
+      - 'packages/serverless/lib/plugins/aws/web-apps/**'
       - 'packages/serverless/lib/plugins/esbuild/**'
       - 'packages/serverless/lib/plugins/dev.js'
       - 'packages/serverless/lib/utils/dev-build-request.js'
       - 'packages/serverless/scripts/build-dev-layer.js'
+      - 'packages/serverless/scripts/build-dev-web-bridge.mjs'
       - 'packages/serverless/scripts/build-mcp-entry.js'
       - 'packages/serverless/package.json'
       - 'packages/sf-core/package.json'
@@ -101,10 +105,12 @@ on:
       - 'packages/serverless/lib/plugins/aws/info/endpoints.js'
       - 'packages/serverless/lib/plugins/aws/mcp/**'
       - 'packages/serverless/lib/plugins/aws/remove/lib/bucket.js'
+      - 'packages/serverless/lib/plugins/aws/web-apps/**'
       - 'packages/serverless/lib/plugins/esbuild/**'
       - 'packages/serverless/lib/plugins/dev.js'
       - 'packages/serverless/lib/utils/dev-build-request.js'
       - 'packages/serverless/scripts/build-dev-layer.js'
+      - 'packages/serverless/scripts/build-dev-web-bridge.mjs'
       - 'packages/serverless/scripts/build-mcp-entry.js'
       - 'packages/serverless/package.json'
       - 'packages/sf-core/package.json'
@@ -123,7 +129,8 @@ on:
       - 'packages/util/src/proxy/**'
 
 # A cancelled run leaves its stack, role and layers behind until someone
-# removes them, so runs of one ref queue instead of cancelling each other.
+# removes them, so a running run is never cancelled. A run waiting for the
+# group is replaced by a newer one; it hasn't started, so it leaves nothing.
 concurrency:
   group: ci-dev-mode-${{ github.ref }}
   cancel-in-progress: false
@@ -146,18 +153,20 @@ jobs:
           # stays out of .git/config.
           persist-credentials: false
       - name: 'Setup: Node.js'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24.x
           check-latest: true
           cache: npm
-      - name: 'Setup: Enable Corepack'
-        run: corepack enable npm
+      - name: 'Setup: npm'
+        uses: ./.github/actions/setup-npm
+      # A test build, so cached Go modules and build output are fine here; the
+      # release jobs build the layers that ship without any cache.
       - name: 'Setup: Go'
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: dev-mode-bridge/go.mod
-          cache: false
+          cache-dependency-path: dev-mode-bridge/go.sum
       # The suite's Python case skips without a Python 3.9+; fail here instead.
       - name: 'Check: Python'
         run: python3 -c 'import sys; assert sys.version_info >= (3, 9), sys.version'
@@ -168,6 +177,9 @@ jobs:
       - name: 'Build: Dev Mode Layers'
         working-directory: ./packages/serverless
         run: npm run build:devmode:layer
+      - name: 'Build: Dev Mode Web Bridge'
+        working-directory: ./packages/serverless
+        run: npm run build:devmode:web-bridge
       # The suite deploys an MCP server, whose handler is this prebuilt entry.
       - name: 'Build: MCP Entry'
         working-directory: ./packages/serverless
@@ -204,21 +216,23 @@ jobs:
         with:
           persist-credentials: false
       - name: 'Setup: Node.js'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24.x
           check-latest: true
           cache: npm
-      - name: 'Setup: Enable Corepack'
-        run: corepack enable npm
+      - name: 'Setup: npm'
+        uses: ./.github/actions/setup-npm
+      # A test build, so cached Go modules and build output are fine here; the
+      # release jobs build the layers that ship without any cache.
       - name: 'Setup: Go'
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: dev-mode-bridge/go.mod
-          cache: false
+          cache-dependency-path: dev-mode-bridge/go.sum
       # Windows runners call it `python`, not `python3`; Dev Mode looks for either.
       - name: 'Setup: Python'
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.13'
       # The suite's Python case skips without a Python 3.9+; fail here instead.
@@ -231,6 +245,9 @@ jobs:
       - name: 'Build: Dev Mode Layers'
         working-directory: ./packages/serverless
         run: npm run build:devmode:layer
+      - name: 'Build: Dev Mode Web Bridge'
+        working-directory: ./packages/serverless
+        run: npm run build:devmode:web-bridge
       # Only the tests get AWS credentials: installing and building need none.
       - name: 'Setup: AWS Credentials'
         uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0

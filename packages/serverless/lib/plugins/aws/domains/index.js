@@ -5,16 +5,82 @@ import CloudFormationWrapper from './aws/cloud-formation-wrapper.js'
 import Route53Wrapper, { ChangeAction } from './aws/route53-wrapper.js'
 import S3Wrapper from './aws/s3-wrapper.js'
 import DomainConfig from './models/domain-config.js'
+import WebAppDomainConfig, {
+  getUnremovedRecordsMessage,
+} from './models/web-app-domain-config.js'
 import Globals from './globals.js'
-import { sleep } from './utils.js'
+import { listDomainEntries, sleep } from './utils.js'
 import APIGatewayV1Wrapper from './aws/api-gateway-v1-wrapper.js'
 import APIGatewayV2Wrapper from './aws/api-gateway-v2-wrapper.js'
 import Logging from './logging.js'
 import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
+import { getDistributionLogicalIds } from '../web-apps/compilers/domain.js'
+
+// Appended to a missing hosted zone error for a hostname that serves web apps.
+const MANAGE_DNS_YOURSELF =
+  'Set createRoute53Record: false on the domain entry to manage DNS yourself.'
+
+// Appended to a missing certificate error for a hostname that serves web apps.
+const CLOUDFRONT_CERTIFICATE_REGION =
+  'CloudFront uses certificates from us-east-1; request or import the certificate there.'
+
+/**
+ * `err` with `context` appended to its message, keeping its code.
+ * @param {Error & { code?: string, originalMessage?: string }} err
+ * @param {string} context - appended as is, separator included
+ * @returns {ServerlessError}
+ */
+const withContext = (err, context) =>
+  new ServerlessError(`${err.message}${context}`, err.code, {
+    originalMessage: err.originalMessage ?? err.message,
+  })
+
+/**
+ * `err` with the line on managing DNS outside Route 53 appended.
+ * @param {Error & { code?: string, originalMessage?: string }} err
+ * @returns {ServerlessError}
+ */
+const withManageDnsContext = (err) =>
+  withContext(err, `\n${MANAGE_DNS_YOURSELF}`)
+
+/**
+ * Steps shown on the deploy's main progress line, which the deploy owns: only
+ * when a step takes minutes, and with the line's previous message put back
+ * when the last one ends, rather than removed. Steps run in parallel, one per
+ * key, and the line shows the latest of those still running.
+ * @returns {{ show: (key: string, message: string) => void, end: (key: string) => void }}
+ */
+const mainProgressSteps = () => {
+  let line
+  let previousMessage
+  const running = new Map()
+  return {
+    show(key, message) {
+      if (!line) {
+        line = Globals.v3Utils?.progress?.get('main')
+        previousMessage = line?.message
+      }
+      // Map order is insertion order: the latest message goes last
+      running.delete(key)
+      running.set(key, message)
+      line?.notice(message)
+    },
+    end(key) {
+      if (!running.delete(key)) return
+      // Without an animated line (no TTY) a notice is printed as a log line
+      // and the line keeps no message, so there is nothing to put back
+      if (line?.message == null) return
+      const next = [...running.values()].at(-1) ?? previousMessage
+      if (next != null) line.notice(next)
+    },
+  }
+}
 
 class ServerlessCustomDomain {
   // Domain Manager specific properties
   domains = []
+  // provider.domain(s) entries with webApp, served through CloudFront
+  webAppDomains = []
 
   constructor(serverless, options, v3Utils) {
     this.serverless = serverless
@@ -40,30 +106,56 @@ class ServerlessCustomDomain {
           'Deletes a domain using the domain name defined in the serverless file',
       },
     }
+    // API Gateway entries (this.domains) and web-app entries
+    // (this.webAppDomains) each run their own step of a lifecycle.
     this.hooks = {
-      'after:deploy:deploy': this.hookWrapper.bind(
+      'after:deploy:deploy': this.hookWrapper.bind(this, async function () {
+        await this.setupBasePathMappings()
+        await this.upsertWebAppAliases()
+      }),
+      // info and remove only read web-app entries: an invalid one, or one
+      // without a hostname, is skipped (info prints the warning with the
+      // endpoints), so the stack can always be removed
+      'after:info:info': this.hookWrapper.bind(this, this.domainSummaries, {
+        invalidWebAppDomains: 'skip',
+      }),
+      'before:deploy:deploy': this.hookWrapper.bind(this, async function () {
+        // Before any API Gateway domain is created, so a stop changes nothing.
+        await this.assertWebAppHostnamesAreFree()
+        await this.createOrGetDomainForCfOutputs()
+      }),
+      // Before change detection hashes the template, so the hash covers the
+      // certificate ARN the template is deployed with.
+      'before:aws:deploy:deploy:checkForChanges': this.hookWrapper.bind(
         this,
-        this.setupBasePathMappings,
-      ),
-      'after:info:info': this.hookWrapper.bind(this, this.domainSummaries),
-      'before:deploy:deploy': this.hookWrapper.bind(
-        this,
-        this.createOrGetDomainForCfOutputs,
+        this.ensureWebAppCertificates,
       ),
       'before:remove:remove': this.hookWrapper.bind(
         this,
-        this.removeBasePathMappings,
+        async function () {
+          await this.deleteWebAppAliases()
+          await this.removeBasePathMappings()
+        },
+        { invalidWebAppDomains: 'warn' },
       ),
-      'create_domain:create': this.hookWrapper.bind(this, this.createDomains),
-      'delete_domain:delete': this.hookWrapper.bind(this, this.deleteDomains),
+      // API Gateway domains only
+      'create_domain:create': this.hookWrapper.bind(this, this.createDomains, {
+        invalidWebAppDomains: 'skip',
+      }),
+      'delete_domain:delete': this.hookWrapper.bind(this, this.deleteDomains, {
+        invalidWebAppDomains: 'skip',
+      }),
     }
   }
 
   /**
    * Wrapper for lifecycle function, initializes variables and checks if enabled.
    * @param {Function} lifecycleFunc lifecycle function that actually does desired action
+   * @param {object} [options]
+   * @param {'throw'|'warn'|'skip'} [options.invalidWebAppDomains] - what to do with an
+   *   invalid web-app entry, or an enabled one without a hostname (see initializeVariables)
    */
-  async hookWrapper(lifecycleFunc) {
+  async hookWrapper(lifecycleFunc, options = {}) {
     if (
       !this.serverless.service.provider?.domain &&
       !this.serverless.service.provider?.domains
@@ -72,7 +164,7 @@ class ServerlessCustomDomain {
     }
 
     // init config variables
-    this.initializeVariables()
+    this.initializeVariables(options)
     // Validate the domain configurations
     this.validateDomainConfigs()
     // setup AWS resources
@@ -134,24 +226,48 @@ class ServerlessCustomDomain {
   }
 
   /**
-   * Goes through custom domain property and initializes local variables and cloudformation template
+   * Goes through custom domain property and initializes local variables and cloudformation template.
+   * Entries with webApp go to this.webAppDomains, before any default apiType is assigned;
+   * all others to this.domains. An invalid web-app entry, or an enabled one without a
+   * hostname, is an error by default (deploy needs a valid one), skipped with a warning for
+   * 'warn', or skipped for 'skip'. API Gateway entries are always read strictly.
+   * @param {object} [options]
+   * @param {'throw'|'warn'|'skip'} [options.invalidWebAppDomains]
    */
-  initializeVariables() {
-    const domainConfig = this.serverless.service.provider.domain
-      ? [this.serverless.service.provider.domain]
-      : []
-    const domainsConfig = this.serverless.service.provider.domains || []
-
-    const customDomains = domainConfig
-      .concat(domainsConfig)
-      .map((item) => (typeof item === 'string' ? { name: item } : item))
+  initializeVariables({ invalidWebAppDomains = 'throw' } = {}) {
+    const customDomains = listDomainEntries(this.serverless.service.provider)
+    const warnWebAppDomain = {
+      throw: undefined,
+      warn: (message) => Logging.logWarning(message),
+      skip: () => {},
+    }[invalidWebAppDomains]
 
     // Lazy evaluation: compute default API type only when needed
     let defaultApiType = null
 
     // Loop over the domain configurations and populate the domains array with DomainConfigs
     this.domains = []
-    customDomains.forEach((domain) => {
+    this.webAppDomains = []
+    customDomains.forEach(({ path, config: domain }) => {
+      // An empty list item, which only configValidationMode: off lets through
+      if (domain == null) return
+
+      if (domain.webApp != null) {
+        this.webAppDomains.push(
+          ...WebAppDomainConfig.read(domain, path, {
+            // 'warn' is remove's mode: name the records it leaves in place
+            warn:
+              invalidWebAppDomains === 'warn'
+                ? (message) =>
+                    warnWebAppDomain(
+                      `${message} ${getUnremovedRecordsMessage(domain)}`,
+                    )
+                : warnWebAppDomain,
+          }),
+        )
+        return
+      }
+
       // If the key of the item in config is an API type then using per API type domain structure
       let isTypeConfigFound = false
       Object.keys(Globals.apiTypes).forEach((apiType) => {
@@ -177,6 +293,10 @@ class ServerlessCustomDomain {
 
     // Filter inactive domains
     this.domains = this.domains.filter((domain) => domain.enabled)
+    this.webAppDomains = WebAppDomainConfig.withHostnames(
+      this.webAppDomains.filter((domain) => domain.enabled),
+      { warn: warnWebAppDomain },
+    )
   }
 
   /**
@@ -332,67 +452,7 @@ class ServerlessCustomDomain {
         if (domain.tlsTruststoreUri) {
           await this.s3Wrapper.assertTlsCertObjectExists(domain)
         }
-        if (!domain.certificateArn) {
-          // Try to find existing certificate first
-          try {
-            domain.certificateArn = await acm.getCertArn(domain)
-          } catch (certErr) {
-            // If no certificate found and no certificateName provided, try auto-creation
-            if (
-              !domain.certificateName &&
-              certErr.message.includes(
-                'Could not find an in-date certificate for',
-              )
-            ) {
-              Logging.logInfo(
-                'No existing certificate found. Checking if domain is managed by Route53...',
-              )
-
-              // Check if domain is managed by Route53
-              const isDomainManaged = await route53.isDomainManagedByRoute53(
-                domain.givenDomainName,
-              )
-
-              if (isDomainManaged) {
-                Logging.logInfo(
-                  'Domain is managed by Route53. Creating ACM certificate automatically...',
-                )
-
-                // Create new ACM certificate
-                domain.certificateArn = await acm.createCertificate(
-                  domain.givenDomainName,
-                )
-
-                // Get DNS validation records
-                const validationRecords =
-                  await acm.getCertificateValidationRecords(
-                    domain.certificateArn,
-                  )
-
-                // Create DNS validation records in Route53
-                await route53.createCertificateValidationRecords(
-                  validationRecords,
-                  domain.givenDomainName,
-                )
-
-                // Wait for certificate validation
-                await acm.waitForCertificateValidation(domain.certificateArn)
-
-                Logging.logInfo(
-                  'ACM certificate has been created and validated successfully!',
-                )
-              } else {
-                Logging.logWarning(
-                  'Domain is not managed by Route53. Cannot auto-create certificate.',
-                )
-                throw certErr
-              }
-            } else {
-              // Re-throw original error if certificateName was provided or different error
-              throw certErr
-            }
-          }
-        }
+        await this.ensureCertificate(domain, acm, route53)
         domain.domainInfo = await apiGateway.createCustomDomain(domain)
         Logging.logInfo(`Custom domain '${domain.givenDomainName}' was created.
                  New domains may take up to 40 minutes to be initialized.`)
@@ -420,6 +480,93 @@ class ServerlessCustomDomain {
       if (creationProgress) {
         creationProgress.remove()
       }
+    }
+  }
+
+  /**
+   * Sets domain.certificateArn unless the entry has one: an existing in-date certificate
+   * for the domain (or its certificateName), else, for a domain in a Route 53 hosted
+   * zone, a new certificate validated through DNS records in that zone.
+   * @param {DomainConfig|WebAppDomainConfig} domain
+   * @param {ACMWrapper} acm
+   * @param {Route53Wrapper} route53
+   * @param {{ waitUntilIssued?: boolean, showProgress?: (message: string) => void }} [options]
+   *   waitUntilIssued: also wait for an existing certificate that is still pending
+   *   validation; showProgress: called before each step that takes minutes
+   */
+  async ensureCertificate(
+    domain,
+    acm,
+    route53,
+    { waitUntilIssued = false, showProgress } = {},
+  ) {
+    if (domain.certificateArn) {
+      return
+    }
+    let certificate
+    // Try to find existing certificate first
+    try {
+      certificate = await acm.getCertificate(domain)
+    } catch (certErr) {
+      // If no certificate found and no certificateName provided, try auto-creation
+      if (
+        !domain.certificateName &&
+        certErr.message.includes('Could not find an in-date certificate for')
+      ) {
+        Logging.logInfo(
+          'No existing certificate found. Checking if domain is managed by Route53...',
+        )
+
+        // Check if domain is managed by Route53
+        const isDomainManaged = await route53.isDomainManagedByRoute53(
+          domain.givenDomainName,
+        )
+
+        if (isDomainManaged) {
+          Logging.logInfo(
+            'Domain is managed by Route53. Creating ACM certificate automatically...',
+          )
+
+          showProgress?.(
+            `Creating certificate for ${domain.givenDomainName} in us-east-1 (takes a few minutes)`,
+          )
+          // Create new ACM certificate
+          domain.certificateArn = await acm.createCertificate(
+            domain.givenDomainName,
+          )
+
+          // Get DNS validation records
+          const validationRecords = await acm.getCertificateValidationRecords(
+            domain.certificateArn,
+          )
+
+          // Create DNS validation records in Route53
+          await route53.createCertificateValidationRecords(
+            validationRecords,
+            domain.givenDomainName,
+          )
+
+          // Wait for certificate validation
+          await acm.waitForCertificateValidation(domain.certificateArn)
+
+          Logging.logInfo(
+            'ACM certificate has been created and validated successfully!',
+          )
+          return
+        }
+        Logging.logWarning(
+          'Domain is not managed by Route53. Cannot auto-create certificate.',
+        )
+      }
+      // Re-throw original error if certificateName was provided, a different error, or no hosted zone
+      throw certErr
+    }
+    domain.certificateArn = certificate.arn
+    if (waitUntilIssued && certificate.status === 'PENDING_VALIDATION') {
+      showProgress?.(
+        `Waiting for the certificate for ${domain.givenDomainName} to be issued`,
+      )
+      await acm.waitForCertificateValidation(domain.certificateArn)
     }
   }
 
@@ -597,6 +744,185 @@ class ServerlessCustomDomain {
             'Deleting domain name after removing base path mapping.',
           )
           await this.deleteDomain(domain)
+        }
+      }),
+    )
+  }
+
+  /**
+   * Route 53 client for a web-app hostname: its route53Profile and route53Region, else the
+   * deploy credentials and Region.
+   * @param {WebAppDomainConfig} domain
+   * @returns {Promise<Route53Wrapper>}
+   */
+  async getWebAppRoute53(domain) {
+    const credentials = domain.route53Profile
+      ? await Globals.getProfileCreds(domain.route53Profile)
+      : Globals.credentials
+    return new Route53Wrapper(credentials, domain.route53Region)
+  }
+
+  /**
+   * Lifecycle function that stops the deploy when a web-app hostname already exists as an
+   * API Gateway custom domain: a hostname serves either API Gateway APIs or web apps.
+   */
+  async assertWebAppHostnamesAreFree() {
+    await Promise.all(
+      WebAppDomainConfig.perHostname(this.webAppDomains).map(async (domain) => {
+        const found = await Promise.all(
+          [this.apiGatewayV1Wrapper, this.apiGatewayV2Wrapper].map(
+            (apiGateway) =>
+              apiGateway.getCustomDomain(domain, true, { logMissing: false }),
+          ),
+        )
+        if (found.some(Boolean)) {
+          throw new ServerlessError(
+            `${domain.name} is already an API Gateway custom domain in this account, and a hostname serves either API Gateway APIs or web apps. Use another hostname for the web app, or delete the API Gateway custom domain first.`,
+            'WEB_APPS_DOMAIN_IS_API_GATEWAY_DOMAIN',
+            { stack: false },
+          )
+        }
+      }),
+    )
+  }
+
+  /**
+   * Lifecycle function that writes each web-app hostname's certificate into its CloudFront
+   * distribution: found or created in us-east-1 (the Region CloudFront reads certificates
+   * from) and issued. Hostnames with a literal certificateArn were compiled with it.
+   */
+  async ensureWebAppCertificates() {
+    const resources =
+      this.serverless.service.provider.compiledCloudFormationTemplate
+        ?.Resources || {}
+    const pending = WebAppDomainConfig.perHostname(this.webAppDomains).filter(
+      (domain) =>
+        !domain.certificateArn &&
+        resources[getDistributionLogicalIds(domain.name).distribution],
+    )
+    if (pending.length === 0) {
+      return
+    }
+
+    const acm = new ACMWrapper(Globals.credentials, Globals.endpointTypes.edge)
+    const progress = mainProgressSteps()
+    await Promise.all(
+      pending.map(async (domain) => {
+        const route53 = await this.getWebAppRoute53(domain)
+        try {
+          await this.ensureCertificate(domain, acm, route53, {
+            waitUntilIssued: true,
+            showProgress: (message) => progress.show(domain.name, message),
+          })
+        } catch (err) {
+          if (
+            err.code !== ServerlessErrorCodes.domains.ACM_CERTIFICATE_NOT_FOUND
+          ) {
+            throw err
+          }
+          // Without certificateName, a missing certificate reaches here only when no
+          // hosted zone was found to create one in.
+          throw withContext(
+            err,
+            ` ${CLOUDFRONT_CERTIFICATE_REGION}${
+              domain.certificateName || domain.createRoute53Record === false
+                ? ''
+                : `\n${MANAGE_DNS_YOURSELF}`
+            }`,
+          )
+        } finally {
+          progress.end(domain.name)
+        }
+        const { DistributionConfig } =
+          resources[getDistributionLogicalIds(domain.name).distribution]
+            .Properties
+        DistributionConfig.ViewerCertificate = {
+          ...DistributionConfig.ViewerCertificate,
+          AcmCertificateArn: domain.certificateArn,
+        }
+      }),
+    )
+  }
+
+  /**
+   * Web-app hostnames whose Route 53 alias records the Framework manages, each with
+   * domainInfo pointing at its distribution, read from the stack outputs. Hostnames whose
+   * stack has no distribution output are left out, with a verbose log line.
+   * @returns {Promise<WebAppDomainConfig[]>}
+   */
+  async getWebAppAliasTargets() {
+    const domains = WebAppDomainConfig.perHostname(this.webAppDomains).filter(
+      (domain) => domain.createRoute53Record,
+    )
+    if (domains.length === 0) {
+      return []
+    }
+    const outputs = await this.cloudFormationWrapper.getStackOutputs()
+    return domains.filter((domain) => {
+      const { domainNameOutput } = getDistributionLogicalIds(domain.name)
+      const distributionDomainName = outputs[domainNameOutput]
+      if (!distributionDomainName) {
+        Logging.logInfo(
+          `No ${domainNameOutput} output in the stack; skipping the Route 53 records for ${domain.name}.`,
+        )
+        return false
+      }
+      domain.domainInfo = {
+        domainName: distributionDomainName,
+        hostedZoneId: Globals.cloudFrontHostedZoneId,
+      }
+      return true
+    })
+  }
+
+  /**
+   * Lifecycle function that points each web-app hostname at its CloudFront distribution
+   * with A (and AAAA) alias records.
+   */
+  async upsertWebAppAliases() {
+    const domains = await this.getWebAppAliasTargets()
+    await Promise.all(
+      domains.map(async (domain) => {
+        const route53 = await this.getWebAppRoute53(domain)
+        try {
+          await route53.changeResourceRecordSet(ChangeAction.UPSERT, domain)
+        } catch (err) {
+          if (
+            err.code ===
+            ServerlessErrorCodes.route53.ROUTE53_HOSTED_ZONE_NOT_FOUND
+          ) {
+            throw withManageDnsContext(err)
+          }
+          throw err
+        }
+      }),
+    )
+  }
+
+  /**
+   * Lifecycle function that deletes the web-app alias records while the stack, and with it
+   * the distribution domain names they point at, still exists. A failure is a warning, so
+   * remove goes on, as it does for base path mappings.
+   */
+  async deleteWebAppAliases() {
+    let domains
+    try {
+      domains = await this.getWebAppAliasTargets()
+    } catch (err) {
+      Logging.logWarning(
+        `Unable to find the Route 53 records to remove:\n${err.message}`,
+      )
+      return
+    }
+    await Promise.all(
+      domains.map(async (domain) => {
+        try {
+          const route53 = await this.getWebAppRoute53(domain)
+          await route53.changeResourceRecordSet(ChangeAction.DELETE, domain)
+        } catch (err) {
+          Logging.logWarning(
+            `Unable to remove the Route 53 records for '${domain.name}':\n${err.message}`,
+          )
         }
       }),
     )

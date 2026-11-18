@@ -1040,4 +1040,283 @@ describe('monitorStack', () => {
       expect(awsPlugin.provider.request).toHaveBeenCalledTimes(4)
     })
   })
+
+  describe('sandbox image version limit failures', () => {
+    const reason =
+      'Resource handler returned message: "Image arn:aws:lambda:eu-west-1:123456789012:microvm-image:shop-echo-dev has reached the maximum number of versions allowed. (Service: LambdaMicrovms, Status Code: 402, Request ID: 5b785b67)" (RequestToken: c31e92af, HandlerErrorCode: GeneralServiceException)'
+
+    const runFailure = async ({
+      logicalId = 'EchoImage',
+      resourceType = 'AWS::Lambda::MicrovmImage',
+      statusReason = reason,
+      sandboxes = { echo: { artifact: './app' } },
+      custom,
+    }) => {
+      awsPlugin.serverless = {
+        service: { sandboxes, custom },
+        configurationInput: {},
+      }
+      awsPlugin.provider.request
+        .mockResolvedValueOnce({
+          StackEvents: [
+            {
+              EventId: '1',
+              StackName: 'shop-dev',
+              LogicalResourceId: 'shop-dev',
+              ResourceType: 'AWS::CloudFormation::Stack',
+              ResourceStatus: 'UPDATE_IN_PROGRESS',
+            },
+          ],
+        })
+        .mockResolvedValueOnce({
+          StackEvents: [
+            {
+              EventId: '2',
+              StackName: 'shop-dev',
+              LogicalResourceId: logicalId,
+              ResourceType: resourceType,
+              ResourceStatus: 'UPDATE_FAILED',
+              ResourceStatusReason: statusReason,
+            },
+          ],
+        })
+      return awsPlugin
+        .monitorStack('update', { StackId: 'shop-dev' }, { frequency: 10 })
+        .catch((error) => error)
+    }
+
+    it('keeps the AWS message and adds how to prune', async () => {
+      const error = await runFailure({})
+
+      expect(error.message).toBe(
+        `An error occurred: EchoImage - ${reason}.\n` +
+          '\n' +
+          'Sandbox "echo" has reached the maximum number of image versions AWS allows.\n' +
+          'Remove old versions with "serverless prune -n 5", then deploy again.\n' +
+          'To prune automatically after every deploy, add to serverless.yml:\n' +
+          '\n' +
+          'custom:\n' +
+          '  prune:\n' +
+          '    automatic: true\n' +
+          '    number: 5',
+      )
+      expect(error.code).toBe(
+        'AWS_CLOUD_FORMATION_UPDATE_STACK_INTERNAL_LAMBDA_MICROVM_IMAGE_UPDATE_FAILED',
+      )
+    })
+
+    it('maps the logical ID back to a sandbox name with dashes', async () => {
+      const error = await runFailure({
+        logicalId: 'SyncDashallImage',
+        sandboxes: { 'sync-all': {} },
+      })
+
+      expect(error.message).toContain(
+        'Sandbox "sync-all" has reached the maximum number of image versions AWS allows.',
+      )
+    })
+
+    it('skips the config snippet when automatic pruning is already on', async () => {
+      const error = await runFailure({
+        custom: { prune: { automatic: true, number: 3 } },
+      })
+
+      expect(
+        error.message.endsWith(
+          'Sandbox "echo" has reached the maximum number of image versions AWS allows.\n' +
+            'Remove old versions with "serverless prune -n 3", then deploy again.',
+        ),
+      ).toBe(true)
+    })
+
+    it('leaves other MicrovmImage failures alone', async () => {
+      const error = await runFailure({
+        statusReason: 'The container image build failed.',
+      })
+
+      expect(error.message).toBe(
+        'An error occurred: EchoImage - The container image build failed..',
+      )
+    })
+  })
+
+  describe('Web Function quota failures', () => {
+    const quotaContext =
+      "Check this account's Web Function quotas with: aws lambda-web get-web-account-settings"
+
+    const runFailure = async ({ resourceType, reason, webApps }) => {
+      awsPlugin.serverless = {
+        service: {},
+        configurationInput: { webApps },
+      }
+      awsPlugin.provider.request
+        .mockResolvedValueOnce({
+          StackEvents: [
+            {
+              EventId: '1',
+              StackName: 'shop-dev',
+              LogicalResourceId: 'shop-dev',
+              ResourceType: 'AWS::CloudFormation::Stack',
+              ResourceStatus: 'UPDATE_IN_PROGRESS',
+            },
+          ],
+        })
+        .mockResolvedValueOnce({
+          StackEvents: [
+            {
+              EventId: '2',
+              StackName: 'shop-dev',
+              LogicalResourceId: 'ApiWebFunction',
+              ResourceType: resourceType,
+              ResourceStatus: 'CREATE_FAILED',
+              ResourceStatusReason: reason,
+            },
+          ],
+        })
+      return awsPlugin
+        .monitorStack('update', { StackId: 'shop-dev' }, { frequency: 10 })
+        .catch((error) => error)
+    }
+
+    it.each([
+      'AWS::Lambda::WebFunction',
+      'AWS::Lambda::WebFunctionRevision',
+      'AWS::Lambda::WebFunctionEndpoint',
+    ])(
+      'follows the AWS message with the quota command for %s',
+      async (type) => {
+        const error = await runFailure({
+          resourceType: type,
+          reason: 'Resource handler returned message: "Limit Exceeded"',
+          webApps: { api: { entry: 'src/server.js' } },
+        })
+
+        expect(error.message).toBe(
+          `An error occurred: ApiWebFunction - Resource handler returned message: "Limit Exceeded".\n${quotaContext}`,
+        )
+        expect(error.code).toBe(
+          `AWS_CLOUD_FORMATION_UPDATE_STACK_INTERNAL_LAMBDA_${type
+            .slice('AWS::Lambda::'.length)
+            .replace(/(?<!^)([A-Z])/g, '_$1')
+            .toUpperCase()}_CREATE_FAILED`,
+        )
+      },
+    )
+
+    it('matches a quota reason in any case', async () => {
+      const error = await runFailure({
+        resourceType: 'AWS::Lambda::WebFunction',
+        reason: 'You have exceeded the QUOTA for web functions',
+        webApps: { api: { entry: 'src/server.js' } },
+      })
+
+      expect(error.message.endsWith(`\n${quotaContext}`)).toBe(true)
+    })
+
+    it('leaves other Web Function failures alone', async () => {
+      const error = await runFailure({
+        resourceType: 'AWS::Lambda::WebFunction',
+        reason: 'Invalid request',
+        webApps: { api: { entry: 'src/server.js' } },
+      })
+
+      expect(error.message).toBe(
+        'An error occurred: ApiWebFunction - Invalid request.',
+      )
+    })
+
+    it('leaves quota failures of other resources alone', async () => {
+      const error = await runFailure({
+        resourceType: 'AWS::Lambda::Function',
+        reason: 'Limit Exceeded',
+        webApps: { api: { entry: 'src/server.js' } },
+      })
+
+      expect(error.message).toBe(
+        'An error occurred: ApiWebFunction - Limit Exceeded.',
+      )
+    })
+
+    it('leaves the message alone for a service without web apps', async () => {
+      const error = await runFailure({
+        resourceType: 'AWS::Lambda::WebFunction',
+        reason: 'Limit Exceeded',
+      })
+
+      expect(error.message).toBe(
+        'An error occurred: ApiWebFunction - Limit Exceeded.',
+      )
+    })
+  })
+
+  describe('Function replacement failures', () => {
+    const replacementContext =
+      'Lambda sets durable configuration, tenancy and package type when a function is created. To change one, give the function a new name, or remove it from the service, deploy, and add it back.'
+    const replacementReason =
+      'CloudFormation cannot update a stack when a custom-named resource requires replacing. Rename shop-dev-worker and update the stack again.'
+
+    const runFailure = async ({ resourceType, reason }) => {
+      awsPlugin.serverless = { service: {}, configurationInput: {} }
+      awsPlugin.provider.request
+        .mockResolvedValueOnce({
+          StackEvents: [
+            {
+              EventId: '1',
+              StackName: 'shop-dev',
+              LogicalResourceId: 'shop-dev',
+              ResourceType: 'AWS::CloudFormation::Stack',
+              ResourceStatus: 'UPDATE_IN_PROGRESS',
+            },
+          ],
+        })
+        .mockResolvedValueOnce({
+          StackEvents: [
+            {
+              EventId: '2',
+              StackName: 'shop-dev',
+              LogicalResourceId: 'WorkerLambdaFunction',
+              ResourceType: resourceType,
+              ResourceStatus: 'UPDATE_FAILED',
+              ResourceStatusReason: reason,
+            },
+          ],
+        })
+      return awsPlugin
+        .monitorStack('update', { StackId: 'shop-dev' }, { frequency: 10 })
+        .catch((error) => error)
+    }
+
+    it('follows a replacement refusal on a Lambda function with why it needs replacing', async () => {
+      const error = await runFailure({
+        resourceType: 'AWS::Lambda::Function',
+        reason: replacementReason,
+      })
+
+      expect(error.message).toBe(
+        `An error occurred: WorkerLambdaFunction - ${replacementReason}.\n${replacementContext}`,
+      )
+    })
+
+    it('leaves other Lambda function failures alone', async () => {
+      const error = await runFailure({
+        resourceType: 'AWS::Lambda::Function',
+        reason: 'Invalid request',
+      })
+
+      expect(error.message).toBe(
+        'An error occurred: WorkerLambdaFunction - Invalid request.',
+      )
+    })
+
+    it('leaves replacement refusals of other resource types alone', async () => {
+      const error = await runFailure({
+        resourceType: 'AWS::DynamoDB::Table',
+        reason: replacementReason,
+      })
+
+      expect(error.message).toBe(
+        `An error occurred: WorkerLambdaFunction - ${replacementReason}.`,
+      )
+    })
+  })
 })

@@ -13,13 +13,14 @@ test('the dev plugin registers restore as a subcommand of dev', () => {
   expect(dev.commands.restore).toEqual(commands.get('dev restore'))
 })
 
-test('dev restore is a command that can be limited to functions', () => {
+test('dev restore is a command that can be limited to functions and web apps', () => {
   const restore = commands.get('dev restore')
   expect(restore.lifecycleEvents).toEqual(['restore'])
   expect(restore.options.function).toMatchObject({
     type: 'multiple',
     shortcut: 'f',
   })
+  expect(restore.options['web-app']).toMatchObject({ type: 'multiple' })
   expect(restore.serviceDependencyMode).toBe('required')
   // Like every other dev command that prints one result.
   expect(restore.options.json).toEqual(commands.get('dev stop').options.json)

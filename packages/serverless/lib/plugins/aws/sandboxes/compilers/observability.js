@@ -1,4 +1,4 @@
-import { getResourceName, getLogicalId } from '../utils/naming.js'
+import { getResourceName, getLogicalId } from '../../lib/resource-naming.js'
 
 // Default error filter — case-insensitive match of error/exception/fail.
 // CloudWatch Logs filter patterns do not support (?i) inline flags, so

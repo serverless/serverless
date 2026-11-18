@@ -238,7 +238,8 @@ commands.set('dev', {
       type: 'string',
     },
     detailed: {
-      usage: 'Show complete invocation events and responses',
+      usage:
+        'Show complete invocation events and responses, and web request and response details',
       type: 'boolean',
     },
     mode: {
@@ -279,17 +280,32 @@ commands.set('dev', {
       usage: 'Keep this function on its deployed code (repeatable)',
       type: 'multiple',
     },
+    'web-app': {
+      usage:
+        'Run only this web app on this machine (repeatable); the others serve their deployed code',
+      type: 'multiple',
+    },
+    'skip-web-app': {
+      usage: 'Keep this web app on its deployed code (repeatable)',
+      type: 'multiple',
+    },
+    'local-only': {
+      usage:
+        'Run this web app on localhost only; its real URL keeps serving the deployed code (repeatable)',
+      type: 'multiple',
+    },
     'take-over': {
-      usage: 'Also attach functions that are in Dev Mode for another developer',
+      usage:
+        'Also attach functions and web apps that are in Dev Mode for another developer',
       type: 'boolean',
     },
     approve: {
-      usage: 'Ask for confirmation before changing any function',
+      usage: 'Ask for confirmation before changing any function or web app',
       type: 'boolean',
     },
     'on-exit': {
       usage:
-        'What to do on exit instead of restoring: "keep" leaves functions in Dev Mode, "remove" restores and then removes the service (with confirmation)',
+        'What to do on exit instead of restoring: "keep" leaves functions and web apps in Dev Mode, "remove" restores and then removes the service (with confirmation)',
       type: 'string',
     },
     json: {
@@ -329,11 +345,15 @@ commands.set('dev', {
 
 commands.set('dev restore', {
   usage:
-    'Remove Dev Mode configuration from the functions of a stage (left by a session that did not exit cleanly, or by --on-exit keep)',
+    'Remove Dev Mode configuration from the functions and web apps of a stage (left by a session that did not exit cleanly, or by --on-exit keep)',
   options: {
     function: {
       usage: 'Only this function (repeatable)',
       shortcut: 'f',
+      type: 'multiple',
+    },
+    'web-app': {
+      usage: 'Only this web app (repeatable)',
       type: 'multiple',
     },
     json: {
@@ -366,7 +386,7 @@ commands.set('dev setup', {
 
 commands.set('dev status', {
   usage:
-    'Show whether Dev Mode is on in this service directory: its functions, invocations and endpoints',
+    'Show whether Dev Mode is on in this service directory: its functions, web apps, invocations, web requests and endpoints',
   options: {
     json: {
       usage: 'Print one JSON result on stdout (text goes to stderr)',
@@ -380,10 +400,11 @@ commands.set('dev status', {
 
 commands.set('dev stop', {
   usage:
-    'Stop the Dev Mode session running in this service directory and restore its functions',
+    'Stop the Dev Mode session running in this service directory and restore its functions and web apps',
   options: {
     keep: {
-      usage: 'Leave the functions in Dev Mode (as "--on-exit keep" does)',
+      usage:
+        'Leave the functions and web apps in Dev Mode (as "--on-exit keep" does)',
       type: 'boolean',
     },
     timeout: {
@@ -403,15 +424,20 @@ commands.set('dev stop', {
 
 commands.set('dev wait', {
   usage:
-    'Wait until the Dev Mode session in this directory is ready, runs an invocation, reloads or ends, then print that event',
+    'Wait until the Dev Mode session in this directory is ready, runs an invocation or a web app request, reloads or ends, then print that event',
   options: {
     for: {
-      usage: 'What to wait for: "ready", "invocation", "reload" or "ended"',
+      usage:
+        'What to wait for: "ready", "invocation", "request", "reload" or "ended"',
       type: 'string',
     },
     function: {
       usage: 'Only an invocation or reload of this function (repeatable)',
       shortcut: 'f',
+      type: 'multiple',
+    },
+    'web-app': {
+      usage: 'Only a request to or a reload of this web app (repeatable)',
       type: 'multiple',
     },
     after: {
@@ -436,11 +462,15 @@ commands.set('dev wait', {
 
 commands.set('dev requests', {
   usage:
-    'List the latest invocations Dev Mode ran on this machine, newest first, with the file that holds each one',
+    'List the latest invocations and web app requests Dev Mode ran on this machine, newest first, with the file that holds each one',
   options: {
     function: {
       usage: 'Only this function (repeatable)',
       shortcut: 'f',
+      type: 'multiple',
+    },
+    'web-app': {
+      usage: 'Only requests to this web app (repeatable)',
       type: 'multiple',
     },
     limit: {
@@ -459,7 +489,7 @@ commands.set('dev requests', {
 
 commands.set('dev replay', {
   usage:
-    'Run a recorded invocation again on this machine through the running session; no caller receives the result',
+    'Run a recorded invocation or web app request again on this machine through the running session; no caller receives the result',
   positionals: {
     requestId: {
       usage:
@@ -496,13 +526,22 @@ commands.set('invoke', {
       type: 'string',
       usage: 'The sandbox name (for AWS Lambda MicroVMs)',
     },
+    'web-app': {
+      type: 'string',
+      usage: 'The web app name (for AWS Lambda Web Functions)',
+    },
     method: {
       type: 'string',
-      usage: 'HTTP method for a sandbox invoke (default: GET)',
+      usage: 'HTTP method for a sandbox or web app invoke (default: GET)',
     },
     port: {
       type: 'string',
       usage: 'Sandbox container port to target (default: 8080)',
+    },
+    header: {
+      type: 'multiple',
+      usage:
+        "HTTP request header for a sandbox or web app invoke, as 'Name: value' (repeatable)",
     },
     'session-id': {
       type: 'string',
@@ -512,13 +551,14 @@ commands.set('invoke', {
     },
     qualifier: {
       type: 'string',
-      usage: 'Version number or alias to invoke',
+      usage:
+        'Version number or alias to invoke. Default for a durable function: the alias its deploy publishes',
       shortcut: 'q',
     },
     path: {
       type: 'string',
       usage:
-        "For --function: path to a JSON/YAML input-data file. For --sandbox: the HTTP request path (default '/')",
+        "For --function: path to a JSON/YAML input-data file. For --sandbox and --web-app: the HTTP request path (default '/')",
       shortcut: 'p',
     },
     type: {
@@ -527,13 +567,14 @@ commands.set('invoke', {
       shortcut: 't',
     },
     log: {
-      usage: 'Trigger logging data output',
+      usage:
+        "Trigger logging data output. For --web-app: print the request's log lines",
       shortcut: 'l',
       type: 'boolean',
     },
     data: {
       type: 'string',
-      usage: 'Input data',
+      usage: 'Input data. For --sandbox and --web-app: the HTTP request body',
       shortcut: 'd',
     },
     raw: {
@@ -556,6 +597,10 @@ commands.set('invoke', {
       type: 'string',
       usage:
         'Unique name for durable function execution (enables idempotency, 1-64 chars)',
+    },
+    json: {
+      usage: 'Print one JSON result on stdout (text goes to stderr)',
+      type: 'boolean',
     },
   },
   lifecycleEvents: ['invoke'],
@@ -634,6 +679,10 @@ commands.set('logs', {
       type: 'string',
       usage: 'The sandbox name (for AWS Lambda MicroVMs)',
     },
+    'web-app': {
+      type: 'string',
+      usage: 'The web app name (for AWS Lambda Web Functions)',
+    },
     tail: {
       usage: 'Tail the log output',
       shortcut: 't',
@@ -710,6 +759,7 @@ for (const flag of [
   'identity',
   'iot',
   'sandboxes',
+  'web-apps',
 ]) {
   agentInspectOptions[flag] = {
     type: 'boolean',
@@ -780,7 +830,8 @@ commands.set('rollback function', {
 })
 
 commands.set('prune', {
-  usage: 'Clean up deployed functions and/or layers by deleting older versions',
+  usage:
+    'Clean up deployed functions, layers and sandbox images by deleting older versions',
   lifecycleEvents: ['prune'],
   serviceDependencyMode: 'required',
   options: {
@@ -802,6 +853,12 @@ commands.set('prune', {
       required: false,
       type: 'string',
     },
+    sandbox: {
+      usage:
+        'Sandbox name. Limits cleanup to the image versions of the specified sandbox (AWS Lambda MicroVMs)',
+      required: false,
+      type: 'string',
+    },
     includeLayers: {
       usage: 'Boolean flag. Includes the pruning of Lambda layers.',
       shortcut: 'i',
@@ -810,7 +867,7 @@ commands.set('prune', {
     },
     includeArtifacts: {
       usage:
-        'Boolean flag. Also mark deployment artifacts that no longer back any function or layer version.',
+        'Boolean flag. Also mark deployment artifacts that no longer back any function or layer version, and delete unused sandbox zips.',
       shortcut: 'a',
       required: false,
       type: 'boolean',

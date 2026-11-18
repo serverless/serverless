@@ -14,7 +14,7 @@ async function sleep(seconds) {
  * Determines whether this boolean config is configured to true or false.
  *
  * This method evaluates a customDomain property to see if it's true or false.
- * If the property's value is undefined, the default value is returned.
+ * If the property's value is undefined or null, the default value is returned.
  * If the property's value is provided, this should be boolean, or a string parseable as boolean,
  * otherwise an exception is thrown.
  * @param {boolean|string} value the config value provided
@@ -22,7 +22,8 @@ async function sleep(seconds) {
  * @returns {boolean} the parsed boolean from the config value, or the default value
  */
 function evaluateBoolean(value, defaultValue) {
-  if (value === undefined) {
+  // An empty YAML value (or a variable that resolves to null) counts as unset
+  if (value == null) {
     return defaultValue
   }
 
@@ -71,4 +72,31 @@ async function getAWSPagedResults(
   return results
 }
 
-export { evaluateBoolean, sleep, getAWSPagedResults }
+/**
+ * The entries of `provider.domain` and `provider.domains`, in that order, each
+ * with the config path error messages name it by. A string entry becomes
+ * `{ name }`; object entries are returned as they are.
+ *
+ * @param {{ domain?: string|object, domains?: Array|object }} [provider]
+ * @returns {{ path: string, config: object }[]}
+ */
+function listDomainEntries({ domain, domains } = {}) {
+  const toConfig = (item) => (typeof item === 'string' ? { name: item } : item)
+  const entries = []
+  if (domain) {
+    entries.push({ path: 'provider.domain', config: toConfig(domain) })
+  }
+  if (Array.isArray(domains)) {
+    domains.forEach((item, index) =>
+      entries.push({
+        path: `provider.domains[${index}]`,
+        config: toConfig(item),
+      }),
+    )
+  } else if (domains) {
+    entries.push({ path: 'provider.domains', config: toConfig(domains) })
+  }
+  return entries
+}
+
+export { evaluateBoolean, sleep, getAWSPagedResults, listDomainEntries }

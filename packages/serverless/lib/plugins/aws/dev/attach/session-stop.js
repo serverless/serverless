@@ -10,6 +10,7 @@
 // Subpath import: tests that load every plugin mock '@serverless/util' wholesale.
 import { forcedExit } from '@serverless/util/src/forced-exit/index.js'
 import * as out from './output.js'
+import { EXIT_REASONS } from '../commands/exit-reason.js'
 import { installStopHandlers } from './signals.js'
 import { GLOBAL_TIMERS, guardStreams } from './session-support.js'
 
@@ -25,6 +26,11 @@ export const createStopControl = ({
   stoppingText = () => '',
   isDeploying,
   unsettled,
+  // `--on-exit keep`: what a forced exit leaves was to stay in Dev Mode (as with `dev stop
+  // --keep`).
+  keepOnExit = false,
+  // What the session restores, `{ functions, webApps }` (output.js restoresWhat), for its lines.
+  restoring = () => undefined,
   stage,
   // The session's `{ stage, region, aws_profile }`: a restore a line suggests names them.
   scope,
@@ -78,12 +84,21 @@ export const createStopControl = ({
         // What is still attached now: the restore starts nothing after these lines, so they stay
         // true (an update already sent may still finish).
         const left = unsettled()
-        for (const line of out.forceExitLines(left)) logger.warning(line)
+        const keep = keepOnExit || stopRequest?.keep === true
+        for (const line of out.forceExitLines(left, { keep })) {
+          logger.warning(line)
+        }
         const code = left.length ? 3 : 0
         onExiting(code)
-        return forcedExit({ code, processRef, timers })
+        return forcedExit({
+          code,
+          ...(code && { exitReason: EXIT_REASONS.FORCED_STOP }),
+          processRef,
+          timers,
+        })
       },
-      onError: (error) => logger.error(out.stopFailedLine(error, scope)),
+      onError: (error) =>
+        logger.error(out.stopFailedLine(error, scope, restoring())),
     })
     // markStopped: a stop requested without a signal counts as the first one (see signals.js).
     stopHandling = { dispose, markStopped: dispose.markStopped, releaseStreams }

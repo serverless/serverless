@@ -47,7 +47,7 @@ jobs:
         with:
           persist-credentials: false
       - name: 'Setup: Node.js'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
@@ -85,10 +85,13 @@ jobs:
         with:
           persist-credentials: false
       - name: 'Setup: Node.js'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
+          # These jobs install only the dependency-free installer package, so
+          # setup-node's automatic cache of the root lockfile is never used.
+          package-manager-cache: false
       - name: 'Test: E2E (bundled npm)'
         env:
           E2E_PACKAGE_MANAGERS: npm
@@ -121,11 +124,14 @@ jobs:
         with:
           persist-credentials: false
       - name: 'Setup: Node.js'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           # Ships corepack, which provides the pnpm and Yarn versions
           node-version: 24.x
           check-latest: true
+          # These jobs install only the dependency-free installer package, so
+          # setup-node's automatic cache of the root lockfile is never used.
+          package-manager-cache: false
       - name: 'Setup: Bun'
         if: ${{ startsWith(matrix.package-manager, 'bun@') }}
         env:
@@ -150,17 +156,20 @@ jobs:
         with:
           persist-credentials: false
       - name: 'Setup: Node.js'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24.x
           check-latest: true
+          # These jobs install only the dependency-free installer package, so
+          # setup-node's automatic cache of the root lockfile is never used.
+          package-manager-cache: false
       - name: 'Test: E2E in a network whose only way out is a proxy'
         env:
           E2E_LOG_DIR: ${{ runner.temp }}/e2e-logs
         run: tests/e2e/proxy-only-network.sh
       - name: 'Upload: Proxy and registry logs'
         if: ${{ always() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: e2e-proxy-only-network-logs
           path: ${{ runner.temp }}/e2e-logs

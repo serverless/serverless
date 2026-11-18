@@ -22,6 +22,13 @@ class DomainConfig {
       config.createRoute53IPv6Record,
       true,
     )
+    // Only an explicit `createRoute53IPv6Record: true` makes a new domain
+    // dualstack, so AAAA records resolve; otherwise AWS's IPv4 default applies.
+    this.ipAddressType =
+      config.createRoute53IPv6Record !== undefined &&
+      this.createRoute53IPv6Record
+        ? Globals.ipAddressTypes.dualstack
+        : undefined
     this.route53Profile = config.route53Profile
     this.route53Region = config.route53Region
     this.hostedZoneId = config.hostedZoneId

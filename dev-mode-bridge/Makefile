@@ -9,8 +9,9 @@ test:
 vuln:
 	go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
 
+# Prints the third-party notices the layer build generates and ships.
 notices:
-	go run ./cmd/notices -out layer/sls-dev-THIRD_PARTY_NOTICES
+	go run ./cmd/notices -out /dev/stdout
 
 layers:
 	node ../packages/serverless/scripts/build-dev-layer.js

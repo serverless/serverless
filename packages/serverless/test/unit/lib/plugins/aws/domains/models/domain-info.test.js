@@ -32,6 +32,39 @@ describe('DomainInfo', () => {
     )
   })
 
+  it('maps ipAddressType from v1 domain responses', () => {
+    const domainInfo = new DomainInfo({
+      regionalDomainName: 'd.example.com',
+      endpointConfiguration: {
+        types: ['REGIONAL'],
+        ipAddressType: 'dualstack',
+      },
+    })
+
+    expect(domainInfo.ipAddressType).toBe('dualstack')
+  })
+
+  it('maps ipAddressType from v2 domain responses', () => {
+    const domainInfo = new DomainInfo({
+      DomainNameConfigurations: [
+        {
+          ApiGatewayDomainName: 'd.example.com',
+          IpAddressType: 'dualstack',
+        },
+      ],
+    })
+
+    expect(domainInfo.ipAddressType).toBe('dualstack')
+  })
+
+  it('keeps ipAddressType undefined when missing from response', () => {
+    const domainInfo = new DomainInfo({
+      regionalDomainName: 'd.example.com',
+    })
+
+    expect(domainInfo.ipAddressType).toBeUndefined()
+  })
+
   it('keeps certificateArn undefined when missing from response', () => {
     const domainInfo = new DomainInfo({
       regionalDomainName: 'd.example.com',

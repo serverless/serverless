@@ -3,11 +3,20 @@ import path from 'path'
 import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
 import buildFunctionLogGroupResources from './function-log-groups.js'
 import usesDedicatedPerFunctionRole from './uses-dedicated-per-function-role.js'
+import { getWebAppsConfig } from '../../lib/web-apps.js'
+import { getWebAppFunctionName } from '../../web-apps/compilers/function.js'
+import {
+  getWebAppKmsStatement,
+  grantWebAppLogGroups,
+} from '../../web-apps/iam.js'
 
 export default {
   mergeIamTemplates() {
-    // resolve early if no functions are provided
-    if (!this.serverless.service.getAllFunctions().length) {
+    const webApps = getWebAppsConfig(this.serverless)
+    const hasFunctions = this.serverless.service.getAllFunctions().length > 0
+
+    // resolve early if no functions or web apps are provided
+    if (!hasFunctions && !Object.keys(webApps).length) {
       return
     }
 
@@ -51,13 +60,12 @@ export default {
       return
     }
 
-    // resolve early if all functions contain a custom role
-    const customRoleProvided = this.serverless.service
-      .getAllFunctions()
-      .every((functionName) => {
+    // resolve early if all functions and web apps contain a custom role
+    const customRoleProvided =
+      this.serverless.service.getAllFunctions().every((functionName) => {
         const functionObject = this.serverless.service.getFunction(functionName)
         return 'role' in functionObject
-      })
+      }) && Object.values(webApps).every((webApp) => webApp.role)
 
     if (customRoleProvided) {
       return
@@ -207,6 +215,41 @@ export default {
       }
     })
 
+    // Web apps on the shared role log to /aws/lambda/web/<name>, which the
+    // canonical function wildcard does not cover. A web app with `role` or a
+    // dedicated role (`iam.role`) gets these grants on that role instead.
+    const webAppCtx = {
+      serviceName: this.serverless.service.service,
+      stage: this.provider.getStage(),
+    }
+    for (const [key, webApp] of Object.entries(webApps)) {
+      if (webApp.role) continue
+      if (
+        usesDedicatedPerFunctionRole({
+          functionObject: webApp,
+          serverless: this.serverless,
+          awsProvider: this.provider,
+        })
+      ) {
+        skippedDedicatedLogContributions = true
+        continue
+      }
+      grantWebAppLogGroups(
+        policyDocumentStatements,
+        getWebAppFunctionName(webAppCtx, key, webApp),
+      )
+      const kmsStatement = getWebAppKmsStatement(
+        webApp,
+        this.serverless.service.provider,
+      )
+      if (
+        kmsStatement &&
+        !policyDocumentStatements.some((s) => _.isEqual(s, kmsStatement))
+      ) {
+        this.mergeStatements([kmsStatement])
+      }
+    }
+
     if (hasOneOrMoreCanonicallyNamedFunctions) {
       // Ensure general policies for functions with default name resolution
       policyDocumentStatements[0].Resource.push({
@@ -276,7 +319,12 @@ export default {
         return 'vpc' in functionObject
       })
 
-    if (vpcConfigProvided || this.serverless.service.provider.vpc) {
+    // Web apps never need it: their network connector, not the function,
+    // creates the network interfaces.
+    if (
+      vpcConfigProvided ||
+      (this.serverless.service.provider.vpc && hasFunctions)
+    ) {
       // add managed iam policy to allow ENI management
       this.mergeManagedPolicies([
         {

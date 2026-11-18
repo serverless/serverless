@@ -53,6 +53,27 @@ export const REASONS = Object.freeze({
   DEV_MODE_INVALID_DURATION: 'invalid_option_value',
   DEV_MODE_INVALID_WAIT_FOR: 'invalid_option_value',
   DEV_MODE_INVALID_LIMIT: 'invalid_option_value',
+  // A replay of a web request whose web app does not run on this machine in the session.
+  DEV_MODE_WEB_APP_NOT_LOCAL: 'web_app_not_local',
+  // Web apps. The role's trust cannot be widened for them, or their web functions cannot be read:
+  // a person grants the permission. A revision or endpoint AWS Lambda could not make active (or
+  // not in time), and the other web app errors, are errors whose message says what to do.
+  DEV_MODE_BROKER_UPDATE_DENIED: 'permission_denied',
+  DEV_MODE_WEB_ACCESS_DENIED: 'permission_denied',
+  DEV_MODE_UNKNOWN_WEB_APP: 'error',
+  DEV_MODE_OPTION_CONFLICT: 'invalid_option_combination',
+  DEV_MODE_REVISION_FAILED: 'error',
+  DEV_MODE_REVISION_TIMEOUT: 'error',
+  DEV_MODE_REVISION_NOT_FOUND: 'error',
+  DEV_MODE_ENDPOINT_FAILED: 'error',
+  DEV_MODE_ENDPOINT_TIMEOUT: 'error',
+  DEV_MODE_ENDPOINT_NOT_FOUND: 'error',
+  DEV_MODE_ENDPOINT_DELETING: 'error',
+  DEV_MODE_WEB_APP_ENVIRONMENT_TOO_LARGE: 'error',
+  DEV_MODE_WEB_REVISION_NOT_FOUND: 'error',
+  DEV_MODE_WEB_APP_STILL_ATTACHED: 'error',
+  DEV_MODE_WEB_RESTORE_REVISION_GONE: 'error',
+  DEV_MODE_WEB_BRIDGE_MISSING: 'error',
   // Option values and the CLI's own errors that reach a Dev Mode command.
   INVALID_DEV_MODE_OPTION: 'error',
   INVALID_DEV_ON_EXIT_OPTION: 'error',
@@ -107,18 +128,23 @@ export const scopeFlags = (scope) => [
 
 /**
  * `serverless dev restore` for the scope of a session (see `scopeFlags`), and one `--function`
- * for `functionKey` or each of `functionKeys` when given: without them `dev restore` restores the
- * service's default stage, with the default credentials. A scope that names none of them gives
- * the plain command.
+ * for `functionKey` or each of `functionKeys` when given, one `--web-app` for each of `webAppKeys`:
+ * without a scope `dev restore` restores the service's default stage, with the default credentials.
+ * A scope that names none of them gives the plain command.
  */
 export const restoreCommand = (
   scope,
-  { functionKey, functionKeys = functionKey ? [functionKey] : [] } = {},
+  {
+    functionKey,
+    functionKeys = functionKey ? [functionKey] : [],
+    webAppKeys = [],
+  } = {},
 ) => {
   const command = [
     'dev restore',
     ...scopeFlags(scope),
     ...functionKeys.map((key) => `--function ${shellWord(String(key))}`),
+    ...webAppKeys.map((key) => `--web-app ${shellWord(String(key))}`),
   ].join(' ')
   // Hooks of deploy, remove and rollback name the Compose service and the --config of their run;
   // Dev Mode's own commands, the ones they were started with.

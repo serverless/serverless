@@ -1,6 +1,6 @@
 # Serverless Framework
 
-Monorepo for the **Serverless Framework** - a command-line tool for deploying serverless applications to AWS Lambda and other managed cloud services, driven by YAML configuration (`serverless.yml`). Development uses Node.js 24 + npm 12 (ES Modules); the shipped CLI supports Node.js >= 18.
+Monorepo for the **Serverless Framework** - a command-line tool for deploying serverless applications to AWS Lambda and other managed cloud services, driven by YAML configuration (`serverless.yml`). Development uses Node.js 24 or 26 + npm 12 (ES Modules); the shipped CLI supports Node.js >= 18.
 
 ## Repository Structure
 
@@ -69,9 +69,10 @@ Gotchas:
 
 ## Dependencies
 
-- The shipped CLI supports Node.js 18 (`packages/serverless` declares `engines.node: ">=18.0"`). Runtime dependencies must keep Node 18 support even though development uses Node 24. Majors that drop Node 18 are blocked via the ignore list in `.github/dependabot.yml` — check it before bumping; dev-only dependencies may require any Node version.
+- The shipped CLI supports Node.js 18 (`packages/serverless` declares `engines.node: ">=18.0"`). Runtime dependencies must keep Node 18 support even though development uses Node 24 or 26. Majors that drop Node 18 are blocked via the ignore list in `.github/dependabot.yml` — check it before bumping; dev-only dependencies may require any Node version.
 - Write `package-lock.json` only with npm 12. npm <= 11 silently drops root `overrides` in workspaces repos (npm/cli#4834). Use `npm ci` for plain installs.
 - `.npmrc` sets `min-release-age=3`: npm versions published less than 3 days ago won't resolve unless you pass `--min-release-age=0` explicitly.
+- Dependabot updates only the directories `.github/dependabot.yml` lists. A new package or test fixture with dependencies (a `package.json` that declares any, a requirements file, `Pipfile`, `poetry.lock`, `uv.lock`, `Dockerfile`, `go.mod`, `pom.xml` or a pinned Terraform provider) needs its directory in the entry for its package manager; `packages/sf-core/tests/unit/dependabot-coverage.test.js` fails until it is there and names the missing directory. A dependency that several npm directories declare goes in one of the groups listed first in the npm entry, which keep it at one version everywhere, or in that test's `MAY_DIFFER` with the reason its versions may differ.
 
 ## Testing
 
@@ -97,27 +98,29 @@ npm test -w @serverlessinc/sf-core              # integration suite (excludes do
 npm run test:<suite> -w @serverlessinc/sf-core  # targeted suite
 ```
 
-Targeted suites include: `simple:nodejs`, `simple:python`, `simple:compose`, `simple:dashboard`, `simple:resolvers`, `resolvers`, `esbuild`, `sam`, `sandboxes`, `state`, `deployment-bucket`, `license-key`, `domains`, `mcp`, `dev-mode`, `dev-mode:agent-loop`, `compose:dev`, `compose:subset`. Prefer the targeted suite covering the touched area. Three suites are excluded from `npm test`: `domains` (not run by any CI workflow — only when invoked explicitly), `mcp` (run by the path-filtered `CI: MCP Servers` workflow; only its `mcp-auth.test.js` suite needs the Cognito prerequisite from [TESTING.md](TESTING.md) — absent that, that suite skips while the rest runs) and `dev-mode` (run by the path-filtered `CI: Dev Mode` workflow on Linux, and its `agent-loop` file on Windows; creates an IAM role and layers under a test suffix and deletes them; run it with `npm run test:dev-mode -w @serverlessinc/sf-core` after `npm run build:devmode:layer -w @serverless/framework` and `npm run build:mcp:entry -w @serverless/framework`). Any other new directory under `tests/integration/` joins `npm test` automatically, so an expensive new suite has to opt out the same way. A new suite also needs an entry in `packages/sf-core/tests/integration/shards.json`, which a unit test enforces; see "CI Test Accounts" in [TESTING.md](TESTING.md).
+Targeted suites include: `simple:nodejs`, `simple:python`, `simple:compose`, `simple:dashboard`, `simple:resolvers`, `resolvers`, `esbuild`, `sam`, `sandboxes`, `state`, `deployment-bucket`, `durable`, `license-key`, `domains`, `mcp`, `dev-mode`, `dev-mode:agent-loop`, `compose:dev`, `compose:subset`. Prefer the targeted suite covering the touched area. Three suites are excluded from `npm test`: `domains` (not run by any CI workflow — only when invoked explicitly), `mcp` (run by the path-filtered `CI: MCP Servers` workflow; only its `mcp-auth.test.js` suite needs the Cognito prerequisite from [TESTING.md](TESTING.md) — absent that, that suite skips while the rest runs) and `dev-mode` (run by the path-filtered `CI: Dev Mode` workflow on Linux, and its `agent-loop` file on Windows; creates an IAM role and layers under a test suffix and deletes them; run it with `npm run test:dev-mode -w @serverlessinc/sf-core` after `npm run build:devmode:layer -w @serverless/framework` and `npm run build:mcp:entry -w @serverless/framework`). Any other new directory under `tests/integration/` joins `npm test` automatically, so an expensive new suite has to opt out the same way. A new suite also needs an entry in `packages/sf-core/tests/integration/shards.json`, which a unit test enforces; see "CI Test Accounts" in [TESTING.md](TESTING.md).
 
 Conventions: each suite pairs `<name>.test.js` with a sibling `fixture/` directory holding the service under test — **one fixture directory per test file**, since jest parallelizes test files with no worker cap and two files deploying from one directory would race over `.serverless/`, `node_modules/` and any staged artifact; reuse the shared helpers in `packages/sf-core/tests/utils/` (`runSfCore.js`, `testUtils.js` — e.g. `fetchWithRetry` for eventually-consistent endpoints) rather than hand-rolling CLI invocation. Fixtures must not list legacy bundler plugins (`serverless-esbuild`, `serverless-webpack`, `serverless-plugin-typescript`, `serverless-bundle`) — those throw `PLUGIN_TYPESCRIPT_CONFLICT` unless `build.esbuild: false` is set.
 
-`serverless dev` from source and the Dev Mode tests need the gitignored layer zips built first: `npm run build:devmode:layer -w @serverless/framework` (needs Go; CI does this as a separate step).
+`serverless dev` from source and the Dev Mode tests need the gitignored layer zips built first: `npm run build:devmode:layer -w @serverless/framework` (needs Go; CI does this as a separate step). Web apps in `serverless dev` also need the web bridge zip: `npm run build:devmode:web-bridge -w @serverless/framework`.
 
 New integration tests must be self-cleaning (deploy → exercise → teardown, even on failure), use unique stack names so parallel runs are safe, and contain no secrets or account IDs in fixtures or assertions.
 
 ### Other Suites
 
 ```bash
-npm test -w @serverless/mcp                          # mcp tests (NOT run by any CI workflow)
+npm test -w @serverless/mcp                          # mcp unit + e2e tests (CI runs only the unit part; tests/e2e is not run by any workflow)
 npm test -w @serverless/engine                       # engine unit tests
 npm run test:python -w @serverlessinc/sf-core        # python plugin tests
 npm run test:build -w @serverlessinc/sf-core         # build + pack the release locally, then run the packaging checks
+npm run test:e2e:proxy -w @serverlessinc/sf-core     # CLI from source through a local proxy (needs SERVERLESS_ACCESS_KEY_DEV + AWS credentials)
+packages/sf-core/tests/e2e/proxy-only-network.sh     # the same in a Docker network whose only way out is a proxy, on Node.js 24 and 26
 cd binary-installer && go test ./... && make build-prod   # Go installer
 cd binary-installer && make test-e2e                     # Go installer end to end: real downloads, needs node
 cd dev-mode-bridge && go vet ./... && go test -race ./... && make vuln   # Dev Mode bridge (wrapper tests need bash >= 4 and curl)
 ```
 
-The CI python job is path-filtered (runs only when python plugin paths change) — failures can sit unnoticed on main until a PR touches those paths. `packages/util` has no tests at all: util changes are exercised only through its consumers' suites.
+The CI python job is path-filtered (runs only when python plugin paths change) — failures can sit unnoticed on main until a PR touches those paths. `packages/util` has no test suite of its own: its tests live in `packages/serverless/test/unit/lib/util/` (the proxy helpers), and the rest of util is exercised only through its consumers' suites.
 
 ### Testing CLI Behavior Headlessly
 
@@ -143,9 +146,9 @@ Commit `skills/manifest.json` alongside. Aux files are never deleted from user i
 
 ## CI Pipeline
 
-CI runs on pull requests targeting `main`, on Node.js 24.x:
+CI runs on pull requests targeting `main`, on Node.js 24.x. The framework unit tests also run on Node.js 26.x, as do the ARM Linux integration legs in release and `all-platforms` runs:
 
-- **CI: Framework CLI** — Lint, Test: Engine, Test: Release Package (builds and packs the release package, then runs the packaging checks), and the unit and integration tests from the shared `.github/workflows/test-framework.yml`: one integration leg per test account, sharded by `packages/sf-core/tests/integration/shards.json`, plus a leg for the resolvers suite. Runs on Linux; a manual dispatch with `all-platforms` also runs ARM Linux and Windows. Skipped entirely for docs-only changes (`paths-ignore: docs/**`) and for draft PRs.
+- **CI: Framework CLI** — Lint, Test: Engine, Test: Release Package (builds and packs the release package, then runs the packaging checks), and the unit and integration tests from the shared `.github/workflows/test-framework.yml`: one integration leg per test account, sharded by `packages/sf-core/tests/integration/shards.json`, plus a leg for the resolvers suite, and E2E: proxy-only network (`packages/sf-core/tests/e2e/proxy-only-network.sh`: the CLI from source on Node.js 24 and 26 in a Docker network whose only way out is a proxy). Runs on Linux; a manual dispatch with `all-platforms` also runs ARM Linux and Windows. Skipped entirely for docs-only changes (`paths-ignore: docs/**`) and for draft PRs.
 - **CI: Binary Installer** — Go unit tests and an end-to-end suite (`binary-installer/e2e`, parallel first runs against real releases) on Linux, macOS, and Windows, plus the production build; runs only when `binary-installer/**` changes
 - **Cleanup: Test Accounts** — nightly, on the main repository only: reports integration-test stacks, state-bucket keys and Dev Mode test resources (suffixed broker roles and layers, payload objects under `serverless-dev-mode/`) left behind in each test account by interrupted runs (`packages/sf-core/scripts/test-account-cleanup/`). A dry run; it deletes nothing yet.
 - **CI: NPM Installer** — `packages/sf-core-installer` tests on Linux, macOS and Windows × Node.js 18, 24 and the latest release, failing on any Node.js deprecation; runs when that package changes and weekly, because a new Node.js release can break the npm install path with no change in this repository. Its end-to-end jobs (`npm run test:e2e` in that package; needs internet) install the packed package from a local registry with npm, pnpm, Yarn and Bun, directly and through proxies, and once more in a Docker network whose only way out is a proxy (`tests/e2e/proxy-only-network.sh`)

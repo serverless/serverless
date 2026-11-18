@@ -148,4 +148,48 @@ describe('DomainConfig', () => {
       expect(config.accessMode).toBeUndefined()
     })
   })
+
+  describe('ipAddressType', () => {
+    it('is dualstack when createRoute53IPv6Record is explicitly true', () => {
+      const config = new DomainConfig({
+        name: 'api.example.com',
+        apiType: 'rest',
+        createRoute53IPv6Record: true,
+      })
+
+      expect(config.createRoute53IPv6Record).toBe(true)
+      expect(config.ipAddressType).toBe('dualstack')
+    })
+
+    it('is dualstack when createRoute53IPv6Record is the string "true"', () => {
+      const config = new DomainConfig({
+        name: 'api.example.com',
+        apiType: 'rest',
+        createRoute53IPv6Record: 'true',
+      })
+
+      expect(config.ipAddressType).toBe('dualstack')
+    })
+
+    it('is left to the AWS default when createRoute53IPv6Record is omitted', () => {
+      const config = new DomainConfig({
+        name: 'api.example.com',
+        apiType: 'rest',
+      })
+
+      expect(config.createRoute53IPv6Record).toBe(true)
+      expect(config.ipAddressType).toBeUndefined()
+    })
+
+    it('is left to the AWS default when createRoute53IPv6Record is false', () => {
+      const config = new DomainConfig({
+        name: 'api.example.com',
+        apiType: 'rest',
+        createRoute53IPv6Record: false,
+      })
+
+      expect(config.createRoute53IPv6Record).toBe(false)
+      expect(config.ipAddressType).toBeUndefined()
+    })
+  })
 })

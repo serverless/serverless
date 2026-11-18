@@ -1,11 +1,39 @@
 import _ from 'lodash'
+import { RUNTIME_RULE } from '../../plugins/aws/web-apps/constants.js'
+import { LOG_LEVELS_BY_KEY } from '../../plugins/aws/lib/log-levels.js'
 
 const isEventTypeInstancePath = RegExp.prototype.test.bind(
   /^\/functions\/[^/]+\/events\/\d+$/,
 )
+const isFunctionInstancePath =
+  RegExp.prototype.test.bind(/^\/functions\/[^/]+$/)
+const isWebAppRateLimitInstancePath = RegExp.prototype.test.bind(
+  /^\/webApps\/[^/]+\/url\/rateLimit$/,
+)
+const isWebAppMaxEnvironmentsInstancePath = RegExp.prototype.test.bind(
+  /^\/webApps\/[^/]+\/url\/maxEnvironments$/,
+)
+const WEB_APP_RATE_LIMIT_HINT =
+  'Lambda accepts 0, 100 to 1000 in steps of 100, and 2000 to 10000 in steps of 1000; supported values can vary by Region, see https://docs.aws.amazon.com/lambda/latest/dg/web-functions-scaling.html'
+const isWebAppRuntimeInstancePath = RegExp.prototype.test.bind(
+  /^\/webApps\/[^/]+\/runtime$/,
+)
+// A Lambda log level setting: `provider.logs.lambda` or a function's `logs`
+const logLevelKeyOf = (instancePath) =>
+  /^\/(?:provider\/logs\/lambda|functions\/[^/]+\/logs)\/(applicationLogLevel|systemLogLevel)$/.exec(
+    instancePath,
+  )?.[1]
 const oneOfPathPattern = /\/(?:anyOf|oneOf)(?:\/\d+\/|$)/
 const isAnyOfPathTypePostfix = RegExp.prototype.test.bind(/^\/\d+\/type$/)
 const oneOfKeywords = new Set(['anyOf', 'oneOf'])
+
+// An `if` error only says that a `then` or `else` branch failed. The branch's
+// own errors carry the reason, so the `if` error adds nothing for the user.
+const filterIfErrors = (resultErrorsSet) => {
+  for (const error of resultErrorsSet) {
+    if (error.keyword === 'if') resultErrorsSet.delete(error)
+  }
+}
 
 const filterIrreleventEventConfigurationErrors = (resultErrorsSet) => {
   // 1. Resolve all errors at event type configuration level
@@ -257,14 +285,41 @@ const improveMessages = (resultErrorsSet) => {
           error.message = `name '${error.params.additionalProperty}' must be alphanumeric`
         } else {
           error.message = `unrecognized property '${error.params.additionalProperty}'`
+          if (
+            error.params.additionalProperty === 'entry' &&
+            isFunctionInstancePath(error.instancePath)
+          ) {
+            error.message += '. To run an HTTP server, define it under webApps.'
+          }
         }
         break
       case 'regexp':
         error.message = `value '${error.data}' does not satisfy pattern ${error.schema}`
         break
+      case 'pattern':
+        // The runtime pattern spells out "24 or newer" as a regular expression
+        if (isWebAppRuntimeInstancePath(error.instancePath)) {
+          error.message = `must be ${RUNTIME_RULE}`
+        } else if (logLevelKeyOf(error.instancePath)) {
+          // The pattern spells each level in any case; name the levels as the enum before it did
+          const levels = [
+            ...LOG_LEVELS_BY_KEY[logLevelKeyOf(error.instancePath)],
+          ]
+          error.message = `must be equal to one of the allowed values [${levels.sort().join(', ')}]`
+        }
+        break
       case 'anyOf':
         if (isEventTypeInstancePath(error.instancePath)) {
           error.message = 'unsupported function event'
+          break
+        }
+        // A literal or an intrinsic: word the error for the literal, as before intrinsics passed
+        if (isWebAppRateLimitInstancePath(error.instancePath)) {
+          error.message = `must be equal to one of the allowed values. ${WEB_APP_RATE_LIMIT_HINT}`
+          break
+        }
+        if (isWebAppMaxEnvironmentsInstancePath(error.instancePath)) {
+          error.message = 'must be an integer from 2 to 10000'
           break
         }
       // fallthrough
@@ -281,6 +336,9 @@ const improveMessages = (resultErrorsSet) => {
           error.params.allowedValues.every((value) => typeof value === 'string')
         ) {
           error.message += ` [${error.params.allowedValues.join(', ')}]`
+        }
+        if (isWebAppRateLimitInstancePath(error.instancePath)) {
+          error.message += `. ${WEB_APP_RATE_LIMIT_HINT}`
         }
         break
       default:
@@ -307,6 +365,9 @@ const filterDuplicateErrors = (resultErrorsSet) => {
  */
 export default (ajvErrors) => {
   const resultErrorsSet = new Set(ajvErrors)
+
+  // 0. Filter `if` errors, which repeat the errors of the failing branch
+  filterIfErrors(resultErrorsSet)
 
   // 1. Filter eventual irrelevant errors for faulty event type configurations
   filterIrreleventEventConfigurationErrors(resultErrorsSet)

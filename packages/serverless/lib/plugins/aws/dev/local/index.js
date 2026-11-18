@@ -40,6 +40,7 @@ import { createRelay } from '../relay/relay.js'
 import { createLocalRuntime } from './runtime.js'
 import { startTestFeed, testFeedEnabled } from './test-feed.js'
 import { createWatcher, handlerModulesOf } from './watcher.js'
+import { terminalWidth } from './terminal-width.js'
 
 /**
  * After the runtime stopped, how long `stop()` waits for the relay to send what the invocations it
@@ -81,15 +82,6 @@ const firstLine = (error) =>
   )
 
 /**
- * The width the invocation stream keeps its start lines within: the terminal's, when both output
- * streams are one (0 otherwise: nothing is cut in a pipe or a log file).
- */
-export const terminalWidth = (processRef = process) =>
-  processRef.stdout?.isTTY && processRef.stderr?.isTTY
-    ? Number(processRef.stderr.columns) || 0
-    : 0
-
-/**
  * What the names of the stack's resources start with, which the invocation stream leaves out of
  * them: the stack's name, and `<service>-<stage>` (the Framework's own names).
  */
@@ -107,7 +99,7 @@ const resourcePrefixesOf = (serverless) => {
   }
 }
 
-const configFileOf = async (serverless, options, serviceDir) => {
+export const configFileOf = async (serverless, options, serviceDir) => {
   if (typeof options.config === 'string' && options.config) {
     return path.resolve(serviceDir, path.basename(options.config))
   }
@@ -162,6 +154,11 @@ export const startLaptopRuntime = async ({
   // The session's spinner (`guardedProgress`): while it shows (a stop, a restore), an invocation's
   // lines take its place, and it comes back after them.
   spinner = null,
+  // Whether web apps run in the same session: the configuration file's line names them too.
+  webApps = false,
+  // The start sources of the web apps running here (web/start-sources.js): their output
+  // directories do not reload the functions (watcher.js isIgnored).
+  webStarts = [],
   deps = {},
 }) => {
   const {
@@ -479,23 +476,27 @@ export const startLaptopRuntime = async ({
   let watcherErrorShown = false
   let watcher
   try {
+    const handlerModules = handlerModulesOf({
+      serviceDir,
+      functions: [...table.values()].map(({ adapter, config }) => ({
+        handler: config?.handler,
+        module: config?.module,
+        python: adapter?.name === 'python',
+      })),
+    })
     watcher = createWatcher({
       serviceDir,
       configFiles: [configFile],
-      handlerModules: handlerModulesOf({
-        serviceDir,
-        functions: [...table.values()].map(({ adapter, config }) => ({
-          handler: config?.handler,
-          module: config?.module,
-          python: adapter?.name === 'python',
-        })),
-      }),
+      handlerModules,
+      webApps: webStarts.length > 0,
       timers,
       ...(watch && { watch }),
       ...(watchReadyMs !== undefined && { readyWaitMs: watchReadyMs }),
       onChange,
       onConfigChange: async () =>
-        logger.warning(configChangedLine(path.basename(configFile))),
+        logger.warning(
+          configChangedLine(path.basename(configFile), { webApps }),
+        ),
       onError: (error) => {
         if (watcherErrorShown) return
         watcherErrorShown = true
@@ -567,6 +568,10 @@ export const startLaptopRuntime = async ({
     reloadNow: () => onChange([]),
     /** The `v` key: detailed output on or off; returns the new state. */
     toggleDetailed: () => output.setDetailed(!output.isDetailed()),
+    /** Detailed output on or off (the session's `v` key); returns the new state. */
+    setDetailed: (on) => output.setDetailed(on),
+    /** Before another line of the session (a web request's): the reload spinner goes first. */
+    clearSpinner: () => removeSpinner(),
     /** Waits up to `ms` for the relayed invocations already accepted to send their results. */
     drain: (ms) => relayed?.drain(ms) ?? Promise.resolve(),
     stop() {

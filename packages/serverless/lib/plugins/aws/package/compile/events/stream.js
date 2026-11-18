@@ -306,6 +306,17 @@ events:
               },
             }
 
+            if (StartingPosition === 'AT_TIMESTAMP') {
+              if (event.stream.startingPositionTimestamp == null) {
+                throw new ServerlessError(
+                  `You must specify startingPositionTimestamp for function: ${functionName} when startingPosition is AT_TIMESTAMP`,
+                  'FUNCTION_STREAM_STARTING_POSITION_TIMESTAMP_INVALID',
+                )
+              }
+              streamResource.Properties.StartingPositionTimestamp =
+                event.stream.startingPositionTimestamp
+            }
+
             // add event source ARNs to PolicyDocument statements
             if (streamType === 'dynamodb') {
               dynamodbStreamStatement.Resource.push(EventSourceArn)
@@ -418,21 +429,6 @@ events:
                 const consumerArn = event.stream.consumer
                 streamResource.Properties.EventSourceArn = consumerArn
                 kinesisConsumerStatement.Resource.push(consumerArn)
-              }
-
-              if (
-                event.stream.startingPosition === 'AT_TIMESTAMP' &&
-                !event.stream.startingPositionTimestamp
-              ) {
-                throw new ServerlessError(
-                  `You must specify startingPositionTimestamp for function: ${functionName} when startingPosition is AT_TIMESTAMP`,
-                  'FUNCTION_STREAM_STARTING_POSITION_TIMESTAMP_INVALID',
-                )
-              }
-
-              if (event.stream.startingPositionTimestamp) {
-                streamResource.Properties.StartingPositionTimestamp =
-                  event.stream.startingPositionTimestamp
               }
             }
 

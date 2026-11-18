@@ -1,5 +1,6 @@
 import ServerlessError from '../../../../serverless-error.js'
 import { log } from '@serverless/util'
+import { bucketMessage, serviceHasWebApps } from '../../lib/web-apps.js'
 
 const POLICY_SID = 'ServerlessLambdaSelfManagedCodeAccess'
 
@@ -12,9 +13,17 @@ export default {
    *   warn if the policy is readable and lacks the Lambda grant
    * - legacy in-stack bucket: handled in the compiled template
    *   (generate-core-template.js), nothing to do at deploy time
+   *
+   * Web apps store their code the same way, so these run for a service with
+   * web apps whatever codeStorageMode says.
    */
   async ensureReferenceCodeStoragePrereqs() {
-    if (!this.provider.isReferenceCodeStorageMode()) return
+    if (
+      !this.provider.isReferenceCodeStorageMode() &&
+      !serviceHasWebApps(this.serverless)
+    ) {
+      return
+    }
 
     if (this.serverless.service.provider.deploymentBucket) {
       await this.validateCustomBucketForReferenceMode()
@@ -62,8 +71,12 @@ export default {
       Bucket: this.bucketName,
       Policy: JSON.stringify(policy),
     })
+    const granted = `Granted the Lambda service read access to deployment bucket "${this.bucketName}"`
     log.info(
-      `Granted the Lambda service read access to deployment bucket "${this.bucketName}" (self-managed code storage)`,
+      bucketMessage(this.serverless, this.provider, {
+        reference: `${granted} (self-managed code storage)`,
+        webApps: `${granted} for web apps`,
+      }),
     )
   },
 
@@ -75,9 +88,16 @@ export default {
     )
     if (versioning.Status !== 'Enabled') {
       throw new ServerlessError(
-        `Deployment bucket "${this.bucketName}" must have versioning enabled to use "codeStorageMode: reference". ` +
-          'Enable versioning on the bucket, or remove the codeStorageMode setting.',
+        bucketMessage(this.serverless, this.provider, {
+          reference:
+            `Deployment bucket "${this.bucketName}" must have versioning enabled to use "codeStorageMode: reference". ` +
+            'Enable versioning on the bucket, or remove the codeStorageMode setting.',
+          webApps:
+            `Deployment bucket "${this.bucketName}" must have versioning enabled for web apps (webApps). ` +
+            'Enable versioning on the bucket.',
+        }),
         'REFERENCE_MODE_BUCKET_NOT_VERSIONED',
+        { stack: false },
       )
     }
 
@@ -102,10 +122,18 @@ export default {
         2,
       )
       throw new ServerlessError(
-        `Deployment bucket "${this.bucketName}" has no bucket policy. "codeStorageMode: reference" requires ` +
-          'the Lambda service to be able to read artifacts directly from this bucket. Add a bucket policy ' +
-          `statement granting it read access, for example:\n${statementJson}`,
+        bucketMessage(this.serverless, this.provider, {
+          reference:
+            `Deployment bucket "${this.bucketName}" has no bucket policy. "codeStorageMode: reference" requires ` +
+            'the Lambda service to be able to read artifacts directly from this bucket. Add a bucket policy ' +
+            `statement granting it read access, for example:\n${statementJson}`,
+          webApps:
+            `Deployment bucket "${this.bucketName}" has no bucket policy. Web apps (webApps) need the Lambda service ` +
+            'to read their code from this bucket. Add a bucket policy statement granting it read access, ' +
+            `for example:\n${statementJson}`,
+        }),
         'REFERENCE_MODE_BUCKET_POLICY_MISSING',
+        { stack: false },
       )
     }
 
@@ -137,9 +165,16 @@ export default {
         2,
       )
       log.warning(
-        `Deployment bucket "${this.bucketName}" policy does not appear to grant the Lambda service read access, ` +
-          'which "codeStorageMode: reference" requires. Add a statement like:\n' +
-          statementJson,
+        bucketMessage(this.serverless, this.provider, {
+          reference:
+            `Deployment bucket "${this.bucketName}" policy does not appear to grant the Lambda service read access, ` +
+            'which "codeStorageMode: reference" requires. Add a statement like:\n' +
+            statementJson,
+          webApps:
+            `Deployment bucket "${this.bucketName}" policy does not appear to grant the Lambda service read access, ` +
+            'which web apps (webApps) need. Add a statement like:\n' +
+            statementJson,
+        }),
       )
     }
   },

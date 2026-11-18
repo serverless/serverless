@@ -1,7 +1,6 @@
 service: compose-subset-db
 provider:
   name: aws
-  region: us-east-1
 resources:
   Resources:
     Topic:

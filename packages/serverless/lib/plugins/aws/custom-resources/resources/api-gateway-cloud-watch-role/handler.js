@@ -1,11 +1,5 @@
 'use strict'
 
-/**
- * IMPORTANT: This file is cached, so when you test changes made to this file,
- * make sure you delete the .serverless directory, and un-memoize the packaging code.
- * For more info search for the "utils/ensure-artifact.js" file in the codebase.
- */
-
 const { wait, MAX_AWS_REQUEST_TRY } = require('../utils')
 const { getEnvironment, handlerWrapper } = require('../utils')
 const {

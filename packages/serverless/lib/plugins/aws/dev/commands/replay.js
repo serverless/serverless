@@ -1,6 +1,7 @@
 /**
  * `serverless dev replay <requestId>`: runs a recorded invocation again on this machine through
- * the running session (its handler processes, and the credentials of the function's role), and
+ * the running session (its handler processes, and the credentials of the function's role), or
+ * sends a recorded web app request again to the web app's local server (web/replay.js), and
  * prints the result. No caller receives it. The id is a full request id, or a unique prefix of at
  * least 8 characters, as `serverless dev requests` lists them.
  */
@@ -8,7 +9,11 @@ import fs from 'fs'
 import { connectToSession } from '../control/client.js'
 import { replayTimeoutMs } from '../local/replay.js'
 import { REQUEST_ID_PREFIX_MIN, devDirOf } from '../state/paths.js'
-import { findInvocation } from '../state/read.js'
+import { findRecorded } from '../state/read.js'
+import {
+  REQUEST_REPLAY_MARGIN_MS,
+  REQUEST_REPLAY_TIMEOUT_MS,
+} from '../web/replay.js'
 import { envelope, errorResult, scopeFlags } from './envelope.js'
 import { cliCommand, shellWord, shownPath } from './cli-names.js'
 
@@ -23,6 +28,8 @@ const PICK_ANOTHER = new Set([
   'invalid_option_value',
   'ambiguous_request_id',
   'invocation_not_found',
+  'request_body_truncated',
+  'request_body_not_captured',
 ])
 const isAbort = (error) =>
   error?.name === 'AbortError' || error?.code === 'ABORT_ERR'
@@ -57,6 +64,33 @@ export const replayLines = (fields) => {
   return lines
 }
 
+/** A web request replay's result as a person reads it (see `replayLines`). */
+export const requestReplayLines = (fields) => {
+  const route = `${fields.method ?? ''} ${fields.path ?? ''}`.trim()
+  const lines = [
+    [
+      'notice',
+      `Replayed ${fields.replay_of.slice(0, 8)} on ${fields.web_app}${route ? ` (${route})` : ''} as ${fields.request_id.slice(0, 8)} (no caller received it): ${fields.outcome}${fields.status_code ? ` · ${fields.status_code}` : ''} · ${fields.duration_ms} ms`,
+    ],
+  ]
+  if (fields.outcome_reason) lines.push(['notice', fields.outcome_reason])
+  lines.push(['aside', fields.file])
+  if (fields.response_omitted) {
+    lines.push([
+      'aside',
+      'The response is larger than 64 KiB; it is in the file above.',
+    ])
+  }
+  if (fields.note === 'redacted_values_omitted') {
+    const names = fields.omitted ?? []
+    lines.push([
+      'aside',
+      `The file keeps no credentials, so the replay left out ${names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names[0]}.`,
+    ])
+  }
+  return lines
+}
+
 /** A `{ status, body }` answer of the session as the reason it carries. */
 const refusalOf = ({ status, body }) => {
   if (status === 404) {
@@ -74,7 +108,7 @@ const refusalOf = ({ status, body }) => {
 export const runDevReplay = async ({ serviceDir, options = {}, deps = {} }) => {
   const {
     fs: fsRef = fs,
-    find = findInvocation,
+    find = findRecorded,
     connect = connectToSession,
   } = deps
   const done = (fields, human = fields.message) => ({
@@ -103,8 +137,9 @@ export const runDevReplay = async ({ serviceDir, options = {}, deps = {} }) => {
     }
     // An exact id of any length first, else a prefix of at least 8 characters (the reader's rule).
     let record
+    let kind
     try {
-      ;({ record } = await find({
+      ;({ record, kind = 'invocation' } = await find({
         dir: devDirOf(serviceDir),
         idOrPrefix: id,
         fs: fsRef,
@@ -134,6 +169,30 @@ export const runDevReplay = async ({ serviceDir, options = {}, deps = {} }) => {
       const there = { ...session, stage: recordedStage }
       const scoped = (words, scope) =>
         cliCommand([words, ...scopeFlags(scope)].join(' '))
+      if (kind === 'request') {
+        return done({
+          status: 'error',
+          reason: 'stage_mismatch',
+          message: `Request ${String(record.request_id).slice(0, 8)} ran on stage "${recordedStage}", and the Dev Mode session here runs stage "${sessionStage}": a replay would send it to the web app of the other stage. Stop this session, then start one of stage "${recordedStage}" and replay it there.`,
+          next: [
+            {
+              command: scoped('dev stop', session),
+              when: 'to stop this session first',
+            },
+            {
+              command: scoped('dev --detach', there),
+              when: `then to start a session of stage "${recordedStage}"`,
+            },
+            {
+              command: scoped(
+                `dev replay ${shellWord(record.request_id)}`,
+                there,
+              ),
+              when: 'then to replay the request there',
+            },
+          ],
+        })
+      }
       return done({
         status: 'error',
         reason: 'stage_mismatch',
@@ -160,11 +219,34 @@ export const runDevReplay = async ({ serviceDir, options = {}, deps = {} }) => {
     }
     let answer
     try {
-      answer = await client.replay(record.request_id, {
-        timeoutMs: replayTimeoutMs(record),
-      })
+      answer = await client.replay(
+        record.request_id,
+        kind === 'request'
+          ? {
+              kind: 'request',
+              timeoutMs: REQUEST_REPLAY_TIMEOUT_MS + REQUEST_REPLAY_MARGIN_MS,
+            }
+          : { timeoutMs: replayTimeoutMs(record) },
+      )
     } catch (error) {
       if (!isAbort(error)) throw error
+      if (kind === 'request') {
+        return done({
+          status: 'timeout',
+          reason: 'timeout',
+          message: `The replay of ${record.request_id} on ${record.web_app} is still running; its result will be in ${shownPath('.serverless/dev/requests')}.`,
+          replay_of: record.request_id,
+          web_app: record.web_app,
+          next: [
+            {
+              command: cliCommand(
+                `dev requests --web-app ${shellWord(String(record.web_app))}`,
+              ),
+              when: 'to find its result once it ends',
+            },
+          ],
+        })
+      }
       return done({
         status: 'timeout',
         reason: 'timeout',
@@ -187,7 +269,10 @@ export const runDevReplay = async ({ serviceDir, options = {}, deps = {} }) => {
     const fields = answer.body?.file
       ? { ...answer.body, file: shownPath(answer.body.file) }
       : answer.body
-    return done({ status: 'ok', ...fields }, replayLines(fields))
+    return done(
+      { status: 'ok', ...fields },
+      kind === 'request' ? requestReplayLines(fields) : replayLines(fields),
+    )
   } catch (error) {
     return failed(error)
   }

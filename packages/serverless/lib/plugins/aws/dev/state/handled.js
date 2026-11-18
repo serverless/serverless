@@ -11,6 +11,7 @@ import { processAlive } from '../local/leftovers.js'
 import { devDirOf } from './paths.js'
 import { readSession } from './session-file.js'
 import { findInvocation, readSessionRecords } from './read.js'
+import { redactPath } from './requests.js'
 
 export const HANDLED_WAIT_MS = 2_000
 export const HANDLED_POLL_MS = 100
@@ -90,6 +91,85 @@ export const findHandledInvocation = async ({
   for (let waited = 0; ; waited += pollMs) {
     const found = lookup()
     if (found) return found
+    if (waited >= waitMs) return null
+    await new Promise((resolve) => timers.setTimeout(resolve, pollMs))
+  }
+}
+
+const webAppModeOf = (records, webApp) => {
+  let mode
+  for (const record of records ?? []) {
+    if (record?.type === 'web_app.mode' && record.web_app === webApp) {
+      mode = record.mode
+    }
+  }
+  return mode
+}
+
+/**
+ * The request record of a `serverless invoke --web-app` call this directory's session ran on the
+ * working copy, or null: the `request.end` of the web app, relayed (the call goes to the real URL),
+ * with the call's method and path (`path` as sent, its query values redacted as the record keeps
+ * them), that ended no earlier than `sentAt`. The response carries no id of the session's request,
+ * so this is the closest match the records give: the newest such record, most likely the call's
+ * own; two identical calls at the same moment can each find the other's. As for an invocation,
+ * nothing is waited for unless a session of the same service, stage and region runs the web app in
+ * mode `dev` here; the record is looked for up to HANDLED_WAIT_MS.
+ */
+export const findHandledRequest = async ({
+  serviceDir,
+  service,
+  stage,
+  region,
+  webApp,
+  method = 'GET',
+  path: requestPath = '/',
+  sentAt,
+  fs = nodeFs,
+  isAlive = processAlive,
+  timers = GLOBAL_TIMERS,
+  waitMs = HANDLED_WAIT_MS,
+  pollMs = HANDLED_POLL_MS,
+  read = { readSession, readSessionRecords },
+}) => {
+  if (!serviceDir || !webApp) return null
+  const dir = devDirOf(serviceDir)
+  const session = read.readSession({ dir, fs })
+  if (
+    !session ||
+    session.service !== service ||
+    session.stage !== stage ||
+    session.region !== region ||
+    !isAlive(session.pid)
+  ) {
+    return null
+  }
+  const recordsOf = () =>
+    read.readSessionRecords({ dir, sessionId: session.session_id, fs })
+  if (webAppModeOf(recordsOf(), webApp) !== 'dev') return null
+  const wantedPath = redactPath(requestPath).path
+  const wantedMethod = String(method).toUpperCase()
+  const since = Number.isFinite(sentAt) ? sentAt : 0
+  const lookup = () =>
+    recordsOf()
+      .filter(
+        (record) =>
+          record.type === 'request.end' &&
+          record.web_app === webApp &&
+          (record.source ?? 'relay') === 'relay' &&
+          record.method === wantedMethod &&
+          record.path === wantedPath &&
+          // Answered here: not one left to the deployed code (`not_run`), nor one that failed
+          // before the local server answered.
+          (record.outcome === 'answered' ||
+            (record.outcome === 'failed' &&
+              Number.isInteger(record.status_code))) &&
+          Date.parse(record.ts) >= since,
+      )
+      .at(-1) ?? null
+  for (let waited = 0; ; waited += pollMs) {
+    const found = lookup()
+    if (found) return { requestId: found.request_id, file: found.file }
     if (waited >= waitMs) return null
     await new Promise((resolve) => timers.setTimeout(resolve, pollMs))
   }

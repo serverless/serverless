@@ -5,7 +5,12 @@
  * AWS.
  */
 import { ServerlessError } from '@serverless/util'
-import { BROKER_POLICY_NAME, brokerRoleName } from './naming.js'
+import {
+  BROKER_POLICY_NAME,
+  brokerRoleName,
+  isProtectedStage,
+} from './naming.js'
+import { protectedStageMessage } from './output.js'
 import {
   credentialsInvalidError,
   findIotEndpoint,
@@ -18,9 +23,24 @@ import { credentialSourceOf } from '../relay/messages.js'
 import { brokerPolicyState, getBroker, identityFrom } from './broker.js'
 import { cliCommand } from '../commands/cli-names.js'
 
-export const nothingToAttachError = () =>
+/**
+ * Refuses a stage Dev Mode never runs on, before anything starts: the session itself, and a
+ * --detach start before it starts the session process.
+ */
+export const refuseProtectedStage = (stage) => {
+  if (isProtectedStage(stage)) {
+    throw new ServerlessError(
+      protectedStageMessage(stage),
+      'DEV_MODE_STAGE_PROTECTED',
+      { stack: false },
+    )
+  }
+}
+
+/** `webApps`: the service has web apps, so the message names them too. */
+export const nothingToAttachError = ({ webApps = false } = {}) =>
   new ServerlessError(
-    'No function in this service can run in Dev Mode. The table above says why for each one.',
+    `No function${webApps ? ' or web app' : ''} in this service can run in Dev Mode. The table above says why for each one.`,
     'DEV_MODE_NOTHING_TO_ATTACH',
     { stack: false },
   )

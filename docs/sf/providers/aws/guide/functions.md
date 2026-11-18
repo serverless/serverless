@@ -24,6 +24,10 @@ keywords:
 
 If you are using AWS as a provider, all _functions_ inside the service are AWS Lambda functions.
 
+## Event Functions or Web Functions?
+
+Functions under `functions` are what AWS calls Lambda Event Functions: an exported handler that Lambda calls once per event or HTTP request. To run a standard HTTP server instead (Express, Fastify, Hono, Next.js), with many concurrent requests per execution environment, define it under `webApps` as a [web app](./web-apps.md), which deploys as an AWS Lambda Web Function. See [Web apps or functions?](./web-apps.md#web-apps-or-functions) for how the two compare.
+
 ## Configuration
 
 All of the Lambda functions in your serverless service can be found in `serverless.yml` under the `functions` property.
@@ -459,7 +463,35 @@ functions:
       retentionPeriodInDays: 14 # Optional. How long to retain execution history (1-90 days, default: 14)
 ```
 
-**Note:** Durable Functions are supported for Node.js 22+, Python 3.13+, Java 17+, and .NET 8+ runtimes. Node.js and Python runtimes include the durable execution SDK for development; Java and .NET are compiled languages, so their durable execution SDK must be included in your deployment package (see the [AWS supported runtimes page](https://docs.aws.amazon.com/lambda/latest/dg/durable-supported-runtimes.html)). Enabling `durableConfig` will automatically enable function versioning (`versionFunctions: true`) and publish an `AWS::Lambda::Alias` named `durable` pointing at the latest version, because AWS rejects unqualified invocations of durable functions. All event-source integrations (schedule, EventBridge, SNS, API Gateway, etc.) target this alias so invocations succeed without further configuration. Setting `versionFunction: false` together with `durableConfig` is rejected.
+**Note:** Durable Functions are supported for Node.js 22+, Python 3.13+, Java 17+, .NET 8+, OS-only runtimes from `provided.al2023` (for example Go), and container images. Node.js and Python runtimes include the durable execution SDK for development; Java, .NET and Go are compiled languages, so their durable execution SDK must be included in your deployment package; for Go, it is built into the `bootstrap` binary (see the [AWS supported runtimes page](https://docs.aws.amazon.com/lambda/latest/dg/durable-supported-runtimes.html)). Enabling `durableConfig` will automatically enable function versioning (`versionFunctions: true`) and publish an `AWS::Lambda::Alias` named `durable` (or use the SnapStart or provisioned-concurrency alias when the function has one) pointing at the latest version, because AWS rejects unqualified invocations of durable functions. All event-source integrations (schedule, EventBridge, SNS, API Gateway, etc.) target this alias so invocations succeed without further configuration. Setting `versionFunction: false` together with `durableConfig` is rejected.
+
+A Go function runs on `provided.al2023` with a `bootstrap` binary. Build it and zip it before deploying:
+
+```bash
+GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -tags lambda.norpc -o bootstrap main.go
+mkdir -p bin && zip bin/myDurableGoFunction.zip bootstrap
+```
+
+A function-level `artifact` is used when the service packages functions individually:
+
+```yml
+package:
+  individually: true
+
+functions:
+  myDurableGoFunction:
+    handler: bootstrap
+    runtime: provided.al2023
+    architecture: arm64
+    package:
+      artifact: bin/myDurableGoFunction.zip # a zip holding the bootstrap binary
+    durableConfig:
+      executionTimeout: 3600
+```
+
+Durability is set when a function is created: adding `durableConfig` to a deployed function, or removing it, needs a new function name (or removing the function from the service, deploying, and adding it back). Changing `executionTimeout` or `retentionPeriodInDays` updates the function in place.
+
+To start a durable execution and read its ARN, see [invoking durable functions](../cli-reference/invoke.md#durable-functions).
 
 When using the default IAM role, the `AWSLambdaBasicDurableExecutionRolePolicy` managed policy is automatically attached to grant necessary permissions. If you provide a custom role, you must ensure it has the required permissions.
 
@@ -828,7 +860,7 @@ The Infrequent Access class supports a reduced subset of CloudWatch Logs feature
 
 By default, the framework creates function versions for every deploy. This behavior is optional, and can be turned off in cases where you don't invoke past versions by their qualifier. If you would like to do this, you can invoke your functions as `arn:aws:lambda:....:function/myFunc:3` to invoke version 3 for example.
 
-Versions are not cleaned up by serverless, so make sure you use a plugin or other tool to prune sufficiently old versions. The framework can't clean up versions because it doesn't have information about whether older versions are invoked or not. This feature adds to the number of total stack outputs and resources because a function version is a separate resource from the function it refers to.
+Old versions are kept until you prune them with the built-in [`prune`](./prune.md) command or `custom.prune.automatic`. The Framework can't tell whether an older version is still invoked, so it never deletes versions on its own; `prune` keeps the number of versions you choose and every version an alias points to. This feature adds to the number of total stack outputs and resources because a function version is a separate resource from the function it refers to.
 
 For functions with `snapStart` enabled, every retained version also keeps a cached snapshot that AWS bills for outside the Java managed runtimes; see [Cost of retained versions](#cost-of-retained-versions).
 

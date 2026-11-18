@@ -712,6 +712,32 @@ describe('AwsProvider', () => {
     })
   })
 
+  describe('Lambda log level schema (case-insensitive)', () => {
+    it('accepts the levels in any case and rejects others', () => {
+      const serverless = new Serverless({ commands: [], options: {} })
+      serverless.credentialProviders = { aws: { getCredentials: jest.fn() } }
+      serverless.service.provider.name = 'aws'
+      new AwsProvider(serverless, options)
+      const ajv = new Ajv({ allErrors: true, strict: false })
+      ajv.addKeyword(regexpKeyword)
+      const validate = ajv.compile({
+        ...serverless.configSchemaHandler.schema.definitions
+          .awsLambdaLoggingConfiguration,
+        definitions: serverless.configSchemaHandler.schema.definitions,
+      })
+
+      expect(
+        validate({ applicationLogLevel: 'warn', systemLogLevel: 'Info' }),
+      ).toBe(true)
+      expect(
+        validate({ applicationLogLevel: 'FATAL', systemLogLevel: 'DEBUG' }),
+      ).toBe(true)
+      expect(validate({ applicationLogLevel: 'trace' })).toBe(true)
+      expect(validate({ applicationLogLevel: 'verbose' })).toBe(false)
+      expect(validate({ systemLogLevel: 'error' })).toBe(false)
+    })
+  })
+
   describe('logGroupClass schema (case-insensitive)', () => {
     let schemaServerless
 

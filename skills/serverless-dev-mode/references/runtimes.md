@@ -72,8 +72,13 @@ your machine" and "Credentials and security" sections have the full text:
   keep the last good build and the others reload. The watcher ignores `.serverless`,
   `node_modules`, `.git`, `__pycache__`, `.venv`, `venv`, `.pytest_cache`,
   `.mypy_cache`, `coverage` and test files (`*.test.*`, `*.spec.*`,
-  `*_test.py`). A function's configured handler module is watched even when
-  its name looks like a test file, but not inside an ignored directory.
+  `*_test.py`). A function's configured handler module is watched
+  even when its name looks like a test file, but not inside an ignored
+  directory. With web apps in the session, saves in dot-directories at any
+  depth (`.next`, `.nuxt`, `apps/web/.nuxt`, …) and in the root `dist` and
+  `build` do not reload the functions, unless a handler module is inside that
+  directory. A function that imports code written there, with its handler
+  elsewhere, keeps the code it loaded until another watched file changes.
 - An invocation still running 1 s after its deadline ends as Lambda ends it
   (`Sandbox.Timedout`) and its process is replaced. A response over 6 MB
   ends with `Function.ResponseSizeTooLarge`, as deployed.

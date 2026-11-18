@@ -1731,4 +1731,502 @@ describe('Prune', () => {
       )
     })
   })
+
+  describe('sandboxes', () => {
+    const IMAGE_ARN =
+      'arn:aws:lambda:us-east-1:123456789012:microvm-image:test-service-echo-dev'
+    let calls
+    let logMock
+
+    const awsError = (code, message = code) =>
+      Object.assign(new Error(message), { providerError: { code } })
+
+    // A deployed `echo` sandbox whose image has versions 1.0 to 4.0, 4.0 live
+    const setup = ({
+      functions = [],
+      custom = {},
+      options: pluginOptions = {},
+      sandboxes = { echo: {} },
+      outputs = [{ OutputKey: 'EchoImageIdentifier', OutputValue: IMAGE_ARN }],
+      versions = ['1.0', '2.0', '3.0', '4.0'],
+      microvms = [],
+      overrides = {},
+    } = {}) => {
+      serverless = createMockServerless(functions, custom)
+      serverless.service.sandboxes = sandboxes
+      const provider = serverless.getProvider()
+      provider.naming = { getStackName: () => 'test-service-dev' }
+      calls = []
+      const deleted = new Set()
+      providerRequest.mockImplementation(async (service, method, params) => {
+        calls.push({ service, method, params })
+        const override = overrides[method]
+        if (override) return override(params)
+        switch (method) {
+          case 'describeStacks':
+            return { Stacks: [{ Outputs: outputs }] }
+          case 'getMicrovmImage':
+            return { latestActiveImageVersion: versions.at(-1) }
+          case 'listMicrovmImageVersions':
+            return {
+              items: versions.map((v, i) => ({
+                imageVersion: v,
+                state: 'SUCCESSFUL',
+                createdAt: new Date(Date.UTC(2026, 9, i + 1)),
+              })),
+            }
+          case 'listMicrovms':
+            return { items: microvms }
+          case 'deleteMicrovmImageVersion':
+            deleted.add(params.imageVersion)
+            return { state: 'DELETING' }
+          case 'getMicrovmImageVersion':
+            if (deleted.has(params.imageVersion)) {
+              throw awsError('ResourceNotFoundException')
+            }
+            return { state: 'SUCCESSFUL' }
+          case 'listVersionsByFunction':
+            return createVersionsResponse([])
+          case 'listAliases':
+            return createAliasResponse([])
+          case 'listLayerVersions':
+            return createLayerVersionsResponse([])
+          default:
+            return {}
+        }
+      })
+      logMock = {
+        info: jest.fn(),
+        notice: jest.fn(),
+        warning: jest.fn(),
+        success: jest.fn(),
+      }
+      plugin = new Prune(serverless, pluginOptions, { log: logMock })
+      plugin.sleep = jest.fn().mockResolvedValue()
+      return plugin
+    }
+
+    const deletedVersions = () =>
+      calls
+        .filter((c) => c.method === 'deleteMicrovmImageVersion')
+        .map((c) => c.params.imageVersion)
+
+    it('prunes sandbox image versions on a plain prune run', async () => {
+      setup({ options: { number: '1' } })
+
+      await plugin.cliPrune()
+
+      expect(deletedVersions()).toEqual(['2.0', '1.0'])
+      expect(
+        calls.find((c) => c.method === 'deleteMicrovmImageVersion'),
+      ).toEqual({
+        service: 'LambdaMicrovms',
+        method: 'deleteMicrovmImageVersion',
+        params: { imageIdentifier: IMAGE_ARN, imageVersion: '2.0' },
+      })
+      expect(logMock.info).toHaveBeenCalledWith(
+        'Deleting sandbox image version echo:2.0.',
+      )
+      expect(logMock.success).toHaveBeenCalledWith(
+        'Pruning of sandbox image versions complete',
+      )
+    })
+
+    it('keeps the live version with number 0', async () => {
+      setup({ options: { number: '0' } })
+
+      await plugin.cliPrune()
+
+      expect(deletedVersions()).toEqual(['3.0', '2.0', '1.0'])
+    })
+
+    it('deletes one version at a time, each once the previous is gone', async () => {
+      setup({ options: { number: '1' } })
+
+      await plugin.cliPrune()
+
+      expect(
+        calls
+          .filter((c) =>
+            ['deleteMicrovmImageVersion', 'getMicrovmImageVersion'].includes(
+              c.method,
+            ),
+          )
+          .map((c) => `${c.method}:${c.params.imageVersion}`),
+      ).toEqual([
+        'deleteMicrovmImageVersion:2.0',
+        'getMicrovmImageVersion:2.0',
+        'deleteMicrovmImageVersion:1.0',
+        'getMicrovmImageVersion:1.0',
+      ])
+    })
+
+    it('retries a delete while the image is still updating', async () => {
+      let refusals = 2
+      setup({
+        options: { number: '2' },
+        overrides: {
+          deleteMicrovmImageVersion: () => {
+            if (refusals-- > 0) {
+              throw Object.assign(
+                new Error('MicroVM Image is already in state: UPDATING'),
+                {
+                  providerError: { code: 'ConflictException', statusCode: 409 },
+                },
+              )
+            }
+            return { state: 'DELETING' }
+          },
+          getMicrovmImageVersion: () => {
+            throw awsError('ResourceNotFoundException')
+          },
+        },
+      })
+
+      await plugin.cliPrune()
+
+      expect(deletedVersions()).toEqual(['1.0', '1.0', '1.0'])
+      expect(plugin.sleep).toHaveBeenCalledTimes(3)
+    })
+
+    it('gives up on a delete the image keeps refusing', async () => {
+      setup({
+        options: { number: '2' },
+        overrides: {
+          deleteMicrovmImageVersion: () => {
+            throw Object.assign(
+              new Error('MicroVM Image is already in state: UPDATING'),
+              { providerError: { code: 'ConflictException', statusCode: 409 } },
+            )
+          },
+        },
+      })
+
+      await expect(plugin.cliPrune()).rejects.toThrow(
+        'MicroVM Image is already in state: UPDATING',
+      )
+    })
+
+    it('retains versions that MicroVMs still use', async () => {
+      setup({
+        options: { number: '0' },
+        microvms: [
+          { imageVersion: '2.0', state: 'SUSPENDED' },
+          { imageVersion: '1.0', state: 'TERMINATED' },
+        ],
+      })
+
+      await plugin.cliPrune()
+
+      expect(deletedVersions()).toEqual(['3.0', '1.0'])
+      expect(logMock.info).toHaveBeenCalledWith(
+        'Retaining sandbox image version echo:2.0: a MicroVM still uses it.',
+      )
+    })
+
+    it('only lists candidates on a dry run', async () => {
+      setup({ options: { number: '2', dryRun: true } })
+
+      await plugin.cliPrune()
+
+      expect(deletedVersions()).toEqual([])
+      expect(logMock.info).toHaveBeenCalledWith(
+        'echo:1.0 selected for deletion.',
+      )
+    })
+
+    it('prunes only the --sandbox sandbox', async () => {
+      setup({
+        functions: ['api'],
+        options: { number: '1', sandbox: 'echo' },
+      })
+
+      await plugin.cliPrune()
+
+      expect(deletedVersions()).toEqual(['2.0', '1.0'])
+      expect(calls.some((c) => c.method === 'listVersionsByFunction')).toBe(
+        false,
+      )
+    })
+
+    it('leaves sandboxes alone on a --function run', async () => {
+      setup({ functions: ['api'], options: { number: '1', function: 'api' } })
+
+      await plugin.cliPrune()
+
+      expect(calls.some((c) => c.service === 'LambdaMicrovms')).toBe(false)
+    })
+
+    it('leaves sandboxes alone on a --layer run', async () => {
+      setup({ options: { number: '1', layer: 'deps' } })
+      serverless.service.getLayer = jest.fn().mockReturnValue({ name: 'deps' })
+
+      await plugin.cliPrune()
+
+      expect(calls.some((c) => c.service === 'LambdaMicrovms')).toBe(false)
+    })
+
+    it('skips the artifact sweep on a --sandbox run', async () => {
+      setup({
+        options: { number: '1', sandbox: 'echo', includeArtifacts: true },
+      })
+
+      await plugin.cliPrune()
+
+      expect(calls.some((c) => c.service === 'S3')).toBe(false)
+      expect(logMock.notice).toHaveBeenCalledWith(
+        'Skipping deployment artifact sweep: it is not available on function, layer or sandbox scoped prune runs.',
+      )
+    })
+
+    it('says that --includeLayers does not apply to a --sandbox run', async () => {
+      setup({
+        options: { number: '1', sandbox: 'echo', includeLayers: true },
+      })
+
+      await plugin.cliPrune()
+
+      expect(logMock.notice).toHaveBeenCalledWith(
+        '--includeLayers is ignored on a --sandbox run.',
+      )
+    })
+
+    it('refuses an undefined --sandbox before calling AWS', async () => {
+      setup({ options: { number: '1', sandbox: 'missing' } })
+
+      await expect(plugin.cliPrune()).rejects.toMatchObject({
+        code: 'PRUNE_SANDBOX_NOT_FOUND',
+        message:
+          'Sandbox "missing" is not defined in this service. Defined sandboxes: echo.',
+      })
+      expect(calls).toEqual([])
+    })
+
+    it('skips a sandbox that is not deployed', async () => {
+      setup({ options: { number: '1' }, outputs: [] })
+
+      await plugin.cliPrune()
+
+      expect(deletedVersions()).toEqual([])
+      expect(logMock.info).toHaveBeenCalledWith(
+        'Skipping sandbox "echo": not deployed.',
+      )
+    })
+
+    it('skips every sandbox when the stack does not exist', async () => {
+      setup({
+        options: { number: '1' },
+        overrides: {
+          describeStacks: () => {
+            throw new Error('Stack with id test-service-dev does not exist')
+          },
+        },
+      })
+
+      await plugin.cliPrune()
+
+      expect(calls.some((c) => c.service === 'LambdaMicrovms')).toBe(false)
+    })
+
+    it('does nothing for a service without sandboxes', async () => {
+      setup({ options: { number: '1' }, sandboxes: null })
+
+      await plugin.cliPrune()
+
+      expect(calls.some((c) => c.method === 'describeStacks')).toBe(false)
+    })
+
+    it('fails a manual run that lacks permissions', async () => {
+      setup({
+        options: { number: '1' },
+        overrides: {
+          listMicrovms: () => {
+            throw awsError(
+              'AccessDeniedException',
+              'User is not authorized to perform: lambda:ListMicrovms',
+            )
+          },
+        },
+      })
+
+      await expect(plugin.cliPrune()).rejects.toMatchObject({
+        code: 'PRUNE_SANDBOX_ACCESS_DENIED',
+        message:
+          'Could not prune image versions of sandbox "echo": User is not authorized to perform: lambda:ListMicrovms Grant lambda:GetMicrovmImage, lambda:ListMicrovmImageVersions, lambda:GetMicrovmImageVersion, lambda:ListMicrovms and lambda:DeleteMicrovmImageVersion to prune sandbox versions.',
+      })
+    })
+
+    it('warns instead of failing an automatic run that lacks permissions', async () => {
+      setup({
+        custom: { prune: { automatic: true, number: 1 } },
+        overrides: {
+          getMicrovmImage: () => {
+            throw awsError('AccessDeniedException', 'Not authorized.')
+          },
+        },
+      })
+
+      await plugin.postDeploy()
+
+      expect(logMock.warning).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Could not prune image versions of sandbox "echo": Not authorized.',
+        ),
+      )
+      expect(deletedVersions()).toEqual([])
+    })
+
+    it('rethrows other errors', async () => {
+      setup({
+        options: { number: '1' },
+        overrides: {
+          getMicrovmImage: () => {
+            throw awsError('InternalServerException', 'boom')
+          },
+        },
+      })
+
+      await expect(plugin.cliPrune()).rejects.toThrow('boom')
+    })
+
+    it('prunes sandbox image versions after deploy in automatic mode', async () => {
+      setup({ custom: { prune: { automatic: true, number: 2 } } })
+
+      await plugin.postDeploy()
+
+      expect(deletedVersions()).toEqual(['1.0'])
+    })
+
+    describe('sandbox artifacts in the --includeArtifacts sweep', () => {
+      const TEMPLATE = 'compiled-cloudformation-template.json'
+      const DIR_OLD = '1792583884942-2026-10-21T11:58:04.942Z'
+      const DIR_NEW = '1792584095223-2026-10-21T12:01:35.223Z'
+      const OLD_ZIP = 'serverless/test-service/dev/sandboxes/echo-a1.zip'
+      const NEW_ZIP = 'serverless/test-service/dev/sandboxes/echo-b2.zip'
+      const keys = [
+        `serverless/test-service/dev/${DIR_OLD}/${TEMPLATE}`,
+        `serverless/test-service/dev/${DIR_NEW}/${TEMPLATE}`,
+        OLD_ZIP,
+        NEW_ZIP,
+      ]
+      const sweepSetup = (pluginOptions) => {
+        setup({
+          options: pluginOptions,
+          overrides: {
+            listObjectsV2: (params) => ({
+              Contents: keys
+                .filter((k) => k.startsWith(params.Prefix))
+                .map((Key) => ({ Key })),
+            }),
+            getObject: (params) => ({
+              Body: Buffer.from(
+                JSON.stringify({
+                  Uri: `s3://b/${params.Key.includes(DIR_OLD) ? OLD_ZIP : NEW_ZIP}`,
+                }),
+              ),
+            }),
+          },
+        })
+        serverless.getProvider().naming.getCompiledTemplateS3Suffix = () =>
+          TEMPLATE
+      }
+      const sandboxZipDeletes = () =>
+        calls
+          .filter((c) => c.method === 'deleteObjects')
+          .flatMap((c) => c.params.Delete.Objects.map((o) => o.Key))
+          .filter((k) => k.includes('/sandboxes/'))
+
+      it('on a real run, trusts the fresh listing over the marked folders', async () => {
+        sweepSetup({ number: '0' })
+
+        await plugin.sweepSandboxArtifacts({
+          bucketName: 'test-deployment-bucket',
+          markedDirs: [DIR_OLD],
+        })
+
+        // the listing still shows DIR_OLD, so its zip is kept: a real sweep
+        // has deleted the folder by then and the listing no longer has it
+        expect(sandboxZipDeletes()).toEqual([])
+      })
+
+      it('previews the zips of folders a dry run would mark', async () => {
+        sweepSetup({ number: '0', dryRun: true })
+
+        await plugin.sweepSandboxArtifacts({
+          bucketName: 'test-deployment-bucket',
+          markedDirs: [DIR_OLD],
+        })
+
+        expect(sandboxZipDeletes()).toEqual([])
+        expect(logMock.info).toHaveBeenCalledWith(
+          `Sandbox artifact ${OLD_ZIP} selected for deletion (dry-run).`,
+        )
+      })
+
+      it('deletes a zip once its folder is gone', async () => {
+        sweepSetup({ number: '0' })
+        keys.splice(0, 1)
+
+        await plugin.sweepSandboxArtifacts({
+          bucketName: 'test-deployment-bucket',
+          markedDirs: [],
+        })
+
+        expect(sandboxZipDeletes()).toEqual([OLD_ZIP])
+      })
+
+      it('stops with an error when S3 refuses to delete a zip', async () => {
+        sweepSetup({ number: '0' })
+        const listObjectsV2 = (params) => ({
+          Contents: [
+            `serverless/test-service/dev/${DIR_NEW}/${TEMPLATE}`,
+            OLD_ZIP,
+            NEW_ZIP,
+          ]
+            .filter((k) => k.startsWith(params.Prefix))
+            .map((Key) => ({ Key })),
+        })
+        const request = serverless.getProvider().request
+        serverless.getProvider().request = async (
+          service,
+          method,
+          params,
+          ...rest
+        ) => {
+          if (method === 'listObjectsV2') return listObjectsV2(params)
+          if (method === 'deleteObjects') {
+            return {
+              Errors: [
+                {
+                  Key: OLD_ZIP,
+                  Code: 'AccessDenied',
+                  Message: 'Access Denied',
+                },
+              ],
+            }
+          }
+          return request(service, method, params, ...rest)
+        }
+
+        await expect(
+          plugin.sweepSandboxArtifacts({
+            bucketName: 'test-deployment-bucket',
+            markedDirs: [],
+          }),
+        ).rejects.toMatchObject({
+          code: 'PRUNE_SANDBOX_ARTIFACTS_NOT_DELETED',
+          message:
+            'Could not remove 1 unused sandbox artifact(s) from S3: AccessDenied (Access Denied)',
+        })
+      })
+    })
+
+    it('does not prune after deploy without automatic mode', async () => {
+      setup({ custom: { prune: { number: 2 } } })
+
+      await plugin.postDeploy()
+
+      expect(deletedVersions()).toEqual([])
+    })
+  })
 })

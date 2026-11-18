@@ -111,13 +111,60 @@ sandboxes:
     artifact: ./docker/api # path resolved relative to serverless.yml
 ```
 
-The directory must exist and must contain a `Dockerfile`. The framework zips the entire directory, computes a SHA-256 content hash, and uploads the zip to the deployment bucket at:
+The directory must exist and must contain a `Dockerfile`. The framework zips the directory's files, selected as described in [Choosing the files](#choosing-the-files), computes a SHA-256 content hash, and uploads the zip to the deployment bucket at:
 
 ```
-serverless/<service>/<stage>/sandboxes/<name>-<sha256>.zip
+<deploymentPrefix>/<service>/<stage>/sandboxes/<name>-<sha256>.zip
 ```
 
-The S3 key is content-addressed: re-deploying without changing the directory contents reuses the same key.
+`<deploymentPrefix>` is `provider.deploymentPrefix` (default `serverless`). The S3 key is content-addressed: re-deploying without changing the selected files reuses the same key and the existing image. A change to any selected file rebuilds the image. Each deploy keeps the zips that a remaining deployment points to and deletes the rest; see [Image versions and cleanup](#image-versions-and-cleanup).
+
+`serverless package` writes the zip to `.serverless/sandboxes/<name>-<sha256>.zip` (under the `--package` directory when you pass one) and lists what `serverless deploy` uploads in `.serverless/sandboxes-uploads.json`. List the zip, for example with `unzip -l`, to see exactly which files a sandbox ships.
+
+### Choosing the files
+
+The zip holds every file in the artifact directory except:
+
+- anything named `node_modules`, `.venv`, `venv`, `__pycache__`, `.pytest_cache` or `.mypy_cache`, at any depth (local dependencies and caches), including a plain file with one of these names. Names that only start with them, such as `node_modules.txt` or `node_modules_backup/`, are kept;
+- the [default exclusions](./packaging.md#patterns) of function packaging (`.git`, `.serverless`, the service configuration file, `.env*` with `useDotenv`, …). As for functions, they are matched from the service directory, so they only reach the artifact when it is the service directory (`artifact: .`). In an artifact subdirectory such as `./app`, a `.git` directory, an `.env` file or a `.DS_Store` is included unless a pattern excludes it (`'!app/**/.env*'`).
+
+The image is built on ARM64 by your `Dockerfile`, which installs dependencies itself (for example with `npm ci` or `pip install`). Dependencies installed on your machine are built for its platform, a virtualenv only works on the machine that created it, and a `COPY . .` would overwrite the dependencies the build installed. They also change the content hash, so every local install would rebuild the image.
+
+To choose files yourself, use `package.patterns`. They work exactly as [function patterns](./packaging.md#patterns): globs relative to the service directory, applied in order, `!` to exclude, and later patterns win. The service-level `package.patterns` apply first, then the sandbox's own:
+
+```yml
+package:
+  patterns:
+    - '!**/docs/**' # any docs/ directory, in functions and sandboxes alike
+
+sandboxes:
+  api:
+    artifact: ./app
+    package:
+      patterns:
+        - '!app/tests/**' # paths start at the service directory, so they name the artifact directory
+        - 'app/node_modules/**' # re-include a default exclusion, e.g. vendored dependencies
+```
+
+- The `Dockerfile` at the root of the artifact directory is always included.
+- Service-level patterns written for your functions apply to sandboxes too. A pattern list that excludes everything and re-includes your function code (`'!**'` followed by `src/**`) leaves a sandbox with only its `Dockerfile`: re-include the sandbox's files with its own patterns (`'app/**'`).
+- `'app/**'` re-includes everything under `app/`, including the default exclusions (`node_modules`, `.venv`, `venv`, … and `.env` files), which a `COPY . .` then copies into the image. Exclude again the ones the directory holds, after it (later patterns win):
+
+  ```yml
+  sandboxes:
+    api:
+      artifact: ./app
+      package:
+        patterns:
+          - 'app/**'
+          - '!app/**/node_modules/**'
+          - '!app/**/.venv/**'
+          - '!app/**/.env*' # .env files at any depth, app/.env included
+  ```
+
+- For an artifact directory outside the service directory (`artifact: ../shared/app`), write the `../` path in the pattern (`'!../shared/app/tests/**'`): as for functions, `**` doesn't match paths that start with `../`. The default exclusions apply wherever the directory is.
+- A `.dockerignore` in the artifact directory still applies when the image is built, on AWS and in `serverless dev`. Patterns decide what is uploaded; `.dockerignore` decides what the build sees.
+- Patterns don't apply to an `s3://` artifact, which is used as it is.
 
 ### S3 URI passthrough
 
@@ -151,6 +198,8 @@ sandboxes:
     artifact: <string>
 
     # optional
+    package:
+      patterns: [<glob>, ...] # files of a local artifact; see Choosing the files
     minimumMemory: 512 | 1024 | 2048 | 4096 | 8192
     description: <string>
     environment:
@@ -189,6 +238,7 @@ sandboxes:
 | Property         | Type              | Default          | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | ---------------- | ----------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `artifact`       | string            | — **(required)** | Local directory path (contains `Dockerfile`) or `s3://` URI                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `package`        | object            | —                | `patterns`: globs selecting the files of a local `artifact`, relative to the service directory. See [Choosing the files](#choosing-the-files).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `minimumMemory`  | number            | `2048`           | Minimum memory in MiB the MicroVM is guaranteed (maps to `MinimumMemoryInMiB`) — a floor, not a cap. Must be one of: `512`, `1024`, `2048`, `4096`, `8192`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `description`    | string            | auto             | Human-readable description embedded in the CloudFormation resource.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `environment`    | object            | `{}`             | Environment variables baked into the image snapshot at build time and available to the MicroVM process. Same shape as on a function: literal strings or CloudFormation references (`!Ref`, `!GetAtt`, `!ImportValue`, `!Sub`, …), resolved when the stack deploys. `provider.environment` is inherited — a sandbox receives every provider-level variable and its own keys override. **Identical across every instance** of that image version and persists across suspend/resume. Use it only for static, non-sensitive configuration. Per-instance data (session IDs, tenant IDs, and similar) has to travel through the launch call's `runHookPayload` instead. Real secrets shouldn't go in `environment` at all — fetch them at runtime through the execution role (Secrets Manager or SSM). See [Snapshots and per-instance state](#snapshots-and-per-instance-state). |
@@ -469,12 +519,34 @@ The deploy summary — and `serverless info` — list each sandbox under a `sand
 
 The MicroVM image is always built on `ARM_64` architecture. The base image is resolved to the latest `al2023` version at deploy time.
 
+## Image versions and cleanup
+
+Each deploy that changes a sandbox's artifact or settings builds a new version of its MicroVM image. Launches without an `imageVersion` use the newest successful version; older versions stay available to MicroVMs that pin one. AWS limits how many versions an image can have (50 by default, the **Versions per MicroVM Image** quota), so trim old versions with [`prune`](./prune.md#sandbox-image-versions):
+
+```yml
+custom:
+  prune:
+    automatic: true # prune after every deploy
+    number: 5 # keep the live version and 5 older ones
+```
+
+Or prune once, for every sandbox or just one:
+
+```bash
+serverless prune -n 5
+serverless prune -n 5 --sandbox echo
+```
+
+`prune` never deletes the live version, a version that a MicroVM still runs or can resume from, or a version that is still building. If a deploy reaches the limit, the error shows the `prune` command to run.
+
+The zips need no setting. A MicroVM image reads its zip only while it builds: MicroVMs launch and resume from the image's snapshot. Each deploy keeps the zips that a remaining deployment points to, so every deployment `serverless deploy list` shows can still be rolled back with `serverless rollback`, and deletes the others, except zips uploaded within the last hour, which a deploy still in progress may be using; on a versioned bucket, as for deployment folders, a delete adds a delete marker and the earlier object versions remain until a lifecycle rule expires them. The number of deployments kept is `provider.deploymentBucket.maxPreviousDeploymentArtifacts` (default `5`). Artifacts you pass as `s3://` URIs are never deleted.
+
 ---
 
 ## Invoking a Sandbox
 
 ```bash
-serverless invoke --sandbox <name> [--path <path>] [--method <method>] [--data '<body>'] [--port <port>]
+serverless invoke --sandbox <name> [--path <path>] [--method <method>] [--header 'Name: value'] [--data '<body>'] [--port <port>]
 ```
 
 `--sandbox <name>` is required and identifies which sandbox to invoke (analogous to `--function` for Lambda invocations). The framework:
@@ -490,13 +562,18 @@ The CLI launches this one-shot instance with an injected idle policy (`maxIdleDu
 
 ### Options
 
-| Flag                | Default          | Description                                 |
-| ------------------- | ---------------- | ------------------------------------------- |
-| `--sandbox <name>`  | — **(required)** | Sandbox name as defined in `serverless.yml` |
-| `--path <path>`     | `/`              | HTTP request path                           |
-| `--method <method>` | `GET`            | HTTP method                                 |
-| `--data '<body>'`   | —                | Request body (non-GET requests)             |
-| `--port <port>`     | `8080`           | Container port to send the request to       |
+| Flag                     | Default          | Description                                 |
+| ------------------------ | ---------------- | ------------------------------------------- |
+| `--sandbox <name>`       | — **(required)** | Sandbox name as defined in `serverless.yml` |
+| `--path <path>`          | `/`              | HTTP request path                           |
+| `--method <method>`      | `GET`            | HTTP method                                 |
+| `--header 'Name: value'` | —                | A request header (repeat for more headers)  |
+| `--data '<body>'`        | —                | Request body (non-GET requests)             |
+| `--port <port>`          | `8080`           | Container port to send the request to       |
+
+`--header` values must be printable ASCII, and `--header` cannot set `Host`, `X-Aws-Proxy-Auth` or `X-Aws-Proxy-Port`, which the Framework sets to reach the sandbox through the AWS proxy.
+
+The options for invoking a function or an agent, such as `--qualifier`, `--raw`, `--session-id` or `--log`, stop the command with an error, for example `✖ --qualifier is not available with --sandbox.`
 
 ### Examples
 
@@ -508,7 +585,7 @@ serverless invoke --sandbox echo
 serverless invoke --sandbox echo --path /health
 
 # POST with a JSON body
-serverless invoke --sandbox echo --path /api/items --method POST --data '{"name":"widget"}'
+serverless invoke --sandbox echo --path /api/items --method POST --header 'Content-Type: application/json' --data '{"name":"widget"}'
 
 # Non-default container port
 serverless invoke --sandbox echo --path /metrics --port 9090
@@ -674,6 +751,11 @@ customizable with `--port`, so the address your code targets doesn't change betw
 port is already in use, `dev` exits with a clear error so you can pick another; run two sandboxes at
 once by giving each its own `--port`. Press Ctrl-C to stop.
 
+The image is built from the same files a deploy uploads (see [Choosing the
+files](#choosing-the-files)): `dev` copies them into a temporary directory for each build,
+so your `package.patterns` and the default exclusions apply locally too, along with your
+`.dockerignore`.
+
 > **Note:** `dev` requires a Docker daemon and a local `artifact` directory
 > containing a `Dockerfile`. The image is built for the daemon's native CPU
 > architecture, so a daemon whose architecture differs from your machine's
@@ -700,9 +782,10 @@ is rebuilt; the **next** `RunMicrovm` launches a fresh container from the update
 (already-running instances keep the image they started with), so you can iterate without
 re-running the command.
 
-- Framework and tooling directories are ignored, including `.serverless`,
-  `node_modules`, `.git`, virtualenv/cache directories, and test files
-  (`*.test.js`, `*.spec.js`, `*_test.py`, `*.test.py`).
+- Changes in `.serverless`, `.git` and `coverage` directories don't rebuild the image,
+  nor do changes in the dependency and cache directories a deploy leaves out
+  (`node_modules`, `.venv`, `venv`, `__pycache__`, `.pytest_cache`, `.mypy_cache`) or
+  changes to test files (`*.test.js`, `*.spec.js`, `*_test.py`, `*.test.py`).
 - If a rebuild fails (for example, a Docker build error), running instances keep working
   and the error is printed — the dev session stays up so you can fix the issue and save
   again.
@@ -767,6 +850,10 @@ Prefer a per-command `--endpoint-url` (or a per-client `endpoint` on `LambdaMicr
   `--no-assume-role`.
 
 The emulator does not validate request signatures and does not emulate network isolation or service quotas.
+Because it is unauthenticated, it only answers requests addressed to `127.0.0.1`, `localhost`, `[::1]` or
+`host.docker.internal` (to call it from a Docker Desktop container) and refuses browser requests (any
+request carrying an `Origin` header) with `403`, so a web page you visit cannot launch or control your
+local sandboxes. Call it from the AWS SDK or CLI, not from browser code.
 
 ---
 

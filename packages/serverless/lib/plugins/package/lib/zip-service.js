@@ -69,8 +69,10 @@ export default {
    * @param files - an Array of filenames
    * @param zipFiles - the filename to save the zip at
    * @param prefix - a prefix to strip from the file names. use for layers support
+   * @param options.generatedEntries - files that exist only in the zip, as
+   *   `{ name, content }`; one replaces a file of the same name
    */
-  async zipFiles(files, zipFileName, prefix) {
+  async zipFiles(files, zipFileName, prefix, { generatedEntries = [] } = {}) {
     if (files.length === 0) {
       const error = new ServerlessError(
         'No files to package',
@@ -106,21 +108,35 @@ export default {
           concurrency: os.cpus().length,
         })
           .then((contents) => {
-            contents
-              .sort((content1, content2) =>
-                content1.filePath.localeCompare(content2.filePath),
-              )
-              .forEach((file) => {
-                const name = file.filePath.slice(
+            const generatedNames = new Set(
+              generatedEntries.map(({ name }) => name),
+            )
+            const entries = contents
+              .map((file) => ({
+                name: file.filePath.slice(
                   prefix ? `${prefix}${path.sep}`.length : 0,
-                )
+                ),
+                data: file.data,
                 // Ensure file is executable if it is locally executable or
                 // we force it to be executable if platform is windows
-                const mode =
+                mode:
                   file.stat.mode & 0o100 || process.platform === 'win32'
                     ? 0o755
-                    : 0o644
-                zip.append(file.data, {
+                    : 0o644,
+              }))
+              .filter(({ name }) => !generatedNames.has(name))
+              .concat(
+                generatedEntries.map(({ name, content }) => ({
+                  name,
+                  data: content,
+                  mode: 0o644,
+                })),
+              )
+
+            entries
+              .sort((entry1, entry2) => entry1.name.localeCompare(entry2.name))
+              .forEach(({ name, data, mode }) => {
+                zip.append(data, {
                   name,
                   mode,
                   date: new Date(0), // necessary to get the same hash when zipping the same content

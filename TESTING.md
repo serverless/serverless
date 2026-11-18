@@ -21,7 +21,7 @@ In CI the suites are split into one shard per test account; see
 
 Note: this excludes three suites.
 
-- `domains` — runs only via `npm run test:domains -w @serverlessinc/sf-core`.
+- `domains` — runs only via `npm run test:domains -w @serverlessinc/sf-core`. The web apps domain test also needs `SLS_DOMAINS_TEST_ZONE`, the public Route 53 hosted zone it creates hostnames in.
 - `mcp` (MCP Servers) — runs only via `npm run test:mcp -w @serverlessinc/sf-core`, which the path-filtered `CI: MCP Servers` workflow invokes when MCP-relevant paths change. It deploys real REST APIs, which is why it is kept off unrelated pull requests. Only its enforcement-and-discovery suite (`mcp-auth.test.js`) needs the Cognito prerequisite below — without it that suite skips with a log while the rest still runs.
 - `dev-mode` — runs only via `npm run test:dev-mode -w @serverlessinc/sf-core`, which the path-filtered `CI: Dev Mode` workflow invokes when Dev Mode-relevant paths change (in test-1). Each file deploys its own fixture service, runs `serverless dev` against it and removes it: `dev-mode.test.js` (attach, Ctrl+C, a crash followed by `serverless dev restore` or `serverless deploy`), `local-runtime.test.js` (handlers on this machine, fed live-shaped invocations through the test-only `SLS_DEV_TEST_FEED=1`), `relay.test.js` (real invocations relayed through AWS IoT Core), `mcp-dev.test.js` (an MCP server in a session) and `agent-loop.test.js` (the commands a coding agent uses — `serverless dev --detach`, `dev wait`, `dev requests`, `dev replay`, `dev status`, `dev stop` — with a TypeScript and a Python handler, a killed session, a double SIGTERM during the restore, and a search of `.serverless/dev` for secrets). They create the Dev Mode IAM role and layers under a test suffix and delete them at the end, together with the log groups of their functions. Build the Dev Mode layers (needs Go) and the MCP entry first: `npm run build:devmode:layer -w @serverless/framework` and `npm run build:mcp:entry -w @serverless/framework`. The Python tests need a Python 3.9+ on `PATH` and are skipped otherwise. `CI: Dev Mode` also runs `agent-loop.test.js` on Windows (`npm run test:dev-mode:agent-loop -w @serverlessinc/sf-core`): it stops sessions with `serverless dev stop`, which reaches the session over its loopback control endpoint, while the other files stop them with Ctrl+C, which Node turns into an immediate termination on Windows. Its double-SIGTERM test is skipped there.
 
@@ -218,6 +218,15 @@ suites as one matrix leg per account, plus a leg for the resolvers suite.
 Separate runners share the work, and AWS API rate limits are isolated per
 account instead of shared by every suite in one run. Shard N runs in test-N.
 
+CloudFormation rate limits are per account and per region, so shards 2 and 3
+also spread across regions by platform: Linux runs them in `us-east-1`, ARM
+Linux in `us-east-2` and Windows in `us-west-2`. Shard 1 and the resolvers leg
+stay in `us-east-1`, where the prerequisites are. The region reaches the suites
+as `AWS_REGION`; an unpinned suite deploys and checks its resources in
+`TEST_REGION` from `tests/utils/testRegion.js`, which follows `AWS_REGION`, and
+a unit test fails if one hard-codes `us-east-1`. To run a suite in another
+region locally, set `AWS_REGION`.
+
 To run the release's platforms from a branch before merging, dispatch
 `CI: Framework CLI` with `all-platforms` set. That workflow has no release
 jobs, so nothing is published:
@@ -289,7 +298,7 @@ locally, run it with that account's credentials:
 
 ```sh
 cd packages/sf-core
-node scripts/test-account-cleanup/report.js --regions us-east-1,us-east-2,eu-west-1
+node scripts/test-account-cleanup/report.js --regions us-east-1,us-east-2,us-west-2,eu-west-1
 ```
 
 ### Bootstrapping an Account
@@ -300,14 +309,19 @@ Adding an account for CI is a per-account, human-run job in three parts:
    the maintainers. Once an account is ready, its role ARN is supplied to the
    workflows as a repository variable rather than committed here.
 2. **The default deployment and state buckets.** The Framework creates these
-   on first use. Create them once, one deploy at a time, before the account
-   joins the matrix. With the new account's credentials:
+   on first use: one state bucket per account, in `us-east-1`, and one
+   deployment bucket per region. Create them once, one deploy at a time,
+   before the account joins the matrix. With the new account's credentials:
 
    ```sh
    export AWS_REGION=us-east-1 TEST_STAGE=boot
    npm run test:simple:nodejs -w @serverlessinc/sf-core -- --runInBand
    npm run test:compose:subset -w @serverlessinc/sf-core -- --runInBand
    ```
+
+   For test-2 and test-3, repeat `test:simple:nodejs` with `AWS_REGION` set to
+   `us-east-2` and to `us-west-2`, the regions their shards run in on ARM Linux
+   and Windows.
 
 3. **The prerequisites from this file that the account's suites need.** Suites
    pinned to shard 1 need test-1's, and the MCP enforcement suite needs the
@@ -321,6 +335,7 @@ Adding an account for CI is a per-account, human-run job in three parts:
 - `npm test -w @serverless/mcp` — MCP server tests (not run by any CI workflow)
 - `npm run test:python -w @serverlessinc/sf-core` — Python plugin tests (covered by the `CI: Python Requirements` workflow)
 - `npm run test:build -w @serverlessinc/sf-core` — builds and packs the release package locally, then runs the packaging checks in `packages/sf-core/scripts/verify-release-package.sh` (the same checks the `Test: Release Package` CI job and the release run)
+- `npm run test:e2e:proxy -w @serverlessinc/sf-core` — runs `serverless usage` from source with only `HTTPS_PROXY` set, against a local proxy, and checks that it works and that it reached the Serverless API through the proxy; on the Node.js that runs it. Needs `SERVERLESS_ACCESS_KEY_DEV` (skipped without it) and AWS credentials; makes no AWS calls besides STS. `packages/sf-core/tests/e2e/proxy-only-network.sh [majors]` runs it in a Docker network whose only way out is the proxy, on Node.js 24 and 26 by default (the `E2E: proxy-only network` job of `CI: Framework CLI`); only that run proves that no request goes direct
 
 ## Troubleshooting
 

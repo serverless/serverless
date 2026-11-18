@@ -302,6 +302,9 @@ export const bridgeLogLines = async ({
   functionName,
   since,
   limit = 40,
+  // A web function logs to /aws/lambda/web/<name>, and its bridge's lines start with "Dev Mode:".
+  logGroupName = `/aws/lambda/${functionName}`,
+  filterPattern = '"[sls-dev-bridge]"',
 }) => {
   const logs = new CloudWatchLogsClient({ region })
   const lines = []
@@ -310,9 +313,9 @@ export const bridgeLogLines = async ({
     do {
       const page = await logs.send(
         new FilterLogEventsCommand({
-          logGroupName: `/aws/lambda/${functionName}`,
+          logGroupName,
           startTime: since,
-          filterPattern: '"[sls-dev-bridge]"',
+          filterPattern,
           nextToken,
         }),
       )

@@ -48,6 +48,7 @@ export default {
       httpApiEndpoints: this.httpApiEndpoints,
       cloudFront: info.cloudFront,
       functionUrls: info.functions.filter((fn) => fn.url),
+      webApps: info.webApps,
     })
 
     if (outputSectionItems.length > 1) {

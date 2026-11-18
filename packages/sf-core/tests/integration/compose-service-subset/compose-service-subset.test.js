@@ -9,6 +9,7 @@ import {
 } from '@aws-sdk/client-cloudformation'
 import { jest } from '@jest/globals'
 import { getTestStageName, runSfCore } from '../../utils/runSfCore.js'
+import { TEST_REGION } from '../../utils/testRegion.js'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
@@ -20,7 +21,7 @@ const isStackMissingError = (err) =>
 
 describe('Compose --service subset (exact-set semantics)', () => {
   const configFileDirPath = path.join(__dirname, 'fixture')
-  const cloudformationClient = new CloudFormationClient({ region: 'us-east-1' })
+  const cloudformationClient = new CloudFormationClient({ region: TEST_REGION })
   const originalEnv = { ...process.env }
   const originalArgv = [...process.argv]
   let originalCwd
@@ -224,7 +225,7 @@ describe('Compose --service subset (exact-set semantics)', () => {
 // succeeds — the only failure signal is the spurious exit code / report.
 describe('Compose --service subset first run exits 0 (regression)', () => {
   const configFileDirPath = path.join(__dirname, 'fixture')
-  const cloudformationClient = new CloudFormationClient({ region: 'us-east-1' })
+  const cloudformationClient = new CloudFormationClient({ region: TEST_REGION })
   const originalEnv = { ...process.env }
   const originalArgv = [...process.argv]
   let originalCwd

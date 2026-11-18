@@ -1,7 +1,7 @@
 import path from 'path'
 import { writeFile } from '../../../utils/index.js'
 import {
-  getProxyDispatcher,
+  fetchWithProxy,
   log,
   progress,
   ServerlessError,
@@ -31,10 +31,9 @@ const getSubscription = async (auth, versionFramework) => {
    * if not available, we fallback to the default orgId
    */
   const url = `https://core.${domain}/api/billing/orgs/${auth.orgId}`
-  const response = await fetch(url, {
+  const response = await fetchWithProxy(url, {
     method: 'GET',
     headers: buildHeaders(auth, versionFramework),
-    dispatcher: getProxyDispatcher(url),
   })
 
   if (!response.ok) {
@@ -67,10 +66,9 @@ const getInstances = async (auth, versionFramework) => {
    * if not available, we fallback to the default orgId
    */
   const url = `https://core.${domain}/api/usage/instances/${auth.orgId}`
-  const response = await fetch(url, {
+  const response = await fetchWithProxy(url, {
     method: 'GET',
     headers: buildHeaders(auth, versionFramework),
-    dispatcher: getProxyDispatcher(url),
   })
 
   if (!response.ok) {

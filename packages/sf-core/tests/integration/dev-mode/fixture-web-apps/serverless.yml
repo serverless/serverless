@@ -1,0 +1,26 @@
+service: devmode-web
+
+provider:
+  name: aws
+  runtime: nodejs24.x
+  architecture: arm64
+  region: us-east-1
+
+build:
+  esbuild: false
+
+functions:
+  fn:
+    handler: handler.handler
+    timeout: 20
+
+webApps:
+  # Run from its entry on this machine.
+  api:
+    entry: src/server.mjs
+  # Its entry is build output (the suite writes it before the deploy): on this machine it runs
+  # from dev.command instead.
+  cmd:
+    entry: dist/server.mjs
+    dev:
+      command: node src/cmd-server.mjs

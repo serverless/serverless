@@ -11,6 +11,8 @@ import {
   ARCHITECTURES,
   layerArtifactPath,
   layerArtifactPathFrom,
+  webBridgeArtifactPath,
+  webBridgeArtifactPathFrom,
 } from '../../serverless/lib/plugins/aws/dev/attach/naming.js'
 import {
   CLIENT_FILES,
@@ -108,6 +110,17 @@ for (const arch of ARCHITECTURES) {
     ),
   )
 }
+
+// The Dev Mode web bridge zip (`npm run build:devmode:web-bridge -w @serverless/framework`, run
+// before this script), which a web app's dev revision is created from. Resolved through the
+// source-tree layout like the layer zips, so the destination is asked of
+// `webBridgeArtifactPathFrom`.
+cpPromises.push(
+  cp(
+    webBridgeArtifactPath(),
+    webBridgeArtifactPathFrom('../../framework-dist/dist'),
+  ),
+)
 
 cpPromises.push(
   cp(

@@ -73,6 +73,7 @@ function parseAwsServices(rawAwsServices) {
           .sort()
           .join(', ')}.`,
         'AGENT_INSPECT_UNKNOWN_AWS_SERVICE',
+        { stack: false },
       )
     }
     resolved.add(canonical)
@@ -142,6 +143,7 @@ function resolveNamedResources(names, resources) {
       throw new ServerlessError(
         `Unknown --name "${name}". Valid logical IDs: ${validIds.join(', ')}.`,
         'AGENT_INSPECT_UNKNOWN_NAME',
+        { stack: false },
       )
     }
     if (matches.length > 1) {
@@ -152,6 +154,7 @@ function resolveNamedResources(names, resources) {
       throw new ServerlessError(
         `Ambiguous --name "${name}": it matches resources in multiple stacks (${candidates}). This isn't yet disambiguable by stack; rename the conflicting resource or select by category/service instead.`,
         'AGENT_INSPECT_AMBIGUOUS_NAME',
+        { stack: false },
       )
     }
     const resource = matches[0]
@@ -159,6 +162,7 @@ function resolveNamedResources(names, resources) {
       throw new ServerlessError(
         `Resource "${name}" (${resource.type}) is not describable -- its type isn't supported by "serverless agent inspect".`,
         'AGENT_INSPECT_NAME_NOT_DESCRIBABLE',
+        { stack: false },
       )
     }
     return resource

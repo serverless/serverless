@@ -425,6 +425,10 @@ class CoreRunner extends Runner {
                     description: 'Expand sandboxes resources',
                     type: 'boolean',
                   },
+                  'web-apps': {
+                    description: 'Expand web-apps resources',
+                    type: 'boolean',
+                  },
                   all: {
                     description: 'Expand every category',
                     type: 'boolean',
@@ -621,6 +625,9 @@ class CoreRunner extends Runner {
       // it is inside Compose, and under which service key.
       compose: this.compose,
     })
+    // The framework runner signs in and knows the service, so the router
+    // reports the run through it (see `delegatedRunner` in ../../router.js).
+    this.delegatedRunner = frameworkRunner
     return frameworkRunner.run()
   }
 

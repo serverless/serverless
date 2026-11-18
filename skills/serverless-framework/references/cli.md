@@ -17,19 +17,21 @@ messages suggest. Do not install with `sudo`.
 
 ## Commands
 
-| Command                              | What it does                                                            |
-| ------------------------------------ | ----------------------------------------------------------------------- |
-| `serverless package`                 | Build and package without deploying (needs sign-in and AWS credentials) |
-| `serverless deploy`                  | Deploy the whole service (build, package, CloudFormation update)        |
-| `serverless deploy function -f NAME` | Fast redeploy of one function's code and configuration                  |
-| `serverless info`                    | Show endpoints, functions, and stack outputs of the deployed service    |
-| `serverless invoke -f NAME`          | Invoke a deployed function (`--data '{"k":"v"}'` for a payload)         |
-| `serverless invoke local -f NAME`    | Run the handler locally without deploying                               |
-| `serverless logs -f NAME`            | Fetch a function's CloudWatch logs (`--tail` to follow)                 |
-| `serverless dev`                     | Dev Mode: routes invocations of the deployed service to local code      |
-| `serverless dev stop`                | Ends a Dev Mode session and restores its functions                      |
-| `serverless dev restore`             | Restores functions a killed session left in Dev Mode                    |
-| `serverless remove`                  | Delete the service's stack and resources                                |
+| Command                                  | What it does                                                            |
+| ---------------------------------------- | ----------------------------------------------------------------------- |
+| `serverless package`                     | Build and package without deploying (needs sign-in and AWS credentials) |
+| `serverless deploy`                      | Deploy the whole service (build, package, CloudFormation update)        |
+| `serverless deploy function -f NAME`     | Fast redeploy of one function's code and configuration                  |
+| `serverless info`                        | Show endpoints, functions, and stack outputs of the deployed service    |
+| `serverless invoke -f NAME`              | Invoke a deployed function (`--data '{"k":"v"}'` for a payload)         |
+| `serverless invoke -f NAME --type Event` | Start a durable function; prints the execution ARN                      |
+| `serverless invoke -f NAME --json`       | Print the invoke result as one JSON object on stdout                    |
+| `serverless invoke local -f NAME`        | Run the handler locally without deploying                               |
+| `serverless logs -f NAME`                | Fetch a function's CloudWatch logs (`--tail` to follow)                 |
+| `serverless dev`                         | Dev Mode: routes invocations of the deployed service to local code      |
+| `serverless dev stop`                    | Ends a Dev Mode session and restores its functions                      |
+| `serverless dev restore`                 | Restores functions a killed session left in Dev Mode                    |
+| `serverless remove`                      | Delete the service's stack and resources                                |
 
 ## Authentication and credentials
 

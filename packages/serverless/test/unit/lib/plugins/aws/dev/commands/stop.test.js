@@ -126,7 +126,13 @@ const fakeSession = async (
   return { claim, log, stops, open, signal: (keep = false) => stop({ keep }) }
 }
 const ends =
-  ({ restore = { restored: 2 }, kept = false, exitCode = 0, failed } = {}) =>
+  ({
+    restore = { restored: 2 },
+    webApps,
+    kept = false,
+    exitCode = 0,
+    failed,
+  } = {}) =>
   ({ log, claim }) => {
     if (failed) log.emit('session.failed', { ...failed, exit_code: exitCode })
     log.emit('session.stopping', { trigger: 'stop_command' })
@@ -140,6 +146,7 @@ const ends =
         failed: 0,
         ...restore,
       },
+      ...(webApps && { web_apps: webApps }),
       kept,
     })
     log.close()
@@ -203,6 +210,56 @@ describe('dev stop', () => {
     expect(timers.live()).toBe(0)
   })
 
+  test('web apps a session restored are named as web apps, not counted as functions', async () => {
+    const dir = serviceDir()
+    // `restore` counts the functions and the web apps; `web_apps` the web apps alone.
+    await fakeSession(dir, {
+      onStop: ends({
+        restore: { restored: 3 },
+        webApps: {
+          restored: 2,
+          unchanged: 0,
+          skipped: 0,
+          missing: 0,
+          failed: 0,
+        },
+      }),
+    })
+    const { code, result, text } = await run(dir)
+    expect(code).toBe(0)
+    expect(result).toMatchObject({
+      status: 'ok',
+      message: 'Dev Mode off · 1 function and 2 web apps restored.',
+      restore: { restored: 3 },
+      web_apps: { restored: 2, failed: 0 },
+    })
+    expect(text).toContain('Dev Mode off · 1 function and 2 web apps restored')
+    expect(text).not.toContain('3 functions')
+  })
+
+  test('a web app that could not be restored is named as a web app', async () => {
+    const dir = serviceDir()
+    await fakeSession(dir, {
+      onStop: ends({
+        restore: { restored: 1, failed: 1 },
+        webApps: {
+          restored: 0,
+          unchanged: 0,
+          skipped: 0,
+          missing: 0,
+          failed: 1,
+        },
+        exitCode: 3,
+      }),
+    })
+    const { result } = await run(dir)
+    expect(result).toMatchObject({
+      status: 'error',
+      reason: 'restore_incomplete',
+      message: 'Dev Mode stopped, but 1 web app could not be restored.',
+    })
+  })
+
   test('a session that had nothing to restore ends with the line the session prints', async () => {
     const dir = serviceDir()
     await fakeSession(dir, { onStop: ends({ restore: { restored: 0 } }) })
@@ -231,6 +288,22 @@ describe('dev stop', () => {
     })
     expect(text).toContain('Stopping Dev Mode (functions stay in Dev Mode)')
     expect(text).not.toMatch(/restor/i)
+  })
+
+  test('--keep of a session of web apps alone names its web apps', async () => {
+    const dir = serviceDir()
+    const session = await fakeSession(dir, {
+      onStop: ends({ restore: {}, webApps: {}, kept: true }),
+    })
+    session.log.emit('web_app.mode', { web_app: 'web', mode: 'dev' })
+    const { result, text } = await run(dir, {
+      options: { json: true, keep: true },
+    })
+    expect(result).toMatchObject({
+      kept: true,
+      message: 'Dev Mode stopped and left its web apps in Dev Mode.',
+    })
+    expect(text).toContain('Stopping Dev Mode (web apps stay in Dev Mode)')
   })
 
   test('how the session ended decides the result', async () => {

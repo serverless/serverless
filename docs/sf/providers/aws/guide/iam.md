@@ -142,6 +142,10 @@ provider:
       path: /your-custom-path/
 ```
 
+## The EventBridge Delivery Role
+
+A service with an `eventBridge` event on a Custom Event Bus also gets a delivery role, `IamRoleEventBridgeDelivery`, named `<service>-<stage>-<region>-eventBridge`. EventBridge assumes it to invoke the subscribed functions. It is separate from the execution roles above and is created in every IAM mode; an event that sets `role` uses that role instead. See [The delivery role](../events/event-bridge.md#the-delivery-role).
+
 ## Per-Function IAM Roles
 
 A single IAM role has a 10 KB inline policy size limit. When many functions share one role and its policy grows, CloudFormation can fail with a "Maximum policy size exceeded" error. Per‑function roles split permissions by function so each role’s inline policy stays small, while improving least‑privilege by scoping access to just what each function needs.
@@ -152,6 +156,8 @@ The Framework can generate dedicated IAM roles per function in two complementary
 
 - **Per‑function IAM with no default role** – set `provider.iam.role.mode: perFunction` to skip the shared service-wide role and give **every** function its own IAM role, even if it does not define any `functions.<name>.iam.role.*` settings.
 - **Per‑function IAM on selected functions** – configure `functions.<name>.iam.role.statements` and/or `functions.<name>.iam.role.managedPolicies` to create a dedicated role **only** for specific functions; others continue using the default service role.
+
+Web apps follow the same rules: `provider.iam.role.mode: perFunction` gives each web app a role of its own, and `webApps.<name>.iam` takes the `iam.inheritStatements` and `iam.role.*` keys shown here for functions. See [IAM](./web-apps.md#iam) in the web apps guide.
 
 At a high level, role synthesis works as follows:
 

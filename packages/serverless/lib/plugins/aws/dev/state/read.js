@@ -13,7 +13,9 @@ import {
   fnDirOf,
   invocationRecordPath,
   parseInvocationFileName,
+  requestRecordPath,
   rotatedEventsFile,
+  webAppDirOf,
 } from './paths.js'
 import { formatCursor } from './cursor.js'
 import { firstSessionIdOf, firstSessionIdOfFd } from './events.js'
@@ -185,18 +187,18 @@ export const followRecords = ({
   })
 
 /**
- * The invocation files of one function directory (`fnDir`), or of all, newest first:
- * `{ fnDir, name, seconds, requestId }`. The one scan of `invocations/`: the readers and the
- * recorder's retention use it. Only real directories are listed (never through a link) and only
- * regular files are returned.
+ * The per-request files of one tree (`tree`: FILES.invocations or FILES.requests), of one
+ * directory (`group`) or of all, newest first: `{ group, name, seconds, requestId }`. The one scan
+ * of those trees: the readers and the retention (record-files.js) use it. Only real directories
+ * are listed (never through a link) and only regular files are returned.
  */
-export const invocationFilesIn = ({ dir, fnDir, fs = nodeFs }) => {
-  const root = path.join(dir, FILES.invocations)
-  if (!isRealDir({ dir, sub: [FILES.invocations], fs })) return []
-  let fnDirs
+export const recordFilesIn = ({ dir, tree, group, fs = nodeFs }) => {
+  const root = path.join(dir, tree)
+  if (!isRealDir({ dir, sub: [tree], fs })) return []
+  let groups
   try {
-    fnDirs = fnDir
-      ? [fnDir]
+    groups = group
+      ? [group]
       : fs
           .readdirSync(root, { withFileTypes: true })
           .filter((entry) => entry.isDirectory())
@@ -205,8 +207,8 @@ export const invocationFilesIn = ({ dir, fnDir, fs = nodeFs }) => {
     return []
   }
   const files = []
-  for (const name of fnDirs) {
-    if (!isRealDir({ dir, sub: [FILES.invocations, name], fs })) continue
+  for (const name of groups) {
+    if (!isRealDir({ dir, sub: [tree, name], fs })) continue
     let entries = []
     try {
       entries = fs.readdirSync(path.join(root, name), { withFileTypes: true })
@@ -216,13 +218,22 @@ export const invocationFilesIn = ({ dir, fnDir, fs = nodeFs }) => {
     for (const entry of entries) {
       if (!entry.isFile()) continue
       const parsed = parseInvocationFileName(entry.name)
-      if (parsed) files.push({ fnDir: name, name: entry.name, ...parsed })
+      if (parsed) files.push({ group: name, name: entry.name, ...parsed })
     }
   }
   return files.sort(
     (a, b) => b.seconds - a.seconds || b.name.localeCompare(a.name),
   )
 }
+
+/**
+ * The invocation files of one function directory (`fnDir`), or of all, newest first:
+ * `{ fnDir, name, seconds, requestId }` (see `recordFilesIn`).
+ */
+export const invocationFilesIn = ({ dir, fnDir, fs = nodeFs }) =>
+  recordFilesIn({ dir, tree: FILES.invocations, group: fnDir, fs }).map(
+    ({ group, ...item }) => ({ fnDir: group, ...item }),
+  )
 
 const readInvocation = (fs, dir, item) => {
   try {
@@ -242,7 +253,8 @@ const recordPathOf = (item) =>
 
 /**
  * The newest invocations kept (of `functionKey` only, when given), at most `limit`:
- * `{ ts, function, stage, request_id, outcome, duration_ms, status_code?, file }`.
+ * `{ ts, kind: 'invocation', function, stage, request_id, outcome, duration_ms, status_code?,
+ * file }`.
  */
 export const listRequests = ({ dir, functionKey, limit = 20, fs = nodeFs }) => {
   const requests = []
@@ -258,6 +270,7 @@ export const listRequests = ({ dir, functionKey, limit = 20, fs = nodeFs }) => {
     if (functionKey && invocation.function !== functionKey) continue
     requests.push({
       ts: invocation.started_at,
+      kind: 'invocation',
       function: invocation.function,
       // A file written before files named their stage has none.
       stage: typeof invocation.stage === 'string' ? invocation.stage : null,
@@ -309,4 +322,127 @@ export const findInvocation = ({ dir, idOrPrefix, fs = nodeFs }) => {
   const record = readInvocation(fs, dir, matches[0])
   if (!record) throw notFound(`The file of request ${id} could not be read.`)
   return { file: recordPathOf(matches[0]), record }
+}
+
+const readRecordFile = (fs, dir, tree, item) => {
+  try {
+    return JSON.parse(
+      fs.readFileSync(path.join(dir, tree, item.group, item.name), 'utf8'),
+    )
+  } catch {
+    return null
+  }
+}
+
+const requestPathOf = (item) =>
+  requestRecordPath({ appDir: item.group, fileName: item.name })
+
+/**
+ * The newest web requests kept (to `webAppKey` only, when given), at most `limit`:
+ * `{ ts, kind: 'request', web_app, stage, request_id, source, method, path, outcome,
+ * status_code, duration_ms, file }` (`path` as the file keeps it: signed query values redacted).
+ */
+export const listWebRequests = ({
+  dir,
+  webAppKey,
+  limit = 20,
+  fs = nodeFs,
+}) => {
+  const requests = []
+  for (const item of recordFilesIn({
+    dir,
+    tree: FILES.requests,
+    group: webAppKey && webAppDirOf(webAppKey),
+    fs,
+  })) {
+    if (requests.length >= limit) break
+    const request = readRecordFile(fs, dir, FILES.requests, item)
+    if (!request) continue
+    // Keys that differ only by case share a directory where file names ignore case.
+    if (webAppKey && request.web_app !== webAppKey) continue
+    requests.push({
+      ts: request.started_at,
+      kind: 'request',
+      web_app: request.web_app,
+      stage: typeof request.stage === 'string' ? request.stage : null,
+      request_id: request.request_id,
+      source: request.source,
+      method: request.request?.method ?? null,
+      path: request.request?.path ?? null,
+      outcome: request.outcome,
+      status_code: request.status_code ?? null,
+      duration_ms: request.duration_ms,
+      file: requestPathOf(item),
+    })
+  }
+  return requests
+}
+
+/**
+ * The kept request or invocation a request id names, looked up in `trees` (both by default):
+ * `{ kind, file, record }`, kind 'invocation' or 'request'. The id rules and the errors are
+ * `findInvocation`'s; an id that matches one of each is ambiguous too.
+ */
+export const findRecorded = ({
+  dir,
+  idOrPrefix,
+  trees = [FILES.invocations, FILES.requests],
+  fs = nodeFs,
+}) => {
+  const id = String(idOrPrefix ?? '').trim()
+  const files = trees.flatMap((tree) =>
+    recordFilesIn({ dir, tree, fs }).map((item) => ({ ...item, tree })),
+  )
+  let matches = id ? files.filter((item) => item.requestId === id) : []
+  if (matches.length === 0) {
+    if (id.length < REQUEST_ID_PREFIX_MIN) {
+      throw ambiguous(
+        `Give the full request id, or at least its first ${REQUEST_ID_PREFIX_MIN} characters.`,
+      )
+    }
+    matches = files.filter((item) => item.requestId.startsWith(id))
+  }
+  const ids = [...new Set(matches.map((item) => item.requestId))]
+  const where = trees
+    .map((tree) => shownPath(`.serverless/dev/${tree}`))
+    .join(' or ')
+  if (ids.length === 0) {
+    throw notFound(`No request with id ${id} is kept in ${where}.`)
+  }
+  // The same id in both trees is two requests as well.
+  const kinds = new Set(matches.map((item) => item.tree))
+  if (ids.length === 1 && kinds.size > 1) {
+    throw ambiguous(
+      `"${id}" matches both an invocation and a web request with id ${ids[0]}.`,
+    )
+  }
+  if (ids.length > 1) {
+    throw ambiguous(
+      `"${id}" matches more than one request: ${ids.slice(0, 5).join(', ')}${ids.length > 5 ? ', …' : ''}.`,
+    )
+  }
+  const [first] = matches
+  const record = readRecordFile(fs, dir, first.tree, first)
+  if (!record) throw notFound(`The file of request ${id} could not be read.`)
+  return first.tree === FILES.requests
+    ? { kind: 'request', file: requestPathOf(first), record }
+    : {
+        kind: 'invocation',
+        file: invocationRecordPath({
+          fnDir: first.group,
+          fileName: first.name,
+        }),
+        record,
+      }
+}
+
+/** The kept web request a request id names (see `findRecorded`): `{ file, record }`. */
+export const findRequest = ({ dir, idOrPrefix, fs = nodeFs }) => {
+  const { file, record } = findRecorded({
+    dir,
+    idOrPrefix,
+    trees: [FILES.requests],
+    fs,
+  })
+  return { file, record }
 }

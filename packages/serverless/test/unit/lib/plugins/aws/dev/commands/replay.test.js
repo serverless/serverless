@@ -9,7 +9,12 @@ import {
   FILES,
   fnDirOf,
   invocationFileName,
+  requestFileName,
 } from '../../../../../../../lib/plugins/aws/dev/state/paths.js'
+import {
+  REQUEST_REPLAY_MARGIN_MS,
+  REQUEST_REPLAY_TIMEOUT_MS,
+} from '../../../../../../../lib/plugins/aws/dev/web/replay.js'
 import { findInvocation } from '../../../../../../../lib/plugins/aws/dev/state/read.js'
 import { runnable } from './runnable.js'
 import {
@@ -356,5 +361,131 @@ describe('dev replay', () => {
       message: 'socket hang up',
     })
     expect(exitCodeOf(result)).toBe(1)
+  })
+
+  describe('a web request', () => {
+    const WEB_ID = '5e4d3c2b-0000-4000-8000-000000000001'
+    const WEB_FIELDS = {
+      kind: 'request',
+      request_id: '0f0e0d0c-0000-4000-8000-000000000002',
+      replay_of: WEB_ID,
+      web_app: 'api',
+      method: 'POST',
+      path: '/orders',
+      outcome: 'answered',
+      status_code: 201,
+      duration_ms: 17,
+      file: '.serverless/dev/requests/api/1759661100-0f0e0d0c-0000-4000-8000-000000000002.json',
+      note: 'redacted_values_omitted',
+      omitted: ['authorization', 'cookie'],
+    }
+    /** A service directory with one recorded request to `api`, for the real reader. */
+    const recordedRequest = (fields = {}) => {
+      const service = fs.mkdtempSync(path.join(os.tmpdir(), 'sls-dev-t-'))
+      dirs.push(service)
+      const file = path.join(
+        service,
+        '.serverless',
+        'dev',
+        FILES.requests,
+        'api',
+        requestFileName({
+          startedAtMs: Date.parse('2026-10-05T10:41:07.512Z'),
+          requestId: WEB_ID,
+        }),
+      )
+      fs.mkdirSync(path.dirname(file), { recursive: true })
+      fs.writeFileSync(
+        file,
+        JSON.stringify({
+          v: 1,
+          request_id: WEB_ID,
+          web_app: 'api',
+          stage: 'alice',
+          request: { method: 'POST', path: '/orders', headers: {} },
+          ...fields,
+        }),
+      )
+      return service
+    }
+
+    test('replay sends the recorded request to the running session, which replays it as a web request', async () => {
+      const client = {
+        ...answering(200, WEB_FIELDS),
+        record: { stage: 'alice' },
+      }
+      const { result, human } = await runDevReplay({
+        serviceDir: recordedRequest(),
+        options: { requestId: WEB_ID.slice(0, 8) },
+        deps: { connect: async () => client },
+      })
+      expect(result).toMatchObject({ v: 1, status: 'ok', ...WEB_FIELDS })
+      expect(exitCodeOf(result)).toBe(0)
+      expect(client.replay).toHaveBeenCalledWith(WEB_ID, {
+        kind: 'request',
+        timeoutMs: REQUEST_REPLAY_TIMEOUT_MS + REQUEST_REPLAY_MARGIN_MS,
+      })
+      expect(human).toEqual([
+        [
+          'notice',
+          'Replayed 5e4d3c2b on api (POST /orders) as 0f0e0d0c (no caller received it): answered · 201 · 17 ms',
+        ],
+        ['aside', WEB_FIELDS.file],
+        [
+          'aside',
+          'The file keeps no credentials, so the replay left out authorization and cookie.',
+        ],
+      ])
+    })
+
+    test('a request whose body was cut is refused with its reason', async () => {
+      const message = `The body of request ${WEB_ID} was larger than 1 MiB and its file keeps only the first 1 MiB, so it is not replayed.`
+      const { result } = await runDevReplay({
+        serviceDir: recordedRequest(),
+        options: { requestId: WEB_ID },
+        deps: {
+          connect: async () => ({
+            ...answering(409, { reason: 'request_body_truncated', message }),
+            record: { stage: 'alice' },
+          }),
+        },
+      })
+      expect(result).toMatchObject({
+        status: 'error',
+        reason: 'request_body_truncated',
+        message,
+      })
+      expect(exitCodeOf(result)).toBe(1)
+    })
+
+    test('a request of another stage is not replayed on this one', async () => {
+      const client = {
+        ...answering(200, WEB_FIELDS),
+        record: { stage: 'bob', region: 'eu-west-1' },
+      }
+      const { result } = await runDevReplay({
+        serviceDir: recordedRequest(),
+        options: { requestId: WEB_ID },
+        deps: { connect: async () => client },
+      })
+      expect(result).toMatchObject({
+        status: 'error',
+        reason: 'stage_mismatch',
+        message:
+          'Request 5e4d3c2b ran on stage "alice", and the Dev Mode session here runs stage "bob": a replay would send it to the web app of the other stage. Stop this session, then start one of stage "alice" and replay it there.',
+      })
+      expect(client.replay).not.toHaveBeenCalled()
+      expect(result.next.map(({ command }) => runnable(command))).toEqual([
+        { command: 'dev stop', options: { stage: 'bob', region: 'eu-west-1' } },
+        {
+          command: 'dev',
+          options: { detach: true, stage: 'alice', region: 'eu-west-1' },
+        },
+        {
+          command: 'dev replay',
+          options: { requestId: WEB_ID, stage: 'alice', region: 'eu-west-1' },
+        },
+      ])
+    })
   })
 })

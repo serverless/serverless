@@ -4,6 +4,7 @@ import { log, setGlobalRendererSettings } from '@serverless/util'
 import { LambdaClient, GetFunctionCommand } from '@aws-sdk/client-lambda'
 import { jest } from '@jest/globals'
 import { getTestStageName, runSfCore } from '../../../utils/runSfCore.js'
+import { TEST_REGION } from '../../../utils/testRegion.js'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
@@ -17,7 +18,7 @@ const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 describe('Serverless Framework Service - Resolvers - cf per-stack de-duplication', () => {
   jest.setTimeout(900_000)
 
-  const region = 'us-east-1'
+  const region = TEST_REGION
   const fixture = (...parts) => path.join(__dirname, 'fixture', ...parts)
   const stage = getTestStageName()
   const lambdaClient = new LambdaClient({ region })

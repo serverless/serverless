@@ -40,6 +40,10 @@ class DomainInfo {
         data.DomainNameConfigurations[0].CertificateArn)
 
     this.accessMode = data.endpointAccessMode
+
+    this.ipAddressType =
+      data.endpointConfiguration?.ipAddressType ||
+      data.DomainNameConfigurations?.[0]?.IpAddressType
   }
 }
 

@@ -16,14 +16,15 @@ import {
 import { jest } from '@jest/globals'
 import { setGlobalRendererSettings } from '@serverless/util'
 import { getTestStageName, runSfCore } from '../../../utils/runSfCore.js'
+import { TEST_REGION } from '../../../utils/testRegion.js'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 describe('Lambda self-managed code storage (reference mode)', () => {
   const configFileDirPath = path.join(__dirname, 'fixture')
   const handlerFilePath = path.join(configFileDirPath, 'handler.js')
-  const lambdaClient = new LambdaClient({ region: 'us-east-1' })
-  const s3Client = new S3Client({ region: 'us-east-1' })
+  const lambdaClient = new LambdaClient({ region: TEST_REGION })
+  const s3Client = new S3Client({ region: TEST_REGION })
   const originalEnv = process.env
   const stage = getTestStageName()
   let service, configFilePath, functionName

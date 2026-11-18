@@ -115,7 +115,7 @@ describe('SAM/CFN Projects - SAM Existing App', () => {
   })
 
   test('Ensure stack does not exist', async () => {
-    expect(
+    await expect(
       cloudformationClient.send(
         new DescribeStacksCommand({
           StackName: stackName,

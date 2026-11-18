@@ -8,6 +8,6 @@
   },
   "author": "",
   "dependencies": {
-    "serverless-scaleway-functions": "^0.4.8"
+    "serverless-scaleway-functions": "^0.5.1"
   }
 }

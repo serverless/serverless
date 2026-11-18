@@ -17,6 +17,7 @@ import {
   waitForOutput,
   waitForRelay,
 } from '../../utils/devMode.js'
+import { TEST_REGION } from '../../utils/testRegion.js'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
@@ -98,7 +99,7 @@ describe('Compose single-service dev with Pattern D params', () => {
       }
     }
     const left = await cleanupDevModeAccountResources({
-      region: 'us-east-1',
+      region: TEST_REGION,
       suffix,
     }).catch((error) => [error.message])
     if (left.length) console.error('Dev Mode test resources left behind:', left)
@@ -141,7 +142,7 @@ describe('Compose single-service dev with Pattern D params', () => {
       env: { SLS_DEV_TEST_SUFFIX: suffix },
     })
     await waitForOutput(devProcess, /Dev Mode on/)
-    const region = 'us-east-1'
+    const region = TEST_REGION
     const stackName = `compose-devtest-api-${personalStage}`
     const lambda = new LambdaClient({ region })
     const functionName = `${stackName}-hello`

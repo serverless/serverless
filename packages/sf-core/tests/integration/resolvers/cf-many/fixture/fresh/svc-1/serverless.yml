@@ -3,7 +3,6 @@ frameworkVersion: '4'
 
 provider:
   name: aws
-  region: us-east-1
   runtime: nodejs22.x
   environment:
     # The compose-level pre-read, as svc-1 saw it: 'none' on the first deploy

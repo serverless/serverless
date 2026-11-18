@@ -1,0 +1,19 @@
+service: domains-web-apps
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  region: us-east-1
+  # One hostname per run in the test zone, split between the two web apps by path
+  domains:
+    - name: wa-${sls:stage}.${env:SLS_DOMAINS_TEST_ZONE}
+      webApp: web
+    - name: wa-${sls:stage}.${env:SLS_DOMAINS_TEST_ZONE}
+      basePath: api
+      webApp: api
+
+webApps:
+  web:
+    entry: src/web.js
+  api:
+    entry: src/api.js

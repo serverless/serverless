@@ -4,7 +4,7 @@
  */
 import _ from 'lodash'
 import { log } from '@serverless/util'
-import { getProxyDispatcher } from '../proxy/index.js'
+import { fetchWithProxy } from '../proxy/index.js'
 
 class PlatformEventClient {
   constructor() {
@@ -41,10 +41,9 @@ class PlatformEventClient {
       if (versionFramework) {
         headers['x-serverless-version'] = versionFramework
       }
-      await fetch(url, {
+      await fetchWithProxy(url, {
         method: 'POST',
         headers,
-        dispatcher: getProxyDispatcher(url),
         body: JSON.stringify({ events: batch }),
       })
     })

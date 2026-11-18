@@ -5,9 +5,11 @@ import path from 'path'
 import {
   TOUCH_INTERVAL_MS,
   WAIT_DEFAULT_MS,
+  describeRecord,
   runDevWait,
 } from '../../../../../../../lib/plugins/aws/dev/commands/wait.js'
 import { exitCodeOf } from '../../../../../../../lib/plugins/aws/dev/commands/envelope.js'
+import { endStatusOf } from '../../../../../../../lib/plugins/aws/dev/commands/session-end.js'
 import { openEventLog } from '../../../../../../../lib/plugins/aws/dev/state/events.js'
 import { devDirOf } from '../../../../../../../lib/plugins/aws/dev/state/paths.js'
 import { followRecords } from '../../../../../../../lib/plugins/aws/dev/state/read.js'
@@ -129,13 +131,14 @@ const liveClient = (record) => ({
 })
 
 /** One wait on counting timers; `timersLeft` is read when it settles. */
-const wait = (service, options, deps = {}) => {
+const wait = (service, options, deps = {}, serverless) => {
   const timers = countingTimers()
   const logger = fakeLog()
   const promise = runDevWait({
     serviceDir: service,
     options,
     logger,
+    serverless,
     deps: {
       timers,
       isAlive: () => true,
@@ -751,6 +754,150 @@ describe('dev wait --for invocation', () => {
   })
 })
 
+const WEB_REQUEST = '9a8b7c6d-0000-4000-8000-000000000002'
+const WEB_FILE = `.serverless/dev/requests/api/1759661067-${WEB_REQUEST}.json`
+const requestEnd = (log, fields = {}) =>
+  log.emit('request.end', {
+    web_app: 'api',
+    request_id: WEB_REQUEST,
+    source: 'relay',
+    method: 'GET',
+    path: '/orders',
+    outcome: 'answered',
+    status_code: 200,
+    duration_ms: 21,
+    bytes: 512,
+    file: WEB_FILE,
+    ...fields,
+  })
+/** A Framework instance whose serverless.yml has these functions and web apps. */
+const withWebApps = (webApps = ['api', 'admin']) => ({
+  service: {
+    service: 'orders',
+    getAllFunctions: () => ['createOrder'],
+    webApps: Object.fromEntries(webApps.map((key) => [key, {}])),
+  },
+})
+
+describe('dev wait --for request', () => {
+  const quietFollow = ({ signal }) =>
+    new Promise((resolve) => signal.addEventListener('abort', resolve))
+
+  test('wait --for request --web-app api returns the next request.end after the cursor', async () => {
+    const service = serviceDir()
+    const record = writeSession(service)
+    const log = eventLog(service)
+    starting(log)
+    const { cursor: after } = ready(log)
+    invocationEnd(log)
+    requestEnd(log, { web_app: 'admin', request_id: 'other-000000001' })
+    const { logger, promise } = wait(
+      service,
+      { for: 'request', after, 'web-app': ['api'] },
+      { connect: async () => liveClient(record) },
+    )
+    await waiting(logger)
+    expect(logger.text()).toContain('Waiting for the next request to api')
+    const { seq, cursor } = requestEnd(log, { source: 'local' })
+    const { result, human } = await promise
+    expect(result).toMatchObject({
+      status: 'ok',
+      cursor,
+      event: {
+        type: 'request.end',
+        seq,
+        web_app: 'api',
+        request_id: WEB_REQUEST,
+        status_code: 200,
+        file: WEB_FILE,
+      },
+    })
+    expect(exitCodeOf(result)).toBe(0)
+    expect(human).toBe(
+      `api · GET /orders · 9a8b7c6d · answered · 200 · 21 ms · local\n${WEB_FILE}`,
+    )
+  })
+
+  test('a request already after the cursor answers at once, a not_run one too', async () => {
+    const service = serviceDir()
+    const record = writeSession(service)
+    const log = eventLog(service)
+    starting(log)
+    const { cursor: after } = ready(log)
+    const { seq } = requestEnd(log, {
+      outcome: 'not_run',
+      status_code: null,
+      reason: 'web app api is not running on this machine',
+    })
+    const { result, human } = await wait(
+      service,
+      { for: 'request', after },
+      { connect: async () => liveClient(record) },
+    ).promise
+    expect(result).toMatchObject({ status: 'ok', event: { seq } })
+    expect(human).toContain('api · GET /orders · 9a8b7c6d · not_run · 21 ms')
+  })
+
+  test('a timeout says how to keep waiting for the same web app', async () => {
+    const service = serviceDir()
+    const record = writeSession(service)
+    const log = eventLog(service)
+    starting(log)
+    const { cursor } = ready(log)
+    const clock = manualClock(Date.parse('2026-10-05T10:41:00Z'))
+    const logger = fakeLog()
+    const outcome = runDevWait({
+      serviceDir: service,
+      options: { for: 'request', 'web-app': ['api'], timeout: '5s' },
+      logger,
+      deps: {
+        progress: recordingProgress(logger),
+        timers: clock.timers,
+        follow: quietFollow,
+        isAlive: () => true,
+        connect: async () => liveClient(record),
+      },
+    })
+    await waiting(logger)
+    await clock.advance(5_000)
+    const { result } = await outcome
+    expect(result).toMatchObject({
+      status: 'timeout',
+      next: [
+        {
+          command: `serverless dev wait --for request --web-app api --after ${cursor}`,
+        },
+      ],
+    })
+    expect(clock.live()).toBe(0)
+  })
+
+  test('a web app serverless.yml does not have, and --web-app with another --for, are refused', async () => {
+    const service = serviceDir()
+    for (const [options, reason, message] of [
+      [
+        { for: 'request', 'web-app': ['nope'] },
+        'error',
+        'Web app "nope" is not in this service. Web apps: api, admin.',
+      ],
+      [
+        { for: 'invocation', 'web-app': ['api'] },
+        'invalid_option_combination',
+        'Option "--web-app" goes with "--for request" or "--for reload"; "--function" goes with "--for invocation" or "--for reload".',
+      ],
+      [
+        { for: 'request', function: ['createOrder'] },
+        'invalid_option_combination',
+        'Option "--web-app" goes with "--for request" or "--for reload"; "--function" goes with "--for invocation" or "--for reload".',
+      ],
+    ]) {
+      const { result } = await wait(service, options, {}, withWebApps()).promise
+      expect(result).toMatchObject({ status: 'error', reason, message })
+      expect(exitCodeOf(result)).toBe(1)
+    }
+  })
+})
+
 describe('dev wait --for reload and --for ended', () => {
   test('a reload matches on reload.end, also a failed one', async () => {
     const service = serviceDir()
@@ -774,6 +921,63 @@ describe('dev wait --for reload and --for ended', () => {
     ).promise
     expect(result.event).toMatchObject({ type: 'reload.end', ok: false })
     expect(human).toBe('The reload failed: Build failed.')
+  })
+
+  test("--web-app with --for reload matches that web app's reload, not a function's", async () => {
+    const service = serviceDir()
+    const record = writeSession(service)
+    const log = eventLog(service)
+    starting(log)
+    const { cursor: after } = ready(log)
+    log.emit('reload.end', { ok: true, functions: ['createOrder'], ms: 90 })
+    log.emit('reload.end', { ok: true, web_apps: ['admin'], ms: 120 })
+    const { cursor } = log.emit('reload.end', {
+      ok: true,
+      web_apps: ['api'],
+      ms: 150,
+    })
+    const { result, human } = await wait(
+      service,
+      { for: 'reload', 'web-app': ['api'], after },
+      { connect: async () => liveClient(record) },
+      withWebApps(),
+    ).promise
+    expect(result).toMatchObject({
+      status: 'ok',
+      cursor,
+      event: { type: 'reload.end', web_apps: ['api'] },
+    })
+    expect(human).toBe('Reloaded web app api (150 ms).')
+  })
+
+  test('--function with --for reload does not match a web app reload; no filter matches any', async () => {
+    const service = serviceDir()
+    const record = writeSession(service)
+    const log = eventLog(service)
+    starting(log)
+    const { cursor: after } = ready(log)
+    const { cursor: webCursor } = log.emit('reload.end', {
+      ok: true,
+      web_apps: ['api'],
+      ms: 150,
+    })
+    const { cursor } = log.emit('reload.end', {
+      ok: true,
+      functions: ['createOrder'],
+      ms: 90,
+    })
+    const byFunction = await wait(
+      service,
+      { for: 'reload', function: ['createOrder'], after },
+      { connect: async () => liveClient(record) },
+    ).promise
+    expect(byFunction.result).toMatchObject({ status: 'ok', cursor })
+    const any = await wait(
+      service,
+      { for: 'reload', after },
+      { connect: async () => liveClient(record) },
+    ).promise
+    expect(any.result).toMatchObject({ status: 'ok', cursor: webCursor })
   })
 
   test("ended returns the last session's session.ended when none is running", async () => {
@@ -935,10 +1139,13 @@ describe('time limits, bad options and keeping the session in use', () => {
         { for: 'invocation', timeout: 'soon' },
         'Option "--timeout" takes a duration such as 100 or 100s (seconds), 5m or 1h.',
       ],
-      [{}, 'Option "--for" must be one of: ready, invocation, reload, ended.'],
+      [
+        {},
+        'Option "--for" must be one of: ready, invocation, request, reload, ended.',
+      ],
       [
         { for: 'start' },
-        'Option "--for" must be one of: ready, invocation, reload, ended.',
+        'Option "--for" must be one of: ready, invocation, request, reload, ended.',
       ],
     ]) {
       const { result, human } = await wait(service, options).promise
@@ -1868,4 +2075,69 @@ describe('checks and answers added with the sweep', () => {
     expect(result).toMatchObject({ status: 'error' })
     expect(exitCodeOf(result)).toBe(1)
   })
+})
+
+test('the end of a session with web apps that kept them in Dev Mode does not say functions', () => {
+  expect(
+    describeRecord({
+      type: 'session.ended',
+      exit_code: 0,
+      kept: true,
+      restore: { restored: 0, failed: 0 },
+      web_apps: { restored: 0, failed: 0 },
+    }),
+  ).toBe(
+    'Dev Mode off (exit 0): 0 restored, 0 not restored; what it attached was kept in Dev Mode.',
+  )
+  expect(
+    describeRecord({
+      type: 'session.ended',
+      exit_code: 0,
+      kept: true,
+      restore: { restored: 0, failed: 0 },
+    }),
+  ).toBe(
+    'Dev Mode off (exit 0): 0 restored, 0 not restored; functions were kept in Dev Mode.',
+  )
+})
+
+test('the end status of a session with web apps names them', () => {
+  expect(
+    endStatusOf(
+      { type: 'session.ended', exit_code: 3 },
+      { restore: { failed: 1 }, web_apps: { failed: 1 } },
+      { stage: 'alice', region: 'eu-west-1' },
+    ).message,
+  ).toBe(
+    'The Dev Mode session ended without restoring every function or web app.',
+  )
+  expect(
+    endStatusOf(
+      { type: 'session.ended', exit_code: 3 },
+      { restore: { failed: 1 } },
+      { stage: 'alice', region: 'eu-west-1' },
+    ).message,
+  ).toBe('The Dev Mode session ended without restoring every function.')
+})
+
+test('the ready record of a session with web apps says how many run on this machine', () => {
+  expect(
+    describeRecord({
+      type: 'session.ready',
+      session_id: 's_x',
+      functions: { dev: 1, deployed: 0, skipped: 0 },
+      web_apps: { dev: 1, local: 1, deployed: 1, skipped: 0 },
+    }),
+  ).toBe(
+    'Dev Mode is on: 1 of 1 function and 2 of 3 web apps run on this machine (session s_x).',
+  )
+  // Web apps alone: no functions are named.
+  expect(
+    describeRecord({
+      type: 'session.ready',
+      session_id: 's_x',
+      functions: { dev: 0, deployed: 0, skipped: 0 },
+      web_apps: { dev: 1, local: 0, deployed: 0, skipped: 0 },
+    }),
+  ).toBe('Dev Mode is on: 1 of 1 web app run on this machine (session s_x).')
 })

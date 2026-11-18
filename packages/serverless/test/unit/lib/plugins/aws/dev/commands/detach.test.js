@@ -15,6 +15,7 @@ import {
   countingTimers,
   fakeLog,
   fakeProvider,
+  fakeServerless,
   humanText,
 } from '../attach/fakes.js'
 import { runWithoutColor } from '../without-color.js'
@@ -108,6 +109,7 @@ const ownLogOf = (service) =>
 
 const launch = ({
   options = {},
+  stage = 'dev',
   interactive = false,
   deps = {},
   child = Object.assign(new EventEmitter(), {
@@ -119,6 +121,8 @@ const launch = ({
     dirs.push(made)
     return made
   })(),
+  // The service's configuration, as the Framework has it (web apps, functions).
+  config,
 } = {}) => {
   const spawn = jest.fn(() => child)
   const timers = countingTimers()
@@ -126,8 +130,10 @@ const launch = ({
   // The session as the control endpoint shows it, once there is one.
   const live = { client: null }
   const promise = runDetach({
-    serverless: { serviceDir: service, service: { service: 'orders' } },
-    provider: fakeProvider(),
+    serverless: config
+      ? { ...config, serviceDir: service }
+      : { serviceDir: service, service: { service: 'orders' } },
+    provider: fakeProvider({ stage }),
     options: { detach: true, json: true, ...options },
     logger,
     deps: {
@@ -350,6 +356,56 @@ describe('serverless dev --detach', () => {
     expect(running.spawn).not.toHaveBeenCalled()
   })
 
+  test('--detach again shows a function the session lost with its reason, as dev status does', async () => {
+    const why = 'lost the Dev Mode layer; cannot start until it is restored'
+    const functions = [
+      { name: 'createOrder', mode: 'dev' },
+      { name: 'worker', mode: 'dev', reason: 'layer_missing', why },
+    ]
+    const running = launch({
+      deps: {
+        connect: async () =>
+          clientOf(sessionRecord({ state: 'on' }), {
+            state: 'on',
+            functions,
+            cursor: `${SESSION}:9`,
+          }),
+      },
+    })
+    const { result, human } = await running.promise
+    expect(result).toMatchObject({ already_running: true, functions })
+    expect(human).toContainEqual([
+      'notice',
+      [
+        'Function     Mode  Why',
+        'createOrder  dev',
+        `worker       dev   ${why}`,
+      ].join('\n'),
+    ])
+  })
+
+  test('a session whose functions all run here shows no function table', async () => {
+    const running = launch({
+      deps: {
+        connect: async () =>
+          clientOf(sessionRecord({ state: 'on' }), {
+            state: 'on',
+            functions: [
+              { name: 'createOrder', mode: 'dev' },
+              { name: 'api', mode: 'dev', notes: ['vpc_egress_required'] },
+            ],
+            cursor: `${SESSION}:9`,
+          }),
+      },
+    })
+    const { human } = await running.promise
+    expect(humanText(human)).not.toMatch(/Function\s+Mode\s+Why/)
+    expect(human[0]).toEqual([
+      'notice',
+      `Dev Mode is already on here (session ${SESSION}, pid ${CHILD_PID}, stage dev).`,
+    ])
+  })
+
   test('--detach again with other settings says the running session keeps its own', async () => {
     const running = launch({
       options: { 'idle-timeout': '2h', 'take-over': true },
@@ -388,6 +444,60 @@ describe('serverless dev --detach', () => {
     const { result } = await running.promise
     expect(result.already_running).toBe(true)
     expect(result.message).toBeUndefined()
+  })
+
+  test('a running session with web apps reports them, counts them and names them in its table', async () => {
+    const webApps = [
+      {
+        name: 'web',
+        mode: 'dev',
+        url: 'https://main-web.example',
+        local_url: 'http://127.0.0.1:52001',
+      },
+      {
+        name: 'docs',
+        mode: 'skipped',
+        reason: 'not_deployed',
+        why: 'not deployed yet (run serverless deploy)',
+      },
+    ]
+    const running = launch({
+      deps: {
+        connect: async () =>
+          clientOf(sessionRecord({ state: 'on' }), {
+            state: 'on',
+            functions: FUNCTIONS,
+            web_apps: webApps,
+            cursor: `${SESSION}:9`,
+          }),
+      },
+    })
+    const { result, human } = await running.promise
+    expect(result.web_apps).toEqual(webApps)
+    expect(humanText(human)).toMatch(/docs \(web app\)\s+skipped/)
+    expect(human).toContainEqual([
+      'aside',
+      'Next: "serverless dev wait --for invocation" waits for an invocation, "serverless dev wait --for request" for a web app request; "serverless dev stop" restores your functions and web apps and ends the session.',
+    ])
+  })
+
+  test('a running session of web apps alone suggests waiting for a web app request', async () => {
+    const running = launch({
+      deps: {
+        connect: async () =>
+          clientOf(sessionRecord({ state: 'on' }), {
+            state: 'on',
+            functions: [],
+            web_apps: [{ name: 'web', mode: 'dev' }],
+            cursor: `${SESSION}:9`,
+          }),
+      },
+    })
+    const { human } = await running.promise
+    expect(human).toContainEqual([
+      'aside',
+      'Next: "serverless dev wait --for request" waits for a web app request; "serverless dev stop" restores your web apps and ends the session.',
+    ])
   })
 
   test('a running foreground session is already_running with no log file', async () => {
@@ -746,6 +856,21 @@ describe('serverless dev --detach', () => {
     )
   })
 
+  test('a protected stage is stage_protected before anything starts or is written', async () => {
+    const { service, spawn, promise } = launch({ stage: 'prod' })
+    const { result, timersLeft } = await promise
+    expect(result).toEqual({
+      v: 1,
+      status: 'error',
+      reason: 'stage_protected',
+      message:
+        'Dev Mode does not run on stage "prod": it changes the live configuration of deployed functions. Use a personal or development stage, for example "serverless dev --stage <your-name>".',
+    })
+    expect(spawn).not.toHaveBeenCalled()
+    expect(fs.existsSync(devDirOf(service))).toBe(false)
+    expect(timersLeft).toBe(0)
+  })
+
   test('a session process that cannot be started is detach_failed', async () => {
     const { child, spawn, promise } = launch()
     await until(() => spawn.mock.calls.length > 0)
@@ -1036,6 +1161,42 @@ describe('serverless dev --detach', () => {
       ],
     ])
     expect(timersLeft).toBe(0)
+  })
+
+  test('a session still starting names what its stop restores: web apps that will run, functions', async () => {
+    const serviceOf = (functions, webApps) => {
+      const serverless = fakeServerless({ functions })
+      serverless.service.webApps = webApps
+      return serverless
+    }
+    const stopWhen = async ({ config, options }) => {
+      const { session, promise } = launch({
+        config,
+        options,
+        deps: { waitMs: 1_000 },
+      })
+      await session.started()
+      const { result, human } = await promise
+      return [result.next[1].when, human.at(-1)[1]]
+    }
+    // Web apps alone.
+    expect(await stopWhen({ config: serviceOf({}, { web: {} }) })).toEqual([
+      'to stop it and restore your web apps',
+      'Next: "serverless dev wait --for ready" waits until it is ready; "serverless dev stop" restores your web apps and ends the session.',
+    ])
+    // Functions and web apps; with every web app skipped, functions alone.
+    const mixed = serviceOf({ api: {} }, { web: {} })
+    expect((await stopWhen({ config: mixed }))[0]).toBe(
+      'to stop it and restore your functions and web apps',
+    )
+    expect(
+      (
+        await stopWhen({
+          config: mixed,
+          options: { 'skip-web-app': ['web'] },
+        })
+      )[0],
+    ).toBe('to stop it and restore your functions')
   })
 
   test('--approve without a terminal is approval_needs_terminal; nothing is planned or started', async () => {

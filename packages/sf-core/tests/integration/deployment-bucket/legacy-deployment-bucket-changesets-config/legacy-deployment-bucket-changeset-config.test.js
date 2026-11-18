@@ -14,6 +14,7 @@ import { ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3'
 import { jest } from '@jest/globals'
 import { setGlobalRendererSettings } from '@serverless/util'
 import { getTestStageName, runSfCore } from '../../../utils/runSfCore.js'
+import { TEST_REGION } from '../../../utils/testRegion.js'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
@@ -30,9 +31,9 @@ const checkIfS3ObjectsExist = async (s3Client, bucketName, prefix) => {
 
 describe('Serverless Framework Service - Enable Legacy Deployment Bucket through the YML file with changesets deployment method', () => {
   const configFileDirPath = path.join(__dirname, 'fixture')
-  const lambdaClient = new LambdaClient({ region: 'us-east-1' })
-  const cfnClient = new CloudFormationClient({ region: 'us-east-1' })
-  const s3Client = new S3Client({ region: 'us-east-1' })
+  const lambdaClient = new LambdaClient({ region: TEST_REGION })
+  const cfnClient = new CloudFormationClient({ region: TEST_REGION })
+  const s3Client = new S3Client({ region: TEST_REGION })
   const originalEnv = process.env
   const stage = getTestStageName()
   let service, configFilePath

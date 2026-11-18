@@ -77,3 +77,22 @@ test.each([
     )
   },
 )
+
+// Restore-first reads AWS alone (web apps included): it runs where Dev Mode never ran, and the
+// verb it gets is what keeps web apps out of the check before remove.
+test.each([
+  ['deploy', ['deploy'], 'before:deploy:deploy', 'deploy'],
+  ['remove', ['remove'], 'before:remove:remove', 'removal'],
+])(
+  '%s runs the restore-first check with its verb in a checkout without .serverless/dev',
+  async (_, commands, hook, verb) => {
+    const dir = serviceDir({ ranDevMode: false })
+    const serverless = fakeServerless(dir, commands)
+    serverless.service.webApps = { api: {} }
+    await new AwsDev(serverless, {}).hooks[hook]()
+    expect(restoreStageBeforeCommand).toHaveBeenCalledTimes(1)
+    expect(restoreStageBeforeCommand).toHaveBeenCalledWith(
+      expect.objectContaining({ verb, devModeRanHere: false }),
+    )
+  },
+)

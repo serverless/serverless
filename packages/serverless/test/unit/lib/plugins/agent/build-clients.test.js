@@ -36,6 +36,7 @@ const FakeAwsHttpApiGatewayClient = makeFakeEngineClientClass(
 )
 const FakeAwsAlbClient = makeFakeEngineClientClass('elbv2')
 const FakeAwsEventBridgeClient = makeFakeEngineClientClass('eventbridge')
+const FakeAwsEventBridgeV2Client = makeFakeEngineClientClass('eventbridgev2')
 const FakeAwsS3Client = makeFakeEngineClientClass('s3')
 const FakeAwsDynamoDBClient = makeFakeEngineClientClass('dynamodb')
 const FakeAwsSqsClient = makeFakeEngineClientClass('sqs')
@@ -46,6 +47,7 @@ const FakeAwsIotClient = makeFakeEngineClientClass('iot')
 const FakeAwsKinesisClient = makeFakeEngineClientClass('kinesis')
 const FakeAwsCloudFrontClient = makeFakeEngineClientClass('cloudfront')
 const FakeAwsLambdaMicrovmsClient = makeFakeEngineClientClass('lambda-microvms')
+const FakeAwsLambdaWebClient = makeFakeEngineClientClass('lambda-web')
 
 // AwsCloudWatchClient is unique: it wraps TWO proxy-wrapped SDK clients
 // (`this.logsClient` for @aws-sdk/client-cloudwatch-logs, `this.metricsClient`
@@ -90,6 +92,12 @@ jest.unstable_mockModule(
   '../../../../../../engine/src/lib/aws/eventbridge.js',
   () => ({
     AwsEventBridgeClient: FakeAwsEventBridgeClient,
+  }),
+)
+jest.unstable_mockModule(
+  '../../../../../../engine/src/lib/aws/eventbridgev2.js',
+  () => ({
+    AwsEventBridgeV2Client: FakeAwsEventBridgeV2Client,
   }),
 )
 jest.unstable_mockModule('../../../../../../engine/src/lib/aws/s3.js', () => ({
@@ -146,6 +154,12 @@ jest.unstable_mockModule(
     AwsLambdaMicrovmsClient: FakeAwsLambdaMicrovmsClient,
   }),
 )
+jest.unstable_mockModule(
+  '../../../../../../engine/src/lib/aws/lambda-web.js',
+  () => ({
+    AwsLambdaWebClient: FakeAwsLambdaWebClient,
+  }),
+)
 
 // Fake SDK command modules -- each exported "Command" is just a marker class
 // so we can assert `new SdkModule.FooCommand(input)` was constructed with the
@@ -182,6 +196,10 @@ jest.unstable_mockModule('@aws-sdk/client-elastic-load-balancing-v2', () => ({
 }))
 jest.unstable_mockModule('@aws-sdk/client-eventbridge', () => ({
   DescribeRuleCommand: makeCommandClass('DescribeRuleCommand'),
+}))
+jest.unstable_mockModule('@aws-sdk/client-eventbridgev2', () => ({
+  DescribeSubscriberCommand: makeCommandClass('DescribeSubscriberCommand'),
+  DescribeEventBusCommand: makeCommandClass('DescribeEventBusCommand'),
 }))
 jest.unstable_mockModule('@aws-sdk/client-s3', () => ({
   GetBucketLocationCommand: makeCommandClass('GetBucketLocationCommand'),
@@ -225,6 +243,15 @@ jest.unstable_mockModule('@aws-sdk/client-cloudfront', () => ({
 jest.unstable_mockModule('@aws-sdk/client-lambda-microvms', () => ({
   GetMicrovmImageCommand: makeCommandClass('GetMicrovmImageCommand'),
 }))
+jest.unstable_mockModule('@aws-sdk/client-lambda-web', () => ({
+  GetWebFunctionCommand: makeCommandClass('GetWebFunctionCommand'),
+  GetWebFunctionRevisionCommand: makeCommandClass(
+    'GetWebFunctionRevisionCommand',
+  ),
+  GetWebFunctionEndpointCommand: makeCommandClass(
+    'GetWebFunctionEndpointCommand',
+  ),
+}))
 
 const { createInvoker } =
   await import('../../../../../lib/plugins/agent/lib/build-clients.js')
@@ -263,6 +290,18 @@ describe('build-clients', () => {
         FakeAwsEventBridgeClient,
         'DescribeRule',
         'DescribeRuleCommand',
+      ],
+      [
+        'eventbridgev2',
+        FakeAwsEventBridgeV2Client,
+        'DescribeSubscriber',
+        'DescribeSubscriberCommand',
+      ],
+      [
+        'eventbridgev2',
+        FakeAwsEventBridgeV2Client,
+        'DescribeEventBus',
+        'DescribeEventBusCommand',
       ],
       [
         'dynamodb',
@@ -312,6 +351,24 @@ describe('build-clients', () => {
         FakeAwsLambdaMicrovmsClient,
         'GetMicrovmImage',
         'GetMicrovmImageCommand',
+      ],
+      [
+        'lambda-web',
+        FakeAwsLambdaWebClient,
+        'GetWebFunction',
+        'GetWebFunctionCommand',
+      ],
+      [
+        'lambda-web',
+        FakeAwsLambdaWebClient,
+        'GetWebFunctionRevision',
+        'GetWebFunctionRevisionCommand',
+      ],
+      [
+        'lambda-web',
+        FakeAwsLambdaWebClient,
+        'GetWebFunctionEndpoint',
+        'GetWebFunctionEndpointCommand',
       ],
     ])(
       'routes %s through its engine client and dispatches %s',

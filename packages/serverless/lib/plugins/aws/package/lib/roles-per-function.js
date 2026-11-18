@@ -6,6 +6,12 @@ import applyPerFunctionPermissions from './roles-per-function-permissions.js'
 import usesDedicatedPerFunctionRole, {
   hasExternalIamPerFunctionPlugin,
 } from './uses-dedicated-per-function-role.js'
+import { getWebAppsConfig } from '../../lib/web-apps.js'
+import {
+  getWebAppFunctionName,
+  getWebAppLogicalIds,
+} from '../../web-apps/compilers/function.js'
+import { setRevisionExecutionRole } from '../../web-apps/compilers/revision.js'
 
 const PLUGIN_NAME = 'serverless-iam-roles-per-function'
 
@@ -34,13 +40,21 @@ export default {
     throw new this.serverless.classes.Error(errMsg)
   },
 
-  _validateStatements(statements) {
+  /**
+   * @param {unknown} statements
+   * @param {string} [key] - the setting the statements come from, for the message
+   */
+  _validateStatements(statements, key = 'iamRoleStatements') {
     if (_.isEmpty(statements)) return
     let violationsFound
+    // With configValidationMode: warn the schema lets these through
     if (!Array.isArray(statements)) {
       violationsFound = 'it is not an array'
     } else {
       const descriptions = statements.map((statement, i) => {
+        if (!_.isPlainObject(statement)) {
+          return `statement ${i} is not an object`
+        }
         const missing = [
           ['Effect'],
           ['Action', 'NotAction'],
@@ -58,11 +72,15 @@ export default {
 
     if (violationsFound) {
       const errorMessage = [
-        'iamRoleStatements should be an array of objects,',
+        `${key} should be an array of objects,`,
         ' where each object has Effect, Action / NotAction, Resource / NotResource fields.',
         ` Specifically, ${violationsFound}`,
       ].join('')
-      this._throwError(errorMessage)
+      throw new this.serverless.classes.Error(
+        errorMessage,
+        'INVALID_IAM_ROLE_STATEMENTS',
+        { stack: false },
+      )
     }
   },
 
@@ -200,14 +218,33 @@ export default {
     return functionResourceName
   },
 
-  _createRoleForFunction(functionName, functionToRoleMap, options = {}) {
+  /**
+   * Create the dedicated role of a function or a web app.
+   *
+   * @param {string} functionName - the entry's key under `functions` or
+   *   `webApps`
+   * @param {object} functionObject - the entry
+   * @param {object} options
+   * @param {string} options.roleLogicalId - the role's logical ID
+   * @param {(template: object, roleLogicalId: string) => void} options.wireRole -
+   *   points the entry's compiled resources at the role
+   * @param {string} [options.webFunctionName] - set for a web app: its
+   *   function's name (see `applyPerFunctionPermissions`)
+   */
+  _createRoleForFunction(functionName, functionObject, options) {
     const {
+      roleLogicalId,
+      wireRole,
+      webFunctionName,
       baseIamRoleOverride,
       preserveManagedPolicies = false,
       forceRoleCreation = false,
       defaultInheritProviderStatements = false,
     } = options
-    const functionObject = this.serverless.service.getFunction(functionName)
+    const entryPath =
+      webFunctionName === undefined
+        ? `functions.${functionName}`
+        : `webApps.${functionName}`
     const newShapeStatementsTop = _.get(functionObject, 'iam.role.statements')
     const hasLegacyStatements = functionObject.iamRoleStatements !== undefined
     const hasNewShapeStatements = newShapeStatementsTop !== undefined
@@ -222,6 +259,20 @@ export default {
       hasLegacyStatements || hasNewShapeStatements || hasFunctionManagedPolicies
     if (!hasCustomPerFunctionConfig && !forceRoleCreation) return
     if (functionObject.role) {
+      if (hasCustomPerFunctionConfig && webFunctionName !== undefined) {
+        const settings = [
+          hasLegacyStatements && 'iamRoleStatements',
+          hasNewShapeStatements && 'iam.role.statements',
+          hasFunctionManagedPolicies && 'iam.role.managedPolicies',
+        ]
+          .filter(Boolean)
+          .map((setting) => `${entryPath}.${setting}`)
+        throw new this.serverless.classes.Error(
+          `${entryPath}.role cannot be combined with ${settings.join(' and ')}. Remove role to give the web app a role of its own, or remove ${settings.length === 1 ? 'that setting' : 'those settings'} to use the role.`,
+          'WEB_APPS_ROLE_WITH_IAM_ROLE',
+          { stack: false },
+        )
+      }
       if (hasCustomPerFunctionConfig) {
         this._throwError(
           "Defining function 'role' cannot be combined with per-function IAM settings ('iamRoleStatements', 'iam.role.statements', or 'iam.role.managedPolicies'). Function name: " +
@@ -233,7 +284,10 @@ export default {
     const effectiveStatementsForValidate = hasNewShapeStatements
       ? newShapeStatementsTop
       : functionObject.iamRoleStatements
-    this._validateStatements(effectiveStatementsForValidate)
+    this._validateStatements(
+      effectiveStatementsForValidate,
+      `${entryPath}.${hasNewShapeStatements ? 'iam.role.statements' : 'iamRoleStatements'}`,
+    )
 
     const globalRoleName = this.provider.naming.getRoleLogicalId()
     const baseIamRole =
@@ -270,6 +324,7 @@ export default {
       serverless: this.serverless,
       provider: this.provider,
       throwError: (msg, ...args) => this._throwError(msg, ...args),
+      webFunctionName,
     })
 
     const customConfig = _.get(
@@ -371,20 +426,10 @@ export default {
       )
     }
 
-    const roleResourceName =
-      this.provider.naming.getNormalizedFunctionName(functionName) +
-      globalRoleName
-
-    this.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-      roleResourceName
-    ] = functionIamRole
-
-    const functionResourceName = this._updateFunctionResourceRole(
-      functionName,
-      roleResourceName,
-      globalRoleName,
-    )
-    functionToRoleMap.set(functionResourceName, roleResourceName)
+    const template =
+      this.serverless.service.provider.compiledCloudFormationTemplate
+    template.Resources[roleLogicalId] = functionIamRole
+    wireRole(template, roleLogicalId)
   },
 
   _setEventSourceMappings(functionToRoleMap) {
@@ -406,7 +451,8 @@ export default {
 
   createRolesPerFunction() {
     const allFunctions = this.serverless.service.getAllFunctions()
-    if (_.isEmpty(allFunctions)) return
+    const webApps = getWebAppsConfig(this.serverless)
+    if (_.isEmpty(allFunctions) && _.isEmpty(webApps)) return
     // Parity with core early-returns when provider role is external or explicitly set
     const iamConfig = this.serverless.service.provider.iam || {}
     const iamRole = _.get(iamConfig, 'role', {})
@@ -423,26 +469,73 @@ export default {
       !perFunctionIamRoleEnabled
     )
       return
-    if (perFunctionIamRoleEnabled) {
-      const baseIamRole = this._buildBaseIamRoleFromProviderConfig(iamRole)
+    const globalRoleName = this.provider.naming.getRoleLogicalId()
+    const getFunctionRoleLogicalId = (func) =>
+      this.provider.naming.getNormalizedFunctionName(func) + globalRoleName
+    const webAppCtx = {
+      serviceName: this.serverless.service.service,
+      stage: this.provider.getStage(),
+    }
+    const createdWebAppRoleNames = new Set()
+
+    const createRoles = (modeOptions) => {
       for (const func of allFunctions) {
-        this._createRoleForFunction(func, functionToRoleMap, {
-          baseIamRoleOverride: baseIamRole,
-          preserveManagedPolicies: true,
-          // In per-function mode, default to inheriting provider statements,
-          // but allow functions to opt out via iam.inheritStatements: false.
-          defaultInheritProviderStatements: true,
-          forceRoleCreation: true,
+        this._createRoleForFunction(
+          func,
+          this.serverless.service.getFunction(func),
+          {
+            ...modeOptions,
+            roleLogicalId: getFunctionRoleLogicalId(func),
+            wireRole: (template, roleLogicalId) => {
+              const functionResourceName = this._updateFunctionResourceRole(
+                func,
+                roleLogicalId,
+                globalRoleName,
+              )
+              functionToRoleMap.set(functionResourceName, roleLogicalId)
+            },
+          },
+        )
+      }
+      for (const [key, webApp] of Object.entries(webApps)) {
+        const logicalIds = getWebAppLogicalIds(key)
+        this._createRoleForFunction(key, webApp, {
+          ...modeOptions,
+          roleLogicalId: logicalIds.executionRole,
+          webFunctionName: getWebAppFunctionName(webAppCtx, key, webApp),
+          wireRole: (template, roleLogicalId) => {
+            const revision = template.Resources[logicalIds.revision]
+            if (!revision?.Properties?.ServiceConfig) {
+              this._throwError(
+                'Web app resource is not in expected format. For web app: ' +
+                  key,
+              )
+            }
+            setRevisionExecutionRole(revision, roleLogicalId)
+            createdWebAppRoleNames.add(roleLogicalId)
+          },
         })
       }
+    }
+
+    if (perFunctionIamRoleEnabled) {
+      createRoles({
+        baseIamRoleOverride: this._buildBaseIamRoleFromProviderConfig(iamRole),
+        preserveManagedPolicies: true,
+        // In per-function mode, default to inheriting provider statements,
+        // but allow functions to opt out via iam.inheritStatements: false.
+        defaultInheritProviderStatements: true,
+        forceRoleCreation: true,
+      })
     } else {
-      for (const func of allFunctions) {
-        this._createRoleForFunction(func, functionToRoleMap)
-      }
+      createRoles({})
     }
     this._setEventSourceMappings(functionToRoleMap)
 
-    const createdRoleNames = new Set(functionToRoleMap.values())
+    const createdRoleNames = new Set([
+      ...functionToRoleMap.values(),
+      ...createdWebAppRoleNames,
+    ])
     const predictedRoleNames = new Set()
     for (const func of allFunctions) {
       const functionObject = this.serverless.service.getFunction(func)
@@ -453,13 +546,28 @@ export default {
           awsProvider: this.provider,
         })
       ) {
-        const predictedRoleName =
-          this.provider.naming.getNormalizedFunctionName(func) +
-          this.provider.naming.getRoleLogicalId()
+        const predictedRoleName = getFunctionRoleLogicalId(func)
         predictedRoleNames.add(predictedRoleName)
         if (!createdRoleNames.has(predictedRoleName)) {
           this._throwError(
             `Function "${func}" was predicted to receive a dedicated IAM role but did not receive its dedicated IAM role during packaging. This is a bug in the Framework - please report it.`,
+          )
+        }
+      }
+    }
+    for (const [key, webApp] of Object.entries(webApps)) {
+      if (
+        usesDedicatedPerFunctionRole({
+          functionObject: webApp,
+          serverless: this.serverless,
+          awsProvider: this.provider,
+        })
+      ) {
+        const predictedRoleName = getWebAppLogicalIds(key).executionRole
+        predictedRoleNames.add(predictedRoleName)
+        if (!createdRoleNames.has(predictedRoleName)) {
+          this._throwError(
+            `Web app "${key}" was predicted to receive a dedicated IAM role but did not receive its dedicated IAM role during packaging. This is a bug in the Framework - please report it.`,
           )
         }
       }
