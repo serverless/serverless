@@ -52,6 +52,7 @@ const HANDLER = (version) =>
     'export const handler = async (event) => {',
     '  count += 1',
     '  if (event.exit) process.exit(event.exit)',
+    '  if (event.announce) console.log(event.announce)',
     '  if (event.sleepMs) await new Promise((resolve) => setTimeout(resolve, event.sleepMs))',
     '  if (event.log) console.log(event.log)',
     '  let credentials = null',
@@ -1380,12 +1381,21 @@ describe('the deadline on this machine', () => {
     const entry = await setup({ timers, now: () => NOW })
     const { pid } = body(await entry.invoke())
     const pending = entry.send({
+      requestId: 'req-armed-0000',
       deadlineMs: NOW + 60_000,
-      event: { sleepMs: 60_000 },
+      event: { announce: 'running', sleepMs: 60_000 },
     })
-    expect(await waitFor(() => entry.output.of('start').length === 2)).toBe(
-      true,
-    )
+    // Fired only once the handler runs the invocation: a warm worker asks for its next invocation
+    // a moment after its previous reply, and an invocation that times out still queued for it
+    // never ran there, so its worker is left to serve the next one.
+    const running = () =>
+      entry.output
+        .of('log')
+        .some(
+          (call) =>
+            call.requestId === 'req-armed-0000' && call.text === 'running',
+        )
+    expect(await waitFor(running)).toBe(true)
     const deadline = timers.armed.find(
       (item) => !item.done && item.ms === 61_000,
     )
