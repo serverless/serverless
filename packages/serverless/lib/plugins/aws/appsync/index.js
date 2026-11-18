@@ -15,7 +15,7 @@ import { getAppSyncConfig } from './get-appsync-config.js'
 import { GraphQLError } from 'graphql'
 import { DateTime } from 'luxon'
 import path from 'path'
-import open from 'open'
+import { openBrowser } from '../../../utils/open-browser.js'
 import fs from 'fs'
 import terminalLink from 'terminal-link'
 import { AppSyncValidationError, validateConfig } from './validation.js'
@@ -410,14 +410,14 @@ class ServerlessAppsyncPlugin {
     const apiId = await this.getApiIdFromStack()
     const { region } = this.serverless.service.provider
     const url = `${CONSOLE_BASE_URL}/appsync/home?region=${region}#/${apiId}/v1/home`
-    open(url)
+    openBrowser(url)
   }
 
   async openCloudWatch() {
     const apiId = await this.getApiIdFromStack()
     const { region } = this.serverless.service.provider
     const url = `${CONSOLE_BASE_URL}/cloudwatch/home?region=${region}#logsV2:log-groups/log-group/$252Faws$252Fappsync$252Fapis$252F${apiId}`
-    open(url)
+    openBrowser(url)
   }
 
   async initShowLogs() {
