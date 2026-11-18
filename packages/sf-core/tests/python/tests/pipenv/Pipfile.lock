@@ -24,20 +24,20 @@
         },
         "boto3": {
             "hashes": [
-                "sha256:0599bdde7d0c03d914d9247b0a328ea48c15b0b3b5fb31a153857fa5bc7a4fd3",
-                "sha256:fc41ea80507416c30a3f7bdea3682124551ec0c36405c0d8149efaf65d9628e7"
+                "sha256:5d311d2988ae560f83e5fb8a284cb57b48e2c8d444ecb78a6d6752ae1740e04a",
+                "sha256:ae3009db1294fd4ca2e30d9592ead8ab56f0e270bcad0b95e555f03f7875716d"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.10'",
-            "version": "==1.43.121"
+            "version": "==1.44.0"
         },
         "botocore": {
             "hashes": [
-                "sha256:80948cb9b1cdf1a1a25809089a42e3a1bc4af0258d198222db6e97dcc660dd0c",
-                "sha256:e30580f9c1282c321529238ff8ff75066096a2adbd0a293c8ae592c21d1733a3"
+                "sha256:757c7f33d006e8a3c873e1fed71611baaaa2ee4d72e6f830ec0423d02ec5de2d",
+                "sha256:9deb4d9479d63aabf8fbd9169800821c1f47be77352d8b9b3d020de9a824794a"
             ],
             "markers": "python_version >= '3.10'",
-            "version": "==1.43.123"
+            "version": "==1.44.6"
         },
         "bottle": {
             "hashes": [
@@ -49,12 +49,12 @@
         },
         "click": {
             "hashes": [
-                "sha256:255bc9599cf7748b4b1a446ccc735421bd08a2ae529a8b88597d3de5664ee360",
-                "sha256:ba0d2089de75ea0310e2dde03160e6ca10009947fb95a182f9b54021bb272e34"
+                "sha256:8bb5376d2006950386f8c6427613334a2acadc5f559cb80e638d00b4df957e37",
+                "sha256:9bbfada76703fd1d784b83eea012e3e8c6a001a876543ef104fa56aaaeb072b4"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.10'",
-            "version": "==8.5.0"
+            "version": "==8.5.1"
         },
         "flask": {
             "hashes": [
@@ -323,12 +323,12 @@
         },
         "pytest": {
             "hashes": [
-                "sha256:1088fbde8f2b49d95a549a195707afa7a76a3ce9bcadc26b6d71f0ffda5fe313",
-                "sha256:37a86b45efb9a47a61a36449063e8e18d0cab3161329fc099eb21783169c4f0c"
+                "sha256:07acdcf88ec174f907dc01af70bf52d49b014bbab03faeeade31c96b18c2e588",
+                "sha256:97c4f3b1f3c7414aa36465e09b8220f1d03627993bd51b1282e193753c80557b"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.10'",
-            "version": "==9.1.1"
+            "version": "==9.2.0"
         }
     }
 }
