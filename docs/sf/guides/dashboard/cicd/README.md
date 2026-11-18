@@ -1,62 +1,68 @@
 <!--
-title: Serverless Framework Dashboard - CI/CD
-description: Learn how to set up and use Serverless Framework CI/CD to automatically test and deploy services from Github.
-short_title: Serverless Dashboard - CI/CD
+title: Serverless CI/CD
+description: 'Test and deploy services from GitHub or Bitbucket with Serverless CI/CD, the Dashboard''s managed builds: requirements, setup and build steps.'
+short_title: Serverless CI/CD
 keywords:
   [
     'Serverless Framework',
-    'CI/CD',
-    'Github',
-    'AWS',
-    'Node.js',
-    'Python',
-    'Deployment',
+    'Serverless CI/CD',
     'Serverless Dashboard',
+    'GitHub',
+    'Bitbucket',
+    'Continuous deployment',
   ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://serverless.com/framework/docs/guides/cicd/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/dashboard/cicd)
 
 <!-- DOCS-SITE-LINK:END -->
 
-# CI/CD
+# Serverless CI/CD
 
-Serverless CI/CD enables you to automatically test and deploy services from Github.
+Serverless CI/CD is the Serverless Framework Dashboard's managed build service: it tests and deploys a service from a GitHub or Bitbucket repository on every push to a mapped branch and, with preview deployments on, for pull requests. It needs no pipeline file in the repository and no build servers. To run the Framework in GitHub Actions, GitLab CI/CD or another CI/CD service instead, see [Deploy from your own CI/CD pipeline](./running-in-your-own-cicd.md).
 
-## Requirements
+## Requirements for Serverless CI/CD
 
-Before you setup your CI/CD workflow, make sure you meet the following requirements:
+A service can use Serverless CI/CD when:
 
-1. **Must have your Serverless Framework project checked into Github**. Currently Github and BitBucket are supported as a VCS providers. Your project, including the serverless.yml file, must be checked into a repo.
-2. **Must be deployed on AWS**. The dashboard currently only supports AWS as a cloud service provider. Other cloud service providers are a work in progress.
-3. **Must use the Node or Python runtime**. Currently only Serverless Framework projects using the Node or Python runtimes are supported. Other runtimes may work but are not officially supported.
+- **The service is in a GitHub or Bitbucket repository**, with its `serverless.yml` at the repository root or in a subdirectory (the base directory).
+- **The `service` name in `serverless.yml` matches the service** you configure in the Dashboard.
+- **A Dashboard [Provider](../providers.md) supplies the AWS credentials.** The build has no AWS credentials of its own. It uses the Provider linked to the service instance (the stage and Region), else the Provider linked to the service, else the org's default Provider.
+- **The service uses the Node.js or Python runtime.** The build installs dependencies with npm and runs the test command before it deploys.
 
-## Getting Started in 3 steps
+## Set up Serverless CI/CD
 
-### Step 1: Link your AWS Account
+1. Create a Provider for your AWS account and link it to the service, or set it as the org default ([Providers](../providers.md)). A Provider with an AWS Access Role gives each deployment short-lived credentials.
+2. Sign in to the [Dashboard](https://app.serverless.com/), open the app that contains the service, and choose **settings** from the service's **...** menu.
+3. In **connect to git**, choose **connect to Github** or **connect to BitBucket**, and follow the prompts to authorize and install the Serverless app for your account.
+4. In **repository settings**, select the repository, and the base directory when the service is in a subdirectory.
+5. In **branch deploys**, map a branch to a stage ([Branch deployments](./branch-deployments.md)). Optional: in **preview deploys**, turn on deployments for pull requests ([Preview deployments](./preview-deployments.md)).
 
-As is the case with deployments from the Serverless Framework CLI, Serverless CI/CD requires access to your AWS Account in order to deploy your services. To make this process as secure as possible, Serverless CI/CD will generate short-lived credentials to your AWS account on each deployment. This is done by creating an AWS Access Role in your AWS account and associating it with a Provider in the Serverless Framework Dashboard.
+The Dashboard saves each setting as you change it. To check the setup, push a commit to a mapped branch and open **deployments** in the Dashboard: the new build appears there with its test results, logs and deployment details.
 
-If you’ve already set up an AWS Access Role with a Provider, you can skip this step. Otherwise, please go through the instructions on our [Provider documentation page](../providers.md) to help set one up.
+## What a Serverless CI/CD build runs
 
-### Step 2: Connect to Github
+Each build clones the repository, checks out the commit, installs dependencies with npm, runs the configured test command ([Run tests in Serverless CI/CD](./running-tests.md)) and runs `serverless deploy` for the mapped stage. When the test step fails, the build stops before the deploy step and the deployed service stays unchanged.
 
-1. Login to [https://app.serverless.com/](https://app.serverless.com/).
-2. Navigate to the app which contains the service you want to deploy and click the menu icon (...) on the right hand side and choose "settings"
-3. In the “connect to git” section, click “connect to Github” or "connect to BitBucket" and follow the instructions to authenticate and install the Serverless Framework app.
-4. In the “repository settings” section, select the repository and base directory if needed containing your service. The service name specified in the serverless.yml must match the service you are configuring.
-5. In the "branch deploys" section, you can choose to map a specific branch in your repo to the correct stage. When code is merged to that branch it then deploys using that stage and its associated Provider (and parameters).
-6. Changes will be automatically saved when you make them
+Settings that change a build:
 
-That’s it! You do not have to create any configuration files in your repository or define your test commands or your
-deployment commands.
+- **Region**: with the `default` setting, the build passes no Region, and the service deploys to the Region its `serverless.yml` resolves.
+- **Test command**: the command the test step runs.
+- **Trigger Directories**: limit builds to commits that change specific directories ([Mono-repo support](./mono-repo.md)).
+- **Parameters**: Dashboard parameters of the service and stage are available to the build as environment variables ([Private packages](./private-packages.md)).
 
-Your service will now deploy from the master branch and you’ll see all the test results, logs, safeguard pass/fail
-status, and deployment details.
+To run your own commands at each step, see [Custom scripts](./custom-scripts.md).
 
-### Step 3: Deploy from a Github branch
+## Serverless CI/CD guides
 
-Now that you are setup to deploy all changes to the master branch to the dev stage for your service, go ahead and make a
-commit and navigate to “deployments” in the dashboard. You will be able to see the new test and deployment.
+- [Branch deployments](./branch-deployments.md): deploy a stage on every push to a branch.
+- [Preview deployments](./preview-deployments.md): deploy each pull request to its own stage and remove it when the branch goes away.
+- [Run tests in Serverless CI/CD](./running-tests.md): the test step, its command and Python dependencies.
+- [Custom scripts](./custom-scripts.md): run commands before or after install, test and deploy.
+- [Private packages](./private-packages.md): install packages from a private npm registry.
+- [Notifications](./notifications.md): get notified when a deployment starts, succeeds or fails.
+- [Mono-repo support](./mono-repo.md): deploy several services from one repository with Trigger Directories.
+- [Deploy from your own CI/CD pipeline](./running-in-your-own-cicd.md): run the Framework in GitHub Actions or another CI/CD service.
+- [Troubleshooting](./troubleshooting.md): reset the GitHub connection.

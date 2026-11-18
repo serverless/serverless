@@ -1,15 +1,14 @@
 <!--
-title: Serverless Framework - Deploying to AWS
-description: How to deploy your AWS Lambda functions and their required infrastructure
-short_title: Deploying to AWS
+title: Deploying to AWS
+description: How serverless deploy, serverless deploy function and serverless deploy --package ship a service to AWS, what each changes, and the settings that affect them.
+short_title: Deploying
 keywords:
   [
     'Serverless Framework',
-    'AWS',
-    'deploying',
-    'Lambda functions',
-    'cloud infrastructure',
-    'CloudFormation',
+    'serverless deploy',
+    'deploy function',
+    'CloudFormation deployment',
+    'deployment bucket',
   ]
 -->
 
@@ -21,140 +20,105 @@ keywords:
 
 # Deploying to AWS
 
-The Serverless Framework was designed to provision your AWS Lambda Functions, Events and infrastructure Resources safely and quickly. It does this via a couple of methods designed for different types of deployments.
+The Serverless Framework deploys a service to AWS in three ways:
 
-## Deploy All
+- `serverless deploy` deploys the whole service (functions, events and resources) as one AWS CloudFormation stack. Use it for any change to `serverless.yml`, and in CI/CD.
+- `serverless deploy function` updates one function's code and configuration directly, without CloudFormation. Use it for fast iterations during development.
+- `serverless deploy --package` deploys artifacts built earlier with `serverless package`.
 
-This is the main method for doing deployments with the Serverless Framework:
+Run `serverless deploy` in the directory that holds `serverless.yml`:
 
 ```bash
 serverless deploy
 ```
 
-Use this method when you have updated your Function, Event or Resource configuration in `serverless.yml` and you want to deploy that change (or multiple changes at the same time) to Amazon Web Services.
+The deploy goes to the `dev` stage in `us-east-1` unless `provider.stage` and `provider.region` in `serverless.yml`, or `--stage` and `--region`, say otherwise:
 
-**Note:** You can always enforce a deployment using the `--force` option, or specify a different configuration file name with the `--config` option.
+```bash
+serverless deploy --stage prod --region eu-central-1
+```
 
-### How It Works
+It uses the AWS credentials described in [which credentials a deploy uses](./credentials.md#which-credentials-a-deploy-uses). Add `--verbose` to print the CloudFormation progress, and `--config` (or `-c`) to use a configuration file other than `serverless.yml`.
 
-The Serverless Framework translates all syntax in `serverless.yml` to a single AWS CloudFormation template. By depending on CloudFormation for deployments, users of the Serverless Framework get the safety and reliability of CloudFormation.
+## Deploy the service
 
-- An AWS CloudFormation template is created from your `serverless.yml`.
-- If a Stack has not yet been created, then it is created with no resources except for an S3 Bucket, which will store zip files of your Function code.
-- If you're using locally build ECR images, dedicated ECR repository is created for your service. You also will be logged to that repository via `docker login` if needed.
-- The code of your Functions is then packaged into zip files.
-- If you're using locally build ECR images, they are built and uploaded to ECR.
-- Serverless fetches the hashes for all files of the previous deployment (if any) and compares them against the hashes of the local files.
-- Serverless terminates the deployment process if all file hashes are the same.
-- Zip files of your Functions' code are uploaded to your Code S3 Bucket.
-- Any IAM Roles, Functions, Events and Resources are added to the AWS CloudFormation template.
-- The CloudFormation Stack is updated with the new CloudFormation template.
-- Each deployment publishes a new version for each function in your service.
+`serverless deploy` turns `serverless.yml` into a CloudFormation template and creates or updates the service's stack, named `<service>-<stage>` unless `provider.stackName` is set. When an update fails, CloudFormation rolls the stack back to its previous state, unless `provider.disableRollback` is set.
 
-**Note:** AWS SSM and S3 permissions are required for deployments to manage state and upload deployment packages. For more details, see [AWS Credentials Requirement for Packaging](./packaging.md#aws-credentials-requirement-for-packaging).
+### How a deploy works
+
+1. The Framework resolves the deployment bucket, which stores the zip files and the compiled template. By default it is a [shared deployment bucket per AWS Region](../../../guides/deployment-bucket.md), created on the first deploy to that Region. A service whose stack already contains a stack-managed deployment bucket (for example, one first deployed with an earlier major version) keeps using it, except inside [Serverless Compose](../../../guides/compose.md), where services always use the shared bucket. `provider.deploymentBucket` sets a bucket of your own.
+2. With the legacy stack-managed bucket (`provider.enableLegacyDeploymentBucket: true`) and no stack yet, the Framework creates a stack that holds only the bucket. Otherwise, no such initial stack is created.
+3. The Framework packages the functions into zip files (see [Packaging](./packaging.md)), unless `--package` or `package.path` names a directory of artifacts that `serverless package` built earlier (see [Deploying a package](#deploying-a-package)).
+4. For [container images](./functions.md#referencing-container-image-as-a-target) built from a local `path`, the Framework creates the service's ECR repository if needed, runs `docker login` against it, and builds and pushes the images.
+5. Unless `--force` is passed, the Framework compares the hashes of the compiled CloudFormation template, the service state file and the zip files with those of the newest deployment in the bucket. When all of them match, and no object of that deployment was uploaded after the functions were last updated, the deploy stops here without changing anything.
+6. The Framework uploads the zip files and the compiled template to the deployment bucket, under `<deploymentPrefix>/<service>/<stage>/`.
+7. CloudFormation creates the stack (first deploy) or updates it with the new template.
+
+By default, each deploy that changes a function's code or configuration publishes a new version of it. `provider.versionFunctions: false` turns that off, and a function's own `versionFunction` overrides the provider setting. Functions with `durableConfig`, `provisionedConcurrency` or `snapStart` are always versioned, and `versionFunction: false` on a function with `durableConfig` stops the deploy with an error. See [Versioning deployed functions](./functions.md#versioning-deployed-functions).
+
+A deploy needs AWS permissions for CloudFormation, for the resources in the stack, and for SSM and S3 to resolve the deployment bucket and upload the artifacts; inside Serverless Compose, also for the state bucket. See [AWS credentials requirement for packaging](./packaging.md#aws-credentials-requirement-for-packaging).
 
 ### Deployment method
 
-Since Serverless Framework v4, deployments are by default done using [CloudFormation direct deployments](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-direct.html). This is the recommended approach for most users.
+By default, the Framework updates the stack with [direct updates](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-direct.html). To deploy through [CloudFormation change sets](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-changesets.html) instead, set `provider.deploymentMethod` to `changesets` (allowed values: `direct`, `changesets`; default `direct`):
 
-If you want to instead use [CloudFormation change sets](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-changesets.html), you can enable it via the `deploymentMethod` option:
-
-```yml
+```yaml
 provider:
   name: aws
   deploymentMethod: changesets
 ```
 
-### AWS SDK for JavaScript v3
+### Deployment bucket settings
 
-Serverless Framework’s internal AWS request layer supports the AWS SDK for JavaScript v3. By default, the Framework continues to use the v2 path for maximum compatibility, but you can opt in to v3 without changing your deployment commands or configuration. To enable v3 for deployments, set an environment variable when running the CLI:
+These `provider` settings change where and how the artifacts are stored:
+
+- `deploymentBucket`: a bucket of your own, by `name`, with settings such as `serverSideEncryption`. See the [Deployment Bucket guide](../../../guides/deployment-bucket.md) for every key.
+- `deploymentPrefix`: the S3 key prefix of the artifacts. Default `serverless`.
+- `deploymentBucket.skipPolicySetup`: don't create the default bucket policy. Applies only to the stack-managed deployment bucket.
+- `deploymentBucket.versioning: true`: turn on versioning for the stack-managed deployment bucket. The shared deployment bucket is always versioned.
+- `enableLegacyDeploymentBucket: true`: use a deployment bucket created and managed by the service's own stack. The `--enable-legacy-deployment-bucket` flag and the `ENABLE_LEGACY_DEPLOYMENT_BUCKET` environment variable do the same.
+
+`--aws-s3-accelerate` uploads through S3 Transfer Acceleration, which the Framework turns on only for the stack-managed deployment bucket. With `provider.deploymentBucket`, the deploy stops with `S3_TRANSFER_ACCELERATION_ON_EXISTING_BUCKET`; with the shared deployment bucket, the bucket's acceleration setting is not changed.
+
+### AWS SDK for JavaScript v3 for Framework calls
+
+The Framework's own calls to AWS during packaging and deployment (S3 uploads, CloudFormation updates) use the AWS SDK for JavaScript v2 code path by default. To use the v3 code path, set `SLS_AWS_SDK=3` in the environment, on your machine or in the CI pipeline:
 
 ```bash
 SLS_AWS_SDK=3 serverless deploy
 ```
 
-This toggle only affects the Framework’s own calls to AWS during packaging and deployment (e.g., S3 uploads, CloudFormation updates). Your Lambda function code is independent—use `@aws-sdk/*` (v3) or `aws-sdk` (v2) in handlers as you prefer. Credentials behavior is unchanged: both paths use the standard AWS credentials provider chain (profiles, SSO, environment variables). In CI/CD, set `SLS_AWS_SDK=3` in your pipeline environment before invoking the Serverless CLI.
+Both paths read credentials through the standard AWS credential provider chain. The setting doesn't affect your function code, which uses whatever SDK you bundle or the runtime provides; AWS has [ended support for the v2 SDK](https://aws.amazon.com/blogs/developer/announcing-end-of-support-for-aws-sdk-for-javascript-v2/), so use `@aws-sdk/*` (v3) clients in handlers.
 
-Note: AWS announced end-of-support for the AWS SDK for JavaScript v2. See the official notice: [Announcing end-of-support for AWS SDK for JavaScript v2](https://aws.amazon.com/blogs/developer/announcing-end-of-support-for-aws-sdk-for-javascript-v2/). We recommend adopting v3 in new projects and planning migrations where feasible.
+## Deploy a single function
 
-### Tips
-
-- Use this in your CI/CD systems, as it is the safest method of deployment.
-- You can print the progress during the deployment if you use `verbose` mode, like this:
-  ```bash
-  serverless deploy --verbose
-  ```
-- This method uses the AWS CloudFormation Stack Update method. CloudFormation is slow, so this method is slower. If you want to develop more quickly, use the `serverless deploy function` command (described below)
-
-- This method defaults to `dev` stage and `us-east-1` region. You can change the default stage and region in your `serverless.yml` file by setting the `stage` and `region` properties inside a `provider` object as the following example shows:
-
-  ```yml
-  # serverless.yml
-
-  service: service-name
-  provider:
-    name: aws
-    stage: beta
-    region: us-west-2
-  ```
-
-- You can also deploy to different stages and regions by passing in flags to the command:
-
-  ```bash
-  serverless deploy --stage production --region eu-central-1
-  ```
-
-- You can specify your own S3 bucket which should be used to store all the deployment artifacts.
-  The `deploymentBucket` config which is nested under `provider` lets you e.g. set the `name` or the `serverSideEncryption` method for this bucket. If you don't provide your own bucket, Serverless
-  will create a bucket which uses default AES256 encryption.
-
-- You can specify your own S3 prefix which should be used to store all the deployment artifacts.
-  The `deploymentPrefix` config which is nested under `provider` lets you set the prefix under which the deployment artifacts will be stored. If not specified, defaults to `serverless`.
-
-- You can make uploading to S3 faster by adding `--aws-s3-accelerate`
-
-- You can disable creation of default S3 bucket policy by setting `skipPolicySetup` under `deploymentBucket` config. It only applies to deployment bucket that is automatically created
-  by the Serverless Framework.
-
-- You can enable versioning for the deployment bucket by setting `versioning` under `deploymentBucket` config to `true`.
-
-Check out the [deploy command docs](../cli-reference/deploy.md) for all details and options.
-
-- For information on multi-region deployments, [checkout this article](https://serverless.com/blog/build-multiregion-multimaster-application-dynamodb-global-tables).
-
-## Deploy Function
-
-This deployment method does not touch your AWS CloudFormation Stack. Instead, it simply overwrites the zip file of the current function on AWS. This method is much faster, since it does not rely on CloudFormation.
+`serverless deploy function` updates one function without touching the CloudFormation stack, which makes it much faster than a full deploy:
 
 ```bash
 serverless deploy function --function myFunction
 ```
 
--**Note:** You can always enforce a deployment using the `--force` option. -**Note:** You can use `--update-config` to change only Lambda configuration without deploying code.
+1. The Framework packages the function into a zip file.
+2. It compares the hash of the zip (for an image function, the image digest) with the code hash of the deployed function, and skips the code update when they match, unless `--force` is passed.
+3. Otherwise, it uploads the zip directly to the function with the Lambda `UpdateFunctionCode` API, bypassing the deployment bucket and CloudFormation.
+4. If the function's configuration (such as memory size, timeout or environment variables) differs from `serverless.yml`, it updates that too. `--update-config` updates only the configuration, without deploying code.
 
-### How It Works
-
-- The Framework packages up the targeted AWS Lambda Function into a zip file.
-- The Framework fetches the hash of the already uploaded function .zip file and compares it to the local .zip file hash.
-- The Framework terminates if both hashes are the same.
-- That zip file is uploaded to your S3 bucket using the same name as the previous function, which the CloudFormation stack is pointing to.
-
-### Tips
-
-- Use this when you are developing and want to test on AWS because it's much faster.
-- During development, people will often run this command several times, as opposed to `serverless deploy` which is only run when larger infrastructure provisioning is required.
-
-Check out the [deploy command docs](../cli-reference/deploy.md) for all details and options.
+The function must already exist: otherwise the command stops with `FUNCTION_NOT_YET_DEPLOYED`, so deploy the service once with `serverless deploy` first. Changes made this way are not in the stack's template, so use the command during development and keep `serverless deploy` for CI/CD and production. See the [`deploy function` command](../cli-reference/deploy-function.md) for its options.
 
 ## Deploying a package
 
-This deployment option takes a deployment directory that has already been created with `serverless package` and deploys it to the cloud provider. This allows you to easily integrate CI / CD workflows with the Serverless Framework.
+`serverless deploy --package` deploys a directory created earlier with `serverless package`, without packaging again. Build the artifacts once (for example in a CI build step) and deploy them in a later step:
 
 ```bash
+serverless package --package path-to-package
 serverless deploy --package path-to-package
 ```
 
-### How It Works
+The deploy reads the zip files and templates from that directory and uses them to create or update the stack. `package.path` in `serverless.yml` does the same as `--package`. See the [`deploy` command](../cli-reference/deploy.md) for every option.
 
-- The argument to the `--package` flag is a directory that has been previously packaged by Serverless (with `serverless package`).
-- The deploy process bypasses the package step and uses the existing package to deploy and update CloudFormation stacks.
+## Related pages
+
+- [Packaging](./packaging.md): what goes into the artifacts.
+- [Deployment Bucket](../../../guides/deployment-bucket.md): the shared bucket and your own bucket.
+- [AWS credentials](./credentials.md): where a deploy's credentials come from.
+- [`serverless deploy`](../cli-reference/deploy.md): command options.

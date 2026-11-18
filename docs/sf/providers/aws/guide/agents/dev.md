@@ -1,16 +1,14 @@
 <!--
-title: Serverless Framework - AgentCore Dev Mode
-description: Local development mode for AI agents with hot reload, credential management, and interactive chat
-short_title: Dev Mode
+title: Dev Mode for AgentCore Agents
+description: Run an Amazon Bedrock AgentCore agent on your machine with serverless dev, using its deployed role, tools and memory, with hot reload and a chat.
+short_title: Agent Dev Mode
 keywords:
   [
     'Serverless Framework',
-    'AgentCore',
-    'Dev Mode',
-    'Local Development',
-    'Hot Reload',
-    'Docker',
-    'Interactive Chat',
+    'serverless dev agents',
+    'Amazon Bedrock AgentCore local development',
+    'AI agent hot reload',
+    'AgentCore Dev Mode',
   ]
 -->
 
@@ -20,412 +18,200 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Dev Mode
+# Dev Mode for AgentCore agents
 
-Run your AI agent locally with automatic AWS credential management, hot reload, and an interactive chat interface.
+Dev Mode for agents (`serverless dev` in a service with `ai.agents`) runs one Amazon Bedrock AgentCore agent on your machine, in Docker or as a Python process, with the permissions of its deployed execution role and the URLs and IDs of its deployed gateway and memory. It rebuilds the agent when you save a file and opens a chat in the terminal, so you can change agent code without redeploying. For Lambda functions, see [Dev Mode](../dev-mode.md).
 
-```bash
-serverless dev
-```
-
-Dev mode runs your agent on your local machine while using the deployed IAM role for AWS permissions. This lets you
-iterate on agent code without redeploying, while still accessing all deployed AWS resources (gateway tools, memory,
-Bedrock models, etc.).
-
-## Quick Start
-
-**1. Deploy your agent first** (creates the IAM role and cloud resources):
+Deploy the service once, so the role and resources exist, then start Dev Mode:
 
 ```bash
 serverless deploy
 ```
 
-**2. Start dev mode:**
-
 ```bash
 serverless dev
 ```
 
-**3. Chat with your agent** -- once the agent is ready, you'll see:
+When the agent is ready, the terminal shows the local URL and a prompt. Type a message and press Enter:
 
 ```text
 Dev mode running on http://localhost:8080
 
-Session ID: a1b2c3d4-...
+Session ID: 3f1c9a52-7d4e-4b8a-9c61-0e2f5b7a8d14
 Type your message and press Enter to chat with the agent.
 Press Ctrl+C to stop.
 
 You: What can you help me with?
 
 Agent:
-I'm an AI assistant that can help you with...
-
-You:
+I can answer questions about your orders and run calculations.
 ```
 
-Edit your agent code, save the file, and dev mode automatically rebuilds and restarts.
+Press `Ctrl+C` to stop the agent and remove its container.
 
-## How It Works
+## Choose the agent and the mode
 
-When you run `serverless dev`, the framework:
-
-1. **Fetches deployed resources** from CloudFormation -- IAM role ARN, gateway URL, memory ID
-2. **Configures IAM trust policy** -- automatically adds your local identity to the role's trust policy so you can
-   assume it
-3. **Obtains temporary credentials** -- calls STS AssumeRole to get 60-minute credentials
-4. **Detects the execution mode** -- Docker or Code, based on your project configuration
-5. **Starts the agent locally** -- Docker container or Python process, with credentials and environment variables
-   injected
-6. **Watches for file changes** -- rebuilds/restarts automatically when source files change
-7. **Starts interactive chat** -- readline CLI with streaming response support
-
-```text
-serverless dev
-    │
-    ├── Read CloudFormation stack outputs (Role ARN, Gateway URL, Memory ID)
-    ├── Update IAM trust policy for local AssumeRole
-    ├── Get STS temporary credentials (60 min)
-    │
-    ├── [Docker Mode] Build image → Run container on port 8080
-    │   OR
-    ├── [Code Mode] Spawn Python process on PORT
-    │
-    ├── Start file watcher
-    └── Start interactive chat CLI
-            │
-            ├── User types message
-            ├── HTTP POST http://localhost:8080/invocations
-            ├── Agent responds (SSE stream or JSON)
-            └── Display response
-```
-
-Your agent runs locally and calls AWS services directly using the injected temporary credentials -- there is no tunnel or cloud proxy.
-
-## Command Options
+`serverless dev` selects agents Dev Mode when the service defines agents and no functions. When it defines both, pass `--mode agents`:
 
 ```bash
-# Auto-detects the first runtime agent
-serverless dev
-
-# Specify which agent to run (required when multiple agents are defined)
-serverless dev --agent myAgent
-
-# Use a custom port (default: 8080)
-serverless dev --port 9000
-
-# Force agents dev mode (see note below)
-serverless dev --mode agents
+serverless dev --mode agents --agent assistant
 ```
 
-### Choosing agents mode
+| Option                | Short | Value                                                                                    |
+| --------------------- | ----- | ---------------------------------------------------------------------------------------- |
+| `--mode`              | `-m`  | `agents` selects agents Dev Mode; `functions` and `sandboxes` select the other Dev Modes |
+| `--agent`             | `-a`  | The agent to run. Required when the service defines more than one agent                  |
+| `--port`              | `-p`  | The local port of the agent. Default: `8080`                                             |
+| `--stage`, `--region` |       | The deployed stage and region whose resources the agent uses                             |
 
-When your `serverless.yml` defines **both** Lambda functions and agents, `serverless dev` defaults to Lambda functions
-dev mode. Use `--mode agents` to explicitly select agents dev mode:
+With `--sandbox`, or when the service defines only sandboxes, `serverless dev` runs sandboxes Dev Mode instead. Dev Mode runs one agent at a time.
 
-```bash
-# This runs Lambda dev mode (default when functions exist)
-serverless dev
+## How Dev Mode for agents works
 
-# This runs agents dev mode
-serverless dev --mode agents
-```
+When you run `serverless dev`, the Framework:
 
-If your configuration only has agents (no functions), agents dev mode is selected automatically.
+1. Reads the deployed stack's outputs: the agent's role ARN, its gateway URL and its memory ID.
+2. Adds your AWS identity to the role's trust policy, if it isn't there yet, and waits 10 seconds for IAM to apply the change.
+3. Assumes the role with AWS STS and gets temporary credentials, valid for one hour. It retries up to 10 times with exponential backoff while IAM propagates.
+4. Starts the agent in Docker or as a Python process, with the credentials and environment variables.
+5. Watches the agent's files and rebuilds or restarts the agent when one changes.
+6. Opens the chat, which sends each message to `http://localhost:<port>/invocations`.
 
-## Execution Modes
+The agent calls AWS directly with the temporary credentials, so it reaches the same Bedrock models, gateway tools and memory as the deployed agent. Requests don't pass through AgentCore Runtime.
 
-Dev mode supports two execution modes, detected automatically based on your project configuration.
+## Docker and code execution modes
 
-### Mode Detection Priority
+Dev Mode picks how to run the agent from its configuration:
 
-| Priority | Condition                           | Mode               |
-| -------- | ----------------------------------- | ------------------ |
-| 1        | `artifact.image` is configured      | Docker             |
-| 2        | `handler` is set (no image config)  | Code (Python only) |
-| 3        | `Dockerfile` exists in project root | Docker             |
-| 4        | Default (image auto-creation)       | Docker             |
+| Priority | Condition                                      | Mode                          |
+| -------- | ---------------------------------------------- | ----------------------------- |
+| 1        | `artifact.image` is a build object             | Docker                        |
+| 2        | `handler` is set                               | Code                          |
+| 3        | A `Dockerfile` exists in the service directory | Docker                        |
+| 4        | None of the above                              | Docker, built with Buildpacks |
 
-### Docker Mode
+When `artifact.image` is a pre-built image URI, Dev Mode builds the image locally from the service directory (priority 3 or 4) instead of pulling the URI.
 
-Builds a Docker image locally and runs it in a container. This is the default mode for most projects.
+### Docker mode
 
-```yml
+Docker mode builds the image as the deployment does, for `linux/arm64`, and tags it `<service>-<agent>:local`. It runs the container as `sls-dev-<service>-<agent>`, maps container port 8080 to `--port` on `127.0.0.1` only, and on a file change rebuilds the image and starts a new container. It watches `artifact.image.path`, or the service directory. This mode is the closest to the deployed agent.
+
+### Code mode
+
+Code mode runs the `handler` file with the Python command that matches `runtime` (`python3.13` for `runtime: python3.13`; `python.exe` on Windows), from the service directory, and restarts it when a `.py` file changes:
+
+```yaml
 ai:
   agents:
-    myAgent: {} # Dockerfile auto-detected
-```
-
-- Builds image as `<service>-<agent>:local`
-- Maps container port 8080 to the host port
-- Watches the Dockerfile directory for changes
-- Rebuilds the container on file changes
-- Closest match to production behavior
-
-### Code Mode (Python Only)
-
-Runs the Python process directly without Docker. Faster startup and iteration, ideal for rapid development.
-
-```yml
-ai:
-  agents:
-    myAgent:
+    assistant:
       handler: agent.py
-      runtime: python3.13
+      runtime: python3.14
 ```
 
-- Spawns the Python process directly from the project directory
-- Only watches `.py` files for changes
-- Restarts the Python process on changes
-- Virtual environment recommended for credential isolation
-
-**Important:** Your handler must read the `PORT` environment variable:
+The agent must listen on the port in the `PORT` environment variable, which is `8080` unless you pass `--port`:
 
 ```python
+import os
+
 if __name__ == "__main__":
-  port = int(os.getenv('PORT', 8080))
-  app.run(port=port, host='0.0.0.0')
+    app.run(port=int(os.getenv("PORT", 8080)))
 ```
 
-## Resource Auto-Discovery
-
-Dev mode automatically discovers deployed cloud resources from your CloudFormation stack and injects them as environment
-variables. This means your local agent connects to the same gateway tools, memory, and other resources as the deployed
-version.
-
-| Resource    | Environment Variable            | When Injected                        |
-| ----------- | ------------------------------- | ------------------------------------ |
-| Gateway URL | `BEDROCK_AGENTCORE_GATEWAY_URL` | If gateway/tools are deployed        |
-| Memory ID   | `BEDROCK_AGENTCORE_MEMORY_ID`   | If memory is configured on the agent |
-
-This happens automatically -- no manual configuration needed. When you run `serverless dev`, the framework reads the
-CloudFormation stack outputs and injects the values.
-
-## Credentials
-
-Dev mode manages AWS credentials automatically through the deployed IAM role.
-
-### How It Works
-
-1. **Trust policy setup** -- Dev mode adds a `ServerlessAgentCoreLocalDevPolicy` statement to the agent's IAM role trust
-   policy, allowing your local AWS identity to assume the role. This handles SSO sessions, assumed roles, and regular
-   IAM users.
-
-2. **STS AssumeRole** -- Obtains temporary credentials (AccessKeyId, SecretAccessKey, SessionToken) with 60-minute
-   expiration.
-
-3. **Auto-refresh** -- When credentials have less than 10 minutes remaining and a file change triggers a rebuild,
-   credentials are automatically refreshed.
-
-4. **Retry logic** -- Credential acquisition retries up to 10 times with exponential backoff, handling IAM propagation
-   delays.
-
-### Credential Isolation (Code Mode)
-
-For Python code mode, a virtual environment is strongly recommended:
+`runtime` accepts `python3.10` to `python3.14`; the default is `python3.13`. Dev Mode logs a warning when the installed version differs from `runtime`, and stops with an error for any other value. To use a specific Python installation, activate a virtual environment before starting Dev Mode; Dev Mode puts its `bin` directory first in `PATH`:
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate
+python3.14 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 serverless dev
 ```
 
-This prevents boto3 from reading your system `~/.aws/config` or SSO cache, ensuring the agent uses only the injected
-temporary credentials. Dev mode detects the virtual environment automatically via the `VIRTUAL_ENV` environment
-variable.
+The Python process receives only `PATH`, `USER`, `LANG`, `VIRTUAL_ENV`, `VIRTUAL_ENV_PROMPT` and the variables in [Agent environment variables in Dev Mode](#agent-environment-variables-in-dev-mode), not the rest of your shell environment.
 
-## Environment Variables
+## Agent environment variables in Dev Mode
 
-Dev mode injects the following environment variables into your agent process/container:
+Dev Mode sets these variables in the container or Python process:
 
-### Always Injected
+| Variable                                                          | Value                                                     |
+| ----------------------------------------------------------------- | --------------------------------------------------------- |
+| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN` | Temporary credentials of the agent's role                 |
+| `AWS_REGION`, `AWS_DEFAULT_REGION`                                | The service's region                                      |
+| `AGENTCORE_DEV_MODE`                                              | `true`, to detect Dev Mode in agent code                  |
+| `PYTHONUNBUFFERED`                                                | `1`, so Python logs appear at once                        |
+| `SLS_SERVICE`, `SLS_STAGE`, `SLS_AGENT`                           | The service, stage and agent names                        |
+| `BEDROCK_AGENTCORE_GATEWAY_URL`                                   | The URL of the agent's gateway, when one is deployed      |
+| `BEDROCK_AGENTCORE_MEMORY_ID`                                     | The ID of the agent's memory, when the agent has `memory` |
+| `PORT`                                                            | The port to listen on, in code mode only                  |
 
-| Variable                | Description                                                  |
-| ----------------------- | ------------------------------------------------------------ |
-| `AWS_ACCESS_KEY_ID`     | Temporary STS credentials                                    |
-| `AWS_SECRET_ACCESS_KEY` | Temporary STS credentials                                    |
-| `AWS_SESSION_TOKEN`     | Temporary STS credentials                                    |
-| `AWS_REGION`            | From provider configuration                                  |
-| `AWS_DEFAULT_REGION`    | Same as `AWS_REGION`                                         |
-| `AGENTCORE_DEV_MODE`    | Always `'true'` -- use to detect dev mode in your agent code |
-| `PYTHONUNBUFFERED`      | Always `'1'` -- ensures real-time log output                 |
-| `SLS_SERVICE`           | Service name from `serverless.yml`                           |
-| `SLS_STAGE`             | Current stage                                                |
-| `SLS_AGENT`             | Agent name                                                   |
+The variables from `provider.environment` and the agent's `environment` are added too; the agent's keys win. CloudFormation references in them (`!Ref`, `!GetAtt`, `!ImportValue`) are resolved from the deployed stack. AWS SDKs read the credential variables before any profile, so the agent uses the role's permissions, not yours.
 
-### Mode-Specific
+## Credentials and the role's trust policy
 
-| Variable | Mode      | Description                               |
-| -------- | --------- | ----------------------------------------- |
-| `PORT`   | Code only | Port number your handler should listen on |
+Dev Mode assumes the agent's execution role: the role the Framework generated, or the role whose ARN is set in the agent's `role`. To do that, it adds a statement with the ID `ServerlessAgentCoreLocalDevPolicy` to the role's trust policy, naming your AWS identity; SSO and other assumed-role sessions are added as their role. The statement stays on the role until a deployment updates the role.
 
-### Auto-Discovered (If Deployed)
+Your AWS identity needs `cloudformation:DescribeStacks` on the stack, and `iam:GetRole`, `iam:UpdateAssumeRolePolicy` and `sts:AssumeRole` on the role.
 
-| Variable                        | Description          |
-| ------------------------------- | -------------------- |
-| `BEDROCK_AGENTCORE_GATEWAY_URL` | Gateway endpoint URL |
-| `BEDROCK_AGENTCORE_MEMORY_ID`   | Memory resource ID   |
+The credentials last one hour. When you save a file and fewer than 10 minutes remain, Dev Mode gets new credentials before it restarts the agent. After an hour without a file change, the agent's AWS calls are denied until you save a file or restart Dev Mode.
 
-### User-Defined
+## Chat with the agent
 
-Any variables defined in `environment` in your `serverless.yml` are also injected:
-
-```yml
-ai:
-  agents:
-    myAgent:
-      environment:
-        MODEL_ID: us.anthropic.claude-sonnet-4-20250514-v1:0
-        MY_API_KEY: ${ssm:/my/api/key}
-```
-
-## Interactive Chat
-
-Dev mode provides a built-in CLI for chatting with your local agent.
-
-- **Prompt**: Type messages at the `You: ` prompt
-- **Streaming**: Responses stream in real-time via Server-Sent Events (SSE)
-- **Sessions**: Each dev mode start creates a new session ID (UUID). Sessions reset when files change and the agent
-  rebuilds.
-- **Exit**: Press `Ctrl+C` for graceful shutdown (stops container/process, cleans up)
-
-### Invocation Protocol
-
-The chat CLI sends HTTP POST requests to your local agent:
+The chat sends each message as a `POST` to the local agent:
 
 ```text
 POST http://localhost:<port>/invocations
 Content-Type: application/json
-Accept: text/event-stream
 X-Amzn-Bedrock-AgentCore-Runtime-Session-Id: <session-uuid>
 
 { "prompt": "Your message here" }
 ```
 
-Your agent can respond with SSE streams or plain JSON.
+- The agent can answer with server-sent events, which the chat prints as they arrive, or with JSON; the chat prints the `result`, `response` or `message` field, or the whole object.
+- The session ID is a new UUID when Dev Mode starts and after each rebuild.
+- The chat works with agents that use the `HTTP` protocol (the default). An agent with `protocol: MCP` or `A2A` serves another port and path.
+- Send one message at a time: a message typed while the agent is answering gets "Please wait for the current request to complete."
 
-## File Watching
+To call the local agent from another tool, send the same request with `curl`.
 
-Dev mode monitors your source files and automatically rebuilds/restarts on changes.
+## Files Dev Mode watches
 
-### Watch Behavior
+Dev Mode rebuilds or restarts the agent when a watched file is added, changed or removed, after the file has been stable for 300 ms. It ignores:
 
-- **Docker mode**: Watches the entire Dockerfile directory
-- **Code mode**: Watches only `.py` files in the project
-- **Debouncing**: 300ms stability threshold prevents rebuilds during file writes
-- **Rebuild process**: Stops agent, refreshes credentials if expiring, restarts agent, resets session
+- `node_modules/`, `.git/`, `.serverless/`, `venv/`, `.venv/`, `__pycache__/`, `.pytest_cache/`, `.mypy_cache/` and `coverage/`.
+- Test files: `*.test.js`, `*.spec.js`, `*_test.py` and `*.test.py`.
+- In code mode, every file that doesn't end in `.py`.
 
-### Excluded Paths
+## Troubleshoot Dev Mode for agents
 
-The following are always excluded from file watching:
+### `Failed to gather deployed agent resources. Make sure the agent is deployed first.`
 
-- `node_modules/`, `.git/`, `.serverless/`
-- `venv/`, `.venv/`
-- `__pycache__/`, `*.pyc`
-- `.pytest_cache/`, `.mypy_cache/`, `coverage/`
-- Test files: `*_test.py`, `*.test.py`, `*.test.js`, `*.spec.js`
-
-## Code Mode Requirements
-
-### Python Version
-
-Dev mode converts the runtime configuration to a Python command:
-
-| Runtime Config | Python Command |
-| -------------- | -------------- |
-| `python3.13`   | `python3.13`   |
-| `python3.12`   | `python3.12`   |
-
-If the installed Python version doesn't match the configured runtime, dev mode logs a warning.
-
-On Windows, `python.exe` is used regardless of the runtime configuration.
-
-### Virtual Environment
-
-A virtual environment is strongly recommended for code mode:
-
-```bash
-python3 -m venv venv
-source venv/bin/activate  # Linux/macOS
-# or: venv\Scripts\activate  # Windows
-
-pip install -r requirements.txt
-```
-
-Dev mode detects the virtual environment via the `VIRTUAL_ENV` environment variable and:
-
-- Prepends the venv `bin/` directory to `PATH`
-- Passes `VIRTUAL_ENV` and `VIRTUAL_ENV_PROMPT` to the Python process
-- Provides credential isolation from system-level AWS config
-
-### File Structure
-
-```text
-my-agent/
-├── agent.py              # Entry point (handler)
-├── requirements.txt      # Dependencies
-├── serverless.yml        # Configuration
-└── venv/                 # Virtual environment (recommended)
-```
-
-## Troubleshooting
-
-### "Failed to gather deployed agent resources"
-
-You must deploy the agent before using dev mode. The IAM role and cloud resources must exist:
+Dev Mode reads the agent's role ARN from the deployed stack. Deploy the service, with the same `--stage` and `--region` you pass to `serverless dev`:
 
 ```bash
 serverless deploy
 ```
 
-### "Connection refused" when chatting
+### `Multiple agents found. Use -a to specify which agent to run in dev mode`
 
-The agent is still starting up. Wait a few seconds for the container/process to initialize and begin listening on the
-port.
+The service defines more than one agent. Pass the agent's name with `--agent` (`-a`).
 
-### Python version mismatch warning
+### `Error: Container is not responding. It may be restarting.`
 
-Dev mode detected a different Python version than configured. Install the correct version or update the `runtime` in
-`serverless.yml`:
+The agent is still starting or rebuilding. Wait a few seconds and send the message again. If it persists, check the agent's logs in the terminal: the agent must listen on `0.0.0.0` at port 8080 in Docker mode, or on `PORT` in code mode.
 
-```bash
-# Check installed version
-python3.13 --version
+### `Unsupported agent runtime "...". The "runtime" option only selects the Python version`
 
-# Or update serverless.yml
-ai:
-  agents:
-    myAgent:
-      runtime: python3.12  # Match your installed version
-```
+`runtime` must be one of `python3.10` to `python3.14`. To use a specific Python installation, activate a virtual environment or adjust `PATH`.
 
-### Credentials fail after trust policy update
+### `Python process exited with code ...`
 
-IAM trust policy changes take a few seconds to propagate. Dev mode waits 10 seconds automatically, but in rare cases you
-may need to retry. Dev mode retries up to 10 times with exponential backoff.
+The agent's code stopped with an error, shown in the lines before. Fix the code and save the file: Dev Mode restarts the process when a `.py` file changes.
 
-### boto3 using wrong credentials (Code Mode)
+### AWS calls from the agent are denied
 
-If your agent uses system-level AWS credentials instead of the injected ones, activate a virtual environment:
+The agent runs with its execution role, not your credentials. Add the missing permission to the agent's `role.statements` and deploy; see [IAM role for an agent](./runtime.md#iam-role-for-an-agent).
 
-```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-serverless dev
-```
+## Related pages
 
-This isolates boto3 from `~/.aws/config` and SSO session caches.
-
-### Agent crashes on file change
-
-Dev mode does not auto-restart after crashes. Fix the issue in your code, and dev mode will rebuild automatically when
-you save the file.
-
-## Next Steps
-
-- [Runtime Configuration](./runtime.md) - Deployment and runtime settings
-- [Gateway Configuration](./gateway.md) - Custom tools via Lambda, OpenAPI, MCP
-- [Memory Configuration](./memory.md) - Conversation persistence
-- [Browser Configuration](./browser.md) - Web automation capabilities
-- [Code Interpreter](./code-interpreter.md) - Sandboxed code execution
+- [AgentCore Runtime agents](./runtime.md): deploy the agent.
+- [AgentCore Gateway tools](./gateway.md) and [AgentCore Memory](./memory.md): the resources the agent uses in Dev Mode.
+- [`serverless dev` command](../../cli-reference/dev.md): all options of the command.

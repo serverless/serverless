@@ -1,12 +1,12 @@
 <!--
-title: 'Agent Skills'
-description: 'Install and manage Serverless Framework Agent Skills — instruction files that teach AI coding agents like Claude Code, Codex, and Cursor how to work with your service.'
+title: Agent Skills
+description: Install the Serverless Framework Agent Skills that teach Claude Code, Codex, Cursor and other AI coding agents to work with your service.
 short_title: Agent Skills
 keywords:
   [
     'Serverless Framework',
     'Agent Skills',
-    'AI agents',
+    'AI coding agents',
     'Claude Code',
     'Codex',
     'Cursor',
@@ -21,120 +21,111 @@ keywords:
 
 # Agent Skills
 
-The Serverless Framework ships [Agent Skills](https://agentskills.io) — instruction
-files that teach AI coding agents (Claude Code, Codex, Cursor, and any agent
-supporting the open standard) how to work with your service.
+The Serverless Framework CLI ships [Agent Skills](https://agentskills.io): instruction files that teach AI coding agents, such as Claude Code, Codex, Cursor and other agents that read the open Agent Skills format, how to build, deploy and debug Serverless Framework services. Install them once, and the agent loads the matching skill when a task needs it; the CLI keeps the installed skills up to date.
 
-The set of bundled skills varies by CLI version. If your version bundles none
-yet, `serverless agent skills install` reports
-`No skills are bundled with this CLI version.` and installs nothing — the rest
-of this guide applies once you're on a version that bundles skills.
-
-## Recommended: one-command setup
+To install the skills and check that your environment is ready for an agent, run this in your service directory:
 
 ```bash
 serverless agent setup
 ```
 
-[`agent setup`](../providers/aws/cli-reference/agent-setup.md) installs the
-user-level `serverless-framework` skill (works in every project), installs the
-project skills when run inside a service directory, and reports whether your
-environment is ready — authentication, AWS credentials, and service presence —
-with a fix for anything missing. The command below installs the same skills
-without the environment report.
+[`serverless agent setup`](../providers/aws/cli-reference/agent-setup.md) installs the user-level `serverless-framework` skill into your home directory, installs the project skills when it runs in a service directory, and reports whether authentication, AWS credentials and the service are ready, with a fix for anything missing. It needs no Serverless sign-in.
 
-## Install
+## Bundled skills
 
-Run in your service directory (where `serverless.yml` lives) to install the
-project skills there; anywhere else it installs only the user-level skill:
+The CLI bundles these skills; `serverless agent skills list` names the ones your CLI version ships:
 
-    serverless agent skills install
+| Skill                  | Scope      | What it teaches                                                               |
+| ---------------------- | ---------- | ----------------------------------------------------------------------------- |
+| `serverless-framework` | User-level | Building, deploying and operating services with `serverless.yml` and the CLI  |
+| `serverless-dev-mode`  | Project    | Running a Dev Mode session (`serverless dev`) and reading what it recorded    |
+| `serverless-mcp`       | Project    | Hosting MCP servers on AWS Lambda with the `mcp` block                        |
+| `serverless-sandboxes` | Project    | Running isolated workloads with the `sandboxes` feature (AWS Lambda MicroVMs) |
+| `serverless-upgrade`   | Project    | Upgrading services from v1, v2 or v3 to v4                                    |
 
-Skills are written to:
+A user-level skill goes into your home directory and works in every project. Project skills go into a service directory, where you can commit them for your team.
 
-- `.claude/skills/` — read by Claude Code (and Cursor)
-- `.agents/skills/` — the open Agent Skills standard directory, read by Codex,
-  Cursor, and other standard-compliant agents
+## Install Agent Skills
 
-The command detects which agent directories you or your team already use (in the
-service and in your home directory) and writes only those; with no signal it
-creates both. To choose explicitly:
+To install the skills without the environment report, run this in your service directory, the directory that holds `serverless.yml`:
 
-    serverless agent skills install --dir claude
-    serverless agent skills install --dir agents
-    serverless agent skills install --dir claude --dir agents
+```bash
+serverless agent skills install
+```
 
-`--dir` is repeatable and also accepts a comma-separated list
-(`--dir claude,agents`). It applies to the user-level skill in your home
-directory too.
+Outside a service directory, the command installs only the user-level skill and says that project skills need a service directory. The command needs no Serverless sign-in, and re-running it updates the skills.
 
-We recommend committing the installed skills so your whole team's agents (and
-newly onboarded teammates) benefit.
+The skills are written to one or both of these directories, in the service for project skills and in your home directory (`~/`) for the user-level skill:
+
+- `.claude/skills/`, read by Claude Code.
+- `.agents/skills/`, the open Agent Skills directory, read by Codex, Cursor and other agents that follow the standard.
+
+Without `--dir`, the command picks the project directories in this order:
+
+1. The directories that already hold skills the Framework manages.
+2. The `.claude` and `.agents` directories that exist in the service.
+3. The agents your home directory shows: `~/.claude` selects `.claude/skills`; `~/.agents`, `~/.codex` or `~/.cursor` selects `.agents/skills`.
+4. Both directories.
+
+The user-level skill goes to `~/.claude/skills` and `~/.agents/skills` by the same home-directory signals, or to both when there are none. To choose the directories, pass `--dir` with `claude`, `agents` or both; it applies to the project and the user-level directories:
+
+```bash
+serverless agent skills install --dir claude --dir agents
+```
+
+`--dir` is repeatable and also accepts a comma-separated list (`--dir claude,agents`). Another value stops the command with `Unknown --dir value`.
+
+Commit the installed project skills, so your team's agents and new teammates get them too.
 
 ## Automatic updates
 
-Once installed, skills refresh automatically: when a `serverless` command
-completes successfully with a newer CLI that bundles newer skills, installed
-skills are silently upgraded (a one-line notice is printed). User-level skills
-are upgraded wherever the command runs, project skills when it runs in the
-service. Notes:
+After a `serverless` command succeeds, the CLI updates installed skills to the versions it bundles, and prints a one-line notice that starts with `Serverless agent skills updated:`. It updates the user-level skill wherever the command runs, and project skills when the command runs in the service. Automatic updates follow these rules:
 
-- Updates only ever move forward — an older CLI never downgrades skills a
-  teammate's newer CLI installed.
-- Auto-update is skipped in CI environments, after a failed command, and
-  for `--help`, `--version` and the `agent` commands: `agent setup` and
-  `agent skills install` update skills themselves, and `agent docs` and
-  `agent skills list`/`read` never write any.
-- New skills added in newer CLI versions are installed into directories that
-  already contain Framework-managed skills.
+- An update writes a skill only when the bundled version is newer, so an older CLI never downgrades skills that a teammate's newer CLI installed.
+- An update writes only into directories that already hold Framework-managed skills. There it also adds skills that a newer CLI bundles for the first time.
+- Updates are skipped in CI (detected from environment variables such as `CI` or `GITHUB_ACTIONS`), after a failed command, and for `--help`, `--version` and the `agent` commands. `agent setup` and `agent skills install` update skills themselves; `agent docs` and `agent skills list`/`read` never write any.
+- A skill you took ownership of ([Customizing a skill](#customizing-a-skill)) is never updated.
 
-## Reading a skill without installing it
+## Read a skill without installing it
 
-Every bundled skill can be printed on demand, so an agent working in a
-project where the skills are not installed still has the same knowledge one
-command away:
+The CLI prints any bundled skill on demand, so an agent working in a project without installed skills can still read it:
 
-    serverless agent skills list
-    serverless agent skills read serverless-sandboxes
-    serverless agent skills read serverless-sandboxes references/config.md
+```bash
+serverless agent skills list
+serverless agent skills read serverless-sandboxes
+serverless agent skills read serverless-sandboxes references/config.md
+```
 
-The same idea applies to the documentation:
-[`serverless agent docs`](../providers/aws/cli-reference/agent-docs.md) prints
-the page index or any page that ships with the installed CLI.
+[`serverless agent docs`](../providers/aws/cli-reference/agent-docs.md) does the same for the documentation: it prints the page index or any page that ships with the installed CLI. See [`serverless agent skills read`](../providers/aws/cli-reference/agent-skills-read.md) for the options.
 
 ## Customizing a skill
 
-Framework-managed skills are overwritten on update. To take ownership of a
-skill and keep your edits, delete the `managed-by` line from its frontmatter:
+The CLI overwrites Framework-managed skills when it updates them. To keep your edits to a skill, take ownership of it by deleting the `managed-by` line from the frontmatter of its `SKILL.md`:
 
-    metadata:
-      managed-by: serverless-framework   # ← delete this line to take ownership
+```yaml
+metadata:
+  managed-by: serverless-framework # delete this line to take ownership
+```
 
-The Framework never touches that skill again — it is yours.
+The CLI never changes that skill again, and `agent skills install` reports it as customized by you.
 
-## Uninstalling
+## Uninstall Agent Skills
 
-Delete the skill folders (or the whole `.claude/skills` / `.agents/skills`
-directory). As long as the other directory still contains Framework-managed
-skills, a deleted directory is not recreated — not even by re-running
-`install`. To fully remove: delete all Framework-managed skill folders from
-both directories.
+To remove the skills, delete all Framework-managed skill folders from both skill directories, in the service and in your home directory.
+
+- A whole skill directory you delete (for example `.claude/skills`) isn't created again while the other directory still holds Framework-managed skills, not even by `agent skills install` without `--dir`.
+- A single skill folder you delete from a directory that still holds other Framework-managed skills is installed again by the next update or `agent skills install`. To keep one skill out, take ownership of it instead ([Customizing a skill](#customizing-a-skill)).
 
 ## Dev Mode for coding agents
 
-`serverless dev` runs your deployed functions' real invocations on your machine. An agent starts it
-with `serverless dev --detach`, follows it with `serverless dev wait`, `serverless dev requests` and
-`serverless dev replay`, and ends it with `serverless dev stop`, which restores the functions; every
-one of these commands prints one JSON result with `--json`. The
-[Dev Mode guide](../providers/aws/guide/dev-mode.md#using-dev-mode-from-an-ai-agent) describes the
-loop, the exit codes and the files, and the bundled skill teaches it:
+`serverless dev` runs a deployed stage's real invocations on your machine. An agent starts it with `serverless dev --detach`, follows it with `serverless dev wait`, `serverless dev requests` and `serverless dev replay`, and ends it with `serverless dev stop`, which restores the functions; each of these commands prints one JSON result with `--json`. The [Dev Mode guide](../providers/aws/guide/dev-mode.md#using-dev-mode-from-an-ai-agent) describes the loop, the exit codes and the files, and the bundled `serverless-dev-mode` skill teaches it:
 
-    serverless agent skills read serverless-dev-mode
+```bash
+serverless agent skills read serverless-dev-mode
+```
 
-## More agent tooling
+## Related pages
 
-Once an agent is set up to work with your service, [`serverless agent
-inspect`](../providers/aws/cli-reference/agent-inspect.md) gives it the live
-AWS configuration of your deployed resources in a single read-only call —
-useful when an agent needs to debug or reason about what's actually running,
-not just the `serverless.yml` source.
+- [`serverless agent setup`](../providers/aws/cli-reference/agent-setup.md): install the skills and check the environment in one command.
+- [`serverless agent skills install`](../providers/aws/cli-reference/agent-skills-install.md): the install command's options and output.
+- [`serverless agent inspect`](../providers/aws/cli-reference/agent-inspect.md): give an agent the live AWS configuration of the deployed resources in one read-only call.

@@ -1,15 +1,14 @@
 <!--
-title: Serverless Framework - AgentCore Memory Configuration
-description: Configure AgentCore Memory for conversation persistence, context management, and memory strategies
+title: AgentCore Memory
+description: Give AI agents conversation history and long-term memory with Amazon Bedrock AgentCore Memory, inline on an agent or shared between agents.
 short_title: Memory
 keywords:
   [
     'Serverless Framework',
-    'AWS Bedrock',
-    'AgentCore',
-    'Memory',
-    'Conversation Persistence',
-    'Context Management',
+    'Amazon Bedrock AgentCore Memory',
+    'AI agent memory',
+    'conversation history',
+    'long-term memory strategies',
   ]
 -->
 
@@ -19,254 +18,58 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Memory Configuration
+# AgentCore Memory for agents
 
-Memory enables your AI agents to persist conversation history and context across invocations. AgentCore Memory stores conversation data in AWS-managed infrastructure, allowing agents to recall previous interactions and maintain context over time.
+Amazon Bedrock AgentCore Memory stores an agent's conversation events (short-term memory) and, with memory strategies, extracts facts, summaries and preferences from them (long-term memory). In `serverless.yml`, set `memory` on an agent, or define memory under `ai.memory` and share it between agents; the Framework creates the memory resource and its role, gives the agent access, and sets `BEDROCK_AGENTCORE_MEMORY_ID` in the agent's environment.
 
-## Quick Start
+This agent gets its own memory, which keeps events for 30 days:
 
-Add memory to any agent with a single property:
-
-```yml
+```yaml
+# serverless.yml
 ai:
   agents:
-    myAgent:
-      memory:
-        expiration: 30 # Days until memory events expire (3-365)
-```
-
-The framework automatically:
-
-- Creates the AgentCore Memory resource
-- Injects `BEDROCK_AGENTCORE_MEMORY_ID` environment variable into your runtime
-- Grants necessary IAM permissions
-
-## How Memory Works
-
-Memory persists conversation data tied to a **session ID**. When your agent receives a request, the session ID determines which conversation history to load.
-
-```text
-Request 1 (session: abc-123)
-  User: "My name is Alice"
-  Agent: "Nice to meet you, Alice!"
-  → Stored in memory
-
-Request 2 (session: abc-123)
-  User: "What's my name?"
-  Agent: "Your name is Alice"  ← Retrieved from memory
-
-Request 3 (session: xyz-789)  # Different session
-  User: "What's my name?"
-  Agent: "I don't know your name yet"  ← No history for this session
-```
-
-## Configuration Patterns
-
-### Inline Memory (Single Agent)
-
-Define memory directly on an agent. Best for simple, single-agent deployments:
-
-```yml
-ai:
-  agents:
-    myAgent:
-      memory:
-        expiration: 30 # 30 days
-```
-
-### Shared Memory (Multiple Agents)
-
-Define memory at the `ai.memory` level and reference by name. Best when multiple agents need access to the same conversation history:
-
-```yml
-ai:
-  memory:
-    conversations:
-      expiration: 90 # 90 days
-      description: Shared conversation memory
-
-  agents:
-    chatbot:
-      memory: conversations # Reference by name
-
     assistant:
-      memory: conversations # Same memory, different agent
+      memory:
+        expiration: 30
 ```
 
-## Memory Strategies
+AgentCore Memory doesn't record conversations by itself: the agent code saves each turn and reads history back, as [Use memory in agent code](#use-memory-in-agent-code) shows.
 
-Strategies define how memory processes and retrieves conversation data. They're optional—memory works without them—but strategies enable advanced features like semantic search and summarization.
+## Use memory in agent code
 
-### SemanticMemoryStrategy
+Memory organizes events by actor ID (the user or entity the memory belongs to) and session ID (one conversation). The agent chooses both: for example, the user ID from the request and the AgentCore session ID. Requests with the same actor and session read the same history.
 
-Enables similarity-based search across conversation history. Use when agents need to find relevant past conversations.
-
-```yml
-ai:
-  memory:
-    searchable:
-      expiration: 90 # 90 days
-      strategies:
-        - SemanticMemoryStrategy:
-            Name: ConversationSearch
-            Description: Semantic search over conversation history
-            Namespaces:
-              - /conversations/{sessionId}
-              - /users/{userId}/chats
-```
-
-### SummaryMemoryStrategy
-
-Maintains condensed conversation context. Use for long conversations where full history exceeds token limits.
-
-```yml
-ai:
-  memory:
-    summarized:
-      expiration: 90 # 90 days
-      strategies:
-        - SummaryMemoryStrategy:
-            Name: ConversationSummary
-            Description: Summarizes long conversations
-            Namespaces:
-              - /sessions/{sessionId}
-```
-
-### UserPreferenceMemoryStrategy
-
-Tracks user preferences across sessions. Use for personalization that persists beyond individual conversations.
-
-```yml
-ai:
-  memory:
-    preferences:
-      expiration: 365 # Maximum retention (1 year)
-      strategies:
-        - UserPreferenceMemoryStrategy:
-            Name: UserSettings
-            Description: Tracks user preferences and settings
-            Namespaces:
-              - /users/{userId}/preferences
-```
-
-### EpisodicMemoryStrategy
-
-Stores episodic memories with reflection capabilities. Use for agents that need to learn from past experiences.
-
-```yml
-ai:
-  memory:
-    episodes:
-      expiration: 30 # 30 days
-      strategies:
-        - EpisodicMemoryStrategy:
-            Name: Episodes
-            Description: Stores episodic memories with reflection
-            Namespaces:
-              - /episodes/{sessionId}
-```
-
-### CustomMemoryStrategy
-
-Application-specific memory handling with custom configuration.
-
-```yml
-ai:
-  memory:
-    custom:
-      expiration: 30 # 30 days
-      strategies:
-        - CustomMemoryStrategy:
-            Name: ApplicationSpecific
-            Description: Custom memory handling
-            Configuration:
-              customField: customValue
-              processingMode: batch
-```
-
-### Multi-Strategy Memory
-
-Combine multiple strategies for comprehensive memory management:
-
-```yml
-ai:
-  memory:
-    comprehensive:
-      expiration: 90 # 90 days
-      strategies:
-        # Semantic search for finding relevant conversations
-        - SemanticMemoryStrategy:
-            Name: SemanticSearch
-            Namespaces:
-              - /conversations/{sessionId}
-
-        # Summarization for context management
-        - SummaryMemoryStrategy:
-            Name: ContextSummary
-            Namespaces:
-              - /sessions/{sessionId}
-
-        # User preferences for personalization
-        - UserPreferenceMemoryStrategy:
-            Name: Preferences
-            Namespaces:
-              - /users/{userId}
-```
-
-## Environment Variable Injection
-
-When memory is configured, the framework automatically injects the `BEDROCK_AGENTCORE_MEMORY_ID` environment variable into your runtime. Use this to initialize memory clients in your agent code.
-
-**Python (Strands):**
+In Python, the [Amazon Bedrock AgentCore SDK](https://github.com/aws/bedrock-agentcore-sdk-python) provides `MemoryClient`:
 
 ```python
 import os
-from bedrock_agentcore.memory.integrations.strands.config import AgentCoreMemoryConfig
-from bedrock_agentcore.memory.integrations.strands.session_manager import AgentCoreMemorySessionManager
 
-MEMORY_ID = os.environ.get("BEDROCK_AGENTCORE_MEMORY_ID")
-
-config = AgentCoreMemoryConfig(
-    memory_id=MEMORY_ID,
-    session_id=session_id,  # From request context
-    actor_id="user"
-)
-session_manager = AgentCoreMemorySessionManager(
-    agentcore_memory_config=config,
-    region_name="us-east-1"
-)
-```
-
-**Python (LangGraph / General):**
-
-```python
-import os
 from bedrock_agentcore.memory import MemoryClient
 
-MEMORY_ID = os.environ.get("BEDROCK_AGENTCORE_MEMORY_ID")
-memory_client = MemoryClient(region_name="us-east-1")
+MEMORY_ID = os.environ["BEDROCK_AGENTCORE_MEMORY_ID"]
+memory = MemoryClient(region_name=os.environ["AWS_REGION"])
 
-# Save conversation turn
-memory_client.create_event(
+memory.create_event(
     memory_id=MEMORY_ID,
     actor_id="user-123",
     session_id="session-456",
     messages=[
         ("What's the weather?", "USER"),
-        ("Today is sunny!", "ASSISTANT")
-    ]
+        ("Today is sunny.", "ASSISTANT"),
+    ],
 )
 
-# Retrieve conversation history
-events = memory_client.list_events(
+events = memory.list_events(
     memory_id=MEMORY_ID,
     actor_id="user-123",
     session_id="session-456",
-    max_results=10
+    max_results=10,
 )
 ```
 
-**JavaScript:**
+For Strands Agents, the same SDK provides `AgentCoreMemorySessionManager` in `bedrock_agentcore.memory.integrations.strands`, which saves and loads the conversation for you.
+
+In JavaScript, use `@aws-sdk/client-bedrock-agentcore`:
 
 ```javascript
 import {
@@ -278,7 +81,6 @@ import {
 const MEMORY_ID = process.env.BEDROCK_AGENTCORE_MEMORY_ID
 const client = new BedrockAgentCoreClient()
 
-// Save conversation turn
 await client.send(
   new CreateEventCommand({
     memoryId: MEMORY_ID,
@@ -294,7 +96,7 @@ await client.send(
       },
       {
         conversational: {
-          content: { text: 'Today is sunny!' },
+          content: { text: 'Today is sunny.' },
           role: 'ASSISTANT',
         },
       },
@@ -302,7 +104,6 @@ await client.send(
   }),
 )
 
-// Retrieve conversation history
 const { events } = await client.send(
   new ListEventsCommand({
     memoryId: MEMORY_ID,
@@ -313,97 +114,138 @@ const { events } = await client.send(
 )
 ```
 
-## IAM Role Configuration
+The agent's generated role allows `CreateEvent`, `GetEvent`, `ListEvents`, `DeleteEvent`, `ListSessions`, `ListActors`, `RetrieveMemoryRecords`, `ListMemoryRecords`, `GetMemoryRecord` and `GetMemory` on its memory.
 
-The framework automatically creates an IAM role for each memory resource. This role includes the AWS managed policy `AmazonBedrockAgentCoreMemoryBedrockModelInferenceExecutionRolePolicy`, which grants Bedrock model invocation permissions required for memory strategies (extraction, consolidation). You can add custom statements alongside this managed policy:
+## Share memory between agents
 
-```yml
+To let several agents read and write the same memory, define it under `ai.memory` and reference it by name in each agent's `memory`:
+
+```yaml
 ai:
   memory:
     conversations:
-      expiration: 30 # 30 days
-      role:
-        name: custom-memory-role
-        statements:
-          - Effect: Allow
-            Action:
-              - kms:Decrypt
-            Resource: arn:aws:kms:us-east-1:123456789012:key/xxx
-        tags:
-          Team: AI
+      expiration: 90
+      description: Conversation memory shared by the support agents
+
+  agents:
+    triage:
+      memory: conversations
+    specialist:
+      memory: conversations
 ```
 
-## Configuration Reference
+An agent's `memory` is either the name of an entry in `ai.memory` or an inline memory object. An inline memory belongs to one agent and is named `<agent>-memory` in the stack. A name that isn't in `ai.memory` stops the deployment.
 
-### Memory Properties
+## Extract long-term memory with strategies
 
-| Property        | Type          | Required | Description                                          |
-| --------------- | ------------- | -------- | ---------------------------------------------------- |
-| `expiration`    | number        | No       | Days until memory events expire (3-365, default: 30) |
-| `description`   | string        | No       | Human-readable description                           |
-| `encryptionKey` | string        | No       | KMS key ARN for encryption                           |
-| `strategies`    | array         | No       | Memory processing strategies                         |
-| `role`          | string/object | No       | IAM role ARN or configuration                        |
-| `tags`          | object        | No       | Resource tags                                        |
+Memory strategies turn events into long-term memory records that the agent retrieves with `RetrieveMemoryRecords`. Each entry in `strategies` has one strategy type as its key, with the AWS property names:
 
-### Strategy Properties
-
-Each strategy type has specific properties:
-
-| Strategy                       | Required Properties | Optional Properties                                    |
-| ------------------------------ | ------------------- | ------------------------------------------------------ |
-| `SemanticMemoryStrategy`       | `Name`              | `Description`, `Namespaces`                            |
-| `SummaryMemoryStrategy`        | `Name`              | `Description`, `Namespaces`                            |
-| `UserPreferenceMemoryStrategy` | `Name`              | `Description`, `Namespaces`                            |
-| `EpisodicMemoryStrategy`       | `Name`              | `Description`, `Namespaces`, `ReflectionConfiguration` |
-| `CustomMemoryStrategy`         | `Name`              | `Description`, `Namespaces`, `Configuration`           |
-
-## Complete Example
-
-```yml
-service: my-ai-service
-
-provider:
-  name: aws
-  region: us-east-1
-
+```yaml
 ai:
-  # Shared memory with multiple strategies
   memory:
-    conversationMemory:
-      description: Production conversation memory
-      expiration: 90 # 90 days
+    conversations:
+      expiration: 90
       strategies:
         - SemanticMemoryStrategy:
-            Name: ConversationSearch
+            Name: Facts
+            Description: Facts the user shared
             Namespaces:
-              - /conversations/{sessionId}
+              - /facts/{actorId}/
         - SummaryMemoryStrategy:
-            Name: ContextSummary
+            Name: SessionSummaries
             Namespaces:
-              - /sessions/{sessionId}
-      tags:
-        Environment: production
-
-  # Agent with shared memory reference
-  agents:
-    chatbot:
-      memory: conversationMemory # Reference shared memory
+              - /summaries/{actorId}/{sessionId}/
+        - UserPreferenceMemoryStrategy:
+            Name: Preferences
+            Namespaces:
+              - /preferences/{actorId}/
 ```
+
+| Strategy                       | Extracts                                                                        |
+| ------------------------------ | ------------------------------------------------------------------------------- |
+| `SemanticMemoryStrategy`       | Facts and knowledge from conversations                                          |
+| `SummaryMemoryStrategy`        | A running summary of each session                                               |
+| `UserPreferenceMemoryStrategy` | User preferences and choices                                                    |
+| `EpisodicMemoryStrategy`       | Episodes of interactions, with optional reflections (`ReflectionConfiguration`) |
+| `CustomMemoryStrategy`         | One of the above with your own prompt and model (`Configuration`)               |
+
+Every strategy needs `Name`, which matches `^[a-zA-Z][a-zA-Z0-9_]{0,47}$`. `Description` and `Namespaces` are optional. A namespace is a path that groups the extracted records, and can use the variables `{actorId}`, `{sessionId}` and `{memoryStrategyId}`; see [Memory organization](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-organization.html). The Framework passes the strategies to AWS unchanged, so every property of [`AWS::BedrockAgentCore::Memory` MemoryStrategy](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-bedrockagentcore-memory-memorystrategy.html) works.
+
+`CustomMemoryStrategy` takes a `Configuration` with one override, for example to change the extraction prompt and model of semantic memory:
+
+```yaml
+ai:
+  memory:
+    travel:
+      strategies:
+        - CustomMemoryStrategy:
+            Name: TravelFacts
+            Namespaces:
+              - /travel/{actorId}/
+            Configuration:
+              SemanticOverride:
+                Extraction:
+                  AppendToPrompt: Extract only facts about the user's travel plans.
+                  ModelId: us.anthropic.claude-sonnet-4-5-20250929-v1:0
+```
+
+`Configuration` takes one of `SemanticOverride`, `SummaryOverride`, `UserPreferenceOverride`, `EpisodicOverride` or `SelfManagedConfiguration`, as defined in [CustomMemoryStrategy](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-bedrockagentcore-memory-custommemorystrategy.html).
+
+## Event expiration and encryption
+
+`expiration` is the number of days AgentCore keeps events, from 3 to 365; the default is 30. `encryptionKey` takes the ARN of an AWS KMS key that encrypts the memory; without it, AgentCore encrypts the memory with a service-managed key. The credentials that deploy the service need `kms:CreateGrant`, `kms:Decrypt`, `kms:DescribeKey` and `kms:GenerateDataKey` on the key, as [Encrypt your AgentCore Memory](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/storage-encryption.html) describes:
+
+```yaml
+ai:
+  memory:
+    conversations:
+      expiration: 180
+      encryptionKey: arn:aws:kms:us-east-1:123456789012:key/1234abcd-12ab-34cd-56ef-1234567890ab
+```
+
+## IAM role for memory
+
+AgentCore uses the memory's execution role to call Bedrock models when it extracts long-term memory. Without `role`, the Framework creates one per memory, named `<service>_<memory>_memory_role_<stage>` (truncated to 48 characters), with the AWS managed policy `AmazonBedrockAgentCoreMemoryBedrockModelInferenceExecutionRolePolicy`.
+
+To add permissions, set `role` to an object. The managed policy stays attached, and `statements` go into an extra inline policy:
+
+```yaml
+ai:
+  memory:
+    conversations:
+      role:
+        statements:
+          - Effect: Allow
+            Action: kms:Decrypt
+            Resource: arn:aws:kms:us-east-1:123456789012:key/1234abcd-12ab-34cd-56ef-1234567890ab
+        tags:
+          Team: ai
+```
+
+`role` takes the same forms as an agent's role: an object with `name`, `statements`, `managedPolicies`, `permissionsBoundary` and `tags`, or an ARN, a logical ID or a CloudFormation intrinsic to use a role you manage. See [IAM role for an agent](./runtime.md#iam-role-for-an-agent).
+
+## Memory configuration reference
+
+These keys apply to entries in `ai.memory` and to inline `memory` objects on agents:
+
+| Key             | Type             | Default             | Value                                           |
+| --------------- | ---------------- | ------------------- | ----------------------------------------------- |
+| `expiration`    | number           | `30`                | Days to keep events, 3 to 365                   |
+| `strategies`    | list             | None                | Long-term memory strategies                     |
+| `encryptionKey` | string           | Service-managed key | KMS key ARN                                     |
+| `description`   | string           | None                | 1 to 1,200 characters                           |
+| `role`          | string or object | Generated role      | See [IAM role for memory](#iam-role-for-memory) |
+| `tags`          | map of strings   | None                | Tags on the memory                              |
+
+For a memory named `conversations`, the stack contains `ConversationsMemory` (an `AWS::BedrockAgentCore::Memory` named `<service>_conversations_<stage>`, truncated to 48 characters) and `ConversationsMemoryRole`, and outputs `ConversationsMemoryArn` (exported as `<service>-<stage>-conversations-MemoryArn`), `ConversationsMemoryId` and `ConversationsMemoryRoleArn`.
 
 ## Examples
 
-**JavaScript:**
+- [LangGraph with memory (JavaScript)](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-memory) and [(Python)](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-memory).
+- More in the [Amazon Bedrock AgentCore examples](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore).
 
-- [LangGraph with Memory](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-memory) - LangGraph agent with conversation persistence
+## Related pages
 
-**Python:**
-
-- [LangGraph with Memory](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-memory) - LangGraph agent with conversation persistence
-
-## Next Steps
-
-- [Runtime Configuration](./runtime.md) - Deployment, networking, authentication
-- [Gateway Configuration](./gateway.md) - Add custom tools to your agents
-- [Browser Tool](./browser.md) - Web automation capabilities
-- [Code Interpreter](./code-interpreter.md) - Python code execution
+- [AgentCore Runtime agents](./runtime.md): the agent settings, including `memory`.
+- [AgentCore Gateway tools](./gateway.md): give the agent tools.
+- [Amazon Bedrock AgentCore Memory](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html) in the AgentCore developer guide.

@@ -1,65 +1,201 @@
 <!--
-title: Serverless Framework - AppSync - Resolvers
-description: How to configure UNIT and PIPELINE resolvers for AWS AppSync with the Serverless Framework.
-short_title: AppSync - Resolvers
+title: AppSync Resolvers
+description: 'Attach AppSync resolvers to GraphQL fields in serverless.yml: unit and pipeline resolvers in JavaScript, VTL or direct Lambda, with caching.'
+short_title: AppSync Resolvers
 keywords:
   [
     'Serverless Framework',
-    'AppSync',
-    'Resolvers',
-    'UNIT',
-    'PIPELINE',
-    'GraphQL',
-    'AWS',
+    'AppSync resolver',
+    'AppSync JavaScript resolver',
+    'APPSYNC_JS',
+    'AppSync pipeline resolver',
+    'AppSync direct Lambda resolver',
   ]
 -->
 
-# Resolvers
+<!-- DOCS-SITE-LINK:START automatically generated  -->
 
-All the Resolvers in your AppSync API can be found in serverless.yml under the `appSync.resolvers` property.
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/appsync/resolvers)
 
-Resolvers are defined using key-value pairs where the key can either be an arbitrary name for the resolver or the `type` and `field` in the schema it is attached to separated with a dot (`.`), and the value is the configuration of the resolver.
+<!-- DOCS-SITE-LINK:END -->
 
-## Quick start
+# AppSync resolvers
+
+The `appSync.resolvers` map attaches a resolver to each GraphQL field that needs one: the code that turns the field's arguments into a request to a [data source](./dataSources.md) and the response into the field's value. A `UNIT` resolver calls one data source; a `PIPELINE` resolver, the default kind, runs a list of [pipeline functions](./pipeline-functions.md) in sequence. Resolver code is JavaScript for the `APPSYNC_JS` runtime, VTL mapping templates, or nothing at all for a direct Lambda resolver.
+
+This unit resolver resolves `Query.getPost` with a JavaScript file and a DynamoDB data source:
 
 ```yaml
 appSync:
+  name: blog-api
+  dataSources:
+    postsTable:
+      type: AMAZON_DYNAMODB
+      config:
+        tableName: !Ref PostsTable
   resolvers:
-    Query.user:
-      dataSource: myDataSource
-
-    getPosts:
-      type: Query
-      field: getPosts
-      dataSource: myDataSource
+    Query.getPost:
+      kind: UNIT
+      dataSource: postsTable
+      code: resolvers/getPost.js
 ```
 
-## Configuration
+The `code` path is relative to the service directory. `resolvers/getPost.js` exports a `request` and a `response` function:
 
-- `type`: The Type in the schema this resolver is attached to. Optional if specified in the configuration key.
-- `field`: The Field in the schema this resolver is attached to. Optional if specified in the configuration key.
-- `kind`: The kind of resolver. Can be `UNIT` or `PIPELINE` ([see below](#PIPELINE-resolvers)). Defaults to `PIPELINE`
-- `dataSource`: The name of the [dataSource](dataSources.md) this resolver uses.
-- `functions`: For pipeline resolvers ([see below](#PIPELINE-resolvers)) the array of functions to run in sequence
-- `maxBatchSize`: The maximum [batch size](https://aws.amazon.com/blogs/mobile/introducing-configurable-batching-size-for-aws-appsync-lambda-resolvers/) to use (only available for AWS Lambda DataSources)
-- `code`: The path of the JavaScript resolver handler file, relative to `serverless.yml`. If not specified, a [minimalistic default](#javascript-vs-vtl) is used.
-- `request`: The path to the VTL request mapping template file, relative to `serverless.yml`.
-- `response`: The path to the VTL response mapping template file, relative to `serverless.yml`.
-- `substitutions`: See [Variable Substitutions](substitutions.md). Deprecated: Use [environment variables](./general-config.md) instead.
-- `caching`: [See below](#Caching)
-- `sync`: [See SyncConfig](syncConfig.md)
+```javascript
+import { util } from '@aws-appsync/utils'
 
-## JavaScript, VTL, or Direct Lambda
+export function request(ctx) {
+  return {
+    operation: 'GetItem',
+    key: util.dynamodb.toMapValues({ id: ctx.args.id }),
+  }
+}
 
-When `code` is specified, the JavaScript runtime is used.
+export function response(ctx) {
+  return ctx.result
+}
+```
 
-When `request` and/or `response` are specified, the VTL runtime is used.
+Without `kind: UNIT`, a resolver is a pipeline resolver and requires `functions` instead of `dataSource`.
 
-For [direct lambda](https://docs.aws.amazon.com/appsync/latest/devguide/direct-lambda-reference.html), set `kind` to `UNIT` and don't specify `request`, `response` or `code`. This only works with Lambda function data sources.
+## Resolver keys
 
-If nothing is specified, by default, the resolver is a PIPELINE JavaScript resolver, and the following minimalistic code is used for the `before` and `after` handlers.
+Each key of `appSync.resolvers` is either `Type.field` (`Query.getPost`), or any name with the type and field set as `type` and `field`:
 
-```js
+```yaml
+appSync:
+  name: blog-api
+  resolvers:
+    getPostResolver:
+      type: Query
+      field: getPost
+      kind: UNIT
+      dataSource: postsTable
+      code: resolvers/getPost.js
+```
+
+Each resolver accepts these keys:
+
+| Key             | Type                 | Default                                     | Description                                                                                                                           |
+| --------------- | -------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`          | string               | From the `Type.field` key                   | The GraphQL type. Required when the key isn't `Type.field`.                                                                           |
+| `field`         | string               | From the `Type.field` key                   | The GraphQL field. Required when the key isn't `Type.field`.                                                                          |
+| `kind`          | `UNIT` or `PIPELINE` | `PIPELINE`                                  | The resolver kind.                                                                                                                    |
+| `dataSource`    | string or object     | Required for `UNIT`                         | The name of a data source in `appSync.dataSources`, or an [inline data source](#inline-data-sources).                                 |
+| `functions`     | list                 | Required for `PIPELINE`                     | The [pipeline functions](./pipeline-functions.md) to run in order: names, or [inline definitions](#inline-pipeline-functions).        |
+| `code`          | string               | See [Resolver runtimes](#resolver-runtimes) | Path to a JavaScript or TypeScript file, relative to the service directory.                                                           |
+| `request`       | string               | None                                        | Path to a VTL request mapping template, relative to the service directory.                                                            |
+| `response`      | string               | None                                        | Path to a VTL response mapping template, relative to the service directory.                                                           |
+| `maxBatchSize`  | number, 1–2000       | None                                        | For `UNIT` resolvers with a Lambda data source: the maximum number of requests AppSync sends to the function in one batch invocation. |
+| `caching`       | boolean or object    | None                                        | See [Resolver caching](#resolver-caching).                                                                                            |
+| `sync`          | object               | None                                        | Conflict detection and resolution. See [Delta Sync](./syncConfig.md).                                                                 |
+| `substitutions` | map                  | None                                        | See [AppSync substitutions](./substitutions.md).                                                                                      |
+
+## Resolver runtimes
+
+The keys a resolver sets decide its runtime:
+
+| Keys set                                    | Runtime                                                                                          |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `code`                                      | JavaScript (`APPSYNC_JS` 1.0.0).                                                                 |
+| `request` and/or `response`, without `code` | VTL mapping templates.                                                                           |
+| None of them, `kind: UNIT`                  | A direct Lambda resolver. Use it only with a Lambda data source.                                 |
+| None of them, `kind: PIPELINE`              | JavaScript with a default `request` and `response` that pass the last function's result through. |
+
+### JavaScript resolvers
+
+A JavaScript resolver's `code` file exports `request(ctx)`, which returns the request for the data source, and `response(ctx)`, which returns the field's value. The Framework bundles the file with esbuild before deploying, so it can import other files and npm packages; see [Resolver bundling](#resolver-bundling).
+
+### VTL resolvers
+
+A VTL resolver sets `request` and `response` to mapping template files:
+
+```yaml
+appSync:
+  name: blog-api
+  resolvers:
+    Query.getPost:
+      kind: UNIT
+      dataSource: postsTable
+      request: mapping-templates/getPost.request.vtl
+      response: mapping-templates/getPost.response.vtl
+```
+
+The request template in `mapping-templates/getPost.request.vtl`:
+
+```text
+{
+  "version": "2018-05-29",
+  "operation": "GetItem",
+  "key": {
+    "id": $util.dynamodb.toDynamoDBJson($ctx.args.id)
+  }
+}
+```
+
+The response template in `mapping-templates/getPost.response.vtl`:
+
+```text
+$util.toJson($ctx.result)
+```
+
+### Direct Lambda resolvers
+
+A [direct Lambda resolver](https://docs.aws.amazon.com/appsync/latest/devguide/direct-lambda-reference.html) has `kind: UNIT`, a Lambda data source and no `code`, `request` or `response`. AppSync sends the function the full context (`arguments`, `identity`, `source`, `info` and more) and uses the function's return value as the field's value:
+
+```yaml
+provider:
+  name: aws
+  runtime: nodejs24.x
+
+appSync:
+  name: blog-api
+  dataSources:
+    postsFunction:
+      type: AWS_LAMBDA
+      config:
+        function:
+          handler: functions/posts.handler
+  resolvers:
+    Query.getPost:
+      kind: UNIT
+      dataSource: postsFunction
+```
+
+The handler in `functions/posts.mjs`:
+
+```javascript
+export const handler = async (event) => {
+  const { id } = event.arguments
+  return { id, title: `Post ${id}` }
+}
+```
+
+## Pipeline resolvers
+
+A pipeline resolver runs its `functions` in order. Each function's `code` file exports `request` and `response`, like a unit resolver's, and can read the previous function's result from `ctx.prev.result`. The resolver's own `code` (or `request` and `response` templates) runs before the first function and after the last:
+
+```yaml
+appSync:
+  name: blog-api
+  pipelineFunctions:
+    authorizePost:
+      dataSource: postsTable
+      code: functions/authorizePost.js
+    getPost:
+      dataSource: postsTable
+      code: functions/getPost.js
+  resolvers:
+    Query.getPost:
+      functions:
+        - authorizePost
+        - getPost
+```
+
+Without `code`, `request` or `response`, the Framework gives a pipeline resolver this JavaScript code, which passes the last function's result through:
+
+```javascript
 export function request() {
   return {}
 }
@@ -69,77 +205,57 @@ export function response(ctx) {
 }
 ```
 
-Example of a UNIT JavaScript resolver.
+## Resolver bundling
+
+AppSync accepts one JavaScript file per resolver or function. The Framework bundles each `code` file with [esbuild](https://esbuild.github.io/), using the file as the entry point, so the code can import local modules and npm packages. `@aws-appsync/utils` stays external because the `APPSYNC_JS` runtime provides it. This resolver imports helpers from another file:
+
+```javascript
+import { util } from '@aws-appsync/utils'
+import { buildUpdate } from '../lib/helpers.js'
+
+export function request(ctx) {
+  const { id, ...values } = ctx.args.input
+  return {
+    operation: 'UpdateItem',
+    key: util.dynamodb.toMapValues({ id }),
+    update: buildUpdate(values),
+    condition: {
+      expression: 'attribute_exists(#id)',
+      expressionNames: { '#id': 'id' },
+    },
+  }
+}
+
+export function response(ctx) {
+  return ctx.result
+}
+```
+
+Imported code must also run in the `APPSYNC_JS` runtime, which supports a subset of JavaScript. To change the esbuild options, or to send files unbundled, see [esbuild options for JavaScript resolvers](./general-config.md#esbuild-options-for-javascript-resolvers).
+
+## TypeScript resolvers
+
+A `code` path ending in `.ts` is transpiled to JavaScript while bundling, with no extra configuration:
 
 ```yaml
 appSync:
+  name: blog-api
   resolvers:
-    Query.user:
+    Query.getPost:
       kind: UNIT
-      dataSource: myDataSource
-      code: getUser.js
+      dataSource: postsTable
+      code: resolvers/getPost.ts
 ```
 
-## Bundling
+The resolver in `resolvers/getPost.ts` can use the types from `@aws-appsync/utils` (install it as a dev dependency for the types):
 
-AppSync requires resolvers to be bundled in one single file. By default, the Framework bundles your code with [esbuild](https://esbuild.github.io/), using the given path as the entry point.
-
-This means that you can import external libraries and utilities. e.g.
-
-```js
-import { Context, util } from '@aws-appsync/utils';
-import { generateUpdateExpressions, updateItem } from '../lib/helpers';
-
-export function request(ctx) {
-  const { id, ...post } = ctx.args.post;
-
-  const item = updateItem(post);
-
-  return {
-    operation: 'UpdateItem',
-    key: {
-      id: util.dynamodb.toDynamoDB(id),
-    },
-    update: generateUpdateExpressions(item),
-    condition: {
-      expression: 'attribute_exists(#id)',
-      expressionNames: {
-        '#id': 'id',
-      },
-    },
-  };
-}
-
-export function response(ctx: Context) {
-  return ctx.result;
-}
-```
-
-For more information, also see the [esbuild option](./general-config.md#Esbuild).
-
-## TypeScript support
-
-You can write JS resolver in TypeScript. Resolver files with the `.ts` extension are automatically transpiled and bundled using esbuild.
-
-```yaml
-resolvers:
-  Query.user:
-    kind: UNIT
-    dataSource: 'users'
-    code: 'getUser.ts'
-```
-
-```ts
-// getUser.ts
+```typescript
 import { Context, util } from '@aws-appsync/utils'
 
 export function request(ctx: Context) {
-  const {
-    args: { id },
-  } = ctx
   return {
     operation: 'GetItem',
-    key: util.dynamodb.toMapValues({ id }),
+    key: util.dynamodb.toMapValues({ id: ctx.args.id }),
   }
 }
 
@@ -148,83 +264,94 @@ export function response(ctx: Context) {
 }
 ```
 
-For more information, also see the [esbuild option](./general-config.md#Esbuild).
+esbuild removes the types without checking them; run `tsc --noEmit` to type-check.
 
-## PIPELINE resolvers
+## Inline data sources
 
-When `kind` is `PIPELINE`, you can specify the [pipeline function](pipeline-functions.md) names to use:
-
-```yaml
-appSync:
-  pipelineFunctions:
-    function1:
-      dataSource: myDataSource
-    function2:
-      dataSource: myDataSource
-
-  resolvers:
-    Query.user:
-      functions:
-        - function1
-        - function2
-```
-
-## Inline DataSources
-
-If a [DataSource](dataSources.md) is only used in one single resolver, you can also define it inline in the resolver configuration. This is often the case for Lambda resolvers.
-
-You can even also define the Lambda function definition inline under the dataSource definition. This helps keep everything in one single place!
+A `UNIT` resolver's `dataSource` can be a full data source definition instead of a name, for a data source that only this resolver uses. With a Lambda data source, the function can be defined inline too:
 
 ```yaml
+provider:
+  name: aws
+  runtime: nodejs24.x
+
 appSync:
+  name: blog-api
   resolvers:
-    Query.user:
+    Query.getPost:
       kind: UNIT
       dataSource:
-        type: 'AWS_LAMBDA'
+        type: AWS_LAMBDA
         config:
           function:
-            timeout: 30
-            handler: 'functions/getUser.handler'
+            handler: functions/getPost.handler
 ```
 
-## Inline function definitions
+The Framework names an inline data source after the resolver key, with its first character that isn't a letter or `_` replaced by `_`: `Query.getPost` becomes the data source and function name `Query_getPost`.
 
-If a [Pipeline function](pipeline-functions.md) is only used in a single resolver, you can also define it inline in the resolver configuration.
+## Inline pipeline functions
+
+A pipeline resolver's `functions` list can hold full [pipeline function](./pipeline-functions.md) definitions instead of names, for functions that only this resolver uses:
 
 ```yaml
 appSync:
+  name: blog-api
   resolvers:
-    Query.user:
+    Query.getPost:
       functions:
-        - dataSource: 'users'
-          code: 'getUser.js'
+        - dataSource: postsTable
+          code: functions/getPost.js
 ```
 
-## Caching
+The Framework names inline functions after the resolver key and their position in the list: `Query_getPost_0`, `Query_getPost_1`.
+
+## Resolver caching
+
+The `caching` key of a resolver caches its results in the API's server-side cache, which [`appSync.caching`](./caching.md) creates. With `behavior: PER_RESOLVER_CACHING`, AppSync caches only the resolvers that set `caching`:
 
 ```yaml
-Query.user:
-  dataSource: myDataSource
+appSync:
+  name: blog-api
   caching:
-    ttl: 60
-    keys:
-      - '$context.arguments.id'
+    behavior: PER_RESOLVER_CACHING
+    type: SMALL
+  resolvers:
+    Query.getPost:
+      kind: UNIT
+      dataSource: postsTable
+      code: resolvers/getPost.js
+      caching:
+        ttl: 60
+        keys:
+          - '$context.arguments.id'
 ```
 
-You can either pass `true` which will use the global TTL (See the [global caching configuration](caching.md)) and no `keys`.
+| Key    | Type            | Default                                                                           | Description                                                                                            |
+| ------ | --------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `ttl`  | integer, 1–3600 | `appSync.caching.ttl`, else `3600`                                                | Seconds to keep a cached result.                                                                       |
+| `keys` | list of strings | `$context.arguments`, `$context.source` and `$context.identity` (AppSync default) | The values that make up the cache key: entries from those three maps, such as `$context.arguments.id`. |
 
-You can also customize each resolver using the following config:
+`caching: true` caches the resolver with the API-wide TTL and AppSync's default caching keys, as when `keys` is omitted.
 
-- `ttl`: The TTL of the cache for this resolver in seconds
-- `keys`: An array of keys to use for the cache.
+Set `appSync.caching.type`: without it, the Framework creates a legacy `T2_SMALL` cache instance. The instance types and hourly billing are in [AppSync caching](./caching.md).
 
-# Organize your resolvers
+## Split resolvers across files
 
-You can define your data sources into several files for organizational reasons. You can pass each file into the `dataSources` attribute as an array.
+`appSync.resolvers` also accepts a list of maps, which the Framework merges into one. Combined with the `${file()}` variable, each file holds some of the resolvers:
 
 ```yaml
-resolvers:
-  - ${file(appsync/resolvers/users.yml)}
-  - ${file(appsync/resolvers/posts.yml)}
+appSync:
+  name: blog-api
+  resolvers:
+    - ${file(appsync/resolvers/users.yml)}
+    - ${file(appsync/resolvers/posts.yml)}
 ```
+
+Each file is a map of resolver keys to definitions, without the `appSync` and `resolvers` parent keys.
+
+## Related pages
+
+- [AppSync pipeline functions](./pipeline-functions.md)
+- [AppSync data sources](./dataSources.md)
+- [AWS AppSync JavaScript resolver reference](https://docs.aws.amazon.com/appsync/latest/devguide/resolver-reference-overview-js.html)
+- [AWS AppSync VTL resolver reference](https://docs.aws.amazon.com/appsync/latest/devguide/resolver-mapping-template-reference.html)

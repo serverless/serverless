@@ -1,14 +1,14 @@
 <!--
-title: Serverless Framework - IAM Permissions For Functions
-description: How to manage your AWS Lambda functions and their AWS infrastructure resources easily with the Serverless Framework.
-short_title: IAM Permissions For Functions
+title: IAM Permissions for Functions
+description: 'Grant AWS Lambda functions IAM permissions in serverless.yml: the default execution role, per-function roles, custom roles and the deployment role.'
+short_title: IAM Permissions
 keywords:
   [
     'Serverless Framework',
     'AWS IAM',
-    'function permissions',
-    'IAM roles',
-    'Lambda permissions',
+    'Lambda execution role',
+    'per-function IAM roles',
+    'iam.role.statements',
   ]
 -->
 
@@ -18,189 +18,201 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# IAM Permissions For Functions
+# IAM Permissions for Functions
 
-AWS Lambda functions need permissions to interact with other AWS services and resources in your account. These permissions are set via an AWS IAM Role, which the Serverless Framework automatically creates for each service, and is shared by all functions in the service. The Framework allows you to modify this Role or create Function-specific Roles, easily.
+Every AWS Lambda function runs with an IAM execution role that decides which AWS resources its code can use. By default, the Serverless Framework creates one execution role for the service, shares it between the functions, and adds the permissions their configuration needs. This page shows how to add your own permissions to that role, give functions roles of their own, use roles you manage yourself, and set the role CloudFormation deploys with.
 
-You can customize that role to add permissions to the code running in your functions.
+To let every function read and write one DynamoDB table, add a statement to the default role:
 
-You can also create function-specific roles to customize permissions per function.
+```yaml
+# serverless.yml
+service: my-service
 
-## At glance
-
-All IAM-related properties of provider are grouped under `iam` property:
-
-```yml
 provider:
+  name: aws
+  runtime: nodejs24.x
   iam:
     role:
-      name: custom-role-name
-      path: /custom-role-path/
       statements:
-        - Effect: 'Allow'
-          Resource: '*'
-          Action: 'iam:DeleteUser'
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+          Resource: arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/Users
+
+functions:
+  hello:
+    handler: handler.hello
+```
+
+## The `provider.iam` settings
+
+All IAM settings of the service live under `provider.iam`:
+
+```yaml
+provider:
+  name: aws
+  iam:
+    role:
+      mode: shared # or perFunction; default shared
+      name: my-service-${sls:stage}-lambda # default <service>-<stage>-<region>-lambdaRole
+      path: /my-team/ # default /
+      statements:
+        - Effect: Allow
+          Action: s3:GetObject
+          Resource: arn:aws:s3:::my-bucket/*
       managedPolicies:
-        - 'arn:aws:iam::123456789012:user/*'
-      permissionsBoundary: arn:aws:iam::123456789012:policy/boundaries
+        - arn:aws:iam::123456789012:policy/my-managed-policy
+      permissionsBoundary: arn:aws:iam::123456789012:policy/my-boundary
       tags:
-        key: value
+        team: payments
+    deploymentRole: arn:aws:iam::123456789012:role/cfn-deployment-role
 ```
 
-Note that `provider.iam.role` can be either an object like in example above, or custom role arn:
+| Key                                     | Type             | Description                                                                                                            |
+| --------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `provider.iam.role`                     | object or string | The default execution role's settings, or an existing role to use instead (see [Custom IAM roles](#custom-iam-roles)). |
+| `provider.iam.role.mode`                | string           | `shared` (default) or `perFunction` (see [Per-function IAM roles](#per-function-iam-roles)).                           |
+| `provider.iam.role.name`                | string           | Role name, 1 to 64 characters of `A-Za-z0-9/_+=,.@-`.                                                                  |
+| `provider.iam.role.path`                | string           | IAM path: `/`, or a path that starts and ends with `/`. Default `/`.                                                   |
+| `provider.iam.role.statements`          | list             | IAM policy statements added to the role's inline policy.                                                               |
+| `provider.iam.role.managedPolicies`     | list of ARNs     | Managed policies attached to the role.                                                                                 |
+| `provider.iam.role.permissionsBoundary` | ARN              | Permissions boundary of the role.                                                                                      |
+| `provider.iam.role.tags`                | object           | Tags on the role.                                                                                                      |
+| `provider.iam.deploymentRole`           | ARN              | The role CloudFormation uses to deploy the stack (see [Deployment role](#deployment-role)).                            |
 
-```yml
-provider:
-  iam:
-    role: arn:aws:iam::123456789012:role/execution-role
-```
+`provider.iam.role.statements` and `managedPolicies` are copied into the CloudFormation template, so `Ref`, `Fn::GetAtt`, `Fn::Join` and other intrinsics work in them.
 
-## The Default IAM Role
+The provider keys `provider.role`, `provider.iamRoleStatements`, `provider.iamManagedPolicies`, `provider.rolePermissionsBoundary` and `provider.cfnRole` are deprecated: use `provider.iam.role`, `provider.iam.role.statements`, `provider.iam.role.managedPolicies`, `provider.iam.role.permissionsBoundary` and `provider.iam.deploymentRole`. `provider.iam.role.permissionBoundary` (singular) is a deprecated spelling of `permissionsBoundary`.
 
-By default, one IAM Role is shared by all the Lambda functions in your service. Also by default, your Lambda functions have permission to create and write to CloudWatch logs. When VPC configuration is provided the default AWS `AWSLambdaVPCAccessExecutionRole` will be associated in order to communicate with your VPC resources.
+## The default IAM role
 
-To add permissions to this role, add IAM statements in `provider.iam.role.statements`. These will be merged into the generated policy. As those statements will be merged into the CloudFormation template, you can use `Join`, `Ref` or any other CloudFormation method or feature.
+The Framework creates one execution role for the service, logical ID `IamRoleLambdaExecution`, and every function without a role of its own uses it. It doesn't create that role when:
 
-```yml
-service: new-service
+- `provider.iam.role` names an existing role (an ARN, a logical ID or an intrinsic), or the deprecated `provider.role` is set;
+- every function and every web app sets its own `role`;
+- `provider.iam.role.mode` is `perFunction`.
 
+### Permissions in the default role
+
+The default role starts with permission to create and write to the functions' own CloudWatch log groups. For a function with `disableLogs: true`, the role denies `logs:PutLogEvents` on its log group. When any function sets `vpc`, or `provider.vpc` is set, the AWS managed policy `AWSLambdaVPCAccessExecutionRole` is attached so functions can create network interfaces in the VPC.
+
+The Framework also adds permissions for function settings and events that need them, such as `onError`, `destinations`, `kmsKeyArn`, `tracing`, `fileSystemConfig`, `durableConfig`, and stream or queue events. [AWS Lambda functions](./functions.md) names the permission each function setting adds.
+
+### Add statements to the default role
+
+`provider.iam.role.statements` adds IAM policy statements to the default role's inline policy:
+
+```yaml
 provider:
   name: aws
   iam:
     role:
       statements:
-        # Allow functions to list all buckets
         - Effect: Allow
-          Action: 's3:ListBucket'
-          Resource: '*'
-        # Allow functions to read/write objects in a bucket
+          Action: s3:ListBucket
+          Resource: arn:aws:s3:::my-bucket-name
         - Effect: Allow
           Action:
-            - 's3:GetObject'
-            - 's3:PutObject'
-          Resource:
-            - 'arn:aws:s3:::my-bucket-name/*'
+            - s3:GetObject
+            - s3:PutObject
+          Resource: arn:aws:s3:::my-bucket-name/*
 ```
 
-Alongside `provider.iam.role.statements` managed policies can also be added to this service-wide Role, define managed policies in `provider.iam.role.managedPolicies`. These will also be merged into the generated IAM Role so you can use `Join`, `Ref` or any other CloudFormation method or feature here too.
+IAM limits the inline policies of one role to 10,240 characters in total. A service with many functions and event sources can reach that limit on the shared role; give some functions [per-function IAM roles](#per-function-iam-roles) to split the permissions.
 
-```yml
-service: new-service
+### Attach managed policies to the default role
 
+`provider.iam.role.managedPolicies` attaches [managed policies](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_managed-vs-inline.html) to the default role, as ARNs or intrinsics that resolve to ARNs:
+
+```yaml
 provider:
   name: aws
   iam:
     role:
       managedPolicies:
-        - 'some:aws:arn:xxx:*:*'
-        - 'someOther:aws:arn:xxx:*:*'
-        - {
-            'Fn::Join':
-              [':', ['arn:aws:iam:', { Ref: 'AWS::AccountId' }, 'some/path']],
-          }
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+        - Fn::Join:
+            - ''
+            - - 'arn:aws:iam::'
+              - Ref: AWS::AccountId
+              - ':policy/my-team-policy'
 ```
 
-### Naming for the Default IAM Role
+### Name and path of the default role
 
-By default, it uses the following naming convention:
+The default role's name is `<service>-<stage>-<region>-lambdaRole`, built in CloudFormation as:
 
-```yml
-  'Fn::Join': [
-    '-',
-    [
-      this.provider.serverless.service.service,
-      this.provider.getStage(),
-      { Ref: 'AWS::Region' },
-      'lambdaRole',
-    ],
-  ],
+```yaml
+Fn::Join:
+  - '-'
+  - - my-service # service
+    - dev # stage
+    - Ref: AWS::Region
+    - lambdaRole
 ```
 
-In order to override default name set `provider.iam.role.name` value:
+IAM role names are limited to 64 characters. To set the name, use `provider.iam.role.name`; to set the path (default `/`), use `provider.iam.role.path`:
 
-```yml
-service: new-service
-
-provider:
-  iam:
-    role:
-      name: your-custom-name-${sls:stage}-role
-```
-
-### Path for the Default IAM Role
-
-By default, it will use a path of: `/`
-
-This can be overridden by setting `provider.iam.role.path`:
-
-```yml
-service: new-service
-
-provider:
-  iam:
-    role:
-      path: /your-custom-path/
-```
-
-## The EventBridge Delivery Role
-
-A service with an `eventBridge` event on a Custom Event Bus also gets a delivery role, `IamRoleEventBridgeDelivery`, named `<service>-<stage>-<region>-eventBridge`. EventBridge assumes it to invoke the subscribed functions. It is separate from the execution roles above and is created in every IAM mode; an event that sets `role` uses that role instead. See [The delivery role](../events/event-bridge.md#the-delivery-role).
-
-## Per-Function IAM Roles
-
-A single IAM role has a 10 KB inline policy size limit. When many functions share one role and its policy grows, CloudFormation can fail with a "Maximum policy size exceeded" error. Per‑function roles split permissions by function so each role’s inline policy stays small, while improving least‑privilege by scoping access to just what each function needs.
-
-Thanks to the community plugin [`serverless-iam-roles-per-function`](https://github.com/functionalone/serverless-iam-roles-per-function) and all its contributors for pioneering per-function IAM roles. This functionality is now built into the Framework; you can safely remove the plugin and use the built-in feature described below.
-
-The Framework can generate dedicated IAM roles per function in two complementary ways:
-
-- **Per‑function IAM with no default role** – set `provider.iam.role.mode: perFunction` to skip the shared service-wide role and give **every** function its own IAM role, even if it does not define any `functions.<name>.iam.role.*` settings.
-- **Per‑function IAM on selected functions** – configure `functions.<name>.iam.role.statements` and/or `functions.<name>.iam.role.managedPolicies` to create a dedicated role **only** for specific functions; others continue using the default service role.
-
-Web apps follow the same rules: `provider.iam.role.mode: perFunction` gives each web app a role of its own, and `webApps.<name>.iam` takes the `iam.inheritStatements` and `iam.role.*` keys shown here for functions. See [IAM](./web-apps.md#iam) in the web apps guide.
-
-At a high level, role synthesis works as follows:
-
-- When `provider.iam.role.mode` is omitted or set to `shared` (default), the Framework creates a single shared execution role for the service. Per‑function roles are only generated for functions that opt in with `functions.<name>.iam.role.*`, and `functions.<name>.iam.inheritStatements` controls whether `provider.iam.role.statements` are merged into those roles. When a function opts into a dedicated role, its automatically generated permissions (event sources such as streams and queues, DLQ publishing, KMS decryption, log groups and similar) are placed only on that function's dedicated role — the shared service role contains permissions solely for the functions that still use it. Moving functions with many event sources to dedicated roles is therefore also the supported way to stay under the 10,240-byte IAM inline policy limit on the shared role.
-- When `provider.iam.role.mode: perFunction` is set, the shared execution role is not created. Instead, every function gets its own role derived from `provider.iam.role` (path, tags, permissions boundary, managed policies, and statements), plus any function‑level `iam.role.*` overrides. Role names still follow the standard pattern (or a function‑level `iam.role.name` override); `provider.iam.role.name` does not directly become the per‑function role name. By default, provider‑level statements from `provider.iam.role.statements` are inherited into each per‑function role; you can disable inheritance for a specific function by setting `functions.<name>.iam.inheritStatements: false`.
-
-A number of permissions are added automatically to every generated per-function role (logs, VPC access, stream/SQS consumers, DLQ publish and more). See [Auto-Added Permissions for Per-Function Roles](#auto-added-permissions-for-per-function-roles) for details.
-
-### Per‑function IAM with no default role
-
-```yml
-service: new-service
-
+```yaml
 provider:
   name: aws
   iam:
     role:
-      # Enable per-function mode that skips the shared service-wide role
+      name: my-service-${sls:stage}-lambda
+      path: /my-team/
+```
+
+## The EventBridge delivery role
+
+A service with an `eventBridge` event on a custom event bus also gets a delivery role, `IamRoleEventBridgeDelivery`, named `<service>-<stage>-<region>-eventBridge`. EventBridge assumes it to invoke the subscribed functions. It is separate from the execution roles and is created in every IAM mode; an event that sets `role` uses that role instead. See [The delivery role](../events/event-bridge.md#the-delivery-role).
+
+## Per-function IAM roles
+
+A per-function role holds only the permissions one function needs, which keeps each role's inline policy small and its access scoped to that function. The Framework creates per-function roles in two ways:
+
+- `provider.iam.role.mode: perFunction` gives every function its own role and creates no shared role.
+- In the default `shared` mode, a function that sets `iam.role.statements` or `iam.role.managedPolicies` gets its own role; the other functions keep the shared role.
+
+When a function has its own role, the permissions the Framework adds for it (event sources, `onError`, KMS, logs and the others) go on that role, and the shared role holds the permissions of the functions that still use it. In `shared` mode, the shared role also gets these permissions when any function in the service needs them, even if that function has a role of its own:
+
+- the X-Ray tracing statement, when a function has tracing on
+- the `AWSLambdaVPCAccessExecutionRole` managed policy, when a function sets `vpc`
+- the `AWSLambdaBasicDurableExecutionRolePolicy` managed policy, when a function sets `durableConfig`
+- `execute-api:ManageConnections` on the service's WebSocket API connections, when a function has a `websocket` event
+- `edgelambda.amazonaws.com` in the trust policy and CloudWatch Logs write access in every Region, when a function has a `cloudFront` event
+
+[Web apps](./web-apps.md#iam) follow the same rules: `mode: perFunction` gives each web app its own role, and `webApps.<name>.iam` takes the same keys as a function's `iam`.
+
+Per-function roles don't apply when `provider.iam.role` names an existing role, or `provider.role` is set: every function without its own `role` then uses that role. `provider.role` combined with `mode: perFunction` stops packaging with an error. A function that sets `role` uses that role and never gets a per-function role; combining `role` with `iam.role.statements`, `iam.role.managedPolicies` or the legacy `iamRoleStatements` on the same function stops packaging with an error.
+
+### Give every function its own role
+
+With `provider.iam.role.mode: perFunction`, each function's role is built from `provider.iam.role` and the function's own `iam.role`:
+
+```yaml
+provider:
+  name: aws
+  iam:
+    role:
       mode: perFunction
-      # Base IAM config inherited by every function role
-      statements:
+      statements: # inherited by every function role
         - Effect: Allow
-          Action:
-            - s3:ListBucket
-          Resource:
-            - arn:aws:s3:::shared-assets-${sls:stage}
+          Action: s3:ListBucket
+          Resource: arn:aws:s3:::shared-assets-${sls:stage}
       managedPolicies:
         - arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess
       permissionsBoundary: arn:aws:iam::123456789012:policy/lambda-boundary
       path: /teams/payments/
       tags:
         Owner: payments
-        Environment: ${sls:stage}
 
 functions:
   list:
-    handler: handler.list
-    # Inherits provider.iam.role.* (statements, managedPolicies, path, boundary, tags)
-
+    handler: handler.list # gets only the provider settings
   get:
     handler: handler.get
     iam:
-      # Function can still extend provider-level configuration
       role:
         statements:
           - Effect: Allow
@@ -212,27 +224,22 @@ functions:
           Feature: read-api
 ```
 
-Notes:
+- `statements`, `managedPolicies` and `tags` from `provider.iam.role` are combined with the function's own; for a tag key both set, the function's value wins.
+- `path`, `name` and `permissionsBoundary` can be set per function under `functions.<name>.iam.role`.
+- Provider statements are inherited unless the function sets `iam.inheritStatements: false`.
+- `mode: perFunction` needs `provider.iam.role` as an object; an ARN string is an existing shared role.
+- When `provider.iam.role.name` is set, every function must set `iam.role.name`: otherwise packaging stops with `Global Role Name is not in expected format`.
 
-- When `provider.iam.role.mode: perFunction` is set, the Framework creates a distinct IAM role for every function in the service.
-- Each role inherits the list-like fields from `provider.iam.role` (`statements`, `managedPolicies`, `tags`) and can extend them with additional function-level values.
-- Non‑list fields such as `path`, `name`, and `permissionsBoundary` can be overridden per function via `functions.<name>.iam.role.*`.
-- `provider.role` and `provider.iam.role.mode: perFunction` cannot be combined.
-- `provider.iam.role.mode: perFunction` only applies when `provider.iam.role` is an object. If you configure `provider.iam.role` as a string/ARN, it is treated as a shared service-wide role and the per-function mode is disabled.
-- In this mode, provider-level statements from `provider.iam.role.statements` are inherited into each generated per-function role by default. To prevent inheritance for a specific function, set `functions.<name>.iam.inheritStatements: false`.
-- If `functions.<name>.role` is set, that function always uses the explicit custom role and does not receive an automatically generated per-function role.
+### Give selected functions their own role
 
-### Per‑function IAM on selected functions
+In the default `shared` mode, set `iam.role.statements` or `iam.role.managedPolicies` on a function to give it a role of its own:
 
-```yml
-service: new-service
-
+```yaml
 provider:
   name: aws
   iam:
     role:
-      # Global statements can be inherited into per-function roles
-      statements:
+      statements: # used by the shared role; inherited only on request
         - Effect: Allow
           Action:
             - xray:PutTraceSegments
@@ -243,369 +250,92 @@ functions:
   func1:
     handler: handler.func1
     iam:
-      inheritStatements: true # Merge provider.iam.role.statements into this function role (default: false)
-      role:
-        statements: # Inline statements added to this function's dedicated role
-          - Effect: Allow
-            Action:
-              - dynamodb:GetItem
-            Resource: arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/Users
-        managedPolicies: # Attach IAM Managed Policies to the function role (optional)
-          - arn:aws:iam::aws:policy/ReadOnlyAccess
-        permissionsBoundary: arn:aws:iam::123456789012:policy/boundary # Optional permissions boundary
-        path: /team/app/ # Optional IAM path for the function role
-        name: ${sls:stage}-func1Role # Optional explicit role name (ensure total length ≤ 64)
-        tags: # Optional; merged with provider.iam.role.tags (function keys override)
-          key: value
-  func2:
-    handler: handler.func2
-    # Uses the default service-wide IAM role (no per-function iam.role.* configured)
-```
-
-Notes:
-
-- A per-function role is created when `iam.role.statements` or `iam.role.managedPolicies` is set on the function.
-- Per-function roles are not generated when a provider-level role is configured. If `provider.role` is set, or `provider.iam.role` references an existing role (ARN/CFN reference/object that resolves to an ARN), all functions use that role.
-- Use `iam.inheritStatements: true` to merge `provider.iam.role.statements` into the function role in this mode.
-- Do not combine per-function IAM statements/managed policies (`functions.<name>.iam.*`) with custom IAM role `functions.<name>.role`.
-- `iam.role.tags` are merged with provider tags; function-level keys take precedence.
-- If you do not set `iam.role.name`, the Framework uses the default pattern `<service>-<stage>-<functionName>-<region>-lambdaRole`. If it exceeds 64 characters, the `-lambdaRole` suffix is removed; if still over 64 characters, an error is thrown.
-- Legacy `serverless-iam-roles-per-function` plugin function-level fields remain supported in the current major version; you should migrate to the structured equivalents:
-  - `functions.<name>.iamRoleStatements` → `functions.<name>.iam.role.statements`
-  - `functions.<name>.iamRoleStatementsInherit` → `functions.<name>.iam.inheritStatements`
-  - `functions.<name>.iamRoleStatementsName` → `functions.<name>.iam.role.name`
-  - `functions.<name>.iamPermissionsBoundary` → `functions.<name>.iam.role.permissionsBoundary`
-
-### Auto-Added Permissions for Per-Function Roles
-
-When a per-function role is generated, the Framework augments it with sensible defaults and event-driven permissions:
-
-- CloudWatch Logs (always)
-  - Adds permissions to create/write logs for the function's log group:
-    - `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents` on the resolved log group.
-    - Resolved Log Group precedence:
-      1. `functions.<name>.logs.logGroup`
-      2. `provider.logs.lambda.logGroup`
-      3. default `/aws/lambda/<functionName>`.
-
-- VPC access (when VPC is configured)
-  - If `functions.<name>.vpc` or `provider.vpc` is set: attaches managed policy `arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole`.
-
-- Streams event sources (when used)
-  - For each `events[].stream`:
-    - DynamoDB streams: `dynamodb:GetRecords`, `dynamodb:GetShardIterator`, `dynamodb:DescribeStream`, `dynamodb:ListStreams` on specified stream ARNs.
-    - Kinesis streams: `kinesis:GetRecords`, `kinesis:GetShardIterator`, `kinesis:DescribeStream`, `kinesis:ListStreams` on specified stream ARNs.
-
-- SQS event sources (when used)
-  - For each `events[].sqs`: `sqs:ReceiveMessage`, `sqs:DeleteMessage`, `sqs:GetQueueAttributes` on the specified queue ARN(s).
-
-- Dead Letter Queue publish (when used)
-  - If `functions.<name>.onError` references an SNS topic ARN: `sns:Publish` on that ARN.
-
-- WebSockets API (when used)
-  - If the function has WebSockets events, adds `execute-api:ManageConnections` on `arn:${AWS::Partition}:execute-api:*:*:*/@connections/*` so it can post to WebSocket connections.
-
-- Amazon MQ / RabbitMQ (when used)
-  - For `activemq`/`rabbitmq` events:
-    - Adds `secretsmanager:GetSecretValue` on the configured `basicAuthArn` secrets.
-    - Adds `mq:DescribeBroker` on the configured broker ARNs.
-    - Adds EC2 networking permissions (`ec2:CreateNetworkInterface`, `Describe*`, `DeleteNetworkInterface`) required to connect to the brokers.
-
-- Kafka / MSK (when used)
-  - For `kafka` events:
-    - Adds `secretsmanager:GetSecretValue` on the Secrets Manager ARNs referenced in access configurations (`saslPlainAuth`, `saslScram*Auth`, `clientCertificateTlsAuth`, `serverRootCaCertificate`).
-    - Adds EC2 networking permissions when VPC subnets/security groups are configured.
-  - For `msk` events:
-    - Adds `kafka:DescribeCluster` and `kafka:GetBootstrapBrokers` on the cluster ARNs.
-    - Adds EC2 networking permissions for MSK connectivity.
-
-- CloudFront / Lambda@Edge (when used)
-  - For functions with `cloudFront` events:
-    - Extends the assume-role trust so `edgelambda.amazonaws.com` can assume the function role (in addition to `lambda.amazonaws.com`).
-    - Adds a broad CloudWatch Logs policy so Lambda@Edge executions can create/write log groups and streams in the closest regions.
-
-- EventBridge Scheduler (when used)
-  - For `schedule` events configured with `method: scheduler`:
-    - Extends the assume-role trust so `scheduler.amazonaws.com` can assume the function role.
-    - Adds `lambda:InvokeFunction` on the function ARN and all its versions/aliases, matching the scheduler execution role requirements.
-
-- AWS X-Ray (when tracing is enabled)
-  - When function‑level or provider‑level Lambda tracing is enabled, adds:
-    - `xray:PutTraceSegments`
-    - `xray:PutTelemetryRecords`
-      on `*`.
-
-- File system access (when `fileSystemConfig` is used)
-  - If `functions.<name>.fileSystemConfig.arn` is set:
-    - For EFS: adds `elasticfilesystem:ClientMount` and `elasticfilesystem:ClientWrite` on that access point ARN.
-    - For S3 Files: adds `s3files:ClientMount` and `s3files:ClientWrite` on that access point ARN.
-  - The file system type is auto-detected from the ARN. When using CloudFormation references, set `fileSystemConfig.type` to `s3files` explicitly.
-
-Example:
-
-```yml
-functions:
-  func1:
-    handler: handler.func1
-    # SQS and Streams events automatically grant minimal read permissions
-    # WebSockets, MQ, Kafka/MSK, CloudFront, Scheduler, X-Ray, EFS and S3 Files will also
-    # add the necessary IAM permissions when configured below.
-    events:
-      - sqs: arn:aws:sqs:${aws:region}:${aws:accountId}:myQueue
-      - stream:
-          arn: arn:aws:kinesis:${aws:region}:${aws:accountId}:stream/myStream
-      - websocket:
-          route: $default
-      - activemq:
-          arn: arn:aws:mqa:${aws:region}:${aws:accountId}:broker/my-mq:b-123456
-          basicAuthArn: arn:aws:secretsmanager:${aws:region}:${aws:accountId}:secret:mq-cred
-          queue: orders
-      - kafka:
-          topic: orders-topic
-          bootstrapServers:
-            - b-1.example.kafka.amazonaws.com:9092
-          accessConfigurations:
-            vpcSubnet:
-              - subnet-abc
-            vpcSecurityGroup: sg-123456
-            saslScram512Auth: arn:aws:secretsmanager:${aws:region}:${aws:accountId}:secret:kafka-cred
-      - msk:
-          arn: arn:aws:kafka:${aws:region}:${aws:accountId}:cluster/my-msk-cluster/1234567890abcdef
-          topic: msk-orders
-      - cloudFront:
-          origin: s3://my-bucket.s3.amazonaws.com/
-          eventType: viewer-request
-      - schedule:
-          rate: rate(5 minutes)
-          method: scheduler
-          enabled: true
-    # Custom log group; log permissions will target this group
-    logs:
-      logGroup: /aws/lambda/custom-log-group
-    # VPC configured; VPC access managed policy will be attached automatically
-    vpc:
-      securityGroupIds: [sg-123456]
-      subnetIds: [subnet-abc, subnet-def]
-    # DLQ publish permission will be added for this SNS topic
-    onError: arn:aws:sns:${aws:region}:${aws:accountId}:myDlqTopic
-    # EFS access will add elasticfilesystem:ClientMount / ClientWrite permissions
-    fileSystemConfig:
-      arn: arn:aws:elasticfilesystem:${aws:region}:${aws:accountId}:access-point/fsap-123456
-      localMountPath: /mnt/efs
-    iam:
+      inheritStatements: true # default false in shared mode
       role:
         statements:
           - Effect: Allow
             Action: dynamodb:GetItem
-            Resource: arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/Items
-```
-
-### Per-Function Role: managed policies only
-
-You can create a per-function role by specifying only `managedPolicies`:
-
-```yml
-functions:
-  func2:
-    handler: handler.func2
-    iam:
-      role:
+            Resource: arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/Users
         managedPolicies:
-          - arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess
+          - arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess
+        permissionsBoundary: arn:aws:iam::123456789012:policy/boundary
+        path: /team/app/
+        name: ${sls:stage}-func1-role # 64 characters at most
+        tags: # merged with provider.iam.role.tags; function keys win
+          key: value
+  func2:
+    handler: handler.func2 # uses the shared role
 ```
 
-## Custom IAM Roles
+- The function role starts from the shared role's `path`, `tags` and `permissionsBoundary`. `provider.iam.role.managedPolicies` are not attached to it; list the managed policies it needs under the function's `iam.role.managedPolicies`.
+- `provider.iam.role.statements` are added to the function role only with `iam.inheritStatements: true`.
+- A function with only `iam.role.managedPolicies` gets a role too.
 
-**WARNING:** You need to take care of the overall role setup as soon as you define custom roles.
+### Names of per-function roles
 
-That means that `iam.statements` you've defined on the `provider` level won't be applied anymore. Furthermore, you need to provide the corresponding permissions for your Lambdas `logs` and [`stream`](../events/streams.md) events.
+Without `iam.role.name`, a per-function role is named `<service>-<stage>-<function>-<region>-lambdaRole`. When that passes 64 characters, the `-lambdaRole` suffix is dropped; when it is still longer, packaging stops with an error that asks you to set `iam.role.name`. When `provider.iam.role.name` is set, every function that gets its own role must set `iam.role.name`.
 
-Serverless empowers you to define custom roles and apply them to your functions on a provider or individual function basis. To do this, you must declare a `role` attribute at the level at which you would like the role to be applied.
+### Legacy per-function IAM keys
 
-Defining it on the provider will make the role referenced by the `role` value the default role for any Lambda without its own `role` declared. This is to say that defining a `role` attribute on individual functions will override any provider level declared role. If every function within your service has a role assigned to it (either via provider level `role` declaration, individual declarations, or a mix of the two) then the default role and policy will not be generated and added to your Cloud Formation Template.
+The keys of the community plugin `serverless-iam-roles-per-function` still work, and the built-in keys replace them. When the plugin itself is installed, the Framework leaves per-function roles to the plugin and prints a warning that the plugin can be removed.
 
-The `role` attribute can have a value of the logical name of the role, the ARN of the role, or an object that will resolve in the ARN of the role. The declaration `{ function: { role: 'myRole' } }` will result in `{ 'Fn::GetAtt': ['myRole', 'Arn'] }`. You can of course just declare an ARN like so `{ function: { role: 'an:aws:arn:xxx:*:*' } }`. This use case is primarily for those who must create their roles and / or policies via a means outside of Serverless.
+| Legacy key                                  | Built-in key                                    |
+| ------------------------------------------- | ----------------------------------------------- |
+| `functions.<name>.iamRoleStatements`        | `functions.<name>.iam.role.statements`          |
+| `functions.<name>.iamRoleStatementsInherit` | `functions.<name>.iam.inheritStatements`        |
+| `functions.<name>.iamRoleStatementsName`    | `functions.<name>.iam.role.name`                |
+| `functions.<name>.iamPermissionsBoundary`   | `functions.<name>.iam.role.permissionsBoundary` |
 
-Here are some examples of using these capabilities to specify Lambda roles.
+### Auto-added permissions for per-function roles
 
-### One Custom IAM Role For All Functions
+The Framework adds these permissions to a per-function role, based on the function's configuration:
 
-```yml
-service: new-service
+| When                                                     | Added to the function's role                                                                                                                                                                                                                                                                            |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Always                                                   | `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents` on the function's log group: `logs.logGroup`, else `provider.logs.lambda.logGroup`, else `/aws/lambda/<function name>` (with `-ia` for `infrequent_access`)                                                                          |
+| `disableLogs: true`                                      | A statement that denies `logs:PutLogEvents` on that log group                                                                                                                                                                                                                                           |
+| The function's `vpc` or `provider.vpc` is set            | Managed policy `AWSLambdaVPCAccessExecutionRole` (also when the function sets `vpc: ~` and `provider.vpc` is set)                                                                                                                                                                                       |
+| DynamoDB `stream` event                                  | `dynamodb:GetRecords`, `dynamodb:GetShardIterator`, `dynamodb:DescribeStream`, `dynamodb:ListStreams` on the stream                                                                                                                                                                                     |
+| Kinesis `stream` event                                   | `kinesis:GetRecords`, `kinesis:GetShardIterator`, `kinesis:DescribeStream`, `kinesis:ListStreams` on the stream; with `consumer`: `kinesis:GetRecords`, `kinesis:GetShardIterator`, `kinesis:DescribeStreamSummary`, `kinesis:ListShards` on the stream, and `kinesis:SubscribeToShard` on the consumer |
+| `stream` event with `destinations.onFailure`             | `sns:Publish` (SNS topic), or `sqs:ListQueues` and `sqs:SendMessage` (SQS queue), on the destination                                                                                                                                                                                                    |
+| `sqs` event                                              | `sqs:ReceiveMessage`, `sqs:DeleteMessage`, `sqs:GetQueueAttributes` on the queue                                                                                                                                                                                                                        |
+| `onError`                                                | `sns:Publish` on the topic                                                                                                                                                                                                                                                                              |
+| `destinations.onSuccess` or `destinations.onFailure`     | `lambda:InvokeFunction`, `sqs:SendMessage`, `sns:Publish` or `events:PutEvents` on the target, by target type                                                                                                                                                                                           |
+| `kmsKeyArn` (function or provider) as a plain-string ARN | `kms:Decrypt` on the key                                                                                                                                                                                                                                                                                |
+| `durableConfig`                                          | Managed policy `AWSLambdaBasicDurableExecutionRolePolicy`                                                                                                                                                                                                                                               |
+| `websocket` event                                        | `execute-api:ManageConnections` on `arn:${AWS::Partition}:execute-api:*:*:*/@connections/*`                                                                                                                                                                                                             |
+| `activemq` or `rabbitmq` event                           | `secretsmanager:GetSecretValue` on `basicAuthArn`, `mq:DescribeBroker` on the broker, and the EC2 network interface permissions to reach the broker                                                                                                                                                     |
+| `kafka` event                                            | `secretsmanager:GetSecretValue` on the secrets in `accessConfigurations`, and the EC2 network interface permissions when VPC subnets or security groups are set                                                                                                                                         |
+| `msk` event                                              | `kafka:DescribeCluster` and `kafka:GetBootstrapBrokers` on the cluster, and the EC2 network interface permissions                                                                                                                                                                                       |
+| `cloudFront` event (Lambda@Edge)                         | Trust for `edgelambda.amazonaws.com`, and `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents`, `logs:TagResource` on `arn:${AWS::Partition}:logs:*:*:*`, because Lambda@Edge writes logs in the Region closest to each viewer                                                            |
+| `schedule` event with `method: scheduler`                | Trust for `scheduler.amazonaws.com`, and `lambda:InvokeFunction` on the function and its versions and aliases                                                                                                                                                                                           |
+| `tracing` (on the function or `provider.tracing.lambda`) | `xray:PutTraceSegments`, `xray:PutTelemetryRecords` on `*`                                                                                                                                                                                                                                              |
+| `fileSystemConfig`                                       | `elasticfilesystem:ClientMount` and `elasticfilesystem:ClientWrite` (EFS), or `s3files:ClientMount` and `s3files:ClientWrite` (S3 Files), on the access point                                                                                                                                           |
 
-provider:
-  name: aws
-  # declare one of the following...
-  iam:
-    role: myDefaultRole # must validly reference a role defined in the service
-    role: arn:aws:iam::0123456789:role//my/default/path/roleInMyAccount # must validly reference a role defined in your account
-    role: # must validly resolve to the ARN of a role you have the rights to use
-      Fn::GetAtt:
-        - myRole
-        - Arn
-    role: !Sub arn:aws:iam::${AWS::AccountId}:role/roleInMyAccount
+## Custom IAM roles
 
-functions:
-  func0: # will assume 'myDefaultRole'
-    ... # does not define role
-  func1: # will assume 'myDefaultRole'
-    ... # does not define role
+A custom role is one you define yourself, in `resources` or outside the service, and assign with a `role` key. The Framework doesn't change a custom role: functions that use it get neither `provider.iam.role.statements` nor any of the permissions the Framework adds for their settings and events. The role must grant everything they need, including writing logs and reading their [stream](../events/streams.md) and queue events.
 
-resources:
-  Resources:
-    myDefaultRole:
-      Type: AWS::IAM::Role
-      Properties:
-        Path: /my/default/path/
-        RoleName: MyDefaultRole # required if you want to use 'serverless deploy --function' later on
-        AssumeRolePolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service:
-                  - lambda.amazonaws.com
-              Action: sts:AssumeRole
-        # note that these rights are needed if you want your function to be able to communicate with resources within your vpc
-        ManagedPolicyArns:
-          - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
-        Policies:
-          - PolicyName: myPolicyName
-            PolicyDocument:
-              Version: '2012-10-17'
-              Statement:
-                - Effect: Allow # note that these rights are given in the default policy and are required if you want logs out of your lambda(s)
-                  Action:
-                    - logs:CreateLogGroup
-                    - logs:CreateLogStream
-                    - logs:PutLogEvents
-                    - logs:TagResource
-                  Resource:
-                    - 'Fn::Join':
-                        - ':'
-                        - - 'arn:aws:logs'
-                          - Ref: 'AWS::Region'
-                          - Ref: 'AWS::AccountId'
-                          - 'log-group:/aws/lambda/*:*:*'
-                - Effect: 'Allow'
-                  Action:
-                    - 's3:PutObject'
-                  Resource:
-                    Fn::Join:
-                      - ''
-                      - - 'arn:aws:s3:::'
-                        - 'Ref': 'ServerlessDeploymentBucket'
-```
+A role can be assigned at two levels:
 
-### Custom IAM Roles For Each Function
+- `provider.iam.role`: the role for every function that doesn't set its own.
+- `functions.<name>.role`: the role for one function, which wins over the provider role.
 
-It is possible to create one IAM role for each function.
+When every function and every web app has a role, the Framework creates no default role.
 
-To achieve this, either use the [`serverless-iam-roles-per-function` plugin](https://www.serverless.com/plugins/serverless-iam-roles-per-function), or configure AWS resources manually as shown below:
+`role` takes any of these forms:
 
-```yml
-service: new-service
+- An ARN: `arn:aws:iam::123456789012:role/my-role`.
+- The logical ID of a role in `resources`: `myRole` becomes `{ 'Fn::GetAtt': ['myRole', 'Arn'] }`, and the function depends on that role.
+- A CloudFormation `Fn::GetAtt`, `Fn::ImportValue` or `Fn::Sub` that resolves to a role ARN.
 
-provider:
-  name: aws
-  ... # does not define role
+`serverless deploy function` resolves a logical ID through the role's `RoleName`, so set `RoleName` on roles defined in `resources` if you use that command.
 
-functions:
-  func0:
-    role: myCustRole0
-    ...
-  func1:
-    role: myCustRole1
-    ...
+### One custom role for all functions
 
-resources:
-  Resources:
-    myCustRole0:
-      Type: AWS::IAM::Role
-      Properties:
-        Path: /my/cust/path/
-        RoleName: MyCustRole0
-        AssumeRolePolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service:
-                  - lambda.amazonaws.com
-              Action: sts:AssumeRole
-        Policies:
-          - PolicyName: myPolicyName
-            PolicyDocument:
-              Version: '2012-10-17'
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - logs:CreateLogGroup
-                    - logs:CreateLogStream
-                    - logs:PutLogEvents
-                    - logs:TagResource
-                  Resource:
-                    - 'Fn::Join':
-                      - ':'
-                      -
-                        - 'arn:aws:logs'
-                        - Ref: 'AWS::Region'
-                        - Ref: 'AWS::AccountId'
-                        - 'log-group:/aws/lambda/*:*:*'
-                - Effect: Allow
-                  Action:
-                    - ec2:CreateNetworkInterface
-                    - ec2:DescribeNetworkInterfaces
-                    - ec2:DetachNetworkInterface
-                    - ec2:DeleteNetworkInterface
-                  Resource: "*"
-    myCustRole1:
-      Type: AWS::IAM::Role
-      Properties:
-        Path: /my/cust/path/
-        RoleName: MyCustRole1
-        AssumeRolePolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service:
-                  - lambda.amazonaws.com
-              Action: sts:AssumeRole
-        Policies:
-          - PolicyName: myPolicyName
-            PolicyDocument:
-              Version: '2012-10-17'
-              Statement:
-                - Effect: Allow # note that these rights are given in the default policy and are required if you want logs out of your lambda(s)
-                  Action:
-                    - logs:CreateLogGroup
-                    - logs:CreateLogStream
-                    - logs:PutLogEvents
-                    - logs:TagResource
-                  Resource:
-                    - 'Fn::Join':
-                      - ':'
-                      -
-                        - 'arn:aws:logs'
-                        - Ref: 'AWS::Region'
-                        - Ref: 'AWS::AccountId'
-                        - 'log-group:/aws/lambda/*:*:*'
-                -  Effect: "Allow"
-                   Action:
-                     - "s3:PutObject"
-                   Resource:
-                     Fn::Join:
-                       - ""
-                       - - "arn:aws:s3:::"
-                         - "Ref" : "ServerlessDeploymentBucket"
-```
+This example defines a role in `resources` and makes it the role of every function. Its policy grants the log permissions the default role would have had, plus access to one bucket:
 
-### A Custom Default Role & Custom Function Roles
-
-```yml
-service: new-service
-
+```yaml
 provider:
   name: aws
   iam:
@@ -613,10 +343,9 @@ provider:
 
 functions:
   func0:
-    role: myCustRole0
-    ...
+    handler: handler.func0 # uses myDefaultRole
   func1:
-    ... # does not define role
+    handler: handler.func1 # uses myDefaultRole
 
 resources:
   Resources:
@@ -633,33 +362,50 @@ resources:
                 Service:
                   - lambda.amazonaws.com
               Action: sts:AssumeRole
+        ManagedPolicyArns: # needed for functions in a VPC
+          - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         Policies:
           - PolicyName: myPolicyName
             PolicyDocument:
               Version: '2012-10-17'
               Statement:
-                - Effect: Allow # note that these rights are given in the default policy and are required if you want logs out of your lambda(s)
+                - Effect: Allow # write the functions' logs
                   Action:
                     - logs:CreateLogGroup
                     - logs:CreateLogStream
                     - logs:PutLogEvents
                     - logs:TagResource
                   Resource:
-                    - 'Fn::Join':
-                      - ':'
-                      -
-                        - 'arn:aws:logs'
-                        - Ref: 'AWS::Region'
-                        - Ref: 'AWS::AccountId'
-                        - 'log-group:/aws/lambda/*:*:*'
-                -  Effect: "Allow"
-                   Action:
-                     - "s3:PutObject"
-                   Resource:
-                     Fn::Join:
-                       - ""
-                       - - "arn:aws:s3:::"
-                         - "Ref" : "ServerlessDeploymentBucket"
+                    - Fn::Sub: arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*:*:*
+                - Effect: Allow
+                  Action: s3:PutObject
+                  Resource: arn:aws:s3:::my-bucket-name/*
+```
+
+`provider.iam.role` also takes an ARN or an intrinsic:
+
+```yaml
+provider:
+  name: aws
+  iam:
+    role: arn:aws:iam::123456789012:role/my/default/path/roleInMyAccount
+    # or: role: !Sub arn:aws:iam::${AWS::AccountId}:role/roleInMyAccount
+```
+
+### A custom role for one function
+
+To give one function its own role while the others keep the default role (or the provider-level custom role), set `role` on that function. The [built-in per-function IAM roles](#per-function-iam-roles) do this without hand-written roles.
+
+```yaml
+functions:
+  func0:
+    handler: handler.func0
+    role: myCustRole0
+  func1:
+    handler: handler.func1 # uses the default role
+
+resources:
+  Resources:
     myCustRole0:
       Type: AWS::IAM::Role
       Properties:
@@ -685,19 +431,32 @@ resources:
                     - logs:PutLogEvents
                     - logs:TagResource
                   Resource:
-                    - 'Fn::Join':
-                      - ':'
-                      -
-                        - 'arn:aws:logs'
-                        - Ref: 'AWS::Region'
-                        - Ref: 'AWS::AccountId'
-                        - 'log-group:/aws/lambda/*:*:*'
-                - Effect: Allow
+                    - Fn::Sub: arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*:*:*
+                - Effect: Allow # network interfaces for a function in a VPC
                   Action:
                     - ec2:CreateNetworkInterface
                     - ec2:DescribeNetworkInterfaces
                     - ec2:DetachNetworkInterface
                     - ec2:DeleteNetworkInterface
-                  Resource: "*"
-
+                  Resource: '*'
 ```
+
+## Deployment role
+
+By default, CloudFormation creates, updates and deletes the stack with the credentials of whoever runs `serverless deploy` or `serverless remove`. To have CloudFormation use a [service role](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-iam-servicerole.html) instead, set `provider.iam.deploymentRole` to its ARN:
+
+```yaml
+provider:
+  name: aws
+  iam:
+    deploymentRole: arn:aws:iam::123456789012:role/cfn-deployment-role
+```
+
+The ARN is passed as the stack's role on deploy, rollback and remove. If the service uses Framework custom resources (for example for some S3, Cognito, EventBridge or API Gateway CloudWatch log settings), the custom resource Lambda function also runs with this role instead of a generated one. The role's trust policy must then allow both `cloudformation.amazonaws.com` and `lambda.amazonaws.com`, and the role needs the permissions those custom resources use. `provider.cfnRole` is the deprecated name of this setting.
+
+## Related pages
+
+- [AWS Lambda functions](./functions.md): the function settings that add permissions to Framework-created roles.
+- [Events](./events.md): connect functions to event sources; each event page names the permissions it needs.
+- [Web apps IAM](./web-apps.md#iam): roles for web apps.
+- [AWS credentials](./credentials.md): the credentials the Framework deploys with.

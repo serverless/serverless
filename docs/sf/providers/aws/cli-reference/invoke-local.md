@@ -1,19 +1,14 @@
 <!--
-title: Serverless Framework Commands - AWS Lambda - Invoke Local
-description: Emulate an invocation of your AWS Lambda function locally using the Serverless Framework.
-short_title: Commands - Invoke Local
+title: serverless invoke local
+description: Run a Lambda function's handler on your machine with a test event and emulated environment, without deploying, using serverless invoke local.
+short_title: invoke local
 keywords:
   [
-    'Serverless',
-    'Framework',
-    'AWS',
-    'Lambda',
-    'Invoke Local',
-    'local development',
-    'emulation',
-    'AWS Lambda function',
-    'invoke',
-    'event data',
+    'serverless invoke local',
+    'Serverless Framework CLI',
+    'run Lambda locally',
+    'local Lambda testing',
+    'invoke local Docker',
   ]
 -->
 
@@ -23,72 +18,86 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# AWS - Invoke Local
+# serverless invoke local
 
-This runs your code locally by emulating the AWS Lambda environment. Please keep in mind, it's not a 100% perfect emulation, there may be some differences, but it works for the vast majority of users. We mock the `context` with simple mock data.
+`serverless invoke local` runs one function's handler on your machine with the event you pass, in an emulation of the Lambda environment: Lambda's environment variables, the function's `environment`, and a mock `context`. Nothing is deployed. Use it to test code before [`serverless deploy`](./deploy.md); to call the deployed function in AWS, use [`serverless invoke`](./invoke.md), and to run a stage's real events on your working copy, use [`serverless dev`](./dev.md).
 
 ```bash
-serverless invoke local --function functionName
+serverless invoke local --function hello --data '{"name":"Ada"}'
 ```
 
-**Note:** Please refer to [this guide](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-set-up-simple-proxy.html#api-gateway-simple-proxy-for-lambda-input-format) for event data passing when your function uses the `http` event with a Lambda Proxy integration.
+For a Node.js function, the command prints the handler's return value as JSON:
+
+```text
+{
+    "statusCode": 200,
+    "body": "Hello, Ada"
+}
+```
+
+The emulation is not exact: the function runs with your AWS credentials instead of its IAM role, and, without `--docker`, on the language runtime installed on your machine.
 
 ## Options
 
-- `--function` or `-f`: The name of the function in your service that you want to invoke locally. **Required**.
-- `--path` or `-p`: The path to a JSON file holding input data to be passed to the invoked function as the `event`. This path is relative to the root directory of the service.
-- `--data` or `-d`: String containing data to be passed as an event to your function. Keep in mind that if you pass both `--path` and `--data`, the data included in the `--path` file will overwrite the data you passed with the `--data` flag.
-- `--contextPath` or `-x`: The path to a JSON file holding input context to be passed to the invoked function. This path is relative to the root directory of the service.
-- `--context` or `-c`: String containing data to be passed as a context to your function. You can use this to overwrite specific parts of the default fake AWS context. As with `--data`, context included in `--contextPath` will overwrite the context you passed with `--context` flag.
-- `--raw`: By default, your input `data` and `context` strings are parsed as a JSON object. Set this option if you want them to be treated as raw strings instead.
+`serverless invoke local` accepts these options:
 
-* `--env` or `-e` String representing an environment variable to set when invoking your function, in the form `<name>=<value>`. Can be repeated for more than one environment variable.
-* `--docker` Enable docker support for NodeJS/Python/Ruby/Java. Enabled by default for other
-  runtimes.
-* `--docker-arg` Pass additional arguments to docker run command when `--docker` is option used. e.g. `--docker-arg '-p 9229:9229' --docker-arg '-v /var:/host_var'`
+| Option          | Alias | Value        | Default                             | Required | Description                                                                                                                          |
+| --------------- | ----- | ------------ | ----------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `--function`    | `-f`  | string       |                                     | Yes      | Function to run, as named under `functions` in `serverless.yml`.                                                                     |
+| `--data`        | `-d`  | string       | Standard input                      | No       | Event to pass. JSON is parsed into an object unless `--raw` is set.                                                                  |
+| `--path`        | `-p`  | file path    |                                     | No       | JSON or YAML file holding the event, relative to the service directory or absolute. Ignored when `--data` is set.                    |
+| `--raw`         |       | boolean      | `false`                             | No       | Pass `--data` and `--context` as strings even when they are valid JSON.                                                              |
+| `--context`     |       | string       |                                     | No       | Context to pass. See [Mock context](#mock-context). No short alias: `-c` is `--config`.                                              |
+| `--contextPath` | `-x`  | file path    |                                     | No       | JSON or YAML file holding the context, relative to the service directory or absolute. Takes precedence over `--context`.             |
+| `--env`         | `-e`  | `NAME=value` |                                     | No       | Environment variable to set for the function (repeatable). Overrides every other source.                                             |
+| `--docker`      |       | boolean      | `false`                             | No       | Run the function in Docker even when its runtime can run on your machine. See [Run a function in Docker](#run-a-function-in-docker). |
+| `--docker-arg`  |       | string       |                                     | No       | One extra `docker run` argument and its value, such as `'-p 9229:9229'`. The option takes one value.                                 |
+| `--stage`       | `-s`  | string       | `provider.stage`, else `dev`        | No       | Stage whose configuration to use.                                                                                                    |
+| `--region`      | `-r`  | string       | `provider.region`, else `us-east-1` | No       | AWS Region set as `AWS_REGION` and used to resolve `Ref` and `Fn::ImportValue`.                                                      |
+| `--aws-profile` |       | string       | `provider.profile`                  | No       | AWS profile whose credentials the function receives.                                                                                 |
+| `--config`      | `-c`  | file path    | `serverless.yml`                    | No       | Service configuration file to use.                                                                                                   |
 
-## Environment
+The command also accepts the options every command takes: `--param="key=value"` (repeatable), `--org`, `--app`, `--verbose`, `--debug` and `--help` (`-h`).
 
-The invoke local command sets reasonable environment variables for the invoked function.
-All AWS specific variables are set to values that are quite similar to those found in
-a real "physical" AWS Lambda environment. Additionally the `IS_LOCAL` variable is
-set, that allows you to determine a local execution within your code.
+## How each runtime runs
 
-## Examples
+`serverless invoke local` picks how to run the function from its `runtime`:
 
-### Local function invocation
+| Runtime                                                                                           | How the function runs                                                                                                                                                   |
+| ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `nodejs*`                                                                                         | Inside the CLI's own Node.js process. The handler module is imported, trying `.js`, `.mjs` and `.cjs` when the path has no extension.                                   |
+| `python3.7` to `python3.15`                                                                       | Under the `python3` on your `PATH` (`python` on Windows), with the active virtual environment's `bin` first.                                                            |
+| `java8`, `java8.al2023`, `java11`, `java11.al2023`, `java17`, `java17.al2023`, `java21`, `java25` | Under `java`, through a bridge that Maven (`mvn`) builds on first use. The service-level `package.artifact` must exist; a function's own `package.artifact` isn't used. |
+| `ruby2.7`, `ruby3.2`, `ruby3.3`, `ruby3.4`, `ruby4.0`                                             | Under the `ruby` on your `PATH`.                                                                                                                                        |
+| Any other runtime                                                                                 | In Docker.                                                                                                                                                              |
 
-```bash
-serverless invoke local --function functionName
-```
+On your machine, the function runs on the installed interpreter, not the version its `runtime` names (for `nodejs*` functions, the Node.js version that runs the CLI): a function declared `runtime: python3.13` runs on whatever `python3` resolves to, and the difference is not reported. To run on the declared runtime, add `--docker`.
 
-This example will locally invoke your function.
+When the service uses the Framework's built-in esbuild bundling (TypeScript handlers, or `build.esbuild`; see [Building](../guide/building.md)), `serverless invoke local` bundles the function before it runs, as `serverless deploy` would. With `--docker`, the command also runs `serverless package`.
 
-### Local function invocation with data
+A function deployed from a container `image` stops the command with `Local invocation of lambdas pointing AWS ECR images is not supported`.
 
-```bash
-serverless invoke local --function functionName --data '{"a":"bar"}'
-```
+## Run a function in Docker
 
-```bash
-serverless invoke local --function functionName --raw --data "hello world"
-```
+With `--docker`, or for a runtime the preceding table doesn't list, `serverless invoke local`:
 
-### Local function invocation with data from standard input
+1. Runs [`serverless package`](./package.md) and extracts the package into `.serverless/invokeLocal/artifact`.
+2. Builds an image named `sls-docker-<runtime>` from the AWS base image for the runtime (`public.ecr.aws/lambda/<language>:<version>`, for Node.js, Python, Java, Ruby, .NET and `provided` runtimes), with the function's layers copied to `/opt`. Layers referenced by ARN are downloaded and cached.
+3. Starts the container with the package mounted read-only at `/var/task`, sends the event to it, and prints the container's log and the function's response.
 
-```bash
-node dataGenerator.js | serverless invoke local --function functionName
-```
+Docker must be installed and running; otherwise the command stops with `Please start the Docker daemon to use the invoke local Docker integration.` On macOS and Windows, install [Docker Desktop](https://www.docker.com/products/docker-desktop); on Linux, install [Docker Engine](https://docs.docker.com/engine/install/) and add your user to the `docker` group so Docker runs without `sudo`.
 
-### Local function invocation with a data file
+In Docker, the function receives `AWS_REGION`, `AWS_DEFAULT_REGION`, `AWS_LAMBDA_FUNCTION_NAME`, `AWS_LAMBDA_FUNCTION_MEMORY_SIZE`, `AWS_LAMBDA_LOG_GROUP_NAME`, your AWS credentials, the function's `environment` and the `--env` values. The command exits with code 1 when the function returns an error.
 
-```bash
-serverless invoke local --function functionName --path lib/data.json
-```
+## Event data
 
-This example will pass the JSON data in the `lib/data.json` file (relative to the root of the service) while invoking the specified/deployed function.
+`serverless invoke local` takes the event from the first of these that is set:
 
-Example `data.json`:
+1. `--data`.
+2. `--path`: a `.json` or `.yml`/`.yaml` file is parsed; any other file is read as text.
+3. Standard input, when standard input is not a terminal.
+
+Unless `--raw` is set, text that is valid JSON is parsed and passed as an object; other text is passed as a string. To test a function behind an `http` or `httpApi` event, pass an event in the [API Gateway Lambda proxy input format](https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format), for example in `lib/data.json`:
 
 ```json
 {
@@ -98,78 +107,110 @@ Example `data.json`:
 }
 ```
 
-### Local function invocation with custom context
+## Mock context
 
-```bash
-serverless invoke local --function functionName --context '{"timeout":120}'
-```
+`serverless invoke local` passes the handler a mock `context`. The function's `timeout` (default `6` seconds) drives the remaining-time method:
 
-### Local function invocation with context file
+| Runtime | Mock context                                                                                                                                                                               | `--context` and `--contextPath`                                                                                                                                                                                                                                                                                                 |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Node.js | `awsRequestId` (a random UUID), `functionName`, `functionVersion`, `logGroupName`, `logStreamName`, `memoryLimitInMB`, `getRemainingTimeInMillis()`, `succeed()`, `fail()`, `done()`       | Replace the whole mock context.                                                                                                                                                                                                                                                                                                 |
+| Python  | `function_name`, `function_version`, `invoked_function_arn`, `memory_limit_in_mb`, `aws_request_id`, `log_group_name`, `log_stream_name` (all read-only), `get_remaining_time_in_millis()` | Set `name`, `version` and `timeout`, or add new attributes. Setting a read-only attribute stops the invocation with an `AttributeError`.                                                                                                                                                                                        |
+| Ruby    | `function_name`, `function_version`, `aws_request_id`, `invoked_function_arn`, `log_group_name`, `log_stream_name`, `memory_limit_in_mb`, `deadline_ms`, `get_remaining_time_in_millis`    | Set `function_name`, `version`, `timeout` and `memory_limit_in_mb`. Other keys are stored without a reader method, so `context.<key>` raises `NoMethodError` in the handler. `aws_request_id`, `invoked_function_arn`, `log_group_name` and `log_stream_name` are computed after the overrides, so values for them are ignored. |
+| Java    | `name`, `version`, `logGroupName`, `timeout`                                                                                                                                               | Replace the whole mock context.                                                                                                                                                                                                                                                                                                 |
 
-```bash
-serverless invoke local --function functionName \
-  --contextPath lib/context.json
-```
+## Environment variables
 
-This example will pass the JSON context in the `lib/context.json` file (relative to the root of the service) while invoking the specified/deployed function.
+`serverless invoke local` sets these environment variables for a function that runs on your machine, each source overriding the ones before it:
 
-### Local function invocation, setting environment variables
+1. Lambda's variables, with local values: `LANG`, `LD_LIBRARY_PATH`, `LAMBDA_TASK_ROOT`, `LAMBDA_RUNTIME_DIR`, `AWS_REGION`, `AWS_DEFAULT_REGION`, `AWS_LAMBDA_LOG_GROUP_NAME`, `AWS_LAMBDA_LOG_STREAM_NAME`, `AWS_LAMBDA_FUNCTION_NAME`, `AWS_LAMBDA_FUNCTION_MEMORY_SIZE` (the function's `memorySize`, else `provider.memorySize`, else `1024`), `AWS_LAMBDA_FUNCTION_VERSION` (`$LATEST`) and `NODE_PATH`.
+2. The CLI's AWS credentials: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`, and `AWS_PROFILE` when a profile is set with `--aws-profile` or `provider.profile`.
+3. `provider.environment`, then the function's `environment`.
+4. `IS_LOCAL` set to `true`, so code can tell a local run apart.
+5. The `--env` values.
 
-```bash
-serverless invoke local -f functionName -e VAR1=value1
+`IS_LOCAL` and the `--env` values are set after `serverless.yml` is resolved, so `${env:IS_LOCAL}` and other `${env:…}` variables in `serverless.yml` don't see them.
 
-# Or more than one variable
+In `environment`, the `Ref` and `Fn::ImportValue` [CloudFormation intrinsic functions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html) are resolved against the deployed stack and the Region's exports. Any other intrinsic function stops the command with `Could not resolve "<name>" environment variable: Unsupported environment variable format`. The short forms `!Ref` and `!ImportValue` work the same way. `Ref` reads the stack of the `--stage` and `--region` the command runs with, so that stack must be deployed; otherwise the command stops with `Could not resolve "<name>" environment variable`. The functions are resolved before the `--env` values apply, so `--env` doesn't avoid that error: deploy the stack, or replace the intrinsic function with a `${…}` variable for local runs. Framework variables such as `${sls:stage}` are resolved with the rest of `serverless.yml`. In this example, `EXT_TABLE_NAME` gets the value of the `exported-tableName` export and `REF_TABLE_NAME` the physical ID of `myTable`:
 
-serverless invoke local -f functionName \
-  -e VAR1=value1 \
-  -e VAR2=value2
-```
-
-When using [AWS CloudFormation intrinsic functions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html) as environment variables value, **only Fn::ImportValue and Ref** will be automatically resolved for function invocation. Other intrinsic functions use will result in the corresponding configuration object passed in the function as environment variable.
-
-```yml
+```yaml
 functions:
-  functionName:
-    handler: handler.main
+  hello:
+    handler: handler.hello
     environment:
       EXT_TABLE_NAME:
         Fn::ImportValue: exported-tableName
       REF_TABLE_NAME:
         Ref: myTable
-      INT_TABLE_NAME:
-        Fn::GetAtt: [myTable, Arn]
 ```
 
-In the above example, `EXT_TABLE_NAME` and `REF_TABLE_NAME` will be resolved to the exported value `exported-tableName` and `myTable` physical ID respectively while `INT_TABLE_NAME` will not be resolved.
+## AWS credentials and permissions
 
-### Limitations
+A deployed function calls AWS with its execution role, which holds the permissions from `provider.iam.role.statements`. Under `serverless invoke local` that role isn't available: the function's AWS SDK calls use the credentials the CLI uses, passed as `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_SESSION_TOKEN`. Those credentials usually grant different permissions than the role, so a call that succeeds locally can be denied in AWS, and the reverse. The [AWS SDK for JavaScript credentials guide](https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/setting-credentials-node.html) explains how the SDK picks them up.
 
-Without `--docker`, a Node.js or Python function runs under the interpreter installed on your machine (`node`, `python3`), not the version named by its `runtime` — a function declared `runtime: python3.13` executes on whatever `python3` resolves to locally, and the difference is not reported. Pass `--docker` to run the function on the declared runtime.
+## Side effects and CI use
 
-Use of the `--docker` flag and runtimes other than NodeJs, Python, Java, & Ruby depend on having
-[Docker](https://www.docker.com/) installed. On MacOS & Windows, install
-[Docker Desktop](https://www.docker.com/products/docker-desktop); On Linux install
-[Docker engine](https://www.docker.com/products/docker-engine) and ensure your user is in the
-`docker` group so that you can invoke docker without `sudo`.
+- `serverless invoke local` creates and changes nothing in AWS, but the function's own AWS calls act on real resources with your credentials. Resolving `Ref` and `Fn::ImportValue` reads the deployed stack and the Region's exports.
+- With `--docker`, the command writes the package and the extracted artifact under `.serverless/`, and builds a local Docker image.
+- The command does not prompt. Without `--data` or `--path`, it reads the event from standard input whenever standard input is not a terminal, so in CI pass `--data` or `--path`, or redirect standard input from `/dev/null`.
+- For a Node.js function that throws or returns an error, the command prints `errorMessage`, `errorType` and `stackTrace` as JSON and exits with code 1.
 
-**Note:** In order to get correct output when using Java runtime, your Response class must implement `toString()` method.
+## Provided lifecycle events
 
-**Environment variables:** The `IS_LOCAL` environment variable, as well as
-any environment variables provided via command line arguments,
-will only be set once the invoked function begins its execution.
-They _will not_ be set during the parsing of the `serverless.yml` file.
+- `invoke:local:loadEnvVars`
+- `invoke:local:invoke`
 
-## Resource permissions
+## Examples
 
-Lambda functions assume an _IAM role_ during execution: the framework creates this role, and set all the permission provided in the `provider.iam.role.statements` section of `serverless.yml`.
+### Run a function with data
 
-Unless you explicitly state otherwise, every call to the AWS SDK inside the lambda function is made using this role (a temporary pair of key / secret is generated and set by AWS as environment variables, `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`).
+```bash
+serverless invoke local --function hello --data '{"a":"bar"}'
+```
 
-When you use `serverless invoke local`, the situation is quite different: the role isn't available (the function is executed on your local machine), so unless you set a different user directly in the code (or via a key pair of environment variables), the AWS SDK will use the default profile specified inside your AWS credential configuration file.
+### Pass data as a raw string
 
-Take a look to the official AWS documentation (in this particular instance, for the javascript SDK, but should be similar for all SDKs):
+```bash
+serverless invoke local --function hello --raw --data "hello world"
+```
 
-- [https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/setting-credentials-node.html](https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/setting-credentials-node.html)
-- [https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/loading-node-credentials-lambda.html](https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/loading-node-credentials-lambda.html)
+### Run a function with data from standard input
 
-Whatever approach you decide to implement, **be aware**: the set of permissions might be (and probably is) different, so you won't have an exact simulation of the _real_ IAM policy in place.
+```bash
+node dataGenerator.js | serverless invoke local --function hello
+```
+
+### Run a function with an event file
+
+```bash
+serverless invoke local --function hello --path lib/data.json
+```
+
+### Override the timeout in a Python function's context
+
+```bash
+serverless invoke local --function report --context '{"timeout":120}'
+```
+
+### Run a function with a context file
+
+```bash
+serverless invoke local --function hello --contextPath lib/context.json
+```
+
+### Set environment variables
+
+```bash
+serverless invoke local --function hello --env VAR1=value1 --env VAR2=value2
+```
+
+### Run a function in Docker with a debugger port
+
+```bash
+serverless invoke local --function hello --docker --docker-arg '-p 9229:9229'
+```
+
+## Related commands
+
+- [`serverless invoke`](./invoke.md) calls the deployed function in AWS.
+- [`serverless dev`](./dev.md) runs a stage's real invocations on your working copy.
+- [`serverless package`](./package.md) builds the package that `--docker` runs.

@@ -1,9 +1,15 @@
 <!--
-title: Serverless Framework Commands - Reconcile
-description: Reconciles your org's list of billable instances with the actual CloudFormation stacks currently in your AWS account.
-short_title: Commands - Reconcile
+title: serverless reconcile
+description: Mark billable service instances whose CloudFormation stacks were deleted outside serverless remove as removed, with serverless reconcile.
+short_title: reconcile
 keywords:
-  ['Serverless', 'Reconcile', 'Instances', 'Credits', 'Billing']
+  [
+    'serverless reconcile',
+    'Serverless Framework CLI',
+    'billable instances',
+    'instance credits',
+    'deleted CloudFormation stack',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -12,48 +18,82 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Reconcile
+# serverless reconcile
 
-The `reconcile` command reconciles your org's list of billable instances with the actual CloudFormation stacks currently in your AWS account, making it an essential tool to recover credits for stacks that were removed manually without running the `remove` command.
-
-We generally recommend to always use the `remove` command to remove Serverless Framework stacks to ensure the removal is reported, but if you must remove stacks manually or your organization has a custom workflow, this command is the only way for us to know that your service instance was removed and that it should no longer be consuming credits.
-
-**Note:** The `reconcile` command is a global, account-wide command. It is **not** a per-service command and does **not** need to be run from inside a service directory. A single invocation reconciles every billable instance reported for your org against all CloudFormation stacks in the AWS account associated with the credentials it is run with, so you only need to run it once per AWS account — not once per service or per `serverless.yml`.
-
-If you have Serverless Framework stacks in multiple AWS accounts, you should run this command once for each AWS account (using credentials for that account) for a complete reconciliation and more accurate usage reporting and billing.
-
-**Note:** This command might take a few minutes to complete depending on how many CloudFormation stacks you have in your AWS account.
-
-### AWS Region Configuration
-
-By default, the `reconcile` command uses the `us-east-1` region to fetch your AWS account ID. If you're working in a restricted environment where access to specific regions is blocked or where VPC endpoints are only available for certain regions, you can override this default behavior by setting the `AWS_REGION` environment variable:
-
-```bash
-AWS_REGION=eu-central-1 serverless reconcile
-```
-
-## Usage
+`serverless reconcile` compares your org's open billable instances with the AWS CloudFormation stacks in the AWS account of the credentials it runs with, and reports every instance whose stack was deleted as removed, so it stops counting toward your usage. [`serverless remove`](./remove.md) reports a removal itself; use `serverless reconcile` after stacks were deleted another way, such as in the AWS console or by a custom workflow. The command works on the whole AWS account, not one service: run it from any directory, once per AWS account.
 
 ```bash
 serverless reconcile
 ```
 
-The command can be run from **any directory** — it does not need to be executed inside a service directory and does not read your `serverless.yml`. It operates at the AWS account level using the AWS credentials available in your environment.
+The command prints how many instances it reconciled:
+
+```text
+✔ Successfully reconciled 3 instances for my-org org in AWS Account 123456789012.
+
+To view your org's billable instances for the current month, run the "serverless usage" command.
+
+If you have any questions about your usage, please contact support@serverless.com.
+```
+
+When every instance still has its stack, it prints `No instances to reconcile for my-org org in AWS Account 123456789012.`
 
 ## Options
 
-- `--org` The org name to reconcile instances for. Defaults to your service org if found, or your default personal org.
+`serverless reconcile` accepts these options:
 
-## Example
+| Option          | Alias | Value   | Default                                                                | Required | Description                             |
+| --------------- | ----- | ------- | ---------------------------------------------------------------------- | -------- | --------------------------------------- |
+| `--org`         |       | string  | The service's `org`, else `SERVERLESS_ORG_NAME`, else your default org | No       | Org whose instances to reconcile.       |
+| `--aws-profile` |       | string  | The AWS SDK's default credentials                                      | No       | AWS profile whose account to reconcile. |
+| `--help`        | `-h`  | boolean | `false`                                                                | No       | Show the command's help.                |
 
-The example below runs `reconcile` from an arbitrary directory (no `serverless.yml` required):
+## How serverless reconcile decides
 
+`serverless reconcile` runs these steps:
+
+1. Looks up the AWS account ID of the credentials.
+2. Reads the org's open billable instances whose CloudFormation stack is in that account.
+3. Lists the CloudFormation stacks in each AWS Region those instances' stacks are in, three Regions at a time.
+4. Reports each instance whose stack no longer exists, or is `DELETE_COMPLETE`, as removed, in batches of 100.
+
+An instance in a Region whose stacks can't be listed is skipped, and the command prints a warning naming the Region. If a batch fails after earlier batches succeeded, the command prints how many instances it reconciled and asks you to run it again; instances already reconciled aren't processed twice.
+
+To view the instances that remain, run [`serverless usage`](./usage.md).
+
+## Reconcile several AWS accounts
+
+`serverless reconcile` reconciles only the AWS account of its credentials. For stacks in several accounts, run it once per account, with that account's credentials:
+
+```bash
+serverless reconcile --aws-profile production
 ```
-~ $ serverless reconcile
 
-Successfully recovered 3 Instance Credits from the 123456789012 AWS account.
+Inside a service directory whose provider credentials are set in the Serverless Framework Dashboard, the command uses those credentials.
 
-If you have any questions about your usage, please contact support@serverless.com.
+## AWS Region for the account lookup
 
-~ $
+`serverless reconcile` looks up the AWS account ID in `us-east-1` by default. Where that Region is blocked, or VPC endpoints exist only in certain Regions, set the `AWS_REGION` environment variable:
+
+```bash
+AWS_REGION=eu-central-1 serverless reconcile
 ```
+
+## Side effects and CI use
+
+- `serverless reconcile` changes no AWS resources: it calls `sts:GetCallerIdentity` and `cloudformation:ListStacks`. It updates the org's instance records in the Serverless Framework Dashboard, and is safe to re-run.
+- The command needs a signed-in user. It does not prompt otherwise, so in CI set the `SERVERLESS_ACCESS_KEY` or `SERVERLESS_LICENSE_KEY` environment variable.
+- In an account with many stacks the command can take a few minutes.
+
+## Examples
+
+### Reconcile the instances of a specific org
+
+```bash
+serverless reconcile --org my-org
+```
+
+## Related commands
+
+- [`serverless usage`](./usage.md) lists your org's billable instances.
+- [`serverless remove`](./remove.md) removes a service and reports the removal.

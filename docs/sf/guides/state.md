@@ -1,14 +1,15 @@
 <!--
-title: 'Serverless Framework State'
-description: 'Learn how to manage state in Serverless Framework Compose.'
-short_title: Serverless Framework State
+title: Compose State Storage
+description: Where Serverless Compose stores service outputs between commands, the default S3 state bucket and its SSM parameter, and how to use your own bucket.
+short_title: State
 keywords:
   [
     'Serverless Framework',
-    'serverless-compose',
-    'state management',
-    'S3 state',
-    'service state',
+    'Serverless Compose',
+    'Compose state',
+    'S3 state bucket',
+    'serverless-framework-state',
+    'service outputs',
   ]
 -->
 
@@ -18,44 +19,14 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Serverless Framework State
+# Compose State Storage
 
-Serverless Framework Compose allows for the orchestration and deployment of multiple services.
-A crucial aspect of this is managing the state of each service, which includes storing outputs and other runtime information necessary for the correct operation of services.
-This guide covers how to set up and manage state using AWS S3 and AWS SSM.
+[Serverless Compose](./compose.md) stores the outputs of each deployed service in an Amazon S3 state bucket, so another service can reference them (`${service-a.queueUrl}`) in a later command without redeploying the first one. Compose creates and finds the bucket by itself; configure state only to keep it in a bucket you choose.
 
-## State Management Overview
-
-State management in Serverless Framework Compose is crucial for:
-
-- **Storing Service Outputs**: Save outputs from deployments to share them across services.
-- **Ensuring Consistency**: Maintain the state of services across deployments, ensuring that each service can access the necessary data for its operation.
-- **Handling Dependencies**: Automatically resolve dependencies between services by referencing shared state.
-
-Serverless Framework Compose uses AWS S3 to store the state of services and AWS SSM (Systems Manager) to track the location of the state storage.
-
-## Zero-Configuration Setup
-
-The easiest way to manage state in Serverless Framework Compose is through its default, zero-configuration setup. When you don’t specify any state configuration, Serverless Framework Compose automatically handles everything for you.
-
-### How It Works
-
-1. **Automatic S3 Bucket Creation**: If no state configuration is provided in your `serverless-compose.yml`, Serverless Framework Compose automatically creates an S3 bucket to store the state.
-2. **SSM Parameter Store**: The name and region of the automatically created S3 bucket are stored in AWS SSM Parameter Store in `us-east-1` AWS region, under the parameter `/serverless-framework/state/s3-bucket`. This parameter contains a JSON object with the following keys:
-
-- `bucketName`: The name of the S3 bucket.
-- `bucketRegion`: The AWS region where the bucket is located.
-
-3. **Versioning Enabled**: The created S3 bucket will have versioning enabled by default, ensuring that different states over time are maintained and can be rolled back if necessary.
-
-**Note**: To create the default state bucket, you must have the necessary permissions to put SSM parameters and create versioned S3 buckets.
-If you don’t have these permissions, you can set up a [custom state configuration](#custom-state-configuration) to use an existing S3 bucket.
-
-### Example
-
-Assume you have the following serverless-compose.yml with two services:
+The following `serverless-compose.yml` needs no state configuration: `service-b` reads `queueUrl` from the stored state of `service-a`.
 
 ```yaml
+# serverless-compose.yml
 services:
   service-a:
     path: service-a
@@ -66,56 +37,78 @@ services:
       queueUrl: ${service-a.queueUrl}
 ```
 
-In this case, without any additional state configuration, Serverless Framework Compose will:
+State applies to Compose projects only. A service deployed on its own with `serverless deploy` in its directory reads and writes no Compose state.
 
-- Create a versioned S3 bucket to store the state of service-a and service-b.
-- Store the name and region of this bucket in SSM Parameter Store.
-- Automatically manage the retrieval and updating of this state during deployments.
+## What Compose state contains
 
-#### Deploying Services
+Compose state holds, for each deployed service, the CloudFormation stack outputs of its last `deploy` or `info`, as JSON:
 
-To deploy all services and manage their state automatically:
-
-```bash
-serverless deploy
+```json
+{
+  "outputs": {
+    "queueUrl": "https://sqs.us-east-1.amazonaws.com/123456789012/service-a-dev-queue"
+  }
+}
 ```
 
-This command will:
+Each service has one object in the state bucket, at `services/<runner type>/<stack ID>/state/state.json`. The runner type is `traditional` for a `serverless.yml` service and `cfn` for a [SAM or CloudFormation](./sam.md) service. The stack ID is the full CloudFormation stack ID with each `/` replaced by `_`, so each stage and Region of a service has its own state, and a service that is removed and deployed again gets a new state object.
 
-- Deploy service-a and save its state (like output URLs and ARNs) to the S3 bucket.
-- Deploy service-b, retrieve the state from service-a, and inject necessary outputs (e.g., `queueUrl`) as parameters.
+## Commands that read and write Compose state
 
-State allows you to execute commands on individual services even if they have dependencies on other services.
-When you use commands like
+Compose writes a service's state after these commands, when it runs them on that service:
 
-```bash
-serverless <service> <command>
+- `serverless deploy`: the stack outputs after the deploy.
+- `serverless info`: the current stack outputs, which also refreshes stale state.
+- `serverless remove`: an empty object (`{}`); see [State after `serverless remove`](#state-after-serverless-remove).
+
+Compose reads state when a command needs another service's outputs and doesn't run on that service. For example, `serverless service-b deploy` reads the stored outputs of `service-a` instead of running a command on it. A service that has no stack yet has no state; a reference to it fails, or uses its fallback, as described in [Serverless Compose](./compose.md).
+
+## Default state bucket
+
+When `serverless-compose.yml` has no `state` key, Compose uses a default state bucket in the AWS account of the Compose project's credentials (`--aws-profile`, the AWS resolver in `serverless-compose.yml`, or the default AWS credential chain). Compose looks for the bucket in `us-east-1`, whichever Region the services deploy to:
+
+1. Compose reads the SSM parameter `/serverless-framework/state/s3-bucket` in `us-east-1`. Its value is JSON with `bucketName` and `bucketRegion`.
+2. When the parameter doesn't exist, Compose writes it with a new name, `serverless-framework-state-<uuid>`, and creates that bucket in `us-east-1` with versioning enabled. The write is create-only: when several commands start at once, one creates the bucket and the others wait up to 60 seconds for it. A command that waits longer stops with an error that starts with `The S3 bucket "<bucket>" named in the SSM parameter "/serverless-framework/state/s3-bucket" was not ready within 60 seconds.`; run it again.
+3. When the parameter names a bucket that no longer exists, Compose creates it again with versioning enabled.
+
+All Compose projects in an AWS account share this bucket. The deployment bucket that holds artifacts is a separate bucket ([Deployment Bucket](./deployment-bucket.md)).
+
+### Permissions for the default state bucket
+
+The Compose project's credentials need:
+
+- `ssm:GetParameter` on `/serverless-framework/state/s3-bucket` in `us-east-1`, and `s3:CreateBucket`, on every run.
+- `s3:PutBucketVersioning` on every run: the bucket is in `us-east-1`, where S3 answers `CreateBucket` for a bucket you already own with success ([CreateBucket](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateBucket.html)), and Compose then enables versioning again.
+- `ssm:PutParameter` when Compose creates the parameter.
+- `s3:GetBucketVersioning` while waiting for a bucket another command is creating.
+- `s3:GetObject` and `s3:PutObject` on the state bucket.
+
+When SSM or S3 denies one of the calls that find or create the bucket (other than `s3:GetBucketVersioning` while waiting, which has its own `Access denied when checking the S3 bucket` message), the command stops with an error that starts with:
+
+```text
+Access denied when accessing /serverless-framework/state/s3-bucket SSM parameter and serverless-framework-state-... S3 bucket. Please check your permissions and try again.
 ```
 
-the Framework automatically fetches the necessary input data from the stored state,
-making it easy to manage and deploy services with complex interdependencies.
+The bucket name in the message is a newly generated one, even when the parameter already names a bucket. To run Compose without these permissions, [use your own state bucket](#use-your-own-state-bucket).
 
-## Custom State Configuration
+## Use your own state bucket
 
-While the zero-configuration setup is convenient, there may be situations where you want to customize how and where the state is stored.
-If you require this level of customization, you can specify custom state management settings in your `serverless-compose.yml`.
-Here’s how you can do it:
-
-### Using a Custom S3 Bucket
-
-You can specify an existing S3 bucket for storing the state using Resolvers:
+To keep Compose state in a bucket you manage, define an `s3` resolver for the bucket and name it in the top-level `state` key of `serverless-compose.yml`:
 
 ```yaml
-state: my-s3-state-resolver
+# serverless-compose.yml
+state: my-state-bucket
 
 stages:
   default:
     resolvers:
       my-aws-account:
         type: aws
-        my-s3-state-resolver:
+        region: us-east-1
+        my-state-bucket:
           type: s3
-          bucketName: my-custom-state-bucket
+          bucketName: my-company-compose-state
+          region: us-east-1
 
 services:
   service-a:
@@ -127,13 +120,31 @@ services:
       queueUrl: ${service-a.queueUrl}
 ```
 
-In this setup:
+`state` accepts the resolver's name as a string (`state: my-state-bucket`) or as an object (`state: { resolver: my-state-bucket }`). The resolver sets:
 
-- The `state` field defines the state resolver, which is linked to an existing S3 bucket.
-- The Framework will use this bucket instead of creating a new one. **The bucket must be versioned to ensure proper state management.**
+| Key                    | Required | Description                                                                                            |
+| ---------------------- | -------- | ------------------------------------------------------------------------------------------------------ |
+| `type`                 | Yes      | `s3`; any other type stops the command with `Unsupported state resolver type`                          |
+| `bucketName`           | Yes      | An existing bucket with versioning enabled                                                             |
+| `region`               | No       | The bucket's Region. Default: `us-east-1`                                                              |
+| `serverSideEncryption` | No       | Sent as the `ServerSideEncryption` header when Compose writes state, for example `AES256` or `aws:kms` |
 
-**Note**: For more information on Resolvers, refer to the [Resolvers documentation](variables).
+Compose reads and writes state with the credentials of the `aws` resolver that contains the `s3` resolver (`my-aws-account` in the example). When that `aws` resolver sets its own `region`, state reads and writes use that Region, so keep both `region` values the same as the bucket's Region.
 
-## Cleaning Up State
+Before each Compose command, Compose checks that the bucket has versioning enabled. The check uses the Compose project's credentials (not the `aws` resolver's) and the `s3` resolver's `region` (`us-east-1` when unset), and needs `s3:GetBucketVersioning`. When the check can't read the bucket (access denied, or no such bucket), the command stops with an error that starts with `An error occurred while checking versioning for bucket "<bucket>"`. A bucket without versioning stops the command:
 
-When you run `serverless remove`, the state stored in the S3 bucket is also deleted, ensuring that no unnecessary data is left in your AWS account.
+```text
+State bucket "my-company-compose-state" is not versioned. Please enable versioning for the bucket if you want to use it as a state store.
+```
+
+Compose never creates a bucket you name in `state`, and it creates no SSM parameter for it. For more on resolvers, see [Variables](./variables/README.md) and [S3 Objects](./variables/aws/s3.md).
+
+## State after `serverless remove`
+
+When `serverless remove` removes a service through Compose, Compose replaces that service's state object with an empty object (`{}`). It doesn't delete the state object or the state bucket, and the versioned bucket keeps earlier versions of the state. To delete them, empty and delete the bucket yourself; for the default bucket, also delete the `/serverless-framework/state/s3-bucket` parameter in `us-east-1`, or the next Compose run creates the bucket again under the same name.
+
+## Related pages
+
+- [Serverless Compose](./compose.md): deploy several services together and pass outputs between them.
+- [Deployment Bucket](./deployment-bucket.md): the S3 bucket that holds deployment artifacts.
+- [S3 Objects](./variables/aws/s3.md): the `s3` resolver that a custom state bucket uses.

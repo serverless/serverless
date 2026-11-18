@@ -1,20 +1,14 @@
 <!--
-title: Serverless Framework - AWS Lambda Events - SNS
-description: Setting up AWS SNS Events with AWS Lambda via the Serverless Framework
-short_title: AWS Lambda Events - SNS
+title: SNS Topic Events
+description: 'Trigger a Lambda function from an Amazon SNS topic with the sns event: new or existing topics, filter policies, encryption and dead-letter queues.'
+short_title: SNS
 keywords:
   [
-    'Serverless',
-    'Framework',
-    'AWS',
-    'Lambda',
-    'Events',
-    'AWS SNS Events',
-    'Serverless AWS Lambda SNS',
-    'AWS Lambda SNS Integration',
-    'AWS Lambda Event Sources',
-    'AWS SNS Lambda Trigger',
-    'AWS SNS Topics',
+    'Serverless Framework',
+    'AWS Lambda SNS trigger',
+    'SNS subscription',
+    'SNS filter policy',
+    'SNS dead-letter queue',
   ]
 -->
 
@@ -24,80 +18,68 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# SNS
+# SNS Topic Events
 
-In the following example we create a new SNS topic with the name `dispatch` which is bound to the `dispatcher` function. The function will be called every time a message is sent to the `dispatch` topic.
+The `sns` event subscribes a Lambda function to an Amazon SNS topic, so every message published to the topic invokes the function. Given a topic name, the Framework creates the topic; given a topic ARN, it subscribes the function to the existing topic. In both cases it adds the Lambda permission that lets SNS invoke the function.
 
-```yml
+This `serverless.yml` creates a topic named `dispatch` and subscribes the `dispatcher` function to it:
+
+```yaml
+# serverless.yml
+service: my-service
+
+provider:
+  name: aws
+  runtime: nodejs24.x
+
 functions:
   dispatcher:
-    handler: dispatcher.dispatch
+    handler: handler.dispatch
     events:
       - sns: dispatch
 ```
 
-You're also able to add the same SNS topic to multiple functions:
+Each SNS message arrives in `event.Records`, with the message text in `Sns.Message`:
 
-```yml
-functions:
-  dispatcher:
-    handler: dispatcher.dispatch
-    events:
-      - sns: dispatch
-  dispatcher2:
-    handler: dispatcher2.dispatch
-    events:
-      - sns: dispatch
+```javascript
+// handler.mjs
+export const dispatch = async (event) => {
+  for (const record of event.Records) {
+    console.log(record.Sns.Subject, record.Sns.Message)
+  }
+}
 ```
 
-This will run both functions for a message sent to the dispatch topic.
+A topic name has 1 to 256 letters, digits, hyphens and underscores. The Framework names the topic's CloudFormation resource `SNSTopic` followed by the topic name without non-alphanumeric characters (`SNSTopicDispatch`), so other resources can reference it with `!Ref SNSTopicDispatch`. Several functions can list the same topic name: the Framework creates the topic once and subscribes each function.
 
-## Using a pre-existing topic
+## Subscribe to an existing topic
 
-If an `arn:` is specified, the framework will give permission to the topic to invoke the function and subscribe the function to the topic.
+To subscribe to a topic that already exists, give its ARN as the `sns` event, or as the `arn` key of the object form:
 
-```yml
+```yaml
 functions:
   dispatcher:
-    handler: dispatcher.dispatch
+    handler: handler.dispatch
     events:
-      - sns: arn:xxx
-```
-
-```yml
-functions:
-  dispatcher:
-    handler: dispatcher.dispatch
-    events:
+      - sns: arn:aws:sns:us-east-1:123456789012:orders
       - sns:
-          arn: arn:xxx
+          arn: arn:aws:sns:us-east-1:123456789012:payments
 ```
 
-Or with intrinsic CloudFormation function like `Fn::Join`, `Fn::GetAtt`, or `Fn::Ref` (or their shorthand counterparts).
-**Note:** The arn can be in a different region to enable cross region invocation
+The Framework creates an `AWS::SNS::Subscription` and an `AWS::Lambda::Permission` for each event, and leaves the topic unchanged.
 
-```yml
-functions:
-  dispatcher:
-    handler: dispatcher.dispatch
-    events:
-      - sns:
-          arn:
-            Fn::Join:
-              - ':'
-              - - 'arn:aws:sns'
-                - Ref: 'AWS::Region'
-                - Ref: 'AWS::AccountId'
-                - 'MyCustomTopic'
-          topicName: MyCustomTopic
+The `arn` key also takes CloudFormation intrinsic functions, such as `Ref`, `Fn::GetAtt`, `Fn::ImportValue` or `Fn::Join`. With an intrinsic function, set `topicName` too: the Framework uses it to name the subscription and permission resources, and stops packaging without it:
+
+```text
+Missing "sns.topicName" setting (it needs to be provided if "sns.arn" is not provided as plain ARN string)
 ```
 
-If your SNS topic doesn't yet exist but is defined in the serverless.yml file you're editing, you'll need to use `Fn::Ref` or `!Ref` to get the ARN. Do not build a string as in the above example!
+For a topic declared in the same service's `resources`, reference it with `Ref` so CloudFormation creates the topic before the subscription:
 
-```yml
+```yaml
 functions:
   dispatcher:
-    handler: dispatcher.dispatch
+    handler: handler.dispatch
     events:
       - sns:
           arn: !Ref SuperTopic
@@ -111,88 +93,54 @@ resources:
         TopicName: MyCustomTopic
 ```
 
-**Note:** If an `arn` string is specified but not a `topicName`, the last substring starting with `:` will be extracted as the `topicName`. If an `arn` object is specified, `topicName` must be specified as a string, used only to name the underlying Cloudformation mapping resources. You can take advantage of this behavior when subscribing to multiple topics with the same name in different regions/accounts to avoid collisions between Cloudformation resource names.
+An ARN built as a string, for example with `Fn::Join`, carries no dependency on the topic resource, so use it only for topics that exist before the deploy.
 
-```yml
+### Topics in another Region or account
+
+When `arn` is a literal ARN string in the object form, the Framework sets the subscription's Region to the Region in the ARN, so the function can subscribe to a topic in another Region. The string form (`sns: arn:...`) and intrinsic functions subscribe in the service's Region.
+
+A topic in another AWS account needs a topic policy that lets the function's account subscribe; see [Using Lambda with Amazon SNS](https://docs.aws.amazon.com/lambda/latest/dg/with-sns.html).
+
+To subscribe one function to topics with the same name in several Regions or accounts, give each event a different `topicName`. Without an intrinsic function, `topicName` is optional and defaults to the last segment of the ARN; it only names the CloudFormation resources, so distinct values keep their logical IDs apart:
+
+```yaml
 functions:
   hello:
     handler: handler.run
     events:
       - sns:
-          arn: arn:aws:sns:us-east-1:00000000000:topicname
+          arn: arn:aws:sns:us-east-1:123456789012:topicname
           topicName: topicname-account-1-us-east-1
       - sns:
-          arn: arn:aws:sns:us-east-1:11111111111:topicname
+          arn: arn:aws:sns:us-east-1:111122223333:topicname
           topicName: topicname-account-2-us-east-1
 ```
 
-## Setting a display name
+## Topic display name and encryption
 
-This event definition ensures that the `aggregator` function gets called every time a message is sent to the
-`aggregate` topic. `Data aggregation pipeline` will be shown in the AWS console so that the user can understand what the
-SNS topic is used for.
+For a topic the Framework creates, the `sns` event's `displayName` sets the topic's display name, and `kmsMasterKeyId` encrypts the topic with an AWS KMS key:
 
-```yml
+```yaml
 functions:
   aggregator:
-    handler: aggregator.handler
+    handler: handler.aggregate
     events:
       - sns:
           topicName: aggregate
           displayName: Data aggregation pipeline
-```
-
-## Using a KMS key for created topics
-
-When the framework creates a topic (via `topicName`), you can supply a KMS key to encrypt it:
-
-- Set `kmsMasterKeyId` to a key alias or ARN (e.g., `alias/aws/sns` for the AWS-managed SNS key).
-- This applies only when the topic is created by the framework. It does not modify pre-existing topics referenced by `arn`.
-
-Examples:
-
-Using the AWS-managed SNS key (`alias/aws/sns`):
-
-```yml
-functions:
-  dispatcher:
-    handler: dispatcher.handler
-    events:
-      - sns:
-          topicName: dispatcher
           kmsMasterKeyId: alias/aws/sns
 ```
 
-Using a custom KMS key alias:
+- `displayName`: the display name SNS uses for SMS subscriptions, up to 100 characters.
+- `kmsMasterKeyId`: a key alias (`alias/aws/sns` for the AWS managed SNS key, or `alias/my-sns-key`), a key ID, a key ARN such as `arn:aws:kms:us-east-1:123456789012:key/12345678-9abc-def0-1234-56789abcdef1`, or a CloudFormation intrinsic function such as `!Ref MyKmsKey`.
+- Both keys apply only to topics the Framework creates from `topicName`; they don't change a topic referenced by `arn`. When several events create the same topic, the topic takes both values from the first of those events.
 
-```yml
+To encrypt with a key declared in the same service, reference it with `Ref`:
+
+```yaml
 functions:
   dispatcher:
-    handler: dispatcher.handler
-    events:
-      - sns:
-          topicName: dispatcher
-          kmsMasterKeyId: alias/my-sns-key
-```
-
-Using a custom KMS key ARN:
-
-```yml
-functions:
-  dispatcher:
-    handler: dispatcher.handler
-    events:
-      - sns:
-          topicName: dispatcher
-          kmsMasterKeyId: arn:aws:kms:us-east-1:111111111111:key/12345678-9abc-def0-1234-56789abcdef1
-```
-
-Using a CloudFormation reference (for a KMS key defined in the same stack):
-
-```yml
-functions:
-  dispatcher:
-    handler: dispatcher.handler
+    handler: handler.dispatch
     events:
       - sns:
           topicName: dispatcher
@@ -203,17 +151,24 @@ resources:
     MyKmsKey:
       Type: AWS::KMS::Key
       Properties:
-        KeyPolicy: { /* ... */ }
+        KeyPolicy:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+              Action: kms:*
+              Resource: '*'
 ```
 
-## Setting a filter policy
+## Filter policies
 
-This event definition creates an SNS topic which subscription uses a filter policy. The filter policy filters out messages that don't have attribute key `pet` with value `dog` or `cat`.
+The `sns` event's `filterPolicy` sets a subscription filter policy, so the function receives only the messages that match it. This subscription receives messages whose `pet` message attribute is `dog` or `cat`:
 
-```yml
+```yaml
 functions:
   pets:
-    handler: pets.handler
+    handler: handler.pets
     events:
       - sns:
           topicName: pets
@@ -223,19 +178,17 @@ functions:
               - cat
 ```
 
-## Setting a filter policy scope
+The `sns` event's `filterPolicyScope` chooses what the policy matches:
 
-This event definition specifies the scope for a filter policy by setting it to one of the following values:
+- `MessageAttributes` (the default): the message attributes.
+- `MessageBody`: the fields of a JSON message body.
 
-- `MessageAttributes`: The filter policy will be applied to the message attributes. This is the default if no scope is defined for an existing filter policy.
-- `MessageBody`: The filter policy will be applied to the message body.
+This subscription matches messages whose JSON body has `pet` equal to `dog` or `cat`:
 
-Note: If no filter policy scope is defined for an existing filter policy, the scope defaults to MessageAttributes. For more information, see [SNS Message Filtering](https://docs.aws.amazon.com/sns/latest/dg/sns-message-filtering.html).
-
-```yml
+```yaml
 functions:
   pets:
-    handler: pets.handler
+    handler: handler.pets
     events:
       - sns:
           topicName: pets
@@ -246,27 +199,31 @@ functions:
               - cat
 ```
 
+Set `filterPolicyScope` together with `filterPolicy`: on a topic the Framework creates, `filterPolicyScope` without `filterPolicy` has no effect. For the policy syntax, see [Amazon SNS message filtering](https://docs.aws.amazon.com/sns/latest/dg/sns-message-filtering.html) and [Amazon SNS subscription filter policies](https://docs.aws.amazon.com/sns/latest/dg/sns-subscription-filter-policies.html).
+
 ## Setting a redrive policy
 
-This event definition creates an SNS topic that sends messages to a Dead Letter Queue (defined by its ARN) when the associated lambda is not available. In this example, messages that aren't delivered to the `dispatcher` Lambda (because the lambda service is down or irresponsive) will end in `myDLQ`.
+A redrive policy sends the messages that SNS can't deliver to the function to an SQS dead-letter queue. SNS moves a message there after a client-side error, such as a missing permission, or after a server-side error persists through its delivery retries. Without a redrive policy, SNS discards those messages.
 
-```yml
+The `sns` event's `redrivePolicy` takes exactly one of three keys. `deadLetterTargetArn` takes the queue ARN:
+
+```yaml
 functions:
   dispatcher:
-    handler: dispatcher.handler
+    handler: handler.dispatch
     events:
       - sns:
           topicName: dispatcher
           redrivePolicy:
-            deadLetterTargetArn: arn:aws:sqs:us-east-1:11111111111:myDLQ
+            deadLetterTargetArn: arn:aws:sqs:us-east-1:123456789012:myDLQ
 ```
 
-To define the Dead Letter Queue, you can alternatively use the resource name with `deadLetterTargetRef`
+`deadLetterTargetRef` takes the logical ID of a queue declared in the same service's `resources`:
 
-```yml
+```yaml
 functions:
   dispatcher:
-    handler: dispatcher.handler
+    handler: handler.dispatch
     events:
       - sns:
           topicName: dispatcher
@@ -281,13 +238,12 @@ resources:
         QueueName: myDLQ
 ```
 
-Or if you want to use values from other stacks, you can
-also use `deadLetterTargetImport` to define the DLQ url and arn with exported values
+`deadLetterTargetImport` takes the names of two CloudFormation exports of another stack, one for the queue ARN and one for the queue URL:
 
-```yml
+```yaml
 functions:
   dispatcher:
-    handler: dispatcher.handler
+    handler: handler.dispatch
     events:
       - sns:
           topicName: dispatcher
@@ -296,3 +252,32 @@ functions:
               arn: MyShared-DLQArn
               url: MyShared-DLQUrl
 ```
+
+The configuration schema expects `deadLetterTargetImport.arn` to start with `arn:`, so an export name is reported as a configuration warning, or as an error with `configValidationMode: error`.
+
+The dead-letter queue must be an SQS queue in the same AWS account and Region as the subscription. The Framework adds an `AWS::SQS::QueuePolicy` that lets SNS send messages to the queue. A queue encrypted with AWS KMS needs a customer managed key whose key policy lets the SNS service principal use it. See [Amazon SNS dead-letter queues](https://docs.aws.amazon.com/sns/latest/dg/sns-dead-letter-queues.html).
+
+## `sns` event options
+
+The `sns` event takes a topic name, a topic ARN, or an object with these keys. The object needs `arn` or `topicName`:
+
+| Key                 | Type                    | Default                                                   | Allowed values                                                                                                                                  |
+| ------------------- | ----------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `arn`               | ARN string or intrinsic | Not set: the Framework creates the topic from `topicName` | An SNS topic ARN, or an intrinsic function (`Ref`, `Fn::GetAtt`, `Fn::ImportValue`, `Fn::Join`, `Fn::Sub`) that resolves to one                 |
+| `topicName`         | String                  | With a literal `arn`, the last segment of the ARN         | 1 to 256 letters, digits, `-` and `_`; required with an intrinsic `arn`                                                                         |
+| `displayName`       | String                  | Not set                                                   | Up to 100 characters; topics the Framework creates only                                                                                         |
+| `kmsMasterKeyId`    | String or intrinsic     | Not set (no encryption)                                   | Key alias (`alias/...`), key ID, key ARN or intrinsic; topics the Framework creates only                                                        |
+| `filterPolicy`      | Object                  | Not set                                                   | An SNS filter policy                                                                                                                            |
+| `filterPolicyScope` | String                  | `MessageAttributes`                                       | `MessageAttributes`, `MessageBody`                                                                                                              |
+| `redrivePolicy`     | Object                  | Not set                                                   | Exactly one of `deadLetterTargetArn` (queue ARN), `deadLetterTargetRef` (logical ID) or `deadLetterTargetImport` (`arn` and `url` export names) |
+
+## Permissions for SNS events
+
+For each `sns` event, the Framework adds an `AWS::Lambda::Permission` that lets `sns.amazonaws.com` invoke the function, limited to the topic's ARN. The function needs no IAM permission to receive messages. To publish to the topic from a function, add `sns:Publish` on the topic to the execution role; see [IAM permissions](../guide/iam.md).
+
+## Related
+
+- [SQS queue events](./sqs.md), to process messages from a queue subscribed to the topic
+- [EventBridge events](./event-bridge.md), for content-based routing between services
+- [`serverless.yml` reference: SNS](../guide/serverless.yml.md#sns)
+- [Using Lambda with Amazon SNS](https://docs.aws.amazon.com/lambda/latest/dg/with-sns.html)

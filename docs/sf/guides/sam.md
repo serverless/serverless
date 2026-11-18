@@ -1,66 +1,61 @@
 <!--
-title: Serverless Framework - Deploying SAM & CloudFormation Projects
-menuText: Deploying SAM & CFN Projects
-short_title: Deploying SAM & CloudFormation Projects
-layout: Doc
+title: AWS SAM and CloudFormation Templates
+description: Deploy, inspect and remove an AWS SAM or CloudFormation template with the Serverless Framework CLI, using samconfig, variables and Compose.
+short_title: SAM & CloudFormation Templates
+keywords:
+  [
+    'Serverless Framework',
+    'AWS SAM',
+    'CloudFormation template',
+    'samconfig.toml',
+    'deploy SAM template',
+  ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/sam/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/sam)
 
 <!-- DOCS-SITE-LINK:END -->
 
-# AWS SAM & Cloudformation Support
+# AWS SAM and CloudFormation Templates
 
-_Warning:_ Support for deploying raw CloudFormation & SAM projects is still experimental.
+The Serverless Framework CLI deploys an AWS SAM or plain AWS CloudFormation template as it is, without a `serverless.yml`: run `serverless deploy` in the directory that holds `template.yml`. Use it to bring an existing SAM or CloudFormation project under the same CLI as your Framework services, with Serverless Framework variables in the template and [Serverless Compose](./compose.md) to pass outputs between services. The SAM and CloudFormation runner supports the `deploy`, `remove`, `info` and `print` commands.
 
-You can now deploy SAM/CFN templates with the Serverless Framework. This enables you to take advantage of the many features the framework offers. Here is what is currently supported and our future roadmap for this feature:
+## Deploy a SAM template
 
-- [x] Deploying SAM/CFN templates in JSON & YAML formats.
-- [x] Removing SAM/CFN templates in JSON & YAML formats.
-- [x] Using Serverless Variables in your SAM/CFN templates (partially supported).
-- [x] Composing services together with Serverless Compose.
-- [x] Viewing stack info with `sls info`.
-- [ ] Deploying indvidual functions with `sls deploy function --function LambdaLogicalId`.
-- [ ] Invoking functions with `sls invoke --function LambdaLogicalId`.
-- [ ] Searching function logs with `sls logs --function LambdaLogicalId`.
-- [ ] Testing your app in the cloud with `sls dev`.
+The following `template.yml` defines one function behind an API Gateway REST API:
 
-You don't have to make any changes to your SAM/CFN templates to deploy them with the Serverless Framework. Just run `serverless deploy` in your project directory. Your template doesn't have to be a SAM template, it could also be a regular CloudFormation template.
-
-### Quick Start
-
-Given an example SAM template:
-
-```yml
+```yaml
 # template.yml
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-
-Description: |
-  An example RESTful service
+Description: An example RESTful service
 
 Resources:
   ExampleFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: nodejs20.x
+      Runtime: nodejs24.x
       Handler: index.handler
-      CodeUri: '.'
+      CodeUri: src
       Events:
         ListCustomers:
           Type: Api
           Properties:
             Path: /
             Method: any
+
+Outputs:
+  ApiUrl:
+    Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/
 ```
 
-With the following handler file:
+The handler lives in `src/index.mjs`:
 
-```js
-// index.js
-export const handler = async (event) => {
+```javascript
+// src/index.mjs
+export const handler = async () => {
   return {
     statusCode: 200,
     body: JSON.stringify('Hello from Lambda!'),
@@ -68,128 +63,160 @@ export const handler = async (event) => {
 }
 ```
 
-You can deploy it with the following command:
+Deploy it to a stack named `my-dev-stack`:
 
-```
+```bash
 serverless deploy --stack my-dev-stack
 ```
 
-You only have to specify the `--stack` option if you don't have it in a `samconfig.toml` file.
+The command zips `src`, uploads the zip to the deployment bucket, creates the stack, and prints its outputs:
 
-## samconfig.toml
+```text
+Deploying "my-dev-stack" to stage "dev" (us-east-1)
 
-If your project has a `samconfig.toml` file, it'll be read by the framework. Most `samconfig.toml` properties are irrelevant outside the SAM/CFN context, so the Serverless Framework only uses the properties it needs, specifically:
+✔ Service "my-dev-stack" deployed successfully
+Outputs:
+  ApiUrl: https://abc123def4.execute-api.us-east-1.amazonaws.com/Prod/
+```
+
+To skip `--stack`, set `stack_name` in a [`samconfig.toml` file](#configure-a-sam-project-with-samconfig). To delete the stack, run `serverless remove --stack my-dev-stack`.
+
+## How the Framework detects a SAM or CloudFormation project
+
+The CLI runs a directory as a SAM or CloudFormation project when it holds one of these files, checked in this order:
+
+1. `samconfig.toml`, `samconfig.yaml` or `samconfig.yml`. The template is the `template_file` the samconfig names, or else `template.yaml`, `template.yml` or `template.json`.
+2. `template.yaml`, `template.yml` or `template.json`.
+
+A `serverless-compose.yml` in the same directory takes precedence, and a SAM or CloudFormation file takes precedence over `serverless.yml`. To run a `serverless.yml` service in a directory that also holds `template.yml`, pass `--config serverless.yml`.
+
+The template can be YAML (with CloudFormation short-form tags such as `!Sub` and `!Ref`) or JSON, and can be a SAM template or a plain CloudFormation template.
+
+## Commands and options for SAM and CloudFormation projects
+
+| Command             | What it does                                                    | Options                                      |
+| ------------------- | --------------------------------------------------------------- | -------------------------------------------- |
+| `serverless deploy` | Uploads function code and creates or updates the stack          | `--stack`, `--bucket`, `--region`, `--stage` |
+| `serverless remove` | Deletes the stack                                               | `--stack`, `--bucket`, `--region`, `--stage` |
+| `serverless info`   | Prints the service, stage, Region, stack name and stack outputs | `--stack`, `--region`, `--stage`             |
+| `serverless print`  | Prints the template after variables are resolved                | `--format`: `yaml` (default) or `json`       |
+
+The options:
+
+| Option           | Default                                                                                                        | Description                                                                           |
+| ---------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `--stack`        | `stack_name` in samconfig, else the Compose service key                                                        | The CloudFormation stack name. Required when neither default applies                  |
+| `--bucket`, `-b` | `s3_bucket` in samconfig, else the [shared deployment bucket](./deployment-bucket.md#shared-deployment-bucket) | An existing bucket in the stack's Region for function zips                            |
+| `--region`, `-r` | `region` in samconfig, else `us-east-1`                                                                        | The AWS Region of the stack                                                           |
+| `--stage`, `-s`  | `dev`                                                                                                          | The samconfig environment to read ([Stages and stack names](#stages-and-stack-names)) |
+
+The CLI uses the same AWS credentials as for any other service: `--aws-profile`, the `AWS_PROFILE` environment variable, or the default AWS credential chain ([AWS Credentials](../providers/aws/guide/credentials.md)). Other Framework commands, such as `deploy function`, `invoke`, `logs` and `dev`, aren't available for SAM and CloudFormation projects.
+
+## What `serverless deploy` does with a SAM template
+
+`serverless deploy` runs these steps:
+
+1. Resolves the [Serverless Framework variables](#use-serverless-framework-variables-in-a-template) in the template.
+2. Finds or creates the shared deployment bucket for the Region and its SSM parameter. It does this on every run, also when `--bucket` or `s3_bucket` names another bucket.
+3. For each `AWS::Serverless::Function` resource, zips the local directory its `CodeUri` names (default: the project directory), uploads the zip to `serverless/<stack>/<timestamp>/<LogicalId>.zip` in the deployment bucket, and replaces `CodeUri` with the zip's `s3://` URI.
+4. Creates the stack, or updates it when it exists, passing the template in the request with the `CAPABILITY_IAM`, `CAPABILITY_NAMED_IAM` and `CAPABILITY_AUTO_EXPAND` capabilities and the `parameter_overrides` from samconfig.
+5. Waits for the stack to finish and prints its outputs. The first failed resource event stops the command with that event's reason. When CloudFormation reports no changes, the command prints `No changes to deploy. Deployment skipped.` Because each deploy uploads the function zips under a new key and writes that key into `CodeUri`, this happens only for a template without `AWS::Serverless::Function` resources.
+
+What the deploy step packages, and what it leaves to you:
+
+- The whole `CodeUri` directory goes into the zip, including `node_modules`, with no include or exclude patterns and no build step. Point `CodeUri` at a directory that holds only the function's code, and install its dependencies there first.
+- `CodeUri` must be a local directory. `Globals.Function.CodeUri` doesn't apply; set `CodeUri` on each function.
+- Only `AWS::Serverless::Function` code is uploaded. Other resources that point to local files, such as layers (`ContentUri`), `AWS::Lambda::Function` `Code` and state machine definitions, are passed to CloudFormation unchanged, so they must reference S3 objects or inline content.
+- Every `AWS::Serverless::Function` gets a zip and a `CodeUri`, including one that sets `InlineCode` or `ImageUri`: a function without `CodeUri` gets the zipped project directory.
+- CloudFormation accepts a template body of at most 51,200 bytes in a request ([CloudFormation quotas](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cloudformation-limits.html)); the CLI sends the template in the request, so a larger template stops the deploy.
+- The bucket must exist: a missing `--bucket` or `s3_bucket` stops the deploy with `Bucket <name> does not exist`.
+
+## What `serverless remove` does with a SAM stack
+
+`serverless remove` deletes the CloudFormation stack and waits until the deletion finishes. Like `serverless deploy`, it first finds or creates the shared deployment bucket and its SSM parameter, also when `--bucket` or `s3_bucket` names another bucket. When the stack exists, it checks that the deployment bucket exists before deleting the stack, and stops with `Bucket <name> does not exist` when it doesn't. It doesn't empty or delete any bucket, so the uploaded function zips stay under `serverless/<stack>/` in the deployment bucket. When the stack doesn't exist, the command reports success.
+
+## Configure a SAM project with samconfig
+
+The CLI reads `samconfig.toml` (or `samconfig.yaml` / `samconfig.yml`) from the project directory and uses these keys:
 
 ```toml
+# samconfig.toml
 version = 0.1
 
 [default.deploy.parameters]
 stack_name = "my-dev-stack"
 region = "us-east-1"
 template_file = "template.yml"
-# s3_bucket = "my-bucket"
-# parameter_overrides = "Environment=dev"
+s3_bucket = "my-company-deployments-us-east-1"
+parameter_overrides = "Environment=dev LogLevel=info"
 ```
 
-**Note:** Because `samconfig.toml` is structured around the SAM CLI commands that do not exist in the Serverless Framework, the CLI will only use the `<stage>.global.parameters` and `<stage>.deploy.parameters` configuration, even if you are running a command other than `deploy`
+| Key                   | Used for                                                                                          |
+| --------------------- | ------------------------------------------------------------------------------------------------- |
+| `stack_name`          | The stack name, when `--stack` isn't given                                                        |
+| `region`              | The stack's Region, when `--region` isn't given                                                   |
+| `s3_bucket`           | The deployment bucket, when `--bucket` isn't given                                                |
+| `template_file`       | The template file name, in the project directory, with a `.yaml`, `.yml` or `.json` extension     |
+| `parameter_overrides` | Template parameters, as `Key=Value` pairs separated by spaces. Values can't contain spaces or `=` |
 
-You now no longer have to specify a stack name on every deploy:
+The CLI reads each key from the `[<stage>.deploy.parameters]` table, then `[<stage>.global.parameters]`, then `[default.deploy.parameters]`, then `[default.global.parameters]`, for every command. `template_file` is the exception: it is read only from `[<stage>.deploy.parameters]` when you pass `--stage`, and only from `[default.deploy.parameters]` when you don't. The CLI ignores the other samconfig keys and the SAM CLI command sections, such as `build` and `sync`.
 
+## Stages and stack names
+
+For a SAM or CloudFormation project, the stage (`--stage`, default `dev`) only selects which samconfig environment the CLI reads; it isn't added to the stack name. To deploy one template as several stages, give each stage its own `stack_name`:
+
+```toml
+# samconfig.toml
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "orders-dev"
+region = "us-east-1"
+
+[prod.deploy.parameters]
+stack_name = "orders-prod"
+region = "eu-west-1"
 ```
-serverless deploy
+
+```bash
+serverless deploy --stage prod
 ```
 
-## Deploying SAM/CFN Templates
+Without a stage-specific `stack_name`, every stage deploys to the same stack.
 
-You can deploy a SAM/CFN template with the Serverless Framework using the `sls deploy` command.
+## Use Serverless Framework variables in a template
 
-### Options
+The CLI resolves [Serverless Framework variables](./variables/README.md) in the template before it deploys it, so a template can read environment variables, CLI options, SSM parameters, other stacks' outputs and files:
 
-- `stack` - The stack name. Required if not specified in a `samconfig.toml` file.
-- `bucket` - The deployment bucket. If not specified, we'll use the default Serverless Framework deployment bucket.
-- `region` - The region to deploy to. Default is `us-east-1`.
-- `stage` - The stage to deploy to. Default is `dev`.
-
-**Note:** Deploying AWS Lambda Layers, AWS Lambda Containers, and AWS Lambda Step Functions resources is not yet supported.
-
-## Removing SAM/CFN Templates
-
-You can remove a SAM/CFN template with the Serverless Framework using the `sls remove` command.
-
-### Options
-
-- `stack` - The stack name. Required if not specified in a `samconfig.toml` file.
-- `bucket` - The deployment bucket. If not specified, we'll use the default Serverless Framework deployment bucket.
-- `region` - The region to deploy to. Default is `us-east-1`.
-- `stage` - The stage to deploy to. Default is `dev`.
-
-If you specified your own deployment bucket, it will not be emptied or removed with the `remove` command.
-
-## Getting SAM/CFN Service Info
-
-You can get information about your SAM/CFN service, specifically the stack outputs and their values, using the `sls info` command.
-
-### Options
-
-- `stack` - The stack name. Required if not specified in a `samconfig.toml` file.
-- `region` - The region where the service/stack is deployed. Default is `us-east-1`.
-- `stage` - The stage where the service/stack is deployed. Default is `dev`.
-
-## Supported file formats and names
-
-The Serverless Framework supports both JSON and YAML file formats for both SAM
-and CloudFormation templates. The file can be named `template.yml`,
-`template.yaml`, or `template.json`.
-
-You can also use the `samconfig.toml` to specify the template filename using
-the `template_file` parameter.
-
-## Using Serverless Variables
-
-You can use Serverless Variables in your SAM or CloudFormation templates just like any other Serverless Framework project. The CLI will automatically resolve those variables before deployment. This simplifies your configuration as your project grows.
-
-We currently have partial support for Serverless Variables. Here are the Serverless Variables that are supported in SAM/CFN templates:
-
-- AWS Account ID: `${aws:accountId}`
-- AWS Region: `${aws:region}`
-- AWS Stack Output: `${cf:another-service-dev.functionPrefix}`
-- CLI Options: `${opt:<option>}`
-- SLS Instance ID: `${sls:instanceId}`
-- Environment Variables: `${env:ENV_VAR}`
-- File: `${file(./myCustomFile.yml)}`
-- Git: `${git:<variable>}`
-- S3: `${s3:myBucket/myKey}`
-- SSM: `${ssm:/path/to/service/id}`
-
-For example, you can pass in your local environment variables to AWS Lambda:
-
-```yml
+```yaml
+# template.yml
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-
-Description: |
-  An example RESTful service
 
 Resources:
   ExampleFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: nodejs20.x
+      Runtime: nodejs24.x
       Handler: index.handler
+      CodeUri: src
       Environment:
         Variables:
-          STAGE: ${env:USER}
+          STAGE: ${sls:stage}
+          TABLE_NAME: ${ssm:/orders/table-name}
+          OWNER: ${env:USER}
 ```
 
-For more information about these variabels, take a look at the [Serverless Variables Docs](./variables/README.md).
+The variable sources available in `serverless.yml` work in templates too, including `${env:…}`, `${opt:…}`, `${sls:stage}`, `${sls:instanceId}`, `${param:…}`, `${aws:accountId}`, `${aws:region}`, `${ssm:…}`, `${s3:…}`, `${cf:…}`, `${file(…)}` and `${git:…}`. CloudFormation's own substitutions stay as they are: `${AWS::Region}` and other pseudo parameters, and `${LogicalId}` or `${LogicalId.Attribute}` without a colon, reach CloudFormation unchanged.
 
-## Using Serverless Compose
+`${aws:region}`, and the Region that `${ssm:…}`, `${cf:…}` and `${s3:…}` read from, come from `--region`, else the `AWS_REGION` environment variable, else `us-east-1`. The `region` in samconfig doesn't apply to them, so pass `--region` when the stack's Region isn't `us-east-1`.
 
-Just like traditional framework services, you can compose multiple SAM or CloudFormation (CFN) stacks together with Serverless Compose, or alongside traditional framework services. This allows you to reference outputs from other services and manage dependencies seamlessly. Here’s an example:
+## Use SAM and CloudFormation services in Compose
 
-```yml
+A SAM or CloudFormation project can be a service in [Serverless Compose](./compose.md), next to `serverless.yml` services, and its stack outputs can feed other services:
+
+```yaml
 # serverless-compose.yml
-
 services:
   traditional-service:
     path: traditional-service
@@ -199,11 +226,10 @@ services:
       traditionalServiceOutput: ${traditional-service.exampleOutput}
 ```
 
-You can then reference these parameters in your SAM/CFN templates using the `${param:<key>}` variable:
+The template reads the value with `${param:…}`:
 
-```yml
-# template.yml
-
+```yaml
+# sam-service/template.yml
 Resources:
   HelloWorldFunction:
     Type: AWS::Serverless::Function
@@ -213,39 +239,28 @@ Resources:
           FRAMEWORK_OUTPUT: ${param:traditionalServiceOutput}
 ```
 
-Serverless Compose also supports stage-specific configuration shared between all your services. If you define stage-specific parameters in your `serverless-compose.yml`:
+Stage parameters in `serverless-compose.yml` reach every service, SAM templates included:
 
-```yml
+```yaml
 # serverless-compose.yml
 stages:
   dev:
     params:
-      STRIPE_API_KEY: 'stripe-api-dev-key'
+      STRIPE_API_KEY: ${ssm:/stripe/dev/api-key}
   prod:
     params:
-      STRIPE_API_KEY: 'stripe-api-prod-key'
+      STRIPE_API_KEY: ${ssm:/stripe/prod/api-key}
 
 services:
-  traditional-service:
-    path: traditional-service
   sam-service:
     path: sam-service
-    params:
-      traditionalServiceOutput: ${traditional-service.exampleOutput}
 ```
 
-You can reference these parameters directly in your SAM/CFN templates, and the correct value will be used based on the stage you're deploying to:
+The template reads them the same way, for example `STRIPE_API_KEY: ${param:STRIPE_API_KEY}`. When a SAM service in Compose has no `stack_name` in samconfig and no `--stack`, its stack name is the service key in `serverless-compose.yml` (`sam-service` in the example). Compose stores the stack outputs in [Compose state](./state.md).
 
-```yml
-# template.yml
+## Related pages
 
-Resources:
-  HelloWorldFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Environment:
-        Variables:
-          STRIPE_API_KEY: ${param:STRIPE_API_KEY}
-```
-
-If you don't specify the stack name in a `samconfig.toml` file in any of these SAM/CFN services, the stack name will be the service key you specified in the `serverless-compose.yml` file. So in the above example, that would be `sam-service`.
+- [Serverless Compose](./compose.md): deploy SAM, CloudFormation and `serverless.yml` services together.
+- [Deployment Bucket](./deployment-bucket.md): the shared bucket that holds the function zips.
+- [Variables](./variables/README.md): every variable source a template can use.
+- [AWS SAM CLI configuration file](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-config.html): the samconfig format.

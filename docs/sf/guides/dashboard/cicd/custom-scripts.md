@@ -1,115 +1,80 @@
 <!--
-title: Serverless Dashboard - CI/CD Custom Scripts
-description: Learn how to run custom scripts before and after various CI/CD steps in Serverless Framework.
-short_title: Serverless Dashboard - Custom Scripts
+title: Custom Scripts in Serverless CI/CD
+description: Run your own commands before or after the install, test and deploy steps of a Serverless CI/CD build, with npm scripts and deploy lifecycle hooks.
+short_title: Custom Scripts
 keywords:
   [
     'Serverless Framework',
-    'CI/CD',
-    'Custom Scripts',
-    'Automation',
-    'Deployment',
+    'Serverless CI/CD',
+    'Custom scripts',
+    'npm lifecycle scripts',
+    'serverless-plugin-scripts',
+    'Lifecycle hooks',
   ]
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://serverless.com/framework/docs/guides/cicd/custom-scripts/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/dashboard/cicd/custom-scripts)
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Custom scripts
+# Custom scripts in Serverless CI/CD
 
-Serverless Framework runs three primary operations on your repository when you have CI/CD configured: (1) install NPM packages via `npm install`, (2) run tests, if present, with `npm test`, and (3) deploy your service using `sls deploy`. You can run custom scripts before or after each of these steps if you need to customize the pipeline further.
+A [Serverless CI/CD](./README.md) build runs three steps on your repository: it installs npm packages with `npm install`, runs the configured test command (`npm test` by default), and deploys the service with `serverless deploy`. To run your own commands around these steps, use npm lifecycle scripts in `package.json` for the install and test steps, and Framework lifecycle hooks in `serverless.yml` for the deploy step.
 
-To run custom scripts before & after NPM install and running tests, use the lifecycle hooks built into `scripts` of your `package.json` file. The `preinstall`, `postinstall`, `pretest`, and `posttest`, scripts are run automatically at each of these steps.
+| To run a command                         | Set                                               |
+| ---------------------------------------- | ------------------------------------------------- |
+| Before `npm install`                     | `scripts.preinstall` in `package.json`            |
+| After `npm install`                      | `scripts.postinstall` in `package.json`           |
+| Before `npm test`                        | `scripts.pretest` in `package.json`               |
+| After `npm test`                         | `scripts.posttest` in `package.json`              |
+| After packaging, before the stack update | a `before:deploy:deploy` hook in `serverless.yml` |
+| After `serverless deploy` finishes       | a `deploy:finalize` hook in `serverless.yml`      |
 
-To run custom scripts before or after deployment, you can use the [serverless-plugin-scripts](https://github.com/mvila/serverless-plugin-scripts) plugin to run the scripts at various points of the `serverless deploy` lifecycle, including before deployment and on finalize.
+## Run commands around the install and test steps
 
-**Before npm install**
-
-To run a script before `npm install`, set the script in `preinstall` in your `package.json`.
+npm runs the lifecycle scripts of the `package.json` in the service directory: `preinstall` and `postinstall` around the install, `pretest` and `posttest` around `npm test`. For example, to generate code after the install and seed test data before the tests:
 
 ```json
 {
-  "name": "demo-serverless",
+  "name": "my-service",
   "version": "1.0.0",
   "scripts": {
-    "preinstall": "<your script>"
+    "postinstall": "node scripts/generate.mjs",
+    "pretest": "node scripts/seed-test-data.mjs",
+    "test": "node --test"
   }
 }
 ```
 
-**After npm install**
+npm runs `pretest` and `posttest` only for `npm test`. When the service's CI/CD settings set another test command, put the extra commands in that command instead. npm documents every lifecycle script in [npm scripts](https://docs.npmjs.com/cli/using-npm/scripts).
 
-To run a script after `npm install`, set the script in `postinstall` in your `package.json`.
+## Run commands around the deploy step
 
-```json
-{
-  "name": "demo-serverless",
-  "version": "1.0.0",
-  "scripts": {
-    "postinstall": "<your script>"
-  }
-}
+The community plugin [serverless-plugin-scripts](https://github.com/mvila/serverless-plugin-scripts) runs shell commands at Framework lifecycle events. Its README marks it as in maintenance mode. Install it in the service directory, so the build's `npm install` restores it:
+
+```bash
+npm install --save-dev serverless-plugin-scripts
 ```
 
-**Before npm test**
-
-To run a script before `npm test`, set the script in `pretest` in your `package.json`.
-
-```json
-{
-  "name": "demo-serverless",
-  "version": "1.0.0",
-  "scripts": {
-    "pretest": "<your script>"
-  }
-}
-```
-
-**After npm test**
-
-To run a script after `npm test`, set the script in `posttest` in your `package.json`.
-
-```json
-{
-  "name": "demo-serverless",
-  "version": "1.0.0",
-  "scripts": {
-    "posttest": "<your script>"
-  }
-}
-```
-
-**Before serverless deploy**
-
-To run a script before `serverless deploy` starts the deployment add this to your `serverless.yml`.
+Then add the plugin and the hooks to `serverless.yml`. This example runs a script after the service is packaged and before the stack is updated, and another after the deploy completes:
 
 ```yaml
 plugins:
   - serverless-plugin-scripts
+
 custom:
   scripts:
     hooks:
-      'before:deploy:deploy': <your script>
+      'before:deploy:deploy': node scripts/check-config.mjs
+      'deploy:finalize': node scripts/smoke-test.mjs
 ```
 
-**After serverless deploy**
+`serverless deploy` has two lifecycle events, `deploy` and `finalize`, and the plugin accepts `before:` and `after:` hooks on each. Unless `--package` or `package.path` is set, the Framework packages the service in its own `before:deploy:deploy` hook, which runs before a plugin's hook on the same event. Each command runs in the directory where `serverless` was started. A command that exits with a non-zero code ends `serverless deploy` with an error: in a `before:deploy:deploy` hook the stack isn't updated, and in a `deploy:finalize` hook the stack is already updated. The hooks run on every `serverless deploy`, from Serverless CI/CD or from your own machine.
 
-To run a script after `serverless deploy` completes a deployment add this to your `serverless.yml`.
+## Related
 
-```yaml
-plugins:
-  - serverless-plugin-scripts
-custom:
-  scripts:
-    hooks:
-      'deploy:finalize': <your script>
-```
-
-## Additional lifecycle hooks
-
-NPM provide additional lifecycle hooks you can run as well, additional documentation can be found here, [https://docs.npmjs.com/misc/scripts](https://docs.npmjs.com/misc/scripts).
-
-Serverless Framework provides additional lifecycle hooks as “serverless deploy” is running, you can find more information about additional hooks in the [serverless-plugin-scripts](https://github.com/mvila/serverless-plugin-scripts) docs.
+- [Run tests in Serverless CI/CD](./running-tests.md): the test step and its command.
+- [Plugins](../../plugins/README.md): install and configure Framework plugins.
+- [Serverless CI/CD](./README.md): what each build runs.

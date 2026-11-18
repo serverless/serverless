@@ -1,13 +1,14 @@
 <!--
 title: Serverless Framework Services
-short_title: Serverless Framework Services
-description: How to manage and configure serverless services, which contain your AWS Lambda functions, their events and infrastructure resources.
+description: What a Serverless Framework service is, what its serverless.yml holds, how to split an application into services, and how to deploy, remove and pin one.
+short_title: Services
 keywords:
   [
     'Serverless Framework',
-    'AWS Lambda',
-    'serverless services',
+    'serverless service',
     'serverless.yml',
+    'frameworkVersion',
+    'stages',
   ]
 -->
 
@@ -19,108 +20,63 @@ keywords:
 
 # Serverless Framework Services
 
-A service, aka a project, is the Framework's unit of organization.
+A service is the Serverless Framework's unit of deployment: one `serverless.yml` file, the code next to it, and everything the file declares (functions, the events that trigger them, and other AWS resources). Each deploy of a service to a stage and Region creates or updates the service's AWS CloudFormation stack (a few options, such as an external stack for alerts, add stacks of their own).
 
-A service is configured via a `serverless.yml` file where you define your functions, the events that trigger them, and the AWS resources to deploy. For example:
+A service with two functions behind an HTTP API:
 
-```yml
-service: users
-
-provider:
-  # Configuration of the cloud provider
-  name: aws
-
-functions:
-  # The functions to deploy
-  usersCreate:
-    events:
-      - httpApi: 'POST /users/create'
-  usersDelete:
-    events:
-      - httpApi: 'DELETE /users/delete'
-
-plugins:
-  # Plugins to enable
-
-resources:
-  # Additional AWS resources to deploy
-```
-
-To create a new service, run the `serverless` command and check out the [Getting started guide](../../../getting-started.md#getting-started).
-
-## Organization
-
-In the beginning of an application, many people use a single service to define all functions, events and resources for that project. This is what we recommend in the beginning.
-
-```bash
-my-service/
-  # Contains all functions and infrastructure resources
-  serverless.yml
-```
-
-However, as an application grows, you can break it out into multiple services. A lot of people organize their services by workflows or data models, and group the functions related to those workflows and data models together in the service.
-
-```bash
-users/
-  # Contains 4 functions that do Users CRUD operations and the Users database
-  serverless.yml
-posts/
-  # Contains 4 functions that do Posts CRUD operations and the Posts database
-  serverless.yml
-comments/
-  # Contains 4 functions that do Comments CRUD operations and the Comments database
-  serverless.yml
-```
-
-This makes sense since related functions usually use common infrastructure resources, and you want to keep those functions and resources together as a single unit of deployment, for better organization and separation of concerns.
-
-To orchestrate and deploy multiple services, check out the ["Composing services" documentation](../../../guides/compose).
-
-## Contents
-
-You'll see the following files in your working directory:
-
-- `serverless.yml`
-- `handler.js`
-
-### serverless.yml
-
-Each `service` configuration is managed in the `serverless.yml` file. The main responsibilities of this file are:
-
-- Declare a serverless service
-- Define the cloud provider the service will be deployed to
-- Define one or more functions
-- Define the events that trigger each function (e.g. HTTP requests)
-- Define any plugin to use
-- Define a set of AWS resources to create
-- Allow events listed in the `events` section to automatically create the resources required for the event upon deployment
-- Allow flexible configuration using [variables](../../../guides/variables/env-vars.md)
-
-You can see the name of the service, the provider configuration and the first function inside the `functions` definition which points to the `handler.js` file. Any further service configuration will be done in this file.
-
-```yml
+```yaml
 # serverless.yml
 service: users
 
 provider:
   name: aws
-  runtime: nodejs14.x
-  stage: dev # Set the default stage used. Default is dev
-  region: us-east-1 # Overwrite the default region used. Default is us-east-1
-  profile: production # The default profile to use with this service
-  memorySize: 512 # Overwrite the default memory size. Default is 1024
+  runtime: nodejs24.x
 
 functions:
-  usersCreate: # A function
+  usersCreate:
     handler: users.create
-    events: # The events that trigger this function
+    events:
       - httpApi: 'POST /users/create'
-  usersDelete: # A function
+  usersDelete:
     handler: users.delete
-    events: # The events that trigger this function
+    events:
       - httpApi: 'DELETE /users/delete'
+```
 
-# The "Resources" your "Functions" use. Raw AWS CloudFormation goes in here.
+To create a service from a template, run `serverless` in an empty directory (see [Getting started](../../../getting-started.md#create-a-service)). A service created from a template contains `serverless.yml` and the function code, for example `handler.js`; the files depend on the template.
+
+## serverless.yml
+
+`serverless.yml` declares the service. It can also be written as `serverless.yaml`, `serverless.json`, `serverless.toml`, `serverless.js` (or `.cjs`, `.mjs`) or `serverless.ts`; see [Serverless Framework concepts: Services](./intro.md#services). Its main top-level keys:
+
+- `service`: the service name, used in the stack name and in resource names.
+- `provider`: the AWS settings that apply service-wide, such as `runtime`, `stage`, `region`, `profile` and defaults for every function.
+- `functions`: the [Lambda functions](./functions.md) and their [events](./events.md). Events that need an AWS resource, such as an HTTP API, create it on deploy.
+- `resources`: extra AWS resources in CloudFormation syntax (see [AWS infrastructure resources](./resources.md)).
+- `plugins`: [plugins](../../../guides/plugins/README.md) that extend the Framework.
+- `stages`: settings per stage (see [Stage-specific configuration](#stage-specific-configuration)).
+
+Values can come from [variables](../../../guides/variables/README.md), such as `${sls:stage}` or `${env:NAME}`. [serverless.yml reference](./serverless.yml.md) lists every key.
+
+```yaml
+# serverless.yml
+service: users
+
+provider:
+  name: aws
+  runtime: nodejs24.x
+  stage: dev # default dev
+  region: us-east-1 # default us-east-1
+  profile: production # AWS profile for this service
+  memorySize: 512 # default 1024
+
+functions:
+  usersCreate:
+    handler: users.create
+    events:
+      - httpApi: 'POST /users/create'
+
+# Raw AWS CloudFormation resources
 resources:
   Resources:
     usersTable:
@@ -136,47 +92,61 @@ resources:
         BillingMode: PAY_PER_REQUEST
 ```
 
-### Stage-Specific Configuration
+## Organize an application into services
 
-You can specify stage-specific configuration in the `stages` section of the `serverless.yml` file. This configuration include parameters, observability settings, and variables resolvers declarations. Here's how that looks like:
+A new application often starts as one service that holds all its functions, events and resources:
 
-#### Setting Parameters
+```text
+my-service/
+  serverless.yml # all functions and resources
+```
 
-You can set different parameter values for each stage, and use the `default` stage as a fallback for any stage that you did not specify.
+As the application grows, split it into several services, for example one per workflow or data model, each with the functions and resources that change together:
 
-```yml
-# serverless.yml
+```text
+users/
+  serverless.yml # users CRUD functions and the users table
+posts/
+  serverless.yml # posts CRUD functions and the posts table
+comments/
+  serverless.yml # comments CRUD functions and the comments table
+```
+
+Each service deploys as its own stack. To deploy several services together and pass outputs between them, use [Serverless Compose](../../../guides/compose.md).
+
+## Stage-specific configuration
+
+The top-level `stages` key holds settings per stage. A key under `stages` is a stage name, and `default` applies to every stage without its own entry. Each stage takes `params`, `observability` and `resolvers`.
+
+### Stage parameters
+
+`params` sets [parameters](../../../guides/parameters.md) per stage; `default` supplies the value for stages that don't set one:
+
+```yaml
 service: billing
 
 stages:
   prod:
     params:
-      stripe_api_key: ${env:PROD_STRIPE_API_KEY}
+      stripeApiKey: ${env:PROD_STRIPE_API_KEY}
   default:
     params:
-      stripe_api_key: ${env:DEV_STRIPE_API_KEY}
-```
+      stripeApiKey: ${env:DEV_STRIPE_API_KEY}
 
-You can then reference these parameters later in your `serverless.yml` file:
-
-```yml
 functions:
   chargeCustomer:
     handler: billing.charge
     environment:
-      STRIPE_API_KEY: ${param:stripe_api_key}
+      STRIPE_API_KEY: ${param:stripeApiKey}
 ```
 
-This will use the correct parameter value based on the stage you're currently working on.
+### Stage observability
 
-For more information please see the [parameters](../../../guides/parameters.md) documentation.
+`observability` turns [Serverless Dashboard observability](../../../guides/dashboard/README.md) on or off per stage. `true` and `false` require `app` in `serverless.yml`. It also takes `axiom` or `dashboard`, or an object with `provider` (`axiom` or `dashboard`) and, for Axiom, `dataset`.
 
-#### Enabling and Disabling Observability
-
-You can also enable or disable the observability feature of the Serverless Dashboard based on the stage you are working on.
-
-```yml
-# serverless.yml
+```yaml
+org: myorg
+app: my-app
 service: billing
 
 stages:
@@ -186,15 +156,11 @@ stages:
     observability: false
 ```
 
-The above example will enable observability for the `prod` stage, but disable it by default for all other stages.
+### Stage variable resolvers
 
-For more information please see the [observability](../../../guides/dashboard/README.md) documentation.
+`resolvers` declares [variable resolvers](../../../guides/variables/README.md) per stage, such as the AWS credentials of a [deployment account](./credentials.md#using-resolvers-to-specify-deployment-credentials) or a [Terraform](../../../guides/variables/hashicorp/terraform.md) or [Vault](../../../guides/variables/hashicorp/vault.md) source:
 
-#### Declaring Variables Resolvers
-
-Another use case of the stages property is to declare variable resolvers for the `terraform` and `vault` variables. Here's an example that declares the `terraform` variable resolver:
-
-```yml
+```yaml
 stages:
   default:
     resolvers:
@@ -205,74 +171,69 @@ stages:
         key: users-table/terraform.tfstate
 ```
 
-For more information please see the [terraform](../../../guides/variables/hashicorp/terraform.md) and the [vault](../../../guides/variables/hashicorp/vault.md) variables documentation.
+## Deploy a service
 
-## Deployment
-
-When you deploy a service, all functions, events and resources in `serverless.yml` are translated to an AWS CloudFormation template and deployed as a single CloudFormation stack.
-
-To deploy a service, run the `deploy` command in the same directory as `serverless.yml`:
+`serverless deploy`, run in the directory that holds `serverless.yml`, turns the functions, events and resources into a CloudFormation template and deploys it as one stack:
 
 ```bash
 serverless deploy
 ```
 
-Deployment defaults to `dev` stage and `us-east-1` region on AWS. You can deploy to a different stage or region via CLI options:
+The deploy goes to the `dev` stage in `us-east-1` unless `provider.stage` and `provider.region`, or the CLI options, say otherwise:
 
 ```bash
 serverless deploy --stage prod --region us-east-1
 ```
 
-Check out the [deployment guide](https://serverless.com/framework/docs/providers/aws/guide/deploying/) to learn more about deployments and how they work. Or, check out the [`deploy` command reference](../cli-reference/deploy) to see all the options available.
+See [Deploying to AWS](./deploying.md) for how a deploy works, and the [`deploy` command](../cli-reference/deploy.md) for its options.
 
-## Removal
+## Remove a service
 
-To easily remove your service from your AWS account, you can use the `serverless remove` command.
+`serverless remove` deletes a deployed stage of the service from AWS:
 
-The removal process will only remove the service on your provider's infrastructure (including all the resources mentioned in `serverless.yml`). The service directory will still remain on your local machine, so you can still modify and (re)deploy it to another stage, region or provider later on.
-
-## Version Pinning
-
-The Serverless Framework is usually installed globally via `npm install -g serverless`. This way you have the Serverless CLI available for all your services.
-
-Installing tools globally has the downside that the version can't be pinned inside package.json. This can lead to issues if you upgrade Serverless, but your colleagues or CI system don't. You can now use a new feature in your serverless.yml which is available only in the latest version without worrying that your CI system will deploy with an old version of Serverless.
-
-### Pinning a Version
-
-To configure version pinning define a `frameworkVersion` property in your serverless.yaml. Whenever you run a Serverless command from the CLI it checks if your current Serverless version is matching the `frameworkVersion` range. The CLI uses [Semantic Versioning](http://semver.org/) so you can pin it to an exact version or provide a range. In general we recommend to pin to an exact version to ensure everybody in your team has the exact same setup and no unexpected problems happen.
-
-### Examples
-
-#### Exact Version
-
-```yml
-# serverless.yml
-
-frameworkVersion: '2.1.0'
-
-service: users
-
-provider:
-  name: aws
-  runtime: nodejs14.x
-  memorySize: 512
-
-…
+```bash
+serverless remove --stage dev
 ```
 
-#### Version Range
+It deletes the service's artifacts from the deployment bucket, the CloudFormation stack with the resources in it, and the service's ECR repository if it has one. Resources with `DeletionPolicy: Retain` stay in your account, such as layer versions with `retain: true` and Infrequent Access log groups, and so does the shared deployment bucket. The local service directory isn't touched, so you can deploy it again to any stage or Region.
 
-```yml
+**Warning:** Removing a stage deletes its data stores declared in `resources`, such as DynamoDB tables, unless they set `DeletionPolicy: Retain`.
+
+## Version pinning
+
+The `serverless` command you install globally (for example with `npm install -g serverless`) is a launcher. In a service, it reads `frameworkVersion` from the service configuration and runs a matching Framework release, downloading it into `~/.serverless/releases/<version>` when needed. Without `frameworkVersion`, it runs the latest release and checks for a newer one every 24 hours.
+
+Pinning makes your colleagues and your CI system deploy the service with the same Framework version, whatever version of the launcher they installed.
+
+### Pin a version
+
+Set `frameworkVersion` to an exact version or a [Semantic Versioning](https://semver.org/) range. With a range, the launcher uses the highest available release that matches it, and checks for newer matching releases every 24 hours. When no available release matches, the command stops with an error.
+
+Pin to a major or minor range rather than an exact version, so the service still receives patch releases with bug and security fixes. See [Pinning to a specific version](../../../getting-started.md#pinning-to-a-specific-version) for details, including the list of flagged versions.
+
+An exact version:
+
+```yaml
 # serverless.yml
-
-frameworkVersion: "^2.1.0" # >=2.1.0 && <3.0.0
+frameworkVersion: '4.17.0'
 
 service: users
-
-provider:
-  name: aws
-  runtime: nodejs14.x
-  memorySize: 512
-
-…
 ```
+
+A range that accepts `4.17.x` (at least 4.17.0, below 4.18.0):
+
+```yaml
+# serverless.yml
+frameworkVersion: '~4.17.0'
+
+service: users
+```
+
+To accept any `4.x` release, use `frameworkVersion: '4'`.
+
+## Related pages
+
+- [AWS Lambda functions](./functions.md): configure functions.
+- [Deploying to AWS](./deploying.md): what a deploy does.
+- [Serverless Compose](../../../guides/compose.md): deploy several services together.
+- [serverless.yml reference](./serverless.yml.md): every key.

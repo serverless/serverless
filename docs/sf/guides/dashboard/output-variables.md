@@ -1,107 +1,136 @@
 <!--
-title: Serverless Framework Dashboard - Outputs
-description: How to define and use outputs in Serverless Framework Dashboard
-short_title: Serverless Dashboard - Outputs
-keywords: ['Serverless Framework', 'Dashboard', 'Outputs', 'serverless.yml']
+title: Dashboard Outputs
+description: Publish values from one service with the outputs property and read them in another service with ${output:...} variables through the Dashboard.
+short_title: Outputs
+keywords: ['Serverless Framework', 'Dashboard', 'Outputs', 'output variable', 'share values between services']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/output-variables/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/dashboard/output-variables)
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Outputs
+# Dashboard outputs
 
-The Serverless Framework Dashboard helps you refactor large serverless applications by decoupling the shared services from the dependent services. The new outputs feature allows you to define output key/values in a `serverless.yml` and then reference those key/values in other `serverless.yml` files. The key/values are published to Serverless Framework Dashboard when you deploy, and they are loaded in other services when they are deployed.
+Dashboard outputs share values between services: one service publishes key/value pairs with the top-level `outputs` property when it deploys, and other services read them with `${output:<service>.<key>}` variables. Use outputs when the services are deployed separately and both set `org` and `app`; for services in one [Serverless Compose](../compose.md#service-dependencies-and-variables) project use `${service:...}`, and for any CloudFormation stack use [`${cf:...}`](../variables/aws/cf-stack.md).
 
-## Define outputs for shared services
-
-Define new outputs by adding a dictionary (key/value pairs) to the `outputs:` field in the `serverless.yml` file. The values can include any value supported by YAML, including strings, integers, lists (arrays), and dictionaries (key/value pairs). The dictionaries can also be nested to any depth.
-
-**serverless.yml**
+The `users` service publishes its table name:
 
 ```yaml
+# users/serverless.yml
+org: myorg
+app: my-app
+service: users
+
 outputs:
-  my-key: my-value
-  my-availability-zones:
+  table-name: users-table-${sls:stage}
+```
+
+The `orders` service, in the same org and app, reads it after `users` is deployed to the same stage and Region:
+
+```yaml
+# orders/serverless.yml
+org: myorg
+app: my-app
+service: orders
+
+provider:
+  name: aws
+  environment:
+    USERS_TABLE: ${output:users.table-name}
+```
+
+Both services need a CLI signed in with a Serverless Framework account or an Access Key in `SERVERLESS_ACCESS_KEY`; see [account and key requirements](./README.md#account-and-key-requirements).
+
+## Define outputs
+
+The top-level `outputs` property is a map. Each value can be a string, number, boolean, list or map, nested to any depth, and can use variables:
+
+```yaml
+# serverless.yml
+outputs:
+  table-name: users-table-${sls:stage}
+  availability-zones:
     - us-east-1a
     - us-east-1b
-  my-table-name: DynamoDbTable-${self:custom.stage}
+  limits:
+    max-items: 100
 ```
 
-The values will be interpolated and saved when the service is deployed. The values are saved as a part of the service instance so they are associated with the service, stage and region.
+`serverless deploy` resolves the values and saves them with the deployment record of the instance: the app, service, stage and Region.
 
-## Use outputs in dependent services
+## Read an output from another service
 
-Outputs can be consumed from other services with they `${output}` variable. The reference must be formatted as `<service-id>.<key>`, where the `<service-id>` references another service in the same application, stage and region and the `<key>` references the dictionary key from the `outputs:`. The `<key>` can also be nested to reference nested values from the dictionary.
+The short form `${output:<service>.<key>}` reads an output of another service in the same org and app, stage and Region as the service being deployed:
 
-**serverless.yml**
+- The org and app are the `org` and `app` in `serverless.yml`.
+- The stage is the current stage (`--stage`, then `provider.stage`, then `dev`).
+- The Region is `--region`, then `provider.region`, then `us-east-1`.
+
+To read a nested value, add its keys after the output name, separated by dots:
 
 ```yaml
-${output:my-service.var-key}
+provider:
+  environment:
+    MAX_ITEMS: ${output:users.limits.max-items}
 ```
 
-or, to reference a service in a different app, stage or region, specify it like this:
+Service names in an output variable can't contain dots, since the first dot separates the service from the key.
+
+## Read an output from another app, stage or Region
+
+The long form `${output:<app>:<stage>:<region>:<service>.<key>}` names the app, stage and Region to read from. Leave a part empty to use the current value for it. The org is always the `org` in `serverless.yml`.
+
+This variable reads the `dev` stage of `users` in the current app and Region:
 
 ```yaml
-${output:appname:stagename:regionname:my-service.var-key}
+provider:
+  environment:
+    USERS_TABLE: ${output::dev::users.table-name}
 ```
 
-So, for example:
+This variable reads `users` from the `shared` app in `dev` and `us-east-1`:
 
 ```yaml
-${output:another-app:dev:us-east-1:my-service.var-key}
+provider:
+  environment:
+    USERS_TABLE: ${output:shared:dev:us-east-1:users.table-name}
 ```
 
-You can also omit any of app, stage or region by leaving it empty like this, which only specifies
-stage:
+A variable with another number of `:`-separated parts stops with this error:
+
+```text
+<key> does not conform to syntax service.key or app:stage:region:service.key
+```
+
+## Missing outputs and fallback values
+
+When the output, the service or the instance doesn't exist, the variable has no value and the command stops with an error like:
+
+```text
+Cannot resolve '${output:users.table-name}' variable at 'provider.environment.USERS_TABLE'. No value is available for this variable, and no default value was provided. Please check your variable definitions or provide a default value.
+```
+
+To use a value instead, add a fallback after a comma:
 
 ```yaml
-${output::dev::my-service.var-key}
+provider:
+  environment:
+    USERS_TABLE: ${output:users.table-name, 'users-table-dev'}
 ```
 
-## Use outputs from the command line
+## View outputs
 
-Outputs can also be accessed on the CLI. You can use this at development time to look up the outputs without opening the dashboard, or in your CI/CD pipeline to use the outputs in custom scripts.
+The Dashboard stores the outputs of each deployment in its deployment record, so you can see the outputs of every instance in the Dashboard. The CLI has no command that prints outputs: `serverless output get` and `serverless output list` stop with:
 
-### List outputs
-
-```
-sls output list
-  [--org <org>]
-  [--app <app>]
-  [--service <service>]
-  [--stage <stage>]
-  [--region <region>]
+```text
+This command was deprecated in v4. Please review your outputs in Serverless Framework Dashboard at https://app.serverless.com
 ```
 
-If you are in a working directory with a `serverless.yml` then the outputs will be listed for the org, app, and service specified in the serverless.yml file.
+## Related pages
 
-If you are not in a working directory, without a `serverless.yml`, or if you want to access outputs from another org, app, service, or stage, you can pass in the optional flags.
-
-### Get an output
-
-```
-sls output get
-  --name <name>
-  [--org <org>]
-  [--app <app>]
-  [--service <service>]
-  [--stage <stage>]
-  [--region region]
-```
-
-Individual outputs can also be accessed from the CLI using the `output get` sub-command. This command requires the `--name <name>` flag to identify the output name.
-
-It is possible for the output value to be a json object, in which case, we recommend using a tool like [jq](https://stedolan.github.io/jq/) to parse the JSON.
-
-Like the `sls output list` command, you can optionally specify a different org, app, service, stage or region using flags.
-
-## View outputs in the dashboard
-
-The outputs for a service are made available on two different pages of the Serverless Framework Dashboard.
-
-The current outputs for a given service instance are available in the **OUTPUTS** section of the service instance view. This will show the key/values which are currently available.
-
-The historic outputs for a given service instance are available as a part of the deployment record which is available in the **activity & insights** section of the service instance view after a deployment.
+- [Dashboard orgs, apps and members](./concepts.md)
+- [Serverless Compose service outputs](../compose.md#service-dependencies-and-variables)
+- [CloudFormation stack outputs](../variables/aws/cf-stack.md)
+- [Variables](../variables/README.md)

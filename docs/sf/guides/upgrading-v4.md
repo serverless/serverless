@@ -1,17 +1,15 @@
 <!--
-title: Serverless Framework - Upgrading to v4
-description: Serverless Framework V.4 offers a seamless update from V.3 and older versions. This guide covers all aspects of updating, including potential breaking changes, significant improvements, tips for large organizations and more.
+title: Upgrading to v4
+description: 'Upgrade Serverless Framework services from v3 or earlier to v4: sign-in, licensing and pricing, breaking changes, built-in plugins and steps.'
 short_title: Upgrading to v4
 keywords:
   [
     'Serverless Framework',
-    'Version 4',
-    'upgrade',
-    'AWS',
+    'upgrade to v4',
+    'Serverless Framework v3 to v4',
     'licensing',
     'authentication',
-    'TypeScript support',
-    'auto-updating',
+    'frameworkVersion',
   ]
 -->
 
@@ -21,167 +19,148 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Upgrading to Serverless Framework V4
+# Upgrading to v4
 
-This guide covers upgrading to Serverless Framework version 4 from version 3 or earlier, and includes info on breaking changes, key license and pricing updates, and practical advice tailored for both small and large organizations.
+This guide upgrades a Serverless Framework service from v3 or earlier to v4, the version released in May 2024. Most AWS services deploy with v4 without configuration changes. What changes is how the CLI runs: it requires a sign-in or a License Key, it needs Node.js 18 or later, it refuses `frameworkVersion` pins below 4, and a few defaults and plugins differ. Organizations with more than $2 million in annual revenue need a subscription ([License changes](#license-changes)). Version 3 has not been maintained since early 2025.
 
-We are uniquely accessible to chat, even for same-day meetings. Feel free to [schedule a meeting with us](https://slss.io/meet) to discuss upgrading, pricing, and more.
+To have an AI coding agent do the upgrade, point it at the `serverless-upgrade` Agent Skill that ships with the CLI. It checks every change in this guide and verifies that the packaged CloudFormation template stays the same:
 
-Here is a quick overview video answering common questions around V.4
+```bash
+serverless agent skills read serverless-upgrade
+```
+
+A video answers common questions about v4 licensing and the upgrade (website only):
 
 ::youtube{id="p7dnwVslChs"}
 
-Also, the [Serverless MCP](https://www.serverless.com/framework/docs/guides/mcp) is a great tool for upgrading Serverless Framework and using the latest features. It comes packaged with the latest Serverless Framework documentation, so it will always give you the most up to date advice directly in AI-enhanced IDEs like Cursor, Windsurf and VS Code.
+## Upgrade steps
 
-## Overview
+Prerequisites: Node.js 18 or later with `npm`, and a Serverless Framework Dashboard account or a License Key.
 
-Serverless Framework CLI version 4 was released in May 2024. It's stable and now widely used, and introduces no breaking changes—except for a new license and authentication requirement.
+1. Confirm that the service deploys to AWS: v4 runs only services with `provider.name: aws` ([AWS only](#aws-only)).
+2. Install v4 globally:
 
-V.4 works out of the box for older projects built using Amazon Web Services with no migration steps required. Organizations making over $2 million/year may need to purchase a subscription based on the new terms (detailed below), but most developers will not.
+   ```bash
+   npm install -g serverless
+   ```
 
-V.4 features significant improvements, integrating plug-ins into the core for better reliability, improving developer workflows, enhancing integrations with tools like Terraform and observability solutions, and larger innovations like [Serverless MCP](https://www.serverless.com/framework/docs/guides/mcp). Serverless Framework CLI version 4's development velocity has surged, with weekly updates replacing the quarterly releases of the prior open-source model.
+3. In the service directory, remove a `serverless` v3 or earlier from `devDependencies` (`npm uninstall serverless`), and set `frameworkVersion: '4'` in `serverless.yml` ([Version pins and local v3 installs](#version-pins-and-local-v3-installs)).
+4. Sign in with `serverless login`, or set a License Key ([Authentication requirement](#authentication-requirement)).
+5. Review the plugins in `serverless.yml`: remove those built into v4, and set `build.esbuild: false` if you keep a build plugin ([Plugins](#plugins), [Build plugins and the built-in esbuild](#build-plugins-and-the-built-in-esbuild)).
+6. If the service relied on `useDotenv: true`, add `'!.env*'` to `package.patterns` ([Environment files loaded by default](#environment-files-loaded-by-default)).
+7. Deploy the service to a new test stage and check it:
 
-Overall, V.4 delivers a stable, customer-centric experience, with powerful updates, built-in support, and a focus on your features and fixes for lasting dependability.
+   ```bash
+   serverless deploy --stage testv4
+   ```
 
-## Upgrade Steps
+8. Add an Access Key (`SERVERLESS_ACCESS_KEY`) or a License Key to your CI/CD pipelines.
 
-Here are quick steps to upgrade to Serverless Framework V.4:
+If a step fails, contact support at support@serverless.com.
 
-1. **Check Compatibility**: Confirm your project uses AWS, as non-AWS providers are deprecated.
-2. **Update CLI**: Run `npm install -g serverless` to install v4 globally.
-3. **Authenticate**: Sign in via the Serverless Framework Dashboard or use a License Key (see "Authentication Requirement" below for more details).
-4. **Review Plugins**: Check for compatibility with v4 (see "Plugins").
-5. **Deploy Test Stage**: Deploy your existing Service into a new, test Stage `sls deploy --stage testv4
-6. **Update CI/CD**: Add Access Keys or License Keys to pipelines.
-7. **Contact Support**: Reach out if you hit any issues support[at]serverless.com
+To keep a service on v3 instead, see [Keep a project on v3](#keep-a-project-on-v3).
 
-## License Changes
+## Breaking changes
 
-As announced in late 2023, the Serverless Framework CLI remains free for individual developers and small businesses. However, developers and organizations with annual revenue exceeding $2M USD (as measured by their latest fiscal year) are now required to obtain a paid subscription.
+Each of these changes can stop a v3 service or change how it deploys under v4.
 
-If you're a developer or organization that does not exceed the revenue threshold, no additional action is required. You may continue to freely use the Serverless Framework CLI as much as you'd like without providing proof of eligibility.
+### Authentication requirement
 
-This license change applies only to Serverless Framework CLI version 4 and later. Versions 3 and earlier remain open-source and will continue to be available as open-source software.
+The v4 CLI runs service commands only when it is signed in or has a key. Without either, it prompts for a sign-in in a terminal, and stops with an error in CI and other runs without a terminal. Choose one of these:
 
-**Please note: As of early 2025, version 3 is no longer maintained and will no longer receive security updates, bug fixes, or feature improvements.**
+- **Dashboard sign-in.** Run `serverless login` to sign in with your Serverless Framework Dashboard account; the CLI creates an Access Key on your machine. For CI/CD, create an Access Key under [Settings > Access Keys](https://app.serverless.com/settings/accessKeys) and set it as `SERVERLESS_ACCESS_KEY`. Signing in doesn't turn on Dashboard features; a service uses them only when it sets `app`.
+- **License Key.** For teams that use only the CLI, without the Dashboard. Set the key in `SERVERLESS_LICENSE_KEY`, in `licenseKey` in `serverless.yml`, or in the AWS SSM parameter `/serverless-framework/license-key` of the AWS account you deploy to, so no one has to distribute it. A service that sets `app` can't use a License Key. See [License Keys](./license-keys.md).
 
-These license changes apply exclusively to the CLI. The optional Serverless Framework Dashboard—offering features such as observability, CI/CD, and secrets management—has separate pricing and is unaffected by this licensing change.
+### AWS only
 
-The updated license terms can be reviewed in the On-Premise Software License section of Serverless Inc.'s [Customer Agreement](https://serverless-aws-marketplace-assets.s3.amazonaws.com/serverless-customer-agreement.pdf).
+v4 deploys only to AWS. A `provider.name` other than `aws` stops every command with `Serverless Framework V.4 only supports "aws" as a Provider.`, and a variable in `provider.name` stops it with `Serverless Framework Variables are not supported for "provider.name".` Services for other cloud providers stay on v3 ([Keep a project on v3](#keep-a-project-on-v3)).
 
-## Pricing
+### Node.js 18 or later
 
-For organizations that meet or exceed the revenue threshold, a subscription is required, priced based on Credits. One Credit is equivalent to one Serverless Framework Service Instance. A Service corresponds to a `serverless.yml` file, while a Service Instance refers to the deployment of that file to a specific AWS account, Stage, and Region. Another way to think about a Service Instance is that it equates to an AWS CloudFormation Stack deployed via Serverless Framework.
+The v4 CLI runs the Framework with the `node` on your `PATH`. When `node` or `npm` is missing, every command that runs a v4 release stops with `Nodejs is not installed, please install Nodejs and run the command again`; with a Node.js older than 18, it stops with `Your Nodejs version is too old, please upgrade to Node 18 or newer and rerun Serverless`. A project's local v3 copy (see [Version pins and local v3 installs](#version-pins-and-local-v3-installs)) runs without these checks.
 
-To estimate pricing, multiply the Credit price by the number of estimated Service Instances you might have. Our Serverless Framework Dashboard also features a pricing calculator within the [Billing page](https://app.serverless.com/settings/billing).
+### Version pins and local v3 installs
 
-If a Service Instance is interacted with using Serverless Framework CLI version 4 at any point (including instances initially deployed using versions 3 or earlier), it will be counted towards usage. To stop a Service Instance from counting towards your usage, run the `serverless remove` CLI command using version 4.
+The v4 CLI reads `frameworkVersion` from the configuration file in the current directory before it runs. A pin below 4 stops the command with an error that starts with `frameworkVersion "3" in serverless.yml is older than any release this CLI can install`. Change the pin:
 
-Usage is measured at the end of each month. A Service Instance counts towards usage for a month if it is still deployed at the end of that month, or if it was removed during that month after being deployed for 10 days or more. A Service Instance that you remove less than 10 days after deployment, and before the end of the month, is not counted. To avoid charges for a temporary Service Instance used for testing or previews, remove it less than 10 days after deployment and before the end of the month. An instance removed after 10 days or more counts for that month, even if you remove it before the month ends.
+```diff
+ # serverless.yml
+-frameworkVersion: '3'
++frameworkVersion: '4'
+```
 
-For greater clarity, subscriptions are **not** priced based on:
+When the project's `package.json` lists `serverless` in `devDependencies` and `node_modules/serverless` holds v3 or earlier, the v4 CLI runs that local copy for every command in that directory, and the local v3 refuses a `'4'` pin. npm scripts such as `npm run deploy` also run the local copy. To use v4, remove it:
 
-- Individual AWS Lambda functions within a Service.
-- Individual resources within a Service.
-- The number of AWS Lambda invocations.
-- The number of commands executed using the Serverless Framework CLI.
+```bash
+npm uninstall serverless
+```
 
-The Credit price is a fixed fee per deployed Service Instance. Here are some sample estimated costs, depending on your plan:
+A plugin whose `peerDependencies` allow only `serverless` v3 can install v3 into `node_modules` again; move such plugins to a version that supports v4, and check with `npm ls serverless`.
 
-- 50 Credits: $117-$142/month
-- 300 Credits: $432-$600/month
-- 1,500 Credits: $2,160-3,000/month
+### Build plugins and the built-in esbuild
 
-The optional Serverless Framework Dashboard offers separate pricing for additional features like CI/CD and observability. These charges apply only if the Dashboard is explicitly enabled in your `serverless.yml` using the `app` property. Otherwise, these features and associated costs do not apply. Many users rely exclusively on the CLI.
+v4 builds Node.js functions with its built-in [esbuild](https://github.com/evanw/esbuild) integration on `package` and `deploy`. With no `build` setting, a function is built when its handler is a TypeScript file and a Node.js `runtime` is set on the function or under `provider`; JavaScript handlers are built when `build.esbuild` is set. See [Building](../providers/aws/guide/building.md).
 
-We offer check out via credit card, bank transfer, traditional invoice, as well as AWS Marketplace. Many orgs favor using AWS Marketplace as it can ease the procurement process and count towards enteprise agreements orgs have with AWS.
+These plugins conflict with the built-in build: `serverless-esbuild`, `serverless-webpack`, `serverless-plugin-typescript` and `serverless-bundle`. With one of them in `plugins`, every command (`package`, `deploy`, `remove`, `info` and the others) stops with an error that starts with `Serverless now includes ESBuild and supports Typescript out-of-the-box. But this conflicts with the plugin`. Either remove the plugin and move its options under `build.esbuild`, or keep the plugin and turn off the built-in build for every function:
 
-If you have pricing, sales or general questions, please [book a meeting with us](https://slss.io/meet) or check out [our pricing page](https://serverless.com/pricing).
+```yaml
+# serverless.yml
+build:
+  esbuild: false
+```
 
-## Support
+### Environment files loaded by default
 
-All subscriptions include comprehensive support via email at **support[at]serverless.com**. Our team is available daily to help with migration questions and ensure a smooth transition. Unlike the open-source model where users are typically left to manage issues independently, our subscribers receive prioritized, personalized assistance.
+v3 loaded `.env` files only with `useDotenv: true`. v4 loads `.env.<stage>` and `.env` from the service directory on every command, so `${env:...}` can read them. Variables already set in the environment win over the files, and `.env.<stage>` wins over `.env`. To turn this off, set `useDotenv: false`. `useDotenv` can also be a path or a list of paths to load more files, for example in a monorepo; see the [`useDotenv` reference](../providers/aws/guide/serverless.yml.md#dotenv-files).
 
-Customers with larger subscriptions benefit further from a dedicated Customer Success team that provides proactive guidance and tailored support.
+The deployment package leaves out `.env*` files only while `useDotenv` is `true`, a path or a list of paths; without `useDotenv`, or with `useDotenv: false`, they are packaged. If you remove `useDotenv: true`, keep the files out of the package:
 
-We also offer a **Premium Support** package, which includes:
+```yaml
+# serverless.yml
+package:
+  patterns:
+    - '!.env*'
+```
 
-- **24/7/365 availability**
-- Guaranteed **2-hour initial response time**
-- Guaranteed **4-hour resolution or workaround**
+### Deployment method
 
-For further details or inquiries, please [schedule a meeting with our team](https://slss.io/meet) or contact us directly at **support[at]serverless.com**.
+v4 deploys with `provider.deploymentMethod: direct` by default: it creates or updates the CloudFormation stack without a change set. To keep change-set deploys, set it to `changesets`:
 
-## Breaking Changes
+```yaml
+# serverless.yml
+provider:
+  name: aws
+  deploymentMethod: changesets
+```
 
-Serverless Framework CLI version 4 is designed to minimize breaking changes and supports older AWS-based projects out of the box, requiring no migration steps. Here is a full list of potential breaking changes and notable differences that may affect your workflow.
+See [Deployment method](../providers/aws/guide/deploying.md#deployment-method).
 
-### License Updates
+## Plugins
 
-While not a technical breaking change affecting services or architecture, Serverless Framework version 4 introduces a new license. Refer to the "License Changes" section of this guide for full details.
+v4 builds in several community plugins. Remove them from `plugins` and `package.json`, and keep their configuration where noted:
 
-### Authentication Requirement
+| Plugin                                | What v4 does while the plugin is listed                         | Built-in replacement                                                                                                   |
+| ------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `serverless-plugin-aws-alerts`        | Ignores the plugin, with a warning                              | [Alerts](../providers/aws/guide/alerts.md); keep `custom.alerts`                                                       |
+| `serverless-apigateway-service-proxy` | Ignores the plugin, with a warning                              | [API Gateway service proxies](../providers/aws/guide/api-gateway-aws-proxy.md); keep `custom.apiGatewayServiceProxies` |
+| `serverless-python-requirements`      | Uses the plugin instead of the built-in version, with a warning | [Python](../providers/aws/guide/python.md); runs only when `custom.pythonRequirements` is set                          |
+| `serverless-appsync-plugin`           | Uses the plugin instead of the built-in version, with a warning | [AppSync](../providers/aws/guide/appsync/README.md); runs when `appSync` is set                                        |
+| `serverless-prune-plugin`             | Uses the plugin instead of the built-in version, with a warning | [Prune](../providers/aws/guide/prune.md); keep `custom.prune`                                                          |
+| `serverless-domain-manager`           | Runs the plugin                                                 | [Domains](../providers/aws/guide/domains.md): `provider.domain` or `provider.domains` instead of `custom.customDomain` |
+| `serverless-iam-roles-per-function`   | Uses the plugin instead of the built-in version, with a warning | [Per-function IAM roles](../providers/aws/guide/iam.md#per-function-iam-roles)                                         |
+| `serverless-plugin-git-variables`     | The built-in `${git:...}` source resolves those variables first | [Git variables](./variables/git.md)                                                                                    |
 
-Version 4 of the Serverless Framework CLI now requires authentication. This is a breaking change as the authentication prompt in the CLI will disrupt usage of CLI commands on local machines and in CI/CD pipelines.
+The build plugins `serverless-esbuild`, `serverless-webpack`, `serverless-plugin-typescript` and `serverless-bundle` stop every command unless `build.esbuild: false` is set ([Build plugins and the built-in esbuild](#build-plugins-and-the-built-in-esbuild)).
 
-We offer two ways to sign in using either the Serverless Framework Dashboard or License Keys.
-
-#### Serverless Framework Dashboard
-
-Authenticate via the CLI using your Serverless Framework Dashboard credentials (email/password, Google, or GitHub). This generates an Access Key on your machine, eliminating the need for repeated logins.
-
-In the Serverless Framework Dashboard, you can generate further Access Keys to use in your CI/CD pipelines [in the Settings > Access Keys tab](https://app.serverless.com/settings/accessKeys), to avoid the authentication prompt in the CLI.
-
-- **Best for**: Developers and teams leveraging the Serverless Framework Dashboard.
-- **Not recommended for**: CLI-only users (see License Keys below).
-- **Note**: Signing in this way does not require you to use Dashboard features.
-
-#### License Keys
-
-License Keys provide an alternative sign-in method, ideal for teams and organizations that:
-
-- Use only the Serverless Framework CLI.
-- Hold an active subscription.
-- Prefer an "on-premise" CLI experience without the Dashboard.
-- Want to minimize telemetry, sending only essential usage data tied to their subscription.
-
-You can generate one or multiple License Keys for your subscription. These can be set as environment variables in your terminal or CI/CD pipelines. Alternatively, a new feature allows you to store License Keys as AWS SSM Parameters on your AWS accounts. This eliminates the need to distribute keys to team members or update CI/CD configurations, simplifying onboarding, offboarding, and management. For most large organizations, this AWS SSM approach is the preferred method.
-
-- **Organization Tips**: Use a single License Key for simplicity, or assign keys per team or AWS account, depending on your structure.
-- **Usage Insights**: License Key-based usage reports are available, helping you track adoption across your organization if needed.
-
-For more details, see the [License Keys guide](https://www.serverless.com/framework/docs/guides/license-keys).
-
-### Deprecation of Non-AWS Providers
-
-Version 4 discontinues support for cloud providers beyond AWS, marking a breaking change for users of non-AWS providers.
-
-Historically, we’ve supported multiple providers, but creating a consistent abstraction across their diverse serverless offerings proved difficult. As a result, AWS has become the primary choice for most of our users.
-
-## Additional Notes
-
-### Plugins
-
-The Serverless Framework CLI features a thriving ecosystem with over a thousand community-maintained plugins. To ensure compatibility and optimal performance with Serverless Framework V4, we've proactively reviewed these plugins and contributed dozens of improvements.
-
-If you encounter any compatibility issues with plugins in V4, please let us know—we’re committed to reaching out to plugin authors, providing fixes, and assisting with improvements.
-
-To report plugin issues, you can [open an issue](https://github.com/serverless/serverless/issues) in our main repository, or, if you're a customer, contact us directly at **support[at]serverless.com**.
-
-Here are _some_ of the many plugins which we've tested for V.4:
+Serverless, Inc. has tested these community plugins with v4:
 
 - serverless-offline
-- serverless-domain-manager
 - serverless-plugin-warmup
-- serverless-python-requirements
 - serverless-step-functions
-- serverless-iam-roles-per-function
 - serverless-plugin-datadog
 - serverless-finch
 - serverless-plugin-split-stacks
 - serverless-plugin-canary-deployments
-- serverless-prune-plugin
-- serverless-plugin-aws-alerts
 - serverless-plugin-tracing
 - serverless-dynamodb-local
 - serverless-kms-grants
@@ -191,72 +170,101 @@ Here are _some_ of the many plugins which we've tested for V.4:
 - serverless-plugin-stage-variables
 - serverless-api-gateway-caching
 
-### Environment Variables Loaded By Default
+To report a plugin that doesn't work with v4, [open an issue](https://github.com/serverless/serverless/issues) or, as a customer, email support@serverless.com.
 
-In previous versions of Serverless Framework (<= V.3), the `useDotEnv` configuration in `serverless.yml` would have to be set in order to load `.env` and `.env.[stage]` files, and make their environment variables accessible within `serverless.yml`.
+## Other changes in v4
 
-In V.4, these files are read automatically, without the `useDotEnv` property. `useDotenv` can still be set to a path (or array of paths) to load additional `.env` files from a custom location — useful for monorepos. See the [`useDotenv` reference](../providers/aws/guide/serverless.yml.md#dotenv-files) for details.
+These changes need no action, but change how a service behaves or how you work with it.
 
-### Revised Dev Mode
+### Dev Mode
 
-In previous versions of Serverless Framework (<= V.3), the `dev` command would work exclusively with Serverless Console or Serverless Framework Dashboard. However, `dev` has been completely re-imagined to only work with the CLI, not requiring Dashboard, and proxy events from your live AWS Lambda functions to your local code, enabling you to develop faster than ever.
+In v3, `serverless dev` worked with Serverless Console or the Dashboard. In v4, `serverless dev` needs only the CLI: it routes real invocations of your deployed functions to the code on your machine. See the [Dev Mode guide](../providers/aws/guide/dev-mode.md).
 
-Learn more in the [Dev Mode guide](https://www.serverless.com/framework/docs/providers/aws/guide/dev-mode).
+### Auto-updating
 
-### Native Typescript Support
+The v4 CLI checks for a new release once every 24 hours and updates itself; `serverless update` updates it on demand. Without `frameworkVersion`, it runs the latest release. To control updates, set `frameworkVersion` to a semver range; see [Pinning to a specific version](../getting-started.md#pinning-to-a-specific-version).
 
-In V.4, [esbuild](https://github.com/evanw/esbuild) is included within Serverless Framework, allowing you to use Typescript files directly in your AWS Lambda function handlers and have your code build automatically upon deploy, without a plugin and without configuration.
+### Git variables
 
-Please note, plugins that build your code will not work unless you opt out of the default build experience. Some of the plugins affected are:
-
-- `serverless-esbuild`
-- `serverless-webpack`
-- `serverless-plugin-typescript`
-
-To learn more about this, check out the [building guide](https://www.serverless.com/framework/docs/providers/aws/guide/building).
-
-### Auto-Updating
-
-Auto-updating has been introduced in Serverless Framework V.4. This is checked once every day, and can be manually updated via `serverless update`.
-
-Please note that if you do not have `frameworkVersion` specified in your `serverless.yml`, auto-updating will be enabled. We recommend using `frameworkVersion` with traditional semantic versioning syntax to control how version updating should work in a way that's ideal for you.
-
-### Git Resolvers Plugin
-
-Git-related Serverless Framework Variables have been introduced into the Variable system.
-
-As a result, the [Serverless Git Variables Plugin](https://github.com/jacob-meacham/serverless-plugin-git-variables) no longer works.
+The `${git:...}` variable source is built in; see [Git variables](./variables/git.md). It resolves before plugins load, so the [serverless-plugin-git-variables](https://github.com/jacob-meacham/serverless-plugin-git-variables) plugin has no effect: remove it.
 
 ### Updated stages syntax
 
-In V.4 there is a new global stages syntax that allows you to define parameters for each stage. This is not a breaking change for the previous `stages` syntax; however, the new syntax is recommended.
+v4 sets parameters per stage under `stages.<stage>.params`. The v3 `params` property still works but is deprecated:
 
-The old V.3 syntax:
-
-```yaml
-params:
-  default:
-    key1: devValue
-  prod:
-    key1: prodValue
+```diff
+ # serverless.yml
+-params:
+-  default:
+-    key1: devValue
+-  prod:
+-    key1: prodValue
++stages:
++  default:
++    params:
++      key1: devValue
++  prod:
++    params:
++      key1: prodValue
 ```
 
-The new V.4 syntax:
+Move every block in one change: `params` and `stages` can't both be set at the top level of `serverless.yml`. With both, every command stops with an error that starts with `"params" and "stages" cannot be used together in the top-level of serverless.yml.` A v3 service that keeps `params` therefore can't add `stages` for other settings, such as `resolvers`.
 
-```yaml
-stages:
-  default:
-    params:
-      key1: devValue
-  prod:
-    params:
-      key1: prodValue
+### Compose state
+
+Serverless Compose stores service outputs in a shared [State](./state.md) store in Amazon S3 instead of on your machine, so the v3 Compose commands `serverless outputs` and `serverless refresh-outputs` aren't available in v4. `deploy`, `info` and `remove` update the stored outputs. See [Serverless Compose](./compose.md).
+
+## License changes
+
+The Serverless Framework CLI is free for individual developers and for organizations with up to $2 million in annual revenue (as measured by the latest fiscal year). Organizations above that threshold need a paid subscription for v4. Below it, no action is needed and no proof of eligibility is required.
+
+The license change applies to the CLI from version 4 on. Versions 3 and earlier remain open-source software. The optional Serverless Framework Dashboard, with features such as observability, CI/CD and parameters, is priced separately ([Pricing](#pricing)).
+
+The license terms are in the On-Premise Software License section of the Serverless, Inc. [Customer Agreement](https://serverless-aws-marketplace-assets.s3.amazonaws.com/serverless-customer-agreement.pdf).
+
+## Pricing
+
+A subscription is priced in Credits. One Credit covers one Service Instance: the deployment of one `serverless.yml` service to one AWS account, stage and region, which is one AWS CloudFormation stack.
+
+- A Service Instance counts toward usage once Serverless Framework CLI v4 interacts with it, including instances first deployed with v3 or earlier. To stop it from counting, remove it with `serverless remove` using v4.
+- Usage is measured at the end of each month. A Service Instance counts towards usage for a month if it is still deployed at the end of that month, or if it was removed during that month after being deployed for 10 days or more. A Service Instance that you remove less than 10 days after deployment, and before the end of the month, is not counted. To avoid charges for a temporary Service Instance used for testing or previews, remove it less than 10 days after deployment and before the end of the month. An instance removed after 10 days or more counts for that month, even if you remove it before the month ends.
+- Subscriptions are not priced by Lambda functions, resources, Lambda invocations or CLI commands.
+
+Sample estimated costs for one- to three-year commitments:
+
+- 50 Credits: $117-$142/month
+- 300 Credits: $432-$600/month
+- 1,500 Credits: $2,160-$3,000/month
+
+To estimate your cost, multiply the Credit price by your number of Service Instances, or use the calculator on the Dashboard's [Billing page](https://app.serverless.com/settings/billing). Current prices are on the [pricing page](https://www.serverless.com/pricing).
+
+The Dashboard's features, such as CI/CD and observability, are priced separately and apply only to services that set `app` in `serverless.yml`.
+
+You can pay by credit card, bank transfer, invoice or through AWS Marketplace, which can count toward an enterprise agreement with AWS. For pricing and sales questions, [book a meeting](https://slss.io/meet).
+
+## Support
+
+Every subscription includes support by email at support@serverless.com, available daily, including for migration questions. Larger subscriptions add a Customer Success team. The Premium Support package adds:
+
+- 24/7/365 availability
+- A guaranteed 2-hour initial response time
+- A guaranteed 4-hour resolution or workaround
+
+To discuss your upgrade, [schedule a meeting](https://slss.io/meet) or email support@serverless.com.
+
+## Keep a project on v3
+
+To keep one project on v3 while v4 is installed globally, install v3 in the project:
+
+```bash
+npm install --save-dev serverless@3
 ```
 
-The functionality is similar, but parameters should be defined under `stages.<stage>.params` instead of just `params.<stage>`.
+With `serverless` v3 in `devDependencies` and installed in `node_modules`, the v4 CLI runs the project's copy for every command in that directory. Version 3 receives no security updates or bug fixes.
 
-## Need help upgrading?
+## Related
 
-You're no longer on your own—Serverless Framework V4 prioritizes your experience and support. Whether you have specific migration questions, licensing inquiries, or general feedback, our team is ready and eager to assist.
-
-Feel free to [book a meeting](https://slss.io/meet) with us today, or reach out directly at support[at]serverless.com. We're here to ensure your upgrade to Version 4 is smooth, efficient, and successful.
+- [Getting started](../getting-started.md): install the CLI and deploy a service.
+- [License Keys](./license-keys.md): sign in without the Dashboard.
+- [Parameters](./parameters.md): stage parameters and their precedence.
+- [MCP server](./mcp/README.md): Framework docs and tools for AI IDEs.

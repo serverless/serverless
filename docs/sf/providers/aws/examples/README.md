@@ -1,9 +1,9 @@
 <!--
-title: Serverless - AWS Lambda - Examples
-short_title: Serverless Examples
-description: AWS Lambda examples using the Serverless Framework.
+title: AWS Lambda Examples
+short_title: AWS Examples
+description: 'Where to find example Serverless Framework services for AWS Lambda, and how to start a service from one.'
 keywords:
-  ['Serverless Framework', 'AWS Lambda', 'examples', 'serverless functions']
+  ['Serverless Framework', 'AWS Lambda examples', 'serverless examples']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -12,10 +12,11 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# AWS Serverless Examples
+# AWS Lambda examples
 
-Search for AWS Serverless Examples using our [Example Explorer](https://serverless.com/examples/).
+Example Serverless Framework services for AWS Lambda, in Node.js, Python, Go, Java, .NET and other runtimes, are collected in two places:
 
-Have an example? Submit a PR or [open an issue](https://github.com/serverless/examples/issues). ⚡️
+- [Serverless Examples](https://www.serverless.com/examples): search the official and community examples, and filter them by language.
+- [serverless/examples](https://github.com/serverless/examples) on GitHub: the source of the official examples, one folder per example, each with a `README.md` that says how to deploy it.
 
-If you have questions, join the [Slack community](https://serverless.com/slack) or [post over on the forums](https://forum.serverless.com/)
+To create a service from a built-in template, or to deploy an example from the repository, see [Examples and tutorials](../../../examples-and-tutorials.md). To add your own example, open a pull request or an [issue](https://github.com/serverless/examples/issues) on serverless/examples.

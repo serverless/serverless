@@ -1,144 +1,141 @@
 <!--
-title: Function Build Configuration
-description: Configuration guide for building AWS Lambda functions with Serverless Framework using esbuild.
-short_title: Build Config
+title: Building TypeScript and JavaScript Functions with esbuild
+description: How the Framework's built-in esbuild build bundles or compiles Node.js Lambda functions, which functions it builds, and how to configure it.
+short_title: Building with esbuild
 keywords:
   [
     'Serverless Framework',
-    'AWS Lambda',
-    'Build Configuration',
+    'AWS Lambda TypeScript',
     'esbuild',
-    'Typescript',
+    'build configuration',
+    'bundling',
   ]
 -->
 
-# AWS Lambda Build Configuration
+<!-- DOCS-SITE-LINK:START automatically generated  -->
 
-## ESBuild
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/building)
 
-In Serverless Framework V.4, [esbuild](https://github.com/evanw/esbuild) is included within the Framework for bundling Javascript and Typescript AWS Lambda functions.
+<!-- DOCS-SITE-LINK:END -->
 
-By default, if your AWS Lambda handler is using Typescript files directly, the Framework will build your code automagically upon deploy, without a plugin. No configuration is necessary by default.
+# Building TypeScript and JavaScript Functions with esbuild
+
+The Serverless Framework includes [esbuild](https://esbuild.github.io/) and uses it to build Node.js Lambda functions during `serverless package` and `serverless deploy`, without a plugin. A TypeScript handler is built with no configuration; the `build.esbuild` block in `serverless.yml` customizes the build, or turns it on for JavaScript handlers too.
+
+A service with a TypeScript handler needs nothing beyond its runtime:
+
+```yaml
+# serverless.yml
+service: my-service
+
+provider:
+  name: aws
+  runtime: nodejs24.x
+
+functions:
+  hello:
+    handler: src/handler.hello # src/handler.ts, export const hello
+```
+
+The runtime must be set, on the function or in `provider.runtime`: a function that relies on the default runtime is not built.
+
+## esbuild
+
+### Which functions are built
+
+The build applies to functions whose runtime is set to a Node.js runtime, on the function or in `provider.runtime`. A function that relies on the default runtime (`nodejs20.x`, applied later at packaging) is not built. Among those functions:
+
+- Without a `build` block, a function is built only when its handler resolves to a TypeScript file (`.ts`, `.tsx`, `.mts` or `.cts`).
+- With `build.esbuild` configured, or the top-level `build` set to the string `esbuild`, every one of them is built, JavaScript handlers included.
+- A function-level `build: esbuild` builds that function. Any other function-level `build` value, including `false`, opts it out.
+
+These functions are never built: functions with a non-Node.js runtime, container image functions, functions with their own `package.artifact`, and functions covered by a service-level `package.artifact` (unless the function sets `package.individually: true`). To turn the build off for the whole service, set `build.esbuild: false`.
 
 ### Configuration
 
-V.4 introduces a new `build` configuration block, which you can use to customize [esbuild](https://github.com/evanw/esbuild) settings. We highlight some of the most common options below:
+The `build.esbuild` block customizes the build. The most common options, with their defaults:
 
 ```yaml
 build:
   esbuild:
-    # Enable or Disable bundling the function code and dependencies into a single file. (Default: true)
-    #
-    # When disabled, the service is packaged like classic packaging, with
-    # TypeScript compiled in place. See "Building Without Bundling" below.
+    # Bundle each handler and its dependencies into one file. Default: true.
+    # With false, the service is packaged like classic packaging, with
+    # TypeScript compiled in place (see "Building without bundling").
     bundle: true
 
-    # Path to a tsconfig file, relative to the `serverless.yml` file.
-    # Its compilerOptions are passed to esbuild, and with `bundle: false` its
-    # files/include/exclude select which TypeScript sources are compiled.
-    # See "Building Without Bundling" below.
+    # tsconfig file, relative to serverless.yml. Its compilerOptions are passed
+    # to esbuild; with bundle: false, its files/include/exclude select which
+    # TypeScript sources compile. Default: tsconfig.json in the service directory, if present.
     tsconfig: ./tsconfig.build.json
 
-    # NPM packages to not be bundled, and instead be available in node_modules, and the zip file uploaded to Lambda.
-    #
-    # With bundling enabled, these packages are left out of the bundle. With
-    # `bundle: false` nothing is inlined, so this list (or `packages: external`)
-    # decides which dependencies are installed into the artifact at all — see
-    # "Building Without Bundling" below.
-    #
-    # The runtime's built-in AWS SDK is added to the externals automatically:
-    # "aws-sdk" for nodejs16.x and lower, "@aws-sdk/*" for nodejs18.x and higher.
-    #
-    # Glob patterns are supported here.
+    # npm packages left out of the bundle and installed into the artifact's
+    # node_modules instead. With bundle: false, this list (or packages: external)
+    # decides which dependencies are installed at all. Globs are supported.
+    # The runtime's AWS SDK is added by default: "@aws-sdk/*" for nodejs18.x
+    # and later, "aws-sdk" for earlier runtimes. An SDK package that
+    # package.json dependencies list stays external too.
     external:
       - '@aws-sdk/client-s3'
 
-    # The packages config, this can be set to override the behavior of external
-    # If this is set then all dependencies will be treated as external and not bundled.
+    # Treat every dependency as external (only allowed value: external).
     packages: external
 
-    # NPM packages to not be included in node_modules, and the zip file uploaded to Lambda.
-    #
-    # Packages listed here are removed from the generated package.json, so they
-    # are never installed into the artifact. They are not added to `external`:
-    # with bundling enabled, list a package in both `external` and `exclude`
-    # when it must be neither bundled nor installed (for example, one a Lambda
-    # layer provides). With `bundle: false` this decides what is left out of
-    # the artifact's node_modules.
-    #
-    # Glob patterns are supported here.
+    # npm packages removed from the generated package.json, so they are never
+    # installed into the artifact. They are not added to external: with
+    # bundling, list a package in both external and exclude when it must be
+    # neither bundled nor installed (for example, one a Lambda layer provides).
+    # Globs are supported. "@aws-sdk/*" is excluded by default, including the
+    # "@aws-sdk/*" packages that package.json dependencies list; negate an entry
+    # to ship a specific SDK client at the version in your package.json.
     exclude:
-      # Exclude all aws-sdk packages. This is done for you by default.
       - '@aws-sdk/*'
-      # However, if you want to INCLUDE specific aws-sdk packages, you can use the negation operator (!)
-      # This is useful if the Lambda built-in aws-sdk is outdated and you need to use a newer version.
-      # Just make sure you specify the exact version of the aws-sdk in package.json.
       - '!@aws-sdk/client-bedrock-runtime'
 
-    # By default Framework will attempt to build and package all functions concurrently.
-    # Each unique handler file is built only once, so functions that share a handler
-    # file (a module exporting several handlers) do not trigger duplicate builds.
-    # This property can be set to a different number if you wish to limit the
-    # concurrency of those operations.
+    # Maximum number of handler files built (and functions packaged) at once.
+    # Each unique handler file is built once, even when several functions share it.
+    # Default: all at once.
     buildConcurrency: 3
 
-    # Enable or Disable minifying the built code. (Default: false)
+    # Minify the output. Default: false.
     minify: false
 
-    # The file extension of the bundled handler files. (Default: '.js')
-    #
-    # Map '.js' to '.mjs' to emit ES module bundles that Lambda loads with the
-    # ESM loader without a "type": "module" package.json in the artifact, or
-    # to '.cjs' to make CommonJS loading explicit. Emitting '.mjs' requires
-    # `format: esm`; the bundled handler, its sourcemap, and the packaged file
-    # names all use the configured extension. Lambda resolves the handler file
-    # by extension automatically, so function `handler` values stay unchanged.
+    # File extension of the bundled handlers: .js (default), .cjs or .mjs.
+    # .mjs needs format: esm; Lambda finds the handler file by extension, so
+    # function handler values don't change.
     outExtension:
       '.js': '.mjs'
 
-    # The output format of the bundled code. Defaults to 'cjs', or to 'esm' if
-    # the service's package.json declares "type": "module".
+    # Output format. Default: cjs, or esm when the service's package.json has
+    # "type": "module".
     format: esm
 
-    # Enable or configure sourcemaps, can be set to true or to an object with further configuration.
+    # Sourcemaps: true (default: linked maps, and NODE_OPTIONS=--enable-source-maps
+    # on the built functions), false, or an object.
     sourcemap:
-      # The sourcemap type to use, options are (inline, linked, or external)
-      type: linked
+      type: linked # inline, linked or external; default linked
+      setNodeOptions: true # in the object form, default false
 
-      # Whether to set the NODE_OPTIONS on functions to enable sourcemaps on Lambda
-      setNodeOptions: true
-
-    # This option tells esbuild to produce some metadata about the build in
-    # the <service-root>/.serverless/build directory: a meta.json file for
-    # bundled builds, or one file per output format (for example
-    # meta.jscjs.json) when `bundle: false` is set.
+    # Write esbuild metadata to .serverless/build: meta.json for bundled builds,
+    # one file per output format (for example meta.jscjs.json) with bundle: false.
     metafile: true
 ```
 
-Dependencies that stay out of the bundle — packages listed in `external`, or all packages when `packages: external` is set — are installed into the `node_modules` directory of the deployment archive. Their versions are resolved from the service's `package.json`. In a [Serverless Compose](../../../guides/compose) project, the `package.json` next to `serverless-compose.yml` acts as a fallback, so services can share dependencies declared once at the project root: `external` packages not found in the service's `package.json` are resolved from it, and with `packages: external` it is used when the service declares no dependencies of its own.
+Dependencies that stay out of the bundle (the packages in `external`, or all of them with `packages: external`) are installed into the artifact's `node_modules`, at the versions your service's `package.json` resolves to. In a [Serverless Compose](../../../guides/compose.md) project, the `package.json` next to `serverless-compose.yml` is a fallback: `external` packages missing from the service's `package.json` are resolved from it, and with `packages: external` it is used when the service declares no dependencies of its own.
 
-You may also configure esbuild with a JavaScript file, which is useful if you want to use esbuild plugins. Here's an example:
+### esbuild configuration file
 
-```yml
+To use esbuild plugins, or options that YAML can't express, point `build.esbuild.configFile` at a JavaScript file, relative to `serverless.yml`:
+
+```yaml
 build:
   esbuild:
-    # Path to the esbuild config file relative to the `serverless.yml` file
-    configFile: ./esbuild.config.js
+    configFile: ./esbuild.config.mjs
 ```
 
-The JavaScript file must export a function that returns an esbuild configuration object. For your convenience, the **serverless** instance is passed to that function.
+The file's default export is a function that receives the `serverless` instance and returns esbuild options (or a promise of them); otherwise the build stops with `ESBUILD_CONFIG_ERROR`. This example adds the `esbuild-plugin-env` plugin, installed as a dev dependency:
 
-Options returned by the config file are merged with the `build.esbuild` options in `serverless.yml`, with `serverless.yml` taking precedence when both set the same option. For boolean `sourcemap` values, or when `sourcemap` is omitted from `serverless.yml`, the effective merged setting controls whether the `NODE_OPTIONS=--enable-source-maps` environment variable is added to your functions — for example, returning `sourcemap: false` from the config file disables both sourcemap generation and the environment variable. A `sourcemap` object in `serverless.yml` uses its `setNodeOptions` property instead.
-
-Here's an example of the `esbuild.config.js` file that uses the `esbuild-plugin-env` plugin:
-
-**ESM:**
-
-```js
-/**
- * don't forget to set the `"type": "module"` property in `package.json`
- * and install the `esbuild-plugin-env` package
- */
+```javascript
+// esbuild.config.mjs
 import env from 'esbuild-plugin-env'
 
 export default (serverless) => {
@@ -149,20 +146,9 @@ export default (serverless) => {
 }
 ```
 
-**CommonJS:**
+The returned options are merged with `build.esbuild` in `serverless.yml`, and `serverless.yml` wins when both set the same option. For a boolean `sourcemap`, or when `serverless.yml` doesn't set `sourcemap`, the merged value also decides whether `NODE_OPTIONS=--enable-source-maps` is set: returning `sourcemap: false` from the file turns off both the maps and the variable. A `sourcemap` object in `serverless.yml` uses its `setNodeOptions` instead.
 
-```js
-const env = require('esbuild-plugin-env')
-
-module.exports = (serverless) => {
-  return {
-    external: ['@aws-sdk/client-s3'],
-    plugins: [env()],
-  }
-}
-```
-
-### Packaging Patterns
+### Packaging patterns
 
 [`package.patterns`](./packaging.md) decides what the deployment artifact contains beyond what the build produced: patterns select additional files from the service directory and filter the artifact's `node_modules`. Function-level patterns apply when `package.individually` is enabled and are merged after the service-level ones, so a function can narrow — or re-include — what the service level decided. See [Packaging](./packaging.md) for pattern syntax and merging rules.
 
@@ -178,9 +164,9 @@ A pattern may reach above the service directory, for example `../shared/**` in a
 
 Excluding everything under `node_modules` while the artifact still needs its dependencies at runtime — `packages: external`, or any build whose generated `package.json` declares dependencies (`bundle: false` with `external` entries, or a bundled build with `external` entries) — deploys a function that fails on its first invocation. The build warns when it detects that combination.
 
-With `bundle: false` the patterns also decide which project files enter the build in the first place; see [Building Without Bundling](#building-without-bundling).
+With `bundle: false` the patterns also decide which project files enter the build in the first place; see [Building without bundling](#building-without-bundling).
 
-### Building Without Bundling
+### Building without bundling
 
 ```yaml
 build:
@@ -210,7 +196,7 @@ service: banner-api
 
 provider:
   name: aws
-  runtime: nodejs22.x
+  runtime: nodejs24.x
 
 build:
   esbuild:
@@ -245,8 +231,8 @@ README.md
 
 **Excluded by default, re-included by any positive pattern that matches:**
 
-- Files whose name starts with `.env`, at any depth (details below).
-- `node_modules` directories at any depth. The artifact's dependencies come from the install described below; a nested `node_modules` a handler requires ships when a pattern names it, for example `patterns: ['lib/node_modules/**']`; such files are copied as they are, not compiled.
+- Files whose name starts with `.env`, at any depth (see [Exclude files with `package.patterns`](#exclude-files-with-packagepatterns)).
+- `node_modules` directories at any depth. The artifact's dependencies come from the install described in [Dependencies without bundling](#dependencies-without-bundling); a nested `node_modules` a handler requires ships when a pattern names it, for example `patterns: ['lib/node_modules/**']`; such files are copied as they are, not compiled.
 - Type declarations: `.d.ts`, `.d.mts`, `.d.cts`.
 - The service configuration file, layer source directories, and local plugin directories (`plugins.localPath` and `.serverless_plugins/`).
 - `.gitignore`, `.DS_Store`, `npm-debug.log` and `yarn-*.log`.
@@ -255,7 +241,7 @@ README.md
 
 **Everything else ships**, including other dotfiles (`.nvmrc`, `.prettierrc`) and the output directories of other tools. Exclude those with `package.patterns` negations.
 
-#### Dependencies
+#### Dependencies without bundling
 
 Nothing is inlined without a bundler, so every runtime dependency has to be installed into the artifact. `packages: external` installs everything under `dependencies` in your `package.json`; `external` installs only the packages it lists. Without either, the generated `package.json` declares no dependencies, the artifact ships no `node_modules`, and the function fails on its first invocation with a `Cannot find module` (CommonJS) or `Cannot find package` (ES module) error.
 
@@ -266,9 +252,9 @@ build:
     packages: external
 ```
 
-The AWS SDK v3 packages (`@aws-sdk/*`) are left out by default because the Node.js runtime provides them; `exclude` controls that list (see the configuration reference above). The `package.json` in the artifact is generated from yours: devDependencies are removed and `dependencies` is pruned to what the artifact installs. A pattern that re-includes `package.json` — directly, or through a broad positive pattern such as `'**'` — replaces the generated manifest with your own file, devDependencies included, and the build warns when the copy differs from the generated file. Drop `package.json` from the patterns, or follow the broad pattern with `'!package.json'`; the last match wins.
+The AWS SDK v3 packages (`@aws-sdk/*`) are left out by default because the Node.js runtime provides them; `exclude` controls that list (see [Configuration](#configuration)). An `@aws-sdk/*` package that `dependencies` in your `package.json` lists is left out too. To install the version from your `package.json` into the artifact, negate that package in `exclude`, for example `'!@aws-sdk/client-bedrock-runtime'` after `'@aws-sdk/*'`. The `package.json` in the artifact is generated from yours: devDependencies are removed and `dependencies` is pruned to what the artifact installs. A pattern that re-includes `package.json` — directly, or through a broad positive pattern such as `'**'` — replaces the generated manifest with your own file, devDependencies included, and the build warns when the copy differs from the generated file. Drop `package.json` from the patterns, or follow the broad pattern with `'!package.json'`; the last match wins.
 
-#### What Is Compiled and What Is Copied
+#### What is compiled and what is copied
 
 | Files                                 | Behavior     |
 | ------------------------------------- | ------------ |
@@ -278,7 +264,7 @@ The AWS SDK v3 packages (`@aws-sdk/*`) are left out by default because the Node.
 
 Handler files are always compiled, whatever their extension: a `.js` handler is passed through esbuild too, so it gets a sourcemap and its module syntax is normalized. With sourcemaps enabled (the default), every compiled file gets a `.map` file beside it in the artifact and `--enable-source-maps` is set on the functions, as for bundled builds; `sourcemap: false` turns both off.
 
-#### Output Formats
+#### Output formats without bundling
 
 Each compiled file is emitted in the module format Node.js will load it with:
 
@@ -287,7 +273,7 @@ Each compiled file is emitted in the module format Node.js will load it with:
 - A configured `format` applies to the files that compile to `.js`. When it names the format the root `package.json` already implies — `format: esm` on a `"type": "module"` service — the per-file rule above stays in charge, so nested `package.json` subtrees keep deciding their own files. Any other configured `format` overrides the per-file rule for all of those files.
 - `outExtension` also applies to the files that compile to `.js`. With `{ '.js': '.mjs' }` they are emitted with the remapped extension and relative imports must name it (`./util.mjs`, not `./util.js`); the import scan does not detect a `.js` specifier whose file was emitted under another extension. Emitting `.mjs` requires the ES module format for every one of those files: a CommonJS subtree fails the build with an error naming the file.
 
-#### ES Module Imports Need Explicit Extensions
+#### ES module imports need explicit extensions
 
 Without a bundler, emitted files keep the import specifiers you wrote, and Node.js's ES module resolver does not add extensions or resolve `index.js`. In ES module code, relative imports must name the emitted file, extension included:
 
@@ -300,7 +286,7 @@ This is the same convention TypeScript's `NodeNext` module resolution requires, 
 
 The build scans the compiled output and warns about two kinds of relative specifier Node.js will not resolve: extensionless imports in ES module output, and imports that name a source file the artifact does not contain (`./util.ts` — the artifact holds the compiled `util.js`). The same two checks apply to dynamic `import()` in CommonJS output, because Node.js routes `import()` through the ES module resolver even from CommonJS. Dynamic `require(variable)` calls cannot be detected. Files read at runtime ship with the rest of the project tree and need no pattern; `package.patterns` is only needed for files the defaults exclude, such as a nested `node_modules` a handler requires. A dependency loaded dynamically still has to be declared through `external` or `packages: external`.
 
-#### Selecting Which TypeScript Compiles
+#### Select which TypeScript compiles
 
 A service often carries TypeScript that is not part of the deployed program — test suites, infrastructure stacks, codegen scripts. The `tsconfig` option decides which TypeScript sources compile, using the config's `files`, `include` and `exclude`; the config is also passed to esbuild, so its `compilerOptions` apply to compilation.
 
@@ -326,7 +312,7 @@ The tsconfig only narrows what compiles: it cannot add files the package exclude
 
 A config that leaves out a helper the handler imports may not be reported at build time: the import check flags specifier shapes (extensionless ES module imports, imports naming a `.ts` source), not files missing from the artifact, so a `./util.js` import or a CommonJS `require('./util')` of an omitted helper packages cleanly and the function fails on its first invocation with `Cannot find module`. List what an artifact actually holds with `unzip -Z1 .serverless/<service>.zip`.
 
-#### Excluding Files with `package.patterns`
+#### Exclude files with `package.patterns`
 
 Under `bundle: false`, [`package.patterns`](./packaging.md) also decides which project files enter the build, with classic semantics: patterns apply in order and the last match wins, so negations narrow what ships and a later positive pattern re-includes a default exclusion (`patterns: ['serverless.yml']` ships the configuration file). Negations select project files; they do not remove build outputs such as sourcemaps — set `sourcemap: false`, or use a function-level negation under `package.individually`.
 
@@ -337,22 +323,22 @@ package:
     - '!**/*.md'
 ```
 
-Env files deserve a closer look. Every file whose name starts with `.env` (`.env`, `.env.production`, but also `.envrc`) is excluded by default at any depth, whatever `useDotenv` is set to — stricter than classic packaging, which drops them only at the service root and only when `useDotenv` is set. The Framework loads `.env` and `.env.<stage>` from the service directory automatically (see [Dotenv files](./serverless.yml.md#dotenv-files)) so that `${env:VAR}` references in `serverless.yml` resolve on your machine at deploy time; a function receives only the variables declared under `environment` (its own or `provider.environment`). Shipping the file itself does not make its values available to the function — it only puts secrets in the artifact. Like every default exclusion, a positive pattern that matches an env file re-includes it: `patterns: ['.env']` ships that file deliberately, but a broad glob such as `config/**` or `**` also matches any env file beneath it. Review globs with that in mind, or follow them with a negation such as `'!**/.env*'`. Package-manager configuration files (`.npmrc`, `.yarnrc`, `.yarnrc.yml`) are excluded on the same terms, since they are where registry tokens live; every other dotfile ships like any other project file.
+Env files deserve a closer look. Every file whose name starts with `.env` (`.env`, `.env.production`, but also `.envrc`) is excluded by default at any depth, whatever `useDotenv` is set to — stricter than classic packaging, which drops them only at the service root and only when `useDotenv` is set. Unless `useDotenv` is `false`, the Framework loads `.env` and `.env.<stage>` from the service directory automatically (see [Dotenv files](./serverless.yml.md#dotenv-files)) so that `${env:VAR}` references in `serverless.yml` resolve on your machine at deploy time; a function receives only the variables declared under `environment` (its own or `provider.environment`). Shipping the file itself does not make its values available to the function — it only puts secrets in the artifact. Like every default exclusion, a positive pattern that matches an env file re-includes it: `patterns: ['.env']` ships that file deliberately, but a broad glob such as `config/**` or `**` also matches any env file beneath it. Review globs with that in mind, or follow them with a negation such as `'!**/.env*'`. Package-manager configuration files (`.npmrc`, `.yarnrc`, `.yarnrc.yml`) are excluded on the same terms, since they are where registry tokens live; every other dotfile ships like any other project file.
 
 Positive patterns ship the files they match as they are. A pattern such as `src/**` therefore packages the TypeScript sources next to their compiled output; the sources are inert at runtime, but they add to the artifact and travel with it.
 
-#### One Output per File
+#### One output per file
 
 Every source file is emitted, so two source files cannot produce the same output. A `util.ts` next to a hand-written `util.js` would both produce `util.js`, and the build stops with an error naming both files instead of shipping whichever was written last. To resolve a collision:
 
-- Exclude one side with a `package.patterns` negation, e.g. `'!src/util.ts'`. For a handler file, negate the TypeScript side: when `handler.js` and `handler.ts` both exist, the handler path resolves to the `.js` file (extensions are probed in the order `.js`, `.ts`, `.cjs`, `.mjs`, `.cts`, `.mts`, `.jsx`, `.tsx`), and handlers always compile whatever the patterns say, so negating the `.js` leaves the collision in place.
+- Exclude one side with a `package.patterns` negation, for example `'!src/util.ts'`. For a handler file, negate the TypeScript side: when `handler.js` and `handler.ts` both exist, the handler path resolves to the `.js` file (extensions are probed in the order `.js`, `.ts`, `.cjs`, `.mjs`, `.cts`, `.mts`, `.jsx`, `.tsx`), and handlers always compile whatever the patterns say, so negating the `.js` leaves the collision in place.
 - Point `build.esbuild.tsconfig` at a config that excludes the TypeScript you don't want compiled.
 - Remove `build.esbuild` from the service if your project compiles itself before deploying.
 
 For projects that precompile with `tsc`:
 
-- In-place output (no `outDir`) leaves each `.js` next to its `.ts` source, which is exactly this collision. Exclude the TypeScript side with `patterns: ['!**/*.ts']`; the precompiled tree ships, and the handler file itself is still passed through esbuild (see [What Is Compiled and What Is Copied](#what-is-compiled-and-what-is-copied)), so it gains a sourcemap.
-- `outDir`-style output ships both the sources and the compiled tree unless the sources are excluded, e.g. `patterns: ['!src/**']` with handlers pointing into `dist/`.
+- In-place output (no `outDir`) leaves each `.js` next to its `.ts` source, which is exactly this collision. Exclude the TypeScript side with `patterns: ['!**/*.ts']`; the precompiled tree ships, and the handler file itself is still passed through esbuild (see [What is compiled and what is copied](#what-is-compiled-and-what-is-copied)), so it gains a sourcemap.
+- `outDir`-style output ships both the sources and the compiled tree unless the sources are excluded, for example `patterns: ['!src/**']` with handlers pointing into `dist/`.
 
 A function-level `build: false`:
 
@@ -360,7 +346,7 @@ A function-level `build: false`:
 - does not resolve collisions — its source files stay in the project sweep;
 - leaves the function with the shared service artifact, or, under `package.individually`, with an archive of the raw project tree as classic packaging produces it.
 
-#### Individual Packaging
+#### Individual packaging without bundling
 
 With `package.individually: true`, every function's archive contains the whole project tree, matching classic packaging. Per-function pattern negations narrow individual archives:
 
@@ -376,25 +362,37 @@ functions:
         - '!src/workers/**'
 ```
 
-A function's negations apply to build outputs as well as project files, so `'!**/*.map'` drops that function's sourcemaps; the generated `package.json` and lockfile always ship, and a negation that removes the function's own handler file fails packaging (see [Packaging Patterns](#packaging-patterns)).
+A function's negations apply to build outputs as well as project files, so `'!**/*.map'` drops that function's sourcemaps; the generated `package.json` and lockfile always ship, and a negation that removes the function's own handler file fails packaging (see [Packaging patterns](#packaging-patterns)).
 
-#### Dev Mode
+#### Dev Mode and invoke local without bundling
 
-`serverless invoke local` runs the same build and executes the function from the build directory. In dev mode, non-bundled rebuilds recompile the project on every change. Outputs of source files deleted during a session persist until the next `serverless package` or `deploy`, which start from a clean build directory; if a deleted file's output is still being served in dev mode, run one of those and restart the session.
+`serverless invoke local` runs the same build and executes the function from the build directory. In Dev Mode, non-bundled rebuilds recompile the project on every change. Outputs of source files deleted during a session persist until the next `serverless package` or `deploy`, which start from a clean build directory; if a deleted file's output is still being served in Dev Mode, run one of those and restart the session.
 
-#### Limitations
+#### Limitations of building without bundling
 
 - esbuild compiles TypeScript but does not type-check it. Keep `tsc --noEmit` in your CI pipeline.
 - esbuild does not support `emitDecoratorMetadata`: decorators compile, but the metadata is silently omitted. Services that depend on it should precompile with `tsc` and remove `build.esbuild`.
 - The import diagnostics scan compiled output only; copied JavaScript files are not scanned. Extensionless ES module imports are warned about, not rewritten.
 - Top-level `await` requires ES module output. In a file that compiles to CommonJS — one whose nearest `package.json` carries no `"type": "module"` — the build stops with esbuild's error, naming the file and the expression: `Top-level await is currently not supported with the "cjs" output format`. Add `"type": "module"` to that `package.json`, or write the file as `.mts`.
 
-## Plugin Conflicts
+## Plugin conflicts
 
-Please note, plugins that build your code will not work unless you opt out of the default build experience. Some of the plugins affected are:
+Plugins that build your code replace the built-in build. When one of these plugins is loaded, the Framework stops with a `PLUGIN_TYPESCRIPT_CONFLICT` error unless `build.esbuild` is set to `false`:
 
 - `serverless-esbuild`
 - `serverless-webpack`
 - `serverless-plugin-typescript`
+- `serverless-bundle`
 
-The new `build` configuration is customizable by plugins.
+```yaml
+build:
+  esbuild: false
+```
+
+Plugins can add their own keys under `build`.
+
+## Related pages
+
+- [Packaging](./packaging.md): patterns, artifacts and individual packaging.
+- [AWS Lambda functions](./functions.md): handler and runtime settings.
+- [Dev Mode](./dev-mode.md): run built functions locally against live AWS events.

@@ -1,8 +1,8 @@
 <!--
-title: Serverless Framework - Variables - HashiCorp Vault Secrets
-description: How to reference HashiCorp Vault Secrets
-short_title: Serverless Variables - HashiCorp Vault Secrets
-keywords: ['Serverless Framework', 'HashiCorp', 'Vault', 'Secrets', 'Variables']
+title: HashiCorp Vault Secret Variables
+description: Read HashiCorp Vault secrets in serverless.yml with vault variables, configure the address, token, API version and path prefix, and use defaults.
+short_title: Vault Secrets
+keywords: ['Serverless Framework', 'HashiCorp', 'Vault', 'vault variable', 'Secrets', 'Variables']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -11,15 +11,60 @@ keywords: ['Serverless Framework', 'HashiCorp', 'Vault', 'Secrets', 'Variables']
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Reference HashiCorp Vault Secrets
+# HashiCorp Vault Secret Variables
 
-In Serverless Framework V.4, we introduced the ${vault} variable, providing
-seamless integration with HashiCorp Vault, a popular secret management tool.
-This feature allows you to securely retrieve secrets from HashiCorp Vault at
-deployment time, enhancing the security and flexibility of your serverless
-service.
+A `${vault:<path>/<property>}` variable reads a secret from a HashiCorp Vault server while the Serverless Framework loads `serverless.yml`. Use it to keep secrets such as database passwords in Vault instead of in `serverless.yml` or CI settings.
 
-## Configure the HashiCorp Vault Resolver
+The following `serverless.yml` reads the `credentials.password` property of the `secret/data/mongo` secret:
+
+```yaml
+# serverless.yml
+service: my-service
+
+provider:
+  name: aws
+  runtime: nodejs24.x
+
+functions:
+  hello:
+    handler: handler.hello
+    environment:
+      MONGO_PASSWORD: ${vault:secret/data/mongo/credentials.password}
+```
+
+Deploy with the Vault address and a token in the environment:
+
+```bash
+VAULT_ADDR=https://vault.example.com:8200 VAULT_TOKEN=YOUR_VAULT_TOKEN serverless deploy
+```
+
+Replace `YOUR_VAULT_TOKEN` with a Vault token that can read the secret. If the secret holds `{"credentials": {"password": "example-password"}}`, `MONGO_PASSWORD` is `example-password`.
+
+## Syntax of the vault variable
+
+```text
+${vault:SECRET_PATH/PROPERTY}
+${RESOLVER_NAME:SECRET_PATH/PROPERTY}
+```
+
+- `SECRET_PATH`: the path of the secret in Vault's HTTP API, without the version prefix. For a KV version 2 secrets engine mounted at `secret`, that's `secret/data/<name>`.
+- `PROPERTY`: the part after the last `/`, a dot path inside the secret (`credentials.password`).
+- `RESOLVER_NAME`: the name of a resolver with `type: vault` under `stages.<stage>.resolvers`; see [Configure a Vault resolver](#configure-a-vault-resolver). Without a declared resolver, use `vault`.
+
+For a path in a KV version 2 secrets engine, the variable reads the secret's own key-value pairs (the `data.data` object of Vault's response), so `PROPERTY` starts at your keys. KV version 1 secrets aren't supported: their variables get no value. For other secrets engines, it reads the `data` object of the response.
+
+When the property doesn't exist in the secret, the variable uses its default (`${vault:secret/data/mongo/credentials.password, 'none'}`), otherwise the command stops with a `Cannot resolve` error. An error from Vault, such as a missing token, a secret path that doesn't exist or a denied request, stops the command even when a default is set.
+
+## Vault address and token
+
+Without a resolver, the `vault` variable reads its settings from the environment:
+
+- `VAULT_ADDR`: the Vault server's URL. Default: `http://localhost:8200/`.
+- `VAULT_TOKEN`: the token sent in the `X-Vault-Token` header. Without a token, the command stops with `No Vault token provided. Please provide a token in the Vault configuration or set the VAULT_TOKEN environment variable.`
+
+## Configure a Vault resolver
+
+To set the address, token, API version or a path prefix in `serverless.yml`, declare a resolver with `type: vault`. The following resolver reads the token from `MY_VAULT_TOKEN` and prefixes every path with `secret/data`:
 
 ```yaml
 stages:
@@ -27,81 +72,36 @@ stages:
     resolvers:
       vault:
         type: vault
-        address: http://127.0.0.1:8200
-        token: ${env:VAULT_TOKEN}
-        version: v1
-        path: secret/data/mongo
-```
-
-Configuration options:
-
-- `address` - (optional) - The URL address of the Vault server
-- `token` - (optional) - The Vault token to authenticate with the Vault server
-- `version` - (optional) - The version of the Vault API to use
-- `path` - (optional) - The path to the secret in Vault
-
-All of the configuration options are optional.
-
-The `address` field is optional. If it isn't provided, the resolver will first
-try to get the address from the `VAULT_ADDR` environment variable. If that is
-not set, it will default to `http://127.0.0.1:8200`.
-
-The `token` field is optional; however, in that case the token must be set in
-the `VAULT_TOKEN` environment variable. An error will be thrown if neither is
-set.
-
-The `version` field is optional. If it isn't provided, it will default to `v1`.
-
-The `path` field is optional. Getting a secret from Vault is required, so the
-path must be either specified in the config, as shown above, or it must be
-specified in the variable reference, e.g. `${terraform:secret/data/mongo/credentials.password}`.
-
-## Using the `vault` resolver
-
-To reference a secret from HashiCorp Vault, use the following syntax:
-
-```yaml
-${vault:secret/data/mongo/credentials.password}
-```
-
-The above example will fetch the secret at the path `secret/data/mongo` from the
-Vault server. It assumes that the response includes an object like this:
-
-```json
-{
-  "credentials": {
-    "password": "abc123"
-  }
-}
-```
-
-The `credentials.password`, therefore will resolve to the value `abc123`.
-
-If a path is specified in both the configuration and in the variable reference,
-then the configuration path will be used as a prefix to the variable reference.
-
-For example, in this case the `secret/data` will be used as a prefix:
-
-```yaml
-stages:
-  default:
-    resolvers:
-      vault:
+        address: https://vault.example.com:8200
+        token: ${env:MY_VAULT_TOKEN}
         path: secret/data
 
+provider:
+  name: aws
 
-${vault:mongo/credentials.password}
+functions:
+  hello:
+    handler: handler.hello
+    environment:
+      MONGO_PASSWORD: ${vault:mongo/credentials.password}
 ```
 
-As a result, the variable `${vault:mongo/credentials.password}` will resolve to
-the path `secret/data/mongo`, as the `secret/data` is used as a prefix to the
-path in the variable, `mongo`. The path, `credentials.password` is resolved as
-before.
+With the `path` prefix, `${vault:mongo/credentials.password}` reads the `secret/data/mongo` secret.
 
-## Using the `vault` resolver without a configuration
+| Key       | Type   | Default                                     | Description                                                                    |
+| --------- | ------ | ------------------------------------------- | ------------------------------------------------------------------------------ |
+| `type`    | String | Required                                    | `vault`.                                                                       |
+| `address` | String | `VAULT_ADDR`, then `http://localhost:8200/` | URL of the Vault server.                                                       |
+| `token`   | String | `VAULT_TOKEN`                               | Vault token.                                                                   |
+| `version` | String | `v1`                                        | Vault HTTP API version, the first segment of the request path.                 |
+| `path`    | String | None                                        | Prefix added before the secret path of every variable that uses this resolver. |
 
-All the fields in the configuration are optional. While the fields are optional,
-the address, token, and path must be provided. If the address and token are
-defined as environment variables, `VAULT_ADDR` and `VAULT_TOKEN`, respectively,
-then, and the variable reference includes the path, then the resolver will work
-without any configuration at `stages.default.vault.*`.
+Another key stops the command with `Only 'token', 'address', 'version', and 'path' are allowed in the Vault configuration`.
+
+A resolver can have any name. To read from two Vault servers or with two tokens, declare two resolvers with `type: vault` and reference each by name, for example `${prodVault:mongo/credentials.password}`.
+
+## Related
+
+- [Variables in serverless.yml](../README.md): syntax, defaults and resolvers.
+- [Terraform state outputs](./terraform.md): read outputs of a Terraform state.
+- [Doppler secrets](../doppler.md): read secrets from Doppler.

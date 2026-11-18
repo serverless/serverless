@@ -1,15 +1,13 @@
 <!--
-title: Serverless Framework Commands - AWS Lambda - Print
-description: Print your `serverless.yml` config file with all variables resolved for debugging.
-short_title: Commands - Print
+title: serverless print
+description: Print serverless.yml with every variable resolved, as YAML, JSON or text, to check what the Framework will deploy with serverless print.
+short_title: print
 keywords:
   [
-    'Serverless',
-    'Framework',
-    'AWS Lambda',
-    'print',
-    'configuration',
-    'variables',
+    'serverless print',
+    'Serverless Framework CLI',
+    'resolved serverless.yml',
+    'debug variables',
   ]
 -->
 
@@ -19,13 +17,9 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Print
+# serverless print
 
-Print your `serverless.yml` config file with all variables resolved.
-
-If you're using [Serverless Variables](https://serverless.com/framework/docs/guides/variables/) in your `serverless.yml`, it can be difficult to know if your syntax is correct or if the variables are resolving as you expect.
-
-With this command, it will print the fully-resolved config to your console.
+`serverless print` resolves every [variable](../../../guides/variables/README.md) in `serverless.yml` for a stage and prints the resulting configuration, so you can check what a `${...}` reference resolves to before you deploy. It deploys nothing and changes nothing; variables that read AWS, such as `${ssm:...}`, are resolved with the stage's credentials. To see the CloudFormation template the configuration produces, use [`serverless package`](./package.md); to compare it with the deployed stack, use [`serverless diff`](./diff.md).
 
 ```bash
 serverless print
@@ -33,23 +27,37 @@ serverless print
 
 ## Options
 
-- `format` Print configuration in given format ("yaml", "json", "text"). Default: yaml
-- `path` Period-separated path to print a sub-value (eg: "provider.name")
-- `transform` Transform-function to apply to the value (currently only "keys" is supported)
+`serverless print` accepts these options:
 
-## Examples:
+| Option          | Alias | Value                    | Default                             | Required | Description                                                                                                                   |
+| --------------- | ----- | ------------------------ | ----------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `--format`      |       | `yaml`, `json` or `text` | `yaml`                              | No       | Output format. `text` prints a string, number or list (one item per line); an object stops the command.                       |
+| `--path`        |       | dot-separated path       | The whole configuration             | No       | Print only the value at this path, such as `provider.name`.                                                                   |
+| `--transform`   |       | `keys`                   |                                     | No       | Print the keys of the selected object instead of the object.                                                                  |
+| `--stage`       | `-s`  | string                   | `provider.stage`, else `dev`        | No       | Stage to resolve the configuration for.                                                                                       |
+| `--region`      | `-r`  | string                   | `provider.region`, else `us-east-1` | No       | AWS Region to resolve the configuration for.                                                                                  |
+| `--aws-profile` |       | string                   | `provider.profile`                  | No       | AWS profile whose credentials variables are resolved with.                                                                    |
+| `--config`      | `-c`  | file path                | `serverless.yml`                    | No       | Service configuration file to print.                                                                                          |
+| `--debug`       |       | namespace                |                                     | No       | Also print a table of every resolved variable. See [Show where each variable came from](#show-where-each-variable-came-from). |
 
-Assuming you have the following config file:
+The command also accepts the options every command takes: `--param="key=value"` (repeatable), `--org`, `--app`, `--verbose` and `--help` (`-h`).
 
-```yml
+## What serverless print shows
+
+`serverless print` prints the configuration as written, with each variable replaced by its value and two changes: `provider.stage` holds the resolved stage, and `params` keeps only the `default` entry and the entry for that stage. It does not add the Framework's other defaults or the resources it generates.
+
+For example, with this `serverless.yml`:
+
+```yaml
+# serverless.yml
 service: my-service
 
 custom:
-  bucketName: test
+  bucketName: ${self:service}-${sls:stage}-uploads
 
 provider:
   name: aws
-  runtime: nodejs14.x
+  runtime: nodejs24.x
 
 functions:
   hello:
@@ -63,36 +71,72 @@ resources:
         BucketName: ${self:custom.bucketName}
 ```
 
-Using `sls print` will resolve the variables in `provider.stage` and `BucketName`.
+`serverless print` prints:
 
-```bash
-$ sls print
+```text
 service: my-service
 custom:
-  bucketName: test
+  bucketName: my-service-dev-uploads
 provider:
   name: aws
-  runtime: nodejs14.x
-  stage: dev # <-- Resolved
+  runtime: nodejs24.x
+  stage: dev
 functions:
   hello:
     handler: handler.hello
 resources:
   Resources:
     MyBucket:
-      Type: 'AWS::S3::Bucket'
+      Type: AWS::S3::Bucket
       Properties:
-        BucketName: test # <-- Resolved
+        BucketName: my-service-dev-uploads
 ```
 
-This prints the provider name:
+The configuration goes to standard output and progress messages to standard error, so `serverless print --format json > resolved.json` writes a file you can read with other tools.
+
+## Print one value
+
+`serverless print --path` selects one value by its dot-separated path. A path that does not exist, or whose value is empty, `false` or `0`, stops the command with `Path "<path>" not found`. `--transform keys` turns the selected object into the list of its keys, and `--format text` prints a value or a list without YAML or JSON syntax. Any other `--transform` stops the command with `Transform can only be "keys"`, and any other `--format` with `Format must be "yaml", "json" or "text"`.
+
+## Show where each variable came from
+
+With `--debug`, `serverless print` also prints a table with one row per resolved variable: its path in the configuration, the original `${...}` text, the resolved value and the source that resolved it. The table goes to standard error, along with the debug log.
 
 ```bash
-sls print --path provider.name --format text
+serverless print --debug
 ```
 
-And this prints all function names:
+## Side effects and CI use
+
+- `serverless print` changes nothing locally or in AWS and is safe to re-run. Variables that read other services, such as `${ssm:...}` or `${cf:...}`, make read calls with the stage's credentials.
+- The command does not prompt, so it can run in CI, for example to check a stage's resolved configuration before a deploy.
+- The printed configuration contains every resolved value, including secrets read from SSM Parameter Store or Secrets Manager; don't publish it in build logs.
+
+## Provided lifecycle events
+
+- `print:print`
+
+## Examples
+
+### Print the configuration for a stage as JSON
 
 ```bash
-sls print --path functions --transform keys --format text
+serverless print --stage prod --format json
 ```
+
+### Print the provider name
+
+```bash
+serverless print --path provider.name --format text
+```
+
+### Print all function names
+
+```bash
+serverless print --path functions --transform keys --format text
+```
+
+## Related commands
+
+- [`serverless package`](./package.md) builds the CloudFormation template from the resolved configuration.
+- [`serverless diff`](./diff.md) compares that template with the deployed stack.

@@ -1,6 +1,6 @@
 <!--
-title: Serverless Framework - Variables
-description: How to use Serverless Variables to insert dynamic configuration info into your serverless.yml
+title: Variables in serverless.yml
+description: Insert values from CLI options, environment variables, files, AWS, Vault and other sources into serverless.yml with variables, defaults and resolvers.
 short_title: Variables
 keywords:
   [
@@ -8,6 +8,8 @@ keywords:
     'Variables',
     'serverless.yml',
     'dynamic configuration',
+    'variable resolvers',
+    'default values',
   ]
 -->
 
@@ -17,232 +19,181 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Variables
+# Variables in serverless.yml
 
-Variables allow users to dynamically replace config values in `serverless.yml` config.
+Variables insert values into `serverless.yml` when the Serverless Framework loads it: the stage, a CLI option, an environment variable, a file, an SSM parameter, a Terraform output and other sources. Use them to keep secrets out of `serverless.yml` and to give each stage its own values.
 
-They are especially useful when providing secrets for your service to use and when you are working with multiple stages.
-
-## Syntax
-
-To use variables, you will need to reference values enclosed in `${}` brackets.
-
-```yml
-# serverless.yml file
-yamlKeyXYZ: ${provider:resolver:key} # see list of current resolver providers below
-# this is an example of providing a default value as the second parameter
-otherYamlKey: ${provider:resolver:key, defaultValue}
-```
-
-**Note:** You can only use variables in `serverless.yml` property **values**, not property keys. So you can't use variables to generate dynamic logical IDs in the custom resources section for example.
-
-## Variable Resolvers
-
-Variable Resolvers allow you to reference external data sources in your serverless.yml file.
-Each Resolver has a Provider parent, which is responsible for fetching the credentials.
-For example, the `aws` Provider has a `ssm` Resolver and a `s3` Resolver,
-which can fetch data from AWS SSM Parameter Store and S3, respectively.
-
-Providers can also have default variables that can be used in the serverless.yml file,
-such as `accountId` for the `aws` Provider.
-
-You can customize Providers and Resolvers by specifying custom configuration options in the `resolvers` block of the `stages` section.
-Then, you can reference the customized Resolvers using `${customProviderName:customResolverName:key}` syntax.
-
-**You can always reference the default Resolvers provided by Providers, even if you don’t define them explicitly.**
-For example,
-you can reference the default `s3` Resolver provided by the `aws` Provider using `${aws:s3:myBucket/myKey}` syntax
-(it will use the AWS provider which provides the credentials for the deployment),
-or `${customProviderName:s3:myBucket/myKey}` if you define customized Provider configuration.
-
-One Provider is specific to [Serverless Compose](../compose.md#service-dependencies-and-variables): the `service` type reads the outputs of another service in the same compose project (`${service:<service>.<Output>}`), and a named instance of it can pin the stage those outputs are read from. It is declared under `stages.<stage>.resolvers` like any other, but only in `serverless-compose.yml`; a service's own `serverless.yml` receives the values through `${param:...}`.
-
-### Examples
-
-#### Default Resolvers
+The following `serverless.yml` names the function after the stage and reads a table name from an environment variable, with a default:
 
 ```yaml
-functions:
-  hello:
-    handler: handler.hello
-    environment:
-      ACCOUNT_ID: ${aws:accountId} # built-in variable provided by the AWS provider
-      SSM_VALUE: ${aws:ssm:/path/to/param} # uses the default resolver configuration and the same AWS provider which is used for the deployment
-      S3_VALUE: ${aws:s3:myBucket/myKey} # uses the default resolver configuration and the same AWS provider which is used for the deployment
-```
+# serverless.yml
+service: my-service
 
-#### Customized Resolvers
-
-```yaml
-stages:
-  default:
-    resolvers:
-      awsAccount1:
-        type: aws
-        profile: dev-account1-profile-name
-      awsAccount2:
-        type: aws
-        profile: dev-account2-profile-name
-        euS3: # custom resolver configuration defined for the awsAccount2 provider
-          type: s3
-          region: eu-west-1
-  prod:
-    resolvers:
-      awsAccount1:
-        type: aws
-        profile: prod-account1-profile-name
-      awsAccount2:
-        type: aws
-        profile: prod-account2-profile-name
-        euS3: # custom resolver configuration defined for the awsAccount2 provider
-          type: s3
-          region: eu-west-1
-
-functions:
-  hello:
-    handler: handler.hello
-    environment:
-      ACCOUNT1_ID: ${awsAccount1:accountId} # built-in variable provided by the AWS provider
-      SSM_VALUE: ${awsAccount1:ssm:/path/to/param} # uses the default resolver configuration even if it's not explicitly defined in the resolvers block
-      EU_S3_VALUE: ${awsAccount2:euS3:myBucket/myKey} # uses the customized resolver configuration
-      S3_VALUE: ${awsAccount2:s3:myBucket/myKey} # uses the default resolver configuration even if a customized one (euS3) is defined for the same provider
-```
-
-## Supported Variable Providers:
-
-- [Self-References Properties Defined in `serverless.yml`](./self)
-- [Serverless Core Variables](./core)
-- [Environment Variables](./env-vars)
-- [CLI Options](./cli-options)
-- [External YAML/JSON Files](./file)
-- [Dynamic Values from Javascript](./javascript)
-- [Git](./git)
-- [AWS](./aws)
-- [HashiCorp](./hashicorp)
-- [Serverless Compose service outputs](../compose.md#service-dependencies-and-variables) — `${service:<service>.<Output>}` reads another service's outputs, optionally from a [different stage](../compose.md#referencing-a-service-deployed-to-a-different-stage); available in `serverless-compose.yml` only
-
-## Recursively reference properties
-
-You can also **recursively reference properties** with the variable system. This means you can combine multiple values and variable sources for a lot of flexibility.
-
-For example:
-
-```yml
 provider:
   name: aws
-  environment:
-    MY_SECRET: ${file(./config.${sls:stage}.json):CREDS}
+  runtime: nodejs24.x
+
+functions:
+  hello:
+    handler: handler.hello
+    name: ${sls:stage}-hello
+    environment:
+      TABLE_NAME: ${env:TABLE_NAME, 'users'}
 ```
 
-If `sls deploy --stage qa` is run, the stage will be set to `qa`, which is used inside the `${file(./config.${sls:stage}.json):CREDS}` variable and it will resolve the `config.qa.json` file and use the `CREDS` key defined.
+With `serverless deploy --stage prod` and no `TABLE_NAME` in the environment, the function is named `prod-hello` and `TABLE_NAME` is `users`.
 
-**How that works:**
+## Variable syntax
 
-1. `stage` is set to `qa` from the option supplied to the `sls deploy --stage qa` command. If no option is defined, then `${sls:stage}` will use the value in `provider.stage` or default to `dev` if not set.
-2. `${sls:stage}` resolves to `qa` and is used in `${file(./config.${sls:stage}.json):CREDS}`
-3. `${file(./config.qa.json):CREDS}` is found & the `CREDS` value is read
-4. `MY_SECRET` value is set
-
-Likewise, if `sls deploy --stage prod` is run the `config.prod.json` file would be found and used.
-
-## Setting Variables using Parameters
-
-Occasionally you may want to set a variable directly in the `serverless.yml` that you can use throughout the file. In such a case you can use Parameters to set new variables or use them to set stage-specific variables.
-
-Here is an example of setting a domain variable based on the stage:
+A variable is `${source:address}`, where `source` names where the value comes from and `address` says which value to read:
 
 ```yaml
-stages:
-  default:
-    params:
-      domain: ${sls:stage}.example-dev.com
-  prod:
-    params:
-      domain: example.com
-
-provider:
-  environment:
-    APP_DOMAIN: ${param:domain}
+custom:
+  stage: ${sls:stage} # a built-in value
+  memory: ${opt:memory} # a CLI option
+  secret: ${ssm:/my-service/api-key} # an SSM parameter
+  fromResolver: ${awsProd:ssm:/my-service/api-key} # a source declared under stages.<stage>.resolvers
+  withDefault: ${env:LOG_LEVEL, 'info'} # a default after the comma
 ```
 
-Read all about parameters in the [Parameters documentation](../../guides/parameters.md).
+Variables work in property values, not in property keys: a key such as `${self:custom.name}Bucket:` stays literal text.
 
-## Multiple Configuration Files
-
-Adding many custom resources to your `serverless.yml` file could bloat the whole file, so you can use the Serverless Variable syntax to split this up.
-
-```yml
-resources:
-  Resources: ${file(cloudformation-resources.json)}
-```
-
-The corresponding resources which are defined inside the `cloudformation-resources.json` file will be resolved and loaded into the `Resources` section.
-
-In order to use multiple resource files combined with resources inside the `serverless.yml` you can use an array.
-
-```yml
-resources:
-  - Resources:
-      ApiGatewayRestApi:
-        Type: AWS::ApiGateway::RestApi
-
-  - ${file(resources/first-cf-resources.yml)}
-  - ${file(resources/second-cf-resources.yml)}
-
-  - Outputs:
-      CognitoUserPoolId:
-      Value:
-        Ref: CognitoUserPool
-```
-
-Each of your cloudformation files has to start with a `Resources` entity
-
-```yml
-Resources:
-  Type: 'AWS::S3::Bucket'
-  Properties:
-    BucketName: some-bucket-name
-```
+A variable can be the whole value or part of a string. As the whole value, it takes the type the source returns: a string, a number, a boolean, a list or an object. Inside a longer string, such as `arn:aws:sqs:${aws:region}:${aws:accountId}:my-queue`, the value must be a string, a number or a boolean; a list is joined with commas, and an object stops the command with an error.
 
 ## Default values
 
-The Serverless framework gives you an intuitive way to reference multiple variables as a fallback strategy in case one of the variables is missing. This way you'll be able to use a default value from a certain source, if the variable from another source is missing.
+To use a fallback when a source has no value, add one or more alternatives after commas. The Framework tries them from left to right and uses the first that has a value:
 
-For example, you can use the `opt` variable to get the `memory` CLI option when running `serverless deploy --memory 2048`. If the `memory` option is not provided, the default value of `1024` will be used.
+```yaml
+provider:
+  name: aws
+  stage: ${opt:stage, env:STAGE, 'dev'}
 
-```yml
 functions:
   hello:
     handler: handler.hello
     memorySize: ${opt:memory, 1024}
 ```
 
-The default value can also reference another variable.
+- A string default must be quoted, with single or double quotes: `${env:LOG_LEVEL, 'info'}`. An unquoted word stops the command with a `SyntaxError`.
+- Numbers, `true` and `false` can be unquoted; they keep their type. A CLI option is always a string, so `--memory 2048` resolves to `'2048'`.
+- A default can be another variable: `${env:DB_HOST, self:custom.defaultDbHost}`.
+- A default applies only when the source has no value: an unset option or environment variable, a missing SSM parameter, file property or stack output. An error from the source, such as rejected AWS credentials, a network failure or an invalid file, stops the command even when a default is set.
 
-## Read String Variable Values as Boolean Values
+Without a value and without a default, the command stops with `Cannot resolve '${...}' variable at '<path>'. No value is available for this variable, and no default value was provided.`
 
-In some cases, a parameter expect a `true` or `false` boolean value. If you are using a variable to define the value, it may return as a string (e.g. when using SSM variables) and thus return a `"true"` or `"false"` string value.
+## Nested variables
 
-To ensure a boolean value is returned, read the string variable value as a boolean value. For example:
+A variable can contain other variables; the Framework resolves the inner ones first. The following example reads the `CREDS` property from `config.qa.json` when you run `serverless deploy --stage qa`:
 
-```yml
+```yaml
 provider:
+  name: aws
+  environment:
+    MY_SECRET: ${file(./config.${sls:stage}.json):CREDS}
+```
+
+A value read from a source can contain variables too, and those are resolved in turn. A chain of variables that refers back to itself stops the command with `Cyclic reference found`.
+
+## Variable resolvers
+
+A resolver is a named, configured source, declared under `stages.<stage>.resolvers` in `serverless.yml`. Declare one to read from a second AWS account, another Region, a Terraform state or a Vault server. The resolver's name becomes the variable's source:
+
+```yaml
+stages:
+  default:
+    resolvers:
+      sharedAccount:
+        type: aws
+        profile: shared-account
+        euSsm:
+          type: ssm
+          region: eu-west-1
+
+provider:
+  name: aws
+
+functions:
+  hello:
+    handler: handler.hello
+    environment:
+      SHARED_ACCOUNT_ID: ${sharedAccount:accountId}
+      API_KEY: ${sharedAccount:ssm:/shared/api-key}
+      EU_API_KEY: ${sharedAccount:euSsm:/shared/api-key}
+```
+
+This service also deploys with the `shared-account` profile: a single `type: aws` resolver supplies the deployment credentials when neither `provider.profile` nor `provider.resolver` is set. To deploy with other credentials, set `provider.profile`, or declare another `type: aws` resolver and name it in `provider.resolver`.
+
+- `type` is required and selects the source, for example `aws`, `terraform`, `vault` or `doppler`. A resolver of type `aws` can declare nested resolvers (`euSsm` in the example) of type `ssm`, `s3` or `cf`; nested resolver names must be unique within a stage.
+- `${<resolver>:ssm:<path>}`, `${<resolver>:s3:<address>}` and `${<resolver>:cf:<address>}` use the AWS resolver's credentials with the default settings, even when no nested resolver of that type is declared.
+- `stages.default.resolvers` applies to every stage. A resolver with the same name under the current stage replaces the `default` one; the two blocks are not merged, so the stage block repeats `type` and every other setting it needs.
+- `${aws:...}` and the source-only forms (`${ssm:...}`, `${s3:...}`, `${cf:...}`) use the deployment credentials: the resolver named in `provider.resolver`, otherwise the only resolver with `type: aws`, otherwise the default AWS credential chain. [AWS credentials](../../providers/aws/guide/credentials.md#using-resolvers-to-specify-deployment-credentials) explains how a deployment picks its credentials.
+
+Each source page lists its resolver settings.
+
+## Read string variable values as boolean values
+
+Some properties need a boolean, while sources such as SSM parameters and environment variables return strings. To convert a string to a boolean, wrap it in `${strToBool(...)}`:
+
+```yaml
+provider:
+  name: aws
   tracing:
-    apiGateway: ${strToBool(${ssm:API_GW_DEBUG_ENABLED})}
+    apiGateway: ${strToBool(${ssm:/my-service/api-gateway-tracing})}
 ```
 
-These are examples that explain how the conversion works after first lowercasing the passed string value:
+`strToBool` trims and lowercases its input, then converts `true` and `1` to `true`, and `false` and `0` to `false`. Any other input stops the command with `Invalid "strToBool" input: Expected either "true", "false", "0", or "1".`
 
-```plaintext
-${strToBool(true)} => true
-${strToBool(false)} => false
-${strToBool(True)} => true
-${strToBool(False)} => false
-${strToBool(TRUE)} => true
-${strToBool(FALSE)} => false
-${strToBool(0)} => false
-${strToBool(1)} => true
-${strToBool(2)} => Error
-${strToBool(null)} => Error
-${strToBool(anything)} => Error
+## Multiple configuration files
+
+To keep a long `serverless.yml` readable, move parts of it into other files and insert them with [file variables](./file.md). The following `serverless.yml` combines resources defined inline with resources from two files:
+
+```yaml
+resources:
+  - Resources:
+      ApiGatewayRestApi:
+        Type: AWS::ApiGateway::RestApi
+  - ${file(./resources/first-cf-resources.yml)}
+  - ${file(./resources/second-cf-resources.yml)}
+  - Outputs:
+      CognitoUserPoolId:
+        Value:
+          Ref: CognitoUserPool
 ```
+
+The Framework merges the list items into one `resources` object, so each file holds the same top-level keys as `resources`, for example:
+
+```yaml
+# resources/first-cf-resources.yml
+Resources:
+  MyBucket:
+    Type: AWS::S3::Bucket
+```
+
+`functions` accepts a list of objects in the same way.
+
+## Variable sources
+
+Built into the Framework:
+
+- [Self-reference variables](./self.md): `${self:...}` reads another property of the same `serverless.yml`.
+- [Serverless Core variables](./core.md): `${sls:stage}` and `${sls:instanceId}` give the stage and an ID of the current run.
+- [Environment variables](./env-vars.md): `${env:...}` reads the shell environment and `.env` files.
+- [CLI options](./cli-options.md): `${opt:...}` reads an option passed to the command.
+- [Parameters](../parameters.md): `${param:...}` reads a stage parameter from `serverless.yml`, the CLI or the Dashboard.
+- [File variables](./file.md): `${file(...)}` reads a YAML, JSON or text file.
+- [JavaScript and TypeScript variables](./javascript.md): `${file(...)}` on a code file uses the values it exports or computes.
+- [Git variables](./git.md): `${git:...}` reads the commit, branch or tags of the repository.
+
+External sources:
+
+- [AWS variables](./aws/README.md): `${aws:...}` gives the account ID, Region and partition, and sets up `aws` resolvers.
+- [SSM Parameter Store and Secrets Manager](./aws/ssm.md): `${ssm:...}` reads a parameter or a secret.
+- [S3 objects](./aws/s3.md): `${s3:...}` reads the content of an object.
+- [CloudFormation stack outputs](./aws/cf-stack.md): `${cf:...}` reads an output of another stack.
+- [Terraform state outputs](./hashicorp/terraform.md): reads outputs from an S3, HCP Terraform or HTTP backend.
+- [Vault secrets](./hashicorp/vault.md): `${vault:...}` reads a HashiCorp Vault secret.
+- [Doppler secrets](./doppler.md): `${doppler:...}` reads a Doppler secret.
+- [Dashboard outputs](../dashboard/output-variables.md): `${output:...}` reads an output another service published to the Serverless Framework Dashboard.
+- [Compose service outputs](../compose.md#service-dependencies-and-variables): `${service:<service>.<Output>}` reads another service's outputs, in `serverless-compose.yml` only.
+- [Custom variables](../plugins/custom-variables.md): plugins can add their own sources.

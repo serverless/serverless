@@ -1,293 +1,367 @@
 <!--
-title: 'Tutorial: Your First Serverless Framework Project'
-description: 'Step-by-step guide to creating and deploying your first HTTP API using Serverless Framework and AWS. Learn how to set up AWS, install Serverless Framework, and create and test API endpoints.'
-short_title: 'Tutorial: Your First Serverless Framework Project'
+title: 'Tutorial: Build an HTTP API with Lambda and DynamoDB'
+description: 'Create, deploy, test and remove your first service: an HTTP API on AWS Lambda that stores customers in DynamoDB, with Node.js and AWS SDK v3.'
+short_title: 'Tutorial: First HTTP API'
 keywords:
   [
     'Serverless Framework tutorial',
     'first serverless project',
-    'deploy HTTP API',
-    'AWS Lambda setup',
-    'Serverless API',
-    'beginner guide',
+    'AWS Lambda HTTP API tutorial',
+    'Lambda DynamoDB tutorial',
+    'API Gateway HTTP API',
   ]
 -->
 
-# Tutorial: Your First Serverless Framework Project
+<!-- DOCS-SITE-LINK:START automatically generated  -->
 
-<iframe width="700" height="394" src="https://www.youtube.com/embed/dMVfqCTzuwk" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/tutorial)
 
-This guide helps you create and deploy an HTTP API with Serverless Framework and AWS.
+<!-- DOCS-SITE-LINK:END -->
 
-We won't be going deep into the details behind why we are doing what we are doing; this guide is meant to help you get this API up and running so you can see the value of Serverless as fast as possible and decide from there where you want to go next. We will provide links to more details where appropriate if you want to dive deeper into specific topics.
+# Tutorial: Build an HTTP API with Lambda and DynamoDB
 
-You can [download this project](https://github.com/serverless/tutorial/tree/main/getting-started) on GitHub.
+In this tutorial you create your first Serverless Framework service and deploy it to AWS: an HTTP API with two endpoints backed by AWS Lambda functions and an Amazon DynamoDB table. `POST /customers` stores a customer, and `GET /customers` lists them. At the end you remove everything you deployed.
 
-## Create an AWS account
+You will:
 
-The first thing we need to accomplish is to have somewhere to deploy to. Serverless development relies on cloud vendors to help get your applications onto the web as fast as possible and the most widely used vendor for this is AWS.
+1. Create the service from a template with the `serverless` command.
+2. Deploy the template and call its endpoint.
+3. Add a DynamoDB table and two Node.js functions that use the AWS SDK for JavaScript v3.
+4. Deploy again and test the endpoints with `curl`.
+5. Remove the service from your AWS account.
 
-If you already have a verified AWS account you can use, then please skip ahead. Otherwise, you will need to go to the [AWS account creation page](https://portal.aws.amazon.com/billing/signup#/start) and follow the instructions for creating the account. The account will also need to be fully verified in order to be able to deploy our Serverless services.
+For a video walkthrough of creating and deploying a first service, watch the [Serverless Framework Getting Started Tutorial](https://www.youtube.com/watch?v=dMVfqCTzuwk).
 
-## Installing Serverless Framework
+::youtube{id="dMVfqCTzuwk"}
 
-Installing the Serverless Framework is, thankfully, very easy. Since it is an NPM module, it requires Node and NPM to be installed. In case you do not have them installed, you can find details on how to do so here for your preferred platform: https://nodejs.org/en/download/
+## Prerequisites
 
-With Node and NPM installed, it is recommended to install Serverless Framework as a global module. This can be done with:
+- An AWS account. To create one, use the [AWS sign-up page](https://portal.aws.amazon.com/billing/signup). The identity you deploy with needs permission to create the resources in this tutorial; [AWS Credentials](./providers/aws/guide/credentials.md) lists the options.
+- Node.js 18.17 or later and npm, to install the Framework and the AWS SDK clients ([install Node.js](https://nodejs.org/en/download)). The Node.js version on your machine doesn't decide the Lambda runtime; `serverless.yml` does.
+- A terminal and a web browser on the same machine. Signing in to Serverless Framework and to the AWS Console opens the browser.
+- `curl`, to call the API.
+
+## Install the Serverless Framework
+
+Install the CLI globally with npm:
 
 ```bash
 npm install -g serverless
 ```
 
-## Create a new service
+npm 12 prints an `install-scripts` warning that the `serverless` package's install script was blocked. The CLI still works: the first `serverless` command downloads the Framework into `~/.serverless/releases/<version>`.
 
-In order to get started, we need to create our first service, and the Serverless Framework has a great way to help us get bootstrapped quickly and easily. In your CLI, just run the following command:
-
-```bash
-serverless
-```
-
-This will then start a wizard-like process to help you bootstrap a new service.
-
-![img](https://assets-global.website-files.com/60acbb950c4d66d0ab3e2007/61f2c5537aaa4ac109b9b7e1_61f19876940e2064c1716616_px6lapq9CNkkO1sK71mgc0Mtudjo369IQzQnwHHn-nzCXnUSEeFv4ovmJI50ZFIPmsPfuK-A39OjujXE4nW3gj9D1tiWkLveg3PZLF9fz7mWtsQp3xzMZESpnP6KEaR5-asUh6AL.png)
-
-## Using the `serverless` command
-
-The first option you should see is to choose the type of template you want to base your service on. This is only to get you started and everything can be changed later if you so desire.
-
-1. For our purposes in this Getting Started, let’s choose the option “AWS - Node.js - HTTP API”.
-2. In the next step, feel free to name this new service whatever you wish or just press “Enter” to keep the default of aws-node-http-api-project
-3. This will then create a new folder with the same name as in step 2 and also pull the template related to our choice
-4. We are now prompted about whether we want to login or register for Serverless Dashboard.
-
-## What is Serverless Dashboard?
-
-[Serverless Dashboard](http://app.serverless.com) is a tool provided by the Serverless Framework to help make managing connections to AWS easier, manage configuration data for your services, monitoring capabilities and the ability to read logs for your Lambda functions amongst many other features.
-
-The dashboard is free for single developer use and we will be using it for the purpose of the tutorial, because the dashboard makes it so much easier to manage connections to our AWS account for the deployment we will shortly be doing.
-
-For all these reasons, lets choose Y (or just press Enter), to get ourselves set up with the dashboard. This will then open a window in your browser.
-
-Let's click the “Register” link near the bottom to create our account, either using GitHub, Google or your own email address and password. Clicking register, when prompted for a username, go ahead and use a unique username that contains only numbers and lowercase letters.
-
-Once the account is created, the CLI will then do one of two things:
-
-1. If you already have AWS credentials on your machine for some reason, you will get prompted to deploy to your AWS account using those credentials. I would recommend saying no at this point and checking out the next step “Setting up provider manually”
-2. If you do not have AWS credentials on your machine, the CLI will ask you if you want to set-up an “AWS Access Role” or “Local AWS Keys”. Let's choose the AWS Access Role to continue for now.
-
-![img](https://assets-global.website-files.com/60acbb950c4d66d0ab3e2007/61f2c552c28dcc79f3f80f05_61f1987653c42f714ad26aff_gUC-yZhdcWsu_vBv8GFQv6QlY15cpyWKgt7EbQ8CkiKGB88_02ITmfnLbBD3dgKygFoxWFEKVSoWsRiQszZfMYebIsmMrYig-8Q3_nURFLOBhaJA4fyC2jJZcWbabf4RjDGuPD_x.png)
-
-When you choose “AWS Access Role” another browser window should open (if not, the CLI provides you a link to use to open the window manually), and this is where we configure our Provider within our dashboard account.
-
-![img](https://github.com/user-attachments/assets/baeec45a-0f02-4690-8b64-529c76e54631)
-
-Feel free to read through the documentation you may see, and on the next step make sure to choose the “Simple” option and then click “Connect AWS provider”. This will open a page to your AWS account titled “Quick create stack”. There is nothing we need to change here, just scroll down so that we can check the confirmation box at the bottom of the page, then click “Create Stack”.
-
-![img](https://assets-global.website-files.com/60acbb950c4d66d0ab3e2007/61f2c5536e2099d8789f8e51_61f19876fb7773f309babd62_dLslnDYmsFl77J11WwIGCh7_-A5YKMy-KSB-PCyf5E6FuvJKFdM8B8-19bPWqYRpvn45cddUFLPFraAHsqIdD_qbC_JHQ5xi8j-7U3xl5S1B2oIg1ltAR74UzS3mvd2O8Dj93aoM.png)
-
-At this point we need to sit and wait a few seconds for AWS to create what’s needed, we can click the refresh button to the list on the left until the status says `CREATE_COMPLETE`.
-
-![img](https://assets-global.website-files.com/60acbb950c4d66d0ab3e2007/61f2c5530e8a37e3fc5d9d8f_61f198761ad0e7703e31939f_5emBZ5ekR_hdYe1VSsB4d_K7DTConZQaECnBDniEbEaNneZ2eKpKX3aISLr9EmHVhntKPXSAsE82Ln-6m3HvSfuPju7CQOfoDyXTLaTkxMyupeJ4Ws62qQZ8LzyTtZ5LbVufOH7H.png)
-
-Once that is done, you can close that tab to go back to the provider creation page on the dashboard. The dashboard should automatically detect that the provider created successfully, and so should the CLI. At this point, go ahead and reply "Y" to the question about deploying and we wait a few minutes for this new service to get deployed.
-
-## Setting up a provider manually
-
-If you already had AWS credentials on your machine and chose “No” when asked if you wanted to deploy, you still need to setup a Provider. Thankfully to get one setup is pretty easy. Go to app.serverless.com and register an account as described above. Then when you get through to the app listing page, click on “org” on the left, then choose the “providers” tab and finally “add”.
-
-At this point adding your provider is exactly the same as described above, and once done, you can go back to your service in the CLI. Make sure to `cd` into the services folder then run `serverless deploy`. This will now use your Provider you created to deploy to your AWS account.
-
-## Using local AWS credentials
-
-Of course, if you don’t want to set-up a provider on a dashboard account, you can use local credentials setup on your own machine. This involves creating a user with the right permissions and adding the credentials on your machine. While we won’t cover how to do that in this guide, we have some [great documentation](https://www.serverless.com/framework/docs/providers/aws/guide/credentials#creating-aws-access-keys) on how to accomplish this.
-
-## What have we just done?
-
-After a successful deployment you should see, either in the dashboard or on the CLI, that you have an HTTP endpoint you can call. Also, if you open the service we just created in your favourite IDE or text editor and look at the contents of the `serverless.yml`, this is what controls pretty much everything in our service. You will notice a section where the functions you have are defined with events attached to them. Also take note that the code that executes when this HTTP endpoint is called is defined in the `index.js` file. If you edit this file then run `serverless deploy` your changes will be pushed to your AWS account and when you next call that endpoint either in the browser or using curl, you should see your changes reflected:
+Check the installation:
 
 ```bash
-curl [your endpoint address]
+serverless --version
 ```
 
-## Create a new web API endpoint
+The command prints the installed version (on the first run, after `✔ Installed Serverless Framework v4.46.0`):
 
-Now that we have some basics under our belt, let’s expand this further and add some useful endpoints. It would be great to have a POST endpoint so we can add new records to a database. In order to do this we will use an AWS service called DynamoDB that makes having a datastore for Lambda functions quick and easy and very uncomplicated.
-
-## Adding a DynamoDB database
-
-In order to do this, let’s open `serverless.yml` and paste the following at the end of the file:
-
-```yaml
-resources:
-  Resources:
-    CustomerTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        AttributeDefinitions:
-          - AttributeName: primary_key
-            AttributeType: S
-        BillingMode: PAY_PER_REQUEST
-        KeySchema:
-          - AttributeName: primary_key
-            KeyType: HASH
-        TableName: ${self:service}-customerTable-${sls:stage}
+```text
+Serverless ϟ Framework 4.46.0
 ```
 
-And lets create a new file in the same folder as the `serverless.yml` called `createCustomer.js` and add the following code to it:
+For proxies, firewalls and other installation options, see [Setting up the Serverless Framework](./getting-started.md).
 
-```javascript
-'use strict'
-const { DynamoDBClient } = require('@aws-sdk/client-dynamodb')
-const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb')
+## What is the Serverless Dashboard?
 
-module.exports.createCustomer = async (event) => {
-  const body = JSON.parse(Buffer.from(event.body, 'base64').toString())
+The [Serverless Framework Dashboard](https://app.serverless.com) is the web app that comes with the Framework. Your Serverless Framework account lives there, so the CLI signs you in through it. For a team, it also shows every deployment in one place, stores secrets and parameters, connects AWS accounts as Providers so deploys need no local AWS credentials, and gives metrics, traces, logs and alerts for your functions. This tutorial uses it only to sign in; see [Serverless Framework Dashboard](./guides/dashboard/README.md) for the rest.
 
-  const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}))
-  const putParams = {
-    TableName: process.env.DYNAMODB_CUSTOMER_TABLE,
-    Item: {
-      primary_key: body.name,
-      email: body.email,
-    },
-  }
+## Create the service from a template
 
-  await ddb.send(new PutCommand(putParams))
+The `serverless` command with no arguments creates a service from a template, signs you in and sets up AWS credentials. It prompts for each choice, so it needs an interactive terminal.
 
-  return {
-    statusCode: 201,
-  }
-}
+1. In a folder without a `serverless.yml` or `serverless-compose.yml` file (in any of their formats, such as `.yaml` or `.ts`), run:
+
+   ```bash
+   serverless
+   ```
+
+2. At `Select A Template`, choose `AWS / Node.js / HTTP API`.
+3. At `Name Your Project`, enter `customers-api`. The CLI downloads the template into a new `customers-api` folder and sets `service: customers-api` in its `serverless.yml`.
+4. The CLI needs a Serverless Framework account or a License Key. If you aren't signed in yet, it asks you to choose: pick `Login/Register` (the other choices are `Get A License`, `Enter A License Key` and `Explain Licensing Basics`; see [License keys](./guides/license-keys.md)). Your browser opens the Serverless Framework Dashboard; after you sign in or register, the CLI saves the session in `~/.serverlessrc` (or `~/.config/.serverlessrc` when only that file exists) and continues. It adds an `org` line with your org name to `serverless.yml`.
+5. If the CLI asks `Create Or Select An Existing App` (it does when you're signed in with an account, not with a License Key), choose `Skip Adding An App`.
+6. If the CLI asks for an `AWS Credentials Set-Up Method`, choose `Sign in with AWS Console (Recommended)` and keep the profile name `default`. Your browser opens the AWS sign-in page; after you sign in, the CLI writes the `default` profile to `~/.aws/config` and caches short-lived credentials in `~/.aws/login/cache`. The CLI skips this step when it already finds AWS credentials on your machine, or when your org has a default Provider in the Dashboard. To use another AWS profile you already have, add `--aws-profile PROFILE_NAME` to each later `serverless` command; [Which credentials a deploy uses](./providers/aws/guide/credentials.md#which-credentials-a-deploy-uses) lists every source in order, including the ones that take precedence over `--aws-profile`.
+
+The CLI ends with the next steps:
+
+```text
+Your new Service "customers-api" is ready. Here are next steps:
+
+• Open Service Directory: cd customers-api
+• Install Dependencies: npm install (or use another package manager)
+• Deploy Your Service: serverless deploy
 ```
 
-You may have noticed we include an npm module to help us talk to AWS, so lets make sure we install this required npm module as a part of our service with the following command:
+The template has no `package.json`, so skip `npm install` for now. The `customers-api` folder includes `serverless.yml` and a `handler.js` file with one function, `hello`.
+
+**Without an interactive terminal** (CI, an AI agent), the `serverless` command can't prompt. Create the `customers-api` folder yourself, write the files from [Add a DynamoDB table and two functions](#add-a-dynamodb-table-and-two-functions), and provide the Serverless Framework and AWS credentials as described in [Non-interactive use: CI and AI agents](./providers/aws/cli-reference/README.md#non-interactive-use-ci-and-ai-agents).
+
+## Deploy the template service
+
+Go into the service folder and deploy:
 
 ```bash
-npm install @aws-sdk/client-dynamodb @aws-sdk/lib-dynamodb
+cd customers-api
+serverless deploy
 ```
 
-## Making the database table name available to the function
+The Framework packages the code, creates an AWS CloudFormation stack named `customers-api-dev` and prints the endpoint of the HTTP API. The template sets no stage or Region, so without a `--stage` or `--region` option the Framework deploys to the `dev` stage in `us-east-1`:
 
-In order for our function to know what table to access, we need some way to make that name available and thankfully Lambda has the concept of environment variables. You can set an environment variable in your `serverless.yml` that is then accessible to the function in code. Under the provider section of your `serverless.yml` add the following:
+```text
+Deploying "customers-api" to stage "dev" (us-east-1)
 
-```yaml
-provider:
-  environment:
-    DYNAMODB_CUSTOMER_TABLE: ${self:service}-customerTable-${sls:stage}
+✔ Service deployed to stack customers-api-dev (45s)
+
+endpoint: GET - https://abc123def4.execute-api.us-east-1.amazonaws.com/
+functions:
+  hello: customers-api-dev-hello (1.6 kB)
 ```
 
-In our function code, you may have noticed we access this environment variable with the following: `process.env.DYNAMODB_CUSTOMER_TABLE`. Environment variables become a very powerful way to pass configuration details we need to our Lambda functions.
+When the AWS credentials come from a Dashboard Provider, the first line also names the Provider.
 
-## Setting function permissions
+To deploy to another stage or Region, add `--stage` and `--region`, for example `serverless deploy --stage staging --region eu-west-1`. The stack is then `customers-api-staging`. Pass the same options to every later command in this tutorial (`serverless deploy`, `serverless logs`, `serverless remove`); without them, those commands target the `dev` stage in `us-east-1`.
 
-While we could go ahead and deploy our changes already (feel free to do so with the command `serverless deploy`), we do need to add one more thing to allow our code to talk to our database. By default, and for good security reasons, AWS requires that we add explicit permissions to allow Lambda functions to access other AWS services. This requires us adding some more configuration to our `serverless.yml`. Within the `provider` block of our `serverless.yml`, make sure you have the following:
-
-```yaml
-provider:
-  iam:
-    role:
-      statements:
-        - Effect: 'Allow'
-          Action:
-            - 'dynamodb:PutItem'
-            - 'dynamodb:Get*'
-            - 'dynamodb:Scan*'
-            - 'dynamodb:UpdateItem'
-            - 'dynamodb:DeleteItem'
-          Resource: arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:service}-customerTable-${sls:stage}
-```
-
-These permissions will now be applied to our Lambda function when it is deployed to allow us to connect to DynamoDB.
-
-## Adding the endpoint
-
-We have added configuration for a database, and even written code to talk to the database, but right now there is no way to trigger that code we wrote. Time to fix that.
-
-In your `serverless.yml`, paste the following block within the functions block:
-
-```yaml
-createCustomer:
-  handler: createCustomer.createCustomer
-  events:
-    - httpApi:
-        path: /
-        method: post
-```
-
-1. The first line allows us to give our specific function a name, in this case `createCustomer`
-2. The next indented line defines where our code for this function lives. `createCustomer.createCustomer` is broken down as the file name preceding the period and the function name in the file after. You can specify an entire path if you prefer as well. If we moved the `createCustomer.js` file to another folder called `src` our handler property would be `handler: src/createCustomer.createCustomer`
-3. We then need to define the events that trigger our function code. You read that right, plural. We could have multiple triggers on the same code. In our case we are just using the one.
-4. The rest of the code is just standard HTTP configuration; calls are made to the root url `/` as a POST request.
-
-## Testing the endpoint
-
-Now let's run `serverless deploy` and a few seconds later all the changes we deployed will now be pushed to our AWS account and the post deploy summary should provide us with the information we need about our end points.
-
-Once we are deployed we want to test the endpoint. While you can use whichever method you prefer to test HTTP endpoints for your API, we can just quickly use curl on the CLI:
+Call the endpoint from the output:
 
 ```bash
-curl -X POST -d '{"name":"Gareth Mc Cumskey","email":"gareth@mccumskey.com"}' --url https://[insert your url here]/
+curl https://abc123def4.execute-api.us-east-1.amazonaws.com/
 ```
 
-## Adding a GET endpoint
+The `hello` function answers:
 
-Now that we can insert data into our API, lets put a quick endpoint together to retrieve all our customers. First we can insert the following function configuration into our `serverless.yml`:
-
-```yaml
-getCustomers:
-  handler: getCustomers.getCustomers
-  events:
-    - httpApi:
-        path: /customers
-        method: get
+```json
+{ "message": "Go Serverless v4! Your function executed successfully!" }
 ```
 
-Then we need to create a file called `getCustomers.js` and drop the following code in for the getCustomers function.
+## Add a DynamoDB table and two functions
 
-```javascript
-'use strict'
-const { DynamoDBClient } = require('@aws-sdk/client-dynamodb')
-const { DynamoDBDocumentClient, ScanCommand } = require('@aws-sdk/lib-dynamodb')
+In the `customers-api` folder, you replace the template's function with two functions that read and write a DynamoDB table.
 
-module.exports.getCustomers = async () => {
-  const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}))
-  const result = await ddb.send(
-    new ScanCommand({
-      TableName: process.env.DYNAMODB_CUSTOMER_TABLE,
-    }),
-  )
+1. Delete the template's `handler.js` file:
 
-  if (!result.Count || result.Count === 0) {
-    return {
-      statusCode: 404,
-    }
-  }
+   ```bash
+   rm handler.js
+   ```
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      total: result.Count,
-      items: result.Items.map((customer) => ({
-        name: customer.primary_key,
-        email: customer.email,
-      })),
-    }),
-  }
-}
-```
+2. Create `createCustomer.mjs`. The function reads a JSON body with `name` and `email` and stores it in the table:
 
-The only thing to really take note of here is the re-use of that environment variable to access the DynamoDB table and that we now use the scan method for DynamoDB to retrieve all records.
+   ```javascript
+   import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+   import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb'
 
-You may have noticed that in our final version of the project, we removed the default function definition and the `handler.js` file so go ahead and do that now if you wish.
+   const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}))
 
-After a `serverless deploy` we now have our brand new endpoint. And if we run a curl command against it we should get the item we inserted previously:
+   export const handler = async (event) => {
+     const body = event.isBase64Encoded
+       ? Buffer.from(event.body ?? '', 'base64').toString('utf8')
+       : (event.body ?? '')
+
+     let customer
+     try {
+       customer = JSON.parse(body)
+     } catch {
+       return {
+         statusCode: 400,
+         body: JSON.stringify({ error: 'Body must be JSON' }),
+       }
+     }
+
+     if (!customer?.name || !customer?.email) {
+       return {
+         statusCode: 400,
+         body: JSON.stringify({ error: 'name and email are required' }),
+       }
+     }
+
+     await ddb.send(
+       new PutCommand({
+         TableName: process.env.CUSTOMERS_TABLE,
+         Item: { email: customer.email, name: customer.name },
+       }),
+     )
+
+     return {
+       statusCode: 201,
+       body: JSON.stringify({ name: customer.name, email: customer.email }),
+     }
+   }
+   ```
+
+   HTTP API passes the request body as a string, base64-encoded when `isBase64Encoded` is `true`, so the function decodes it only in that case. The table name comes from the `CUSTOMERS_TABLE` environment variable, which `serverless.yml` sets in step 5.
+
+3. Create `getCustomers.mjs`. The function returns every item in the table:
+
+   ```javascript
+   import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+   import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb'
+
+   const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}))
+
+   export const handler = async () => {
+     const result = await ddb.send(
+       new ScanCommand({ TableName: process.env.CUSTOMERS_TABLE }),
+     )
+
+     return {
+       statusCode: 200,
+       body: JSON.stringify({
+         total: result.Count,
+         items: result.Items.map(({ name, email }) => ({ name, email })),
+       }),
+     }
+   }
+   ```
+
+   A `Scan` reads the whole table, which suits a tutorial; for large tables, query by key instead.
+
+4. Create a `package.json` in the `customers-api` folder and install the AWS SDK v3 clients:
+
+   ```bash
+   npm init -y
+   npm install @aws-sdk/client-dynamodb @aws-sdk/lib-dynamodb
+   ```
+
+   Without its own `package.json`, the folder isn't a project for npm: when a parent folder has a `package.json` or `node_modules`, `npm install` installs the clients there instead, outside the service.
+
+   The Framework packages `node_modules` with your functions, so they run the client versions pinned in `package.json`.
+
+5. In `serverless.yml`, keep the `org` line the `serverless` command added at the top (and the `app` line, if there is one), and replace everything below it with:
+
+   ```yaml
+   service: customers-api
+
+   provider:
+     name: aws
+     runtime: nodejs24.x
+     architecture: arm64
+     environment:
+       CUSTOMERS_TABLE: ${self:service}-customers-${sls:stage}
+     iam:
+       role:
+         statements:
+           - Effect: Allow
+             Action:
+               - dynamodb:PutItem
+               - dynamodb:Scan
+             Resource: !GetAtt CustomersTable.Arn
+
+   functions:
+     createCustomer:
+       handler: createCustomer.handler
+       events:
+         - httpApi:
+             path: /customers
+             method: post
+     getCustomers:
+       handler: getCustomers.handler
+       events:
+         - httpApi:
+             path: /customers
+             method: get
+
+   resources:
+     Resources:
+       CustomersTable:
+         Type: AWS::DynamoDB::Table
+         Properties:
+           TableName: ${self:service}-customers-${sls:stage}
+           BillingMode: PAY_PER_REQUEST
+           AttributeDefinitions:
+             - AttributeName: email
+               AttributeType: S
+           KeySchema:
+             - AttributeName: email
+               KeyType: HASH
+   ```
+
+The new `serverless.yml` sets up the following:
+
+- `provider.environment` sets `CUSTOMERS_TABLE` on every function in the service. `${self:service}` and `${sls:stage}` make the name `customers-api-customers-dev` for the `dev` stage, so each stage gets its own table.
+- `provider.iam.role.statements` adds a policy statement to the IAM role the Framework creates for the service's functions: `PutItem` and `Scan` on this table only. See [IAM permissions for functions](./providers/aws/guide/iam.md).
+- `functions` maps each function to its file and exported `handler` (`createCustomer.handler` is the `handler` export of `createCustomer.mjs`), and each `httpApi` event adds a route to the service's HTTP API. See [HTTP API events](./providers/aws/events/http-api.md).
+- `resources` adds the DynamoDB table to the CloudFormation stack, with on-demand billing and `email` as the partition key. See [AWS infrastructure resources](./providers/aws/guide/resources.md).
+
+To check the file before deploying, run `serverless print`. It prints the configuration with variables resolved, and a warning if a Framework property is misspelled; properties under `custom` and the CloudFormation properties under `resources` aren't checked this way ([configuration validation](./configuration-validation.md)).
+
+## Deploy and test the API
+
+Deploy the changes:
 
 ```bash
-curl –-url [insert url here]/customers
+serverless deploy
 ```
 
-## Final thoughts
+The Framework updates the `customers-api-dev` stack: it removes the `hello` function, and adds the table, the two functions and their routes:
 
-The Serverless Framework can make spinning up endpoints super quick. Everything we did could have taken you no more than 30 minutes. And now you have two endpoints that are, practically, production ready; they are fully redundant in AWS across three Availability Zones and fully load balanced. Ready to receive the traffic you want to throw at it without the associated bill of infrastructure sitting around waiting to be used.
+```text
+Deploying "customers-api" to stage "dev" (us-east-1)
 
-Reach out to us on Twitter or even our [community Slack workspace](https://serverless.com/slack) if you have any questions or feedback. And keep your eyes out as we release more tutorial content!
+✔ Service deployed to stack customers-api-dev (60s)
+
+endpoints:
+  POST - https://abc123def4.execute-api.us-east-1.amazonaws.com/customers
+  GET - https://abc123def4.execute-api.us-east-1.amazonaws.com/customers
+functions:
+  createCustomer: customers-api-dev-createCustomer (2.8 MB)
+  getCustomers: customers-api-dev-getCustomers (2.8 MB)
+```
+
+Both functions share one deployment package, so they show the same size. Replace the URL in the following commands with the one from your output.
+
+Add a customer:
+
+```bash
+curl -X POST https://abc123def4.execute-api.us-east-1.amazonaws.com/customers \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Jane Doe","email":"jane@example.com"}'
+```
+
+The `createCustomer` function returns the stored customer with status 201:
+
+```json
+{ "name": "Jane Doe", "email": "jane@example.com" }
+```
+
+List the customers:
+
+```bash
+curl https://abc123def4.execute-api.us-east-1.amazonaws.com/customers
+```
+
+The `getCustomers` function returns the table's items:
+
+```json
+{ "total": 1, "items": [{ "name": "Jane Doe", "email": "jane@example.com" }] }
+```
+
+To see a function's logs, run `serverless logs --function createCustomer`. Each later `serverless deploy` updates the same stack; when nothing changed, the Framework prints `No changes to deploy. Deployment skipped.`
+
+## Remove the service
+
+**Warning:** `serverless remove` deletes the `customers-api-dev` stack, including the DynamoDB table and every customer stored in it.
+
+```bash
+serverless remove
+```
+
+The Framework deletes the stack and the service's deployment files:
+
+```text
+Removing "customers-api" from stage "dev" (us-east-1)
+
+✔ Service customers-api has been successfully removed (30s)
+```
+
+The AWS credentials profile, your Serverless Framework sign-in and the local `customers-api` folder stay. The shared S3 bucket the Framework uploads deployment files to stays in your account for other services; see [Deployment bucket](./guides/deployment-bucket.md).
+
+## Next steps
+
+You built an HTTP API with two Lambda functions and a DynamoDB table, deployed it, tested it and removed it. To continue:
+
+- [Serverless Framework concepts](./providers/aws/guide/intro.md): services, functions, events and resources.
+- [Dev Mode](./providers/aws/guide/dev-mode.md): run your functions locally against live AWS events.
+- [Deploying](./providers/aws/guide/deploying.md): stages, Regions and what a deploy does.
+- [Examples and tutorials](./examples-and-tutorials.md): more templates and examples to start from.

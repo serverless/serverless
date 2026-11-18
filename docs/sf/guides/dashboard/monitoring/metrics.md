@@ -1,91 +1,68 @@
 <!--
-title: Serverless Framework - Monitoring & Observability - Metrics
-description: Overview of the Metrics feature in Serverless Dashboard, including setup, available charts, and filters.
-short_title: Serverless Dashboard Observability - Metrics
-keywords:
-  [
-    'Serverless Framework',
-    'Monitoring',
-    'Observability',
-    'Metrics',
-    'AWS Lambda',
-  ]
+title: Dashboard Metrics
+description: Read Lambda invocation, error, warning and duration metrics across AWS accounts in the Serverless Framework Dashboard, and filter them.
+short_title: Metrics
+keywords: ['Serverless Framework', 'Dashboard', 'Metrics', 'AWS Lambda metrics', 'Observability']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/monitoring/metrics/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/dashboard/monitoring/metrics)
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Metrics
+# Dashboard metrics
 
-Metrics is a Serverless Dashboard feature which enables viewing metrics across
-AWS Accounts and Lambda functions.
+The **Metrics** page of the Serverless Framework Dashboard charts AWS Lambda invocations, errors, warnings and durations across all integrated AWS accounts and Regions. Use it to spot changes over time; to look at single invocations, use the [Trace Explorer](./traces.md).
 
-To get started you need to [add an AWS Account integration](./README.md).
+Metrics appear after an AWS account is connected and its functions are instrumented; see [Dashboard monitoring and observability](./README.md). With `serverless.yml`, that is:
 
-Once instrumentation is enabled, go to the **Metrics** page to view all of your
-AWS Lambda function metrics including durations, invocations, and event counts.
+```yaml
+# serverless.yml
+org: myorg
+app: my-app
+service: my-service
 
-Currently Metrics are supported on the Node.js 12+ and Python 3.8+ runtimes on
-AWS Lambda only. Support for other runtimes is coming soon.
+stages:
+  prod:
+    observability: true
+```
 
-## Metric Aggregation
+## Where metrics come from
 
-Metrics are automatically aggregated on the charts over an interval as small as
-1 minute, and as large as 1 day, depending on the time interval you select. As
-such, the metrics are only available in aggregate, not as individual data
-points.
+The Dashboard builds metrics from two sources in each integrated AWS account:
 
-## Available Charts
+- The CloudWatch metric stream the integration creates, which sends the `AWS/Lambda` and `AWS/ApiGateway` metrics.
+- The traces that the SDK in the Lambda Layer writes for instrumented functions on a [supported runtime](./README.md#supported-aws-lambda-runtimes), which carry cold starts, captured errors and warnings, and custom tags.
 
-The metrics page features a number of charts, including Invocations, Uncaught
-Errors, and more. The title of each chart provides a tooltip with a detailed
-description of the metric.
+Trace sampling keeps invocation counts, durations, cold starts and errors complete, because sampled-out traces keep the core spans and traces with errors are never sampled out. Captured warnings and custom tags come only from full traces. See [How trace sampling works](./README.md#how-trace-sampling-works).
 
-You can also hover over individual bars to get a detailed breakdown of the
-metrics for that point in time.
+## Metric charts
 
-Majority of the charts are interactive. You can click on the chart, which will
-send you to the Trace Explorer to view the full chart and individual traces
-which meat the same filter criteria.
+The **Metrics** page shows, for the selected time range and filters:
 
-## Saving Views
+- **Invocations**, with uncaught errors, caught errors, warnings, SDK errors and SDK warnings.
+- **Duration**, as the average and the 95th percentile.
+- **Events**: errors and warnings grouped by fingerprint, with their number of occurrences, the affected functions, and when each was first and last seen.
 
-From the title, you can select to create a new custom view of the Metrics. All
-the filters will be saved with that view. This enables you to create views for
-specific use cases. When filters are updated, they are saved in the view.
+Values are aggregated per time interval; the interval grows with the time range, so the charts show aggregates rather than single invocations.
 
-## Filters
+## Filter metrics
 
-Applying filters to the metrics view allows you to narrow in on
-specific functions, or use cases that are of interest to you. Filters can be
-saved as a shared views to collaborate with team mates on specific searches.
+Filters narrow every chart on the page to the matching invocations:
 
-- **Resources** - Filter for specific AWS Resources in any of the integrated
-  AWS Accounts. Currently this only supports AWS Lambda, but other AWS resources
-  will be made available soon.
-- **Namespace** - Namespaces are configured on individual AWS Lambda functions
-  on the AWS Integrations page. Filtering by namespace allows you to filter the
-  metrics based on the namespaces that were configured on the functions for which
-  the metric applies.
-- **Environment** - Like namespaces, environments are configured on the AWS
-  Integration page for each AWS Lambda function. The are also automatically
-  determined from the CloudFormation stack if applicable. Filtering by environment
-  allows you to filter the metrics based on the environments that were configured
-  on the functions for which the metric applies.
-- **Region** - Region is the specific AWS Region of the Lambda function.
-- **AWS Account** - If you have multiple AWS Account integrations in your
-  org, you can filter for metrics for individual AWS Accounts.
-- **Events** - Individual invocations may produce multiple errors or warnings.
-  The Serverless SDK may also produce errors and warnings. Filtering by Events
-  enables filtering for invocations which include any of the selected Event types.
-  You can find more details about Event types on the [Trace Explorer](./traces#event-types.md).
-- **Cold start** - Filters for metrics on AWS Lambda invocations that were a
-  cold start.
-- **Duration** - Filters based on the AWS Lambda response duration.
-- **Custom Tags** - Filters for metrics on invocations that had the provided
-  custom tags. Custom tags on traces, errors, and warnings are all queried. Use
-  the [Node.js](./sdk/nodejs.md) or [Python](./sdk/python.md) Serverless SDK to
-  set custom tags.
+- **Resources**: specific Lambda functions in any integrated AWS account.
+- **Namespace**: the function's namespace. It's set from the CloudFormation stack name without the trailing `-<stage>` (for a Serverless Framework service, the service name), and can be changed per function in the integration settings.
+- **Environment**: the function's environment. It's set from the function's `STAGE` tag (for a Serverless Framework service, the stage), and can be changed per function in the integration settings.
+- **Region**: the AWS Region of the function.
+- **AWS Account**: one of the integrated AWS accounts.
+- **Events**: invocations with at least one event of the selected types. The types are described in [Event types](./traces.md#event-types).
+- **Cold start**: invocations that started a new execution environment.
+- **Duration**: a range of invocation durations.
+- **Custom Tags**: invocations whose trace, or a captured error or warning in it, has the tag value. Set tags with the [Node.js SDK](./sdk/nodejs.md#add-tags-to-traces-and-events) or the [Python SDK](./sdk/python.md#add-tags-to-traces-and-events).
+
+## Related pages
+
+- [Dashboard traces](./traces.md)
+- [Dashboard monitoring and observability](./README.md)
+- [Troubleshoot Dashboard observability](./troubleshoot.md)

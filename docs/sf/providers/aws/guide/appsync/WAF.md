@@ -1,235 +1,277 @@
 <!--
-title: Serverless Framework - AppSync - Web Application Firewall (WAF)
-description: How to configure Web Application Firewall (WAF) for AWS AppSync with the Serverless Framework.
-short_title: AppSync - WAF
+title: AppSync WAF
+description: 'Protect an AppSync API with AWS WAF (Web Application Firewall) from serverless.yml: rate limiting, introspection blocking, custom and managed rules.'
+short_title: AppSync WAF
 keywords:
   [
     'Serverless Framework',
-    'AppSync',
-    'WAF',
-    'Web Application Firewall',
-    'GraphQL',
-    'AWS',
+    'AppSync WAF',
+    'AppSync Web Application Firewall',
+    'AWS WAF web ACL',
+    'AppSync rate limiting',
+    'AppSync disable introspection',
   ]
 -->
 
-# Web Application Firewall (WAF)
+<!-- DOCS-SITE-LINK:START automatically generated  -->
 
-AppSync [supports WAF](https://aws.amazon.com/blogs/mobile/appsync-waf/). WAF is an Application Firewall that helps you protect your API against common web exploits.
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/appsync/WAF)
 
-The AppSync integration comes with some handy pre-defined rules that you can enable in just a few lines of code.
+<!-- DOCS-SITE-LINK:END -->
 
-You can configure WAF rules under the `appSync.waf` attribute.
+# AppSync WAF
 
-## Quick start
+The `appSync.waf` block puts an AWS WAF (Web Application Firewall) web ACL in front of an AppSync API, so that WAF rules can block, allow, count or challenge requests before they reach your resolvers. The Framework creates a regional web ACL from the rules you list and associates it with the API, or associates a web ACL you already have. Ready-made rules cover per-IP rate limiting and introspection blocking; custom rules take any AWS WAF statement.
 
-You can define a collection of rules for your web ACL and associate it:
+This configuration limits each IP address to 1000 requests per 5 minutes and blocks introspection queries:
 
 ```yaml
 appSync:
-  name: my-api
+  name: blog-api
   waf:
-    enabled: true
-    defaultAction: 'Allow'
     rules:
-      - throttle
+      - throttle: 1000
       - disableIntrospection
 ```
 
-Or directly associate an existing web ACL:
+To associate an existing web ACL instead, set its ARN:
 
 ```yaml
 appSync:
-  name: my-api
+  name: blog-api
   waf:
-    enabled: true
-    arn: 'arn:aws:wafv2:us-east-1:123456789012:regional/webacl/my-Waf/d7b694d2-4f7d-4dd6-a9a9-843dd1931330'
+    arn: arn:aws:wafv2:us-east-1:123456789012:regional/webacl/blog-api-acl/a1b2c3d4-5678-90ab-cdef-EXAMPLE11111
 ```
 
-## Configuration
+## WAF keys
 
-- `enabled`: Boolean. Enable or disable WAF. Defaults to `true` when `appSync.waf` is defined.
-- `arn`: Optional. The WAF's ARN to associate with your AppSync resource.
-- `name`: Optional. The name of this WAF instance. Defaults to the name of your API.
-- `defaultAction`: Optional. The default action if a request does not match a rule. `Allow` or `Block`. Defaults to `Allow`.
-- `description`: Optional. A description for this WAF instance.
-- `visibilityConfig`: Optional. A [visibility config](https://docs.aws.amazon.com/waf/latest/APIReference/API_VisibilityConfig.html) for this WAF
-  - `name`: Metric name
-  - `cloudWatchMetricsEnabled`: A boolean indicating whether the associated resource sends metrics to Amazon CloudWatch
-  - `sampledRequestsEnabled`: A boolean indicating whether AWS WAF should store a sampling of the web requests that match the rule
-- `rules`: Required. An array of [rules](#rules). Optional when `arn` is present
+| Key                | Type                | Default                            | Description                                                                                                                 |
+| ------------------ | ------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `enabled`          | boolean             | `true`                             | Set to `false` to remove the web ACL and its association while keeping the block.                                           |
+| `arn`              | string or intrinsic | None                               | The ARN of an existing regional web ACL. With `arn`, the Framework creates only the association and ignores the other keys. |
+| `rules`            | list                | Required without `arn`             | The rules, described in the following sections.                                                                             |
+| `name`             | string              | `<API name>Waf`                    | The web ACL name.                                                                                                           |
+| `defaultAction`    | `Allow` or `Block`  | `Allow`                            | What WAF does with a request that matches no rule.                                                                          |
+| `description`      | string              | `ACL rules for AppSync <API name>` | The web ACL description.                                                                                                    |
+| `visibilityConfig` | object              | See next table                     | CloudWatch metrics and request sampling for the web ACL, and the defaults for its rules.                                    |
 
-## Rules
+`visibilityConfig`, on the web ACL and on each rule, takes these keys:
 
-### Configuration
+| Key                        | Type    | Default                          | Description                           |
+| -------------------------- | ------- | -------------------------------- | ------------------------------------- |
+| `name`                     | string  | The web ACL's or rule's name     | The CloudWatch metric name.           |
+| `cloudWatchMetricsEnabled` | boolean | The web ACL's value, else `true` | Sends metrics to CloudWatch.          |
+| `sampledRequestsEnabled`   | boolean | The web ACL's value, else `true` | Stores a sample of matching requests. |
 
-Common configuration to all rules:
+The web ACL is tagged with `appSync.tags`. AWS bills each web ACL, rule and request; see [AWS WAF pricing](https://aws.amazon.com/waf/pricing/).
 
-- `name`: The name of the rule
-- `action`: How this rule should handle the incoming request when matching the rule. `Allow` or `Deny`. Defaults to `Allow`.
-- `priority`: The priority of this rule. See [Rules Priority](#rules-priority)
-- `visibilityConfig`: The [visibility config](https://docs.aws.amazon.com/waf/latest/APIReference/API_VisibilityConfig.html) for this rule.
+## Throttle rule
 
-### Throttling
+The `throttle` rule blocks an IP address that sends more than `limit` requests in 5 minutes, with an AWS WAF [rate-based statement](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-wafv2-webacl-ratebasedstatement.html). It has three forms:
 
-Throttling will disallow requests coming from the same ip address when a limit is reached within a 5-minutes period. It corresponds to a rules with a [RateBasedStatement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-wafv2-webacl-ratebasedstatement.html).
-
-Examples:
-
-```yml
-waf:
-  enabled: true
-  rules:
-    - throttle # limit to 100 requests per 5 minutes period
-    - throttle: 200 # limit to 200 requests per 5 minutes period
-    - throttle:
-        limit: 200
-        priority: 10
-        aggregateKeyType: FORWARDED_IP
-        forwardedIPConfig:
-          headerName: 'X-Forwarded-For'
-          fallbackBehavior: 'MATCH'
-```
-
-#### Configuration
-
-See the [CloudFormation documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-wafv2-webacl-ratebasedstatement.html)
-
-- `aggregateKeyType`: `IP` or `FORWARDED_IP`
-- `limit`: The limit of requests in a 5-minutes window for the same IP address.
-- `forwardedIPConfig`: [forwardedIPConfig](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-wafv2-webacl-forwardedipconfiguration.html)
-- `scopeDownStatement`: [WebACL Statement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-wafv2-webacl-statement.html)
-
-### Disable Introspection
-
-Sometimes, you want to disable introspection to disallow untrusted consumers to discover the structure of your API.
-
-```yml
-waf:
-  enabled: true
-  rules:
-    - disableIntrospection # disables introspection for everyone
-    - disableIntrospection: # using custom configuration
-        name: Disable introspection
-        priority: 200
-```
-
-### Custom rules
-
-You can also specify custom rules. For more info on how to define a rule, see the [Cfn documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-wafv2-webacl-rule.html)
-
-Example:
-
-```yml
-waf:
-  enabled: true
-  defaultAction: Block
-  rules:
-    # Only allow US users
-    - action: Allow
-      name: UsOnly
-      statement:
-        GeoMatchStatement:
-          CountryCodes:
-            - US
-```
-
-```yml
-waf:
-  enabled: true
-  defaultAction: Block
-  rules:
-    # using ManagedRuleGroup
-    - name: 'AWSManagedRulesCommonRuleSet'
-      priority: 20
-      overrideAction:
-        None: {}
-      statement:
-        ManagedRuleGroupStatement:
-          VendorName: 'AWS'
-          Name: 'AWSManagedRulesCommonRuleSet'
-```
-
-### Per API Key rules
-
-In some cases, you might want to enable a rule for a given API key only. You can specify `wafRules` under the `appSync.apiKeys` attribute. The rules will apply only to that API key.
-
-```yml
-apiKeys:
-  - name: MyApiKey
-    expiresAfter: 365d
-    wafRules:
-      - throttle # throttles this API key
-      - disableIntrospection # disables introspection for this API key
-```
-
-Adding a rule to an API key without any _statement_ will add a _match-all_ rule for that key (all requests will match that rule). This is useful for example to exclude API keys from global rules. In that case, you need to make sure to attribute a higher priority to that rule.
-
-Example:
-
-- Block all requests by default, except in the US.
-- The `WorldWideApiKey` API key should be excluded from that rule.
-
-```yml
+```yaml
 appSync:
+  name: blog-api
   waf:
-    enabled: true
-    defaultAction: Block # Block all by default
     rules:
-      # allow US requests
-      - action: Allow
-        name: UsOnly
+      # 100 requests per 5 minutes per IP address
+      - throttle
+```
+
+```yaml
+appSync:
+  name: blog-api
+  waf:
+    rules:
+      # 500 requests per 5 minutes per IP address
+      - throttle: 500
+```
+
+```yaml
+appSync:
+  name: blog-api
+  waf:
+    rules:
+      # 500 requests per 5 minutes per client IP from a header, for clients behind a proxy
+      - throttle:
+          name: ThrottleByClientIp
+          limit: 500
+          priority: 10
+          aggregateKeyType: FORWARDED_IP
+          forwardedIPConfig:
+            headerName: X-Forwarded-For
+            fallbackBehavior: MATCH
+```
+
+| Key                                  | Type                   | Default                         | Description                                                                                            |
+| ------------------------------------ | ---------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `limit`                              | integer, at least 100  | `100`                           | Requests allowed per IP address in a 5-minute window.                                                  |
+| `aggregateKeyType`                   | `IP` or `FORWARDED_IP` | `IP`                            | Counts requests by source IP, or by the IP address in a header.                                        |
+| `forwardedIPConfig.headerName`       | string                 | Required in `forwardedIPConfig` | With `FORWARDED_IP`: the header holding the client IP.                                                 |
+| `forwardedIPConfig.fallbackBehavior` | `MATCH` or `NO_MATCH`  | Required in `forwardedIPConfig` | With `FORWARDED_IP`: whether a request without a valid header counts as matching.                      |
+| `scopeDownStatement`                 | object                 | None                            | An AWS WAF statement, in CloudFormation's PascalCase keys, that limits which requests the rule counts. |
+| `name`                               | string                 | `Throttle`                      | The rule name.                                                                                         |
+| `priority`                           | integer                | Generated                       | See [Rules priority](#rules-priority).                                                                 |
+| `visibilityConfig`                   | object                 | See [WAF keys](#waf-keys)       | Metrics and sampling for the rule.                                                                     |
+
+When a `FORWARDED_IP` rule has no `forwardedIPConfig`, the Framework uses `X-Forwarded-For` as `headerName` and `MATCH` as `fallbackBehavior`. When you set `forwardedIPConfig`, set both keys; with only one of them, configuration validation reports `must be a valid WAF rule`: a warning by default, and an error that stops the command with `configValidationMode: error`.
+
+A throttle rule always blocks the requests over the limit.
+
+## Disable introspection rule
+
+The `disableIntrospection` rule blocks GraphQL introspection queries, so that untrusted clients can't read the API's schema:
+
+```yaml
+appSync:
+  name: blog-api
+  waf:
+    rules:
+      - disableIntrospection
+```
+
+The rule blocks every request whose body contains `__schema`, and every request whose body is larger than 8 KB, the part of the body AWS WAF inspects for AppSync. If clients send larger requests, use the [`introspection: false`](./general-config.md#appsync-api-wide-keys) API setting instead, which turns introspection off in AppSync itself. To set the rule's name, priority or `visibilityConfig`, use the object form:
+
+```yaml
+appSync:
+  name: blog-api
+  waf:
+    rules:
+      - disableIntrospection:
+          name: BlockIntrospection
+          priority: 200
+```
+
+## Custom rules
+
+A custom rule takes any AWS WAF rule statement. This web ACL blocks all requests except those from the United States:
+
+```yaml
+appSync:
+  name: blog-api
+  waf:
+    defaultAction: Block
+    rules:
+      - name: UsOnly
+        action: Allow
+        statement:
+          GeoMatchStatement:
+            CountryCodes:
+              - US
+```
+
+| Key                | Type                                   | Default                   | Description                                                                                                                                                                                                                                       |
+| ------------------ | -------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`             | string                                 | Required                  | The rule name.                                                                                                                                                                                                                                    |
+| `statement`        | object                                 | Required                  | An AWS WAF [rule statement](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-wafv2-webacl-statement.html). The Framework passes it to CloudFormation unchanged, so its keys use CloudFormation's PascalCase. |
+| `action`           | `Allow`, `Block`, `Count` or `Captcha` | `Allow`                   | What WAF does with a matching request.                                                                                                                                                                                                            |
+| `overrideAction`   | object                                 | None                      | For rule group statements: replaces `action`, for example `None: {}` to apply the group's own actions.                                                                                                                                            |
+| `priority`         | number                                 | Generated                 | See [Rules priority](#rules-priority).                                                                                                                                                                                                            |
+| `visibilityConfig` | object                                 | See [WAF keys](#waf-keys) | Metrics and sampling for the rule.                                                                                                                                                                                                                |
+
+### AWS managed rule groups
+
+To use an [AWS managed rule group](https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-list.html), reference it in a `ManagedRuleGroupStatement` and set `overrideAction: { None: {} }` so the group's own rule actions apply:
+
+```yaml
+appSync:
+  name: blog-api
+  waf:
+    rules:
+      - name: AWSManagedRulesCommonRuleSet
+        priority: 20
+        overrideAction:
+          None: {}
+        statement:
+          ManagedRuleGroupStatement:
+            VendorName: AWS
+            Name: AWSManagedRulesCommonRuleSet
+```
+
+## Per-API-key rules
+
+The `wafRules` list of an entry in [`appSync.apiKeys`](./API-keys.md) adds rules that apply only to requests made with that key. They take the same forms as the web ACL's rules:
+
+```yaml
+appSync:
+  name: blog-api
+  authentication:
+    type: API_KEY
+  waf:
+    rules: []
+  apiKeys:
+    - name: partner
+      wafRules:
+        - throttle: 200
+        - disableIntrospection
+```
+
+For each key rule, the Framework adds a match on the request's `x-api-key` header: combined with the rule's statement, or as the scope-down statement of a throttle rule. Default rule names get the key's name as a prefix (`partnerThrottle`). The rules join the same web ACL, so `appSync.waf` must be present.
+
+Custom key rules need a `statement`, like other custom rules. To exempt a key from a global rule, give the key a rule with a lower priority number whose statement matches the requests the global rule would block. In this example, the web ACL blocks requests from outside the US, except requests with the `worldwide` key:
+
+```yaml
+appSync:
+  name: blog-api
+  authentication:
+    type: API_KEY
+  waf:
+    defaultAction: Block
+    rules:
+      - name: UsOnly
+        action: Allow
         priority: 5
         statement:
-          geoMatchStatement:
-            countryCodes:
+          GeoMatchStatement:
+            CountryCodes:
               - US
   apiKeys:
-    - name: Key1 # no rule is set, the global rule applies (US only)
-    - name: Key1 # no rule is set, the global rule applies (US only)
-    - name: WorldWideApiKey
+    - name: mobileApp # the UsOnly rule applies
+    - name: worldwide
       wafRules:
-        - name: WorldWideApiKeyRule
+        - name: AllowWorldwideKey
           action: Allow
-          priority: 1 # Since priority is higher than 5, all requests will be Allowed
+          priority: 1 # evaluated before UsOnly (priority 5)
+          statement:
+            NotStatement:
+              Statement:
+                GeoMatchStatement:
+                  CountryCodes:
+                    - US
 ```
 
-### Rules priority
+## Rules priority
 
-The priorities don't need to be consecutive, but they must all be different.
+AWS WAF evaluates rules from the lowest `priority` number to the highest, and every rule in a web ACL needs a different priority. Rules without `priority` get one generated, starting at 100 and counting up: first the web ACL's rules in the order listed, then each API key's rules, in the order of the keys. Numbers 1 to 99 stay free for rules that must run first; a `priority` of `0` is treated as unset and gets a generated number.
 
-Setting a priority to the rules is not required, but recommended. If you don't set priority, it will be automatically attributed and sequentially incremented according to the following rules:
+Generated numbers don't skip numbers you set, so an explicit priority of 100 or more can collide with a generated one; set every priority explicitly, or keep explicit ones between 1 and 99. In this example, the comments show the priority each rule gets:
 
-First the global rules (under `appSync.waf.rules`), in the order that they are defined, then the API key rules, in order of the API keys and their rules.
-
-Auto-generated priorities start at 100. This gives you som room (0-99) to add other rules that should get a higher priority, if you need to.
-
-For more info about how rules are executed, pease refer to [the documentation](https://docs.aws.amazon.com/waf/latest/developerguide/web-acl-processing.html)
-
-Example:
-
-```yml
+```yaml
 appSync:
+  name: blog-api
+  authentication:
+    type: API_KEY
   waf:
-    enabled: true
     rules:
-      - name: Rule1
-        # (no-set) Priority = 100
-      - name: Rule2
-        priority: 5 # Priority = 5
-      - name: Rule3
-        # (no-set) Priority = 101
+      - throttle # 100
+      - name: UsOnly # 5
+        priority: 5
+        statement:
+          GeoMatchStatement:
+            CountryCodes:
+              - US
+      - disableIntrospection # 101
   apiKeys:
-    - name: Key1
+    - name: partner
       wafRules:
-        - name: Rule4
-          # (no-set) Priority = 102
-        - name: Rule5
-          # (no-set) Priority = 103
-    - name: Key
-      wafRules:
-        - name: Rule6
-          priority: 1 # Priority = 1
-        - name: Rule7
-          # (no-set) Priority = 104
+        - throttle: 200 # 102
+        - disableIntrospection # 103
 ```
+
+For how AWS WAF evaluates rules and actions, see [Rule and rule group evaluation](https://docs.aws.amazon.com/waf/latest/developerguide/web-acl-processing.html).
+
+## Related pages
+
+- [AppSync API keys](./API-keys.md)
+- [AppSync authentication](./authentication.md)
+- [AWS WAF integration in AWS AppSync](https://docs.aws.amazon.com/appsync/latest/devguide/WAF-Integration.html)

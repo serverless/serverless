@@ -1,46 +1,95 @@
 <!--
-title: 'Setting Up Serverless Framework With AWS'
-description: 'Learn how to install, set up, and deploy projects using the Serverless Framework with AWS Lambda, DynamoDB, S3, and more.'
-short_title: 'Setting Up Serverless Framework With AWS'
+title: Getting Started
+description: Install the Serverless Framework CLI, create a service from a template, deploy it to AWS Lambda, invoke it and remove it.
+short_title: Getting Started
 keywords:
   [
-    'Serverless Framework setup',
-    'AWS Lambda',
-    'AWS DynamoDB',
-    'Serverless installation',
-    'Serverless deployment',
+    'Serverless Framework',
+    'getting started',
+    'install Serverless Framework',
+    'deploy AWS Lambda',
+    'serverless deploy',
   ]
 -->
 
-# Setting Up Serverless Framework With AWS
+<!-- DOCS-SITE-LINK:START automatically generated  -->
 
-Here's how to install the Serverless Framework, set up a project and deploy it to Amazon Web Services on serverless infrastructure like AWS Lambda, AWS DynamoDB, AWS S3 and more.
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/getting-started)
 
-## Installation
+<!-- DOCS-SITE-LINK:END -->
 
-### Install the Serverless Framework via NPM
+# Getting started
 
-First, you must have the [Node.js runtime](https://nodejs.org) installed, then you can install the Serverless Framework via NPM.
+This guide installs the Serverless Framework CLI, creates a service from a template, deploys it to AWS Lambda, calls it and removes it. You need [Node.js](https://nodejs.org) 18 or later with `npm`, an AWS account, and a terminal.
 
-Open your CLI and run the command below to install the Serverless Framework globally.
+Install the CLI:
 
-```text
-npm i serverless -g
+```bash
+npm i -g serverless
 ```
 
-Run `serverless` to verify your installation is working, and show the current version.
+In an empty directory, run the onboarding command. It asks you to pick a template (choose **AWS / Node.js / HTTP API** or **AWS / Python / HTTP API**), name the service, sign in or enter a License Key, and set up AWS credentials:
 
-**npm 12 and later.** npm blocks packages' install scripts unless you allow them, and prints an `npm warn install-scripts` line naming `serverless`. The installation is complete either way: the CLI downloads its binary the first time you run `serverless`. To download it during `npm install` instead, allow the script:
+```bash
+serverless
+```
+
+Deploy the new service from its directory (here named `my-service`):
+
+```bash
+cd my-service
+serverless deploy
+```
+
+The output ends with the function and its HTTP endpoint:
 
 ```text
+✔ Service deployed to stack my-service-dev (52s)
+
+endpoint: GET - https://abc123def4.execute-api.us-east-1.amazonaws.com/
+functions:
+  hello: my-service-dev-hello (1.2 kB)
+```
+
+Call the function, then remove the service when you're done:
+
+```bash
+serverless invoke -f hello
+```
+
+```bash
+serverless remove
+```
+
+The rest of this page explains each step, how to run it without prompts (CI and AI agents), and what to do next.
+
+## Install the Serverless Framework
+
+The Serverless Framework CLI needs [Node.js](https://nodejs.org) 18 or later with `npm` on your `PATH`. Before it runs a Framework v4 release, the CLI checks for both and stops when `node` or `npm` is missing or Node.js is older than 18.
+
+To install the CLI globally, run:
+
+```bash
+npm i -g serverless
+```
+
+To check the installation, print the version:
+
+```bash
+serverless --version
+```
+
+On first use, the CLI downloads the Framework release into `~/.serverless/releases/<version>` (`%USERPROFILE%\.serverless\releases\<version>` on Windows).
+
+With npm 12 and later, npm blocks packages' install scripts unless you allow them, and prints an `npm warn install-scripts` line naming `serverless`. The installation is complete either way: the CLI downloads its binary the first time you run `serverless`. To download it during `npm install` instead, allow the script:
+
+```bash
 npm i -g --allow-scripts=serverless serverless
 ```
 
 ### For AI coding agents
 
-If you work through an AI coding agent (Claude Code, Codex, Cursor, or any
-agent that can run terminal commands), paste this prompt into it instead of
-running the commands yourself:
+If you work through an AI coding agent (Claude Code, Codex, Cursor, or any agent that can run terminal commands), paste this prompt into it instead of running the commands yourself:
 
 ```text
 Set up the Serverless Framework for me so I can build and deploy to AWS from this machine. Do everything you can yourself; hand me only the steps that need my account or my browser.
@@ -50,178 +99,152 @@ Set up the Serverless Framework for me so I can build and deploy to AWS from thi
 4. Finish with a short report: what's ready, what still needs me, and what you suggest doing next here.
 ```
 
-What this does to your machine:
+The prompt changes these things on your machine:
 
-- Installs the Serverless Framework CLI and downloads the release into
-  `~/.serverless/releases`.
-- Writes the `serverless-framework` [Agent Skill](guides/agent-skills.md)
-  into `~/.claude/skills` and/or `~/.agents/skills`, whichever your agents
-  use. Inside a project, it also writes project skills into `.claude/skills`
-  and `.agents/skills`.
-- Nothing else. No prompts, no sign-in required, safe to re-run.
+- It installs the Serverless Framework CLI and downloads the release into `~/.serverless/releases`.
+- It writes the `serverless-framework` [Agent Skill](guides/agent-skills.md) into `~/.claude/skills` and/or `~/.agents/skills`, whichever your agents use. Inside a project, it also writes project skills into `.claude/skills` and `.agents/skills`.
+- Nothing else: `serverless agent setup` asks no questions, needs no sign-in and is safe to re-run.
 
-How you know it worked: `serverless --version` prints the Framework version,
-the `environment:` report shows `auth:` and `aws credentials:` lines (failing
-lines name their fix), and your agent lists a `serverless-framework` skill in
-its next session. See [`agent setup`](providers/aws/cli-reference/agent-setup.md)
-and [`agent docs`](providers/aws/cli-reference/agent-docs.md).
+To check that it worked: `serverless --version` prints the Framework version, the `environment:` report shows `auth:` and `aws credentials:` lines (failing lines name their fix), and your agent lists a `serverless-framework` skill in its next session. See [`agent setup`](providers/aws/cli-reference/agent-setup.md) and [`agent docs`](providers/aws/cli-reference/agent-docs.md).
 
 ### Installing behind a proxy or firewall
 
-During installation, the Serverless Framework CLI downloads its binary from `install.serverless.com`. When it runs, it connects to three hosts over HTTPS (port 443):
+During installation, the Serverless Framework CLI downloads its binary from `install.serverless.com`. When it runs, it connects to these hosts over HTTPS (port 443):
 
-- `install.serverless.com` — downloads of the CLI binary and framework releases, and version checks for automatic updates
-- `core.serverless.com` — license key validation, authentication, and usage reporting
-- `api.serverless.com` — signing in through the browser, for example with `serverless login`
+- `install.serverless.com`: downloads of the CLI binary and Framework releases, and version checks for automatic updates.
+- `core.serverless.com`: License Key validation, authentication and usage reporting.
+- `api.serverless.com`: signing in through the browser, for example with `serverless login`.
+- `github.com`: downloading the template that the `serverless` onboarding command creates a new service from.
 
-If your network restricts outbound traffic, allow all three hosts. `npm install` itself needs access to your npm registry as usual.
+If your network restricts outbound traffic, allow these hosts. `npm install` itself needs access to your npm registry as usual.
 
-**Proxies.** Set the standard `HTTPS_PROXY` environment variable (and `NO_PROXY` for hosts that must be reached directly). The CLI uses these both while installing and every time it runs. During `npm install`, proxy settings from your npm configuration (`https-proxy`, `proxy`, and `noproxy` in `.npmrc`) are also applied to the binary download when no proxy environment variables are set.
+To use a proxy, set the standard `HTTPS_PROXY` environment variable (and `NO_PROXY` for hosts that must be reached directly). The CLI uses these both while installing and every time it runs. During `npm install`, proxy settings from your npm configuration (`https-proxy`, `proxy` and `noproxy` in `.npmrc`) also apply to the binary download when no proxy environment variables are set.
 
-**Custom certificate authorities.** If your proxy inspects TLS traffic using a corporate certificate, point `NODE_EXTRA_CA_CERTS` at your CA bundle in PEM format. The CLI trusts it for all of its connections.
+If your proxy inspects TLS traffic with a corporate certificate, point `NODE_EXTRA_CA_CERTS` at your CA bundle in PEM format. The CLI trusts it for all of its connections.
 
-**If the download is blocked during installation.** `npm install` still completes, with a warning that names the network error, and the CLI downloads its binary the first time you run `serverless`. In CI, set the variables above for the job that runs `serverless`, not only for the step that installs it.
+When the binary download is blocked during installation, `npm install` still completes, with a warning that names the network error, and the CLI downloads its binary the first time you run `serverless`. In CI, set the proxy variables for the job that runs `serverless`, not only for the step that installs it.
 
-## Update Serverless Framework
+## Create a service
 
-As of version 4, the Serverless Framework automatically updates itself and performs a check to do so every 24 hours.
+A service is one `serverless.yml` file and the AWS resources it deploys: Lambda functions, the events that trigger them (HTTP endpoints, queues, schedules) and other resources such as DynamoDB tables. A service can hold a whole application or one part of it; start with one service and split it when you need to. For more, see [Services](./providers/aws/guide/services.md).
 
-You can force an update by running this command:
+To create a service interactively, run `serverless` with no command in an empty directory:
 
-```text
-serverless update
-```
-
-Or, you can set this environment variable:
-
-```text
-SERVERLESS_FRAMEWORK_FORCE_UPDATE=true
-```
-
-To reinstall a release from scratch, delete its folder, `~/.serverless/releases/<version>` (`%USERPROFILE%\.serverless\releases\<version>` on Windows), and run any `serverless` command. The release is downloaded again.
-
-Do this when every command fails with an error that points inside that folder, for example:
-
-```text
-Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'esbuild' imported from /home/me/.serverless/releases/4.43.0/package/dist/sf-core.js
-Error: Cannot find module '/home/me/.serverless/releases/4.43.0/package/dist/sf-core.js'
-SyntaxError: Unexpected end of input
-```
-
-An install by an earlier version of the `serverless` installer that was interrupted, or that ran at the same time as another `serverless` command, can leave such a folder behind. `serverless update` does not replace a release folder that already exists.
-
-## Pinning to a Specific Version
-
-You are able to pin to a specific version of the Serverless Framework using normal semver syntax, by setting the `frameworkVersion` property in your `serverless.yml` file. If you do not set this property, then every 24 hours you will be automatically updated to the latest version of the Serverless Framework. If you do set this property, you will be updated every 24 hours to the highest version that is currently available for the version constraint you have set.
-
-For example, If you set `frameworkVersion: ~4.1.0` then you will always be updated to the most recent patch version of `4.1.x`.
-
-We highly recommend that you never pin to a specific patch version and instead pin to a specific major or minor version. This way you will always benefit from patch updates that may include security and bug fixes.
-
-We periodically will block versions that are found to contain regressions, security issues, or other issues that impact stability for our users. If you are pinning to a version that is found to be broken, we will update you to the next closest patch version that is not blocked.
-
-### Blocked Versions
-
-Currently, the following versions are blocked,
-
-1. Versions older than `4.0.4`
-2. Version `4.1.8`
-3. Versions `4.1.13` to `4.1.15`
-
-## The `serverless` Command
-
-The Serverless Framework ships with a `serverless` command that walks you through getting a project created and deployed onto AWS. It helps with downloading a Template, setting up AWS Credentials, setting up the Serverless Framework Dashboard, and more, while explaining each concept along the way.
-
-This guide will also walk you through getting started with the Serverless Framework, but please note, simply typing the `serverless` command may be the superior experience.
-
-```text
+```bash
 serverless
 ```
 
-## Create A Service
+The onboarding command walks you through these steps:
 
-The primary concept for a project in the Serverless Framework is known as a "Service", and its declared by a `serverless.yml` file, which contains simplified syntax for deploying cloud infrastructure, such as AWS Lambda functions, infrastructure that triggers those functions with events, and additional infrastructure your AWS Lambda functions may need for various use-cases (e.g. AWS DynamoDB database tables, AWS S3 storage buckets, AWS API Gateways for recieving HTTP requests and forwarding them to AWS Lambda).
+1. **Select a template.** The templates come from the [serverless/examples](https://github.com/serverless/examples) repository:
 
-A Service can either be an entire application, logic for a specific domain (e.g. "blog", "users", "products"), or a microservice handling one task. You decide how to organize your project. Generally, we recommend starting with a monolithic approach to everything to reduce complexity, until breaking up logic is absolutely necessary.
+   ```text
+   ? Select A Template: …
+   ❯ AWS / Node.js / HTTP API
+     AWS / Node.js / Express API
+     AWS / Node.js / Express API with DynamoDB
+     AWS / Node.js / Scheduled Task
+     AWS / Node.js / Simple Function
+     AWS / Python / HTTP API
+     AWS / Python / Flask API
+     AWS / Python / Flask API with DynamoDB
+     AWS / Python / Scheduled Task
+     AWS / Python / Simple Function
+     AWS / Compose / Serverless + Cloudformation + SAM
+   ```
 
-To create and fully set up a Serverless Framework Service, use the `serverless` command, which offers an interactive set-up workflow.
+2. **Name your project.** The name must start with a letter and contain only letters, numbers and hyphens (up to 101 characters); use lowercase. The template is downloaded into a new directory with that name, in the current working directory, and the name becomes `service` in `serverless.yml`. Keep it short: the Framework adds it to the name of each AWS resource it creates, and some AWS resource names have length limits. If a folder with that name already exists, the command stops with `A folder named "<path>" already exists.`
+3. **Sign in**, if you aren't signed in yet. Choose **Login/Register** to sign in to the Serverless Framework Dashboard in your browser, or enter a License Key. See [Sign in](#sign-in).
+4. **Add the service to an App** (Dashboard sign-in only). Create or select an App, or skip. See [Apps and the Dashboard](#apps-and-the-dashboard).
+5. **Set up AWS credentials**, when none are found. See [Set up AWS credentials](#set-up-aws-credentials).
 
-```text
-serverless
-```
+The command then prints the next steps: `cd` into the directory, install dependencies when the template uses Node.js or Python (`npm install` or `pip install`), and run `serverless deploy`.
 
-This will show you several Templates. Choose one that fits the language and use-case you want.
+The onboarding command edits `serverless.yml` (or `serverless.yaml`): it adds an `org` line when no line contains `org:`, adds the `app` line you choose when you signed in with a Dashboard account and no line starts with `app:`, and removes every line that contains `frameworkVersion:`. Run in a directory that already has a `serverless.yml` or `serverless.yaml`, the command skips the template steps and makes the same edits to that file; in a directory with `serverless-compose.yml` or `serverless-compose.yaml`, it only adds `org` there. Configuration files in other formats, such as `serverless.ts`, aren't edited.
 
-```text
-Serverless ϟ Framework
-Welcome to Serverless Framework V.4
+### Create a service without prompts
 
-Create a new project by selecting a Template to generate scaffolding for a specific use-case.
+The onboarding command asks questions in the terminal. In CI, from an AI agent or whenever you prefer to write the files yourself, create the service directory with a `serverless.yml` and a handler, then [sign in](#sign-in) and [deploy](#deploy-a-service).
 
-? Select A Template: …
-❯ AWS / Node.js / Starter
-  AWS / Node.js / HTTP API
-  AWS / Node.js / Scheduled Task
-  AWS / Node.js / SQS Worker
-  AWS / Node.js / Express API
-  AWS / Node.js / Express API with DynamoDB
-  AWS / Python / Starter
-  AWS / Python / HTTP API
-  AWS / Python / Scheduled Task
-  AWS / Python / SQS Worker
-  AWS / Python / Flask API
-  AWS / Python / Flask API with DynamoDB
-  (Scroll for more)
-```
-
-After selecting a Service Template, its files will be downloaded and you will have the opportunity to give your Service a name.
-
-```text
-? Name Your Service: ›
-```
-
-Please use only lowercase letters, numbers and hyphens. Also, keep Service names short, since they are added into the name of each cloud resource the Serverless Framework creates, and some cloud resources have character length restrictions in their names.
-
-Learn more about Services and more in the [Core Concepts documentation](https://www.serverless.com/framework/docs/providers/aws/guide/intro).
-
-## Signing In
-
-As of Serverless Framework V.4, if you are using the `serverless` command to set up a Service, it will eventually ask you to log in.
-
-If you need to log in outside of that, run `serverless login`.
-
-Logging in will redirect you to the [Serverless Framework Dashboard](https://app.serverless.com) within your browser. After registering or logging in, go back to your CLI and you will be signed in.
-
-Please note, you can get up and running with the Serverless Framework CLI and Dashboard for free, and the CLI will always be free for small orgs and indiehackers. For more information on pricing, check out our [pricing page](https://serverless.com/pricing).
-
-## Creating An App
-
-The "App" concept is a parent container for one or many "Services" which you can optionally set via the `app` property in your `serverless.yml`. Setting an `app` also enables Serverless Framework Dashboard features for that Service, like tracking your Services and their deployments in Serverless Framework Dashboard, enabling sharing outputs between them, sharing secrets between them, and enabling metrics, traces and logs.
-
-If you are using the `serverless` onboarding command, it will help you set up an `app` and add it to your Service. You can use the `serverless` command to create an App on an existing Service as well, or create an App in the Dashboard.
-
-```text
-❯ Create A New App
-  ecommerce
-  blog
-  acmeinc
-  Skip Adding An App
-```
-
-The app can also be set manually in serverless.yml via the `app` property:
+This `serverless.yml` deploys one Node.js function behind an HTTP API endpoint:
 
 ```yaml
+# serverless.yml
 service: my-service
-app: my-app
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  runtime: nodejs24.x
+  region: us-east-1
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - httpApi:
+          path: /
+          method: get
 ```
 
-If you don't want to use the Serverless Framework Dashboard's features, simply don't add an `app` property. Apps are not required.
+The handler, in `handler.mjs` next to `serverless.yml`:
 
-## Setting Up AWS Credentials
+```javascript
+export const hello = async () => {
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ message: 'Hello from my-service' }),
+  }
+}
+```
 
-To deploy cloud infrastructure to AWS, you must give the Serverless Framework access to your AWS credentials.
+`handler: handler.hello` points at the `hello` export of `handler.mjs`. For Python, set `runtime: python3.14` and put the handler in `handler.py`:
 
-Running the Serverless Framework's `serverless` command in a new or existing Service will help identify if AWS credentials have been set correctly or if they are expired, or help you set them up from scratch.
+```python
+import json
+
+
+def hello(event, context):
+    return {"statusCode": 200, "body": json.dumps({"message": "Hello from my-service"})}
+```
+
+## Sign in
+
+The Serverless Framework v4 CLI runs service commands only when you are signed in or provide a key. The onboarding command asks you to sign in; outside of it, run:
+
+```bash
+serverless login
+```
+
+`serverless login` opens the [Serverless Framework Dashboard](https://app.serverless.com) in your browser to register or sign in, then saves the session in `~/.serverlessrc`. Without a terminal (an AI agent, a script), it prints the sign-in URL and waits up to 10 minutes for you to finish signing in.
+
+For CI and other unattended runs, set one of these environment variables instead of signing in. The CLI reads the key on each command and doesn't save it:
+
+- `SERVERLESS_ACCESS_KEY`: an Access Key, created in the Dashboard under [Settings > Access Keys](https://app.serverless.com/settings/accessKeys).
+- `SERVERLESS_LICENSE_KEY`: a License Key, created under [Settings > License Keys](https://app.serverless.com/settings/licenseKeys). See [License Keys](./guides/license-keys.md).
+
+With a key, `org` in `serverless.yml` is optional; when `org` is set, it must be the org the key belongs to. When the CLI can't prompt (for example, stdin or stdout isn't a terminal, the `CI` environment variable is set, or an AI agent runs it) and finds no key and no saved session, a service command such as `serverless deploy` stops with an error that starts with `You must sign in or use a License Key with Serverless Framework V.4 and later versions` and names these options.
+
+The CLI is free for individual developers and for organizations with up to $2 million in annual revenue; see [Upgrading to v4](./guides/upgrading-v4.md#pricing) and the [pricing page](https://www.serverless.com/pricing).
+
+## Apps and the Dashboard
+
+An App groups services in the Serverless Framework Dashboard. Setting `app` in `serverless.yml` turns on Dashboard features for the service: deployment tracking, sharing outputs and [parameters](./guides/parameters.md) between services, [Providers](./guides/dashboard/providers.md) for AWS credentials, and metrics, traces and logs.
+
+```yaml
+# serverless.yml
+org: myorg
+app: my-app
+service: my-service
+```
+
+Apps are optional: to use the CLI without the Dashboard, leave `app` out. A service that sets `app` can't be used with a License Key.
+
+When you sign in with a Dashboard account, the onboarding command offers to create an App or select an existing one. New App names use lowercase letters, numbers and hyphens and start with a letter. You can also create Apps in the Dashboard.
+
+## Set up AWS credentials
+
+The Framework deploys with the AWS credentials it finds: from `--aws-profile`, `provider.profile`, or the AWS SDK's default chain (environment variables, `~/.aws/credentials`, `~/.aws/config`, AWS IAM Identity Center). To use a named profile, pass `--aws-profile my-profile` or set `AWS_PROFILE=my-profile`. A service command such as `serverless deploy` takes only the credentials from the profile, not its region; see [Deploy a service](#deploy-a-service) for how the region is chosen. When the onboarding command finds none and your organization has no default Dashboard Provider, it offers to set them up:
 
 ```text
 No valid AWS Credentials were found in your environment variables or on your machine. Serverless Framework needs these to access your AWS account and deploy resources to it. Choose an option below to set up AWS Credentials.
@@ -231,144 +254,152 @@ No valid AWS Credentials were found in your environment variables or on your mac
   Skip & Set Later (AWS SSO, ENV Vars)
 ```
 
-**If you are using Serverless Dashboard**, you will see a **"Create AWS IAM Role (Easy & Recommended)"** option at the top of this list. We recommend using this option as it stores your AWS IAM Role in the Serverless Framework Dashboard, enabling you to share it with your team and securely eliminating the need to keep credentials on local machines.
+- **Create AWS IAM Role (Easy & Recommended)** appears at the top of the list when you signed in with a Dashboard account (not a License Key). It creates an IAM role in your AWS account with an AWS CloudFormation stack and stores it in the Dashboard as a [Provider](./guides/dashboard/providers.md), so your team can share it and no credentials stay on your machine.
+- **Sign in with AWS Console** runs `serverless login aws`: browser-based sign-in that saves short-lived credentials in an AWS profile.
+- **Save AWS Credentials in a Local Profile** saves an access key pair in the `default` profile of `~/.aws/credentials`.
+- **Skip & Set Later** leaves credentials to you. For AWS IAM Identity Center (AWS SSO), configure a profile with `aws configure sso` and sign in with `serverless login aws sso`.
 
-**For all other users**, we recommend using **Sign in with AWS Console** which uses browser-based authentication to generate short-lived credentials. This is more secure than long-term access keys and integrates with your existing AWS Console sign-in. You can also run this directly with `serverless login aws`.
+For all the ways to provide credentials, see [AWS Credentials](./providers/aws/guide/credentials.md).
 
-If you are using AWS SSO (IAM Identity Center), you can select "Skip & Set Later" and configure SSO using `aws configure sso`, then run `serverless login aws sso` to authenticate.
+## Deploy a service
 
-To learn more about setting up your AWS Credentials, [read this guide](https://www.serverless.com/framework/docs/providers/aws/guide/credentials).
+To deploy, run `serverless deploy` in the directory that contains `serverless.yml`:
 
-## Deploy A Service
-
-After you've used the `serverless` command to set up everything, it's time to deploy your Service to AWS.
-
-Make sure your terminal session is within the directory that contains your `serverless.yml` file. If you just created a Service, don't forget to `cd` into it.
-
-```text
-cd [your-new-service-name]
-```
-
-Deploying will create/update cloud infrastructure and code on AWS, all at the same time.
-
-Run the `deploy` command:
-
-```text
+```bash
 serverless deploy
 ```
 
-More details on deploying can be found [here](https://www.serverless.com/framework/docs/providers/aws/guide/deploying).
+`serverless deploy` packages your code, then creates or updates the service's AWS CloudFormation stack. Without other settings it deploys stage `dev` to `us-east-1`, or to the region in `AWS_REGION`. To deploy another stage or region, pass `--stage` and `--region`, or set `provider.stage` and `provider.region`. The output lists the endpoints and functions.
 
-## Developing
+Each command works out the stage, region and AWS credentials on its own. When you deploy with `--stage`, `--region` or `--aws-profile`, pass the same options to `serverless info`, `invoke`, `logs` and `remove`, or set the values in `serverless.yml` once. For more, see [Deploying](./providers/aws/guide/deploying.md).
 
-Many Serverless Framework and serverless developers generally choose to develop on the cloud, since it matches reality (i.e. your production environment), and emulating Lambda and other infrastructure dependencies locally can be complex.
-
-In Serverless Framework V.4, we've created a _hybrid approach to development_, to help developers develop rapidly with the accuracy of the real cloud environment. This is the new `dev` command:
-
-```text
-serverless dev
-```
-
-When you run this command, Dev Mode attaches the Node.js and Python functions of your deployed stage to your machine in seconds, with no deployment.
-
-From then on, real invocations of those functions — API requests, queue messages, direct invokes — run the code on your machine, with the function's own environment and IAM role, and the result goes back to the caller. Your edits apply on the next invocation.
-
-Logs and errors from your code show in your terminal `dev` session.
-
-Press Ctrl+C to end the session: Dev Mode restores your functions to their deployed configuration.
-
-Please note, `dev` is only designed for development or personal stages/environments and should not be run in production or any stage where a high volume of events are being processed. Dev Mode refuses the `prod` and `production` stages.
-
-Learn more in the [Dev Mode guide](https://www.serverless.com/framework/docs/providers/aws/guide/dev-mode) and the [`serverless dev` reference](https://www.serverless.com/framework/docs/providers/aws/cli-reference/dev).
-
-## Invoking
-
-To invoke your AWS Lambda function on the cloud, you can find URLs for your functions w/ API endpoints in the `serverless deploy` output, or retrieve them via `serverless info`. If your functions do not have API endpoints, you can use the `invoke` command, like this:
+To deploy a code or configuration change to one function in seconds, without a CloudFormation update, run `serverless deploy function` with the function's name in `serverless.yml`:
 
 ```bash
-sls invoke -f hello
+serverless deploy function -f hello
+```
 
-# Invoke and display logs:
+For more, see the [`deploy function` command](./providers/aws/cli-reference/deploy-function.md).
+
+## Invoke a function
+
+To call a deployed function, open its HTTP endpoint from the `serverless deploy` output (`serverless info` prints it again), or invoke the function directly:
+
+```bash
+serverless invoke -f hello
+```
+
+To also print the function's logs, add `--log`:
+
+```bash
 serverless invoke -f hello --log
 ```
 
-More details on the `invoke` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke).
+For more, see the [`invoke` command](./providers/aws/cli-reference/invoke.md).
 
-## Deploy Functions
-
-To deploy code changes quickly, you can skip the `serverless deploy` command which is much slower since it triggers a full AWS CloudFormation update, and deploy only code and configuration changes to a specific AWS Lambda function.
-
-To deploy code and configuration changes to individual AWS Lambda functions in seconds, use the `deploy function` command, with `-f [function name in serverless.yml]` set to the function you want to deploy.
-
-```text
-serverless deploy function -f my-api
-```
-
-More details on the `deploy function` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/deploy-function).
-
-## Streaming Logs
-
-You can use Serverless Framework to stream logs from AWS Cloudwatch directly to your terminal. Use the `sls logs` command in a separate terminal window:
+To stream a function's logs from Amazon CloudWatch to your terminal, run `serverless logs` with `-t` (tail) in a separate terminal:
 
 ```bash
-sls logs -f [Function name in serverless.yml] -t
+serverless logs -f hello -t
 ```
 
-Target a specific function via the `-f` option and enable tailing (i.e. streaming) via the `-t` option.
+## Develop with Dev Mode
 
-## Full Local Development
-
-Many Serverless Framework users choose to emulate their entire serverless architecture locally. Please note, emulating AWS Lambda and other cloud services is never accurate and the process can be complex, especially as your project and teammates grow. As of V.4, we highly recommend using the new `dev` mode with personal stages.
-
-If you do choose to develop locally, we recommend the following workflow...
-
-Use the `invoke local` command to invoke your function locally:
+Dev Mode runs your deployed Node.js and Python functions on your machine. Run it in the service directory:
 
 ```bash
-sls invoke local -f my-api
+serverless dev
 ```
 
-You can also pass data to this local invocation via a variety of ways. Here's one of them:
+Dev Mode attaches the functions of the deployed stage to your machine, with no deployment. Real invocations of those functions (API requests, queue messages, direct invokes) then run the code on your machine, with the function's own environment and IAM role, and the result goes back to the caller. Your edits apply on the next invocation, and logs and errors show in the terminal. Press Ctrl+C to end the session: Dev Mode restores your functions to their deployed configuration.
+
+Use Dev Mode on development and personal stages only; it refuses the `prod` and `production` stages. For more, see the [Dev Mode guide](./providers/aws/guide/dev-mode.md) and the [`serverless dev` reference](./providers/aws/cli-reference/dev.md).
+
+## Run functions locally
+
+To run a function's handler on your machine without AWS, use `serverless invoke local`. Pass an event with `--data`:
 
 ```bash
-sls invoke local --function functionName --data '{"a":"bar"}'
+serverless invoke local -f hello --data '{"a":"bar"}'
 ```
 
-More details on the `invoke local` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke-local)
+For more, see the [`invoke local` command](./providers/aws/cli-reference/invoke-local.md). To emulate API Gateway locally, the community [serverless-offline](https://github.com/dherault/serverless-offline) plugin adds a `serverless offline` command. Local emulation differs from the AWS environment, so test against a deployed stage, or with Dev Mode, before you release.
 
-Serverless Framework also has a great plugin that allows you to run a server locally and emulate AWS API Gateway. This is the `serverless-offline` command.
+## Use plugins
 
-More details on the **serverless-offline** plugins command can be found [here](https://github.com/dherault/serverless-offline)
+Plugins add commands and features to the Framework. Browse them in the [plugins registry](https://www.serverless.com/plugins), for example [serverless-offline](https://github.com/dherault/serverless-offline) and [serverless-step-functions](https://github.com/serverless-operations/serverless-step-functions). For how to install and configure plugins, see [Plugins](./guides/plugins/README.md).
 
-## Use Plugins
+Some formerly popular plugins are built into the Framework: [custom domains](./providers/aws/guide/domains.md) replace serverless-domain-manager, and [Python support](./providers/aws/guide/python.md) replaces serverless-python-requirements. The [upgrade guide](./guides/upgrading-v4.md#plugins) lists the others.
 
-A big benefit of Serverless Framework is within its [Plugin ecosystem](https://serverless.com/plugins).
+## Remove a service
 
-Plugins extend or overwrite the Serverless Framework, giving it new use-cases or capabilites, and there are hundreds of them.
+**Warning:** `serverless remove` deletes the service's CloudFormation stack and the resources in it, including stateful resources such as DynamoDB tables, unless they have a `DeletionPolicy` of `Retain`. It doesn't ask for confirmation.
 
-Some of the most common Plugins are:
-
-- **[Serverless Offline](https://github.com/dherault/serverless-offline)** - Emulate AWS Lambda and API Gateway locally when developing your Serverless project.
-- **[Serverless Domain Manager](https://github.com/amplify-education/serverless-domain-manager)** - Manage custom domains with AWS API Gateways.
-- **[Serverless Step Functions](https://github.com/serverless-operations/serverless-step-functions)** - Build AWS Step Functions architectures.
-- **[Serverless Python Requirements](https://github.com/serverless/serverless-python-requirements)** - Bundle dependencies from requirements.txt and make them available in your PYTHONPATH.
-
-## Remove Your Service
-
-If you want to delete your service, run `remove`. This will delete all the AWS resources created by your project and ensure that you don't incur any unexpected charges. It will also remove the service from Serverless Dashboard.
+To remove a service from one stage and region, run:
 
 ```bash
 serverless remove
 ```
 
-More details on the `remove` command can be found [here](https://www.serverless.com/framework/docs/providers/aws/cli-reference/remove).
+The command also deletes the service's deployment artifacts. The region's shared deployment bucket stays. When `org`, `app` and `service` are set, the Dashboard records the removal. For more, see the [`remove` command](./providers/aws/cli-reference/remove.md).
 
-## What's Next
+## Update Serverless Framework
 
-Here are some helpful resources for continuing with the Serverless Framework:
+The Serverless Framework CLI checks for a new release every 24 hours and updates itself. To update now, run:
 
-- [Study Serverless Framework's core concepts](https://www.serverless.com/framework/docs/providers/aws/guide/intro)
-- [Get inspiration from these Serverless Framework templates](https://github.com/serverless/examples)
-- [Discover all of the events that can trigger Lambda functions](https://www.serverless.com/framework/docs/providers/aws/guide/events)
-- [Bookmark Serverless Framework's `serverless.yml` guide](https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml)
-- [Search the plugins registry to extend Serverless Framework](https://www.serverless.com/plugins)
+```bash
+serverless update
+```
+
+To check for a new release before a single command, set the `SERVERLESS_FRAMEWORK_FORCE_UPDATE` environment variable to any value:
+
+```bash
+SERVERLESS_FRAMEWORK_FORCE_UPDATE=true serverless deploy
+```
+
+To reinstall a release from scratch, delete its folder, `~/.serverless/releases/<version>` (`%USERPROFILE%\.serverless\releases\<version>` on Windows), and run any `serverless` command. The release is downloaded again. Do this when every command fails with an error that points inside that folder, for example:
+
+```text
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'esbuild' imported from /home/me/.serverless/releases/4.43.0/package/dist/sf-core.js
+Error: Cannot find module '/home/me/.serverless/releases/4.43.0/package/dist/sf-core.js'
+SyntaxError: Unexpected end of input
+```
+
+An install by an earlier version of the `serverless` installer that was interrupted, or that ran at the same time as another `serverless` command, can leave such a folder behind. `serverless update` does not replace a release folder that already exists.
+
+## Pinning to a specific version
+
+To control which Framework version runs a service, set `frameworkVersion` in `serverless.yml` to a semver range:
+
+```yaml
+# serverless.yml
+service: my-service
+frameworkVersion: '4'
+```
+
+- Without `frameworkVersion`, the CLI runs the latest release and checks for a newer one every 24 hours.
+- With `frameworkVersion`, the CLI runs the highest release that matches the range and checks every 24 hours for a newer match. For example, `'~4.17.0'` runs the latest `4.17.x` and `'4'` runs the latest `4.x`.
+
+The CLI reads `frameworkVersion` from the configuration file in the current working directory, or the one `--config` names: `serverless.yml` in a service, `serverless-compose.yml` in a Compose project. It reads the value only when it is a string, so quote it (`frameworkVersion: '4'`): an unquoted number such as `frameworkVersion: 4` doesn't pin the version, and the CLI runs the latest release.
+
+Pin a major or minor range rather than an exact patch version, so you receive patch releases with bug and security fixes.
+
+### Flagged versions
+
+Serverless, Inc. flags releases found to contain regressions, security issues or other issues that affect stability. When `frameworkVersion` is exactly a flagged version, the CLI still runs it and prints a warning that recommends a more recent version. A range that resolves to a flagged version gets no warning. These versions are flagged:
+
+- `4.1.8`
+- `4.1.13` to `4.1.15`
+- `4.1.24`
+- `4.3.0`
+- `4.4.15`, `4.4.20` and `4.4.21`
+- `4.5.0`
+
+Versions older than `4.0.4`, and versions `4.0.6`, `4.0.18` and `4.0.31`, can't be installed.
+
+## Next steps
+
+- [Services](./providers/aws/guide/services.md): how a service, its stages and its `serverless.yml` fit together.
+- [Events](./providers/aws/guide/events.md): the AWS events that can trigger your functions.
+- [serverless.yml reference](./providers/aws/guide/serverless.yml.md): every `serverless.yml` property.
+- [Examples](https://github.com/serverless/examples): complete services to start from.

@@ -1,16 +1,14 @@
 <!--
-title: Serverless Framework - AgentCore Browser Configuration
-description: Add web automation capabilities to your AI agents using AgentCore Browser
+title: AgentCore Browser
+description: Let AI agents browse websites with Amazon Bedrock AgentCore Browser, or define custom browsers with session recording, Web Bot Auth or VPC access.
 short_title: Browser
 keywords:
   [
     'Serverless Framework',
-    'AWS Bedrock',
-    'AgentCore',
-    'Browser',
-    'Web Automation',
-    'Strands',
-    'Session Recording',
+    'Amazon Bedrock AgentCore Browser',
+    'AI agent web browsing',
+    'browser session recording',
+    'Playwright agent',
   ]
 -->
 
@@ -20,151 +18,105 @@ keywords:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Browser Configuration
+# AgentCore Browser for agents
 
-Browser enables your AI agents to navigate web pages, extract information, and interact with websites. AgentCore provides managed browser infrastructure that works with any agent framework — Strands Agents provides the most streamlined Python integration via `AgentCoreBrowser`, while JavaScript agents can use `PlaywrightBrowser` from the `bedrock-agentcore` SDK.
+Amazon Bedrock AgentCore Browser runs a cloud browser in an isolated session that an agent drives to open pages, click, fill forms and read content. Every agent can use the AWS-managed browser without configuration; define a custom browser under `ai.browsers` when you need session recording, Web Bot Auth signatures or access to resources in a VPC.
 
-## Quick Start
+This Python agent uses the AWS-managed browser through the Strands Agents browser tool. No browser configuration is needed in `serverless.yml`:
 
-The simplest way to add browser capabilities is using the AWS-managed default browser with Strands:
-
-**Configuration (`serverless.yml`):**
-
-```yml
-service: my-browser-agent
-
-provider:
-  name: aws
-  region: us-east-1
-
+```yaml
+# serverless.yml
 ai:
   agents:
-    webAgent: {} # Auto-detects Dockerfile
+    webAgent: {}
 ```
 
-**Agent code (`agent.py`):**
-
 ```python
+# agent.py
+import os
+
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from strands import Agent
 from strands_tools.browser import AgentCoreBrowser
 
 app = BedrockAgentCoreApp()
+browser_tool = AgentCoreBrowser(region=os.environ["AWS_REGION"])
 
-# Initialize browser tool (uses AWS-managed infrastructure)
-browser_tool = AgentCoreBrowser(region="us-east-1")
 
 @app.entrypoint
 async def invoke(payload, context):
     agent = Agent(
         tools=[browser_tool.browser],
-        model="us.anthropic.claude-sonnet-4-20250514-v1:0",
-        system_prompt="""You are an AI assistant with web browsing capabilities.
-Use the browser tool to navigate websites and extract information."""
+        system_prompt="You can browse the web. Use the browser to answer questions about websites.",
     )
-
-    prompt = payload.get("prompt", "Hello!")
-    async for event in agent.stream_async(prompt):
+    async for event in agent.stream_async(payload.get("prompt", "")):
         yield event
 
-app.run()
+
+if __name__ == "__main__":
+    app.run()
 ```
 
-**Dependencies (`requirements.txt`):**
+The agent needs the `bedrock-agentcore`, `strands-agents`, `strands-agents-tools` and `playwright` packages; with a `Dockerfile` in the service directory, the Framework builds and deploys it as described in [AgentCore Runtime agents](./runtime.md#deploy-an-agent-from-a-dockerfile). The agent's generated role allows sessions on the AWS-managed browser, `aws.browser.v1`.
 
-```text
-bedrock-agentcore>=0.1.0
-strands-agents>=1.0.0
-strands-agents-tools>=0.1.0
-```
+## Use the browser from a JavaScript agent
 
-The framework automatically handles browser infrastructure - no additional configuration required.
-
-## How It Works
-
-When your agent uses the browser tool:
-
-1. **Agent Request**: Your agent calls the browser tool with navigation instructions
-2. **AWS Infrastructure**: AgentCore manages browser sessions in isolated environments
-3. **Web Interaction**: The browser navigates, clicks, extracts content as instructed
-4. **Response**: Results flow back to your agent for processing
-
-```text
-Agent → Browser Tool → AWS Browser Service → Website → Response
-```
-
-## Using Browser in JavaScript
-
-The `bedrock-agentcore` SDK provides `PlaywrightBrowser` for browser automation in JavaScript agents.
-
-### Basic Pattern
+The `bedrock-agentcore` package provides `PlaywrightBrowser`, which starts a browser session and drives it with Playwright. Wrap its methods as tools for your agent framework:
 
 ```javascript
+// index.js
 import { BedrockAgentCoreApp } from 'bedrock-agentcore/runtime'
 import { PlaywrightBrowser } from 'bedrock-agentcore/browser/playwright'
-import { createAgent } from 'langchain'
 import { ChatBedrockConverse } from '@langchain/aws'
 import { tool } from '@langchain/core/tools'
+import { createAgent } from 'langchain'
 import { z } from 'zod'
 
-const browser = new PlaywrightBrowser({ region: 'us-east-1' })
+const browser = new PlaywrightBrowser({ region: process.env.AWS_REGION })
 
-// Define browser tools wrapping PlaywrightBrowser methods
 const navigate = tool(
   async ({ url }) => {
     await browser.navigate({ url, waitUntil: 'domcontentloaded' })
-    return `Navigated to ${url}`
+    return `Opened ${url}`
   },
   {
     name: 'navigate',
-    description: 'Navigate to a URL in the browser.',
-    schema: z.object({ url: z.string().describe('The URL to navigate to') }),
+    description: 'Open a URL in the browser.',
+    schema: z.object({ url: z.string() }),
   },
 )
 
 const getText = tool(
-  async ({ selector }) => {
-    const text = await browser.getText({ selector })
-    return text || 'No text found'
-  },
+  async ({ selector }) =>
+    (await browser.getText({ selector })) || 'No text found',
   {
     name: 'get_text',
-    description: 'Extract text content from elements.',
-    schema: z.object({ selector: z.string().describe('CSS selector') }),
+    description: 'Read the text of the elements that match a CSS selector.',
+    schema: z.object({ selector: z.string() }),
   },
 )
-
-const screenshot = tool(
-  async () => {
-    const data = await browser.screenshot()
-    return `Screenshot captured (${data.length} bytes)`
-  },
-  {
-    name: 'screenshot',
-    description: 'Take a screenshot of the current page.',
-    schema: z.object({}),
-  },
-)
-
-// Create agent with browser tools
-const model = new ChatBedrockConverse({
-  model: 'us.anthropic.claude-sonnet-4-20250514-v1:0',
-  region: 'us-east-1',
-})
 
 const agent = createAgent({
-  model,
-  tools: [navigate, getText, screenshot],
+  model: new ChatBedrockConverse({
+    model: process.env.MODEL_ID,
+    region: process.env.AWS_REGION,
+  }),
+  tools: [navigate, getText],
 })
 
 const app = new BedrockAgentCoreApp({
   invocationHandler: {
     requestSchema: z.object({ prompt: z.string() }),
-    async handler({ request }) {
-      const result = await agent.invoke({
-        messages: [{ role: 'user', content: request.prompt }],
-      })
-      return { response: result.messages.at(-1).content }
+    async process(request) {
+      await browser.startSession()
+      try {
+        const result = await agent.invoke({
+          messages: [{ role: 'user', content: request.prompt }],
+        })
+        return { response: result.messages.at(-1).content }
+      } finally {
+        await browser.stopSession()
+      }
     },
   },
 })
@@ -172,253 +124,158 @@ const app = new BedrockAgentCoreApp({
 app.run()
 ```
 
-**Dependencies (`package.json`):**
+Set `MODEL_ID` in the agent's `environment`. The dependencies:
 
 ```json
 {
+  "type": "module",
   "dependencies": {
-    "bedrock-agentcore": "^0.2.0",
     "@langchain/aws": "^1.2.5",
     "@langchain/core": "^1.1.28",
+    "bedrock-agentcore": "^0.4.0",
     "langchain": "^1.2.27",
-    "zod": "^3.23.0"
+    "playwright": "^1.58.2",
+    "zod": "^4.3.6"
   }
 }
 ```
 
-## Using Browser in Python (Strands Agents)
+LangChain users in Python can use `create_browser_toolkit` from `langchain_aws.tools` instead.
 
-Strands provides the most streamlined Python integration with AgentCore Browser through `strands_tools.browser.AgentCoreBrowser`.
+## Define a custom browser
 
-### Basic Pattern
+A custom browser is an `AWS::BedrockAgentCore::BrowserCustom` resource with your settings. Use one when you need any of these:
 
-```python
-from strands import Agent
-from strands_tools.browser import AgentCoreBrowser
+| Need                                                             | Setting             |
+| ---------------------------------------------------------------- | ------------------- |
+| Recordings of sessions in Amazon S3                              | `recording`         |
+| Websites can verify requests come from your agent (Web Bot Auth) | `signing`           |
+| Access to private resources in a VPC                             | `network.mode: VPC` |
+| A browser role with permissions of your choice                   | `role`              |
 
-# Initialize browser (uses AWS-managed default)
-browser_tool = AgentCoreBrowser(region="us-east-1")
-
-# Create agent with browser capability
-agent = Agent(
-    tools=[browser_tool.browser],
-    model="us.anthropic.claude-sonnet-4-20250514-v1:0",
-    system_prompt="""You are a research assistant that can browse the web.
-When asked about current information, use the browser to find answers."""
-)
-
-# Use the agent
-result = agent("What are the latest AWS announcements?")
-```
-
-### Financial Analysis Example
-
-```python
-from strands import Agent
-from strands_tools.browser import AgentCoreBrowser
-
-browser_tool = AgentCoreBrowser(region="us-east-1")
-
-agent = Agent(
-    tools=[browser_tool.browser],
-    model="us.anthropic.claude-sonnet-4-20250514-v1:0",
-    system_prompt="""You are a financial analyst with web browsing capabilities.
-
-When analyzing stocks or financial websites:
-1. Navigate to the requested URL
-2. Extract key metrics: price, P/E ratio, market cap, volume
-3. Identify trends and recent movements
-4. Provide actionable insights with specific numbers"""
-)
-
-# Analyze a stock
-result = agent("Analyze Tesla stock at https://www.marketwatch.com/investing/stock/tsla")
-```
-
-### Combining Browser with Other Tools
-
-```python
-from strands import Agent
-from strands_tools.browser import AgentCoreBrowser
-from strands_tools.code_interpreter import AgentCoreCodeInterpreter
-
-browser_tool = AgentCoreBrowser(region="us-east-1")
-code_interpreter = AgentCoreCodeInterpreter(region="us-east-1")
-
-agent = Agent(
-    tools=[browser_tool.browser, code_interpreter.code_interpreter],
-    model="us.anthropic.claude-sonnet-4-20250514-v1:0",
-    system_prompt="""You are a data analyst that can:
-- Browse websites to gather data
-- Execute Python code for analysis and visualization"""
-)
-```
-
-## Custom Browser Resources
-
-For advanced scenarios, define custom browser resources with specific configurations:
-
-### When to Use Custom Browsers
-
-| Scenario                  | Recommendation                      |
-| ------------------------- | ----------------------------------- |
-| Basic web browsing        | Use AWS-managed default             |
-| Need session recording    | Define custom browser               |
-| Access VPC-only resources | Define custom browser with VPC mode |
-| Require request signing   | Define custom browser with signing  |
-
-### Basic Custom Browser
-
-```yml
+```yaml
 ai:
   browsers:
-    webBrowser:
-      description: Web scraping browser
+    research:
+      description: Browser for the research agent
       network:
         mode: PUBLIC
-      tags:
-        Purpose: WebScraping
-```
-
-### Browser with Session Recording
-
-Record browser sessions to S3 for debugging and auditing:
-
-```yml
-ai:
-  browsers:
-    recordingBrowser:
-      description: Browser with session recording enabled
-      network:
-        mode: PUBLIC
-      recording:
-        enabled: true
-        s3Location:
-          bucket: ${self:service}-recordings-${self:provider.stage}
-          prefix: browser-sessions/
       signing:
         enabled: true
 ```
 
-### Browser with VPC Access
+Browser settings other than `tags` are fixed when AWS creates the browser: changing one of them replaces the browser, which then gets a new ID.
 
-Access internal resources through VPC:
+### Use a custom browser from an agent
 
-```yml
+The Framework doesn't connect custom browsers to agents. Pass the browser ID to the agent in an environment variable, and allow the session actions on the browser's ARN:
+
+```yaml
 ai:
   browsers:
-    privateBrowser:
-      description: Browser for internal resources
-      network:
-        mode: VPC
-        subnets:
-          - subnet-12345678
-          - subnet-87654321
-        securityGroups:
-          - sg-12345678
-```
-
-## Configuration Reference
-
-### Browser Properties
-
-| Property      | Type          | Required | Description                               |
-| ------------- | ------------- | -------- | ----------------------------------------- |
-| `network`     | object        | No       | Network configuration (default: PUBLIC)   |
-| `description` | string        | No       | Human-readable description (1-1200 chars) |
-| `recording`   | object        | No       | Session recording configuration           |
-| `signing`     | object        | No       | Request signing configuration             |
-| `role`        | string/object | No       | IAM role ARN or configuration             |
-| `tags`        | object        | No       | Resource tags                             |
-
-### Network Configuration
-
-| Property         | Type   | Required | Description        |
-| ---------------- | ------ | -------- | ------------------ |
-| `mode`           | string | Yes      | `PUBLIC` or `VPC`  |
-| `subnets`        | array  | VPC only | VPC subnet IDs     |
-| `securityGroups` | array  | VPC only | Security group IDs |
-
-### Recording Configuration
-
-| Property            | Type    | Required      | Description              |
-| ------------------- | ------- | ------------- | ------------------------ |
-| `enabled`           | boolean | No            | Enable session recording |
-| `s3Location.bucket` | string  | If enabled    | S3 bucket for recordings |
-| `s3Location.prefix` | string  | If s3Location | S3 key prefix            |
-
-### Signing Configuration
-
-| Property  | Type    | Required | Description            |
-| --------- | ------- | -------- | ---------------------- |
-| `enabled` | boolean | No       | Enable request signing |
-
-## Session Recording
-
-Session recording captures browser interactions for debugging and compliance:
-
-**Use cases:**
-
-- Debug failed browser automation
-- Audit agent behavior for compliance
-- Review extracted data accuracy
-- Training and improvement analysis
-
-**Configuration:**
-
-```yml
-ai:
-  browsers:
-    auditBrowser:
+    research:
       network:
         mode: PUBLIC
-      recording:
-        enabled: true
-        s3Location:
-          bucket: my-audit-bucket
-          prefix: agent-sessions/
-```
 
-Recordings are stored in the specified S3 bucket and can be reviewed to understand how the agent interacted with websites.
-
-## IAM Role Configuration
-
-The framework automatically creates IAM roles with necessary permissions. To customize:
-
-```yml
-ai:
-  browsers:
-    customBrowser:
-      network:
-        mode: PUBLIC
+  agents:
+    researcher:
+      environment:
+        BROWSER_ID: !GetAtt ResearchBrowser.BrowserId
       role:
-        name: custom-browser-role
         statements:
           - Effect: Allow
             Action:
-              - s3:PutObject
-            Resource: arn:aws:s3:::my-bucket/*
-        tags:
-          Team: AI
+              - bedrock-agentcore:StartBrowserSession
+              - bedrock-agentcore:StopBrowserSession
+              - bedrock-agentcore:UpdateBrowserStream
+              - bedrock-agentcore:ConnectBrowserAutomationStream
+            Resource: !GetAtt ResearchBrowser.BrowserArn
 ```
+
+The browser's logical ID is its name with the first letter capitalized, followed by `Browser` (`research` becomes `ResearchBrowser`). In the agent code, start sessions with that ID: `BrowserClient(region=...).start(identifier=os.environ["BROWSER_ID"])` from `bedrock_agentcore.tools.browser_client` in Python, or `new Browser({ region, identifier: process.env.BROWSER_ID })` from `bedrock-agentcore/browser` in JavaScript.
+
+## Record browser sessions to Amazon S3
+
+`recording` saves a replay of each session to an S3 bucket you own. This service creates the bucket in `resources` and records into it:
+
+```yaml
+resources:
+  Resources:
+    RecordingsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:service}-recordings-${aws:accountId}-${sls:stage}
+
+ai:
+  browsers:
+    audited:
+      recording:
+        enabled: true
+        s3Location:
+          bucket: ${self:service}-recordings-${aws:accountId}-${sls:stage}
+          prefix: browser-sessions/
+```
+
+`s3Location.bucket` takes the bucket name as a string, and `s3Location.prefix` is required with it. The browser's generated role gets `s3:PutObject`, `s3:ListMultipartUploadParts` and `s3:AbortMultipartUpload` on objects under the prefix, in buckets of your account.
+
+## Connect a browser to a VPC
+
+With `network.mode: VPC`, the browser runs with network interfaces in your subnets:
+
+```yaml
+ai:
+  browsers:
+    intranet:
+      network:
+        mode: VPC
+        subnets:
+          - subnet-0123456789abcdef0
+          - subnet-0123456789abcdef1
+        securityGroups:
+          - sg-0123456789abcdef0
+```
+
+`subnets` and `securityGroups` are both required, 1 to 16 IDs each, and the subnets must be in Availability Zones that AgentCore supports. To reach public websites from a VPC browser, use private subnets with a route to a NAT gateway. See [Configure AgentCore for VPC](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-vpc.html). Browsers accept `PUBLIC` (default) and `VPC`.
+
+## IAM role for a browser
+
+Without `role`, the Framework creates a role per browser, named `<service>_<browser>_browser_role_<stage>` (truncated to 48 characters). It allows CloudWatch Logs under `/aws/bedrock-agentcore/`, and the S3 recording actions when `recording.s3Location` is set. To add statements, managed policies, a permissions boundary, tags or a custom name, set `role` to an object; to use your own role, set it to an ARN, a logical ID or a CloudFormation intrinsic. See [IAM role for an agent](./runtime.md#iam-role-for-an-agent):
+
+```yaml
+ai:
+  browsers:
+    research:
+      role:
+        statements:
+          - Effect: Allow
+            Action: s3:GetObject
+            Resource: arn:aws:s3:::my-browser-assets/*
+```
+
+## `ai.browsers` configuration reference
+
+| Key                      | Type             | Default        | Value                                                 |
+| ------------------------ | ---------------- | -------------- | ----------------------------------------------------- |
+| `network.mode`           | string           | `PUBLIC`       | `PUBLIC` or `VPC`                                     |
+| `network.subnets`        | list of strings  | None           | Subnet IDs; required with `VPC`                       |
+| `network.securityGroups` | list of strings  | None           | Security group IDs; required with `VPC`               |
+| `recording.enabled`      | boolean          | None           | Turns session recording on                            |
+| `recording.s3Location`   | object           | None           | `bucket` and `prefix`, both required                  |
+| `signing.enabled`        | boolean          | `false`        | Signs the browser's requests with Web Bot Auth        |
+| `description`            | string           | None           | 1 to 1,200 characters                                 |
+| `role`                   | string or object | Generated role | See [IAM role for a browser](#iam-role-for-a-browser) |
+| `tags`                   | map of strings   | None           | Tags on the browser                                   |
+
+For a browser named `research`, the stack contains `ResearchBrowser`, named `<service>_research_<stage>` (truncated to 48 characters), and outputs `ResearchBrowserArn` (exported as `<service>-<stage>-research-BrowserArn`), `ResearchBrowserId` and `ResearchBrowserRoleArn`.
 
 ## Examples
 
-**JavaScript:**
+- [LangGraph with the AWS-managed browser (JavaScript)](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-browser) and [(Python)](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-browser).
+- [Custom browser with session recording (JavaScript)](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-browser-custom) and [(Python)](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-browser-custom).
+- [Strands Agents with the browser (JavaScript)](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/strands-browser) and [(Python)](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/strands-browser).
 
-- [LangGraph Browser](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-browser) - LangGraph with PlaywrightBrowser toolkit
-- [LangGraph Browser Custom](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/langgraph-browser-custom) - Custom browser with session recording
-- [Strands Browser](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/javascript/strands-browser) - Strands Agents with BrowserTools
+## Related pages
 
-**Python:**
-
-- [LangGraph Browser](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-browser) - LangChain/LangGraph with browser toolkit
-- [LangGraph Browser Custom](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/langgraph-browser-custom) - Custom browser with session recording
-- [Strands Browser](https://github.com/serverless/examples/tree/v4/aws-bedrock-agentcore/python/strands-browser) - Strands Agents with AgentCoreBrowser
-
-## Next Steps
-
-- [Code Interpreter](./code-interpreter.md) - Python code execution capabilities
-- [Memory Configuration](./memory.md) - Conversation persistence
-- [Gateway Configuration](./gateway.md) - Custom Lambda tools
-- [Runtime Configuration](./runtime.md) - Deployment options
+- [AgentCore Code Interpreter](./code-interpreter.md): run code in a sandbox.
+- [AgentCore Runtime agents](./runtime.md): the agent settings, including `role` and `environment`.
+- [Amazon Bedrock AgentCore Browser](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/browser-tool.html) in the AgentCore developer guide.

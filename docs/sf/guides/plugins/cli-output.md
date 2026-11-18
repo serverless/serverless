@@ -1,8 +1,8 @@
 <!--
-title: Serverless Framework - Plugins - CLI output
-description: How to write to the CLI output in Serverless Framework plugins.
-short_title: Serverless Plugins - CLI output
-keywords: ['Serverless Framework', 'Plugins', 'CLI', 'Output']
+title: CLI Output in Plugins
+description: Write logs, progress, command output, errors and deprecations from a Serverless Framework plugin with the log, progress, writeText and style helpers.
+short_title: CLI Output
+keywords: ['Serverless Framework plugin', 'plugin logging', 'plugin progress', 'writeText', 'CLI output']
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -13,254 +13,206 @@ keywords: ['Serverless Framework', 'Plugins', 'CLI', 'Output']
 
 # CLI output in plugins
 
-Plugins can integrate and extend the CLI output of the Serverless Framework in different ways.
+A Serverless Framework plugin writes to the terminal through the output helpers the Framework passes to its constructor: `log` for messages, `progress` for the spinner, `writeText` for command output and `style` for formatting. Use them instead of `console.log`, so your output respects `--verbose` and `--debug`, doesn't break the spinner, and stays readable in CI and for AI agents.
 
-## Writing to the output
+This plugin logs a message, shows a progress message while it works, and prints a success line after `serverless deploy`:
 
-In Serverless Framework v2, plugins could write to the CLI output via `serverless.cli.log()`:
-
-```js
-// This approach is deprecated:
-serverless.cli.log('Message')
-```
-
-The method above is deprecated. It should no longer be used in Serverless Framework v3.
-
-Instead, plugins can log messages to the CLI output via a standard `log` interface:
-
-```js
-class MyPlugin {
-  constructor(serverless, cliOptions, { log }) {
-    log.error('Error')
-    log.warning('Warning')
-    log.notice('Message')
-    log.info('Verbose message') // --verbose log
-    log.debug('Debug message') // --debug log
+```javascript
+// my-plugin.mjs
+export default class MyPlugin {
+  constructor(serverless, options, { log, progress }) {
+    this.log = log
+    this.progress = progress
+    this.hooks = {
+      'after:deploy:deploy': () => this.afterDeploy(),
+    }
   }
-}
-```
 
-Some aliases exist to make log levels more explicit:
-
-```js
-log('Here is a message')
-// is an alias to:
-log.notice('Here is a message')
-
-log.verbose('Here is a verbose message') // displayed with --verbose
-// is an alias to:
-log.info('Here is a verbose message') // displayed with --verbose
-```
-
-To write a formatted "success" message, use the following helper:
-
-```js
-log.success('The task executed with success')
-```
-
-Success messages render with the checkmark, like the "Service deployed" success message:
-
-![](https://uploads-ssl.webflow.com/60acbb950c4d6606963e1fed/618259092410635f822c71af_framework-plugin-api-success-message.png)
-
-Log methods also support the printf format:
-
-```js
-log.warning('Here is a %s log', 'formatted')
-```
-
-**Best practices:**
-
-- **Keep the default CLI output minimal.**
-- Log most information to the `--verbose` output.
-- Warnings should be used exceptionally. Consider whether the plugin should instead throw an exception, log a `--verbose` message or trigger a deprecation (see below).
-- Before using `log.error()`, consider [throwing an exception](#errors): exceptions are automatically caught by the Serverless Framework and formatted with details.
-- Debugging logs should be logged to the `--debug` level. Debug logs can be namespaced following the [`debug` convention](https://github.com/visionmedia/debug#usage) via `log.get('my-namespace').debug('Debug message')`. Such logs can then be filtered in the CLI output via `--debug=plugin-name:my-namespace`.
-
-**By default, logs are written to `stderr`**, which displays in terminals (humans cannot tell the difference). This is intentional: plugins can safely log extra messages to any command, even commands meant to be piped or parsed by another program. Read the next section to learn more.
-
-### Writing command output to `stdout`
-
-By default, plugins should write messages to `stderr` via the `log` object. To write command output to `stdout` instead, use `writeText()`:
-
-```js
-class MyPlugin {
-  constructor(serverless, cliOptions, { writeText }) {
-    writeText('Command output')
-    writeText(['Here is a', 'multi-line output'])
-  }
-}
-```
-
-**Best practices:**
-
-- `stdout` output is usually meant to be piped to/parsed by another program.
-- Plugins should only write to `stdout` in commands they define (to avoid breaking the output of other commands).
-- The only content written to `stdout` should be the main output of the command.
-
-Take, for example, the `serverless invoke` command:
-
-- Its output is the result of the Lambda invocation: by writing that result (and only that) to `stdout`, it allows any script to parse the result of the Lambda invocation.
-- All other messages should be written to `stderr`: such logs are useful to humans, for example configuration warnings, upgrade notifications, Lambda logs… Since they are written to `stderr`, they do not break the parsable output of `stdout`.
-
-**If unsure, write to `stderr`** (with the `log` object) instead of `stdout`. Why: human users will not see any difference, but the door will stay open to write a parsable output later in the future.
-
-### Colors and formatting
-
-To format and color text output, use the [chalk](https://github.com/chalk/chalk) package. For example:
-
-```js
-log.notice(chalk.gray('Here is a message'))
-```
-
-**Best practices:**
-
-- Write primary information in **white**, secondary information in **gray**.
-  - Primary information is the direct outcome of a command (e.g. deployment result of the `deploy` command, or result of the `invoke` command). Secondary information is everything else.
-- Plugins should generally not use any other color, nor introduce any other custom formatting. Output formatting is meant to be minimalistic.
-- Plugins should use built-in formats documented in this page: success messages (`log.success()`), interactive progress…
-
-The "Serverless red" color (`#fd5750`) is used to grab the user's attention:
-
-- It should be used minimally, and maximum once per command.
-- It should be used only to grab attention to the command's most important information.
-
-## Errors
-
-The Serverless Framework differentiates between 2 errors:
-
-- user errors (wrong input, invalid configuration, etc.)
-- programmer errors (aka bugs)
-
-To throw a **user error** and have it properly formatted, use Serverless' error class:
-
-```js
-throw new serverless.classes.Error('Invalid configuration in X')
-```
-
-All other errors are considered programmer errors by default (and are properly formatted in the CLI output as well).
-
-**Best practices:**
-
-- If an error should stop the execution of the command, use `throw`.
-- If an error should _not_ stop the execution of the command (which should be exceptional), log it via `log.error()`.
-  - For example any execution error in `serverless-offline` should not stop the local server.
-
-## Interactive progress
-
-Plugins can create an interactive progress:
-
-```js
-class MyPlugin {
-  constructor(serverless, cliOptions, { progress }) {
-    const myProgress = progress.create({
-      message: 'Doing extra work in my-plugin',
-    })
-    // ...
-    myProgress.update('Almost finished')
-    // ...
+  async afterDeploy() {
+    const myProgress = this.progress.get('my-plugin')
+    myProgress.notice('Uploading assets with my-plugin')
+    // ... do the work
     myProgress.remove()
+    this.log.success('Assets uploaded')
   }
 }
 ```
 
-In case of parallel processing (for example compiling multiple files in parallel), it is possible to create multiple progress items if that is useful to users.
+## The output helpers argument
 
-**Best practices:**
+The Framework calls `new MyPlugin(serverless, options, utils)`. The third argument, `utils`, has these properties:
 
-- Create a progress for tasks that usually take **more than 2 seconds**. Below that threshold, plugins can operate silently and log to `--verbose` only.
-- Users should know which plugin is working from the progress message:
-  - Bad: "Compiling"
-  - Bad: "[Webpack] Compiling" (avoid prefixes)
-  - Good: "Compiling with webpack"
-- Displaying multiple progresses should be exceptional, and limited to 3-4 progresses at a time. It is better to keep the output minimal than too noisy.
+| Property    | What it does                                                                          |
+| ----------- | ------------------------------------------------------------------------------------- |
+| `log`       | Writes messages to standard error at a log level; also callable as `log(message)`.    |
+| `progress`  | The CLI's main progress spinner, and `progress.get(name)` for a progress of your own. |
+| `writeText` | Writes command output to standard output.                                             |
+| `style`     | Formats text in the Framework's colors.                                               |
 
-Note that it is possible to give a unique name to a progress. That name can be used to retrieve the progress without having to pass the instance around:
+The helpers exist only as this argument. To use them in hooks or in other modules of your plugin, keep a reference in the constructor (`this.log = log`) and pass it on.
 
-```js
-// Progress without any name:
-const myProgress = progress.create({
-  message: 'Doing extra work in my-plugin',
-})
+## Write log messages with `log`
 
-// Progress with a unique name
-progress.create({
-  message: 'Doing extra work in my-plugin',
-  name: 'my-plugin-progress', // Try to make the name unique across all plugins
-})
-// elsewhere...
-progress.get('my-plugin-progress').update('Almost finished')
-// elsewhere...
-progress.get('my-plugin-progress').remove()
+The plugin's `log` writes to standard error, so messages never mix with output that a script reads from standard output. Each method writes at a log level, and the level decides when the message shows:
+
+| Method                        | Shown                             | Line starts with |
+| ----------------------------- | --------------------------------- | ---------------- |
+| `log.error()`                 | Always                            | `✖`              |
+| `log.warning()`               | Always                            | `[!]`            |
+| `log.notice()`, `log()`       | By default                        | nothing          |
+| `log.success()`               | By default                        | `✔`              |
+| `log.info()`, `log.verbose()` | With `--verbose` or `SLS_VERBOSE` | nothing          |
+| `log.debug()`                 | With `--debug` or `SLS_DEBUG`     | its namespace    |
+
+```javascript
+log.error('Could not upload assets')
+log.warning('custom.myPlugin.bucket is not set, using the default bucket')
+log.notice('Uploading 3 files')
+log.success('Assets uploaded')
+log.verbose('Uploaded index.html (12 KB)')
+log.debug('S3 response: %s', response)
 ```
 
-## Service information
+When Serverless Compose runs a command for more than one service, it shows its own progress and hides the services' and plugins' log lines at every level, unless `--debug` is set. With `--service <name>` for a single service, the levels above apply.
 
-Plugins can add their own sections to the "Service information", i.e. the information displayed after `serverless deploy` or in `serverless info`.
+Log methods accept several arguments and join them with spaces. A first argument that contains `%s` or `%d` is a format string: each placeholder takes the next argument. Objects print as `util.inspect` output, and an `Error` prints with its stack.
 
-To add a single item:
+Keep the default output short: log details at the `--verbose` level, and use warnings only for something the user should change. When a problem should stop the command, throw an error instead of calling `log.error()` (see [Errors in plugins](#errors-in-plugins)).
 
-```js
-serverless.addServiceOutputSection('my section', 'content')
+## Namespaced debug logs
+
+`log.get(name)` returns a logger for a child namespace, so debug lines show which part of the plugin wrote them:
+
+```javascript
+const uploadLog = log.get('upload')
+uploadLog.debug('Starting upload of %d files', files.length)
 ```
 
-The example above will be displayed as:
+Each debug line starts with its namespace, for example `s:sls:plugin:serverless-my-plugin:upload:`. The plugin's part of the namespace is the name listed in `plugins`, lowercased, with characters other than letters, digits and `-` replaced by `-`. `--debug` prints the debug lines of every namespace, whatever value you pass to it.
 
-```
-$ serverless info
-functions:
-  ...
-my section: content
-```
+## Write command output with `writeText`
 
-To add a multi-line section:
+`writeText` writes to standard output. Use it for the result of a command your plugin defines, so that scripts and agents can pipe or parse it:
 
-```js
-serverless.addServiceOutputSection('my section', ['line 1', 'line 2'])
+```javascript
+writeText(JSON.stringify(result, null, 2))
+writeText(['line 1', 'line 2'])
 ```
 
-The example above will be displayed as:
+`writeText` joins its string arguments and array items with new lines, ignores non-string values, and ends the output with a new line. Write to standard output only in your own commands: other commands, such as `serverless invoke`, reserve standard output for their own result. If you're unsure, log with `log` instead.
 
+## Format text with `style`
+
+`style` holds the Framework's formatting functions. Each takes a string and returns it formatted:
+
+- `style.aside()`: secondary information, in gray.
+- `style.strong()`: the one piece of information that needs attention, in the Framework's red. Use it at most once per command.
+- `style.bold()`, `style.title()` (underlined) and `style.linkStrong()` (underlined); `style.link()` returns the text unchanged.
+- `style.success()`: a successful outcome, in green.
+- `style.error()` and `style.warning()`: the colors of error and warning messages.
+
+```javascript
+log.notice(`Bucket: my-bucket ${style.aside('(created)')}`)
 ```
-$ serverless info
-functions:
-  ...
-my section:
-  line 1
-  line 2
+
+The Framework turns colors off when `FORCE_COLOR` is `0` or `false`, or, while `FORCE_COLOR` isn't set, when `NO_COLOR` is set or the CLI runs under an AI coding agent; `style` then returns plain text. Write primary information unstyled and secondary information with `style.aside()`.
+
+## Show progress
+
+`progress` is the CLI's main progress, which the Framework's own messages also use. To show a message of your own, get a progress by a unique name with `progress.get(name)`, set its message with `notice()` and clear it with `remove()` when the work is done:
+
+```javascript
+const myProgress = progress.get('my-plugin')
+myProgress.notice('Compiling with my-plugin')
+// ...
+myProgress.notice('Uploading with my-plugin')
+// ...
+myProgress.remove()
 ```
 
-## Deprecations
+`progress.get()` returns the same progress for the same name anywhere in the process, so you don't have to pass the instance around. When several progresses have a message, the spinner shows the first one followed by `(and 1 more task)` or `(and N more tasks)`. `create({ message })` and `update(message)` are aliases of `notice()` on the progress you call them on; `create()` ignores a `name`.
 
-Plugins can signal deprecated features to users via `logDeprecation()`:
+Show progress for work that usually takes more than about two seconds, and name your plugin's tool in the message ("Compiling with webpack", not "Compiling" or "[Webpack] Compiling").
 
-```js
-serverless.logDeprecation(
-  'DEPRECATION_CODE',
-  'Feature X of my-plugin is deprecated. Please use Y instead.',
+## Output without an interactive terminal
+
+Without an interactive terminal, for example in CI (`CI` set), with piped output, or under an AI coding agent, the Framework draws no spinner and prompts can't be answered:
+
+- `progress.notice()` prints the message as a line only with `--verbose`; `remove()` does nothing.
+- `log` and `writeText` behave the same as in a terminal.
+- `log.isInteractive()` returns `false`. Check it before asking the user anything, and fall back to a CLI option or configuration value.
+
+`SLS_INTERACTIVE_SETUP_ENABLE` forces interactive mode, except on a terminal that reports a width of zero.
+
+## Errors in plugins
+
+To stop the command with an error the user can fix, such as invalid input or configuration, throw the Framework's error class:
+
+```javascript
+throw new serverless.classes.Error(
+  'custom.myPlugin.bucket must be a bucket name',
+  'MY_PLUGIN_INVALID_BUCKET',
+  { stack: false },
 )
 ```
 
-These deprecations will integrate with the deprecation system of the Serverless Framework.
+The arguments are the message, an optional error code, and options. With `{ stack: false }`, the CLI prints only `✖` and the message. Any other thrown error, including one without `stack: false`, prints with its stack trace and a hint to run the command again with `--debug`.
 
-**Best practices:**
+Log an error with `log.error()` instead of throwing it only when the command should continue, for example when one request fails in a local server that keeps running.
 
-- Prefix the deprecation code with the plugin name, for example: `OFFLINE_XXX`.
-- Make the message actionable for users: if a feature is deprecated, what should users use instead? Feel free to add links if necessary.
+## Add sections to the service information
 
-## Retrieving the I/O API
+The service information is the summary printed after `serverless deploy` and by `serverless info`. To add a line to it, call `serverless.addServiceOutputSection()` with a section name and a string:
 
-As shown in the examples above, the I/O API is injected in the constructor of plugins:
-
-```js
-class MyPlugin {
-  constructor(serverless, cliOptions, { writeText, log, progress }) {
-    // ...
-  }
-}
+```javascript
+serverless.addServiceOutputSection(
+  'dashboard',
+  'https://example.com/my-service',
+)
 ```
 
-However, it is also possible to retrieve it from any JavaScript file by requiring the `@serverless/utils` package:
-
-```js
-const { writeText, log, progress } = require('@serverless/utils/log')
+```text
+dashboard: https://example.com/my-service
 ```
+
+To add a section of several lines, pass an array of strings:
+
+```javascript
+serverless.addServiceOutputSection('queues', ['orders', 'payments'])
+```
+
+```text
+queues:
+  orders
+  payments
+```
+
+Add sections in a hook that runs before the summary prints, for example `after:deploy:deploy` or `before:info:info`. A section name can be added once per command, and the content can't be an empty string or an empty array; both throw an error. `serverless info --json` doesn't include plugin sections.
+
+## Report deprecations
+
+To tell users that a feature of your plugin is deprecated, call `serverless.logDeprecation()` with a code and a message:
+
+```javascript
+serverless.logDeprecation(
+  'MY_PLUGIN_OLD_OPTION',
+  'custom.myPlugin.oldOption is deprecated. Use custom.myPlugin.newOption instead.',
+)
+```
+
+The Framework prefixes the code with `EXT_` (here `EXT_MY_PLUGIN_OLD_OPTION`) and reports each code once per command. What happens next depends on the service's settings:
+
+- By default, the Framework records the deprecation without printing it.
+- With `deprecationNotificationMode: warn` in `serverless.yml`, or `SLS_DEPRECATION_NOTIFICATION_MODE=warn`, it prints the message as a warning.
+- With `deprecationNotificationMode: error`, or `SLS_DEPRECATION_NOTIFICATION_MODE=error`, the command stops with the message and a `More Info` link.
+- With the code in `disabledDeprecations` (`disabledDeprecations: [EXT_MY_PLUGIN_OLD_OPTION]`) or in the comma-separated `SLS_DEPRECATION_DISABLE`, it does nothing. `*` in either disables every deprecation.
+
+`SLS_DEPRECATION_NOTIFICATION_MODE` takes precedence over `deprecationNotificationMode`.
+
+Prefix the code with your plugin's name, and use only uppercase letters, digits and underscores, so users can list it in `disabledDeprecations`. Say in the message what to use instead.
+
+## Related pages
+
+- [Create a plugin](./creating-plugins.md): the plugin class, its constructor arguments and lifecycle hooks
+- [Custom commands](./custom-commands.md): commands whose output you write with `writeText`
+- [Plugins](./README.md)
