@@ -124,6 +124,9 @@ updates:
       - dependency-name: 'graphql'
         # graphql v17 drops support for Node.js 18 and 20
         versions: ['>= 17.0.0']
+      - dependency-name: '@graphql-tools/merge'
+        # @graphql-tools/merge v10 drops support for Node.js 18 and 20
+        versions: ['>= 10.0.0']
       - dependency-name: 'chalk'
         # chalk v6 drops support for Node.js 18 and 20
         versions: ['>= 6.0.0']
