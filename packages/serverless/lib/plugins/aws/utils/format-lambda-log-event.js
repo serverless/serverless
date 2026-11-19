@@ -45,7 +45,8 @@ export default (msgParam) => {
   } else {
     return msg
   }
-  const text = msg.split(`${level || reqId}\t`)[1]
+  // The message follows the timestamp and request id, and the level where it comes first.
+  const text = splitted.slice(level ? 3 : 2).join('\t')
   const time = dayjs(date).format(dateFormat)
 
   return `${style.aside(`${time} - ${reqId} - ${level}`)}\n${text}`
