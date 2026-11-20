@@ -116,6 +116,25 @@ describe('stripExampleReadmeHeader', () => {
     expect(stripExampleReadmeHeader(readme, name)).toBe(readme)
   })
 
+  it('keeps a top comment that closes inline before a later comment', () => {
+    const readme = [
+      '<!--',
+      'Maintainer note -->',
+      '# Guide',
+      '',
+      '```yaml',
+      'title: Example',
+      '```',
+      '',
+      '<!--',
+      'Footer note',
+      '-->',
+      'Keep me',
+      '',
+    ].join('\n')
+    expect(stripExampleReadmeHeader(readme, name)).toBe(readme)
+  })
+
   it('keeps an unclosed comment at the top', () => {
     const readme = `<!--\ntitle: 'Unclosed'\n\n${body}`
     expect(stripExampleReadmeHeader(readme, name)).toBe(readme)

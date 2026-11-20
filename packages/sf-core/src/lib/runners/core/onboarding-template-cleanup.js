@@ -36,9 +36,12 @@ export const stripExampleReadmeHeader = (content, templateName) => {
 
   // Metadata comment: must open on the first line and carry a "title:" key
   if (lines.length && lineContent(lines[0]).trim() === '<!--') {
-    const end = lines.findIndex((line) => lineContent(line).trim() === '-->')
+    // The comment ends at the first "-->", which must stand on its own line
+    const end = lines.findIndex((line, i) => i > 0 && line.includes('-->'))
     const hasTitle =
-      end > 0 && lines.slice(1, end).some((line) => /^\s*title\s*:/.test(line))
+      end > 0 &&
+      lineContent(lines[end]).trim() === '-->' &&
+      lines.slice(1, end).some((line) => /^\s*title\s*:/.test(line))
     if (hasTitle) {
       let next = end + 1
       while (isBlank(lines[next])) next += 1
