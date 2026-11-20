@@ -17,6 +17,7 @@ import { CoreSDK } from '@serverless-inc/sdk'
 import readConfig from '@serverless/framework/lib/configuration/read.js'
 import { Authentication } from '../../auth/index.js'
 import { AwsLogin } from '../../auth/aws-login.js'
+import { removeExampleRepoFiles } from './onboarding-template-cleanup.js'
 
 /**
  * The Serverless Framework V.4 onboarding experience
@@ -164,6 +165,12 @@ const routeNew = async ({
       `Failed to download and install template from ${templateUrl} due to ${error.message}`,
     )
   }
+
+  // Leave out the files that only serve the serverless/examples repository
+  await removeExampleRepoFiles({
+    templateDir: newTemplatePath,
+    templateName: state.newServiceTemplate,
+  })
 
   logger.success('Template Downloaded')
   progressMain.notice('Reviewing template')
