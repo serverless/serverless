@@ -48,7 +48,7 @@ Each skill is a folder named after the skill, with its `SKILL.md` and reference 
   2. else, the service's `.claude/` and `.agents/` directories that exist;
   3. else, the agents found in your home directory: `~/.claude` selects `.claude/skills/`; `~/.agents`, `~/.codex` or `~/.cursor` select `.agents/skills/`;
   4. else, both.
-- **The user-level `serverless-framework` skill** goes into `~/.claude/skills/` and `~/.agents/skills/`: with `--dir`, the directories it names; without it, those of the agents found in your home directory (the markers in rule 3), or both when none is found. When the environment has no home directory, the user-level install is skipped and the output says so.
+- **The user-level `serverless-framework` skill** goes into `~/.claude/skills/` and `~/.agents/skills/`: with `--dir`, the directories it names; without it, those of the agents found in your home directory (the markers in rule 3), or both when none is found. When the environment has no home directory, the user-level install is skipped and the output says so. When an installed Claude Code plugin already provides the skill at the bundled version or newer, the command doesn't add a copy to `~/.claude/skills/`, unless you pass `--dir claude`; see [The user-level skill and Claude Code plugins](../../../guides/agent-skills.md#the-user-level-skill-and-claude-code-plugins).
 
 Commit the project skills so teammates' agents get them. `serverless deploy` and `serverless package` leave `.claude/skills/serverless-*` and `.agents/skills/serverless-*` out of the function package.
 
@@ -77,7 +77,7 @@ Target: .claude/skills
 Skills auto-update when you use a newer CLI. To customize a skill, remove its metadata.managed-by line. To uninstall, delete the skill folders.
 ```
 
-Outside a service directory, the report adds `project skills: no serverless.yml in this directory; run this command in a service directory to install them there`. A CLI version that bundles no skills prints `No skills are bundled with this CLI version.` and writes nothing.
+Outside a service directory, the report adds `project skills: no serverless.yml in this directory; run this command in a service directory to install them there`. A CLI version that bundles no skills prints `No skills are bundled with this CLI version.` and writes nothing. A line that starts with `· serverless-framework: Claude Code` reports a copy of the skill that an installed Claude Code plugin provides ([The user-level skill and Claude Code plugins](../../../guides/agent-skills.md#the-user-level-skill-and-claude-code-plugins)).
 
 ## Non-interactive use
 

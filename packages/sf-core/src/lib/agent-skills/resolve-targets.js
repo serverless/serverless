@@ -6,7 +6,8 @@
 import { stat } from 'fs/promises'
 import path from 'path'
 import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
-import { hasManagedSkills } from './engine.js'
+import { hasManagedSkills, readInstalledMeta } from './engine.js'
+import { findClaudePluginSkill } from './plugin-skills.js'
 
 export const DIR_MAP = { claude: '.claude/skills', agents: '.agents/skills' }
 
@@ -106,4 +107,55 @@ export const resolveUserTargetDirs = async ({ homeDir, dirFlags }) => {
   }
   const keys = detected.length ? [...new Set(detected)] : Object.keys(DIR_MAP)
   return keys.map((k) => path.join(homeDir, ...DIR_MAP[k].split('/')))
+}
+
+/**
+ * User-scope targets for ONE skill, taking into account a copy Claude Code
+ * already loads from an installed plugin. Claude Code lists a plugin's skill
+ * and a skill of the same name in `~/.claude/skills` side by side, so when a
+ * plugin provides this skill at the bundled version or newer:
+ *  - nothing in `~/.claude/skills` yet: that dir is left out. No other dir
+ *    takes its place: creating `~/.agents` here would change which dirs later
+ *    runs pick, for project skills too;
+ *  - a managed copy is already there: it stays a target (this CLI never
+ *    deletes), and `alsoInstalled` lets the caller say that it is listed twice.
+ * When the plugin's copy is older, `~/.claude/skills` stays a target so the
+ * bundled version is installed, and `older` lets the caller say that it is
+ * listed twice and that the plugin needs an update (`id` names it for
+ * `claude plugin update` when it has one). A copy the user customized
+ * and explicit `--dir` targets leave the dirs as resolveUserTargetDirs picks
+ * them, with no plugin note.
+ *
+ * @returns {Promise<{dirs: string[], plugin?: {version: number, alsoInstalled: boolean, older?: boolean, id?: string}}>}
+ */
+export const resolveUserSkillTargetDirs = async ({
+  homeDir,
+  dirFlags,
+  skill,
+  findPluginSkill = findClaudePluginSkill, // test seam
+}) => {
+  const dirs = await resolveUserTargetDirs({ homeDir, dirFlags })
+  if (dirFlags?.length) return { dirs }
+  const claudeDir = path.join(homeDir, ...DIR_MAP.claude.split('/'))
+  if (!dirs.includes(claudeDir)) return { dirs }
+  const installed = await readInstalledMeta(path.join(claudeDir, skill.name))
+  if (installed.present && !installed.managed) return { dirs }
+  const plugin = await findPluginSkill({ homeDir, skillName: skill.name })
+  if (!plugin) return { dirs }
+  if (plugin.version < skill.version)
+    return {
+      dirs,
+      plugin: {
+        version: plugin.version,
+        alsoInstalled: true,
+        older: true,
+        ...(plugin.id && { id: plugin.id }),
+      },
+    }
+  if (installed.present)
+    return { dirs, plugin: { version: plugin.version, alsoInstalled: true } }
+  return {
+    dirs: dirs.filter((dir) => dir !== claudeDir),
+    plugin: { version: plugin.version, alsoInstalled: false },
+  }
 }
