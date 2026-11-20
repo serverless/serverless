@@ -118,6 +118,27 @@ describe('a plugin installed from a marketplace', () => {
 })
 
 describe('a plugin synced from a claude.ai account', () => {
+  it('does not count when the user settings turn plugin syncing off', async () => {
+    // Claude Code hides the synced plugins it already downloaded when
+    // `syncClaudeAiPlugins` is false.
+    await seedSkill(syncedDir('account-1', 'tools'))
+    await mkdir(path.join(home, '.claude'), { recursive: true })
+    await writeFile(
+      path.join(home, '.claude', 'settings.json'),
+      JSON.stringify({ syncClaudeAiPlugins: false }),
+    )
+    expect(await find()).toBeUndefined()
+  })
+
+  it('does not count when the user settings are not readable JSON', async () => {
+    // Unreadable settings could turn the plugin off, so they count as no
+    // plugin copy, as an unreadable plugin folder does.
+    await seedSkill(syncedDir('account-1', 'tools'))
+    await mkdir(path.join(home, '.claude'), { recursive: true })
+    await writeFile(path.join(home, '.claude', 'settings.json'), '{ not json')
+    expect(await find()).toBeUndefined()
+  })
+
   it('provides the skill without an entry in the user settings', async () => {
     await seedSkill(syncedDir('account-1', 'tools'))
     // A synced plugin is updated from claude.ai, so it has no id to update.

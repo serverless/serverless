@@ -37,19 +37,32 @@ const exists = async (filePath) => {
 }
 
 /**
- * `enabledPlugins` from the user settings: plugin id → true/false. Project and
- * local settings are not read: they hold for one project, and the user-level
- * skill is for all of them.
+ * The plugin settings from the user settings: `enabled` maps a plugin id to
+ * true/false, and `syncOff` is true when `syncClaudeAiPlugins` is false, which
+ * hides the synced plugins. Project and local settings are not read: they hold
+ * for one project, and the user-level skill is for all of them. A missing file
+ * means no settings; a file that can't be read or parsed returns undefined,
+ * since it could turn any plugin off.
  */
-const userEnabledPlugins = async (claudeDir) => {
+const userPluginSettings = async (claudeDir) => {
+  let content
   try {
-    const settings = JSON.parse(
-      await readFile(path.join(claudeDir, 'settings.json'), 'utf8'),
-    )
-    const enabled = settings?.enabledPlugins
-    return enabled && typeof enabled === 'object' ? enabled : {}
+    content = await readFile(path.join(claudeDir, 'settings.json'), 'utf8')
+  } catch (error) {
+    return error?.code === 'ENOENT'
+      ? { enabled: {}, syncOff: false }
+      : undefined
+  }
+  let settings
+  try {
+    settings = JSON.parse(content)
   } catch {
-    return {}
+    return undefined
+  }
+  const enabled = settings?.enabledPlugins
+  return {
+    enabled: enabled && typeof enabled === 'object' ? enabled : {},
+    syncOff: settings?.syncClaudeAiPlugins === false,
   }
 }
 
@@ -97,12 +110,15 @@ const manifestOf = async (pluginDir) => {
  *  - `plugins/synced/<account>/<plugin>/` holds a plugin turned on for the
  *    user's claude.ai account, id `<name>@synced`, where the name comes from
  *    the manifest (the folder is often an id). It loads unless the user
- *    settings turn it off, or its manifest is off by default and the settings
- *    don't turn it on.
+ *    settings turn it or plugin syncing (`syncClaudeAiPlugins`) off, or its
+ *    manifest is off by default and the settings don't turn it on.
+ * User settings that can't be read count as no plugins at all.
  */
 const claudePluginDirs = async (claudeDir) => {
   const pluginsDir = path.join(claudeDir, 'plugins')
-  const enabled = await userEnabledPlugins(claudeDir)
+  const settings = await userPluginSettings(claudeDir)
+  if (!settings) return []
+  const { enabled, syncOff } = settings
   const dirs = []
   for (const marketplaceDir of await subdirsOf(
     path.join(pluginsDir, 'cache'),
@@ -116,6 +132,7 @@ const claudePluginDirs = async (claudeDir) => {
       }
     }
   }
+  if (syncOff) return dirs
   for (const accountDir of await subdirsOf(path.join(pluginsDir, 'synced'))) {
     for (const pluginDir of await subdirsOf(accountDir)) {
       const manifest = await manifestOf(pluginDir)

@@ -136,13 +136,13 @@ gemini extensions install https://github.com/serverless/agent-plugins
 
 ### Install the skill in other agents
 
-For any agent that reads Agent Skills, this command copies the skill into the skill directories of the agents it finds on your machine:
+For any agent that reads Agent Skills, this command copies the skill into the user-level skill directories of the agents you choose:
 
 ```bash
-npx skills add serverless/agent-plugins
+npx skills add serverless/agent-plugins --global
 ```
 
-The CLI treats that copy as its own: `serverless agent setup` and automatic updates keep it current.
+The CLI treats a copy in `~/.claude/skills` or `~/.agents/skills` as its own: `serverless agent setup` and automatic updates keep it current. Copies in other agents' directories are updated with `npx skills update --global`.
 
 ### The user-level skill and Claude Code plugins
 
