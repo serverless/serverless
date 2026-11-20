@@ -47,7 +47,7 @@ An invalid `--dir` value exits 1 with `Unknown --dir value "<value>". Valid valu
 
 `serverless agent setup` writes the same files as [`serverless agent skills install`](./agent-skills-install.md#files-serverless-agent-skills-install-writes):
 
-- The user-level `serverless-framework` skill, in every directory, into `~/.claude/skills` and `~/.agents/skills` for the agents found in your home directory (both when none is found), so any agent on the machine knows the Framework in every project.
+- The user-level `serverless-framework` skill, in every directory, into `~/.claude/skills` and `~/.agents/skills` for the agents found in your home directory (both when none is found), so any agent on the machine knows the Framework in every project. When an installed Claude Code plugin already provides the skill, the command doesn't add a copy to `~/.claude/skills`; see [The user-level skill and Claude Code plugins](../../../guides/agent-skills.md#the-user-level-skill-and-claude-code-plugins).
 - Inside a service directory, the project skills, into the service's `.claude/skills` and `.agents/skills` as `serverless agent skills install` picks them. Each one loads only when a task involves its feature, such as adding an MCP server to the service, so they are installed whether or not the service uses the feature yet.
 
 Commit the project skills so teammates' agents get them. `serverless deploy` and `serverless package` leave them out of the function package; `package.patterns` can include them again (see [Packaging](../guide/packaging.md)). A skill is updated only when the bundled version is newer, and a skill whose `SKILL.md` has no `metadata.managed-by: serverless-framework` line is skipped as customized. Installed skills update as the CLI updates; see [Automatic updates](../../../guides/agent-skills.md#automatic-updates).
@@ -68,7 +68,7 @@ environment:
 docs: read ~/.claude/skills/serverless-framework/SKILL.md now; new sessions load it automatically. "serverless agent docs" prints the documentation on demand
 ```
 
-- **`skills:`** has one line per skill: `installed in` or `updated in` the directories it wrote, `up to date`, `customized by you (no managed-by) — skipped`, or `target not writable — skipped`. After a run that added project skills, a `project skills:` note says to commit them. Without a home directory, the line `skills: user-level install skipped (no home directory available in this environment)` replaces the user-level entry.
+- **`skills:`** has one line per skill: `installed in` or `updated in` the directories it wrote, `up to date`, `customized by you (no managed-by) — skipped`, or `target not writable — skipped`. After a run that added project skills, a `project skills:` note says to commit them. Without a home directory, the line `skills: user-level install skipped (no home directory available in this environment)` replaces the user-level entry. A line that starts with `serverless-framework: Claude Code` reports a copy of the skill that an installed Claude Code plugin provides ([The user-level skill and Claude Code plugins](../../../guides/agent-skills.md#the-user-level-skill-and-claude-code-plugins)).
 - **`service:`** reads `service: serverless.yml found; AWS credentials checked for stage "dev"` in a service directory, naming the configuration file and the stage the AWS check covered.
 - **`docs:`** is printed only when the `serverless-framework` skill is on disk.
 
