@@ -1625,6 +1625,8 @@ authorizers:
     issuerUrl: https://idp.example.com/
     audience: api://orders`,
                   type: 'object',
+                  // Keys become CloudFormation logical IDs.
+                  propertyNames: { pattern: '^[A-Za-z0-9_-]+$' },
                   additionalProperties: apiGatewayJwtAuthorizer,
                 },
                 apiKeySourceType: {

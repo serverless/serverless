@@ -14,6 +14,11 @@ const NAME_CONFLICT = 'API_GATEWAY_AUTHORIZER_NAME_CONFLICT'
 
 const DEFAULT_IDENTITY_SOURCE = 'method.request.header.Authorization'
 const IDENTITY_SOURCE_PATTERN = /^method\.request\.header\.[^,\s]+$/
+// Keys become CloudFormation logical IDs, which are alphanumeric once the
+// Framework has normalized "-" and "_".
+const AUTHORIZER_KEY_PATTERN = /^[A-Za-z0-9_-]+$/
+// https, a host right after the scheme, and no whitespace anywhere.
+const ISSUER_URL_SHAPE = /^https:\/\/[^/?#@\s][^\s]*$/
 const ALGORITHMS = ['RS256', 'RS384', 'RS512', 'ES256', 'ES384', 'ES512']
 const RESERVED_CLAIMS = ['iss', 'aud', 'exp', 'nbf', 'iat', 'scope', 'scp']
 const MAX_ISSUERS = 10
@@ -64,6 +69,7 @@ const invalid = (message) =>
  * and no user info, query or fragment. The value itself is never rewritten.
  */
 const isValidIssuerUrl = (issuerUrl) => {
+  if (!ISSUER_URL_SHAPE.test(issuerUrl)) return false
   if (issuerUrl.includes('?') || issuerUrl.includes('#')) return false
   let url
   try {
@@ -178,12 +184,20 @@ const normalizeAudience = (key, path, audience) => {
       }.`,
     )
   }
+  const seen = new Set()
   for (const item of audiences) {
     if (!isNonEmptyString(item) && !isIntrinsic(item)) {
       throw invalid(
         `API Gateway authorizer "${key}" lists audience ${show(item)} in "${path}". Each audience is a non-empty string or a CloudFormation intrinsic function.`,
       )
     }
+    if (typeof item !== 'string') continue
+    if (seen.has(item)) {
+      throw invalid(
+        `API Gateway authorizer "${key}" lists audience "${item}" twice. List each audience once.`,
+      )
+    }
+    seen.add(item)
   }
   return audiences
 }
@@ -285,15 +299,17 @@ const normalizeIssuers = (key, definition) => {
     }
     return normalizeIssuer(key, `issuers[${index}].`, issuer)
   })
+  // Intrinsics are compared as written: two identical ones resolve to one
+  // issuer.
   const seen = new Set()
   for (const { Issuer } of normalized) {
-    if (typeof Issuer !== 'string') continue
-    if (seen.has(Issuer)) {
+    const id = typeof Issuer === 'string' ? Issuer : JSON.stringify(Issuer)
+    if (seen.has(id)) {
       throw invalid(
-        `API Gateway authorizer "${key}" lists issuer "${Issuer}" twice. A JWT authorizer lists each issuer once: merge their audiences and claims into one entry of "issuers".`,
+        `API Gateway authorizer "${key}" lists issuer ${show(Issuer)} twice. A JWT authorizer lists each issuer once: merge their audiences and claims into one entry of "issuers".`,
       )
     }
-    seen.add(Issuer)
+    seen.add(id)
   }
   return normalized
 }
@@ -312,6 +328,16 @@ export default {
     if (definitions == null) return authorizers
 
     for (const [key, definition] of Object.entries(definitions)) {
+      if (!AUTHORIZER_KEY_PATTERN.test(key)) {
+        throw invalid(
+          `API Gateway authorizer "${key}" has a name CloudFormation can't use. Use letters, digits, "-" and "_" only in the keys of "provider.apiGateway.authorizers"; set "name" to give API Gateway a different name.`,
+        )
+      }
+      if (key.toLowerCase() === 'aws_iam') {
+        throw invalid(
+          `API Gateway authorizer "${key}" uses a reserved name: "authorizer: aws_iam" on an http event means IAM authorization. Rename the JWT authorizer.`,
+        )
+      }
       if (!isPlainObject(definition)) {
         throw invalid(
           `API Gateway authorizer "${key}" is set to ${show(definition)}. Define it as an object with "type: jwt", "algorithms", "issuerUrl" and "audience".`,
@@ -400,18 +426,40 @@ export default {
     // Without a "type", a name could mean the JWT authorizer or a function used
     // as a Lambda authorizer (the meaning it has had so far), so a name that is
     // both is rejected rather than silently switched to the JWT authorizer.
+    const isFunction = (name) =>
+      Boolean(this.serverless?.service?.functions?.[name])
     const assertNotAlsoFunction = (name) => {
-      if (!this.serverless?.service?.functions?.[name]) return
+      if (!isFunction(name)) return
       throw new ServerlessError(
-        `"${name}" names both a JWT authorizer in "provider.apiGateway.authorizers" and a function in this service, so the http event of function "${functionName}" could mean either. Rename the JWT authorizer: API Gateway needs authorizer names to be unique within a REST API.`,
+        `"${name}" names both a JWT authorizer in "provider.apiGateway.authorizers" and a function in this service, so the http event of function "${functionName}" could mean either. Write "authorizer: { type: jwt, name: ${name} }" to use the JWT authorizer, or rename it.`,
         NAME_CONFLICT,
+        { stack: false },
+      )
+    }
+    // A name that matches neither a key nor a function, but a key in another
+    // case, is almost certainly a typo for the JWT authorizer: say so rather
+    // than report a missing function.
+    const assertNotMiscased = (name) => {
+      if (typeof name !== 'string' || authorizers.has(name) || isFunction(name))
+        return
+      const lowerName = name.toLowerCase()
+      const key = [...authorizers.keys()].find(
+        (candidate) => candidate.toLowerCase() === lowerName,
+      )
+      if (key === undefined) return
+      throw new ServerlessError(
+        `Function "${functionName}" references authorizer "${name}", which isn't defined. Did you mean JWT authorizer "${key}" from "provider.apiGateway.authorizers"? Names are case-sensitive.`,
+        'UNRECOGNIZED_API_GATEWAY_AUTHORIZER',
         { stack: false },
       )
     }
 
     if (typeof authorizer === 'string') {
       const definition = authorizers.get(authorizer)
-      if (!definition) return undefined
+      if (!definition) {
+        assertNotMiscased(authorizer)
+        return undefined
+      }
       assertNotAlsoFunction(authorizer)
       return {
         type: 'JWT',
@@ -428,10 +476,21 @@ export default {
     const name = authorizer.name
     const isDefined = typeof name === 'string' && authorizers.has(name)
 
+    // "authorizerId" attaches an authorizer created elsewhere, whatever its
+    // type, so naming a JWT authorizer next to it says two different things.
+    if (isDefined && authorizer.authorizerId) {
+      throw new ServerlessError(
+        `Function "${functionName}" sets both "authorizerId" and JWT authorizer "${name}" on an http event. Remove "authorizerId" to use the authorizer defined in "provider.apiGateway.authorizers", or remove "name" to attach the existing authorizer.`,
+        'API_GATEWAY_JWT_AUTHORIZER_UNSUPPORTED_PROPERTY',
+        { stack: false },
+      )
+    }
+
     if (type !== 'JWT') {
-      if (!isDefined || authorizer.authorizerId || type === 'AWS_IAM') {
-        return undefined
+      if (type === undefined && !authorizer.arn && !authorizer.authorizerId) {
+        assertNotMiscased(name)
       }
+      if (!isDefined || type === 'AWS_IAM') return undefined
       if (type === undefined && !authorizer.arn) assertNotAlsoFunction(name)
       if (type !== undefined || authorizer.arn) {
         throw new ServerlessError(
@@ -448,6 +507,7 @@ export default {
 
     const isAttached = type === 'JWT' && Boolean(authorizer.authorizerId)
     if (!isAttached && !isDefined) {
+      assertNotMiscased(name)
       throw new ServerlessError(
         name === undefined
           ? `Function "${functionName}" uses a JWT authorizer without a "name". Set "name" to an authorizer defined under "provider.apiGateway.authorizers", or set "authorizerId" to attach an existing one.`
@@ -472,7 +532,6 @@ export default {
     const resolved = { type: 'JWT', scopes: authorizer.scopes }
     if (isAttached) {
       resolved.authorizerId = authorizer.authorizerId
-      if (name !== undefined) resolved.name = name
     } else {
       resolved.name = name
       resolved.jwtLogicalId = authorizers.get(name).logicalId
@@ -490,14 +549,15 @@ export default {
 
     // A Lambda or Cognito authorizer emitted by this service shares the REST
     // API's authorizer namespace with the JWT authorizers.
+    // Only the AWS names can collide there: a key whose "name" differs is not
+    // an API Gateway name (references to keys are checked when resolved).
+    // JWT authorizers never carry an "arn", so only Lambda and Cognito ones
+    // are compared.
     const jwtNames = new Map()
-    for (const { key, name } of authorizers.values()) {
-      jwtNames.set(key, key)
-      jwtNames.set(name, key)
-    }
+    for (const { key, name } of authorizers.values()) jwtNames.set(name, key)
     for (const { http } of events) {
       const authorizer = http.authorizer
-      if (!authorizer || authorizer.type === 'JWT' || !authorizer.arn) continue
+      if (!authorizer || !authorizer.arn) continue
       const key = jwtNames.get(authorizer.name)
       if (key === undefined) continue
       throw new ServerlessError(

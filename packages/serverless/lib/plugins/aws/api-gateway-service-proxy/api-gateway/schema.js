@@ -59,17 +59,28 @@ const authorizationScopes = Joi.array()
 // its own (one of `provider.apiGateway.authorizers`, attached by
 // `{ Ref: <Key>ApiGatewayJwtAuthorizer }`, or one created elsewhere), so the
 // method has nothing to check tokens with until it names one.
+//
+// Without one, `JWT` is refused with its own message rather than the list of
+// the types that would be accepted there.
+const jwtWithoutAuthorizerId = (schema) =>
+  schema.error(
+    customErrorBuilder('any.only', (error) =>
+      error.value === 'JWT'
+        ? `"${error.local.label}" JWT needs an "authorizerId": set it to the JWT authorizer to attach, for example "{ Ref: <Key>ApiGatewayJwtAuthorizer }" for one defined in "provider.apiGateway.authorizers"`
+        : undefined,
+    ),
+  )
+
 const authorizationType = Joi.alternatives().conditional('authorizerId', {
   is: authorizerId.required(),
   then: Joi.string().valid('CUSTOM', 'COGNITO_USER_POOLS', 'JWT').required(),
   otherwise: Joi.alternatives().conditional('authorizationScopes', {
     is: authorizationScopes.required(),
-    then: Joi.string().valid('COGNITO_USER_POOLS').required(),
-    otherwise: Joi.string().valid(
-      'NONE',
-      'AWS_IAM',
-      'CUSTOM',
-      'COGNITO_USER_POOLS',
+    then: jwtWithoutAuthorizerId(
+      Joi.string().valid('COGNITO_USER_POOLS').required(),
+    ),
+    otherwise: jwtWithoutAuthorizerId(
+      Joi.string().valid('NONE', 'AWS_IAM', 'CUSTOM', 'COGNITO_USER_POOLS'),
     ),
   }),
 })

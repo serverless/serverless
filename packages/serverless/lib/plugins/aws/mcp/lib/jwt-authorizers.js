@@ -31,15 +31,21 @@ const referenceTargetsOf = (definitions, naming) =>
  *
  * Throws the compiler's own errors for a reference it would refuse, worded
  * against `functionName`, which for an MCP route is the server name.
+ * `functions` is the service's `functions`: a name that is both a JWT
+ * authorizer and a function is refused, as it is on an http event.
  */
 export const resolveJwtReference = ({
   authorizer,
   functionName,
   definitions,
   naming,
+  functions,
 }) =>
   compilerJwtAuthorizers.resolveJwtAuthorizer.call(
-    { jwtAuthorizers: referenceTargetsOf(definitions, naming) },
+    {
+      jwtAuthorizers: referenceTargetsOf(definitions, naming),
+      serverless: { service: { functions: functions ?? {} } },
+    },
     { authorizer },
     functionName,
   )

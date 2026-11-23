@@ -183,4 +183,24 @@ describe('provider.apiGateway.authorizers schema', () => {
       code: 'INVALID_NON_SCHEMA_COMPLIANT_CONFIGURATION',
     })
   })
+
+  test('rejects a key CloudFormation cannot use', async () => {
+    const error = await validate({
+      authorizers: { 'orders.v1': single },
+      eventAuthorizer: { type: 'jwt', name: 'orders.v1' },
+    })
+    expect(error).toMatchObject({
+      code: 'INVALID_NON_SCHEMA_COMPLIANT_CONFIGURATION',
+    })
+    expect(error.message).toContain('must match pattern')
+  })
+
+  test('accepts keys with letters, digits, "-" and "_"', async () => {
+    expect(
+      await validate({
+        authorizers: { 'orders-v1_2': single },
+        eventAuthorizer: 'orders-v1_2',
+      }),
+    ).toBeNull()
+  })
 })

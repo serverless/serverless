@@ -1816,6 +1816,44 @@ describe('validateMcp - JWT authorizers', () => {
       )
     })
 
+    it.each([
+      ['a string', 'orders'],
+      ['an untyped { name }', { name: 'orders' }],
+    ])(
+      'rejects %s naming both a JWT authorizer and a function, worded for the server',
+      (_label, authorizer) => {
+        expect(() =>
+          validate({
+            authorizer,
+            functions: { orders: { handler: 'orders.handler' } },
+          }),
+        ).toThrow(
+          expect.objectContaining({
+            code: 'API_GATEWAY_AUTHORIZER_NAME_CONFLICT',
+            message: `"orders" names both a JWT authorizer in "provider.apiGateway.authorizers" and a function in this service, so MCP server "crm" could mean either. Write "authorizer: { type: jwt, name: orders }" to use the JWT authorizer, or rename it.`,
+          }),
+        )
+      },
+    )
+
+    it('still accepts type: jwt naming a JWT authorizer that is also a function', () => {
+      expect(
+        validate({
+          authorizer: { type: 'jwt', name: 'orders' },
+          functions: { orders: { handler: 'orders.handler' } },
+        }).authorizer,
+      ).toEqual({ type: 'JWT', name: 'orders' })
+    })
+
+    it('points a reference in the wrong case at the JWT authorizer, worded for the server', () => {
+      expect(() => validate({ authorizer: 'Orders' })).toThrow(
+        expect.objectContaining({
+          code: 'UNRECOGNIZED_API_GATEWAY_AUTHORIZER',
+          message: `MCP server "crm" references authorizer "Orders", which isn't defined. Did you mean JWT authorizer "orders" from "provider.apiGateway.authorizers"? Names are case-sensitive.`,
+        }),
+      )
+    })
+
     it('keeps a name that is not a JWT authorizer a function authorizer', () => {
       expect(validate({ authorizer: 'gate' }).authorizer).toBe('gate')
     })

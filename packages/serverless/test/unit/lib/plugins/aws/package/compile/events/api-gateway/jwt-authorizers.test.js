@@ -276,7 +276,9 @@ describe('API Gateway JWT authorizers', () => {
       )
     })
 
-    it('compiles for a service whose only REST API routes are service proxies', async () => {
+    // The service proxy plugin is not loaded here: this proves only that the
+    // no-REST-API check is skipped when service proxies are configured.
+    it('skips the no-REST-API check when service proxies are configured', async () => {
       const resources = await compile({
         apiGateway: { authorizers: { orders: ordersAuthorizer() } },
         functions: { list: {} },
@@ -371,6 +373,23 @@ describe('API Gateway JWT authorizers', () => {
         (resource) => resource.Type === 'AWS::ApiGateway::Authorizer',
       )
       expect(authorizers).toEqual([])
+    })
+
+    it('resolves an attached authorizer to its id only, ignoring an unknown name', () => {
+      plugin.jwtAuthorizers = new Map()
+      expect(
+        plugin.resolveJwtAuthorizer(
+          {
+            authorizer: {
+              type: 'jwt',
+              authorizerId: 'abc',
+              name: 'shared',
+              scopes: ['a'],
+            },
+          },
+          'list',
+        ),
+      ).toEqual({ type: 'JWT', authorizerId: 'abc', scopes: ['a'] })
     })
 
     it('keeps a non-JWT authorizerId type as written, with its scopes', async () => {
@@ -587,6 +606,97 @@ describe('API Gateway JWT authorizers', () => {
         expect(error.message).toContain(`lists issuer "${ISSUER}" twice`)
       })
 
+      it('rejects a duplicate intrinsic issuer', async () => {
+        const issuerUrl = { 'Fn::GetAtt': ['UserPool', 'ProviderURL'] }
+        const error = await definitionError({
+          type: 'jwt',
+          algorithms: ['RS256'],
+          issuers: [
+            { issuerUrl, audience: 'a' },
+            {
+              issuerUrl: { 'Fn::GetAtt': ['UserPool', 'ProviderURL'] },
+              audience: 'b',
+            },
+          ],
+        })
+        expect(error.code).toBe(INVALID)
+        expect(error.message).toContain(
+          `lists issuer ${JSON.stringify(issuerUrl)} twice`,
+        )
+      })
+
+      it('accepts two different intrinsic issuers', async () => {
+        const resources = await compile({
+          apiGateway: {
+            authorizers: {
+              orders: {
+                type: 'jwt',
+                algorithms: ['RS256'],
+                issuers: [
+                  { issuerUrl: { Ref: 'IssuerA' }, audience: 'a' },
+                  { issuerUrl: { Ref: 'IssuerB' }, audience: 'b' },
+                ],
+              },
+            },
+          },
+          functions: withEvent('orders'),
+        })
+        expect(
+          resources.OrdersApiGatewayJwtAuthorizer.Properties.JwtConfiguration
+            .Issuers,
+        ).toHaveLength(2)
+      })
+
+      it('rejects a duplicate literal audience', async () => {
+        const error = await definitionError(
+          ordersAuthorizer({ audience: ['api://orders', 'b', 'api://orders'] }),
+        )
+        expect(error.code).toBe(INVALID)
+        expect(error.message).toBe(
+          'API Gateway authorizer "orders" lists audience "api://orders" twice. List each audience once.',
+        )
+      })
+
+      it.each(['orders.v1', 'orders v1', 'orders:v1', 'ördérs'])(
+        'rejects the key %s, which CloudFormation cannot use',
+        async (key) => {
+          const error = await compileError({
+            apiGateway: { authorizers: { [key]: ordersAuthorizer() } },
+            functions: withEvent({ type: 'jwt', name: key }),
+          })
+          expect(error.code).toBe(INVALID)
+          expect(error.message).toBe(
+            `API Gateway authorizer "${key}" has a name CloudFormation can't use. Use letters, digits, "-" and "_" only in the keys of "provider.apiGateway.authorizers"; set "name" to give API Gateway a different name.`,
+          )
+        },
+      )
+
+      it('accepts keys with letters, digits, "-" and "_"', async () => {
+        const resources = await compile({
+          apiGateway: {
+            authorizers: { 'orders-v1_2': ordersAuthorizer() },
+          },
+          functions: withEvent('orders-v1_2'),
+        })
+        expect(
+          resources.OrdersDashv1Underscore2ApiGatewayJwtAuthorizer,
+        ).toBeDefined()
+      })
+
+      it.each(['aws_iam', 'AWS_IAM', 'Aws_Iam'])(
+        'reserves the key %s',
+        async (key) => {
+          const error = await compileError({
+            apiGateway: { authorizers: { [key]: ordersAuthorizer() } },
+            functions: withEvent({ type: 'jwt', name: key }),
+          })
+          expect(error.code).toBe(INVALID)
+          expect(error.message).toBe(
+            `API Gateway authorizer "${key}" uses a reserved name: "authorizer: aws_iam" on an http event means IAM authorization. Rename the JWT authorizer.`,
+          )
+        },
+      )
+
       it('rejects a type other than jwt, in any case', async () => {
         const error = await definitionError(ordersAuthorizer({ type: 'token' }))
         expect(error.code).toBe(INVALID)
@@ -643,7 +753,11 @@ describe('API Gateway JWT authorizers', () => {
         'https://user:pass@idp.acme.com/',
         'idp.acme.com',
         'https://',
-      ])('rejects %s', async (issuerUrl) => {
+        'https:///x',
+        ' https://idp.acme.com',
+        'https://idp.acme.com ',
+        'https://idp.acme.com/\n',
+      ])('rejects %j', async (issuerUrl) => {
         const error = await definitionError(ordersAuthorizer({ issuerUrl }))
         expect(error.code).toBe(INVALID)
         expect(error.message).toContain(`sets issuerUrl to "${issuerUrl}"`)
@@ -761,6 +875,27 @@ describe('API Gateway JWT authorizers', () => {
         expect(error.code).toBe(UNSUPPORTED)
         expect(error.message).toContain('an existing JWT authorizer')
       })
+
+      it.each([
+        ['jwt'],
+        ['JWT'],
+        ['token'],
+        ['COGNITO_USER_POOLS'],
+        ['aws_iam'],
+        [undefined],
+      ])(
+        'rejects an authorizerId next to the name of a JWT authorizer (type %s)',
+        async (type) => {
+          const error = await compileError({
+            apiGateway: { authorizers: { orders: ordersAuthorizer() } },
+            functions: withEvent({ type, name: 'orders', authorizerId: 'abc' }),
+          })
+          expect(error.code).toBe(UNSUPPORTED)
+          expect(error.message).toBe(
+            'Function "list" sets both "authorizerId" and JWT authorizer "orders" on an http event. Remove "authorizerId" to use the authorizer defined in "provider.apiGateway.authorizers", or remove "name" to attach the existing authorizer.',
+          )
+        },
+      )
     })
 
     describe('E5 unknown JWT authorizer (UNRECOGNIZED_API_GATEWAY_AUTHORIZER)', () => {
@@ -790,6 +925,45 @@ describe('API Gateway JWT authorizers', () => {
         })
         expect(error.code).toBe('UNRECOGNIZED_API_GATEWAY_AUTHORIZER')
       })
+
+      it.each([
+        ['a string', 'Orders'],
+        ['a { name }', { name: 'ORDERS' }],
+        ['a { name } with scopes', { name: 'Orders', scopes: ['a'] }],
+        ['a type: jwt', { type: 'jwt', name: 'Orders' }],
+      ])(
+        'points %s reference in the wrong case at the JWT authorizer',
+        async (_label, authorizer) => {
+          const error = await compileError({
+            apiGateway: { authorizers: { orders: ordersAuthorizer() } },
+            functions: withEvent(authorizer),
+          })
+          const name =
+            typeof authorizer === 'string' ? authorizer : authorizer.name
+          expect(error.code).toBe('UNRECOGNIZED_API_GATEWAY_AUTHORIZER')
+          expect(error.message).toBe(
+            `Function "list" references authorizer "${name}", which isn't defined. Did you mean JWT authorizer "orders" from "provider.apiGateway.authorizers"? Names are case-sensitive.`,
+          )
+        },
+      )
+
+      it('keeps a function whose name differs from a JWT key only in case', async () => {
+        const resources = await compile({
+          apiGateway: { authorizers: { orders: ordersAuthorizer() } },
+          functions: { ...withEvent('Orders'), Orders: {} },
+        })
+        expect(
+          resources.ApiGatewayMethodOrdersGet.Properties.AuthorizationType,
+        ).toBe('CUSTOM')
+      })
+
+      it('leaves a reference with a non-JWT type to the Lambda authorizer rules', async () => {
+        const error = await compileError({
+          apiGateway: { authorizers: { orders: ordersAuthorizer() } },
+          functions: withEvent({ type: 'token', name: 'Orders' }),
+        })
+        expect(error.message).not.toContain('Did you mean')
+      })
     })
 
     describe('E6 name conflicts (API_GATEWAY_AUTHORIZER_NAME_CONFLICT)', () => {
@@ -818,7 +992,7 @@ describe('API Gateway JWT authorizers', () => {
         })
         expect(error.code).toBe(CONFLICT)
         expect(error.message).toBe(
-          '"orders" names both a JWT authorizer in "provider.apiGateway.authorizers" and a function in this service, so the http event of function "list" could mean either. Rename the JWT authorizer: API Gateway needs authorizer names to be unique within a REST API.',
+          '"orders" names both a JWT authorizer in "provider.apiGateway.authorizers" and a function in this service, so the http event of function "list" could mean either. Write "authorizer: { type: jwt, name: orders }" to use the JWT authorizer, or rename it.',
         )
       })
 
@@ -875,6 +1049,41 @@ describe('API Gateway JWT authorizers', () => {
           ),
         })
         expect(error.code).toBe(CONFLICT)
+      })
+
+      it('accepts a Lambda authorizer named like a JWT key whose API Gateway name differs', async () => {
+        const resources = await compile({
+          apiGateway: {
+            authorizers: { orders: ordersAuthorizer({ name: 'orders-api' }) },
+          },
+          functions: {
+            list: {
+              events: [
+                {
+                  http: {
+                    path: 'orders',
+                    method: 'get',
+                    authorizer: { type: 'jwt', name: 'orders' },
+                  },
+                },
+                {
+                  http: {
+                    path: 'lambda',
+                    method: 'get',
+                    authorizer:
+                      'arn:aws:lambda:us-east-1:123456789012:function:orders',
+                  },
+                },
+              ],
+            },
+          },
+        })
+        expect(resources.OrdersApiGatewayJwtAuthorizer.Properties.Name).toBe(
+          'orders-api',
+        )
+        expect(resources.OrdersApiGatewayAuthorizer.Properties.Name).toBe(
+          'orders',
+        )
       })
 
       it('rejects a JWT authorizer whose name matches a Cognito authorizer', async () => {

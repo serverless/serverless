@@ -170,6 +170,30 @@ describe('API Gateway service proxies - authorization', () => {
     ).rejects.toThrow(/authorizationType/)
   })
 
+  it.each([
+    ['without scopes', {}],
+    ['with scopes', { authorizationScopes: ['orders:write'] }],
+  ])(
+    'says a JWT authorizationType needs an authorizerId (%s)',
+    async (_label, extra) => {
+      await expect(
+        compile([
+          {
+            sqs: {
+              path: '/sqs',
+              method: 'post',
+              queueName: 'q',
+              authorizationType: 'JWT',
+              ...extra,
+            },
+          },
+        ]),
+      ).rejects.toThrow(
+        '"sqs.authorizationType" JWT needs an "authorizerId": set it to the JWT authorizer to attach, for example "{ Ref: <Key>ApiGatewayJwtAuthorizer }" for one defined in "provider.apiGateway.authorizers"',
+      )
+    },
+  )
+
   // Unchanged: what each existing type accepts.
   it.each([
     [{ authorizationType: 'CUSTOM', authorizerId: 'abc123' }],

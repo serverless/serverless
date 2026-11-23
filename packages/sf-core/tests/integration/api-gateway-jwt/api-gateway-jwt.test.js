@@ -111,6 +111,30 @@ describe('REST API JWT authorizers', () => {
     return body
   }
 
+  // A route no token of this run passes is live once its JWT authorizer
+  // answers for itself: only the authorizer sets WWW-Authenticate, while a
+  // route still propagating answers 403 or 404 without it.
+  const waitForAuthorizer = async (route, token) => {
+    const attempts = 30
+    let lastStatus
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      try {
+        const response = await request(route, token)
+        await response.arrayBuffer().catch(() => {})
+        if (response.headers.get('www-authenticate')) return
+        lastStatus = response.status
+      } catch (error) {
+        lastStatus = error.message
+      }
+      if (attempt < attempts) {
+        await new Promise((resolve) => setTimeout(resolve, 5000))
+      }
+    }
+    throw new Error(
+      `/${route} answered ${lastStatus} without its authorizer after ${attempts} attempts`,
+    )
+  }
+
   beforeAll(async () => {
     setGlobalRendererSettings({
       isInteractive: false,
@@ -166,9 +190,14 @@ describe('REST API JWT authorizers', () => {
     idToken = AuthenticationResult.IdToken
     accessToken = AuthenticationResult.AccessToken
 
-    // Wait until the stage serves the API, so the rejections below come from
-    // the authorizers rather than from a stage still propagating.
+    // Wait until the stage serves every route, so the rejections below come
+    // from the authorizers rather than from a stage still propagating. No
+    // token of this run passes the globex claim rule, so that route is waited
+    // for until its authorizer answers.
     await expectAccepted('id', idToken)
+    await expectAccepted('admin', `Bearer ${accessToken}`)
+    await expectAccepted('acme', `Bearer ${idToken}`)
+    await waitForAuthorizer('globex', `Bearer ${idToken}`)
   }, 900000)
 
   afterEach(() => {

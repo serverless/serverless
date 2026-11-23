@@ -420,14 +420,14 @@ For each authorizer, the Framework creates one API Gateway authorizer on the ser
 
 ### JWT authorizer settings
 
-A JWT authorizer under `provider.apiGateway.authorizers.<key>` takes these settings. The key is the name that `http` events reference:
+A JWT authorizer under `provider.apiGateway.authorizers.<key>` takes these settings. The key is the name that `http` events reference, case-sensitively. It holds letters, digits, `-` and `_` only, because it becomes part of a CloudFormation resource name, and `aws_iam`, in any case, is reserved for IAM authorization:
 
 | Key                | Default                               | Description                                                                                                                                                                                                                               |
 | ------------------ | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `type`             | Required                              | `jwt`, in any case. `provider.apiGateway.authorizers` holds JWT authorizers only; Lambda and Cognito user pool authorizers are set on the `http` event.                                                                                   |
 | `algorithms`       | Required                              | A list of the signing algorithms the authorizer accepts: `RS256`, `RS384`, `RS512`, `ES256`, `ES384` or `ES512`, in any case, each at most once.                                                                                          |
 | `issuerUrl`        | Required without `issuers`            | The issuer, exactly as in the token's `iss` claim: an `https://` URL with a host and no query, fragment or user info. A string, a variable or a CloudFormation intrinsic function.                                                        |
-| `audience`         | Required without `issuers`            | The accepted value of the token's `aud` claim, or a list of 1 to 100 of them. Each is a string or a CloudFormation intrinsic function.                                                                                                    |
+| `audience`         | Required without `issuers`            | The accepted value of the token's `aud` claim, or a list of 1 to 100 of them, each listed once. Each is a string or a CloudFormation intrinsic function.                                                                                  |
 | `additionalClaims` | None                                  | Up to 10 claim rules for the issuer, by claim name. See [Claim rules](#claim-rules).                                                                                                                                                      |
 | `issuers`          | None                                  | A list of 1 to 10 issuers, each with its own `issuerUrl`, `audience` and optional `additionalClaims`. Not with the top-level `issuerUrl`, `audience` or `additionalClaims`. See [Several issuers](#several-issuers).                      |
 | `identitySource`   | `method.request.header.Authorization` | The request header that carries the token, as one `method.request.header.<Name>`. The header holds the token with or without a `Bearer ` prefix, in any case. Query strings, context values and lists of several sources aren't accepted. |
@@ -658,8 +658,8 @@ Authorizer name must be unique. Authorizer verifyToken already exists in this Re
 
 Packaging stops with `API_GATEWAY_AUTHORIZER_NAME_CONFLICT` when:
 
-- a JWT authorizer's key or `name` matches a Lambda or Cognito user pool authorizer of the service;
-- an `http` event references a JWT authorizer as `authorizer: <key>` or `authorizer: { name: <key> }` and the service also has a function named `<key>`, because the reference could mean either. Write `authorizer: { type: jwt, name: <key> }`, or rename the JWT authorizer;
+- a JWT authorizer's name in API Gateway (its `name`, or its key when it has no `name`) matches a Lambda or Cognito user pool authorizer of the service, or an `http` event gives a JWT authorizer's key as the `name` of a Lambda or Cognito user pool authorizer;
+- an `http` event references a JWT authorizer as `authorizer: <key>` or `authorizer: { name: <key> }` and the service also has a function named `<key>`, because the reference could mean either. Write `authorizer: { type: jwt, name: <key> }` to use the JWT authorizer, or rename it;
 - two keys differ only in case or punctuation, such as `orders` and `Orders`, because they would compile to the same CloudFormation resource.
 
 After the switch, check what the function reads: a Lambda authorizer's context and `claims` with the `lambda` integration don't exist with a JWT authorizer; read [claims in the function](#read-jwt-claims-in-the-function) instead.
@@ -792,7 +792,9 @@ functions:
               - reports:read
 ```
 
-`type: jwt` is required beside `authorizerId`: API Gateway rejects a method of another authorization type that names a JWT authorizer. A service with `provider.apiGateway.restApiId` and no `http` events can own the authorizers of the shared REST API.
+`type: jwt` is required beside `authorizerId`: API Gateway rejects a method of another authorization type that names a JWT authorizer. An `http` event that sets `authorizerId` and also names a key of `provider.apiGateway.authorizers` in `name` stops packaging with `API_GATEWAY_JWT_AUTHORIZER_UNSUPPORTED_PROPERTY`: set one or the other. A service with `provider.apiGateway.restApiId` and no `http` events can own the authorizers of the shared REST API.
+
+Changes to an authorizer take effect on a stage after that REST API is deployed again. A service that only defines the authorizer on a shared REST API, with no `http` events, doesn't create a stage deployment, so redeploy a service with endpoints on that REST API to apply them.
 
 When services on a shared REST API each set the same authorizer `arn` instead, each creates its own authorizer resource on the API, and they can clash. Share the authorizer by ID, or give each authorizer a unique `name`. A REST API has a default quota of 10 authorizers.
 

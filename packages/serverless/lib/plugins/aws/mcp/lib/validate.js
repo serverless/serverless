@@ -740,6 +740,7 @@ export const validateMcp = ({
       functionName,
       definitions: jwtAuthorizers,
       naming,
+      functions,
     })
   // The compiler words its reference errors against the function an http
   // event belongs to; an MCP server is the function, but the user wrote a
@@ -748,12 +749,14 @@ export const validateMcp = ({
     try {
       return resolveJwt(name)(authorizer)
     } catch (error) {
-      const prefix = `Function "${name}" `
-      if (
-        typeof error?.message === 'string' &&
-        error.message.startsWith(prefix)
-      ) {
-        error.message = `MCP server "${name}" ${error.message.slice(prefix.length)}`
+      if (typeof error?.message === 'string') {
+        const prefix = `Function "${name}" `
+        const eventOf = `the http event of function "${name}"`
+        if (error.message.startsWith(prefix)) {
+          error.message = `MCP server "${name}" ${error.message.slice(prefix.length)}`
+        } else if (error.message.includes(eventOf)) {
+          error.message = error.message.replace(eventOf, `MCP server "${name}"`)
+        }
       }
       throw error
     }
