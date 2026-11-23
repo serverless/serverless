@@ -113,7 +113,7 @@ const memoryConfigSchema = {
     expiration: {
       type: 'number',
       minimum: 3,
-      maximum: 365,
+      maximum: 3650,
     },
     encryptionKey: {
       type: 'string',

@@ -296,12 +296,12 @@ export function validateToolConfig(name, config, throwError) {
  */
 export function validateMemoryConfig(name, config, throwError) {
   // Validate expiration (maps to EventExpiryDuration)
-  // CFN schema: minimum 3, maximum 365 days
+  // CFN schema: minimum 3, maximum 3650 days
   if (config.expiration !== undefined) {
     const duration = config.expiration
-    if (typeof duration !== 'number' || duration < 3 || duration > 365) {
+    if (typeof duration !== 'number' || duration < 3 || duration > 3650) {
       throwError(
-        `Memory '${name}' expiration must be a number between 3 and 365 days`,
+        `Memory '${name}' expiration must be a number between 3 and 3650 days`,
       )
     }
   }
