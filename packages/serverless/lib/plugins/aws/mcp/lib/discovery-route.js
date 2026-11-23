@@ -264,59 +264,34 @@ const issuerSourceOf = (server) => {
       }
 }
 
-// A placeholder of an `Fn::Sub` template: `${Name}`, but not the literal
-// escape `${!Name}`.
-const SUB_PLACEHOLDER = /\$\{(?!!)([^}]*)\}/g
-
-/**
- * A list-form `Fn::Sub` issuer's rendering with its variables renamed apart from
- * every other issuer's, in both its text and its map. The document renders
- * all issuers in one substitution, where a variable one issuer declares
- * would otherwise also fill a same-named placeholder of another issuer that
- * means a stack parameter or resource. Placeholders that are not the issuer's
- * own variables (`${AWS::Region}`, `${UserPool}`, `${Pool.Arn}`) are left as
- * written. The generated names start with the issuer's own variable name and
- * "Var", so they differ from each other and from every issuer variable.
- */
-const isolatedRenderingOf = (rendering, index) => {
-  const ownNames = Object.keys(rendering.variables)
-  if (!ownNames.length) return rendering
-  const renamed = (name) => `${issuerVariableOf(index)}Var${name}`
-  return {
-    text: rendering.text.replace(SUB_PLACEHOLDER, (placeholder, name) =>
-      ownNames.includes(name) ? `\${${renamed(name)}}` : placeholder,
-    ),
-    variables: Object.fromEntries(
-      Object.entries(rendering.variables).map(([name, value]) => [
-        ownNames.includes(name) ? renamed(name) : name,
-        value,
-      ]),
-    ),
-  }
-}
-
 /**
  * Every issuer rendered into one document: their texts in order, and one
  * variable map for the `Fn::Sub` around it. A single issuer renders as it is
- * written; with several, each one's own variables are renamed apart first, so
- * no issuer's variable reaches another issuer's text.
+ * written. With several, a list-form `Fn::Sub` issuer is not inlined: the
+ * whole intrinsic becomes the value of its own generated variable, a nested
+ * `Fn::Sub` that CloudFormation resolves in its own scope, so the issuer's
+ * variables never reach another issuer's text and no generated name stands
+ * in for them.
  *
- * `declaresRestApiId` says whether an issuer declares the variable the
- * document uses for the REST API id, checked on the names as written.
+ * `declaresRestApiId` says whether an inlined issuer declares the variable the
+ * document uses for the REST API id.
  */
 const issuersRenderingOf = (issuers) => {
   const texts = []
   const variables = {}
   let declaresRestApiId = false
   issuers.forEach((issuer, index) => {
-    const written = issuerRenderingOf(issuer, index)
-    if (Object.hasOwn(written.variables, REST_API_ID_VARIABLE)) {
-      declaresRestApiId = true
-    }
+    const variable = issuerVariableOf(index)
     const rendering =
       issuers.length > 1 && Array.isArray(issuer?.['Fn::Sub'])
-        ? isolatedRenderingOf(written, index)
-        : written
+        ? { text: `\${${variable}}`, variables: { [variable]: issuer } }
+        : issuerRenderingOf(issuer, index)
+    if (
+      rendering.variables[variable] !== issuer &&
+      Object.hasOwn(rendering.variables, REST_API_ID_VARIABLE)
+    ) {
+      declaresRestApiId = true
+    }
     texts.push(rendering.text)
     Object.assign(variables, rendering.variables)
   })

@@ -503,7 +503,7 @@ describe('buildDiscoveryDescriptors - issuers of a JWT authorizer', () => {
 
   // Literal, inlined `Fn::Sub`, and variable-valued intrinsics in one
   // document: each intrinsic after the first gets a numbered variable, and a
-  // list-form `Fn::Sub` issuer's own variables are renamed after it.
+  // list-form `Fn::Sub` issuer stays whole as a nested `Fn::Sub` in its own.
   it('renders intrinsic issuers through one Fn::Sub', () => {
     const { descriptors } = build([
       fromJwt(
@@ -522,11 +522,13 @@ describe('buildDiscoveryDescriptors - issuers of a JWT authorizer', () => {
     ])
     expect(documentOf(descriptors)).toEqual({
       'Fn::Sub': [
-        '{"resource":"https://${RestApiId}.execute-api.${AWS::Region}.${AWS::URLSuffix}/dev/crm/mcp","authorization_servers":["https://idp.example.com","https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}","${McpOauthIssuer3}","https://${McpOauthIssuer4VarHost}/","${McpOauthIssuer5}"],"bearer_methods_supported":["header"]}',
+        '{"resource":"https://${RestApiId}.execute-api.${AWS::Region}.${AWS::URLSuffix}/dev/crm/mcp","authorization_servers":["https://idp.example.com","https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}","${McpOauthIssuer3}","${McpOauthIssuer4}","${McpOauthIssuer5}"],"bearer_methods_supported":["header"]}',
         {
           RestApiId: { Ref: 'ApiGatewayRestApi' },
           McpOauthIssuer3: { Ref: 'IssuerParameter' },
-          McpOauthIssuer4VarHost: { Ref: 'HostParam' },
+          McpOauthIssuer4: {
+            'Fn::Sub': ['https://${Host}/', { Host: { Ref: 'HostParam' } }],
+          },
           McpOauthIssuer5: { 'Fn::ImportValue': 'shared-issuer' },
         },
       ],
@@ -542,11 +544,15 @@ describe('buildDiscoveryDescriptors - issuers of a JWT authorizer', () => {
     ])
     const [template, variables] = documentOf(descriptors)['Fn::Sub']
     expect(template).toContain(
-      '"authorization_servers":["https://${McpOauthIssuerVarHost}/a","https://${McpOauthIssuer2VarHost}/b"]',
+      '"authorization_servers":["${McpOauthIssuer}","${McpOauthIssuer2}"]',
     )
     expect(variables).toMatchObject({
-      McpOauthIssuerVarHost: { Ref: 'HostA' },
-      McpOauthIssuer2VarHost: { Ref: 'HostB' },
+      McpOauthIssuer: {
+        'Fn::Sub': ['https://${Host}/a', { Host: { Ref: 'HostA' } }],
+      },
+      McpOauthIssuer2: {
+        'Fn::Sub': ['https://${Host}/b', { Host: { Ref: 'HostB' } }],
+      },
     })
     expect(variables).not.toHaveProperty('Host')
   })
@@ -567,26 +573,47 @@ describe('buildDiscoveryDescriptors - issuers of a JWT authorizer', () => {
     ])
     const [template, variables] = documentOf(descriptors)['Fn::Sub']
     expect(template).toContain(
-      '"authorization_servers":["https://${Tenant}.auth0.com/","https://${McpOauthIssuer2VarTenant}.okta.com/${!Literal}/${AWS::Region}"]',
+      '"authorization_servers":["https://${Tenant}.auth0.com/","${McpOauthIssuer2}"]',
     )
-    expect(variables).toMatchObject({ McpOauthIssuer2VarTenant: 'beta' })
+    expect(variables).toMatchObject({
+      McpOauthIssuer2: {
+        'Fn::Sub': [
+          'https://${Tenant}.okta.com/${!Literal}/${AWS::Region}',
+          { Tenant: 'beta' },
+        ],
+      },
+    })
     expect(variables).not.toHaveProperty('Tenant')
   })
 
-  it('refuses an issuer among several that redefines the document variable', () => {
-    expect(() =>
-      build([
-        fromJwt([
-          'https://idp.example.com',
-          { 'Fn::Sub': ['https://${RestApiId}', { RestApiId: 'nope' }] },
-        ]),
+  // No generated name stands in for a list-form issuer's own variable, so a
+  // stack parameter another issuer names can't be captured by one.
+  it("leaves another issuer's parameter named like a generated variable alone", () => {
+    const { descriptors } = build([
+      fromJwt([
+        { 'Fn::Sub': ['https://${Tenant}.okta.com/', { Tenant: 'beta' }] },
+        { 'Fn::Sub': 'https://${McpOauthIssuerVarTenant}.auth0.com/' },
       ]),
-    ).toThrow(
-      expect.objectContaining({
-        code: 'MCP_OAUTH_DISCOVERY_ISSUER_VARIABLE_COLLISION',
-        message: expect.stringContaining('JWT authorizer "orders"'),
-      }),
+    ])
+    const [template, variables] = documentOf(descriptors)['Fn::Sub']
+    expect(template).toContain(
+      '"authorization_servers":["${McpOauthIssuer}","https://${McpOauthIssuerVarTenant}.auth0.com/"]',
     )
+    expect(Object.keys(variables)).toEqual(['McpOauthIssuer'])
+  })
+
+  // Nested in its own scope, an issuer among several may use the name the
+  // document gives the REST API id.
+  it('accepts an issuer among several with its own RestApiId variable', () => {
+    const issuer = {
+      'Fn::Sub': ['https://${RestApiId}.example.com', { RestApiId: 'idp' }],
+    }
+    const { descriptors } = build([
+      fromJwt(['https://idp.example.com', issuer], null),
+    ])
+    const [, variables] = documentOf(descriptors)['Fn::Sub']
+    expect(variables.McpOauthIssuer2).toEqual(issuer)
+    expect(variables.RestApiId).toEqual({ Ref: 'ApiGatewayRestApi' })
   })
 
   it('refuses an issuer that redefines the document variable', () => {
