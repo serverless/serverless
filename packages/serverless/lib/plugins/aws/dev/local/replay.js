@@ -26,7 +26,7 @@ export { REPLAY_ENVIRONMENT_ID }
 export const REPLAY_RESPONSE_LIMIT = 64 * 1024
 /** Beyond the function's own timeout, how long a replay's result is waited for. */
 export const REPLAY_MARGIN_MS = 30_000
-const MAX_TIMEOUT_SECONDS = 900
+const MAX_TIMEOUT_SECONDS = 1800
 // What of the original invocation's Lambda-Runtime headers describes the function rather than
 // that one request; the request id, deadline and trace are new for a replay.
 const KEPT_HEADERS = [

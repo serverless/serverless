@@ -57,7 +57,7 @@ describe("Lambda's clock on this machine", () => {
   })
 
   test('more time left than a Lambda invocation can have is taken as unknown', () => {
-    expect(MAX_REMAINING_MS).toBe(15 * 60_000 + ACCEPT_WINDOW_MS)
+    expect(MAX_REMAINING_MS).toBe(30 * 60_000 + ACCEPT_WINDOW_MS)
     for (const remainingMs of [MAX_REMAINING_MS + 1, 1e15, 2 ** 31]) {
       const clock = createLambdaClock()
       expect(
@@ -66,9 +66,9 @@ describe("Lambda's clock on this machine", () => {
     }
     const clock = createLambdaClock()
     expect(
-      clock.observe({ sentAt: 1, remainingMs: 15 * 60_000, receivedAt: 2 })
+      clock.observe({ sentAt: 1, remainingMs: 30 * 60_000, receivedAt: 2 })
         .deadline,
-    ).toBe(2 + 15 * 60_000 - RETURN_TRIP_MS)
+    ).toBe(2 + 30 * 60_000 - RETURN_TRIP_MS)
   })
 
   test('an unknown deadline stays unknown; a request without sentAt cannot be judged and is stale', () => {

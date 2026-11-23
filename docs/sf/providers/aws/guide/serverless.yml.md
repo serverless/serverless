@@ -419,7 +419,7 @@ provider:
   # Memory in MB: 128-10240, or 2048-32768 for functions with a capacityProvider
   # (default: 1024, or 2048 for functions with a capacityProvider)
   memorySize: 512
-  # Timeout in seconds, 1-900 (default: 6)
+  # Timeout in seconds, 1-1800 (default: 6)
   # API Gateway REST API integrations time out after 29 seconds by default; HTTP API integrations after 30 seconds at most
   timeout: 10
   # Environment variables of every function, merged with each function's environment. Optional
@@ -1080,7 +1080,7 @@ functions:
       arn: arn:aws:lambda:us-east-1::runtime:0b8e1c5a2d7f4e3b9a6c8d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c
     # Memory in MB (default: provider.memorySize, otherwise 1024, or 2048 with capacityProvider)
     memorySize: 512
-    # Timeout in seconds, 1-900 (default: provider.timeout, otherwise 6)
+    # Timeout in seconds, 1-1800 (default: provider.timeout, otherwise 6)
     timeout: 10
     # Lambda Managed Instances: run on a capacity provider. Requires memorySize of 2048 or more. Optional
     # capacityProvider:
