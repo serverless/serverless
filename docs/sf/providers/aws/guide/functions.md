@@ -97,7 +97,7 @@ When a function uses a runtime AWS has deprecated, `serverless package` and `ser
 
 ### Timeout limits
 
-`timeout` accepts 1 to 1800 seconds (30 minutes), the [Lambda maximum](https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html#function-configuration-deployment-and-execution). A caller can stop waiting sooner: an `http` or `httpApi` event answers the client within the API Gateway integration timeout, while the function keeps running until it returns or reaches its own `timeout`.
+`timeout` accepts 1 to 1800 seconds (30 minutes), the [Lambda maximum](https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html#function-configuration-deployment-and-execution). A caller can stop waiting sooner: an `http` or `httpApi` event answers the client within the API Gateway integration timeout, while the function keeps running until it returns or reaches its own `timeout`. A function with `capacityProvider` ([Lambda Managed Instances](./managed-instances.md)) is not stopped at its timeout: Lambda fails the invocation, but the code keeps running, so check the remaining time in the invocation context and stop before it reaches zero ([invoke timeouts](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-execution-environment.html#lambda-managed-instances-invoke-timeouts)).
 
 ### Functions in separate files
 
