@@ -970,13 +970,13 @@ environment:
             type: 'object',
             properties: {
               min: {
-                description: `Minimum number of provisioned instances.`,
+                description: `Minimum number of execution environments. 0 lets the function scale to zero when idle, or deactivates it when max is also 0.`,
                 type: 'integer',
                 minimum: 0,
                 maximum: 15000,
               },
               max: {
-                description: `Maximum number of provisioned instances.`,
+                description: `Maximum number of execution environments.`,
                 type: 'integer',
                 minimum: 0,
                 maximum: 15000,
