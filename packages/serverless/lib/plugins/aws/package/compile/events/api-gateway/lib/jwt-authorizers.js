@@ -426,8 +426,15 @@ export default {
     // Without a "type", a name could mean the JWT authorizer or a function used
     // as a Lambda authorizer (the meaning it has had so far), so a name that is
     // both is rejected rather than silently switched to the JWT authorizer.
+    // The MCP plugin adds one function per server, named after the server.
+    // Those never serve as Lambda authorizers, so they don't make a name
+    // ambiguous.
+    const mcpServers =
+      this.serverless?.service?.mcp?.servers ??
+      this.serverless?.configurationInput?.mcp?.servers
     const isFunction = (name) =>
-      Boolean(this.serverless?.service?.functions?.[name])
+      Boolean(this.serverless?.service?.functions?.[name]) &&
+      !Object.hasOwn(Object(mcpServers), name)
     const assertNotAlsoFunction = (name) => {
       if (!isFunction(name)) return
       throw new ServerlessError(

@@ -934,6 +934,24 @@ describe('mcp compiled template', () => {
       ],
     }
 
+    it('accepts a server named like its JWT authorizer (the synthesized function is no Lambda authorizer)', async () => {
+      const { template } = await compileService(
+        {
+          servers: {
+            orders: { server: 'src/server.mjs', authorizer: 'orders' },
+          },
+        },
+        {},
+        { provider: { apiGateway: { authorizers: { orders } } } },
+      )
+
+      const anyMethod = methodWith(template, 'ANY')
+      expect(anyMethod.Properties.AuthorizationType).toBe('JWT')
+      expect(anyMethod.Properties.AuthorizerId).toEqual({
+        Ref: 'OrdersApiGatewayJwtAuthorizer',
+      })
+    })
+
     it('guards the MCP route with a provider JWT authorizer and publishes its issuers', async () => {
       const { template } = await compileService(
         {
