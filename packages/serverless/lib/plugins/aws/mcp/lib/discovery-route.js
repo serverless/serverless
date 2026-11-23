@@ -266,24 +266,26 @@ const issuerSourceOf = (server) => {
 
 /**
  * Every issuer rendered into one document: their texts in order, and one
- * variable map for the `Fn::Sub` around it. A single issuer renders as it is
- * written. With several, no `Fn::Sub` issuer is inlined, in either form: the
- * whole intrinsic becomes the value of its own generated variable, a nested
- * `Fn::Sub` that CloudFormation resolves in its own scope. Neither another
- * issuer's variables nor the document's generated names can then reach the
- * stack parameters and resources its placeholders name.
+ * variable map for the `Fn::Sub` around it. An explicit `oauthDiscovery.issuer`
+ * renders as it is written. Issuers derived from a JWT authorizer, and any set
+ * of several, inline no `Fn::Sub` issuer in either form: the whole intrinsic
+ * becomes the value of its own generated variable, a nested `Fn::Sub` that
+ * CloudFormation resolves in its own scope. Neither another issuer's
+ * variables nor the document's own (`RestApiId`, the generated names) can then
+ * reach the stack parameters and resources its placeholders name, so the
+ * document publishes exactly what the authorizer trusts.
  *
  * `declaresRestApiId` says whether an inlined issuer declares the variable the
  * document uses for the REST API id.
  */
-const issuersRenderingOf = (issuers) => {
+const issuersRenderingOf = (issuers, { derived }) => {
   const texts = []
   const variables = {}
   let declaresRestApiId = false
   issuers.forEach((issuer, index) => {
     const variable = issuerVariableOf(index)
     const rendering =
-      issuers.length > 1 && issuer?.['Fn::Sub'] !== undefined
+      (derived || issuers.length > 1) && issuer?.['Fn::Sub'] !== undefined
         ? { text: `\${${variable}}`, variables: { [variable]: issuer } }
         : issuerRenderingOf(issuer, index)
     if (
@@ -362,7 +364,9 @@ export const buildDiscoveryDescriptors = ({
     assertBaseUrlSafe({ server, source, url, stage })
     sources.set(server.name, { source, url })
 
-    const issuerRendering = issuersRenderingOf(issuerSource.issuers)
+    const issuerRendering = issuersRenderingOf(issuerSource.issuers, {
+      derived: server.oauthDiscovery.jwtAuthorizer !== undefined,
+    })
     const document = documentOf(
       resourceUrlOf({ server, source, url, stage }),
       issuerRendering.texts,
@@ -378,9 +382,7 @@ export const buildDiscoveryDescriptors = ({
     // REST API id was quietly redefined by the issuer.
     if (issuerRendering.declaresRestApiId) {
       throw new ServerlessError(
-        server.oauthDiscovery.jwtAuthorizer === undefined
-          ? `MCP server "${server.name}" sets "oauthDiscovery.issuer" to an "Fn::Sub" declaring a variable named "${REST_API_ID_VARIABLE}", which is the name the discovery document itself uses for this service's REST API id. Rename the variable in "mcp.servers.${server.name}.oauthDiscovery.issuer".`
-          : `MCP server "${server.name}" publishes ${issuerSource.describe}, and one of them is an "Fn::Sub" declaring a variable named "${REST_API_ID_VARIABLE}", which is the name the discovery document itself uses for this service's REST API id. Rename the variable in that issuer.`,
+        `MCP server "${server.name}" sets "oauthDiscovery.issuer" to an "Fn::Sub" declaring a variable named "${REST_API_ID_VARIABLE}", which is the name the discovery document itself uses for this service's REST API id. Rename the variable in "mcp.servers.${server.name}.oauthDiscovery.issuer".`,
         'MCP_OAUTH_DISCOVERY_ISSUER_VARIABLE_COLLISION',
         { stack: false },
       )

@@ -72,8 +72,18 @@ const isPlainObject = (value) =>
 
 const isNonEmptyString = (value) => typeof value === 'string' && value !== ''
 
-const show = (value) =>
-  typeof value === 'string' ? `"${value}"` : JSON.stringify(value)
+/**
+ * A configured value as shown in an error. A value whose text contains "@" is
+ * not shown at all: user info in a URL ("user:password@host") may sit in it,
+ * however the value is shaped or wherever it is nested, and errors end up in
+ * CI logs.
+ */
+const show = (value) => {
+  const text = typeof value === 'string' ? `"${value}"` : JSON.stringify(value)
+  return typeof text === 'string' && text.includes('@')
+    ? 'a value containing "@" (not shown)'
+    : text
+}
 
 const invalid = (message) =>
   new ServerlessError(message, INVALID, { stack: false })
@@ -213,7 +223,21 @@ const normalizeIssuerUrl = (key, path, issuerUrl) => {
       `API Gateway authorizer "${key}" has no "${path}". Set it to the https URL in your tokens' "iss" claim, for example "https://idp.example.com".`,
     )
   }
-  if (isIntrinsic(issuerUrl)) return issuerUrl
+  if (isIntrinsic(issuerUrl)) {
+    // The literal text of an "Fn::Sub" is checked for user info like a
+    // literal URL: placeholders don't hide an "@" written before the host.
+    const sub = issuerUrl['Fn::Sub']
+    const template = Array.isArray(sub) ? sub[0] : sub
+    if (
+      typeof template === 'string' &&
+      /^\s*(?:[a-z][a-z0-9+.-]*:)?\/\/[^/?#]*@/i.test(template)
+    ) {
+      throw invalid(
+        `API Gateway authorizer "${key}" sets ${path} to an "Fn::Sub" whose URL carries user info (not shown). Set it to the https URL in your tokens' "iss" claim, with no user info before the host.`,
+      )
+    }
+    return issuerUrl
+  }
   if (typeof issuerUrl !== 'string' || !isValidIssuerUrl(issuerUrl)) {
     const example =
       typeof issuerUrl === 'string'

@@ -2092,6 +2092,41 @@ describe('validateMcp - JWT authorizers', () => {
       ).not.toThrow()
     })
 
+    // An error about a derived issuer shows no value that may carry user info.
+    it.each([
+      [
+        'an http template',
+        { 'Fn::Sub': 'http://admin:s3cret@idp.example.com' },
+      ],
+      [
+        'a template with "$"',
+        { 'Fn::Sub': 'https://idp.example.com/${Host}/admin:s3cret@$x' },
+      ],
+      [
+        'a variable value with "$"',
+        { 'Fn::Sub': ['https://${Host}/', { Host: 'admin:s3cret@idp/$x' }] },
+      ],
+    ])(
+      'shows no user info for a derived issuer with %s',
+      (_label, issuerUrl) => {
+        let error
+        try {
+          validate({
+            authorizer: 'orders',
+            oauthDiscovery: {},
+            jwtAuthorizers: { orders: ordersAuthorizer({ issuerUrl }) },
+          })
+        } catch (caught) {
+          error = caught
+        }
+        expect(error?.code).toMatch(
+          /^(MCP_OAUTH_DISCOVERY_|API_GATEWAY_JWT_AUTHORIZER_INVALID$)/,
+        )
+        expect(error.message).not.toContain('s3cret')
+        expect(error.message).toContain('(not shown)')
+      },
+    )
+
     it('accepts a list-form Fn::Sub issuer with a safe template', () => {
       const issuerUrl = {
         'Fn::Sub': ['https://${Host}/', { Host: 'idp.example.com' }],
@@ -2104,5 +2139,58 @@ describe('validateMcp - JWT authorizers', () => {
         }),
       ).not.toThrow()
     })
+  })
+})
+
+describe('MCP oauthDiscovery errors - user info', () => {
+  const discoveryError = (oauthDiscovery) => {
+    try {
+      validateMcp({
+        mcp: {
+          servers: { crm: { server: 'src/server.mjs', oauthDiscovery } },
+        },
+        functions: {},
+        providerRuntime: undefined,
+        naming,
+      })
+    } catch (error) {
+      return error
+    }
+    return undefined
+  }
+
+  it.each([
+    ['an http issuer', { issuer: 'http://admin:s3cret@idp.example.com' }],
+    [
+      'an issuer with "$"',
+      { issuer: 'https://admin:s3cret@idp.example.com/$' },
+    ],
+    [
+      'an issuer object',
+      { issuer: { url: 'https://admin:s3cret@idp.example.com' } },
+    ],
+    [
+      'an http Fn::Sub issuer',
+      { issuer: { 'Fn::Sub': 'http://admin:s3cret@idp.example.com' } },
+    ],
+    [
+      'an http publicUrl',
+      {
+        issuer: 'https://idp.example.com',
+        publicUrl: 'http://admin:s3cret@mcp.example.com',
+      },
+    ],
+    [
+      'a publicUrl with a query',
+      {
+        issuer: 'https://idp.example.com',
+        publicUrl: 'https://admin:s3cret@mcp.example.com/?x=1',
+      },
+    ],
+  ])('shows no user info for %s', (_label, oauthDiscovery) => {
+    const error = discoveryError(oauthDiscovery)
+    expect(error?.code).toMatch(/^MCP_OAUTH_DISCOVERY_/)
+    expect(error.message).not.toContain('s3cret')
+    expect(error.message).toContain('a value containing "@" (not shown)')
   })
 })

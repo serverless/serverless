@@ -840,6 +840,102 @@ describe('API Gateway JWT authorizers', () => {
         },
       )
 
+      // However an issuer URL carrying user info is shaped or nested, no error
+      // shows it.
+      const SECRET_URL = 'https://admin:s3cret@idp.acme.com/'
+      it.each([
+        ['issuerUrl as a list', ordersAuthorizer({ issuerUrl: [SECRET_URL] })],
+        [
+          'issuerUrl as an object',
+          ordersAuthorizer({ issuerUrl: { url: SECRET_URL } }),
+        ],
+        [
+          'a misspelled intrinsic',
+          ordersAuthorizer({ issuerUrl: { 'Fn:Sub': SECRET_URL } }),
+        ],
+        [
+          'an intrinsic with a second key',
+          ordersAuthorizer({ issuerUrl: { 'Fn::Sub': SECRET_URL, x: 1 } }),
+        ],
+        [
+          'issuers as a string',
+          { type: 'jwt', algorithms: ['RS256'], issuers: SECRET_URL },
+        ],
+        [
+          'issuers as a list of strings',
+          { type: 'jwt', algorithms: ['RS256'], issuers: [SECRET_URL] },
+        ],
+        [
+          'an issuers entry whose issuerUrl is a list',
+          {
+            type: 'jwt',
+            algorithms: ['RS256'],
+            issuers: [{ issuerUrl: [SECRET_URL], audience: 'a' }],
+          },
+        ],
+        [
+          'a duplicated intrinsic issuer',
+          {
+            type: 'jwt',
+            algorithms: ['RS256'],
+            issuers: [
+              {
+                issuerUrl: { 'Fn::Join': ['', ['https://admin:s3cret', '@x']] },
+                audience: 'a',
+              },
+              {
+                issuerUrl: { 'Fn::Join': ['', ['https://admin:s3cret', '@x']] },
+                audience: 'b',
+              },
+            ],
+          },
+        ],
+        ['the whole definition', SECRET_URL],
+      ])('shows no user info for %s', async (_label, definition) => {
+        const error = await definitionError(definition)
+        expect(error.code).toBe(INVALID)
+        expect(error.message).not.toContain('s3cret')
+        expect(error.message).not.toContain('admin')
+      })
+
+      it.each([
+        'https://admin:s3cret@idp.acme.com/',
+        'https://${User}:${Password}@idp.acme.com/',
+        '//admin:s3cret@idp.acme.com',
+      ])(
+        'rejects an Fn::Sub issuer with user info before the host: %p',
+        async (template) => {
+          for (const issuerUrl of [
+            { 'Fn::Sub': template },
+            { 'Fn::Sub': [template, { User: 'u' }] },
+          ]) {
+            const error = await definitionError(ordersAuthorizer({ issuerUrl }))
+            expect(error.code).toBe(INVALID)
+            expect(error.message).toContain(
+              'sets issuerUrl to an "Fn::Sub" whose URL carries user info (not shown)',
+            )
+            expect(error.message).not.toContain('s3cret')
+          }
+        },
+      )
+
+      it('accepts an Fn::Sub issuer with "@" after the host', async () => {
+        const resources = await compile({
+          apiGateway: {
+            authorizers: {
+              orders: ordersAuthorizer({
+                issuerUrl: { 'Fn::Sub': 'https://idp.acme.com/${Tenant}@x' },
+              }),
+            },
+          },
+          functions: withEvent('orders'),
+        })
+        expect(
+          resources.OrdersApiGatewayJwtAuthorizer.Properties.JwtConfiguration
+            .Issuers[0].Issuer,
+        ).toEqual({ 'Fn::Sub': 'https://idp.acme.com/${Tenant}@x' })
+      })
+
       it('names the key path of an issuer in a list', async () => {
         const error = await definitionError({
           type: 'jwt',

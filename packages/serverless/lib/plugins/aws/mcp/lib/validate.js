@@ -9,6 +9,17 @@ import {
   resolveJwtReference,
 } from './jwt-authorizers.js'
 
+/**
+ * A configured value as shown in an error. A value whose text contains "@" is
+ * not shown: user info in a URL ("user:password@host") may sit in it, and
+ * errors end up in CI logs.
+ */
+const shown = (value) => {
+  const text = JSON.stringify(value)
+  return typeof text === 'string' && text.includes('@')
+    ? 'a value containing "@" (not shown)'
+    : text
+}
 const MINIMUM_NODE_MAJOR = 20
 const DEFAULT_RUNTIME = 'nodejs24.x'
 const DEFAULT_TIMEOUT = 60
@@ -149,7 +160,7 @@ const validateAuthorizer = (name, authorizer, resolveJwt) => {
       authorizer.includes(':')
     ) {
       throw new ServerlessError(
-        `MCP server "${name}" sets "authorizer" to ${JSON.stringify(authorizer)}, which looks like an ARN. A string authorizer names an authorizer function in "functions"; an ARN goes in the object form. Set "mcp.servers.${name}.authorizer.arn" to it instead - and, if it is a Cognito user pool ARN, set "mcp.servers.${name}.authorizer.name" to a name of your own beside it, because the authorizer's CloudFormation logical id is built from that name.`,
+        `MCP server "${name}" sets "authorizer" to ${shown(authorizer)}, which looks like an ARN. A string authorizer names an authorizer function in "functions"; an ARN goes in the object form. Set "mcp.servers.${name}.authorizer.arn" to it instead - and, if it is a Cognito user pool ARN, set "mcp.servers.${name}.authorizer.name" to a name of your own beside it, because the authorizer's CloudFormation logical id is built from that name.`,
         'MCP_AUTHORIZER_INVALID',
         { stack: false },
       )
@@ -486,7 +497,7 @@ const validateIntrinsicIssuer = (name, issuer, intrinsicKey) => {
   const literal = maskSubPlaceholders(template)
   if (!literal.startsWith(HTTPS_PREFIX)) {
     throw new ServerlessError(
-      `MCP server "${name}" sets "oauthDiscovery.issuer" to an "Fn::Sub" over ${JSON.stringify(template)}, whose literal text does not begin with "https://". Clients read the issuer out of the published metadata and fetch it directly, so it has to be an https URL however it is assembled. Write the scheme and "//" out around the substitutions in "mcp.servers.${name}.oauthDiscovery.issuer" (for example "https://cognito-idp.\${AWS::Region}.amazonaws.com/\${UserPool}") - or, when the whole URL comes from a single parameter, output or resource attribute, set it to a "Ref" or "Fn::GetAtt" naming that value directly rather than an "Fn::Sub" around it: an issuer that is entirely an intrinsic is passed through as written.`,
+      `MCP server "${name}" sets "oauthDiscovery.issuer" to an "Fn::Sub" over ${shown(template)}, whose literal text does not begin with "https://". Clients read the issuer out of the published metadata and fetch it directly, so it has to be an https URL however it is assembled. Write the scheme and "//" out around the substitutions in "mcp.servers.${name}.oauthDiscovery.issuer" (for example "https://cognito-idp.\${AWS::Region}.amazonaws.com/\${UserPool}") - or, when the whole URL comes from a single parameter, output or resource attribute, set it to a "Ref" or "Fn::GetAtt" naming that value directly rather than an "Fn::Sub" around it: an issuer that is entirely an intrinsic is passed through as written.`,
       'MCP_OAUTH_DISCOVERY_ISSUER_NOT_HTTPS',
       { stack: false },
     )
@@ -495,7 +506,7 @@ const validateIntrinsicIssuer = (name, issuer, intrinsicKey) => {
   const hazard = velocityHazardOf(literal)
   if (hazard !== undefined) {
     throw new ServerlessError(
-      `MCP server "${name}" sets "oauthDiscovery.issuer" to an "Fn::Sub" over ${JSON.stringify(template)}, whose literal text contains ${JSON.stringify(hazard)}. The discovery document is served straight from API Gateway as a Velocity template, where "$" starts a variable reference and "#" starts a directive - CloudFormation resolves "\${...}" long before that, but any other "$" and every "#" survive into the published metadata and change what a client reads. Remove it from "mcp.servers.${name}.oauthDiscovery.issuer".`,
+      `MCP server "${name}" sets "oauthDiscovery.issuer" to an "Fn::Sub" over ${shown(template)}, whose literal text contains ${JSON.stringify(hazard)}. The discovery document is served straight from API Gateway as a Velocity template, where "$" starts a variable reference and "#" starts a directive - CloudFormation resolves "\${...}" long before that, but any other "$" and every "#" survive into the published metadata and change what a client reads. Remove it from "mcp.servers.${name}.oauthDiscovery.issuer".`,
       'MCP_OAUTH_DISCOVERY_VTL_UNSAFE_VALUE',
       { stack: false },
     )
@@ -554,8 +565,8 @@ const derivedIssuersOf = (name, jwtAuthorizer, definitions) => {
       template === undefined ? issuer : maskSubPlaceholders(template)
     const written =
       template === undefined
-        ? JSON.stringify(issuer)
-        : `an "Fn::Sub" over ${JSON.stringify(template)}`
+        ? shown(issuer)
+        : `an "Fn::Sub" over ${shown(template)}`
     if (!literal.startsWith(HTTPS_PREFIX)) {
       throw new ServerlessError(
         `MCP server "${name}" publishes the issuers of JWT authorizer "${key}" in its OAuth discovery document, and "${path}" is ${written}, whose literal text does not begin with "https://". Clients read each issuer out of the published metadata and fetch it directly, so write the scheme and "//" out around the substitutions (for example "https://cognito-idp.\${AWS::Region}.amazonaws.com/\${UserPool}"). ${fix}`,
@@ -582,7 +593,7 @@ const derivedIssuersOf = (name, jwtAuthorizer, definitions) => {
           typeof value === 'string' ? velocityHazardOf(value) : undefined
         if (valueHazard === undefined) continue
         throw new ServerlessError(
-          `MCP server "${name}" publishes the issuers of JWT authorizer "${key}" in its OAuth discovery document, and the "Fn::Sub" variable "${variable}" of "${path}" is ${JSON.stringify(value)}, which contains ${JSON.stringify(valueHazard)}. The discovery document is served straight from API Gateway as a Velocity template, where "$" starts a variable reference and "#" starts a directive, so the published metadata would not name the issuer the authorizer trusts. Remove the character from the variable's value. ${fix}`,
+          `MCP server "${name}" publishes the issuers of JWT authorizer "${key}" in its OAuth discovery document, and the "Fn::Sub" variable "${variable}" of "${path}" is ${shown(value)}, which contains ${JSON.stringify(valueHazard)}. The discovery document is served straight from API Gateway as a Velocity template, where "$" starts a variable reference and "#" starts a directive, so the published metadata would not name the issuer the authorizer trusts. Remove the character from the variable's value. ${fix}`,
           'MCP_OAUTH_DISCOVERY_VTL_UNSAFE_VALUE',
           { stack: false },
         )
@@ -628,7 +639,7 @@ const validateOauthDiscovery = (name, oauthDiscovery, deriveIssuers) => {
       !Array.isArray(issuer)
     ) {
       throw new ServerlessError(
-        `MCP server "${name}" sets "oauthDiscovery.issuer" to ${JSON.stringify(issuer)}, which is not a CloudFormation intrinsic this property accepts. Set "mcp.servers.${name}.oauthDiscovery.issuer" to the https URL of the authorization server, or to one of "Ref", "Fn::GetAtt", "Fn::ImportValue", "Fn::Sub", "Fn::Join", "Fn::Base64" or "Fn::ToJsonString" resolving to it.`,
+        `MCP server "${name}" sets "oauthDiscovery.issuer" to ${shown(issuer)}, which is not a CloudFormation intrinsic this property accepts. Set "mcp.servers.${name}.oauthDiscovery.issuer" to the https URL of the authorization server, or to one of "Ref", "Fn::GetAtt", "Fn::ImportValue", "Fn::Sub", "Fn::Join", "Fn::Base64" or "Fn::ToJsonString" resolving to it.`,
         'MCP_OAUTH_DISCOVERY_ISSUER_REQUIRED',
         { stack: false },
       )
@@ -649,7 +660,7 @@ const validateOauthDiscovery = (name, oauthDiscovery, deriveIssuers) => {
     validateIntrinsicIssuer(name, issuer, issuerIntrinsicKey)
   } else if (!isHttpsUrl(issuer)) {
     throw new ServerlessError(
-      `MCP server "${name}" sets "oauthDiscovery.issuer" to ${JSON.stringify(issuer)}, which is not an https URL with a host. Set "mcp.servers.${name}.oauthDiscovery.issuer" to the full https URL of the authorization server (for example "https://acme.auth0.com"): clients read it out of the published metadata and fetch it directly.`,
+      `MCP server "${name}" sets "oauthDiscovery.issuer" to ${shown(issuer)}, which is not an https URL with a host. Set "mcp.servers.${name}.oauthDiscovery.issuer" to the full https URL of the authorization server (for example "https://acme.auth0.com"): clients read it out of the published metadata and fetch it directly.`,
       'MCP_OAUTH_DISCOVERY_ISSUER_NOT_HTTPS',
       { stack: false },
     )
@@ -657,7 +668,7 @@ const validateOauthDiscovery = (name, oauthDiscovery, deriveIssuers) => {
     const issuerHazard = velocityHazardOf(issuer)
     if (issuerHazard !== undefined) {
       throw new ServerlessError(
-        `MCP server "${name}" sets "oauthDiscovery.issuer" to ${JSON.stringify(issuer)}, which contains ${JSON.stringify(issuerHazard)}. The discovery document is served straight from API Gateway as a Velocity template, where "$" starts a variable reference and "#" starts a directive, so neither character can survive into the published metadata. Set "mcp.servers.${name}.oauthDiscovery.issuer" to the plain https URL of the authorization server (for example "https://acme.auth0.com") - an issuer identifier carries no fragment, so "#" is not legal in one to begin with.`,
+        `MCP server "${name}" sets "oauthDiscovery.issuer" to ${shown(issuer)}, which contains ${JSON.stringify(issuerHazard)}. The discovery document is served straight from API Gateway as a Velocity template, where "$" starts a variable reference and "#" starts a directive, so neither character can survive into the published metadata. Set "mcp.servers.${name}.oauthDiscovery.issuer" to the plain https URL of the authorization server (for example "https://acme.auth0.com") - an issuer identifier carries no fragment, so "#" is not legal in one to begin with.`,
         'MCP_OAUTH_DISCOVERY_ISSUER_NOT_HTTPS',
         { stack: false },
       )
@@ -678,7 +689,7 @@ const validateOauthDiscovery = (name, oauthDiscovery, deriveIssuers) => {
   }
   if (publicUrl !== undefined && !isHttpsUrl(publicUrl)) {
     throw new ServerlessError(
-      `MCP server "${name}" sets "oauthDiscovery.publicUrl" to ${JSON.stringify(publicUrl)}, which is not an https URL with a host. Set "mcp.servers.${name}.oauthDiscovery.publicUrl" to the public https URL clients use to reach this service, everything before "/${name}/mcp" (for example "https://mcp.acme.com"), or remove it to have it derived from the deployed endpoint.`,
+      `MCP server "${name}" sets "oauthDiscovery.publicUrl" to ${shown(publicUrl)}, which is not an https URL with a host. Set "mcp.servers.${name}.oauthDiscovery.publicUrl" to the public https URL clients use to reach this service, everything before "/${name}/mcp" (for example "https://mcp.acme.com"), or remove it to have it derived from the deployed endpoint.`,
       'MCP_OAUTH_DISCOVERY_PUBLIC_URL_NOT_HTTPS',
       { stack: false },
     )
@@ -687,7 +698,7 @@ const validateOauthDiscovery = (name, oauthDiscovery, deriveIssuers) => {
     publicUrl === undefined ? undefined : velocityHazardOf(publicUrl)
   if (publicUrlHazard !== undefined) {
     throw new ServerlessError(
-      `MCP server "${name}" sets "oauthDiscovery.publicUrl" to ${JSON.stringify(publicUrl)}, which contains ${JSON.stringify(publicUrlHazard)}. The discovery document is served straight from API Gateway as a Velocity template, where "$" starts a variable reference and "#" starts a directive, so neither character can survive into the published metadata. Set "mcp.servers.${name}.oauthDiscovery.publicUrl" to the plain https URL clients use to reach this service, everything before "/${name}/mcp" (for example "https://mcp.acme.com").`,
+      `MCP server "${name}" sets "oauthDiscovery.publicUrl" to ${shown(publicUrl)}, which contains ${JSON.stringify(publicUrlHazard)}. The discovery document is served straight from API Gateway as a Velocity template, where "$" starts a variable reference and "#" starts a directive, so neither character can survive into the published metadata. Set "mcp.servers.${name}.oauthDiscovery.publicUrl" to the plain https URL clients use to reach this service, everything before "/${name}/mcp" (for example "https://mcp.acme.com").`,
       'MCP_OAUTH_DISCOVERY_PUBLIC_URL_NOT_HTTPS',
       { stack: false },
     )
@@ -701,7 +712,7 @@ const validateOauthDiscovery = (name, oauthDiscovery, deriveIssuers) => {
   // "#" outright.
   if (publicUrl !== undefined && publicUrl.includes('?')) {
     throw new ServerlessError(
-      `MCP server "${name}" sets "oauthDiscovery.publicUrl" to ${JSON.stringify(publicUrl)}, which carries a query string. The server's route is appended to this URL to publish where clients reach it, so a query in the middle of it ("${publicUrl.trim()}/${name}/mcp") would address nothing. Set "mcp.servers.${name}.oauthDiscovery.publicUrl" to the base URL alone (for example "https://mcp.acme.com").`,
+      `MCP server "${name}" sets "oauthDiscovery.publicUrl" to ${shown(publicUrl)}, which carries a query string. The server's route is appended to this URL to publish where clients reach it, so a query in the middle of it (${shown(`${publicUrl.trim()}/${name}/mcp`)}) would address nothing. Set "mcp.servers.${name}.oauthDiscovery.publicUrl" to the base URL alone (for example "https://mcp.acme.com").`,
       'MCP_OAUTH_DISCOVERY_PUBLIC_URL_NOT_HTTPS',
       { stack: false },
     )

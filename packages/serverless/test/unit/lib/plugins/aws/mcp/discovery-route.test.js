@@ -644,20 +644,27 @@ describe('buildDiscoveryDescriptors - issuers of a JWT authorizer', () => {
     expect(variables.RestApiId).toEqual({ Ref: 'ApiGatewayRestApi' })
   })
 
-  it('refuses an issuer that redefines the document variable', () => {
-    expect(() =>
-      build([
-        fromJwt(
-          [{ 'Fn::Sub': ['https://${RestApiId}', { RestApiId: 'nope' }] }],
-          null,
-        ),
-      ]),
-    ).toThrow(
-      expect.objectContaining({
-        code: 'MCP_OAUTH_DISCOVERY_ISSUER_VARIABLE_COLLISION',
-        message: expect.stringContaining('JWT authorizer "orders"'),
-      }),
-    )
+  // A derived issuer must resolve exactly as the authorizer resolves it, so
+  // even a single `Fn::Sub` issuer is nested in its own scope: its own
+  // `RestApiId`, or a stack parameter of that name it references, never meets
+  // the document's REST API id.
+  it.each([
+    [
+      'declares its own RestApiId',
+      { 'Fn::Sub': ['https://${RestApiId}', { RestApiId: 'idp' }] },
+    ],
+    [
+      'references a RestApiId parameter',
+      { 'Fn::Sub': 'https://${RestApiId}.idp.example.com/' },
+    ],
+  ])('nests a single derived issuer that %s', (_label, issuer) => {
+    const { descriptors } = build([fromJwt([issuer], null)])
+    const [template, variables] = documentOf(descriptors)['Fn::Sub']
+    expect(template).toContain('"authorization_servers":["${McpOauthIssuer}"]')
+    expect(variables).toEqual({
+      RestApiId: { Ref: 'ApiGatewayRestApi' },
+      McpOauthIssuer: issuer,
+    })
   })
 
   // The belt behind `./validate.js`: a literal issuer is checked again as the
