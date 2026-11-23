@@ -81,19 +81,19 @@ The request body becomes the SQS message body, and the response carries the resu
 
 Each list item has one key, the service type (`kinesis`, `sqs`, `s3`, `sns`, `dynamodb` or `eventbridge`), with these settings under it beside the service's own:
 
-| Setting               | Type                                                                | Default                      | Description                                                                                                                                          |
-| --------------------- | ------------------------------------------------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `path`                | string                                                              | Required                     | The route's path, such as `/messages` or `/items/{id}`. Path parameters use `{name}`, and `{name+}` matches the rest of the path.                    |
-| `method`              | `get`, `post`, `put`, `patch`, `options`, `head`, `delete` or `any` | Required                     | The route's HTTP method, in any case.                                                                                                                |
-| `cors`                | boolean or object                                                   | No CORS                      | Adds an `OPTIONS` preflight and CORS headers. See [Enable CORS](#enable-cors).                                                                       |
-| `private`             | boolean                                                             | `false`                      | Requires an API key. See [Require an API key](#require-an-api-key).                                                                                  |
-| `authorizationType`   | `NONE`, `AWS_IAM`, `CUSTOM` or `COGNITO_USER_POOLS` (uppercase)     | `NONE`                       | How API Gateway authorizes callers. See [Require authorization](#require-authorization).                                                             |
-| `authorizerId`        | string or `Ref`                                                     | None                         | The authorizer for `CUSTOM` or `COGNITO_USER_POOLS`.                                                                                                 |
-| `authorizationScopes` | list                                                                | None                         | OAuth scopes for `COGNITO_USER_POOLS`.                                                                                                               |
-| `roleArn`             | ARN string or `Fn::GetAtt` of a role's `Arn`                        | A role the Framework creates | The role API Gateway uses to call the service. DynamoDB proxies don't use it.                                                                        |
-| `acceptParameters`    | map of method request parameter to boolean                          | None                         | Method request parameters the route accepts; the boolean says whether each is required. See [Accept request parameters](#accept-request-parameters). |
-| `request`             | object                                                              | None                         | Your own request mapping templates. See [Customize request templates](#customize-request-templates).                                                 |
-| `response`            | object or list                                                      | None                         | Your own response templates. See [Customize responses](#customize-responses).                                                                        |
+| Setting               | Type                                                                   | Default                      | Description                                                                                                                                          |
+| --------------------- | ---------------------------------------------------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `path`                | string                                                                 | Required                     | The route's path, such as `/messages` or `/items/{id}`. Path parameters use `{name}`, and `{name+}` matches the rest of the path.                    |
+| `method`              | `get`, `post`, `put`, `patch`, `options`, `head`, `delete` or `any`    | Required                     | The route's HTTP method, in any case.                                                                                                                |
+| `cors`                | boolean or object                                                      | No CORS                      | Adds an `OPTIONS` preflight and CORS headers. See [Enable CORS](#enable-cors).                                                                       |
+| `private`             | boolean                                                                | `false`                      | Requires an API key. See [Require an API key](#require-an-api-key).                                                                                  |
+| `authorizationType`   | `NONE`, `AWS_IAM`, `CUSTOM`, `COGNITO_USER_POOLS` or `JWT` (uppercase) | `NONE`                       | How API Gateway authorizes callers. See [Require authorization](#require-authorization).                                                             |
+| `authorizerId`        | string or `Ref`                                                        | None                         | The authorizer for `CUSTOM`, `COGNITO_USER_POOLS` or `JWT`.                                                                                          |
+| `authorizationScopes` | list                                                                   | None                         | OAuth scopes for `COGNITO_USER_POOLS` or `JWT`.                                                                                                      |
+| `roleArn`             | ARN string or `Fn::GetAtt` of a role's `Arn`                           | A role the Framework creates | The role API Gateway uses to call the service. DynamoDB proxies don't use it.                                                                        |
+| `acceptParameters`    | map of method request parameter to boolean                             | None                         | Method request parameters the route accepts; the boolean says whether each is required. See [Accept request parameters](#accept-request-parameters). |
+| `request`             | object                                                                 | None                         | Your own request mapping templates. See [Customize request templates](#customize-request-templates).                                                 |
+| `response`            | object or list                                                         | None                         | Your own response templates. See [Customize responses](#customize-responses).                                                                        |
 
 An invalid proxy stops `serverless package` and `serverless deploy` with the validation message, for example `"sns.request.template" is required`.
 
@@ -657,7 +657,36 @@ custom:
 
 - `NONE` (default): no authorization.
 - `AWS_IAM`: callers sign requests with AWS credentials (Signature Version 4).
-- `CUSTOM` or `COGNITO_USER_POOLS`: set `authorizerId` to the authorizer's ID, or to a `Ref` to an `AWS::ApiGateway::Authorizer` you declare under `resources`. With `authorizationScopes`, the type must be `COGNITO_USER_POOLS`.
+- `CUSTOM` or `COGNITO_USER_POOLS`: set `authorizerId` to the authorizer's ID, or to a `Ref` to an `AWS::ApiGateway::Authorizer` you declare under `resources`.
+- `JWT`: set `authorizerId` to the ID of a JWT authorizer, or to a `Ref` to one defined under `provider.apiGateway.authorizers` (see the following example).
+
+`authorizationScopes` applies to `COGNITO_USER_POOLS` and `JWT`; without `authorizerId`, scopes need `COGNITO_USER_POOLS`. `JWT` always needs `authorizerId`. A `JWT` route accepts a token whose `scope` or `scp` claim contains at least one of the scopes.
+
+To protect a proxy route with a [JWT authorizer](../events/apigateway.md#jwt-authorizers) of the same service, `Ref` its CloudFormation resource: the authorizer's key with the first letter in uppercase, followed by `ApiGatewayJwtAuthorizer`:
+
+```yaml
+provider:
+  name: aws
+  apiGateway:
+    authorizers:
+      messages:
+        type: jwt
+        issuerUrl: https://my-tenant.us.auth0.com/
+        audience: https://api.example.com/messages
+        algorithms:
+          - RS256
+
+custom:
+  apiGatewayServiceProxies:
+    - sqs:
+        path: /messages
+        method: post
+        queueName: { 'Fn::GetAtt': ['MessagesQueue', 'QueueName'] }
+        authorizationType: JWT
+        authorizerId: { Ref: 'MessagesApiGatewayJwtAuthorizer' }
+        authorizationScopes:
+          - messages:write
+```
 
 See [AuthorizationType](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigateway-method.html#cfn-apigateway-method-authorizationtype) for what each type checks.
 

@@ -621,6 +621,40 @@ provider:
     disableDefaultEndpoint: true
     # Where API Gateway reads API keys: HEADER (default) or AUTHORIZER
     apiKeySourceType: HEADER
+    # JWT authorizers of the REST API, referenced by key from http events. Optional
+    authorizers:
+      orders:
+        # Required: 'jwt'
+        type: jwt
+        # Authorizer name in API Gateway (default: the key)
+        name: orders
+        # Required. Signing algorithms accepted: RS256, RS384, RS512, ES256, ES384, ES512
+        algorithms:
+          - RS256
+        # Request header that carries the token, with or without 'Bearer '; one header only
+        # (default: method.request.header.Authorization)
+        identitySource: method.request.header.Authorization
+        # Required without issuers. Issuer exactly as in the token's iss claim: https URL, variable or intrinsic
+        issuerUrl: https://my-tenant.us.auth0.com/
+        # Required without issuers. Accepted aud values: a string, an intrinsic, or a list of 1-100
+        audience: https://api.example.com/orders
+        # Claim rules, at most 10, by claim name. Optional
+        additionalClaims:
+          # A string: the claim must equal this value
+          tenant: acme
+          # true: the claim must be present
+          department: true
+          # value and required (default: true); required: false checks the claim only when present
+          tier:
+            value: gold
+            required: false
+        # OR 1-10 issuers, each with issuerUrl, audience and optional additionalClaims;
+        # not with the top-level issuerUrl, audience or additionalClaims
+        # issuers:
+        #   - issuerUrl: https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/v2.0
+        #     audience: api://orders
+        #   - issuerUrl: https://my-tenant.us.auth0.com/
+        #     audience: https://api.example.com/orders
     # API keys of the REST API, added to the usage plan. Optional
     apiKeys:
       - name: myFirstKey
@@ -1327,20 +1361,23 @@ functions:
           #   maxAge: 86400
           # Requires clients to add API keys values in the `x-api-key` header of their request
           private: true
-          # An AWS API Gateway custom authorizer function
+          # An AWS API Gateway authorizer
           authorizer:
-            # Name of the authorizer function (must be in this service)
+            # Name of the authorizer function (must be in this service),
+            # or the key of a JWT authorizer in provider.apiGateway.authorizers
             name: authorizerFunc
             # OR the ARN of a function outside the service, or of a Cognito user pool
             # arn: arn:aws:lambda:us-east-1:123456789012:function:Lambda-Name
             # OR the ID of an existing authorizer (with type)
             # authorizerId: !Ref ApiGatewayAuthorizer
+            # Not with a JWT authorizer: resultTtlInSeconds, identitySource, identityValidationExpression,
+            # claims, arn, managedExternally
             resultTtlInSeconds: 0
             identitySource: method.request.header.Authorization
             identityValidationExpression: someRegex
-            # token (default), request, cognito_user_pools, aws_iam or custom; case-insensitive
+            # token (default), request, cognito_user_pools, aws_iam, custom or jwt; case-insensitive
             type: token
-            # OAuth scopes for Cognito user pool authorizers. Optional.
+            # OAuth scopes for Cognito user pool and JWT authorizers; a JWT token needs one of them. Optional.
             # scopes:
             #   - my-app/read
             # Cognito claims to expose with the lambda integration. Optional.
@@ -2308,11 +2345,13 @@ mcp:
       memorySize: 1024 # MB, 128–10240 (default: provider.memorySize, otherwise 1024)
       environment:
         ORDERS_TABLE: !Ref OrdersTable
-      authorizer: verifyToken # rejects before invoke — string | http-event-style object | aws_iam
+      authorizer: verifyToken # rejects before invoke — function or JWT authorizer name | http-event-style object | aws_iam
       oauthDiscovery: # publishes RFC 9728 discovery metadata (advertisement only)
         # The issuing authorization server: a literal https URL, or a
         # CloudFormation intrinsic when the issuer is created by this stack
-        # (e.g. !Sub 'https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}')
+        # (e.g. !Sub 'https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}').
+        # Optional when authorizer names a JWT authorizer in provider.apiGateway.authorizers
+        # (default: that authorizer's issuer URLs); required otherwise
         issuer: https://example.us.auth0.com
         # The public https:// URL in front of this service, when its domain is configured elsewhere. Literal only
         # (default: derived from provider.domain, otherwise the stage URL)
@@ -2979,7 +3018,7 @@ custom:
         cors: true
         # Require an API key (default: false)
         private: false
-        # NONE (default), AWS_IAM, CUSTOM or COGNITO_USER_POOLS
+        # NONE (default), AWS_IAM, CUSTOM, COGNITO_USER_POOLS or JWT
         authorizationType: NONE
         # Role API Gateway uses to call the service (default: a role the Framework creates). Optional
         # roleArn: arn:aws:iam::123456789012:role/sqs-proxy
