@@ -236,7 +236,9 @@ A URL-only client has no initial access token, and the custom scopes it requests
 must belong to a resource server whose identifier is the MCP server's URL (Cognito
 binds the token to the requested `resource`) and be in the registration's
 allowed scopes, as `<resource-server-identifier>/<scope>` (`openid`, `email`,
-`phone` and `profile` need neither). Every update to the
+`phone` and `profile` need neither). List those custom scopes under the
+authorizer's `scopes` too: the client sends an access token, which the
+authorizer validates only when `scopes` is set. Every update to the
 registration settings must repeat the allowed scopes, because AWS replaces the
 whole configuration and omitted members fall back to their defaults. Open registration lets anyone create app clients against the
 pool's shared app client quota: rate-limit it with AWS WAF. Without registration, Cognito
