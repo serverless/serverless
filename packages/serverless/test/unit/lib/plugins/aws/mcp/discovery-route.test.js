@@ -502,7 +502,8 @@ describe('buildDiscoveryDescriptors - issuers of a JWT authorizer', () => {
   })
 
   // Literal, inlined `Fn::Sub`, and variable-valued intrinsics in one
-  // document: each intrinsic after the first gets a numbered variable.
+  // document: each intrinsic after the first gets a numbered variable, and a
+  // list-form `Fn::Sub` issuer's own variables are renamed after it.
   it('renders intrinsic issuers through one Fn::Sub', () => {
     const { descriptors } = build([
       fromJwt(
@@ -521,33 +522,63 @@ describe('buildDiscoveryDescriptors - issuers of a JWT authorizer', () => {
     ])
     expect(documentOf(descriptors)).toEqual({
       'Fn::Sub': [
-        '{"resource":"https://${RestApiId}.execute-api.${AWS::Region}.${AWS::URLSuffix}/dev/crm/mcp","authorization_servers":["https://idp.example.com","https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}","${McpOauthIssuer3}","https://${Host}/","${McpOauthIssuer5}"],"bearer_methods_supported":["header"]}',
+        '{"resource":"https://${RestApiId}.execute-api.${AWS::Region}.${AWS::URLSuffix}/dev/crm/mcp","authorization_servers":["https://idp.example.com","https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}","${McpOauthIssuer3}","https://${McpOauthIssuer4VarHost}/","${McpOauthIssuer5}"],"bearer_methods_supported":["header"]}',
         {
           RestApiId: { Ref: 'ApiGatewayRestApi' },
           McpOauthIssuer3: { Ref: 'IssuerParameter' },
-          Host: { Ref: 'HostParam' },
+          McpOauthIssuer4VarHost: { Ref: 'HostParam' },
           McpOauthIssuer5: { 'Fn::ImportValue': 'shared-issuer' },
         },
       ],
     })
   })
 
-  it('accepts two issuers that give a shared variable the same value', () => {
-    const issuer = (path) => ({
-      'Fn::Sub': [`https://\${Host}/${path}`, { Host: { Ref: 'HostParam' } }],
+  it('keeps two issuers that give one variable name different values apart', () => {
+    const { descriptors } = build([
+      fromJwt([
+        { 'Fn::Sub': ['https://${Host}/a', { Host: { Ref: 'HostA' } }] },
+        { 'Fn::Sub': ['https://${Host}/b', { Host: { Ref: 'HostB' } }] },
+      ]),
+    ])
+    const [template, variables] = documentOf(descriptors)['Fn::Sub']
+    expect(template).toContain(
+      '"authorization_servers":["https://${McpOauthIssuerVarHost}/a","https://${McpOauthIssuer2VarHost}/b"]',
+    )
+    expect(variables).toMatchObject({
+      McpOauthIssuerVarHost: { Ref: 'HostA' },
+      McpOauthIssuer2VarHost: { Ref: 'HostB' },
     })
-    const { descriptors } = build([fromJwt([issuer('a'), issuer('b')])])
-    expect(documentOf(descriptors)['Fn::Sub'][1]).toEqual({
-      Host: { Ref: 'HostParam' },
-    })
+    expect(variables).not.toHaveProperty('Host')
   })
 
-  it('refuses two issuers that give a shared variable different values', () => {
+  // A stack parameter "Tenant" (alpha) in one issuer, and a list-form issuer
+  // declaring its own "Tenant" (beta): the parameter keeps its own value.
+  it("keeps one issuer's variable out of another issuer's placeholders", () => {
+    const { descriptors } = build([
+      fromJwt([
+        { 'Fn::Sub': 'https://${Tenant}.auth0.com/' },
+        {
+          'Fn::Sub': [
+            'https://${Tenant}.okta.com/${!Literal}/${AWS::Region}',
+            { Tenant: 'beta' },
+          ],
+        },
+      ]),
+    ])
+    const [template, variables] = documentOf(descriptors)['Fn::Sub']
+    expect(template).toContain(
+      '"authorization_servers":["https://${Tenant}.auth0.com/","https://${McpOauthIssuer2VarTenant}.okta.com/${!Literal}/${AWS::Region}"]',
+    )
+    expect(variables).toMatchObject({ McpOauthIssuer2VarTenant: 'beta' })
+    expect(variables).not.toHaveProperty('Tenant')
+  })
+
+  it('refuses an issuer among several that redefines the document variable', () => {
     expect(() =>
       build([
         fromJwt([
-          { 'Fn::Sub': ['https://${Host}/a', { Host: { Ref: 'HostA' } }] },
-          { 'Fn::Sub': ['https://${Host}/b', { Host: { Ref: 'HostB' } }] },
+          'https://idp.example.com',
+          { 'Fn::Sub': ['https://${RestApiId}', { RestApiId: 'nope' }] },
         ]),
       ]),
     ).toThrow(

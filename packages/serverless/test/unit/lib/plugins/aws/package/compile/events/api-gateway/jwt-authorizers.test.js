@@ -671,6 +671,57 @@ describe('API Gateway JWT authorizers', () => {
         },
       )
 
+      it('rejects a key whose CloudFormation resource name is too long', async () => {
+        const key = '_'.repeat(24)
+        const error = await compileError({
+          apiGateway: {
+            authorizers: { [key]: ordersAuthorizer({ name: 'short' }) },
+          },
+          functions: withEvent(key),
+        })
+        expect(error.code).toBe(INVALID)
+        expect(error.message).toContain(
+          'which is longer than the 255 characters CloudFormation allows',
+        )
+        expect(error.message).toContain('Shorten the key')
+      })
+
+      it('rejects an unknown key on the authorizer, suggesting the close one', async () => {
+        const error = await definitionError(
+          ordersAuthorizer({ additionalClaim: { tenant: 'acme' } }),
+        )
+        expect(error.code).toBe(INVALID)
+        expect(error.message).toBe(
+          'API Gateway authorizer "orders" sets "additionalClaim", which a JWT authorizer doesn\'t use. Did you mean "additionalClaims"? Use only "type", "name", "identitySource", "algorithms", "issuerUrl", "audience", "additionalClaims", "issuers".',
+        )
+      })
+
+      it('rejects an unknown key on an entry of issuers', async () => {
+        const error = await definitionError({
+          type: 'jwt',
+          algorithms: ['RS256'],
+          issuers: [
+            { issuerUrl: ISSUER, audience: 'a' },
+            { issuerUrl: 'https://b.example.com', audience: 'b', claims: {} },
+          ],
+        })
+        expect(error.code).toBe(INVALID)
+        expect(error.message).toBe(
+          'API Gateway authorizer "orders" sets "issuers[1].claims", which a JWT authorizer doesn\'t use. Use only "issuerUrl", "audience", "additionalClaims" in each entry of "issuers".',
+        )
+      })
+
+      it('accepts an authorizer without claim rules', async () => {
+        const resources = await compile({
+          apiGateway: { authorizers: { orders: ordersAuthorizer() } },
+          functions: withEvent('orders'),
+        })
+        expect(
+          resources.OrdersApiGatewayJwtAuthorizer.Properties.JwtConfiguration
+            .Issuers[0].AdditionalClaims,
+        ).toBeUndefined()
+      })
+
       it('accepts keys with letters, digits, "-" and "_"', async () => {
         const resources = await compile({
           apiGateway: {
@@ -760,7 +811,22 @@ describe('API Gateway JWT authorizers', () => {
       ])('rejects %j', async (issuerUrl) => {
         const error = await definitionError(ordersAuthorizer({ issuerUrl }))
         expect(error.code).toBe(INVALID)
-        expect(error.message).toContain(`sets issuerUrl to "${issuerUrl}"`)
+        expect(error.message).toContain(
+          `sets issuerUrl to "${issuerUrl.replace('user:pass@', '***@')}"`,
+        )
+      })
+
+      it('leaves user info out of the rejected issuer URL it shows', async () => {
+        const error = await definitionError(
+          ordersAuthorizer({ issuerUrl: 'http://admin:s3cret@idp.acme.com/' }),
+        )
+        expect(error.code).toBe(INVALID)
+        expect(error.message).not.toContain('s3cret')
+        expect(error.message).not.toContain('admin')
+        expect(error.message).toContain(
+          'sets issuerUrl to "http://***@idp.acme.com/"',
+        )
+        expect(error.message).toContain('for example "https://idp.acme.com/"')
       })
 
       it('names the key path of an issuer in a list', async () => {
@@ -1037,8 +1103,45 @@ describe('API Gateway JWT authorizers', () => {
         })
         expect(error.code).toBe(CONFLICT)
         expect(error.message).toBe(
-          '"orders" names both a JWT authorizer in "provider.apiGateway.authorizers" and a function used as an authorizer. Rename the JWT authorizer: API Gateway needs authorizer names to be unique within a REST API.',
+          '"orders" names both a JWT authorizer in "provider.apiGateway.authorizers" and a Lambda or Cognito authorizer. Rename the JWT authorizer: API Gateway needs authorizer names to be unique within a REST API.',
         )
+      })
+
+      it.each(['request', 'token'])(
+        'accepts a typed (%s) Lambda authorizer named like a JWT key whose API Gateway name differs',
+        async (type) => {
+          const resources = await compile({
+            apiGateway: {
+              authorizers: { orders: ordersAuthorizer({ name: 'ordersJwt' }) },
+            },
+            functions: {
+              ...withEvent({ type, name: 'orders' }),
+              orders: {},
+            },
+          })
+          expect(
+            resources.ApiGatewayMethodOrdersGet.Properties.AuthorizationType,
+          ).toBe('CUSTOM')
+          expect(resources.OrdersApiGatewayAuthorizer.Properties.Name).toBe(
+            'orders',
+          )
+          expect(resources.OrdersApiGatewayJwtAuthorizer.Properties.Name).toBe(
+            'ordersJwt',
+          )
+        },
+      )
+
+      it('accepts a JWT authorizer key that is also an inherited object property', async () => {
+        const resources = await compile({
+          apiGateway: { authorizers: { constructor: ordersAuthorizer() } },
+          functions: withEvent('constructor'),
+        })
+        expect(
+          resources.ApiGatewayMethodOrdersGet.Properties.AuthorizationType,
+        ).toBe('JWT')
+        expect(
+          resources.ConstructorApiGatewayJwtAuthorizer.Properties.Name,
+        ).toBe('constructor')
       })
 
       it('rejects a JWT authorizer named like a Lambda authorizer', async () => {
@@ -1135,7 +1238,7 @@ describe('API Gateway JWT authorizers', () => {
         })
         expect(error.code).toBe('API_GATEWAY_AUTHORIZERS_WITHOUT_REST_API')
         expect(error.message).toBe(
-          '"provider.apiGateway.authorizers" defines authorizers, but this service has no REST API: add an http event, or set "provider.apiGateway.restApiId" to the shared REST API.',
+          '"provider.apiGateway.authorizers" defines authorizers, but this service has no REST API: add an http event, or set "provider.apiGateway.restApiId" and "provider.apiGateway.restApiRootResourceId" to the shared REST API.',
         )
       })
     })

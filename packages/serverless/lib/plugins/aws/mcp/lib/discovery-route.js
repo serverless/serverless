@@ -1,4 +1,3 @@
-import { isDeepStrictEqual } from 'node:util'
 import { ServerlessError } from '@serverless/util'
 import { publicBaseUrl } from './packaging.js'
 
@@ -265,33 +264,63 @@ const issuerSourceOf = (server) => {
       }
 }
 
+// A placeholder of an `Fn::Sub` template: `${Name}`, but not the literal
+// escape `${!Name}`.
+const SUB_PLACEHOLDER = /\$\{(?!!)([^}]*)\}/g
+
+/**
+ * A list-form `Fn::Sub` issuer's rendering with its variables renamed apart from
+ * every other issuer's, in both its text and its map. The document renders
+ * all issuers in one substitution, where a variable one issuer declares
+ * would otherwise also fill a same-named placeholder of another issuer that
+ * means a stack parameter or resource. Placeholders that are not the issuer's
+ * own variables (`${AWS::Region}`, `${UserPool}`, `${Pool.Arn}`) are left as
+ * written. The generated names start with the issuer's own variable name and
+ * "Var", so they differ from each other and from every issuer variable.
+ */
+const isolatedRenderingOf = (rendering, index) => {
+  const ownNames = Object.keys(rendering.variables)
+  if (!ownNames.length) return rendering
+  const renamed = (name) => `${issuerVariableOf(index)}Var${name}`
+  return {
+    text: rendering.text.replace(SUB_PLACEHOLDER, (placeholder, name) =>
+      ownNames.includes(name) ? `\${${renamed(name)}}` : placeholder,
+    ),
+    variables: Object.fromEntries(
+      Object.entries(rendering.variables).map(([name, value]) => [
+        ownNames.includes(name) ? renamed(name) : name,
+        value,
+      ]),
+    ),
+  }
+}
+
 /**
  * Every issuer rendered into one document: their texts in order, and one
- * variable map for the `Fn::Sub` around it. Two issuers may well share a
- * variable (the same user pool, the same parameter), but not give it two
- * values, since one substitution pass reads one map.
+ * variable map for the `Fn::Sub` around it. A single issuer renders as it is
+ * written; with several, each one's own variables are renamed apart first, so
+ * no issuer's variable reaches another issuer's text.
+ *
+ * `declaresRestApiId` says whether an issuer declares the variable the
+ * document uses for the REST API id, checked on the names as written.
  */
-const issuersRenderingOf = (server, { issuers, describe }) => {
+const issuersRenderingOf = (issuers) => {
   const texts = []
   const variables = {}
+  let declaresRestApiId = false
   issuers.forEach((issuer, index) => {
-    const rendering = issuerRenderingOf(issuer, index)
-    texts.push(rendering.text)
-    for (const [variable, value] of Object.entries(rendering.variables)) {
-      if (
-        Object.hasOwn(variables, variable) &&
-        !isDeepStrictEqual(variables[variable], value)
-      ) {
-        throw new ServerlessError(
-          `MCP server "${server.name}" publishes ${describe} in one OAuth discovery document, and two of them give the "Fn::Sub" variable "${variable}" different values. The document renders every issuer in one substitution, where a variable has one value: rename the variable in one of the issuers.`,
-          'MCP_OAUTH_DISCOVERY_ISSUER_VARIABLE_COLLISION',
-          { stack: false },
-        )
-      }
-      variables[variable] = value
+    const written = issuerRenderingOf(issuer, index)
+    if (Object.hasOwn(written.variables, REST_API_ID_VARIABLE)) {
+      declaresRestApiId = true
     }
+    const rendering =
+      issuers.length > 1 && Array.isArray(issuer?.['Fn::Sub'])
+        ? isolatedRenderingOf(written, index)
+        : written
+    texts.push(rendering.text)
+    Object.assign(variables, rendering.variables)
   })
-  return { texts, variables }
+  return { texts, variables, declaresRestApiId }
 }
 
 /**
@@ -358,7 +387,7 @@ export const buildDiscoveryDescriptors = ({
     assertBaseUrlSafe({ server, source, url, stage })
     sources.set(server.name, { source, url })
 
-    const issuerRendering = issuersRenderingOf(server, issuerSource)
+    const issuerRendering = issuersRenderingOf(issuerSource.issuers)
     const document = documentOf(
       resourceUrlOf({ server, source, url, stage }),
       issuerRendering.texts,
@@ -372,7 +401,7 @@ export const buildDiscoveryDescriptors = ({
     // Rejected whatever the base URL resolves to today, so that adding or
     // removing a custom domain can never turn a working document into one whose
     // REST API id was quietly redefined by the issuer.
-    if (Object.hasOwn(issuerRendering.variables, REST_API_ID_VARIABLE)) {
+    if (issuerRendering.declaresRestApiId) {
       throw new ServerlessError(
         server.oauthDiscovery.jwtAuthorizer === undefined
           ? `MCP server "${server.name}" sets "oauthDiscovery.issuer" to an "Fn::Sub" declaring a variable named "${REST_API_ID_VARIABLE}", which is the name the discovery document itself uses for this service's REST API id. Rename the variable in "mcp.servers.${server.name}.oauthDiscovery.issuer".`

@@ -1780,30 +1780,31 @@ describe('validateMcp - JWT authorizers', () => {
       },
     )
 
-    it('rejects an untyped arn beside the name of a JWT authorizer, as an http event does', () => {
-      expect(() =>
-        validate({
-          authorizer: {
-            name: 'orders',
-            arn: 'arn:aws:lambda:us-east-1:000000000000:function:auth',
-          },
-        }),
-      ).toThrow(
-        expect.objectContaining({
-          code: 'API_GATEWAY_AUTHORIZER_NAME_CONFLICT',
-        }),
-      )
-    })
-
-    it('rejects a Lambda type beside the name of a JWT authorizer', () => {
-      expect(() =>
-        validate({ authorizer: { type: 'token', name: 'orders' } }),
-      ).toThrow(
-        expect.objectContaining({
-          code: 'API_GATEWAY_AUTHORIZER_NAME_CONFLICT',
-        }),
-      )
-    })
+    // An "arn" or a Lambda type says which authorizer is meant, so the
+    // reference is a Lambda authorizer here, as on an http event. Whether its
+    // API Gateway name collides with a JWT authorizer's is checked once every
+    // route is resolved (template.test.js).
+    it.each([
+      [
+        'an untyped arn',
+        {
+          name: 'orders',
+          arn: 'arn:aws:lambda:us-east-1:000000000000:function:auth',
+        },
+      ],
+      ['a Lambda type', { type: 'token', name: 'orders' }],
+    ])(
+      'leaves %s beside the name of a JWT authorizer to the Lambda authorizer rules',
+      (_label, authorizer) => {
+        let error
+        try {
+          validate({ authorizer })
+        } catch (caught) {
+          error = caught
+        }
+        expect(error?.code).not.toBe('API_GATEWAY_AUTHORIZER_NAME_CONFLICT')
+      },
+    )
 
     it('lists jwt among the authorizer types', () => {
       expect(() =>
@@ -2018,5 +2019,50 @@ describe('validateMcp - JWT authorizers', () => {
         )
       },
     )
+
+    it.each([
+      ['"$"', 'https://${Host}/$context.requestId', 'VTL_UNSAFE_VALUE'],
+      ['no https prefix', '${Scheme}://${Host}/', 'ISSUER_NOT_HTTPS'],
+    ])(
+      'rejects a list-form Fn::Sub issuer whose template has %s',
+      (_label, template, code) => {
+        expect(() =>
+          validate({
+            authorizer: 'orders',
+            oauthDiscovery: {},
+            jwtAuthorizers: {
+              orders: ordersAuthorizer({
+                issuerUrl: {
+                  'Fn::Sub': [
+                    template,
+                    { Host: 'idp.example.com', Scheme: 'https' },
+                  ],
+                },
+              }),
+            },
+          }),
+        ).toThrow(
+          expect.objectContaining({
+            code: `MCP_OAUTH_DISCOVERY_${code}`,
+            message: expect.stringContaining(
+              '"provider.apiGateway.authorizers.orders.issuerUrl"',
+            ),
+          }),
+        )
+      },
+    )
+
+    it('accepts a list-form Fn::Sub issuer with a safe template', () => {
+      const issuerUrl = {
+        'Fn::Sub': ['https://${Host}/', { Host: 'idp.example.com' }],
+      }
+      expect(() =>
+        validate({
+          authorizer: 'orders',
+          oauthDiscovery: {},
+          jwtAuthorizers: { orders: ordersAuthorizer({ issuerUrl }) },
+        }),
+      ).not.toThrow()
+    })
   })
 })

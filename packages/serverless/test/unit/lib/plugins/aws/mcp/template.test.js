@@ -952,6 +952,51 @@ describe('mcp compiled template', () => {
       })
     })
 
+    it('rejects a Lambda authorizer whose API Gateway name is also a JWT authorizer name', async () => {
+      await expect(
+        compileService(
+          {
+            servers: {
+              crm: {
+                server: 'src/server.mjs',
+                authorizer: { type: 'request', name: 'orders' },
+              },
+            },
+          },
+          { orders: { handler: 'src/auth.handler' } },
+          { provider: { apiGateway: { authorizers: { orders } } } },
+        ),
+      ).rejects.toMatchObject({ code: 'API_GATEWAY_AUTHORIZER_NAME_CONFLICT' })
+    })
+
+    it('accepts a Lambda authorizer named like a JWT key whose API Gateway name differs', async () => {
+      const { template } = await compileService(
+        {
+          servers: {
+            crm: {
+              server: 'src/server.mjs',
+              authorizer: { type: 'request', name: 'orders' },
+            },
+          },
+        },
+        { orders: { handler: 'src/auth.handler' } },
+        {
+          provider: {
+            apiGateway: {
+              authorizers: { orders: { ...orders, name: 'orders-jwt' } },
+            },
+          },
+        },
+      )
+
+      expect(methodWith(template, 'ANY').Properties.AuthorizationType).toBe(
+        'CUSTOM',
+      )
+      expect(
+        template.Resources.OrdersApiGatewayJwtAuthorizer.Properties.Name,
+      ).toBe('orders-jwt')
+    })
+
     it('guards the MCP route with a provider JWT authorizer and publishes its issuers', async () => {
       const { template } = await compileService(
         {

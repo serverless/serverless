@@ -24,6 +24,20 @@ const RESERVED_CLAIMS = ['iss', 'aud', 'exp', 'nbf', 'iat', 'scope', 'scp']
 const MAX_ISSUERS = 10
 const MAX_AUDIENCES = 100
 const MAX_CLAIMS = 10
+// CloudFormation's limit on the length of a logical ID.
+const MAX_LOGICAL_ID_LENGTH = 255
+
+const DEFINITION_KEYS = [
+  'type',
+  'name',
+  'identitySource',
+  'algorithms',
+  'issuerUrl',
+  'audience',
+  'additionalClaims',
+  'issuers',
+]
+const ISSUER_ENTRY_KEYS = ['issuerUrl', 'audience', 'additionalClaims']
 
 // Keys of an http event's `authorizer` that have no meaning for a JWT
 // authorizer, each with the advice that ends its error message.
@@ -63,6 +77,38 @@ const show = (value) =>
 
 const invalid = (message) =>
   new ServerlessError(message, INVALID, { stack: false })
+
+/**
+ * Rejects keys a definition doesn't know. The schema only warns about them
+ * under the default `configValidationMode`, and a misspelled key such as
+ * "additionalClaim" would otherwise compile to an authorizer without the
+ * rules it was meant to hold.
+ */
+const assertKnownKeys = (key, path, value, known) => {
+  for (const name of Object.keys(value)) {
+    if (known.includes(name)) continue
+    const lowerName = name.toLowerCase()
+    const closest = known.find(
+      (candidate) =>
+        candidate.toLowerCase() === lowerName ||
+        candidate.toLowerCase() === `${lowerName}s` ||
+        `${candidate.toLowerCase()}s` === lowerName,
+    )
+    throw invalid(
+      `API Gateway authorizer "${key}" sets "${path}${name}", which a JWT authorizer doesn't use.${
+        closest ? ` Did you mean "${closest}"?` : ''
+      } Use only ${known.map((candidate) => `"${candidate}"`).join(', ')}${
+        path ? ` in each entry of "issuers"` : ''
+      }.`,
+    )
+  }
+}
+
+/** An issuer URL as shown in an error, without any user info it carries. */
+const showIssuerUrl = (issuerUrl) =>
+  typeof issuerUrl === 'string'
+    ? show(issuerUrl.replace(/^([a-z][a-z0-9+.-]*:\/\/)[^/?#]*@/i, '$1***@'))
+    : show(issuerUrl)
 
 /**
  * Whether a literal issuer URL is one API Gateway accepts: https, with a host,
@@ -164,7 +210,7 @@ const normalizeIssuerUrl = (key, path, issuerUrl) => {
         ? suggestIssuerUrl(issuerUrl)
         : 'https://idp.example.com'
     throw invalid(
-      `API Gateway authorizer "${key}" sets ${path} to ${show(issuerUrl)}. Set it to the https URL in your tokens' "iss" claim, with no query or fragment, for example "${example}".`,
+      `API Gateway authorizer "${key}" sets ${path} to ${showIssuerUrl(issuerUrl)}. Set it to the https URL in your tokens' "iss" claim, with no query or fragment, for example "${example}".`,
     )
   }
   return issuerUrl
@@ -297,6 +343,7 @@ const normalizeIssuers = (key, definition) => {
         `API Gateway authorizer "${key}" sets issuers[${index}] to ${show(issuer)}. Each entry of "issuers" is an object with "issuerUrl", "audience" and optional "additionalClaims".`,
       )
     }
+    assertKnownKeys(key, `issuers[${index}].`, issuer, ISSUER_ENTRY_KEYS)
     return normalizeIssuer(key, `issuers[${index}].`, issuer)
   })
   // Intrinsics are compared as written: two identical ones resolve to one
@@ -356,9 +403,17 @@ export default {
           `API Gateway authorizer "${key}" sets type to ${show(definition.type)}. "provider.apiGateway.authorizers" defines JWT authorizers: set "type: jwt", and attach Lambda or Cognito authorizers on the http event instead.`,
         )
       }
+      assertKnownKeys(key, '', definition, DEFINITION_KEYS)
       if (definition.name !== undefined && !isNonEmptyString(definition.name)) {
         throw invalid(
           `API Gateway authorizer "${key}" sets name to ${show(definition.name)}. Set "name" to a non-empty string, or leave it out to use "${key}".`,
+        )
+      }
+
+      const logicalId = this.provider.naming.getJwtAuthorizerLogicalId(key)
+      if (logicalId.length > MAX_LOGICAL_ID_LENGTH) {
+        throw invalid(
+          `API Gateway authorizer "${key}" compiles to the CloudFormation resource name "${logicalId}", which is longer than the ${MAX_LOGICAL_ID_LENGTH} characters CloudFormation allows ("-" and "_" each count as several). Shorten the key, and set "name" to keep a longer name in API Gateway.`,
         )
       }
 
@@ -372,7 +427,7 @@ export default {
       authorizers.set(key, {
         key,
         name: definition.name ?? key,
-        logicalId: this.provider.naming.getJwtAuthorizerLogicalId(key),
+        logicalId,
         identitySource,
         algorithms,
         issuers,
@@ -433,7 +488,7 @@ export default {
       this.serverless?.service?.mcp?.servers ??
       this.serverless?.configurationInput?.mcp?.servers
     const isFunction = (name) =>
-      Boolean(this.serverless?.service?.functions?.[name]) &&
+      Object.hasOwn(Object(this.serverless?.service?.functions), name) &&
       !Object.hasOwn(Object(mcpServers), name)
     const assertNotAlsoFunction = (name) => {
       if (!isFunction(name)) return
@@ -497,19 +552,12 @@ export default {
       if (type === undefined && !authorizer.arn && !authorizer.authorizerId) {
         assertNotMiscased(name)
       }
-      if (!isDefined || type === 'AWS_IAM') return undefined
-      if (type === undefined && !authorizer.arn) assertNotAlsoFunction(name)
-      if (type !== undefined || authorizer.arn) {
-        throw new ServerlessError(
-          `"${name}" names both a JWT authorizer in "provider.apiGateway.authorizers" and ${
-            authorizer.arn
-              ? 'a Lambda or Cognito authorizer'
-              : 'a function used as an authorizer'
-          }. Rename the JWT authorizer: API Gateway needs authorizer names to be unique within a REST API.`,
-          NAME_CONFLICT,
-          { stack: false },
-        )
-      }
+      // An explicit Lambda or Cognito type, or an "arn", says which authorizer
+      // is meant, so the reference is left to the Lambda and Cognito rules.
+      // validateJwtAuthorizers() then rejects it if its API Gateway name is
+      // also a JWT authorizer's.
+      if (!isDefined || type !== undefined || authorizer.arn) return undefined
+      assertNotAlsoFunction(name)
     }
 
     const isAttached = type === 'JWT' && Boolean(authorizer.authorizerId)
@@ -589,7 +637,7 @@ export default {
     if (Array.isArray(serviceProxies) && serviceProxies.length) return
 
     throw new ServerlessError(
-      `"provider.apiGateway.authorizers" defines authorizers, but this service has no REST API: add an http event, or set "provider.apiGateway.restApiId" to the shared REST API.`,
+      `"provider.apiGateway.authorizers" defines authorizers, but this service has no REST API: add an http event, or set "provider.apiGateway.restApiId" and "provider.apiGateway.restApiRootResourceId" to the shared REST API.`,
       'API_GATEWAY_AUTHORIZERS_WITHOUT_REST_API',
       { stack: false },
     )

@@ -521,11 +521,25 @@ const issuerPathsOf = (key, definitions) => {
  * The compiler has already held each literal issuer to API Gateway's own rule
  * (an https URL with a host, no query, no fragment). What is checked here is
  * what the document adds: Velocity reads the published text, so a "$" in a
- * literal, or in the literal text of an `Fn::Sub` template, would change what
+ * literal, or in the literal text of an `Fn::Sub` template (string or list
+ * form), would change what
  * a client is told. An `Fn::Sub` template is also held to the https prefix the
  * explicit issuer is, since a client fetches what is published. Any other
  * intrinsic resolves to a value nothing here can see, and passes through.
  */
+/**
+ * The template text of an `Fn::Sub` issuer, in its string or its list form,
+ * or `null` for any other intrinsic. Both forms are inlined into the discovery
+ * document (`./discovery-route.js`), so both get the literal-text checks.
+ */
+const subTemplateOf = (issuer) => {
+  if (intrinsicKeyOf(issuer) !== 'Fn::Sub') return null
+  const sub = issuer['Fn::Sub']
+  if (typeof sub === 'string') return sub
+  if (Array.isArray(sub) && typeof sub[0] === 'string') return sub[0]
+  return null
+}
+
 const derivedIssuersOf = (name, jwtAuthorizer, definitions) => {
   const { key, issuers } = jwtAuthorizer
   const paths = issuerPathsOf(key, definitions)
@@ -533,12 +547,7 @@ const derivedIssuersOf = (name, jwtAuthorizer, definitions) => {
   return issuers.map(({ Issuer: issuer }, index) => {
     const path = paths[index]
     const template =
-      typeof issuer === 'string'
-        ? undefined
-        : intrinsicKeyOf(issuer) === 'Fn::Sub' &&
-            typeof issuer['Fn::Sub'] === 'string'
-          ? issuer['Fn::Sub']
-          : null
+      typeof issuer === 'string' ? undefined : subTemplateOf(issuer)
     if (template === null) return issuer
 
     const literal =

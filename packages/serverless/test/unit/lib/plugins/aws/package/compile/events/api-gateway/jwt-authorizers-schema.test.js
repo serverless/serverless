@@ -172,7 +172,13 @@ describe('provider.apiGateway.authorizers schema', () => {
     ['an empty algorithms list', { ...single, algorithms: [] }],
     ['an unknown algorithm', { ...single, algorithms: ['HS256'] }],
     ['a type other than jwt', { ...single, type: 'token' }],
-    ['both issuers and issuerUrl', { ...single, issuers: [single] }],
+    [
+      'both issuers and issuerUrl',
+      {
+        ...single,
+        issuers: [{ issuerUrl: single.issuerUrl, audience: single.audience }],
+      },
+    ],
     ['a reserved claim', { ...single, additionalClaims: { scp: 'x' } }],
     ['a false claim rule', { ...single, additionalClaims: { tenant: false } }],
     [
