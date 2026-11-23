@@ -630,7 +630,7 @@ provider:
         name: orders
         # Required. Signing algorithms accepted: RS256, RS384, RS512, ES256, ES384, ES512
         algorithms:
-          - RS256
+          - rs256
         # Request header that carries the token, with or without 'Bearer '; one header only
         # (default: method.request.header.Authorization)
         identitySource: method.request.header.Authorization

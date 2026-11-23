@@ -674,7 +674,7 @@ provider:
         issuerUrl: https://my-tenant.us.auth0.com/
         audience: https://api.example.com/messages
         algorithms:
-          - RS256
+          - rs256
 
 custom:
   apiGatewayServiceProxies:

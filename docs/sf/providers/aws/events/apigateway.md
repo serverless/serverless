@@ -384,7 +384,7 @@ provider:
         issuerUrl: https://my-tenant.us.auth0.com/
         audience: https://api.example.com/orders
         algorithms:
-          - RS256
+          - rs256
 
 functions:
   listOrders:
@@ -481,7 +481,7 @@ provider:
       partners:
         type: jwt
         algorithms:
-          - RS256
+          - rs256
         issuers:
           - issuerUrl: https://login.microsoftonline.com/${param:entraTenantId}/v2.0
             audience: api://orders
@@ -507,7 +507,7 @@ provider:
         issuerUrl: https://my-tenant.us.auth0.com/
         audience: https://api.example.com/orders
         algorithms:
-          - RS256
+          - rs256
         additionalClaims:
           # A string: the claim must be present and equal "acme"
           tenant: acme
@@ -569,7 +569,7 @@ provider:
         issuerUrl: !GetAtt UserPool.ProviderURL
         audience: !Ref UserPoolClient
         algorithms:
-          - RS256
+          - rs256
 
 functions:
   getProfile:
@@ -595,15 +595,23 @@ resources:
     UserPool:
       Type: AWS::Cognito::UserPool
       Properties:
-        UserPoolName: my-service-users
+        UserPoolName: ${self:service}-${sls:stage}-users
     UserPoolClient:
       Type: AWS::Cognito::UserPoolClient
       Properties:
         UserPoolId: !Ref UserPool
         ClientName: my-service-web
+        ExplicitAuthFlows:
+          - ALLOW_USER_SRP_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
 ```
 
 With a Cognito issuer, API Gateway applies Cognito's token-type rule: an endpoint without `scopes` accepts only ID tokens, and an endpoint with `scopes` accepts only access tokens. A token of the other type gets `401`. The app client ID matches both: an ID token carries it in `aud`, and an access token in `client_id`.
+
+Two more Cognito specifics:
+
+- A Cognito access token carries no custom attributes such as `custom:tier`, so an `additionalClaims` rule on one rejects every access token from that pool with `403`. Put rules on custom attributes only on authorizers whose endpoints take ID tokens.
+- An access token from user sign-in carries the scope `aws.cognito.signin.user.admin`. To require scopes that distinguish callers, define them on a resource server of the pool and grant them to the app client.
 
 A JWT authorizer accepts tokens only from the app clients listed in `audience`. To accept tokens from every app client of a pool without listing them, use a [Cognito user pool authorizer](#cognito-user-pool-authorizers) instead.
 
@@ -638,7 +646,7 @@ provider:
         issuerUrl: https://my-tenant.us.auth0.com/
         audience: https://api.example.com/orders
         algorithms:
-          - RS256
+          - rs256
 
 functions:
   listOrders:
@@ -748,7 +756,7 @@ provider:
         issuerUrl: https://my-tenant.us.auth0.com/
         audience: https://api.example.com/orders
         algorithms:
-          - RS256
+          - rs256
 
 functions:
   listOrders:

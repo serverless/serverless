@@ -351,7 +351,7 @@ provider:
         issuerUrl: https://my-tenant.us.auth0.com/
         audience: https://mcp.example.com/crm/mcp
         algorithms:
-          - RS256
+          - rs256
 
 mcp:
   servers:
@@ -511,7 +511,7 @@ provider:
         issuerUrl: https://my-tenant.us.auth0.com/
         audience: https://mcp.example.com/crm/mcp
         algorithms:
-          - RS256
+          - rs256
 
 mcp:
   servers:
