@@ -2052,6 +2052,46 @@ describe('validateMcp - JWT authorizers', () => {
       },
     )
 
+    it.each([
+      ['"$"', 'idp.example.com/$context.requestId', '"$"'],
+      ['"#"', 'idp.example.com/#set', '"#"'],
+    ])(
+      'rejects a list-form Fn::Sub issuer whose variable value has %s',
+      (_label, host, hazard) => {
+        expect(() =>
+          validate({
+            authorizer: 'orders',
+            oauthDiscovery: {},
+            jwtAuthorizers: {
+              orders: ordersAuthorizer({
+                issuerUrl: { 'Fn::Sub': ['https://${Host}/', { Host: host }] },
+              }),
+            },
+          }),
+        ).toThrow(
+          expect.objectContaining({
+            code: 'MCP_OAUTH_DISCOVERY_VTL_UNSAFE_VALUE',
+            message: expect.stringContaining(
+              `the "Fn::Sub" variable "Host" of "provider.apiGateway.authorizers.orders.issuerUrl" is ${JSON.stringify(host)}, which contains ${hazard}`,
+            ),
+          }),
+        )
+      },
+    )
+
+    it('accepts a list-form Fn::Sub issuer with an intrinsic variable value', () => {
+      const issuerUrl = {
+        'Fn::Sub': ['https://${Host}/', { Host: { Ref: 'IssuerHost' } }],
+      }
+      expect(() =>
+        validate({
+          authorizer: 'orders',
+          oauthDiscovery: {},
+          jwtAuthorizers: { orders: ordersAuthorizer({ issuerUrl }) },
+        }),
+      ).not.toThrow()
+    })
+
     it('accepts a list-form Fn::Sub issuer with a safe template', () => {
       const issuerUrl = {
         'Fn::Sub': ['https://${Host}/', { Host: 'idp.example.com' }],

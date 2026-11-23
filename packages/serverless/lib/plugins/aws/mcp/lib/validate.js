@@ -571,6 +571,23 @@ const derivedIssuersOf = (name, jwtAuthorizer, definitions) => {
         { stack: false },
       )
     }
+    // A list-form `Fn::Sub` puts its literal variable values into the same
+    // published text; intrinsic values resolve to text nothing here can see.
+    const variables = Array.isArray(issuer?.['Fn::Sub'])
+      ? issuer['Fn::Sub'][1]
+      : undefined
+    if (variables !== null && typeof variables === 'object') {
+      for (const [variable, value] of Object.entries(variables)) {
+        const valueHazard =
+          typeof value === 'string' ? velocityHazardOf(value) : undefined
+        if (valueHazard === undefined) continue
+        throw new ServerlessError(
+          `MCP server "${name}" publishes the issuers of JWT authorizer "${key}" in its OAuth discovery document, and the "Fn::Sub" variable "${variable}" of "${path}" is ${JSON.stringify(value)}, which contains ${JSON.stringify(valueHazard)}. The discovery document is served straight from API Gateway as a Velocity template, where "$" starts a variable reference and "#" starts a directive, so the published metadata would not name the issuer the authorizer trusts. Remove the character from the variable's value. ${fix}`,
+          'MCP_OAUTH_DISCOVERY_VTL_UNSAFE_VALUE',
+          { stack: false },
+        )
+      }
+    }
     return issuer
   })
 }
