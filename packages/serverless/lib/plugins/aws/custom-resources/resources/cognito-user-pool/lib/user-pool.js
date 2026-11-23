@@ -103,6 +103,11 @@ async function updateConfiguration(config) {
           LambdaArn: lambdaArn,
           LambdaVersion: poolConfig.LambdaVersion,
         }
+      } else if (poolConfig.Trigger === 'InboundFederation') {
+        LambdaConfig.InboundFederation = {
+          LambdaArn: lambdaArn,
+          LambdaVersion: poolConfig.LambdaVersion,
+        }
       } else {
         LambdaConfig[poolConfig.Trigger] = lambdaArn
       }
@@ -143,17 +148,12 @@ async function removeConfiguration(config) {
 function removeExistingLambdas(lambdaConfig, lambdaArn) {
   const res = Object.fromEntries(
     Object.entries(lambdaConfig).filter(([key, value]) => {
-      if (
-        key === 'PreTokenGenerationConfig' &&
-        value &&
-        value.LambdaArn === lambdaArn
-      ) {
-        return false
+      // Object-style triggers (custom senders, PreTokenGenerationConfig,
+      // InboundFederation) carry the function in LambdaArn
+      if (value && typeof value === 'object') {
+        return value.LambdaArn !== lambdaArn
       }
-      return (
-        !(customSenderSources.includes(key) && value.LambdaArn === lambdaArn) &&
-        value !== lambdaArn
-      )
+      return value !== lambdaArn
     }),
   )
   // if there are no customSenderSources also delete KMSKeyId

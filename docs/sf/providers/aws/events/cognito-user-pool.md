@@ -9,6 +9,7 @@ keywords:
     'PreSignUp',
     'PreTokenGeneration',
     'CustomEmailSender',
+    'InboundFederation',
   ]
 -->
 
@@ -57,30 +58,31 @@ export const preSignUp = async (event) => {
 
 The `cognitoUserPool` event accepts these keys:
 
-| Key             | Type                                         | Default                             | Description                                                                                         |
-| --------------- | -------------------------------------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `pool`          | string, up to 128 characters                 | Required                            | The user pool name: letters, digits, spaces and `_ + = , . @ -`                                     |
-| `trigger`       | one of the [valid triggers](#valid-triggers) | Required                            | The trigger that runs the function                                                                  |
-| `existing`      | boolean                                      | `false`                             | Attach the function to an existing user pool instead of creating one                                |
-| `forceDeploy`   | boolean                                      | `false`                             | With `existing: true`, reapply the trigger on every deployment                                      |
-| `kmsKeyId`      | KMS key ARN or intrinsic function            | Required for custom sender triggers | The key Cognito encrypts codes with                                                                 |
-| `lambdaVersion` | `V1_0`, `V2_0` or `V3_0`                     | `V1_0`                              | The trigger event version, for `PreTokenGeneration`, `CustomSMSSender` and `CustomEmailSender` only |
+| Key             | Type                                         | Default                             | Description                                                                                                              |
+| --------------- | -------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `pool`          | string, up to 128 characters                 | Required                            | The user pool name: letters, digits, spaces and `_ + = , . @ -`                                                          |
+| `trigger`       | one of the [valid triggers](#valid-triggers) | Required                            | The trigger that runs the function                                                                                       |
+| `existing`      | boolean                                      | `false`                             | Attach the function to an existing user pool instead of creating one                                                     |
+| `forceDeploy`   | boolean                                      | `false`                             | With `existing: true`, reapply the trigger on every deployment                                                           |
+| `kmsKeyId`      | KMS key ARN or intrinsic function            | Required for custom sender triggers | The key Cognito encrypts codes with                                                                                      |
+| `lambdaVersion` | `V1_0`, `V2_0` or `V3_0`                     | `V1_0`                              | The trigger event version, for `PreTokenGeneration`, `InboundFederation`, `CustomSMSSender` and `CustomEmailSender` only |
 
 ## Valid triggers
 
 The `cognitoUserPool` event's `trigger` accepts these values:
 
-| Trigger                                                                     | When Cognito invokes the function                                                       |
-| --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `PreSignUp`                                                                 | Before it registers a new user                                                          |
-| `PostConfirmation`                                                          | After a user confirms their registration                                                |
-| `PreAuthentication`                                                         | Before it signs a user in                                                               |
-| `PostAuthentication`                                                        | After it signs a user in                                                                |
-| `PreTokenGeneration`                                                        | Before it issues tokens, to customize claims                                            |
-| `CustomMessage`                                                             | Before it sends a verification, invitation or other message, to customize it            |
-| `DefineAuthChallenge`, `CreateAuthChallenge`, `VerifyAuthChallengeResponse` | During a custom authentication flow                                                     |
-| `UserMigration`                                                             | When a user who isn't in the pool signs in or resets their password, to migrate them    |
-| `CustomSMSSender`, `CustomEmailSender`                                      | Instead of sending an SMS or email itself, so that you send it through another provider |
+| Trigger                                                                     | When Cognito invokes the function                                                                                                   |
+| --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `PreSignUp`                                                                 | Before it registers a new user                                                                                                      |
+| `PostConfirmation`                                                          | After a user confirms their registration                                                                                            |
+| `PreAuthentication`                                                         | Before it signs a user in                                                                                                           |
+| `PostAuthentication`                                                        | After it signs a user in                                                                                                            |
+| `PreTokenGeneration`                                                        | Before it issues tokens, to customize claims                                                                                        |
+| `CustomMessage`                                                             | Before it sends a verification, invitation or other message, to customize it                                                        |
+| `DefineAuthChallenge`, `CreateAuthChallenge`, `VerifyAuthChallengeResponse` | During a custom authentication flow                                                                                                 |
+| `UserMigration`                                                             | When a user who isn't in the pool signs in or resets their password, to migrate them                                                |
+| `InboundFederation`                                                         | After a user signs in through an external SAML or OIDC identity provider, before it stores the user's attributes, to transform them |
+| `CustomSMSSender`, `CustomEmailSender`                                      | Instead of sending an SMS or email itself, so that you send it through another provider                                             |
 
 For the event each trigger receives, see [Customizing user pool workflows with Lambda triggers](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-working-with-lambda-triggers.html).
 
@@ -204,6 +206,49 @@ functions:
 
 `V2_0` and `V3_0` require a user pool on the Essentials or Plus feature plan. See [Pre token generation Lambda trigger](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-pre-token-generation.html).
 
+## Inbound federation trigger
+
+The `InboundFederation` trigger runs when a user signs in through an external identity provider (SAML, OIDC or a social provider) configured on the user pool. The function receives the attributes the provider returned and decides which attributes the user pool stores, for new and returning federated users alike. Use it to shorten attribute values that exceed the user pool's 2,048-character limit, to drop attributes you don't want stored, or to rename the provider's group names:
+
+```yaml
+functions:
+  inboundFederation:
+    handler: handler.inboundFederation
+    events:
+      - cognitoUserPool:
+          pool: MyUserPool
+          trigger: InboundFederation
+```
+
+The handler finds the provider's attributes in `event.request.attributes.samlResponse` for SAML providers, and in `event.request.attributes.idToken` and `event.request.attributes.userInfo` for OIDC and social providers. It returns the attributes to store in `event.response.userAttributesToMap`:
+
+```javascript
+// handler.mjs
+const MAX_ATTRIBUTE_LENGTH = 2048
+
+export const inboundFederation = async (event) => {
+  const { providerType, attributes } = event.request
+  const providerAttributes =
+    providerType === 'SAML'
+      ? attributes.samlResponse
+      : { ...attributes.userInfo, ...attributes.idToken }
+
+  event.response.userAttributesToMap = Object.fromEntries(
+    Object.entries(providerAttributes ?? {}).map(([name, value]) => [
+      name,
+      typeof value === 'string' ? value.slice(0, MAX_ATTRIBUTE_LENGTH) : value,
+    ]),
+  )
+  return event
+}
+```
+
+- `userAttributesToMap` replaces the provider's attributes: the user pool drops every attribute the function leaves out, so return the unchanged ones too. An empty object keeps all of the provider's attributes as they are.
+- `lambdaVersion` accepts only `V1_0` for `InboundFederation`, which is also the default.
+- The trigger works for a user pool the Framework creates and for an existing user pool (`existing: true`). Cognito invokes it only for sign-ins through an identity provider configured on the user pool.
+
+For the full event and more examples, see [Inbound federation Lambda trigger](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-inbound-federation.html).
+
 ## Custom sender triggers
 
 The `CustomSMSSender` and `CustomEmailSender` triggers let a function send Cognito's messages through another provider. Cognito encrypts the code or temporary password in each message with a symmetric AWS KMS key, so these triggers need the `cognitoUserPool` event's `kmsKeyId`:
@@ -304,7 +349,7 @@ This happens when a `CustomSMSSender` or `CustomEmailSender` event has no `kmsKe
 
 This happens when custom sender events for the same user pool set different `kmsKeyId` values. Use one key for all custom sender triggers of the pool.
 
-### `lambdaVersion is only supported for CustomSMSSender, CustomEmailSender, and PreTokenGeneration triggers. ...`
+### `lambdaVersion is only supported for CustomSMSSender, CustomEmailSender, PreTokenGeneration, and InboundFederation triggers. ...`
 
 This happens when an event with another trigger sets `lambdaVersion`. Remove `lambdaVersion` from that event. A `lambdaVersion` that the trigger doesn't accept, such as `V2_0` on `CustomEmailSender`, stops packaging with `Invalid lambdaVersion "V2_0" for "CustomEmailSender". Allowed: V1_0.`
 

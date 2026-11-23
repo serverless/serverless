@@ -864,4 +864,196 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
       ).toThrow(/Invalid lambdaVersion "V99_0" for "PreTokenGeneration"/)
     })
   })
+
+  describe('InboundFederation trigger', () => {
+    const getResources = () =>
+      awsCompileCognitoUserPoolEvents.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+    const getPool = () =>
+      Object.values(getResources()).find(
+        (r) => r.Type === 'AWS::Cognito::UserPool',
+      )
+    const getCustomResource = () =>
+      Object.values(getResources()).find(
+        (r) => r.Type === 'Custom::CognitoUserPool',
+      )
+
+    it('is an accepted trigger in the cognitoUserPool event schema', () => {
+      serverless.service.provider.name = 'aws'
+      new AwsCompileCognitoUserPoolEvents(serverless)
+      const eventSchemas =
+        serverless.configSchemaHandler.schema.properties.functions
+          .patternProperties
+      const { anyOf } = Object.values(eventSchemas)[0].properties.events.items
+      const cognitoSchema = anyOf.find(
+        (schema) => schema.properties.cognitoUserPool,
+      ).properties.cognitoUserPool
+      expect(cognitoSchema.properties.trigger.enum).toContain(
+        'InboundFederation',
+      )
+    })
+
+    it('emits an InboundFederation config with LambdaVersion V1_0 by default', () => {
+      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
+        first: {
+          events: [
+            {
+              cognitoUserPool: {
+                pool: 'MyUserPool',
+                trigger: 'InboundFederation',
+              },
+            },
+          ],
+        },
+      }
+
+      awsCompileCognitoUserPoolEvents.newCognitoUserPools()
+
+      expect(getPool().Properties.LambdaConfig).toEqual({
+        InboundFederation: {
+          LambdaArn: { 'Fn::GetAtt': ['FirstLambdaFunction', 'Arn'] },
+          LambdaVersion: 'V1_0',
+        },
+      })
+      expect(getPool().DependsOn).toEqual(['FirstLambdaFunction'])
+    })
+
+    it('grants Cognito permission to invoke the InboundFederation function', () => {
+      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
+        first: {
+          events: [
+            {
+              cognitoUserPool: {
+                pool: 'MyUserPool',
+                trigger: 'InboundFederation',
+              },
+            },
+          ],
+        },
+      }
+
+      awsCompileCognitoUserPoolEvents.newCognitoUserPools()
+
+      expect(
+        getResources()
+          .FirstLambdaPermissionCognitoUserPoolMyUserPoolTriggerSourceInboundFederation,
+      ).toEqual({
+        Type: 'AWS::Lambda::Permission',
+        Properties: {
+          FunctionName: { 'Fn::GetAtt': ['FirstLambdaFunction', 'Arn'] },
+          Action: 'lambda:InvokeFunction',
+          Principal: 'cognito-idp.amazonaws.com',
+          SourceArn: { 'Fn::GetAtt': ['CognitoUserPoolMyUserPool', 'Arn'] },
+        },
+      })
+    })
+
+    it('keeps other triggers of the same pool next to InboundFederation', () => {
+      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
+        first: {
+          events: [
+            {
+              cognitoUserPool: {
+                pool: 'MyUserPool',
+                trigger: 'InboundFederation',
+                lambdaVersion: 'V1_0',
+              },
+            },
+          ],
+        },
+        second: {
+          events: [
+            {
+              cognitoUserPool: {
+                pool: 'MyUserPool',
+                trigger: 'PreSignUp',
+              },
+            },
+          ],
+        },
+      }
+
+      awsCompileCognitoUserPoolEvents.newCognitoUserPools()
+
+      expect(getPool().Properties.LambdaConfig).toEqual({
+        InboundFederation: {
+          LambdaArn: { 'Fn::GetAtt': ['FirstLambdaFunction', 'Arn'] },
+          LambdaVersion: 'V1_0',
+        },
+        PreSignUp: { 'Fn::GetAtt': ['SecondLambdaFunction', 'Arn'] },
+      })
+    })
+
+    it('throws on a lambdaVersion other than V1_0', () => {
+      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
+        first: {
+          events: [
+            {
+              cognitoUserPool: {
+                pool: 'MyUserPool',
+                trigger: 'InboundFederation',
+                lambdaVersion: 'V2_0',
+              },
+            },
+          ],
+        },
+      }
+
+      expect(() =>
+        awsCompileCognitoUserPoolEvents.newCognitoUserPools(),
+      ).toThrow(/Invalid lambdaVersion "V2_0" for "InboundFederation"/)
+    })
+
+    it('passes LambdaVersion V1_0 to the custom resource for an existing pool', async () => {
+      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
+        first: {
+          name: 'first',
+          events: [
+            {
+              cognitoUserPool: {
+                pool: 'MyExistingPool',
+                trigger: 'InboundFederation',
+                existing: true,
+              },
+            },
+          ],
+        },
+      }
+
+      await awsCompileCognitoUserPoolEvents.existingCognitoUserPools()
+
+      expect(getCustomResource().Properties.UserPoolConfigs).toEqual([
+        { Trigger: 'InboundFederation', LambdaVersion: 'V1_0' },
+      ])
+      expect(addCustomResourceToServiceMock).toHaveBeenCalledTimes(1)
+      const iamStatements = addCustomResourceToServiceMock.mock.calls[0][2]
+      expect(
+        iamStatements.some((statement) =>
+          statement.Action.includes('kms:CreateGrant'),
+        ),
+      ).toBe(false)
+    })
+
+    it('throws on a lambdaVersion other than V1_0 for an existing pool', () => {
+      awsCompileCognitoUserPoolEvents.serverless.service.functions = {
+        first: {
+          name: 'first',
+          events: [
+            {
+              cognitoUserPool: {
+                pool: 'MyExistingPool',
+                trigger: 'InboundFederation',
+                lambdaVersion: 'V3_0',
+                existing: true,
+              },
+            },
+          ],
+        },
+      }
+
+      expect(() =>
+        awsCompileCognitoUserPoolEvents.existingCognitoUserPools(),
+      ).toThrow(/Invalid lambdaVersion "V3_0" for "InboundFederation"/)
+    })
+  })
 })
