@@ -25,6 +25,8 @@ sandboxes:
     package:
       patterns:
         - '!app/notes/**'
+    # The non-default architecture; arm64, the default, is covered by unit tests.
+    architecture: x86_64
     minimumMemory: 2048
     environment:
       GREETING: hi

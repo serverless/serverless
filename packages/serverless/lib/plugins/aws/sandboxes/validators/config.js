@@ -1,6 +1,7 @@
 'use strict'
 
 const MEMORY = [512, 1024, 2048, 4096, 8192]
+const ARCHITECTURES = ['arm64', 'x86_64']
 
 /**
  * True for a non-empty literal list, or for an object shaped like a single
@@ -38,6 +39,17 @@ export function validateSandboxes(sandboxesConfig, { throwError }) {
     if (c.minimumMemory != null && !MEMORY.includes(c.minimumMemory)) {
       throwError(
         `sandboxes.${name}.minimumMemory must be one of ${MEMORY.join(', ')} MiB`,
+      )
+      continue
+    }
+    // Also under `configValidationMode: warn`, where the schema only warns: an
+    // unknown value must not fall back to arm64 silently.
+    if (
+      c.architecture != null &&
+      !ARCHITECTURES.includes(String(c.architecture).toLowerCase())
+    ) {
+      throwError(
+        `sandboxes.${name}.architecture must be one of ${ARCHITECTURES.join(', ')}`,
       )
       continue
     }

@@ -101,7 +101,7 @@ To delete the image, its roles and log group, terminate any running instances an
 
 ## Package the container
 
-The `artifact` key of a sandbox is a local directory with a `Dockerfile`, or an `s3://` URI of a zip built elsewhere. Lambda builds the image for ARM64 on the `al2023` base image, which the Framework resolves to its latest version when it packages the service. That lookup calls AWS, so `serverless package` needs AWS credentials for a service with sandboxes.
+The `artifact` key of a sandbox is a local directory with a `Dockerfile`, or an `s3://` URI of a zip built elsewhere. Lambda builds the image for the sandbox's [architecture](#choose-the-architecture) on the `al2023` base image, which the Framework resolves to its latest version when it packages the service. That lookup calls AWS, so `serverless package` needs AWS credentials for a service with sandboxes.
 
 ### Local directory
 
@@ -128,7 +128,7 @@ The zip holds every file in the artifact directory except:
 - anything named `node_modules`, `.venv`, `venv`, `__pycache__`, `.pytest_cache` or `.mypy_cache`, at any depth, including a plain file with one of these names. Names that only start with them, such as `node_modules.txt`, are kept.
 - the [default exclusions](./packaging.md#patterns) of function packaging (`.git`, `.serverless`, the service configuration file, `.env*` with `useDotenv`, and others). They are matched from the service directory, so they reach a sandbox only with `artifact: .`. In a subdirectory such as `./app`, a `.git` directory, an `.env` file or a `.DS_Store` is included unless a pattern excludes it (`'!app/**/.env*'`).
 
-Your `Dockerfile` installs the dependencies (`npm ci`, `pip install`) for the ARM64 image. Dependencies installed on your machine are built for its platform, a `COPY . .` would overwrite the ones the build installed, and they would change the content hash, so every local install would rebuild the image.
+Your `Dockerfile` installs the dependencies (`npm ci`, `pip install`) for the image's architecture. Dependencies installed on your machine are built for its platform, a `COPY . .` would overwrite the ones the build installed, and they would change the content hash, so every local install would rebuild the image.
 
 To choose files yourself, use `package.patterns`, which work as [function patterns](./packaging.md#patterns): globs relative to the service directory, applied in order, `!` to exclude, later patterns win. Service-level patterns apply first, then the sandbox's own:
 
@@ -163,6 +163,19 @@ sandboxes:
 ```
 
 Container registry URIs aren't accepted as `artifact`; build the image from a `Dockerfile`, which can start `FROM` a registry image.
+
+## Choose the architecture
+
+A sandbox runs on Arm (AWS Graviton) by default. Set `architecture` to `x86_64` to build and run it on x86:
+
+```yaml
+sandboxes:
+  api:
+    artifact: ./docker/api
+    architecture: x86_64 # arm64 (default) or x86_64
+```
+
+Base the `Dockerfile` on images that publish the architecture you choose, and install binaries built for it. `provider.architecture` applies to functions only, so a sandbox without `architecture` stays on `arm64`. Changing `architecture` builds a new image version of the same image; its ARN and the `<Name>ImageIdentifier` output don't change. x86 is available in every Region that offers Lambda MicroVMs except Asia Pacific (Hong Kong), Asia Pacific (Malaysia), Asia Pacific (Thailand) and Europe (Spain) ([announcement](https://aws.amazon.com/about-aws/whats-new/2026/11/aws-lambda-microvms-x86-architecture/)).
 
 ## Pass configuration to instances
 
@@ -422,7 +435,7 @@ MicroVMs API ready — Ctrl-C to stop
 
 - `--sandbox` can be left out when the service has one sandbox; `--mode sandboxes` selects this mode, which is the default for a service with only sandboxes.
 - `--port` changes the endpoint port. With the port in use, the command stops; give each concurrent session its own port.
-- The image is built from the files a deploy uploads ([Choosing the files](#choosing-the-files)) and your `.dockerignore`, for the Docker daemon's own CPU architecture. A sandbox with an `s3://` artifact can't run in `dev`.
+- The image is built from the files a deploy uploads ([Choosing the files](#choosing-the-files)) and your `.dockerignore`, for the Docker daemon's own CPU architecture, whatever the sandbox's `architecture`. A sandbox with an `s3://` artifact can't run in `dev`.
 - Saving a file in the artifact directory rebuilds the image, and the next `RunMicrovm` uses it; running containers keep their image. Changes in `.serverless`, `.git`, `coverage`, dependency and cache directories, and test files (`*.test.js`, `*.spec.js`, `*_test.py`, `*.test.py`) don't rebuild. A failed rebuild prints the error and keeps the session running.
 - Containers get the same environment as the deployed sandbox. CloudFormation references resolve from the deployed stack: `!Ref` and `!ImportValue`, and `!GetAtt` only for attributes the stack exports as an output named `<LogicalId><Attribute>` (`UsersTableArn` for `!GetAtt UsersTable.Arn`). An unresolved reference is dropped with a warning.
 
@@ -510,6 +523,7 @@ Sandboxes are defined under the top-level `sandboxes` key, one entry per sandbox
 | -------------------------------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `artifact`                                               | string              | **required**                                                                                                                                                | A local directory with a `Dockerfile`, relative to the service directory, or an `s3://` URI of a zip.                                                                                         |
 | `package.patterns`                                       | list of globs       | none                                                                                                                                                        | Files of a local `artifact`, relative to the service directory, after the service-level patterns. See [Choosing the files](#choosing-the-files).                                              |
+| `architecture`                                           | string              | `arm64`                                                                                                                                                     | CPU architecture the image is built and run on: `arm64` or `x86_64` (case-insensitive). Not inherited from `provider.architecture`. See [Choose the architecture](#choose-the-architecture).  |
 | `minimumMemory`                                          | number              | `2048`                                                                                                                                                      | Memory in MiB each instance is guaranteed: `512`, `1024`, `2048`, `4096` or `8192`. A floor, not a cap; it also sets the build's disk tier.                                                   |
 | `description`                                            | string              | `<service> <name> sandbox (Serverless Framework)`                                                                                                           | The image's description.                                                                                                                                                                      |
 | `environment`                                            | map                 | `provider.environment`                                                                                                                                      | Variables baked into the image, merged over `provider.environment`. Strings or CloudFormation references. See [Pass configuration to instances](#pass-configuration-to-instances).            |
@@ -545,7 +559,7 @@ For each sandbox, `serverless deploy` creates:
 
 Stack outputs: `<Name>ImageIdentifier` (the image ARN, for `RunMicrovm`), `<Name>ExecutionRoleArn`, and with `vpc`, `<Name>ConnectorArn`.
 
-- **Architecture**: images are built for ARM64 only.
+- **Architecture**: one per sandbox, `arm64` or `x86_64`.
 - **Duration**: an instance lives at most 28,800 seconds (8 hours), running and suspended time together.
 - **Quotas**: image versions per image (50 by default) and the account's memory across running and suspended instances per Region are Service Quotas you can raise ([scaling and concurrency](https://docs.aws.amazon.com/lambda/latest/dg/microvms-launching.html#microvms-launching-scaling)).
 - **Cost**: running instances bill compute, suspended ones snapshot storage, terminated ones nothing.

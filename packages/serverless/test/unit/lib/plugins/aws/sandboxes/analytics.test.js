@@ -40,6 +40,37 @@ describe('deriveSandboxesBlock — artifactTypes', () => {
   })
 })
 
+describe('deriveSandboxesBlock — architectures (explicit-only)', () => {
+  test('reports sorted unique lowercase architectures that sandboxes set', () => {
+    const out = deriveSandboxesBlock({
+      a: { artifact: './a', architecture: 'X86_64' },
+      b: { artifact: './b', architecture: 'arm64' },
+      c: { artifact: './c' },
+      d: { artifact: './d', architecture: 'x86_64' },
+    })
+    expect(out.architectures).toEqual(['arm64', 'x86_64'])
+  })
+
+  test('reports an explicit default', () => {
+    const out = deriveSandboxesBlock({
+      a: { artifact: './a', architecture: 'arm64' },
+    })
+    expect(out.architectures).toEqual(['arm64'])
+  })
+
+  test('omits architectures when nobody sets it, and drops values outside the vocabulary', () => {
+    expect(
+      deriveSandboxesBlock({ a: { artifact: './a' } }).architectures,
+    ).toBeUndefined()
+    expect(
+      deriveSandboxesBlock({
+        a: { artifact: './a', architecture: 'amd64' },
+        b: { artifact: './b', architecture: 42 },
+      }).architectures,
+    ).toBeUndefined()
+  })
+})
+
 describe('deriveSandboxesBlock — minimumMemory (explicit-only)', () => {
   test('reports only explicitly set values, sorted unique', () => {
     const out = deriveSandboxesBlock({

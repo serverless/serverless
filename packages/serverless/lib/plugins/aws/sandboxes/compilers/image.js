@@ -36,6 +36,11 @@ function compileHooks(hooks) {
   return out
 }
 
+// `architecture` in serverless.yml → CpuConfigurations[].Architecture. Unset
+// is ARM_64, so a sandbox deployed without the key keeps its architecture;
+// `provider.architecture` is the functions' default and is not inherited.
+const CPU_ARCHITECTURES = { arm64: 'ARM_64', x86_64: 'X86_64' }
+
 export function compileImage(name, cfg, ctx) {
   const Name = getResourceName(ctx.serviceName, name, ctx.stage)
   return {
@@ -60,7 +65,14 @@ export function compileImage(name, cfg, ctx) {
             },
           },
       EgressNetworkConnectors: ctx.egressConnectors,
-      CpuConfigurations: [{ Architecture: 'ARM_64' }],
+      CpuConfigurations: [
+        {
+          Architecture:
+            CPU_ARCHITECTURES[
+              String(cfg.architecture || 'arm64').toLowerCase()
+            ],
+        },
+      ],
       Resources: [{ MinimumMemoryInMiB: cfg.minimumMemory || 2048 }],
       AdditionalOsCapabilities: (cfg.osCapabilities || []).map((c) =>
         String(c).toUpperCase(),

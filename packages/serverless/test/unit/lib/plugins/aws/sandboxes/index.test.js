@@ -508,6 +508,7 @@ describe('end-to-end compile', () => {
     // Full: every optional field set.
     full: {
       artifact: 's3://bucket/full.zip',
+      architecture: 'x86_64',
       minimumMemory: 4096,
       description: 'my full sandbox',
       environment: { NODE_ENV: 'production', PORT: 3000 },
@@ -738,9 +739,9 @@ describe('end-to-end compile', () => {
       ).toEqual([INTERNET_EGRESS_ARN])
     })
 
-    test('FullImage.CpuConfigurations is ARM_64 (no override supported)', () => {
+    test('FullImage.CpuConfigurations is X86_64 (architecture: x86_64)', () => {
       expect(template.Resources.FullImage.Properties.CpuConfigurations).toEqual(
-        [{ Architecture: 'ARM_64' }],
+        [{ Architecture: 'X86_64' }],
       )
     })
 
@@ -896,4 +897,32 @@ describe('end-to-end compile', () => {
       }
     })
   })
+})
+
+describe('architecture and provider.architecture', () => {
+  // provider.architecture is the functions' default (x86_64 when unset), not
+  // the sandboxes': applying it would move an existing sandbox off ARM_64.
+  test.each(['x86_64', 'arm64'])(
+    'provider.architecture: %s leaves a sandbox without architecture on ARM_64',
+    async (providerArchitecture) => {
+      const sls = makeServerless({
+        plain: { artifact: 's3://bucket/plain.zip' },
+        intel: { artifact: 's3://bucket/intel.zip', architecture: 'x86_64' },
+      })
+      sls.service.provider.architecture = providerArchitecture
+      const plugin = new ServerlessSandboxes(
+        sls,
+        {},
+        { log: { debug: jest.fn() } },
+      )
+      await plugin.compile()
+      const { Resources } = sls.service.provider.compiledCloudFormationTemplate
+      expect(Resources.PlainImage.Properties.CpuConfigurations).toEqual([
+        { Architecture: 'ARM_64' },
+      ])
+      expect(Resources.IntelImage.Properties.CpuConfigurations).toEqual([
+        { Architecture: 'X86_64' },
+      ])
+    },
+  )
 })

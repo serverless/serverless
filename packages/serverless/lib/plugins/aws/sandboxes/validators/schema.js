@@ -100,6 +100,9 @@ const sandboxConfigSchema = {
       },
       additionalProperties: false,
     },
+    // The functions' vocabulary (awsLambdaArchitecture), in any case. Default
+    // arm64; not inherited from `provider.architecture`.
+    architecture: { anyOf: ['arm64', 'x86_64'].map(caseInsensitive) },
     minimumMemory: { enum: [512, 1024, 2048, 4096, 8192] },
     description: { type: 'string' },
     // Same contract as `functions[].environment`: strings or CloudFormation

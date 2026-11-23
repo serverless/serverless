@@ -2136,6 +2136,7 @@ sandboxes:
     package:
       patterns: # files of a local artifact, relative to the service directory, after the service-level patterns
         - '!app/tests/**'
+    architecture: x86_64 # arm64 (default) or x86_64; provider.architecture is not inherited
     minimumMemory: 2048 # MiB per instance: 512, 1024, 2048 (default), 4096 or 8192
     description: Orders API sandbox # default: <service> <name> sandbox (Serverless Framework)
     environment:
