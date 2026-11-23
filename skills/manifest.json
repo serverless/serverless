@@ -8,8 +8,8 @@
     "hash": "474139cf84fa26dc1b1aaaf9595a900ca034fbc70c527b4dc5cd7d8133d1e962"
   },
   "serverless-mcp": {
-    "version": 8,
-    "hash": "fd6929e119a08f76fe08974412c5ec5f4d195bde20776079acdfdc1cb2a75486"
+    "version": 5,
+    "hash": "6ec8f0034fcb953f2ec390b7eb0963b568f2c0b3c7d821a62465d8d12b6617bb"
   },
   "serverless-sandboxes": {
     "version": 6,
