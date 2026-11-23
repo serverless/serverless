@@ -267,11 +267,11 @@ const issuerSourceOf = (server) => {
 /**
  * Every issuer rendered into one document: their texts in order, and one
  * variable map for the `Fn::Sub` around it. A single issuer renders as it is
- * written. With several, a list-form `Fn::Sub` issuer is not inlined: the
+ * written. With several, no `Fn::Sub` issuer is inlined, in either form: the
  * whole intrinsic becomes the value of its own generated variable, a nested
- * `Fn::Sub` that CloudFormation resolves in its own scope, so the issuer's
- * variables never reach another issuer's text and no generated name stands
- * in for them.
+ * `Fn::Sub` that CloudFormation resolves in its own scope. Neither another
+ * issuer's variables nor the document's generated names can then reach the
+ * stack parameters and resources its placeholders name.
  *
  * `declaresRestApiId` says whether an inlined issuer declares the variable the
  * document uses for the REST API id.
@@ -283,7 +283,7 @@ const issuersRenderingOf = (issuers) => {
   issuers.forEach((issuer, index) => {
     const variable = issuerVariableOf(index)
     const rendering =
-      issuers.length > 1 && Array.isArray(issuer?.['Fn::Sub'])
+      issuers.length > 1 && issuer?.['Fn::Sub'] !== undefined
         ? { text: `\${${variable}}`, variables: { [variable]: issuer } }
         : issuerRenderingOf(issuer, index)
     if (
