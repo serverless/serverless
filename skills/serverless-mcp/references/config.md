@@ -234,7 +234,11 @@ feature plan, managed login on every domain:
 https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-dynamic-client-registration.html).
 A URL-only client has no initial access token, and the scopes it requests must
 belong to a resource server whose identifier is the MCP server's URL (Cognito
-binds the token to the requested `resource`). Without registration, Cognito
+binds the token to the requested `resource`) and be in the registration's
+allowed scopes, as `<resource-server-identifier>/<scope>`. Every update to the
+registration settings must repeat the allowed scopes, because AWS replaces the
+whole configuration and omitted members fall back to their defaults. Open registration lets anyone create app clients against the
+pool's shared app client quota: rate-limit it with AWS WAF. Without registration, Cognito
 fits pre-registered and machine-to-machine clients.
 
 **`authorizer: aws_iam`** requires callers to SigV4-sign every request with AWS
