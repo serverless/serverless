@@ -816,18 +816,22 @@ describe('API Gateway JWT authorizers', () => {
         )
       })
 
-      it('leaves user info out of the rejected issuer URL it shows', async () => {
-        const error = await definitionError(
-          ordersAuthorizer({ issuerUrl: 'http://admin:s3cret@idp.acme.com/' }),
-        )
-        expect(error.code).toBe(INVALID)
-        expect(error.message).not.toContain('s3cret')
-        expect(error.message).not.toContain('admin')
-        expect(error.message).toContain(
-          'sets issuerUrl to "http://***@idp.acme.com/"',
-        )
-        expect(error.message).toContain('for example "https://idp.acme.com/"')
-      })
+      it.each([
+        ['http://admin:s3cret@idp.acme.com/', 'http://***@idp.acme.com/'],
+        [' https://admin:s3cret@idp.acme.com/', ' https://***@idp.acme.com/'],
+        ['admin:s3cret@idp.acme.com/', '***@idp.acme.com/'],
+        ['https://admin:s3cret@idp.acme.com/ ', 'https://***@idp.acme.com/ '],
+      ])(
+        'leaves user info out of the rejected issuer URL %p',
+        async (issuerUrl, shown) => {
+          const error = await definitionError(ordersAuthorizer({ issuerUrl }))
+          expect(error.code).toBe(INVALID)
+          expect(error.message).not.toContain('s3cret')
+          expect(error.message).not.toContain('admin')
+          expect(error.message).toContain(`sets issuerUrl to "${shown}"`)
+          expect(error.message).toContain('for example "https://idp.acme.com/"')
+        },
+      )
 
       it('names the key path of an issuer in a list', async () => {
         const error = await definitionError({

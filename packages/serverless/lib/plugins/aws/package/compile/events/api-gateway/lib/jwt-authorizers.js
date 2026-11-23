@@ -107,7 +107,12 @@ const assertKnownKeys = (key, path, value, known) => {
 /** An issuer URL as shown in an error, without any user info it carries. */
 const showIssuerUrl = (issuerUrl) =>
   typeof issuerUrl === 'string'
-    ? show(issuerUrl.replace(/^([a-z][a-z0-9+.-]*:\/\/)[^/?#]*@/i, '$1***@'))
+    ? show(
+        issuerUrl.replace(
+          /^(\s*(?:[a-z][a-z0-9+.-]*:\/\/)?)[^/?#]*@/i,
+          '$1***@',
+        ),
+      )
     : show(issuerUrl)
 
 /**
@@ -135,6 +140,7 @@ const isValidIssuerUrl = (issuerUrl) => {
 /** The https form of a rejected issuer URL, used as the example in its error. */
 const suggestIssuerUrl = (issuerUrl) => {
   const withoutScheme = issuerUrl
+    .trim()
     .replace(/^[a-z][a-z0-9+.-]*:\/\//i, '')
     .split(/[?#]/)[0]
   const slash = withoutScheme.indexOf('/')
