@@ -250,9 +250,11 @@ functions:
 
 `provisionedPollers: false` clears provisioned mode on an existing mapping. AWS rejects it on a mapping that is created in the same deploy, so for a new mapping leave the key out.
 
+A FIFO queue accepts a `batchSize` above `10` and a batching window only in provisioned mode. On a FIFO queue, set `batchSize` to `10` or less and `maximumBatchingWindow` to `0` in the same deploy as `provisionedPollers: false`; otherwise AWS rejects the update with `Batching window for FIFO queues is only supported with Provisioned mode event source mappings` and the stack rolls back.
+
 ### Switch from provisioned mode to maximum concurrency
 
-To move a mapping from provisioned mode to `maximumConcurrency`, deploy once with both `provisionedPollers: false` and the new `maximumConcurrency`. After that deploy, the `provisionedPollers: false` line can be removed:
+To move a mapping from provisioned mode to `maximumConcurrency`, deploy once with both `provisionedPollers: false` and the new `maximumConcurrency`. On a FIFO queue, reset `batchSize` and `maximumBatchingWindow` in the same deploy, as in [Turn off provisioned mode](#turn-off-provisioned-mode). After that deploy, the `provisionedPollers: false` line can be removed:
 
 ```yaml
 functions:
