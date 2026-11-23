@@ -29,6 +29,25 @@ describe('validateSandboxes', () => {
       ),
     ).toThrow(/minimumMemory must be one of/)
   })
+  test('rejects an unknown architecture', () => {
+    expect(() =>
+      validateSandboxes(
+        { a: { artifact: './x', architecture: 'amd64' } },
+        { throwError: err() },
+      ),
+    ).toThrow(/architecture must be one of arm64, x86_64/)
+  })
+  test.each(['arm64', 'x86_64', 'X86_64'])(
+    'accepts architecture %s',
+    (architecture) => {
+      expect(() =>
+        validateSandboxes(
+          { a: { artifact: './x', architecture } },
+          { throwError: err() },
+        ),
+      ).not.toThrow()
+    },
+  )
   test('accepts a valid minimal config', () => {
     expect(() =>
       validateSandboxes({ a: { artifact: './x' } }, { throwError: err() }),

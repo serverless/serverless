@@ -133,3 +133,20 @@ test('passes CloudFormation intrinsics in environment through untouched; scalars
     { Key: 'SUB', Value: { 'Fn::Sub': '${AWS::Region}-x' } },
   ])
 })
+
+describe('architecture', () => {
+  test('defaults to ARM_64 when unset', () => {
+    const r = compileImage('runner', { artifact: './app' }, ctx)
+    expect(r.Properties.CpuConfigurations).toEqual([{ Architecture: 'ARM_64' }])
+  })
+
+  test.each([
+    ['arm64', 'ARM_64'],
+    ['x86_64', 'X86_64'],
+    ['ARM64', 'ARM_64'],
+    ['X86_64', 'X86_64'],
+  ])('maps %s to %s', (architecture, expected) => {
+    const r = compileImage('runner', { artifact: './app', architecture }, ctx)
+    expect(r.Properties.CpuConfigurations).toEqual([{ Architecture: expected }])
+  })
+})

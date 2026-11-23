@@ -14,7 +14,7 @@ import {
 /**
  * Directories a sandbox artifact leaves out at any depth, on top of the
  * defaults every artifact gets. The artifact is the build input of an image
- * built on ARM64 by its Dockerfile, which installs dependencies itself: local
+ * built on AWS by its Dockerfile, which installs dependencies itself: local
  * dependency directories and caches are machine-specific and can't change what
  * the image needs, yet they would change the content hash and rebuild it.
  * `serverless dev` ignores changes to them for the same reason.

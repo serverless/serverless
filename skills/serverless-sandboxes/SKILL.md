@@ -11,7 +11,7 @@ description: >-
   Framework" nor "sandbox" but describes an isolated AWS execution environment.
 metadata:
   managed-by: serverless-framework
-  version: '6'
+  version: '7'
   author: Serverless Inc.
 ---
 

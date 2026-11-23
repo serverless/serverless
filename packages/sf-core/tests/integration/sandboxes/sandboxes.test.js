@@ -246,7 +246,8 @@ describe('Serverless Framework Service - Sandboxes', () => {
     expect(imageInfo.state).toBe('CREATED')
     expect(imageInfo.latestActiveImageVersion).toBeDefined()
 
-    // 2e. GetMicrovmImageVersion: resources[0].minimumMemoryInMiB === 2048, baseImageVersion set
+    // 2e. GetMicrovmImageVersion: resources[0].minimumMemoryInMiB === 2048,
+    // the x86_64 architecture, baseImageVersion set
     const versionInfo = await microvmsClient.send(
       new GetMicrovmImageVersionCommand({
         imageIdentifier: imageArn,
@@ -256,6 +257,7 @@ describe('Serverless Framework Service - Sandboxes', () => {
     expect(versionInfo.resources).toBeDefined()
     expect(versionInfo.resources.length).toBeGreaterThan(0)
     expect(versionInfo.resources[0].minimumMemoryInMiB).toBe(2048)
+    expect(versionInfo.cpuConfigurations).toEqual([{ architecture: 'X86_64' }])
     expect(versionInfo.baseImageVersion).toBeDefined()
 
     // 2f. Environment: the inherited provider variable and the resolved !Ref

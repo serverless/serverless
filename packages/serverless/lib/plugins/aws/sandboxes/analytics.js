@@ -27,6 +27,7 @@ const HOOK_NAMES = [
   'terminate',
 ]
 const OS_CAPABILITIES = ['all']
+const ARCHITECTURES = ['arm64', 'x86_64']
 const MAX_TIMEOUT_SECONDS = 3600
 
 const sortedUnique = (values) => {
@@ -214,6 +215,20 @@ const deriveSandboxesBlock = (sandboxesConfig) => {
               : undefined,
           )
           .filter(Boolean),
+      ),
+    )
+
+    addIfNonEmpty(
+      block,
+      'architectures',
+      sortedUnique(
+        cfgs
+          .map((c) =>
+            typeof c.architecture === 'string'
+              ? c.architecture.toLowerCase()
+              : undefined,
+          )
+          .filter((v) => ARCHITECTURES.includes(v)),
       ),
     )
 

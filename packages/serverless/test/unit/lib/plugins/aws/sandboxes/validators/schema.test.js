@@ -67,6 +67,18 @@ describe('defineSandboxesSchema', () => {
     ])
   })
 
+  test('per-sandbox schema architecture accepts arm64 and x86_64 in any case', () => {
+    defineSandboxesSchema(mockServerless)
+    const sandboxSchema = capturedSandboxesSchema.additionalProperties
+    const { anyOf } = sandboxSchema.properties.architecture
+    expect(anyOf).toEqual(
+      ['arm64', 'x86_64'].map((v) => ({
+        type: 'string',
+        regexp: `/^${v}$/i`,
+      })),
+    )
+  })
+
   test('per-sandbox schema environment reuses the Lambda environment definition (intrinsics allowed)', () => {
     defineSandboxesSchema(mockServerless)
     const sandboxSchema = capturedSandboxesSchema.additionalProperties
