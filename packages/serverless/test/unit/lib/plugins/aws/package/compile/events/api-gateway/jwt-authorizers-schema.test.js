@@ -108,6 +108,7 @@ describe('provider.apiGateway.authorizers schema', () => {
             additionalClaims: {
               tenant: 'acme',
               department: true,
+              verified: 'true',
               tier: { value: 'gold', required: false },
             },
           },
@@ -115,13 +116,15 @@ describe('provider.apiGateway.authorizers schema', () => {
         eventAuthorizer: { name: 'orders', type: 'jwt', scopes: ['read'] },
       }),
     ).toBeNull()
-    // Validation must not coerce a `true` claim rule into the string "true".
+    // Validation must not coerce a `true` claim rule into the string "true",
+    // nor the value "true" into the any-value rule `true`.
     expect(
       lastConfigurationInput.provider.apiGateway.authorizers.orders
         .additionalClaims,
     ).toEqual({
       tenant: 'acme',
       department: true,
+      verified: 'true',
       tier: { value: 'gold', required: false },
     })
   })
