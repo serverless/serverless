@@ -9,7 +9,7 @@ import compileResources from './lib/resources.js'
 import compileCors from './lib/cors.js'
 import compileMethods from './lib/method/index.js'
 import compileAuthorizers from './lib/authorizers.js'
-import jwtAuthorizers from './lib/jwt-authorizers.js'
+import compileJwtAuthorizers from './lib/jwt-authorizers.js'
 import compileDeployment from './lib/deployment.js'
 import compilePermissions from './lib/permissions.js'
 import compileStage from './lib/stage.js'
@@ -340,7 +340,7 @@ http:
       compileMethods,
       compileRequestValidators,
       compileAuthorizers,
-      jwtAuthorizers,
+      compileJwtAuthorizers,
       compileDeployment,
       compilePermissions,
       compileStage,
@@ -371,6 +371,7 @@ http:
           .then(() => this.compileMethods())
           .then(() => this.compileRequestValidators())
           .then(() => this.compileAuthorizers())
+          .then(() => this.compileJwtAuthorizers())
           .then(() => this.compileDeployment())
           .then(() => this.compileApiKeys())
           .then(() => this.compileUsagePlan())
