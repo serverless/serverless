@@ -15,10 +15,12 @@ const validTriggerSources = [
   'CreateAuthChallenge',
   'VerifyAuthChallengeResponse',
   'UserMigration',
+  'InboundFederation',
 ].concat(customSenderSources)
 
 const customSenderLambdaVersions = ['V1_0']
 const preTokenGenerationLambdaVersions = ['V1_0', 'V2_0', 'V3_0']
+const inboundFederationLambdaVersions = ['V1_0']
 
 function validateLambdaVersion(trigger, lambdaVersion) {
   if (!lambdaVersion) return
@@ -40,8 +42,17 @@ function validateLambdaVersion(trigger, lambdaVersion) {
     }
     return
   }
+  if (trigger === 'InboundFederation') {
+    if (!inboundFederationLambdaVersions.includes(lambdaVersion)) {
+      throw new ServerlessError(
+        `Invalid lambdaVersion "${lambdaVersion}" for "${trigger}". Allowed: ${inboundFederationLambdaVersions.join(', ')}.`,
+        'COGNITO_INVALID_LAMBDA_VERSION',
+      )
+    }
+    return
+  }
   throw new ServerlessError(
-    `lambdaVersion is only supported for CustomSMSSender, CustomEmailSender, and PreTokenGeneration triggers. Got "${trigger}".`,
+    `lambdaVersion is only supported for CustomSMSSender, CustomEmailSender, PreTokenGeneration, and InboundFederation triggers. Got "${trigger}".`,
     'COGNITO_LAMBDA_VERSION_NOT_SUPPORTED',
   )
 }
@@ -99,7 +110,7 @@ cognitoUserPool:
             $ref: '#/definitions/awsKmsArn',
           },
           lambdaVersion: {
-            description: `Trigger contract version. Valid for CustomSMSSender/CustomEmailSender (V1_0 only) and PreTokenGeneration (V1_0, V2_0, V3_0). V2_0/V3_0 require Cognito feature plan Essentials or Plus.`,
+            description: `Trigger contract version. Valid for CustomSMSSender/CustomEmailSender and InboundFederation (V1_0 only) and PreTokenGeneration (V1_0, V2_0, V3_0). V2_0/V3_0 require Cognito feature plan Essentials or Plus.`,
             enum: ['V1_0', 'V2_0', 'V3_0'],
           },
         },
@@ -274,6 +285,9 @@ cognitoUserPool:
               userPoolConfig.KMSKeyID = kmsKeyId
             } else if (trigger === 'PreTokenGeneration' && lambdaVersion) {
               userPoolConfig.LambdaVersion = lambdaVersion
+            } else if (trigger === 'InboundFederation') {
+              userPoolConfig.LambdaVersion =
+                lambdaVersion || inboundFederationLambdaVersions[0]
             }
 
             if (numEventsForFunc === 1) {
@@ -461,6 +475,14 @@ cognitoUserPool:
           PreTokenGenerationConfig: {
             LambdaArn: resolveLambdaTarget(value.functionName, functionObj),
             LambdaVersion: value.lambdaVersion,
+          },
+        }
+      } else if (value.triggerSource === 'InboundFederation') {
+        triggerObject = {
+          InboundFederation: {
+            LambdaArn: resolveLambdaTarget(value.functionName, functionObj),
+            LambdaVersion:
+              value.lambdaVersion || inboundFederationLambdaVersions[0],
           },
         }
       } else {

@@ -1886,9 +1886,10 @@ functions:
       - cognitoUserPool:
           pool: MyUserPool
           # PreSignUp, PostConfirmation, PreAuthentication, PostAuthentication, PreTokenGeneration, CustomMessage,
-          # DefineAuthChallenge, CreateAuthChallenge, VerifyAuthChallengeResponse, UserMigration, CustomSMSSender or CustomEmailSender
+          # DefineAuthChallenge, CreateAuthChallenge, VerifyAuthChallengeResponse, UserMigration, InboundFederation,
+          # CustomSMSSender or CustomEmailSender
           trigger: PreTokenGeneration
-          # Trigger event version: V1_0, V2_0 or V3_0 for PreTokenGeneration; V1_0 for the custom sender triggers. Optional
+          # Trigger event version: V1_0, V2_0 or V3_0 for PreTokenGeneration; V1_0 for InboundFederation and the custom sender triggers. Optional
           lambdaVersion: V2_0
           # The user pool exists already; the Framework adds the trigger without creating it (default: false)
           existing: true
