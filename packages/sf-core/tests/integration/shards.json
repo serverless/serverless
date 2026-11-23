@@ -1,6 +1,10 @@
 {
   "shardCount": 3,
   "suites": {
+    "tests/integration/api-gateway-jwt/api-gateway-jwt.test.js": {
+      "shard": 2,
+      "seconds": 110
+    },
     "tests/integration/compose-dev/compose-dev.test.js": {
       "shard": 2,
       "seconds": 222

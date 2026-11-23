@@ -1,0 +1,97 @@
+service: sfc-apigw-jwt
+frameworkVersion: '4'
+
+# No region: the deploy follows AWS_REGION, as the suite's checks do.
+provider:
+  name: aws
+  runtime: nodejs24.x
+  apiGateway:
+    authorizers:
+      # The user pool below is the issuer. Its ID tokens carry the app client
+      # id in `aud`; its access tokens carry it in `client_id`, which API
+      # Gateway also matches against the audience.
+      cognito:
+        type: jwt
+        # Lowercase on purpose: the Framework emits it uppercase.
+        algorithms: [rs256]
+        # The pool's ProviderURL is its tokens' `iss`, https:// included. The
+        # other authorizers spell the same URL out with Fn::Sub.
+        issuerUrl: !GetAtt UserPool.ProviderURL
+        audience: !Ref UserPoolClient
+        additionalClaims:
+          # Required, any value: both token kinds carry `sub`.
+          sub: true
+      # The test user's tenant is `acme`: its ID token satisfies this rule.
+      acme:
+        type: jwt
+        algorithms: [RS256]
+        issuerUrl: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}
+        audience: !Ref UserPoolClient
+        additionalClaims:
+          custom:tenant: acme
+      # ...and fails this one.
+      globex:
+        type: jwt
+        algorithms: [RS256]
+        issuerUrl: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}
+        audience: !Ref UserPoolClient
+        additionalClaims:
+          custom:tenant:
+            value: globex
+
+functions:
+  echo:
+    handler: handler.handler
+    events:
+      # No scopes: API Gateway accepts ID tokens only.
+      - http:
+          path: id
+          method: get
+          authorizer: cognito
+      # Scopes: API Gateway accepts access tokens carrying one of them only.
+      - http:
+          path: admin
+          method: get
+          authorizer:
+            name: cognito
+            scopes:
+              - aws.cognito.signin.user.admin
+      - http:
+          path: acme
+          method: get
+          authorizer: acme
+      - http:
+          path: globex
+          method: get
+          authorizer:
+            type: jwt
+            name: globex
+
+resources:
+  Resources:
+    UserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: ${self:service}-${sls:stage}
+        UserPoolTier: LITE
+        Schema:
+          - Name: tenant
+            AttributeDataType: String
+            Mutable: true
+    UserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        UserPoolId: !Ref UserPool
+        GenerateSecret: false
+        ExplicitAuthFlows:
+          - ALLOW_ADMIN_USER_PASSWORD_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
+  Outputs:
+    UserPoolId:
+      Value: !Ref UserPool
+    UserPoolClientId:
+      Value: !Ref UserPoolClient
+    IssuerUrl:
+      Value: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}
+    UserPoolProviderUrl:
+      Value: !GetAtt UserPool.ProviderURL
