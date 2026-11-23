@@ -106,13 +106,8 @@ const assertKnownKeys = (key, path, value, known) => {
 
 /** An issuer URL as shown in an error, without any user info it carries. */
 const showIssuerUrl = (issuerUrl) =>
-  typeof issuerUrl === 'string'
-    ? show(
-        issuerUrl.replace(
-          /^(\s*(?:[a-z][a-z0-9+.-]*:\/\/)?)[^/?#]*@/i,
-          '$1***@',
-        ),
-      )
+  typeof issuerUrl === 'string' && issuerUrl.includes('@')
+    ? 'a URL with user info (not shown)'
     : show(issuerUrl)
 
 /**
@@ -139,6 +134,15 @@ const isValidIssuerUrl = (issuerUrl) => {
 
 /** The https form of a rejected issuer URL, used as the example in its error. */
 const suggestIssuerUrl = (issuerUrl) => {
+  // Built only from what follows the last "@", so no part of user info,
+  // however malformed the URL, reaches the example.
+  if (issuerUrl.includes('@')) {
+    const host = issuerUrl
+      .slice(issuerUrl.lastIndexOf('@') + 1)
+      .trim()
+      .split(/[?#]/)[0]
+    return host ? `https://${host}` : 'https://idp.example.com'
+  }
   const withoutScheme = issuerUrl
     .trim()
     .replace(/^[a-z][a-z0-9+.-]*:\/\//i, '')

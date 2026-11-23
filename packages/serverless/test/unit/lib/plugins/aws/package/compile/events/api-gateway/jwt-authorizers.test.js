@@ -812,23 +812,30 @@ describe('API Gateway JWT authorizers', () => {
         const error = await definitionError(ordersAuthorizer({ issuerUrl }))
         expect(error.code).toBe(INVALID)
         expect(error.message).toContain(
-          `sets issuerUrl to "${issuerUrl.replace('user:pass@', '***@')}"`,
+          issuerUrl.includes('@')
+            ? 'sets issuerUrl to a URL with user info (not shown)'
+            : `sets issuerUrl to "${issuerUrl}"`,
         )
       })
 
       it.each([
-        ['http://admin:s3cret@idp.acme.com/', 'http://***@idp.acme.com/'],
-        [' https://admin:s3cret@idp.acme.com/', ' https://***@idp.acme.com/'],
-        ['admin:s3cret@idp.acme.com/', '***@idp.acme.com/'],
-        ['https://admin:s3cret@idp.acme.com/ ', 'https://***@idp.acme.com/ '],
+        'http://admin:s3cret@idp.acme.com/',
+        ' https://admin:s3cret@idp.acme.com/',
+        'admin:s3cret@idp.acme.com/',
+        'https://admin:s3cret@idp.acme.com/ ',
+        'https:////admin:s3cret@idp.acme.com/',
+        'https://admin:s3c/ret@idp.acme.com/',
+        'https://admin@s3cret@idp.acme.com/',
       ])(
         'leaves user info out of the rejected issuer URL %p',
-        async (issuerUrl, shown) => {
+        async (issuerUrl) => {
           const error = await definitionError(ordersAuthorizer({ issuerUrl }))
           expect(error.code).toBe(INVALID)
-          expect(error.message).not.toContain('s3cret')
+          expect(error.message).not.toContain('s3c')
           expect(error.message).not.toContain('admin')
-          expect(error.message).toContain(`sets issuerUrl to "${shown}"`)
+          expect(error.message).toContain(
+            'sets issuerUrl to a URL with user info (not shown)',
+          )
           expect(error.message).toContain('for example "https://idp.acme.com/"')
         },
       )
