@@ -585,6 +585,8 @@ The Framework creates a CloudWatch Logs log group named `/aws/lambda/<function n
 
 `logRetentionInDays` on a function, or `provider.logRetentionInDays` for every function, sets the retention. Allowed values are the CloudWatch Logs retention periods: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 2192, 2557, 2922, 3288 and 3653 days. Without it, the log group keeps logs indefinitely.
 
+A CloudWatch Logs [account-level retention policy](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html#account-level-retention-policies) that covers the log group decides its retention instead of `logRetentionInDays`, whether the policy's period is shorter or longer, and also applies when `logRetentionInDays` isn't set. `serverless deploy` still sets `logRetentionInDays` on the log group without an error when a policy exists, so check for one with `aws logs describe-account-policies --policy-type RETENTION_POLICY`, run with the credentials and `--region` of the deploy. A new or changed policy takes effect 24 hours after you save it.
+
 `logDataProtectionPolicy` on a function, or under `provider`, sets the log group's [data protection policy](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/mask-sensitive-log-data-start.html); `Name`, `Version` and `Statement` are required.
 
 ```yaml

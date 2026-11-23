@@ -105,8 +105,8 @@ functions:
           maximumBatchingWindow: 5
 ```
 
-- `batchSize`: integer, default `10`. A standard queue accepts `1` to `10000`; a FIFO queue accepts `1` to `10`.
-- `maximumBatchingWindow`: integer, `0` to `300` seconds. When it isn't set, AWS uses `0`. Batching windows apply to standard queues only.
+- `batchSize`: integer, default `10`. A standard queue accepts `1` to `10000`. A FIFO queue accepts `1` to `10`, or `1` to `10000` in [provisioned mode](#provisioned-mode).
+- `maximumBatchingWindow`: integer, `0` to `300` seconds. When it isn't set, AWS uses `0`. A FIFO queue accepts a batching window only in [provisioned mode](#provisioned-mode).
 - A `batchSize` greater than `10` requires `maximumBatchingWindow` of at least `1`.
 
 Lambda invokes the function when the batch is full, when the batching window ends, or when the batch reaches the 6 MB invocation payload limit, whichever comes first. With a batching window, add the window to the queue's visibility timeout as well: AWS recommends six times the function timeout plus `maximumBatchingWindow`. See [Configuring an Amazon SQS event source mapping](https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-configure.html#events-sqs-eventsource).
@@ -215,6 +215,21 @@ functions:
 - `provisionedPollers` needs at least one of `min` and `max`, and `min` can't be greater than `max`.
 - Each event poller drives up to 10 concurrent invocations, so `max` controls concurrency in provisioned mode. `provisionedPollers` and `maximumConcurrency` can't be set together.
 
+For a FIFO queue, provisioned mode also raises the largest `batchSize` from `10` to `10000` and allows a `maximumBatchingWindow`. A `batchSize` above `10` needs a `maximumBatchingWindow` of at least `1`:
+
+```yaml
+functions:
+  compute:
+    handler: handler.compute
+    events:
+      - sqs:
+          arn: arn:aws:sqs:us-east-1:123456789012:myQueue.fifo
+          batchSize: 1000
+          maximumBatchingWindow: 10
+          provisionedPollers:
+            min: 2
+```
+
 Provisioned mode incurs AWS charges per event poller, and the `min` pollers are charged while they run, whether or not messages arrive. See [AWS Lambda pricing](https://aws.amazon.com/lambda/pricing/).
 
 Setting both `provisionedPollers` and `maximumConcurrency`, or a `min` above `max`, stops packaging whatever `configValidationMode` is set to. A `min` or `max` outside the ranges is a schema violation, so it follows `configValidationMode`: under the default `warn` it is reported as a warning and deployed as written, for AWS to reject; `error` stops packaging; `off` deploys it without a message.
@@ -235,9 +250,11 @@ functions:
 
 `provisionedPollers: false` clears provisioned mode on an existing mapping. AWS rejects it on a mapping that is created in the same deploy, so for a new mapping leave the key out.
 
+A FIFO queue accepts a `batchSize` above `10` and a batching window only in provisioned mode. On a FIFO queue, set `batchSize` to `10` or less and `maximumBatchingWindow` to `0` in the same deploy as `provisionedPollers: false`; otherwise AWS rejects the update with `Batching window for FIFO queues is only supported with Provisioned mode event source mappings` and the stack rolls back.
+
 ### Switch from provisioned mode to maximum concurrency
 
-To move a mapping from provisioned mode to `maximumConcurrency`, deploy once with both `provisionedPollers: false` and the new `maximumConcurrency`. After that deploy, the `provisionedPollers: false` line can be removed:
+To move a mapping from provisioned mode to `maximumConcurrency`, deploy once with both `provisionedPollers: false` and the new `maximumConcurrency`. On a FIFO queue, reset `batchSize` and `maximumBatchingWindow` in the same deploy, as in [Turn off provisioned mode](#turn-off-provisioned-mode). After that deploy, the `provisionedPollers: false` line can be removed:
 
 ```yaml
 functions:

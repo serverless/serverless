@@ -1548,10 +1548,10 @@ functions:
       - sqs:
           # ARN or CloudFormation reference of an existing queue; the Framework doesn't create it
           arn: arn:aws:sqs:us-east-1:123456789012:myQueue
-          # Optional (default: 10). 1-10000 for a standard queue, 1-10 for a FIFO queue
+          # Optional (default: 10). 1-10000 for a standard queue; 1-10 for a FIFO queue, 1-10000 in provisioned mode
           # Above 10 requires maximumBatchingWindow of at least 1
           batchSize: 10
-          # Optional, standard queues only, minimum is 0 and the maximum is 300 (seconds)
+          # Optional, 0-300 (seconds). A FIFO queue accepts it only in provisioned mode
           maximumBatchingWindow: 10
           # (default: true)
           enabled: false
