@@ -17,7 +17,7 @@ describe('describeDeprecatedRuntimes', () => {
         at('2026-09-23'),
       ),
     ).toEqual([
-      `Function "hello" uses nodejs20.x, which AWS Lambda deprecated on 2026-04-30. Lambda stops allowing new functions on it on 2027-02-01, and updates on 2027-03-03. Move to a supported runtime: ${URL}`,
+      `Function "hello" uses nodejs20.x, which AWS Lambda deprecated on 2026-04-30. Lambda stops allowing new functions on it on 2027-07-29, and updates on 2027-08-31. Move to a supported runtime: ${URL}`,
     ])
   })
 
@@ -28,7 +28,7 @@ describe('describeDeprecatedRuntimes', () => {
         at('2026-09-23'),
       ),
     ).toEqual([
-      `Function "legacy" uses nodejs14.x, which AWS Lambda deprecated on 2023-12-04. Lambda no longer allows creating functions on it, and stops allowing updates on 2027-03-03. Move to a supported runtime: ${URL}`,
+      `Function "legacy" uses nodejs14.x, which AWS Lambda deprecated on 2023-12-04. Lambda no longer allows creating functions on it, and stops allowing updates on 2027-08-31. Move to a supported runtime: ${URL}`,
     ])
   })
 
@@ -36,7 +36,7 @@ describe('describeDeprecatedRuntimes', () => {
     expect(
       describeDeprecatedRuntimes(
         [{ name: 'legacy', runtime: 'nodejs14.x' }],
-        at('2027-03-03'),
+        at('2027-08-31'),
       )[0],
     ).toContain('Lambda no longer allows creating or updating functions on it.')
   })
@@ -70,7 +70,8 @@ describe('describeDeprecatedRuntimes', () => {
       describeDeprecatedRuntimes(
         [
           { name: 'current', runtime: 'nodejs24.x' },
-          { name: 'preview', runtime: 'nodejs26.x' },
+          { name: 'newest', runtime: 'nodejs26.x' },
+          { name: 'unlisted', runtime: 'nodejs12.x' },
         ],
         at('2026-09-23'),
       ),
@@ -79,14 +80,15 @@ describe('describeDeprecatedRuntimes', () => {
 
   it('a scheduled runtime starts warning on its deprecation date', () => {
     const fn = [{ name: 'svc', runtime: 'nodejs22.x' }]
-    expect(describeDeprecatedRuntimes(fn, at('2027-04-29'))).toEqual([])
-    expect(describeDeprecatedRuntimes(fn, at('2027-04-30'))).toHaveLength(1)
+    expect(describeDeprecatedRuntimes(fn, at('2027-05-29'))).toEqual([])
+    expect(describeDeprecatedRuntimes(fn, at('2027-05-30'))).toHaveLength(1)
   })
 
   it('every schedule entry is three ISO dates in order', () => {
     for (const [runtime, dates] of Object.entries(RUNTIME_DEPRECATIONS)) {
       expect(dates).toHaveLength(3)
       for (const date of dates) expect(date).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      expect(dates[0] <= dates[1]).toBe(true)
       expect(dates[1] <= dates[2]).toBe(true)
       expect(runtime).toMatch(/^[a-z]/)
     }

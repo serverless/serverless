@@ -87,7 +87,7 @@ For a setting that exists both on the function and under `provider`, the functio
 
 ### Runtime
 
-`provider.runtime` sets the runtime for every function, and a function's own `runtime` overrides it. When neither is set, the function uses `nodejs20.x`, a runtime AWS has deprecated, so set a runtime explicitly. Every [AWS Lambda managed runtime identifier](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html) is accepted, including the Amazon Linux 2023 Java runtimes `java8.al2023`, `java11.al2023` and `java17.al2023`. The schema also accepts `nodejs26.x` and `python3.15`; AWS support and SLAs cover a runtime only once AWS makes it generally available, which the runtimes page shows.
+`provider.runtime` sets the runtime for every function, and a function's own `runtime` overrides it. When neither is set, the function uses `nodejs20.x`, a runtime AWS has deprecated, so set a runtime explicitly. Every [AWS Lambda managed runtime identifier](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html) is accepted, including the Amazon Linux 2023 Java runtimes `java8.al2023`, `java11.al2023` and `java17.al2023`.
 
 When a function uses a runtime AWS has deprecated, `serverless package` and `serverless deploy` print a warning that names the functions, the deprecation date and the dates Lambda stops allowing new functions and updates on that runtime, with a link to the list of supported runtimes. The warning covers functions that get the default runtime too. Container image functions are not checked, because their runtime comes from the image.
 
