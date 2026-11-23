@@ -168,6 +168,150 @@ usagePlan:
   additionalProperties: false,
 }
 
+const apiGatewayJwtAudience = {
+  description: `Accepted values of the token's "aud" claim: a string, a CloudFormation intrinsic, or a list of 1 to 100 of them.`,
+  anyOf: [
+    { $ref: '#/definitions/awsCfInstruction' },
+    {
+      type: 'array',
+      minItems: 1,
+      maxItems: 100,
+      items: { $ref: '#/definitions/awsCfInstruction' },
+    },
+  ],
+}
+
+const apiGatewayJwtAdditionalClaims = {
+  description: `Claim rules checked for this issuer (at most 10), by claim name: a string requires that value, true requires the claim, { value, required } sets both.
+@example
+additionalClaims:
+  tenant: acme
+  department: true
+  tier:
+    value: gold
+    required: false`,
+  type: 'object',
+  maxProperties: 10,
+  propertyNames: {
+    not: { enum: ['iss', 'aud', 'exp', 'nbf', 'iat', 'scope', 'scp'] },
+  },
+  additionalProperties: {
+    // The object form comes first and the scalar form lists both of its types:
+    // with `coerceTypes`, a separate `type: 'string'` branch would rewrite
+    // `true` and `false` to "true" and "false" in the configuration.
+    anyOf: [
+      {
+        type: 'object',
+        properties: {
+          value: {
+            description: `Value the claim must have.`,
+            type: 'string',
+            minLength: 1,
+          },
+          required: {
+            description: `Reject tokens without the claim.
+@default true`,
+            type: 'boolean',
+          },
+        },
+        required: ['value'],
+        additionalProperties: false,
+      },
+      { type: ['string', 'boolean'], minLength: 1, not: { const: false } },
+    ],
+  },
+}
+
+const apiGatewayJwtIssuerUrl = {
+  description: `Issuer URL, exactly as in your tokens' "iss" claim (https, no query or fragment), or a CloudFormation intrinsic.
+@example 'https://idp.example.com/'`,
+  $ref: '#/definitions/awsCfInstruction',
+}
+
+const apiGatewayJwtAuthorizer = {
+  description: `JWT authorizer definition.`,
+  type: 'object',
+  properties: {
+    type: {
+      description: `Authorizer type: only "jwt" is supported.`,
+      type: 'string',
+      pattern: '^[Jj][Ww][Tt]$',
+    },
+    name: {
+      description: `Authorizer name in API Gateway.
+@default the authorizer's key`,
+      type: 'string',
+      minLength: 1,
+    },
+    identitySource: {
+      description: `Request header that carries the token.
+@default 'method.request.header.Authorization'`,
+      anyOf: [
+        { type: 'string', pattern: '^method\\.request\\.header\\.[^,\\s]+$' },
+        { $ref: '#/definitions/awsCfFunction' },
+      ],
+    },
+    algorithms: {
+      description: `Signing algorithms the authorizer accepts.
+@example ['RS256']`,
+      anyOf: [
+        {
+          type: 'array',
+          minItems: 1,
+          maxItems: 6,
+          items: {
+            anyOf: [
+              {
+                type: 'string',
+                pattern: '^(?:[Rr][Ss]|[Ee][Ss])(?:256|384|512)$',
+              },
+              { $ref: '#/definitions/awsCfFunction' },
+            ],
+          },
+        },
+        { $ref: '#/definitions/awsCfFunction' },
+      ],
+    },
+    issuerUrl: apiGatewayJwtIssuerUrl,
+    audience: apiGatewayJwtAudience,
+    additionalClaims: apiGatewayJwtAdditionalClaims,
+    issuers: {
+      description: `Trusted issuers (1 to 10), each with its own audiences and claim rules. Replaces "issuerUrl", "audience" and "additionalClaims".`,
+      type: 'array',
+      minItems: 1,
+      maxItems: 10,
+      items: {
+        type: 'object',
+        properties: {
+          issuerUrl: apiGatewayJwtIssuerUrl,
+          audience: apiGatewayJwtAudience,
+          additionalClaims: apiGatewayJwtAdditionalClaims,
+        },
+        required: ['issuerUrl', 'audience'],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ['type', 'algorithms'],
+  oneOf: [
+    {
+      required: ['issuerUrl', 'audience'],
+      not: { required: ['issuers'] },
+    },
+    {
+      required: ['issuers'],
+      not: {
+        anyOf: [
+          { required: ['issuerUrl'] },
+          { required: ['audience'] },
+          { required: ['additionalClaims'] },
+        ],
+      },
+    },
+  ],
+  additionalProperties: false,
+}
+
 const baseAlbAuthorizerProperties = {
   onUnauthenticatedRequest: {
     description: `Behavior when the incoming request is unauthenticated.`,
@@ -1470,6 +1614,19 @@ tags:
               type: 'object',
               properties: {
                 apiKeys: { $ref: '#/definitions/awsApiGatewayApiKeys' },
+                authorizers: {
+                  description: `Named JWT authorizers for the REST API, referenced by name from http events.
+@see https://www.serverless.com/framework/docs/providers/aws/events/apigateway#jwt-authorizers
+@example
+authorizers:
+  orders:
+    type: jwt
+    algorithms: [RS256]
+    issuerUrl: https://idp.example.com/
+    audience: api://orders`,
+                  type: 'object',
+                  additionalProperties: apiGatewayJwtAuthorizer,
+                },
                 apiKeySourceType: {
                   description: `Location where API Gateway reads API keys from.
 @default 'HEADER'

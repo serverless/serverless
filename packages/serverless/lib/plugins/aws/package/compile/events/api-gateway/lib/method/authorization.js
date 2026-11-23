@@ -12,6 +12,20 @@ export default {
     }
 
     if (http.authorizer) {
+      if (http.authorizer.type === 'JWT' && http.authorizer.jwtLogicalId) {
+        const jwtReturn = {
+          Properties: {
+            AuthorizationType: 'JWT',
+            AuthorizerId: { Ref: http.authorizer.jwtLogicalId },
+          },
+          DependsOn: [http.authorizer.jwtLogicalId],
+        }
+        if (http.authorizer.scopes && http.authorizer.scopes.length) {
+          jwtReturn.Properties.AuthorizationScopes = http.authorizer.scopes
+        }
+        return jwtReturn
+      }
+
       if (http.authorizer.type && http.authorizer.authorizerId) {
         const authorizationType = (() => {
           if (
@@ -21,6 +35,9 @@ export default {
             return 'CUSTOM'
           }
 
+          // Only JWT is normalized: other types keep the value as written,
+          // so existing templates compile unchanged.
+          if (http.authorizer.type.toUpperCase() === 'JWT') return 'JWT'
           return http.authorizer.type
         })()
 
@@ -31,7 +48,8 @@ export default {
           },
         }
         if (
-          http.authorizer.type.toUpperCase() === 'COGNITO_USER_POOLS' &&
+          (authorizationType.toUpperCase() === 'COGNITO_USER_POOLS' ||
+            authorizationType === 'JWT') &&
           http.authorizer.scopes &&
           http.authorizer.scopes.length
         ) {

@@ -9,6 +9,7 @@ import compileResources from './lib/resources.js'
 import compileCors from './lib/cors.js'
 import compileMethods from './lib/method/index.js'
 import compileAuthorizers from './lib/authorizers.js'
+import jwtAuthorizers from './lib/jwt-authorizers.js'
 import compileDeployment from './lib/deployment.js'
 import compilePermissions from './lib/permissions.js'
 import compileStage from './lib/stage.js'
@@ -104,6 +105,7 @@ const authorizerSchema = {
             'request',
             'aws_iam',
             'custom',
+            'jwt',
           ].map(caseInsensitive),
         },
       },
@@ -338,6 +340,7 @@ http:
       compileMethods,
       compileRequestValidators,
       compileAuthorizers,
+      jwtAuthorizers,
       compileDeployment,
       compilePermissions,
       compileStage,
@@ -355,6 +358,9 @@ http:
         this.validated = this.validate()
 
         if (this.validated.events.length === 0) {
+          // A service on a shared REST API (`provider.apiGateway.restApiId`)
+          // can own JWT authorizers without declaring any http event.
+          this.compileJwtAuthorizers()
           return Promise.resolve()
         }
 

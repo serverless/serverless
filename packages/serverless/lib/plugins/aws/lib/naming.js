@@ -376,6 +376,11 @@ export default {
       functionName,
     )}ApiGatewayAuthorizer`
   },
+  getJwtAuthorizerLogicalId(authorizerName) {
+    return `${this.getNormalizedAuthorizerName(
+      authorizerName,
+    )}ApiGatewayJwtAuthorizer`
+  },
   normalizePath(resourcePath) {
     return resourcePath
       .split('/')

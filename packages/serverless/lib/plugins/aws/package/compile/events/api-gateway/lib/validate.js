@@ -104,6 +104,8 @@ export default {
       )
     }
 
+    this.jwtAuthorizers = this.getJwtAuthorizers()
+
     Object.entries(this.serverless.service.functions).forEach(
       ([functionName, functionObject]) => {
         ;(functionObject.events || []).forEach((event) => {
@@ -114,7 +116,7 @@ export default {
             http.method = this.getHttpMethod(http)
 
             if (http.authorizer) {
-              http.authorizer = this.getAuthorizer(http)
+              http.authorizer = this.getAuthorizer(http, functionName)
             }
 
             if (http.cors) {
@@ -373,11 +375,16 @@ export default {
         }
 
         if (externalEvent.http.authorizer) {
-          externalEvent.http.authorizer = this.getAuthorizer(externalEvent.http)
+          externalEvent.http.authorizer = this.getAuthorizer(
+            externalEvent.http,
+            externalEvent.functionName,
+          )
         }
       }
       events.push(...this.externalHttpEvents)
     }
+
+    this.validateJwtAuthorizers(events)
 
     return {
       events,
@@ -403,7 +410,10 @@ export default {
     return http.method.toLowerCase()
   },
 
-  getAuthorizer(http) {
+  getAuthorizer(http, functionName) {
+    const jwtAuthorizer = this.resolveJwtAuthorizer(http, functionName)
+    if (jwtAuthorizer) return jwtAuthorizer
+
     const authorizer = http.authorizer
 
     let type

@@ -1,0 +1,501 @@
+import { ServerlessError } from '@serverless/util'
+
+/**
+ * JWT authorizers of a REST API, defined once under
+ * `provider.apiGateway.authorizers` and referenced by name from `http` events.
+ *
+ * Every rule is enforced here rather than only in the config schema: schema
+ * violations only warn under the default `configValidationMode`, and the
+ * schema's `regexp` keyword is not applied.
+ */
+
+const INVALID = 'API_GATEWAY_JWT_AUTHORIZER_INVALID'
+const NAME_CONFLICT = 'API_GATEWAY_AUTHORIZER_NAME_CONFLICT'
+
+const DEFAULT_IDENTITY_SOURCE = 'method.request.header.Authorization'
+const IDENTITY_SOURCE_PATTERN = /^method\.request\.header\.[^,\s]+$/
+const ALGORITHMS = ['RS256', 'RS384', 'RS512', 'ES256', 'ES384', 'ES512']
+const RESERVED_CLAIMS = ['iss', 'aud', 'exp', 'nbf', 'iat', 'scope', 'scp']
+const MAX_ISSUERS = 10
+const MAX_AUDIENCES = 100
+const MAX_CLAIMS = 10
+
+// Keys of an http event's `authorizer` that have no meaning for a JWT
+// authorizer, each with the advice that ends its error message.
+const UNSUPPORTED_EVENT_KEYS = {
+  resultTtlInSeconds: () =>
+    `JWT authorizers don't cache results: remove "resultTtlInSeconds".`,
+  identitySource: (isDefined) =>
+    isDefined
+      ? `Set it on the authorizer in "provider.apiGateway.authorizers" instead.`
+      : `The attached authorizer reads its own identity source: remove "identitySource".`,
+  identityValidationExpression: () =>
+    `JWT authorizers don't use a validation expression: remove "identityValidationExpression".`,
+  claims: () =>
+    `JWT claims reach your function in requestContext.authorizer.claims: remove "claims".`,
+  arn: () => `A JWT authorizer runs no function: remove "arn".`,
+  managedExternally: () =>
+    `A JWT authorizer has no function permission to manage: remove "managedExternally".`,
+}
+
+/**
+ * A CloudFormation intrinsic function: an object with a single key that is
+ * `Ref` or starts with `Fn::`. Values given this way get structure checks only.
+ */
+const isIntrinsic = (value) => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const keys = Object.keys(value)
+  return keys.length === 1 && (keys[0] === 'Ref' || keys[0].startsWith('Fn::'))
+}
+
+const isPlainObject = (value) =>
+  Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+
+const isNonEmptyString = (value) => typeof value === 'string' && value !== ''
+
+const show = (value) =>
+  typeof value === 'string' ? `"${value}"` : JSON.stringify(value)
+
+const invalid = (message) =>
+  new ServerlessError(message, INVALID, { stack: false })
+
+/**
+ * Whether a literal issuer URL is one API Gateway accepts: https, with a host,
+ * and no user info, query or fragment. The value itself is never rewritten.
+ */
+const isValidIssuerUrl = (issuerUrl) => {
+  if (issuerUrl.includes('?') || issuerUrl.includes('#')) return false
+  let url
+  try {
+    url = new URL(issuerUrl)
+  } catch {
+    return false
+  }
+  return (
+    url.protocol === 'https:' &&
+    Boolean(url.hostname) &&
+    !url.username &&
+    !url.password &&
+    !/^https:\/\/[^/]*@/i.test(issuerUrl)
+  )
+}
+
+/** The https form of a rejected issuer URL, used as the example in its error. */
+const suggestIssuerUrl = (issuerUrl) => {
+  const withoutScheme = issuerUrl
+    .replace(/^[a-z][a-z0-9+.-]*:\/\//i, '')
+    .split(/[?#]/)[0]
+  const slash = withoutScheme.indexOf('/')
+  const authority = slash === -1 ? withoutScheme : withoutScheme.slice(0, slash)
+  const rest = slash === -1 ? '' : withoutScheme.slice(slash)
+  const host = authority.slice(authority.lastIndexOf('@') + 1)
+  return host ? `https://${host}${rest}` : 'https://idp.example.com'
+}
+
+const normalizeAlgorithms = (key, algorithms) => {
+  const missing =
+    algorithms == null || (Array.isArray(algorithms) && !algorithms.length)
+  if (missing) {
+    throw invalid(
+      `API Gateway authorizer "${key}" has no "algorithms". List the signing algorithms your issuer uses, for example "algorithms: [RS256]" (allowed: ${ALGORITHMS.join(', ')}). The issuer's discovery document lists them under "id_token_signing_alg_values_supported".`,
+    )
+  }
+  if (isIntrinsic(algorithms)) return algorithms
+  if (!Array.isArray(algorithms)) {
+    throw invalid(
+      `API Gateway authorizer "${key}" sets algorithms to ${show(algorithms)}. Set "algorithms" to a list, for example "algorithms: [RS256]" (allowed: ${ALGORITHMS.join(', ')}).`,
+    )
+  }
+  if (algorithms.length > ALGORITHMS.length) {
+    throw invalid(
+      `API Gateway authorizer "${key}" lists ${algorithms.length} algorithms. A JWT authorizer allows 1 to ${ALGORITHMS.length} algorithms: list each of ${ALGORITHMS.join(', ')} at most once in "algorithms".`,
+    )
+  }
+  const seen = new Set()
+  return algorithms.map((algorithm) => {
+    if (isIntrinsic(algorithm)) return algorithm
+    const normalized =
+      typeof algorithm === 'string' ? algorithm.toUpperCase() : undefined
+    if (!ALGORITHMS.includes(normalized)) {
+      throw invalid(
+        `API Gateway authorizer "${key}" lists algorithm ${show(algorithm)}. A JWT authorizer accepts ${ALGORITHMS.join(', ')}: use the names your issuer's discovery document lists under "id_token_signing_alg_values_supported".`,
+      )
+    }
+    if (seen.has(normalized)) {
+      throw invalid(
+        `API Gateway authorizer "${key}" lists algorithm "${normalized}" twice in "algorithms". List each algorithm once.`,
+      )
+    }
+    seen.add(normalized)
+    return normalized
+  })
+}
+
+const normalizeIdentitySource = (key, identitySource) => {
+  if (identitySource === undefined) return DEFAULT_IDENTITY_SOURCE
+  if (isIntrinsic(identitySource)) return identitySource
+  if (
+    typeof identitySource !== 'string' ||
+    !IDENTITY_SOURCE_PATTERN.test(identitySource)
+  ) {
+    throw invalid(
+      `API Gateway authorizer "${key}" sets identitySource to ${show(identitySource)}. A JWT authorizer reads one request header: use "method.request.header.<Name>", or leave it out to read the Authorization header.`,
+    )
+  }
+  return identitySource
+}
+
+const normalizeIssuerUrl = (key, path, issuerUrl) => {
+  if (issuerUrl === undefined) {
+    throw invalid(
+      `API Gateway authorizer "${key}" has no "${path}". Set it to the https URL in your tokens' "iss" claim, for example "https://idp.example.com".`,
+    )
+  }
+  if (isIntrinsic(issuerUrl)) return issuerUrl
+  if (typeof issuerUrl !== 'string' || !isValidIssuerUrl(issuerUrl)) {
+    const example =
+      typeof issuerUrl === 'string'
+        ? suggestIssuerUrl(issuerUrl)
+        : 'https://idp.example.com'
+    throw invalid(
+      `API Gateway authorizer "${key}" sets ${path} to ${show(issuerUrl)}. Set it to the https URL in your tokens' "iss" claim, with no query or fragment, for example "${example}".`,
+    )
+  }
+  return issuerUrl
+}
+
+const normalizeAudience = (key, path, audience) => {
+  if (audience === undefined) {
+    throw invalid(
+      `API Gateway authorizer "${key}" has no "${path}". Set it to the value of your tokens' "aud" claim, or a list of 1 to ${MAX_AUDIENCES} of them.`,
+    )
+  }
+  const audiences = Array.isArray(audience) ? audience : [audience]
+  if (!audiences.length || audiences.length > MAX_AUDIENCES) {
+    throw invalid(
+      `API Gateway authorizer "${key}" lists ${audiences.length} audiences in "${path}". A JWT issuer accepts 1 to ${MAX_AUDIENCES} audiences: ${
+        audiences.length ? 'split them across two authorizers' : 'add one'
+      }.`,
+    )
+  }
+  for (const item of audiences) {
+    if (!isNonEmptyString(item) && !isIntrinsic(item)) {
+      throw invalid(
+        `API Gateway authorizer "${key}" lists audience ${show(item)} in "${path}". Each audience is a non-empty string or a CloudFormation intrinsic function.`,
+      )
+    }
+  }
+  return audiences
+}
+
+const CLAIM_FORMS = `A claim rule is a non-empty string (the claim must have that value), true (the claim must be present), or { value, required } (the claim must have that value; with "required: false", only when present).`
+
+const normalizeClaim = (key, path, claimName, rule) => {
+  const claim = { ClaimName: claimName, Format: 'SINGLE_STRING' }
+  if (isNonEmptyString(rule)) {
+    return { ...claim, Required: true, ExpectedValues: [rule] }
+  }
+  if (rule === true) return { ...claim, Required: true }
+  if (
+    isPlainObject(rule) &&
+    !isIntrinsic(rule) &&
+    isNonEmptyString(rule.value) &&
+    (rule.required === undefined || typeof rule.required === 'boolean') &&
+    Object.keys(rule).every((name) => name === 'value' || name === 'required')
+  ) {
+    return {
+      ...claim,
+      Required: rule.required ?? true,
+      ExpectedValues: [rule.value],
+    }
+  }
+  throw invalid(
+    `API Gateway authorizer "${key}" sets ${path}.${claimName} to ${show(rule)}. ${CLAIM_FORMS}`,
+  )
+}
+
+const normalizeAdditionalClaims = (key, path, additionalClaims) => {
+  if (additionalClaims === undefined) return undefined
+  if (!isPlainObject(additionalClaims) || isIntrinsic(additionalClaims)) {
+    throw invalid(
+      `API Gateway authorizer "${key}" sets ${path} to ${show(additionalClaims)}. Set "${path}" to a map of claim names to claim rules. ${CLAIM_FORMS}`,
+    )
+  }
+  const entries = Object.entries(additionalClaims)
+  if (entries.length > MAX_CLAIMS) {
+    throw invalid(
+      `API Gateway authorizer "${key}" lists ${entries.length} claims in "${path}". A JWT issuer checks at most ${MAX_CLAIMS} additional claims: keep the ${MAX_CLAIMS} that matter most, and check the rest in your function.`,
+    )
+  }
+  if (!entries.length) return undefined
+  return entries.map(([claimName, rule]) => {
+    if (RESERVED_CLAIMS.includes(claimName)) {
+      throw invalid(
+        `API Gateway authorizer "${key}" lists claim "${claimName}" in "${path}". API Gateway checks ${RESERVED_CLAIMS.join(', ')} itself: remove "${claimName}" from "${path}" (use "scopes" on the http event for scope checks).`,
+      )
+    }
+    return normalizeClaim(key, path, claimName, rule)
+  })
+}
+
+const normalizeIssuer = (key, prefix, issuer) => ({
+  Issuer: normalizeIssuerUrl(key, `${prefix}issuerUrl`, issuer.issuerUrl),
+  Audiences: normalizeAudience(key, `${prefix}audience`, issuer.audience),
+  AdditionalClaims: normalizeAdditionalClaims(
+    key,
+    `${prefix}additionalClaims`,
+    issuer.additionalClaims,
+  ),
+})
+
+const SINGLE_ISSUER_KEYS = ['issuerUrl', 'audience', 'additionalClaims']
+
+const normalizeIssuers = (key, definition) => {
+  const singleKeys = SINGLE_ISSUER_KEYS.filter(
+    (name) => definition[name] !== undefined,
+  )
+  if (definition.issuers === undefined) {
+    return [normalizeIssuer(key, '', definition)]
+  }
+  if (singleKeys.length) {
+    throw invalid(
+      `API Gateway authorizer "${key}" sets both "issuers" and "${singleKeys[0]}". Set "issuerUrl", "audience" and "additionalClaims" either at the top of the authorizer (one issuer) or on each entry of "issuers", not both.`,
+    )
+  }
+  const { issuers } = definition
+  if (!Array.isArray(issuers)) {
+    throw invalid(
+      `API Gateway authorizer "${key}" sets issuers to ${show(issuers)}. Set "issuers" to a list of { issuerUrl, audience, additionalClaims } entries.`,
+    )
+  }
+  if (!issuers.length || issuers.length > MAX_ISSUERS) {
+    throw invalid(
+      `API Gateway authorizer "${key}" lists ${issuers.length} issuers. A JWT authorizer trusts 1 to ${MAX_ISSUERS} issuers: ${
+        issuers.length
+          ? 'split them across two authorizers in "provider.apiGateway.authorizers"'
+          : 'add one to "issuers"'
+      }.`,
+    )
+  }
+  const normalized = issuers.map((issuer, index) => {
+    if (!isPlainObject(issuer)) {
+      throw invalid(
+        `API Gateway authorizer "${key}" sets issuers[${index}] to ${show(issuer)}. Each entry of "issuers" is an object with "issuerUrl", "audience" and optional "additionalClaims".`,
+      )
+    }
+    return normalizeIssuer(key, `issuers[${index}].`, issuer)
+  })
+  const seen = new Set()
+  for (const { Issuer } of normalized) {
+    if (typeof Issuer !== 'string') continue
+    if (seen.has(Issuer)) {
+      throw invalid(
+        `API Gateway authorizer "${key}" lists issuer "${Issuer}" twice. A JWT authorizer lists each issuer once: merge their audiences and claims into one entry of "issuers".`,
+      )
+    }
+    seen.add(Issuer)
+  }
+  return normalized
+}
+
+export default {
+  /**
+   * Normalizes and validates `provider.apiGateway.authorizers`.
+   *
+   * @returns {Map<string, object>} the definitions by key, each holding the
+   *   logical ID and the `AWS::ApiGateway::Authorizer` properties it compiles to
+   *   (without `RestApiId`)
+   */
+  getJwtAuthorizers() {
+    const definitions = this.serverless.service.provider.apiGateway?.authorizers
+    const authorizers = new Map()
+    if (definitions == null) return authorizers
+
+    for (const [key, definition] of Object.entries(definitions)) {
+      if (!isPlainObject(definition)) {
+        throw invalid(
+          `API Gateway authorizer "${key}" is set to ${show(definition)}. Define it as an object with "type: jwt", "algorithms", "issuerUrl" and "audience".`,
+        )
+      }
+      if (definition.type === undefined) {
+        throw invalid(
+          `API Gateway authorizer "${key}" has no "type". Set "type: jwt": "provider.apiGateway.authorizers" defines JWT authorizers.`,
+        )
+      }
+      if (
+        typeof definition.type !== 'string' ||
+        definition.type.toLowerCase() !== 'jwt'
+      ) {
+        throw invalid(
+          `API Gateway authorizer "${key}" sets type to ${show(definition.type)}. "provider.apiGateway.authorizers" defines JWT authorizers: set "type: jwt", and attach Lambda or Cognito authorizers on the http event instead.`,
+        )
+      }
+      if (definition.name !== undefined && !isNonEmptyString(definition.name)) {
+        throw invalid(
+          `API Gateway authorizer "${key}" sets name to ${show(definition.name)}. Set "name" to a non-empty string, or leave it out to use "${key}".`,
+        )
+      }
+
+      const identitySource = normalizeIdentitySource(
+        key,
+        definition.identitySource,
+      )
+      const algorithms = normalizeAlgorithms(key, definition.algorithms)
+      const issuers = normalizeIssuers(key, definition)
+
+      authorizers.set(key, {
+        key,
+        name: definition.name ?? key,
+        logicalId: this.provider.naming.getJwtAuthorizerLogicalId(key),
+        identitySource,
+        algorithms,
+        issuers,
+      })
+    }
+
+    const keysByName = new Map()
+    for (const { key, name } of authorizers.values()) {
+      const other = keysByName.get(name)
+      if (other !== undefined) {
+        throw new ServerlessError(
+          `"${name}" names both JWT authorizers "${other}" and "${key}" in "provider.apiGateway.authorizers". Rename one of them: API Gateway needs authorizer names to be unique within a REST API.`,
+          NAME_CONFLICT,
+          { stack: false },
+        )
+      }
+      keysByName.set(name, key)
+    }
+
+    return authorizers
+  },
+
+  /**
+   * Resolves an http event's authorizer to a JWT authorizer, or returns
+   * `undefined` when the event uses another kind of authorizer.
+   *
+   * Resolves `authorizer: <key>`, `{ name: <key> }` and `{ type: jwt, ... }`
+   * against `provider.apiGateway.authorizers`, and `{ type: jwt, authorizerId }`
+   * to an authorizer created elsewhere.
+   */
+  resolveJwtAuthorizer(http, functionName) {
+    const authorizer = http.authorizer
+    const authorizers = this.jwtAuthorizers ?? new Map()
+
+    if (typeof authorizer === 'string') {
+      const definition = authorizers.get(authorizer)
+      return (
+        definition && {
+          type: 'JWT',
+          name: definition.key,
+          jwtLogicalId: definition.logicalId,
+        }
+      )
+    }
+    if (!isPlainObject(authorizer)) return undefined
+
+    const type =
+      typeof authorizer.type === 'string'
+        ? authorizer.type.toUpperCase()
+        : undefined
+    const name = authorizer.name
+    const isDefined = typeof name === 'string' && authorizers.has(name)
+
+    if (type !== 'JWT') {
+      if (!isDefined || authorizer.authorizerId || type === 'AWS_IAM') {
+        return undefined
+      }
+      if (type !== undefined) {
+        throw new ServerlessError(
+          `"${name}" names both a JWT authorizer in "provider.apiGateway.authorizers" and ${
+            authorizer.arn
+              ? 'a Lambda or Cognito authorizer'
+              : 'a function used as an authorizer'
+          }. Rename the JWT authorizer: API Gateway needs authorizer names to be unique within a REST API.`,
+          NAME_CONFLICT,
+          { stack: false },
+        )
+      }
+    }
+
+    const isAttached = type === 'JWT' && Boolean(authorizer.authorizerId)
+    if (!isAttached && !isDefined) {
+      throw new ServerlessError(
+        name === undefined
+          ? `Function "${functionName}" uses a JWT authorizer without a "name". Set "name" to an authorizer defined under "provider.apiGateway.authorizers", or set "authorizerId" to attach an existing one.`
+          : `Function "${functionName}" references JWT authorizer ${show(name)}, which isn't defined. Define it under "provider.apiGateway.authorizers", or set "authorizerId" to attach an existing one.`,
+        'UNRECOGNIZED_API_GATEWAY_AUTHORIZER',
+        { stack: false },
+      )
+    }
+
+    for (const [property, advice] of Object.entries(UNSUPPORTED_EVENT_KEYS)) {
+      if (authorizer[property] === undefined) continue
+      const target = isAttached
+        ? 'an existing JWT authorizer ("authorizerId")'
+        : `JWT authorizer "${name}"`
+      throw new ServerlessError(
+        `Function "${functionName}" sets "${property}" on an http event that uses ${target}. ${advice(!isAttached)}`,
+        'API_GATEWAY_JWT_AUTHORIZER_UNSUPPORTED_PROPERTY',
+        { stack: false },
+      )
+    }
+
+    const resolved = { type: 'JWT', scopes: authorizer.scopes }
+    if (isAttached) {
+      resolved.authorizerId = authorizer.authorizerId
+      if (name !== undefined) resolved.name = name
+    } else {
+      resolved.name = name
+      resolved.jwtLogicalId = authorizers.get(name).logicalId
+    }
+    return resolved
+  },
+
+  /**
+   * Checks the JWT authorizers against the rest of the service once its http
+   * events are resolved.
+   */
+  validateJwtAuthorizers(events) {
+    const authorizers = this.jwtAuthorizers
+    if (!authorizers || !authorizers.size) return
+
+    // A Lambda or Cognito authorizer emitted by this service shares the REST
+    // API's authorizer namespace with the JWT authorizers.
+    const jwtNames = new Map()
+    for (const { key, name } of authorizers.values()) {
+      jwtNames.set(key, key)
+      jwtNames.set(name, key)
+    }
+    for (const { http } of events) {
+      const authorizer = http.authorizer
+      if (!authorizer || authorizer.type === 'JWT' || !authorizer.arn) continue
+      const key = jwtNames.get(authorizer.name)
+      if (key === undefined) continue
+      throw new ServerlessError(
+        `"${authorizer.name}" names both a JWT authorizer in "provider.apiGateway.authorizers"${
+          key === authorizer.name ? '' : ` ("${key}")`
+        } and a Lambda or Cognito authorizer. Rename the JWT authorizer: API Gateway needs authorizer names to be unique within a REST API.`,
+        NAME_CONFLICT,
+        { stack: false },
+      )
+    }
+
+    if (
+      events.length ||
+      this.serverless.service.provider.apiGateway.restApiId
+    ) {
+      return
+    }
+    // Service proxies (`custom.apiGatewayServiceProxies`) create the REST API
+    // without any http event, and can attach these authorizers by id.
+    const serviceProxies =
+      this.serverless.service.custom?.apiGatewayServiceProxies
+    if (Array.isArray(serviceProxies) && serviceProxies.length) return
+
+    throw new ServerlessError(
+      `"provider.apiGateway.authorizers" defines authorizers, but this service has no REST API: add an http event, or set "provider.apiGateway.restApiId" to the shared REST API.`,
+      'API_GATEWAY_AUTHORIZERS_WITHOUT_REST_API',
+      { stack: false },
+    )
+  },
+}

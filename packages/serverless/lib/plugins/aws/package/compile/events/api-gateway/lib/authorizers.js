@@ -64,5 +64,34 @@ export default {
         )
       }
     })
+
+    this.compileJwtAuthorizers()
+  },
+
+  compileJwtAuthorizers() {
+    if (!this.jwtAuthorizers) return
+    const resources =
+      this.serverless.service.provider.compiledCloudFormationTemplate.Resources
+    for (const authorizer of this.jwtAuthorizers.values()) {
+      resources[authorizer.logicalId] = {
+        Type: 'AWS::ApiGateway::Authorizer',
+        Properties: {
+          RestApiId: this.provider.getApiGatewayRestApiId(),
+          Name: authorizer.name,
+          Type: 'JWT',
+          IdentitySource: authorizer.identitySource,
+          JwtConfiguration: {
+            DefaultAlgorithms: authorizer.algorithms,
+            Issuers: authorizer.issuers.map(
+              ({ Issuer, Audiences, AdditionalClaims }) => ({
+                Issuer,
+                Audiences,
+                ...(AdditionalClaims && { AdditionalClaims }),
+              }),
+            ),
+          },
+        },
+      }
+    }
   },
 }
