@@ -33,12 +33,13 @@ Replace `YOUR_LICENSE_KEY` with a key from the Dashboard's [License Keys setting
 
 ## What a License Key does
 
-A License Key identifies your org to Serverless, Inc. It grants no permissions in AWS or in the Dashboard.
+A License Key identifies your org to Serverless, Inc. and authenticates the CLI's own requests for that org: validating the key, reading the org's subscription and usage (as `serverless usage` does), and sending usage telemetry. It grants no permissions in AWS, and it can't manage the org: Serverless, Inc. APIs refuse it for billing, License Keys, alerts, Providers and Parameters. Use an Access Key for those.
 
 - **Validated on every command.** Each command sends the License Key to Serverless, Inc. to validate it. When the API answers with an HTTP 5xx error, the CLI prints `Serverless API temporarily unavailable` and continues; when the API can't be reached at all, the command stops.
 - **One org per key.** When `org` is set (`--org`, `org` in `serverless.yml`, or `SERVERLESS_ORG_NAME`) and names another org than the key's, the command stops with `The provided License Key is not for the Org "<org>".`
 - **No Dashboard features.** A service that sets `app` stops with an error that starts with `This Service is enabled for Serverless Framework Dashboard because the "app" property is set.` Dashboard providers and parameters aren't loaded.
 - **Many keys per org.** Create as many License Keys as you need, for example one per team, app, pipeline or developer, and delete a key to revoke it.
+- **A secret.** Anyone who holds a License Key can run the CLI as your org and read its subscription and usage. Keep it in a secrets store, and delete a key that leaks.
 
 ## Create a License Key
 
