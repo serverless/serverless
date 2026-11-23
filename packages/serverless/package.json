@@ -78,7 +78,7 @@
     "get-tsconfig": "^4.14.3",
     "glob": "^14.0.6",
     "globby": "^14.1.0",
-    "graphql": "^16.14.2",
+    "graphql": "^16.15.0",
     "https-proxy-agent": "^8.0.0",
     "is-wsl": "^3.1.1",
     "joi": "^17.13.8",
