@@ -72,10 +72,14 @@ const get = async (target, { attempts = 6 } = {}) => {
 
 /**
  * The prebuilt app: no bootstrap, so it listens on the host:port Lambda puts
- * in AWS_LAMBDA_HTTP_ENDPOINT itself. The zip is shipped as supplied.
+ * in AWS_LAMBDA_HTTP_ENDPOINT itself. The zip is shipped as supplied, and the
+ * app reports what shows it: the entrypoint Lambda runs, whether the
+ * bootstrap file is beside it, and the HOSTNAME only the bootstrap sets.
  */
-const PREBUILT_SERVER = `import http from 'node:http'
+const PREBUILT_SERVER = `import { existsSync } from 'node:fs'
+import http from 'node:http'
 
+const bootstrapFile = new URL('./__sls_web_bootstrap.mjs', import.meta.url)
 const endpoint = process.env.AWS_LAMBDA_HTTP_ENDPOINT
 const separator = endpoint.lastIndexOf(':')
 
@@ -86,7 +90,9 @@ http
       JSON.stringify({
         app: 'prebuilt',
         endpoint,
-        port: process.env.PORT ?? null,
+        entrypoint: process.env.AWS_LAMBDA_NODEJS_ENTRYPOINT ?? null,
+        bootstrapPresent: existsSync(bootstrapFile),
+        hostname: process.env.HOSTNAME ?? null,
       }),
     )
   })
@@ -260,8 +266,15 @@ describe('Serverless Framework Service - Web Apps', () => {
     expect(response.status).toBe(200)
     const body = await response.json()
     expect(body).toMatchObject({ app: 'api', version: 'v1', path: '/hello' })
-    // The bootstrap maps AWS_LAMBDA_HTTP_ENDPOINT onto PORT.
-    expect(body.port).toMatch(/^\d+$/)
+    // The bootstrap is the start file, and it maps AWS_LAMBDA_HTTP_ENDPOINT
+    // onto HOSTNAME and PORT. Lambda may set PORT itself, so both are checked
+    // against the endpoint, and HOSTNAME is one Lambda does not set.
+    expect(body.entrypoint).toBe('__sls_web_bootstrap.mjs')
+    const separator = body.endpoint.lastIndexOf(':')
+    expect(body.hostname).toBe(
+      body.endpoint.slice(0, separator).replace(/^\[(.*)\]$/, '$1'),
+    )
+    expect(body.port).toBe(body.endpoint.slice(separator + 1))
 
     v1Revision = await apiRevision()
     const timestamps = await deploymentTimestamps()
@@ -293,8 +306,11 @@ describe('Serverless Framework Service - Web Apps', () => {
     const body = await response.json()
     expect(body.app).toBe('prebuilt')
     expect(body.endpoint).toMatch(/^[^:]+:\d+$/)
-    // Shipped as supplied: no bootstrap, so no PORT.
-    expect(body.port).toBeNull()
+    // Shipped as supplied: Lambda runs the entry itself, no bootstrap file was
+    // added, and nothing set HOSTNAME. PORT is not checked: Lambda can set it.
+    expect(body.entrypoint).toBe('server.mjs')
+    expect(body.bootstrapPresent).toBe(false)
+    expect(body.hostname).toBeNull()
   })
 
   let loggedPath

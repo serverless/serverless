@@ -1009,7 +1009,9 @@ describe("this machine's AWS IoT Core connection when it is stopped or late", ()
     // The attempt hangs reading the credentials; only its deadline is waiting.
     const [deadline] = clock.timeouts()
     expect(clock.timeouts()).toHaveLength(1)
-    expect(deadline).toBeGreaterThan(CONNECT_TIMEOUT_MS - 500)
+    // The reconnect's jitter can be 0, so the deadline can have exactly
+    // CONNECT_TIMEOUT_MS - 500 left.
+    expect(deadline).toBeGreaterThanOrEqual(CONNECT_TIMEOUT_MS - 500)
     expect(deadline).toBeLessThanOrEqual(CONNECT_TIMEOUT_MS)
     await clock.advance(deadline)
     await clock.flush()
