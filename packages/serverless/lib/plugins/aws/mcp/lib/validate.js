@@ -4,6 +4,10 @@ import { ServerlessError } from '@serverless/util'
 // recognize a Cognito pool ARN, so "is this a user pool" means one thing across
 // the three of them.
 import awsArnRegExs from '../../utils/arn-regular-expressions.js'
+import {
+  normalizedJwtAuthorizer,
+  resolveJwtReference,
+} from './jwt-authorizers.js'
 
 const MINIMUM_NODE_MAJOR = 20
 const DEFAULT_RUNTIME = 'nodejs24.x'
@@ -55,6 +59,7 @@ const AUTHORIZER_TYPES = [
   'request',
   'aws_iam',
   'custom',
+  'jwt',
 ]
 const IAM_AUTHORIZER_TYPE = 'aws_iam'
 
@@ -76,17 +81,24 @@ const isPresentIdentifier = (value) =>
 //  - a GENERATED `AWS::ApiGateway::Authorizer` carries a `Type` of exactly
 //    `TOKEN`, `REQUEST` or `COGNITO_USER_POOLS` - `CUSTOM` is not one of them,
 //    and `custom` is the http event's alias for the default of the three.
+//
+// `JWT` is the same word in both: the method's `AuthorizationType` and the
+// authorizer's `Type`. A JWT authorizer is never generated from the reference
+// itself - it is defined under `provider.apiGateway.authorizers` - so the
+// "generated" entry is what a reference to one of those carries.
 const CANONICAL_ATTACHED_TYPES = {
   token: 'CUSTOM',
   request: 'CUSTOM',
   custom: 'CUSTOM',
   cognito_user_pools: 'COGNITO_USER_POOLS',
+  jwt: 'JWT',
 }
 const CANONICAL_GENERATED_TYPES = {
   token: 'TOKEN',
   request: 'REQUEST',
   custom: 'TOKEN',
   cognito_user_pools: 'COGNITO_USER_POOLS',
+  jwt: 'JWT',
 }
 
 // The branch order of the seam's `getAuthorizer`: a `type` beside an
@@ -112,10 +124,10 @@ const isHttpsUrl = (value) => {
   }
 }
 
-const validateAuthorizer = (name, authorizer) => {
+const validateAuthorizer = (name, authorizer, resolveJwt) => {
   const invalid = (reason) =>
     new ServerlessError(
-      `MCP server "${name}" sets an authorizer that ${reason}. Set "mcp.servers.${name}.authorizer" to the name of an authorizer function in "functions", to "aws_iam", or to an http-event-style authorizer object naming one of "name", "arn" or "authorizerId".`,
+      `MCP server "${name}" sets an authorizer that ${reason}. Set "mcp.servers.${name}.authorizer" to the name of an authorizer function in "functions" or of a JWT authorizer in "provider.apiGateway.authorizers", to "aws_iam", or to an http-event-style authorizer object naming one of "name", "arn" or "authorizerId".`,
       'MCP_AUTHORIZER_INVALID',
       { stack: false },
     )
@@ -188,6 +200,17 @@ const validateAuthorizer = (name, authorizer) => {
     )
   ) {
     throw invalid('names no authorizer')
+  }
+
+  // A reference to a JWT authorizer - one of `provider.apiGateway.authorizers`
+  // by name, or an existing one attached by `type: jwt` and `authorizerId` -
+  // is settled by the compiler's own resolution, which also raises its errors
+  // for a reference it would refuse (an undefined name, a property a JWT
+  // authorizer has no use for, a Lambda type beside a JWT authorizer's name).
+  // None of the ARN checks below concern it: a JWT authorizer runs no function
+  // and has no pool, and its resource is not built from this reference.
+  if (resolveJwt(authorizer) !== undefined) {
+    return lowerType === undefined ? authorizer : { ...authorizer, type: 'JWT' }
   }
 
   // `authorizerId` points at an authorizer resource that already exists, and
@@ -363,7 +386,7 @@ const comparableAuthorizer = (authorizer) => {
  * servers' do. Read defensively: under the default configValidationMode a
  * function or an event can be in any shape here, and reading one may not throw.
  */
-const httpAuthorizersByLogicalId = (functions, naming) => {
+const httpAuthorizersByLogicalId = (functions, naming, isJwt) => {
   const byLogicalId = new Map()
   for (const [functionName, fn] of Object.entries(functions ?? {})) {
     if (!Array.isArray(fn?.events)) continue
@@ -374,6 +397,11 @@ const httpAuthorizersByLogicalId = (functions, naming) => {
       }
       const { authorizer } = http
       if (authorizer === undefined) continue
+      // A JWT authorizer's resource is built from its definition under
+      // `provider.apiGateway.authorizers`, under a logical id of its own kind,
+      // so two references to one never collide with each other or with a
+      // Lambda or Cognito authorizer.
+      if (isJwt(authorizer)) continue
 
       const resourceName = authorizerResourceNameOf(authorizer, naming)
       if (typeof resourceName !== 'string' || resourceName === '') continue
@@ -474,7 +502,77 @@ const validateIntrinsicIssuer = (name, issuer, intrinsicKey) => {
   }
 }
 
-const validateOauthDiscovery = (name, oauthDiscovery) => {
+/**
+ * Where each issuer of a provider JWT authorizer is written, for errors that
+ * have to send the user back to it.
+ */
+const issuerPathsOf = (key, definitions) => {
+  const prefix = `provider.apiGateway.authorizers.${key}`
+  const { issuers } = definitions[key]
+  return Array.isArray(issuers)
+    ? issuers.map((_issuer, index) => `${prefix}.issuers[${index}].issuerUrl`)
+    : [`${prefix}.issuerUrl`]
+}
+
+/**
+ * The issuers a server's JWT authorizer trusts, as the authorization servers
+ * its discovery document publishes - every issuer, in the order written.
+ *
+ * The compiler has already held each literal issuer to API Gateway's own rule
+ * (an https URL with a host, no query, no fragment). What is checked here is
+ * what the document adds: Velocity reads the published text, so a "$" in a
+ * literal, or in the literal text of an `Fn::Sub` template, would change what
+ * a client is told. An `Fn::Sub` template is also held to the https prefix the
+ * explicit issuer is, since a client fetches what is published. Any other
+ * intrinsic resolves to a value nothing here can see, and passes through.
+ */
+const derivedIssuersOf = (name, jwtAuthorizer, definitions) => {
+  const { key, issuers } = jwtAuthorizer
+  const paths = issuerPathsOf(key, definitions)
+  const fix = `Set "mcp.servers.${name}.oauthDiscovery.issuer" to publish a different issuer instead.`
+  return issuers.map(({ Issuer: issuer }, index) => {
+    const path = paths[index]
+    const template =
+      typeof issuer === 'string'
+        ? undefined
+        : intrinsicKeyOf(issuer) === 'Fn::Sub' &&
+            typeof issuer['Fn::Sub'] === 'string'
+          ? issuer['Fn::Sub']
+          : null
+    if (template === null) return issuer
+
+    const literal =
+      template === undefined ? issuer : maskSubPlaceholders(template)
+    const written =
+      template === undefined
+        ? JSON.stringify(issuer)
+        : `an "Fn::Sub" over ${JSON.stringify(template)}`
+    if (!literal.startsWith(HTTPS_PREFIX)) {
+      throw new ServerlessError(
+        `MCP server "${name}" publishes the issuers of JWT authorizer "${key}" in its OAuth discovery document, and "${path}" is ${written}, whose literal text does not begin with "https://". Clients read each issuer out of the published metadata and fetch it directly, so write the scheme and "//" out around the substitutions (for example "https://cognito-idp.\${AWS::Region}.amazonaws.com/\${UserPool}"). ${fix}`,
+        'MCP_OAUTH_DISCOVERY_ISSUER_NOT_HTTPS',
+        { stack: false },
+      )
+    }
+    const hazard = velocityHazardOf(literal)
+    if (hazard !== undefined) {
+      throw new ServerlessError(
+        `MCP server "${name}" publishes the issuers of JWT authorizer "${key}" in its OAuth discovery document, and "${path}" is ${written}, which contains ${JSON.stringify(hazard)}. The discovery document is served straight from API Gateway as a Velocity template, where "$" starts a variable reference and "#" starts a directive, so the published metadata would not name the issuer the authorizer trusts. Remove the character from "${path}". ${fix}`,
+        'MCP_OAUTH_DISCOVERY_VTL_UNSAFE_VALUE',
+        { stack: false },
+      )
+    }
+    return issuer
+  })
+}
+
+/**
+ * `deriveIssuers` is called only when `oauthDiscovery` is an object with no
+ * `issuer` at all; it returns `{ jwtAuthorizer, issuers }` when the server's
+ * authorizer is a provider JWT authorizer, whose issuers are then published,
+ * and `undefined` otherwise.
+ */
+const validateOauthDiscovery = (name, oauthDiscovery, deriveIssuers) => {
   if (oauthDiscovery === undefined) return undefined
 
   const issuer =
@@ -483,8 +581,16 @@ const validateOauthDiscovery = (name, oauthDiscovery) => {
     !Array.isArray(oauthDiscovery)
       ? oauthDiscovery.issuer
       : undefined
+  // An explicit issuer always wins; only an unwritten one is derived.
+  const derived =
+    issuer === undefined &&
+    oauthDiscovery !== null &&
+    typeof oauthDiscovery === 'object' &&
+    !Array.isArray(oauthDiscovery)
+      ? deriveIssuers()
+      : undefined
   const issuerIntrinsicKey = intrinsicKeyOf(issuer)
-  if (issuerIntrinsicKey === undefined) {
+  if (issuerIntrinsicKey === undefined && derived === undefined) {
     // An object that is not one of the accepted intrinsics is a written issuer
     // that cannot be read, not a missing one - so it is quoted back rather than
     // described as an omission. `Fn::Select`, `Fn::If` and `Fn::FindInMap` are
@@ -511,7 +617,9 @@ const validateOauthDiscovery = (name, oauthDiscovery) => {
       )
     }
   }
-  if (issuerIntrinsicKey !== undefined) {
+  if (derived !== undefined) {
+    // Checked where it is written, above.
+  } else if (issuerIntrinsicKey !== undefined) {
     validateIntrinsicIssuer(name, issuer, issuerIntrinsicKey)
   } else if (!isHttpsUrl(issuer)) {
     throw new ServerlessError(
@@ -574,14 +682,31 @@ const validateOauthDiscovery = (name, oauthDiscovery) => {
   }
 
   return {
-    // An intrinsic is handed on exactly as written - CloudFormation is the
-    // only thing entitled to interpret it.
-    issuer: issuerIntrinsicKey === undefined ? issuer.trim() : issuer,
+    ...(derived === undefined
+      ? {
+          // An intrinsic is handed on exactly as written - CloudFormation is
+          // the only thing entitled to interpret it.
+          issuer: issuerIntrinsicKey === undefined ? issuer.trim() : issuer,
+        }
+      : // Published exactly as the authorizer trusts them: a token's "iss"
+        // has to match an issuer character for character, so the URL a
+        // client is sent to log in at is never rewritten either.
+        { issuers: derived.issuers, jwtAuthorizer: derived.jwtAuthorizer }),
     ...(publicUrl === undefined ? {} : { publicUrl: publicUrl.trim() }),
   }
 }
 
-export const validateMcp = ({ mcp, functions, providerRuntime, naming }) => {
+/**
+ * `jwtAuthorizers` is `provider.apiGateway.authorizers`: the JWT authorizers an
+ * MCP server's `authorizer` can name, exactly as an http event's can.
+ */
+export const validateMcp = ({
+  mcp,
+  functions,
+  providerRuntime,
+  naming,
+  jwtAuthorizers,
+}) => {
   // The transformation the provider applies when turning a function key into
   // its `<Name>LambdaFunction` logical id: distinct identifiers can land on the
   // same one, which would silently overwrite a CloudFormation resource. Taken
@@ -606,6 +731,43 @@ export const validateMcp = ({ mcp, functions, providerRuntime, naming }) => {
     Object.keys(functions ?? {}).map((key) => [normalizedNameOf(key), key]),
   )
   const serversByNormalizedName = new Map()
+
+  // Whether an authorizer reference is a JWT authorizer, resolved by the
+  // api-gateway compiler's own rules against `provider.apiGateway.authorizers`.
+  const resolveJwt = (functionName) => (authorizer) =>
+    resolveJwtReference({
+      authorizer,
+      functionName,
+      definitions: jwtAuthorizers,
+      naming,
+    })
+  // The compiler words its reference errors against the function an http
+  // event belongs to; an MCP server is the function, but the user wrote a
+  // server, so the error says so. Code and advice stay the compiler's own.
+  const resolveServerJwt = (name) => (authorizer) => {
+    try {
+      return resolveJwt(name)(authorizer)
+    } catch (error) {
+      const prefix = `Function "${name}" `
+      if (
+        typeof error?.message === 'string' &&
+        error.message.startsWith(prefix)
+      ) {
+        error.message = `MCP server "${name}" ${error.message.slice(prefix.length)}`
+      }
+      throw error
+    }
+  }
+  // An http event's reference the compiler would refuse is reported by the
+  // compiler, against the event; here it only means "not a JWT authorizer".
+  const isJwt = (authorizer) => {
+    try {
+      return resolveJwt('')(authorizer) !== undefined
+    } catch {
+      return false
+    }
+  }
+
   // Authorizer logical id -> who defined it and the shape they defined. Two
   // definitions may share one authorizer; two DIFFERENT authorizers landing on
   // one logical id are merged by `compileAuthorizers` into a single resource,
@@ -617,7 +779,11 @@ export const validateMcp = ({ mcp, functions, providerRuntime, naming }) => {
   // long-standing behavior over configuration this plugin did not author, and
   // raising it from here would fail services for a reason that has nothing to
   // do with MCP. It is recorded as an upstream candidate instead.
-  const authorizersByLogicalId = httpAuthorizersByLogicalId(functions, naming)
+  const authorizersByLogicalId = httpAuthorizersByLogicalId(
+    functions,
+    naming,
+    isJwt,
+  )
 
   const servers = Object.entries(mcp.servers).map(([name, config]) => {
     const reservedReason = RESERVED_SERVER_NAMES.get(name.toLowerCase())
@@ -684,9 +850,18 @@ export const validateMcp = ({ mcp, functions, providerRuntime, naming }) => {
         { stack: false },
       )
     }
-    const authorizer = validateAuthorizer(name, config.authorizer)
+    const authorizer = validateAuthorizer(
+      name,
+      config.authorizer,
+      resolveServerJwt(name),
+    )
+    const jwtReference =
+      authorizer === undefined ? undefined : resolveServerJwt(name)(authorizer)
 
-    const authorizerName = authorizerResourceNameOf(authorizer, naming)
+    const authorizerName =
+      jwtReference === undefined
+        ? authorizerResourceNameOf(authorizer, naming)
+        : undefined
     if (authorizerName !== undefined) {
       const logicalId = naming.getAuthorizerLogicalId(authorizerName)
       const shape = comparableAuthorizer(authorizer)
@@ -713,7 +888,24 @@ export const validateMcp = ({ mcp, functions, providerRuntime, naming }) => {
       // canonical spelling of `type`, which that compiler forwards into the
       // template without folding its case.
       authorizer,
-      oauthDiscovery: validateOauthDiscovery(name, config.oauthDiscovery),
+      oauthDiscovery: validateOauthDiscovery(
+        name,
+        config.oauthDiscovery,
+        () => {
+          // Only an authorizer defined in this service has issuers to read: one
+          // attached by `authorizerId` lives somewhere this config cannot see.
+          if (jwtReference?.jwtLogicalId === undefined) return undefined
+          const jwtAuthorizer = normalizedJwtAuthorizer({
+            key: jwtReference.name,
+            definitions: jwtAuthorizers,
+            naming,
+          })
+          return {
+            jwtAuthorizer: jwtAuthorizer.key,
+            issuers: derivedIssuersOf(name, jwtAuthorizer, jwtAuthorizers),
+          }
+        },
+      ),
       timeout: config.timeout ?? DEFAULT_TIMEOUT,
       memorySize: config.memorySize,
       environment: config.environment,

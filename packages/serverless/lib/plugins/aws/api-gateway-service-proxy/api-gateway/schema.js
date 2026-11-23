@@ -54,9 +54,14 @@ const authorizerId = Joi.alternatives().try(
 const authorizationScopes = Joi.array()
 
 // https://hapi.dev/family/joi/?v=15.1.0#anywhencondition-options
+//
+// `JWT` only beside an `authorizerId`: a JWT authorizer is always a resource of
+// its own (one of `provider.apiGateway.authorizers`, attached by
+// `{ Ref: <Key>ApiGatewayJwtAuthorizer }`, or one created elsewhere), so the
+// method has nothing to check tokens with until it names one.
 const authorizationType = Joi.alternatives().conditional('authorizerId', {
   is: authorizerId.required(),
-  then: Joi.string().valid('CUSTOM', 'COGNITO_USER_POOLS').required(),
+  then: Joi.string().valid('CUSTOM', 'COGNITO_USER_POOLS', 'JWT').required(),
   otherwise: Joi.alternatives().conditional('authorizationScopes', {
     is: authorizationScopes.required(),
     then: Joi.string().valid('COGNITO_USER_POOLS').required(),

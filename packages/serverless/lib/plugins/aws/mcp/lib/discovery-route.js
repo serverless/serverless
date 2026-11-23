@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from 'node:util'
 import { ServerlessError } from '@serverless/util'
 import { publicBaseUrl } from './packaging.js'
 
@@ -23,8 +24,12 @@ const REST_API_ID_VARIABLE = 'RestApiId'
 
 // The `Fn::Sub` variable that stands in for an issuer written as a
 // CloudFormation intrinsic. Prefixed so it cannot collide with the one above,
-// nor read as a logical id a user would recognize as their own.
+// nor read as a logical id a user would recognize as their own. A document
+// publishing several issuers numbers the later ones from 2, so the first keeps
+// the name a single issuer has always had.
 const ISSUER_VARIABLE = 'McpOauthIssuer'
+const issuerVariableOf = (index) =>
+  index === 0 ? ISSUER_VARIABLE : `${ISSUER_VARIABLE}${index + 1}`
 
 const discoveryPathOf = (name) => `${DISCOVERY_PATH_PREFIX}/${name}/mcp`
 
@@ -185,10 +190,10 @@ const resourceUrlOf = ({ server, source, url, stage }) =>
 
 // Serialized once, here, so the document is byte-stable across packages: a key
 // order that varied would rewrite the method resource on every deploy.
-const documentOf = (url, issuer) =>
+const documentOf = (url, issuers) =>
   JSON.stringify({
     resource: url,
-    authorization_servers: [issuer],
+    authorization_servers: issuers,
     bearer_methods_supported: ['header'],
   })
 
@@ -221,7 +226,7 @@ const documentOf = (url, issuer) =>
  * the trust boundary this feature is built on: an intrinsic names something in
  * the user's own stack, and only their stack can say what it resolves to.
  */
-const issuerRenderingOf = (issuer) => {
+const issuerRenderingOf = (issuer, index = 0) => {
   if (typeof issuer === 'string') return { text: issuer, variables: {} }
 
   const sub = issuer['Fn::Sub']
@@ -234,10 +239,59 @@ const issuerRenderingOf = (issuer) => {
         variables !== null && typeof variables === 'object' ? variables : {},
     }
   }
+  const variable = issuerVariableOf(index)
   return {
-    text: `\${${ISSUER_VARIABLE}}`,
-    variables: { [ISSUER_VARIABLE]: issuer },
+    text: `\${${variable}}`,
+    variables: { [variable]: issuer },
   }
+}
+
+/**
+ * Where the published issuers come from, for errors that have to send the
+ * user back to them: the server's own `oauthDiscovery.issuer`, or the issuers
+ * of the JWT authorizer it is guarded by (`./validate.js` derives them when no
+ * issuer is written).
+ */
+const issuerSourceOf = (server) => {
+  const { jwtAuthorizer } = server.oauthDiscovery
+  return jwtAuthorizer === undefined
+    ? {
+        issuers: [server.oauthDiscovery.issuer],
+        describe: `"mcp.servers.${server.name}.oauthDiscovery.issuer"`,
+      }
+    : {
+        issuers: server.oauthDiscovery.issuers,
+        describe: `the issuers of JWT authorizer "${jwtAuthorizer}" ("provider.apiGateway.authorizers.${jwtAuthorizer}")`,
+      }
+}
+
+/**
+ * Every issuer rendered into one document: their texts in order, and one
+ * variable map for the `Fn::Sub` around it. Two issuers may well share a
+ * variable (the same user pool, the same parameter), but not give it two
+ * values, since one substitution pass reads one map.
+ */
+const issuersRenderingOf = (server, { issuers, describe }) => {
+  const texts = []
+  const variables = {}
+  issuers.forEach((issuer, index) => {
+    const rendering = issuerRenderingOf(issuer, index)
+    texts.push(rendering.text)
+    for (const [variable, value] of Object.entries(rendering.variables)) {
+      if (
+        Object.hasOwn(variables, variable) &&
+        !isDeepStrictEqual(variables[variable], value)
+      ) {
+        throw new ServerlessError(
+          `MCP server "${server.name}" publishes ${describe} in one OAuth discovery document, and two of them give the "Fn::Sub" variable "${variable}" different values. The document renders every issuer in one substitution, where a variable has one value: rename the variable in one of the issuers.`,
+          'MCP_OAUTH_DISCOVERY_ISSUER_VARIABLE_COLLISION',
+          { stack: false },
+        )
+      }
+      variables[variable] = value
+    }
+  })
+  return { texts, variables }
 }
 
 /**
@@ -287,24 +341,27 @@ export const buildDiscoveryDescriptors = ({
       server: server.name,
       describe: 'the server name',
     })
-    const { issuer } = server.oauthDiscovery
+    const issuerSource = issuerSourceOf(server)
+    const { issuers } = issuerSource
     // An intrinsic issuer was guarded at validation, on the only part of it
     // that is visible before CloudFormation resolves it.
-    if (typeof issuer === 'string') {
-      assertVelocitySafe(issuer, {
-        server: server.name,
-        describe: `"mcp.servers.${server.name}.oauthDiscovery.issuer"`,
-      })
+    for (const issuer of issuers) {
+      if (typeof issuer === 'string') {
+        assertVelocitySafe(issuer, {
+          server: server.name,
+          describe: issuerSource.describe,
+        })
+      }
     }
 
     const { source, url } = baseUrls.get(server.name)
     assertBaseUrlSafe({ server, source, url, stage })
     sources.set(server.name, { source, url })
 
-    const issuerRendering = issuerRenderingOf(issuer)
+    const issuerRendering = issuersRenderingOf(server, issuerSource)
     const document = documentOf(
       resourceUrlOf({ server, source, url, stage }),
-      issuerRendering.text,
+      issuerRendering.texts,
     )
 
     // Two sources of "${...}" the Framework writes itself: the stage URL, whose
@@ -317,7 +374,9 @@ export const buildDiscoveryDescriptors = ({
     // REST API id was quietly redefined by the issuer.
     if (Object.hasOwn(issuerRendering.variables, REST_API_ID_VARIABLE)) {
       throw new ServerlessError(
-        `MCP server "${server.name}" sets "oauthDiscovery.issuer" to an "Fn::Sub" declaring a variable named "${REST_API_ID_VARIABLE}", which is the name the discovery document itself uses for this service's REST API id. Rename the variable in "mcp.servers.${server.name}.oauthDiscovery.issuer".`,
+        server.oauthDiscovery.jwtAuthorizer === undefined
+          ? `MCP server "${server.name}" sets "oauthDiscovery.issuer" to an "Fn::Sub" declaring a variable named "${REST_API_ID_VARIABLE}", which is the name the discovery document itself uses for this service's REST API id. Rename the variable in "mcp.servers.${server.name}.oauthDiscovery.issuer".`
+          : `MCP server "${server.name}" publishes ${issuerSource.describe}, and one of them is an "Fn::Sub" declaring a variable named "${REST_API_ID_VARIABLE}", which is the name the discovery document itself uses for this service's REST API id. Rename the variable in that issuer.`,
         'MCP_OAUTH_DISCOVERY_ISSUER_VARIABLE_COLLISION',
         { stack: false },
       )
@@ -326,7 +385,8 @@ export const buildDiscoveryDescriptors = ({
       ...(source === 'stage' ? { [REST_API_ID_VARIABLE]: restApiId } : {}),
       ...issuerRendering.variables,
     }
-    const intrinsic = source === 'stage' || typeof issuer !== 'string'
+    const intrinsic =
+      source === 'stage' || issuers.some((issuer) => typeof issuer !== 'string')
     if (!intrinsic) {
       assertVelocitySafe(document, {
         server: server.name,

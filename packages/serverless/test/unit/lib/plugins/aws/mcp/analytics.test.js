@@ -94,6 +94,26 @@ describe('classifyAuthorizer — closed vocabulary, never the config', () => {
     expect(classifyAuthorizer(authorizer)).toBe(expected)
   })
 
+  // A JWT authorizer is known by its type alone, or - given
+  // `provider.apiGateway.authorizers` - by a name that references one.
+  const jwtAuthorizers = { orders: { type: 'jwt' } }
+  test.each([
+    [{ type: 'jwt', name: 'orders' }, undefined, 'jwt'],
+    [{ type: 'JWT', authorizerId: 'abc123' }, undefined, 'jwt'],
+    [{ type: 'Jwt' }, undefined, 'jwt'],
+    ['orders', jwtAuthorizers, 'jwt'],
+    [{ name: 'orders', scopes: ['mcp:use'] }, jwtAuthorizers, 'jwt'],
+    // Without the definitions, a name is what it always was.
+    ['orders', undefined, 'function-token'],
+    // A name that is not one of them is still a function authorizer.
+    ['gate', jwtAuthorizers, 'function-token'],
+    ['aws_iam', jwtAuthorizers, 'aws_iam'],
+    // A type beside the name decides, as the compiler's conflict check does.
+    [{ type: 'request', name: 'orders' }, jwtAuthorizers, 'function-request'],
+  ])('%p with %p → %s', (authorizer, definitions, expected) => {
+    expect(classifyAuthorizer(authorizer, definitions)).toBe(expected)
+  })
+
   test('returns undefined when there is no authorizer, or it is malformed', () => {
     expect(classifyAuthorizer(undefined)).toBeUndefined()
     expect(classifyAuthorizer(null)).toBeUndefined()
@@ -104,6 +124,20 @@ describe('classifyAuthorizer — closed vocabulary, never the config', () => {
 })
 
 describe('deriveMcpBlock — authorizer', () => {
+  test('reports a server naming a provider JWT authorizer as jwt', () => {
+    const out = deriveMcpBlock(
+      {
+        servers: {
+          a: { server: 'a.mjs', authorizer: 'orders' },
+          b: { server: 'b.mjs', authorizer: 'gate' },
+        },
+      },
+      { apiGateway: { authorizers: { orders: { type: 'jwt' } } } },
+    )
+    expect(out.authorizer).toBe(2)
+    expect(out.authorizerTypes).toEqual(['function-token', 'jwt'])
+  })
+
   test('counts servers with an authorizer and reports the sorted unique classes', () => {
     const out = deriveMcpBlock({
       servers: {

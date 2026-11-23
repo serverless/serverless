@@ -460,6 +460,136 @@ describe('buildDiscoveryDescriptors', () => {
 // The one place a server's public base URL is decided. The discovery document
 // and the deploy/info endpoint summary are both rendered from what it returns,
 // which is what keeps the URL a client is told about and the URL the summary
+// With no `oauthDiscovery.issuer`, a server guarded by a JWT authorizer in
+// `provider.apiGateway.authorizers` publishes that authorizer's issuers -
+// `./validate.js` hands them over as `issuers`, with the authorizer's key.
+describe('buildDiscoveryDescriptors - issuers of a JWT authorizer', () => {
+  // `publicUrl: null` leaves the document on the stage URL.
+  const fromJwt = (issuers, publicUrl = 'https://mcp.acme.com') => ({
+    ...base,
+    oauthDiscovery: {
+      issuers,
+      jwtAuthorizer: 'orders',
+      ...(publicUrl === null ? {} : { publicUrl }),
+    },
+  })
+
+  it('publishes every literal issuer, in order', () => {
+    const { descriptors } = build([
+      fromJwt(['https://b.example.com', 'https://a.example.com/']),
+    ])
+    expect(documentOf(descriptors)).toBe(
+      '{"resource":"https://mcp.acme.com/crm/mcp","authorization_servers":["https://b.example.com","https://a.example.com/"],"bearer_methods_supported":["header"]}',
+    )
+  })
+
+  it('publishes a single issuer exactly as an explicit issuer would be', () => {
+    const derived = documentOf(
+      build([fromJwt(['https://acme.auth0.com'])]).descriptors,
+    )
+    const explicit = documentOf(
+      build([
+        {
+          ...base,
+          oauthDiscovery: {
+            issuer: 'https://acme.auth0.com',
+            publicUrl: 'https://mcp.acme.com',
+          },
+        },
+      ]).descriptors,
+    )
+    expect(derived).toBe(explicit)
+  })
+
+  // Literal, inlined `Fn::Sub`, and variable-valued intrinsics in one
+  // document: each intrinsic after the first gets a numbered variable.
+  it('renders intrinsic issuers through one Fn::Sub', () => {
+    const { descriptors } = build([
+      fromJwt(
+        [
+          'https://idp.example.com',
+          {
+            'Fn::Sub':
+              'https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}',
+          },
+          { Ref: 'IssuerParameter' },
+          { 'Fn::Sub': ['https://${Host}/', { Host: { Ref: 'HostParam' } }] },
+          { 'Fn::ImportValue': 'shared-issuer' },
+        ],
+        null,
+      ),
+    ])
+    expect(documentOf(descriptors)).toEqual({
+      'Fn::Sub': [
+        '{"resource":"https://${RestApiId}.execute-api.${AWS::Region}.${AWS::URLSuffix}/dev/crm/mcp","authorization_servers":["https://idp.example.com","https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}","${McpOauthIssuer3}","https://${Host}/","${McpOauthIssuer5}"],"bearer_methods_supported":["header"]}',
+        {
+          RestApiId: { Ref: 'ApiGatewayRestApi' },
+          McpOauthIssuer3: { Ref: 'IssuerParameter' },
+          Host: { Ref: 'HostParam' },
+          McpOauthIssuer5: { 'Fn::ImportValue': 'shared-issuer' },
+        },
+      ],
+    })
+  })
+
+  it('accepts two issuers that give a shared variable the same value', () => {
+    const issuer = (path) => ({
+      'Fn::Sub': [`https://\${Host}/${path}`, { Host: { Ref: 'HostParam' } }],
+    })
+    const { descriptors } = build([fromJwt([issuer('a'), issuer('b')])])
+    expect(documentOf(descriptors)['Fn::Sub'][1]).toEqual({
+      Host: { Ref: 'HostParam' },
+    })
+  })
+
+  it('refuses two issuers that give a shared variable different values', () => {
+    expect(() =>
+      build([
+        fromJwt([
+          { 'Fn::Sub': ['https://${Host}/a', { Host: { Ref: 'HostA' } }] },
+          { 'Fn::Sub': ['https://${Host}/b', { Host: { Ref: 'HostB' } }] },
+        ]),
+      ]),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'MCP_OAUTH_DISCOVERY_ISSUER_VARIABLE_COLLISION',
+        message: expect.stringContaining('JWT authorizer "orders"'),
+      }),
+    )
+  })
+
+  it('refuses an issuer that redefines the document variable', () => {
+    expect(() =>
+      build([
+        fromJwt(
+          [{ 'Fn::Sub': ['https://${RestApiId}', { RestApiId: 'nope' }] }],
+          null,
+        ),
+      ]),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'MCP_OAUTH_DISCOVERY_ISSUER_VARIABLE_COLLISION',
+        message: expect.stringContaining('JWT authorizer "orders"'),
+      }),
+    )
+  })
+
+  // The belt behind `./validate.js`: a literal issuer is checked again as the
+  // part of the document it becomes, naming where it came from.
+  it.each(['$', '#'])('refuses a literal issuer carrying %s', (character) => {
+    expect(() =>
+      build([fromJwt([`https://idp.example.com/${character}x`])]),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'MCP_OAUTH_DISCOVERY_VTL_UNSAFE_VALUE',
+        message: expect.stringContaining(
+          '"provider.apiGateway.authorizers.orders"',
+        ),
+      }),
+    )
+  })
+})
+
 // prints the same string.
 describe('resolveBaseUrls', () => {
   it('resolves publicUrl, the custom domain and the stage in that order', () => {
