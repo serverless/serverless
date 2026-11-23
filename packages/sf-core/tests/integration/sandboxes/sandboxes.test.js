@@ -500,18 +500,36 @@ describe('Serverless Framework Service - Sandboxes', () => {
   // ── 7. IAM emulation ──────────────────────────────────────────────────────
 
   // setUp waits for the IAM trust-policy change to propagate: 10 s, then up to
-  // 8 AssumeRole attempts with backoff (about 165 s in all), so the timeout
-  // allows that wait plus the checks and cleanup around it.
+  // 8 AssumeRole attempts with backoff (about 165 s in all). IAM can take
+  // longer than that now and then, so when AssumeRole is still denied the test
+  // calls setUp once more (the trust policy is already in place, so this is
+  // another 155 s of attempts). The timeout allows both waits plus the checks
+  // and cleanup around them.
   test('IAM emulation assumes the execution role and cleans up the trust policy', async () => {
     const { default: SandboxIamEmulation } =
       await import('@serverless/framework/lib/plugins/aws/sandboxes/dev/iam-emulation.js')
+    const notices = []
     const iam = new SandboxIamEmulation({
       provider,
-      logger: { notice() {}, warning() {}, debug() {} },
+      logger: {
+        notice: (message) => notices.push(message),
+        warning() {},
+        debug() {},
+      },
     })
 
-    const env = await iam.setUp('echo')
-    expect(env).toBeTruthy()
+    let env = await iam.setUp('echo')
+    if (
+      !env &&
+      /AccessDenied|not authorized to perform: sts:AssumeRole/.test(
+        notices.join('\n'),
+      )
+    ) {
+      env = await iam.setUp('echo')
+    }
+    if (!env) {
+      throw new Error(`setUp returned no credentials: ${notices.join(' | ')}`)
+    }
     expect(env.AWS_SESSION_TOKEN).toBeTruthy()
     expect(env.AWS_ACCESS_KEY_ID).toMatch(/^A/)
 
@@ -551,7 +569,7 @@ describe('Serverless Framework Service - Sandboxes', () => {
     // cleanUp() added exactly one principal, so it takes the splice path and
     // removes the whole statement — assert that directly (not merely emptied).
     expect(stmt).toBeUndefined()
-  }, 240000)
+  }, 420000)
 
   // ── 8. Remove ──────────────────────────────────────────────────────────────
 
