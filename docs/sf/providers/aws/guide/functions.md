@@ -80,7 +80,7 @@ functions:
 | `description`  | string  | None                                   | Up to 256 characters                     |
 | `runtime`      | string  | `provider.runtime`, else `nodejs20.x`  | A Lambda runtime identifier              |
 | `memorySize`   | integer | `provider.memorySize`, else 1024       | 128 to 10240 (MB)                        |
-| `timeout`      | integer | `provider.timeout`, else 6             | 1 to 900 (seconds)                       |
+| `timeout`      | integer | `provider.timeout`, else 6             | 1 to 1800 (seconds)                      |
 | `architecture` | string  | `provider.architecture`, else `x86_64` | `x86_64`, `arm64`                        |
 
 For a setting that exists both on the function and under `provider`, the function's own value wins, and `provider` supplies the value for functions that don't set one. `environment`, `tags` and the `logs` keys are merged key by key instead (see [Environment variables](#environment-variables), [Tags](#tags) and [Log format and log levels](#log-format-and-log-levels)).
@@ -94,6 +94,10 @@ When a function uses a runtime AWS has deprecated, `serverless package` and `ser
 ### Memory size limits
 
 `memorySize` accepts 128 to 10240 MB. A function with `capacityProvider` ([Lambda Managed Instances](./managed-instances.md)) defaults to 2048 MB instead of 1024, needs at least 2048 MB, and accepts up to 32768 MB; a value outside those ranges stops packaging with an error.
+
+### Timeout limits
+
+`timeout` accepts 1 to 1800 seconds (30 minutes), the maximum Lambda allows for most functions. Lambda allows up to 5400 seconds for Managed Instances functions invoked asynchronously or through most event source mappings ([Lambda quotas](https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html#function-configuration-deployment-and-execution)); the Framework's schema still warns above 1800. A caller can stop waiting sooner: an `http` or `httpApi` event answers the client within the API Gateway integration timeout, while the function keeps running until it returns or reaches its own `timeout`. A function with `capacityProvider` ([Lambda Managed Instances](./managed-instances.md)) is not stopped at its timeout: Lambda fails the invocation, but the code keeps running, so check the remaining time in the invocation context and stop before it reaches zero ([invoke timeouts](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-execution-environment.html#lambda-managed-instances-invoke-timeouts)).
 
 ### Functions in separate files
 

@@ -1034,12 +1034,12 @@ environment:
             required: ['executionTimeout'],
           },
           awsLambdaTimeout: {
-            description: `Lambda timeout in seconds (1-900).
+            description: `Lambda timeout in seconds (1-1800).
 @default 6
 @see https://www.serverless.com/framework/docs/providers/aws/guide/functions#configuration`,
             type: 'integer',
             minimum: 1,
-            maximum: 900,
+            maximum: 1800,
           },
           awsLambdaTracing: {
             description: `Lambda X-Ray tracing mode or boolean toggle.`,
@@ -2557,7 +2557,7 @@ stackPolicy:
               $ref: '#/definitions/awsResourceTags',
             },
             timeout: {
-              description: `Default Lambda timeout in seconds (1-900).
+              description: `Default Lambda timeout in seconds (1-1800).
 @default 6`,
               $ref: '#/definitions/awsLambdaTimeout',
             },

@@ -84,7 +84,7 @@ type RelayDeps struct {
 
 // MaxInvocation is Lambda's longest timeout: an invocation without a usable deadline is waited for
 // no longer than this.
-const MaxInvocation = 15 * time.Minute
+const MaxInvocation = 30 * time.Minute
 
 const (
 	// The frames waiting for one invocation are bounded; past the bound its result fails.

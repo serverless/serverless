@@ -67,11 +67,11 @@ export const OFFSET_CONFIRM_GAP_MS = 1_000
 export const OFFSET_CONFIRM_TOLERANCE_MS = 1_000
 
 /**
- * The most time an offered invocation can have left: Lambda's longest timeout (15 minutes), plus
+ * The most time an offered invocation can have left: Lambda's longest timeout (30 minutes), plus
  * the acceptance window for the clocks' disagreement. A `remainingMs` above it is no Lambda's, and
  * is taken as unknown: no deadline.
  */
-export const MAX_REMAINING_MS = 15 * 60_000 + ACCEPT_WINDOW_MS
+export const MAX_REMAINING_MS = 30 * 60_000 + ACCEPT_WINDOW_MS
 
 /** The time an invoke had left, in ms, or null when it is absent, not positive or implausible. */
 export const remainingOf = (remainingMs) => {

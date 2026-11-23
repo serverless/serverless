@@ -554,15 +554,18 @@ describe('replaying a recorded invocation', () => {
     expect(invoke).not.toHaveBeenCalled()
   })
 
-  test('the command waits for the function timeout plus a margin, at most 900 s of timeout', () => {
+  test('the command waits for the function timeout plus a margin, at most 1800 s of timeout', () => {
     expect(replayTimeoutMs({ deployed_timeout_s: 6 })).toBe(
       6_000 + REPLAY_MARGIN_MS,
     )
+    expect(replayTimeoutMs({ deployed_timeout_s: 1800 })).toBe(
+      1_800_000 + REPLAY_MARGIN_MS,
+    )
     expect(replayTimeoutMs({ deployed_timeout_s: 5000 })).toBe(
-      900_000 + REPLAY_MARGIN_MS,
+      1_800_000 + REPLAY_MARGIN_MS,
     )
     expect(replayTimeoutMs({ deployed_timeout_s: null })).toBe(
-      900_000 + REPLAY_MARGIN_MS,
+      1_800_000 + REPLAY_MARGIN_MS,
     )
   })
 
