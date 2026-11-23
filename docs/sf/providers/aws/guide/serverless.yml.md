@@ -1088,7 +1088,7 @@ functions:
     #   maxConcurrency: 100 # requests per execution environment, 1-1600 (default: Lambda's per-vCPU default: Node.js 64, Python 16, Java and .NET 32)
     #   memoryPerVCpu: 4 # GiB per vCPU: 2, 4 or 8 (default: Lambda's default)
     #   scaling:
-    #     min: 1 # execution environments, 0-15000, not above max (AWS default: 3); 0 requires max 0
+    #     min: 1 # execution environments, 0-15000, not above max (AWS default: 3); 0 scales to zero when idle, or deactivates the function with max 0
     #     max: 10 # execution environments, 0-15000 (AWS default: no limit)
     # Environment variables, merged over provider.environment. Optional
     environment:

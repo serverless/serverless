@@ -407,17 +407,8 @@ class AwsCompileFunctions {
               funcScaling.MaxExecutionEnvironments = cpConfig.scaling.max
             }
 
-            if (
-              funcScaling.MinExecutionEnvironments === 0 &&
-              funcScaling.MaxExecutionEnvironments !== 0
-            ) {
-              throw new ServerlessError(
-                `Invalid function scaling configuration for function "${functionName}": scaling.min can't be 0 unless scaling.max is also 0.`,
-                'LAMBDA_MANAGED_INSTANCES_INVALID_SCALING_CONFIG',
-                { stack: false },
-              )
-            }
-
+            // min 0 with a non-zero or unset max lets the function scale to
+            // zero; min and max both 0 deactivates it.
             if (
               funcScaling.MinExecutionEnvironments != null &&
               funcScaling.MaxExecutionEnvironments != null &&
@@ -953,6 +944,14 @@ class AwsCompileFunctions {
       const versionDigest = versionHash.read()
 
       versionResource.Properties.FunctionName = { Ref: functionLogicalId }
+      // Lambda applies a function's scaling configuration per qualifier: the
+      // function's own covers $LATEST.PUBLISHED only, and a numbered version
+      // without one keeps Lambda's default minimum of 3 execution environments.
+      if (functionResource.Properties.FunctionScalingConfig) {
+        versionResource.Properties.FunctionScalingConfig = {
+          ...functionResource.Properties.FunctionScalingConfig,
+        }
+      }
       if (functionObject.description) {
         versionResource.Properties.Description = functionObject.description
       }

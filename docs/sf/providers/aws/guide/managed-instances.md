@@ -29,7 +29,7 @@ Use Managed Instances instead of standard Lambda functions when:
 - Requests mostly wait on databases and APIs, so one environment can serve many of them concurrently.
 - Compliance requires functions to run on instances in your VPC.
 
-Stay with standard functions for bursty or occasional traffic: Managed Instances don't scale to zero, and they scale on CPU use rather than per request.
+Stay with standard functions for bursty, latency-sensitive traffic: Managed Instances scale on CPU use rather than per request, and a function that [scales to zero](#scale-to-zero) throttles requests for a few minutes while it starts again.
 
 ## Quick start
 
@@ -198,7 +198,28 @@ functions:
         max: 20
 ```
 
-Setting both `min` and `max` to `0` deactivates the function without deleting it. Lambda scales asynchronously, without cold starts; when traffic more than doubles within 5 minutes, requests can be throttled while capacity grows ([scaling](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-scaling.html)).
+Lambda scales asynchronously, without cold starts; when traffic more than doubles within 5 minutes, requests can be throttled while capacity grows ([scaling](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-scaling.html)).
+
+### Scale to zero
+
+Set `min` to `0` to let the function scale to zero when it is idle, and keep `max` above `0` or unset:
+
+```yaml
+functions:
+  report:
+    handler: handler.handler
+    capacityProvider:
+      name: default
+      scaling:
+        min: 0
+        max: 10
+```
+
+Lambda starts one execution environment when the function is deployed and stops the last one after a period without invocations; it terminates an instance once no function on the capacity provider runs on it, so instance charges stop. The next invocation is throttled with HTTP 429 while Lambda starts an execution environment, which typically takes a few minutes, longer with a slow initialization. Retry synchronous invocations with exponential backoff for long enough to cover that, or keep `min` at `1` or more for latency-sensitive functions (`3` keeps one per Availability Zone). A function that keeps using CPU between invocations, such as with background threads, doesn't scale to zero ([scaling to zero](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-scaling.html#lambda-managed-instances-scale-to-zero)).
+
+Lambda keeps a scaling configuration per function version. The Framework applies `scaling` to the function and to the version each deploy publishes; versions published before keep their own configuration, Lambda's default minimum of 3 when they had none, and their execution environments keep instances running. Remove them with [`prune`](./prune.md), which keeps any version an alias points to.
+
+Setting both `min` and `max` to `0` deactivates the function and the version the deploy publishes, without deleting them: Lambda stops their execution environments and doesn't start them on invocation until `max` is set above `0` again. Versions published before keep their own scaling configuration.
 
 ## Tune concurrency and memory per function
 
@@ -356,7 +377,7 @@ Runs the function on a capacity provider. A string (a name under `provider.capac
 - `name`: required in the object form. A string or a CloudFormation intrinsic, with the same meaning as the string form.
 - `maxConcurrency`: integer, 1 to 1600; the most concurrent requests per execution environment, whatever its vCPUs. Default: Lambda's, which grows with the vCPUs: 64 per vCPU for Node.js, 32 for Java and .NET, 16 for Python.
 - `memoryPerVCpu`: `2`, `4` or `8`; GiB of memory per vCPU, so the environment has `memorySize` ÷ 1024 ÷ `memoryPerVCpu` vCPUs, at least 1. Default: Lambda's.
-- `scaling.min`: integer, 0 to 15000; execution environments Lambda keeps. Default: Lambda's, 3. `0` requires `scaling.max: 0`, and `min` can't exceed `max`.
+- `scaling.min`: integer, 0 to 15000; execution environments Lambda keeps. Default: Lambda's, 3. `0` lets the function [scale to zero](#scale-to-zero), or deactivates it with `scaling.max: 0`. `min` can't exceed `max`.
 - `scaling.max`: integer, 0 to 15000. Default: no maximum.
 
 The function's `memorySize` defaults to 2048 when neither the function nor `provider` sets it, and must be 2048 to 32768. Setting `capacityProvider` on a function has these effects:
@@ -369,9 +390,10 @@ The function's `memorySize` defaults to 2048 when neither the function nor `prov
 
 - **Resources created**: an `AWS::Lambda::CapacityProvider` per entry (logical ID `<Name>LambdaCapacityProvider`, such as `DefaultLambdaCapacityProvider`), and one `AWS::IAM::Role`, `LambdaCapacityProviderOperatorRole`, unless every capacity provider names its own `operatorRole`.
 - **Quotas**: 1,000 capacity providers per account (default), 15,000 vCPUs per capacity provider, and 100 function versions per capacity provider, which AWS doesn't increase. EC2 quotas for vCPUs, EBS volumes and subnet IP addresses apply too ([quotas](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-quotas.html)).
-- **Function versions**: with versioning on (`provider.versionFunctions`, the default), each deploy that changes a function publishes a version tied to the capacity provider in use. Remove old versions with [`prune`](./prune.md) to stay under 100 per capacity provider.
+- **Function versions**: with versioning on (`provider.versionFunctions`, the default), each deploy that changes a function publishes a version tied to the capacity provider in use, with the function's `scaling`. Each version keeps the execution environments its own scaling configuration asks for until it is removed, so remove old versions with [`prune`](./prune.md) to stay under 100 per capacity provider.
 - **Cost**: EC2 pricing for the instances plus a management fee, whether or not requests arrive, down to the functions' minimum execution environments ([AWS Lambda pricing](https://aws.amazon.com/lambda/pricing/)). Instances stop billing when Lambda terminates them after `serverless remove` or a deactivation.
-- **Not for** bursty or rare traffic that benefits from scaling to zero, or for workloads that need a file system mount.
+- **Scale to zero**: with `scaling.min: 0`, the first invocations after an idle period are throttled for a few minutes while an execution environment starts. Standard functions suit rare, latency-sensitive traffic better.
+- **Not for** workloads that need a file system mount.
 
 ## IAM permissions for Managed Instances
 
@@ -437,12 +459,12 @@ Fix: keep one of the two lists.
 ### `Invalid function scaling configuration for function "api"...`
 
 ```text
-Invalid function scaling configuration for function "api": scaling.min can't be 0 unless scaling.max is also 0.
+Invalid function scaling configuration for function "api": scaling.min (5) cannot be greater than scaling.max (2).
 ```
 
-Cause: `capacityProvider.scaling.min` is `0` with a non-zero `max`, or `min` is greater than `max` (the message then says `scaling.min (N) cannot be greater than scaling.max (M)`).
+Cause: `capacityProvider.scaling.min` is greater than `max`.
 
-Fix: set `min` to at least 1, or both to `0` to deactivate the function.
+Fix: lower `min` or raise `max`.
 
 ### `File system configuration isn't compatible with functions using capacity provider compute.`
 

@@ -363,6 +363,88 @@ describe('AwsCompileFunctions', () => {
       expect(cpConfig.PerExecutionEnvironmentMaxConcurrency).toEqual(10)
     })
 
+    describe('function scaling', () => {
+      const compileScaling = async (scaling) => {
+        awsCompileFunctions.serverless.service.functions = {
+          func: {
+            handler: 'handler',
+            name: 'func',
+            capacityProvider: { name: 'my-provider', scaling },
+          },
+        }
+        await awsCompileFunctions.compileFunctions()
+        return awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FuncLambdaFunction
+          .Properties.FunctionScalingConfig
+      }
+
+      const versionResourceOf = () => {
+        const resources =
+          awsCompileFunctions.serverless.service.provider
+            .compiledCloudFormationTemplate.Resources
+        return resources[
+          Object.keys(resources).find((key) => key.startsWith('funcVersion'))
+        ]
+      }
+
+      it('should apply the scaling configuration to the published version', async () => {
+        await compileScaling({ min: 0, max: 10 })
+        expect(versionResourceOf().Properties.FunctionScalingConfig).toEqual({
+          MinExecutionEnvironments: 0,
+          MaxExecutionEnvironments: 10,
+        })
+      })
+
+      it('should not set a scaling configuration on the version without scaling', async () => {
+        await compileScaling(undefined)
+        expect(
+          versionResourceOf().Properties.FunctionScalingConfig,
+        ).toBeUndefined()
+      })
+
+      it('should set min and max execution environments', async () => {
+        expect(await compileScaling({ min: 5, max: 20 })).toEqual({
+          MinExecutionEnvironments: 5,
+          MaxExecutionEnvironments: 20,
+        })
+      })
+
+      it('should allow scaling to zero with min 0 and a non-zero max', async () => {
+        expect(await compileScaling({ min: 0, max: 10 })).toEqual({
+          MinExecutionEnvironments: 0,
+          MaxExecutionEnvironments: 10,
+        })
+      })
+
+      it('should allow scaling to zero with min 0 and no max', async () => {
+        expect(await compileScaling({ min: 0 })).toEqual({
+          MinExecutionEnvironments: 0,
+        })
+      })
+
+      it('should allow deactivating the function with min and max 0', async () => {
+        expect(await compileScaling({ min: 0, max: 0 })).toEqual({
+          MinExecutionEnvironments: 0,
+          MaxExecutionEnvironments: 0,
+        })
+      })
+
+      it('should throw when min is greater than max', async () => {
+        await expect(compileScaling({ min: 5, max: 2 })).rejects.toMatchObject({
+          code: 'LAMBDA_MANAGED_INSTANCES_INVALID_SCALING_CONFIG',
+          message: expect.stringContaining(
+            'scaling.min (5) cannot be greater than scaling.max (2)',
+          ),
+        })
+      })
+
+      it('should throw when min is greater than a max of 0', async () => {
+        await expect(compileScaling({ min: 1, max: 0 })).rejects.toMatchObject({
+          code: 'LAMBDA_MANAGED_INSTANCES_INVALID_SCALING_CONFIG',
+        })
+      })
+    })
+
     it('should throw if non-managed function exceeds memory limit', async () => {
       awsCompileFunctions.serverless.service.functions = {
         func: {
