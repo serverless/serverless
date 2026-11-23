@@ -3,9 +3,12 @@ import _ from 'lodash'
 const customErrorBuilder = (type, message) => (errors) => {
   for (const error of errors) {
     switch (error.code || error.type) {
-      case type:
-        error.message = _.isFunction(message) ? message(error) : message
+      case type: {
+        // A message function returns undefined to keep Joi's own message.
+        const custom = _.isFunction(message) ? message(error) : message
+        if (custom !== undefined) error.message = custom
         break
+      }
       default:
         break
     }

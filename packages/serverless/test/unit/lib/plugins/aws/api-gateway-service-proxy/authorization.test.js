@@ -224,6 +224,37 @@ describe('API Gateway service proxies - authorization', () => {
     )
   })
 
+  // Only JWT gets its own message: every other rejected value keeps Joi's,
+  // which lists the accepted types.
+  it.each([
+    [
+      'AWS_IAM with scopes',
+      { authorizationType: 'AWS_IAM', authorizationScopes: ['email'] },
+      'must be [COGNITO_USER_POOLS]',
+    ],
+    [
+      'a lowercase jwt',
+      { authorizationType: 'jwt' },
+      'must be one of [NONE, AWS_IAM, CUSTOM, COGNITO_USER_POOLS]',
+    ],
+  ])(
+    'keeps the allowed types in the message for %s',
+    async (_label, authorization, expected) => {
+      await expect(
+        compile([
+          {
+            sqs: {
+              path: '/sqs',
+              method: 'post',
+              queueName: 'q',
+              ...authorization,
+            },
+          },
+        ]),
+      ).rejects.toThrow(expected)
+    },
+  )
+
   it('still rejects scopes without an authorizerId for a non-Cognito type', async () => {
     await expect(
       compile([
