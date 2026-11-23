@@ -363,6 +363,98 @@ describe('AwsCompileFunctions', () => {
       expect(cpConfig.PerExecutionEnvironmentMaxConcurrency).toEqual(10)
     })
 
+    describe('container image functions', () => {
+      const compileImageFunction = async (capacityProvider) => {
+        awsCompileFunctions.provider.resolveImageUriAndSha.mockResolvedValue({
+          functionImageUri: 'uri@sha256:abc',
+          functionImageSha: 'abc',
+        })
+        awsCompileFunctions.serverless.service.functions = {
+          func: { image: 'uri', name: 'func', capacityProvider },
+        }
+        await awsCompileFunctions.compileFunctions()
+        return awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+      }
+
+      it('should set CapacityProviderConfig for an image function', async () => {
+        const resources = await compileImageFunction({
+          name: 'my-provider',
+          memoryPerVCpu: 4,
+          maxConcurrency: 8,
+        })
+        const props = resources.FuncLambdaFunction.Properties
+        expect(props.PackageType).toBe('Image')
+        expect(props.CapacityProviderConfig).toEqual({
+          LambdaManagedInstancesCapacityProviderConfig: {
+            CapacityProviderArn: 'my-provider',
+            ExecutionEnvironmentMemoryGiBPerVCpu: 4,
+            PerExecutionEnvironmentMaxConcurrency: 8,
+          },
+        })
+      })
+
+      it('should set CapacityProviderConfig for an image function with the string form', async () => {
+        const resources = await compileImageFunction('my-provider')
+        expect(
+          resources.FuncLambdaFunction.Properties.CapacityProviderConfig,
+        ).toEqual({
+          LambdaManagedInstancesCapacityProviderConfig: {
+            CapacityProviderArn: 'my-provider',
+          },
+        })
+      })
+
+      it('should reference a capacity provider the service defines', async () => {
+        awsCompileFunctions.serverless.service.provider.capacityProviders = {
+          gpu: {},
+        }
+        const resources = await compileImageFunction({ name: 'gpu' })
+        expect(
+          resources.FuncLambdaFunction.Properties.CapacityProviderConfig
+            .LambdaManagedInstancesCapacityProviderConfig.CapacityProviderArn,
+        ).toEqual({
+          'Fn::GetAtt': [
+            awsCompileFunctions.provider.naming.getLambdaCapacityProviderLogicalId(
+              'gpu',
+            ),
+            'Arn',
+          ],
+        })
+      })
+
+      it('should set the scaling configuration on the function and its version', async () => {
+        const resources = await compileImageFunction({
+          name: 'my-provider',
+          scaling: { min: 1, max: 2 },
+        })
+        const expected = {
+          MinExecutionEnvironments: 1,
+          MaxExecutionEnvironments: 2,
+        }
+        expect(
+          resources.FuncLambdaFunction.Properties.FunctionScalingConfig,
+        ).toEqual(expected)
+        const versionKey = Object.keys(resources).find((key) =>
+          key.startsWith('funcVersion'),
+        )
+        expect(resources[versionKey].Properties.FunctionScalingConfig).toEqual(
+          expected,
+        )
+      })
+
+      it('should validate the scaling configuration of an image function', async () => {
+        await expect(
+          compileImageFunction({
+            name: 'my-provider',
+            scaling: { min: 3, max: 1 },
+          }),
+        ).rejects.toThrow(
+          /scaling\.min \(3\) cannot be greater than scaling\.max \(1\)/,
+        )
+      })
+    })
+
     describe('function scaling', () => {
       const compileScaling = async (scaling) => {
         awsCompileFunctions.serverless.service.functions = {

@@ -324,124 +324,6 @@ class AwsCompileFunctions {
 
       functionObject.runtime = this.provider.getRuntime(functionObject.runtime)
 
-      // Lambda Managed Instances / Capacity Providers
-      if (functionObject.capacityProvider) {
-        const rawConfig = functionObject.capacityProvider
-
-        // Check if it's a CloudFormation intrinsic
-        const isIntrinsic =
-          _.isObject(rawConfig) &&
-          Object.keys(rawConfig).some(
-            (key) => key === 'Ref' || key.startsWith('Fn::'),
-          )
-
-        const lambdaManagedConfig = {}
-        let functionScalingConfig
-
-        if (isIntrinsic) {
-          lambdaManagedConfig.CapacityProviderArn = rawConfig
-        } else {
-          const cpConfig =
-            typeof rawConfig === 'string' ? { name: rawConfig } : rawConfig
-
-          const capacityProviderName = cpConfig.name
-          if (!capacityProviderName) {
-            throw new ServerlessError(
-              `Missing "name" property in capacityProvider configuration for function "${functionName}".`,
-              'LAMBDA_MANAGED_INSTANCES_MISSING_NAME',
-              { stack: false },
-            )
-          }
-
-          const lambdaManagedConfigInner = {}
-
-          if (cpConfig.memoryPerVCpu) {
-            const validMemory = [2, 4, 8]
-            if (!validMemory.includes(cpConfig.memoryPerVCpu)) {
-              throw new ServerlessError(
-                `Invalid "memoryPerVCpu" value ${cpConfig.memoryPerVCpu} for function "${functionName}". Supported values are: ${validMemory.join(', ')}.`,
-                'LAMBDA_MANAGED_INSTANCES_INVALID_MEMORY',
-                { stack: false },
-              )
-            }
-          }
-
-          // Resolve CapacityProviderArn: reference named provider or treat as direct ARN/name
-          if (
-            typeof capacityProviderName === 'string' &&
-            this.serverless.service.provider.capacityProviders &&
-            this.serverless.service.provider.capacityProviders[
-              capacityProviderName
-            ]
-          ) {
-            const logicalId =
-              this.provider.naming.getLambdaCapacityProviderLogicalId(
-                capacityProviderName,
-              )
-            lambdaManagedConfigInner.CapacityProviderArn = {
-              'Fn::GetAtt': [logicalId, 'Arn'],
-            }
-          } else {
-            lambdaManagedConfigInner.CapacityProviderArn = capacityProviderName
-          }
-
-          // PerExecutionEnvironmentMaxConcurrency
-          if (cpConfig.maxConcurrency != null) {
-            lambdaManagedConfigInner.PerExecutionEnvironmentMaxConcurrency =
-              cpConfig.maxConcurrency
-          }
-
-          // ExecutionEnvironmentMemoryGiBPerVCpu
-          if (cpConfig.memoryPerVCpu != null) {
-            lambdaManagedConfigInner.ExecutionEnvironmentMemoryGiBPerVCpu =
-              cpConfig.memoryPerVCpu
-          }
-
-          // FunctionScalingConfig (function-level)
-          if (cpConfig.scaling) {
-            const funcScaling = {}
-            if (cpConfig.scaling.min != null) {
-              funcScaling.MinExecutionEnvironments = cpConfig.scaling.min
-            }
-            if (cpConfig.scaling.max != null) {
-              funcScaling.MaxExecutionEnvironments = cpConfig.scaling.max
-            }
-
-            // min 0 with a non-zero or unset max lets the function scale to
-            // zero; min and max both 0 deactivates it.
-            if (
-              funcScaling.MinExecutionEnvironments != null &&
-              funcScaling.MaxExecutionEnvironments != null &&
-              funcScaling.MinExecutionEnvironments >
-                funcScaling.MaxExecutionEnvironments
-            ) {
-              throw new ServerlessError(
-                `Invalid function scaling configuration for function "${functionName}": scaling.min (${funcScaling.MinExecutionEnvironments}) cannot be greater than scaling.max (${funcScaling.MaxExecutionEnvironments}).`,
-                'LAMBDA_MANAGED_INSTANCES_INVALID_SCALING_CONFIG',
-                { stack: false },
-              )
-            }
-
-            if (Object.keys(funcScaling).length) {
-              functionScalingConfig = funcScaling
-            }
-          }
-
-          Object.assign(lambdaManagedConfig, lambdaManagedConfigInner)
-        }
-
-        if (Object.keys(lambdaManagedConfig).length) {
-          functionResource.Properties.CapacityProviderConfig = {
-            LambdaManagedInstancesCapacityProviderConfig: lambdaManagedConfig,
-          }
-        }
-
-        if (functionScalingConfig) {
-          functionResource.Properties.FunctionScalingConfig =
-            functionScalingConfig
-        }
-      }
-
       functionResource.Properties.Handler = functionObject.handler
       functionResource.Properties.Code.S3Bucket = this.serverless.service
         .package.deploymentBucket
@@ -458,6 +340,124 @@ class AwsCompileFunctions {
     } else {
       functionResource.Properties.Code.ImageUri = functionImageUri
       functionResource.Properties.PackageType = 'Image'
+    }
+
+    // Lambda Managed Instances / Capacity Providers (zip and image functions)
+    if (functionObject.capacityProvider) {
+      const rawConfig = functionObject.capacityProvider
+
+      // Check if it's a CloudFormation intrinsic
+      const isIntrinsic =
+        _.isObject(rawConfig) &&
+        Object.keys(rawConfig).some(
+          (key) => key === 'Ref' || key.startsWith('Fn::'),
+        )
+
+      const lambdaManagedConfig = {}
+      let functionScalingConfig
+
+      if (isIntrinsic) {
+        lambdaManagedConfig.CapacityProviderArn = rawConfig
+      } else {
+        const cpConfig =
+          typeof rawConfig === 'string' ? { name: rawConfig } : rawConfig
+
+        const capacityProviderName = cpConfig.name
+        if (!capacityProviderName) {
+          throw new ServerlessError(
+            `Missing "name" property in capacityProvider configuration for function "${functionName}".`,
+            'LAMBDA_MANAGED_INSTANCES_MISSING_NAME',
+            { stack: false },
+          )
+        }
+
+        const lambdaManagedConfigInner = {}
+
+        if (cpConfig.memoryPerVCpu) {
+          const validMemory = [2, 4, 8]
+          if (!validMemory.includes(cpConfig.memoryPerVCpu)) {
+            throw new ServerlessError(
+              `Invalid "memoryPerVCpu" value ${cpConfig.memoryPerVCpu} for function "${functionName}". Supported values are: ${validMemory.join(', ')}.`,
+              'LAMBDA_MANAGED_INSTANCES_INVALID_MEMORY',
+              { stack: false },
+            )
+          }
+        }
+
+        // Resolve CapacityProviderArn: reference named provider or treat as direct ARN/name
+        if (
+          typeof capacityProviderName === 'string' &&
+          this.serverless.service.provider.capacityProviders &&
+          this.serverless.service.provider.capacityProviders[
+            capacityProviderName
+          ]
+        ) {
+          const logicalId =
+            this.provider.naming.getLambdaCapacityProviderLogicalId(
+              capacityProviderName,
+            )
+          lambdaManagedConfigInner.CapacityProviderArn = {
+            'Fn::GetAtt': [logicalId, 'Arn'],
+          }
+        } else {
+          lambdaManagedConfigInner.CapacityProviderArn = capacityProviderName
+        }
+
+        // PerExecutionEnvironmentMaxConcurrency
+        if (cpConfig.maxConcurrency != null) {
+          lambdaManagedConfigInner.PerExecutionEnvironmentMaxConcurrency =
+            cpConfig.maxConcurrency
+        }
+
+        // ExecutionEnvironmentMemoryGiBPerVCpu
+        if (cpConfig.memoryPerVCpu != null) {
+          lambdaManagedConfigInner.ExecutionEnvironmentMemoryGiBPerVCpu =
+            cpConfig.memoryPerVCpu
+        }
+
+        // FunctionScalingConfig (function-level)
+        if (cpConfig.scaling) {
+          const funcScaling = {}
+          if (cpConfig.scaling.min != null) {
+            funcScaling.MinExecutionEnvironments = cpConfig.scaling.min
+          }
+          if (cpConfig.scaling.max != null) {
+            funcScaling.MaxExecutionEnvironments = cpConfig.scaling.max
+          }
+
+          // min 0 with a non-zero or unset max lets the function scale to
+          // zero; min and max both 0 deactivates it.
+          if (
+            funcScaling.MinExecutionEnvironments != null &&
+            funcScaling.MaxExecutionEnvironments != null &&
+            funcScaling.MinExecutionEnvironments >
+              funcScaling.MaxExecutionEnvironments
+          ) {
+            throw new ServerlessError(
+              `Invalid function scaling configuration for function "${functionName}": scaling.min (${funcScaling.MinExecutionEnvironments}) cannot be greater than scaling.max (${funcScaling.MaxExecutionEnvironments}).`,
+              'LAMBDA_MANAGED_INSTANCES_INVALID_SCALING_CONFIG',
+              { stack: false },
+            )
+          }
+
+          if (Object.keys(funcScaling).length) {
+            functionScalingConfig = funcScaling
+          }
+        }
+
+        Object.assign(lambdaManagedConfig, lambdaManagedConfigInner)
+      }
+
+      if (Object.keys(lambdaManagedConfig).length) {
+        functionResource.Properties.CapacityProviderConfig = {
+          LambdaManagedInstancesCapacityProviderConfig: lambdaManagedConfig,
+        }
+      }
+
+      if (functionScalingConfig) {
+        functionResource.Properties.FunctionScalingConfig =
+          functionScalingConfig
+      }
     }
 
     // Validate and configure Durable Functions
