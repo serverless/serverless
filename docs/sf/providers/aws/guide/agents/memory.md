@@ -191,6 +191,44 @@ ai:
 
 `Configuration` takes one of `SemanticOverride`, `SummaryOverride`, `UserPreferenceOverride`, `EpisodicOverride` or `SelfManagedConfiguration`, as defined in [CustomMemoryStrategy](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-bedrockagentcore-memory-custommemorystrategy.html).
 
+## Expire long-term memory records
+
+Long-term memory records don't expire unless their strategy sets a time-to-live. To delete the records a strategy extracts after a number of days, set the strategy's `RecordExpirySpecification`; `RecordExpiryDurationDays` is at least `31`:
+
+```yaml
+ai:
+  memory:
+    conversations:
+      strategies:
+        - SemanticMemoryStrategy:
+            Name: Facts
+            Namespaces:
+              - /facts/{actorId}/
+            RecordExpirySpecification:
+              RecordExpiryDurationDays: 90
+```
+
+The memory's `expiration` applies to events only, so set both to limit how long the memory keeps data. Setting or changing a strategy's record expiry needs the `bedrock-agentcore:UpdateMemoryRecordExpirySpecification` permission for the credentials that deploy the service, on top of the permissions to create and update the memory.
+
+The agent's generated role doesn't need this permission to read records. An agent that writes long-term records itself, with `BatchCreateMemoryRecords` or `BatchUpdateMemoryRecords`, needs those actions and `bedrock-agentcore:UpdateMemoryRecordExpirySpecification` in its role's `statements`, because AWS checks the expiry permission on both calls:
+
+```yaml
+ai:
+  agents:
+    assistant:
+      memory: conversations
+      role:
+        statements:
+          - Effect: Allow
+            Action:
+              - bedrock-agentcore:BatchCreateMemoryRecords
+              - bedrock-agentcore:BatchUpdateMemoryRecords
+              - bedrock-agentcore:UpdateMemoryRecordExpirySpecification
+            Resource: !GetAtt ConversationsMemory.MemoryArn
+```
+
+See the IAM actions in the [Service Authorization Reference for Amazon Bedrock AgentCore](https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazonbedrockagentcore.html).
+
 ## Event expiration and encryption
 
 `expiration` is the number of days AgentCore keeps events, from 3 to 3650 (10 years); the default is 30. `encryptionKey` takes the ARN of an AWS KMS key that encrypts the memory; without it, AgentCore encrypts the memory with a service-managed key. The credentials that deploy the service need `kms:CreateGrant`, `kms:Decrypt`, `kms:DescribeKey` and `kms:GenerateDataKey` on the key, as [Encrypt your AgentCore Memory](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/storage-encryption.html) describes:

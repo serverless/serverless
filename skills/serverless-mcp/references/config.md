@@ -228,10 +228,11 @@ Acceptance is pool-and-scope-scoped, never client-scoped: any app client of
 the pool with a listed scope is accepted. A
 pool created in the same service's `resources` is referenced the way an `http`
 event references it — `name` plus `type: COGNITO_USER_POOLS`, with the `arn` as
-a `Fn::GetAtt`. Cognito has no dynamic client registration, so it fits
-pre-registered and machine-to-machine clients; the discover-then-register
-client flow needs a provider that supports registration (Auth0, Okta, Entra ID
-and similar).
+a `Fn::GetAtt`. For the discover-then-register client flow, turn on the user
+pool's dynamic client registration (Essentials or Plus feature plan, managed
+login on every domain:
+https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-dynamic-client-registration.html);
+without it, Cognito fits pre-registered and machine-to-machine clients.
 
 **`authorizer: aws_iam`** requires callers to SigV4-sign every request with AWS
 credentials — coherent for infrastructure calling infrastructure, but not

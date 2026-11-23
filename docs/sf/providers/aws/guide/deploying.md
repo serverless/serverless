@@ -116,6 +116,28 @@ serverless deploy --package path-to-package
 
 The deploy reads the zip files and templates from that directory and uses them to create or update the stack. `package.path` in `serverless.yml` does the same as `--package`. See the [`deploy` command](../cli-reference/deploy.md) for every option.
 
+## Recover a stack in UPDATE_ROLLBACK_FAILED
+
+When a deploy fails and CloudFormation then can't roll back one of the stack's resources, for example a resource changed or deleted outside the stack, the stack stays in `UPDATE_ROLLBACK_FAILED`. Every later `serverless deploy` stops with:
+
+```text
+Stack:arn:aws:cloudformation:us-east-1:123456789012:stack/my-service-dev/... is in UPDATE_ROLLBACK_FAILED state and can not be updated.
+```
+
+The stack must return to `UPDATE_ROLLBACK_COMPLETE` before it accepts another deploy. Fix what blocks the rollback if you can, then continue the rollback:
+
+```bash
+aws cloudformation continue-update-rollback --stack-name my-service-dev
+```
+
+If you can't fix it, force the rollback to complete. CloudFormation skips every resource whose rollback failed, including resources in nested stacks, and marks it `Resource skipped during UpdateRollback`:
+
+```bash
+aws cloudformation continue-update-rollback --stack-name my-service-dev --force-rollback
+```
+
+**Warning:** A skipped resource no longer matches the stack's template. Before the next deploy, check each skipped resource and bring it in line with `serverless.yml`; run [drift detection](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/detect-drift-resource.html) on it to see the differences. Then run `serverless deploy`. See [Continue rolling back an update](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-continueupdaterollback.html).
+
 ## Related pages
 
 - [Packaging](./packaging.md): what goes into the artifacts.

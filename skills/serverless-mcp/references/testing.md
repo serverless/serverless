@@ -312,7 +312,8 @@ argument 'name'`, nothing registered). Commands without `--header` need no
   domain mapped at the root is a prerequisite, and on the raw `execute-api`
   URL the login dead-ends (`references/troubleshooting.md` has the symptom).
 - **Against an issuer without Dynamic Client Registration**
-  (Cognito, most enterprise IdPs): Claude demands DCR only when it has no
+  (a Cognito user pool with registration off, most enterprise IdPs): Claude
+  demands DCR only when it has no
   client. Pre-register an authorization-code + PKCE client whose callback is
   `http://localhost:<port>/callback`, then
   `claude mcp add --transport http --client-id <id> --callback-port <port> …`

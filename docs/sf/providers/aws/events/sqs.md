@@ -105,8 +105,8 @@ functions:
           maximumBatchingWindow: 5
 ```
 
-- `batchSize`: integer, default `10`. A standard queue accepts `1` to `10000`; a FIFO queue accepts `1` to `10`.
-- `maximumBatchingWindow`: integer, `0` to `300` seconds. When it isn't set, AWS uses `0`. Batching windows apply to standard queues only.
+- `batchSize`: integer, default `10`. A standard queue accepts `1` to `10000`. A FIFO queue accepts `1` to `10`, or `1` to `10000` in [provisioned mode](#provisioned-mode).
+- `maximumBatchingWindow`: integer, `0` to `300` seconds. When it isn't set, AWS uses `0`. A FIFO queue accepts a batching window only in [provisioned mode](#provisioned-mode).
 - A `batchSize` greater than `10` requires `maximumBatchingWindow` of at least `1`.
 
 Lambda invokes the function when the batch is full, when the batching window ends, or when the batch reaches the 6 MB invocation payload limit, whichever comes first. With a batching window, add the window to the queue's visibility timeout as well: AWS recommends six times the function timeout plus `maximumBatchingWindow`. See [Configuring an Amazon SQS event source mapping](https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-configure.html#events-sqs-eventsource).
@@ -214,6 +214,21 @@ functions:
 - `provisionedPollers.max`: integer, `2` to `10000`. When it isn't set, AWS uses `200`.
 - `provisionedPollers` needs at least one of `min` and `max`, and `min` can't be greater than `max`.
 - Each event poller drives up to 10 concurrent invocations, so `max` controls concurrency in provisioned mode. `provisionedPollers` and `maximumConcurrency` can't be set together.
+
+For a FIFO queue, provisioned mode also raises the largest `batchSize` from `10` to `10000` and allows a `maximumBatchingWindow`. A `batchSize` above `10` needs a `maximumBatchingWindow` of at least `1`:
+
+```yaml
+functions:
+  compute:
+    handler: handler.compute
+    events:
+      - sqs:
+          arn: arn:aws:sqs:us-east-1:123456789012:myQueue.fifo
+          batchSize: 1000
+          maximumBatchingWindow: 10
+          provisionedPollers:
+            min: 2
+```
 
 Provisioned mode incurs AWS charges per event poller, and the `min` pollers are charged while they run, whether or not messages arrive. See [AWS Lambda pricing](https://aws.amazon.com/lambda/pricing/).
 
