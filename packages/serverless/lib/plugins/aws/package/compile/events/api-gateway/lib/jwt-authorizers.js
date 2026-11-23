@@ -353,6 +353,23 @@ export default {
       })
     }
 
+    // Keys are normalized into logical IDs ("orders" and "Orders" both become
+    // "OrdersApiGatewayJwtAuthorizer"); two keys sharing one would compile to
+    // one resource, and endpoints written against the first would trust the
+    // second one's issuers.
+    const keysByLogicalId = new Map()
+    for (const { key, logicalId } of authorizers.values()) {
+      const other = keysByLogicalId.get(logicalId)
+      if (other !== undefined) {
+        throw new ServerlessError(
+          `JWT authorizers "${other}" and "${key}" in "provider.apiGateway.authorizers" both compile to the CloudFormation resource "${logicalId}". Rename one of them so their names differ by more than case or punctuation.`,
+          NAME_CONFLICT,
+          { stack: false },
+        )
+      }
+      keysByLogicalId.set(logicalId, key)
+    }
+
     const keysByName = new Map()
     for (const { key, name } of authorizers.values()) {
       const other = keysByName.get(name)
@@ -380,16 +397,27 @@ export default {
   resolveJwtAuthorizer(http, functionName) {
     const authorizer = http.authorizer
     const authorizers = this.jwtAuthorizers ?? new Map()
+    // Without a "type", a name could mean the JWT authorizer or a function used
+    // as a Lambda authorizer (the meaning it has had so far), so a name that is
+    // both is rejected rather than silently switched to the JWT authorizer.
+    const assertNotAlsoFunction = (name) => {
+      if (!this.serverless?.service?.functions?.[name]) return
+      throw new ServerlessError(
+        `"${name}" names both a JWT authorizer in "provider.apiGateway.authorizers" and a function in this service, so the http event of function "${functionName}" could mean either. Rename the JWT authorizer: API Gateway needs authorizer names to be unique within a REST API.`,
+        NAME_CONFLICT,
+        { stack: false },
+      )
+    }
 
     if (typeof authorizer === 'string') {
       const definition = authorizers.get(authorizer)
-      return (
-        definition && {
-          type: 'JWT',
-          name: definition.key,
-          jwtLogicalId: definition.logicalId,
-        }
-      )
+      if (!definition) return undefined
+      assertNotAlsoFunction(authorizer)
+      return {
+        type: 'JWT',
+        name: definition.key,
+        jwtLogicalId: definition.logicalId,
+      }
     }
     if (!isPlainObject(authorizer)) return undefined
 
@@ -404,7 +432,8 @@ export default {
       if (!isDefined || authorizer.authorizerId || type === 'AWS_IAM') {
         return undefined
       }
-      if (type !== undefined) {
+      if (type === undefined && !authorizer.arn) assertNotAlsoFunction(name)
+      if (type !== undefined || authorizer.arn) {
         throw new ServerlessError(
           `"${name}" names both a JWT authorizer in "provider.apiGateway.authorizers" and ${
             authorizer.arn

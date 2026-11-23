@@ -1768,7 +1768,9 @@ describe('validateMcp - JWT authorizers', () => {
       'rejects "%s" beside a JWT authorizer, as an http event does',
       (property, value) => {
         expect(() =>
-          validate({ authorizer: { name: 'orders', [property]: value } }),
+          validate({
+            authorizer: { type: 'jwt', name: 'orders', [property]: value },
+          }),
         ).toThrow(
           expect.objectContaining({
             code: 'API_GATEWAY_JWT_AUTHORIZER_UNSUPPORTED_PROPERTY',
@@ -1777,6 +1779,21 @@ describe('validateMcp - JWT authorizers', () => {
         )
       },
     )
+
+    it('rejects an untyped arn beside the name of a JWT authorizer, as an http event does', () => {
+      expect(() =>
+        validate({
+          authorizer: {
+            name: 'orders',
+            arn: 'arn:aws:lambda:us-east-1:000000000000:function:auth',
+          },
+        }),
+      ).toThrow(
+        expect.objectContaining({
+          code: 'API_GATEWAY_AUTHORIZER_NAME_CONFLICT',
+        }),
+      )
+    })
 
     it('rejects a Lambda type beside the name of a JWT authorizer', () => {
       expect(() =>

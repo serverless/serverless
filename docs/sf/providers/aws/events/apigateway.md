@@ -656,7 +656,11 @@ The deploy creates the JWT authorizer, switches the endpoints to it, and removes
 Authorizer name must be unique. Authorizer verifyToken already exists in this RestApi.
 ```
 
-A JWT authorizer whose key or `name` matches a function that `http` events still use as an authorizer, or a Cognito user pool authorizer of the service, stops packaging with `API_GATEWAY_AUTHORIZER_NAME_CONFLICT`. A function of that name that no event uses as an authorizer is no conflict.
+Packaging stops with `API_GATEWAY_AUTHORIZER_NAME_CONFLICT` when:
+
+- a JWT authorizer's key or `name` matches a Lambda or Cognito user pool authorizer of the service;
+- an `http` event references a JWT authorizer as `authorizer: <key>` or `authorizer: { name: <key> }` and the service also has a function named `<key>`, because the reference could mean either. Write `authorizer: { type: jwt, name: <key> }`, or rename the JWT authorizer;
+- two keys differ only in case or punctuation, such as `orders` and `Orders`, because they would compile to the same CloudFormation resource.
 
 After the switch, check what the function reads: a Lambda authorizer's context and `claims` with the `lambda` integration don't exist with a JWT authorizer; read [claims in the function](#read-jwt-claims-in-the-function) instead.
 

@@ -345,16 +345,6 @@ describe('API Gateway JWT authorizers', () => {
       )
     })
 
-    it('resolves a name that is also a function not used as an authorizer to the JWT authorizer', async () => {
-      const resources = await compile({
-        apiGateway: { authorizers: { orders: ordersAuthorizer() } },
-        functions: { ...withEvent('orders'), orders: {} },
-      })
-
-      expect(methodOf(resources).Properties.AuthorizationType).toBe('JWT')
-      expect(resources).not.toHaveProperty('OrdersApiGatewayAuthorizer')
-    })
-
     it('attaches an existing authorizer by type: jwt and authorizerId', async () => {
       const authorizerId = { 'Fn::ImportValue': 'shared-orders-authorizer' }
       const resources = await compile({
@@ -747,7 +737,11 @@ describe('API Gateway JWT authorizers', () => {
       ])('rejects %s', async (property, value) => {
         const error = await compileError({
           apiGateway: { authorizers: { orders: ordersAuthorizer() } },
-          functions: withEvent({ name: 'orders', [property]: value }),
+          functions: withEvent({
+            type: 'jwt',
+            name: 'orders',
+            [property]: value,
+          }),
         })
         expect(error.code).toBe(UNSUPPORTED)
         expect(error.message).toContain(
@@ -800,6 +794,64 @@ describe('API Gateway JWT authorizers', () => {
 
     describe('E6 name conflicts (API_GATEWAY_AUTHORIZER_NAME_CONFLICT)', () => {
       const CONFLICT = 'API_GATEWAY_AUTHORIZER_NAME_CONFLICT'
+
+      it('rejects two keys that compile to the same logical ID', async () => {
+        const error = await compileError({
+          apiGateway: {
+            authorizers: {
+              orders: ordersAuthorizer(),
+              Orders: ordersAuthorizer({ name: 'orders-b' }),
+            },
+          },
+          functions: withEvent('orders'),
+        })
+        expect(error.code).toBe(CONFLICT)
+        expect(error.message).toBe(
+          'JWT authorizers "orders" and "Orders" in "provider.apiGateway.authorizers" both compile to the CloudFormation resource "OrdersApiGatewayJwtAuthorizer". Rename one of them so their names differ by more than case or punctuation.',
+        )
+      })
+
+      it('rejects a string reference that also names a function in the service', async () => {
+        const error = await compileError({
+          apiGateway: { authorizers: { orders: ordersAuthorizer() } },
+          functions: { ...withEvent('orders'), orders: {} },
+        })
+        expect(error.code).toBe(CONFLICT)
+        expect(error.message).toBe(
+          '"orders" names both a JWT authorizer in "provider.apiGateway.authorizers" and a function in this service, so the http event of function "list" could mean either. Rename the JWT authorizer: API Gateway needs authorizer names to be unique within a REST API.',
+        )
+      })
+
+      it('rejects an untyped { name } reference that also names a function in the service', async () => {
+        const error = await compileError({
+          apiGateway: { authorizers: { orders: ordersAuthorizer() } },
+          functions: { ...withEvent({ name: 'orders' }), orders: {} },
+        })
+        expect(error.code).toBe(CONFLICT)
+      })
+
+      it('rejects an untyped { name, arn } reference to a JWT authorizer key', async () => {
+        const error = await compileError({
+          apiGateway: { authorizers: { orders: ordersAuthorizer() } },
+          functions: withEvent({
+            name: 'orders',
+            arn: 'arn:aws:lambda:us-east-1:123456789012:function:auth',
+          }),
+        })
+        expect(error.code).toBe(CONFLICT)
+        expect(error.message).toContain('a Lambda or Cognito authorizer')
+      })
+
+      it('still resolves type: jwt with a name that is also a function', async () => {
+        const resources = await compile({
+          apiGateway: { authorizers: { orders: ordersAuthorizer() } },
+          functions: {
+            ...withEvent({ type: 'jwt', name: 'orders' }),
+            orders: {},
+          },
+        })
+        expect(resources.OrdersApiGatewayJwtAuthorizer).toBeDefined()
+      })
 
       it('rejects a JWT authorizer named like a function used as an authorizer', async () => {
         const error = await compileError({
