@@ -1121,7 +1121,11 @@ describe('the web bridge', () => {
     const done = await response
     expect(done.status).toBe(200)
     expect(done.body.toString()).toBe('at last')
-    expect(logs.join('\n')).not.toMatch(/504|did not start/)
+    expect(logs).toContainEqual(
+      expect.stringMatching(/ran on the developer's machine: 200 in /),
+    )
+    // Whole words only: request ids are random hex and can contain "504".
+    expect(logs.join('\n')).not.toMatch(/\b504\b|did not start/)
   })
 
   test('a function name the policy cannot use is logged, and the policy covers any web function', async () => {
