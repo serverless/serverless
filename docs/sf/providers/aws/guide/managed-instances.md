@@ -217,9 +217,9 @@ functions:
 
 Lambda starts one execution environment when the function is deployed and stops the last one after a period without invocations; it terminates an instance once no function on the capacity provider runs on it, so instance charges stop. The next invocation is throttled with HTTP 429 while Lambda starts an execution environment, which typically takes a few minutes, longer with a slow initialization. Retry synchronous invocations with exponential backoff for long enough to cover that, or keep `min` at `1` or more for latency-sensitive functions (`3` keeps one per Availability Zone). A function that keeps using CPU between invocations, such as with background threads, doesn't scale to zero ([scaling to zero](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-scaling.html#lambda-managed-instances-scale-to-zero)).
 
-Lambda keeps a scaling configuration per function version. The Framework applies `scaling` to the function and to the version each deploy publishes; versions published before keep their own configuration, Lambda's default minimum of 3 when they had none, and their execution environments keep instances running. Remove them with [`prune`](./prune.md).
+Lambda keeps a scaling configuration per function version. The Framework applies `scaling` to the function and to the version each deploy publishes; versions published before keep their own configuration, Lambda's default minimum of 3 when they had none, and their execution environments keep instances running. Remove them with [`prune`](./prune.md), which keeps any version an alias points to.
 
-Setting both `min` and `max` to `0` deactivates the function without deleting it: Lambda stops its execution environments and doesn't start them on invocation until `max` is set above `0` again.
+Setting both `min` and `max` to `0` deactivates the function and the version the deploy publishes, without deleting them: Lambda stops their execution environments and doesn't start them on invocation until `max` is set above `0` again. Versions published before keep their own scaling configuration.
 
 ## Tune concurrency and memory per function
 
