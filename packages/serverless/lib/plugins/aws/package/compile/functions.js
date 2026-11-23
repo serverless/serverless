@@ -268,6 +268,23 @@ class AwsCompileFunctions {
       )
     }
 
+    // Ephemeral storage above 10240 MB is available only to GPU functions
+    // (capacityProvider.accelerator). The schema allows up to 32768 MB for them,
+    // so the lower limit is enforced here for every other function.
+    if (
+      functionObject.ephemeralStorageSize > 10240 &&
+      !(
+        _.isPlainObject(functionObject.capacityProvider) &&
+        functionObject.capacityProvider.accelerator
+      )
+    ) {
+      throw new ServerlessError(
+        `Ephemeral storage of ${functionObject.ephemeralStorageSize} MB for function "${functionName}" exceeds the limit of 10240 MB. Up to 32768 MB is available to functions that set capacityProvider.accelerator.`,
+        'LAMBDA_INVALID_EPHEMERAL_STORAGE_SIZE',
+        { stack: false },
+      )
+    }
+
     functionObject.memory = effectiveMemory
     if (!functionObject.timeout) {
       functionObject.timeout = this.serverless.service.provider.timeout || 6
@@ -381,6 +398,51 @@ class AwsCompileFunctions {
               'LAMBDA_MANAGED_INSTANCES_INVALID_MEMORY',
               { stack: false },
             )
+          }
+        }
+
+        // GPU functions: accelerator.memory is the minimum GPU memory in GB
+        if (cpConfig.accelerator) {
+          if (functionObject.handler) {
+            throw new ServerlessError(
+              `Function "${functionName}" sets capacityProvider.accelerator, which needs a container image. Use "image" instead of "handler" for this function.`,
+              'LAMBDA_MANAGED_INSTANCES_ACCELERATOR_REQUIRES_IMAGE',
+              { stack: false },
+            )
+          }
+          // The config schema doesn't report errors inside a function's
+          // capacityProvider object, so the block's shape is checked here.
+          const unsupported = Object.keys(cpConfig.accelerator).find(
+            (key) => key !== 'memory',
+          )
+          if (unsupported) {
+            throw new ServerlessError(
+              `Function "${functionName}" sets "${unsupported}" in capacityProvider.accelerator, which supports only "memory".`,
+              'LAMBDA_MANAGED_INSTANCES_INVALID_ACCELERATOR',
+              { stack: false },
+            )
+          }
+          const acceleratorMemory = cpConfig.accelerator.memory
+          if (acceleratorMemory == null) {
+            throw new ServerlessError(
+              `Function "${functionName}" sets capacityProvider.accelerator without "memory". Set accelerator.memory to the GPU memory the function needs, in GB (for example 24).`,
+              'LAMBDA_MANAGED_INSTANCES_INVALID_ACCELERATOR',
+              { stack: false },
+            )
+          }
+          // AWS sizes are a few dozen GB; a value this large was given in MB
+          if (
+            typeof acceleratorMemory === 'number' &&
+            acceleratorMemory >= 1024
+          ) {
+            throw new ServerlessError(
+              `Invalid "accelerator.memory" value ${acceleratorMemory} for function "${functionName}". accelerator.memory is in GB of GPU memory (for example 24), not MB.`,
+              'LAMBDA_MANAGED_INSTANCES_INVALID_ACCELERATOR_MEMORY',
+              { stack: false },
+            )
+          }
+          functionResource.Properties.AcceleratorConfig = {
+            AcceleratorMemorySize: acceleratorMemory,
           }
         }
 

@@ -1,0 +1,95 @@
+service: sfc-lmi-gpu
+
+provider:
+  name: aws
+  region: ${env:AWS_REGION, 'us-east-1'}
+  vpc:
+    subnetIds:
+      - !Ref SubnetA
+      - !Ref SubnetB
+    securityGroupIds:
+      - !Ref InstancesSecurityGroup
+  ecr:
+    images:
+      gpuprobe:
+        path: ./
+        # A single-platform image: Lambda rejects an image index
+        provenance: 'false'
+  capacityProviders:
+    gpu:
+      instanceRequirements:
+        # Fractional NVIDIA L4 (3 GB slices): the smallest G-series types
+        allowedInstanceTypes:
+          - g6f.large
+          - g6f.xlarge
+      scaling:
+        maxVCpuCount: 12
+
+functions:
+  probe:
+    image: gpuprobe
+    timeout: 60
+    ephemeralStorageSize: 20480
+    capacityProvider:
+      name: gpu
+      accelerator:
+        memory: 3
+      scaling:
+        min: 1
+        max: 1
+
+resources:
+  Resources:
+    Vpc:
+      Type: AWS::EC2::VPC
+      Properties:
+        CidrBlock: 10.42.0.0/16
+        EnableDnsHostnames: true
+        EnableDnsSupport: true
+    InternetGateway:
+      Type: AWS::EC2::InternetGateway
+    GatewayAttachment:
+      Type: AWS::EC2::VPCGatewayAttachment
+      Properties:
+        VpcId: !Ref Vpc
+        InternetGatewayId: !Ref InternetGateway
+    RouteTable:
+      Type: AWS::EC2::RouteTable
+      Properties:
+        VpcId: !Ref Vpc
+    DefaultRoute:
+      Type: AWS::EC2::Route
+      DependsOn: GatewayAttachment
+      Properties:
+        RouteTableId: !Ref RouteTable
+        DestinationCidrBlock: 0.0.0.0/0
+        GatewayId: !Ref InternetGateway
+    SubnetA:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: !Ref Vpc
+        CidrBlock: 10.42.0.0/24
+        AvailabilityZone: !Select [0, !GetAZs '']
+        MapPublicIpOnLaunch: true
+    SubnetB:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: !Ref Vpc
+        CidrBlock: 10.42.1.0/24
+        AvailabilityZone: !Select [1, !GetAZs '']
+        MapPublicIpOnLaunch: true
+    SubnetARouteTable:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        SubnetId: !Ref SubnetA
+        RouteTableId: !Ref RouteTable
+    SubnetBRouteTable:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        SubnetId: !Ref SubnetB
+        RouteTableId: !Ref RouteTable
+    InstancesSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Managed Instances GPU test
+        VpcId: !Ref Vpc

@@ -1,6 +1,6 @@
 <!--
 title: Managed Instances (AWS Lambda Managed Instances)
-description: 'Run Lambda functions on EC2 instances in your VPC with capacity providers: setup, instance types, scaling, concurrency, IAM and errors.'
+description: 'Run Lambda functions on EC2 instances in your VPC, GPU instances included, with capacity providers: setup, scaling, concurrency, IAM and errors.'
 short_title: Managed Instances
 keywords:
   [
@@ -9,6 +9,7 @@ keywords:
     'Lambda capacity provider',
     'capacityProvider',
     'EC2',
+    'Lambda GPU',
   ]
 -->
 
@@ -25,7 +26,7 @@ Managed Instances run your Lambda functions on Amazon EC2 instances in your own 
 Use Managed Instances instead of standard Lambda functions when:
 
 - Traffic is high and steady, and paying for instances costs less than paying per request.
-- You need specific hardware: the latest CPUs (Graviton4), memory-to-vCPU ratios up to 8 GiB per vCPU, or high network bandwidth.
+- You need specific hardware: the latest CPUs (Graviton4), memory-to-vCPU ratios up to 8 GiB per vCPU, high network bandwidth, or [NVIDIA GPUs](#run-functions-on-gpus).
 - Requests mostly wait on databases and APIs, so one environment can serve many of them concurrently.
 - Compliance requires functions to run on instances in your VPC.
 
@@ -37,7 +38,7 @@ Prerequisites:
 
 - Serverless Framework v4 and AWS credentials that can deploy (see [IAM permissions for Managed Instances](#iam-permissions-for-managed-instances)).
 - A VPC with subnets in at least two Availability Zones and a security group. The instances run there, so the subnets need a route to a NAT gateway or VPC endpoints for the AWS services your code calls.
-- A runtime Lambda Managed Instances supports: Node.js 22 or later, Python 3.13 or later, Java 21 or later, .NET 8 or later, or `provided.al2023` ([supported runtimes](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-runtimes.html)).
+- A runtime Lambda Managed Instances supports: Node.js 22 or later, Python 3.13 or later, Java 21 or later, .NET 8 or later, or `provided.al2023` ([supported runtimes](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-runtimes.html)), or a container image (`image`).
 - A Region where Lambda Managed Instances are available.
 
 This `serverless.yml` runs one function on the default capacity provider:
@@ -240,11 +241,113 @@ functions:
 - `memoryPerVCpu` sets the ratio of GiB to vCPUs, `2`, `4` or `8`. The environment's vCPUs are its memory divided by that ratio, so this function gets 8 GiB and 2 vCPUs. An environment has at least 1 vCPU, so `memorySize` must be at least `memoryPerVCpu` × 1024. Without `memoryPerVCpu`, Lambda's default ratio applies; set it when you need a known number of vCPUs. Python functions often need a ratio of 4 or 8.
 - `maxConcurrency` caps the concurrent requests of one execution environment, whatever its vCPUs: here 32 for 2 vCPUs. Without it, Lambda's default grows with the vCPUs: 64 per vCPU for Node.js, 32 for Java and .NET, 16 for Python. Lower it for functions that use much memory and little CPU; AWS suggests at most 64 per vCPU ([scaling](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-scaling.html)).
 
+## Run functions on GPUs
+
+GPU functions run on Amazon EC2 G-series instances with NVIDIA GPUs, for model inference, media processing, rendering and other parallel computation, using what AWS calls [GPU-accelerated Event Functions](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu.html). A GPU function needs three things: a container image, a capacity provider whose `allowedInstanceTypes` lists only GPU instance types, and `capacityProvider.accelerator.memory`, the GPU memory the function needs.
+
+Before the first deploy, request an increase of the EC2 service quota **Running On-Demand G and VT instances** in the Region: its default is 0 vCPUs, so Lambda can't launch any GPU instance until it is raised ([Service Quotas console](https://console.aws.amazon.com/servicequotas/home/services/ec2/quotas/)).
+
+This `serverless.yml` builds an image and runs it on NVIDIA L4 or A10G GPUs:
+
+```yaml
+# serverless.yml
+service: my-gpu-service
+
+provider:
+  name: aws
+  region: us-east-1
+  vpc:
+    subnetIds:
+      - subnet-0a1b2c3d4e5f60718
+      - subnet-0f1e2d3c4b5a69788
+    securityGroupIds:
+      - sg-0123456789abcdef0
+  ecr:
+    images:
+      inference:
+        path: ./
+        provenance: 'false'
+  capacityProviders:
+    gpu:
+      instanceRequirements:
+        allowedInstanceTypes:
+          - g6.xlarge
+          - g5.xlarge
+
+functions:
+  infer:
+    image: inference
+    memorySize: 8192
+    timeout: 300
+    capacityProvider:
+      name: gpu
+      accelerator:
+        memory: 24
+```
+
+- `provider.ecr.images.inference` builds the image from the `Dockerfile` in the service directory. `provenance: 'false'` makes Docker push a single-platform image, the format Lambda accepts; recent Docker versions add a provenance attestation by default, which Lambda rejects with `The image manifest, config or layer media type for the source image … is not supported`.
+- `allowedInstanceTypes` lists GPU instance types only: a capacity provider runs either GPU or non-GPU functions. List several generations so that Lambda can fall back to an older one when the newest has no capacity. [Supported GPU instances](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu.html#lambda-managed-instances-gpu-supported-instances) lists the families and the GPU memory of each.
+- `accelerator.memory: 24` asks for a GPU with at least 24 GB of memory. Lambda launches the newest allowed generation whose GPU has the least memory that is still enough, and gives each execution environment one GPU, or one GPU fraction on fractional instance types such as `g6f`.
+- `timeout` covers each invocation. Model loading runs during initialization, which Lambda allows the larger of 130 seconds and `timeout`, up to 15 minutes.
+
+The `Dockerfile` can start from one of the [GPU base images](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu-base-images.html) AWS publishes with CUDA, PyTorch, vLLM or SGLang, or from any other image: Lambda provides the GPU driver. This one uses the PyTorch image:
+
+```dockerfile
+FROM public.ecr.aws/lambda/deep-learning-containers/pytorch:cuda
+COPY handler.py ${LAMBDA_TASK_ROOT}/
+CMD ["handler.handler"]
+```
+
+Deploy and invoke it as any other function:
+
+```bash
+serverless deploy
+serverless invoke --function infer
+```
+
+The first deploy takes several minutes while Lambda launches a GPU instance and starts the execution environment. GPU instances bill until Lambda terminates them, so remove the service, or [scale to zero](#scale-to-zero), when you don't need it.
+
+### GPU memory, concurrency and storage
+
+- `accelerator.memory` is the minimum GPU memory in GB. AWS accepts 3, 6, 12, 16, 24 or 48, and checks the value when the function is created; the capacity provider must allow at least one instance type whose GPU has that much ([accelerator memory](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu.html#lambda-managed-instances-gpu-accelerator-memory)). Changing it updates the function in place.
+- `maxConcurrency` sets how many invocations share one GPU. Lambda's default for GPU functions is 4, up to 48; every worker process that loads its own copy of the model needs GPU memory for it ([concurrency](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu-scaling.html)).
+- `ephemeralStorageSize` goes up to 32768 MB for GPU functions, backed by the instance's NVMe storage, so `/tmp` can hold model weights downloaded at initialization. Other functions keep the 10240 MB limit.
+- GPU functions run on `x86_64` only.
+
+To start faster with large images or models, load weights from Amazon S3 at initialization and use an image with a SOCI index ([optimizing startup time](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu-startup.html)). Streaming from S3 needs `s3:GetObject` (and `s3:ListBucket` for a prefix) on the bucket in [`provider.iam`](./iam.md).
+
+### Scale on GPU utilization
+
+Lambda scales GPU functions on GPU utilization as well as CPU utilization and concurrency, with a default GPU target of 40%. To set your own target, add a policy with `LambdaCapacityProviderAverageGPUUtilization` to the capacity provider:
+
+```yaml
+provider:
+  capacityProviders:
+    gpu:
+      instanceRequirements:
+        allowedInstanceTypes:
+          - g6.xlarge
+          - g5.xlarge
+      scaling:
+        mode: manual
+        policies:
+          - predefinedMetricType: LambdaCapacityProviderAverageGPUUtilization
+            targetValue: 60
+```
+
+A higher target uses GPUs more fully and costs less; a lower one leaves headroom for bursts. To stop paying for idle GPUs, let the function [scale to zero](#scale-to-zero).
+
+### Plan the capacity provider for GPU functions
+
+A capacity provider's instance types, VPC, KMS key and operator role are fixed once it is deployed: any deploy after the first that changes them fails with `CloudFormation cannot update a stack when a custom-named resource requires replacing`. List every GPU instance type the functions may need in the first deploy. To change the list, add a capacity provider under a new name, move the functions to it, and remove the old one once [its function versions are gone](#the-capacity-provider-is-currently-in-use-by-1-functions).
+
+Removing `accelerator` from a deployed GPU function doesn't remove the GPU from it: Lambda keeps the setting. To run the code without a GPU, deploy it as a new function on a non-GPU capacity provider.
+
 ## Move existing functions onto a capacity provider
 
 Add `capacityProvider` to a function and deploy: CloudFormation updates the function in place ([`CapacityProviderConfig`](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-lambda-function.html#cfn-lambda-function-capacityproviderconfig) updates without interruption). Before you deploy, check that each function:
 
-- Uses a [supported runtime](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-runtimes.html) and, on Node.js, an `async` handler.
+- Uses a [supported runtime](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-runtimes.html) or a container image and, on Node.js, an `async` handler.
 - Has no `memorySize` below 2048, on the function or in `provider`.
 - Has the capacity provider's architecture.
 - Has no `fileSystemConfig`.
@@ -361,12 +464,12 @@ The object form keeps `maxConcurrency`, `memoryPerVCpu` and `scaling` available 
 A map of capacity provider names to their settings. Each entry creates an `AWS::Lambda::CapacityProvider` named `<service>-<stage>-<name>`. Optional; the `default` entry is created automatically when a function uses `capacityProvider: default`. Every key below is optional.
 
 - `vpc`: the instances' subnets and security groups. Object with `subnetIds` (1 to 16) and `securityGroupIds` (up to 5), each a list of IDs or CloudFormation references, or one expression that yields the list (`Fn::Split`, `Fn::FindInMap`). Default: `provider.vpc`. One of the two is required.
-- `instanceRequirements.allowedInstanceTypes`: list of instance types or `family.*` patterns Lambda may launch. No default (Lambda chooses). Not with `excludedInstanceTypes`.
+- `instanceRequirements.allowedInstanceTypes`: list of instance types or `family.*` patterns Lambda may launch. No default (Lambda chooses). Not with `excludedInstanceTypes`. Required, with GPU instance types only, when a function on the capacity provider sets `accelerator`.
 - `instanceRequirements.excludedInstanceTypes`: list of instance types or `family.*` patterns Lambda must not launch. No default. Not with `allowedInstanceTypes`.
 - `instanceRequirements.architectures`: a one-item list, `x86_64` or `arm64`. Default: `provider.architecture`, else `x86_64`. Functions don't take it: they use their own `architecture` or `provider.architecture`.
 - `scaling.mode`: `auto` or `manual`, case-insensitive. Default: AWS's, `auto`. `manual` requires `scaling.policies`.
 - `scaling.maxVCpuCount`: integer, 12 to 15000. Default: AWS's, 400.
-- `scaling.policies`: list of 1 to 10 target-tracking policies, each with `predefinedMetricType: LambdaCapacityProviderAverageCPUUtilization` and `targetValue`, a number from 0 to 100. No default.
+- `scaling.policies`: list of 1 to 10 target-tracking policies, each with `predefinedMetricType` (`LambdaCapacityProviderAverageCPUUtilization`, or `LambdaCapacityProviderAverageGPUUtilization` on a capacity provider with GPU instance types) and `targetValue`, a number from 0 to 100. No default.
 - `kmsKeyArn`: KMS key ARN that encrypts the instances' EBS volumes. Default: an AWS managed key.
 - `permissions.operatorRole`: ARN of an existing operator role. Default: the generated `LambdaCapacityProviderOperatorRole`.
 
@@ -379,12 +482,14 @@ Runs the function on a capacity provider. A string (a name under `provider.capac
 - `memoryPerVCpu`: `2`, `4` or `8`; GiB of memory per vCPU, so the environment has `memorySize` ÷ 1024 ÷ `memoryPerVCpu` vCPUs, at least 1. Default: Lambda's.
 - `scaling.min`: integer, 0 to 15000; execution environments Lambda keeps. Default: Lambda's, 3. `0` lets the function [scale to zero](#scale-to-zero), or deactivates it with `scaling.max: 0`. `min` can't exceed `max`.
 - `scaling.max`: integer, 0 to 15000. Default: no maximum.
+- `accelerator.memory`: required in `accelerator`; the minimum GPU memory in GB (AWS accepts 3, 6, 12, 16, 24 or 48) or a CloudFormation intrinsic. Makes the function a [GPU function](#run-functions-on-gpus): it needs `image`, and a capacity provider that this service defines must list GPU instance types in `allowedInstanceTypes` and run only GPU functions. No default.
 
 The function's `memorySize` defaults to 2048 when neither the function nor `provider` sets it, and must be 2048 to 32768. Setting `capacityProvider` on a function has these effects:
 
 - The function's own `vpc` and `provider.vpc` don't apply to it.
 - `fileSystemConfig` isn't available.
 - `serverless dev` leaves the function running in AWS instead of on your machine.
+- With `accelerator`, `ephemeralStorageSize` can be up to 32768 MB.
 
 ## Limits and behavior
 
@@ -472,6 +577,70 @@ Cause: the function sets both `fileSystemConfig` and `capacityProvider`.
 
 Fix: remove one of them; read shared files from Amazon S3 or a database instead.
 
+### `Function "infer" sets capacityProvider.accelerator, which needs a container image...`
+
+```text
+Function "infer" sets capacityProvider.accelerator, which needs a container image. Use "image" instead of "handler" for this function.
+```
+
+Cause: GPU functions run only from container images.
+
+Fix: build an image (`provider.ecr.images`) and set `image` on the function, as in [Run functions on GPUs](#run-functions-on-gpus).
+
+### `Invalid "accelerator.memory" value 24576...`
+
+```text
+Invalid "accelerator.memory" value 24576 for function "infer". accelerator.memory is in GB of GPU memory (for example 24), not MB.
+```
+
+Fix: give the GPU memory in GB: `accelerator.memory: 24`.
+
+### `Function "infer" sets capacityProvider.accelerator without "memory"...`
+
+```text
+Function "infer" sets capacityProvider.accelerator without "memory". Set accelerator.memory to the GPU memory the function needs, in GB (for example 24).
+```
+
+Fix: add `memory` under `accelerator`. A key other than `memory` under `accelerator` stops the deploy with a message that names it.
+
+### `Capacity provider "gpu" runs functions with an accelerator ("infer"), so it needs GPU instance types...`
+
+```text
+Capacity provider "gpu" runs functions with an accelerator ("infer"), so it needs GPU instance types. List them in provider.capacityProviders.gpu.instanceRequirements.allowedInstanceTypes, for example [g6.xlarge, g5.xlarge].
+```
+
+Cause: Lambda launches GPU instances only when the capacity provider's `allowedInstanceTypes` lists them, and the `default` capacity provider lists none.
+
+Fix: define a capacity provider with GPU instance types and point the function at it, as in [Run functions on GPUs](#run-functions-on-gpus).
+
+### `Capacity provider "gpu" runs functions with an accelerator ("infer") and without one ("api")...`
+
+```text
+Capacity provider "gpu" runs functions with an accelerator ("infer") and without one ("api"). A capacity provider runs either GPU or non-GPU functions: move "api" to another capacity provider, or set capacityProvider.accelerator on it.
+```
+
+Fix: give the non-GPU functions their own capacity provider.
+
+### `Ephemeral storage of 20480 MB for function "worker" exceeds the limit of 10240 MB...`
+
+```text
+Ephemeral storage of 20480 MB for function "worker" exceeds the limit of 10240 MB. Up to 32768 MB is available to functions that set capacityProvider.accelerator.
+```
+
+Fix: set `ephemeralStorageSize` to 10240 or less, or make the function a GPU function.
+
+### `The specified capacity provider does not allow for any instance types whose accelerator chips each provide at least 48 GB of memory...`
+
+CloudFormation reports this from AWS when a deploy creates or updates a GPU function:
+
+```text
+The specified capacity provider does not allow for any instance types whose accelerator chips each provide at least 48 GB of memory. Use a capacity provider that allows higher-memory accelerators or reduce the function's AcceleratorMemorySize.
+```
+
+Cause: no instance type in the capacity provider's `allowedInstanceTypes` has a GPU with `accelerator.memory` GB.
+
+Fix: lower `accelerator.memory`, or allow an instance family with larger GPUs ([supported GPU instances](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu.html#lambda-managed-instances-gpu-supported-instances)). A capacity provider's instance types can't change once it is deployed: [plan the capacity provider](#plan-the-capacity-provider-for-gpu-functions).
+
 ### `The capacity provider is currently in use by 1 functions...`
 
 CloudFormation reports this from AWS when a deploy removes a capacity provider:
@@ -495,4 +664,5 @@ A service that invokes only `$LATEST` can set `provider.versionFunctions: false`
 - [Functions](./functions.md): the function settings `capacityProvider` combines with.
 - [Capacity Providers in the `serverless.yml` reference](./serverless.yml.md#capacity-providers).
 - [Prune](./prune.md): remove old function versions.
+- [GPU-accelerated Event Functions](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu.html) in the AWS Lambda Developer Guide.
 - [Lambda Managed Instances](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances.html) and [capacity providers](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-capacity-providers.html) in the AWS Lambda Developer Guide.

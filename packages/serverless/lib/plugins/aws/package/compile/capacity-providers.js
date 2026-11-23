@@ -30,8 +30,51 @@ class AwsCompileCapacityProviders {
 
     if (!capacityProviders) return
 
+    this.validateGpuCapacityProviders(capacityProviders)
+
     Object.entries(capacityProviders).forEach(([name, config]) => {
       this.compileCapacityProvider(name, config || {})
+    })
+  }
+
+  /**
+   * A capacity provider runs either GPU or non-GPU functions, and launches GPU
+   * instances only when its allowed instance types list them. Both are known
+   * from the config, so they are checked here instead of after a deploy of
+   * several minutes. Providers the service doesn't define (an ARN or an
+   * intrinsic) are left to AWS.
+   */
+  validateGpuCapacityProviders(capacityProviders) {
+    const usage = new Map()
+    this.serverless.service.getAllFunctions().forEach((functionName) => {
+      const cp =
+        this.serverless.service.getFunction(functionName).capacityProvider
+      const name = typeof cp === 'string' ? cp : cp?.name
+      if (typeof name !== 'string' || !capacityProviders[name]) return
+      if (!usage.has(name)) usage.set(name, { gpu: [], other: [] })
+      const isGpu = Boolean(typeof cp === 'object' && cp.accelerator)
+      usage.get(name)[isGpu ? 'gpu' : 'other'].push(functionName)
+    })
+
+    const list = (names) => names.map((n) => `"${n}"`).join(', ')
+    usage.forEach(({ gpu, other }, name) => {
+      if (!gpu.length) return
+      if (other.length) {
+        throw new ServerlessError(
+          `Capacity provider "${name}" runs functions with an accelerator (${list(gpu)}) and without one (${list(other)}). A capacity provider runs either GPU or non-GPU functions: move ${list(other)} to another capacity provider, or set capacityProvider.accelerator on it.`,
+          'LAMBDA_CAPACITY_PROVIDER_MIXED_ACCELERATOR',
+          { stack: false },
+        )
+      }
+      const allowed =
+        capacityProviders[name]?.instanceRequirements?.allowedInstanceTypes
+      if (!Array.isArray(allowed) || !allowed.length) {
+        throw new ServerlessError(
+          `Capacity provider "${name}" runs functions with an accelerator (${list(gpu)}), so it needs GPU instance types. List them in provider.capacityProviders.${name}.instanceRequirements.allowedInstanceTypes, for example [g6.xlarge, g5.xlarge].`,
+          'LAMBDA_CAPACITY_PROVIDER_GPU_REQUIRES_INSTANCE_TYPES',
+          { stack: false },
+        )
+      }
     })
   }
 

@@ -828,7 +828,7 @@ The Framework adds the mount permissions to the execution role it creates: `elas
 
 ## Ephemeral storage
 
-Lambda gives each function 512 MB of [ephemeral storage](https://docs.aws.amazon.com/lambda/latest/dg/configuration-ephemeral-storage.html) in `/tmp`. To change it, set `ephemeralStorageSize` in MB, from 512 to 10240:
+Lambda gives each function 512 MB of [ephemeral storage](https://docs.aws.amazon.com/lambda/latest/dg/configuration-ephemeral-storage.html) in `/tmp`. To change it, set `ephemeralStorageSize` in MB, from 512 to 10240, or up to 32768 for [GPU functions](./managed-instances.md#run-functions-on-gpus):
 
 ```yaml
 functions:

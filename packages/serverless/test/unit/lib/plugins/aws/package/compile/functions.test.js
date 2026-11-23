@@ -363,6 +363,153 @@ describe('AwsCompileFunctions', () => {
       expect(cpConfig.PerExecutionEnvironmentMaxConcurrency).toEqual(10)
     })
 
+    describe('accelerator (GPU functions)', () => {
+      const compileFunction = async (func) => {
+        awsCompileFunctions.provider.resolveImageUriAndSha.mockResolvedValue({
+          functionImageUri: 'uri@sha256:abc',
+          functionImageSha: 'abc',
+        })
+        awsCompileFunctions.serverless.service.functions = {
+          func: { name: 'func', ...func },
+        }
+        await awsCompileFunctions.compileFunctions()
+        return awsCompileFunctions.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources.FuncLambdaFunction
+          .Properties
+      }
+
+      it('should set AcceleratorConfig from accelerator.memory', async () => {
+        const props = await compileFunction({
+          image: 'uri',
+          capacityProvider: { name: 'gpu', accelerator: { memory: 24 } },
+        })
+        expect(props.AcceleratorConfig).toEqual({ AcceleratorMemorySize: 24 })
+        expect(props.CapacityProviderConfig).toEqual({
+          LambdaManagedInstancesCapacityProviderConfig: {
+            CapacityProviderArn: 'gpu',
+          },
+        })
+      })
+
+      it('should pass a CloudFormation intrinsic through', async () => {
+        const props = await compileFunction({
+          image: 'uri',
+          capacityProvider: {
+            name: 'gpu',
+            accelerator: { memory: { Ref: 'GpuMemory' } },
+          },
+        })
+        expect(props.AcceleratorConfig).toEqual({
+          AcceleratorMemorySize: { Ref: 'GpuMemory' },
+        })
+      })
+
+      it('should pass a size AWS adds later through', async () => {
+        const props = await compileFunction({
+          image: 'uri',
+          capacityProvider: { name: 'gpu', accelerator: { memory: 96 } },
+        })
+        expect(props.AcceleratorConfig).toEqual({ AcceleratorMemorySize: 96 })
+      })
+
+      it('should not set AcceleratorConfig without accelerator', async () => {
+        const props = await compileFunction({
+          image: 'uri',
+          capacityProvider: { name: 'cpu' },
+        })
+        expect(props.AcceleratorConfig).toBeUndefined()
+      })
+
+      it('should require a container image', async () => {
+        await expect(
+          compileFunction({
+            handler: 'handler.handler',
+            capacityProvider: { name: 'gpu', accelerator: { memory: 24 } },
+          }),
+        ).rejects.toMatchObject({
+          code: 'LAMBDA_MANAGED_INSTANCES_ACCELERATOR_REQUIRES_IMAGE',
+          message:
+            'Function "func" sets capacityProvider.accelerator, which needs a container image. Use "image" instead of "handler" for this function.',
+        })
+      })
+
+      it('should reject a memory size given in MB', async () => {
+        await expect(
+          compileFunction({
+            image: 'uri',
+            capacityProvider: { name: 'gpu', accelerator: { memory: 24576 } },
+          }),
+        ).rejects.toMatchObject({
+          code: 'LAMBDA_MANAGED_INSTANCES_INVALID_ACCELERATOR_MEMORY',
+          message:
+            'Invalid "accelerator.memory" value 24576 for function "func". accelerator.memory is in GB of GPU memory (for example 24), not MB.',
+        })
+      })
+
+      it('should require accelerator.memory', async () => {
+        await expect(
+          compileFunction({
+            image: 'uri',
+            capacityProvider: { name: 'gpu', accelerator: {} },
+          }),
+        ).rejects.toMatchObject({
+          code: 'LAMBDA_MANAGED_INSTANCES_INVALID_ACCELERATOR',
+          message:
+            'Function "func" sets capacityProvider.accelerator without "memory". Set accelerator.memory to the GPU memory the function needs, in GB (for example 24).',
+        })
+      })
+
+      it('should reject keys accelerator does not support', async () => {
+        await expect(
+          compileFunction({
+            image: 'uri',
+            capacityProvider: {
+              name: 'gpu',
+              accelerator: { memory: 24, count: 2 },
+            },
+          }),
+        ).rejects.toMatchObject({
+          code: 'LAMBDA_MANAGED_INSTANCES_INVALID_ACCELERATOR',
+          message:
+            'Function "func" sets "count" in capacityProvider.accelerator, which supports only "memory".',
+        })
+      })
+
+      it('should allow ephemeral storage above 10240 MB with an accelerator', async () => {
+        const props = await compileFunction({
+          image: 'uri',
+          ephemeralStorageSize: 32768,
+          capacityProvider: { name: 'gpu', accelerator: { memory: 24 } },
+        })
+        expect(props.EphemeralStorage).toEqual({ Size: 32768 })
+      })
+
+      it('should limit ephemeral storage to 10240 MB without an accelerator', async () => {
+        await expect(
+          compileFunction({
+            image: 'uri',
+            ephemeralStorageSize: 20480,
+            capacityProvider: { name: 'cpu' },
+          }),
+        ).rejects.toMatchObject({
+          code: 'LAMBDA_INVALID_EPHEMERAL_STORAGE_SIZE',
+          message:
+            'Ephemeral storage of 20480 MB for function "func" exceeds the limit of 10240 MB. Up to 32768 MB is available to functions that set capacityProvider.accelerator.',
+        })
+      })
+
+      it('should limit ephemeral storage to 10240 MB on a standard function', async () => {
+        await expect(
+          compileFunction({
+            handler: 'handler.handler',
+            ephemeralStorageSize: 10241,
+          }),
+        ).rejects.toMatchObject({
+          code: 'LAMBDA_INVALID_EPHEMERAL_STORAGE_SIZE',
+        })
+      })
+    })
+
     describe('container image functions', () => {
       const compileImageFunction = async (capacityProvider) => {
         awsCompileFunctions.provider.resolveImageUriAndSha.mockResolvedValue({
