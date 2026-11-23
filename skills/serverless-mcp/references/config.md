@@ -229,10 +229,13 @@ the pool with a listed scope is accepted. A
 pool created in the same service's `resources` is referenced the way an `http`
 event references it — `name` plus `type: COGNITO_USER_POOLS`, with the `arn` as
 a `Fn::GetAtt`. For the discover-then-register client flow, turn on the user
-pool's dynamic client registration (Essentials or Plus feature plan, managed
-login on every domain:
-https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-dynamic-client-registration.html);
-without it, Cognito fits pre-registered and machine-to-machine clients.
+pool's dynamic client registration with open registration (Essentials or Plus
+feature plan, managed login on every domain:
+https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-dynamic-client-registration.html).
+A URL-only client has no initial access token, and the scopes it requests must
+belong to a resource server whose identifier is the MCP server's URL (Cognito
+binds the token to the requested `resource`). Without registration, Cognito
+fits pre-registered and machine-to-machine clients.
 
 **`authorizer: aws_iam`** requires callers to SigV4-sign every request with AWS
 credentials — coherent for infrastructure calling infrastructure, but not

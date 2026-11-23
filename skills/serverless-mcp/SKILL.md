@@ -14,7 +14,7 @@ description: >-
   endpoint.
 metadata:
   managed-by: serverless-framework
-  version: '5'
+  version: '6'
   author: Serverless Inc.
 ---
 

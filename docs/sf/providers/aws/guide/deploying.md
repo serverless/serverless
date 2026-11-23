@@ -124,7 +124,7 @@ When a deploy fails and CloudFormation then can't roll back one of the stack's r
 Stack:arn:aws:cloudformation:us-east-1:123456789012:stack/my-service-dev/... is in UPDATE_ROLLBACK_FAILED state and can not be updated.
 ```
 
-The stack must return to `UPDATE_ROLLBACK_COMPLETE` before it accepts another deploy. Fix what blocks the rollback if you can, then continue the rollback:
+The stack must return to `UPDATE_ROLLBACK_COMPLETE` before it accepts another deploy. Run the commands below with the credentials and Region of the deploy, adding `--region` (and `--profile`) when your AWS CLI defaults differ. Fix what blocks the rollback if you can, then continue the rollback:
 
 ```bash
 aws cloudformation continue-update-rollback --stack-name my-service-dev
@@ -136,7 +136,7 @@ If you can't fix it, force the rollback to complete. CloudFormation skips every 
 aws cloudformation continue-update-rollback --stack-name my-service-dev --force-rollback
 ```
 
-**Warning:** A skipped resource no longer matches the stack's template. Before the next deploy, check each skipped resource and bring it in line with `serverless.yml`; run [drift detection](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/detect-drift-resource.html) on it to see the differences. Then run `serverless deploy`. See [Continue rolling back an update](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-continueupdaterollback.html).
+**Warning:** A skipped resource no longer matches the stack's template. Before the next deploy, check each skipped resource and bring it in line with `serverless.yml`; run [drift detection](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/detect-drift-resource.html) on it to see the differences. Drift detection covers only [resource types that support it](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resource-import-supported-resources.html) and only the properties the template sets, so compare other resources with the template yourself. Then run `serverless deploy`. See [Continue rolling back an update](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-continueupdaterollback.html).
 
 ## Related pages
 

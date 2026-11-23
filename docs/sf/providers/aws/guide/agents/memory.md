@@ -208,9 +208,11 @@ ai:
               RecordExpiryDurationDays: 90
 ```
 
+The time-to-live applies to records the strategy extracts after you set or change it; records that already exist keep the expiry they had, and records extracted without one never expire. After a record's time-to-live ends, AgentCore deletes it in the background, which can take a few days, and reads can still return it until then; to remove a record at once, delete it with `DeleteMemoryRecord`. See [Long-term memory record time-to-live](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/long-term-record-ttl.html).
+
 The memory's `expiration` applies to events only, so set both to limit how long the memory keeps data. Setting or changing a strategy's record expiry needs the `bedrock-agentcore:UpdateMemoryRecordExpirySpecification` permission for the credentials that deploy the service, on top of the permissions to create and update the memory.
 
-The agent's generated role doesn't need this permission to read records. An agent that writes long-term records itself, with `BatchCreateMemoryRecords` or `BatchUpdateMemoryRecords`, needs those actions and `bedrock-agentcore:UpdateMemoryRecordExpirySpecification` in its role's `statements`, because AWS checks the expiry permission on both calls:
+The agent's generated role doesn't need this permission to read records. Records an agent writes itself, with `BatchCreateMemoryRecords` or `BatchUpdateMemoryRecords`, don't take the strategy's time-to-live: each request sets its own with `recordExpirySpecification`, and a record created without one never expires. The agent's role needs those actions in its `statements`, plus `bedrock-agentcore:UpdateMemoryRecordExpirySpecification` when the requests set `recordExpirySpecification`:
 
 ```yaml
 ai:
