@@ -2369,7 +2369,7 @@ ai:
       # memory: sharedMemory # reference to ai.memory.sharedMemory
       # OR inline memory config:
       memory:
-        expiration: 30 # Days until events expire (3-365)
+        expiration: 30 # Days until events expire (3-3650)
 
       # Reference to a gateway defined in ai.gateways (string)
       gateway: myGateway
@@ -2650,7 +2650,7 @@ ai:
   memory:
     # Memory name (logical identifier, referenced by ai.agents[].memory)
     myMemory:
-      # Days until memory events expire (3-365)
+      # Days until memory events expire (3-3650)
       expiration: 30
 
       # Optional KMS key ARN for encrypting memory data

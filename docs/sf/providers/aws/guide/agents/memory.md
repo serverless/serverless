@@ -193,7 +193,7 @@ ai:
 
 ## Event expiration and encryption
 
-`expiration` is the number of days AgentCore keeps events, from 3 to 365; the default is 30. `encryptionKey` takes the ARN of an AWS KMS key that encrypts the memory; without it, AgentCore encrypts the memory with a service-managed key. The credentials that deploy the service need `kms:CreateGrant`, `kms:Decrypt`, `kms:DescribeKey` and `kms:GenerateDataKey` on the key, as [Encrypt your AgentCore Memory](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/storage-encryption.html) describes:
+`expiration` is the number of days AgentCore keeps events, from 3 to 3650 (10 years); the default is 30. `encryptionKey` takes the ARN of an AWS KMS key that encrypts the memory; without it, AgentCore encrypts the memory with a service-managed key. The credentials that deploy the service need `kms:CreateGrant`, `kms:Decrypt`, `kms:DescribeKey` and `kms:GenerateDataKey` on the key, as [Encrypt your AgentCore Memory](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/storage-encryption.html) describes:
 
 ```yaml
 ai:
@@ -230,7 +230,7 @@ These keys apply to entries in `ai.memory` and to inline `memory` objects on age
 
 | Key             | Type             | Default             | Value                                           |
 | --------------- | ---------------- | ------------------- | ----------------------------------------------- |
-| `expiration`    | number           | `30`                | Days to keep events, 3 to 365                   |
+| `expiration`    | number           | `30`                | Days to keep events, 3 to 3650                  |
 | `strategies`    | list             | None                | Long-term memory strategies                     |
 | `encryptionKey` | string           | Service-managed key | KMS key ARN                                     |
 | `description`   | string           | None                | 1 to 1,200 characters                           |

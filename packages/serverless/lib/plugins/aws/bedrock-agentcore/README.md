@@ -240,7 +240,7 @@ ai:
 
 | Property        | Required | Description                                   |
 | --------------- | -------- | --------------------------------------------- |
-| `expiration`    | No       | Days to retain events (3-365, default: 30)    |
+| `expiration`    | No       | Days to retain events (3-3650, default: 30)   |
 | `strategies`    | No       | Memory strategies array                       |
 | `description`   | No       | Memory description (max 1200 chars)           |
 | `encryptionKey` | No       | KMS key ARN for encryption                    |

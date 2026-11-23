@@ -301,7 +301,7 @@ describe('Schema Validator', () => {
         expect(memorySchema.anyOf[1].type).toBe('object')
       })
 
-      test('shared memory schema includes expiration with range 3-365', () => {
+      test('shared memory schema includes expiration with range 3-3650', () => {
         defineAgentsSchema(mockServerless)
 
         const memorySchema = capturedAiSchema.properties.memory
@@ -309,7 +309,7 @@ describe('Schema Validator', () => {
           memorySchema.additionalProperties.properties.expiration
         expect(expirySchema.type).toBe('number')
         expect(expirySchema.minimum).toBe(3)
-        expect(expirySchema.maximum).toBe(365)
+        expect(expirySchema.maximum).toBe(3650)
       })
 
       test('shared memory schema includes strategies array', () => {
