@@ -232,10 +232,11 @@ a `Fn::GetAtt`. For the discover-then-register client flow, turn on the user
 pool's dynamic client registration with open registration (Essentials or Plus
 feature plan, managed login on every domain:
 https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-dynamic-client-registration.html).
-A URL-only client has no initial access token, and the scopes it requests must
-belong to a resource server whose identifier is the MCP server's URL (Cognito
+A URL-only client has no initial access token, and the custom scopes it requests
+must belong to a resource server whose identifier is the MCP server's URL (Cognito
 binds the token to the requested `resource`) and be in the registration's
-allowed scopes, as `<resource-server-identifier>/<scope>`. Every update to the
+allowed scopes, as `<resource-server-identifier>/<scope>` (`openid`, `email`,
+`phone` and `profile` need neither). Every update to the
 registration settings must repeat the allowed scopes, because AWS replaces the
 whole configuration and omitted members fall back to their defaults. Open registration lets anyone create app clients against the
 pool's shared app client quota: rate-limit it with AWS WAF. Without registration, Cognito
