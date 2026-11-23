@@ -416,7 +416,7 @@ curl -H "Authorization: Bearer $TOKEN" https://abcdefghij.execute-api.us-east-1.
 
 API Gateway answers a missing, malformed or untrusted token with `401` and `{"message":"Unauthorized"}`, an expired one with `401` and `{"message":"The incoming token has expired"}`, and a valid token that lacks a required scope or fails a [claim rule](#claim-rules) with `403` and `{"Message":"Access Denied"}`. Both responses carry a `WWW-Authenticate` header that names the reason, for example `Bearer error="invalid_token" error_description="issuer does not match"`.
 
-For each authorizer, the Framework creates one API Gateway authorizer on the service's REST API, or on the REST API in `provider.apiGateway.restApiId`. It creates no Lambda function or invoke permission for it. Defining authorizers in a service with no REST API (no `http` event, no service proxy and no `provider.apiGateway.restApiId`) stops packaging and deployment with `"provider.apiGateway.authorizers" defines authorizers, but this service has no REST API: add an http event, or set "provider.apiGateway.restApiId" to the shared REST API.`
+For each authorizer, the Framework creates one API Gateway authorizer on the service's REST API, or on the REST API in `provider.apiGateway.restApiId`. It creates no Lambda function or invoke permission for it. Defining authorizers in a service with no REST API (no `http` event, no service proxy and no `provider.apiGateway.restApiId`) stops packaging and deployment with `"provider.apiGateway.authorizers" defines authorizers, but this service has no REST API: add an http event, or set "provider.apiGateway.restApiId" and "provider.apiGateway.restApiRootResourceId" to the shared REST API.` A service on a shared REST API sets both IDs, as in [Use an existing REST API](#use-an-existing-rest-api), also when it only defines authorizers.
 
 ### JWT authorizer settings
 
@@ -467,7 +467,7 @@ API Gateway accepts a token only when its `iss` claim equals one of the authoriz
 
 When you deploy, API Gateway reads the issuer's discovery document at the issuer URL followed by `/.well-known/openid-configuration`, and finds the issuer's signing keys through it. The document and the keys must be reachable from the public internet, also for private REST APIs. An issuer URL that doesn't match the `issuer` in that document, or whose document can't be retrieved, stops the deploy (see [JWT authorizer deploy errors](#jwt-authorizer-deploy-errors)).
 
-`audience` lists the accepted values of the token's `aud` claim. For an Amazon Cognito access token, which has no `aud` claim, API Gateway checks its `client_id` claim instead.
+`audience` lists the accepted values of the token's `aud` claim. For an Amazon Cognito access token, API Gateway checks its `client_id` claim instead, so with a Cognito issuer set `audience` to the app client ID for both token types.
 
 ### Several issuers
 
@@ -610,7 +610,7 @@ With a Cognito issuer, API Gateway applies Cognito's token-type rule: an endpoin
 
 Two more Cognito specifics:
 
-- A Cognito access token carries no custom attributes such as `custom:tier`, so an `additionalClaims` rule on one rejects every access token from that pool with `403`. Put rules on custom attributes only on authorizers whose endpoints take ID tokens.
+- A Cognito access token carries no custom attributes such as `custom:tier` unless a [pre token generation trigger](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-pre-token-generation.html) adds them. A required `additionalClaims` rule on a claim the access token doesn't carry rejects every access token from that pool with `403`; a rule with `required: false` checks the claim only when it is present. Put required rules on such claims only on authorizers whose endpoints take ID tokens, or add the claims to access tokens with the trigger.
 - An access token from user sign-in carries the scope `aws.cognito.signin.user.admin`. To require scopes that distinguish callers, define them on a resource server of the pool and grant them to the app client.
 
 A JWT authorizer accepts tokens only from the app clients listed in `audience`. To accept tokens from every app client of a pool without listing them, use a [Cognito user pool authorizer](#cognito-user-pool-authorizers) instead.
@@ -630,7 +630,7 @@ export const list = async (event) => {
 }
 ```
 
-Delivery of JWT claims to integrations is rolling out across AWS Regions and may not be available in every Region. Where it isn't, `event.requestContext.authorizer` is `null` even though API Gateway validated the token. Before your function relies on claims, check that they arrive in your Region; where they don't, decode the token from the `Authorization` header in the function, after API Gateway has validated it. AWS documents the claim format in [Pass JWT claims to your integration](https://docs.aws.amazon.com/apigateway/latest/developerguide/rest-api-jwt-authorizer-claims.html).
+Delivery of JWT claims to integrations is rolling out across AWS Regions and may not be available in every Region. Where it isn't, `event.requestContext.authorizer` is `null` even though API Gateway validated the token. Before your function relies on claims, check that they arrive in your Region; where they don't, decode the token in the function from the header the authorizer reads (its `identitySource`, `Authorization` by default), on routes that use that authorizer, so the function reads only a token API Gateway has validated. AWS documents the claim format in [Pass JWT claims to your integration](https://docs.aws.amazon.com/apigateway/latest/developerguide/rest-api-jwt-authorizer-claims.html).
 
 ### Migrate from a Lambda or Cognito authorizer to a JWT authorizer
 
@@ -741,7 +741,7 @@ With `authorizerId`, `type: TOKEN` and `type: REQUEST` make the method use a Lam
 
 ### Share a JWT authorizer
 
-A [JWT authorizer](#jwt-authorizers) is shared the same way. The service that owns the REST API, or any service on it, defines the authorizer under `provider.apiGateway.authorizers` and exports its ID. The Framework names the authorizer's CloudFormation resource after its key, with the first letter in uppercase and `ApiGatewayJwtAuthorizer` appended (`orders` becomes `OrdersApiGatewayJwtAuthorizer`; `-` becomes `Dash` and `_` becomes `Underscore`), and `Ref` returns the authorizer ID:
+A [JWT authorizer](#jwt-authorizers) is shared the same way. The service that owns the REST API, or any service on it, defines the authorizer under `provider.apiGateway.authorizers` and exports its ID. The Framework names the authorizer's CloudFormation resource after its key: each `-` becomes `Dash` and each `_` becomes `Underscore`, the first letter becomes uppercase, and `ApiGatewayJwtAuthorizer` is appended (`orders` becomes `OrdersApiGatewayJwtAuthorizer`, `orders_api` becomes `OrdersUnderscoreapiApiGatewayJwtAuthorizer`). `Ref` returns the authorizer ID:
 
 ```yaml
 # serverless.yml of service-a, which owns the REST API
@@ -800,9 +800,9 @@ functions:
               - reports:read
 ```
 
-`type: jwt` is required beside `authorizerId`: API Gateway rejects a method of another authorization type that names a JWT authorizer. An `http` event that sets `authorizerId` and also names a key of `provider.apiGateway.authorizers` in `name` stops packaging with `API_GATEWAY_JWT_AUTHORIZER_UNSUPPORTED_PROPERTY`: set one or the other. A service with `provider.apiGateway.restApiId` and no `http` events can own the authorizers of the shared REST API.
+`type: jwt` is required beside `authorizerId`: API Gateway rejects a method of another authorization type that names a JWT authorizer. An `http` event that sets `authorizerId` and also names a key of `provider.apiGateway.authorizers` in `name` stops packaging with `API_GATEWAY_JWT_AUTHORIZER_UNSUPPORTED_PROPERTY`: set one or the other. A service with `provider.apiGateway.restApiId`, `restApiRootResourceId` and no `http` events can own the authorizers of the shared REST API.
 
-Changes to an authorizer take effect on a stage after that REST API is deployed again. A service that only defines the authorizer on a shared REST API, with no `http` events, doesn't create a stage deployment, so redeploy a service with endpoints on that REST API to apply them.
+Changes to an authorizer take effect on a stage after that REST API is deployed again. A service that only defines the authorizer on a shared REST API, with no `http` events, doesn't create a stage deployment. To apply the change, run `serverless deploy --force` in a service with endpoints on that REST API: without `--force`, a service whose own files haven't changed skips the deployment (`No changes to deploy. Deployment skipped.`).
 
 When services on a shared REST API each set the same authorizer `arn` instead, each creates its own authorizer resource on the API, and they can clash. Share the authorizer by ID, or give each authorizer a unique `name`. A REST API has a default quota of 10 authorizers.
 

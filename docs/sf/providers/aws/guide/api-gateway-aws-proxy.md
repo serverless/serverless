@@ -662,7 +662,7 @@ custom:
 
 `authorizationScopes` applies to `COGNITO_USER_POOLS` and `JWT`; without `authorizerId`, scopes need `COGNITO_USER_POOLS`. `JWT` always needs `authorizerId`. A `JWT` route accepts a token whose `scope` or `scp` claim contains at least one of the scopes.
 
-To protect a proxy route with a [JWT authorizer](../events/apigateway.md#jwt-authorizers) of the same service, `Ref` its CloudFormation resource: the authorizer's key with the first letter in uppercase, followed by `ApiGatewayJwtAuthorizer`:
+To protect a proxy route with a [JWT authorizer](../events/apigateway.md#jwt-authorizers) of the same service, `Ref` its CloudFormation resource: the authorizer's key with each `-` replaced by `Dash` and each `_` by `Underscore`, the first letter in uppercase, followed by `ApiGatewayJwtAuthorizer` (`messages` becomes `MessagesApiGatewayJwtAuthorizer`, `orders_api` becomes `OrdersUnderscoreapiApiGatewayJwtAuthorizer`):
 
 ```yaml
 provider:
