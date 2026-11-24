@@ -1,6 +1,6 @@
 # Customer-managed runtime prerequisite
 
-A Lambda customer-managed runtime that backs the live suite in `../customer-managed-runtimes/`. It is a **persistent, per-account prerequisite**: create it once per test account (in the Region the suites run in, `us-east-1`) and leave it standing. The suite reads its alias ARN from the SSM parameter `/cmr-integration-test/runtime-alias-arn`; in an account without that parameter, the suite skips with a log.
+A Lambda customer-managed runtime that backs the live suite in `../customer-managed-runtimes/`. It is a **persistent, per-account prerequisite** in `us-east-1`: it exists in test-1, where CI runs the suite (pinned to shard 1), and you create it once in any other account you run the suite from. Leave it standing. The suite reads its alias ARN from the SSM parameter `/cmr-integration-test/runtime-alias-arn`; in an account without that parameter, the suite skips with a log.
 
 Why not create the runtime in each run: when a runtime is deleted, Lambda keeps its name reserved and counts it against the account's runtime quota (100 per Region by default) for 7 to 30 days. A runtime per CI run would fill the quota within days.
 
