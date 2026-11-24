@@ -107,7 +107,7 @@
     "tsx": "^4.23.15",
     "type": "^2.7.3",
     "uuid": "^13.0.2",
-    "ws": "^8.22.2"
+    "ws": "^8.23.0"
   },
   "devDependencies": {
     "@aws-sdk/client-secrets-manager": "3.1170.0",
