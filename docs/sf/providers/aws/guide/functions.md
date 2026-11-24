@@ -450,7 +450,7 @@ The Lambda console and API also call these runtimes "custom", and Lambda reports
 ### Permissions for customer-managed runtimes
 
 - The principal that deploys the service (your credentials, or `provider.iam.deploymentRole`) needs `lambda:AssociateRuntimeAlias` on the runtime alias ARN, and `lambda:AssociateRuntimeVersion` on the runtime version ARN when a function is pinned to a version.
-- A runtime in another AWS account must also be shared with your account in the runtime's resource-based policy. The runtime publisher sets that up; see [sharing and controlling access to customer-managed runtimes](https://docs.aws.amazon.com/lambda/latest/dg/cmr-permissions.html).
+- A runtime in another AWS account must also be shared with your account: the runtime's resource-based policy allows `lambda:AssociateRuntimeAlias` on the alias for your account. The runtime publisher sets that up; see [sharing and controlling access to customer-managed runtimes](https://docs.aws.amazon.com/lambda/latest/dg/cmr-permissions.html). Without it, the deploy fails with `not authorized to perform: lambda:AssociateRuntimeAlias … because no resource-based policy allows the lambda:AssociateRuntimeAlias action`.
 - The function's execution role needs nothing new. The runtime runs with that role's permissions, so use runtimes only from publishers you trust.
 
 When the alias does not exist, or the deploying principal may not use it, the deploy fails with a message from Lambda that names the function instead of the alias, followed by what to check:
