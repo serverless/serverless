@@ -326,8 +326,24 @@ it('does not add the user skill to ~/.claude/skills when a Claude Code plugin pr
     path.join(home, '.claude', 'settings.json'),
     JSON.stringify({ enabledPlugins: { 'tools@acme': true } }),
   )
-  await autoUpdateAgentSkills(scopedArgs({ configFilePath: undefined }))
+  // The plugin's skill comes first; the update still moves on to the next one.
+  await syncSkills({
+    bundledSkills: [scoped('sls-helper', 1, 'user')],
+    targetDirs: [homeClaudeSkills()],
+  })
+  await autoUpdateAgentSkills(
+    args({
+      configFilePath: undefined,
+      getBundled: async () => [
+        scoped('sls-gateway', 2, 'user'),
+        scoped('sls-helper', 2, 'user'),
+      ],
+    }),
+  )
   expect(existsSync(path.join(homeClaudeSkills(), 'sls-gateway'))).toBe(false)
+  expect(
+    await read(path.join(homeClaudeSkills(), 'sls-helper', 'SKILL.md')),
+  ).toContain('body sls-helper v2')
 })
 
 it('does not add a project skill to .claude/skills that a Claude Code plugin provides', async () => {
