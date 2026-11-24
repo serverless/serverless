@@ -139,6 +139,21 @@ describe('getCustomerManagedRuntimeFailureContext', () => {
     )
   })
 
+  it('says what to check when a new function names a missing runtime alias', () => {
+    expect(
+      getCustomerManagedRuntimeFailureContext(
+        serverlessFor({ api: aliasArn }),
+        {
+          ...notFound,
+          ResourceStatusReason:
+            'Resource handler returned message: "Runtime Alias not found (Service: Lambda, Status Code: 404, Request ID: x) (SDK Attempt Count: 1)" (RequestToken: x, HandlerErrorCode: NotFound)',
+        },
+      ),
+    ).toBe(
+      'Function "api" uses a customer-managed runtime. Check that its runtime alias exists in this Region and that the deploying role has lambda:AssociateRuntimeAlias on it.',
+    )
+  })
+
   it('adds nothing for other failures or functions', () => {
     const serverless = serverlessFor({ api: aliasArn })
     expect(
