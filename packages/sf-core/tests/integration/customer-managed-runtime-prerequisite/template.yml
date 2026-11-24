@@ -5,13 +5,6 @@ Description: >-
   and the SSM parameter the suite reads the alias ARN from. Deploy once per
   test account and Region; see README.md.
 
-Parameters:
-  ImageUri:
-    Type: String
-    Description: >-
-      URI of the runtime image built from ./Dockerfile, in an ECR repository in
-      this account and Region whose policy lets lambda.amazonaws.com read it.
-
 Resources:
   Runtime:
     Type: AWS::Lambda::Runtime
@@ -25,7 +18,8 @@ Resources:
     Properties:
       RuntimeName: !Select [1, !Split ['runtime/', !Ref Runtime]]
       Name: v1
-      ImageUri: !Ref ImageUri
+      # The image README.md pushes to this account's repository
+      ImageUri: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/sls-integration-test-runtime:v1'
   RuntimeAliasStable:
     Type: AWS::Lambda::RuntimeAlias
     DeletionPolicy: Retain

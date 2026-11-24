@@ -11,7 +11,7 @@ Why not create the runtime in each run: when a runtime is deleted, Lambda keeps 
 
 ## Create it (once per account)
 
-Run from this directory, with credentials for the test account, Docker running, and `ACCOUNT_ID` set to the account id:
+Run from this directory, with credentials for the test account, Docker running, and `ACCOUNT_ID` set to the account id. The repository name and the `v1` tag are fixed: `template.yml` builds the image URI from them.
 
 ```bash
 REGION=us-east-1
@@ -33,11 +33,10 @@ aws ecr set-repository-policy --repository-name "$REPO" --region "$REGION" --pol
 aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com"
 docker build --platform linux/amd64 -t "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:v1" .
 docker push "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:v1"
-aws cloudformation deploy --region "$REGION" \
-  --stack-name sls-integration-test-customer-managed-runtime \
-  --template-file template.yml \
-  --parameter-overrides "ImageUri=$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:v1"
+serverless deploy --stack sls-integration-test-customer-managed-runtime --region "$REGION"
 ```
+
+`serverless deploy` in a directory that holds a `template.yml` deploys it as a CloudFormation stack. The ECR repository and the image push stay outside the template: CloudFormation creates the runtime version from an image that must already exist.
 
 Keep the image in the repository: a runtime version whose image is deleted stops working.
 
