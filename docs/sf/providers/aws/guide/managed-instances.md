@@ -314,6 +314,7 @@ The first deploy takes several minutes while Lambda launches a GPU instance and 
 - `gpu.memory` is the minimum GPU memory in GB. AWS accepts 3, 6, 12, 16, 24 or 48, and checks the value when the function is created; the capacity provider must allow at least one instance type whose GPU has that much ([accelerator memory](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu.html#lambda-managed-instances-gpu-accelerator-memory)). Changing it updates the function in place.
 - `maxConcurrency` sets how many invocations share one GPU. Lambda's default for GPU functions is 4, up to 48; every worker process that loads its own copy of the model needs GPU memory for it ([concurrency](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu-scaling.html)).
 - `ephemeralStorageSize` goes up to 32768 MB for GPU functions, backed by the instance's NVMe storage, so `/tmp` can hold model weights downloaded at initialization. Other functions keep the 10240 MB limit.
+- On fractional instance types such as `g6f`, an execution environment gets a fraction of one GPU and fewer vCPUs. `gpu.memory: 3` with `memorySize: 2048` and `memoryPerVCpu: 2` (1 vCPU) fits a `g6f.large`.
 - GPU functions run on `x86_64` only.
 
 To start faster with large images or models, load weights from Amazon S3 at initialization and use an image with a SOCI index ([optimizing startup time](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu-startup.html)). Streaming from S3 needs `s3:GetObject` (and `s3:ListBucket` for a prefix) on the bucket in [`provider.iam`](./iam.md).
@@ -347,7 +348,7 @@ Removing `gpu` from a deployed GPU function doesn't remove the GPU from it: Lamb
 
 ## Move existing functions onto a capacity provider
 
-Add `capacityProvider` to a function and deploy: CloudFormation updates the function in place ([`CapacityProviderConfig`](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-lambda-function.html#cfn-lambda-function-capacityproviderconfig) updates without interruption). Before you deploy, check that each function:
+Lambda doesn't move a deployed standard function onto a capacity provider in place. To move a function that is already deployed, add `capacityProvider` and give the function a new `name`, so the deploy replaces it: the new function gets a new ARN and log group, and the old function and its log group are deleted. Without a new name, the deploy stops and rolls back with [`CapacityProviderConfig isn't supported for Lambda Default functions`](#capacityproviderconfig-isnt-supported-for-lambda-default-functions). A function that the same deploy creates needs no new name. Before you deploy, check that each function:
 
 - Uses a [supported runtime](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-runtimes.html) or a container image and, on Node.js, an `async` handler.
 - Has no `memorySize` below 2048, on the function or in `provider`.
@@ -377,6 +378,7 @@ provider:
 functions:
   api:
     handler: handler.handler
+    name: my-service-dev-api-mi # new name: replaces the deployed standard function
     memorySize: 4096
     capacityProvider:
       name: graviton
@@ -384,6 +386,7 @@ functions:
       memoryPerVCpu: 4
   worker:
     handler: worker.handler
+    name: my-service-dev-worker-mi # new name: replaces the deployed standard function
     runtime: python3.14
     memorySize: 8192
     capacityProvider:
@@ -642,6 +645,14 @@ The specified capacity provider does not allow for any instance types whose acce
 Cause: no instance type in the capacity provider's `allowedInstanceTypes` has a GPU with `gpu.memory` GB.
 
 Fix: lower `gpu.memory`, or allow an instance family with larger GPUs ([supported GPU instances](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu.html#lambda-managed-instances-gpu-supported-instances)). A capacity provider's instance types can't change once it is deployed: [plan the capacity provider](#plan-the-capacity-provider-for-gpu-functions).
+
+### `CapacityProviderConfig isn't supported for Lambda Default functions.`
+
+```text
+Resource handler returned message: "CapacityProviderConfig isn't supported for Lambda Default functions. (Service: Lambda, Status Code: 400, ...)"
+```
+
+The deploy added `capacityProvider` to a function that is already deployed as a standard Lambda function, and Lambda doesn't convert it in place. The deploy rolls back and leaves the function as it was. Give the function a new `name` so the deploy replaces it, as in [Move existing functions onto a capacity provider](#move-existing-functions-onto-a-capacity-provider), or remove `capacityProvider` to keep it as a standard function.
 
 ### `The capacity provider is currently in use by 1 functions...`
 
