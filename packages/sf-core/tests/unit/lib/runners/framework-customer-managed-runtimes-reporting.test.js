@@ -31,25 +31,3 @@ test('reports a customer-managed runtime as "custom", never its ARN', () => {
   expect(JSON.stringify(details)).not.toContain('123456789012')
   expect(JSON.stringify(details)).not.toContain('RuntimeStable')
 })
-
-test('attaches the customerManagedRuntimes block', () => {
-  const details = detailsFor({
-    service: 'svc',
-    provider: { name: 'aws' },
-    functions: { a: { handler: 'a.h', runtime: aliasArn } },
-  })
-  expect(details.customerManagedRuntimes).toEqual({
-    functions: 1,
-    valueForms: ['aliasArn'],
-  })
-})
-
-test('omits the block when no function uses a customer-managed runtime', () => {
-  const details = detailsFor({
-    service: 'svc',
-    provider: { name: 'aws', runtime: 'nodejs24.x' },
-    functions: { a: { handler: 'a.h' } },
-  })
-  expect(details).not.toHaveProperty('customerManagedRuntimes')
-  expect(details.providerRuntime).toBe('nodejs24.x')
-})

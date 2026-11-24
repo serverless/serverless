@@ -46,7 +46,6 @@ import { buildCommandState } from './state-utils.js'
 import { buildSandboxesAnalytics } from '@serverless/framework/lib/plugins/aws/sandboxes/analytics.js'
 import { buildMcpAnalytics } from '@serverless/framework/lib/plugins/aws/mcp/analytics.js'
 import { buildWebAppsAnalytics } from '@serverless/framework/lib/plugins/aws/web-apps/analytics.js'
-import { buildCustomerManagedRuntimesAnalytics } from '@serverless/framework/lib/plugins/aws/lib/customer-managed-runtime-analytics.js'
 import { isCustomerManagedRuntime } from '@serverless/framework/lib/plugins/aws/lib/customer-managed-runtime.js'
 import { buildProvisionedPollersAnalytics } from '@serverless/framework/lib/plugins/aws/package/compile/events/lib/provisioned-pollers-analytics.js'
 import { Deployment } from '../platform/deployments.js'
@@ -514,9 +513,6 @@ export class TraditionalRunner extends Runner {
       // `{ webApps: <block> }` otherwise. The service directory lets it apply
       // esbuild's selection rules to each web app's entry.
       ...buildWebAppsAnalytics(this.config, serviceDir),
-      // Customer-managed runtimes config-shape block, same contract: total,
-      // `{}` when no function uses one, never an ARN
-      ...buildCustomerManagedRuntimesAnalytics(this.config),
     }
 
     // plugins
