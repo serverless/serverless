@@ -924,7 +924,10 @@ environment:
                   properties: {
                     predefinedMetricType: {
                       description: `Predefined metric used for target tracking.`,
-                      enum: ['LambdaCapacityProviderAverageCPUUtilization'],
+                      enum: [
+                        'LambdaCapacityProviderAverageCPUUtilization',
+                        'LambdaCapacityProviderAverageGPUUtilization',
+                      ],
                     },
                     targetValue: {
                       description: `Target value for the scaling metric.`,
@@ -1005,6 +1008,25 @@ environment:
               memoryPerVCpu: {
                 description: `Memory-to-vCPU ratio.`,
                 enum: [2, 4, 8],
+              },
+              gpu: {
+                description: `GPU for this function. Requires a container image and a capacity provider with GPU instance types.
+@see https://www.serverless.com/framework/docs/providers/aws/guide/managed-instances#run-functions-on-gpus
+@example
+gpu:
+  memory: 24`,
+                type: 'object',
+                properties: {
+                  memory: {
+                    description: `Minimum GPU memory in GB for each execution environment (AWS accepts 3, 6, 12, 16, 24 or 48).`,
+                    anyOf: [
+                      { type: 'integer', minimum: 1 },
+                      { $ref: '#/definitions/awsCfFunction' },
+                    ],
+                  },
+                },
+                required: ['memory'],
+                additionalProperties: false,
               },
               scaling: {
                 description: `Scaling configuration for this provider assignment.`,
@@ -2712,12 +2734,12 @@ destinations:
               $ref: '#/definitions/awsLambdaEnvironment',
             },
             ephemeralStorageSize: {
-              description: `Ephemeral storage size in MB for /tmp (512-10240).
+              description: `Ephemeral storage size in MB for /tmp (512-10240; up to 32768 for functions with capacityProvider.gpu).
 @default 512
 @see https://www.serverless.com/framework/docs/providers/aws/guide/functions#ephemeral-storage`,
               type: 'integer',
               minimum: 512,
-              maximum: 10240,
+              maximum: 32768,
             },
             fileSystemConfig: {
               description: `File system mount configuration (EFS or S3 Files).
