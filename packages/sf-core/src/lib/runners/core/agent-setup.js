@@ -23,9 +23,9 @@ import {
   assertValidDirFlags,
   resolveTargetDirs,
 } from '../../agent-skills/resolve-targets.js'
-import { syncSkills } from '../../agent-skills/engine.js'
 import {
   pluginCopyNote,
+  syncProjectSkills,
   syncUserSkills,
 } from '../../agent-skills/user-skills.js'
 import { normalizeDirFlags, toDisplayPath } from './agent-skills-install.js'
@@ -248,9 +248,12 @@ export default async function agentSetup({
       serviceDir,
       homeDir: home,
     })
-    const projectReport = await syncSkills({
-      bundledSkills: projectSkills,
+    const { report: projectReport, pluginCopies } = await syncProjectSkills({
+      projectSkills,
       targetDirs,
+      serviceDir,
+      homeDir: home,
+      dirFlags,
     })
     tally(projectReport)
     skillEntries.push(
@@ -260,6 +263,7 @@ export default async function agentSetup({
         scope: 'project',
         relativize: (dir) => toDisplayPath(path.relative(serviceDir, dir)),
       }),
+      ...pluginCopies.map(pluginCopyNote),
     )
     // New files in someone's repo need a reason and a next step: say why
     // they are there (they load on demand, so a service without the feature

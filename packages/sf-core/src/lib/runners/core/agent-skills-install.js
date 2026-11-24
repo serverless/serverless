@@ -12,9 +12,9 @@ import {
   assertValidDirFlags,
   resolveTargetDirs,
 } from '../../agent-skills/resolve-targets.js'
-import { syncSkills } from '../../agent-skills/engine.js'
 import {
   pluginCopyNote,
+  syncProjectSkills,
   syncUserSkills,
 } from '../../agent-skills/user-skills.js'
 
@@ -93,9 +93,17 @@ export default async function agentSkillsInstall({
       serviceDir,
       homeDir: home,
     })
-    report = await syncSkills({ bundledSkills: projectSkills, targetDirs })
+    const project = await syncProjectSkills({
+      projectSkills,
+      targetDirs,
+      serviceDir,
+      homeDir: home,
+      dirFlags,
+    })
+    report = project.report
 
-    for (const dir of targetDirs) {
+    // The dirs the skills went to: one a plugin took every skill from isn't one.
+    for (const dir of project.dirs) {
       logger.notice(`Target: ${toDisplayPath(path.relative(serviceDir, dir))}`)
     }
     for (const c of report.changes) {
@@ -110,6 +118,9 @@ export default async function agentSkillsInstall({
       logger.notice(
         `  · ${s.skill}: customized by you (no managed-by) — skipped`,
       )
+    }
+    for (const copy of project.pluginCopies) {
+      logger.notice(`  · ${pluginCopyNote(copy)}`)
     }
   }
 

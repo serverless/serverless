@@ -299,6 +299,47 @@ it('never throws even when sync explodes', async () => {
   ).resolves.toBeUndefined()
 })
 
+it('does not add a project skill to .claude/skills that a Claude Code plugin provides', async () => {
+  // The service already has our skills in .claude/skills, so the update runs
+  // there; a new bundled skill the plugin provides is not added next to them.
+  await syncSkills({
+    bundledSkills: [scoped('sls-old', 1, 'project')],
+    targetDirs: [claudeSkills()],
+  })
+  const pluginSkill = path.join(
+    home,
+    '.claude',
+    'plugins',
+    'cache',
+    'acme',
+    'tools',
+    '1.0.0',
+    'skills',
+    'sls-project',
+  )
+  await mkdir(pluginSkill, { recursive: true })
+  await writeFile(
+    path.join(pluginSkill, 'SKILL.md'),
+    scopedMd('sls-project', 2, 'project'),
+  )
+  await writeFile(
+    path.join(home, '.claude', 'settings.json'),
+    JSON.stringify({ enabledPlugins: { 'tools@acme': true } }),
+  )
+  await autoUpdateAgentSkills(
+    args({
+      getBundled: async () => [
+        scoped('sls-old', 2, 'project'),
+        scoped('sls-project', 2, 'project'),
+      ],
+    }),
+  )
+  expect(
+    await read(path.join(claudeSkills(), 'sls-old', 'SKILL.md')),
+  ).toContain('body sls-old v2')
+  expect(existsSync(path.join(claudeSkills(), 'sls-project'))).toBe(false)
+})
+
 it('names each skill change once, however many folders it happened in', () => {
   const change = (skill, dir, action, fromVersion, toVersion) => ({
     skill,

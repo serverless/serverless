@@ -2,6 +2,7 @@ import { mkdtemp, mkdir, writeFile, rm } from 'fs/promises'
 import { tmpdir } from 'os'
 import path from 'path'
 import {
+  resolveProjectSkillTargetDirs,
   resolveTargetDirs,
   resolveUserSkillTargetDirs,
   resolveUserTargetDirs,
@@ -201,6 +202,96 @@ describe('resolveUserSkillTargetDirs', () => {
     }
     expect(await resolveSkill(findPluginSkill)).toEqual({
       dirs: [userAgents()],
+    })
+  })
+})
+
+describe('resolveProjectSkillTargetDirs', () => {
+  const skill = { name: 'sls-test', version: 2 }
+  const pluginHas = (version, id) => async () => ({ version, id })
+  const noPlugin = async () => undefined
+  const resolveSkill = (
+    findPluginSkill,
+    { targetDirs = [claude(), agents()], dirFlags, homeDir = home } = {},
+  ) =>
+    resolveProjectSkillTargetDirs({
+      targetDirs,
+      serviceDir: svc,
+      homeDir,
+      dirFlags,
+      skill,
+      findPluginSkill,
+    })
+
+  it('returns the project dirs when no plugin provides the skill', async () => {
+    expect(await resolveSkill(noPlugin)).toEqual({
+      dirs: [claude(), agents()],
+    })
+  })
+  it('leaves the claude dir out when a Claude Code plugin provides the skill', async () => {
+    expect(await resolveSkill(pluginHas(2))).toEqual({
+      dirs: [agents()],
+      plugin: { version: 2, alsoInstalled: false },
+    })
+  })
+  it('asks about the plugins Claude Code loads in this service', async () => {
+    const calls = []
+    await resolveSkill(async (args) => {
+      calls.push(args)
+      return undefined
+    })
+    expect(calls).toEqual([
+      { homeDir: home, skillName: 'sls-test', projectDir: svc },
+    ])
+  })
+  it('keeps a managed copy that is already in the claude dir and says so', async () => {
+    await seedManaged(claude())
+    expect(await resolveSkill(pluginHas(2))).toEqual({
+      dirs: [claude(), agents()],
+      plugin: { version: 2, alsoInstalled: true },
+    })
+  })
+  it('installs into the claude dir when the plugin copy is older, with the plugin id', async () => {
+    expect(await resolveSkill(pluginHas(1, 'tools@acme'))).toEqual({
+      dirs: [claude(), agents()],
+      plugin: {
+        version: 1,
+        alsoInstalled: true,
+        older: true,
+        id: 'tools@acme',
+      },
+    })
+  })
+  it('leaves a copy the user customized alone', async () => {
+    await mkdir(path.join(claude(), 'sls-test'), { recursive: true })
+    await writeFile(
+      path.join(claude(), 'sls-test', 'SKILL.md'),
+      '---\nname: sls-test\ndescription: mine\n---\n',
+    )
+    expect(await resolveSkill(pluginHas(2))).toEqual({
+      dirs: [claude(), agents()],
+    })
+  })
+  it('writes exactly the --dir targets without looking at plugins', async () => {
+    const findPluginSkill = async () => {
+      throw new Error('must not be called')
+    }
+    expect(
+      await resolveSkill(findPluginSkill, {
+        targetDirs: [claude()],
+        dirFlags: ['claude'],
+      }),
+    ).toEqual({ dirs: [claude()] })
+  })
+  it('does not look at plugins when the claude dir is not a target, or without a home', async () => {
+    const findPluginSkill = async () => {
+      throw new Error('must not be called')
+    }
+    expect(
+      await resolveSkill(findPluginSkill, { targetDirs: [agents()] }),
+    ).toEqual({ dirs: [agents()] })
+    expect(await resolveSkill(findPluginSkill, { homeDir: null })).toEqual({
+      dirs: [claude(), agents()],
     })
   })
 })

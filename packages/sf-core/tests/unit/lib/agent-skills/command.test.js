@@ -858,3 +858,122 @@ describe('a skill Claude Code already loads from a plugin', () => {
     expect(messages).toContain(`  · ${OLDER_TWICE_NOTE}`)
   })
 })
+
+describe('a project skill Claude Code already loads from a plugin', () => {
+  // The plugin is installed for the user and provides the project skill.
+  // Seeding it also creates ~/.claude, so the service gets .claude/skills.
+  const seedPluginSkill = async (version = 1) => {
+    const dir = path.join(
+      home,
+      '.claude',
+      'plugins',
+      'cache',
+      'acme',
+      'tools',
+      '1.0.0',
+      'skills',
+      'sls-project',
+    )
+    await mkdir(dir, { recursive: true })
+    await writeFile(
+      path.join(dir, 'SKILL.md'),
+      managedMd('sls-project', 'project').replace(
+        'version: "1"',
+        `version: "${version}"`,
+      ),
+    )
+    await writeFile(
+      path.join(home, '.claude', 'settings.json'),
+      JSON.stringify({ enabledPlugins: { 'tools@acme': true } }),
+    )
+  }
+  const NOT_INSTALLED_NOTE =
+    'sls-project: Claude Code loads it from an installed plugin, so it is not installed in .claude/skills — teammates without the plugin get it from "serverless agent setup"'
+  const TWICE_NOTE =
+    'sls-project: Claude Code lists it twice, from an installed plugin and from .claude/skills — to keep one, delete .claude/skills/sls-project, unless teammates without the plugin use it'
+  const OLDER_TWICE_NOTE =
+    'sls-project: Claude Code lists it twice, from an installed plugin and from .claude/skills, and the plugin\'s copy is older — to keep one, run "claude plugin update tools@acme", then delete .claude/skills/sls-project, unless teammates without the plugin use it'
+  const setupInService = (options = {}) =>
+    runSetup({
+      configFilePath: path.join(svc, 'serverless.yml'),
+      options,
+      homeDir: home,
+    })
+
+  it('agent setup does not install it in the service .claude/skills and says why', async () => {
+    await seedPluginSkill()
+    const { output } = await setupInService()
+    expect(existsSync(skillMd(svc, '.claude', 'sls-project'))).toBe(false)
+    expect(existsSync(path.join(svc, '.agents'))).toBe(false)
+    expect(output).toContain(NOT_INSTALLED_NOTE)
+    // Nothing new in the repository, so nothing to commit.
+    expect(output).not.toContain(PROJECT_SKILLS_NOTE)
+  })
+
+  it('agent setup still installs it in the service .agents/skills', async () => {
+    await seedPluginSkill()
+    await mkdir(path.join(home, '.codex'))
+    const { output } = await setupInService()
+    expect(existsSync(skillMd(svc, '.claude', 'sls-project'))).toBe(false)
+    expect(existsSync(skillMd(svc, '.agents', 'sls-project'))).toBe(true)
+    expect(output).toContain(
+      'sls-project v1 (project) — installed in .agents/skills',
+    )
+    expect(output).toContain(NOT_INSTALLED_NOTE)
+  })
+
+  it('agent setup keeps updating a copy already in the service and says it is listed twice', async () => {
+    await setupInService({ dir: ['claude'] })
+    await seedPluginSkill()
+    const { output } = await setupInService()
+    expect(existsSync(skillMd(svc, '.claude', 'sls-project'))).toBe(true)
+    expect(output).toContain('sls-project v1 (project) — up to date')
+    expect(output).toContain(TWICE_NOTE)
+  })
+
+  it('agent setup installs it when the plugin copy is older, and names the update', async () => {
+    await seedPluginSkill(0)
+    const { output } = await setupInService()
+    expect(existsSync(skillMd(svc, '.claude', 'sls-project'))).toBe(true)
+    expect(output).toContain(OLDER_TWICE_NOTE)
+  })
+
+  it('agent setup installs it when the project settings turn the plugin off', async () => {
+    await seedPluginSkill()
+    await mkdir(path.join(svc, '.claude'), { recursive: true })
+    await writeFile(
+      path.join(svc, '.claude', 'settings.json'),
+      JSON.stringify({ enabledPlugins: { 'tools@acme': false } }),
+    )
+    const { output } = await setupInService()
+    expect(existsSync(skillMd(svc, '.claude', 'sls-project'))).toBe(true)
+    expect(output).not.toContain('Claude Code')
+  })
+
+  it('agent setup --dir claude installs it whatever plugins hold', async () => {
+    await seedPluginSkill()
+    const { output } = await setupInService({ dir: ['claude'] })
+    expect(existsSync(skillMd(svc, '.claude', 'sls-project'))).toBe(true)
+    expect(output).not.toContain('Claude Code')
+  })
+
+  it('agent skills install does the same, prints the note and names only the dirs it used', async () => {
+    await seedPluginSkill()
+    const notice = noticeSpy()
+    let messages
+    try {
+      await agentSkillsInstall({
+        configFilePath: path.join(svc, 'serverless.yml'),
+        options: {},
+        homeDir: home,
+        getBundled,
+      })
+      messages = noticedMessages(notice)
+    } finally {
+      notice.mockRestore()
+    }
+    expect(existsSync(skillMd(svc, '.claude', 'sls-project'))).toBe(false)
+    expect(messages).toContain(`  · ${NOT_INSTALLED_NOTE}`)
+    expect(messages).not.toContain('Target: .claude/skills')
+  })
+})

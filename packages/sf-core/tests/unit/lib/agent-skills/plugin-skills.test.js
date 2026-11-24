@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, writeFile, rm } from 'fs/promises'
+import { mkdtemp, mkdir, writeFile, rm, symlink } from 'fs/promises'
 import { tmpdir } from 'os'
 import path from 'path'
 import { findClaudePluginSkill } from '../../../../src/lib/agent-skills/plugin-skills.js'
@@ -174,6 +174,119 @@ describe('a plugin synced from a claude.ai account', () => {
     expect(await find()).toBeUndefined()
     await writeSettings({ 'tools@synced': true })
     expect(await find()).toEqual({ version: 3 })
+  })
+})
+
+describe('in a project', () => {
+  // Claude Code also reads `.claude/settings.json` and
+  // `.claude/settings.local.json` in the project it runs in, which can turn a
+  // plugin, or plugin syncing, off for that project only.
+  let project
+  beforeEach(async () => {
+    project = await mkdtemp(path.join(tmpdir(), 'project-'))
+  })
+  afterEach(async () => {
+    await rm(project, { recursive: true, force: true })
+  })
+  const serviceDir = () => path.join(project, 'services', 'api')
+  const writeProjectSettings = async (dir, file, settings) => {
+    await mkdir(path.join(dir, '.claude'), { recursive: true })
+    await writeFile(
+      path.join(dir, '.claude', file),
+      typeof settings === 'string' ? settings : JSON.stringify(settings),
+    )
+  }
+  const findIn = () =>
+    findClaudePluginSkill({
+      homeDir: home,
+      skillName: 'sls-gateway',
+      projectDir: serviceDir(),
+    })
+  const seedUserPlugin = async () => {
+    await seedSkill(cacheDir('acme', 'tools', '1.2.0'))
+    await writeSettings({ 'tools@acme': true })
+  }
+
+  it('provides the skill when no project settings change it', async () => {
+    await seedUserPlugin()
+    await mkdir(serviceDir(), { recursive: true })
+    expect(await findIn()).toEqual({ version: 3, id: 'tools@acme' })
+  })
+
+  it('does not count when the project settings turn the plugin off', async () => {
+    await seedUserPlugin()
+    await writeProjectSettings(serviceDir(), 'settings.json', {
+      enabledPlugins: { 'tools@acme': false },
+    })
+    expect(await findIn()).toBeUndefined()
+  })
+
+  it('does not count when the local settings of a folder above turn it off', async () => {
+    // The service may sit below the folder Claude Code runs in, such as the
+    // root of a monorepo.
+    await seedUserPlugin()
+    await writeProjectSettings(project, 'settings.local.json', {
+      enabledPlugins: { 'tools@acme': false },
+    })
+    expect(await findIn()).toBeUndefined()
+  })
+
+  it('does not count a synced plugin when the project turns plugin syncing off', async () => {
+    await seedSkill(syncedDir('account-1', 'tools'))
+    await writeProjectSettings(project, 'settings.json', {
+      syncClaudeAiPlugins: false,
+    })
+    expect(await findIn()).toBeUndefined()
+  })
+
+  it('does not count when project settings are not readable JSON', async () => {
+    await seedUserPlugin()
+    await writeProjectSettings(project, 'settings.json', '{ not json')
+    expect(await findIn()).toBeUndefined()
+  })
+
+  it('does not count a synced plugin that the project settings turn off by name', async () => {
+    await seedSkill(syncedDir('account-1', 'tools'))
+    await writeProjectSettings(serviceDir(), 'settings.json', {
+      enabledPlugins: { 'tools@synced': false },
+    })
+    expect(await findIn()).toBeUndefined()
+  })
+
+  it('reads past project settings that hold null', async () => {
+    await seedUserPlugin()
+    await writeProjectSettings(serviceDir(), 'settings.json', 'null')
+    expect(await findIn()).toEqual({ version: 3, id: 'tools@acme' })
+  })
+
+  it('reads the settings above the real path of a service reached through a symlink', async () => {
+    // Claude Code runs in the physical folder, so its settings are the ones
+    // that count.
+    await seedUserPlugin()
+    await writeProjectSettings(project, 'settings.json', {
+      enabledPlugins: { 'tools@acme': false },
+    })
+    await mkdir(serviceDir(), { recursive: true })
+    const link = path.join(home, 'linked-service')
+    await symlink(serviceDir(), link)
+    expect(
+      await findClaudePluginSkill({
+        homeDir: home,
+        skillName: 'sls-gateway',
+        projectDir: link,
+      }),
+    ).toBeUndefined()
+  })
+
+  it('does not count a plugin that only the project settings turn on', async () => {
+    // Only the user settings make the plugin load in every folder Claude Code
+    // may be started from.
+    await seedSkill(cacheDir('acme', 'tools', '1.2.0'))
+    await writeSettings({})
+    await writeProjectSettings(serviceDir(), 'settings.json', {
+      enabledPlugins: { 'tools@acme': true },
+    })
+    expect(await findIn()).toBeUndefined()
   })
 })
 

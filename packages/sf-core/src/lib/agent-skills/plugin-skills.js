@@ -4,15 +4,15 @@
  * the skills dirs this CLI writes, so a skill installed there and here is
  * listed twice by the agent.
  *
- * Claude Code only: its skills dir (`~/.claude/skills`) is the one it reads,
- * while `~/.agents/skills` serves several agents at once and cannot be left
- * out for one of them.
+ * Claude Code only: its skills dirs (`~/.claude/skills`, and `.claude/skills`
+ * in a service) are the ones it reads, while `.agents/skills` serves several
+ * agents at once and cannot be left out for one of them.
  *
  * Everything here is read-only and never throws: an unreadable or reshaped
  * plugin folder means "no plugin copy", which is how the CLI behaved before it
  * looked.
  */
-import { readdir, readFile, stat } from 'fs/promises'
+import { readdir, readFile, realpath, stat } from 'fs/promises'
 import path from 'path'
 import { MANAGED_BY } from './engine.js'
 import { parseFrontmatter } from './read-skills.js'
@@ -39,8 +39,9 @@ const exists = async (filePath) => {
 /**
  * The plugin settings from the user settings: `enabled` maps a plugin id to
  * true/false, and `syncOff` is true when `syncClaudeAiPlugins` is false, which
- * hides the synced plugins. Project and local settings are not read: they hold
- * for one project, and the user-level skill is for all of them. A missing file
+ * hides the synced plugins. Only the user settings turn a plugin on for every
+ * project; project and local settings can only turn it off for a project skill
+ * (projectPluginOverrides). A missing file
  * means no settings; a file that can't be read or parsed returns undefined,
  * since it could turn any plugin off.
  */
@@ -128,7 +129,7 @@ const claudePluginDirs = async (claudeDir) => {
       if (enabled[id] !== true) continue
       for (const versionDir of await subdirsOf(pluginDir)) {
         if (await exists(path.join(versionDir, '.orphaned_at'))) continue
-        dirs.push({ dir: versionDir, id })
+        dirs.push({ dir: versionDir, id, key: id, synced: false })
       }
     }
   }
@@ -143,23 +144,86 @@ const claudePluginDirs = async (claudeDir) => {
       const setting = enabled[`${name}@synced`]
       if (setting === false) continue
       if (manifest.defaultEnabled === false && setting !== true) continue
-      dirs.push({ dir: pluginDir })
+      dirs.push({ dir: pluginDir, key: `${name}@synced`, synced: true })
     }
   }
   return dirs
 }
 
 /**
+ * What the project and local settings of `projectDir` and every folder above
+ * it turn off: `disabled` holds the `enabledPlugins` keys set to false, and
+ * `syncOff` is true when one sets `syncClaudeAiPlugins` to false. Claude Code
+ * reads these files in the folder it runs in, which may be the service or a
+ * folder above it (the root of a monorepo), so a setting in any of them
+ * counts. Settings that turn a plugin on are not collected: they hold only
+ * when Claude Code runs in that folder. A file that exists but can't be read
+ * or parsed returns undefined, since it could turn any plugin off.
+ */
+const projectPluginOverrides = async (projectDir) => {
+  const disabled = new Set()
+  let syncOff = false
+  // Claude Code runs in the physical folder, so a path through a symlink is
+  // resolved first; one that can't be resolved counts as unreadable.
+  let current
+  try {
+    current = await realpath(projectDir)
+  } catch {
+    return undefined
+  }
+  for (;;) {
+    for (const file of ['settings.json', 'settings.local.json']) {
+      let content
+      try {
+        content = await readFile(path.join(current, '.claude', file), 'utf8')
+      } catch (error) {
+        if (error?.code === 'ENOENT' || error?.code === 'ENOTDIR') continue
+        return undefined
+      }
+      let settings
+      try {
+        settings = JSON.parse(content)
+      } catch {
+        return undefined
+      }
+      const enabled = settings?.enabledPlugins
+      if (enabled && typeof enabled === 'object')
+        for (const [key, value] of Object.entries(enabled))
+          if (value === false) disabled.add(key)
+      if (settings?.syncClaudeAiPlugins === false) syncOff = true
+    }
+    const parent = path.dirname(current)
+    if (parent === current) break
+    current = parent
+  }
+  return { disabled, syncOff }
+}
+
+/**
+ * @param {object} args
+ * @param {string} [args.projectDir] the service a project skill is for: a
+ *   plugin its project or local settings turn off doesn't count there
  * @returns {Promise<{version: number, id?: string}|undefined>} the newest
  *   Framework-managed copy of `skillName` among the plugins Claude Code loads
- *   for this user, with the id of the plugin that holds it when it has one
+ *   for this user (and in `projectDir`, when given), with the id of the plugin
+ *   that holds it when it has one
  */
-export const findClaudePluginSkill = async ({ homeDir, skillName }) => {
+export const findClaudePluginSkill = async ({
+  homeDir,
+  skillName,
+  projectDir,
+}) => {
   if (!homeDir) return undefined
+  let overrides
+  if (projectDir) {
+    overrides = await projectPluginOverrides(projectDir)
+    if (!overrides) return undefined
+  }
   let newest
-  for (const { dir, id } of await claudePluginDirs(
+  for (const { dir, id, key, synced } of await claudePluginDirs(
     path.join(homeDir, '.claude'),
   )) {
+    if (overrides?.disabled.has(key) || (synced && overrides?.syncOff)) continue
     const version = await managedVersionIn(dir, skillName)
     if (version !== undefined && (!newest || version > newest.version))
       newest = id ? { version, id } : { version }

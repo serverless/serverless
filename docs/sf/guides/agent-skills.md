@@ -32,7 +32,7 @@ serverless agent setup
 
 [`serverless agent setup`](../providers/aws/cli-reference/agent-setup.md) installs the user-level `serverless-framework` skill into your home directory, installs the project skills when it runs in a service directory, and reports whether authentication, AWS credentials and the service are ready, with a fix for anything missing. It needs no Serverless sign-in.
 
-The user-level skill is also available as an [agent plugin](#install-the-agent-plugin) for Claude Code, Codex, GitHub Copilot CLI and Gemini CLI.
+The skills are also available as an [agent plugin](#install-the-agent-plugin) for Claude Code, Codex, GitHub Copilot CLI and Gemini CLI.
 
 ## Bundled skills
 
@@ -82,7 +82,9 @@ Commit the installed project skills, so your team's agents and new teammates get
 
 ## Install the agent plugin
 
-The user-level `serverless-framework` skill is also published as an agent plugin in [serverless/agent-plugins](https://github.com/serverless/agent-plugins), for agents that install plugins: Claude Code, Codex, GitHub Copilot CLI and Gemini CLI. The plugin carries this one skill and works with Serverless Framework CLI v4. Project skills come from `serverless agent setup` in each service, with or without the plugin. A new plugin version follows each Framework release that changes the skill.
+The Framework's skills, the user-level `serverless-framework` skill and the project skills, are also published as an agent plugin in [serverless/agent-plugins](https://github.com/serverless/agent-plugins), for agents that install plugins: Claude Code, Codex, GitHub Copilot CLI and Gemini CLI. The plugin carries the skills of the latest Framework release and works with Serverless Framework CLI v4. A new plugin version follows each Framework release that changes a skill.
+
+The plugin's skills load in every project. `serverless agent setup` still installs the project skills in each service, for teammates and agents without the plugin; in Claude Code, it leaves out the skills the plugin provides ([Skills that Claude Code loads from a plugin](#skills-that-claude-code-loads-from-a-plugin)).
 
 ### Install the plugin in Claude Code
 
@@ -134,33 +136,35 @@ Gemini CLI installs the plugin as an extension:
 gemini extensions install https://github.com/serverless/agent-plugins
 ```
 
-### Install the skill in other agents
+### Install the skills in other agents
 
-For any agent that reads Agent Skills, this command copies the skill into the user-level skill directories of the agents you choose:
+For any agent that reads Agent Skills, the `skills` command-line tool copies the plugin's skills into the skill directories of the agents you choose, for the current project or for your user (`--global`):
 
 ```bash
-npx skills add serverless/agent-plugins --global
+npx skills add serverless/agent-plugins
 ```
 
-The CLI treats a copy in `~/.claude/skills` or `~/.agents/skills` as its own: `serverless agent setup` and automatic updates keep it current. Copies in other agents' directories are updated with `npx skills update --global`.
+`npx skills update` updates the copies it installed. The CLI also keeps the Framework-managed copies current in the directories it installs skills to itself: the `serverless-framework` skill in `~/.claude/skills` and `~/.agents/skills`, and the project skills in a service's `.claude/skills` and `.agents/skills`. Claude Code lists a skill once for each directory it reads, so a skill in both `~/.claude/skills` and a service's `.claude/skills` appears twice.
 
-### The user-level skill and Claude Code plugins
+### Skills that Claude Code loads from a plugin
 
-Claude Code lists a skill from an installed plugin and a skill of the same name in `~/.claude/skills` as two skills. When a Claude Code plugin that is installed and turned on for your user already provides the user-level `serverless-framework` skill at the same or a newer version, `serverless agent setup` and `serverless agent skills install` therefore don't add a copy to `~/.claude/skills`:
+Claude Code lists a skill from an installed plugin and a skill of the same name in a skills directory as two skills. When a Claude Code plugin that is installed and turned on for your user already provides a Framework skill at the same or a newer version, `serverless agent setup`, `serverless agent skills install` and [automatic updates](#automatic-updates) don't add a copy of that skill to Claude Code's skills directory: `~/.claude/skills` for the user-level `serverless-framework` skill, and the service's `.claude/skills` for a project skill.
 
-- When `~/.claude/skills` holds no copy of the skill, the commands leave that directory out and print this line. They still install the skill in `~/.agents/skills` when the home-directory signals select that directory.
+- When the skills directory holds no copy of the skill, the commands leave it out and print a line such as these two. They still install the skill in `.agents/skills` (`~/.agents/skills` for the user-level skill) when that directory is selected.
 
   ```text
   serverless-framework: Claude Code loads it from an installed plugin, so it is not installed in ~/.claude/skills
+  serverless-mcp: Claude Code loads it from an installed plugin, so it is not installed in .claude/skills — teammates without the plugin get it from "serverless agent setup"
   ```
 
-- When `~/.claude/skills` already holds a Framework-managed copy, the commands keep that copy up to date and print this line:
+- When the skills directory already holds a Framework-managed copy, the commands keep that copy up to date and print a line such as these two. A project skill in the service's `.claude/skills` serves teammates who don't have the plugin, so delete it only when nobody needs it.
 
   ```text
   serverless-framework: Claude Code lists it twice, from an installed plugin and from ~/.claude/skills — to keep one, delete ~/.claude/skills/serverless-framework
+  serverless-mcp: Claude Code lists it twice, from an installed plugin and from .claude/skills — to keep one, delete .claude/skills/serverless-mcp, unless teammates without the plugin use it
   ```
 
-When the plugin's copy is older than the one the CLI bundles, the commands install the bundled version in `~/.claude/skills` and print a line that names the plugin to update, for example:
+When the plugin's copy is older than the one the CLI bundles, the commands install the bundled version and print a line that names the plugin to update, for example:
 
 ```text
 serverless-framework: Claude Code lists it twice, from an installed plugin and from ~/.claude/skills, and the plugin's copy is older — to keep one, run "claude plugin update serverless@serverless", then delete ~/.claude/skills/serverless-framework
@@ -168,34 +172,41 @@ serverless-framework: Claude Code lists it twice, from an installed plugin and f
 
 When the plugin is turned on in your claude.ai account, claude.ai keeps it up to date, so the line says "update the plugin" in place of a command. If the line still appears after the update, the plugin doesn't have the CLI's skill version yet: keep both copies until a later plugin version catches up.
 
-The commands install the skill in `~/.claude/skills` as usual, with no line about the plugin, in these cases:
+Which skills land in a service's `.claude/skills` depends on the machine that runs the command. When Claude Code is the only agent the command finds, a service set up on a machine with the plugin gets no project skills in the repository; a teammate without the plugin who runs `serverless agent setup` adds them to `.claude/skills`. Once they are committed, the CLI keeps them up to date on every machine.
+
+The commands install a skill in Claude Code's skills directory as usual, with no line about the plugin, in these cases:
 
 - You pass `--dir claude`.
-- `~/.claude/skills` holds a copy you customized. Claude Code then lists your copy and the plugin's.
+- The skills directory holds a copy you customized. Claude Code then lists your copy and the plugin's.
 - The plugin is installed for one project only, or is turned off.
+- For a project skill: a `.claude/settings.json` or `.claude/settings.local.json` file in the service directory, or in a directory above it, turns the plugin off, or can't be read.
 
-After you uninstall or turn off the plugin, run `serverless agent setup` again, in any directory, to install the skill in `~/.claude/skills`. Project skills are installed the same way with or without a plugin.
+After you uninstall or turn off the plugin, run `serverless agent setup` again: in any directory to install the user-level skill in `~/.claude/skills`, and in each service to install its project skills in `.claude/skills`.
 
-### The user-level skill and other agents' plugins
+### Skills that other agents load from a plugin
 
-Codex lists a skill from an installed plugin and a skill of the same name in `~/.agents/skills` as two skills. `serverless agent setup` and `serverless agent skills install` still install the user-level skill in `~/.agents/skills`, because Gemini CLI, GitHub Copilot CLI, Cursor and other agents read that directory too. To keep one copy in Codex, turn the CLI's copy off in `~/.codex/config.toml`, where `HOME_DIR` is the absolute path of your home directory:
+Codex lists a skill from an installed plugin and a skill of the same name in `~/.agents/skills`, or in a service's `.agents/skills`, as two skills. `serverless agent setup` and `serverless agent skills install` still install the skills in those directories, because Gemini CLI, GitHub Copilot CLI, Cursor and other agents read them too. To keep one copy in Codex, turn the CLI's copies off in `~/.codex/config.toml`, one entry per copy. In this example, `HOME_DIR` is the absolute path of your home directory and `SERVICE_DIR` the absolute path of a service:
 
 ```toml
 [[skills.config]]
 path = "HOME_DIR/.agents/skills/serverless-framework/SKILL.md"
 enabled = false
+
+[[skills.config]]
+path = "SERVICE_DIR/.agents/skills/serverless-mcp/SKILL.md"
+enabled = false
 ```
 
-New Codex sessions then load only the plugin's copy. Other agents still load the copy in `~/.agents/skills`, and the CLI keeps it up to date.
+New Codex sessions then load only the plugin's copies. Other agents still load the copies in `.agents/skills`, and the CLI keeps them up to date.
 
-Gemini CLI and GitHub Copilot CLI list the skill once: the copy in `~/.agents/skills` takes the place of the plugin's copy.
+Gemini CLI and GitHub Copilot CLI list each skill once: the copy in `.agents/skills` takes the place of the plugin's copy.
 
 ## Automatic updates
 
 After a `serverless` command succeeds, the CLI updates installed skills to the versions it bundles, and prints a one-line notice that starts with `Serverless agent skills updated:`. It updates the user-level skill wherever the command runs, and project skills when the command runs in the service. Automatic updates follow these rules:
 
 - An update writes a skill only when the bundled version is newer, so an older CLI never downgrades skills that a teammate's newer CLI installed.
-- An update writes only into directories that already hold Framework-managed skills. There it also adds skills that a newer CLI bundles for the first time.
+- An update writes only into directories that already hold Framework-managed skills. There it also adds skills that a newer CLI bundles for the first time, except that it doesn't add a project skill to a service's `.claude/skills` when an installed Claude Code plugin provides it ([Skills that Claude Code loads from a plugin](#skills-that-claude-code-loads-from-a-plugin)).
 - Updates are skipped in CI (detected from environment variables such as `CI` or `GITHUB_ACTIONS`), after a failed command, and for `--help`, `--version` and the `agent` commands. `agent setup` and `agent skills install` update skills themselves; `agent docs` and `agent skills list`/`read` never write any.
 - A skill you took ownership of ([Customizing a skill](#customizing-a-skill)) is never updated.
 
@@ -227,7 +238,7 @@ The CLI never changes that skill again, and `agent skills install` reports it as
 To remove the skills, delete all Framework-managed skill folders from both skill directories, in the service and in your home directory.
 
 - A whole project skill directory you delete from the service (for example `.claude/skills`) isn't created again while the other directory still holds Framework-managed skills, not even by `agent skills install` without `--dir`.
-- A user-level skill directory you delete (for example `~/.claude/skills`) isn't created again by automatic updates. `agent setup` and `agent skills install` without `--dir` choose the user-level directories by the home-directory signals alone, so they create `~/.claude/skills` again while `~/.claude` exists, even when `~/.agents/skills` still holds Framework-managed skills. The exception is a skill that an installed Claude Code plugin provides ([The user-level skill and Claude Code plugins](#the-user-level-skill-and-claude-code-plugins)). To install only into `~/.agents/skills`, pass `--dir agents`.
+- A user-level skill directory you delete (for example `~/.claude/skills`) isn't created again by automatic updates. `agent setup` and `agent skills install` without `--dir` choose the user-level directories by the home-directory signals alone, so they create `~/.claude/skills` again while `~/.claude` exists, even when `~/.agents/skills` still holds Framework-managed skills. The exception is a skill that an installed Claude Code plugin provides ([Skills that Claude Code loads from a plugin](#skills-that-claude-code-loads-from-a-plugin)). To install only into `~/.agents/skills`, pass `--dir agents`.
 - A single skill folder you delete from a directory that still holds other Framework-managed skills is installed again by the next update or `agent skills install`. To keep one skill out, take ownership of it instead ([Customizing a skill](#customizing-a-skill)).
 
 ## Dev Mode for coding agents

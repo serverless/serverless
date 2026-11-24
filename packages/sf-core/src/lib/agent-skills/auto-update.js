@@ -12,6 +12,7 @@ import { log, isCICDEnvironment } from '@serverless/util'
 import { getBundledSkills } from './manifest.js'
 import { resolveTargetDirs, resolveUserTargetDirs } from './resolve-targets.js'
 import { hasManagedSkills, syncSkills } from './engine.js'
+import { syncProjectSkills } from './user-skills.js'
 
 /**
  * The changes as one list, each skill change named once however many folders it happened in:
@@ -79,9 +80,13 @@ export const autoUpdateAgentSkills = async ({
       })
       if (targetDirs.length) {
         const projectSkills = bundledSkills.filter((s) => s.scope !== 'user')
-        const projectReport = await syncSkills({
-          bundledSkills: projectSkills,
+        // A skill a Claude Code plugin provides is not added to the
+        // service's .claude/skills; a copy already there is updated.
+        const { report: projectReport } = await syncProjectSkills({
+          projectSkills,
           targetDirs,
+          serviceDir,
+          homeDir: home,
         })
         changes.push(...projectReport.changes)
       }
