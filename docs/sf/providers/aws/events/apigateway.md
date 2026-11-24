@@ -435,7 +435,7 @@ A JWT authorizer under `provider.apiGateway.authorizers.<key>` takes these setti
 
 A JWT authorizer has no result cache. On an `http` event that uses a JWT authorizer, `resultTtlInSeconds`, `identitySource`, `identityValidationExpression`, `claims`, `arn` and `managedExternally` stop packaging and deployment with `API_GATEWAY_JWT_AUTHORIZER_UNSUPPORTED_PROPERTY` and a message that names the key, for example `Function "listOrders" sets "resultTtlInSeconds" on an http event that uses JWT authorizer "orders". JWT authorizers don't cache results: remove "resultTtlInSeconds".`
 
-The Framework checks the limits in the table when you package or deploy, and stops with `API_GATEWAY_JWT_AUTHORIZER_INVALID` and a message that names the authorizer and the key. Values written as CloudFormation intrinsic functions get only their shape checked; API Gateway checks the resolved values at deploy time.
+The Framework checks the limits in the table when you package or deploy, and stops with a message that names the authorizer and the key. The error code, `API_GATEWAY_JWT_AUTHORIZER_INVALID` here and the other codes on this page, is printed when you run the command with `--debug`. Values written as CloudFormation intrinsic functions get only their shape checked; API Gateway checks the resolved values at deploy time.
 
 ### Signing algorithms
 
@@ -551,7 +551,7 @@ functions:
               - orders:write
 ```
 
-`authorizer: orders` (a string) is the same as `authorizer: { name: orders }`, without scopes. `type: jwt` beside `name` is optional. A `name` with `type: jwt` that isn't a key of `provider.apiGateway.authorizers` stops packaging and deployment with `Function "listOrders" references JWT authorizer "orderz", which isn't defined. Define it under "provider.apiGateway.authorizers", or set "authorizerId" to attach an existing one.`
+`authorizer: orders` (a string) is the same as `authorizer: { name: orders }`, without scopes. `type: jwt` beside `name` is optional. A `name` with `type: jwt` that isn't a key of `provider.apiGateway.authorizers` stops packaging and deployment with `UNRECOGNIZED_API_GATEWAY_AUTHORIZER` and `Function "listOrders" references JWT authorizer "orderz", which isn't defined. Define it under "provider.apiGateway.authorizers", or set "authorizerId" to attach an existing one.`
 
 Amazon Cognito names scopes `<resource server>/<scope>`, such as `orders/read`. When an authorizer trusts a Cognito user pool and other issuers, list each form of a scope the endpoint accepts.
 
@@ -658,7 +658,7 @@ functions:
           authorizer: ordersJwt # was: authorizer: verifyToken
 ```
 
-The deploy creates the JWT authorizer, switches the endpoints to it, and removes the old authorizer once no endpoint uses it. If the deploy fails, CloudFormation rolls back to the old authorizer. The new name matters because API Gateway creates the JWT authorizer before it deletes the old one, and names are unique within a REST API. A JWT authorizer named like an authorizer the deploy removes stops the deploy with:
+The deploy creates the JWT authorizer, switches the endpoints to it, and removes the old authorizer once no endpoint uses it. If the deploy fails, CloudFormation rolls the stack back to the old authorizer, but the REST API stage can keep serving the failed deploy's API, including the JWT authorizer, until the next successful deploy. After a failed deploy, fix the cause and deploy again. The new name matters because API Gateway creates the JWT authorizer before it deletes the old one, and names are unique within a REST API. A JWT authorizer named like an authorizer the deploy removes stops the deploy with:
 
 ```text
 Authorizer name must be unique. Authorizer verifyToken already exists in this RestApi.
@@ -772,9 +772,15 @@ resources:
     OrdersJwtAuthorizerId:
       Value:
         Ref: OrdersApiGatewayJwtAuthorizer
+    RestApiId:
+      Value:
+        Ref: ApiGatewayRestApi
+    RestApiRootResourceId:
+      Value:
+        Fn::GetAtt: [ApiGatewayRestApi, RootResourceId]
 ```
 
-Another service on the same REST API (see [Use an existing REST API](#use-an-existing-rest-api)) attaches it with `type: jwt` and `authorizerId`, with its own scopes per endpoint:
+Another service on the same REST API (see [Use an existing REST API](#use-an-existing-rest-api)) reads the REST API's IDs from service-a's outputs and attaches the authorizer with `type: jwt` and `authorizerId`, with its own scopes per endpoint:
 
 ```yaml
 # serverless.yml of service-b, on service-a's REST API
@@ -783,8 +789,8 @@ service: service-b
 provider:
   name: aws
   apiGateway:
-    restApiId: a1b2c3d4e5
-    restApiRootResourceId: f6g7h8i9j0
+    restApiId: ${cf:service-a-dev.RestApiId}
+    restApiRootResourceId: ${cf:service-a-dev.RestApiRootResourceId}
 
 functions:
   listReports:
