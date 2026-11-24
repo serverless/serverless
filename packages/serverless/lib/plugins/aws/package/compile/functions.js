@@ -441,6 +441,22 @@ class AwsCompileFunctions {
               { stack: false },
             )
           }
+          const isIntrinsic =
+            _.isPlainObject(acceleratorMemory) &&
+            Object.keys(acceleratorMemory).length === 1 &&
+            /^(Ref|Fn::.+)$/.test(Object.keys(acceleratorMemory)[0])
+          if (
+            (typeof acceleratorMemory === 'number' &&
+              (!Number.isInteger(acceleratorMemory) ||
+                acceleratorMemory < 1)) ||
+            (typeof acceleratorMemory === 'object' && !isIntrinsic)
+          ) {
+            throw new ServerlessError(
+              `Invalid "accelerator.memory" value ${JSON.stringify(acceleratorMemory)} for function "${functionName}". accelerator.memory is a whole number of GB of GPU memory (for example 24) or a CloudFormation function.`,
+              'LAMBDA_MANAGED_INSTANCES_INVALID_ACCELERATOR_MEMORY',
+              { stack: false },
+            )
+          }
           functionResource.Properties.AcceleratorConfig = {
             AcceleratorMemorySize: acceleratorMemory,
           }

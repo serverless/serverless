@@ -446,6 +446,23 @@ describe('AwsCompileFunctions', () => {
         })
       })
 
+      it.each([
+        [24.5, '24.5'],
+        [0, '0'],
+        [{}, '{}'],
+        [{ Foo: 'bar' }, '{"Foo":"bar"}'],
+      ])('should reject accelerator.memory %j', async (memory, shown) => {
+        await expect(
+          compileFunction({
+            image: 'uri',
+            capacityProvider: { name: 'gpu', accelerator: { memory } },
+          }),
+        ).rejects.toMatchObject({
+          code: 'LAMBDA_MANAGED_INSTANCES_INVALID_ACCELERATOR_MEMORY',
+          message: `Invalid "accelerator.memory" value ${shown} for function "func". accelerator.memory is a whole number of GB of GPU memory (for example 24) or a CloudFormation function.`,
+        })
+      })
+
       it('should require accelerator.memory', async () => {
         await expect(
           compileFunction({

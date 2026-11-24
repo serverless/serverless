@@ -258,8 +258,10 @@ Each entry records a shard and the suite's duration in seconds:
 - Only test-1 holds the prerequisites listed above. A suite that needs one
   stays in shard 1 and names the reason in `pin`. A unit test rejects a pinned
   suite in any other shard.
-- A new suite needs an entry. A unit test fails until it has one, and until
-  then the suite runs in shard 1, where every prerequisite exists.
+- A new suite that `npm test` runs needs an entry. A unit test fails until it
+  has one, and until then the suite runs in shard 1, where every prerequisite
+  exists. Suites that `npm test` excludes with `--testPathIgnorePatterns`
+  (`domains`, `mcp`, `dev-mode`, `managed-instances-gpu`) have no entry.
 - To rebalance, copy the durations from the `PASS ... (N s)` lines of a recent
   run into `seconds`, then move unpinned suites so the shard totals are
   similar. A shard ends when its longest suite does, so the totals only need

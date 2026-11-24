@@ -6,6 +6,7 @@ import {
   CloudFormationClient,
   DescribeStacksCommand,
 } from '@aws-sdk/client-cloudformation'
+import { DeleteRepositoryCommand, ECRClient } from '@aws-sdk/client-ecr'
 import { jest } from '@jest/globals'
 import { getTestStageName, runSfCore } from '../../utils/runSfCore.js'
 import { TEST_REGION } from '../../utils/testRegion.js'
@@ -25,6 +26,7 @@ describe('Serverless Framework Service - GPU functions on Managed Instances', ()
   const originalEnv = process.env
 
   const cfnClient = new CloudFormationClient({ region: TEST_REGION })
+  const ecrClient = new ECRClient({ region: TEST_REGION })
 
   const run = (command, options = {}, params = {}) =>
     runSfCore({
@@ -45,6 +47,21 @@ describe('Serverless Framework Service - GPU functions on Managed Instances', ()
     } catch (error) {
       if (/does not exist/.test(error?.message ?? '')) return false
       throw error
+    }
+  }
+
+  // A deploy that stops after creating the image repository and before the
+  // stack exists leaves the repository behind, and `remove` needs the stack.
+  const deleteImageRepository = async () => {
+    try {
+      await ecrClient.send(
+        new DeleteRepositoryCommand({
+          repositoryName: `serverless-${SERVICE}-${stage}`.toLowerCase(),
+          force: true,
+        }),
+      )
+    } catch (error) {
+      if (error?.name !== 'RepositoryNotFoundException') throw error
     }
   }
 
@@ -94,6 +111,7 @@ describe('Serverless Framework Service - GPU functions on Managed Instances', ()
         await run(['remove'], {}, { expectError: true })
         if (await stackExists()) throw new Error('the stack still exists')
       }
+      await deleteImageRepository()
     } catch (error) {
       failure = new Error(`Teardown of ${stackName} failed: ${error.message}`)
     }

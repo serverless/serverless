@@ -281,6 +281,7 @@ functions:
     timeout: 300
     capacityProvider:
       name: gpu
+      memoryPerVCpu: 4
       accelerator:
         memory: 24
 ```
@@ -288,6 +289,7 @@ functions:
 - `provider.ecr.images.inference` builds the image from the `Dockerfile` in the service directory. `provenance: 'false'` makes Docker push a single-platform image, the format Lambda accepts; recent Docker versions add a provenance attestation by default, which Lambda rejects with `The image manifest, config or layer media type for the source image … is not supported`.
 - `allowedInstanceTypes` lists GPU instance types only: a capacity provider runs either GPU or non-GPU functions. List several generations so that Lambda can fall back to an older one when the newest has no capacity. [Supported GPU instances](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu.html#lambda-managed-instances-gpu-supported-instances) lists the families and the GPU memory of each.
 - `accelerator.memory: 24` asks for a GPU with at least 24 GB of memory. Lambda launches the newest allowed generation whose GPU has the least memory that is still enough, and gives each execution environment one GPU, or one GPU fraction on fractional instance types such as `g6f`.
+- `memoryPerVCpu: 4` gives the function 2 vCPUs for its 8192 MB. An execution environment has to fit on one instance with vCPUs to spare: at the default 2 GiB per vCPU, 8192 MB needs all 4 vCPUs of a `g6.xlarge` or `g5.xlarge`, and publishing the version fails with `IncompatibleAcceleratorInstanceTypes` ([troubleshooting](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu-troubleshooting.html)).
 - `timeout` covers each invocation. Model loading runs during initialization, which Lambda allows the larger of 130 seconds and `timeout`, up to 15 minutes.
 
 The `Dockerfile` can start from one of the [GPU base images](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu-base-images.html) AWS publishes with CUDA, PyTorch, vLLM or SGLang, or from any other image: Lambda provides the GPU driver. This one uses the PyTorch image:
