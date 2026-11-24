@@ -512,7 +512,7 @@ resources:
         RuntimeVersion: !Select [1, !Split ['version/', !Ref CompanyNodeV1]]
 ```
 
-The runtime image must already be in Amazon ECR, in a repository whose policy lets Lambda read it ([runtime versions](https://docs.aws.amazon.com/lambda/latest/dg/cmr-versions.html)). When `serverless remove` deletes the stack, Lambda keeps the runtime's name reserved for up to 30 days, and deploying a runtime with the same name fails until then; keep the stage in the runtime name, as above.
+The runtime image must already be in Amazon ECR, in a repository whose policy lets Lambda read it ([runtime versions](https://docs.aws.amazon.com/lambda/latest/dg/cmr-versions.html)). When `serverless remove` deletes the stack, Lambda keeps the runtime's name reserved for up to 30 days, and deploying a runtime with the same name fails until then; keep the stage in the runtime name, as above. A runtime waiting for deletion also counts against the account's [runtime quota](https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html#cmr-quotas) (100 per Region by default), so services that are removed and redeployed often, such as per-branch stages, belong on a shared runtime instead.
 
 ### Packaging for customer-managed runtimes
 

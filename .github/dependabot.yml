@@ -258,6 +258,7 @@ updates:
     directories:
       - '/packages/sf-core/tests/integration/sandboxes/fixture/app'
       - '/packages/sf-core/tests/integration/managed-instances-gpu/fixture'
+      - '/packages/sf-core/tests/integration/customer-managed-runtime-prerequisite'
     schedule:
       interval: 'monthly'
     # Docker image tags take only default-days, not the semver cooldowns

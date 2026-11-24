@@ -177,6 +177,10 @@ The rest of the MCP suite (`tests/integration/mcp/mcp.test.js`) needs no
 prerequisite. Both files run from `npm run test:mcp`, each off its own fixture
 directory (`fixture/` and `fixture-auth/`) so they stay parallel-safe.
 
+#### Customer-Managed Runtime Prerequisite
+
+The `customer-managed-runtimes` suite deploys functions on a Lambda customer-managed runtime that exists once per test account: `tests/integration/customer-managed-runtime-prerequisite/`, created with the steps in its README. The suite reads the runtime alias ARN from the SSM parameter `/cmr-integration-test/runtime-alias-arn` and skips with a log in an account without it; any other read failure fails the suite. The runtime is not created per run because a deleted runtime keeps its name and its place in the account's runtime quota for up to 30 days.
+
 ### Serverless Dashboard Prerequisites
 
 #### Service `resolvers-custom-test`:

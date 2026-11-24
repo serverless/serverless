@@ -1,0 +1,17 @@
+service: sfc-cmr
+frameworkVersion: '4'
+
+# No region: the deploy follows AWS_REGION, as the suite's checks do.
+provider:
+  name: aws
+  # The runtime alias ARN of the account's customer-managed runtime
+  # prerequisite (../../customer-managed-runtime-prerequisite), read from SSM by
+  # the suite
+  runtime: ${env:CMR_TEST_RUNTIME_ALIAS_ARN}
+
+functions:
+  marker:
+    handler: handler.main
+  managed:
+    handler: handler.main
+    runtime: nodejs24.x
