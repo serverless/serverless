@@ -142,9 +142,15 @@ export default {
           this.stackLastUpdatedTime = undefined
           /**
            * If legacy deployment bucket is enabled, we don't need to set the createLater flag
-           * since the ensure-valid-bucket-exists logic will create the stack
+           * since the ensure-valid-bucket-exists logic will create the stack.
+           * The exception is a user-provided `deploymentBucket`: that logic
+           * returns early for custom buckets without creating the stack, so
+           * the create fallback in `updateStack` has to handle it.
            */
-          if (!this.provider.isLegacyDeploymentBucketEnabled) {
+          if (
+            !this.provider.isLegacyDeploymentBucketEnabled ||
+            this.serverless.service.provider.deploymentBucket
+          ) {
             this.createLater = true
           }
           return Promise.resolve()
