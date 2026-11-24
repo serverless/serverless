@@ -3534,6 +3534,13 @@ destinations:
         throw err
       })
 
+    /**
+     * Note for callers: resolving the in-stack bucket requires
+     * `cloudformation:DescribeStackResource` even when `deploymentBucket`
+     * is configured. The error is deliberately not swallowed — treating a
+     * stack-owned bucket as external would break removal handling (and is
+     * exactly what the ownership fix above guards against).
+     */
     const userProvidedDeploymentBucket =
       this.serverless.service.provider.deploymentBucket
     if (userProvidedDeploymentBucket) {

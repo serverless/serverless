@@ -290,6 +290,20 @@ events:
               streamName,
             )
 
+            if (
+              this.serverless.service.provider.compiledCloudFormationTemplate
+                .Resources[streamLogicalId]
+            ) {
+              // Two stream events resolving to the same logical id (possible
+              // when nested intrinsic functions collapse to the same derived
+              // name) would silently overwrite each other below.
+              throw new ServerlessError(
+                `Two stream events of function "${functionName}" resolve to the same stream name "${streamName}". ` +
+                  'Configure distinct stream ARNs or names.',
+                'FUNCTION_STREAM_NAME_COLLISION',
+              )
+            }
+
             const dependsOn = []
             const functionIamRoleResourceName =
               this.provider.resolveFunctionIamRoleResourceName(functionObj)

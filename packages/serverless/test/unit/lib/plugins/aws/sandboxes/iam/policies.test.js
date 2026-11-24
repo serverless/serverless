@@ -358,10 +358,12 @@ describe('generateExecutionRole', () => {
     const create = stmts.find((s) => s.Action.includes('logs:CreateLogGroup'))
     expect(create.Resource).toEqual([
       {
-        'Fn::Sub': expect.stringContaining(':log-group:/my-org/sbx/runner'),
+        'Fn::Sub': expect.stringMatching(/:log-group:\/my-org\/sbx\/runner$/),
       },
       {
-        'Fn::Sub': expect.stringContaining(':log-group:/my-org/sbx/runner:*'),
+        'Fn::Sub': expect.stringMatching(
+          /:log-group:\/my-org\/sbx\/runner:\*$/,
+        ),
       },
     ])
     const put = stmts.find((s) => s.Action.includes('logs:PutLogEvents'))

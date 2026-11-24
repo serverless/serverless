@@ -851,6 +851,41 @@ describe('AwsCompileStreamEvents', () => {
       )
     })
 
+    it('should throw when two stream events resolve to the same stream name', () => {
+      // Two different imports ending in the same trailing Ref collapse to the
+      // same derived name; silently merging would drop one event's resources.
+      awsCompileStreamEvents.serverless.service.functions = {
+        first: {
+          events: [
+            {
+              stream: {
+                arn: {
+                  'Fn::ImportValue': {
+                    'Fn::Join': ['-', ['stream-a', { Ref: 'Stage' }]],
+                  },
+                },
+                type: 'kinesis',
+              },
+            },
+            {
+              stream: {
+                arn: {
+                  'Fn::ImportValue': {
+                    'Fn::Join': ['-', ['stream-b', { Ref: 'Stage' }]],
+                  },
+                },
+                type: 'kinesis',
+              },
+            },
+          ],
+        },
+      }
+
+      expect(() => awsCompileStreamEvents.compileStreamEvents()).toThrow(
+        /resolve to the same stream name/,
+      )
+    })
+
     it('should support onFailure destination with SNS ARN string', () => {
       awsCompileStreamEvents.serverless.service.functions = {
         first: {
