@@ -470,6 +470,8 @@ A function whose `architecture` the runtime does not support fails with `The req
 - `onFunctionUpdate`: when a deploy changes the function. An unchanged `serverless deploy` reports "No changes to deploy" and keeps the function on the runtime version it has; a deploy that changes the function's code or configuration picks up the alias's new version.
 - `manual`: never. Set `arn` to the runtime version ARN, for example `arn:aws:lambda:us-east-1:123456789012:runtime/company-node24/version/v24.1.3`.
 
+The alias in `runtime` names the runtime and the alias the function follows. A runtime version ARN in `runtimeManagement` pins the function to that version, whatever the alias points at. Lambda requires the alias even when the function is pinned, and the function follows it again once the pin is removed or the mode changes to `auto`.
+
 ```yaml
 functions:
   api:
