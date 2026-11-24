@@ -52,7 +52,7 @@ class AwsCompileCapacityProviders {
       const name = typeof cp === 'string' ? cp : cp?.name
       if (typeof name !== 'string' || !capacityProviders[name]) return
       if (!usage.has(name)) usage.set(name, { gpu: [], other: [] })
-      const isGpu = Boolean(typeof cp === 'object' && cp.accelerator)
+      const isGpu = Boolean(typeof cp === 'object' && cp.gpu)
       usage.get(name)[isGpu ? 'gpu' : 'other'].push(functionName)
     })
 
@@ -61,8 +61,8 @@ class AwsCompileCapacityProviders {
       if (!gpu.length) return
       if (other.length) {
         throw new ServerlessError(
-          `Capacity provider "${name}" runs functions with an accelerator (${list(gpu)}) and without one (${list(other)}). A capacity provider runs either GPU or non-GPU functions: move ${list(other)} to another capacity provider, or set capacityProvider.accelerator on it.`,
-          'LAMBDA_CAPACITY_PROVIDER_MIXED_ACCELERATOR',
+          `Capacity provider "${name}" runs functions with a GPU (${list(gpu)}) and without one (${list(other)}). A capacity provider runs either GPU or non-GPU functions: move ${list(other)} to another capacity provider, or set capacityProvider.gpu on it.`,
+          'LAMBDA_CAPACITY_PROVIDER_MIXED_GPU',
           { stack: false },
         )
       }
@@ -70,7 +70,7 @@ class AwsCompileCapacityProviders {
         capacityProviders[name]?.instanceRequirements?.allowedInstanceTypes
       if (!Array.isArray(allowed) || !allowed.length) {
         throw new ServerlessError(
-          `Capacity provider "${name}" runs functions with an accelerator (${list(gpu)}), so it needs GPU instance types. List them in provider.capacityProviders.${name}.instanceRequirements.allowedInstanceTypes, for example [g6.xlarge, g5.xlarge].`,
+          `Capacity provider "${name}" runs functions with a GPU (${list(gpu)}), so it needs GPU instance types. List them in provider.capacityProviders.${name}.instanceRequirements.allowedInstanceTypes, for example [g6.xlarge, g5.xlarge].`,
           'LAMBDA_CAPACITY_PROVIDER_GPU_REQUIRES_INSTANCE_TYPES',
           { stack: false },
         )

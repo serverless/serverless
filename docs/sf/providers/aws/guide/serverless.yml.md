@@ -1090,12 +1090,12 @@ functions:
     #   scaling:
     #     min: 1 # execution environments, 0-15000, not above max (AWS default: 3); 0 scales to zero when idle, or deactivates the function with max 0
     #     max: 10 # execution environments, 0-15000 (AWS default: no limit)
-    #   accelerator: # GPU function: needs image, and a capacity provider with GPU instance types only
+    #   gpu: # GPU function: needs image, and a capacity provider with GPU instance types only
     #     memory: 24 # minimum GPU memory in GB (AWS accepts 3, 6, 12, 16, 24 or 48)
     # Environment variables, merged over provider.environment. Optional
     environment:
       APP_ENV_VARIABLE: FOOBAR
-    # Ephemeral storage (/tmp) in MB, 512-10240, or up to 32768 with capacityProvider.accelerator (default: 512)
+    # Ephemeral storage (/tmp) in MB, 512-10240, or up to 32768 with capacityProvider.gpu (default: 512)
     ephemeralStorageSize: 512
     # Deployed function name (default: <service>-<stage>-<function key>)
     name: ${sls:stage}-lambdaName

@@ -51,7 +51,7 @@ describe('AwsCompileCapacityProviders', () => {
         {
           infer: {
             image: 'uri',
-            capacityProvider: { name: 'gpu', accelerator: { memory: 24 } },
+            capacityProvider: { name: 'gpu', gpu: { memory: 24 } },
           },
         },
         { gpu: gpuProvider },
@@ -70,7 +70,7 @@ describe('AwsCompileCapacityProviders', () => {
           {
             infer: {
               image: 'uri',
-              capacityProvider: { name: 'gpu', accelerator: { memory: 24 } },
+              capacityProvider: { name: 'gpu', gpu: { memory: 24 } },
             },
           },
           { gpu: {} },
@@ -79,7 +79,7 @@ describe('AwsCompileCapacityProviders', () => {
         expect.objectContaining({
           code: 'LAMBDA_CAPACITY_PROVIDER_GPU_REQUIRES_INSTANCE_TYPES',
           message:
-            'Capacity provider "gpu" runs functions with an accelerator ("infer"), so it needs GPU instance types. List them in provider.capacityProviders.gpu.instanceRequirements.allowedInstanceTypes, for example [g6.xlarge, g5.xlarge].',
+            'Capacity provider "gpu" runs functions with a GPU ("infer"), so it needs GPU instance types. List them in provider.capacityProviders.gpu.instanceRequirements.allowedInstanceTypes, for example [g6.xlarge, g5.xlarge].',
         }),
       )
     })
@@ -89,7 +89,7 @@ describe('AwsCompileCapacityProviders', () => {
         compile({
           infer: {
             image: 'uri',
-            capacityProvider: { name: 'default', accelerator: { memory: 3 } },
+            capacityProvider: { name: 'default', gpu: { memory: 3 } },
           },
         }),
       ).toThrow(
@@ -99,13 +99,13 @@ describe('AwsCompileCapacityProviders', () => {
       )
     })
 
-    it('should reject a provider that runs functions with and without an accelerator', () => {
+    it('should reject a provider that runs functions with and without a GPU', () => {
       expect(() =>
         compile(
           {
             infer: {
               image: 'uri',
-              capacityProvider: { name: 'gpu', accelerator: { memory: 24 } },
+              capacityProvider: { name: 'gpu', gpu: { memory: 24 } },
             },
             api: { handler: 'handler.handler', capacityProvider: 'gpu' },
           },
@@ -113,9 +113,9 @@ describe('AwsCompileCapacityProviders', () => {
         ),
       ).toThrow(
         expect.objectContaining({
-          code: 'LAMBDA_CAPACITY_PROVIDER_MIXED_ACCELERATOR',
+          code: 'LAMBDA_CAPACITY_PROVIDER_MIXED_GPU',
           message:
-            'Capacity provider "gpu" runs functions with an accelerator ("infer") and without one ("api"). A capacity provider runs either GPU or non-GPU functions: move "api" to another capacity provider, or set capacityProvider.accelerator on it.',
+            'Capacity provider "gpu" runs functions with a GPU ("infer") and without one ("api"). A capacity provider runs either GPU or non-GPU functions: move "api" to another capacity provider, or set capacityProvider.gpu on it.',
         }),
       )
     })
@@ -127,14 +127,14 @@ describe('AwsCompileCapacityProviders', () => {
             image: 'uri',
             capacityProvider: {
               name: 'arn:aws:lambda:us-east-1:123456789012:capacity-provider:shared',
-              accelerator: { memory: 24 },
+              gpu: { memory: 24 },
             },
           },
           other: {
             image: 'uri',
             capacityProvider: {
               name: { 'Fn::ImportValue': 'shared-gpu' },
-              accelerator: { memory: 24 },
+              gpu: { memory: 24 },
             },
           },
         }),

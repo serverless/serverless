@@ -269,17 +269,17 @@ class AwsCompileFunctions {
     }
 
     // Ephemeral storage above 10240 MB is available only to GPU functions
-    // (capacityProvider.accelerator). The schema allows up to 32768 MB for them,
+    // (capacityProvider.gpu). The schema allows up to 32768 MB for them,
     // so the lower limit is enforced here for every other function.
     if (
       functionObject.ephemeralStorageSize > 10240 &&
       !(
         _.isPlainObject(functionObject.capacityProvider) &&
-        functionObject.capacityProvider.accelerator
+        functionObject.capacityProvider.gpu
       )
     ) {
       throw new ServerlessError(
-        `Ephemeral storage of ${functionObject.ephemeralStorageSize} MB for function "${functionName}" exceeds the limit of 10240 MB. Up to 32768 MB is available to functions that set capacityProvider.accelerator.`,
+        `Ephemeral storage of ${functionObject.ephemeralStorageSize} MB for function "${functionName}" exceeds the limit of 10240 MB. Up to 32768 MB is available to functions that set capacityProvider.gpu.`,
         'LAMBDA_INVALID_EPHEMERAL_STORAGE_SIZE',
         { stack: false },
       )
@@ -401,64 +401,60 @@ class AwsCompileFunctions {
           }
         }
 
-        // GPU functions: accelerator.memory is the minimum GPU memory in GB
-        if (cpConfig.accelerator) {
+        // GPU functions: gpu.memory is the minimum GPU memory in GB
+        if (cpConfig.gpu) {
           if (functionObject.handler) {
             throw new ServerlessError(
-              `Function "${functionName}" sets capacityProvider.accelerator, which needs a container image. Use "image" instead of "handler" for this function.`,
-              'LAMBDA_MANAGED_INSTANCES_ACCELERATOR_REQUIRES_IMAGE',
+              `Function "${functionName}" sets capacityProvider.gpu, which needs a container image. Use "image" instead of "handler" for this function.`,
+              'LAMBDA_MANAGED_INSTANCES_GPU_REQUIRES_IMAGE',
               { stack: false },
             )
           }
           // The config schema doesn't report errors inside a function's
           // capacityProvider object, so the block's shape is checked here.
-          const unsupported = Object.keys(cpConfig.accelerator).find(
+          const unsupported = Object.keys(cpConfig.gpu).find(
             (key) => key !== 'memory',
           )
           if (unsupported) {
             throw new ServerlessError(
-              `Function "${functionName}" sets "${unsupported}" in capacityProvider.accelerator, which supports only "memory".`,
-              'LAMBDA_MANAGED_INSTANCES_INVALID_ACCELERATOR',
+              `Function "${functionName}" sets "${unsupported}" in capacityProvider.gpu, which supports only "memory".`,
+              'LAMBDA_MANAGED_INSTANCES_INVALID_GPU',
               { stack: false },
             )
           }
-          const acceleratorMemory = cpConfig.accelerator.memory
-          if (acceleratorMemory == null) {
+          const gpuMemory = cpConfig.gpu.memory
+          if (gpuMemory == null) {
             throw new ServerlessError(
-              `Function "${functionName}" sets capacityProvider.accelerator without "memory". Set accelerator.memory to the GPU memory the function needs, in GB (for example 24).`,
-              'LAMBDA_MANAGED_INSTANCES_INVALID_ACCELERATOR',
+              `Function "${functionName}" sets capacityProvider.gpu without "memory". Set gpu.memory to the GPU memory the function needs, in GB (for example 24).`,
+              'LAMBDA_MANAGED_INSTANCES_INVALID_GPU',
               { stack: false },
             )
           }
           // AWS sizes are a few dozen GB; a value this large was given in MB
-          if (
-            typeof acceleratorMemory === 'number' &&
-            acceleratorMemory >= 1024
-          ) {
+          if (typeof gpuMemory === 'number' && gpuMemory >= 1024) {
             throw new ServerlessError(
-              `Invalid "accelerator.memory" value ${acceleratorMemory} for function "${functionName}". accelerator.memory is in GB of GPU memory (for example 24), not MB.`,
-              'LAMBDA_MANAGED_INSTANCES_INVALID_ACCELERATOR_MEMORY',
+              `Invalid "gpu.memory" value ${gpuMemory} for function "${functionName}". gpu.memory is in GB of GPU memory (for example 24), not MB.`,
+              'LAMBDA_MANAGED_INSTANCES_INVALID_GPU_MEMORY',
               { stack: false },
             )
           }
           const isIntrinsic =
-            _.isPlainObject(acceleratorMemory) &&
-            Object.keys(acceleratorMemory).length === 1 &&
-            /^(Ref|Fn::.+)$/.test(Object.keys(acceleratorMemory)[0])
+            _.isPlainObject(gpuMemory) &&
+            Object.keys(gpuMemory).length === 1 &&
+            /^(Ref|Fn::.+)$/.test(Object.keys(gpuMemory)[0])
           if (
-            (typeof acceleratorMemory === 'number' &&
-              (!Number.isInteger(acceleratorMemory) ||
-                acceleratorMemory < 1)) ||
-            (typeof acceleratorMemory === 'object' && !isIntrinsic)
+            (typeof gpuMemory === 'number' &&
+              (!Number.isInteger(gpuMemory) || gpuMemory < 1)) ||
+            (typeof gpuMemory === 'object' && !isIntrinsic)
           ) {
             throw new ServerlessError(
-              `Invalid "accelerator.memory" value ${JSON.stringify(acceleratorMemory)} for function "${functionName}". accelerator.memory is a whole number of GB of GPU memory (for example 24) or a CloudFormation function.`,
-              'LAMBDA_MANAGED_INSTANCES_INVALID_ACCELERATOR_MEMORY',
+              `Invalid "gpu.memory" value ${JSON.stringify(gpuMemory)} for function "${functionName}". gpu.memory is a whole number of GB of GPU memory (for example 24) or a CloudFormation function.`,
+              'LAMBDA_MANAGED_INSTANCES_INVALID_GPU_MEMORY',
               { stack: false },
             )
           }
           functionResource.Properties.AcceleratorConfig = {
-            AcceleratorMemorySize: acceleratorMemory,
+            AcceleratorMemorySize: gpuMemory,
           }
         }
 

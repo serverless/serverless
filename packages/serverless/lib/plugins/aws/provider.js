@@ -1009,11 +1009,11 @@ environment:
                 description: `Memory-to-vCPU ratio.`,
                 enum: [2, 4, 8],
               },
-              accelerator: {
-                description: `GPU (accelerator) for this function. Requires a container image and a capacity provider with GPU instance types.
+              gpu: {
+                description: `GPU for this function. Requires a container image and a capacity provider with GPU instance types.
 @see https://www.serverless.com/framework/docs/providers/aws/guide/managed-instances#run-functions-on-gpus
 @example
-accelerator:
+gpu:
   memory: 24`,
                 type: 'object',
                 properties: {
@@ -2734,7 +2734,7 @@ destinations:
               $ref: '#/definitions/awsLambdaEnvironment',
             },
             ephemeralStorageSize: {
-              description: `Ephemeral storage size in MB for /tmp (512-10240; up to 32768 for functions with capacityProvider.accelerator).
+              description: `Ephemeral storage size in MB for /tmp (512-10240; up to 32768 for functions with capacityProvider.gpu).
 @default 512
 @see https://www.serverless.com/framework/docs/providers/aws/guide/functions#ephemeral-storage`,
               type: 'integer',

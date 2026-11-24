@@ -131,7 +131,7 @@ describe('Serverless Framework Service - GPU functions on Managed Instances', ()
     )
     const result = JSON.parse(stdout.slice(stdout.indexOf('{')))
 
-    // accelerator.memory: 3 on g6f types gives a 3 GB slice of an NVIDIA L4
+    // gpu.memory: 3 on g6f types gives a 3 GB slice of an NVIDIA L4
     expect(result.gpu).toMatch(/^NVIDIA /)
     expect(result.devices).toContain('/dev/nvidia0')
     // ephemeralStorageSize: 20480, above the 10240 MB limit of other functions

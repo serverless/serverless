@@ -32,7 +32,7 @@ functions:
     ephemeralStorageSize: 20480
     capacityProvider:
       name: gpu
-      accelerator:
+      gpu:
         memory: 3
       scaling:
         min: 1
