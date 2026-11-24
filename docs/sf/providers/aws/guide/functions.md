@@ -528,7 +528,7 @@ Layers work as with other runtimes. A layer built for these functions can list `
 - SnapStart, Lambda@Edge (`cloudFront` events) and container image functions cannot use a customer-managed runtime; each stops packaging with an error.
 - `serverless invoke local` cannot run these functions; use `serverless invoke --function NAME` after deploying.
 - `serverless dev` keeps these functions on their deployed code.
-- `serverless deploy function` updates their code and configuration but not their runtime: moving a function onto or off a customer-managed runtime stops with an error, and moving it to another alias takes effect only with `serverless deploy`.
+- `serverless deploy function` updates the runtime alias when `runtime` holds the alias ARN, including moving a function onto or off a customer-managed runtime. When `runtime` is a CloudFormation intrinsic, it keeps the deployed runtime, and moving a function onto the runtime takes `serverless deploy`.
 
 ## SnapStart
 
