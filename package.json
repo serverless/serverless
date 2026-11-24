@@ -33,7 +33,7 @@
   ],
   "author": "Serverless Inc.",
   "devDependencies": {
-    "eslint": "^10.14.0",
+    "eslint": "^10.15.0",
     "eslint-plugin-jest": "^29.17.1",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.1",
