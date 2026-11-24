@@ -12,7 +12,7 @@ description: >-
   or `--mode agents` sessions.
 metadata:
   managed-by: serverless-framework
-  version: '2'
+  version: '3'
   author: Serverless Inc.
 ---
 

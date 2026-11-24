@@ -73,21 +73,21 @@ functions:
     timeout: 30 # overrides provider.timeout
 ```
 
-| Key            | Type    | Default                                | Allowed values                           |
-| -------------- | ------- | -------------------------------------- | ---------------------------------------- |
-| `handler`      | string  | Required (unless `image`)              | `<file path without extension>.<export>` |
-| `name`         | string  | `<service>-<stage>-<key>`              | Any valid Lambda function name           |
-| `description`  | string  | None                                   | Up to 256 characters                     |
-| `runtime`      | string  | `provider.runtime`, else `nodejs20.x`  | A Lambda runtime identifier              |
-| `memorySize`   | integer | `provider.memorySize`, else 1024       | 128 to 10240 (MB)                        |
-| `timeout`      | integer | `provider.timeout`, else 6             | 1 to 1800 (seconds)                      |
-| `architecture` | string  | `provider.architecture`, else `x86_64` | `x86_64`, `arm64`                        |
+| Key            | Type    | Default                                | Allowed values                                                                                     |
+| -------------- | ------- | -------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `handler`      | string  | Required (unless `image`)              | `<file path without extension>.<export>`                                                           |
+| `name`         | string  | `<service>-<stage>-<key>`              | Any valid Lambda function name                                                                     |
+| `description`  | string  | None                                   | Up to 256 characters                                                                               |
+| `runtime`      | string  | `provider.runtime`, else `nodejs20.x`  | A Lambda runtime identifier, or a [customer-managed runtime](#customer-managed-runtimes) alias ARN |
+| `memorySize`   | integer | `provider.memorySize`, else 1024       | 128 to 10240 (MB)                                                                                  |
+| `timeout`      | integer | `provider.timeout`, else 6             | 1 to 1800 (seconds)                                                                                |
+| `architecture` | string  | `provider.architecture`, else `x86_64` | `x86_64`, `arm64`                                                                                  |
 
 For a setting that exists both on the function and under `provider`, the function's own value wins, and `provider` supplies the value for functions that don't set one. `environment`, `tags` and the `logs` keys are merged key by key instead (see [Environment variables](#environment-variables), [Tags](#tags) and [Log format and log levels](#log-format-and-log-levels)).
 
 ### Runtime
 
-`provider.runtime` sets the runtime for every function, and a function's own `runtime` overrides it. When neither is set, the function uses `nodejs20.x`, a runtime AWS has deprecated, so set a runtime explicitly. Every [AWS Lambda managed runtime identifier](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html) is accepted, including the Amazon Linux 2023 Java runtimes `java8.al2023`, `java11.al2023` and `java17.al2023`.
+`provider.runtime` sets the runtime for every function, and a function's own `runtime` overrides it. When neither is set, the function uses `nodejs20.x`, a runtime AWS has deprecated, so set a runtime explicitly. Every [AWS Lambda managed runtime identifier](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html) is accepted, including the Amazon Linux 2023 Java runtimes `java8.al2023`, `java11.al2023` and `java17.al2023`. To use a runtime your organization publishes, set `runtime` to its alias ARN: see [Customer-managed runtimes](#customer-managed-runtimes).
 
 When a function uses a runtime AWS has deprecated, `serverless package` and `serverless deploy` print a warning that names the functions, the deprecation date and the dates Lambda stops allowing new functions and updates on that runtime, with a link to the list of supported runtimes. The warning covers functions that get the default runtime too. Container image functions are not checked, because their runtime comes from the image.
 
@@ -369,7 +369,7 @@ functions:
       retentionPeriodInDays: 14 # optional, 1 to 90; Lambda's default is 14
 ```
 
-- Supported runtimes: Node.js 22 and later, Python 3.13 and later, Java 17 and later, .NET 8 and later, OS-only runtimes from `provided.al2023` (for example Go), and container images. Any other runtime stops packaging with an error. Node.js and Python runtimes include the durable execution SDK; for Java, .NET and Go, include it in your package (for Go, it is built into the `bootstrap` binary). See [supported runtimes](https://docs.aws.amazon.com/lambda/latest/dg/durable-supported-runtimes.html).
+- Supported runtimes: Node.js 22 and later, Python 3.13 and later, Java 17 and later, .NET 8 and later, OS-only runtimes from `provided.al2023` (for example Go), [customer-managed runtimes](#customer-managed-runtimes), and container images. Any other runtime stops packaging with an error. Node.js and Python runtimes include the durable execution SDK; for Java, .NET and Go, include it in your package (for Go, it is built into the `bootstrap` binary). See [supported runtimes](https://docs.aws.amazon.com/lambda/latest/dg/durable-supported-runtimes.html).
 - Lambda rejects unqualified invocations of durable functions, so the Framework always versions the function and publishes an alias named `durable` (or uses the SnapStart or provisioned concurrency alias when the function has one). Event sources and the function URL invoke that alias. `versionFunction: false` on the same function stops packaging with an error.
 - On the execution roles the Framework creates, it attaches the `AWSLambdaBasicDurableExecutionRolePolicy` managed policy. A role you supply needs those permissions too.
 - Durability is fixed when Lambda creates the function: adding or removing `durableConfig` on a deployed function needs a new function name, or removing the function, deploying, and adding it back. Changing `executionTimeout` or `retentionPeriodInDays` updates the function in place.
@@ -420,6 +420,115 @@ functions:
 ```
 
 Replace `RUNTIME_VERSION_ID` with the runtime version from the function's Lambda console page or from `aws lambda get-runtime-management-config`. The object form also accepts `mode: auto` and `mode: onFunctionUpdate`. Container image functions ignore `runtimeManagement`.
+
+## Customer-managed runtimes
+
+A [customer-managed runtime](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-customer-managed.html) is a Lambda runtime that a team in your organization (or a third party) builds, publishes and updates, for example a Node.js runtime with your company's SDK and monitoring agent built in. Functions use it through a runtime alias and keep deploying .zip files; when the publisher moves the alias to a new runtime version, functions pick it up without a redeploy. To use one, set `runtime` to the runtime alias ARN the publisher gives you:
+
+```yaml
+provider:
+  name: aws
+  region: us-east-1
+  runtime: arn:aws:lambda:us-east-1:123456789012:runtime/company-node24/alias/prod
+
+functions:
+  api:
+    handler: index.handler # the handler format is defined by the runtime publisher
+  legacy:
+    handler: handler.main
+    runtime: nodejs26.x # a function's own runtime overrides provider.runtime
+```
+
+A runtime alias ARN has the form `arn:aws:lambda:REGION:ACCOUNT_ID:runtime/RUNTIME_NAME/alias/ALIAS_NAME`. The Framework deploys the function with the runtime and alias it names. The rules for the value:
+
+- Use the alias ARN. A runtime ARN without `/alias/`, a runtime version ARN, a bare runtime name and the value `custom` stop packaging with an error. To pin a function to one runtime version, see [Runtime updates for customer-managed runtimes](#runtime-updates-for-customer-managed-runtimes).
+- The runtime must be in the Region the service deploys to. An alias ARN from another Region stops packaging with an error.
+- `runtime` also accepts a CloudFormation intrinsic that returns an alias ARN, such as `!Ref` on an `AWS::Lambda::RuntimeAlias` resource or `!ImportValue` of a stack output. Variables such as `${cf:runtime-stack.AliasArn}` and `${ssm:/platform/runtime-alias-arn}` work too.
+
+The Lambda console and API also call these runtimes "custom", and Lambda reports such a function's runtime as `custom`. Runtimes that a function ships in its own package with a `bootstrap` file on `provided.al2023` are a different feature, which AWS now calls [bring your own language](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-custom.html).
+
+### Permissions for customer-managed runtimes
+
+- The principal that deploys the service (your credentials, or `provider.iam.deploymentRole`) needs `lambda:AssociateRuntimeAlias` on the runtime alias ARN, and `lambda:AssociateRuntimeVersion` on the runtime version ARN when a function is pinned to a version.
+- A runtime in another AWS account must also be shared with your account in the runtime's resource-based policy. The runtime publisher sets that up; see [sharing and controlling access to customer-managed runtimes](https://docs.aws.amazon.com/lambda/latest/dg/cmr-permissions.html).
+- The function's execution role needs nothing new. The runtime runs with that role's permissions, so use runtimes only from publishers you trust.
+
+When the alias does not exist, or the deploying principal may not use it, the deploy fails with a message from Lambda that names the function instead of the alias, followed by the alias to check:
+
+```text
+✖ An error occurred: ApiLambdaFunction - Resource handler returned message: "Lambda function my-service-dev-api could not be found" (RequestToken: …, HandlerErrorCode: NotFound).
+Function "api" uses the customer-managed runtime alias arn:aws:lambda:us-east-1:123456789012:runtime/company-node24/alias/prod. Check that the alias exists in this Region and that the deploying role has lambda:AssociateRuntimeAlias on it.
+```
+
+A function whose `architecture` the runtime does not support fails with `The requested architecture arm64 is not supported by the runtime. Supported architectures: [x86_64].`
+
+### Runtime updates for customer-managed runtimes
+
+[`runtimeManagement`](#runtime-management) controls when a function picks up a new version of its runtime alias:
+
+- `auto` (the default): at each cold start after the publisher moves the alias.
+- `onFunctionUpdate`: when a deploy changes the function. An unchanged `serverless deploy` reports "No changes to deploy" and keeps the function on the runtime version it has; a deploy that changes the function's code or configuration picks up the alias's new version.
+- `manual`: never. Set `arn` to the runtime version ARN, for example `arn:aws:lambda:us-east-1:123456789012:runtime/company-node24/version/v24.1.3`.
+
+```yaml
+functions:
+  api:
+    handler: index.handler
+    runtime: arn:aws:lambda:us-east-1:123456789012:runtime/company-node24/alias/prod
+    runtimeManagement:
+      mode: manual
+      arn: arn:aws:lambda:us-east-1:123456789012:runtime/company-node24/version/v24.1.3
+```
+
+The `INIT_START` line in the function's logs names the runtime version each new execution environment uses.
+
+### Publish a runtime in the same service
+
+Most teams publish a runtime from its own stack and share it. A service can also define the runtime in `resources` and reference its alias with `!Ref`, which also makes CloudFormation create the functions after the alias:
+
+```yaml
+functions:
+  api:
+    handler: index.handler
+    runtime: !Ref CompanyNodeStable
+
+resources:
+  Resources:
+    CompanyNode:
+      Type: AWS::Lambda::Runtime
+      Properties:
+        Name: company-node24-${sls:stage}
+    CompanyNodeV1:
+      Type: AWS::Lambda::RuntimeVersion
+      Properties:
+        RuntimeName: !Select [1, !Split ['runtime/', !Ref CompanyNode]]
+        Name: v1
+        ImageUri: 123456789012.dkr.ecr.us-east-1.amazonaws.com/company-node24:v1
+    CompanyNodeStable:
+      Type: AWS::Lambda::RuntimeAlias
+      Properties:
+        RuntimeName: !Select [1, !Split ['runtime/', !Ref CompanyNode]]
+        Name: stable
+        RuntimeVersion: !Select [1, !Split ['version/', !Ref CompanyNodeV1]]
+```
+
+The runtime image must already be in Amazon ECR, in a repository whose policy lets Lambda read it ([runtime versions](https://docs.aws.amazon.com/lambda/latest/dg/cmr-versions.html)). When `serverless remove` deletes the stack, Lambda keeps the runtime's name reserved for up to 30 days, and deploying a runtime with the same name fails until then; keep the stage in the runtime name, as above.
+
+### Packaging for customer-managed runtimes
+
+The Framework cannot tell which language a customer-managed runtime runs, so it builds these functions only when you ask:
+
+- esbuild bundles a function when the function sets `build: esbuild` or the service sets `build.esbuild`. TypeScript handlers are not detected automatically, and no AWS SDK packages are left out of the bundle by default; use `build.esbuild.external` for packages the runtime provides.
+- Python requirements are not installed for these functions. Package dependencies yourself, or ask the runtime publisher which libraries the runtime includes.
+
+Layers work as with other runtimes. A layer built for these functions can list `custom` in `compatibleRuntimes`.
+
+### Limitations of customer-managed runtimes
+
+- SnapStart, Lambda@Edge (`cloudFront` events) and container image functions cannot use a customer-managed runtime; each stops packaging with an error.
+- `serverless invoke local` cannot run these functions; use `serverless invoke --function NAME` after deploying.
+- `serverless dev` keeps these functions on their deployed code.
+- `serverless deploy function` updates their code and configuration but not their runtime: moving a function onto a customer-managed runtime, or to another alias, takes `serverless deploy`.
 
 ## SnapStart
 

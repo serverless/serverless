@@ -66,17 +66,17 @@ layers:
     retain: false # default false
 ```
 
-| Key                       | Type    | Default                            | Allowed values                                                   |
-| ------------------------- | ------- | ---------------------------------- | ---------------------------------------------------------------- |
-| `path`                    | string  | Required unless `package.artifact` | A directory, relative to the service directory                   |
-| `name`                    | string  | The layer key                      | 1 to 140 letters, numbers, `-` or `_`, or a layer ARN prefix     |
-| `description`             | string  | None                               | Up to 256 characters                                             |
-| `compatibleRuntimes`      | list    | None                               | Up to 15 Lambda runtime identifiers                              |
-| `compatibleArchitectures` | list    | None                               | `x86_64`, `arm64`                                                |
-| `licenseInfo`             | string  | None                               | Up to 512 characters                                             |
-| `allowedAccounts`         | list    | None                               | 12-digit account IDs, `arn:aws:iam::<account>:root`, or `'*'`    |
-| `retain`                  | boolean | `false`                            | Keep earlier layer versions when a new one is published          |
-| `package`                 | object  | None                               | `patterns`, `artifact` (and the deprecated `include`, `exclude`) |
+| Key                       | Type    | Default                            | Allowed values                                                                                                             |
+| ------------------------- | ------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `path`                    | string  | Required unless `package.artifact` | A directory, relative to the service directory                                                                             |
+| `name`                    | string  | The layer key                      | 1 to 140 letters, numbers, `-` or `_`, or a layer ARN prefix                                                               |
+| `description`             | string  | None                               | Up to 256 characters                                                                                                       |
+| `compatibleRuntimes`      | list    | None                               | Up to 15 Lambda runtime identifiers, or `custom` for [customer-managed runtimes](./functions.md#customer-managed-runtimes) |
+| `compatibleArchitectures` | list    | None                               | `x86_64`, `arm64`                                                                                                          |
+| `licenseInfo`             | string  | None                               | Up to 512 characters                                                                                                       |
+| `allowedAccounts`         | list    | None                               | 12-digit account IDs, `arn:aws:iam::<account>:root`, or `'*'`                                                              |
+| `retain`                  | boolean | `false`                            | Keep earlier layer versions when a new one is published                                                                    |
+| `package`                 | object  | None                               | `patterns`, `artifact` (and the deprecated `include`, `exclude`)                                                           |
 
 A service can define any number of layers. Lambda lets one function use at most five.
 
