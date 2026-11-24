@@ -19,7 +19,7 @@ export default () => ({
             type: 'string',
           },
           authorizer: {
-            description: `Gateway-level access control for this server's MCP route: a user authorizer function name, an http-event-style authorizer object (request-type, Cognito user pool, existing authorizer id), or "aws_iam". Rejection happens before the function is invoked. The Framework never verifies tokens itself.`,
+            description: `Gateway-level access control for this server's MCP route: a user authorizer function name, the name of a JWT authorizer in "provider.apiGateway.authorizers", an http-event-style authorizer object (request-type, Cognito user pool, JWT, existing authorizer id), or "aws_iam". Rejection happens before the function is invoked. The Framework never verifies tokens itself.`,
             // The object branch mirrors the http event's `authorizerSchema`
             // (aws/package/compile/events/api-gateway/index.js): the MCP route
             // compiles into the same API Gateway authorizer, so a config valid
@@ -62,7 +62,7 @@ export default () => ({
             type: 'object',
             properties: {
               issuer: {
-                description: `The authorization server that issues this server's tokens: its https issuer identifier, or a CloudFormation intrinsic resolving to one - a user pool created in this service's own "resources" has no literal URL until the stack is created.`,
+                description: `The authorization server that issues this server's tokens: its https issuer identifier, or a CloudFormation intrinsic resolving to one - a user pool created in this service's own "resources" has no literal URL until the stack is created. Optional when "authorizer" names a JWT authorizer in "provider.apiGateway.authorizers": its issuers are published instead.`,
                 // The same idiom the `awsArn` definition uses for a value that
                 // is either a constrained literal or an intrinsic: the pattern
                 // stays on the string branch, so a literal is held to it while
@@ -78,7 +78,9 @@ export default () => ({
                 pattern: '^https://',
               },
             },
-            required: ['issuer'],
+            // `issuer` is required unless the server's authorizer is a JWT
+            // authorizer to derive it from, which only `./validate.js` can
+            // tell - so it enforces the requirement, not this schema.
             additionalProperties: false,
           },
           timeout: {

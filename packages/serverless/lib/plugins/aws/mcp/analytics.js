@@ -23,6 +23,7 @@
 import awsArnRegExs from '../utils/arn-regular-expressions.js'
 import { resolveBaseUrls } from './lib/discovery-route.js'
 import { effectiveEndpointType } from './lib/endpoint-type.js'
+import { isJwtReference } from './lib/jwt-authorizers.js'
 
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v)
 
@@ -84,10 +85,17 @@ export const classifyIssuer = (issuer) => {
  * reads as a user pool whether or not the type says so. An intrinsic ARN hides
  * the service, so it classifies as what the compiler would build from it - a
  * TOKEN authorizer - rather than being guessed at.
+ *
+ * A JWT authorizer is recognized by its type, or - given
+ * `provider.apiGateway.authorizers` as `jwtAuthorizers` - by a name that
+ * references one of them, through the compiler's own reference resolution.
  */
-export const classifyAuthorizer = (authorizer) => {
+export const classifyAuthorizer = (authorizer, jwtAuthorizers) => {
+  if (typeof authorizer === 'string' && authorizer.length === 0) {
+    return undefined
+  }
+  if (isJwtReference(authorizer, jwtAuthorizers)) return 'jwt'
   if (typeof authorizer === 'string') {
-    if (authorizer.length === 0) return undefined
     return authorizer.toLowerCase() === 'aws_iam' ? 'aws_iam' : 'function-token'
   }
   if (!isObj(authorizer)) return undefined
@@ -96,6 +104,7 @@ export const classifyAuthorizer = (authorizer) => {
       ? authorizer.type.toLowerCase()
       : undefined
   if (type === 'aws_iam') return 'aws_iam'
+  if (type === 'jwt') return 'jwt'
   if (
     type === 'cognito_user_pools' ||
     (typeof authorizer.arn === 'string' &&
@@ -152,7 +161,9 @@ export const deriveMcpBlock = (mcpConfig, provider) => {
     // Count and classes come from the same pass, so an authorizer that
     // classifies as nothing is counted as nothing - the two can never disagree.
     const authorizerTypes = cfgs
-      .map((c) => classifyAuthorizer(c.authorizer))
+      .map((c) =>
+        classifyAuthorizer(c.authorizer, provider?.apiGateway?.authorizers),
+      )
       .filter(Boolean)
     addIfPositive(block, 'authorizer', authorizerTypes.length)
     addIfNonEmpty(

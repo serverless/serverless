@@ -920,4 +920,145 @@ describe('mcp compiled template', () => {
       ]),
     )
   })
+
+  describe('JWT authorizers', () => {
+    const orders = {
+      type: 'jwt',
+      algorithms: ['RS256'],
+      issuers: [
+        { issuerUrl: 'https://idp.example.com/', audience: 'api://mcp' },
+        {
+          issuerUrl: { 'Fn::GetAtt': ['UserPool', 'ProviderURL'] },
+          audience: 'api://mcp',
+        },
+      ],
+    }
+
+    it('accepts a server named like its JWT authorizer (the synthesized function is no Lambda authorizer)', async () => {
+      const { template } = await compileService(
+        {
+          servers: {
+            orders: { server: 'src/server.mjs', authorizer: 'orders' },
+          },
+        },
+        {},
+        { provider: { apiGateway: { authorizers: { orders } } } },
+      )
+
+      const anyMethod = methodWith(template, 'ANY')
+      expect(anyMethod.Properties.AuthorizationType).toBe('JWT')
+      expect(anyMethod.Properties.AuthorizerId).toEqual({
+        Ref: 'OrdersApiGatewayJwtAuthorizer',
+      })
+    })
+
+    it('rejects a Lambda authorizer whose API Gateway name is also a JWT authorizer name', async () => {
+      await expect(
+        compileService(
+          {
+            servers: {
+              crm: {
+                server: 'src/server.mjs',
+                authorizer: { type: 'request', name: 'orders' },
+              },
+            },
+          },
+          { orders: { handler: 'src/auth.handler' } },
+          { provider: { apiGateway: { authorizers: { orders } } } },
+        ),
+      ).rejects.toMatchObject({ code: 'API_GATEWAY_AUTHORIZER_NAME_CONFLICT' })
+    })
+
+    it('accepts a Lambda authorizer named like a JWT key whose API Gateway name differs', async () => {
+      const { template } = await compileService(
+        {
+          servers: {
+            crm: {
+              server: 'src/server.mjs',
+              authorizer: { type: 'request', name: 'orders' },
+            },
+          },
+        },
+        { orders: { handler: 'src/auth.handler' } },
+        {
+          provider: {
+            apiGateway: {
+              authorizers: { orders: { ...orders, name: 'orders-jwt' } },
+            },
+          },
+        },
+      )
+
+      expect(methodWith(template, 'ANY').Properties.AuthorizationType).toBe(
+        'CUSTOM',
+      )
+      expect(
+        template.Resources.OrdersApiGatewayJwtAuthorizer.Properties.Name,
+      ).toBe('orders-jwt')
+    })
+
+    it('guards the MCP route with a provider JWT authorizer and publishes its issuers', async () => {
+      const { template } = await compileService(
+        {
+          servers: {
+            crm: {
+              server: 'src/server.mjs',
+              authorizer: { name: 'orders', scopes: ['mcp:use'] },
+              oauthDiscovery: {},
+            },
+          },
+        },
+        {},
+        { provider: { apiGateway: { authorizers: { orders } } } },
+      )
+
+      expect(template.Resources.OrdersApiGatewayJwtAuthorizer).toMatchObject({
+        Type: 'AWS::ApiGateway::Authorizer',
+        Properties: { Type: 'JWT', Name: 'orders' },
+      })
+      const anyMethod = methodWith(template, 'ANY')
+      expect(anyMethod.Properties.AuthorizationType).toBe('JWT')
+      expect(anyMethod.Properties.AuthorizerId).toEqual({
+        Ref: 'OrdersApiGatewayJwtAuthorizer',
+      })
+      expect(anyMethod.Properties.AuthorizationScopes).toEqual(['mcp:use'])
+      // No Lambda authorizer resource, and no permission for one.
+      expect(
+        resourcesOfType(template, 'AWS::ApiGateway::Authorizer').map(
+          ([id]) => id,
+        ),
+      ).toEqual(['OrdersApiGatewayJwtAuthorizer'])
+
+      expect(discoveryDocumentOf(template)).toEqual({
+        'Fn::Sub': [
+          '{"resource":"https://${RestApiId}.execute-api.${AWS::Region}.${AWS::URLSuffix}/dev/crm/mcp","authorization_servers":["https://idp.example.com/","${McpOauthIssuer2}"],"bearer_methods_supported":["header"]}',
+          {
+            RestApiId: { Ref: 'ApiGatewayRestApi' },
+            McpOauthIssuer2: { 'Fn::GetAtt': ['UserPool', 'ProviderURL'] },
+          },
+        ],
+      })
+      for (const id of [DISCOVERY_GET_ID, DISCOVERY_OPTIONS_ID]) {
+        expect(template.Resources[id].Properties.AuthorizationType).toBe('NONE')
+      }
+    })
+
+    it('attaches an existing JWT authorizer by id', async () => {
+      const { template } = await compileService(
+        {
+          servers: {
+            crm: {
+              server: 'src/server.mjs',
+              authorizer: { type: 'jwt', authorizerId: 'abc123' },
+            },
+          },
+        },
+        {},
+      )
+
+      const anyMethod = methodWith(template, 'ANY')
+      expect(anyMethod.Properties.AuthorizationType).toBe('JWT')
+      expect(anyMethod.Properties.AuthorizerId).toBe('abc123')
+    })
+  })
 })

@@ -75,6 +75,8 @@ class AwsMcp {
           functions: this.serverless.service.functions,
           providerRuntime: this.serverless.service.provider.runtime,
           naming: this.provider.naming,
+          jwtAuthorizers:
+            this.serverless.service.provider.apiGateway?.authorizers,
         })
         // `setFunctionNames` (lib/serverless.js) has already run by the time
         // any hook fires, so every synthesized function carries an explicit

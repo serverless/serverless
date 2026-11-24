@@ -506,7 +506,7 @@ describe('validateMcp', () => {
     ['an object with no identifier', {}],
     ['an object with only unrelated keys', { claims: ['sub'] }],
     ['an object whose identifiers are blank', { name: '  ' }],
-    ['an unknown type', { name: 'authorizerFn', type: 'jwt' }],
+    ['an unknown type', { name: 'authorizerFn', type: 'oidc' }],
     ['a non-string type', { name: 'authorizerFn', type: 42 }],
   ])('rejects an authorizer that is %s', (_label, authorizer) => {
     expect(() =>
@@ -670,7 +670,7 @@ describe('validateMcp', () => {
           servers: {
             crm: {
               server: 'src/server.mjs',
-              authorizer: { name: 'authorizerFn', type: 'jwt' },
+              authorizer: { name: 'authorizerFn', type: 'oidc' },
             },
           },
         },
@@ -687,6 +687,7 @@ describe('validateMcp', () => {
       'request',
       'aws_iam',
       'custom',
+      'jwt',
     ]) {
       expect(message).toContain(type)
     }
@@ -1667,5 +1668,529 @@ describe('validateMcp', () => {
         naming,
       }),
     ).toThrow(/discovery document/i)
+  })
+})
+
+// JWT authorizers of the REST API, defined once under
+// `provider.apiGateway.authorizers` and referenced by name, as an http event
+// references them. An MCP server accepts exactly what an http event accepts.
+describe('validateMcp - JWT authorizers', () => {
+  const ISSUER = 'https://idp.example.com/'
+  const ordersAuthorizer = (overrides = {}) => ({
+    type: 'jwt',
+    algorithms: ['RS256'],
+    issuerUrl: ISSUER,
+    audience: 'api://orders',
+    ...overrides,
+  })
+  const validate = ({
+    authorizer,
+    oauthDiscovery,
+    jwtAuthorizers = { orders: ordersAuthorizer() },
+    functions = {},
+  }) =>
+    validateMcp({
+      mcp: {
+        servers: {
+          crm: { server: 'src/server.mjs', authorizer, oauthDiscovery },
+        },
+      },
+      functions,
+      providerRuntime: undefined,
+      naming,
+      jwtAuthorizers,
+    }).servers[0]
+
+  describe('authorizer', () => {
+    it.each([
+      ['a string', 'orders', 'orders'],
+      ['a name', { name: 'orders' }, { name: 'orders' }],
+      [
+        'a name with scopes',
+        { name: 'orders', scopes: ['mcp:use'] },
+        { name: 'orders', scopes: ['mcp:use'] },
+      ],
+      [
+        'a lowercase jwt type',
+        { type: 'jwt', name: 'orders' },
+        { type: 'JWT', name: 'orders' },
+      ],
+      [
+        'a mixed-case jwt type',
+        { type: 'Jwt', name: 'orders' },
+        { type: 'JWT', name: 'orders' },
+      ],
+    ])(
+      'accepts a provider JWT authorizer referenced by %s',
+      (_label, authorizer, expected) => {
+        expect(validate({ authorizer }).authorizer).toEqual(expected)
+      },
+    )
+
+    it.each([
+      ['a literal id', 'abc123'],
+      ['an intrinsic id', { Ref: 'SharedJwtAuthorizer' }],
+    ])(
+      'attaches an existing JWT authorizer by %s, canonicalizing the type',
+      (_label, authorizerId) => {
+        expect(
+          validate({
+            authorizer: { type: 'jwt', authorizerId, scopes: ['mcp:use'] },
+            jwtAuthorizers: undefined,
+          }).authorizer,
+        ).toEqual({ type: 'JWT', authorizerId, scopes: ['mcp:use'] })
+      },
+    )
+
+    it('rejects a JWT type naming an authorizer that is not defined', () => {
+      expect(() =>
+        validate({ authorizer: { type: 'jwt', name: 'orderz' } }),
+      ).toThrow(
+        expect.objectContaining({
+          code: 'UNRECOGNIZED_API_GATEWAY_AUTHORIZER',
+          message: `MCP server "crm" references JWT authorizer "orderz", which isn't defined. Define it under "provider.apiGateway.authorizers", or set "authorizerId" to attach an existing one.`,
+        }),
+      )
+    })
+
+    it('rejects a JWT type that names no authorizer', () => {
+      expect(() => validate({ authorizer: { type: 'jwt' } })).toThrow(
+        expect.objectContaining({ code: 'MCP_AUTHORIZER_INVALID' }),
+      )
+    })
+
+    it.each([
+      ['resultTtlInSeconds', 300],
+      ['identitySource', 'method.request.header.Authorization'],
+      ['claims', ['email']],
+      ['arn', 'arn:aws:lambda:us-east-1:000000000000:function:auth'],
+    ])(
+      'rejects "%s" beside a JWT authorizer, as an http event does',
+      (property, value) => {
+        expect(() =>
+          validate({
+            authorizer: { type: 'jwt', name: 'orders', [property]: value },
+          }),
+        ).toThrow(
+          expect.objectContaining({
+            code: 'API_GATEWAY_JWT_AUTHORIZER_UNSUPPORTED_PROPERTY',
+            message: expect.stringContaining(`"${property}"`),
+          }),
+        )
+      },
+    )
+
+    // An "arn" or a Lambda type says which authorizer is meant, so the
+    // reference is a Lambda authorizer here, as on an http event. Whether its
+    // API Gateway name collides with a JWT authorizer's is checked once every
+    // route is resolved (template.test.js).
+    it.each([
+      [
+        'an untyped arn',
+        {
+          name: 'orders',
+          arn: 'arn:aws:lambda:us-east-1:000000000000:function:auth',
+        },
+      ],
+      ['a Lambda type', { type: 'token', name: 'orders' }],
+    ])(
+      'leaves %s beside the name of a JWT authorizer to the Lambda authorizer rules',
+      (_label, authorizer) => {
+        let error
+        try {
+          validate({ authorizer })
+        } catch (caught) {
+          error = caught
+        }
+        expect(error?.code).not.toBe('API_GATEWAY_AUTHORIZER_NAME_CONFLICT')
+      },
+    )
+
+    it('lists jwt among the authorizer types', () => {
+      expect(() =>
+        validate({ authorizer: { type: 'oidc', name: 'orders' } }),
+      ).toThrow(
+        expect.objectContaining({
+          code: 'MCP_AUTHORIZER_INVALID',
+          message: expect.stringContaining('custom, jwt'),
+        }),
+      )
+    })
+
+    it.each([
+      ['a string', 'orders'],
+      ['an untyped { name }', { name: 'orders' }],
+    ])(
+      'rejects %s naming both a JWT authorizer and a function, worded for the server',
+      (_label, authorizer) => {
+        expect(() =>
+          validate({
+            authorizer,
+            functions: { orders: { handler: 'orders.handler' } },
+          }),
+        ).toThrow(
+          expect.objectContaining({
+            code: 'API_GATEWAY_AUTHORIZER_NAME_CONFLICT',
+            message: `"orders" names both a JWT authorizer in "provider.apiGateway.authorizers" and a function in this service, so MCP server "crm" could mean either. Write "authorizer: { type: jwt, name: orders }" to use the JWT authorizer, or rename it.`,
+          }),
+        )
+      },
+    )
+
+    it('still accepts type: jwt naming a JWT authorizer that is also a function', () => {
+      expect(
+        validate({
+          authorizer: { type: 'jwt', name: 'orders' },
+          functions: { orders: { handler: 'orders.handler' } },
+        }).authorizer,
+      ).toEqual({ type: 'JWT', name: 'orders' })
+    })
+
+    it('points a reference in the wrong case at the JWT authorizer, worded for the server', () => {
+      expect(() => validate({ authorizer: 'Orders' })).toThrow(
+        expect.objectContaining({
+          code: 'UNRECOGNIZED_API_GATEWAY_AUTHORIZER',
+          message: `MCP server "crm" references authorizer "Orders", which isn't defined. Did you mean JWT authorizer "orders" from "provider.apiGateway.authorizers"? Names are case-sensitive.`,
+        }),
+      )
+    })
+
+    it('keeps a name that is not a JWT authorizer a function authorizer', () => {
+      expect(validate({ authorizer: 'gate' }).authorizer).toBe('gate')
+    })
+
+    // A JWT authorizer's resource is built from its definition, so references
+    // to it - each with its own scopes - are one authorizer, not a collision.
+    it('does not treat references to one JWT authorizer as colliding', () => {
+      expect(() =>
+        validate({
+          authorizer: { name: 'orders', scopes: ['mcp:use'] },
+          functions: {
+            list: {
+              handler: 'list.handler',
+              events: [
+                {
+                  http: {
+                    path: 'orders',
+                    method: 'get',
+                    authorizer: { name: 'orders', scopes: ['orders:read'] },
+                  },
+                },
+              ],
+            },
+          },
+        }),
+      ).not.toThrow()
+    })
+  })
+
+  describe('oauthDiscovery derived from the JWT authorizer', () => {
+    it('publishes the issuer of a single-issuer authorizer', () => {
+      expect(
+        validate({ authorizer: 'orders', oauthDiscovery: {} }).oauthDiscovery,
+      ).toEqual({ issuers: [ISSUER], jwtAuthorizer: 'orders' })
+    })
+
+    it('publishes every issuer of a multi-issuer authorizer, in order', () => {
+      const userPool = {
+        'Fn::Sub':
+          'https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}',
+      }
+      const imported = { 'Fn::ImportValue': 'shared-issuer' }
+      expect(
+        validate({
+          authorizer: { type: 'jwt', name: 'orders', scopes: ['mcp:use'] },
+          oauthDiscovery: { publicUrl: 'https://mcp.acme.com' },
+          jwtAuthorizers: {
+            orders: ordersAuthorizer({
+              issuerUrl: undefined,
+              audience: undefined,
+              issuers: [
+                { issuerUrl: 'https://b.example.com', audience: 'x' },
+                { issuerUrl: userPool, audience: 'x' },
+                { issuerUrl: imported, audience: 'x' },
+                { issuerUrl: 'https://a.example.com', audience: 'x' },
+              ],
+            }),
+          },
+        }).oauthDiscovery,
+      ).toEqual({
+        issuers: [
+          'https://b.example.com',
+          userPool,
+          imported,
+          'https://a.example.com',
+        ],
+        jwtAuthorizer: 'orders',
+        publicUrl: 'https://mcp.acme.com',
+      })
+    })
+
+    it('publishes an explicit issuer over the authorizer issuers', () => {
+      expect(
+        validate({
+          authorizer: 'orders',
+          oauthDiscovery: { issuer: 'https://acme.auth0.com' },
+        }).oauthDiscovery,
+      ).toEqual({ issuer: 'https://acme.auth0.com' })
+    })
+
+    it.each([
+      ['a function authorizer', 'gate'],
+      ['no authorizer', undefined],
+      [
+        'a JWT authorizer attached by id',
+        { type: 'jwt', authorizerId: 'abc123' },
+      ],
+    ])('still requires an issuer with %s', (_label, authorizer) => {
+      expect(() => validate({ authorizer, oauthDiscovery: {} })).toThrow(
+        expect.objectContaining({
+          code: 'MCP_OAUTH_DISCOVERY_ISSUER_REQUIRED',
+          message: `MCP server "crm" enables "oauthDiscovery" without an issuer. Set "mcp.servers.crm.oauthDiscovery.issuer" to the https URL of the authorization server that issues this server's tokens (for example "https://acme.auth0.com"), or to a CloudFormation intrinsic resolving to one when the authorization server is created by this same stack, or remove "oauthDiscovery".`,
+        }),
+      )
+    })
+
+    it('reports an invalid authorizer definition with the compiler error', () => {
+      expect(() =>
+        validate({
+          authorizer: 'orders',
+          oauthDiscovery: {},
+          jwtAuthorizers: {
+            orders: ordersAuthorizer({ issuerUrl: 'http://idp.example.com' }),
+          },
+        }),
+      ).toThrow(
+        expect.objectContaining({
+          code: 'API_GATEWAY_JWT_AUTHORIZER_INVALID',
+        }),
+      )
+    })
+
+    it('rejects a literal issuer carrying "$", naming where it is written', () => {
+      expect(() =>
+        validate({
+          authorizer: 'orders',
+          oauthDiscovery: {},
+          jwtAuthorizers: {
+            orders: ordersAuthorizer({
+              issuerUrl: undefined,
+              audience: undefined,
+              issuers: [
+                { issuerUrl: ISSUER, audience: 'x' },
+                { issuerUrl: 'https://idp.example.com/$tenant', audience: 'x' },
+              ],
+            }),
+          },
+        }),
+      ).toThrow(
+        expect.objectContaining({
+          code: 'MCP_OAUTH_DISCOVERY_VTL_UNSAFE_VALUE',
+          message: expect.stringContaining(
+            '"provider.apiGateway.authorizers.orders.issuers[1].issuerUrl"',
+          ),
+        }),
+      )
+    })
+
+    it.each([
+      ['"$"', 'https://idp.example.com/$tenant/${Pool}', 'VTL_UNSAFE_VALUE'],
+      ['"#"', 'https://idp.example.com/${Pool}#x', 'VTL_UNSAFE_VALUE'],
+      ['an escaped placeholder', 'https://idp/${!Pool}', 'VTL_UNSAFE_VALUE'],
+      ['no https prefix', '${Scheme}://idp.example.com', 'ISSUER_NOT_HTTPS'],
+    ])(
+      'rejects an Fn::Sub issuer whose literal text has %s',
+      (_label, template, code) => {
+        expect(() =>
+          validate({
+            authorizer: 'orders',
+            oauthDiscovery: {},
+            jwtAuthorizers: {
+              orders: ordersAuthorizer({ issuerUrl: { 'Fn::Sub': template } }),
+            },
+          }),
+        ).toThrow(
+          expect.objectContaining({
+            code: `MCP_OAUTH_DISCOVERY_${code}`,
+            message: expect.stringContaining(
+              '"provider.apiGateway.authorizers.orders.issuerUrl"',
+            ),
+          }),
+        )
+      },
+    )
+
+    it.each([
+      ['"$"', 'https://${Host}/$context.requestId', 'VTL_UNSAFE_VALUE'],
+      ['no https prefix', '${Scheme}://${Host}/', 'ISSUER_NOT_HTTPS'],
+    ])(
+      'rejects a list-form Fn::Sub issuer whose template has %s',
+      (_label, template, code) => {
+        expect(() =>
+          validate({
+            authorizer: 'orders',
+            oauthDiscovery: {},
+            jwtAuthorizers: {
+              orders: ordersAuthorizer({
+                issuerUrl: {
+                  'Fn::Sub': [
+                    template,
+                    { Host: 'idp.example.com', Scheme: 'https' },
+                  ],
+                },
+              }),
+            },
+          }),
+        ).toThrow(
+          expect.objectContaining({
+            code: `MCP_OAUTH_DISCOVERY_${code}`,
+            message: expect.stringContaining(
+              '"provider.apiGateway.authorizers.orders.issuerUrl"',
+            ),
+          }),
+        )
+      },
+    )
+
+    it.each([
+      ['"$"', 'idp.example.com/$context.requestId', '"$"'],
+      ['"#"', 'idp.example.com/#set', '"#"'],
+    ])(
+      'rejects a list-form Fn::Sub issuer whose variable value has %s',
+      (_label, host, hazard) => {
+        expect(() =>
+          validate({
+            authorizer: 'orders',
+            oauthDiscovery: {},
+            jwtAuthorizers: {
+              orders: ordersAuthorizer({
+                issuerUrl: { 'Fn::Sub': ['https://${Host}/', { Host: host }] },
+              }),
+            },
+          }),
+        ).toThrow(
+          expect.objectContaining({
+            code: 'MCP_OAUTH_DISCOVERY_VTL_UNSAFE_VALUE',
+            message: expect.stringContaining(
+              `the "Fn::Sub" variable "Host" of "provider.apiGateway.authorizers.orders.issuerUrl" is ${JSON.stringify(host)}, which contains ${hazard}`,
+            ),
+          }),
+        )
+      },
+    )
+
+    it('accepts a list-form Fn::Sub issuer with an intrinsic variable value', () => {
+      const issuerUrl = {
+        'Fn::Sub': ['https://${Host}/', { Host: { Ref: 'IssuerHost' } }],
+      }
+      expect(() =>
+        validate({
+          authorizer: 'orders',
+          oauthDiscovery: {},
+          jwtAuthorizers: { orders: ordersAuthorizer({ issuerUrl }) },
+        }),
+      ).not.toThrow()
+    })
+
+    // An error about a derived issuer shows no value that may carry user info.
+    it.each([
+      [
+        'an http template',
+        { 'Fn::Sub': 'http://admin:s3cret@idp.example.com' },
+      ],
+      [
+        'a template with "$"',
+        { 'Fn::Sub': 'https://idp.example.com/${Host}/admin:s3cret@$x' },
+      ],
+      [
+        'a variable value with "$"',
+        { 'Fn::Sub': ['https://${Host}/', { Host: 'admin:s3cret@idp/$x' }] },
+      ],
+    ])(
+      'shows no user info for a derived issuer with %s',
+      (_label, issuerUrl) => {
+        let error
+        try {
+          validate({
+            authorizer: 'orders',
+            oauthDiscovery: {},
+            jwtAuthorizers: { orders: ordersAuthorizer({ issuerUrl }) },
+          })
+        } catch (caught) {
+          error = caught
+        }
+        expect(error?.code).toMatch(
+          /^(MCP_OAUTH_DISCOVERY_|API_GATEWAY_JWT_AUTHORIZER_INVALID$)/,
+        )
+        expect(error.message).not.toContain('s3cret')
+        expect(error.message).toContain('(not shown)')
+      },
+    )
+
+    it('accepts a list-form Fn::Sub issuer with a safe template', () => {
+      const issuerUrl = {
+        'Fn::Sub': ['https://${Host}/', { Host: 'idp.example.com' }],
+      }
+      expect(() =>
+        validate({
+          authorizer: 'orders',
+          oauthDiscovery: {},
+          jwtAuthorizers: { orders: ordersAuthorizer({ issuerUrl }) },
+        }),
+      ).not.toThrow()
+    })
+  })
+})
+
+describe('MCP oauthDiscovery errors - user info', () => {
+  const discoveryError = (oauthDiscovery) => {
+    try {
+      validateMcp({
+        mcp: {
+          servers: { crm: { server: 'src/server.mjs', oauthDiscovery } },
+        },
+        functions: {},
+        providerRuntime: undefined,
+        naming,
+      })
+    } catch (error) {
+      return error
+    }
+    return undefined
+  }
+
+  it.each([
+    ['an http issuer', { issuer: 'http://admin:s3cret@idp.example.com' }],
+    [
+      'an issuer with "$"',
+      { issuer: 'https://admin:s3cret@idp.example.com/$' },
+    ],
+    [
+      'an issuer object',
+      { issuer: { url: 'https://admin:s3cret@idp.example.com' } },
+    ],
+    [
+      'an http Fn::Sub issuer',
+      { issuer: { 'Fn::Sub': 'http://admin:s3cret@idp.example.com' } },
+    ],
+    [
+      'an http publicUrl',
+      {
+        issuer: 'https://idp.example.com',
+        publicUrl: 'http://admin:s3cret@mcp.example.com',
+      },
+    ],
+    [
+      'a publicUrl with a query',
+      {
+        issuer: 'https://idp.example.com',
+        publicUrl: 'https://admin:s3cret@mcp.example.com/?x=1',
+      },
+    ],
+  ])('shows no user info for %s', (_label, oauthDiscovery) => {
+    const error = discoveryError(oauthDiscovery)
+    expect(error?.code).toMatch(/^MCP_OAUTH_DISCOVERY_/)
+    expect(error.message).not.toContain('s3cret')
+    expect(error.message).toContain('a value containing "@" (not shown)')
   })
 })

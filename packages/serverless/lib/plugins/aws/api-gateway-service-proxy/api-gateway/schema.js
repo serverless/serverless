@@ -3,9 +3,12 @@ import _ from 'lodash'
 const customErrorBuilder = (type, message) => (errors) => {
   for (const error of errors) {
     switch (error.code || error.type) {
-      case type:
-        error.message = _.isFunction(message) ? message(error) : message
+      case type: {
+        // A message function returns undefined to keep Joi's own message.
+        const custom = _.isFunction(message) ? message(error) : message
+        if (custom !== undefined) error.message = custom
         break
+      }
       default:
         break
     }
@@ -54,17 +57,33 @@ const authorizerId = Joi.alternatives().try(
 const authorizationScopes = Joi.array()
 
 // https://hapi.dev/family/joi/?v=15.1.0#anywhencondition-options
+//
+// `JWT` only beside an `authorizerId`: a JWT authorizer is always a resource of
+// its own (one of `provider.apiGateway.authorizers`, attached by
+// `{ Ref: <Key>ApiGatewayJwtAuthorizer }`, or one created elsewhere), so the
+// method has nothing to check tokens with until it names one.
+//
+// Without one, `JWT` is refused with its own message rather than the list of
+// the types that would be accepted there.
+const jwtWithoutAuthorizerId = (schema) =>
+  schema.error(
+    customErrorBuilder('any.only', (error) =>
+      error.value === 'JWT'
+        ? `"${error.local.label}" JWT needs an "authorizerId": set it to the JWT authorizer to attach, for example "{ Ref: <Key>ApiGatewayJwtAuthorizer }" for one defined in "provider.apiGateway.authorizers"`
+        : undefined,
+    ),
+  )
+
 const authorizationType = Joi.alternatives().conditional('authorizerId', {
   is: authorizerId.required(),
-  then: Joi.string().valid('CUSTOM', 'COGNITO_USER_POOLS').required(),
+  then: Joi.string().valid('CUSTOM', 'COGNITO_USER_POOLS', 'JWT').required(),
   otherwise: Joi.alternatives().conditional('authorizationScopes', {
     is: authorizationScopes.required(),
-    then: Joi.string().valid('COGNITO_USER_POOLS').required(),
-    otherwise: Joi.string().valid(
-      'NONE',
-      'AWS_IAM',
-      'CUSTOM',
-      'COGNITO_USER_POOLS',
+    then: jwtWithoutAuthorizerId(
+      Joi.string().valid('COGNITO_USER_POOLS').required(),
+    ),
+    otherwise: jwtWithoutAuthorizerId(
+      Joi.string().valid('NONE', 'AWS_IAM', 'CUSTOM', 'COGNITO_USER_POOLS'),
     ),
   }),
 })

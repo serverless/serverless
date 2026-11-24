@@ -162,7 +162,7 @@ mcp:
   servers:
     crm:
       server: src/server.mjs # required
-      authorizer: verifyToken # function name, http-event-style object, or aws_iam
+      authorizer: verifyToken # function or JWT authorizer name, http-event-style object, or aws_iam
       oauthDiscovery:
         issuer: https://example.us.auth0.com # https URL or CloudFormation intrinsic
         publicUrl: https://mcp.example.com # literal https URL only
@@ -186,17 +186,17 @@ resources:
             KeyType: HASH
 ```
 
-| Property                   | Type                     | Default                                 | Description                                                                                                                                                                                                                                |
-| -------------------------- | ------------------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `server`                   | string                   | Required (`MCP_SERVER_MODULE_REQUIRED`) | Path of the module, relative to the service directory, whose default export is the result of `createMcpHandler()`.                                                                                                                         |
-| `authorizer`               | string or object         | None (public)                           | Access control that API Gateway enforces before the server runs: an authorizer function's name, an object shaped like an `http` event's `authorizer`, or `aws_iam`. See [Reject requests at the gateway](#reject-requests-at-the-gateway). |
-| `oauthDiscovery`           | object                   | None                                    | Publishes the server's OAuth protected-resource metadata (RFC 9728) so clients can find where to log in. It enforces nothing. See [OAuth discovery](#oauth-discovery).                                                                     |
-| `oauthDiscovery.issuer`    | string or intrinsic      | Required in `oauthDiscovery`            | The `https://` URL of the authorization server that issues the server's tokens, or a CloudFormation intrinsic that resolves to it. See [Issuer created by the same stack](#issuer-created-by-the-same-stack).                              |
-| `oauthDiscovery.publicUrl` | string                   | `provider.domain`, else the stage URL   | The public `https://` URL clients reach the service on, everything before `/<name>/mcp`. Literal only, with no query string. See [Where the discovery document points](#where-the-discovery-document-points).                              |
-| `timeout`                  | integer (seconds), 1–900 | `60`                                    | The function timeout and the streaming integration timeout together. The official MCP SDK client waits 60 seconds per request by default, so a longer tool also needs the client's timeout raised.                                         |
-| `memorySize`               | integer (MB), 128–10240  | `provider.memorySize`, else `1024`      | The function's memory.                                                                                                                                                                                                                     |
-| `environment`              | object                   | None                                    | Environment variables, as on a function, CloudFormation intrinsics included.                                                                                                                                                               |
-| `state`                    | boolean or ARN string    | None                                    | The signing key for elicitation round trips: `true` creates one in your stack; a literal SSM parameter or Secrets Manager secret ARN uses yours. See [Elicitation state](#elicitation-state).                                              |
+| Property                   | Type                     | Default                                                            | Description                                                                                                                                                                                                                                                                                                  |
+| -------------------------- | ------------------------ | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `server`                   | string                   | Required (`MCP_SERVER_MODULE_REQUIRED`)                            | Path of the module, relative to the service directory, whose default export is the result of `createMcpHandler()`.                                                                                                                                                                                           |
+| `authorizer`               | string or object         | None (public)                                                      | Access control that API Gateway enforces before the server runs: an authorizer function's name, the key of a JWT authorizer in `provider.apiGateway.authorizers`, an object shaped like an `http` event's `authorizer`, or `aws_iam`. See [Reject requests at the gateway](#reject-requests-at-the-gateway). |
+| `oauthDiscovery`           | object                   | None                                                               | Publishes the server's OAuth protected-resource metadata (RFC 9728) so clients can find where to log in. It enforces nothing. See [OAuth discovery](#oauth-discovery).                                                                                                                                       |
+| `oauthDiscovery.issuer`    | string or intrinsic      | The issuer URLs of the server's JWT authorizer; otherwise required | The `https://` URL of the authorization server that issues the server's tokens, or a CloudFormation intrinsic that resolves to it. See [Issuer created by the same stack](#issuer-created-by-the-same-stack) and [Issuers from a JWT authorizer](#issuers-from-a-jwt-authorizer).                            |
+| `oauthDiscovery.publicUrl` | string                   | `provider.domain`, else the stage URL                              | The public `https://` URL clients reach the service on, everything before `/<name>/mcp`. Literal only, with no query string. See [Where the discovery document points](#where-the-discovery-document-points).                                                                                                |
+| `timeout`                  | integer (seconds), 1–900 | `60`                                                               | The function timeout and the streaming integration timeout together. The official MCP SDK client waits 60 seconds per request by default, so a longer tool also needs the client's timeout raised.                                                                                                           |
+| `memorySize`               | integer (MB), 128–10240  | `provider.memorySize`, else `1024`                                 | The function's memory.                                                                                                                                                                                                                                                                                       |
+| `environment`              | object                   | None                                                               | Environment variables, as on a function, CloudFormation intrinsics included.                                                                                                                                                                                                                                 |
+| `state`                    | boolean or ARN string    | None                                                               | The signing key for elicitation round trips: `true` creates one in your stack; a literal SSM parameter or Secrets Manager secret ARN uses yours. See [Elicitation state](#elicitation-state).                                                                                                                |
 
 Each server is a function of the service, so provider-level settings apply to it as to your own functions: `provider.architecture`, `provider.vpc`, `provider.layers`, `provider.iam`. Extend the generated execution role with `provider.iam.role.statements`, give every function its own role with `provider.iam.role.mode: perFunction`, or bring your own role (see [Permissions with your own role](#permissions-with-your-own-role)). The URL path, a per-server domain, CORS on the MCP route, and per-server `vpc`, `layers`, `role` or `provisionedConcurrency` aren't configurable per server.
 
@@ -285,7 +285,7 @@ mcp:
 
 What a rejection costs depends on the authorizer:
 
-- A Cognito user pool or `aws_iam` is checked by API Gateway, with no Lambda invocation.
+- A JWT authorizer, a Cognito user pool or `aws_iam` is checked by API Gateway, with no Lambda invocation.
 - A Lambda authorizer is its own invocation. API Gateway caches the policies it returns per token for `resultTtlInSeconds` (default `300`). An authorizer that rejects by throwing, which API Gateway answers with `401`, returns nothing to cache, so it runs again for every rejected request. An explicit Deny policy is cached, but API Gateway answers it with `403` instead of the `401` that starts a client's OAuth flow.
 - A request without the identity source (by default the `Authorization` header) is rejected without running the authorizer.
 
@@ -306,7 +306,7 @@ mcp:
         identitySource: method.request.header.Authorization
 ```
 
-The object form takes the keys of an `http` event's `authorizer` object: `name`, `arn`, `authorizerId`, `type`, `identitySource`, `identityValidationExpression`, `resultTtlInSeconds` (0–3600), `scopes` and `managedExternally`. See [Custom authorizers](../events/apigateway.md#http-endpoints-with-custom-authorizers) for each. `type` is one of `token`, `request`, `cognito_user_pools`, `aws_iam` or `custom`, in any case; the Framework writes the spelling API Gateway expects. Leave out `claims`: it applies only to API Gateway's `lambda` integration, and MCP routes always use the streaming proxy integration. With a literal Cognito ARN, `claims` is rejected when packaging; with a same-stack `Fn::GetAtt` ARN, it has no effect.
+The object form takes the keys of an `http` event's `authorizer` object: `name`, `arn`, `authorizerId`, `type`, `identitySource`, `identityValidationExpression`, `resultTtlInSeconds` (0–3600), `scopes` and `managedExternally`. See [Custom authorizers](../events/apigateway.md#http-endpoints-with-custom-authorizers) for each. `type` is one of `token`, `request`, `cognito_user_pools`, `aws_iam`, `custom` or `jwt`, in any case; the Framework writes the spelling API Gateway expects. Leave out `claims`: it applies only to API Gateway's `lambda` integration, and MCP routes always use the streaming proxy integration. With a literal Cognito ARN, `claims` is rejected when packaging; with a same-stack `Fn::GetAtt` ARN, it has no effect.
 
 These shapes are rejected with `MCP_AUTHORIZER_INVALID`, each message naming the fix:
 
@@ -335,6 +335,38 @@ mcp:
 ```
 
 With `scopes`, callers send a Cognito access token whose `scope` claim covers them; without `scopes`, API Gateway validates the ID token instead. Acceptance depends on the pool and the scopes, not the app client: a token from any app client of the pool with a listed scope is accepted, so per-client access needs distinct scopes or pools. For a pool declared under `resources`, write `name`, `type: COGNITO_USER_POOLS` and the `arn` as `Fn::GetAtt` (example under [Issuer created by the same stack](#issuer-created-by-the-same-stack)). For clients that register themselves (the discover-then-register flow), turn on [dynamic client registration](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-dynamic-client-registration.html) with open registration in the user pool, which needs the Essentials or Plus feature plan and managed login on every domain of the pool. A client that knows only the server's URL holds no initial access token, so it can't use authenticated registration. The custom scopes such a client requests must belong to a resource server whose identifier is the MCP server's URL, because Cognito binds the token to the requested `resource`, and they must be in the registration's allowed scopes; `openid`, `email`, `phone` and `profile` need neither. List those custom scopes under the authorizer's `scopes` too: the client sends an access token, which the authorizer validates only when `scopes` is set. Open registration lets anyone create app clients, which share the pool's app client quota; review the [security considerations](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-dynamic-client-registration.html#cognito-user-pools-dynamic-client-registration-security) and rate-limit the registration endpoint with [AWS WAF](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-waf.html) before you turn it on. Without dynamic client registration, Cognito suits pre-registered clients and machine-to-machine callers.
+
+### JWT authorizers
+
+A [JWT authorizer](../events/apigateway.md#jwt-authorizers) has API Gateway validate a token from any OpenID Connect or OAuth 2.0 identity provider, such as Auth0, Okta, Microsoft Entra ID or a Cognito user pool, with no authorizer function. Define it under `provider.apiGateway.authorizers`, and reference its key from the server, as a string or as `{ name, scopes }`:
+
+```yaml
+provider:
+  name: aws
+  domain: mcp.example.com
+  apiGateway:
+    authorizers:
+      agents:
+        type: jwt
+        issuerUrl: https://my-tenant.us.auth0.com/
+        audience: https://mcp.example.com/crm/mcp
+        algorithms:
+          - rs256
+
+mcp:
+  servers:
+    crm:
+      server: src/server.mjs
+      authorizer:
+        name: agents
+        scopes:
+          - crm:read
+      oauthDiscovery: {}
+```
+
+The authorizer's settings, the issuer and audience rules and the scope check are described in [JWT authorizers](../events/apigateway.md#jwt-authorizers): a token passes `scopes` when its `scope` or `scp` claim contains at least one of them. One authorizer can serve several servers and `http` events, each with its own scopes. To attach a JWT authorizer that exists on a shared REST API, set `type: jwt` and its `authorizerId`, as for an `http` event.
+
+API Gateway answers a missing or invalid token with `401` and a missing scope with `403`. The `401` carries a `WWW-Authenticate: Bearer` header with an error description but no `resource_metadata` pointer, so clients find the discovery document by probing the well-known paths (see [What clients do with the document](#what-clients-do-with-the-document)). With `oauthDiscovery: {}`, the discovery document lists the authorizer's issuers (see [Issuers from a JWT authorizer](#issuers-from-a-jwt-authorizer)).
 
 ### IAM authorization
 
@@ -398,7 +430,7 @@ export default {
 
 API Gateway REST APIs rename the challenge header in transit, so clients receive it as `x-amzn-remapped-www-authenticate`. A client that reads only `WWW-Authenticate` finds no pointer in it; the `401` itself starts the official SDK client's login, which then probes the well-known discovery paths.
 
-Every rejection in the module runs the server function, where a gateway rejection stops at the authorizer, or, with Cognito or `aws_iam`, costs no invocation.
+Every rejection in the module runs the server function, where a gateway rejection stops at the authorizer, or, with a JWT authorizer, Cognito or `aws_iam`, costs no invocation.
 
 ### Combine a gateway authorizer and a module gate
 
@@ -463,6 +495,41 @@ resources:
 - Other intrinsics are passed to CloudFormation as written.
 
 `publicUrl` is always a literal URL: it names a front door configured outside this stack, and the deploy prints it in the endpoint summary. It carries no query string, because the server's route is appended to it.
+
+### Issuers from a JWT authorizer
+
+When the server's `authorizer` names a JWT authorizer defined under `provider.apiGateway.authorizers`, `oauthDiscovery` can leave out `issuer`. The document then lists that authorizer's issuer URLs, one per issuer, as `authorization_servers`, so the issuer is written once:
+
+```yaml
+provider:
+  name: aws
+  domain: mcp.example.com
+  apiGateway:
+    authorizers:
+      agents:
+        type: jwt
+        issuerUrl: https://my-tenant.us.auth0.com/
+        audience: https://mcp.example.com/crm/mcp
+        algorithms:
+          - rs256
+
+mcp:
+  servers:
+    crm:
+      server: src/server.mjs
+      authorizer: agents
+      oauthDiscovery: {}
+```
+
+```json
+{
+  "resource": "https://mcp.example.com/crm/mcp",
+  "authorization_servers": ["https://my-tenant.us.auth0.com/"],
+  "bearer_methods_supported": ["header"]
+}
+```
+
+An issuer URL written as a CloudFormation intrinsic, such as `!GetAtt UserPool.ProviderURL`, is published with its deployed value, as for an intrinsic `issuer`. An `issuer` you set is published instead of the authorizer's issuers. Without `issuer`, the server's authorizer must be a JWT authorizer defined in `provider.apiGateway.authorizers`; with a Lambda or Cognito authorizer, or a JWT authorizer attached by `authorizerId`, set `issuer`.
 
 ### Where the discovery document points
 

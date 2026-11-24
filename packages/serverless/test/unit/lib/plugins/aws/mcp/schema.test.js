@@ -296,15 +296,29 @@ describe('mcp schema (real config-schema-handler)', () => {
     expect(message).toContain(`at 'mcp.servers.docs.oauthDiscovery.publicUrl'`)
   })
 
-  it('rejects `oauthDiscovery` without `issuer`', async () => {
-    const message = await validateMcp(
-      withServerConfig({
-        oauthDiscovery: { publicUrl: 'https://mcp.example.com' },
-      }),
-    )
-    expect(message).toContain(
-      `at 'mcp.servers.docs.oauthDiscovery': must have required property 'issuer'`,
-    )
+  // Whether an issuer is needed depends on the authorizer: one naming a JWT
+  // authorizer in `provider.apiGateway.authorizers` publishes that
+  // authorizer's issuers. Only `validate.js` can tell, so it enforces the
+  // requirement (`validate.test.js`), and the schema admits both shapes.
+  it('accepts `oauthDiscovery` without `issuer`', async () => {
+    expect(
+      await validateMcp(
+        withServerConfig({
+          authorizer: 'orders',
+          oauthDiscovery: { publicUrl: 'https://mcp.example.com' },
+        }),
+      ),
+    ).toBeNull()
+  })
+
+  it.each([
+    ['a JWT authorizer by name', { type: 'jwt', name: 'orders' }],
+    [
+      'a JWT authorizer by id, with scopes',
+      { type: 'JWT', authorizerId: { Ref: 'Shared' }, scopes: ['mcp:use'] },
+    ],
+  ])('accepts an authorizer that is %s', async (_label, authorizer) => {
+    expect(await validateMcp(withServerConfig({ authorizer }))).toBeNull()
   })
 
   it('rejects a non-https `oauthDiscovery.publicUrl`', async () => {

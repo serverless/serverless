@@ -364,6 +364,345 @@ resources:
         UserPoolName: my-service-users
 ```
 
+## JWT authorizers
+
+A JWT authorizer validates a JSON Web Token from an OpenID Connect (OIDC) or OAuth 2.0 identity provider, such as Auth0, Okta, Microsoft Entra ID or an Amazon Cognito user pool, before API Gateway calls the endpoint. API Gateway checks the token itself, so no authorizer function runs. One authorizer can trust up to 10 issuers, and each endpoint can require its own OAuth scopes. AWS describes the checks in [Control access to REST APIs using JWT authorizers](https://docs.aws.amazon.com/apigateway/latest/developerguide/rest-api-jwt-authorizer.html).
+
+Define the authorizer once under `provider.apiGateway.authorizers`, then reference it by its key from `http` events. This `serverless.yml` protects two endpoints with one authorizer, and requires the `orders:read` scope on one of them:
+
+```yaml
+# serverless.yml
+service: my-service
+
+provider:
+  name: aws
+  runtime: nodejs26.x
+  apiGateway:
+    authorizers:
+      orders:
+        type: jwt
+        issuerUrl: https://my-tenant.us.auth0.com/
+        audience: https://api.example.com/orders
+        algorithms:
+          - rs256
+
+functions:
+  listOrders:
+    handler: orders.list
+    events:
+      - http:
+          path: orders
+          method: get
+          authorizer:
+            name: orders
+            scopes:
+              - orders:read
+  health:
+    handler: health.get
+    events:
+      - http:
+          path: health
+          method: get
+          authorizer: orders
+```
+
+Replace `issuerUrl` with your issuer, exactly as it appears in your tokens' `iss` claim, and `audience` with the value of their `aud` claim (see [Issuer URL and audience](#issuer-url-and-audience)). `algorithms` is required: list the algorithms your issuer signs tokens with (see [Signing algorithms](#signing-algorithms)).
+
+Callers send the token in the `Authorization` header, with or without a `Bearer ` prefix:
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" https://abcdefghij.execute-api.us-east-1.amazonaws.com/dev/orders
+```
+
+API Gateway answers a missing, malformed or untrusted token with `401` and `{"message":"Unauthorized"}`, an expired one with `401` and `{"message":"The incoming token has expired"}`, and a valid token that lacks a required scope or fails a [claim rule](#claim-rules) with `403` and `{"Message":"Access Denied"}`. Both responses carry a `WWW-Authenticate` header that names the reason, for example `Bearer error="invalid_token" error_description="issuer does not match"`.
+
+For each authorizer, the Framework creates one API Gateway authorizer on the service's REST API, or on the REST API in `provider.apiGateway.restApiId`. It creates no Lambda function or invoke permission for it. Defining authorizers in a service with no REST API (no `http` event, no service proxy and no `provider.apiGateway.restApiId`) stops packaging and deployment with `"provider.apiGateway.authorizers" defines authorizers, but this service has no REST API: add an http event, or set "provider.apiGateway.restApiId" and "provider.apiGateway.restApiRootResourceId" to the shared REST API.` A service on a shared REST API sets both IDs, as in [Use an existing REST API](#use-an-existing-rest-api), also when it only defines authorizers.
+
+### JWT authorizer settings
+
+A JWT authorizer under `provider.apiGateway.authorizers.<key>` takes these settings. The key is the name that `http` events reference, case-sensitively. It holds letters, digits, `-` and `_` only, because it becomes part of a CloudFormation resource name, and `aws_iam`, in any case, is reserved for IAM authorization:
+
+| Key                | Default                               | Description                                                                                                                                                                                                                               |
+| ------------------ | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`             | Required                              | `jwt`, in any case. `provider.apiGateway.authorizers` holds JWT authorizers only; Lambda and Cognito user pool authorizers are set on the `http` event.                                                                                   |
+| `algorithms`       | Required                              | A list of the signing algorithms the authorizer accepts: `RS256`, `RS384`, `RS512`, `ES256`, `ES384` or `ES512`, in any case, each at most once.                                                                                          |
+| `issuerUrl`        | Required without `issuers`            | The issuer, exactly as in the token's `iss` claim: an `https://` URL with a host and no query, fragment or user info. A string, a variable or a CloudFormation intrinsic function.                                                        |
+| `audience`         | Required without `issuers`            | The accepted value of the token's `aud` claim, or a list of 1 to 100 of them, each listed once. Each is a string or a CloudFormation intrinsic function.                                                                                  |
+| `additionalClaims` | None                                  | Up to 10 claim rules for the issuer, by claim name. See [Claim rules](#claim-rules).                                                                                                                                                      |
+| `issuers`          | None                                  | A list of 1 to 10 issuers, each with its own `issuerUrl`, `audience` and optional `additionalClaims`. Not with the top-level `issuerUrl`, `audience` or `additionalClaims`. See [Several issuers](#several-issuers).                      |
+| `identitySource`   | `method.request.header.Authorization` | The request header that carries the token, as one `method.request.header.<Name>`. The header holds the token with or without a `Bearer ` prefix, in any case. Query strings, context values and lists of several sources aren't accepted. |
+| `name`             | The key                               | The authorizer's name in API Gateway. Names are unique within a REST API.                                                                                                                                                                 |
+
+A JWT authorizer has no result cache. On an `http` event that uses a JWT authorizer, `resultTtlInSeconds`, `identitySource`, `identityValidationExpression`, `claims`, `arn` and `managedExternally` stop packaging and deployment with `API_GATEWAY_JWT_AUTHORIZER_UNSUPPORTED_PROPERTY` and a message that names the key, for example `Function "listOrders" sets "resultTtlInSeconds" on an http event that uses JWT authorizer "orders". JWT authorizers don't cache results: remove "resultTtlInSeconds".`
+
+The Framework checks the limits in the table when you package or deploy, and stops with `API_GATEWAY_JWT_AUTHORIZER_INVALID` and a message that names the authorizer and the key. Values written as CloudFormation intrinsic functions get only their shape checked; API Gateway checks the resolved values at deploy time.
+
+### Signing algorithms
+
+`algorithms` lists the signing algorithms the authorizer accepts; a token signed with any other algorithm gets `401`. It has no default. Without it, packaging and deployment stop with:
+
+```text
+API Gateway authorizer "orders" has no "algorithms". List the signing algorithms your issuer uses, for example "algorithms: [RS256]" (allowed: RS256, RS384, RS512, ES256, ES384, ES512). The issuer's discovery document lists them under "id_token_signing_alg_values_supported".
+```
+
+To find your issuer's algorithms, open its OpenID Connect discovery document, the issuer URL without a trailing slash followed by `/.well-known/openid-configuration`, and read `id_token_signing_alg_values_supported`:
+
+```bash
+curl -s https://my-tenant.us.auth0.com/.well-known/openid-configuration
+```
+
+```text
+"id_token_signing_alg_values_supported": ["HS256", "RS256", "PS256"]
+```
+
+List only the algorithms your tokens are signed with. A token's `alg` header names the algorithm it uses, and most identity providers sign with `RS256` by default. API Gateway accepts `RS256`, `RS384`, `RS512`, `ES256`, `ES384` and `ES512`, and rejects tokens signed with HMAC algorithms such as `HS256` or with `PS256`. An issuer that signs with `PS256`, an option some providers such as Auth0 offer, needs its signing algorithm changed to one of the six before a JWT authorizer accepts its tokens.
+
+### Issuer URL and audience
+
+API Gateway accepts a token only when its `iss` claim equals one of the authorizer's issuer URLs exactly, including any trailing slash. To find the value, decode a token from your identity provider and copy its `iss` claim. The Framework passes `issuerUrl` to API Gateway as written. For example:
+
+- **Auth0**: the issuer ends in `/`, such as `https://my-tenant.us.auth0.com/`.
+- **Microsoft Entra ID**: use the issuer of your tenant, such as `https://login.microsoftonline.com/<tenant ID>/v2.0` for v2.0 tokens, not the `common` or `organizations` endpoint. Those endpoints aren't issuers: tokens carry the issuer of the user's own tenant.
+- **Amazon Cognito user pool**: `https://cognito-idp.<region>.amazonaws.com/<user pool ID>`, with no trailing slash. See [Cognito user pool as the issuer](#cognito-user-pool-as-the-issuer).
+
+When you deploy, API Gateway reads the issuer's discovery document at the issuer URL followed by `/.well-known/openid-configuration`, and finds the issuer's signing keys through it. The document and the keys must be reachable from the public internet, also for private REST APIs. An issuer URL that doesn't match the `issuer` in that document, or whose document can't be retrieved, stops the deploy (see [JWT authorizer deploy errors](#jwt-authorizer-deploy-errors)).
+
+`audience` lists the accepted values of the token's `aud` claim. For an Amazon Cognito access token, API Gateway checks its `client_id` claim instead, so with a Cognito issuer set `audience` to the app client ID for both token types.
+
+### Several issuers
+
+To accept tokens from several identity providers, or from several tenants of one provider, list them under `issuers`. Each issuer has its own `audience` and optional `additionalClaims`:
+
+```yaml
+provider:
+  name: aws
+  apiGateway:
+    authorizers:
+      partners:
+        type: jwt
+        algorithms:
+          - rs256
+        issuers:
+          - issuerUrl: https://login.microsoftonline.com/${param:entraTenantId}/v2.0
+            audience: api://orders
+          - issuerUrl: https://my-tenant.us.auth0.com/
+            audience:
+              - https://api.example.com/orders
+              - https://api.example.com/reports
+```
+
+`entraTenantId` is a [parameter](../../../guides/parameters.md) that holds your Entra ID tenant ID. An authorizer lists 1 to 10 issuers, each issuer URL once. `algorithms` and `identitySource` apply to every issuer of the authorizer. `issuers` can't be combined with a top-level `issuerUrl`, `audience` or `additionalClaims`.
+
+### Claim rules
+
+`additionalClaims` makes API Gateway check other claims of the token for one issuer, in addition to `iss`, `aud`, the token's expiry and the endpoint's scopes. It maps claim names to rules, in one of three forms:
+
+```yaml
+provider:
+  name: aws
+  apiGateway:
+    authorizers:
+      orders:
+        type: jwt
+        issuerUrl: https://my-tenant.us.auth0.com/
+        audience: https://api.example.com/orders
+        algorithms:
+          - rs256
+        additionalClaims:
+          # A string: the claim must be present and equal "acme"
+          tenant: acme
+          # true: the claim must be present, with any value
+          department: true
+          # value with required: false: checked only when the token carries the claim
+          tier:
+            value: gold
+            required: false
+```
+
+`{ value: acme }` without `required` is the same as `tenant: acme`. An issuer takes up to 10 rules. The claim names `iss`, `aud`, `exp`, `nbf`, `iat`, `scope` and `scp` aren't accepted: API Gateway checks those itself, and [scopes](#scopes-on-endpoints) go on the `http` event.
+
+API Gateway compares the value exactly, case-sensitively, and matches only a claim whose value in the token is a single string. A token whose claim is an array, such as `"groups": ["admins", "users"]`, fails the rule. A token that fails a claim rule gets `403`. To check array claims or several accepted values, check them in your function, or use a [Lambda authorizer](#http-endpoints-with-custom-authorizers).
+
+### Scopes on endpoints
+
+An `http` event's `authorizer.scopes` lists the OAuth scopes the endpoint requires. A token passes when its `scope` claim (a space-separated string) or its `scp` claim (a list) contains at least one of them; a valid token without any of them gets `403`. Each endpoint sets its own scopes:
+
+```yaml
+functions:
+  listOrders:
+    handler: orders.list
+    events:
+      - http:
+          path: orders
+          method: get
+          authorizer:
+            name: orders
+            scopes:
+              - orders:read
+  createOrder:
+    handler: orders.create
+    events:
+      - http:
+          path: orders
+          method: post
+          authorizer:
+            name: orders
+            scopes:
+              - orders:write
+```
+
+`authorizer: orders` (a string) is the same as `authorizer: { name: orders }`, without scopes. `type: jwt` beside `name` is optional. A `name` with `type: jwt` that isn't a key of `provider.apiGateway.authorizers` stops packaging and deployment with `Function "listOrders" references JWT authorizer "orderz", which isn't defined. Define it under "provider.apiGateway.authorizers", or set "authorizerId" to attach an existing one.`
+
+Amazon Cognito names scopes `<resource server>/<scope>`, such as `orders/read`. When an authorizer trusts a Cognito user pool and other issuers, list each form of a scope the endpoint accepts.
+
+### Cognito user pool as the issuer
+
+A JWT authorizer accepts tokens from an Amazon Cognito user pool like any other issuer: the issuer URL is `https://cognito-idp.<region>.amazonaws.com/<user pool ID>`, and the audience is the app client ID. For a user pool declared under `resources` in the same service, set `issuerUrl` to the pool's `ProviderURL` attribute and `audience` to a `Ref` of the app client:
+
+```yaml
+provider:
+  name: aws
+  apiGateway:
+    authorizers:
+      users:
+        type: jwt
+        issuerUrl: !GetAtt UserPool.ProviderURL
+        audience: !Ref UserPoolClient
+        algorithms:
+          - rs256
+
+functions:
+  getProfile:
+    handler: profile.get
+    events:
+      - http:
+          path: me
+          method: get
+          authorizer: users
+  updateProfile:
+    handler: profile.update
+    events:
+      - http:
+          path: me
+          method: put
+          authorizer:
+            name: users
+            scopes:
+              - aws.cognito.signin.user.admin
+
+resources:
+  Resources:
+    UserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: ${self:service}-${sls:stage}-users
+    UserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        UserPoolId: !Ref UserPool
+        ClientName: my-service-web
+        ExplicitAuthFlows:
+          - ALLOW_USER_SRP_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
+```
+
+With a Cognito issuer, API Gateway applies Cognito's token-type rule: an endpoint without `scopes` accepts only ID tokens, and an endpoint with `scopes` accepts only access tokens. A token of the other type gets `401`. The app client ID matches both: an ID token carries it in `aud`, and an access token in `client_id`.
+
+Two more Cognito specifics:
+
+- A Cognito access token carries no custom attributes such as `custom:tier` unless a [pre token generation trigger](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-pre-token-generation.html) adds them. A required `additionalClaims` rule on a claim the access token doesn't carry rejects every access token from that pool with `403`; a rule with `required: false` checks the claim only when it is present. Put required rules on such claims only on authorizers whose endpoints take ID tokens, or add the claims to access tokens with the trigger.
+- An access token from user sign-in carries the scope `aws.cognito.signin.user.admin`. To require scopes that distinguish callers, define them on a resource server of the pool and grant them to the app client.
+
+A JWT authorizer accepts tokens only from the app clients listed in `audience`. To accept tokens from every app client of a pool without listing them, use a [Cognito user pool authorizer](#cognito-user-pool-authorizers) instead.
+
+### Read JWT claims in the function
+
+With the default `lambda-proxy` integration, the function receives the validated token's claims in `event.requestContext.authorizer.claims`, each with its JSON type:
+
+```javascript
+// orders.mjs
+export const list = async (event) => {
+  const claims = event.requestContext.authorizer?.claims ?? {}
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ user: claims.sub }),
+  }
+}
+```
+
+Delivery of JWT claims to integrations is rolling out across AWS Regions and may not be available in every Region. Where it isn't, `event.requestContext.authorizer` is `null` even though API Gateway validated the token. Before your function relies on claims, check that they arrive in your Region; where they don't, decode the token in the function from the header the authorizer reads (its `identitySource`, `Authorization` by default), on routes that use that authorizer, so the function reads only a token API Gateway has validated. AWS documents the claim format in [Pass JWT claims to your integration](https://docs.aws.amazon.com/apigateway/latest/developerguide/rest-api-jwt-authorizer-claims.html).
+
+### Migrate from a Lambda or Cognito authorizer to a JWT authorizer
+
+To move endpoints from a Lambda or Cognito user pool authorizer to a JWT authorizer, give the JWT authorizer a name that differs from the old authorizer's, define it under `provider.apiGateway.authorizers`, and point the events at it in one deploy:
+
+```yaml
+provider:
+  name: aws
+  apiGateway:
+    authorizers:
+      ordersJwt:
+        type: jwt
+        issuerUrl: https://my-tenant.us.auth0.com/
+        audience: https://api.example.com/orders
+        algorithms:
+          - rs256
+
+functions:
+  listOrders:
+    handler: orders.list
+    events:
+      - http:
+          path: orders
+          method: get
+          authorizer: ordersJwt # was: authorizer: verifyToken
+```
+
+The deploy creates the JWT authorizer, switches the endpoints to it, and removes the old authorizer once no endpoint uses it. If the deploy fails, CloudFormation rolls back to the old authorizer. The new name matters because API Gateway creates the JWT authorizer before it deletes the old one, and names are unique within a REST API. A JWT authorizer named like an authorizer the deploy removes stops the deploy with:
+
+```text
+Authorizer name must be unique. Authorizer verifyToken already exists in this RestApi.
+```
+
+Packaging stops with `API_GATEWAY_AUTHORIZER_NAME_CONFLICT` when:
+
+- a JWT authorizer's name in API Gateway (its `name`, or its key when it has no `name`) matches a Lambda or Cognito user pool authorizer of the service, or an `http` event gives a JWT authorizer's key as the `name` of a Lambda or Cognito user pool authorizer;
+- an `http` event references a JWT authorizer as `authorizer: <key>` or `authorizer: { name: <key> }` and the service also has a function named `<key>`, because the reference could mean either. Write `authorizer: { type: jwt, name: <key> }` to use the JWT authorizer, or rename it;
+- two keys differ only in case or punctuation, such as `orders` and `Orders`, because they would compile to the same CloudFormation resource.
+
+After the switch, check what the function reads: a Lambda authorizer's context and `claims` with the `lambda` integration don't exist with a JWT authorizer; read [claims in the function](#read-jwt-claims-in-the-function) instead.
+
+### JWT authorizer deploy errors
+
+API Gateway reads each issuer's discovery document when the deploy creates or updates the authorizer, so issuer problems stop the deploy with API Gateway's message, inside CloudFormation's `Resource handler returned message: "..."`.
+
+#### `Invalid issuer: ... Issuer should exactly match the issuer in its OpenID Connect discovery document`
+
+```text
+Invalid issuer: https://idp.example.com/. Issuer should exactly match the issuer in its OpenID Connect discovery document: https://idp.example.com.
+```
+
+The issuer URL differs from the `issuer` in the issuer's discovery document, most often by a trailing slash. Set `issuerUrl` to the value the message ends with, which is also the `iss` claim of the issuer's tokens.
+
+#### `Invalid issuer: ... Issuer should have an OpenID Connect discovery document at ...`
+
+```text
+Invalid issuer: https://idp.example.com. Issuer should have an OpenID Connect discovery document at https://idp.example.com/.well-known/openid-configuration, but it couldn't be retrieved because it didn't return HTTP 200.
+```
+
+API Gateway couldn't read the discovery document. The message ends with the cause: `it didn't return HTTP 200` when the URL answers without a document, which usually means the issuer URL isn't the issuer (copy it from a token's `iss` claim), and `its host doesn't resolve to an allowed public address` when the host isn't public. The document must be reachable from the public internet and served with a certificate from a [certificate authority API Gateway supports](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-supported-certificate-authorities-for-http-endpoints.html).
+
+#### Every token gets `401` after a successful deploy
+
+API Gateway's `WWW-Authenticate` response header names the check that failed:
+
+- `issuer does not match`: the token's `iss` differs from every issuer URL of the authorizer.
+- `the token does not have a valid audience`: the token's `aud` (or, for a Cognito access token, `client_id`) isn't in `audience`.
+- `the token's signing algorithm is not allowed`: add the token's `alg` to `algorithms`.
+- `the token's token_use is not valid for this method`: a Cognito ID token on an endpoint with `scopes`, which accepts only access tokens (see [Cognito user pool as the issuer](#cognito-user-pool-as-the-issuer)).
+
+AWS lists more causes in [Signing keys and troubleshooting JWT authorizers](https://docs.aws.amazon.com/apigateway/latest/developerguide/rest-api-jwt-authorizer-keys.html).
+
 ## Share authorizer
 
 To use one authorizer for endpoints in several services, for example on a shared REST API, create the authorizer once and reference its ID. Set the `http` event's `authorizer.authorizerId` and `type`:
@@ -377,10 +716,10 @@ functions:
           path: /users
           method: post
           authorizer:
-            type: COGNITO_USER_POOLS # TOKEN, REQUEST or COGNITO_USER_POOLS
+            type: COGNITO_USER_POOLS # TOKEN, REQUEST, COGNITO_USER_POOLS or JWT
             authorizerId:
               Ref: ApiGatewayAuthorizer # or the authorizer ID
-            scopes: # Optional, COGNITO_USER_POOLS only
+            scopes: # Optional, COGNITO_USER_POOLS and JWT only
               - myapp/myscope
 
 resources:
@@ -398,7 +737,72 @@ resources:
           - arn:aws:cognito-idp:${aws:region}:123456789012:userpool/us-east-1_ZZZ
 ```
 
-With `authorizerId`, `type: TOKEN` and `type: REQUEST` make the method use a Lambda authorizer; `scopes` apply only with `COGNITO_USER_POOLS`. The Framework creates no authorizer or permission for these events.
+With `authorizerId`, `type: TOKEN` and `type: REQUEST` make the method use a Lambda authorizer, and `type: jwt` a JWT authorizer; `scopes` apply only with `COGNITO_USER_POOLS` and `jwt`. The Framework creates no authorizer or permission for these events.
+
+### Share a JWT authorizer
+
+A [JWT authorizer](#jwt-authorizers) is shared the same way. The service that owns the REST API, or any service on it, defines the authorizer under `provider.apiGateway.authorizers` and exports its ID. The Framework names the authorizer's CloudFormation resource after its key: each `-` becomes `Dash` and each `_` becomes `Underscore`, the first letter becomes uppercase, and `ApiGatewayJwtAuthorizer` is appended (`orders` becomes `OrdersApiGatewayJwtAuthorizer`, `orders_api` becomes `OrdersUnderscoreapiApiGatewayJwtAuthorizer`). `Ref` returns the authorizer ID:
+
+```yaml
+# serverless.yml of service-a, which owns the REST API
+service: service-a
+
+provider:
+  name: aws
+  apiGateway:
+    authorizers:
+      orders:
+        type: jwt
+        issuerUrl: https://my-tenant.us.auth0.com/
+        audience: https://api.example.com/orders
+        algorithms:
+          - rs256
+
+functions:
+  listOrders:
+    handler: orders.list
+    events:
+      - http:
+          path: orders
+          method: get
+          authorizer: orders
+
+resources:
+  Outputs:
+    OrdersJwtAuthorizerId:
+      Value:
+        Ref: OrdersApiGatewayJwtAuthorizer
+```
+
+Another service on the same REST API (see [Use an existing REST API](#use-an-existing-rest-api)) attaches it with `type: jwt` and `authorizerId`, with its own scopes per endpoint:
+
+```yaml
+# serverless.yml of service-b, on service-a's REST API
+service: service-b
+
+provider:
+  name: aws
+  apiGateway:
+    restApiId: a1b2c3d4e5
+    restApiRootResourceId: f6g7h8i9j0
+
+functions:
+  listReports:
+    handler: reports.list
+    events:
+      - http:
+          path: reports
+          method: get
+          authorizer:
+            type: jwt
+            authorizerId: ${cf:service-a-dev.OrdersJwtAuthorizerId}
+            scopes:
+              - reports:read
+```
+
+`type: jwt` is required beside `authorizerId`: API Gateway rejects a method of another authorization type that names a JWT authorizer. An `http` event that sets `authorizerId` and also names a key of `provider.apiGateway.authorizers` in `name` stops packaging with `API_GATEWAY_JWT_AUTHORIZER_UNSUPPORTED_PROPERTY`: set one or the other. A service with `provider.apiGateway.restApiId`, `restApiRootResourceId` and no `http` events can own the authorizers of the shared REST API.
+
+Changes to an authorizer take effect on a stage after that REST API is deployed again. A service that only defines the authorizer on a shared REST API, with no `http` events, doesn't create a stage deployment. To apply the change, run `serverless deploy --force` in a service with endpoints on that REST API: without `--force`, a service whose own files haven't changed skips the deployment (`No changes to deploy. Deployment skipped.`).
 
 When services on a shared REST API each set the same authorizer `arn` instead, each creates its own authorizer resource on the API, and they can clash. Share the authorizer by ID, or give each authorizer a unique `name`. A REST API has a default quota of 10 authorizers.
 
