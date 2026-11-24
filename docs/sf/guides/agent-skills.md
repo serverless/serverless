@@ -116,7 +116,7 @@ codex plugin marketplace add serverless/agent-plugins
 codex plugin add serverless@serverless
 ```
 
-Codex doesn't update plugins from this marketplace on its own. To get a new version of the skills, refresh the marketplace, which also updates the installed plugin, then start a new Codex session:
+Codex checks this marketplace for a new plugin version when a session starts. To update right away, refresh the marketplace, which also updates the installed plugin, then start a new Codex session:
 
 ```bash
 codex plugin marketplace upgrade serverless
