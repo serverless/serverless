@@ -6,6 +6,18 @@ the home skill directories, the rest into the project — and auto-update keeps
 them current; `serverless agent skills read` prints one on demand. Format: https://agentskills.io — one directory
 per skill containing `SKILL.md` (+ optional aux files, e.g. `references/`).
 
+## Also published as an agent plugin
+
+Every skill here also ships, unchanged, in the public agent plugin
+https://github.com/serverless/agent-plugins (Claude Code, Codex, GitHub Copilot
+CLI, Gemini CLI). A workflow there copies the skills from each `sf-core@x.y.z`
+release and publishes a new plugin version, so a change here reaches plugin
+users with the next Framework release. Make skill changes here, never in the
+plugin repo; a new skill also needs adding to the plugin's list of skills. The
+CLI compares `metadata.version` with the plugin's copy to decide whether to
+install its own copy next to a Claude Code plugin, so the version bump below
+matters for plugin users too.
+
 ## Frontmatter contract (CI-enforced)
 
     ---

@@ -10,7 +10,11 @@ import { parseFrontmatter } from './read-skills.js'
 
 export const MANAGED_BY = 'serverless-framework'
 
-const readInstalledMeta = async (skillDir) => {
+/**
+ * What is installed at `skillDir`: nothing, a skill this CLI manages (with its
+ * version), or a skill without the managed-by marker (customized by the user).
+ */
+export const readInstalledMeta = async (skillDir) => {
   let content
   try {
     content = await readFile(path.join(skillDir, 'SKILL.md'), 'utf8')

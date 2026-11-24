@@ -299,6 +299,94 @@ it('never throws even when sync explodes', async () => {
   ).resolves.toBeUndefined()
 })
 
+it('does not add the user skill to ~/.claude/skills when a Claude Code plugin provides it', async () => {
+  // ~/.claude/skills holds another Framework-managed skill, such as one
+  // installed with "npx skills add --global", so the update runs there.
+  await syncSkills({
+    bundledSkills: [scoped('sls-other', 1, 'project')],
+    targetDirs: [homeClaudeSkills()],
+  })
+  const pluginSkill = path.join(
+    home,
+    '.claude',
+    'plugins',
+    'cache',
+    'acme',
+    'tools',
+    '1.0.0',
+    'skills',
+    'sls-gateway',
+  )
+  await mkdir(pluginSkill, { recursive: true })
+  await writeFile(
+    path.join(pluginSkill, 'SKILL.md'),
+    scopedMd('sls-gateway', 2, 'user'),
+  )
+  await writeFile(
+    path.join(home, '.claude', 'settings.json'),
+    JSON.stringify({ enabledPlugins: { 'tools@acme': true } }),
+  )
+  // The plugin's skill comes first; the update still moves on to the next one.
+  await syncSkills({
+    bundledSkills: [scoped('sls-helper', 1, 'user')],
+    targetDirs: [homeClaudeSkills()],
+  })
+  await autoUpdateAgentSkills(
+    args({
+      configFilePath: undefined,
+      getBundled: async () => [
+        scoped('sls-gateway', 2, 'user'),
+        scoped('sls-helper', 2, 'user'),
+      ],
+    }),
+  )
+  expect(existsSync(path.join(homeClaudeSkills(), 'sls-gateway'))).toBe(false)
+  expect(
+    await read(path.join(homeClaudeSkills(), 'sls-helper', 'SKILL.md')),
+  ).toContain('body sls-helper v2')
+})
+
+it('does not add a project skill to .claude/skills that a Claude Code plugin provides', async () => {
+  // The service already has our skills in .claude/skills, so the update runs
+  // there; a new bundled skill the plugin provides is not added next to them.
+  await syncSkills({
+    bundledSkills: [scoped('sls-old', 1, 'project')],
+    targetDirs: [claudeSkills()],
+  })
+  const pluginSkill = path.join(
+    home,
+    '.claude',
+    'plugins',
+    'cache',
+    'acme',
+    'tools',
+    '1.0.0',
+    'skills',
+    'sls-project',
+  )
+  await mkdir(pluginSkill, { recursive: true })
+  await writeFile(
+    path.join(pluginSkill, 'SKILL.md'),
+    scopedMd('sls-project', 2, 'project'),
+  )
+  await writeFile(
+    path.join(home, '.claude', 'settings.json'),
+    JSON.stringify({ enabledPlugins: { 'tools@acme': true } }),
+  )
+  await autoUpdateAgentSkills(
+    args({
+      getBundled: async () => [
+        scoped('sls-old', 2, 'project'),
+        scoped('sls-project', 2, 'project'),
+      ],
+    }),
+  )
+  expect(
+    await read(path.join(claudeSkills(), 'sls-old', 'SKILL.md')),
+  ).toContain('body sls-old v2')
+  expect(existsSync(path.join(claudeSkills(), 'sls-project'))).toBe(false)
+})
+
 it('names each skill change once, however many folders it happened in', () => {
   const change = (skill, dir, action, fromVersion, toVersion) => ({
     skill,

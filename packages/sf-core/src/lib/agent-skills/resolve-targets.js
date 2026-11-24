@@ -6,7 +6,8 @@
 import { stat } from 'fs/promises'
 import path from 'path'
 import { ServerlessError, ServerlessErrorCodes } from '@serverless/util'
-import { hasManagedSkills } from './engine.js'
+import { hasManagedSkills, readInstalledMeta } from './engine.js'
+import { findClaudePluginSkill } from './plugin-skills.js'
 
 export const DIR_MAP = { claude: '.claude/skills', agents: '.agents/skills' }
 
@@ -106,4 +107,119 @@ export const resolveUserTargetDirs = async ({ homeDir, dirFlags }) => {
   }
   const keys = detected.length ? [...new Set(detected)] : Object.keys(DIR_MAP)
   return keys.map((k) => path.join(homeDir, ...DIR_MAP[k].split('/')))
+}
+
+/**
+ * User-scope targets for ONE skill: the dirs resolveUserTargetDirs picks,
+ * leaving out `~/.claude/skills` when a Claude Code plugin already provides the
+ * skill (withoutPluginCopy has the rules). Explicit `--dir` targets are kept
+ * as they are, with no plugin note.
+ *
+ * @returns {Promise<{dirs: string[], plugin?: {version: number, alsoInstalled: boolean, older?: boolean, id?: string}}>}
+ */
+export const resolveUserSkillTargetDirs = async ({
+  homeDir,
+  dirFlags,
+  skill,
+  findPluginSkill = findClaudePluginSkill, // test seam
+}) => {
+  const dirs = await resolveUserTargetDirs({ homeDir, dirFlags })
+  if (dirFlags?.length) return { dirs }
+  return withoutPluginCopy({
+    dirs,
+    claudeDir: path.join(homeDir, ...DIR_MAP.claude.split('/')),
+    skill,
+    findPlugin: () => findPluginSkill({ homeDir, skillName: skill.name }),
+  })
+}
+
+/**
+ * User-scope targets for ONE skill within `dirs` already chosen (the automatic
+ * update's dirs that hold managed skills), with the plugin rules of
+ * resolveUserSkillTargetDirs.
+ *
+ * @returns {Promise<{dirs: string[], plugin?: object}>}
+ */
+export const resolveUserSkillTargetsWithin = async ({
+  dirs,
+  homeDir,
+  skill,
+  findPluginSkill = findClaudePluginSkill, // test seam
+}) =>
+  withoutPluginCopy({
+    dirs,
+    claudeDir: path.join(homeDir, ...DIR_MAP.claude.split('/')),
+    skill,
+    findPlugin: () => findPluginSkill({ homeDir, skillName: skill.name }),
+  })
+
+/**
+ * Project-scope targets for ONE skill: `targetDirs` (from resolveTargetDirs)
+ * with the same plugin rules as resolveUserSkillTargetDirs, applied to the
+ * service's `.claude/skills`. Only a plugin that Claude Code loads for the
+ * user, and that the project's settings don't turn off, counts. A copy already
+ * in the service stays a target, so a copy teammates committed keeps getting
+ * updates.
+ *
+ * @returns {Promise<{dirs: string[], plugin?: {version: number, alsoInstalled: boolean, older?: boolean, id?: string}}>}
+ */
+export const resolveProjectSkillTargetDirs = async ({
+  targetDirs,
+  serviceDir,
+  homeDir,
+  dirFlags,
+  skill,
+  findPluginSkill = findClaudePluginSkill, // test seam
+}) => {
+  if (dirFlags?.length || !homeDir) return { dirs: targetDirs }
+  return withoutPluginCopy({
+    dirs: targetDirs,
+    claudeDir: path.join(serviceDir, ...DIR_MAP.claude.split('/')),
+    skill,
+    findPlugin: () =>
+      findPluginSkill({
+        homeDir,
+        skillName: skill.name,
+        projectDir: serviceDir,
+      }),
+  })
+}
+
+/**
+ * Claude Code lists a plugin's skill and a skill of the same name in a skills
+ * dir it reads side by side. So when a plugin provides `skill` at the bundled
+ * version or newer:
+ *  - nothing in `claudeDir` yet: that dir is left out. No other dir takes its
+ *    place: creating `.agents` here would change which dirs later runs pick;
+ *  - a managed copy is already there: it stays a target (this CLI never
+ *    deletes), and `alsoInstalled` lets the caller say that it is listed twice.
+ * When the plugin's copy is older, `claudeDir` stays a target so the bundled
+ * version is installed, and `older` lets the caller say that it is listed
+ * twice and that the plugin needs an update (`id` names it for
+ * `claude plugin update` when it has one). A copy the user customized leaves
+ * the dirs as they are, with no plugin note, and so does a `claudeDir` that
+ * isn't a target.
+ */
+const withoutPluginCopy = async ({ dirs, claudeDir, skill, findPlugin }) => {
+  if (!dirs.includes(claudeDir)) return { dirs }
+  const installed = await readInstalledMeta(path.join(claudeDir, skill.name))
+  if (installed.present && !installed.managed) return { dirs }
+  const plugin = await findPlugin()
+  if (!plugin) return { dirs }
+  if (plugin.version < skill.version)
+    return {
+      dirs,
+      plugin: {
+        version: plugin.version,
+        alsoInstalled: true,
+        older: true,
+        ...(plugin.id && { id: plugin.id }),
+      },
+    }
+  if (installed.present)
+    return { dirs, plugin: { version: plugin.version, alsoInstalled: true } }
+  return {
+    dirs: dirs.filter((dir) => dir !== claudeDir),
+    plugin: { version: plugin.version, alsoInstalled: false },
+  }
 }

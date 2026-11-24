@@ -11,9 +11,12 @@ import { getBundledSkills } from '../../agent-skills/manifest.js'
 import {
   assertValidDirFlags,
   resolveTargetDirs,
-  resolveUserTargetDirs,
 } from '../../agent-skills/resolve-targets.js'
-import { syncSkills } from '../../agent-skills/engine.js'
+import {
+  pluginCopyNote,
+  syncProjectSkills,
+  syncUserSkills,
+} from '../../agent-skills/user-skills.js'
 
 /**
  * Render a path for display. path.relative/path.join hand back backslashes on
@@ -90,9 +93,17 @@ export default async function agentSkillsInstall({
       serviceDir,
       homeDir: home,
     })
-    report = await syncSkills({ bundledSkills: projectSkills, targetDirs })
+    const project = await syncProjectSkills({
+      projectSkills,
+      targetDirs,
+      serviceDir,
+      homeDir: home,
+      dirFlags,
+    })
+    report = project.report
 
-    for (const dir of targetDirs) {
+    // The dirs the skills went to: one a plugin took every skill from isn't one.
+    for (const dir of project.dirs) {
       logger.notice(`Target: ${toDisplayPath(path.relative(serviceDir, dir))}`)
     }
     for (const c of report.changes) {
@@ -108,6 +119,9 @@ export default async function agentSkillsInstall({
         `  · ${s.skill}: customized by you (no managed-by) — skipped`,
       )
     }
+    for (const copy of project.pluginCopies) {
+      logger.notice(`  · ${pluginCopyNote(copy)}`)
+    }
   }
 
   if (userSkills.length) {
@@ -116,10 +130,10 @@ export default async function agentSkillsInstall({
         'skills: user-level install skipped (no home directory available in this environment)',
       )
     } else {
-      const userDirs = await resolveUserTargetDirs({ homeDir: home, dirFlags })
-      const userReport = await syncSkills({
-        bundledSkills: userSkills,
-        targetDirs: userDirs,
+      const { report: userReport, pluginCopies } = await syncUserSkills({
+        userSkills,
+        homeDir: home,
+        dirFlags,
       })
       for (const c of userReport.changes) {
         const rel = `~/${toDisplayPath(path.relative(home, c.dir))}`
@@ -135,6 +149,9 @@ export default async function agentSkillsInstall({
         logger.notice(
           `  · ${s.skill}: customized by you (no managed-by) — skipped`,
         )
+      }
+      for (const copy of pluginCopies) {
+        logger.notice(`  · ${pluginCopyNote(copy)}`)
       }
     }
   }
