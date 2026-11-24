@@ -199,13 +199,20 @@ export function generateBuildRole(name, cfg, ctx) {
                 Action: ['s3:GetObject'],
                 Resource: s3Resource,
               },
-              // Write build logs to the microVMs log group
+              // Write build logs to the microVMs log group. The group ARN
+              // covers logs:CreateLogGroup; the `:*` variant is the log
+              // stream ARN form for logs:CreateLogStream.
               {
                 Effect: 'Allow',
                 Action: ['logs:CreateLogGroup', 'logs:CreateLogStream'],
-                Resource: {
-                  'Fn::Sub': `arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:${logGroupName}:*`,
-                },
+                Resource: [
+                  {
+                    'Fn::Sub': `arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:${logGroupName}`,
+                  },
+                  {
+                    'Fn::Sub': `arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:${logGroupName}:*`,
+                  },
+                ],
               },
               {
                 Effect: 'Allow',
@@ -258,13 +265,20 @@ export function generateExecutionRole(name, cfg, ctx) {
         PolicyDocument: {
           Version: '2012-10-17',
           Statement: [
-            // Write execution logs to the microVMs log group
+            // Write execution logs to the microVMs log group. The group ARN
+            // covers logs:CreateLogGroup; the `:*` variant is the log
+            // stream ARN form for logs:CreateLogStream.
             {
               Effect: 'Allow',
               Action: ['logs:CreateLogGroup', 'logs:CreateLogStream'],
-              Resource: {
-                'Fn::Sub': `arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:${logGroupName}:*`,
-              },
+              Resource: [
+                {
+                  'Fn::Sub': `arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:${logGroupName}`,
+                },
+                {
+                  'Fn::Sub': `arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:${logGroupName}:*`,
+                },
+              ],
             },
             {
               Effect: 'Allow',

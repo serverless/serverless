@@ -145,6 +145,13 @@ async function addCustomResourceToService(
               'logs:TagResource',
             ],
             Resource: [
+              // logs:CreateLogGroup and logs:TagResource need the log group
+              // ARN; the `:*` variant only matches log stream ARNs.
+              {
+                'Fn::Sub':
+                  'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+                  `:log-group:${logGroupsPrefix}*`,
+              },
               {
                 'Fn::Sub':
                   'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +

@@ -249,7 +249,10 @@ describe('createRolesPerFunction - web apps', () => {
           'logs:CreateLogGroup',
           'logs:TagResource',
         ],
-        Resource: webLogArns('my-service-dev-api', ':*'),
+        Resource: [
+          ...webLogArns('my-service-dev-api', ''),
+          ...webLogArns('my-service-dev-api', ':*'),
+        ],
       },
       {
         Effect: 'Allow',

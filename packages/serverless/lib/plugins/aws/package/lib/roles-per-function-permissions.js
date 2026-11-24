@@ -27,6 +27,13 @@ function applyLogPermissions({
       'logs:PutLogEvents',
     ],
     Resource: [
+      // logs:CreateLogGroup needs the log group ARN; the `:*:*` variant only
+      // matches log stream ARNs.
+      {
+        'Fn::Sub':
+          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+          `:log-group:${resolvedLogGroupName}`,
+      },
       {
         'Fn::Sub':
           'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
