@@ -340,7 +340,12 @@ class Service {
       for (const [functionName, functionObject] of Object.entries(
         this.functions,
       )) {
-        if (_.isObject(functionObject) && functionObject.runtime == null) {
+        // Image functions have no runtime: they do not inherit the value
+        if (
+          _.isObject(functionObject) &&
+          functionObject.runtime == null &&
+          !functionObject.image
+        ) {
           stored.functions[functionName] = stored.provider
         }
       }
@@ -373,7 +378,13 @@ class Service {
       return stored.functions[functionName]
     }
     const functionObject = this.functions?.[functionName]
-    if (functionObject && functionObject.runtime == null) return stored.provider
+    if (
+      functionObject &&
+      functionObject.runtime == null &&
+      !functionObject.image
+    ) {
+      return stored.provider
+    }
     return undefined
   }
 

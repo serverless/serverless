@@ -163,6 +163,23 @@ describe('Service customer-managed runtimes', () => {
     expect(service.getCustomerManagedRuntime('api')).toBe(aliasArn)
   })
 
+  it('does not apply a provider-level value to image functions', () => {
+    const service = loadService({
+      provider: { name: 'aws', runtime: aliasArn },
+      functions: {
+        api: { handler: 'index.handler' },
+        container: { image: 'repo/app:latest' },
+      },
+    })
+    service.convertCustomerManagedRuntimes()
+
+    expect(service.getCustomerManagedRuntime('api')).toBe(aliasArn)
+    expect(service.getCustomerManagedRuntime('container')).toBeUndefined()
+    expect(
+      Object.hasOwn(service.customerManagedRuntimes.functions, 'container'),
+    ).toBe(false)
+  })
+
   it.each(['toString', 'constructor', 'hasOwnProperty'])(
     'has no value for a function named %s on a Lambda-managed runtime',
     (functionName) => {
