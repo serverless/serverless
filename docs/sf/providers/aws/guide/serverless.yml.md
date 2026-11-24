@@ -413,6 +413,8 @@ Defaults for every function in the service; a function's own key overrides each 
 
 provider:
   # Lambda runtime of every function that doesn't set one (default: nodejs20.x)
+  # A Lambda runtime identifier, or a customer-managed runtime alias ARN (or an intrinsic that returns one):
+  # arn:aws:lambda:us-east-1:123456789012:runtime/company-node24/alias/prod
   runtime: nodejs24.x
   # Runtime updates: 'auto' (AWS default) or 'onFunctionUpdate'; for 'manual', use the object form shown in the functions section
   runtimeManagement: auto
@@ -1106,6 +1108,7 @@ functions:
     #     - /lambda-entrypoint.sh
     #   workingDirectory: /var/task
     # Lambda runtime (default: provider.runtime, otherwise nodejs20.x)
+    # A Lambda runtime identifier, or a customer-managed runtime alias ARN (or an intrinsic that returns one)
     runtime: nodejs24.x
     # Runtime updates: 'auto' or 'onFunctionUpdate', or the object form; 'manual' needs the object form with arn
     runtimeManagement:
@@ -2146,7 +2149,7 @@ layers:
       patterns:
         - '!**/*.test.js'
       # artifact: build/layer.zip
-    # Compatible runtimes, up to 15. Optional
+    # Compatible runtimes, up to 15: Lambda runtime identifiers, or custom for customer-managed runtimes. Optional
     compatibleRuntimes:
       - nodejs24.x
     # Compatible architectures: x86_64, arm64 or both. Optional

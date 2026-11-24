@@ -157,6 +157,63 @@ describe('AwsDeployFunction', () => {
     })
   })
 
+  describe('#checkCustomerManagedRuntimeSwitch()', () => {
+    const aliasArn =
+      'arn:aws:lambda:us-east-1:123456789012:runtime/companyphp8/alias/prod'
+    const prepare = (remoteRuntime, value) => {
+      awsDeployFunction.options.function = 'first'
+      awsDeployFunction.options.functionObj = {
+        name: 'first',
+        runtime: 'custom',
+      }
+      awsDeployFunction.provider.getRuntime = jest.fn((r) => r)
+      serverless.service.provider.remoteFunctionData = {
+        Configuration: { Runtime: remoteRuntime },
+      }
+      serverless.service.getCustomerManagedRuntime = jest.fn(() => value)
+    }
+
+    it('refuses moving onto a runtime given as an intrinsic', () => {
+      prepare('nodejs24.x', { Ref: 'RuntimeStable' })
+      expect(() =>
+        awsDeployFunction.checkCustomerManagedRuntimeSwitch(),
+      ).toThrow(
+        expect.objectContaining({
+          code: 'DEPLOY_FUNCTION_CUSTOMER_MANAGED_RUNTIME_SWITCH',
+        }),
+      )
+    })
+
+    it.each([
+      ['an alias ARN', 'nodejs24.x', aliasArn],
+      [
+        'a function already on a customer-managed runtime',
+        'custom',
+        { Ref: 'RuntimeStable' },
+      ],
+    ])('allows %s', (_, remoteRuntime, value) => {
+      prepare(remoteRuntime, value)
+      expect(() =>
+        awsDeployFunction.checkCustomerManagedRuntimeSwitch(),
+      ).not.toThrow()
+    })
+
+    it('runs in the initialize step, before any code is uploaded', async () => {
+      awsDeployFunction.validate = jest.fn()
+      awsDeployFunction.checkIfFunctionExists = jest.fn()
+      awsDeployFunction.checkIfFunctionChangesBetweenImageAndHandler = jest.fn()
+      awsDeployFunction.checkCustomerManagedRuntimeSwitch = jest.fn(() => {
+        throw new Error('refused')
+      })
+      awsDeployFunction.deployFunction = jest.fn()
+
+      await expect(
+        awsDeployFunction.hooks['deploy:function:initialize'](),
+      ).rejects.toThrow('refused')
+      expect(awsDeployFunction.deployFunction).not.toHaveBeenCalled()
+    })
+  })
+
   describe('#normalizeArnRole', () => {
     let getAccountInfoStub
     let getRoleStub
@@ -409,6 +466,132 @@ describe('AwsDeployFunction', () => {
           Handler: 'new.handler',
           Role: 'arn:aws:iam::123:role/new-role',
         }),
+      )
+    })
+
+    describe('customer-managed runtimes', () => {
+      const aliasArn =
+        'arn:aws:lambda:us-east-1:123456789012:runtime/companyphp8/alias/prod'
+      const runtimeConfig = {
+        RuntimeArn: 'arn:aws:lambda:us-east-1:123456789012:runtime/companyphp8',
+        RuntimeAlias: 'prod',
+      }
+      // After Service.convertCustomerManagedRuntimes(), `runtime` reads
+      // `custom` and the value is kept on the service
+      const useValue = (value) => {
+        awsDeployFunction.options.function = 'first'
+        awsDeployFunction.options.functionObj = {
+          name: 'first',
+          runtime: 'custom',
+          memorySize: 2048,
+        }
+        serverless.service.getCustomerManagedRuntime = jest.fn((name) =>
+          name === 'first' ? value : undefined,
+        )
+      }
+      const sentParams = () => updateFunctionConfigurationStub.mock.calls[0][0]
+      // RuntimeConfig as AWS SDK v3 reads it; the v2 configuration drops it
+      let deployedRuntimeConfig
+      const updateOptions = () =>
+        awsDeployFunction.provider.request.mock.calls.find(
+          ([, method]) => method === 'updateFunctionConfiguration',
+        )[3]
+
+      beforeEach(() => {
+        deployedRuntimeConfig = undefined
+        const request = awsDeployFunction.provider.request
+        awsDeployFunction.provider.request = jest.fn(
+          (service, method, params, options) =>
+            method === 'getFunctionConfiguration' && options?.sdkVersion === 3
+              ? Promise.resolve({ RuntimeConfig: deployedRuntimeConfig })
+              : request(service, method, params, options),
+        )
+      })
+
+      it('sends nothing for the runtime when the function already uses the alias', async () => {
+        awsDeployFunction.setRemoteConfig({
+          Runtime: 'custom',
+          MemorySize: 1024,
+        })
+        deployedRuntimeConfig = runtimeConfig
+        useValue(aliasArn)
+
+        await awsDeployFunction.updateFunctionConfiguration()
+
+        expect(sentParams().MemorySize).toBe(2048)
+        expect(updateOptions()).toBeUndefined()
+        expect(sentParams()).not.toHaveProperty('Runtime')
+        expect(sentParams()).not.toHaveProperty('RuntimeConfig')
+      })
+
+      it('sends RuntimeConfig when the alias changes', async () => {
+        awsDeployFunction.setRemoteConfig({ Runtime: 'custom' })
+        deployedRuntimeConfig = { ...runtimeConfig, RuntimeAlias: 'beta' }
+        useValue(aliasArn)
+
+        await awsDeployFunction.updateFunctionConfiguration()
+
+        expect(sentParams()).not.toHaveProperty('Runtime')
+        expect(sentParams().RuntimeConfig).toEqual(runtimeConfig)
+        expect(updateOptions()).toEqual({ sdkVersion: 3 })
+      })
+
+      it('moves a function onto a customer-managed runtime', async () => {
+        awsDeployFunction.setRemoteConfig({ Runtime: 'nodejs24.x' })
+        useValue(aliasArn)
+
+        await awsDeployFunction.updateFunctionConfiguration()
+
+        expect(sentParams().Runtime).toBe('custom')
+        expect(sentParams().RuntimeConfig).toEqual(runtimeConfig)
+        expect(updateOptions()).toEqual({ sdkVersion: 3 })
+      })
+
+      it('moves a function off a customer-managed runtime with Runtime alone', async () => {
+        awsDeployFunction.setRemoteConfig({ Runtime: 'custom' })
+        awsDeployFunction.options.functionObj = {
+          name: 'first',
+          runtime: 'nodejs24.x',
+        }
+
+        await awsDeployFunction.updateFunctionConfiguration()
+
+        expect(sentParams().Runtime).toBe('nodejs24.x')
+        expect(sentParams()).not.toHaveProperty('RuntimeConfig')
+        expect(updateOptions()).toBeUndefined()
+      })
+
+      it('keeps the deployed runtime for an intrinsic value', async () => {
+        awsDeployFunction.setRemoteConfig({
+          Runtime: 'custom',
+          MemorySize: 1024,
+        })
+        useValue({ Ref: 'RuntimeStable' })
+
+        await awsDeployFunction.updateFunctionConfiguration()
+
+        expect(sentParams()).not.toHaveProperty('Runtime')
+        expect(sentParams()).not.toHaveProperty('RuntimeConfig')
+      })
+
+      it.each([
+        ['an intrinsic', { Ref: 'RuntimeStable' }],
+        ['runtime custom set in resources', undefined],
+      ])(
+        'asks for a full deploy to move a function onto %s',
+        async (_, value) => {
+          awsDeployFunction.setRemoteConfig({ Runtime: 'nodejs24.x' })
+          useValue(value)
+
+          await expect(
+            awsDeployFunction.updateFunctionConfiguration(),
+          ).rejects.toMatchObject({
+            code: 'DEPLOY_FUNCTION_CUSTOMER_MANAGED_RUNTIME_SWITCH',
+            message:
+              'Function "first" is deployed with runtime nodejs24.x and now uses a customer-managed runtime set with a CloudFormation intrinsic or in resources, which "deploy function" cannot resolve. Run "serverless deploy" instead.',
+          })
+          expect(updateFunctionConfigurationStub).not.toHaveBeenCalled()
+        },
       )
     })
 

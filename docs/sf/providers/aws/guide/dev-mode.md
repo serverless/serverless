@@ -233,7 +233,7 @@ A function in `deployed` or `skipped` carries a reason code (in `--json` results
 - `not_selected` (`deployed`): `not selected (--function)` or `not selected (--skip-function)`, left out of this session on purpose.
 - `not_deployed` (`skipped`): `not deployed yet (run serverless deploy)`, the function is in `serverless.yml` but not in AWS.
 - `legacy_shim` (`skipped`): `set up by an earlier version of Dev Mode (run serverless deploy once)`. One `serverless deploy` replaces the earlier setup, and the next session attaches it.
-- `runtime_not_supported` (`deployed`): for example `Ruby runtime (Dev Mode support planned)`. Java, .NET and Ruby functions keep running the deployed code.
+- `runtime_not_supported` (`deployed`): for example `Ruby runtime (Dev Mode support planned)`. Java, .NET and Ruby functions keep running the deployed code, and so do functions on a [customer-managed runtime](./functions.md#customer-managed-runtimes), with `customer-managed runtime (runs the deployed code)`.
 - `os_only_runtime` (`deployed`): for example `OS-only runtime provided.al2023 (Dev Mode support planned)`.
 - `container_image` (`deployed`): `container image (Dev Mode support planned)`.
 - `edge_function` (`deployed`): `Lambda@Edge (not supported)`. Lambda@Edge functions run their deployed code.

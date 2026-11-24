@@ -110,3 +110,120 @@ describe('Service', () => {
     })
   })
 })
+
+describe('Service customer-managed runtimes', () => {
+  const aliasArn =
+    'arn:aws:lambda:us-east-1:123456789012:runtime/companyphp8/alias/prod'
+
+  it('converts a function runtime alias ARN to custom and keeps the value', () => {
+    const service = loadService({
+      functions: {
+        api: { handler: 'index.handler', runtime: aliasArn },
+        legacy: { handler: 'index.handler', runtime: 'nodejs24.x' },
+      },
+    })
+    const input = service.serverless.configurationInput
+    service.convertCustomerManagedRuntimes()
+
+    expect(service.functions.api.runtime).toBe('custom')
+    expect(service.functions.legacy.runtime).toBe('nodejs24.x')
+    expect(service.getCustomerManagedRuntime('api')).toBe(aliasArn)
+    expect(service.getCustomerManagedRuntime('legacy')).toBeUndefined()
+    // `serverless print` reads the configuration input: it keeps what the user wrote
+    expect(input.functions.api.runtime).toBe(aliasArn)
+  })
+
+  it('applies a provider-level value to functions without their own runtime', () => {
+    const ref = { Ref: 'RuntimeStable' }
+    const service = loadService({
+      provider: { name: 'aws', runtime: ref },
+      functions: {
+        api: { handler: 'index.handler' },
+        legacy: { handler: 'index.handler', runtime: 'python3.14' },
+      },
+    })
+    const input = service.serverless.configurationInput
+    service.convertCustomerManagedRuntimes()
+
+    expect(service.provider.runtime).toBe('custom')
+    expect(input.provider.runtime).toBe(ref)
+    expect(service.getCustomerManagedRuntime('api')).toBe(ref)
+    expect(service.getCustomerManagedRuntime('legacy')).toBeUndefined()
+  })
+
+  it('keeps the provider-level value after the compiler resolves runtime', () => {
+    const service = loadService({
+      provider: { name: 'aws', runtime: aliasArn },
+      functions: { api: { handler: 'index.handler' } },
+    })
+    service.convertCustomerManagedRuntimes()
+    // compile/functions.js writes the resolved runtime to each function
+    service.functions.api.runtime = 'custom'
+
+    expect(service.getCustomerManagedRuntime('api')).toBe(aliasArn)
+  })
+
+  it('keeps the configuration input unchanged when the compiler resolves runtime', () => {
+    const service = loadService({
+      provider: { name: 'aws', runtime: aliasArn },
+      functions: { api: { handler: 'index.handler' } },
+    })
+    const input = service.serverless.configurationInput
+    service.convertCustomerManagedRuntimes()
+    service.functions.api.runtime = 'custom'
+
+    expect(input.functions.api).not.toHaveProperty('runtime')
+    // A second run of the same instance converts the same way
+    service.reloadServiceFileParam()
+    service.convertCustomerManagedRuntimes()
+    expect(service.getCustomerManagedRuntime('api')).toBe(aliasArn)
+  })
+
+  it('does not apply a provider-level value to image functions', () => {
+    const service = loadService({
+      provider: { name: 'aws', runtime: aliasArn },
+      functions: {
+        api: { handler: 'index.handler' },
+        container: { image: 'repo/app:latest' },
+      },
+    })
+    service.convertCustomerManagedRuntimes()
+
+    expect(service.getCustomerManagedRuntime('api')).toBe(aliasArn)
+    expect(service.getCustomerManagedRuntime('container')).toBeUndefined()
+    expect(
+      Object.hasOwn(service.customerManagedRuntimes.functions, 'container'),
+    ).toBe(false)
+  })
+
+  it.each(['toString', 'constructor', 'hasOwnProperty'])(
+    'has no value for a function named %s on a Lambda-managed runtime',
+    (functionName) => {
+      const service = loadService({
+        provider: { name: 'aws', runtime: 'nodejs24.x' },
+        functions: { [functionName]: { handler: 'index.handler' } },
+      })
+      service.convertCustomerManagedRuntimes()
+
+      expect(service.getCustomerManagedRuntime(functionName)).toBeUndefined()
+    },
+  )
+
+  it('does not treat a literal custom runtime as customer-managed', () => {
+    const service = loadService({
+      functions: { api: { handler: 'index.handler', runtime: 'custom' } },
+    })
+    service.convertCustomerManagedRuntimes()
+    expect(service.functions.api.runtime).toBe('custom')
+    expect(service.getCustomerManagedRuntime('api')).toBeUndefined()
+  })
+
+  it('keeps the stored values out of serialized output', () => {
+    const service = loadService({
+      functions: { api: { handler: 'index.handler', runtime: aliasArn } },
+    })
+    service.convertCustomerManagedRuntimes()
+    expect(JSON.stringify(service.functions)).not.toContain(aliasArn)
+    expect(Object.keys(service)).not.toContain('customerManagedRuntimes')
+  })
+})

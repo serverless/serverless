@@ -716,6 +716,165 @@ describe('AwsCompileFunctions', () => {
     })
   })
 
+  describe('Customer-managed runtimes', () => {
+    const aliasArn =
+      'arn:aws:lambda:us-east-1:123456789012:runtime/companyphp8/alias/prod'
+    let stored
+
+    const resources = () =>
+      awsCompileFunctions.serverless.service.provider
+        .compiledCloudFormationTemplate.Resources
+
+    // Service.convertCustomerManagedRuntimes() has run: `runtime` is `custom`
+    // and the value the user wrote is stored on the service
+    const useRuntime = (functions, values) => {
+      stored = values
+      awsCompileFunctions.serverless.service.functions = functions
+      awsCompileFunctions.serverless.service.getCustomerManagedRuntime =
+        jest.fn((name) => stored[name])
+    }
+
+    it('emits Runtime custom and RuntimeConfig for an alias ARN', async () => {
+      useRuntime(
+        { api: { handler: 'index.handler', name: 'api', runtime: 'custom' } },
+        { api: aliasArn },
+      )
+      await awsCompileFunctions.compileFunctions()
+      const properties = resources().ApiLambdaFunction.Properties
+      expect(properties.Runtime).toBe('custom')
+      expect(properties.RuntimeConfig).toEqual({
+        RuntimeArn: 'arn:aws:lambda:us-east-1:123456789012:runtime/companyphp8',
+        RuntimeAlias: 'prod',
+      })
+    })
+
+    it('splits an intrinsic into RuntimeArn and RuntimeAlias', async () => {
+      const ref = { Ref: 'RuntimeStable' }
+      useRuntime(
+        { api: { handler: 'index.handler', name: 'api', runtime: 'custom' } },
+        { api: ref },
+      )
+      await awsCompileFunctions.compileFunctions()
+      const split = { 'Fn::Split': ['/', ref] }
+      expect(resources().ApiLambdaFunction.Properties.RuntimeConfig).toEqual({
+        RuntimeArn: {
+          'Fn::Join': [
+            '/',
+            [{ 'Fn::Select': [0, split] }, { 'Fn::Select': [1, split] }],
+          ],
+        },
+        RuntimeAlias: { 'Fn::Select': [3, split] },
+      })
+    })
+
+    it('emits no RuntimeConfig for Lambda-managed runtimes', async () => {
+      useRuntime(
+        {
+          api: { handler: 'index.handler', name: 'api', runtime: 'nodejs24.x' },
+        },
+        {},
+      )
+      await awsCompileFunctions.compileFunctions()
+      const properties = resources().ApiLambdaFunction.Properties
+      expect(properties.Runtime).toBe('nodejs24.x')
+      expect(properties).not.toHaveProperty('RuntimeConfig')
+    })
+
+    it('leaves RuntimeConfig of a literal custom runtime to resources or plugins', async () => {
+      // validateTemplate checks the merged template
+      useRuntime(
+        { api: { handler: 'index.handler', name: 'api', runtime: 'custom' } },
+        {},
+      )
+      await awsCompileFunctions.compileFunctions()
+      const properties = resources().ApiLambdaFunction.Properties
+      expect(properties.Runtime).toBe('custom')
+      expect(properties).not.toHaveProperty('RuntimeConfig')
+    })
+
+    it('rejects an alias ARN from another Region', async () => {
+      useRuntime(
+        { api: { handler: 'index.handler', name: 'api', runtime: 'custom' } },
+        {
+          api: 'arn:aws:lambda:eu-west-1:123456789012:runtime/companyphp8/alias/prod',
+        },
+      )
+      await expect(
+        awsCompileFunctions.compileFunctions(),
+      ).rejects.toMatchObject({
+        code: 'LAMBDA_CUSTOMER_MANAGED_RUNTIME_REGION_MISMATCH',
+        message: expect.stringContaining('eu-west-1'),
+      })
+    })
+
+    it('rejects SnapStart', async () => {
+      useRuntime(
+        {
+          api: {
+            handler: 'index.handler',
+            name: 'api',
+            runtime: 'custom',
+            snapStart: true,
+          },
+        },
+        { api: aliasArn },
+      )
+      await expect(
+        awsCompileFunctions.compileFunctions(),
+      ).rejects.toMatchObject({
+        code: 'LAMBDA_CUSTOMER_MANAGED_RUNTIME_SNAPSTART_UNSUPPORTED',
+      })
+    })
+
+    it('rejects a function-level value on a container image function', async () => {
+      useRuntime(
+        {
+          api: {
+            image: 'repo@sha256:abc',
+            name: 'api',
+            runtime: 'custom',
+          },
+        },
+        { api: aliasArn },
+      )
+      awsCompileFunctions.serverless.service.customerManagedRuntimes = {
+        functions: { api: aliasArn },
+      }
+      await expect(
+        awsCompileFunctions.compileFunctions(),
+      ).rejects.toMatchObject({
+        code: 'LAMBDA_CUSTOMER_MANAGED_RUNTIME_IMAGE_UNSUPPORTED',
+      })
+    })
+
+    it('accepts durable functions', async () => {
+      provider.naming.getLambdaDurableAliasLogicalId = jest.fn(
+        () => 'ApiDurableLambdaAlias',
+      )
+      provider.naming.getLambdaDurableEnabledAliasName = jest.fn(
+        () => 'durable',
+      )
+      useRuntime(
+        {
+          api: {
+            handler: 'index.handler',
+            name: 'api',
+            runtime: 'custom',
+            durableConfig: { executionTimeout: 100 },
+          },
+        },
+        { api: aliasArn },
+      )
+      resources().IamRoleLambdaExecution = {
+        Properties: { ManagedPolicyArns: [] },
+      }
+      await awsCompileFunctions.compileFunctions()
+      expect(resources().ApiLambdaFunction.Properties.DurableConfig).toEqual({
+        ExecutionTimeout: 100,
+      })
+    })
+  })
+
   describe('Durable Functions Support', () => {
     beforeEach(() => {
       provider.naming.getLambdaDurableAliasLogicalId = jest.fn(

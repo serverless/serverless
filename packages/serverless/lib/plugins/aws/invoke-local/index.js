@@ -14,6 +14,7 @@ import cachedir from 'cachedir'
 import AdmZip from 'adm-zip'
 import { v4 as uuidv4 } from 'uuid'
 import ServerlessError from '../../../serverless-error.js'
+import { CUSTOMER_MANAGED_RUNTIME } from '../lib/customer-managed-runtime.js'
 import dirExists from '../../../utils/fs/dir-exists.js'
 import fileExists from '../../../utils/fs/file-exists.js'
 import resolveCfImportValue from '../utils/resolve-cf-import-value.js'
@@ -207,6 +208,16 @@ class AwsInvokeLocal {
       throw new ServerlessError(
         'Local invocation of lambdas pointing AWS ECR images is not supported',
         'INVOKE_LOCAL_IMAGE_BACKED_FUNCTIONS_NOT_SUPPORTED',
+      )
+    }
+    if (
+      this.provider.getRuntime(this.options.functionObj.runtime) ===
+      CUSTOMER_MANAGED_RUNTIME
+    ) {
+      throw new ServerlessError(
+        `Function "${this.options.function}" uses a customer-managed runtime, which cannot run locally. Deploy and run "serverless invoke --function ${this.options.function}" instead.`,
+        'INVOKE_LOCAL_CUSTOMER_MANAGED_RUNTIME_UNSUPPORTED',
+        { stack: false },
       )
     }
     if (this.options.contextPath) {

@@ -14,6 +14,11 @@ import usesDedicatedPerFunctionRole from '../lib/uses-dedicated-per-function-rol
 import { resolveExecutionRoleRef } from '../../lib/execution-role.js'
 import { warnDeprecatedRuntimes } from '../lib/runtime-deprecation.js'
 import { resolveLogLevels } from '../../lib/log-levels.js'
+import {
+  CUSTOMER_MANAGED_RUNTIME,
+  parseRuntimeAliasArn,
+  toRuntimeConfig,
+} from '../../lib/customer-managed-runtime.js'
 
 const defaultCors = {
   allowedOrigins: ['*'],
@@ -167,6 +172,40 @@ class AwsCompileFunctions {
         `Either "handler" or "image" property (not both) needs to be set on function "${functionName}".`,
         'FUNCTION_BOTH_HANDLER_AND_IMAGE_DEFINED_ERROR',
       )
+    }
+
+    const customerManagedRuntime =
+      this.serverless.service.getCustomerManagedRuntime?.(functionName)
+    if (
+      functionObject.image &&
+      Object.hasOwn(
+        this.serverless.service.customerManagedRuntimes?.functions ?? {},
+        functionName,
+      )
+    ) {
+      throw new ServerlessError(
+        `Function "${functionName}" is a container image function, which cannot use a customer-managed runtime. Remove runtime from the function, or deploy it as a .zip file with a handler.`,
+        'LAMBDA_CUSTOMER_MANAGED_RUNTIME_IMAGE_UNSUPPORTED',
+        { stack: false },
+      )
+    }
+    if (customerManagedRuntime && !functionObject.image) {
+      if (functionObject.snapStart) {
+        throw new ServerlessError(
+          `Function "${functionName}" uses a customer-managed runtime, which does not support SnapStart. Remove snapStart from the function or use a Lambda-managed runtime.`,
+          'LAMBDA_CUSTOMER_MANAGED_RUNTIME_SNAPSTART_UNSUPPORTED',
+          { stack: false },
+        )
+      }
+      const runtimeRegion = parseRuntimeAliasArn(customerManagedRuntime)?.region
+      const serviceRegion = this.provider.getRegion()
+      if (runtimeRegion && runtimeRegion !== serviceRegion) {
+        throw new ServerlessError(
+          `Function "${functionName}" uses a customer-managed runtime in ${runtimeRegion}, but the service deploys to ${serviceRegion}. A function can only use a runtime in its own Region; ask the runtime publisher for the ${serviceRegion} runtime ARN.`,
+          'LAMBDA_CUSTOMER_MANAGED_RUNTIME_REGION_MISMATCH',
+          { stack: false },
+        )
+      }
     }
 
     if (functionObject.provisionedConcurrency && functionObject.snapStart) {
@@ -354,6 +393,13 @@ class AwsCompileFunctions {
         functionResource.Properties.Code.S3ObjectStorageMode = 'REFERENCE'
       }
       functionResource.Properties.Runtime = functionObject.runtime
+      // A literal `runtime: custom` takes RuntimeConfig from resources or a
+      // plugin; validateTemplate checks the merged template
+      if (customerManagedRuntime) {
+        functionResource.Properties.RuntimeConfig = toRuntimeConfig(
+          customerManagedRuntime,
+        )
+      }
     } else {
       functionResource.Properties.Code.ImageUri = functionImageUri
       functionResource.Properties.PackageType = 'Image'
@@ -554,6 +600,9 @@ class AwsCompileFunctions {
           functionObject.runtime,
         )
         const isValidRuntime =
+          // Customer-managed runtimes need no runtime support for durable
+          // functions, only the durable execution SDK in the function code
+          functionObject.runtime === CUSTOMER_MANAGED_RUNTIME ||
           nodejsPattern.test(functionObject.runtime) ||
           pythonPattern.test(functionObject.runtime) ||
           javaPattern.test(functionObject.runtime) ||

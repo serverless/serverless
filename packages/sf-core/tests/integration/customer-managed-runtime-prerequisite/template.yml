@@ -1,0 +1,39 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  Customer-managed runtime prerequisite for the Serverless Framework
+  customer-managed-runtimes integration suite: one runtime, version and alias,
+  and the SSM parameter the suite reads the alias ARN from. Deploy once per
+  test account and Region; see README.md.
+
+Resources:
+  Runtime:
+    Type: AWS::Lambda::Runtime
+    DeletionPolicy: Retain
+    Properties:
+      Name: sls-integration-test-node24
+      Description: Serverless Framework integration test runtime (Node.js 24)
+  RuntimeVersionV1:
+    Type: AWS::Lambda::RuntimeVersion
+    DeletionPolicy: Retain
+    Properties:
+      RuntimeName: !Select [1, !Split ['runtime/', !Ref Runtime]]
+      Name: v1
+      # The image README.md pushes to this account's repository
+      ImageUri: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/sls-integration-test-runtime:v1'
+  RuntimeAliasStable:
+    Type: AWS::Lambda::RuntimeAlias
+    DeletionPolicy: Retain
+    Properties:
+      RuntimeName: !Select [1, !Split ['runtime/', !Ref Runtime]]
+      Name: stable
+      RuntimeVersion: !Select [1, !Split ['version/', !Ref RuntimeVersionV1]]
+  RuntimeAliasArnParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /cmr-integration-test/runtime-alias-arn
+      Type: String
+      Value: !Ref RuntimeAliasStable
+
+Outputs:
+  RuntimeAliasArn:
+    Value: !Ref RuntimeAliasStable

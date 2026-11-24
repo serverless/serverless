@@ -33,6 +33,10 @@ import { readArchiveEntryNames } from '../../utils/read-archive-entry-names.js'
 import { BOOTSTRAP_FILE, WEB_APPS_DIR } from '../aws/web-apps/constants.js'
 import { getWebAppRuntime } from '../aws/web-apps/runtime.js'
 import {
+  CUSTOMER_MANAGED_RUNTIME,
+  isCustomerManagedRuntime,
+} from '../aws/lib/customer-managed-runtime.js'
+import {
   generateBootstrap,
   normalizeEntryPath,
 } from '../aws/web-apps/packaging/bootstrap.js'
@@ -997,7 +1001,18 @@ class Esbuild {
       }
 
       const runtime = functionObject.runtime || configFile.provider.runtime
-      if (!runtime || !runtime.startsWith('nodejs')) {
+      // A customer-managed runtime's language is unknown: build only on an
+      // explicit opt-in
+      if (isCustomerManagedRuntime(runtime)) {
+        // Function-level `build`, false included, overrides the service's
+        if (functionObject.build != null) {
+          return functionObject.build === 'esbuild'
+        }
+        return Boolean(
+          configFile.build === 'esbuild' || configFile.build?.esbuild,
+        )
+      }
+      if (typeof runtime !== 'string' || !runtime.startsWith('nodejs')) {
         return false
       }
 
@@ -1116,6 +1131,16 @@ class Esbuild {
       : functionObject.runtime || this.serverless.service.provider.runtime
     const functionBuildParam = functionObject.build
     const providerBuildParam = this.serverless.service.build
+
+    // A customer-managed runtime's language is unknown: build only on an
+    // explicit opt-in (Service converts its `runtime` to `custom`)
+    if (!isWebApp && runtime === CUSTOMER_MANAGED_RUNTIME) {
+      if (functionBuildParam != null) return functionBuildParam === 'esbuild'
+      return Boolean(
+        providerBuildParam &&
+        (providerBuildParam === 'esbuild' || providerBuildParam.esbuild),
+      )
+    }
 
     // If runtime is not node then should not build
     if (!runtime || !runtime.startsWith('nodejs')) {
@@ -3889,6 +3914,25 @@ class Esbuild {
   }
 
   /**
+   * True when esbuild builds a function that runs on a customer-managed
+   * runtime (Service converts its `runtime` to `custom`).
+   */
+  async _buildsCustomerManagedRuntimeFunction() {
+    const service = this.serverless.service
+    for (const functionName of service.getAllFunctions?.() ?? []) {
+      const functionObject = service.getFunction(functionName)
+      const runtime = functionObject?.runtime || service.provider.runtime
+      if (
+        runtime === CUSTOMER_MANAGED_RUNTIME &&
+        (await this._shouldBuildFunction(functionObject))
+      ) {
+        return true
+      }
+    }
+    return false
+  }
+
+  /**
    * Writes the artifact's `package.json` into the build directory: the
    * service's own without `devDependencies`, its dependencies narrowed to
    * those the build leaves external. Besides naming what the install puts in
@@ -3897,7 +3941,11 @@ class Esbuild {
    * Resolves the build directory.
    */
   async _writeArtifactPackageJson() {
-    const runtime = this.serverless.service.provider.runtime || 'nodejs18.x'
+    // The AWS SDK is excluded because Lambda's Node.js runtimes include it. A
+    // customer-managed runtime in the build may not, so it keeps the SDK.
+    const runtime = (await this._buildsCustomerManagedRuntimeFunction())
+      ? CUSTOMER_MANAGED_RUNTIME
+      : this.serverless.service.provider.runtime || 'nodejs18.x'
     const { external, exclude } = await this._externals(runtime)
 
     const packageJson = await this._readPackageJson()

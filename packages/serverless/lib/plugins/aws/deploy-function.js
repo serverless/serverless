@@ -6,6 +6,11 @@ import wait from 'timers-ext/promise/sleep.js'
 import validate from './lib/validate.js'
 import filesize from '../../utils/filesize.js'
 import ServerlessError from '../../serverless-error.js'
+import {
+  CUSTOMER_MANAGED_RUNTIME,
+  parseRuntimeAliasArn,
+  toRuntimeConfig,
+} from './lib/customer-managed-runtime.js'
 
 class AwsDeployFunction {
   constructor(serverless, options, pluginUtils) {
@@ -47,6 +52,8 @@ class AwsDeployFunction {
         await this.checkIfFunctionExists()
         this.logger.debug('checking if function changed')
         this.checkIfFunctionChangesBetweenImageAndHandler()
+        // Before any code is uploaded, so a refused switch changes nothing
+        this.checkCustomerManagedRuntimeSwitch()
       },
 
       'before:deploy:function:packageFunction': () =>
@@ -209,10 +216,12 @@ class AwsDeployFunction {
 
     const callWithRetry = async () => {
       try {
+        // AWS SDK v2 does not know RuntimeConfig
         await this.provider.request(
           'Lambda',
           'updateFunctionConfiguration',
           params,
+          params.RuntimeConfig ? { sdkVersion: 3 } : undefined,
         )
       } catch (err) {
         const didOneMinutePass = Date.now() - startTime > 60 * 1000
@@ -273,6 +282,81 @@ class AwsDeployFunction {
         `Could not read the environment of function "${this.options.function}" from the deployed template; treating its CloudFormation references as changed: ${err.message}`,
       )
       return null
+    }
+  }
+
+  /**
+   * Throws when the function moves onto a customer-managed runtime that this
+   * command cannot resolve: one set with a CloudFormation intrinsic, or a
+   * literal `custom` whose RuntimeConfig comes from resources.
+   */
+  checkCustomerManagedRuntimeSwitch() {
+    const remoteFunctionConfiguration =
+      this.serverless.service.provider.remoteFunctionData?.Configuration
+    if (
+      !remoteFunctionConfiguration ||
+      remoteFunctionConfiguration.PackageType === 'Image' ||
+      remoteFunctionConfiguration.Runtime === CUSTOMER_MANAGED_RUNTIME ||
+      this.provider.getRuntime(this.options.functionObj?.runtime) !==
+        CUSTOMER_MANAGED_RUNTIME ||
+      parseRuntimeAliasArn(
+        this.serverless.service.getCustomerManagedRuntime?.(
+          this.options.function,
+        ),
+      )
+    ) {
+      return
+    }
+    throw new ServerlessError(
+      `Function "${this.options.functionObj.name}" is deployed with runtime ${remoteFunctionConfiguration.Runtime} and now uses a customer-managed runtime set with a CloudFormation intrinsic or in resources, which "deploy function" cannot resolve. Run "serverless deploy" instead.`,
+      'DEPLOY_FUNCTION_CUSTOMER_MANAGED_RUNTIME_SWITCH',
+      { stack: false },
+    )
+  }
+
+  /**
+   * Runtime and RuntimeConfig to send for a function on a customer-managed
+   * runtime: nothing when the deployed function already uses the alias.
+   * An intrinsic value resolves only in CloudFormation, so a function
+   * configured with one keeps its deployed runtime, and moving onto it takes a
+   * full deploy.
+   */
+  async getCustomerManagedRuntimeUpdate(remoteFunctionConfiguration) {
+    const functionName = this.options.function
+    const functionObj = this.options.functionObj
+    const value =
+      this.serverless.service.getCustomerManagedRuntime?.(functionName)
+    const isRemoteCustomerManaged =
+      remoteFunctionConfiguration.Runtime === CUSTOMER_MANAGED_RUNTIME
+    if (!parseRuntimeAliasArn(value)) {
+      // checkCustomerManagedRuntimeSwitch refused a switch onto such a value
+      // before the code upload
+      if (isRemoteCustomerManaged) return {}
+      this.checkCustomerManagedRuntimeSwitch()
+      return {}
+    }
+    const runtimeConfig = toRuntimeConfig(value)
+    // The remote configuration comes from AWS SDK v2, which drops RuntimeConfig
+    const remoteRuntimeConfig = isRemoteCustomerManaged
+      ? (
+          await this.provider.request(
+            'Lambda',
+            'getFunctionConfiguration',
+            { FunctionName: functionObj.name },
+            { sdkVersion: 3 },
+          )
+        ).RuntimeConfig
+      : undefined
+    if (
+      isRemoteCustomerManaged &&
+      remoteRuntimeConfig?.RuntimeArn === runtimeConfig.RuntimeArn &&
+      remoteRuntimeConfig?.RuntimeAlias === runtimeConfig.RuntimeAlias
+    ) {
+      return {}
+    }
+    return {
+      ...(!isRemoteCustomerManaged && { Runtime: CUSTOMER_MANAGED_RUNTIME }),
+      RuntimeConfig: runtimeConfig,
     }
   }
 
@@ -350,7 +434,16 @@ class AwsDeployFunction {
     if (remoteFunctionConfiguration.PackageType !== 'Image') {
       const runtime = this.provider.getRuntime(functionObj.runtime)
 
-      if (runtime !== remoteFunctionConfiguration.Runtime) {
+      if (runtime === CUSTOMER_MANAGED_RUNTIME) {
+        Object.assign(
+          params,
+          await this.getCustomerManagedRuntimeUpdate(
+            remoteFunctionConfiguration,
+          ),
+        )
+      } else if (runtime !== remoteFunctionConfiguration.Runtime) {
+        // Lambda clears RuntimeConfig when a function leaves a
+        // customer-managed runtime
         params.Runtime = runtime
       }
     }

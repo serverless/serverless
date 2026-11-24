@@ -77,6 +77,8 @@ When the service uses the Framework's built-in esbuild bundling (TypeScript hand
 
 A function deployed from a container `image` stops the command with `Local invocation of lambdas pointing AWS ECR images is not supported`.
 
+A function on a [customer-managed runtime](../guide/functions.md#customer-managed-runtimes) stops the command with `Function "NAME" uses a customer-managed runtime, which cannot run locally. Deploy and run "serverless invoke --function NAME" instead.` The runtime's contents are a container image that only Lambda reads, so there is nothing to run locally.
+
 ## Run a function in Docker
 
 With `--docker`, or for a runtime the preceding table doesn't list, `serverless invoke local`:

@@ -390,6 +390,13 @@ cloudFront:
       const functionObj = this.serverless.service.getFunction(functionName)
       functionObj.events.forEach(({ cloudFront }) => {
         if (!cloudFront) return
+        if (this.serverless.service.getCustomerManagedRuntime?.(functionName)) {
+          throw new ServerlessError(
+            `Function "${functionName}" uses a customer-managed runtime and cannot run on Lambda@Edge. Use a Lambda-managed runtime for functions with cloudFront events.`,
+            'LAMBDA_CUSTOMER_MANAGED_RUNTIME_EDGE_UNSUPPORTED',
+            { stack: false },
+          )
+        }
         const { eventType = 'default' } = cloudFront
         const { maxMemorySize, maxTimeout } = this.lambdaEdgeLimits[eventType]
         if (functionObj.memorySize && functionObj.memorySize > maxMemorySize) {

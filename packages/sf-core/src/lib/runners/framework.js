@@ -46,6 +46,7 @@ import { buildCommandState } from './state-utils.js'
 import { buildSandboxesAnalytics } from '@serverless/framework/lib/plugins/aws/sandboxes/analytics.js'
 import { buildMcpAnalytics } from '@serverless/framework/lib/plugins/aws/mcp/analytics.js'
 import { buildWebAppsAnalytics } from '@serverless/framework/lib/plugins/aws/web-apps/analytics.js'
+import { isCustomerManagedRuntime } from '@serverless/framework/lib/plugins/aws/lib/customer-managed-runtime.js'
 import { buildProvisionedPollersAnalytics } from '@serverless/framework/lib/plugins/aws/package/compile/events/lib/provisioned-pollers-analytics.js'
 import { Deployment } from '../platform/deployments.js'
 
@@ -471,7 +472,7 @@ export class TraditionalRunner extends Runner {
     // config file's directory.
     const serviceDir = this.configFilePath && path.dirname(this.configFilePath)
     const details = {
-      providerRuntime: this.config.provider?.runtime,
+      providerRuntime: runtimeForReporting(this.config.provider?.runtime),
       awsCfStackId: this.serviceUniqueId,
       // WillEsBuildRun reads functions and webApps; a throw escaping this
       // method would drop the billing usage event.
@@ -531,7 +532,7 @@ export class TraditionalRunner extends Runner {
       const functionRuntimes = Object.values(this.config?.functions || {})
         .map((functionObject) => {
           if (functionObject?.image) return 'image'
-          return functionObject?.runtime || undefined
+          return runtimeForReporting(functionObject?.runtime) || undefined
         })
         .filter((runtime) => runtime !== undefined)
       if (functionRuntimes.length > 0) {
@@ -1164,7 +1165,7 @@ const createServiceDeployment = ({
       custom: {
         handler: fn.handler,
         memorySize: fn.memory,
-        runtime: fn.runtime,
+        runtime: runtimeForReporting(fn.runtime),
         environment: Object.keys(fn.environment || {}),
         role: fn.role,
         onError: fn.onError,
@@ -1277,6 +1278,11 @@ const maskKeyForLog = (value) => {
   return `${trimmed.slice(0, 4)}****${trimmed.slice(-4)}`
 }
 
+// A customer-managed runtime is reported as `custom`, the Runtime value Lambda
+// uses for it: its alias ARN names another account and runtime
+const runtimeForReporting = (runtime) =>
+  isCustomerManagedRuntime(runtime) ? 'custom' : runtime
+
 const summarizeServiceForLog = (serviceConfig) => {
   try {
     if (!serviceConfig || typeof serviceConfig !== 'object') {
@@ -1290,7 +1296,7 @@ const summarizeServiceForLog = (serviceConfig) => {
         serviceConfig.provider && typeof serviceConfig.provider === 'object'
           ? {
               name: serviceConfig.provider.name,
-              runtime: serviceConfig.provider.runtime,
+              runtime: runtimeForReporting(serviceConfig.provider.runtime),
               region: serviceConfig.provider.region,
             }
           : undefined,

@@ -17,6 +17,11 @@
       "shard": 3,
       "seconds": 274
     },
+    "tests/integration/customer-managed-runtimes/customer-managed-runtimes.test.js": {
+      "shard": 1,
+      "seconds": 180,
+      "pin": "customer-managed runtime prerequisite"
+    },
     "tests/integration/deployment-bucket/legacy-deployment-bucket-changesets-cli/legacy-deployment-bucket-changeset-cli.test.js": {
       "shard": 3,
       "seconds": 97
