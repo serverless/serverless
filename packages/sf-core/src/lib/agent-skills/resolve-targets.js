@@ -134,6 +134,26 @@ export const resolveUserSkillTargetDirs = async ({
 }
 
 /**
+ * User-scope targets for ONE skill within `dirs` already chosen (the automatic
+ * update's dirs that hold managed skills), with the plugin rules of
+ * resolveUserSkillTargetDirs.
+ *
+ * @returns {Promise<{dirs: string[], plugin?: object}>}
+ */
+export const resolveUserSkillTargetsWithin = async ({
+  dirs,
+  homeDir,
+  skill,
+  findPluginSkill = findClaudePluginSkill, // test seam
+}) =>
+  withoutPluginCopy({
+    dirs,
+    claudeDir: path.join(homeDir, ...DIR_MAP.claude.split('/')),
+    skill,
+    findPlugin: () => findPluginSkill({ homeDir, skillName: skill.name }),
+  })
+
+/**
  * Project-scope targets for ONE skill: `targetDirs` (from resolveTargetDirs)
  * with the same plugin rules as resolveUserSkillTargetDirs, applied to the
  * service's `.claude/skills`. Only a plugin that Claude Code loads for the

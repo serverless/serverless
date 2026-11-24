@@ -10,6 +10,7 @@ import {
   DIR_MAP,
   resolveProjectSkillTargetDirs,
   resolveUserSkillTargetDirs,
+  resolveUserSkillTargetsWithin,
 } from './resolve-targets.js'
 import { findClaudePluginSkill } from './plugin-skills.js'
 
@@ -51,6 +52,18 @@ export const syncUserSkills = ({ userSkills, homeDir, dirFlags }) =>
     skills: userSkills,
     resolve: (skill) =>
       resolveUserSkillTargetDirs({ homeDir, dirFlags, skill }),
+  })
+
+/**
+ * Converge the user-scope skills into `targetDirs` already chosen, leaving a
+ * skill out of `~/.claude/skills` when a Claude Code plugin provides it. Used
+ * by the automatic update, which picks only dirs that hold managed skills.
+ */
+export const syncUserSkillsWithin = ({ userSkills, homeDir, targetDirs }) =>
+  syncEachSkill({
+    skills: userSkills,
+    resolve: (skill) =>
+      resolveUserSkillTargetsWithin({ dirs: targetDirs, homeDir, skill }),
   })
 
 /**

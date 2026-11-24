@@ -184,6 +184,7 @@ describe('in a project', () => {
   let project
   beforeEach(async () => {
     project = await mkdtemp(path.join(tmpdir(), 'project-'))
+    await mkdir(serviceDir(), { recursive: true })
   })
   afterEach(async () => {
     await rm(project, { recursive: true, force: true })
@@ -274,6 +275,17 @@ describe('in a project', () => {
         homeDir: home,
         skillName: 'sls-gateway',
         projectDir: link,
+      }),
+    ).toBeUndefined()
+  })
+
+  it('does not count when the service path cannot be resolved', async () => {
+    await seedUserPlugin()
+    expect(
+      await findClaudePluginSkill({
+        homeDir: home,
+        skillName: 'sls-gateway',
+        projectDir: path.join(project, 'missing'),
       }),
     ).toBeUndefined()
   })

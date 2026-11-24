@@ -299,6 +299,37 @@ it('never throws even when sync explodes', async () => {
   ).resolves.toBeUndefined()
 })
 
+it('does not add the user skill to ~/.claude/skills when a Claude Code plugin provides it', async () => {
+  // ~/.claude/skills holds another Framework-managed skill, such as one
+  // installed with "npx skills add --global", so the update runs there.
+  await syncSkills({
+    bundledSkills: [scoped('sls-other', 1, 'project')],
+    targetDirs: [homeClaudeSkills()],
+  })
+  const pluginSkill = path.join(
+    home,
+    '.claude',
+    'plugins',
+    'cache',
+    'acme',
+    'tools',
+    '1.0.0',
+    'skills',
+    'sls-gateway',
+  )
+  await mkdir(pluginSkill, { recursive: true })
+  await writeFile(
+    path.join(pluginSkill, 'SKILL.md'),
+    scopedMd('sls-gateway', 2, 'user'),
+  )
+  await writeFile(
+    path.join(home, '.claude', 'settings.json'),
+    JSON.stringify({ enabledPlugins: { 'tools@acme': true } }),
+  )
+  await autoUpdateAgentSkills(scopedArgs({ configFilePath: undefined }))
+  expect(existsSync(path.join(homeClaudeSkills(), 'sls-gateway'))).toBe(false)
+})
+
 it('does not add a project skill to .claude/skills that a Claude Code plugin provides', async () => {
   // The service already has our skills in .claude/skills, so the update runs
   // there; a new bundled skill the plugin provides is not added next to them.

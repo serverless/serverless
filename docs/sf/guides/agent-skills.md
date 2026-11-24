@@ -181,7 +181,7 @@ The commands install a skill in Claude Code's skills directory as usual, with no
 - The plugin is installed for one project only, or is turned off.
 - For a project skill: a `.claude/settings.json` or `.claude/settings.local.json` file in the service directory, or in a directory above it, turns the plugin off, or can't be read.
 
-After you uninstall or turn off the plugin, run `serverless agent setup` again: in any directory to install the user-level skill in `~/.claude/skills`, and in each service to install its project skills in `.claude/skills`.
+After you uninstall or turn off the plugin, run `serverless agent setup` again in any directory to install the user-level skill in `~/.claude/skills`. To install a service's project skills in its `.claude/skills`, run `serverless agent setup --dir claude` in the service: without the flag, a service whose `.agents/skills` already holds Framework-managed skills keeps getting them only there.
 
 ### Skills that other agents load from a plugin
 
@@ -206,7 +206,7 @@ Gemini CLI and GitHub Copilot CLI list each skill once: the copy in `.agents/ski
 After a `serverless` command succeeds, the CLI updates installed skills to the versions it bundles, and prints a one-line notice that starts with `Serverless agent skills updated:`. It updates the user-level skill wherever the command runs, and project skills when the command runs in the service. Automatic updates follow these rules:
 
 - An update writes a skill only when the bundled version is newer, so an older CLI never downgrades skills that a teammate's newer CLI installed.
-- An update writes only into directories that already hold Framework-managed skills. There it also adds skills that a newer CLI bundles for the first time, except that it doesn't add a project skill to a service's `.claude/skills` when an installed Claude Code plugin provides it ([Skills that Claude Code loads from a plugin](#skills-that-claude-code-loads-from-a-plugin)).
+- An update writes only into directories that already hold Framework-managed skills. There it also adds skills that a newer CLI bundles for the first time, except that it doesn't add a skill to `~/.claude/skills` or a service's `.claude/skills` when an installed Claude Code plugin provides it ([Skills that Claude Code loads from a plugin](#skills-that-claude-code-loads-from-a-plugin)).
 - Updates are skipped in CI (detected from environment variables such as `CI` or `GITHUB_ACTIONS`), after a failed command, and for `--help`, `--version` and the `agent` commands. `agent setup` and `agent skills install` update skills themselves; `agent docs` and `agent skills list`/`read` never write any.
 - A skill you took ownership of ([Customizing a skill](#customizing-a-skill)) is never updated.
 
