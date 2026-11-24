@@ -56,7 +56,11 @@ describe('Serverless Framework Service - GPU functions on Managed Instances', ()
     try {
       await ecrClient.send(
         new DeleteRepositoryCommand({
-          repositoryName: `serverless-${SERVICE}-${stage}`.toLowerCase(),
+          // The name getEcrRepositoryName() gives the repository
+          repositoryName: `serverless-${SERVICE}-${stage}`
+            .toLowerCase()
+            .replace(/-+/g, '-')
+            .replace(/-$/, ''),
           force: true,
         }),
       )
