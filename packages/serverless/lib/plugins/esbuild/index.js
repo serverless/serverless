@@ -1004,7 +1004,10 @@ class Esbuild {
       // A customer-managed runtime's language is unknown: build only on an
       // explicit opt-in
       if (isCustomerManagedRuntime(runtime)) {
-        if (functionObject.build) return functionObject.build === 'esbuild'
+        // Function-level `build`, false included, overrides the service's
+        if (functionObject.build != null) {
+          return functionObject.build === 'esbuild'
+        }
         return Boolean(
           configFile.build === 'esbuild' || configFile.build?.esbuild,
         )
@@ -1132,7 +1135,7 @@ class Esbuild {
     // A customer-managed runtime's language is unknown: build only on an
     // explicit opt-in (Service converts its `runtime` to `custom`)
     if (!isWebApp && runtime === CUSTOMER_MANAGED_RUNTIME) {
-      if (functionBuildParam) return functionBuildParam === 'esbuild'
+      if (functionBuildParam != null) return functionBuildParam === 'esbuild'
       return Boolean(
         providerBuildParam &&
         (providerBuildParam === 'esbuild' || providerBuildParam.esbuild),

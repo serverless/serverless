@@ -6,6 +6,9 @@ import {
   toRuntimeConfig,
 } from '../../../../../../lib/plugins/aws/lib/customer-managed-runtime.js'
 
+const { default: Service } =
+  await import('../../../../../../lib/classes/service.js')
+
 const aliasArn =
   'arn:aws:lambda:us-east-1:123456789012:runtime/companyphp8/alias/prod'
 
@@ -122,21 +125,13 @@ describe('getCustomerManagedRuntimeFailureContext', () => {
       'Resource handler returned message: "Lambda function svc-dev-api could not be found" (RequestToken: x, HandlerErrorCode: NotFound)',
   }
 
-  it('names the alias ARN and what to check', () => {
+  it.each([
+    ['an alias ARN', aliasArn],
+    ['an intrinsic', { Ref: 'RuntimeStable' }],
+  ])('says what to check for %s, without the value', (_, value) => {
     expect(
       getCustomerManagedRuntimeFailureContext(
-        serverlessFor({ api: aliasArn }),
-        notFound,
-      ),
-    ).toBe(
-      `Function "api" uses the customer-managed runtime alias ${aliasArn}. Check that the alias exists in this Region and that the deploying role has lambda:AssociateRuntimeAlias on it.`,
-    )
-  })
-
-  it('describes an intrinsic value without printing it', () => {
-    expect(
-      getCustomerManagedRuntimeFailureContext(
-        serverlessFor({ api: { Ref: 'RuntimeStable' } }),
+        serverlessFor({ api: value }),
         notFound,
       ),
     ).toBe(
@@ -162,6 +157,46 @@ describe('getCustomerManagedRuntimeFailureContext', () => {
       getCustomerManagedRuntimeFailureContext(serverless, {
         ...notFound,
         ResourceType: 'AWS::Lambda::Version',
+      }),
+    ).toBeUndefined()
+  })
+
+  it('finds a provider-level value through a converted Service after compile', () => {
+    const service = new Service({
+      configurationFilename: 'serverless.yml',
+      configurationInput: {
+        service: 'svc',
+        provider: { name: 'aws', runtime: aliasArn },
+        functions: {
+          api: { handler: 'index.handler' },
+          toString: { handler: 'index.handler', runtime: 'nodejs24.x' },
+        },
+      },
+      utils: { getVersion: () => '4.32.0' },
+    })
+    service.loadServiceFileParam()
+    service.convertCustomerManagedRuntimes()
+    // compile/functions.js writes the resolved runtime to each function
+    for (const functionObject of Object.values(service.functions)) {
+      functionObject.runtime ??= 'custom'
+    }
+    const serverless = {
+      service,
+      getProvider: () => ({
+        naming: {
+          getLambdaLogicalId: (name) =>
+            `${name[0].toUpperCase()}${name.slice(1)}LambdaFunction`,
+        },
+      }),
+    }
+
+    expect(
+      getCustomerManagedRuntimeFailureContext(serverless, notFound),
+    ).toContain('Function "api" uses a customer-managed runtime.')
+    expect(
+      getCustomerManagedRuntimeFailureContext(serverless, {
+        ...notFound,
+        LogicalResourceId: 'ToStringLambdaFunction',
       }),
     ).toBeUndefined()
   })

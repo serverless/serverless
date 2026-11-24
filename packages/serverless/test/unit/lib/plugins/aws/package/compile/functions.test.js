@@ -780,43 +780,15 @@ describe('AwsCompileFunctions', () => {
       expect(properties).not.toHaveProperty('RuntimeConfig')
     })
 
-    it('rejects a literal custom runtime with the alias ARN form', async () => {
+    it('leaves RuntimeConfig of a literal custom runtime to resources or plugins', async () => {
+      // validateTemplate checks the merged template
       useRuntime(
         { api: { handler: 'index.handler', name: 'api', runtime: 'custom' } },
         {},
       )
-      await expect(
-        awsCompileFunctions.compileFunctions(),
-      ).rejects.toMatchObject({
-        code: 'LAMBDA_CUSTOMER_MANAGED_RUNTIME_INVALID_ARN',
-        message: expect.stringContaining(
-          'Use the runtime alias ARN, for example arn:aws:lambda:us-east-1:123456789012:runtime/companyphp8/alias/prod',
-        ),
-      })
-    })
-
-    it('keeps the resources.extensions form working for a literal custom runtime', async () => {
-      useRuntime(
-        { api: { handler: 'index.handler', name: 'api', runtime: 'custom' } },
-        {},
-      )
-      awsCompileFunctions.serverless.service.resources = {
-        extensions: {
-          ApiLambdaFunction: {
-            Properties: {
-              RuntimeConfig: {
-                RuntimeArn:
-                  'arn:aws:lambda:us-east-1:123456789012:runtime/companyphp8',
-                RuntimeAlias: 'prod',
-              },
-            },
-          },
-        },
-      }
       await awsCompileFunctions.compileFunctions()
       const properties = resources().ApiLambdaFunction.Properties
       expect(properties.Runtime).toBe('custom')
-      // resources.extensions supplies it when the template is merged
       expect(properties).not.toHaveProperty('RuntimeConfig')
     })
 

@@ -315,7 +315,9 @@ class Service {
    * `serverless print` shows, keeps what the user wrote.
    */
   convertCustomerManagedRuntimes() {
-    const stored = { provider: undefined, functions: {} }
+    // No prototype: a function named `toString` or `constructor` must not
+    // read as having a stored value.
+    const stored = { provider: undefined, functions: Object.create(null) }
     Object.defineProperty(this, 'customerManagedRuntimes', {
       value: stored,
       enumerable: false,
@@ -332,6 +334,17 @@ class Service {
     }
 
     if (!_.isObject(this.functions)) return
+    // Functions that inherit the provider's value get it recorded now: the
+    // compiler later writes the resolved runtime (`custom`) to every function.
+    if (stored.provider !== undefined) {
+      for (const [functionName, functionObject] of Object.entries(
+        this.functions,
+      )) {
+        if (_.isObject(functionObject) && functionObject.runtime == null) {
+          stored.functions[functionName] = stored.provider
+        }
+      }
+    }
     const converted = Object.entries(this.functions).filter(
       ([, functionObject]) =>
         _.isObject(functionObject) &&
@@ -356,7 +369,9 @@ class Service {
   getCustomerManagedRuntime(functionName) {
     const stored = this.customerManagedRuntimes
     if (!stored) return undefined
-    if (functionName in stored.functions) return stored.functions[functionName]
+    if (Object.hasOwn(stored.functions, functionName)) {
+      return stored.functions[functionName]
+    }
     const functionObject = this.functions?.[functionName]
     if (functionObject && functionObject.runtime == null) return stored.provider
     return undefined

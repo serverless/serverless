@@ -352,14 +352,18 @@ class AwsDeployFunction {
       const runtime = this.provider.getRuntime(functionObj.runtime)
 
       // A customer-managed runtime also needs RuntimeConfig, which this
-      // command does not send: moving a function onto one, or to another
-      // runtime alias, takes a full deploy
-      if (
-        runtime === CUSTOMER_MANAGED_RUNTIME &&
-        remoteFunctionConfiguration.Runtime !== CUSTOMER_MANAGED_RUNTIME
-      ) {
+      // command does not send (the SDK in use does not carry it): moving a
+      // function onto or off one takes a full deploy, and so does moving it
+      // to another runtime alias, which this command cannot detect
+      const isLocalCustomerManaged = runtime === CUSTOMER_MANAGED_RUNTIME
+      const isRemoteCustomerManaged =
+        remoteFunctionConfiguration.Runtime === CUSTOMER_MANAGED_RUNTIME
+      if (isLocalCustomerManaged !== isRemoteCustomerManaged) {
+        const change = isLocalCustomerManaged
+          ? `is deployed with runtime ${remoteFunctionConfiguration.Runtime} and now uses a customer-managed runtime`
+          : `is deployed on a customer-managed runtime and now uses runtime ${runtime}`
         throw new ServerlessError(
-          `Function "${functionObj.name}" is deployed with runtime ${remoteFunctionConfiguration.Runtime} and now uses a customer-managed runtime. "deploy function" cannot change that; run "serverless deploy" instead.`,
+          `Function "${functionObj.name}" ${change}. "deploy function" cannot change that; run "serverless deploy" instead.`,
           'DEPLOY_FUNCTION_CUSTOMER_MANAGED_RUNTIME_SWITCH',
           { stack: false },
         )

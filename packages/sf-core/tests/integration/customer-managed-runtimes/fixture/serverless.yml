@@ -15,3 +15,9 @@ functions:
   managed:
     handler: handler.main
     runtime: nodejs24.x
+  intrinsic:
+    handler: handler.main
+    # The same alias as an intrinsic: CloudFormation resolves it, and the
+    # Framework splits it into RuntimeArn and RuntimeAlias in the template
+    runtime:
+      Fn::Join: ['', ['${env:CMR_TEST_RUNTIME_ALIAS_ARN}']]

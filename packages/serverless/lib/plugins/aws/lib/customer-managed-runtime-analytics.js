@@ -52,9 +52,10 @@ export const buildCustomerManagedRuntimesAnalytics = (config) => {
       if (!isCustomerManagedRuntime(value)) continue
       functions += 1
       valueForms.add(typeof value === 'string' ? 'aliasArn' : 'intrinsic')
-      const esbuild = functionObject.build
-        ? functionObject.build === 'esbuild'
-        : providerEsbuild
+      const esbuild =
+        functionObject.build != null
+          ? functionObject.build === 'esbuild'
+          : providerEsbuild
       if (esbuild) esbuildFunctions += 1
       const mode =
         modeOf(functionObject.runtimeManagement) ??

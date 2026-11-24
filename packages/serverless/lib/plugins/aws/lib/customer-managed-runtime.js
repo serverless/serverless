@@ -74,7 +74,8 @@ export const toRuntimeConfig = (value) => {
 /**
  * The line to add when CloudFormation fails a function on a customer-managed
  * runtime with "could not be found": Lambda reports a missing or unusable
- * runtime alias that way, naming the function instead of the alias.
+ * runtime alias that way, naming the function instead of the alias. Other
+ * causes of that message are possible, so the line says what to check.
  */
 export const getCustomerManagedRuntimeFailureContext = (serverless, event) => {
   if (
@@ -92,11 +93,10 @@ export const getCustomerManagedRuntimeFailureContext = (serverless, event) => {
       (name) => naming?.getLambdaLogicalId(name) === event.LogicalResourceId,
     )
   if (!functionName) return undefined
-  const value = service.getCustomerManagedRuntime(functionName)
-  if (value === undefined) return undefined
-  const check =
-    'and that the deploying role has lambda:AssociateRuntimeAlias on it.'
-  return parseRuntimeAliasArn(value)
-    ? `Function "${functionName}" uses the customer-managed runtime alias ${value}. Check that the alias exists in this Region ${check}`
-    : `Function "${functionName}" uses a customer-managed runtime. Check that its runtime alias exists in this Region ${check}`
+  if (service.getCustomerManagedRuntime(functionName) === undefined) {
+    return undefined
+  }
+  // The value is left out: error messages reach analytics, which never
+  // receive a runtime ARN (it names the publisher's account)
+  return `Function "${functionName}" uses a customer-managed runtime. Check that its runtime alias exists in this Region and that the deploying role has lambda:AssociateRuntimeAlias on it.`
 }

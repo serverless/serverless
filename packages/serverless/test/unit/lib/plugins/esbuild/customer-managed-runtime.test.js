@@ -132,6 +132,16 @@ describe('esbuild and customer-managed runtimes', () => {
       ).toBe(true)
     })
 
+    it('is false with function-level build: false and build.esbuild on the service', () => {
+      expect(
+        willRun({
+          provider: { runtime: aliasArn },
+          build: { esbuild: {} },
+          functions: { hello: { handler: 'src/handler.hello', build: false } },
+        }),
+      ).toBe(false)
+    })
+
     it('is true with build.esbuild on the service', () => {
       expect(
         willRun({

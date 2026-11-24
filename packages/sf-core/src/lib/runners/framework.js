@@ -1300,7 +1300,7 @@ const summarizeServiceForLog = (serviceConfig) => {
         serviceConfig.provider && typeof serviceConfig.provider === 'object'
           ? {
               name: serviceConfig.provider.name,
-              runtime: serviceConfig.provider.runtime,
+              runtime: runtimeForReporting(serviceConfig.provider.runtime),
               region: serviceConfig.provider.region,
             }
           : undefined,

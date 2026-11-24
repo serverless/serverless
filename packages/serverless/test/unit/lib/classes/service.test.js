@@ -151,6 +151,31 @@ describe('Service customer-managed runtimes', () => {
     expect(service.getCustomerManagedRuntime('legacy')).toBeUndefined()
   })
 
+  it('keeps the provider-level value after the compiler resolves runtime', () => {
+    const service = loadService({
+      provider: { name: 'aws', runtime: aliasArn },
+      functions: { api: { handler: 'index.handler' } },
+    })
+    service.convertCustomerManagedRuntimes()
+    // compile/functions.js writes the resolved runtime to each function
+    service.functions.api.runtime = 'custom'
+
+    expect(service.getCustomerManagedRuntime('api')).toBe(aliasArn)
+  })
+
+  it.each(['toString', 'constructor', 'hasOwnProperty'])(
+    'has no value for a function named %s on a Lambda-managed runtime',
+    (functionName) => {
+      const service = loadService({
+        provider: { name: 'aws', runtime: 'nodejs24.x' },
+        functions: { [functionName]: { handler: 'index.handler' } },
+      })
+      service.convertCustomerManagedRuntimes()
+
+      expect(service.getCustomerManagedRuntime(functionName)).toBeUndefined()
+    },
+  )
+
   it('does not treat a literal custom runtime as customer-managed', () => {
     const service = loadService({
       functions: { api: { handler: 'index.handler', runtime: 'custom' } },

@@ -1,6 +1,7 @@
 /**
  * Functions on a Lambda customer-managed runtime: `runtime` set to a runtime
- * alias ARN deploys the function on that runtime, `deploy function` keeps it
+ * alias ARN, or to an intrinsic that returns one, deploys the function on that
+ * runtime, `deploy function` keeps it
  * there, and `invoke local` explains that it cannot run one.
  *
  * The runtime is a persistent, per-account prerequisite
@@ -169,6 +170,16 @@ describeSuite(
       )
       expect(configuration.Runtime).toBe('custom')
       expect(await invokeMarker('marker')).toBe(MARKER)
+    }, 300000)
+
+    test('deploys a CloudFormation intrinsic as a customer-managed runtime', async () => {
+      const configuration = await lambdaClient.send(
+        new GetFunctionConfigurationCommand({
+          FunctionName: `${stackName}-intrinsic`,
+        }),
+      )
+      expect(configuration.Runtime).toBe('custom')
+      expect(await invokeMarker('intrinsic')).toBe(MARKER)
     }, 300000)
 
     test('keeps a function with its own runtime on that runtime', async () => {

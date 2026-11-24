@@ -441,7 +441,7 @@ functions:
 
 A runtime alias ARN has the form `arn:aws:lambda:REGION:ACCOUNT_ID:runtime/RUNTIME_NAME/alias/ALIAS_NAME`. The Framework deploys the function with the runtime and alias it names. The rules for the value:
 
-- Use the alias ARN. A runtime ARN without `/alias/`, a runtime version ARN, a bare runtime name and the value `custom` stop packaging with an error. To pin a function to one runtime version, see [Runtime updates for customer-managed runtimes](#runtime-updates-for-customer-managed-runtimes).
+- Use the alias ARN. A runtime ARN without `/alias/`, a runtime version ARN, and a bare runtime name get a configuration warning, and the value `custom` stops packaging with an error unless `resources` supplies the function's `RuntimeConfig`. To pin a function to one runtime version, see [Runtime updates for customer-managed runtimes](#runtime-updates-for-customer-managed-runtimes).
 - The runtime must be in the Region the service deploys to. An alias ARN from another Region stops packaging with an error.
 - `runtime` also accepts a CloudFormation intrinsic that returns an alias ARN, such as `!Ref` on an `AWS::Lambda::RuntimeAlias` resource or `!ImportValue` of a stack output. Variables such as `${cf:runtime-stack.AliasArn}` and `${ssm:/platform/runtime-alias-arn}` work too.
 
@@ -453,11 +453,11 @@ The Lambda console and API also call these runtimes "custom", and Lambda reports
 - A runtime in another AWS account must also be shared with your account in the runtime's resource-based policy. The runtime publisher sets that up; see [sharing and controlling access to customer-managed runtimes](https://docs.aws.amazon.com/lambda/latest/dg/cmr-permissions.html).
 - The function's execution role needs nothing new. The runtime runs with that role's permissions, so use runtimes only from publishers you trust.
 
-When the alias does not exist, or the deploying principal may not use it, the deploy fails with a message from Lambda that names the function instead of the alias, followed by the alias to check:
+When the alias does not exist, or the deploying principal may not use it, the deploy fails with a message from Lambda that names the function instead of the alias, followed by what to check:
 
 ```text
 ✖ An error occurred: ApiLambdaFunction - Resource handler returned message: "Lambda function my-service-dev-api could not be found" (RequestToken: …, HandlerErrorCode: NotFound).
-Function "api" uses the customer-managed runtime alias arn:aws:lambda:us-east-1:123456789012:runtime/company-node24/alias/prod. Check that the alias exists in this Region and that the deploying role has lambda:AssociateRuntimeAlias on it.
+Function "api" uses a customer-managed runtime. Check that its runtime alias exists in this Region and that the deploying role has lambda:AssociateRuntimeAlias on it.
 ```
 
 A function whose `architecture` the runtime does not support fails with `The requested architecture arm64 is not supported by the runtime. Supported architectures: [x86_64].`
@@ -528,7 +528,7 @@ Layers work as with other runtimes. A layer built for these functions can list `
 - SnapStart, Lambda@Edge (`cloudFront` events) and container image functions cannot use a customer-managed runtime; each stops packaging with an error.
 - `serverless invoke local` cannot run these functions; use `serverless invoke --function NAME` after deploying.
 - `serverless dev` keeps these functions on their deployed code.
-- `serverless deploy function` updates their code and configuration but not their runtime: moving a function onto a customer-managed runtime, or to another alias, takes `serverless deploy`.
+- `serverless deploy function` updates their code and configuration but not their runtime: moving a function onto or off a customer-managed runtime stops with an error, and moving it to another alias takes effect only with `serverless deploy`.
 
 ## SnapStart
 

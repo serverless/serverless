@@ -3233,10 +3233,7 @@ destinations:
                 type: 'array',
                 items: {
                   description: `Lambda runtime identifier, or custom for customer-managed runtimes.`,
-                  anyOf: [
-                    { $ref: '#/definitions/awsLambdaRuntimeIdentifier' },
-                    { const: 'custom' },
-                  ],
+                  enum: [...LAMBDA_RUNTIME_IDENTIFIERS, 'custom'],
                 },
                 maxItems: 15,
               },

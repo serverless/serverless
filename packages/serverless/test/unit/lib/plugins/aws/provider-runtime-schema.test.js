@@ -142,4 +142,13 @@ describe('customer-managed runtimes in the serverless.yml schema', () => {
     expect(warnings).toHaveLength(1)
     expect(warnings[0]).toContain("at 'layers.shared.compatibleRuntimes.0'")
   })
+
+  test('a layer runtime typo lists the allowed values', async () => {
+    const warnings = await warningsFor({
+      layers: { shared: { path: 'layer', compatibleRuntimes: ['nodejs24'] } },
+    })
+    expect(warnings).toHaveLength(1)
+    expect(warnings[0]).toContain('nodejs24.x')
+    expect(warnings[0]).toContain('custom')
+  })
 })
