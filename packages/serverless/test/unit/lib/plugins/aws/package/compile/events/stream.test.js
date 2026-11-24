@@ -758,6 +758,99 @@ describe('AwsCompileStreamEvents', () => {
       )
     })
 
+    // Regression for #11757: the stream name used for consumer naming must be
+    // resolved through nested intrinsic functions (e.g. an Fn::ImportValue
+    // whose value is itself a Fn::Join) instead of crashing.
+    it('should create a stream consumer when arn nests a Fn::Join in Fn::ImportValue', () => {
+      const arnWithNestedJoin = {
+        'Fn::ImportValue': {
+          'Fn::Join': ['-', ['shared', { Ref: 'StreamNameParameter' }]],
+        },
+      }
+      awsCompileStreamEvents.serverless.service.functions = {
+        first: {
+          events: [
+            {
+              stream: {
+                arn: arnWithNestedJoin,
+                type: 'kinesis',
+                consumer: true,
+              },
+            },
+          ],
+        },
+      }
+
+      awsCompileStreamEvents.compileStreamEvents()
+
+      const resources =
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+
+      const consumerResources = Object.entries(resources).filter(
+        ([, resource]) => resource.Type === 'AWS::Kinesis::StreamConsumer',
+      )
+      expect(consumerResources.length).toBe(1)
+      expect(consumerResources[0][1].Properties.StreamARN).toEqual(
+        arnWithNestedJoin,
+      )
+    })
+
+    it('should create a stream consumer when arn nests a Fn::GetAtt in Fn::ImportValue', () => {
+      awsCompileStreamEvents.serverless.service.functions = {
+        first: {
+          events: [
+            {
+              stream: {
+                arn: {
+                  'Fn::ImportValue': {
+                    'Fn::GetAtt': ['StreamResource', 'Arn'],
+                  },
+                },
+                type: 'kinesis',
+                consumer: true,
+              },
+            },
+          ],
+        },
+      }
+
+      awsCompileStreamEvents.compileStreamEvents()
+
+      const resources =
+        awsCompileStreamEvents.serverless.service.provider
+          .compiledCloudFormationTemplate.Resources
+
+      const consumerResources = Object.entries(resources).filter(
+        ([, resource]) => resource.Type === 'AWS::Kinesis::StreamConsumer',
+      )
+      expect(consumerResources.length).toBe(1)
+    })
+
+    it('should throw a descriptive error when the stream name cannot be resolved', () => {
+      awsCompileStreamEvents.serverless.service.functions = {
+        first: {
+          events: [
+            {
+              stream: {
+                arn: {
+                  'Fn::ImportValue': {
+                    'Fn::Select': [0, ['nested', 'value']],
+                  },
+                },
+                type: 'kinesis',
+                consumer: true,
+              },
+            },
+          ],
+        },
+      }
+
+      expect(() => awsCompileStreamEvents.compileStreamEvents()).toThrow(
+        /Cannot resolve stream name/,
+      )
+    })
+
     it('should support onFailure destination with SNS ARN string', () => {
       awsCompileStreamEvents.serverless.service.functions = {
         first: {

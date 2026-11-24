@@ -176,7 +176,16 @@ events:
           anyOf: [
             {
               properties: {
-                arn: { $ref: '#/definitions/awsCfFunction' },
+                // Only intrinsic functions from which the stream name can be
+                // resolved locally (see getStreamNameFromArn).
+                arn: {
+                  anyOf: [
+                    { $ref: '#/definitions/awsCfGetAtt' },
+                    { $ref: '#/definitions/awsCfImport' },
+                    { $ref: '#/definitions/awsCfJoin' },
+                    { $ref: '#/definitions/awsCfRef' },
+                  ],
+                },
               },
               required: ['arn', 'type'],
             },
