@@ -394,16 +394,25 @@ class AwsCompileFunctions {
       }
       functionResource.Properties.Runtime = functionObject.runtime
       if (functionObject.runtime === CUSTOMER_MANAGED_RUNTIME) {
-        if (!customerManagedRuntime) {
+        // `runtime: custom` with RuntimeConfig under resources.extensions was
+        // the way to use these runtimes before `runtime` took the alias ARN;
+        // that configuration keeps deploying as before
+        const extendedRuntimeConfig =
+          this.serverless.service.resources?.extensions?.[
+            this.provider.naming.getLambdaLogicalId(functionName)
+          ]?.Properties?.RuntimeConfig
+        if (!customerManagedRuntime && !extendedRuntimeConfig) {
           throw new ServerlessError(
             `"runtime" of function "${functionName}" names a customer-managed runtime without its alias. Use the runtime alias ARN, for example arn:aws:lambda:us-east-1:123456789012:runtime/companyphp8/alias/prod, or a CloudFormation intrinsic that returns one. To pin a runtime version, add runtimeManagement: { mode: manual, arn: <runtime version ARN> }.`,
             'LAMBDA_CUSTOMER_MANAGED_RUNTIME_INVALID_ARN',
             { stack: false },
           )
         }
-        functionResource.Properties.RuntimeConfig = toRuntimeConfig(
-          customerManagedRuntime,
-        )
+        if (customerManagedRuntime) {
+          functionResource.Properties.RuntimeConfig = toRuntimeConfig(
+            customerManagedRuntime,
+          )
+        }
       }
     } else {
       functionResource.Properties.Code.ImageUri = functionImageUri

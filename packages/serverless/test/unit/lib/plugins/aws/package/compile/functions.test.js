@@ -795,6 +795,31 @@ describe('AwsCompileFunctions', () => {
       })
     })
 
+    it('keeps the resources.extensions form working for a literal custom runtime', async () => {
+      useRuntime(
+        { api: { handler: 'index.handler', name: 'api', runtime: 'custom' } },
+        {},
+      )
+      awsCompileFunctions.serverless.service.resources = {
+        extensions: {
+          ApiLambdaFunction: {
+            Properties: {
+              RuntimeConfig: {
+                RuntimeArn:
+                  'arn:aws:lambda:us-east-1:123456789012:runtime/companyphp8',
+                RuntimeAlias: 'prod',
+              },
+            },
+          },
+        },
+      }
+      await awsCompileFunctions.compileFunctions()
+      const properties = resources().ApiLambdaFunction.Properties
+      expect(properties.Runtime).toBe('custom')
+      // resources.extensions supplies it when the template is merged
+      expect(properties).not.toHaveProperty('RuntimeConfig')
+    })
+
     it('rejects an alias ARN from another Region', async () => {
       useRuntime(
         { api: { handler: 'index.handler', name: 'api', runtime: 'custom' } },
