@@ -146,20 +146,27 @@ describeSuite(
       // Remove the stack whatever the tests did, and fail the run when it
       // cannot be removed, so a leak never passes as green.
       jest.restoreAllMocks()
-      let failure
-      try {
-        if (originalHandler !== undefined) {
+      // Each step runs whatever the other did, and every failure is reported
+      const failures = []
+      if (originalHandler !== undefined) {
+        try {
           await fs.writeFile(handlerPath, originalHandler)
+        } catch (error) {
+          failures.push(`restoring ${handlerPath}: ${error.message}`)
         }
+      }
+      try {
         if (await stackExists()) {
           await run(['remove'], {}, { expectError: true })
           if (await stackExists()) throw new Error('the stack still exists')
         }
       } catch (error) {
-        failure = new Error(`Teardown of ${stackName} failed: ${error.message}`)
+        failures.push(`removing ${stackName}: ${error.message}`)
       }
       process.env = originalEnv
-      if (failure) throw failure
+      if (failures.length) {
+        throw new Error(`Teardown failed: ${failures.join('; ')}`)
+      }
     }, 900000)
 
     test('deploys provider.runtime as a customer-managed runtime', async () => {

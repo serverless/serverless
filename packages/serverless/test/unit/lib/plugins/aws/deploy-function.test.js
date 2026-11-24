@@ -157,6 +157,63 @@ describe('AwsDeployFunction', () => {
     })
   })
 
+  describe('#checkCustomerManagedRuntimeSwitch()', () => {
+    const aliasArn =
+      'arn:aws:lambda:us-east-1:123456789012:runtime/companyphp8/alias/prod'
+    const prepare = (remoteRuntime, value) => {
+      awsDeployFunction.options.function = 'first'
+      awsDeployFunction.options.functionObj = {
+        name: 'first',
+        runtime: 'custom',
+      }
+      awsDeployFunction.provider.getRuntime = jest.fn((r) => r)
+      serverless.service.provider.remoteFunctionData = {
+        Configuration: { Runtime: remoteRuntime },
+      }
+      serverless.service.getCustomerManagedRuntime = jest.fn(() => value)
+    }
+
+    it('refuses moving onto a runtime given as an intrinsic', () => {
+      prepare('nodejs24.x', { Ref: 'RuntimeStable' })
+      expect(() =>
+        awsDeployFunction.checkCustomerManagedRuntimeSwitch(),
+      ).toThrow(
+        expect.objectContaining({
+          code: 'DEPLOY_FUNCTION_CUSTOMER_MANAGED_RUNTIME_SWITCH',
+        }),
+      )
+    })
+
+    it.each([
+      ['an alias ARN', 'nodejs24.x', aliasArn],
+      [
+        'a function already on a customer-managed runtime',
+        'custom',
+        { Ref: 'RuntimeStable' },
+      ],
+    ])('allows %s', (_, remoteRuntime, value) => {
+      prepare(remoteRuntime, value)
+      expect(() =>
+        awsDeployFunction.checkCustomerManagedRuntimeSwitch(),
+      ).not.toThrow()
+    })
+
+    it('runs in the initialize step, before any code is uploaded', async () => {
+      awsDeployFunction.validate = jest.fn()
+      awsDeployFunction.checkIfFunctionExists = jest.fn()
+      awsDeployFunction.checkIfFunctionChangesBetweenImageAndHandler = jest.fn()
+      awsDeployFunction.checkCustomerManagedRuntimeSwitch = jest.fn(() => {
+        throw new Error('refused')
+      })
+      awsDeployFunction.deployFunction = jest.fn()
+
+      await expect(
+        awsDeployFunction.hooks['deploy:function:initialize'](),
+      ).rejects.toThrow('refused')
+      expect(awsDeployFunction.deployFunction).not.toHaveBeenCalled()
+    })
+  })
+
   describe('#normalizeArnRole', () => {
     let getAccountInfoStub
     let getRoleStub

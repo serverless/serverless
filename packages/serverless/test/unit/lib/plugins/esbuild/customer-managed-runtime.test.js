@@ -153,3 +153,67 @@ describe('esbuild and customer-managed runtimes', () => {
     })
   })
 })
+
+describe('artifact package.json with a customer-managed runtime', () => {
+  // A service on nodejs24.x with one function on a customer-managed runtime
+  // that opts into esbuild, and packages: external
+  const writeManifest = async (functions) => {
+    const serviceDir = makeTsServiceDir()
+    fs.writeFileSync(
+      path.join(serviceDir, 'package.json'),
+      JSON.stringify({
+        name: 'svc',
+        dependencies: { '@aws-sdk/client-s3': '^3.0.0', lodash: '^4.0.0' },
+      }),
+    )
+    fs.mkdirSync(path.join(serviceDir, '.serverless', 'build'), {
+      recursive: true,
+    })
+    const plugin = new Esbuild(
+      {
+        serviceDir,
+        config: { serviceDir },
+        service: {
+          service: 'svc',
+          provider: { runtime: 'nodejs24.x' },
+          package: {},
+          build: { esbuild: { packages: 'external' } },
+          functions,
+          getFunction: (name) => functions[name],
+          getAllFunctions: () => Object.keys(functions),
+        },
+        compose: { isWithinCompose: false },
+        pluginManager: { spawn: async () => {} },
+      },
+      {},
+    )
+    await plugin._writeArtifactPackageJson()
+    return JSON.parse(
+      fs.readFileSync(
+        path.join(serviceDir, '.serverless', 'build', 'package.json'),
+        'utf8',
+      ),
+    ).dependencies
+  }
+
+  it('keeps the AWS SDK when a built function runs on a customer-managed runtime', async () => {
+    const dependencies = await writeManifest({
+      api: { handler: 'src/handler.hello' },
+      worker: {
+        handler: 'src/handler.hello',
+        runtime: 'custom',
+        build: 'esbuild',
+      },
+    })
+    expect(dependencies).toHaveProperty('@aws-sdk/client-s3')
+    expect(dependencies).toHaveProperty('lodash')
+  })
+
+  it('still excludes the AWS SDK when every built function runs on Node.js', async () => {
+    const dependencies = await writeManifest({
+      api: { handler: 'src/handler.hello' },
+    })
+    expect(dependencies).not.toHaveProperty('@aws-sdk/client-s3')
+    expect(dependencies).toHaveProperty('lodash')
+  })
+})

@@ -163,6 +163,22 @@ describe('Service customer-managed runtimes', () => {
     expect(service.getCustomerManagedRuntime('api')).toBe(aliasArn)
   })
 
+  it('keeps the configuration input unchanged when the compiler resolves runtime', () => {
+    const service = loadService({
+      provider: { name: 'aws', runtime: aliasArn },
+      functions: { api: { handler: 'index.handler' } },
+    })
+    const input = service.serverless.configurationInput
+    service.convertCustomerManagedRuntimes()
+    service.functions.api.runtime = 'custom'
+
+    expect(input.functions.api).not.toHaveProperty('runtime')
+    // A second run of the same instance converts the same way
+    service.reloadServiceFileParam()
+    service.convertCustomerManagedRuntimes()
+    expect(service.getCustomerManagedRuntime('api')).toBe(aliasArn)
+  })
+
   it('does not apply a provider-level value to image functions', () => {
     const service = loadService({
       provider: { name: 'aws', runtime: aliasArn },

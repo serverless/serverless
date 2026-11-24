@@ -3914,6 +3914,25 @@ class Esbuild {
   }
 
   /**
+   * True when esbuild builds a function that runs on a customer-managed
+   * runtime (Service converts its `runtime` to `custom`).
+   */
+  async _buildsCustomerManagedRuntimeFunction() {
+    const service = this.serverless.service
+    for (const functionName of service.getAllFunctions?.() ?? []) {
+      const functionObject = service.getFunction(functionName)
+      const runtime = functionObject?.runtime || service.provider.runtime
+      if (
+        runtime === CUSTOMER_MANAGED_RUNTIME &&
+        (await this._shouldBuildFunction(functionObject))
+      ) {
+        return true
+      }
+    }
+    return false
+  }
+
+  /**
    * Writes the artifact's `package.json` into the build directory: the
    * service's own without `devDependencies`, its dependencies narrowed to
    * those the build leaves external. Besides naming what the install puts in
@@ -3922,7 +3941,11 @@ class Esbuild {
    * Resolves the build directory.
    */
   async _writeArtifactPackageJson() {
-    const runtime = this.serverless.service.provider.runtime || 'nodejs18.x'
+    // The AWS SDK is excluded because Lambda's Node.js runtimes include it. A
+    // customer-managed runtime in the build may not, so it keeps the SDK.
+    const runtime = (await this._buildsCustomerManagedRuntimeFunction())
+      ? CUSTOMER_MANAGED_RUNTIME
+      : this.serverless.service.provider.runtime || 'nodejs18.x'
     const { external, exclude } = await this._externals(runtime)
 
     const packageJson = await this._readPackageJson()

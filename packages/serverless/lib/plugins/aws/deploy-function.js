@@ -52,6 +52,8 @@ class AwsDeployFunction {
         await this.checkIfFunctionExists()
         this.logger.debug('checking if function changed')
         this.checkIfFunctionChangesBetweenImageAndHandler()
+        // Before any code is uploaded, so a refused switch changes nothing
+        this.checkCustomerManagedRuntimeSwitch()
       },
 
       'before:deploy:function:packageFunction': () =>
@@ -284,6 +286,35 @@ class AwsDeployFunction {
   }
 
   /**
+   * Throws when the function moves onto a customer-managed runtime that this
+   * command cannot resolve: one set with a CloudFormation intrinsic, or a
+   * literal `custom` whose RuntimeConfig comes from resources.
+   */
+  checkCustomerManagedRuntimeSwitch() {
+    const remoteFunctionConfiguration =
+      this.serverless.service.provider.remoteFunctionData?.Configuration
+    if (
+      !remoteFunctionConfiguration ||
+      remoteFunctionConfiguration.PackageType === 'Image' ||
+      remoteFunctionConfiguration.Runtime === CUSTOMER_MANAGED_RUNTIME ||
+      this.provider.getRuntime(this.options.functionObj?.runtime) !==
+        CUSTOMER_MANAGED_RUNTIME ||
+      parseRuntimeAliasArn(
+        this.serverless.service.getCustomerManagedRuntime?.(
+          this.options.function,
+        ),
+      )
+    ) {
+      return
+    }
+    throw new ServerlessError(
+      `Function "${this.options.functionObj.name}" is deployed with runtime ${remoteFunctionConfiguration.Runtime} and now uses a customer-managed runtime set with a CloudFormation intrinsic or in resources, which "deploy function" cannot resolve. Run "serverless deploy" instead.`,
+      'DEPLOY_FUNCTION_CUSTOMER_MANAGED_RUNTIME_SWITCH',
+      { stack: false },
+    )
+  }
+
+  /**
    * Runtime and RuntimeConfig to send for a function on a customer-managed
    * runtime: nothing when the deployed function already uses the alias.
    * An intrinsic value resolves only in CloudFormation, so a function
@@ -298,12 +329,11 @@ class AwsDeployFunction {
     const isRemoteCustomerManaged =
       remoteFunctionConfiguration.Runtime === CUSTOMER_MANAGED_RUNTIME
     if (!parseRuntimeAliasArn(value)) {
+      // checkCustomerManagedRuntimeSwitch refused a switch onto such a value
+      // before the code upload
       if (isRemoteCustomerManaged) return {}
-      throw new ServerlessError(
-        `Function "${functionObj.name}" is deployed with runtime ${remoteFunctionConfiguration.Runtime} and now uses a customer-managed runtime set with a CloudFormation intrinsic or in resources, which "deploy function" cannot resolve. Run "serverless deploy" instead.`,
-        'DEPLOY_FUNCTION_CUSTOMER_MANAGED_RUNTIME_SWITCH',
-        { stack: false },
-      )
+      this.checkCustomerManagedRuntimeSwitch()
+      return {}
     }
     const runtimeConfig = toRuntimeConfig(value)
     // The remote configuration comes from AWS SDK v2, which drops RuntimeConfig

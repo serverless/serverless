@@ -334,29 +334,30 @@ class Service {
     }
 
     if (!_.isObject(this.functions)) return
-    // Functions that inherit the provider's value get it recorded now: the
-    // compiler later writes the resolved runtime (`custom`) to every function.
-    if (stored.provider !== undefined) {
-      for (const [functionName, functionObject] of Object.entries(
-        this.functions,
-      )) {
-        // Image functions have no runtime: they do not inherit the value
-        if (
-          _.isObject(functionObject) &&
-          functionObject.runtime == null &&
-          !functionObject.image
-        ) {
-          stored.functions[functionName] = stored.provider
-        }
-      }
-    }
+    // Functions that inherit the provider's value get it recorded now, since
+    // the compiler later writes the resolved runtime (`custom`) to every
+    // function. Image functions have no runtime and inherit nothing.
+    const inherited =
+      stored.provider === undefined
+        ? []
+        : Object.entries(this.functions).filter(
+            ([, functionObject]) =>
+              _.isObject(functionObject) &&
+              functionObject.runtime == null &&
+              !functionObject.image,
+          )
     const converted = Object.entries(this.functions).filter(
       ([, functionObject]) =>
         _.isObject(functionObject) &&
         isCustomerManagedRuntime(functionObject.runtime),
     )
-    if (!converted.length) return
+    if (!inherited.length && !converted.length) return
+    // Copies, so writes during packaging stay out of the configuration input
     this.functions = { ...this.functions }
+    for (const [functionName, functionObject] of inherited) {
+      stored.functions[functionName] = stored.provider
+      this.functions[functionName] = { ...functionObject }
+    }
     for (const [functionName, functionObject] of converted) {
       stored.functions[functionName] = functionObject.runtime
       this.functions[functionName] = {
