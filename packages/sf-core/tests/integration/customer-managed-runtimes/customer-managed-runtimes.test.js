@@ -106,12 +106,15 @@ describeSuite(
         ...params,
       })
 
-    const invokeMarker = async (functionName) =>
+    const invokeResult = async (functionName) =>
       JSON.parse(
         await captureStdout(() =>
           run(['invoke'], { function: functionName, data: PAYLOAD }),
         ),
-      ).marker
+      )
+
+    const invokeMarker = async (functionName) =>
+      (await invokeResult(functionName)).marker
 
     const stackExists = async () => {
       try {
@@ -200,10 +203,12 @@ describeSuite(
     }, 300000)
 
     test('deploy function updates the code and keeps the runtime', async () => {
-      await fs.writeFile(
-        handlerPath,
-        `${originalHandler}\n// deploy function\n`,
+      const updatedHandler = originalHandler.replace(
+        'const REVISION = 1',
+        'const REVISION = 2',
       )
+      expect(updatedHandler).not.toBe(originalHandler)
+      await fs.writeFile(handlerPath, updatedHandler)
       await run(['deploy', 'function'], { function: 'marker' })
 
       const configuration = await lambdaClient.send(
@@ -212,7 +217,10 @@ describeSuite(
         }),
       )
       expect(configuration.Runtime).toBe('custom')
-      expect(await invokeMarker('marker')).toBe(MARKER)
+      expect(await invokeResult('marker')).toEqual({
+        marker: MARKER,
+        revision: 2,
+      })
     }, 300000)
 
     test('invoke local explains that the function cannot run locally', async () => {
