@@ -225,6 +225,10 @@ updates:
       semver-major-days: 30
       semver-minor-days: 7
       semver-patch-days: 3
+    ignore:
+      - dependency-name: 'python-dateutil'
+        # botocore requires python-dateutil < 3, so v3 cannot be installed next to boto3
+        versions: ['>= 3.0.0']
     groups:
       python-fixtures:
         patterns:
