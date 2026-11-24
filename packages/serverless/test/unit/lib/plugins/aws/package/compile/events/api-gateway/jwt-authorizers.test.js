@@ -891,11 +891,39 @@ describe('API Gateway JWT authorizers', () => {
           },
         ],
         ['the whole definition', SECRET_URL],
+        [
+          'an issuers entry keyed by the URL',
+          {
+            type: 'jwt',
+            algorithms: ['RS256'],
+            issuers: [{ [SECRET_URL]: {} }],
+          },
+        ],
+        [
+          'an unknown key named like the URL',
+          ordersAuthorizer({ [SECRET_URL]: true }),
+        ],
+        [
+          'a claim keyed by the URL with an invalid rule',
+          ordersAuthorizer({ additionalClaims: { [SECRET_URL]: 5 } }),
+        ],
       ])('shows no user info for %s', async (_label, definition) => {
         const error = await definitionError(definition)
         expect(error.code).toBe(INVALID)
         expect(error.message).not.toContain('s3cret')
         expect(error.message).not.toContain('admin')
+      })
+
+      it('shows no user info for an authorizer key named like the URL', async () => {
+        const error = await compileError({
+          apiGateway: {
+            authorizers: { [SECRET_URL]: ordersAuthorizer() },
+          },
+          functions: withEvent('orders'),
+        })
+        expect(error.code).toBe(INVALID)
+        expect(error.message).not.toContain('s3cret')
+        expect(error.message).toContain('a name containing "@" (not shown)')
       })
 
       it.each([

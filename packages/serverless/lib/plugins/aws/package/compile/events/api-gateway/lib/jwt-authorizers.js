@@ -85,6 +85,10 @@ const show = (value) => {
     : text
 }
 
+/** A configured name or key as shown in an error, quoted, by the same rule. */
+const showName = (name) =>
+  String(name).includes('@') ? 'a name containing "@" (not shown)' : `"${name}"`
+
 const invalid = (message) =>
   new ServerlessError(message, INVALID, { stack: false })
 
@@ -105,7 +109,7 @@ const assertKnownKeys = (key, path, value, known) => {
         `${candidate.toLowerCase()}s` === lowerName,
     )
     throw invalid(
-      `API Gateway authorizer "${key}" sets "${path}${name}", which a JWT authorizer doesn't use.${
+      `API Gateway authorizer "${key}" sets ${showName(`${path}${name}`)}, which a JWT authorizer doesn't use.${
         closest ? ` Did you mean "${closest}"?` : ''
       } Use only ${known.map((candidate) => `"${candidate}"`).join(', ')}${
         path ? ` in each entry of "issuers"` : ''
@@ -274,7 +278,7 @@ const normalizeAudience = (key, path, audience) => {
     if (typeof item !== 'string') continue
     if (seen.has(item)) {
       throw invalid(
-        `API Gateway authorizer "${key}" lists audience "${item}" twice. List each audience once.`,
+        `API Gateway authorizer "${key}" lists audience ${show(item)} twice. List each audience once.`,
       )
     }
     seen.add(item)
@@ -304,7 +308,7 @@ const normalizeClaim = (key, path, claimName, rule) => {
     }
   }
   throw invalid(
-    `API Gateway authorizer "${key}" sets ${path}.${claimName} to ${show(rule)}. ${CLAIM_FORMS}`,
+    `API Gateway authorizer "${key}" sets ${String(claimName).includes('@') ? 'a claim name containing "@" (not shown)' : `${path}.${claimName}`} to ${show(rule)}. ${CLAIM_FORMS}`,
   )
 }
 
@@ -325,7 +329,7 @@ const normalizeAdditionalClaims = (key, path, additionalClaims) => {
   return entries.map(([claimName, rule]) => {
     if (RESERVED_CLAIMS.includes(claimName)) {
       throw invalid(
-        `API Gateway authorizer "${key}" lists claim "${claimName}" in "${path}". API Gateway checks ${RESERVED_CLAIMS.join(', ')} itself: remove "${claimName}" from "${path}" (use "scopes" on the http event for scope checks).`,
+        `API Gateway authorizer "${key}" lists claim ${showName(claimName)} in "${path}". API Gateway checks ${RESERVED_CLAIMS.join(', ')} itself: remove "${claimName}" from "${path}" (use "scopes" on the http event for scope checks).`,
       )
     }
     return normalizeClaim(key, path, claimName, rule)
@@ -411,7 +415,7 @@ export default {
     for (const [key, definition] of Object.entries(definitions)) {
       if (!AUTHORIZER_KEY_PATTERN.test(key)) {
         throw invalid(
-          `API Gateway authorizer "${key}" has a name CloudFormation can't use. Use letters, digits, "-" and "_" only in the keys of "provider.apiGateway.authorizers"; set "name" to give API Gateway a different name.`,
+          `API Gateway authorizer ${showName(key)} has a name CloudFormation can't use. Use letters, digits, "-" and "_" only in the keys of "provider.apiGateway.authorizers"; set "name" to give API Gateway a different name.`,
         )
       }
       if (key.toLowerCase() === 'aws_iam') {
@@ -490,7 +494,7 @@ export default {
       const other = keysByName.get(name)
       if (other !== undefined) {
         throw new ServerlessError(
-          `"${name}" names both JWT authorizers "${other}" and "${key}" in "provider.apiGateway.authorizers". Rename one of them: API Gateway needs authorizer names to be unique within a REST API.`,
+          `${showName(name)} names both JWT authorizers "${other}" and "${key}" in "provider.apiGateway.authorizers". Rename one of them: API Gateway needs authorizer names to be unique within a REST API.`,
           NAME_CONFLICT,
           { stack: false },
         )
