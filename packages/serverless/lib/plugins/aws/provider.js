@@ -3515,9 +3515,6 @@ destinations:
   async getServerlessDeploymentBucketName() {
     this.globalDeploymentBucketUsed = false
     this.deploymentBucketInStack = null
-    if (this.serverless.service.provider.deploymentBucket) {
-      return this.serverless.service.provider.deploymentBucket
-    }
     const deploymentBucketInStack = await this.request(
       'CloudFormation',
       'describeStackResource',
@@ -3536,6 +3533,23 @@ destinations:
         }
         throw err
       })
+
+    const userProvidedDeploymentBucket =
+      this.serverless.service.provider.deploymentBucket
+    if (userProvidedDeploymentBucket) {
+      /**
+       * When the configured bucket is the one the stack already owns (e.g. an
+       * originally auto-generated bucket that is now referenced explicitly
+       * through `deploymentBucket`), it must be reported as in-stack so the
+       * resource is kept in the template. Dropping it would make
+       * CloudFormation attempt to delete the very bucket the deployment uses.
+       */
+      if (deploymentBucketInStack === userProvidedDeploymentBucket) {
+        this.deploymentBucketInStack = deploymentBucketInStack
+      }
+      return userProvidedDeploymentBucket
+    }
+
     this.deploymentBucketInStack = deploymentBucketInStack
 
     /**
