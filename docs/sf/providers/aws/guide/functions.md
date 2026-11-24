@@ -453,10 +453,17 @@ The Lambda console and API also call these runtimes "custom", and Lambda reports
 - A runtime in another AWS account must also be shared with your account: the runtime's resource-based policy allows `lambda:AssociateRuntimeAlias` on the alias for your account. The runtime publisher sets that up; see [sharing and controlling access to customer-managed runtimes](https://docs.aws.amazon.com/lambda/latest/dg/cmr-permissions.html). Without it, the deploy fails with `not authorized to perform: lambda:AssociateRuntimeAlias … because no resource-based policy allows the lambda:AssociateRuntimeAlias action`.
 - The function's execution role needs nothing new. The runtime runs with that role's permissions, so use runtimes only from publishers you trust.
 
-When the alias does not exist, or the deploying principal may not use it, the deploy fails with a message from Lambda that names the function instead of the alias, followed by what to check:
+When the alias does not exist, or the deploying principal may not use it, the deploy fails with a message from Lambda, followed by what to check. A deploy that updates an existing function gets a message that names the function instead of the alias:
 
 ```text
 ✖ An error occurred: ApiLambdaFunction - Resource handler returned message: "Lambda function my-service-dev-api could not be found" (RequestToken: …, HandlerErrorCode: NotFound).
+Function "api" uses a customer-managed runtime. Check that its runtime alias exists in this Region and that the deploying role has lambda:AssociateRuntimeAlias on it.
+```
+
+A deploy that creates the function gets `Runtime Alias not found`:
+
+```text
+✖ An error occurred: ApiLambdaFunction - Resource handler returned message: "Runtime Alias not found (Service: Lambda, Status Code: 404, …)" (RequestToken: …, HandlerErrorCode: NotFound).
 Function "api" uses a customer-managed runtime. Check that its runtime alias exists in this Region and that the deploying role has lambda:AssociateRuntimeAlias on it.
 ```
 

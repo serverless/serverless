@@ -73,14 +73,17 @@ export const toRuntimeConfig = (value) => {
 
 /**
  * The line to add when CloudFormation fails a function on a customer-managed
- * runtime with "could not be found": Lambda reports a missing or unusable
- * runtime alias that way, naming the function instead of the alias. Other
- * causes of that message are possible, so the line says what to check.
+ * runtime because of its runtime alias. Lambda reports a missing or unusable
+ * alias as "Runtime Alias not found" when it creates the function, and as
+ * "could not be found", naming the function, when it updates it. Other causes
+ * of the second message are possible, so the line says what to check.
  */
 export const getCustomerManagedRuntimeFailureContext = (serverless, event) => {
   if (
     event?.ResourceType !== 'AWS::Lambda::Function' ||
-    !/could not be found/i.test(event.ResourceStatusReason ?? '')
+    !/could not be found|runtime alias not found/i.test(
+      event.ResourceStatusReason ?? '',
+    )
   ) {
     return undefined
   }
