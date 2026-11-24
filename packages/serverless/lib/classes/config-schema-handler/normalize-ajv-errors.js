@@ -1,12 +1,17 @@
 import _ from 'lodash'
 import { RUNTIME_RULE } from '../../plugins/aws/web-apps/constants.js'
 import { LOG_LEVELS_BY_KEY } from '../../plugins/aws/lib/log-levels.js'
+import { LAMBDA_RUNTIME_IDENTIFIERS } from '../../plugins/aws/lib/lambda-runtimes.js'
 
 const isEventTypeInstancePath = RegExp.prototype.test.bind(
   /^\/functions\/[^/]+\/events\/\d+$/,
 )
 const isFunctionInstancePath =
   RegExp.prototype.test.bind(/^\/functions\/[^/]+$/)
+const isLambdaRuntimeInstancePath = RegExp.prototype.test.bind(
+  /^\/(provider|functions\/[^/]+)\/runtime$/,
+)
+const LAMBDA_RUNTIME_MESSAGE = `must be a Lambda runtime identifier [${LAMBDA_RUNTIME_IDENTIFIERS.join(', ')}], a customer-managed runtime alias ARN (arn:aws:lambda:<region>:<account-id>:runtime/<runtime-name>/alias/<alias-name>), or a CloudFormation intrinsic that returns one`
 const isWebAppRateLimitInstancePath = RegExp.prototype.test.bind(
   /^\/webApps\/[^/]+\/url\/rateLimit$/,
 )
@@ -311,6 +316,10 @@ const improveMessages = (resultErrorsSet) => {
       case 'anyOf':
         if (isEventTypeInstancePath(error.instancePath)) {
           error.message = 'unsupported function event'
+          break
+        }
+        if (isLambdaRuntimeInstancePath(error.instancePath)) {
+          error.message = LAMBDA_RUNTIME_MESSAGE
           break
         }
         // A literal or an intrinsic: word the error for the literal, as before intrinsics passed

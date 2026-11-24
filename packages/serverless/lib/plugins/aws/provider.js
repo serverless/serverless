@@ -20,6 +20,8 @@ import v3Request from '../../aws/v3/request.js'
 import { cfValue } from '../../utils/aws-schema-get-cf-value.js'
 import reportDeprecatedProperties from '../../utils/report-deprecated-properties.js'
 import deepSortObjectByKey from '../../utils/deep-sort-object-by-key.js'
+import { RUNTIME_ALIAS_ARN_SCHEMA_PATTERN } from './lib/customer-managed-runtime.js'
+import { LAMBDA_RUNTIME_IDENTIFIERS } from './lib/lambda-runtimes.js'
 import {
   getOrCreateGlobalDeploymentBucket,
   log,
@@ -939,49 +941,31 @@ environment:
             ],
           },
           awsLambdaRuntime: {
-            description: `Lambda runtime identifier.
+            description: `Lambda runtime: a Lambda-managed runtime identifier, or a customer-managed runtime as its runtime alias ARN or a CloudFormation intrinsic that returns one.
 @default 'nodejs20.x'
 @see https://www.serverless.com/framework/docs/providers/aws/guide/functions
 @example nodejs20.x`,
-            enum: [
-              'dotnet6',
-              'dotnet8',
-              'dotnet10',
-              'go1.x',
-              'java25',
-              'java21',
-              'java17',
-              'java17.al2023',
-              'java11',
-              'java11.al2023',
-              'java8',
-              'java8.al2',
-              'java8.al2023',
-              'nodejs14.x',
-              'nodejs16.x',
-              'nodejs18.x',
-              'nodejs20.x',
-              'nodejs22.x',
-              'nodejs24.x',
-              'nodejs26.x',
-              'provided',
-              'provided.al2',
-              'provided.al2023',
-              'python3.7',
-              'python3.8',
-              'python3.9',
-              'python3.10',
-              'python3.11',
-              'python3.12',
-              'python3.13',
-              'python3.14',
-              'python3.15',
-              'ruby2.7',
-              'ruby3.2',
-              'ruby3.3',
-              'ruby3.4',
-              'ruby4.0',
+            anyOf: [
+              { $ref: '#/definitions/awsLambdaRuntimeIdentifier' },
+              {
+                description: `Customer-managed runtime alias ARN.
+@example arn:aws:lambda:us-east-1:123456789012:runtime/companyphp8/alias/prod`,
+                type: 'string',
+                pattern: RUNTIME_ALIAS_ARN_SCHEMA_PATTERN,
+              },
+              {
+                description: `CloudFormation intrinsic that returns a customer-managed runtime alias ARN.`,
+                type: 'object',
+                minProperties: 1,
+                maxProperties: 1,
+                patternProperties: { '^(Ref|Fn::.+)$': {} },
+                additionalProperties: false,
+              },
             ],
+          },
+          awsLambdaRuntimeIdentifier: {
+            description: `Lambda-managed runtime identifier.`,
+            enum: LAMBDA_RUNTIME_IDENTIFIERS,
           },
           awsLambdaRuntimeManagement: {
             description: `Lambda runtime management configuration.`,
@@ -3247,7 +3231,13 @@ destinations:
               compatibleRuntimes: {
                 description: `Lambda runtimes compatible with this layer.`,
                 type: 'array',
-                items: { $ref: '#/definitions/awsLambdaRuntime' },
+                items: {
+                  description: `Lambda runtime identifier, or custom for customer-managed runtimes.`,
+                  anyOf: [
+                    { $ref: '#/definitions/awsLambdaRuntimeIdentifier' },
+                    { const: 'custom' },
+                  ],
+                },
                 maxItems: 15,
               },
               description: {

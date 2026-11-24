@@ -412,6 +412,39 @@ describe('AwsDeployFunction', () => {
       )
     })
 
+    it('leaves the runtime of a customer-managed runtime function as deployed', async () => {
+      awsDeployFunction.setRemoteConfig({ Runtime: 'custom', MemorySize: 1024 })
+      awsDeployFunction.options.functionObj = {
+        name: 'first',
+        runtime: 'custom',
+        memorySize: 2048,
+      }
+
+      await awsDeployFunction.updateFunctionConfiguration()
+
+      const params = updateFunctionConfigurationStub.mock.calls[0][0]
+      expect(params.MemorySize).toBe(2048)
+      expect(params).not.toHaveProperty('Runtime')
+      expect(params).not.toHaveProperty('RuntimeConfig')
+    })
+
+    it('asks for a full deploy to move a function to a customer-managed runtime', async () => {
+      awsDeployFunction.setRemoteConfig({ Runtime: 'nodejs24.x' })
+      awsDeployFunction.options.functionObj = {
+        name: 'first',
+        runtime: 'custom',
+      }
+
+      await expect(
+        awsDeployFunction.updateFunctionConfiguration(),
+      ).rejects.toMatchObject({
+        code: 'DEPLOY_FUNCTION_CUSTOMER_MANAGED_RUNTIME_SWITCH',
+        message:
+          'Function "first" is deployed with runtime nodejs24.x and now uses a customer-managed runtime. "deploy function" cannot change that; run "serverless deploy" instead.',
+      })
+      expect(updateFunctionConfigurationStub).not.toHaveBeenCalled()
+    })
+
     it('should update VPC configuration', async () => {
       // Remote: No VPC
       awsDeployFunction.setRemoteConfig({

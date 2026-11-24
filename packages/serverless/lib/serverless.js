@@ -209,6 +209,9 @@ class Serverless {
 
       // If in context of service, validate the service configuration
       if (this.serviceDir) await this.service.validate()
+
+      // After validation, which checks the values as written
+      this.service.convertCustomerManagedRuntimes()
     }
 
     this.serviceOutputs = new Map()

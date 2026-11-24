@@ -4,6 +4,10 @@ import _ from 'lodash'
 import semver from 'semver'
 import { log } from '@serverless/util'
 import { resolveServerlessConfigFileExcludes } from '../plugins/package/lib/package-service.js'
+import {
+  CUSTOMER_MANAGED_RUNTIME,
+  isCustomerManagedRuntime,
+} from '../plugins/aws/lib/customer-managed-runtime.js'
 
 // The config file as it exists on disk (`serverless.yml`, not `serverless`):
 // the framework is handed the name without its extension.
@@ -300,6 +304,62 @@ class Service {
       )
     }
     return this
+  }
+
+  /**
+   * Customer-managed runtimes: `runtime` may hold a runtime alias ARN or a
+   * CloudFormation intrinsic. Store each such value and replace it with
+   * `custom`, the Runtime value Lambda expects, so code reading `runtime` as a
+   * string sees a runtime that matches no Lambda-managed identifier. The
+   * provider and function objects are copied: the configuration input, which
+   * `serverless print` shows, keeps what the user wrote.
+   */
+  convertCustomerManagedRuntimes() {
+    const stored = { provider: undefined, functions: {} }
+    Object.defineProperty(this, 'customerManagedRuntimes', {
+      value: stored,
+      enumerable: false,
+      configurable: true,
+      writable: true,
+    })
+
+    if (
+      _.isObject(this.provider) &&
+      isCustomerManagedRuntime(this.provider.runtime)
+    ) {
+      stored.provider = this.provider.runtime
+      this.provider = { ...this.provider, runtime: CUSTOMER_MANAGED_RUNTIME }
+    }
+
+    if (!_.isObject(this.functions)) return
+    const converted = Object.entries(this.functions).filter(
+      ([, functionObject]) =>
+        _.isObject(functionObject) &&
+        isCustomerManagedRuntime(functionObject.runtime),
+    )
+    if (!converted.length) return
+    this.functions = { ...this.functions }
+    for (const [functionName, functionObject] of converted) {
+      stored.functions[functionName] = functionObject.runtime
+      this.functions[functionName] = {
+        ...functionObject,
+        runtime: CUSTOMER_MANAGED_RUNTIME,
+      }
+    }
+  }
+
+  /**
+   * The customer-managed runtime value (alias ARN or intrinsic) a function
+   * uses, applying the function-over-provider rule, or undefined when it uses
+   * a Lambda-managed runtime.
+   */
+  getCustomerManagedRuntime(functionName) {
+    const stored = this.customerManagedRuntimes
+    if (!stored) return undefined
+    if (functionName in stored.functions) return stored.functions[functionName]
+    const functionObject = this.functions?.[functionName]
+    if (functionObject && functionObject.runtime == null) return stored.provider
+    return undefined
   }
 
   update(data) {

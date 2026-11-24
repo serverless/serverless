@@ -21,6 +21,7 @@ import {
 } from './undo-record.js'
 import { adapterFor } from '../local/adapters/index.js'
 import { cliCommand } from '../commands/cli-names.js'
+import { CUSTOMER_MANAGED_RUNTIME } from '../../lib/customer-managed-runtime.js'
 
 const RUNTIME_LABELS = [
   ['java', 'Java'],
@@ -137,6 +138,16 @@ const configRow = ({
         'deployed',
         'os_only_runtime',
         `OS-only runtime ${runtime} (Dev Mode support planned)`,
+      )
+    }
+    // A customer-managed runtime can be any language; its functions keep
+    // running the deployed code
+    if (runtime === CUSTOMER_MANAGED_RUNTIME) {
+      return row(
+        name,
+        'deployed',
+        'runtime_not_supported',
+        'customer-managed runtime (runs the deployed code)',
       )
     }
     if (!adapterFor(runtime)) {

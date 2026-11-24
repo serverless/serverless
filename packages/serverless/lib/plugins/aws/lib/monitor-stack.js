@@ -1,5 +1,6 @@
 import wait from 'timers-ext/promise/sleep.js'
 import ServerlessError from '../../../serverless-error.js'
+import { getCustomerManagedRuntimeFailureContext } from './customer-managed-runtime.js'
 import { log, progress, style } from '@serverless/util'
 import getMonitoringFrequency from '../utils/get-monitoring-frequency.js'
 import { WEB_FUNCTION_QUOTA_CONTEXT, serviceHasWebApps } from './web-apps.js'
@@ -45,6 +46,7 @@ const getFailureContext = (serverless, event) => {
   }
   return (
     getSandboxVersionLimitContext(serverless, event) ??
+    getCustomerManagedRuntimeFailureContext(serverless, event) ??
     getFunctionReplacementContext(event)
   )
 }

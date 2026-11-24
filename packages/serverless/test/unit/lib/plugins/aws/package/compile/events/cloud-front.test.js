@@ -397,6 +397,34 @@ describe('AwsCompileCloudFrontEvents', () => {
       expect(lambdaAssociation.IncludeBody).toBe(true)
     })
 
+    it('rejects a function that uses a customer-managed runtime', () => {
+      awsCompileCloudFrontEvents.serverless.service.functions = {
+        first: {
+          name: 'first',
+          runtime: 'custom',
+          events: [
+            {
+              cloudFront: {
+                eventType: 'viewer-request',
+                origin: 's3://bucketname.s3.amazonaws.com/files',
+              },
+            },
+          ],
+        },
+      }
+      awsCompileCloudFrontEvents.serverless.service.getCustomerManagedRuntime =
+        () =>
+          'arn:aws:lambda:us-east-1:123456789012:runtime/companyphp8/alias/prod'
+
+      expect(() => awsCompileCloudFrontEvents.validate()).toThrow(
+        expect.objectContaining({
+          code: 'LAMBDA_CUSTOMER_MANAGED_RUNTIME_EDGE_UNSUPPORTED',
+          message:
+            'Function "first" uses a customer-managed runtime and cannot run on Lambda@Edge. Use a Lambda-managed runtime for functions with cloudFront events.',
+        }),
+      )
+    })
+
     it('should throw error when viewer-request memorySize exceeds limit', () => {
       awsCompileCloudFrontEvents.serverless.service.functions = {
         first: {

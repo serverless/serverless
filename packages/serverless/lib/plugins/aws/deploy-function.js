@@ -6,6 +6,7 @@ import wait from 'timers-ext/promise/sleep.js'
 import validate from './lib/validate.js'
 import filesize from '../../utils/filesize.js'
 import ServerlessError from '../../serverless-error.js'
+import { CUSTOMER_MANAGED_RUNTIME } from './lib/customer-managed-runtime.js'
 
 class AwsDeployFunction {
   constructor(serverless, options, pluginUtils) {
@@ -350,6 +351,19 @@ class AwsDeployFunction {
     if (remoteFunctionConfiguration.PackageType !== 'Image') {
       const runtime = this.provider.getRuntime(functionObj.runtime)
 
+      // A customer-managed runtime also needs RuntimeConfig, which this
+      // command does not send: moving a function onto one, or to another
+      // runtime alias, takes a full deploy
+      if (
+        runtime === CUSTOMER_MANAGED_RUNTIME &&
+        remoteFunctionConfiguration.Runtime !== CUSTOMER_MANAGED_RUNTIME
+      ) {
+        throw new ServerlessError(
+          `Function "${functionObj.name}" is deployed with runtime ${remoteFunctionConfiguration.Runtime} and now uses a customer-managed runtime. "deploy function" cannot change that; run "serverless deploy" instead.`,
+          'DEPLOY_FUNCTION_CUSTOMER_MANAGED_RUNTIME_SWITCH',
+          { stack: false },
+        )
+      }
       if (runtime !== remoteFunctionConfiguration.Runtime) {
         params.Runtime = runtime
       }

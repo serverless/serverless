@@ -115,6 +115,15 @@ test.each([
     'OS-only runtime provided.al2023 (Dev Mode support planned)',
   ],
   [
+    'customer-managed runtime',
+    {},
+    live({ Runtime: 'custom' }),
+    {},
+    'deployed',
+    'runtime_not_supported',
+    'customer-managed runtime (runs the deployed code)',
+  ],
+  [
     'Java',
     {},
     live({ Runtime: 'java21' }),
@@ -664,6 +673,7 @@ test('classifyByConfig rules out, from serverless.yml alone, what can never run 
   expect(reason({ image: 'uri' })).toBe('container_image')
   expect(reason({}, 'provided.al2023')).toBe('os_only_runtime')
   expect(reason({}, 'java21')).toBe('runtime_not_supported')
+  expect(reason({}, 'custom')).toBe('runtime_not_supported')
   expect(reason({ provisionedConcurrency: 1 })).toBe('alias_targeted')
   expect(reason({ capacityProvider: 'cp' })).toBe('managed_instances')
   expect(reason({ events: [{ cloudFront: {} }] })).toBe('edge_function')

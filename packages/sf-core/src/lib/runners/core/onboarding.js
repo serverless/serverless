@@ -351,10 +351,16 @@ const routeNew = async ({
   if (state.serviceConfig?.functions) {
     Object.keys(state.serviceConfig.functions).forEach((functionName) => {
       const functionConfig = state.serviceConfig.functions[functionName]
-      if (functionConfig.runtime && functionConfig.runtime.includes('nodejs')) {
+      if (
+        typeof functionConfig.runtime === 'string' &&
+        functionConfig.runtime.includes('nodejs')
+      ) {
         usesNodejs = true
       }
-      if (functionConfig.runtime && functionConfig.runtime.includes('python')) {
+      if (
+        typeof functionConfig.runtime === 'string' &&
+        functionConfig.runtime.includes('python')
+      ) {
         usesPython = true
       }
     })
@@ -362,13 +368,13 @@ const routeNew = async ({
 
   // Check the provider runtime
   if (
-    state.serviceConfig?.provider?.runtime &&
+    typeof state.serviceConfig?.provider?.runtime === 'string' &&
     state.serviceConfig.provider.runtime.includes('nodejs')
   ) {
     usesNodejs = true
   }
   if (
-    state.serviceConfig?.provider?.runtime &&
+    typeof state.serviceConfig?.provider?.runtime === 'string' &&
     state.serviceConfig.provider.runtime.includes('python')
   ) {
     usesPython = true

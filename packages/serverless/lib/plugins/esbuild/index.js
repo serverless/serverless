@@ -33,6 +33,10 @@ import { readArchiveEntryNames } from '../../utils/read-archive-entry-names.js'
 import { BOOTSTRAP_FILE, WEB_APPS_DIR } from '../aws/web-apps/constants.js'
 import { getWebAppRuntime } from '../aws/web-apps/runtime.js'
 import {
+  CUSTOMER_MANAGED_RUNTIME,
+  isCustomerManagedRuntime,
+} from '../aws/lib/customer-managed-runtime.js'
+import {
   generateBootstrap,
   normalizeEntryPath,
 } from '../aws/web-apps/packaging/bootstrap.js'
@@ -997,7 +1001,15 @@ class Esbuild {
       }
 
       const runtime = functionObject.runtime || configFile.provider.runtime
-      if (!runtime || !runtime.startsWith('nodejs')) {
+      // A customer-managed runtime's language is unknown: build only on an
+      // explicit opt-in
+      if (isCustomerManagedRuntime(runtime)) {
+        if (functionObject.build) return functionObject.build === 'esbuild'
+        return Boolean(
+          configFile.build === 'esbuild' || configFile.build?.esbuild,
+        )
+      }
+      if (typeof runtime !== 'string' || !runtime.startsWith('nodejs')) {
         return false
       }
 
@@ -1116,6 +1128,16 @@ class Esbuild {
       : functionObject.runtime || this.serverless.service.provider.runtime
     const functionBuildParam = functionObject.build
     const providerBuildParam = this.serverless.service.build
+
+    // A customer-managed runtime's language is unknown: build only on an
+    // explicit opt-in (Service converts its `runtime` to `custom`)
+    if (!isWebApp && runtime === CUSTOMER_MANAGED_RUNTIME) {
+      if (functionBuildParam) return functionBuildParam === 'esbuild'
+      return Boolean(
+        providerBuildParam &&
+        (providerBuildParam === 'esbuild' || providerBuildParam.esbuild),
+      )
+    }
 
     // If runtime is not node then should not build
     if (!runtime || !runtime.startsWith('nodejs')) {
