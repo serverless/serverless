@@ -28,7 +28,11 @@ import { log } from '@serverless/util'
 import { resolveServerlessConfigFileExcludes } from '../package/lib/package-service.js'
 import { getWebAppsConfig } from '../aws/lib/web-apps.js'
 import { AGENT_SKILL_EXCLUDES } from '../package/lib/agent-skill-excludes.js'
-import { currentDevBuildRequest } from '../../utils/dev-build-request.js'
+import {
+  closeDevBuildRequest,
+  currentDevBuildRequest,
+  openDevBuildRequest,
+} from '../../utils/dev-build-request.js'
 import { readArchiveEntryNames } from '../../utils/read-archive-entry-names.js'
 import { BOOTSTRAP_FILE, WEB_APPS_DIR } from '../aws/web-apps/constants.js'
 import { getWebAppRuntime } from '../aws/web-apps/runtime.js'
@@ -513,6 +517,49 @@ const archivePathFor = (relativePath) =>
 
 const logger = log.get('esbuild')
 
+/**
+ * Whether serverless-offline loads each handler afresh for every request: its `reloadHandler`
+ * option, from the CLI flag or `custom.serverless-offline`. The flag wins, as in serverless-offline.
+ */
+export const offlineReloadsHandlers = (options = {}, custom = {}) => {
+  const flag = options?.reloadHandler
+  if (flag !== undefined) return flag === true || flag === 'true'
+  return custom?.['serverless-offline']?.reloadHandler === true
+}
+
+/** The extensions a service configuration file can have. */
+const CONFIG_FILE_EXTENSIONS = Object.freeze([
+  '.yml',
+  '.yaml',
+  '.json',
+  '.js',
+  '.cjs',
+  '.mjs',
+  '.ts',
+])
+
+/**
+ * The service configuration file the offline watcher tells apart from code: `configurationFilename`
+ * when it names one, else every supported extension of its stem (`serverless` by default).
+ */
+export const offlineConfigFiles = (serviceDir, configurationFilename) => {
+  const name = configurationFilename || 'serverless'
+  if (CONFIG_FILE_EXTENSIONS.includes(path.extname(name))) {
+    return [path.resolve(serviceDir, name)]
+  }
+  return CONFIG_FILE_EXTENSIONS.map((ext) =>
+    path.resolve(serviceDir, `${name}${ext}`),
+  )
+}
+
+/** Entries of the build directory that are not build output (see `_resetBuildDir`). */
+const BUILD_DIR_DEPENDENCY_ENTRIES = Object.freeze([
+  'node_modules',
+  'package-lock.json',
+  'yarn.lock',
+  'pnpm-lock.yaml',
+])
+
 // Serverless `handler` strings are `path/to/file.exportName`. Strip only the
 // LAST `.exportName` occurrence (not the first) so that a path segment
 // earlier in the string that happens to collide with the export name (e.g. a
@@ -760,6 +807,10 @@ class Esbuild {
     // directory. The next dev build removes the ones it does not move in itself.
     this.devOutputs = null
 
+    // Functions whose NODE_OPTIONS a build of this run already gave --enable-source-maps, so a
+    // rebuild (offline with reloadHandler, Dev Mode) does not add it again.
+    this._sourceMapsEnabledFor = new WeakSet()
+
     this._buildProperties = _.memoize(this._buildProperties.bind(this))
     this._readPackageJson = _.memoize(this._readPackageJson.bind(this))
 
@@ -779,13 +830,22 @@ class Esbuild {
           this._setConfigForLocalInvocation()
         }
       },
-      // Make sure we build for the serverless-offline plugin too
+      // Make sure we build for the serverless-offline plugin too. With its `reloadHandler` on,
+      // the build also follows source changes while offline runs (see `_watchForOffline`).
       'before:offline:start': async () => {
         if (await this._shouldRun()) {
           await this._build()
+          if (
+            offlineReloadsHandlers(this.options, this.serverless.service.custom)
+          ) {
+            await this._watchForOffline()
+          }
           this._setConfigForLocalInvocation()
         }
       },
+      // serverless-offline usually ends the process itself on SIGINT or SIGTERM, before this
+      // runs; the watcher never keeps the process alive on its own (see `_watchForOffline`).
+      'after:offline:start': async () => this._stopWatchingForOffline(),
       // The only build that includes web apps: `deploy function`, `invoke
       // local`, `offline` and Dev Mode run functions alone.
       'before:package:createDeploymentArtifacts': async () => {
@@ -1496,6 +1556,121 @@ class Esbuild {
   }
 
   /**
+   * While `serverless offline` runs with serverless-offline's `reloadHandler`, rebuilds the
+   * handlers in .serverless/build whenever a source file of the service changes, so the handler
+   * serverless-offline loads for the next request is the edited one. It watches the service with
+   * Dev Mode's watcher (dependencies, build output and test files left out; a burst of saves is one
+   * rebuild; saves during a rebuild cause one more) and rebuilds through Dev Mode's build path:
+   * staged, moved in group by group, and a failed rebuild keeps the last successful build. A change
+   * to the configuration file is not applied: it asks for a restart.
+   * @param {object} [options]
+   * @param {Function} [options.watch] - chokidar's `watch` (tests pass a stand-in)
+   */
+  async _watchForOffline({ watch } = {}) {
+    const { createWatcher, handlerModulesOf } =
+      await import('../aws/dev/local/watcher.js')
+    const chokidarWatch = watch ?? (await import('chokidar')).default.watch
+    const serviceDir = this.serverless.config.serviceDir
+    const functions = await this.functions()
+    const functionKeys = Object.keys(functions)
+    // The output of the build that just ran, as a dev build records its own: the first rebuild
+    // then removes only what it no longer has, and keeps the dependencies an earlier deploy build
+    // left in the build directory (`_resetBuildDir` keeps them too).
+    this.devOutputs = new Set(
+      (await filesUnder(this.buildDirPath).catch(() => [])).filter(
+        (file) =>
+          !BUILD_DIR_DEPENDENCY_ENTRIES.includes(file.split(path.sep)[0]),
+      ),
+    )
+    const configFiles = offlineConfigFiles(
+      serviceDir,
+      this.serverless.configurationFilename,
+    )
+    let errorShown = false
+    this._offlineWatcher = createWatcher({
+      serviceDir,
+      configFiles,
+      // Read before `_setConfigForLocalInvocation` changes anything: the source handlers.
+      handlerModules: handlerModulesOf({
+        serviceDir,
+        functions: Object.values(functions).map(({ handler }) => ({
+          handler,
+        })),
+      }),
+      timers: { setTimeout, clearTimeout },
+      // serverless-offline's server keeps the process running; the watcher must not keep it alive
+      // after that ends.
+      watch: (dir, options) =>
+        chokidarWatch(dir, { ...options, persistent: false }),
+      onChange: async () => {
+        await this._rebuildForOffline(functionKeys)
+      },
+      onConfigChange: async (files) =>
+        this._offlineWarning(
+          `${path.basename(files[0])} changed: restart "serverless offline" to apply it. Source changes keep rebuilding.`,
+        ),
+      onError: (error) => {
+        if (errorShown) return
+        errorShown = true
+        this._offlineWarning(
+          `The file watcher reported an error (${error?.message ?? error}). If saving a file stops rebuilding your handlers, restart "serverless offline".`,
+        )
+      },
+    })
+    if (!(await this._offlineWatcher.ready())) {
+      logger.debug(
+        'Still scanning the service directory for changes; saves are seen once the scan ends.',
+      )
+    }
+    logger.notice(
+      'Watching for source changes: handlers rebuild on save (reloadHandler)',
+    )
+  }
+
+  /** Stops the watcher `_watchForOffline` started, if any. */
+  async _stopWatchingForOffline() {
+    const watcher = this._offlineWatcher
+    if (!watcher) return
+    this._offlineWatcher = null
+    await watcher.close()
+  }
+
+  /**
+   * One rebuild for `serverless offline`: the functions `functionKeys` names, through Dev Mode's
+   * staged build. Never throws: resolves `{ ok: true }`, or `{ ok: false, error }` after a warning
+   * that the last successful build stays in place.
+   */
+  async _rebuildForOffline(functionKeys) {
+    const request = openDevBuildRequest(this.serverless, {
+      functions: functionKeys,
+    })
+    const started = Date.now()
+    try {
+      await this._build('handler', { devRequest: request })
+      logger.notice(`Rebuilt handlers in ${Date.now() - started} ms`)
+      return { ok: true }
+    } catch (error) {
+      // esbuild printed its errors, with their locations, already: its summary line is enough.
+      const message = String(error?.message ?? error)
+      const reason =
+        error?.code === 'ESBULD_BUILD_ERROR'
+          ? message.split('\n')[0].replace(/:$/, '')
+          : message
+      this._offlineWarning(
+        `The rebuild did not complete (${reason}). serverless-offline keeps running the last successful build until a save builds again.`,
+      )
+      return { ok: false, error }
+    } finally {
+      closeDevBuildRequest(this.serverless, request)
+    }
+  }
+
+  /** A warning while offline watches (tests stub it). */
+  _offlineWarning(text) {
+    logger.warning(text)
+  }
+
+  /**
    * Take the current build context. Which could be service-wide or a given function and then build it
    * @param {string} handlerPropertyName - The property name of the handler in the function object
    *   (every caller, Dev Mode's build included, uses `handler`).
@@ -1892,7 +2067,9 @@ class Esbuild {
                 if (shouldSetNodeOptions) {
                   const functionObject =
                     this.serverless.service.getFunction(alias)
-                  if (functionObject.environment?.NODE_OPTIONS) {
+                  if (this._sourceMapsEnabledFor.has(functionObject)) {
+                    // An earlier build of this run added it (offline or Dev Mode rebuilds).
+                  } else if (functionObject.environment?.NODE_OPTIONS) {
                     functionObject.environment.NODE_OPTIONS = `${functionObject.environment.NODE_OPTIONS} --enable-source-maps`
                   } else {
                     if (!functionObject.environment) {
@@ -1901,6 +2078,7 @@ class Esbuild {
                     functionObject.environment.NODE_OPTIONS =
                       '--enable-source-maps'
                   }
+                  this._sourceMapsEnabledFor.add(functionObject)
                 }
               }
               // Recorded only: no function state, no write into the web app's
@@ -2408,7 +2586,9 @@ class Esbuild {
 
       if (shouldSetNodeOptions) {
         const functionObject = this.serverless.service.getFunction(alias)
-        if (functionObject.environment?.NODE_OPTIONS) {
+        if (this._sourceMapsEnabledFor.has(functionObject)) {
+          // An earlier build of this run added it (offline or Dev Mode rebuilds).
+        } else if (functionObject.environment?.NODE_OPTIONS) {
           functionObject.environment.NODE_OPTIONS = `${functionObject.environment.NODE_OPTIONS} --enable-source-maps`
         } else {
           if (!functionObject.environment) {
@@ -2416,6 +2596,7 @@ class Esbuild {
           }
           functionObject.environment.NODE_OPTIONS = '--enable-source-maps'
         }
+        this._sourceMapsEnabledFor.add(functionObject)
       }
     }
     // Recorded only, as on the bundling path.

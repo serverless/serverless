@@ -1,0 +1,343 @@
+/**
+ * `serverless offline` with the built-in esbuild build: the handlers are built once into
+ * `.serverless/build` before serverless-offline starts. With serverless-offline's `reloadHandler`
+ * on, the plugin also watches the service and rebuilds that output when a source file changes, so
+ * the handler serverless-offline loads for the next request is the edited one. A rebuild that fails
+ * keeps the last successful build in place. Without `reloadHandler`, nothing is watched: the build
+ * runs once, as before.
+ *
+ * The rebuild tests run the real esbuild binary and the real file watcher (polling) over a small
+ * TypeScript service.
+ */
+import {
+  afterAll,
+  afterEach,
+  describe,
+  expect,
+  jest,
+  test,
+} from '@jest/globals'
+import { EventEmitter } from 'events'
+import fs from 'fs'
+import os from 'os'
+import path from 'path'
+
+const esbuildModule =
+  await import('../../../../../lib/plugins/esbuild/index.js')
+const Esbuild = esbuildModule.default
+const { offlineReloadsHandlers, offlineConfigFiles } = esbuildModule
+
+jest.setTimeout(60_000)
+
+const dirs = []
+const plugins = []
+afterEach(async () => {
+  // Never leave a watcher polling after a test, whatever it asserted.
+  for (const plugin of plugins.splice(0)) {
+    await plugin.hooks['after:offline:start']()
+  }
+})
+afterAll(() => {
+  for (const dir of dirs) fs.rmSync(dir, { recursive: true, force: true })
+})
+
+const source = (value) =>
+  `export const hello = async (): Promise<string> => '${value}'\n`
+
+const offlineService = ({ options = {}, custom, esbuild = {} } = {}) => {
+  const serviceDir = fs.realpathSync(
+    fs.mkdtempSync(path.join(os.tmpdir(), 'sls-esbuild-offline-')),
+  )
+  dirs.push(serviceDir)
+  fs.mkdirSync(path.join(serviceDir, 'src'), { recursive: true })
+  fs.writeFileSync(path.join(serviceDir, 'src', 'handler.ts'), source('v1'))
+  fs.writeFileSync(
+    path.join(serviceDir, 'package.json'),
+    '{"name":"svc","private":true}\n',
+  )
+  fs.writeFileSync(path.join(serviceDir, 'serverless.yml'), 'service: svc\n')
+  const functions = { hello: { handler: 'src/handler.hello' } }
+  const serverless = {
+    serviceDir,
+    configurationFilename: 'serverless.yml',
+    config: { serviceDir, servicePath: serviceDir },
+    service: {
+      service: 'svc',
+      provider: { runtime: 'nodejs20.x' },
+      package: {},
+      build: { esbuild },
+      custom,
+      functions,
+      getFunction: (name) => functions[name],
+      getAllFunctions: () => Object.keys(functions),
+    },
+    pluginManager: { spawn: async () => {} },
+  }
+  const plugin = new Esbuild(serverless, options)
+  plugins.push(plugin)
+  const buildDir = path.join(serviceDir, '.serverless', 'build')
+  const built = () =>
+    fs.readFileSync(path.join(buildDir, 'src', 'handler.js'), 'utf8')
+  const write = (value) =>
+    fs.writeFileSync(path.join(serviceDir, 'src', 'handler.ts'), value)
+  return { plugin, serverless, serviceDir, buildDir, functions, built, write }
+}
+
+/** Records every rebuild the plugin starts, and resolves the next one's outcome. */
+const recordRebuilds = (plugin) => {
+  const outcomes = []
+  const waiters = []
+  const original = plugin._rebuildForOffline.bind(plugin)
+  jest.spyOn(plugin, '_rebuildForOffline').mockImplementation(async (...a) => {
+    const outcome = await original(...a)
+    outcomes.push(outcome)
+    waiters.shift()?.(outcome)
+    return outcome
+  })
+  return {
+    outcomes,
+    next: () =>
+      new Promise((resolve, reject) => {
+        const timer = setTimeout(
+          () => reject(new Error('no rebuild within 20 s')),
+          20_000,
+        )
+        waiters.push((outcome) => {
+          clearTimeout(timer)
+          resolve(outcome)
+        })
+      }),
+  }
+}
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+describe('offlineReloadsHandlers', () => {
+  test.each([
+    [{ reloadHandler: true }, undefined, true],
+    [{ reloadHandler: 'true' }, undefined, true],
+    [{ reloadHandler: false }, undefined, false],
+    [{ reloadHandler: 'false' }, undefined, false],
+    [{}, undefined, false],
+    [{}, {}, false],
+    [{}, { 'serverless-offline': {} }, false],
+    [{}, { 'serverless-offline': { reloadHandler: true } }, true],
+    [{}, { 'serverless-offline': { reloadHandler: false } }, false],
+    // The CLI flag wins over custom.serverless-offline, as in serverless-offline.
+    [
+      { reloadHandler: false },
+      { 'serverless-offline': { reloadHandler: true } },
+      false,
+    ],
+    [
+      { reloadHandler: true },
+      { 'serverless-offline': { reloadHandler: false } },
+      true,
+    ],
+  ])('options %j, custom %j: %s', (options, custom, expected) => {
+    expect(offlineReloadsHandlers(options, custom)).toBe(expected)
+  })
+})
+
+describe('offlineConfigFiles', () => {
+  const serviceDir = path.resolve('/svc')
+  test('a configuration file name with an extension is that file', () => {
+    expect(offlineConfigFiles(serviceDir, 'serverless.yml')).toEqual([
+      path.join(serviceDir, 'serverless.yml'),
+    ])
+  })
+  test('a stem is every supported extension of it', () => {
+    expect(offlineConfigFiles(serviceDir, 'serverless')).toEqual(
+      ['.yml', '.yaml', '.json', '.js', '.cjs', '.mjs', '.ts'].map((ext) =>
+        path.join(serviceDir, `serverless${ext}`),
+      ),
+    )
+  })
+  test('no name is serverless.<extension>', () => {
+    expect(offlineConfigFiles(serviceDir, undefined)).toContain(
+      path.join(serviceDir, 'serverless.yml'),
+    )
+  })
+})
+
+describe('serverless offline with reloadHandler', () => {
+  test('rebuilds the handler when its source changes, and keeps the last successful build when a rebuild fails', async () => {
+    const { plugin, serverless, buildDir, functions, built, write } =
+      offlineService({ options: { reloadHandler: true } })
+    const rebuilds = recordRebuilds(plugin)
+
+    await plugin.hooks['before:offline:start']()
+    expect(serverless.config.servicePath).toBe(buildDir)
+    expect(built()).toMatch(/["']v1["']/)
+
+    let next = rebuilds.next()
+    write(source('v2'))
+    expect(await next).toMatchObject({ ok: true })
+    expect(built()).toMatch(/["']v2["']/)
+
+    // A save in the middle of an edit: the rebuild fails and the last good output stays.
+    next = rebuilds.next()
+    write('export const hello = async ( => \n')
+    const failed = await next
+    expect(failed).toMatchObject({ ok: false })
+    expect(failed.error.message).toMatch(/error/i)
+    expect(built()).toMatch(/["']v2["']/)
+
+    // Fixed: the watching went on.
+    next = rebuilds.next()
+    write(source('v3'))
+    expect(await next).toMatchObject({ ok: true })
+    expect(built()).toMatch(/["']v3["']/)
+
+    // A rebuild does not add --enable-source-maps to NODE_OPTIONS again.
+    expect(functions.hello.environment.NODE_OPTIONS).toBe(
+      '--enable-source-maps',
+    )
+    // No staging directory is left next to the build directory.
+    expect(
+      fs
+        .readdirSync(path.dirname(buildDir))
+        .filter((name) => name.includes('dev-staging')),
+    ).toEqual([])
+  })
+
+  test('also when reloadHandler is set in custom.serverless-offline', async () => {
+    const { plugin, built, write } = offlineService({
+      custom: { 'serverless-offline': { reloadHandler: true } },
+    })
+    const rebuilds = recordRebuilds(plugin)
+    await plugin.hooks['before:offline:start']()
+    const next = rebuilds.next()
+    write(source('v2'))
+    expect(await next).toMatchObject({ ok: true })
+    expect(built()).toMatch(/["']v2["']/)
+  })
+
+  test('without bundling too', async () => {
+    const { plugin, built, write } = offlineService({
+      options: { reloadHandler: true },
+      esbuild: { bundle: false },
+    })
+    const rebuilds = recordRebuilds(plugin)
+    await plugin.hooks['before:offline:start']()
+    expect(built()).toMatch(/["']v1["']/)
+    const next = rebuilds.next()
+    write(source('v2'))
+    expect(await next).toMatchObject({ ok: true })
+    expect(built()).toMatch(/["']v2["']/)
+  })
+
+  test('keeps dependencies an earlier build left in the build directory', async () => {
+    const { plugin, buildDir, write } = offlineService({
+      options: { reloadHandler: true },
+    })
+    fs.mkdirSync(path.join(buildDir, 'node_modules', 'dep'), {
+      recursive: true,
+    })
+    fs.writeFileSync(
+      path.join(buildDir, 'node_modules', 'dep', 'index.js'),
+      'module.exports = 1\n',
+    )
+    const rebuilds = recordRebuilds(plugin)
+    await plugin.hooks['before:offline:start']()
+    const next = rebuilds.next()
+    write(source('v2'))
+    expect(await next).toMatchObject({ ok: true })
+    expect(
+      fs.existsSync(path.join(buildDir, 'node_modules', 'dep', 'index.js')),
+    ).toBe(true)
+  })
+
+  test('stops watching when offline ends', async () => {
+    const { plugin, built, write } = offlineService({
+      options: { reloadHandler: true },
+    })
+    const rebuilds = recordRebuilds(plugin)
+    await plugin.hooks['before:offline:start']()
+    expect(plugin._offlineWatcher).toBeTruthy()
+    await plugin.hooks['after:offline:start']()
+    expect(plugin._offlineWatcher).toBeNull()
+    write(source('v2'))
+    await delay(1_500)
+    expect(rebuilds.outcomes).toEqual([])
+    expect(built()).toMatch(/["']v1["']/)
+  })
+})
+
+describe('serverless offline without reloadHandler', () => {
+  test('builds once and watches nothing, as before', async () => {
+    const { plugin, serverless, buildDir, built, write } = offlineService()
+    const rebuilds = recordRebuilds(plugin)
+    await plugin.hooks['before:offline:start']()
+    expect(serverless.config.servicePath).toBe(buildDir)
+    expect(plugin._offlineWatcher).toBeUndefined()
+    write(source('v2'))
+    await delay(1_500)
+    expect(rebuilds.outcomes).toEqual([])
+    expect(built()).toMatch(/["']v1["']/)
+  })
+})
+
+describe('the offline watcher', () => {
+  /** A stand-in for chokidar: `emit('all', event, file)` reports a change at once. */
+  const fakeWatch = () => {
+    const emitter = new EventEmitter()
+    emitter.close = async () => {}
+    const watch = jest.fn((dir, options) => {
+      // `ready` after the caller subscribed.
+      setImmediate(() => emitter.emit('ready'))
+      return emitter
+    })
+    return { emitter, watch }
+  }
+
+  test('a configuration file change asks for a restart and rebuilds nothing', async () => {
+    const { plugin, serviceDir } = offlineService({
+      options: { reloadHandler: true },
+    })
+    const rebuild = jest
+      .spyOn(plugin, '_rebuildForOffline')
+      .mockResolvedValue({ ok: true })
+    const warnings = []
+    jest
+      .spyOn(plugin, '_offlineWarning')
+      .mockImplementation((text) => warnings.push(text))
+    const { emitter, watch } = fakeWatch()
+    await plugin._build()
+    await plugin._watchForOffline({ watch })
+    emitter.emit('all', 'change', path.join(serviceDir, 'serverless.yml'))
+    await delay(300)
+    expect(rebuild).not.toHaveBeenCalled()
+    expect(warnings).toEqual([
+      expect.stringMatching(/serverless\.yml changed.*restart/i),
+    ])
+  })
+
+  test('the watcher never keeps the process alive on its own', async () => {
+    const { plugin } = offlineService({ options: { reloadHandler: true } })
+    const { watch } = fakeWatch()
+    await plugin._build()
+    await plugin._watchForOffline({ watch })
+    expect(watch).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ persistent: false }),
+    )
+  })
+
+  test('a burst of changes is one rebuild of every built function', async () => {
+    const { plugin, serviceDir } = offlineService({
+      options: { reloadHandler: true },
+    })
+    const rebuild = jest
+      .spyOn(plugin, '_rebuildForOffline')
+      .mockResolvedValue({ ok: true })
+    const { emitter, watch } = fakeWatch()
+    await plugin._build()
+    await plugin._watchForOffline({ watch })
+    emitter.emit('all', 'change', path.join(serviceDir, 'src', 'handler.ts'))
+    emitter.emit('all', 'add', path.join(serviceDir, 'src', 'util.ts'))
+    await delay(400)
+    expect(rebuild).toHaveBeenCalledTimes(1)
+    expect(rebuild).toHaveBeenCalledWith(['hello'])
+  })
+})

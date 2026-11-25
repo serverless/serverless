@@ -375,6 +375,32 @@ A function's negations apply to build outputs as well as project files, so `'!**
 - The import diagnostics scan compiled output only; copied JavaScript files are not scanned. Extensionless ES module imports are warned about, not rewritten.
 - Top-level `await` requires ES module output. In a file that compiles to CommonJS — one whose nearest `package.json` carries no `"type": "module"` — the build stops with esbuild's error, naming the file and the expression: `Top-level await is currently not supported with the "cjs" output format`. Add `"type": "module"` to that `package.json`, or write the file as `.mts`.
 
+## Run built functions with serverless-offline
+
+The community [serverless-offline](https://github.com/dherault/serverless-offline) plugin runs functions locally behind an emulated API Gateway. With the built-in build, `serverless offline` builds the functions described in [Which functions are built](#which-functions-are-built) into `.serverless/build` before its server starts, and serverless-offline runs them from there.
+
+To have a saved source change reach the next request, start serverless-offline with its `reloadHandler` option, as a flag or as `custom.serverless-offline.reloadHandler: true` in `serverless.yml`:
+
+```bash
+serverless offline --reloadHandler
+```
+
+With `reloadHandler`, the Framework watches the service directory while `serverless offline` runs and rebuilds the built functions when a source file changes. serverless-offline loads the rebuilt handler for the next request:
+
+```text
+Watching for source changes: handlers rebuild on save (reloadHandler)
+Rebuilt handlers in 12 ms
+```
+
+How the rebuild on save behaves:
+
+- A rebuild that fails, such as one of a file saved mid-edit, prints esbuild's error, and serverless-offline keeps running the last successful build until a later save builds.
+- Saves under `node_modules`, `.serverless` and `.git`, and saves of test files (`*.test.ts`, `*.spec.ts` and the other test-file names), don't start a rebuild.
+- A change to `serverless.yml`, or to an esbuild configuration file (`build.esbuild.configFile`), applies only after a restart of `serverless offline`. For `serverless.yml`, a warning says so.
+- serverless-offline's `useInProcess` option keeps each handler it loaded in memory, so with it a source change applies only after a restart.
+
+Without `reloadHandler`, the build runs once, when `serverless offline` starts: restart it to run changed code. To run functions locally against live AWS events, with reloads on save, use [Dev Mode](./dev-mode.md).
+
 ## Plugin conflicts
 
 Plugins that build your code replace the built-in build. When one of these plugins is loaded, the Framework stops with a `PLUGIN_TYPESCRIPT_CONFLICT` error unless `build.esbuild` is set to `false`:
