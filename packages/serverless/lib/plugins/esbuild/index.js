@@ -792,7 +792,7 @@ class Esbuild {
     this._legacyPackageKeysWarned = false
 
     // Captured once at construction so the reset target stays stable: `invoke
-    // local` and `offline` repoint the live service path AT this directory
+    // local` repoints the live service path AT this directory
     // (see `_setConfigForLocalInvocation`), and a value derived after that
     // would nest a second `.serverless/build` inside the build output.
     // `serviceDir` is null when the CLI runs outside a service (e.g.
@@ -846,7 +846,7 @@ class Esbuild {
           ) {
             await this._watchForOffline()
           }
-          this._setConfigForLocalInvocation()
+          this._pointOfflineAtBuiltHandlers()
         }
       },
       // serverless-offline usually ends the process itself on SIGINT or SIGTERM, before this
@@ -1677,6 +1677,42 @@ class Esbuild {
   /** A warning while offline watches (tests stub it). */
   _offlineWarning(text) {
     logger.warning(text)
+  }
+
+  /**
+   * Points serverless-offline at the build output of the functions this build
+   * emitted, and only those: each one's handler becomes the path of its built
+   * file, relative to the service directory (`hello.handler` →
+   * `.serverless/build/hello.handler`), and the service path stays the service
+   * directory.
+   *
+   * offline has no `--function` and serves every function, while the build
+   * covers only the functions esbuild builds (with no `build` setting, only the
+   * TypeScript ones). Moving the whole service path to the build directory, as
+   * `invoke local` does for the one function it runs, would leave every other
+   * function without a file to load. For a built function, offline loads the
+   * same file either way.
+   *
+   * The handler is written with `/` on every platform, as in `serverless.yml`.
+   */
+  _pointOfflineAtBuiltHandlers() {
+    const buildDir = path
+      .relative(this.serverless.config.serviceDir, this.buildDirPath)
+      .split(path.sep)
+      .join('/')
+    for (const [alias, artifact] of this.builtArtifacts ?? new Map()) {
+      const outfile = artifact.outfile.split(path.sep).join('/')
+      const functionObject = this.serverless.service.getFunction(alias)
+      const { handler } = functionObject
+      const exportSuffix = handler.slice(
+        stripHandlerExportSuffix(handler).length,
+      )
+      const outfileWithoutExtension = outfile.slice(
+        0,
+        outfile.length - path.posix.extname(outfile).length,
+      )
+      functionObject.handler = `${buildDir}/${outfileWithoutExtension}${exportSuffix}`
+    }
   }
 
   /**
