@@ -90,6 +90,30 @@ SLS_AWS_SDK=3 serverless deploy
 
 Both paths read credentials through the standard AWS credential provider chain. The setting doesn't affect your function code, which uses whatever SDK you bundle or the runtime provides; AWS has [ended support for the v2 SDK](https://aws.amazon.com/blogs/developer/announcing-end-of-support-for-aws-sdk-for-javascript-v2/), so use `@aws-sdk/*` (v3) clients in handlers.
 
+### AWS endpoint settings
+
+Every AWS request the Framework makes, on both SDK code paths, goes to the endpoint the AWS SDKs' [service-specific endpoint settings](https://docs.aws.amazon.com/sdkref/latest/guide/feature-ss-endpoints.html) name, when you set one. Use them to deploy to a local emulator such as [AWS Emulator](./aws-emulator.md). The Framework reads, in this order:
+
+1. `AWS_ENDPOINT_URL_<SERVICE>`, for one service, such as `AWS_ENDPOINT_URL_S3` or `AWS_ENDPOINT_URL_CLOUDFORMATION`.
+2. `AWS_ENDPOINT_URL`, for every service.
+3. `endpoint_url` in the shared config file (`AWS_CONFIG_FILE`, default `~/.aws/config`), in the `services` section the profile names, then in the profile itself. The profile is the one `AWS_PROFILE` names, else `default`; `provider.profile` and `--aws-profile` choose credentials, not the endpoint.
+
+With an endpoint set, each command names it before it starts:
+
+```text
+Using the configured AWS endpoint https://127.0.0.1:9297
+```
+
+To send one command's requests to AWS's own endpoints while these settings are present, set `AWS_IGNORE_CONFIGURED_ENDPOINT_URLS`:
+
+```bash
+AWS_IGNORE_CONFIGURED_ENDPOINT_URLS=true serverless deploy
+```
+
+Behind an HTTPS proxy (`HTTPS_PROXY`), requests to a configured endpoint whose host `NO_PROXY` lists go directly to it, such as `https://127.0.0.1:9297` with `NO_PROXY=localhost,127.0.0.1`; all other AWS requests use the proxy as before.
+
+With the `serverless-localstack` plugin, the plugin's endpoint settings apply.
+
 ## Deploy a single function
 
 `serverless deploy function` updates one function without touching the CloudFormation stack, which makes it much faster than a full deploy:

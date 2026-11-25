@@ -1,0 +1,92 @@
+// A command run with AWS_ENDPOINT_URL (or a sibling setting) names the endpoint in one notice line,
+// so a run against a local emulator is never taken for one against AWS.
+import fs from 'fs'
+import os from 'os'
+import path from 'path'
+import { afterEach, beforeEach, describe, expect, test } from '@jest/globals'
+import { configuredAwsEndpointNotice } from '../../../../src/utils/local/aws-endpoint-notice.js'
+import { configureLocalstackAWSEndpoint } from '../../../../src/utils/local/localstack.js'
+
+const VARIABLES = [
+  'AWS_ENDPOINT_URL',
+  'AWS_ENDPOINT_URL_S3',
+  'AWS_ENDPOINT_URL_LAMBDA',
+  'AWS_IGNORE_CONFIGURED_ENDPOINT_URLS',
+  'AWS_CONFIG_FILE',
+  'AWS_PROFILE',
+]
+
+let saved
+let tmpDir
+beforeEach(() => {
+  saved = Object.fromEntries(VARIABLES.map((name) => [name, process.env[name]]))
+  for (const name of VARIABLES) delete process.env[name]
+  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sls-endpoint-notice-'))
+  process.env.AWS_CONFIG_FILE = path.join(tmpDir, 'missing-config')
+})
+afterEach(() => {
+  for (const [name, value] of Object.entries(saved)) {
+    if (value === undefined) delete process.env[name]
+    else process.env[name] = value
+  }
+  fs.rmSync(tmpDir, { recursive: true, force: true })
+})
+
+describe('configuredAwsEndpointNotice', () => {
+  test('says nothing when no endpoint is configured', async () => {
+    await expect(configuredAwsEndpointNotice()).resolves.toBeUndefined()
+  })
+
+  test('names AWS_ENDPOINT_URL', async () => {
+    process.env.AWS_ENDPOINT_URL = 'https://127.0.0.1:9297'
+    await expect(configuredAwsEndpointNotice()).resolves.toBe(
+      'Using the configured AWS endpoint https://127.0.0.1:9297',
+    )
+  })
+
+  test('names endpoint_url from the shared config file', async () => {
+    const file = path.join(tmpDir, 'config')
+    fs.writeFileSync(file, '[default]\nendpoint_url = https://127.0.0.1:9297\n')
+    process.env.AWS_CONFIG_FILE = file
+    await expect(configuredAwsEndpointNotice()).resolves.toBe(
+      'Using the configured AWS endpoint https://127.0.0.1:9297',
+    )
+  })
+
+  test('names the service-specific variables', async () => {
+    process.env.AWS_ENDPOINT_URL = 'https://127.0.0.1:9297'
+    process.env.AWS_ENDPOINT_URL_S3 = 'http://127.0.0.1:9000'
+    await expect(configuredAwsEndpointNotice()).resolves.toBe(
+      'Using the configured AWS endpoint https://127.0.0.1:9297 and the endpoints set by AWS_ENDPOINT_URL_S3',
+    )
+    delete process.env.AWS_ENDPOINT_URL
+    process.env.AWS_ENDPOINT_URL_LAMBDA = 'http://127.0.0.1:3002'
+    await expect(configuredAwsEndpointNotice()).resolves.toBe(
+      'Using the configured AWS endpoints set by AWS_ENDPOINT_URL_LAMBDA, AWS_ENDPOINT_URL_S3',
+    )
+  })
+
+  test('says nothing when AWS_IGNORE_CONFIGURED_ENDPOINT_URLS turns them off', async () => {
+    process.env.AWS_ENDPOINT_URL = 'https://127.0.0.1:9297'
+    process.env.AWS_IGNORE_CONFIGURED_ENDPOINT_URLS = 'true'
+    await expect(configuredAwsEndpointNotice()).resolves.toBeUndefined()
+  })
+})
+
+describe('configureLocalstackAWSEndpoint', () => {
+  test('reports whether serverless-localstack is active, so its runs print no notice', () => {
+    expect(
+      configureLocalstackAWSEndpoint({
+        config: { plugins: ['serverless-localstack'] },
+        stage: 'dev',
+      }),
+    ).toBe(true)
+    expect(process.env.AWS_ENDPOINT_URL).toBe('http://localhost:4566')
+    delete process.env.AWS_ENDPOINT_URL
+    delete process.env.AWS_ENDPOINT_URL_S3
+    expect(
+      configureLocalstackAWSEndpoint({ config: { plugins: [] }, stage: 'dev' }),
+    ).toBe(false)
+    expect(process.env.AWS_ENDPOINT_URL).toBeUndefined()
+  })
+})

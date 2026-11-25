@@ -35,6 +35,7 @@ import { providerRegistry } from '../resolvers/registry/index.js'
 import { convertPluginToResolverProvider } from '../resolvers/providers.js'
 import { Runner } from './index.js'
 import { configureLocalstackAWSEndpoint } from '../../utils/local/localstack.js'
+import { configuredAwsEndpointNotice } from '../../utils/local/aws-endpoint-notice.js'
 import path from 'path'
 import { stat } from 'node:fs/promises'
 import Esbuild from '@serverless/framework/lib/plugins/esbuild/index.js'
@@ -235,10 +236,16 @@ export class TraditionalRunner extends Runner {
   async run() {
     const logger = log.get('traditional')
 
-    configureLocalstackAWSEndpoint({
+    const localstackActive = configureLocalstackAWSEndpoint({
       config: this.config,
       stage: this.stage,
     })
+    // Name a configured AWS endpoint (AWS Emulator, LocalStack without its plugin), so nobody takes
+    // the run for one against AWS. The serverless-localstack plugin prints its own.
+    if (!localstackActive) {
+      const endpointNotice = await configuredAwsEndpointNotice()
+      if (endpointNotice) logger.notice(endpointNotice)
+    }
 
     prepareFrameworkOptions(this.command, this.options)
 

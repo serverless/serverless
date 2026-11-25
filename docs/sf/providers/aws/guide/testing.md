@@ -161,8 +161,11 @@ Two commands run your code locally while you develop and debug:
 - [`serverless invoke local`](../cli-reference/invoke-local.md) runs a function's handler on your machine with an event you pass, without deploying. Calls to AWS services use your local credentials, not the function's IAM role.
 - [`serverless dev`](./dev-mode.md) runs the code in your working copy for real invocations of a deployed stage, with the deployed function's environment variables and IAM role, so you can debug against real events without redeploying.
 
+To try a whole deployment without an AWS account, deploy the service to [AWS Emulator](./aws-emulator.md), AWS's local emulator of the AWS APIs. Your handlers run there on embedded JavaScript and Python engines rather than the Lambda runtimes, so keep a test stage in AWS for integration tests.
+
 ## Related
 
 - [`serverless invoke`](../cli-reference/invoke.md)
 - [Dev Mode](./dev-mode.md)
+- [Deploy to AWS Emulator](./aws-emulator.md)
 - [Testing serverless functions and applications](https://docs.aws.amazon.com/lambda/latest/dg/testing-guide.html) in the AWS Lambda developer guide

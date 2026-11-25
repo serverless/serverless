@@ -4,8 +4,13 @@ import pLimit from 'p-limit'
 import sdk from './sdk.js'
 import ServerlessError from '../../serverless-error.js'
 import { log } from '@serverless/util'
+// Imported by path, not from the package index, so tests that mock '@serverless/util' with a fixed
+// list of exports keep loading this module.
+import { getConfiguredAwsEndpoint } from '@serverless/util/src/aws/endpoint.js'
+import { shouldBypassProxy } from '@serverless/util/src/proxy/index.js'
 import { HttpsProxyAgent } from 'https-proxy-agent'
 import https from 'https'
+import { isIP } from 'net'
 import fs from 'fs'
 import deepSortObjectByKey from '../../utils/deep-sort-object-by-key.js'
 import ensureString from 'type/string/ensure.js'
@@ -87,22 +92,112 @@ const shouldS3Accelerate = (method, params) => {
   return false
 }
 
+/**
+ * The SDK id of an AWS SDK v2 service class (`CloudFormation`, `CloudWatch Logs`), read from the
+ * API model of its newest version without creating a client, or undefined.
+ */
+const getServiceId = (Service) => {
+  try {
+    const versions = (Service.apiVersions || []).filter(
+      (version) => !version.endsWith('*'),
+    )
+    if (!Service.serviceIdentifier || versions.length === 0) return undefined
+    return sdk.apiLoader(Service.serviceIdentifier, versions.at(-1))?.metadata
+      ?.serviceId
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * The endpoint the user configured for a service with `AWS_ENDPOINT_URL`,
+ * `AWS_ENDPOINT_URL_<SERVICE>` or `endpoint_url` in the shared config file, as the AWS SDK v3
+ * clients read it, or undefined. Undefined too when the request or the SDK's own configuration
+ * already sets an endpoint for the service (for example a plugin that calls
+ * `provider.sdk.config.update({ s3: { endpoint } })`): that endpoint keeps applying.
+ */
+const resolveConfiguredEndpoint = async (service) => {
+  if (service.params?.endpoint) return undefined
+  const Service = _.get(sdk, service.name)
+  if (!Service) return undefined
+  if (sdk.config.endpoint || sdk.config[Service.serviceIdentifier]?.endpoint) {
+    return undefined
+  }
+  const serviceId = getServiceId(Service)
+  if (!serviceId) return undefined
+  return getConfiguredAwsEndpoint(serviceId)
+}
+
+/**
+ * The client options that send a service's requests to a configured endpoint, matching what the
+ * AWS SDK v3 clients do with it: S3 puts the bucket in the path when the endpoint host is an IP
+ * address (a bucket name can't be prefixed to one). When a proxy is set and NO_PROXY lists the
+ * endpoint's host, requests to it go direct, as they do for the v3 clients.
+ */
+const configuredEndpointParams = (serviceName, endpoint) => {
+  const params = { endpoint }
+  if (serviceName === 'S3') {
+    let hostname
+    try {
+      hostname = new URL(endpoint).hostname.replace(/^\[|\]$/g, '')
+    } catch {
+      hostname = ''
+    }
+    if (isIP(hostname)) params.s3ForcePathStyle = true
+  }
+  Object.assign(params, directHttpOptionsFor(endpoint))
+  return params
+}
+
+/**
+ * The client options that skip the proxy for requests to `endpoint`, when a proxy is set and
+ * NO_PROXY lists the endpoint's host; empty otherwise. Applies to an endpoint the user configured
+ * (AWS_ENDPOINT_URL and the like) or that a plugin set in the SDK configuration, such as
+ * serverless-localstack does, never to AWS's own endpoints, which keep the proxy as before.
+ */
+const directHttpOptionsFor = (endpoint) => {
+  if (!proxyUrl || typeof endpoint !== 'string') return {}
+  if (!shouldBypassProxy(endpoint)) return {}
+  return {
+    httpOptions: {
+      ...sdk.config.httpOptions,
+      agent:
+        tlsOptions.ca && /^https:/i.test(endpoint)
+          ? new https.Agent(tlsOptions)
+          : undefined,
+    },
+  }
+}
+
 const getServiceInstance = memoize(
-  (service, method) => {
+  (service, method, configuredEndpoint) => {
     const Service = _.get(sdk, service.name)
     // we translate params to an object for the service creation by selecting keys of interest
     const serviceParams = { ...service.params }
     if (service.name === 'S3') {
-      serviceParams.useAccelerateEndpoint = shouldS3Accelerate(
-        method,
-        service.params,
+      // Transfer Acceleration has its own AWS endpoint, which would bypass a configured one
+      serviceParams.useAccelerateEndpoint = configuredEndpoint
+        ? false
+        : shouldS3Accelerate(method, service.params)
+    }
+    if (configuredEndpoint) {
+      Object.assign(
+        serviceParams,
+        configuredEndpointParams(service.name, configuredEndpoint),
+      )
+    } else if (!serviceParams.endpoint) {
+      Object.assign(
+        serviceParams,
+        directHttpOptionsFor(sdk.config[Service.serviceIdentifier]?.endpoint),
       )
     }
     return new Service(serviceParams)
   },
   {
-    normalizer: ([service, method]) => {
-      return [JSON.stringify(deepSortObjectByKey(service)), method].join('|')
+    normalizer: ([service, method, configuredEndpoint]) => {
+      const key = [JSON.stringify(deepSortObjectByKey(service)), method]
+      if (configuredEndpoint) key.push(configuredEndpoint)
+      return key.join('|')
     },
   },
 )
@@ -169,8 +264,14 @@ async function awsRequest(service, method, ...args) {
   const request = await requestQueue(() =>
     persistentRequest(async () => {
       const requestId = ++requestCounter
-      const awsService = getServiceInstance(service, method)
-      awsLog.debug(`request: #${requestId} ${service.name}.${method}`, args)
+      const configuredEndpoint = await resolveConfiguredEndpoint(service)
+      const awsService = getServiceInstance(service, method, configuredEndpoint)
+      awsLog.debug(
+        `request: #${requestId} ${service.name}.${method}${
+          configuredEndpoint ? ` (endpoint ${configuredEndpoint})` : ''
+        }`,
+        args,
+      )
       const req = awsService[method](...args)
       try {
         const result = await req.promise()
