@@ -14,6 +14,7 @@ const VARIABLES = [
   'AWS_IGNORE_CONFIGURED_ENDPOINT_URLS',
   'AWS_CONFIG_FILE',
   'AWS_PROFILE',
+  'SLS_AWS_SDK',
 ]
 
 let saved
@@ -23,6 +24,8 @@ beforeEach(() => {
   for (const name of VARIABLES) delete process.env[name]
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sls-endpoint-notice-'))
   process.env.AWS_CONFIG_FILE = path.join(tmpDir, 'missing-config')
+  // The AWS SDK v3 code path for every call; the v2 default has its own test
+  process.env.SLS_AWS_SDK = '3'
 })
 afterEach(() => {
   for (const [name, value] of Object.entries(saved)) {
@@ -63,6 +66,14 @@ describe('configuredAwsEndpointNotice', () => {
     process.env.AWS_ENDPOINT_URL_LAMBDA = 'http://127.0.0.1:3002'
     await expect(configuredAwsEndpointNotice()).resolves.toBe(
       'Using the configured AWS endpoints set by AWS_ENDPOINT_URL_LAMBDA, AWS_ENDPOINT_URL_S3',
+    )
+  })
+
+  test('without SLS_AWS_SDK=3, says that AWS SDK v2 calls go to AWS', async () => {
+    delete process.env.SLS_AWS_SDK
+    process.env.AWS_ENDPOINT_URL = 'https://127.0.0.1:9297'
+    await expect(configuredAwsEndpointNotice()).resolves.toBe(
+      "Using the configured AWS endpoint https://127.0.0.1:9297 for AWS SDK v3 calls. Calls on the AWS SDK v2 code path go to AWS's own endpoints; set SLS_AWS_SDK=3 to send them to the configured endpoint",
     )
   })
 

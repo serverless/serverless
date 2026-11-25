@@ -92,17 +92,28 @@ Both paths read credentials through the standard AWS credential provider chain. 
 
 ### AWS endpoint settings
 
-Every AWS request the Framework makes, on both SDK code paths, goes to the endpoint the AWS SDKs' [service-specific endpoint settings](https://docs.aws.amazon.com/sdkref/latest/guide/feature-ss-endpoints.html) name, when you set one. Use them to deploy to a local emulator such as [AWS Emulator](./aws-emulator.md). The Framework reads, in this order:
+The Framework's AWS SDK v3 clients send their requests to the endpoint the AWS SDKs' [service-specific endpoint settings](https://docs.aws.amazon.com/sdkref/latest/guide/feature-ss-endpoints.html) name, when you set one. Use them to deploy to a local emulator such as [AWS Emulator](./aws-emulator.md), together with `SLS_AWS_SDK=3`. The clients read, in this order:
 
 1. `AWS_ENDPOINT_URL_<SERVICE>`, for one service, such as `AWS_ENDPOINT_URL_S3` or `AWS_ENDPOINT_URL_CLOUDFORMATION`.
 2. `AWS_ENDPOINT_URL`, for every service.
 3. `endpoint_url` in the shared config file (`AWS_CONFIG_FILE`, default `~/.aws/config`), in the `services` section the profile names, then in the profile itself. The profile is the one `AWS_PROFILE` names, else `default`; `provider.profile` and `--aws-profile` choose credentials, not the endpoint.
 
-With an endpoint set, each command names it before it starts:
+The calls on the AWS SDK v2 code path, the default described in [AWS SDK for JavaScript v3 for Framework calls](#aws-sdk-for-javascript-v3-for-framework-calls), use AWS's own endpoints and ignore these settings. Set `SLS_AWS_SDK=3` to send them to the configured endpoint too.
+
+| Calls                                                                                                                                                                                                                                                                                     | Endpoint when a setting is present                 |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| Account ID lookup, the `${aws:accountId}`, `${cf:}`, `${ssm:}`, `${s3:}` and `${terraform:outputs:}` variables, the shared deployment bucket, `serverless invoke`, Dev Mode, custom domains                                                                                               | The configured endpoint                            |
+| The calls of `serverless deploy` (CloudFormation stacks and change sets, S3 artifact uploads), `deploy list`, `info`, `logs`, `metrics`, `remove`, `rollback` and `diff`, most calls of `deploy function`, `rollback function` and `prune`, and plugins' calls through `provider.request` | AWS's own endpoints, unless `SLS_AWS_SDK=3` is set |
+
+With `SLS_AWS_SDK=3`, `provider.request` serves S3, STS, ECR, CloudFormation, CloudWatch, CloudWatch Logs, Lambda, IAM, API Gateway (REST and HTTP APIs), IoT and Lambda microVMs; a call to another service stops with `AWS_V3_UNSUPPORTED_SERVICE`.
+
+With an endpoint set, each command names it before it starts. With `SLS_AWS_SDK=3`:
 
 ```text
 Using the configured AWS endpoint https://127.0.0.1:9297
 ```
+
+Without it, the line adds that the AWS SDK v2 calls go to AWS's own endpoints.
 
 To send one command's requests to AWS's own endpoints while these settings are present, set `AWS_IGNORE_CONFIGURED_ENDPOINT_URLS`:
 
@@ -110,7 +121,7 @@ To send one command's requests to AWS's own endpoints while these settings are p
 AWS_IGNORE_CONFIGURED_ENDPOINT_URLS=true serverless deploy
 ```
 
-Behind an HTTPS proxy (`HTTPS_PROXY`), requests to a configured endpoint whose host `NO_PROXY` lists go directly to it, such as `https://127.0.0.1:9297` with `NO_PROXY=localhost,127.0.0.1`; all other AWS requests use the proxy as before.
+Behind an HTTPS proxy (`HTTPS_PROXY`), AWS SDK v3 requests to a configured endpoint whose host `NO_PROXY` lists go directly to it, such as `https://127.0.0.1:9297` with `NO_PROXY=localhost,127.0.0.1`; all other AWS requests use the proxy as before.
 
 With the `serverless-localstack` plugin, the plugin's endpoint settings apply.
 

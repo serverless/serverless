@@ -20,7 +20,7 @@ keywords:
 
 # Deploy to AWS Emulator
 
-[AWS Emulator](https://docs.aws.amazon.com/emulator/latest/userguide/what-is-service.html) is AWS's local emulator of the AWS APIs: one process on your machine that answers AWS SDK and AWS CLI requests, without an AWS account. The Serverless Framework deploys into it with the environment variables AWS documents for pointing an SDK at the emulator, so `serverless deploy`, `invoke`, `logs` and `remove` run against emulated resources instead of AWS. Use it to try a service's deployment and wiring locally, in seconds and at no cost, before you deploy to a stage in AWS.
+[AWS Emulator](https://docs.aws.amazon.com/emulator/latest/userguide/what-is-service.html) is AWS's local emulator of the AWS APIs: one process on your machine that answers AWS SDK and AWS CLI requests, without an AWS account. The Serverless Framework deploys into it with the environment variables AWS documents for pointing an SDK at the emulator and `SLS_AWS_SDK=3`, so `serverless deploy`, `invoke`, `logs` and `remove` run against emulated resources instead of AWS. Use it to try a service's deployment and wiring locally, in seconds and at no cost, before you deploy to a stage in AWS.
 
 Your handlers don't run on the Lambda Node.js or Python runtimes there, and the emulator doesn't evaluate IAM policies the way AWS does, so keep a test stage in AWS for the checks that depend on them ([Limits](#limits)).
 
@@ -36,7 +36,12 @@ The emulator serves HTTPS on `https://127.0.0.1:9297` and writes its access keys
 
 ## Point the Framework at the emulator
 
-In the shell where you run the Framework, set the variables from AWS's [Pointing your AWS SDK at AWS Emulator](https://docs.aws.amazon.com/emulator/latest/userguide/point-sdk-to-emulator.html#point-sdk-env), plus `NODE_EXTRA_CA_CERTS`, which makes Node.js, and so the Framework, trust the emulator's certificate. Then unset the variables that can supply real AWS credentials:
+In the shell where you run the Framework, set the variables from AWS's [Pointing your AWS SDK at AWS Emulator](https://docs.aws.amazon.com/emulator/latest/userguide/point-sdk-to-emulator.html#point-sdk-env), plus two for the Framework:
+
+- `SLS_AWS_SDK=3` runs the Framework's own AWS calls on its AWS SDK v3 code path, whose clients use the emulator's endpoint. The default AWS SDK v2 code path, which `deploy`, `remove`, `info` and `logs` use, sends its calls to AWS's own endpoints ([AWS endpoint settings](./deploying.md#aws-endpoint-settings)).
+- `NODE_EXTRA_CA_CERTS` makes Node.js, and so the Framework, trust the emulator's certificate.
+
+Then unset the variables that can supply real AWS credentials:
 
 ```bash
 export AWS_ENDPOINT_URL=https://127.0.0.1:9297
@@ -44,6 +49,7 @@ export AWS_SHARED_CREDENTIALS_FILE=~/.aws/emulator/9297/emulator_credentials
 export AWS_CONFIG_FILE=~/.aws/emulator/9297/config
 export AWS_CA_BUNDLE=~/.aws/emulator/9297/ca.pem
 export NODE_EXTRA_CA_CERTS=~/.aws/emulator/9297/ca.pem
+export SLS_AWS_SDK=3
 export AWS_EC2_METADATA_DISABLED=true
 export AWS_DISABLE_HOST_PREFIX_INJECTION=true
 export AWS_REGION=us-east-1
@@ -149,7 +155,7 @@ These facts are from AWS Emulator 1.0.620 and its documentation, checked on 2026
 The variables above send every AWS request of the shell to the emulator. To deploy to AWS again, open a new shell, or unset them:
 
 ```bash
-unset AWS_ENDPOINT_URL AWS_SHARED_CREDENTIALS_FILE AWS_CONFIG_FILE AWS_CA_BUNDLE NODE_EXTRA_CA_CERTS AWS_DISABLE_HOST_PREFIX_INJECTION
+unset AWS_ENDPOINT_URL AWS_SHARED_CREDENTIALS_FILE AWS_CONFIG_FILE AWS_CA_BUNDLE NODE_EXTRA_CA_CERTS SLS_AWS_SDK AWS_DISABLE_HOST_PREFIX_INJECTION
 ```
 
 How the Framework reads endpoint settings, and how to turn them off for one command: [AWS endpoint settings](./deploying.md#aws-endpoint-settings).
