@@ -248,6 +248,31 @@ describe('serverless offline with reloadHandler', () => {
     ).toBe(true)
   })
 
+  test.each([
+    ['bundling', {}],
+    ['not bundling', { bundle: false }],
+  ])(
+    'keeps the esbuild metafile a rebuild writes, %s',
+    async (name, esbuild) => {
+      const { plugin, buildDir, write } = offlineService({
+        options: { reloadHandler: true },
+        esbuild: { ...esbuild, metafile: true },
+      })
+      const metafiles = () =>
+        fs.readdirSync(buildDir).filter((file) => /^meta\..*json$/.test(file))
+      const rebuilds = recordRebuilds(plugin)
+      await plugin.hooks['before:offline:start']()
+      const before = metafiles()
+      expect(before.length).toBeGreaterThan(0)
+      for (const value of ['v2', 'v3']) {
+        const next = rebuilds.next()
+        write(source(value))
+        expect(await next).toMatchObject({ ok: true })
+        expect(metafiles()).toEqual(before)
+      }
+    },
+  )
+
   test('stops watching when offline ends', async () => {
     const { plugin, built, write } = offlineService({
       options: { reloadHandler: true },

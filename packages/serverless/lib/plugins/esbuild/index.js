@@ -552,6 +552,12 @@ export const offlineConfigFiles = (serviceDir, configurationFilename) => {
   )
 }
 
+/**
+ * Files a dev build writes straight into the build directory instead of staging them: the
+ * bundling path's esbuild metafile.
+ */
+const BUILD_DIR_UNSTAGED_OUTPUTS = Object.freeze(['meta.json'])
+
 /** Entries of the build directory that are not build output (see `_resetBuildDir`). */
 const BUILD_DIR_DEPENDENCY_ENTRIES = Object.freeze([
   'node_modules',
@@ -1573,13 +1579,16 @@ class Esbuild {
     const serviceDir = this.serverless.config.serviceDir
     const functions = await this.functions()
     const functionKeys = Object.keys(functions)
-    // The output of the build that just ran, as a dev build records its own: the first rebuild
-    // then removes only what it no longer has, and keeps the dependencies an earlier deploy build
-    // left in the build directory (`_resetBuildDir` keeps them too).
+    // The output of the build that just ran, as a dev build records the files it moves in: the
+    // first rebuild then removes only what it no longer has. Left out: the dependencies an earlier
+    // deploy build left in the build directory (`_resetBuildDir` keeps them too), and the files a
+    // dev build writes straight into the build directory rather than moving them in from staging
+    // (the bundling path's `meta.json`), which it would otherwise remove right after writing them.
     this.devOutputs = new Set(
       (await filesUnder(this.buildDirPath).catch(() => [])).filter(
         (file) =>
-          !BUILD_DIR_DEPENDENCY_ENTRIES.includes(file.split(path.sep)[0]),
+          !BUILD_DIR_DEPENDENCY_ENTRIES.includes(file.split(path.sep)[0]) &&
+          !BUILD_DIR_UNSTAGED_OUTPUTS.includes(file),
       ),
     )
     const configFiles = offlineConfigFiles(
