@@ -14,6 +14,7 @@ import {
   test,
 } from '@jest/globals'
 import { STSClient, GetCallerIdentityCommand } from '@aws-sdk/client-sts'
+import { S3Client, HeadBucketCommand } from '@aws-sdk/client-s3'
 import { addProxyToAwsClient } from '@serverless/util'
 
 const VARIABLES = [
@@ -26,6 +27,7 @@ const VARIABLES = [
   'no_proxy',
   'AWS_ENDPOINT_URL',
   'AWS_ENDPOINT_URL_STS',
+  'AWS_ENDPOINT_URL_S3',
   'AWS_IGNORE_CONFIGURED_ENDPOINT_URLS',
   'AWS_CONFIG_FILE',
   'AWS_PROFILE',
@@ -167,6 +169,32 @@ describe('addProxyToAwsClient with a configured endpoint', () => {
     process.env.NO_PROXY = '127.0.0.1'
     process.env.AWS_ENDPOINT_URL = endpointUrl()
     await callerIdentity()
+    expect(reached).toEqual({ endpoint: 1, proxy: 0 })
+  })
+
+  test('clients that share one proxy handler each go direct by their own endpoint settings', async () => {
+    // The variable resolvers give every client the proxy handler of the first one. Here the first
+    // client (STS) has no configured endpoint, and the second (S3) has only AWS_ENDPOINT_URL_S3.
+    process.env.HTTP_PROXY = proxyUrl()
+    process.env.NO_PROXY = '127.0.0.1'
+    process.env.AWS_ENDPOINT_URL_S3 = endpointUrl()
+    const credentials = {
+      accessKeyId: 'AKIDEXAMPLE',
+      secretAccessKey: 'secret',
+    }
+    const first = addProxyToAwsClient(
+      new STSClient({ region: 'us-east-1', credentials, maxAttempts: 1 }),
+    )
+    const second = addProxyToAwsClient(
+      new S3Client({ region: 'us-east-1', credentials, maxAttempts: 1 }),
+    )
+    second.config.requestHandler = first.config.requestHandler
+    try {
+      await second.send(new HeadBucketCommand({ Bucket: 'my-bucket' }))
+    } finally {
+      first.destroy()
+      second.destroy()
+    }
     expect(reached).toEqual({ endpoint: 1, proxy: 0 })
   })
 })

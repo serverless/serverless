@@ -232,32 +232,55 @@ async function usesConfiguredEndpoint(config) {
   return Boolean(await config.serviceConfiguredEndpoint())
 }
 
+/** Requests that go direct, mapped to the handler of the client that sends them. */
+const directRequests = new WeakMap()
+const ROUTES_DIRECT_REQUESTS = Symbol('routesDirectRequests')
+
 /**
  * The proxy decision above is made once, for AWS's own endpoints. When the user points the SDK at
  * a configured endpoint (AWS_ENDPOINT_URL and the like) whose host NO_PROXY lists, such as
  * `https://127.0.0.1:9297`, requests to it go direct, through the client's own handler; every other
- * request takes the proxy, as before. The proxy handler stays the client's request handler, with
- * the same settings, so nothing changes for a client without a configured endpoint.
+ * request takes the proxy, as before. The client marks such a request in its middleware, where it
+ * knows its own endpoint settings, and the proxy handler sends marked requests direct, so a proxy
+ * handler that several clients share (the variable resolvers share one) serves each by its own
+ * settings. The proxy handler stays the client's request handler, with the same settings, so
+ * nothing changes for a client without a configured endpoint.
  */
 function routeConfiguredEndpointDirect({
   client,
   proxiedHandler,
   directHandler,
 }) {
-  const handleThroughProxy = proxiedHandler.handle.bind(proxiedHandler)
-  proxiedHandler.handle = async (request, options) => {
-    if (await usesConfiguredEndpoint(client.config)) {
-      const port = request.port ? `:${request.port}` : ''
-      const url = `${request.protocol}//${request.hostname}${port}`
-      if (shouldBypassProxy(url)) {
-        logger.debug(
-          'Configured AWS endpoint %s matches NO_PROXY, sending the request without the proxy',
-          url,
-        )
-        return directHandler.handle(request, options)
+  client.middlewareStack.add(
+    (next) => async (args) => {
+      const { request } = args
+      if (request?.hostname && (await usesConfiguredEndpoint(client.config))) {
+        const port = request.port ? `:${request.port}` : ''
+        const url = `${request.protocol}//${request.hostname}${port}`
+        if (shouldBypassProxy(url)) {
+          logger.debug(
+            'Configured AWS endpoint %s matches NO_PROXY, sending the request without the proxy',
+            url,
+          )
+          directRequests.set(request, directHandler)
+        }
       }
-    }
-    return handleThroughProxy(request, options)
+      return next(args)
+    },
+    {
+      step: 'finalizeRequest',
+      priority: 'low',
+      name: 'serverlessConfiguredEndpointProxyBypass',
+    },
+  )
+  if (proxiedHandler[ROUTES_DIRECT_REQUESTS]) return
+  proxiedHandler[ROUTES_DIRECT_REQUESTS] = true
+  const handleThroughProxy = proxiedHandler.handle.bind(proxiedHandler)
+  proxiedHandler.handle = (request, options) => {
+    const handler = directRequests.get(request)
+    return handler
+      ? handler.handle(request, options)
+      : handleThroughProxy(request, options)
   }
   // The client's own handler may be shared with other clients (the variable resolvers share one),
   // so this client neither reconfigures nor destroys it.
