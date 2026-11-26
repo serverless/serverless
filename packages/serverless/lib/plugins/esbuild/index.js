@@ -841,14 +841,17 @@ class Esbuild {
       'before:offline:start': async () => {
         if (await this._shouldRun()) {
           await this._build()
-          // The watcher records the source handlers its rebuilds build from, so it starts before
-          // `_pointOfflineAtBuiltHandlers` points them at the build output.
+          // Rebuilds build from the source handlers, so they are recorded before
+          // `_pointOfflineAtBuiltHandlers` points the functions at the build output. The watcher
+          // starts last: a rebuild a save starts while it waits for its first scan resets the
+          // build's record of its output, which the pointing reads.
+          const sourceHandlers = await this._sourceHandlersOfBuiltFunctions()
+          this._pointOfflineAtBuiltHandlers()
           if (
             offlineReloadsHandlers(this.options, this.serverless.service.custom)
           ) {
-            await this._watchForOffline()
+            await this._watchForOffline({ sourceHandlers })
           }
-          this._pointOfflineAtBuiltHandlers()
         }
       },
       // serverless-offline usually ends the process itself on SIGINT or SIGTERM, before this
@@ -1572,24 +1575,21 @@ class Esbuild {
    * staged, moved in group by group, and a failed rebuild keeps the last successful build. A change
    * to the configuration file is not applied: it asks for a restart.
    *
-   * Runs before `_pointOfflineAtBuiltHandlers`, and records each built function's handler as it is
-   * then: its source. Every rebuild builds from that record, since the function's own handler points
-   * at the build output from then on, and stays there during a rebuild for the requests
+   * Runs after `_pointOfflineAtBuiltHandlers`, so a rebuild that starts while the watcher waits for
+   * its first scan cannot change where serverless-offline is pointed. Every rebuild builds from
+   * `sourceHandlers`, recorded before that pointing, since each function's own handler points at
+   * the build output from then on, and stays there during a rebuild for the requests
    * serverless-offline serves meanwhile.
-   * @param {object} [options]
+   * @param {object} options
+   * @param {Record<string, string>} options.sourceHandlers - built function name → its source
+   *   handler (`_sourceHandlersOfBuiltFunctions`, taken before the pointing)
    * @param {Function} [options.watch] - chokidar's `watch` (tests pass a stand-in)
    */
-  async _watchForOffline({ watch } = {}) {
+  async _watchForOffline({ sourceHandlers, watch }) {
     const { createWatcher, handlerModulesOf } =
       await import('../aws/dev/local/watcher.js')
     const chokidarWatch = watch ?? (await import('chokidar')).default.watch
     const serviceDir = this.serverless.config.serviceDir
-    const sourceHandlers = Object.fromEntries(
-      Object.entries(await this.functions()).map(([alias, { handler }]) => [
-        alias,
-        handler,
-      ]),
-    )
     // The output of the build that just ran, as a dev build records the files it moves in: the
     // first rebuild then removes only what it no longer has. Left out: the dependencies an earlier
     // deploy build left in the build directory (`_resetBuildDir` keeps them too), and the files a
@@ -1643,6 +1643,20 @@ class Esbuild {
     }
     logger.notice(
       'Watching for source changes: handlers rebuild on save (reloadHandler)',
+    )
+  }
+
+  /**
+   * Each function esbuild builds, with its handler as it is now: before
+   * `_pointOfflineAtBuiltHandlers`, its source handler.
+   * @returns {Promise<Record<string, string>>} function name → handler
+   */
+  async _sourceHandlersOfBuiltFunctions() {
+    return Object.fromEntries(
+      Object.entries(await this.functions()).map(([alias, { handler }]) => [
+        alias,
+        handler,
+      ]),
     )
   }
 

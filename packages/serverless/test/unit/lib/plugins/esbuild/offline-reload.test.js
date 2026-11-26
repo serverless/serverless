@@ -415,7 +415,10 @@ describe('the offline watcher', () => {
       .mockImplementation((text) => warnings.push(text))
     const { emitter, watch } = fakeWatch()
     await plugin._build()
-    await plugin._watchForOffline({ watch })
+    await plugin._watchForOffline({
+      sourceHandlers: await plugin._sourceHandlersOfBuiltFunctions(),
+      watch,
+    })
     emitter.emit('all', 'change', path.join(serviceDir, 'serverless.yml'))
     await delay(300)
     expect(rebuild).not.toHaveBeenCalled()
@@ -428,7 +431,10 @@ describe('the offline watcher', () => {
     const { plugin } = offlineService({ options: { reloadHandler: true } })
     const { watch } = fakeWatch()
     await plugin._build()
-    await plugin._watchForOffline({ watch })
+    await plugin._watchForOffline({
+      sourceHandlers: await plugin._sourceHandlersOfBuiltFunctions(),
+      watch,
+    })
     expect(watch).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({ persistent: false }),
@@ -444,11 +450,77 @@ describe('the offline watcher', () => {
       .mockResolvedValue({ ok: true })
     const { emitter, watch } = fakeWatch()
     await plugin._build()
-    await plugin._watchForOffline({ watch })
+    await plugin._watchForOffline({
+      sourceHandlers: await plugin._sourceHandlersOfBuiltFunctions(),
+      watch,
+    })
     emitter.emit('all', 'change', path.join(serviceDir, 'src', 'handler.ts'))
     emitter.emit('all', 'add', path.join(serviceDir, 'src', 'util.ts'))
     await delay(400)
     expect(rebuild).toHaveBeenCalledTimes(1)
     expect(rebuild).toHaveBeenCalledWith({ hello: 'src/handler.hello' })
+  })
+
+  test('a save while the watcher starts leaves every built function on its build output', async () => {
+    const { plugin, serverless, serviceDir, functions, built, write } =
+      offlineService({ options: { reloadHandler: true } })
+    const { emitter, watch } = fakeWatch()
+    let atStart
+    const watchForOffline = plugin._watchForOffline.bind(plugin)
+    jest
+      .spyOn(plugin, '_watchForOffline')
+      .mockImplementation((options = {}) =>
+        watchForOffline({ ...options, watch }),
+      )
+    // The rebuild that save starts holds once it has begun (its build state reset), and the
+    // watcher reports its first scan done only then: the hook resumes during the rebuild.
+    let release
+    const gate = new Promise((resolve) => (release = resolve))
+    const functionsOf = plugin.functions.bind(plugin)
+    jest.spyOn(plugin, 'functions').mockImplementation(async (...args) => {
+      if (plugin.devRequest) {
+        emitter.emit('ready')
+        await gate
+      }
+      return functionsOf(...args)
+    })
+    const rebuilds = recordRebuilds(plugin)
+    const next = rebuilds.next()
+    // Saved after the first scan looked at the file, before the scan reported it was done.
+    watch.mockImplementationOnce(() => {
+      setImmediate(() => {
+        write(source('v2'))
+        emitter.emit(
+          'all',
+          'change',
+          path.join(serviceDir, 'src', 'handler.ts'),
+        )
+      })
+      return emitter
+    })
+
+    await plugin.hooks['before:offline:start']().finally(() => {
+      // What offline is pointed at when it starts, while that rebuild still runs.
+      atStart = {
+        servicePath: serverless.config.servicePath,
+        handler: functions.hello.handler,
+      }
+      release()
+    })
+    expect(await next).toMatchObject({ ok: true })
+    const pointed = {
+      servicePath: serviceDir,
+      handler: '.serverless/build/src/handler.hello',
+    }
+    expect(atStart).toEqual(pointed)
+    expect({
+      servicePath: serverless.config.servicePath,
+      handler: functions.hello.handler,
+    }).toEqual(pointed)
+    expect(built()).toMatch(/["']v2["']/)
+    // Built from the source handler, not from the build output offline is pointed at.
+    expect(plugin._rebuildForOffline).toHaveBeenCalledWith({
+      hello: 'src/handler.hello',
+    })
   })
 })
