@@ -139,10 +139,18 @@ describe('configuredAwsEndpointNotice', () => {
       message:
         'Using the configured AWS endpoint https://***@emulator.internal',
     })
-    process.env.AWS_ENDPOINT_URL = 'alice:secret@emulator internal'
-    const { message } = await configuredAwsEndpointNotice()
-    expect(message).not.toContain('secret')
-    expect(message).not.toContain('alice')
+    for (const value of [
+      'alice:secret@emulator internal',
+      'https://alice:secret',
+      'alice:secret',
+    ]) {
+      process.env.AWS_ENDPOINT_URL = value
+      await expect(configuredAwsEndpointNotice()).resolves.toEqual({
+        level: 'notice',
+        message:
+          'Using the configured AWS endpoint (a value that is not a valid URL)',
+      })
+    }
   })
 
   test('prints only the names of the service variables, not their values', async () => {

@@ -1,26 +1,23 @@
 import { log } from '@serverless/util'
 import { describeConfiguredAwsEndpoints } from '@serverless/util/src/aws/endpoint.js'
 
-// Anything before the last `@` of a value without a host, which can hold credentials too
-const withoutAtPrefix = (value) => {
-  const at = value.lastIndexOf('@')
-  return at === -1 ? value : `***@${value.slice(at + 1)}`
-}
+// Printed in place of a value that isn't a URL with a host: such a value can't be shown safely
+const NOT_A_URL = '(a value that is not a valid URL)'
 
 /**
  * The endpoint URL as the notice prints it, with any user name and password replaced by `***`, so
- * credentials in the URL stay out of the terminal and CI logs. The SDK keeps using the URL as set.
+ * credentials in the URL stay out of the terminal and CI logs. A value that doesn't parse as a URL
+ * with a host prints as a placeholder. The SDK keeps using the value as set.
  */
 const withoutUserInfo = (endpoint) => {
   let url
   try {
     url = new URL(endpoint)
   } catch {
-    // Not a URL the SDK accepts either
-    return withoutAtPrefix(endpoint)
+    return NOT_A_URL
   }
-  // A value without a host (`alice:secret@host` parses with `alice:` as its scheme)
-  if (!url.host) return withoutAtPrefix(endpoint)
+  // `alice:secret@host` parses with `alice:` as its scheme and no host
+  if (!url.host) return NOT_A_URL
   if (!url.username && !url.password) return endpoint
   // Built from the parsed URL, so every form `URL` accepts (such as `https:///user:pass@host`)
   // loses its user info; a bare host keeps its form, without the `/` `URL` adds
