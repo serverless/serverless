@@ -4,6 +4,10 @@ const DEFAULT_AWS_ENDPOINT_URL = 'http://localhost:4566'
 const DEFAULT_AWS_ENDPOINT_URL_S3 = 'http://s3.localhost.localstack.cloud:4566'
 const DEFAULT_STAGE = 'dev'
 
+/**
+ * Sets the AWS endpoint variables to LocalStack's when the serverless-localstack plugin is active
+ * for the stage and they are not set yet. Returns whether the plugin is active.
+ */
 export const configureLocalstackAWSEndpoint = ({ config, stage }) => {
   // set local endpoints for AWS SDK if serverless-localstack plugin is active
   // see https://docs.aws.amazon.com/sdkref/latest/guide/feature-ss-endpoints.html
@@ -22,7 +26,9 @@ export const configureLocalstackAWSEndpoint = ({ config, stage }) => {
     if (!process.env.AWS_ENDPOINT_URL_S3) {
       process.env.AWS_ENDPOINT_URL_S3 = DEFAULT_AWS_ENDPOINT_URL_S3
     }
+    return true
   }
+  return false
 }
 
 // logic adapted from the serverless-localstack plugin
