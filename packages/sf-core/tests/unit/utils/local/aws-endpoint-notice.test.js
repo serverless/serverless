@@ -132,6 +132,19 @@ describe('configuredAwsEndpointNotice', () => {
     })
   })
 
+  test('leaves user info out of URL forms the URL parser normalizes, and out of unparsable values', async () => {
+    process.env.AWS_ENDPOINT_URL = 'https:///alice:secret@emulator.internal'
+    await expect(configuredAwsEndpointNotice()).resolves.toEqual({
+      level: 'notice',
+      message:
+        'Using the configured AWS endpoint https://***@emulator.internal',
+    })
+    process.env.AWS_ENDPOINT_URL = 'alice:secret@emulator internal'
+    const { message } = await configuredAwsEndpointNotice()
+    expect(message).not.toContain('secret')
+    expect(message).not.toContain('alice')
+  })
+
   test('prints only the names of the service variables, not their values', async () => {
     process.env.AWS_ENDPOINT_URL_S3 = 'http://user:secret@127.0.0.1:9000'
     const { message } = await configuredAwsEndpointNotice()
