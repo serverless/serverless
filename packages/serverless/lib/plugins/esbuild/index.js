@@ -823,9 +823,11 @@ class Esbuild {
     // directory. The next dev build removes the ones it does not move in itself.
     this.devOutputs = null
 
-    // The functions `_pointOfflineAtBuiltHandlers` pointed at the build output, by name: a rebuild
-    // for `serverless offline` that does not build one of them says so (`_rebuildForOffline`).
-    this._offlineBuiltFunctions = new Set()
+    // The functions `_pointOfflineAtBuiltHandlers` pointed at the build output: function name →
+    // absolute path of the built file serverless-offline loads. A rebuild for `serverless offline`
+    // that does not build one of them says so, and whether that file is still there
+    // (`_rebuildForOffline`).
+    this._offlineBuiltFunctions = new Map()
 
     // Functions whose NODE_OPTIONS a build of this run already gave --enable-source-maps, so a
     // rebuild (offline with reloadHandler, Dev Mode) does not add it again.
@@ -1689,10 +1691,13 @@ class Esbuild {
    * or `{ ok: false, error }` after a warning that the last successful build stays in place.
    *
    * A function serverless-offline was pointed at the build output for whose handler file is gone
-   * (deleted or renamed) is not built, and the rebuild removes its earlier output as it removes
-   * any output the build no longer has. The rebuild still completes for the other functions and
+   * (deleted or renamed) is not built. The rebuild still completes for the other functions and
    * resolves `{ ok: true, skipped }`, `skipped` naming those functions, after a warning that names
-   * them. Functions never built locally (a handler a Lambda layer provides) are never named.
+   * them and says, from the build directory after the rebuild, what happened to each one's earlier
+   * output: removed, as the rebuild removes any output the build no longer has, so
+   * serverless-offline cannot load it; or still in place, when the rebuild built nothing at all
+   * (a bundling build with no handler file left keeps its last outputs), so serverless-offline keeps
+   * running it. Functions never built locally (a handler a Lambda layer provides) are never named.
    * @param {Record<string, string>} sourceHandlers - function name → source handler
    */
   async _rebuildForOffline(sourceHandlers) {
@@ -1716,10 +1721,22 @@ class Esbuild {
           `Rebuilt ${built.join(', ')} in ${Date.now() - started} ms`,
         )
       }
-      const one = skipped.length === 1
-      this._offlineWarning(
-        `The rebuild did not build ${skipped.join(', ')}: ${one ? 'its' : 'their'} handler file was not found, so ${one ? 'its' : 'their'} earlier build output is removed and serverless-offline cannot load ${one ? 'it' : 'them'}. Restore the file, or change the handler and restart "serverless offline".`,
+      const kept = skipped.filter((alias) =>
+        existsSync(this._offlineBuiltFunctions.get(alias)),
       )
+      const removed = skipped.filter((alias) => !kept.includes(alias))
+      if (removed.length > 0) {
+        const one = removed.length === 1
+        this._offlineWarning(
+          `The rebuild did not build ${removed.join(', ')}: ${one ? 'its' : 'their'} handler file was not found, so ${one ? 'its' : 'their'} earlier build output is removed and serverless-offline cannot load ${one ? 'it' : 'them'}. Restore the file, or change the handler and restart "serverless offline".`,
+        )
+      }
+      if (kept.length > 0) {
+        const its = kept.length === 1 ? 'its' : 'their'
+        this._offlineWarning(
+          `The rebuild did not build ${kept.join(', ')}: ${its} handler file was not found. serverless-offline keeps running ${its} last build until the file is restored or "serverless offline" restarts.`,
+        )
+      }
       return { ok: true, skipped }
     } catch (error) {
       // esbuild printed its errors, with their locations, already: its summary line is enough.
@@ -1764,7 +1781,10 @@ class Esbuild {
       .split(path.sep)
       .join('/')
     for (const [alias, artifact] of this.builtArtifacts ?? new Map()) {
-      this._offlineBuiltFunctions.add(alias)
+      this._offlineBuiltFunctions.set(
+        alias,
+        path.join(this.buildDirPath, artifact.outfile),
+      )
       const outfile = artifact.outfile.split(path.sep).join('/')
       const functionObject = this.serverless.service.getFunction(alias)
       const { handler } = functionObject

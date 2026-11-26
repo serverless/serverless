@@ -394,7 +394,9 @@ describe('serverless offline with reloadHandler', () => {
       write(source('v2'))
       expect(await next).toEqual({ ok: true, skipped: ['other'] })
       expect(warnings).toEqual([
-        expect.stringMatching(/did not build other\b.*handler file/),
+        expect.stringMatching(
+          /did not build other: its handler file .* is removed and serverless-offline cannot load it/,
+        ),
       ])
       expect(warnings[0]).not.toMatch(/layered|hello/)
       // The other function still rebuilt.
@@ -419,6 +421,54 @@ describe('serverless offline with reloadHandler', () => {
       expect(warnings).toHaveLength(1)
       expect(servedOther()).toBe(path.join(buildDir, 'src', 'other.js'))
       expect(fs.readFileSync(servedOther(), 'utf8')).toMatch(/["']back["']/)
+    },
+  )
+
+  // With bundling, a build with no handler file left builds nothing and keeps its last output.
+  // Without bundling, the project build still runs and removes the output the build no longer has.
+  test.each([
+    ['bundling', {}, true],
+    ['not bundling', { bundle: false }, false],
+  ])(
+    'says what happens to the only function when its handler file is gone, %s',
+    async (name, esbuild, outputKept) => {
+      const { plugin, serverless, serviceDir, buildDir, functions, write } =
+        offlineService({ options: { reloadHandler: true }, esbuild })
+      const warnings = []
+      jest
+        .spyOn(plugin, '_offlineWarning')
+        .mockImplementation((text) => warnings.push(text))
+      const rebuilds = recordRebuilds(plugin)
+      await plugin.hooks['before:offline:start']()
+      const servedHello = () =>
+        resolveLikeOffline(
+          serverless.config.servicePath,
+          functions.hello.handler,
+        )
+      const output = path.join(buildDir, 'src', 'handler.js')
+      expect(servedHello()).toBe(output)
+
+      let next = rebuilds.next()
+      fs.rmSync(path.join(serviceDir, 'src', 'handler.ts'))
+      expect(await next).toEqual({ ok: true, skipped: ['hello'] })
+      expect(warnings).toHaveLength(1)
+      expect(warnings[0]).toMatch(/did not build hello: its handler file/)
+      if (outputKept) {
+        expect(warnings[0]).toMatch(/keeps running its last build/)
+        expect(warnings[0]).not.toMatch(/removed|cannot load/)
+        expect(servedHello()).toBe(output)
+        expect(fs.readFileSync(output, 'utf8')).toMatch(/["']v1["']/)
+      } else {
+        expect(warnings[0]).toMatch(/is removed and serverless-offline cannot/)
+        expect(servedHello()).toBeNull()
+      }
+
+      // Restored: the next rebuild builds it again, with no warning.
+      next = rebuilds.next()
+      write(source('v2'))
+      expect(await next).toEqual({ ok: true })
+      expect(warnings).toHaveLength(1)
+      expect(fs.readFileSync(output, 'utf8')).toMatch(/["']v2["']/)
     },
   )
 
