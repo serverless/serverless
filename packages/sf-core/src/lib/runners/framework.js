@@ -244,7 +244,7 @@ export class TraditionalRunner extends Runner {
     // the run for one against AWS. The serverless-localstack plugin prints its own.
     if (!localstackActive) {
       const endpointNotice = await configuredAwsEndpointNotice()
-      if (endpointNotice) logger.notice(endpointNotice)
+      if (endpointNotice) logger[endpointNotice.level](endpointNotice.message)
     }
 
     prepareFrameworkOptions(this.command, this.options)

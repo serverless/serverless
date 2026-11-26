@@ -113,7 +113,11 @@ With an endpoint set, each command names it before it starts. With `SLS_AWS_SDK=
 Using the configured AWS endpoint https://127.0.0.1:9297
 ```
 
-Without it, the line adds that the AWS SDK v2 calls go to AWS's own endpoints.
+Without it, the line is a warning and adds that the AWS SDK v2 calls go to AWS's own endpoints:
+
+```text
+[!] Using the configured AWS endpoint https://127.0.0.1:9297 for AWS SDK v3 calls. Calls on the AWS SDK v2 code path go to AWS's own endpoints; set SLS_AWS_SDK=3 to send them to the configured endpoint
+```
 
 To send one command's requests to AWS's own endpoints while these settings are present, set `AWS_IGNORE_CONFIGURED_ENDPOINT_URLS`:
 

@@ -2,10 +2,12 @@ import { log } from '@serverless/util'
 import { describeConfiguredAwsEndpoints } from '@serverless/util/src/aws/endpoint.js'
 
 /**
- * A one-line notice naming the AWS endpoints the user configured with AWS_ENDPOINT_URL,
+ * A one-line message naming the AWS endpoints the user configured with AWS_ENDPOINT_URL,
  * AWS_ENDPOINT_URL_<SERVICE> or endpoint_url in the shared config file, so a command that talks to
- * a local emulator (or to anything other than AWS) says so, and which calls use them. Undefined
- * when none is configured.
+ * a local emulator (or to anything other than AWS) says so, and which calls use them, with the
+ * level to print it at: `notice` with SLS_AWS_SDK=3, when every call uses them; `warning` without
+ * it, when the AWS SDK v2 calls still go to AWS. Undefined when none is configured.
+ * @returns {Promise<{ level: 'notice' | 'warning', message: string } | undefined>}
  */
 export const configuredAwsEndpointNotice = async () => {
   let configured
@@ -33,6 +35,11 @@ export const configuredAwsEndpointNotice = async () => {
   // The Framework's AWS SDK v2 code path, the default for deploy, remove, info, logs and most
   // other commands, sends its calls to AWS's own endpoints; SLS_AWS_SDK=3 moves them to the v3
   // code path, whose clients use the configured endpoint.
-  if (String(process.env.SLS_AWS_SDK || '').toLowerCase() === '3') return notice
-  return `${notice} for AWS SDK v3 calls. Calls on the AWS SDK v2 code path go to AWS's own endpoints; set SLS_AWS_SDK=3 to send them to the configured endpoint`
+  if (String(process.env.SLS_AWS_SDK || '').toLowerCase() === '3') {
+    return { level: 'notice', message: notice }
+  }
+  return {
+    level: 'warning',
+    message: `${notice} for AWS SDK v3 calls. Calls on the AWS SDK v2 code path go to AWS's own endpoints; set SLS_AWS_SDK=3 to send them to the configured endpoint`,
+  }
 }

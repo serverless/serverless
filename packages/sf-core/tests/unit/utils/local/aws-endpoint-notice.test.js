@@ -42,39 +42,47 @@ describe('configuredAwsEndpointNotice', () => {
 
   test('names AWS_ENDPOINT_URL', async () => {
     process.env.AWS_ENDPOINT_URL = 'https://127.0.0.1:9297'
-    await expect(configuredAwsEndpointNotice()).resolves.toBe(
-      'Using the configured AWS endpoint https://127.0.0.1:9297',
-    )
+    await expect(configuredAwsEndpointNotice()).resolves.toEqual({
+      level: 'notice',
+      message: 'Using the configured AWS endpoint https://127.0.0.1:9297',
+    })
   })
 
   test('names endpoint_url from the shared config file', async () => {
     const file = path.join(tmpDir, 'config')
     fs.writeFileSync(file, '[default]\nendpoint_url = https://127.0.0.1:9297\n')
     process.env.AWS_CONFIG_FILE = file
-    await expect(configuredAwsEndpointNotice()).resolves.toBe(
-      'Using the configured AWS endpoint https://127.0.0.1:9297',
-    )
+    await expect(configuredAwsEndpointNotice()).resolves.toEqual({
+      level: 'notice',
+      message: 'Using the configured AWS endpoint https://127.0.0.1:9297',
+    })
   })
 
   test('names the service-specific variables', async () => {
     process.env.AWS_ENDPOINT_URL = 'https://127.0.0.1:9297'
     process.env.AWS_ENDPOINT_URL_S3 = 'http://127.0.0.1:9000'
-    await expect(configuredAwsEndpointNotice()).resolves.toBe(
-      'Using the configured AWS endpoint https://127.0.0.1:9297 and the endpoints set by AWS_ENDPOINT_URL_S3',
-    )
+    await expect(configuredAwsEndpointNotice()).resolves.toEqual({
+      level: 'notice',
+      message:
+        'Using the configured AWS endpoint https://127.0.0.1:9297 and the endpoints set by AWS_ENDPOINT_URL_S3',
+    })
     delete process.env.AWS_ENDPOINT_URL
     process.env.AWS_ENDPOINT_URL_LAMBDA = 'http://127.0.0.1:3002'
-    await expect(configuredAwsEndpointNotice()).resolves.toBe(
-      'Using the configured AWS endpoints set by AWS_ENDPOINT_URL_LAMBDA, AWS_ENDPOINT_URL_S3',
-    )
+    await expect(configuredAwsEndpointNotice()).resolves.toEqual({
+      level: 'notice',
+      message:
+        'Using the configured AWS endpoints set by AWS_ENDPOINT_URL_LAMBDA, AWS_ENDPOINT_URL_S3',
+    })
   })
 
-  test('without SLS_AWS_SDK=3, says that AWS SDK v2 calls go to AWS', async () => {
+  test('without SLS_AWS_SDK=3, warns that AWS SDK v2 calls go to AWS', async () => {
     delete process.env.SLS_AWS_SDK
     process.env.AWS_ENDPOINT_URL = 'https://127.0.0.1:9297'
-    await expect(configuredAwsEndpointNotice()).resolves.toBe(
-      "Using the configured AWS endpoint https://127.0.0.1:9297 for AWS SDK v3 calls. Calls on the AWS SDK v2 code path go to AWS's own endpoints; set SLS_AWS_SDK=3 to send them to the configured endpoint",
-    )
+    await expect(configuredAwsEndpointNotice()).resolves.toEqual({
+      level: 'warning',
+      message:
+        "Using the configured AWS endpoint https://127.0.0.1:9297 for AWS SDK v3 calls. Calls on the AWS SDK v2 code path go to AWS's own endpoints; set SLS_AWS_SDK=3 to send them to the configured endpoint",
+    })
   })
 
   test('says nothing when AWS_IGNORE_CONFIGURED_ENDPOINT_URLS turns them off', async () => {
