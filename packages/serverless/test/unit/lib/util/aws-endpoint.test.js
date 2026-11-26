@@ -218,6 +218,16 @@ describe('describeConfiguredAwsEndpoints', () => {
     })
   })
 
+  test('leaves out a services section entry an environment variable overrides with the same URL', async () => {
+    useConfigFile(servicesSectionConfig())
+    process.env.AWS_PROFILE = 'emu'
+    process.env.AWS_ENDPOINT_URL_S3 = 'http://s3.local:1'
+    await expect(describeConfiguredAwsEndpoints()).resolves.toEqual({
+      serviceVariables: ['AWS_ENDPOINT_URL_S3'],
+      configServices: ['cloudwatch_logs'],
+    })
+  })
+
   test('leaves out the services section when the settings are turned off', async () => {
     useConfigFile(servicesSectionConfig())
     process.env.AWS_PROFILE = 'emu'

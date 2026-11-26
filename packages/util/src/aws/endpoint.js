@@ -78,10 +78,18 @@ export const describeConfiguredAwsEndpoints = async () => {
     }
   }
   // The SDK reads the `cloudwatch_logs` entry for the service id "CloudWatch Logs". An entry
-  // counts only when the SDK sends that service's requests to it: an environment variable wins
-  // over it, and the settings can be turned off.
+  // counts only when the SDK sends that service's requests to it: AWS_ENDPOINT_URL_<SERVICE> and
+  // AWS_ENDPOINT_URL win over it (also when they name the same URL), and the settings can be
+  // turned off.
+  const envEndpointSet = (name) => Boolean(env[name]?.trim())
   const configServices = []
   for (const [service, value] of await configFileServiceEndpoints()) {
+    if (
+      envEndpointSet(`AWS_ENDPOINT_URL_${service.toUpperCase()}`) ||
+      envEndpointSet('AWS_ENDPOINT_URL')
+    ) {
+      continue
+    }
     if (
       (await getConfiguredAwsEndpoint(service.replace(/_/g, ' '))) === value
     ) {
