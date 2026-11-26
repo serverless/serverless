@@ -362,6 +362,66 @@ describe('serverless offline with reloadHandler', () => {
     },
   )
 
+  test.each([
+    ['bundling', {}],
+    ['not bundling', { bundle: false }],
+  ])(
+    'names the functions a rebuild did not build because their handler file is gone, %s',
+    async (name, esbuild) => {
+      const { plugin, serverless, serviceDir, buildDir, functions, write } =
+        offlineService({ options: { reloadHandler: true }, esbuild })
+      fs.writeFileSync(
+        path.join(serviceDir, 'src', 'other.ts'),
+        "export const hello = async (): Promise<string> => 'other'\n",
+      )
+      functions.other = { handler: 'src/other.hello' }
+      // Provided by a layer at runtime: no local file, never built, so never named.
+      functions.layered = {
+        handler: 'layer/wrapper.handler',
+        layers: ['arn:aws:lambda:us-east-1:111111111111:layer:wrapper:1'],
+      }
+      const warnings = []
+      jest
+        .spyOn(plugin, '_offlineWarning')
+        .mockImplementation((text) => warnings.push(text))
+      const rebuilds = recordRebuilds(plugin)
+      await plugin.hooks['before:offline:start']()
+      expect(functions.other.handler).toBe('.serverless/build/src/other.hello')
+      expect(functions.layered.handler).toBe('layer/wrapper.handler')
+
+      let next = rebuilds.next()
+      fs.rmSync(path.join(serviceDir, 'src', 'other.ts'))
+      write(source('v2'))
+      expect(await next).toEqual({ ok: true, skipped: ['other'] })
+      expect(warnings).toEqual([
+        expect.stringMatching(/did not build other\b.*handler file/),
+      ])
+      expect(warnings[0]).not.toMatch(/layered|hello/)
+      // The other function still rebuilt.
+      expect(
+        fs.readFileSync(path.join(buildDir, 'src', 'handler.js'), 'utf8'),
+      ).toMatch(/["']v2["']/)
+      // Its earlier output is gone too, as the warning says.
+      const servedOther = () =>
+        resolveLikeOffline(
+          serverless.config.servicePath,
+          functions.other.handler,
+        )
+      expect(servedOther()).toBeNull()
+
+      // Restored: the next rebuild builds it again, with no warning.
+      next = rebuilds.next()
+      fs.writeFileSync(
+        path.join(serviceDir, 'src', 'other.ts'),
+        "export const hello = async (): Promise<string> => 'back'\n",
+      )
+      expect(await next).toEqual({ ok: true })
+      expect(warnings).toHaveLength(1)
+      expect(servedOther()).toBe(path.join(buildDir, 'src', 'other.js'))
+      expect(fs.readFileSync(servedOther(), 'utf8')).toMatch(/["']back["']/)
+    },
+  )
+
   test('stops watching when offline ends', async () => {
     const { plugin, built, write } = offlineService({
       options: { reloadHandler: true },

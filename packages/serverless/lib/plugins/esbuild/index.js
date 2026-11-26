@@ -823,6 +823,10 @@ class Esbuild {
     // directory. The next dev build removes the ones it does not move in itself.
     this.devOutputs = null
 
+    // The functions `_pointOfflineAtBuiltHandlers` pointed at the build output, by name: a rebuild
+    // for `serverless offline` that does not build one of them says so (`_rebuildForOffline`).
+    this._offlineBuiltFunctions = new Set()
+
     // Functions whose NODE_OPTIONS a build of this run already gave --enable-source-maps, so a
     // rebuild (offline with reloadHandler, Dev Mode) does not add it again.
     this._sourceMapsEnabledFor = new WeakSet()
@@ -1683,6 +1687,12 @@ class Esbuild {
    * One rebuild for `serverless offline`: the functions `sourceHandlers` names, each from the source
    * handler recorded for it, through Dev Mode's staged build. Never throws: resolves `{ ok: true }`,
    * or `{ ok: false, error }` after a warning that the last successful build stays in place.
+   *
+   * A function serverless-offline was pointed at the build output for whose handler file is gone
+   * (deleted or renamed) is not built, and the rebuild removes its earlier output as it removes
+   * any output the build no longer has. The rebuild still completes for the other functions and
+   * resolves `{ ok: true, skipped }`, `skipped` naming those functions, after a warning that names
+   * them. Functions never built locally (a handler a Lambda layer provides) are never named.
    * @param {Record<string, string>} sourceHandlers - function name → source handler
    */
   async _rebuildForOffline(sourceHandlers) {
@@ -1692,8 +1702,25 @@ class Esbuild {
     const started = Date.now()
     try {
       await this._build('handler', { devRequest: request, sourceHandlers })
-      logger.notice(`Rebuilt handlers in ${Date.now() - started} ms`)
-      return { ok: true }
+      const { covered, built } = request.result()
+      const skipped = covered.filter(
+        (alias) =>
+          this._offlineBuiltFunctions.has(alias) && !built.includes(alias),
+      )
+      if (skipped.length === 0) {
+        logger.notice(`Rebuilt handlers in ${Date.now() - started} ms`)
+        return { ok: true }
+      }
+      if (built.length > 0) {
+        logger.notice(
+          `Rebuilt ${built.join(', ')} in ${Date.now() - started} ms`,
+        )
+      }
+      const one = skipped.length === 1
+      this._offlineWarning(
+        `The rebuild did not build ${skipped.join(', ')}: ${one ? 'its' : 'their'} handler file was not found, so ${one ? 'its' : 'their'} earlier build output is removed and serverless-offline cannot load ${one ? 'it' : 'them'}. Restore the file, or change the handler and restart "serverless offline".`,
+      )
+      return { ok: true, skipped }
     } catch (error) {
       // esbuild printed its errors, with their locations, already: its summary line is enough.
       const message = String(error?.message ?? error)
@@ -1737,6 +1764,7 @@ class Esbuild {
       .split(path.sep)
       .join('/')
     for (const [alias, artifact] of this.builtArtifacts ?? new Map()) {
+      this._offlineBuiltFunctions.add(alias)
       const outfile = artifact.outfile.split(path.sep).join('/')
       const functionObject = this.serverless.service.getFunction(alias)
       const { handler } = functionObject
