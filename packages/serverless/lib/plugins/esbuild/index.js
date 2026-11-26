@@ -841,6 +841,8 @@ class Esbuild {
       'before:offline:start': async () => {
         if (await this._shouldRun()) {
           await this._build()
+          // The watcher records the source handlers its rebuilds build from, so it starts before
+          // `_pointOfflineAtBuiltHandlers` points them at the build output.
           if (
             offlineReloadsHandlers(this.options, this.serverless.service.custom)
           ) {
@@ -1569,6 +1571,11 @@ class Esbuild {
    * rebuild; saves during a rebuild cause one more) and rebuilds through Dev Mode's build path:
    * staged, moved in group by group, and a failed rebuild keeps the last successful build. A change
    * to the configuration file is not applied: it asks for a restart.
+   *
+   * Runs before `_pointOfflineAtBuiltHandlers`, and records each built function's handler as it is
+   * then: its source. Every rebuild builds from that record, since the function's own handler points
+   * at the build output from then on, and stays there during a rebuild for the requests
+   * serverless-offline serves meanwhile.
    * @param {object} [options]
    * @param {Function} [options.watch] - chokidar's `watch` (tests pass a stand-in)
    */
@@ -1577,8 +1584,12 @@ class Esbuild {
       await import('../aws/dev/local/watcher.js')
     const chokidarWatch = watch ?? (await import('chokidar')).default.watch
     const serviceDir = this.serverless.config.serviceDir
-    const functions = await this.functions()
-    const functionKeys = Object.keys(functions)
+    const sourceHandlers = Object.fromEntries(
+      Object.entries(await this.functions()).map(([alias, { handler }]) => [
+        alias,
+        handler,
+      ]),
+    )
     // The output of the build that just ran, as a dev build records the files it moves in: the
     // first rebuild then removes only what it no longer has. Left out: the dependencies an earlier
     // deploy build left in the build directory (`_resetBuildDir` keeps them too), and the files a
@@ -1599,10 +1610,9 @@ class Esbuild {
     this._offlineWatcher = createWatcher({
       serviceDir,
       configFiles,
-      // Read before `_setConfigForLocalInvocation` changes anything: the source handlers.
       handlerModules: handlerModulesOf({
         serviceDir,
-        functions: Object.values(functions).map(({ handler }) => ({
+        functions: Object.values(sourceHandlers).map((handler) => ({
           handler,
         })),
       }),
@@ -1612,7 +1622,7 @@ class Esbuild {
       watch: (dir, options) =>
         chokidarWatch(dir, { ...options, persistent: false }),
       onChange: async () => {
-        await this._rebuildForOffline(functionKeys)
+        await this._rebuildForOffline(sourceHandlers)
       },
       onConfigChange: async (files) =>
         this._offlineWarning(
@@ -1645,17 +1655,18 @@ class Esbuild {
   }
 
   /**
-   * One rebuild for `serverless offline`: the functions `functionKeys` names, through Dev Mode's
-   * staged build. Never throws: resolves `{ ok: true }`, or `{ ok: false, error }` after a warning
-   * that the last successful build stays in place.
+   * One rebuild for `serverless offline`: the functions `sourceHandlers` names, each from the source
+   * handler recorded for it, through Dev Mode's staged build. Never throws: resolves `{ ok: true }`,
+   * or `{ ok: false, error }` after a warning that the last successful build stays in place.
+   * @param {Record<string, string>} sourceHandlers - function name → source handler
    */
-  async _rebuildForOffline(functionKeys) {
+  async _rebuildForOffline(sourceHandlers) {
     const request = openDevBuildRequest(this.serverless, {
-      functions: functionKeys,
+      functions: Object.keys(sourceHandlers),
     })
     const started = Date.now()
     try {
-      await this._build('handler', { devRequest: request })
+      await this._build('handler', { devRequest: request, sourceHandlers })
       logger.notice(`Rebuilt handlers in ${Date.now() - started} ms`)
       return { ok: true }
     } catch (error) {
@@ -1726,10 +1737,12 @@ class Esbuild {
    *   build fails.
    * @param {boolean} [options.includeWebApps] - also build the web apps `webApps()` selects (the
    *   package build only)
+   * @param {Record<string, string>|null} [options.sourceHandlers] - function name → the handler to
+   *   build it from instead of its current one (offline's rebuilds, see `_watchForOffline`)
    */
   async _build(
     handlerPropertyName = 'handler',
-    { devRequest = null, includeWebApps = false } = {},
+    { devRequest = null, includeWebApps = false, sourceHandlers = null } = {},
   ) {
     this.devRequest = devRequest
     try {
@@ -1737,6 +1750,7 @@ class Esbuild {
         handlerPropertyName,
         devRequest,
         includeWebApps,
+        sourceHandlers,
       )
     } finally {
       this.devRequest = null
@@ -1744,7 +1758,12 @@ class Esbuild {
   }
 
   /** The body of `_build`, with `this.devRequest` set for the duration of the build. */
-  async _runBuild(handlerPropertyName, devRequest, includeWebApps = false) {
+  async _runBuild(
+    handlerPropertyName,
+    devRequest,
+    includeWebApps = false,
+    sourceHandlers = null,
+  ) {
     const dev = Boolean(devRequest)
     // Names this dev build's staging directories (see devStagingDir).
     const devBuildId = dev ? randomBytes(4).toString('hex') : null
@@ -1769,6 +1788,20 @@ class Esbuild {
       )
       // Dev Mode names these functions, and only these, when this build fails.
       for (const alias of Object.keys(functionsToBuild)) devRequest.cover(alias)
+    }
+    // The build reads each function's handler from these copies only; what it changes on a
+    // function (NODE_OPTIONS) it changes through `getFunction`, on the function itself.
+    if (sourceHandlers) {
+      functionsToBuild = _.mapValues(
+        functionsToBuild,
+        (functionObject, alias) =>
+          Object.hasOwn(sourceHandlers, alias)
+            ? {
+                ...functionObject,
+                [handlerPropertyName]: sourceHandlers[alias],
+              }
+            : functionObject,
+      )
     }
 
     if (

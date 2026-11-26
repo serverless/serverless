@@ -65,7 +65,8 @@ const offlineService = ({ options = {}, custom, esbuild = {} } = {}) => {
       service: 'svc',
       provider: { runtime: 'nodejs20.x' },
       package: {},
-      build: { esbuild },
+      // `esbuild: null` leaves `build` out: esbuild then builds only the TypeScript handlers.
+      build: esbuild === null ? undefined : { esbuild },
       custom,
       functions,
       getFunction: (name) => functions[name],
@@ -111,6 +112,21 @@ const recordRebuilds = (plugin) => {
 }
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+/**
+ * The file serverless-offline loads for `handler`: the handler's module path, resolved against
+ * `servicePath`, with the first of `.js`, `.mjs` or `.cjs` that exists; null when none does.
+ */
+const resolveLikeOffline = (servicePath, handler) => {
+  const modulePath = path.resolve(
+    servicePath,
+    handler.slice(0, handler.lastIndexOf('.')),
+  )
+  const extension = ['.js', '.mjs', '.cjs'].find((ext) =>
+    fs.existsSync(modulePath + ext),
+  )
+  return extension ? modulePath + extension : null
+}
 
 describe('offlineReloadsHandlers', () => {
   test.each([
@@ -167,7 +183,8 @@ describe('serverless offline with reloadHandler', () => {
     const rebuilds = recordRebuilds(plugin)
 
     await plugin.hooks['before:offline:start']()
-    expect(serverless.config.servicePath).toBe(buildDir)
+    expect(serverless.config.servicePath).toBe(serverless.config.serviceDir)
+    expect(functions.hello.handler).toBe('.serverless/build/src/handler.hello')
     expect(built()).toMatch(/["']v1["']/)
 
     let next = rebuilds.next()
@@ -199,6 +216,73 @@ describe('serverless offline with reloadHandler', () => {
         .readdirSync(path.dirname(buildDir))
         .filter((name) => name.includes('dev-staging')),
     ).toEqual([])
+  })
+
+  test('rebuilds a mixed service from the TypeScript source, and leaves its JavaScript function in the service directory', async () => {
+    const {
+      plugin,
+      serverless,
+      serviceDir,
+      buildDir,
+      functions,
+      built,
+      write,
+    } = offlineService({ options: { reloadHandler: true }, esbuild: null })
+    fs.writeFileSync(
+      path.join(serviceDir, 'src', 'plain.js'),
+      "export const hello = async () => 'js'\n",
+    )
+    functions.plain = { handler: 'src/plain.hello' }
+    const rebuilds = recordRebuilds(plugin)
+
+    await plugin.hooks['before:offline:start']()
+    const servedFiles = () => ({
+      plain: resolveLikeOffline(
+        serverless.config.servicePath,
+        functions.plain.handler,
+      ),
+      hello: resolveLikeOffline(
+        serverless.config.servicePath,
+        functions.hello.handler,
+      ),
+    })
+    const expectedFiles = {
+      plain: path.join(serviceDir, 'src', 'plain.js'),
+      hello: path.join(buildDir, 'src', 'handler.js'),
+    }
+    expect(servedFiles()).toEqual(expectedFiles)
+    expect(built()).toMatch(/["']v1["']/)
+
+    // A request offline serves while a rebuild runs loads the build output too: the handler is
+    // never pointed back at the source.
+    const handlersDuringRebuilds = []
+    const runBuild = plugin._runBuild.bind(plugin)
+    jest.spyOn(plugin, '_runBuild').mockImplementation(async (...args) => {
+      handlersDuringRebuilds.push(functions.hello.handler)
+      return runBuild(...args)
+    })
+
+    for (const value of ['v2', 'v3']) {
+      const next = rebuilds.next()
+      write(source(value))
+      expect(await next).toMatchObject({ ok: true })
+      // Built from the edited source, into the file offline loads.
+      expect(built()).toMatch(new RegExp(`["']${value}["']`))
+      expect(functions.hello.handler).toBe(
+        '.serverless/build/src/handler.hello',
+      )
+      expect(servedFiles()).toEqual(expectedFiles)
+    }
+    // The build output was never taken as a source: nothing nested in it.
+    expect(fs.existsSync(path.join(buildDir, '.serverless'))).toBe(false)
+    // The JavaScript function is never built.
+    expect(plugin.builtArtifacts.has('plain')).toBe(false)
+    expect(fs.readdirSync(path.join(buildDir, 'src'))).not.toContain('plain.js')
+    expect(functions.plain.handler).toBe('src/plain.hello')
+    expect(handlersDuringRebuilds).toEqual([
+      '.serverless/build/src/handler.hello',
+      '.serverless/build/src/handler.hello',
+    ])
   })
 
   test('also when reloadHandler is set in custom.serverless-offline', async () => {
@@ -291,10 +375,12 @@ describe('serverless offline with reloadHandler', () => {
 
 describe('serverless offline without reloadHandler', () => {
   test('builds once and watches nothing, as before', async () => {
-    const { plugin, serverless, buildDir, built, write } = offlineService()
+    const { plugin, serverless, serviceDir, functions, built, write } =
+      offlineService()
     const rebuilds = recordRebuilds(plugin)
     await plugin.hooks['before:offline:start']()
-    expect(serverless.config.servicePath).toBe(buildDir)
+    expect(serverless.config.servicePath).toBe(serviceDir)
+    expect(functions.hello.handler).toBe('.serverless/build/src/handler.hello')
     expect(plugin._offlineWatcher).toBeUndefined()
     write(source('v2'))
     await delay(1_500)
@@ -363,6 +449,6 @@ describe('the offline watcher', () => {
     emitter.emit('all', 'add', path.join(serviceDir, 'src', 'util.ts'))
     await delay(400)
     expect(rebuild).toHaveBeenCalledTimes(1)
-    expect(rebuild).toHaveBeenCalledWith(['hello'])
+    expect(rebuild).toHaveBeenCalledWith({ hello: 'src/handler.hello' })
   })
 })
