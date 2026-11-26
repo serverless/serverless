@@ -180,4 +180,64 @@ describe('describeConfiguredAwsEndpoints', () => {
       serviceVariables: [],
     })
   })
+
+  const servicesSectionConfig = (profileLines = []) =>
+    [
+      '[profile emu]',
+      'services = local',
+      ...profileLines,
+      '[services local]',
+      's3 =',
+      '  endpoint_url = http://s3.local:1',
+      'cloudwatch_logs =',
+      '  endpoint_url = http://logs.local:2',
+      '',
+    ].join('\n')
+
+  test("names the services the profile's services section sets an endpoint for", async () => {
+    useConfigFile(servicesSectionConfig())
+    process.env.AWS_PROFILE = 'emu'
+    await expect(describeConfiguredAwsEndpoints()).resolves.toEqual({
+      serviceVariables: [],
+      configServices: ['cloudwatch_logs', 's3'],
+    })
+  })
+
+  test('leaves out a services section entry an environment variable overrides', async () => {
+    useConfigFile(servicesSectionConfig())
+    process.env.AWS_PROFILE = 'emu'
+    process.env.AWS_ENDPOINT_URL_S3 = 'http://s3.env:3'
+    await expect(describeConfiguredAwsEndpoints()).resolves.toEqual({
+      serviceVariables: ['AWS_ENDPOINT_URL_S3'],
+      configServices: ['cloudwatch_logs'],
+    })
+    process.env.AWS_ENDPOINT_URL = 'https://127.0.0.1:9297'
+    await expect(describeConfiguredAwsEndpoints()).resolves.toEqual({
+      endpoint: 'https://127.0.0.1:9297',
+      serviceVariables: ['AWS_ENDPOINT_URL_S3'],
+    })
+  })
+
+  test('leaves out the services section when the settings are turned off', async () => {
+    useConfigFile(servicesSectionConfig())
+    process.env.AWS_PROFILE = 'emu'
+    process.env.AWS_IGNORE_CONFIGURED_ENDPOINT_URLS = 'true'
+    await expect(describeConfiguredAwsEndpoints()).resolves.toEqual({
+      serviceVariables: [],
+    })
+    delete process.env.AWS_IGNORE_CONFIGURED_ENDPOINT_URLS
+    useConfigFile(
+      servicesSectionConfig(['ignore_configured_endpoint_urls = true']),
+    )
+    await expect(describeConfiguredAwsEndpoints()).resolves.toEqual({
+      serviceVariables: [],
+    })
+  })
+
+  test('reads only the services section the selected profile names', async () => {
+    useConfigFile(servicesSectionConfig())
+    await expect(describeConfiguredAwsEndpoints()).resolves.toEqual({
+      serviceVariables: [],
+    })
+  })
 })

@@ -2,6 +2,21 @@ import { log } from '@serverless/util'
 import { describeConfiguredAwsEndpoints } from '@serverless/util/src/aws/endpoint.js'
 
 /**
+ * The endpoint URL as the notice prints it, with any user name and password replaced by `***`, so
+ * credentials in the URL stay out of the terminal and CI logs. The SDK keeps using the URL as set.
+ */
+const withoutUserInfo = (endpoint) => {
+  let url
+  try {
+    url = new URL(endpoint)
+  } catch {
+    return endpoint
+  }
+  if (!url.username && !url.password) return endpoint
+  return endpoint.replace(/^([a-z][a-z\d+.-]*:\/\/)[^/?#]*@/i, '$1***@')
+}
+
+/**
  * A one-line message naming the AWS endpoints the user configured with AWS_ENDPOINT_URL,
  * AWS_ENDPOINT_URL_<SERVICE> or endpoint_url in the shared config file, so a command that talks to
  * a local emulator (or to anything other than AWS) says so, and which calls use them, with the
@@ -20,15 +35,24 @@ export const configuredAwsEndpointNotice = async () => {
       .debug('Could not read the configured AWS endpoints', error)
     return undefined
   }
-  const { endpoint, serviceVariables } = configured
-  const variables = serviceVariables.join(', ')
+  const { serviceVariables, configServices = [] } = configured
+  const endpoint = configured.endpoint && withoutUserInfo(configured.endpoint)
+  const sources = []
+  if (serviceVariables.length > 0) {
+    sources.push(`endpoints set by ${serviceVariables.join(', ')}`)
+  }
+  if (configServices.length > 0) {
+    sources.push(
+      `endpoints set for ${configServices.join(', ')} in the shared config file`,
+    )
+  }
   let notice
-  if (endpoint && variables) {
-    notice = `Using the configured AWS endpoint ${endpoint} and the endpoints set by ${variables}`
+  if (endpoint && sources.length > 0) {
+    notice = `Using the configured AWS endpoint ${endpoint} and the ${sources.join(' and the ')}`
   } else if (endpoint) {
     notice = `Using the configured AWS endpoint ${endpoint}`
-  } else if (variables) {
-    notice = `Using the configured AWS endpoints set by ${variables}`
+  } else if (sources.length > 0) {
+    notice = `Using the configured AWS ${sources.join(' and the ')}`
   } else {
     return undefined
   }

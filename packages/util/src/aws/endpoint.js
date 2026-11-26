@@ -1,3 +1,8 @@
+import {
+  CONFIG_PREFIX_SEPARATOR,
+  getProfileName,
+  loadSharedConfigFiles,
+} from '@smithy/core/config'
 import { resolveEndpointConfig } from '@smithy/core/endpoints'
 
 /**
@@ -28,13 +33,35 @@ export const getConfiguredAwsEndpoint = async (serviceId) => {
 }
 
 /**
+ * The `endpoint_url` entries of the `services` section the selected profile names in the shared
+ * config file, read with the AWS SDK's own shared config loader, by the name the section gives the
+ * service (`s3`, `cloudwatch_logs`).
+ *
+ * @returns {Promise<Array<[string, string]>>}
+ */
+const configFileServiceEndpoints = async () => {
+  const { configFile } = await loadSharedConfigFiles()
+  const sectionName = configFile[getProfileName({})]?.services
+  if (!sectionName) return []
+  const section =
+    configFile[['services', sectionName].join(CONFIG_PREFIX_SEPARATOR)] ?? {}
+  const suffix = `${CONFIG_PREFIX_SEPARATOR}endpoint_url`
+  return Object.entries(section)
+    .filter(([key, value]) => key.endsWith(suffix) && value?.trim())
+    .map(([key, value]) => [key.slice(0, -suffix.length), value.trim()])
+    .sort(([a], [b]) => a.localeCompare(b))
+}
+
+/**
  * The AWS endpoint settings that apply to this process, for a notice that names them: the endpoint
  * the deployment's CloudFormation requests go to (`AWS_ENDPOINT_URL_CLOUDFORMATION`,
- * `AWS_ENDPOINT_URL` or `endpoint_url` in the shared config file) and the names of the set
- * `AWS_ENDPOINT_URL_<SERVICE_ID>` variables the SDK uses. Empty when none is set or
- * `AWS_IGNORE_CONFIGURED_ENDPOINT_URLS` turns them off.
+ * `AWS_ENDPOINT_URL` or `endpoint_url` in the shared config file), the names of the set
+ * `AWS_ENDPOINT_URL_<SERVICE_ID>` variables the SDK uses, and the services the profile's `services`
+ * section in the shared config file sets an endpoint for that the SDK uses. Empty when none is set
+ * or `AWS_IGNORE_CONFIGURED_ENDPOINT_URLS` (or the profile's `ignore_configured_endpoint_urls`)
+ * turns them off.
  *
- * @returns {Promise<{ endpoint?: string, serviceVariables: string[] }>}
+ * @returns {Promise<{ endpoint?: string, serviceVariables: string[], configServices?: string[] }>}
  */
 export const describeConfiguredAwsEndpoints = async () => {
   const env = process.env
@@ -50,5 +77,20 @@ export const describeConfiguredAwsEndpoints = async () => {
       serviceVariables.push(name)
     }
   }
-  return endpoint ? { endpoint, serviceVariables } : { serviceVariables }
+  // The SDK reads the `cloudwatch_logs` entry for the service id "CloudWatch Logs". An entry
+  // counts only when the SDK sends that service's requests to it: an environment variable wins
+  // over it, and the settings can be turned off.
+  const configServices = []
+  for (const [service, value] of await configFileServiceEndpoints()) {
+    if (
+      (await getConfiguredAwsEndpoint(service.replace(/_/g, ' '))) === value
+    ) {
+      configServices.push(service)
+    }
+  }
+  return {
+    ...(endpoint ? { endpoint } : {}),
+    serviceVariables,
+    ...(configServices.length > 0 ? { configServices } : {}),
+  }
 }

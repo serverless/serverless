@@ -84,6 +84,57 @@ describe('configuredAwsEndpointNotice', () => {
     })
   })
 
+  test("names the services the shared config file's services section sets", async () => {
+    const file = path.join(tmpDir, 'config')
+    fs.writeFileSync(
+      file,
+      [
+        '[profile emu]',
+        'services = local',
+        '[services local]',
+        's3 =',
+        '  endpoint_url = http://127.0.0.1:9000',
+        '',
+      ].join('\n'),
+    )
+    process.env.AWS_CONFIG_FILE = file
+    process.env.AWS_PROFILE = 'emu'
+    await expect(configuredAwsEndpointNotice()).resolves.toEqual({
+      level: 'notice',
+      message:
+        'Using the configured AWS endpoints set for s3 in the shared config file',
+    })
+    process.env.AWS_ENDPOINT_URL_LAMBDA = 'http://127.0.0.1:3002'
+    await expect(configuredAwsEndpointNotice()).resolves.toEqual({
+      level: 'notice',
+      message:
+        'Using the configured AWS endpoints set by AWS_ENDPOINT_URL_LAMBDA and the endpoints set for s3 in the shared config file',
+    })
+  })
+
+  test('leaves the user name and password of an endpoint URL out of the notice', async () => {
+    process.env.AWS_ENDPOINT_URL = 'https://user:secret@127.0.0.1:9297/path'
+    await expect(configuredAwsEndpointNotice()).resolves.toEqual({
+      level: 'notice',
+      message:
+        'Using the configured AWS endpoint https://***@127.0.0.1:9297/path',
+    })
+    process.env.AWS_ENDPOINT_URL = 'https://token@127.0.0.1:9297'
+    await expect(configuredAwsEndpointNotice()).resolves.toEqual({
+      level: 'notice',
+      message: 'Using the configured AWS endpoint https://***@127.0.0.1:9297',
+    })
+  })
+
+  test('prints only the names of the service variables, not their values', async () => {
+    process.env.AWS_ENDPOINT_URL_S3 = 'http://user:secret@127.0.0.1:9000'
+    const { message } = await configuredAwsEndpointNotice()
+    expect(message).toBe(
+      'Using the configured AWS endpoints set by AWS_ENDPOINT_URL_S3',
+    )
+    expect(message).not.toContain('secret')
+  })
+
   test('without SLS_AWS_SDK=3, warns that AWS SDK v2 calls go to AWS', async () => {
     delete process.env.SLS_AWS_SDK
     process.env.AWS_ENDPOINT_URL = 'https://127.0.0.1:9297'
