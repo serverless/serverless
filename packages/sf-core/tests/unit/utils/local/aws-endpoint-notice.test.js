@@ -10,6 +10,7 @@ import { configureLocalstackAWSEndpoint } from '../../../../src/utils/local/loca
 const VARIABLES = [
   'AWS_IGNORE_CONFIGURED_ENDPOINT_URLS',
   'AWS_CONFIG_FILE',
+  'AWS_SHARED_CREDENTIALS_FILE',
   'AWS_PROFILE',
   'SLS_AWS_SDK',
 ]
@@ -32,6 +33,11 @@ beforeEach(() => {
   for (const name of isolatedVariables()) delete process.env[name]
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sls-endpoint-notice-'))
   process.env.AWS_CONFIG_FILE = path.join(tmpDir, 'missing-config')
+  // The SDK merges the credentials file's profile into the config profile
+  process.env.AWS_SHARED_CREDENTIALS_FILE = path.join(
+    tmpDir,
+    'missing-credentials',
+  )
   // The AWS SDK v3 code path for every call; the v2 default has its own test
   process.env.SLS_AWS_SDK = '3'
 })
