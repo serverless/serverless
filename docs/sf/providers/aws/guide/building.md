@@ -377,7 +377,7 @@ A function's negations apply to build outputs as well as project files, so `'!**
 
 ## Run built functions with serverless-offline
 
-The community [serverless-offline](https://github.com/dherault/serverless-offline) plugin runs functions locally behind an emulated API Gateway. With the built-in build, `serverless offline` builds the functions described in [Which functions are built](#which-functions-are-built) into `.serverless/build` before its server starts, and serverless-offline runs them from there.
+The community [serverless-offline](https://github.com/dherault/serverless-offline) plugin runs functions locally behind an emulated API Gateway. With the built-in build, `serverless offline` builds the functions described in [Which functions are built](#which-functions-are-built) into `.serverless/build` before its server starts, and serverless-offline runs them from there. Functions the build doesn't include, such as the JavaScript handlers of a service that also has TypeScript handlers and no `build` setting, run from the service directory.
 
 To have a saved source change reach the next request, start serverless-offline with its `reloadHandler` option, as a flag or as `custom.serverless-offline.reloadHandler: true` in `serverless.yml`:
 
