@@ -92,7 +92,7 @@ Both paths read credentials through the standard AWS credential provider chain. 
 
 ### AWS endpoint settings
 
-The Framework's AWS SDK v3 clients send their requests to the endpoint the AWS SDKs' [service-specific endpoint settings](https://docs.aws.amazon.com/sdkref/latest/guide/feature-ss-endpoints.html) name, when you set one. Use them to deploy to a local emulator such as [AWS Emulator](./aws-emulator.md), together with `SLS_AWS_SDK=3`. The clients read, in this order:
+The Framework's AWS SDK v3 clients send their requests to the endpoint the AWS SDKs' [service-specific endpoint settings](https://docs.aws.amazon.com/sdkref/latest/guide/feature-ss-endpoints.html) name, when you set one. Use them to deploy to a local emulator such as [AWS Emulator](https://docs.aws.amazon.com/emulator/latest/userguide/what-is-service.html), together with `SLS_AWS_SDK=3`. For an emulator that serves HTTPS with its own certificate, also set `NODE_EXTRA_CA_CERTS` to that certificate's path before you run a command, so Node.js, and with it the Framework, trusts it. The clients read, in this order:
 
 1. `AWS_ENDPOINT_URL_<SERVICE>`, for one service, such as `AWS_ENDPOINT_URL_S3` or `AWS_ENDPOINT_URL_CLOUDFORMATION`.
 2. `AWS_ENDPOINT_URL`, for every service.
