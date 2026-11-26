@@ -12,23 +12,29 @@ import {
 } from '@serverless/util'
 
 const VARIABLES = [
-  'AWS_ENDPOINT_URL',
-  'AWS_ENDPOINT_URL_S3',
-  'AWS_ENDPOINT_URL_CLOUDFORMATION',
-  'AWS_ENDPOINT_URL_CLOUDWATCH_LOGS',
-  'AWS_ENDPOINT_URL_API_GATEWAY',
   'AWS_IGNORE_CONFIGURED_ENDPOINT_URLS',
   'AWS_CONFIG_FILE',
   'AWS_SHARED_CREDENTIALS_FILE',
   'AWS_PROFILE',
 ]
 
+// The variables above and every AWS_ENDPOINT_URL and AWS_ENDPOINT_URL_<SERVICE> set now, so no
+// endpoint the shell sets reaches a test
+const isolatedVariables = () => [
+  ...VARIABLES,
+  ...Object.keys(process.env).filter((name) =>
+    name.startsWith('AWS_ENDPOINT_URL'),
+  ),
+]
+
 let saved
 let tmpDir
 let configCount = 0
 beforeEach(() => {
-  saved = Object.fromEntries(VARIABLES.map((name) => [name, process.env[name]]))
-  for (const name of VARIABLES) delete process.env[name]
+  saved = Object.fromEntries(
+    isolatedVariables().map((name) => [name, process.env[name]]),
+  )
+  for (const name of isolatedVariables()) delete process.env[name]
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sls-endpoint-'))
   // No shared config file unless a test writes one: the SDK reads ~/.aws/config otherwise.
   process.env.AWS_CONFIG_FILE = path.join(tmpDir, 'missing-config')
@@ -38,6 +44,7 @@ beforeEach(() => {
   )
 })
 afterEach(() => {
+  for (const name of isolatedVariables()) delete process.env[name]
   for (const [name, value] of Object.entries(saved)) {
     if (value === undefined) delete process.env[name]
     else process.env[name] = value

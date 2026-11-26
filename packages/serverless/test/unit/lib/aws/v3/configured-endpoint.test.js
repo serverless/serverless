@@ -25,18 +25,23 @@ const VARIABLES = [
   'https_proxy',
   'NO_PROXY',
   'no_proxy',
-  'AWS_ENDPOINT_URL',
-  'AWS_ENDPOINT_URL_CLOUDWATCH_LOGS',
-  'AWS_ENDPOINT_URL_S3',
   'AWS_IGNORE_CONFIGURED_ENDPOINT_URLS',
   'AWS_CONFIG_FILE',
   'AWS_SHARED_CREDENTIALS_FILE',
   'AWS_PROFILE',
 ]
+// The variables above and every AWS_ENDPOINT_URL and AWS_ENDPOINT_URL_<SERVICE> set now, so no
+// endpoint the shell sets reaches a test
+const isolatedVariables = () => [
+  ...VARIABLES,
+  ...Object.keys(process.env).filter((name) =>
+    name.startsWith('AWS_ENDPOINT_URL'),
+  ),
+]
 const saved = Object.fromEntries(
-  VARIABLES.map((name) => [name, process.env[name]]),
+  isolatedVariables().map((name) => [name, process.env[name]]),
 )
-for (const name of VARIABLES) delete process.env[name]
+for (const name of isolatedVariables()) delete process.env[name]
 
 const { createV3ClientFactory } =
   await import('../../../../../lib/aws/v3/client-factory.js')
@@ -83,6 +88,7 @@ beforeAll(async () => {
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
 })
 afterAll(async () => {
+  for (const name of isolatedVariables()) delete process.env[name]
   for (const [name, value] of Object.entries(saved)) {
     if (value === undefined) delete process.env[name]
     else process.env[name] = value
@@ -97,7 +103,7 @@ beforeEach(() => {
   process.env.AWS_SHARED_CREDENTIALS_FILE = path.join(tmpDir, 'missing-creds')
 })
 afterEach(() => {
-  for (const name of VARIABLES) delete process.env[name]
+  for (const name of isolatedVariables()) delete process.env[name]
   fs.rmSync(tmpDir, { recursive: true, force: true })
 })
 

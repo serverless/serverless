@@ -8,26 +8,35 @@ import { configuredAwsEndpointNotice } from '../../../../src/utils/local/aws-end
 import { configureLocalstackAWSEndpoint } from '../../../../src/utils/local/localstack.js'
 
 const VARIABLES = [
-  'AWS_ENDPOINT_URL',
-  'AWS_ENDPOINT_URL_S3',
-  'AWS_ENDPOINT_URL_LAMBDA',
   'AWS_IGNORE_CONFIGURED_ENDPOINT_URLS',
   'AWS_CONFIG_FILE',
   'AWS_PROFILE',
   'SLS_AWS_SDK',
 ]
 
+// The variables above and every AWS_ENDPOINT_URL and AWS_ENDPOINT_URL_<SERVICE> set now, so no
+// endpoint the shell sets reaches a test
+const isolatedVariables = () => [
+  ...VARIABLES,
+  ...Object.keys(process.env).filter((name) =>
+    name.startsWith('AWS_ENDPOINT_URL'),
+  ),
+]
+
 let saved
 let tmpDir
 beforeEach(() => {
-  saved = Object.fromEntries(VARIABLES.map((name) => [name, process.env[name]]))
-  for (const name of VARIABLES) delete process.env[name]
+  saved = Object.fromEntries(
+    isolatedVariables().map((name) => [name, process.env[name]]),
+  )
+  for (const name of isolatedVariables()) delete process.env[name]
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sls-endpoint-notice-'))
   process.env.AWS_CONFIG_FILE = path.join(tmpDir, 'missing-config')
   // The AWS SDK v3 code path for every call; the v2 default has its own test
   process.env.SLS_AWS_SDK = '3'
 })
 afterEach(() => {
+  for (const name of isolatedVariables()) delete process.env[name]
   for (const [name, value] of Object.entries(saved)) {
     if (value === undefined) delete process.env[name]
     else process.env[name] = value
