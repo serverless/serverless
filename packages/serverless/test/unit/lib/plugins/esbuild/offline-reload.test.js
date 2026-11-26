@@ -324,6 +324,11 @@ describe('serverless offline with reloadHandler', () => {
     )
     const rebuilds = recordRebuilds(plugin)
     await plugin.hooks['before:offline:start']()
+    // Not recorded as build output.
+    expect([...plugin.devOutputs]).toContain(path.join('src', 'handler.js'))
+    expect(
+      [...plugin.devOutputs].filter((file) => file.startsWith('node_modules')),
+    ).toEqual([])
     const next = rebuilds.next()
     write(source('v2'))
     expect(await next).toMatchObject({ ok: true })

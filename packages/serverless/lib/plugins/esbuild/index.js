@@ -233,16 +233,26 @@ export const promoteDevOutput = async (
   }
 }
 
-/** Every file under `dir`, as paths relative to it. */
-const filesUnder = async (dir, prefix = '') => {
+/**
+ * Every file under `dir`, as paths relative to it.
+ * @param {string} dir
+ * @param {object} [options]
+ * @param {readonly string[]} [options.skip] - entries of `dir` itself to leave out, without reading
+ *   them (a directory's files included)
+ */
+const filesUnder = async (dir, { skip = [] } = {}) => {
   const files = []
-  for (const entry of await readdir(path.join(dir, prefix), {
-    withFileTypes: true,
-  })) {
-    const relative = path.join(prefix, entry.name)
-    if (entry.isDirectory()) files.push(...(await filesUnder(dir, relative)))
-    else files.push(relative)
+  const walk = async (prefix) => {
+    for (const entry of await readdir(path.join(dir, prefix), {
+      withFileTypes: true,
+    })) {
+      if (!prefix && skip.includes(entry.name)) continue
+      const relative = path.join(prefix, entry.name)
+      if (entry.isDirectory()) await walk(relative)
+      else files.push(relative)
+    }
   }
+  await walk('')
   return files
 }
 
@@ -1592,15 +1602,16 @@ class Esbuild {
     const serviceDir = this.serverless.config.serviceDir
     // The output of the build that just ran, as a dev build records the files it moves in: the
     // first rebuild then removes only what it no longer has. Left out: the dependencies an earlier
-    // deploy build left in the build directory (`_resetBuildDir` keeps them too), and the files a
-    // dev build writes straight into the build directory rather than moving them in from staging
-    // (the bundling path's `meta.json`), which it would otherwise remove right after writing them.
+    // deploy build left in the build directory, not even read (`_resetBuildDir` keeps them too);
+    // and the files a dev build writes straight into the build directory rather than moving them in
+    // from staging (the bundling path's `meta.json`), which it would otherwise remove right after
+    // writing them.
     this.devOutputs = new Set(
-      (await filesUnder(this.buildDirPath).catch(() => [])).filter(
-        (file) =>
-          !BUILD_DIR_DEPENDENCY_ENTRIES.includes(file.split(path.sep)[0]) &&
-          !BUILD_DIR_UNSTAGED_OUTPUTS.includes(file),
-      ),
+      (
+        await filesUnder(this.buildDirPath, {
+          skip: BUILD_DIR_DEPENDENCY_ENTRIES,
+        }).catch(() => [])
+      ).filter((file) => !BUILD_DIR_UNSTAGED_OUTPUTS.includes(file)),
     )
     const configFiles = offlineConfigFiles(
       serviceDir,
