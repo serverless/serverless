@@ -964,6 +964,78 @@ describe('#compileCors()', () => {
     expect(resources.ApiGatewayGatewayResponseDefault4XX).toBeUndefined()
   })
 
+  it('should suppress generation when an Fn::Sub variable map holds the literal API ID', () => {
+    // `Fn::Sub: ['${ApiId}', { ApiId: 'abcd1234xy' }]` resolves to the same
+    // API as the literal `provider.apiGateway.restApiId`, so the user
+    // resource already covers DEFAULT_4XX and no generated one may be
+    // emitted for it.
+    serverless.service.provider.apiGateway = { restApiId: 'abcd1234xy' }
+    serverless.service.resources = {
+      Resources: {
+        GatewayResponseDefault4XX: {
+          Type: 'AWS::ApiGateway::GatewayResponse',
+          Properties: {
+            ResponseParameters: {
+              'gatewayresponse.header.Access-Control-Allow-Origin': "'*'",
+            },
+            ResponseType: 'DEFAULT_4XX',
+            RestApiId: {
+              'Fn::Sub': ['${ApiId}', { ApiId: 'abcd1234xy' }],
+            },
+          },
+        },
+      },
+    }
+    awsCompileApigEvents.validated.corsPreflight = {
+      'users/create': {
+        origin: 'http://example.com',
+        origins: [],
+        headers: ['*'],
+        methods: ['OPTIONS', 'POST'],
+        allowCredentials: false,
+      },
+    }
+    awsCompileApigEvents.compileCors()
+    const resources =
+      serverless.service.provider.compiledCloudFormationTemplate.Resources
+
+    const generatedDefault4XX = Object.values(resources).filter(
+      (resource) =>
+        resource.Type === 'AWS::ApiGateway::GatewayResponse' &&
+        resource.Properties.ResponseType === 'DEFAULT_4XX',
+    )
+    expect(generatedDefault4XX).toEqual([])
+  })
+
+  it('should nest generated Fn::And conditions within the ten-operand limit', () => {
+    // Eleven covering conditions (six on DEFAULT_4XX, five on THROTTLED)
+    // would otherwise land in a single eleven-operand Fn::And, which
+    // CloudFormation rejects.
+    const template = { Resources: {}, Conditions: {} }
+    const names = Array.from({ length: 11 }, (_, index) => `Cond${index}`)
+    const conditionName = awsCompileApigEvents.getExclusionConditionName(
+      names,
+      template,
+    )
+    const definition = template.Conditions[conditionName]
+    const checkOperands = (node) => {
+      if (node['Fn::And']) {
+        expect(node['Fn::And'].length).toBeGreaterThanOrEqual(2)
+        expect(node['Fn::And'].length).toBeLessThanOrEqual(10)
+        node['Fn::And'].forEach(checkOperands)
+      }
+    }
+    checkOperands(definition)
+    // Every covered condition is still negated exactly once.
+    expect(JSON.stringify(definition).match(/"Fn::Not"/g)).toHaveLength(11)
+    // The single-condition case stays a plain Fn::Not.
+    const singleTemplate = { Resources: {}, Conditions: {} }
+    awsCompileApigEvents.getExclusionConditionName(['OnlyOne'], singleTemplate)
+    expect(singleTemplate.Conditions.NotOnlyOne).toEqual({
+      'Fn::Not': [{ Condition: 'OnlyOne' }],
+    })
+  })
+
   it('should keep every condition when one type is covered by two user resources', () => {
     // Two user-defined DEFAULT_4XX resources with complementary conditions
     // cover every environment between them. Keeping only the last one

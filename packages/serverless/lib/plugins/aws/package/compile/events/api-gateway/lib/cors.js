@@ -71,6 +71,12 @@ function normalizeRestApiId(restApiId) {
             ) {
               return `Ref:${mapped.Ref}`
             }
+            // A literal string in the map is the API ID itself: CloudFormation
+            // substitutes it verbatim, so it must compare equal to the same
+            // literal configured as `provider.apiGateway.restApiId`.
+            if (typeof mapped === 'string') {
+              return JSON.stringify(mapped)
+            }
             return JSON.stringify(restApiId)
           }
         }
@@ -496,14 +502,23 @@ export default {
     // conditions.
     const sortedNames = [...new Set(conditionNames)].sort()
     const baseName = `Not${sortedNames.join('AndNot')}`
+    // CloudFormation allows at most ten operands in one `Fn::And`
+    // (and at least two), so a long exclusion list is nested: each level
+    // holds up to nine negations plus the nested remainder.
+    const nestAnd = (operands) => {
+      if (operands.length <= 10) return { 'Fn::And': operands }
+      return {
+        'Fn::And': [...operands.slice(0, 9), nestAnd(operands.slice(9))],
+      }
+    }
     const definition =
       sortedNames.length === 1
         ? { 'Fn::Not': [{ Condition: sortedNames[0] }] }
-        : {
-            'Fn::And': sortedNames.map((name) => ({
+        : nestAnd(
+            sortedNames.map((name) => ({
               'Fn::Not': [{ Condition: name }],
             })),
-          }
+          )
 
     template.Conditions = template.Conditions || {}
     // User conditions from `service.resources.Conditions` are merged into
