@@ -56,7 +56,26 @@ function normalizeRestApiId(restApiId) {
     const subTemplate = Array.isArray(sub) ? sub[0] : sub
     if (typeof subTemplate === 'string') {
       const match = subTemplate.match(/^\$\{([A-Za-z0-9]+)\}$/)
-      if (match) return `Ref:${match[1]}`
+      if (match) {
+        // `Fn::Sub` with a variable map substitutes the mapped value, so a
+        // mapping to another API must not compare equal to the unmapped
+        // reference. A variable absent from the map still resolves to the
+        // named resource or parameter, so the unmapped equivalence holds.
+        if (Array.isArray(sub) && sub[1] && typeof sub[1] === 'object') {
+          const mapped = sub[1][match[1]]
+          if (mapped !== undefined) {
+            if (
+              mapped &&
+              typeof mapped === 'object' &&
+              typeof mapped.Ref === 'string'
+            ) {
+              return `Ref:${mapped.Ref}`
+            }
+            return JSON.stringify(restApiId)
+          }
+        }
+        return `Ref:${match[1]}`
+      }
     }
   }
   return JSON.stringify(restApiId)
@@ -328,15 +347,16 @@ export default {
       // bypassed by a synthesized specific type.
       const excludedByConditions = []
       if (userDefinedResponseTypes.has(responseType)) {
-        const condition = userDefinedResponseTypes.get(responseType)
-        if (!condition) continue
-        excludedByConditions.push(condition)
+        const conditions = userDefinedResponseTypes.get(responseType)
+        // An unconditional user-defined resource covers every environment
+        if (conditions.includes(undefined)) continue
+        excludedByConditions.push(...conditions)
       }
       const fallbackType = corsGatewayResponseParent[responseType]
       if (fallbackType && userDefinedResponseTypes.has(fallbackType)) {
-        const condition = userDefinedResponseTypes.get(fallbackType)
-        if (!condition) continue
-        excludedByConditions.push(condition)
+        const conditions = userDefinedResponseTypes.get(fallbackType)
+        if (conditions.includes(undefined)) continue
+        excludedByConditions.push(...conditions)
       }
 
       const logicalId = this.getGatewayResponseLogicalId(
@@ -377,11 +397,13 @@ export default {
   },
 
   getUserDefinedGatewayResponseTypes(restApiId) {
-    // Map of response type -> name of the CloudFormation Condition on the
-    // user-defined resource, if any. A resource without a Condition applies
-    // in every environment; a conditional one only applies where its
-    // condition holds, so the generated fallback must still cover the
-    // environments where it does not.
+    // Map of response type -> conditions on the user-defined resources for
+    // that type. An entry of `undefined` means a resource without a
+    // Condition, which applies in every environment. A conditional resource
+    // only applies where its condition holds, so the generated fallback
+    // must still cover the environments where it does not. Every condition
+    // is kept: two resources for one type with complementary conditions
+    // cover every environment between them.
     const definedTypes = new Map()
     const userResources =
       this.serverless.service.resources &&
@@ -397,12 +419,14 @@ export default {
         resource.Properties.RestApiId &&
         restApiIdsMatch(resource.Properties.RestApiId, restApiId)
       ) {
-        definedTypes.set(
-          resource.Properties.ResponseType,
+        const conditions =
+          definedTypes.get(resource.Properties.ResponseType) || []
+        conditions.push(
           typeof resource.Condition === 'string'
             ? resource.Condition
             : undefined,
         )
+        definedTypes.set(resource.Properties.ResponseType, conditions)
       }
     }
     return definedTypes
@@ -473,11 +497,24 @@ export default {
           }
 
     template.Conditions = template.Conditions || {}
+    // User conditions from `service.resources.Conditions` are merged into
+    // the template later, so a generated name must not collide with one of
+    // them either: merging two different definitions under one name leaves
+    // a condition with two function keys, which CloudFormation rejects.
+    // A name is reused only when the existing definition matches exactly.
+    const userConditions =
+      (this.serverless.service.resources &&
+        this.serverless.service.resources.Conditions) ||
+      {}
+    const existingDefinition = (name) =>
+      template.Conditions[name] !== undefined
+        ? template.Conditions[name]
+        : userConditions[name]
     let conditionName = baseName
     let attempt = 0
     while (
-      template.Conditions[conditionName] !== undefined &&
-      JSON.stringify(template.Conditions[conditionName]) !==
+      existingDefinition(conditionName) !== undefined &&
+      JSON.stringify(existingDefinition(conditionName)) !==
         JSON.stringify(definition)
     ) {
       attempt += 1

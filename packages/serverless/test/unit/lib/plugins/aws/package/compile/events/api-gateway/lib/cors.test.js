@@ -860,4 +860,260 @@ describe('#compileCors()', () => {
     })
     expect(generated.Properties.ResponseType).toBe('DEFAULT_4XX')
   })
+
+  it('should not suppress generation when an Fn::Sub variable map points at another API', () => {
+    // `Fn::Sub` with a variable map substitutes the mapped value, so this
+    // user-defined response targets `OtherApi`, not this one.
+    serverless.service.resources = {
+      Resources: {
+        GatewayResponseDefault4XX: {
+          Type: 'AWS::ApiGateway::GatewayResponse',
+          Properties: {
+            ResponseParameters: {
+              'gatewayresponse.header.Access-Control-Allow-Origin': "'*'",
+            },
+            ResponseType: 'DEFAULT_4XX',
+            RestApiId: {
+              'Fn::Sub': [
+                '${ApiGatewayRestApi}',
+                { ApiGatewayRestApi: { Ref: 'OtherApi' } },
+              ],
+            },
+          },
+        },
+      },
+    }
+    awsCompileApigEvents.validated.corsPreflight = {
+      'users/create': {
+        origin: 'http://example.com',
+        origins: [],
+        headers: ['*'],
+        methods: ['OPTIONS', 'POST'],
+        allowCredentials: false,
+      },
+    }
+    awsCompileApigEvents.compileCors()
+    const resources =
+      serverless.service.provider.compiledCloudFormationTemplate.Resources
+
+    expect(resources.ApiGatewayGatewayResponseDefault4XX).toBeDefined()
+    expect(
+      resources.ApiGatewayGatewayResponseDefault4XX.Properties.RestApiId,
+    ).toEqual({ Ref: 'ApiGatewayRestApi' })
+  })
+
+  it('should suppress generation when an Fn::Sub variable map points at this API', () => {
+    serverless.service.resources = {
+      Resources: {
+        GatewayResponseDefault4XX: {
+          Type: 'AWS::ApiGateway::GatewayResponse',
+          Properties: {
+            ResponseParameters: {
+              'gatewayresponse.header.Access-Control-Allow-Origin': "'*'",
+            },
+            ResponseType: 'DEFAULT_4XX',
+            RestApiId: {
+              'Fn::Sub': [
+                '${ApiGatewayRestApi}',
+                { ApiGatewayRestApi: { Ref: 'ApiGatewayRestApi' } },
+              ],
+            },
+          },
+        },
+      },
+    }
+    awsCompileApigEvents.validated.corsPreflight = {
+      'users/create': {
+        origin: 'http://example.com',
+        origins: [],
+        headers: ['*'],
+        methods: ['OPTIONS', 'POST'],
+        allowCredentials: false,
+      },
+    }
+    awsCompileApigEvents.compileCors()
+    const resources =
+      serverless.service.provider.compiledCloudFormationTemplate.Resources
+
+    expect(resources.ApiGatewayGatewayResponseDefault4XX).toBeUndefined()
+  })
+
+  it('should keep every condition when one type is covered by two user resources', () => {
+    // Two user-defined DEFAULT_4XX resources with complementary conditions
+    // cover every environment between them. Keeping only the last one
+    // would emit a generated response under `NotIsDev` that is active in
+    // production alongside the user's own response; the generated
+    // fallback must exist only where neither user resource applies.
+    serverless.service.resources = {
+      Resources: {
+        GatewayResponseDefault4XXProd: {
+          Type: 'AWS::ApiGateway::GatewayResponse',
+          Condition: 'IsProd',
+          Properties: {
+            ResponseType: 'DEFAULT_4XX',
+            RestApiId: { Ref: 'ApiGatewayRestApi' },
+          },
+        },
+        GatewayResponseDefault4XXDev: {
+          Type: 'AWS::ApiGateway::GatewayResponse',
+          Condition: 'IsDev',
+          Properties: {
+            ResponseType: 'DEFAULT_4XX',
+            RestApiId: { Ref: 'ApiGatewayRestApi' },
+          },
+        },
+      },
+    }
+    awsCompileApigEvents.validated.corsPreflight = {
+      'users/create': {
+        origin: 'http://example.com',
+        origins: [],
+        headers: ['*'],
+        methods: ['OPTIONS', 'POST'],
+        allowCredentials: false,
+      },
+    }
+    awsCompileApigEvents.compileCors()
+    const template = serverless.service.provider.compiledCloudFormationTemplate
+
+    expect(
+      template.Resources.ApiGatewayGatewayResponseDefault4XX,
+    ).toBeUndefined()
+    const generated =
+      template.Resources.ApiGatewayGatewayResponseDefault4XXCors1
+    expect(generated).toBeDefined()
+    expect(generated.Condition).toBe('NotIsDevAndNotIsProd')
+    expect(template.Conditions.NotIsDevAndNotIsProd).toEqual({
+      'Fn::And': [
+        { 'Fn::Not': [{ Condition: 'IsDev' }] },
+        { 'Fn::Not': [{ Condition: 'IsProd' }] },
+      ],
+    })
+    // The specific 4xx types are covered by the same fallback, so a
+    // generated specific type may only exist where neither user resource
+    // applies either
+    const throttled = template.Resources.ApiGatewayGatewayResponseThrottled
+    expect(throttled).toBeDefined()
+    expect(throttled.Condition).toBe('NotIsDevAndNotIsProd')
+  })
+
+  it('should suppress generation when an unconditional user resource comes first', () => {
+    // An unconditional resource covers every environment no matter where
+    // it appears among the resources for its type.
+    serverless.service.resources = {
+      Resources: {
+        GatewayResponseDefault4XX: {
+          Type: 'AWS::ApiGateway::GatewayResponse',
+          Properties: {
+            ResponseType: 'DEFAULT_4XX',
+            RestApiId: { Ref: 'ApiGatewayRestApi' },
+          },
+        },
+        GatewayResponseDefault4XXProd: {
+          Type: 'AWS::ApiGateway::GatewayResponse',
+          Condition: 'IsProd',
+          Properties: {
+            ResponseType: 'DEFAULT_4XX',
+            RestApiId: { Ref: 'ApiGatewayRestApi' },
+          },
+        },
+      },
+    }
+    awsCompileApigEvents.validated.corsPreflight = {
+      'users/create': {
+        origin: 'http://example.com',
+        origins: [],
+        headers: ['*'],
+        methods: ['OPTIONS', 'POST'],
+        allowCredentials: false,
+      },
+    }
+    awsCompileApigEvents.compileCors()
+    const resources =
+      serverless.service.provider.compiledCloudFormationTemplate.Resources
+
+    expect(resources.ApiGatewayGatewayResponseDefault4XX).toBeUndefined()
+    expect(resources.ApiGatewayGatewayResponseDefault4XXCors1).toBeUndefined()
+  })
+
+  it('should pick a fresh condition name when the user already defines one', () => {
+    // A user condition named `NotIsProd` with a different definition is
+    // merged into the template later; reusing the name would leave a
+    // condition with two function keys, which CloudFormation rejects.
+    serverless.service.resources = {
+      Conditions: {
+        NotIsProd: {
+          'Fn::Equals': ['prod', { Ref: 'AWS::StackName' }],
+        },
+      },
+      Resources: {
+        GatewayResponseDefault4XX: {
+          Type: 'AWS::ApiGateway::GatewayResponse',
+          Condition: 'IsProd',
+          Properties: {
+            ResponseType: 'DEFAULT_4XX',
+            RestApiId: { Ref: 'ApiGatewayRestApi' },
+          },
+        },
+      },
+    }
+    awsCompileApigEvents.validated.corsPreflight = {
+      'users/create': {
+        origin: 'http://example.com',
+        origins: [],
+        headers: ['*'],
+        methods: ['OPTIONS', 'POST'],
+        allowCredentials: false,
+      },
+    }
+    awsCompileApigEvents.compileCors()
+    const template = serverless.service.provider.compiledCloudFormationTemplate
+
+    const generated =
+      template.Resources.ApiGatewayGatewayResponseDefault4XXCors1
+    expect(generated).toBeDefined()
+    expect(generated.Condition).toBe('NotIsProd1')
+    expect(template.Conditions.NotIsProd1).toEqual({
+      'Fn::Not': [{ Condition: 'IsProd' }],
+    })
+    // The user's own condition is left alone
+    expect(template.Conditions.NotIsProd).toBeUndefined()
+  })
+
+  it('should reuse a user-defined condition name when the definition matches', () => {
+    serverless.service.resources = {
+      Conditions: {
+        NotIsProd: { 'Fn::Not': [{ Condition: 'IsProd' }] },
+      },
+      Resources: {
+        GatewayResponseDefault4XX: {
+          Type: 'AWS::ApiGateway::GatewayResponse',
+          Condition: 'IsProd',
+          Properties: {
+            ResponseType: 'DEFAULT_4XX',
+            RestApiId: { Ref: 'ApiGatewayRestApi' },
+          },
+        },
+      },
+    }
+    awsCompileApigEvents.validated.corsPreflight = {
+      'users/create': {
+        origin: 'http://example.com',
+        origins: [],
+        headers: ['*'],
+        methods: ['OPTIONS', 'POST'],
+        allowCredentials: false,
+      },
+    }
+    awsCompileApigEvents.compileCors()
+    const template = serverless.service.provider.compiledCloudFormationTemplate
+
+    const generated =
+      template.Resources.ApiGatewayGatewayResponseDefault4XXCors1
+    expect(generated).toBeDefined()
+    expect(generated.Condition).toBe('NotIsProd')
+    expect(template.Conditions.NotIsProd).toEqual({
+      'Fn::Not': [{ Condition: 'IsProd' }],
+    })
+  })
 })
