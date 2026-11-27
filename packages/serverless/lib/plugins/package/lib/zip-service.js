@@ -351,9 +351,20 @@ async function excludeNodeDevDependencies(serviceDir) {
           )
 
           if (dependencies.length) {
+            // `npm ls` reports real paths, which differ from `serviceDir`
+            // when it goes through a symlink (e.g. AWS CodeBuild sources)
+            const servicePathPrefixes = _.uniq([
+              path.join(serviceDir, path.sep),
+              path.join(await fsp.realpath(serviceDir), path.sep),
+            ])
             return pMap(
               dependencies,
-              (item) => item.replace(path.join(serviceDir, path.sep), ''),
+              (item) => {
+                const prefix = servicePathPrefixes.find((p) =>
+                  item.startsWith(p),
+                )
+                return prefix ? item.slice(prefix.length) : item
+              },
               { concurrency: os.cpus().length },
             )
               .then((processedDependencies) => {
