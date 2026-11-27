@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Stop at the first failed step. The archive is uploaded before the files that
+# point launchers at it, so a failure part-way never lists a release that is not
+# on the host; and every step can run again, so a failed run can be repeated.
+set -euo pipefail
+
 version=$(cat ./package.json | jq -r .version)
 is_canary=${IS_CANARY:-false}
 s3_bucket="install.serverless.com"
@@ -27,12 +32,10 @@ bash ../sf-core/scripts/pack-framework-dist.sh
 # TypeScript loader, bundled skill or config-validator runtime file)
 # would ship a CLI that fails only in the release, and no PR CI runs this
 # workflow. PR CI runs the same checks on its own build of the package.
-# `|| exit 1` because this script does not `set -e` — without it a failed check
-# would be printed and then the broken tarball uploaded anyway.
 verify_dir=$(mktemp -d)
 trap 'rm -rf "${verify_dir}"' EXIT
-tar -xzf ./serverlessinc-framework-alpha-${version}.tgz -C "${verify_dir}" || exit 1
-bash ../sf-core/scripts/verify-release-package.sh "${verify_dir}/package" || exit 1
+tar -xzf ./serverlessinc-framework-alpha-${version}.tgz -C "${verify_dir}"
+bash ../sf-core/scripts/verify-release-package.sh "${verify_dir}/package"
 
 if [ "$is_canary" = true ]; then
     aws s3 cp ./serverlessinc-framework-alpha-${version}.tgz s3://${s3_bucket}/archives/canary-${version}.tgz
@@ -47,6 +50,9 @@ aws s3 cp ./releases.json s3://${s3_bucket}/releases.json
 if [ "$is_canary" = false ]; then
     npm run -w=@serverlessinc/release-scripts publish:release ${version}
     npm run -w=@serverlessinc/release-scripts publish:release-metadata ${version}
-    git tag sf-core-installer@${version}
-    git push --tags
+    tag="sf-core-installer@${version}"
+    if ! git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
+        git tag "${tag}"
+    fi
+    git push origin "${tag}"
 fi
