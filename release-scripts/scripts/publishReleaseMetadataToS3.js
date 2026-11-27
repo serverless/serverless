@@ -23,6 +23,12 @@ console.log(versionsData)
 
 const newSupportedVersion = process.argv[2]
 
+// A repeated release run must not list the version twice
+if (versionsData.supportedVersions.includes(newSupportedVersion)) {
+  console.log('Version already listed in S3, nothing to change')
+  process.exit(0)
+}
+
 versionsData.supportedVersions.push(newSupportedVersion)
 
 await s3Client.send(

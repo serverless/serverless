@@ -39,18 +39,22 @@ if (metadata === null) {
 }
 
 const version = process.argv[2]
-await releaseCollection.insertOne({
-  version,
-  installable: true,
-  releaseDate: new Date().toISOString(),
-  s3Key: `serverless-v${version}.tgz`,
-  s3Bucket: `install.serverless.com`,
-  downloadUrl: `https://install.serverless.com/archives/serverless-${version}.tgz`,
-})
+// A repeated release run must not record the release twice
+const existing = await releaseCollection.findOne({ version })
+if (existing === null) {
+  await releaseCollection.insertOne({
+    version,
+    installable: true,
+    releaseDate: new Date().toISOString(),
+    s3Key: `serverless-v${version}.tgz`,
+    s3Bucket: `install.serverless.com`,
+    downloadUrl: `https://install.serverless.com/archives/serverless-${version}.tgz`,
+  })
+}
 
 await releaseMetadataCollection.updateOne(
   { _id: metadata._id },
-  { $push: { supportedVersions: process.argv[2] } },
+  { $addToSet: { supportedVersions: version } },
 )
 
 await mongo.close()
