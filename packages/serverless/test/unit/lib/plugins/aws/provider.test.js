@@ -279,8 +279,74 @@ describe('AwsProvider', () => {
   describe('#getServerlessDeploymentBucketName()', () => {
     it('should return custom bucket if defined', async () => {
       awsProvider.serverless.service.provider.deploymentBucket = 'custom-bucket'
+      awsProvider.naming = {
+        getStackName: () => 'stack-name',
+        getDeploymentBucketLogicalId: () => 'ServerlessDeploymentBucket',
+      }
+      mockAwsRequest.mockRejectedValue(
+        new Error('Stack with id stack-name does not exist'),
+      )
+      jest.spyOn(awsProvider, 'getCredentials').mockResolvedValue({})
       const bucket = await awsProvider.getServerlessDeploymentBucketName()
       expect(bucket).toBe('custom-bucket')
+      expect(awsProvider.deploymentBucketInStack).toBeNull()
+    })
+
+    // Regression for #13501: when `deploymentBucket` names the bucket the
+    // stack already owns (e.g. it was auto-generated and is now referenced
+    // explicitly), the resource must be reported as in-stack — otherwise
+    // generate-core-template drops it and CloudFormation deletes the bucket.
+    it('marks the bucket as in-stack when the custom bucket is the stack-owned one', async () => {
+      awsProvider.serverless.service.provider.deploymentBucket = 'custom-bucket'
+      awsProvider.naming = {
+        getStackName: () => 'stack-name',
+        getDeploymentBucketLogicalId: () => 'ServerlessDeploymentBucket',
+      }
+      mockAwsRequest.mockResolvedValue({
+        StackResourceDetail: { PhysicalResourceId: 'custom-bucket' },
+      })
+      jest.spyOn(awsProvider, 'getCredentials').mockResolvedValue({})
+      const bucket = await awsProvider.getServerlessDeploymentBucketName()
+      expect(bucket).toBe('custom-bucket')
+      expect(awsProvider.deploymentBucketInStack).toBe('custom-bucket')
+    })
+
+    // The in-stack lookup requires cloudformation:DescribeStackResource even
+    // with a configured bucket; a denied lookup must fail rather than guess —
+    // treating a stack-owned bucket as external would break `remove`.
+    it('propagates a denied stack-bucket lookup for a configured bucket', async () => {
+      awsProvider.serverless.service.provider.deploymentBucket = 'custom-bucket'
+      awsProvider.naming = {
+        getStackName: () => 'stack-name',
+        getDeploymentBucketLogicalId: () => 'ServerlessDeploymentBucket',
+      }
+      mockAwsRequest.mockRejectedValue(
+        new Error(
+          'User is not authorized to perform: cloudformation:DescribeStackResource',
+        ),
+      )
+      jest.spyOn(awsProvider, 'getCredentials').mockResolvedValue({})
+      await expect(
+        awsProvider.getServerlessDeploymentBucketName(),
+      ).rejects.toThrow('not authorized')
+      expect(awsProvider.deploymentBucketInStack).toBeNull()
+    })
+
+    // A different stack-owned bucket means the service migrated to a custom
+    // bucket: the old in-stack resource must still be dropped.
+    it('does not mark the bucket as in-stack when the custom bucket differs', async () => {
+      awsProvider.serverless.service.provider.deploymentBucket = 'custom-bucket'
+      awsProvider.naming = {
+        getStackName: () => 'stack-name',
+        getDeploymentBucketLogicalId: () => 'ServerlessDeploymentBucket',
+      }
+      mockAwsRequest.mockResolvedValue({
+        StackResourceDetail: { PhysicalResourceId: 'stack-owned-bucket' },
+      })
+      jest.spyOn(awsProvider, 'getCredentials').mockResolvedValue({})
+      const bucket = await awsProvider.getServerlessDeploymentBucketName()
+      expect(bucket).toBe('custom-bucket')
+      expect(awsProvider.deploymentBucketInStack).toBeNull()
     })
 
     it('should query CloudFormation if no custom bucket', async () => {

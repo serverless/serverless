@@ -212,6 +212,34 @@ describe('zipService', () => {
       expect(isExcluded(updated.exclude, 'prod-pkg')).toBe(false)
     })
 
+    // Regression for #13447: `npm ls --parseable` resolves its working
+    // directory to a real path, so when the service directory is reached
+    // through a symlink (e.g. AWS CodeBuild checkouts) the dependency paths
+    // come back under the real path. The prefix strip must normalize
+    // `serviceDir` the same way or every path is kept as a `../` escape and
+    // dev dependencies are packaged.
+    it('excludes dev-only dependencies when the service dir is a symlink', async () => {
+      if (os.platform() === 'win32') {
+        // Symlink creation requires privileges on Windows.
+        return
+      }
+      scaffoldProject()
+      const linkPath = path.join(
+        path.dirname(serviceDir),
+        `sls-link-${Date.now()}`,
+      )
+      fs.symlinkSync(serviceDir, linkPath)
+      packagePlugin.serverless.serviceDir = linkPath
+      try {
+        const updated = await packagePlugin.excludeDevDependencies(params)
+        expect(isExcluded(updated.exclude, 'dev-pkg')).toBe(true)
+        expect(isExcluded(updated.exclude, 'prod-pkg')).toBe(false)
+      } finally {
+        packagePlugin.serverless.serviceDir = serviceDir
+        fs.rmSync(linkPath, { force: true })
+      }
+    })
+
     it('still excludes dev-only dependencies when npm ls exits non-zero', async () => {
       // `npm ls` exits 1 on a missing declared dependency but still prints a
       // partial tree; that partial output must not be lost.

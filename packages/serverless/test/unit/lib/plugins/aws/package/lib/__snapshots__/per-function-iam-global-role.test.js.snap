@@ -33,6 +33,9 @@ exports[`per-function IAM: composed global-role pipeline scenario 3: byte-identi
               "Effect": "Allow",
               "Resource": [
                 {
+                  "Fn::Sub": "arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:/aws/lambda/my-service-dev*",
+                },
+                {
                   "Fn::Sub": "arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:/aws/lambda/my-service-dev*:*",
                 },
               ],
@@ -156,6 +159,9 @@ exports[`per-function IAM: composed global-role pipeline scenario 6: mode perFun
                 "Effect": "Allow",
                 "Resource": [
                   {
+                    "Fn::Sub": "arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:/aws/lambda/undefined",
+                  },
+                  {
                     "Fn::Sub": "arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:/aws/lambda/undefined:*:*",
                   },
                 ],
@@ -274,6 +280,9 @@ exports[`per-function IAM: composed global-role pipeline scenario 6: mode perFun
                 ],
                 "Effect": "Allow",
                 "Resource": [
+                  {
+                    "Fn::Sub": "arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:/aws/lambda/undefined",
+                  },
                   {
                     "Fn::Sub": "arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:/aws/lambda/undefined:*:*",
                   },

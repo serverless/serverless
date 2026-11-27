@@ -351,9 +351,14 @@ async function excludeNodeDevDependencies(serviceDir) {
           )
 
           if (dependencies.length) {
+            // `npm ls --parseable` resolves the cwd to its real path, so
+            // normalize `serviceDir` the same way — otherwise the prefix
+            // strip below silently fails when the service directory is
+            // reached through a symlink (e.g. AWS CodeBuild checkouts).
+            const serviceDirRealPath = await fsp.realpath(serviceDir)
             return pMap(
               dependencies,
-              (item) => item.replace(path.join(serviceDir, path.sep), ''),
+              (item) => path.relative(serviceDirRealPath, item),
               { concurrency: os.cpus().length },
             )
               .then((processedDependencies) => {

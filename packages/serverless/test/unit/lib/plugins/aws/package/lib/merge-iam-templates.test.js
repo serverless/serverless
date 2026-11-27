@@ -595,6 +595,9 @@ describe('mergeIamTemplates - IAM role policy', () => {
     const statements = getRoleStatements(resources)
     expect(statements[0].Resource).toEqual([
       {
+        'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/my-service-dev*`,
+      },
+      {
         'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/my-service-dev*:*`,
       },
     ])
@@ -632,6 +635,9 @@ describe('mergeIamTemplates - IAM role policy', () => {
     const statements = getRoleStatements(resources)
     // Fallback fired: canonical wildcard pair present.
     expect(statements[0].Resource).toEqual([
+      {
+        'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/my-service-dev*`,
+      },
       {
         'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/my-service-dev*:*`,
       },
@@ -688,9 +694,10 @@ describe('mergeIamTemplates - web apps', () => {
 
     expect(resources.IamRoleLambdaExecution).toBeDefined()
     const statements = getRoleStatements(resources)
-    expect(statements[0].Resource).toEqual(
-      webLogArns('my-service-dev-api', ':*'),
-    )
+    expect(statements[0].Resource).toEqual([
+      ...webLogArns('my-service-dev-api', ''),
+      ...webLogArns('my-service-dev-api', ':*'),
+    ])
     expect(statements[1].Resource).toEqual(
       webLogArns('my-service-dev-api', ':*:*'),
     )
@@ -706,7 +713,11 @@ describe('mergeIamTemplates - web apps', () => {
 
     const statements = getRoleStatements(resources)
     expect(statements[0].Resource).toEqual([
+      ...webLogArns('storefront', ''),
       ...webLogArns('storefront', ':*'),
+      {
+        'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/my-service-dev*`,
+      },
       {
         'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/my-service-dev*:*`,
       },
@@ -773,9 +784,10 @@ describe('mergeIamTemplates - web apps', () => {
     runMerge(ctx)
 
     const statements = getRoleStatements(resources)
-    expect(statements[0].Resource).toEqual(
-      webLogArns('my-service-dev-api', ':*'),
-    )
+    expect(statements[0].Resource).toEqual([
+      ...webLogArns('my-service-dev-api', ''),
+      ...webLogArns('my-service-dev-api', ':*'),
+    ])
     expect(statements[1].Resource).toEqual(
       webLogArns('my-service-dev-api', ':*:*'),
     )
@@ -797,9 +809,10 @@ describe('mergeIamTemplates - web apps', () => {
     runMerge(ctx)
 
     const statements = getRoleStatements(resources)
-    expect(statements[0].Resource).toEqual(
-      webLogArns('my-service-dev-api', ':*'),
-    )
+    expect(statements[0].Resource).toEqual([
+      ...webLogArns('my-service-dev-api', ''),
+      ...webLogArns('my-service-dev-api', ':*'),
+    ])
     expect(statements[1].Resource).toEqual(
       webLogArns('my-service-dev-api', ':*:*'),
     )
@@ -824,6 +837,9 @@ describe('mergeIamTemplates - web apps', () => {
 
     const statements = getRoleStatements(resources)
     expect(statements[0].Resource).toEqual([
+      {
+        'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/my-service-dev*`,
+      },
       {
         'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/my-service-dev*:*`,
       },

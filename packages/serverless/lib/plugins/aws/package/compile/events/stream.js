@@ -176,7 +176,16 @@ events:
           anyOf: [
             {
               properties: {
-                arn: { $ref: '#/definitions/awsCfFunction' },
+                // Only intrinsic functions from which the stream name can be
+                // resolved locally (see getStreamNameFromArn).
+                arn: {
+                  anyOf: [
+                    { $ref: '#/definitions/awsCfGetAtt' },
+                    { $ref: '#/definitions/awsCfImport' },
+                    { $ref: '#/definitions/awsCfJoin' },
+                    { $ref: '#/definitions/awsCfRef' },
+                  ],
+                },
               },
               required: ['arn', 'type'],
             },
@@ -280,6 +289,20 @@ events:
               streamType,
               streamName,
             )
+
+            if (
+              this.serverless.service.provider.compiledCloudFormationTemplate
+                .Resources[streamLogicalId]
+            ) {
+              // Two stream events resolving to the same logical id (possible
+              // when nested intrinsic functions collapse to the same derived
+              // name) would silently overwrite each other below.
+              throw new ServerlessError(
+                `Two stream events of function "${functionName}" resolve to the same stream name "${streamName}". ` +
+                  'Configure distinct stream ARNs or names.',
+                'FUNCTION_STREAM_NAME_COLLISION',
+              )
+            }
 
             const dependsOn = []
             const functionIamRoleResourceName =

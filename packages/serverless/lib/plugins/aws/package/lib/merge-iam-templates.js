@@ -197,11 +197,21 @@ export default {
               logGroupClass: this.provider.getLogGroupClass(functionObject),
             })
 
-          policyDocumentStatements[0].Resource.push({
-            'Fn::Sub':
-              'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
-              `:log-group:${customFunctionNamelogGroupsPrefix}:*`,
-          })
+          // Log-group-level actions (logs:CreateLogGroup, logs:TagResource)
+          // require the log group ARN; the `:*` variant only matches log
+          // stream ARNs, so both forms are granted.
+          policyDocumentStatements[0].Resource.push(
+            {
+              'Fn::Sub':
+                'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+                `:log-group:${customFunctionNamelogGroupsPrefix}`,
+            },
+            {
+              'Fn::Sub':
+                'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+                `:log-group:${customFunctionNamelogGroupsPrefix}:*`,
+            },
+          )
 
           policyDocumentStatements[1].Resource.push({
             'Fn::Sub':
@@ -251,12 +261,22 @@ export default {
     }
 
     if (hasOneOrMoreCanonicallyNamedFunctions) {
-      // Ensure general policies for functions with default name resolution
-      policyDocumentStatements[0].Resource.push({
-        'Fn::Sub':
-          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
-          `:log-group:${logGroupsPrefix}*:*`,
-      })
+      // Ensure general policies for functions with default name resolution.
+      // The first ARN is the log group itself (log-group-level actions like
+      // logs:CreateLogGroup and logs:TagResource require it); the `:*`
+      // variant is the log stream ARN form.
+      policyDocumentStatements[0].Resource.push(
+        {
+          'Fn::Sub':
+            'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+            `:log-group:${logGroupsPrefix}*`,
+        },
+        {
+          'Fn::Sub':
+            'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+            `:log-group:${logGroupsPrefix}*:*`,
+        },
+      )
 
       policyDocumentStatements[1].Resource.push({
         'Fn::Sub':
@@ -276,11 +296,18 @@ export default {
     ) {
       // All log-contributing functions have dedicated roles; keep the shared
       // role's log statements valid (IAM rejects empty Resource arrays).
-      policyDocumentStatements[0].Resource.push({
-        'Fn::Sub':
-          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
-          `:log-group:${logGroupsPrefix}*:*`,
-      })
+      policyDocumentStatements[0].Resource.push(
+        {
+          'Fn::Sub':
+            'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+            `:log-group:${logGroupsPrefix}*`,
+        },
+        {
+          'Fn::Sub':
+            'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+            `:log-group:${logGroupsPrefix}*:*`,
+        },
+      )
       policyDocumentStatements[1].Resource.push({
         'Fn::Sub':
           'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +

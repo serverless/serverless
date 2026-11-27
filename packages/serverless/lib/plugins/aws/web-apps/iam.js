@@ -40,7 +40,12 @@ export function getWebAppLogGroupArns(functionName, suffix = '') {
  * @param {string} functionName - the web function's name
  */
 export function grantWebAppLogGroups(statements, functionName) {
+  // The log-group actions in statement 0 (logs:CreateLogGroup,
+  // logs:TagResource) require the log group ARN; the `:*` variant only
+  // matches log stream ARNs, which logs:CreateLogStream needs, so both
+  // forms are granted.
   statements[0].Resource.push(
+    ...Object.values(getWebAppLogGroupArns(functionName)),
     ...Object.values(getWebAppLogGroupArns(functionName, ':*')),
   )
   statements[1].Resource.push(

@@ -210,7 +210,15 @@ describe('generateBuildRole', () => {
     const createStmt = stmts.find((s) =>
       s.Action.includes('logs:CreateLogGroup'),
     )
-    expect(createStmt.Resource['Fn::Sub']).toContain('/aws/lambda-microvms/')
+    // The group ARN covers logs:CreateLogGroup; the `:*` variant is the log
+    // stream ARN form for logs:CreateLogStream.
+    expect(createStmt.Resource).toHaveLength(2)
+    expect(createStmt.Resource[0]['Fn::Sub']).toMatch(
+      /:log-group:\/aws\/lambda-microvms\/[^:]*$/,
+    )
+    expect(createStmt.Resource[1]['Fn::Sub']).toMatch(
+      /:log-group:\/aws\/lambda-microvms\/[^:]*:\*$/,
+    )
     const putStmt = stmts.find((s) => s.Action.includes('logs:PutLogEvents'))
     expect(putStmt.Resource['Fn::Sub']).toContain('/aws/lambda-microvms/')
     expect(putStmt.Resource['Fn::Sub']).toMatch(/:log-stream:\*$/)
@@ -307,7 +315,15 @@ describe('generateExecutionRole', () => {
     const createStmt = stmts.find((s) =>
       s.Action.includes('logs:CreateLogGroup'),
     )
-    expect(createStmt.Resource['Fn::Sub']).toContain('/aws/lambda-microvms/')
+    // The group ARN covers logs:CreateLogGroup; the `:*` variant is the log
+    // stream ARN form for logs:CreateLogStream.
+    expect(createStmt.Resource).toHaveLength(2)
+    expect(createStmt.Resource[0]['Fn::Sub']).toMatch(
+      /:log-group:\/aws\/lambda-microvms\/[^:]*$/,
+    )
+    expect(createStmt.Resource[1]['Fn::Sub']).toMatch(
+      /:log-group:\/aws\/lambda-microvms\/[^:]*:\*$/,
+    )
     const putStmt = stmts.find((s) => s.Action.includes('logs:PutLogEvents'))
     expect(putStmt.Resource['Fn::Sub']).toContain('/aws/lambda-microvms/')
     expect(putStmt.Resource['Fn::Sub']).toMatch(/:log-stream:\*$/)
@@ -340,9 +356,16 @@ describe('generateExecutionRole', () => {
     )
     const stmts = role.Properties.Policies[0].PolicyDocument.Statement
     const create = stmts.find((s) => s.Action.includes('logs:CreateLogGroup'))
-    expect(create.Resource['Fn::Sub']).toContain(
-      ':log-group:/my-org/sbx/runner:*',
-    )
+    expect(create.Resource).toEqual([
+      {
+        'Fn::Sub': expect.stringMatching(/:log-group:\/my-org\/sbx\/runner$/),
+      },
+      {
+        'Fn::Sub': expect.stringMatching(
+          /:log-group:\/my-org\/sbx\/runner:\*$/,
+        ),
+      },
+    ])
     const put = stmts.find((s) => s.Action.includes('logs:PutLogEvents'))
     expect(put.Resource['Fn::Sub']).toContain(
       ':log-group:/my-org/sbx/runner:log-stream:*',

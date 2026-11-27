@@ -651,11 +651,20 @@ describe('applyPerFunctionPermissions - Log Permissions for INFREQUENT_ACCESS', 
       throwError: jest.fn(),
     })
 
-    expect(policyStatements[0].Resource[0]).toEqual({
-      'Fn::Sub':
-        'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
-        ':log-group:/aws/lambda/test-service-dev-myFunc-ia:*:*',
-    })
+    // Log-group-level actions (logs:CreateLogGroup) require the group ARN;
+    // the `:*:*` variant only matches log stream ARNs.
+    expect(policyStatements[0].Resource).toEqual([
+      {
+        'Fn::Sub':
+          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+          ':log-group:/aws/lambda/test-service-dev-myFunc-ia',
+      },
+      {
+        'Fn::Sub':
+          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+          ':log-group:/aws/lambda/test-service-dev-myFunc-ia:*:*',
+      },
+    ])
   })
 
   it('grants logs:PutLogEvents on the standard log group when no logGroupClass is set', () => {
@@ -673,11 +682,18 @@ describe('applyPerFunctionPermissions - Log Permissions for INFREQUENT_ACCESS', 
       throwError: jest.fn(),
     })
 
-    expect(policyStatements[0].Resource[0]).toEqual({
-      'Fn::Sub':
-        'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
-        ':log-group:/aws/lambda/test-service-dev-myFunc:*:*',
-    })
+    expect(policyStatements[0].Resource).toEqual([
+      {
+        'Fn::Sub':
+          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+          ':log-group:/aws/lambda/test-service-dev-myFunc',
+      },
+      {
+        'Fn::Sub':
+          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+          ':log-group:/aws/lambda/test-service-dev-myFunc:*:*',
+      },
+    ])
   })
 })
 

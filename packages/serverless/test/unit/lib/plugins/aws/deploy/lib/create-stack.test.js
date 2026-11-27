@@ -66,4 +66,30 @@ describe('createStack', () => {
     expect(ctx.stackLastUpdatedTime).toBeUndefined()
     expect(ctx.createLater).toBe(true)
   })
+
+  it('does not set createLater with the legacy deployment bucket and no custom bucket', async () => {
+    const ctx = buildCtx(async () => {
+      throw new Error('Stack with id shop-dev does not exist')
+    })
+    ctx.provider.isLegacyDeploymentBucketEnabled = true
+
+    await ctx.createStack()
+
+    expect(ctx.createLater).toBeUndefined()
+  })
+
+  // Regression for #13165: with the legacy deployment bucket flow AND a
+  // user-provided `deploymentBucket`, ensureValidBucketExists returns early
+  // without creating the stack, so the create fallback must be armed here.
+  it('sets createLater with the legacy deployment bucket and a custom bucket', async () => {
+    const ctx = buildCtx(async () => {
+      throw new Error('Stack with id shop-dev does not exist')
+    })
+    ctx.provider.isLegacyDeploymentBucketEnabled = true
+    ctx.serverless.service.provider.deploymentBucket = 'custom-bucket'
+
+    await ctx.createStack()
+
+    expect(ctx.createLater).toBe(true)
+  })
 })

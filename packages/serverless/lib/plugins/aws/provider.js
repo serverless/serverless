@@ -3683,9 +3683,6 @@ destinations:
   async getServerlessDeploymentBucketName() {
     this.globalDeploymentBucketUsed = false
     this.deploymentBucketInStack = null
-    if (this.serverless.service.provider.deploymentBucket) {
-      return this.serverless.service.provider.deploymentBucket
-    }
     const deploymentBucketInStack = await this.request(
       'CloudFormation',
       'describeStackResource',
@@ -3704,6 +3701,30 @@ destinations:
         }
         throw err
       })
+
+    /**
+     * Note for callers: resolving the in-stack bucket requires
+     * `cloudformation:DescribeStackResource` even when `deploymentBucket`
+     * is configured. The error is deliberately not swallowed — treating a
+     * stack-owned bucket as external would break removal handling (and is
+     * exactly what the ownership fix above guards against).
+     */
+    const userProvidedDeploymentBucket =
+      this.serverless.service.provider.deploymentBucket
+    if (userProvidedDeploymentBucket) {
+      /**
+       * When the configured bucket is the one the stack already owns (e.g. an
+       * originally auto-generated bucket that is now referenced explicitly
+       * through `deploymentBucket`), it must be reported as in-stack so the
+       * resource is kept in the template. Dropping it would make
+       * CloudFormation attempt to delete the very bucket the deployment uses.
+       */
+      if (deploymentBucketInStack === userProvidedDeploymentBucket) {
+        this.deploymentBucketInStack = deploymentBucketInStack
+      }
+      return userProvidedDeploymentBucket
+    }
+
     this.deploymentBucketInStack = deploymentBucketInStack
 
     /**
