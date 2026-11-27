@@ -309,14 +309,23 @@ export default {
     // reject it. Only a single exact origin (or `*`) can be represented by a
     // static header, so skip synthesis for patterns and let the user define
     // their own GatewayResponse resources for the pattern instead.
+    // Judge the origin the preflight actually emits (the first one), not
+    // the whole configured list: with
+    // `https://app.example.com, https://*.example.com` the preflight uses
+    // the exact first origin, so the gateway responses can use it too.
+    const origins = this.getCorsOrigins(mergedConfig)
+    const selectedOrigin =
+      Array.isArray(origins) && origins.length
+        ? origins[0]
+        : mergedConfig.origin
     if (
-      mergedConfig.origin &&
-      mergedConfig.origin !== '*' &&
-      mergedConfig.origin.includes('*')
+      selectedOrigin &&
+      selectedOrigin !== '*' &&
+      selectedOrigin.includes('*')
     ) {
       log.warning(
         'CORS gateway responses were not created because the configured ' +
-          `origin '${mergedConfig.origin}' is a wildcard pattern, which ` +
+          `origin '${selectedOrigin}' is a wildcard pattern, which ` +
           'cannot be represented by a static Access-Control-Allow-Origin ' +
           'header. Define your own AWS::ApiGateway::GatewayResponse ' +
           'resources to cover gateway-generated error responses for this origin.',
@@ -501,22 +510,23 @@ export default {
     // the template later, so a generated name must not collide with one of
     // them either: merging two different definitions under one name leaves
     // a condition with two function keys, which CloudFormation rejects.
-    // A name is reused only when the existing definition matches exactly.
+    // A name is reused only when every existing definition under it matches
+    // the generated one. Checking only the template would miss a different
+    // user definition under the same name, and the later merge would then
+    // silently change what the generated fallback is gated on.
     const userConditions =
       (this.serverless.service.resources &&
         this.serverless.service.resources.Conditions) ||
       {}
-    const existingDefinition = (name) =>
-      template.Conditions[name] !== undefined
-        ? template.Conditions[name]
-        : userConditions[name]
+    const matchesGenerated = (name) =>
+      [template.Conditions[name], userConditions[name]]
+        .filter((existing) => existing !== undefined)
+        .every(
+          (existing) => JSON.stringify(existing) === JSON.stringify(definition),
+        )
     let conditionName = baseName
     let attempt = 0
-    while (
-      existingDefinition(conditionName) !== undefined &&
-      JSON.stringify(existingDefinition(conditionName)) !==
-        JSON.stringify(definition)
-    ) {
+    while (!matchesGenerated(conditionName)) {
       attempt += 1
       conditionName = `${baseName}${attempt}`
     }

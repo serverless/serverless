@@ -441,6 +441,32 @@ describe('#compileCors()', () => {
     expect(resources.ApiGatewayMethodUsersCreateOptions).toBeDefined()
   })
 
+  it('should synthesize gateway responses when only a later origin is a wildcard', () => {
+    // The preflight emits the first origin as a static header, so the
+    // gateway responses can use that same exact origin even when a later
+    // entry in the list is a wildcard pattern.
+    awsCompileApigEvents.validated.corsPreflight = {
+      'users/create': {
+        origin: 'https://app.example.com, https://*.example.com',
+        origins: [],
+        headers: ['Content-Type'],
+        methods: ['OPTIONS', 'POST'],
+        allowCredentials: true,
+      },
+    }
+    awsCompileApigEvents.compileCors()
+    const resources =
+      serverless.service.provider.compiledCloudFormationTemplate.Resources
+
+    expect(
+      resources.ApiGatewayGatewayResponseDefault4XX.Properties
+        .ResponseParameters[
+        'gatewayresponse.header.Access-Control-Allow-Origin'
+      ],
+    ).toBe("'https://app.example.com'")
+    expect(resources.ApiGatewayGatewayResponseDefault5XX).toBeDefined()
+  })
+
   it('should use the configured external RestApiId for gateway responses', () => {
     serverless.service.provider.apiGateway = { restApiId: 'abc123' }
     awsCompileApigEvents.validated.corsPreflight = {
@@ -1081,6 +1107,99 @@ describe('#compileCors()', () => {
   })
 
   it('should reuse a user-defined condition name when the definition matches', () => {
+    serverless.service.resources = {
+      Conditions: {
+        NotIsProd: { 'Fn::Not': [{ Condition: 'IsProd' }] },
+      },
+      Resources: {
+        GatewayResponseDefault4XX: {
+          Type: 'AWS::ApiGateway::GatewayResponse',
+          Condition: 'IsProd',
+          Properties: {
+            ResponseType: 'DEFAULT_4XX',
+            RestApiId: { Ref: 'ApiGatewayRestApi' },
+          },
+        },
+      },
+    }
+    awsCompileApigEvents.validated.corsPreflight = {
+      'users/create': {
+        origin: 'http://example.com',
+        origins: [],
+        headers: ['*'],
+        methods: ['OPTIONS', 'POST'],
+        allowCredentials: false,
+      },
+    }
+    awsCompileApigEvents.compileCors()
+    const template = serverless.service.provider.compiledCloudFormationTemplate
+
+    const generated =
+      template.Resources.ApiGatewayGatewayResponseDefault4XXCors1
+    expect(generated).toBeDefined()
+    expect(generated.Condition).toBe('NotIsProd')
+    expect(template.Conditions.NotIsProd).toEqual({
+      'Fn::Not': [{ Condition: 'IsProd' }],
+    })
+  })
+
+  it('should pick a fresh condition name when the template and the user disagree', () => {
+    // The template already defines `NotIsProd` (e.g. seeded by an earlier
+    // hook) with the generated definition, but the user defines the same
+    // name differently in `service.resources.Conditions`. Reusing the name
+    // would let the later merge silently change what the generated
+    // fallback is gated on.
+    serverless.service.provider.compiledCloudFormationTemplate.Conditions = {
+      NotIsProd: { 'Fn::Not': [{ Condition: 'IsProd' }] },
+    }
+    serverless.service.resources = {
+      Conditions: {
+        NotIsProd: {
+          'Fn::Equals': ['prod', { Ref: 'AWS::StackName' }],
+        },
+      },
+      Resources: {
+        GatewayResponseDefault4XX: {
+          Type: 'AWS::ApiGateway::GatewayResponse',
+          Condition: 'IsProd',
+          Properties: {
+            ResponseType: 'DEFAULT_4XX',
+            RestApiId: { Ref: 'ApiGatewayRestApi' },
+          },
+        },
+      },
+    }
+    awsCompileApigEvents.validated.corsPreflight = {
+      'users/create': {
+        origin: 'http://example.com',
+        origins: [],
+        headers: ['*'],
+        methods: ['OPTIONS', 'POST'],
+        allowCredentials: false,
+      },
+    }
+    awsCompileApigEvents.compileCors()
+    const template = serverless.service.provider.compiledCloudFormationTemplate
+
+    const generated =
+      template.Resources.ApiGatewayGatewayResponseDefault4XXCors1
+    expect(generated).toBeDefined()
+    expect(generated.Condition).toBe('NotIsProd1')
+    expect(template.Conditions.NotIsProd1).toEqual({
+      'Fn::Not': [{ Condition: 'IsProd' }],
+    })
+    // The template's own condition is left alone
+    expect(template.Conditions.NotIsProd).toEqual({
+      'Fn::Not': [{ Condition: 'IsProd' }],
+    })
+  })
+
+  it('should reuse a condition name when the template and the user agree', () => {
+    // Both places define `NotIsProd` with the generated definition, so
+    // reusing the name is safe.
+    serverless.service.provider.compiledCloudFormationTemplate.Conditions = {
+      NotIsProd: { 'Fn::Not': [{ Condition: 'IsProd' }] },
+    }
     serverless.service.resources = {
       Conditions: {
         NotIsProd: { 'Fn::Not': [{ Condition: 'IsProd' }] },
